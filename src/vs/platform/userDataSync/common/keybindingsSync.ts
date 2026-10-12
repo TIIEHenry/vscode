@@ -378,7 +378,13 @@ export class KeybindingsInitializer extends AbstractInitializer {
 			const keybindings = parse(fileContent.value.toString());
 			return !isNonEmptyArray(keybindings);
 		} catch (error) {
-			return (<FileOperationError>error).fileOperationResult === FileOperationResult.FILE_NOT_FOUND;
+			if (error instanceof FileOperationError) {
+				if (error.fileOperationResult === FileOperationResult.FILE_NOT_FOUND) {
+					return true;
+				}
+				throw error;
+			}
+			return false;
 		}
 	}
 

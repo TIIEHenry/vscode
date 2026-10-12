@@ -13,8 +13,8 @@ import { ConfigurationScope, Extensions, IConfigurationRegistry } from '../../..
 import { FileOperationError, FileOperationResult, IFileService } from '../../../files/common/files.js';
 import { Registry } from '../../../registry/common/platform.js';
 import { IUserDataProfile, IUserDataProfilesService } from '../../../userDataProfile/common/userDataProfile.js';
-import { ISettingsSyncContent, parseSettingsSyncContent, SettingsSynchroniser } from '../../common/settingsSync.js';
-import { ISyncData, IUserDataSyncStoreService, SyncResource, SyncStatus, UserDataSyncError, UserDataSyncErrorCode } from '../../common/userDataSync.js';
+import { ISettingsSyncContent, parseSettingsSyncContent, SettingsInitializer, SettingsSynchroniser } from '../../common/settingsSync.js';
+import { ISyncData, IUserDataSyncLogService, IUserDataSyncStoreService, SyncResource, SyncStatus, UserDataSyncError, UserDataSyncErrorCode } from '../../common/userDataSync.js';
 import { UserDataSyncClient, UserDataSyncTestServer } from './userDataSyncClient.js';
 
 suite('SettingsSync - Auto', () => {
@@ -689,6 +689,164 @@ suite('SettingsSync - Manual', () => {
 	]
 }`);
 	}));
+
+});
+
+suite('SettingsInitializer', () => {
+
+	const server = new UserDataSyncTestServer();
+	let client: UserDataSyncClient;
+	let testObject: SettingsInitializer;
+
+	teardown(async () => {
+		await client.instantiationService.get(IUserDataSyncStoreService).clear();
+	});
+
+	const disposableStore = ensureNoDisposablesAreLeakedInTestSuite();
+
+	setup(async () => {
+		client = disposableStore.add(new UserDataSyncClient(server));
+		await client.setUp(true);
+		testObject = client.instantiationService.createInstance(SettingsInitializer);
+	});
+
+	test('skips initialization and does not overwrite when local settings are non-empty', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const settingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.settingsResource;
+		const localSettings = '{\n\t"files.autoSave": "afterDelay"\n}';
+		await fileService.writeFile(settingsResource, VSBuffer.fromString(localSettings));
+
+		await testObject.initialize(remoteSettingsUserData('{\n\t"editor.fontSize": 14\n}'));
+
+		assert.strictEqual((await fileService.readFile(settingsResource)).value.toString(), localSettings);
+	});
+
+	test('writes settingsResource when the settings file is missing', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const settingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.settingsResource;
+		if (await fileService.exists(settingsResource)) {
+			await fileService.del(settingsResource);
+		}
+		assert.strictEqual(await fileService.exists(settingsResource), false);
+
+		const remoteSettings = '{\n\t"editor.fontSize": 14\n}';
+		await testObject.initialize(remoteSettingsUserData(remoteSettings));
+
+		assert.strictEqual((await fileService.readFile(settingsResource)).value.toString(), remoteSettings);
+	});
+
+	test('initialize surfaces the read error and does not write when settings read fails with FILE_PERMISSION_DENIED or FILE_TOO_LARGE', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const settingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.settingsResource;
+		const remoteSettings = '{\n\t"editor.fontSize": 14\n}';
+
+		for (const result of [FileOperationResult.FILE_PERMISSION_DENIED, FileOperationResult.FILE_TOO_LARGE]) {
+			if (await fileService.exists(settingsResource)) {
+				await fileService.del(settingsResource);
+			}
+			const readError = failSettingsInitializerRead(fileService, settingsResource.toString(), result);
+			const loggedErrors: unknown[] = [];
+			const infos: unknown[] = [];
+			captureInitializerLogs(loggedErrors, infos);
+			let thrown: unknown;
+			try {
+				await testObject.initialize(remoteSettingsUserData(remoteSettings));
+			} catch (error) {
+				thrown = error;
+			}
+
+			assert.strictEqual(await fileService.exists(settingsResource), false);
+			assert.deepStrictEqual(thrown === undefined ? loggedErrors : [thrown], [readError]);
+			assert.ok(!infos.includes('Skipping initializing settings because local settings exist.'));
+		}
+	});
+
+	test('initialize skips writing when settings parse throws a non-FileOperationError', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const settingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.settingsResource;
+		const localSettings = '{\n\t"files.autoSave": "afterDelay"\n}';
+		await fileService.writeFile(settingsResource, VSBuffer.fromString(localSettings));
+		const restoreRead = stubSettingsParseFailure(fileService, settingsResource.toString());
+		const loggedErrors: unknown[] = [];
+		const infos: unknown[] = [];
+		captureInitializerLogs(loggedErrors, infos);
+
+		try {
+			await testObject.initialize(remoteSettingsUserData('{\n\t"editor.fontSize": 14\n}'));
+			assert.deepStrictEqual(loggedErrors, []);
+			assert.ok(infos.includes('Skipping initializing settings because local settings exist.'));
+		} finally {
+			restoreRead();
+		}
+
+		assert.strictEqual((await fileService.readFile(settingsResource)).value.toString(), localSettings);
+	});
+
+	function remoteSettingsUserData(settings: string) {
+		return {
+			ref: '1',
+			content: JSON.stringify({
+				version: 2,
+				content: JSON.stringify({ settings }),
+			}),
+		};
+	}
+
+	function failSettingsInitializerRead(fileService: IFileService, settingsResource: string, result: FileOperationResult): FileOperationError {
+		const readError = new FileOperationError('settings read failed', result);
+		const target = fileService as { readFile: IFileService['readFile'] };
+		const originalReadFile = target.readFile.bind(fileService);
+		target.readFile = (resource, options, token) => {
+			if (resource.toString() === settingsResource) {
+				return Promise.reject(readError);
+			}
+			return originalReadFile(resource, options, token);
+		};
+		return readError;
+	}
+
+	function stubSettingsParseFailure(fileService: IFileService, settingsResource: string): () => void {
+		const target = fileService as { readFile: IFileService['readFile'] };
+		const originalReadFile = target.readFile.bind(fileService);
+		target.readFile = async (resource, options, token) => {
+			if (resource.toString() !== settingsResource) {
+				return originalReadFile(resource, options, token);
+			}
+			const content = await originalReadFile(resource, options, token);
+			return {
+				...content,
+				value: {
+					toString(): string {
+						return new Proxy(Object.create(null), {
+							get(_target, prop) {
+								if (prop === 'length' || prop === 'charCodeAt' || prop === 'trim') {
+									throw new TypeError('settings parse failed');
+								}
+								return undefined;
+							}
+						}) as unknown as string;
+					}
+				} as typeof content.value
+			};
+		};
+		return () => {
+			target.readFile = originalReadFile;
+		};
+	}
+
+	function captureInitializerLogs(loggedErrors: unknown[], infos: unknown[]): void {
+		const logService = client.instantiationService.get(IUserDataSyncLogService);
+		const originalError = logService.error.bind(logService);
+		const originalInfo = logService.info.bind(logService);
+		logService.error = (message: string | Error, ...args: unknown[]) => {
+			loggedErrors.push(message);
+			originalError(message, ...args);
+		};
+		logService.info = (message: string, ...args: unknown[]) => {
+			infos.push(message);
+			originalInfo(message, ...args);
+		};
+	}
 
 });
 

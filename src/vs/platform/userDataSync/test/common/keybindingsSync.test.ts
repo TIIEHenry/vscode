@@ -10,7 +10,7 @@ import { FileOperationError, FileOperationResult, IFileService } from '../../../
 import { ILogService } from '../../../log/common/log.js';
 import { IUserDataProfilesService } from '../../../userDataProfile/common/userDataProfile.js';
 import { getKeybindingsContentFromSyncContent, KeybindingsInitializer, KeybindingsSynchroniser } from '../../common/keybindingsSync.js';
-import { IUserDataSyncStoreService, SyncResource, UserDataSyncError, UserDataSyncErrorCode } from '../../common/userDataSync.js';
+import { IUserDataSyncLogService, IUserDataSyncStoreService, SyncResource, UserDataSyncError, UserDataSyncErrorCode } from '../../common/userDataSync.js';
 import { UserDataSyncClient, UserDataSyncTestServer } from './userDataSyncClient.js';
 
 suite('KeybindingsSync', () => {
@@ -424,6 +424,63 @@ suite('KeybindingsInitializer', () => {
 		assert.strictEqual((await fileService.readFile(settingsResource)).value.toString(), settingsContent);
 	});
 
+	test('initialize surfaces the read error and does not write when keybindings read fails with FILE_PERMISSION_DENIED or FILE_TOO_LARGE', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const keybindingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.keybindingsResource;
+		const remoteContent = JSON.stringify([
+			{
+				'key': 'shift+cmd+w',
+				'command': 'workbench.action.closeAllEditors',
+			}
+		]);
+
+		for (const result of [FileOperationResult.FILE_PERMISSION_DENIED, FileOperationResult.FILE_TOO_LARGE]) {
+			if (await fileService.exists(keybindingsResource)) {
+				await fileService.del(keybindingsResource);
+			}
+			const readError = failKeybindingsInitializerRead(fileService, keybindingsResource.toString(), result);
+			const loggedErrors: unknown[] = [];
+			const infos: unknown[] = [];
+			captureInitializerLogs(loggedErrors, infos);
+			let thrown: unknown;
+			try {
+				await testObject.initialize(remoteKeybindingsUserData(remoteContent));
+			} catch (error) {
+				thrown = error;
+			}
+
+			assert.strictEqual(await fileService.exists(keybindingsResource), false);
+			assert.deepStrictEqual(thrown === undefined ? loggedErrors : [thrown], [readError]);
+			assert.ok(!infos.includes('Skipping initializing keybindings because local keybindings exist.'));
+		}
+	});
+
+	test('initialize skips writing when keybindings parse throws a non-FileOperationError', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const keybindingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.keybindingsResource;
+		const localKeybindings = '[]';
+		await fileService.writeFile(keybindingsResource, VSBuffer.fromString(localKeybindings));
+		const restoreRead = stubKeybindingsParseFailure(fileService, keybindingsResource.toString());
+		const loggedErrors: unknown[] = [];
+		const infos: unknown[] = [];
+		captureInitializerLogs(loggedErrors, infos);
+
+		try {
+			await testObject.initialize(remoteKeybindingsUserData(JSON.stringify([
+				{
+					'key': 'shift+cmd+w',
+					'command': 'workbench.action.closeAllEditors',
+				}
+			])));
+			assert.deepStrictEqual(loggedErrors, []);
+			assert.ok(infos.includes('Skipping initializing keybindings because local keybindings exist.'));
+		} finally {
+			restoreRead();
+		}
+
+		assert.strictEqual((await fileService.readFile(keybindingsResource)).value.toString(), localKeybindings);
+	});
+
 	function remoteKeybindingsUserData(keybindingsContent: string) {
 		return {
 			ref: '1',
@@ -451,6 +508,62 @@ suite('KeybindingsInitializer', () => {
 			restore: () => {
 				target.readFile = originalReadFile;
 			},
+		};
+	}
+
+	function failKeybindingsInitializerRead(fileService: IFileService, keybindingsResource: string, result: FileOperationResult): FileOperationError {
+		const readError = new FileOperationError('keybindings read failed', result);
+		const target = fileService as { readFile: IFileService['readFile'] };
+		const originalReadFile = target.readFile.bind(fileService);
+		target.readFile = (resource, options, token) => {
+			if (resource.toString() === keybindingsResource) {
+				return Promise.reject(readError);
+			}
+			return originalReadFile(resource, options, token);
+		};
+		return readError;
+	}
+
+	function stubKeybindingsParseFailure(fileService: IFileService, keybindingsResource: string): () => void {
+		const target = fileService as { readFile: IFileService['readFile'] };
+		const originalReadFile = target.readFile.bind(fileService);
+		target.readFile = async (resource, options, token) => {
+			if (resource.toString() !== keybindingsResource) {
+				return originalReadFile(resource, options, token);
+			}
+			const content = await originalReadFile(resource, options, token);
+			return {
+				...content,
+				value: {
+					toString(): string {
+						return new Proxy(Object.create(null), {
+							get(_target, prop) {
+								if (prop === 'length' || prop === 'charCodeAt') {
+									throw new TypeError('keybindings parse failed');
+								}
+								return undefined;
+							}
+						}) as unknown as string;
+					}
+				} as typeof content.value
+			};
+		};
+		return () => {
+			target.readFile = originalReadFile;
+		};
+	}
+
+	function captureInitializerLogs(loggedErrors: unknown[], infos: unknown[]): void {
+		const logService = client.instantiationService.get(IUserDataSyncLogService);
+		const originalError = logService.error.bind(logService);
+		const originalInfo = logService.info.bind(logService);
+		logService.error = (message: string | Error, ...args: unknown[]) => {
+			loggedErrors.push(message);
+			originalError(message, ...args);
+		};
+		logService.info = (message: string, ...args: unknown[]) => {
+			infos.push(message);
+			originalInfo(message, ...args);
 		};
 	}
 
