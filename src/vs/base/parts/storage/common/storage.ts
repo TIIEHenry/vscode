@@ -130,6 +130,7 @@ export class Storage extends Disposable implements IStorage {
 	private pendingInserts = new Map<string, string>();
 
 	private pendingClose: Promise<void> | undefined = undefined;
+	private pendingInit: Promise<void> | undefined = undefined;
 
 	private readonly whenFlushedCallbacks: { resolve: () => void; reject: (error: Error) => void }[] = [];
 	private currentFlushPromise: Promise<void> | undefined;
@@ -199,20 +200,47 @@ export class Storage extends Disposable implements IStorage {
 	}
 
 	async init(): Promise<void> {
-		if (this.state !== StorageState.None) {
-			return; // either closed or already initialized
+		if (this.state === StorageState.Closed) {
+			return; // Return early if we are already closed
 		}
 
-		this.state = StorageState.Initialized;
+		if (this.state === StorageState.Initialized) {
+			return; // already initialized
+		}
 
+		// Join an in-flight load. State stays None until getItems settles, so a
+		// second caller must not treat this init as finished.
+		if (this.pendingInit) {
+			return this.pendingInit;
+		}
+
+		this.pendingInit = this.doInit();
+		try {
+			await this.pendingInit;
+		} finally {
+			this.pendingInit = undefined;
+		}
+	}
+
+	private async doInit(): Promise<void> {
 		if (this.options.hint === StorageHint.STORAGE_DOES_NOT_EXIST) {
 			// return early if we know the storage file does not exist. this is a performance
 			// optimization to not load all items of the underlying storage if we know that
 			// there can be no items because the storage does not exist.
+			this.state = StorageState.Initialized;
 			return;
 		}
 
 		this.cache = await this.database.getItems();
+
+		// getItems can settle after close(). The pre-await check narrowed
+		// `this.state` to None, so read it back before deciding it is initialized.
+		const stateAfterLoad = this.state as StorageState;
+		if (stateAfterLoad === StorageState.Closed) {
+			return;
+		}
+
+		this.state = StorageState.Initialized;
 	}
 
 	get(key: string, fallbackValue: string): string;
