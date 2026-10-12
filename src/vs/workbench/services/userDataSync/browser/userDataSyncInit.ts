@@ -249,11 +249,11 @@ export class UserDataSyncInitializer implements IUserDataInitializer {
 					this.logService.info(`${getSyncAreaLabel(syncResource)} initialized already.`);
 					return;
 				}
-				this.initialized.push(syncResource);
 				this.logService.trace(`Initializing ${getSyncAreaLabel(syncResource)}`);
 				const initializer = this.createSyncResourceInitializer(syncResource);
 				const userData = await userDataSyncStoreClient.readResource(syncResource, syncResource === SyncResource.GlobalState ? this.globalStateUserData : null);
 				await initializer.initialize(userData);
+				this.initialized.push(syncResource);
 				this.logService.info(`Initialized ${getSyncAreaLabel(syncResource)}`);
 			} catch (error) {
 				this.logService.info(`Error while initializing ${getSyncAreaLabel(syncResource)}`);
