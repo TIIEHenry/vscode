@@ -2103,6 +2103,7 @@ suite('ChatEditingModifiedNotebookEntry', function () {
 			let saveOptions: { reason: SaveReason; skipSaveParticipants: boolean } | undefined;
 
 			const entry = {
+				_store: { isDisposed: false },
 				modifiedURI: notebookUri,
 				modifiedModel: { uri: notebookUri, cells: [] },
 				originalModel: { uri: notebookUri, cells: [] },
