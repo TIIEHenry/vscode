@@ -21,13 +21,13 @@ import { IProductService } from '../../../product/common/productService.js';
 
 import { ISharedProcessService } from '../../../ipc/electron-browser/services.js';
 import { IQuickInputService } from '../../../quickinput/common/quickInput.js';
-import { addSSHRemoteAgentHostEntry, IRemoteAgentHostService, readSSHRemoteAgentHostEntries, RemoteAgentHostConnectionStatus, RemoteAgentHostEntryType, RemoteAgentHostsEnabledSettingId, RemoteAgentHostsSettingId, type IRawRemoteAgentHostEntry, type IRemoteAgentHostConnectionFactory, type IRemoteAgentHostConnectionInfo } from '../../common/remoteAgentHostService.js';
+import { addSSHRemoteAgentHostEntry, IRemoteAgentHostService, readSSHRemoteAgentHostEntries, RemoteAgentHostConnectionStatus, RemoteAgentHostEntryType, RemoteAgentHostsEnabledSettingId, RemoteAgentHostsSettingId, SSH_REMOTE_AGENT_HOSTS_STORAGE_KEY, type IRawRemoteAgentHostEntry, type IRemoteAgentHostConnectionFactory, type IRemoteAgentHostConnectionInfo } from '../../common/remoteAgentHostService.js';
 import type { IAgentConnection } from '../../common/agentService.js';
 import { AHP_UNSUPPORTED_PROTOCOL_VERSION, ProtocolError } from '../../common/state/sessionProtocol.js';
 import { IRemoteAgentHostLocationPreferenceService, type RemoteAgentHostLocationPreference } from '../../common/remoteAgentHostLocationPreference.js';
 import { ISSHHostKeyTrustService } from '../../common/sshHostKeyTrust.js';
 import { SSHHostKeyTrustService } from '../../browser/sshHostKeyTrustService.js';
-import { InMemoryStorageService, IStorageService } from '../../../storage/common/storage.js';
+import { InMemoryStorageService, IStorageService, StorageScope, StorageTarget } from '../../../storage/common/storage.js';
 import {
 	SSHAuthMethod,
 	type ISSHAgentHostConfig,
@@ -552,6 +552,14 @@ suite('SSHRemoteAgentHostService (renderer)', () => {
 		sshConfigHost: 'remote.example',
 	};
 
+	function readRawSSHStorage(): string | undefined {
+		return sshStorageService.get(SSH_REMOTE_AGENT_HOSTS_STORAGE_KEY, StorageScope.APPLICATION);
+	}
+
+	function storeRawSSHStorage(raw: string): void {
+		sshStorageService.store(SSH_REMOTE_AGENT_HOSTS_STORAGE_KEY, raw, StorageScope.APPLICATION, StorageTarget.USER);
+	}
+
 	/** Wait until the renderer has created its protocol client, then resolve its handshake. */
 	async function awaitClientThenResolve(index: number): Promise<void> {
 		const client = await waitForClient(index);
@@ -643,6 +651,140 @@ suite('SSHRemoteAgentHostService (renderer)', () => {
 			}],
 			settingsWrites: 1,
 		});
+	});
+
+	test('addSSHRemoteAgentHostEntry writes only the new host when SSH storage is absent', () => {
+		assert.strictEqual(readRawSSHStorage(), undefined);
+		addSSHRemoteAgentHostEntry(sshStorageService, {
+			name: 'Only',
+			connection: {
+				type: RemoteAgentHostEntryType.SSH,
+				address: 'ssh:only.example',
+				sshConfigHost: 'only.example',
+				hostName: 'only.example',
+				user: 'me',
+			},
+		});
+
+		assert.deepStrictEqual(JSON.parse(readRawSSHStorage()!), [{
+			address: 'ssh:only.example',
+			name: 'Only',
+			sshConfigHost: 'only.example',
+			sshHostName: 'only.example',
+			sshUser: 'me',
+		}]);
+	});
+
+	test('addSSHRemoteAgentHostEntry leaves SSH storage unchanged when it is not a JSON array', () => {
+		const entry = {
+			name: 'Added',
+			connection: {
+				type: RemoteAgentHostEntryType.SSH,
+				address: 'ssh:added.example',
+				sshConfigHost: 'added.example',
+				hostName: 'added.example',
+			},
+		};
+		for (const raw of ['{not json', '{"hosts":[]}']) {
+			storeRawSSHStorage(raw);
+			addSSHRemoteAgentHostEntry(sshStorageService, entry);
+			assert.deepStrictEqual({
+				stored: readRawSSHStorage(),
+				readable: readSSHRemoteAgentHostEntries(sshStorageService),
+			}, {
+				stored: raw,
+				readable: [],
+			});
+		}
+	});
+
+	test('storeEntry leaves SSH storage unchanged when it is not a JSON array', async () => {
+		for (const [index, raw] of ['{not json', '{"hosts":[]}'].entries()) {
+			sshStorageService.remove(SSH_REMOTE_AGENT_HOSTS_STORAGE_KEY, StorageScope.APPLICATION);
+			const connectPromise = service.connect(sampleConfig);
+			storeRawSSHStorage(raw);
+			await awaitClientThenResolve(index);
+			await connectPromise;
+
+			assert.deepStrictEqual({
+				stored: readRawSSHStorage(),
+				readable: readSSHRemoteAgentHostEntries(sshStorageService),
+			}, {
+				stored: raw,
+				readable: [],
+			});
+			remoteAgentHostService.removeEntry('ssh:remote.example');
+		}
+	});
+
+	test('successful connect keeps unrecognized SSH storage elements beside valid hosts', async () => {
+		const malformed = { address: 1, name: 'bad-type' };
+		const other = {
+			address: 'ssh:other.example',
+			name: 'Other',
+			sshConfigHost: 'other.example',
+			sshHostName: 'other.example',
+			sshUser: 'me',
+		};
+		storeRawSSHStorage(JSON.stringify([other, malformed]));
+
+		const connectPromise = service.connect(sampleConfig);
+		await awaitClientThenResolve(0);
+		await connectPromise;
+
+		assert.deepStrictEqual(JSON.parse(readRawSSHStorage()!), [
+			malformed,
+			other,
+			{
+				address: 'ssh:remote.example',
+				name: 'My Remote',
+				connectionToken: 'test-token',
+				sshConfigHost: 'remote.example',
+				sshHostName: 'remote.example',
+				sshUser: 'user',
+			},
+		]);
+		assert.deepStrictEqual(
+			readSSHRemoteAgentHostEntries(sshStorageService).map(entry => entry.connection.address),
+			['ssh:other.example', 'ssh:remote.example'],
+		);
+	});
+
+	test('legacy migration keeps settings when SSH storage is not a JSON array', async () => {
+		const legacy = {
+			address: 'ssh:legacy',
+			name: 'Legacy SSH Host',
+			connectionToken: 'ssh-token',
+			sshConfigHost: 'legacy',
+			sshHostName: 'legacy.example',
+			sshUser: 'me',
+			sshPort: 2222,
+		};
+		const websocket = {
+			address: 'host1:8080',
+			name: 'WebSocket Host',
+			connectionToken: 'websocket-token',
+		};
+		for (const raw of ['{not json', '{"hosts":[]}']) {
+			service.dispose();
+			configurationService.setRawEntries([legacy, websocket]);
+			configurationService.updateValueCalls = 0;
+			storeRawSSHStorage(raw);
+			service = disposables.add(instantiationService.createInstance(SSHRemoteAgentHostService));
+			await Promise.resolve();
+
+			assert.deepStrictEqual({
+				settings: configurationService.entries,
+				stored: readRawSSHStorage(),
+				settingsWrites: configurationService.updateValueCalls,
+				readable: readSSHRemoteAgentHostEntries(sshStorageService),
+			}, {
+				settings: [legacy, websocket],
+				stored: raw,
+				settingsWrites: 0,
+				readable: [],
+			});
+		}
 	});
 
 	test('disconnect removes the persisted SSH entry', async () => {

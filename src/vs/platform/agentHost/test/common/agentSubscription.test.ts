@@ -12,7 +12,7 @@ import { buildAnnotationsUri } from '../../common/annotationsUri.js';
 import { ActionType, type ActionEnvelope, type ClientChangesetAction } from '../../common/state/sessionActions.js';
 import { AutomationOperation, AutomationRunOriginKind, AutomationRunStatus, ChangesetStatus, MessageKind, ResponsePartKind, SessionLifecycle, SessionStatus, TerminalClaimKind, TerminalLifecycleStatus, TurnState, type AnnotationsState, type AutomationCatalogState, type AutomationRunState, type ChangesetState, type ErrorInfo, type RootState, type SessionState, type SessionSummary, type TerminalState, type Turn } from '../../common/state/protocol/state.js';
 import { AUTOMATION_CATALOG_URI, buildDefaultChatUri, createChatState, createDefaultChatSummary, getTurnError, ROOT_STATE_URI, StateComponents, type ChatState } from '../../common/state/sessionState.js';
-import { AgentSubscriptionManager, AutomationCatalogSubscription, AutomationRunSubscription, ChangesetStateSubscription, ChatStateSubscription, isActionEnvelopeRelevantToSubscriptionUris, RootStateSubscription, SessionStateSubscription, TerminalStateSubscription } from '../../common/state/agentSubscription.js';
+import { AgentSubscriptionManager, AnnotationsStateSubscription, AutomationCatalogSubscription, AutomationRunSubscription, ChangesetStateSubscription, ChatStateSubscription, isActionEnvelopeRelevantToSubscriptionUris, RootStateSubscription, SessionStateSubscription, TerminalStateSubscription } from '../../common/state/agentSubscription.js';
 import { normalizeLegacyActionEnvelope, readLegacyTurnError } from '../../common/state/legacyProtocolCompatibility.js';
 
 // Helpers
@@ -239,6 +239,174 @@ suite('ChangesetStateSubscription', () => {
 		});
 	});
 
+	test('rejected own changeset action removes pending without updating confirmed', () => {
+		const state: ChangesetState = {
+			status: ChangesetStatus.Ready,
+			files: [{
+				id: 'file:///test.txt',
+				edit: {
+					after: { uri: 'file:///test.txt', content: { uri: 'file:///after.txt' } },
+				},
+			}],
+		};
+		const subscription = disposables.add(new ChangesetStateSubscription(changesetUri, 'c1', () => 1, noop));
+		subscription.handleSnapshot(state, 0);
+		const action: ClientChangesetAction = {
+			type: ActionType.ChangesetFilesReviewChanged,
+			files: ['file:///test.txt'],
+			reviewed: true,
+		};
+		const clientSeq = subscription.applyOptimistic(action);
+		subscription.receiveEnvelope(makeEnvelope(action, 1, { clientId: 'c1', clientSeq }, 'denied'));
+
+		assert.deepStrictEqual({
+			verified: subscription.verifiedValue?.files[0].reviewed,
+			optimistic: (subscription.value as ChangesetState).files[0].reviewed,
+			pending: subscription.getPendingActions(),
+			same: subscription.value === subscription.verifiedValue,
+		}, {
+			verified: undefined,
+			optimistic: undefined,
+			pending: [],
+			same: true,
+		});
+	});
+
+	test('rejected changeset envelopes from another client or an unmatched seq do not update confirmed', () => {
+		const state: ChangesetState = {
+			status: ChangesetStatus.Ready,
+			files: [{
+				id: 'file:///test.txt',
+				edit: {
+					after: { uri: 'file:///test.txt', content: { uri: 'file:///after.txt' } },
+				},
+			}],
+		};
+		const subscription = disposables.add(new ChangesetStateSubscription(changesetUri, 'c1', () => 1, noop));
+		subscription.handleSnapshot(state, 0);
+		const action: ClientChangesetAction = {
+			type: ActionType.ChangesetFilesReviewChanged,
+			files: ['file:///test.txt'],
+			reviewed: true,
+		};
+		const clientSeq = subscription.applyOptimistic(action);
+		subscription.receiveEnvelope(makeEnvelope(action, 1, { clientId: 'other-client', clientSeq }, 'denied'));
+		subscription.receiveEnvelope(makeEnvelope(action, 2, { clientId: 'c1', clientSeq: clientSeq + 1 }, 'denied'));
+
+		assert.deepStrictEqual({
+			verified: subscription.verifiedValue?.files[0].reviewed,
+			optimistic: (subscription.value as ChangesetState).files[0].reviewed,
+			pending: subscription.getPendingActions().map(entry => entry.clientSeq),
+		}, {
+			verified: undefined,
+			optimistic: true,
+			pending: [clientSeq],
+		});
+	});
+
+	test('changeset echoes without rejectionReason still update confirmed', () => {
+		const state: ChangesetState = {
+			status: ChangesetStatus.Ready,
+			files: [{
+				id: 'file:///test.txt',
+				edit: {
+					after: { uri: 'file:///test.txt', content: { uri: 'file:///after.txt' } },
+				},
+			}],
+		};
+		const subscription = disposables.add(new ChangesetStateSubscription(changesetUri, 'c1', () => 1, noop));
+		subscription.handleSnapshot(state, 0);
+		const action: ClientChangesetAction = {
+			type: ActionType.ChangesetFilesReviewChanged,
+			files: ['file:///test.txt'],
+			reviewed: true,
+		};
+		subscription.receiveEnvelope(makeEnvelope(action, 1, { clientId: 'other-client', clientSeq: 4 }));
+		subscription.receiveEnvelope(makeEnvelope({ ...action, reviewed: false }, 2, { clientId: 'c1', clientSeq: 9 }));
+
+		assert.deepStrictEqual({
+			verified: subscription.verifiedValue?.files[0].reviewed,
+			optimistic: (subscription.value as ChangesetState).files[0].reviewed,
+			same: subscription.value === subscription.verifiedValue,
+		}, {
+			verified: false,
+			optimistic: false,
+			same: true,
+		});
+	});
+
+});
+
+suite('AnnotationsStateSubscription', () => {
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
+	const annotationsUri = buildAnnotationsUri(sessionUri);
+	const annotation = {
+		id: 'feedback-1',
+		origin: { session: sessionUri, chat: chatUri, turnId: 'turn-1' },
+		resource: 'file:///reviewed.ts',
+		resolved: false,
+		entries: [{ id: 'feedback-1:0', text: 'Please revisit this.' }],
+	};
+
+	function createSubscription(): AnnotationsStateSubscription {
+		const subscription = disposables.add(new AnnotationsStateSubscription(annotationsUri, 'c1', () => 1, noop));
+		subscription.handleSnapshot({ annotations: [annotation] }, 0);
+		return subscription;
+	}
+
+	test('rejected own annotation removal removes pending without updating confirmed', () => {
+		const subscription = createSubscription();
+		const action = { type: ActionType.AnnotationsRemoved, annotationId: annotation.id };
+		const clientSeq = subscription.applyOptimistic(action);
+		subscription.receiveEnvelope(makeEnvelope(action, 1, { clientId: 'c1', clientSeq }, 'denied', annotationsUri));
+
+		assert.deepStrictEqual({
+			verified: subscription.verifiedValue?.annotations.map(entry => entry.id),
+			optimistic: (subscription.value as AnnotationsState).annotations.map(entry => entry.id),
+			pending: subscription.getPendingActions(),
+			same: subscription.value === subscription.verifiedValue,
+		}, {
+			verified: [annotation.id],
+			optimistic: [annotation.id],
+			pending: [],
+			same: true,
+		});
+	});
+
+	test('rejected annotation envelopes from another client or an unmatched seq do not update confirmed', () => {
+		const subscription = createSubscription();
+		const action = { type: ActionType.AnnotationsRemoved, annotationId: annotation.id };
+		const clientSeq = subscription.applyOptimistic(action);
+		subscription.receiveEnvelope(makeEnvelope(action, 1, { clientId: 'other-client', clientSeq }, 'denied', annotationsUri));
+		subscription.receiveEnvelope(makeEnvelope(action, 2, { clientId: 'c1', clientSeq: clientSeq + 1 }, 'denied', annotationsUri));
+
+		assert.deepStrictEqual({
+			verified: subscription.verifiedValue?.annotations.map(entry => entry.id),
+			optimistic: (subscription.value as AnnotationsState).annotations.map(entry => entry.id),
+			pending: subscription.getPendingActions().map(entry => entry.clientSeq),
+		}, {
+			verified: [annotation.id],
+			optimistic: [],
+			pending: [clientSeq],
+		});
+	});
+
+	test('annotation echoes without rejectionReason still update confirmed', () => {
+		const subscription = createSubscription();
+		const action = { type: ActionType.AnnotationsRemoved, annotationId: annotation.id };
+		subscription.receiveEnvelope(makeEnvelope(action, 1, { clientId: 'other-client', clientSeq: 4 }, undefined, annotationsUri));
+		assert.deepStrictEqual(subscription.verifiedValue?.annotations, []);
+
+		subscription.handleSnapshot({ annotations: [annotation] }, 2);
+		subscription.receiveEnvelope(makeEnvelope(action, 3, { clientId: 'c1', clientSeq: 9 }, undefined, annotationsUri));
+		assert.deepStrictEqual({
+			verified: subscription.verifiedValue?.annotations,
+			same: subscription.value === subscription.verifiedValue,
+		}, {
+			verified: [],
+			same: true,
+		});
+	});
 });
 
 // RootStateSubscription
@@ -1313,6 +1481,103 @@ suite('AgentSubscriptionManager', () => {
 				state: { annotations: [annotation] },
 				pending: [{ type: ActionType.AnnotationsSet, annotation }],
 			});
+			ref.dispose();
+		});
+
+		function createChangesetManager() {
+			const state: ChangesetState = {
+				status: ChangesetStatus.Ready,
+				files: [{
+					id: 'file:///test.txt',
+					edit: {
+						after: { uri: 'file:///test.txt', content: { uri: 'file:///after.txt' } },
+					},
+				}],
+			};
+			const mgr = createManager(async resource => ({ resource: resource.toString(), state, fromSeq: 0 }));
+			const ref = mgr.getSubscription<ChangesetState>(StateComponents.Changeset, URI.parse(changesetUri), 'test');
+			return { mgr, ref };
+		}
+
+		const reviewAction = {
+			type: ActionType.ChangesetFilesReviewChanged,
+			files: ['file:///test.txt'],
+			reviewed: true,
+		};
+
+		test('fresh reconnect snapshots preserve pending changeset actions for replay', async () => {
+			const { mgr, ref } = createChangesetManager();
+			await new Promise(r => setTimeout(r, 0));
+			mgr.dispatchOptimistic(changesetUri, reviewAction);
+			const fresh: ChangesetState = {
+				status: ChangesetStatus.Ready,
+				files: [{
+					id: 'file:///test.txt',
+					reviewed: false,
+					edit: {
+						after: { uri: 'file:///test.txt', content: { uri: 'file:///after.txt' } },
+					},
+				}],
+			};
+			mgr.applyReconnectSnapshot(changesetUri, fresh, 5, true);
+
+			assert.deepStrictEqual({
+				reviewed: (ref.object.value as ChangesetState).files[0].reviewed,
+				verified: ref.object.verifiedValue,
+				pending: mgr.getPendingActions().map(entry => ({ channel: entry.channel, action: entry.action })),
+			}, {
+				reviewed: true,
+				verified: fresh,
+				pending: [{ channel: changesetUri, action: reviewAction }],
+			});
+			ref.dispose();
+		});
+
+		test('applyReconnectSnapshot clears pending changeset actions and applies the fresh state', async () => {
+			const { mgr, ref } = createChangesetManager();
+			await new Promise(r => setTimeout(r, 0));
+			mgr.dispatchOptimistic(changesetUri, reviewAction);
+			const fresh: ChangesetState = {
+				status: ChangesetStatus.Ready,
+				files: [{
+					id: 'file:///fresh.txt',
+					edit: {
+						after: { uri: 'file:///fresh.txt', content: { uri: 'file:///after.txt' } },
+					},
+				}],
+			};
+			mgr.applyReconnectSnapshot(changesetUri, fresh, 5);
+
+			assert.deepStrictEqual({
+				value: ref.object.value,
+				verified: ref.object.verifiedValue,
+				pending: mgr.getPendingActions(),
+			}, {
+				value: fresh,
+				verified: fresh,
+				pending: [],
+			});
+			ref.dispose();
+		});
+
+		test('dropPendingAction drops a changeset action by clientSeq', async () => {
+			const { mgr, ref } = createChangesetManager();
+			await new Promise(r => setTimeout(r, 0));
+			const clientSeq = mgr.dispatchOptimistic(changesetUri, reviewAction);
+			mgr.dropPendingAction(changesetUri, clientSeq);
+
+			assert.deepStrictEqual(mgr.getPendingActions(), []);
+			ref.dispose();
+		});
+
+		test('markSubscriptionsMissing clears pending changeset actions', async () => {
+			const { mgr, ref } = createChangesetManager();
+			await new Promise(r => setTimeout(r, 0));
+			mgr.dispatchOptimistic(changesetUri, reviewAction);
+			mgr.markSubscriptionsMissing([URI.parse(changesetUri)]);
+
+			assert.ok(ref.object.value instanceof Error);
+			assert.deepStrictEqual(mgr.getPendingActions(), []);
 			ref.dispose();
 		});
 	});

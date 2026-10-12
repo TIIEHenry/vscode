@@ -537,21 +537,42 @@ export function readSSHRemoteAgentHostEntries(storageService: IStorageService): 
 	}
 }
 
-/** Replaces the SSH entries in their application storage store. */
-export function storeSSHRemoteAgentHostEntries(storageService: IStorageService, entries: readonly IRemoteAgentHostEntry[]): void {
-	const rawEntries = toRawEntriesOfKind(entries, SSH_ENTRY_TYPE_CONFIG);
-	const raw = JSON.stringify(rawEntries);
+/**
+ * Writes SSH entries back to application storage.
+ * Returns false, without storing or removing, when the current value does not
+ * parse as a JSON array. Unrecognized array elements are kept in front of the
+ * validated SSH entries. An empty result removes the key only when a document
+ * already existed.
+ */
+export function storeSSHRemoteAgentHostEntries(storageService: IStorageService, entries: readonly IRemoteAgentHostEntry[]): boolean {
 	const stored = storageService.get(SSH_REMOTE_AGENT_HOSTS_STORAGE_KEY, StorageScope.APPLICATION);
+	let preserved: unknown[] = [];
+	if (stored !== undefined) {
+		let parsed: unknown;
+		try {
+			parsed = JSON.parse(stored);
+		} catch {
+			return false;
+		}
+		if (!Array.isArray(parsed)) {
+			return false;
+		}
+		preserved = parsed.filter(entry => !(isRawRemoteAgentHostEntry(entry) && isLegacySshRawEntry(entry)));
+	}
+
+	const rawEntries = [...preserved, ...toRawEntriesOfKind(entries, SSH_ENTRY_TYPE_CONFIG)];
+	const raw = JSON.stringify(rawEntries);
 	if (stored === raw) {
-		return;
+		return true;
 	}
 	if (rawEntries.length === 0) {
 		if (stored !== undefined) {
 			storageService.remove(SSH_REMOTE_AGENT_HOSTS_STORAGE_KEY, StorageScope.APPLICATION);
 		}
-		return;
+		return true;
 	}
 	storageService.store(SSH_REMOTE_AGENT_HOSTS_STORAGE_KEY, raw, StorageScope.APPLICATION, StorageTarget.USER);
+	return true;
 }
 
 /** Adds or replaces an SSH entry in its application storage store. */

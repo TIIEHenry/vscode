@@ -248,13 +248,15 @@ interface IPendingAction {
 /**
  * A pending optimistic action awaiting server confirmation, paired with the
  * channel it was dispatched to so it can be replayed across a reconnect. The
- * channel is a session channel for {@link SessionStateSubscription} actions and
- * a chat channel for {@link ChatStateSubscription} actions.
+ * channel is a session channel for {@link SessionStateSubscription} actions,
+ * a chat channel for {@link ChatStateSubscription} actions, an annotations
+ * channel for {@link AnnotationsStateSubscription} actions, and a changeset
+ * channel for {@link ChangesetStateSubscription} actions.
  */
 export interface IPendingDispatchAction {
 	readonly clientSeq: number;
 	/** The optimistic action awaiting confirmation. */
-	readonly action: SessionAction | ChatAction | AnnotationsAction;
+	readonly action: SessionAction | ChatAction | AnnotationsAction | ClientChangesetAction;
 	/** URI of the channel this action targets, as stored on the subscription. */
 	readonly channel: string;
 }
@@ -677,6 +679,10 @@ export class ChangesetStateSubscription extends BaseAgentSubscription<ChangesetS
 	}
 
 	protected override _reconcile(envelope: ActionEnvelope, isOwnAction: boolean): void {
+		// A rejected envelope must never mutate confirmed state — it only rolls
+		// back the originating client's matching optimistic action. Guarding all
+		// apply branches also prevents a broadcast rejection from leaking the
+		// rejected action into a non-origin client's state.
 		if (isOwnAction && envelope.origin) {
 			const index = this._pendingActions.findIndex(pending => pending.clientSeq === envelope.origin!.clientSeq);
 			if (index !== -1) {
@@ -684,10 +690,10 @@ export class ChangesetStateSubscription extends BaseAgentSubscription<ChangesetS
 					this._confirmedApply(envelope.action);
 				}
 				this._pendingActions.splice(index, 1);
-			} else {
+			} else if (!envelope.rejectionReason) {
 				this._confirmedApply(envelope.action);
 			}
-		} else {
+		} else if (!envelope.rejectionReason) {
 			this._confirmedApply(envelope.action);
 		}
 		this._recomputeOptimistic();
@@ -718,6 +724,24 @@ export class ChangesetStateSubscription extends BaseAgentSubscription<ChangesetS
 		}
 		this._optimisticState = state;
 		this._onDidChange.fire(state);
+	}
+
+	clearPending(): void {
+		this._pendingActions.length = 0;
+		this._optimisticState = undefined;
+	}
+
+	getPendingActions(): IPendingDispatchAction[] {
+		return this._pendingActions.map(p => ({ clientSeq: p.clientSeq, action: p.action, channel: this._changesetUri }));
+	}
+
+	dropPendingByClientSeq(clientSeq: number): boolean {
+		const index = this._pendingActions.findIndex(p => p.clientSeq === clientSeq);
+		if (index === -1) {
+			return false;
+		}
+		this._pendingActions.splice(index, 1);
+		return true;
 	}
 }
 
@@ -788,6 +812,10 @@ export class AnnotationsStateSubscription extends BaseAgentSubscription<Annotati
 	}
 
 	protected override _reconcile(envelope: ActionEnvelope, isOwnAction: boolean): void {
+		// A rejected envelope must never mutate confirmed state — it only rolls
+		// back the originating client's matching optimistic action. Guarding all
+		// apply branches also prevents a broadcast rejection from leaking the
+		// rejected action into a non-origin client's state.
 		if (isOwnAction && envelope.origin) {
 			const idx = this._pendingActions.findIndex(p => p.clientSeq === envelope.origin!.clientSeq);
 			if (idx !== -1) {
@@ -795,10 +823,10 @@ export class AnnotationsStateSubscription extends BaseAgentSubscription<Annotati
 					this._confirmedApply(envelope.action);
 				}
 				this._pendingActions.splice(idx, 1);
-			} else {
+			} else if (!envelope.rejectionReason) {
 				this._confirmedApply(envelope.action);
 			}
-		} else {
+		} else if (!envelope.rejectionReason) {
 			this._confirmedApply(envelope.action);
 		}
 		this._recomputeOptimistic();
@@ -1028,7 +1056,7 @@ export class AgentSubscriptionManager extends Disposable {
 
 	private _disposeSubscriptionEntry(resource: URI, entry: ManagedSubscriptionEntry): void {
 		this._tryUnsubscribe(resource);
-		if (entry.sub instanceof SessionStateSubscription || entry.sub instanceof ChatStateSubscription || entry.sub instanceof AnnotationsStateSubscription) {
+		if (entry.sub instanceof SessionStateSubscription || entry.sub instanceof ChatStateSubscription || entry.sub instanceof AnnotationsStateSubscription || entry.sub instanceof ChangesetStateSubscription) {
 			entry.sub.clearPending();
 		}
 		entry.sub.dispose();
@@ -1135,7 +1163,7 @@ export class AgentSubscriptionManager extends Disposable {
 	getPendingActions(): IPendingDispatchAction[] {
 		const out: IPendingDispatchAction[] = [];
 		for (const { sub } of this._subscriptions.values()) {
-			if (sub instanceof SessionStateSubscription || sub instanceof ChatStateSubscription || sub instanceof AnnotationsStateSubscription) {
+			if (sub instanceof SessionStateSubscription || sub instanceof ChatStateSubscription || sub instanceof AnnotationsStateSubscription || sub instanceof ChangesetStateSubscription) {
 				out.push(...sub.getPendingActions());
 			}
 		}
@@ -1149,7 +1177,7 @@ export class AgentSubscriptionManager extends Disposable {
 	 */
 	dropPendingAction(resource: string, clientSeq: number): void {
 		const entry = this._subscriptions.get(URI.parse(resource));
-		if (entry?.sub instanceof SessionStateSubscription || entry?.sub instanceof ChatStateSubscription || entry?.sub instanceof AnnotationsStateSubscription) {
+		if (entry?.sub instanceof SessionStateSubscription || entry?.sub instanceof ChatStateSubscription || entry?.sub instanceof AnnotationsStateSubscription || entry?.sub instanceof ChangesetStateSubscription) {
 			entry.sub.dropPendingByClientSeq(clientSeq);
 		}
 	}
@@ -1173,7 +1201,7 @@ export class AgentSubscriptionManager extends Disposable {
 		// Clear any pending optimistic actions before reseating confirmed
 		// state \u2014 they were predicated on the pre-disconnect confirmed
 		// state and won't reconcile correctly against a fresh snapshot.
-		if (!preservePending && (entry.sub instanceof SessionStateSubscription || entry.sub instanceof ChatStateSubscription || entry.sub instanceof AnnotationsStateSubscription)) {
+		if (!preservePending && (entry.sub instanceof SessionStateSubscription || entry.sub instanceof ChatStateSubscription || entry.sub instanceof AnnotationsStateSubscription || entry.sub instanceof ChangesetStateSubscription)) {
 			entry.sub.clearPending();
 		}
 		entry.sub.handleSnapshot(state as never, fromSeq);
@@ -1189,7 +1217,7 @@ export class AgentSubscriptionManager extends Disposable {
 		for (const resource of missing) {
 			const entry = this._subscriptions.get(resource);
 			if (entry) {
-				if (entry.sub instanceof SessionStateSubscription || entry.sub instanceof ChatStateSubscription || entry.sub instanceof AnnotationsStateSubscription) {
+				if (entry.sub instanceof SessionStateSubscription || entry.sub instanceof ChatStateSubscription || entry.sub instanceof AnnotationsStateSubscription || entry.sub instanceof ChangesetStateSubscription) {
 					entry.sub.clearPending();
 				}
 				entry.sub.setError(new Error(`Subscription no longer available after reconnect: ${resource.toString()}`));

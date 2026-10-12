@@ -379,7 +379,9 @@ class SSHConnectionFactory extends Disposable implements IRemoteAgentHostConnect
 			for (const entry of legacyEntries) {
 				sshEntries = upsertRemoteAgentHostEntry(sshEntries, entry);
 			}
-			storeSSHRemoteAgentHostEntries(this._storageService, sshEntries);
+			if (!storeSSHRemoteAgentHostEntries(this._storageService, sshEntries)) {
+				return;
+			}
 			const remainingEntries = settings.entries.filter(entry => !isRawRemoteAgentHostEntry(entry) || !isLegacySshRawEntry(entry));
 			await this._configurationService.updateValue(RemoteAgentHostsSettingId, remainingEntries, settings.target);
 		} catch (err) {
