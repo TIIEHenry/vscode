@@ -857,6 +857,22 @@ suite('AgentHostResourceService', () => {
 		assert.strictEqual(getBuffer(), 'agent text');
 	});
 
+	test('write with createOnly rethrows disk error when no provider and writable model already has content', async () => {
+		const diskError = new Error('already exists');
+		const { service, uri, setValueCalls, getBuffer } = createWriteHarness({
+			hasProvider: false,
+			diskError,
+			initialText: 'existing content',
+		});
+
+		await assert.rejects(
+			service.write('host', { channel: 'ahp-root://', uri: uri.toString(), data: 'new file', encoding: ContentEncoding.Utf8, createOnly: true }),
+			(err: unknown) => err === diskError,
+		);
+		assert.strictEqual(setValueCalls.length, 0);
+		assert.strictEqual(getBuffer(), 'existing content');
+	});
+
 	test('write rethrows disk error when no provider and model is readonly', async () => {
 		const diskError = new Error('no disk');
 		const { service, uri, setValueCalls } = createWriteHarness({ hasProvider: false, diskError, readonly: true });

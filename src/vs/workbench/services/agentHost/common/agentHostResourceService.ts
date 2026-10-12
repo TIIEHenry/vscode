@@ -168,6 +168,10 @@ export class AgentHostResourceService extends Disposable implements IAgentHostRe
 			if (this._fileService.hasProvider(uri)) {
 				throw err;
 			}
+			// createOnly must not overwrite an already-open writable model.
+			if (params.createOnly) {
+				throw err;
+			}
 			if (await this._writeVirtual(uri, buf)) {
 				return;
 			}
