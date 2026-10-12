@@ -202,4 +202,93 @@ describe('CloudSessionIdStore', () => {
 		expect(store.size).toBe(1); // Only the valid entry
 		expect(store.has('valid')).toBe(true);
 	});
+
+	function loadedFlag(store: CloudSessionIdStore): boolean {
+		return (store as unknown as { _loaded: boolean })._loaded;
+	}
+
+	it('does not clobber corrupted JSON on load or later mutations', async () => {
+		const filePath = path.join(tmpDir, 'cloudSessions.json');
+		const original = 'not valid json {{{';
+		await fsp.writeFile(filePath, original, 'utf-8');
+
+		const store = new CloudSessionIdStore(tmpDir);
+		await store.load();
+		expect(store.size).toBe(0);
+		expect(loadedFlag(store)).toBe(false);
+		expect(await fsp.readFile(filePath, 'utf-8')).toBe(original);
+
+		store.set('session-1', { cloudSessionId: 'c1', cloudTaskId: 't1' });
+		store.delete('session-1');
+		store.mergeFromCloud([{ id: 'cloud-x', agent_task_id: 'remote-1', task_id: 'server-1' }]);
+		store.clear();
+		await new Promise(resolve => setTimeout(resolve, 50));
+
+		expect(await fsp.readFile(filePath, 'utf-8')).toBe(original);
+		expect(loadedFlag(store)).toBe(false);
+	});
+
+	it('stays unloaded when the read fails, writes nothing, and reads again on the next load', async () => {
+		const filePath = path.join(tmpDir, 'cloudSessions.json');
+		await fsp.mkdir(filePath);
+
+		const store = new CloudSessionIdStore(tmpDir);
+		await store.load();
+		expect(loadedFlag(store)).toBe(false);
+		expect((await fsp.stat(filePath)).isDirectory()).toBe(true);
+
+		store.set('session-1', { cloudSessionId: 'c1', cloudTaskId: 't1' });
+		await new Promise(resolve => setTimeout(resolve, 50));
+		expect((await fsp.stat(filePath)).isDirectory()).toBe(true);
+		expect(await fsp.readdir(tmpDir)).toEqual(['cloudSessions.json']);
+
+		await fsp.rm(filePath, { recursive: true });
+		const payload = { 'from-disk': { cloudSessionId: 'c-disk', cloudTaskId: 't-disk' } };
+		await fsp.writeFile(filePath, JSON.stringify(payload), 'utf-8');
+
+		await store.load();
+		expect(loadedFlag(store)).toBe(true);
+		expect(store.get('from-disk')).toEqual(payload['from-disk']);
+		// The set() from the failed load is merged after the file is actually read,
+		// not written over it as the only entry.
+		await new Promise(resolve => setTimeout(resolve, 50));
+		expect(JSON.parse(await fsp.readFile(filePath, 'utf-8'))).toEqual({
+			'from-disk': payload['from-disk'],
+			'session-1': { cloudSessionId: 'c1', cloudTaskId: 't1' },
+		});
+	});
+
+	it('does not replace an existing file with entries set before load', async () => {
+		const filePath = path.join(tmpDir, 'cloudSessions.json');
+		const kept = { cloudSessionId: 'c-kept', cloudTaskId: 't-kept' };
+		await fsp.writeFile(filePath, JSON.stringify({ kept }), 'utf-8');
+
+		const store = new CloudSessionIdStore(tmpDir);
+		store.set('added', { cloudSessionId: 'c-added', cloudTaskId: 't-added' });
+		await new Promise(resolve => setTimeout(resolve, 50));
+		expect(JSON.parse(await fsp.readFile(filePath, 'utf-8'))).toEqual({ kept });
+
+		await store.load();
+		expect(store.get('kept')).toEqual(kept);
+		expect(store.get('added')).toEqual({ cloudSessionId: 'c-added', cloudTaskId: 't-added' });
+
+		await new Promise(resolve => setTimeout(resolve, 50));
+		expect(JSON.parse(await fsp.readFile(filePath, 'utf-8'))).toEqual({
+			kept,
+			added: { cloudSessionId: 'c-added', cloudTaskId: 't-added' },
+		});
+	});
+
+	it('writes via a temporary file and leaves no temp file behind', async () => {
+		const store = new CloudSessionIdStore(tmpDir);
+		await store.load();
+		store.set('session-1', { cloudSessionId: 'c1', cloudTaskId: 't1' });
+		await new Promise(resolve => setTimeout(resolve, 50));
+
+		const names = await fsp.readdir(tmpDir);
+		expect(names.filter(name => name.includes('.tmp'))).toEqual([]);
+		expect(JSON.parse(await fsp.readFile(path.join(tmpDir, 'cloudSessions.json'), 'utf-8'))).toEqual({
+			'session-1': { cloudSessionId: 'c1', cloudTaskId: 't1' },
+		});
+	});
 });

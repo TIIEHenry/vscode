@@ -19,12 +19,16 @@ const FILE_NAME = 'cloudSessions.json';
  *
  * All writes are fire-and-forget — disk errors are silently swallowed.
  * Reads are cached in an in-memory Map for fast lookup.
+ * A missing file loads as empty. If the file cannot be read or parsed, the
+ * store stays unloaded so a later mutation cannot overwrite it.
  */
 export class CloudSessionIdStore {
 
 	private readonly _filePath: string;
 	private readonly _map = new Map<string, CloudSessionIds>();
 	private _loaded = false;
+	/** Mutations that arrived before a successful load; persisted only after one. */
+	private _dirty = false;
 	private _persistScheduled = false;
 	private _dirEnsured = false;
 
@@ -33,25 +37,41 @@ export class CloudSessionIdStore {
 	}
 
 	/**
-	 * Load from disk into memory (async, idempotent).
+	 * Load from disk into memory (async, idempotent once it succeeds).
 	 * Called once at startup — the in-memory map is empty until this resolves.
+	 * Do not mark the store loaded before the read: a failed read or parse must
+	 * not let a later mutation persist the (possibly empty) map over the file.
 	 */
 	async load(): Promise<void> {
 		if (this._loaded) {
 			return;
 		}
-		this._loaded = true;
+		let raw: string;
 		try {
-			const raw = await fsp.readFile(this._filePath, 'utf-8');
-			const parsed = JSON.parse(raw) as Record<string, CloudSessionIds>;
-			for (const [key, value] of Object.entries(parsed)) {
+			raw = await fsp.readFile(this._filePath, 'utf-8');
+		} catch (err) {
+			// Missing file: an empty map is safe to treat as loaded, so set() can create it.
+			if (isFileNotFound(err)) {
+				this._loaded = true;
+				this._persistIfDirty();
+			}
+			return;
+		}
+		let parsed: unknown;
+		try {
+			parsed = JSON.parse(raw);
+		} catch {
+			return;
+		}
+		if (parsed && typeof parsed === 'object') {
+			for (const [key, value] of Object.entries(parsed as Record<string, CloudSessionIds>)) {
 				if (value && typeof value.cloudSessionId === 'string' && typeof value.cloudTaskId === 'string') {
 					this._map.set(key, value);
 				}
 			}
-		} catch {
-			// File doesn't exist or is corrupted — start fresh
 		}
+		this._loaded = true;
+		this._persistIfDirty();
 	}
 
 	get size(): number {
@@ -132,17 +152,34 @@ export class CloudSessionIdStore {
 	 * same turn batch into one write.
 	 */
 	private _schedulePersist(): void {
+		if (!this._loaded) {
+			// The map may not contain what is already on disk. Remember the
+			// mutation and write it only after a successful load merges both.
+			this._dirty = true;
+			return;
+		}
 		if (this._persistScheduled) {
 			return;
 		}
 		this._persistScheduled = true;
+		this._dirty = false;
 		queueMicrotask(() => {
 			this._persistScheduled = false;
 			this._persist().catch(() => { /* best effort */ });
 		});
 	}
 
+	private _persistIfDirty(): void {
+		if (this._dirty) {
+			this._schedulePersist();
+		}
+	}
+
 	private async _persist(): Promise<void> {
+		if (!this._loaded) {
+			return;
+		}
+		const tmpPath = `${this._filePath}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`;
 		try {
 			if (!this._dirEnsured) {
 				const dir = path.dirname(this._filePath);
@@ -153,9 +190,14 @@ export class CloudSessionIdStore {
 			for (const [key, value] of this._map) {
 				data[key] = value;
 			}
-			await fsp.writeFile(this._filePath, JSON.stringify(data), 'utf-8');
+			await fsp.writeFile(tmpPath, JSON.stringify(data), 'utf-8');
+			await fsp.rename(tmpPath, this._filePath);
 		} catch {
-			// Best effort — don't block callers
+			await fsp.unlink(tmpPath).catch(() => { /* best effort */ });
 		}
 	}
+}
+
+function isFileNotFound(err: unknown): boolean {
+	return !!err && typeof err === 'object' && (err as { code?: unknown }).code === 'ENOENT';
 }
