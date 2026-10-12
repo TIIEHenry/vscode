@@ -65,7 +65,7 @@ export interface IUserDataProfileTemplate {
 export function isUserDataProfileTemplate(thing: unknown): thing is IUserDataProfileTemplate {
 	const candidate = thing as IUserDataProfileTemplate | undefined;
 
-	return !!(candidate && typeof candidate === 'object'
+	return !!(candidate && typeof candidate === 'object' && !Array.isArray(candidate)
 		&& (isUndefined(candidate.settings) || typeof candidate.settings === 'string')
 		&& (isUndefined(candidate.globalState) || typeof candidate.globalState === 'string')
 		&& (isUndefined(candidate.extensions) || typeof candidate.extensions === 'string')
