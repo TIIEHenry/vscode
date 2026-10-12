@@ -3672,6 +3672,205 @@ suite('conversation lens dispose gate', () => {
 		}
 	});
 
+	function overlappingModelHost(): {
+		host: IConversationLensComposerChromeHost;
+		modelSelect: HTMLSelectElement;
+		modelCalls: { sessionId: string; modelId: string }[];
+		posted: ConversationWriteMessage[];
+		arm(responder: (modelId: string, call: number) => Promise<{ resolvedModelId: string; provider: string; level: number; cost: string; speed: string }>): void;
+	} {
+		const catalogModelIds = ['', 'gpt-a', 'gpt-b'];
+		const modelProfileIdBySessionId = new Map<string, string>();
+		const modelCalls: { sessionId: string; modelId: string }[] = [];
+		const posted: ConversationWriteMessage[] = [];
+		const modelSelect = document.createElement('select');
+		modelSelect.add(new Option('No model', ''));
+		modelSelect.add(new Option('gpt-a', 'gpt-a'));
+		modelSelect.add(new Option('gpt-b', 'gpt-b'));
+		const gateRow = document.createElement('div');
+		gateRow.hidden = true;
+		const gateLabel = document.createElement('span');
+		let respond: ((modelId: string, call: number) => Promise<{ resolvedModelId: string; provider: string; level: number; cost: string; speed: string }>) | undefined;
+		const host = {
+			catalogModelIds,
+			modelSelectedIndex: 0,
+			modelProfileIdBySessionId,
+			sessionConfigBySessionId: new Map<string, { agentIndex: number; permissionIndex: number }>(),
+			postFailureVisible: false,
+			submitInFlight: false,
+			composerPolicy: 'compose' as const,
+			drafts: new Map<string, string>(),
+			dockTextarea: { value: 'hello' },
+			sendButton: { enabled: true },
+			gateRow,
+			gateLabel,
+			configurationService: { getValue: () => false },
+			permissionSelectBox: { select() { } },
+			agentSelectBox: { select() { } },
+			modelSelectBox: {
+				select(index: number) {
+					modelSelect.selectedIndex = index;
+					host.modelSelectedIndex = index;
+				},
+			},
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+				switchModel: (request: { sessionId: string; modelId: string }) => {
+					modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
+					if (!respond) {
+						throw new Error('switchModel responder was not armed');
+					}
+					return respond(request.modelId, modelCalls.length);
+				},
+			},
+			sessionViewLease: {
+				post: async (msg: ConversationWriteMessage) => {
+					posted.push(msg);
+					return { accepted: true, correlation: { id: 'c1' } };
+				},
+			},
+			getBoundSessionId: () => 'sess-model',
+			resetInputHistoryBrowse() { },
+			updateSendEnabled() { },
+			updateConversationPhase() { },
+			showPostFailure() { },
+		};
+		return {
+			host: host as unknown as IConversationLensComposerChromeHost,
+			modelSelect,
+			modelCalls,
+			posted,
+			arm(responder) {
+				respond = responder;
+			},
+		};
+	}
+
+	test('overlapping switchModel failure does not restore the dropdown to the earlier index', async () => {
+		const fixture = overlappingModelHost();
+		let releaseFirst: ((outcome: Error) => void) | undefined;
+		let firstStarted: (() => void) | undefined;
+		const firstEntered = new Promise<void>(resolve => { firstStarted = resolve; });
+		const firstHold = new Promise<never>((_resolve, reject) => { releaseFirst = reject; });
+		let releaseSecond: ((value: { resolvedModelId: string }) => void) | undefined;
+		let secondStarted: (() => void) | undefined;
+		const secondEntered = new Promise<void>(resolve => { secondStarted = resolve; });
+		const secondHold = new Promise<{ resolvedModelId: string }>(resolve => { releaseSecond = resolve; });
+		fixture.arm((modelId, call) => {
+			if (call === 1) {
+				firstStarted?.();
+				return firstHold;
+			}
+			secondStarted?.();
+			assert.strictEqual(modelId, 'gpt-b');
+			return secondHold.then(value => ({ ...value, provider: '', level: 0, cost: '', speed: '' }));
+		});
+		const first = applySessionModelIndex(fixture.host, 'sess-model', 1);
+		await firstEntered;
+		const second = applySessionModelIndex(fixture.host, 'sess-model', 2);
+		assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
+		releaseFirst!(new Error('stale model failed'));
+		await secondEntered;
+		assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
+		assert.notStrictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), 'gpt-a');
+		releaseSecond!({ resolvedModelId: 'gpt-b' });
+		await first;
+		await second;
+		assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
+		assert.strictEqual(fixture.host.modelSelectedIndex, 2);
+		assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), 'gpt-b');
+		assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a', 'gpt-b']);
+		await submitDraft(fixture.host as unknown as IConversationLensComposerHost);
+		assert.deepStrictEqual(fixture.posted, [{
+			kind: 'submitInput',
+			text: 'hello',
+			modelProfileId: 'gpt-b',
+		}]);
+	});
+
+	test('overlapping switchModel success does not keep the earlier modelId', async () => {
+		const fixture = overlappingModelHost();
+		let releaseFirst: ((value: { resolvedModelId: string }) => void) | undefined;
+		let firstStarted: (() => void) | undefined;
+		const firstEntered = new Promise<void>(resolve => { firstStarted = resolve; });
+		const firstHold = new Promise<{ resolvedModelId: string }>(resolve => { releaseFirst = resolve; });
+		fixture.arm((modelId, call) => {
+			if (call === 1) {
+				firstStarted?.();
+				return firstHold.then(value => ({ ...value, provider: '', level: 0, cost: '', speed: '' }));
+			}
+			assert.strictEqual(modelId, 'gpt-b');
+			return Promise.resolve({ resolvedModelId: modelId, provider: '', level: 0, cost: '', speed: '' });
+		});
+		const first = applySessionModelIndex(fixture.host, 'sess-model', 1);
+		await firstEntered;
+		const second = applySessionModelIndex(fixture.host, 'sess-model', 2);
+		assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
+		releaseFirst!({ resolvedModelId: 'gpt-a' });
+		await first;
+		await second;
+		assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
+		assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), 'gpt-b');
+		assert.notStrictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), 'gpt-a');
+		assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a', 'gpt-b']);
+		await submitDraft(fixture.host as unknown as IConversationLensComposerHost);
+		assert.deepStrictEqual(fixture.posted, [{
+			kind: 'submitInput',
+			text: 'hello',
+			modelProfileId: 'gpt-b',
+		}]);
+	});
+
+	test('submitDraft omits modelProfileId when the settled model index is 0', async () => {
+		const fixture = overlappingModelHost();
+		let releaseModel: ((outcome: Error) => void) | undefined;
+		let modelStarted: (() => void) | undefined;
+		const modelEntered = new Promise<void>(resolve => { modelStarted = resolve; });
+		const modelHold = new Promise<never>((_resolve, reject) => { releaseModel = reject; });
+		fixture.arm(() => {
+			modelStarted?.();
+			return modelHold;
+		});
+		const apply = applySessionModelIndex(fixture.host, 'sess-model', 1);
+		await modelEntered;
+		releaseModel!(new Error('model rejected'));
+		await apply;
+		assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
+		assert.strictEqual(fixture.host.modelSelectedIndex, 0);
+		assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), undefined);
+		await submitDraft(fixture.host as unknown as IConversationLensComposerHost);
+		assert.deepStrictEqual(fixture.posted, [{ kind: 'submitInput', text: 'hello' }]);
+	});
+
+	test('selecting the empty model does not send switchModel and a stale failure does not force index 0', async () => {
+		const fixture = overlappingModelHost();
+		let releaseModel: ((outcome: Error) => void) | undefined;
+		let modelStarted: (() => void) | undefined;
+		const modelEntered = new Promise<void>(resolve => { modelStarted = resolve; });
+		const modelHold = new Promise<never>((_resolve, reject) => { releaseModel = reject; });
+		fixture.arm(() => {
+			modelStarted?.();
+			return modelHold;
+		});
+		const first = applySessionModelIndex(fixture.host, 'sess-model', 1);
+		await modelEntered;
+		const second = applySessionModelIndex(fixture.host, 'sess-model', 2);
+		await applySessionModelIndex(fixture.host, 'sess-model', 0);
+		assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a']);
+		assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
+		releaseModel!(new Error('stale model failed'));
+		await first;
+		await second;
+		assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a']);
+		assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
+		assert.notStrictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-model'), 'gpt-a');
+	});
+
 	function permissionApplyBoundSessionHost(): {
 		host: IConversationLensComposerChromeHost;
 		permissionSelect: HTMLSelectElement;
@@ -3845,6 +4044,106 @@ suite('conversation lens dispose gate', () => {
 			assert.strictEqual(fixture.host.gateRow.hidden, false);
 			assert.ok(fixture.host.gateLabel.textContent?.includes('engine rejected permit'));
 			assert.strictEqual(fixture.host.postFailureVisible, true);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('overlapping setPermissionMode keeps Ask when an earlier Permit succeeds', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			let releasePermit: ((value: { ok: true }) => void) | undefined;
+			let permitStarted: (() => void) | undefined;
+			const permitEntered = new Promise<void>(resolve => { permitStarted = resolve; });
+			const permitHold = new Promise<{ ok: true }>(resolve => { releasePermit = resolve; });
+			let calls = 0;
+			const uaConnection = fixture.host.uaConnection as {
+				setPermissionMode: (request: { sessionId: string; mode: string }) => Promise<{ ok: boolean }>;
+			};
+			uaConnection.setPermissionMode = async request => {
+				fixture.permissionCalls.push(request);
+				calls++;
+				if (calls === 1) {
+					permitStarted?.();
+					return permitHold;
+				}
+				return { ok: true };
+			};
+			const permit = applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await permitEntered;
+			const ask = applySessionPermissionIndex(fixture.host, 'sess-leftover', 0);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.permissionCalls.length, 1);
+			releasePermit!({ ok: true });
+			await permit;
+			await ask;
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.deepStrictEqual(fixture.permissionCalls.map(call => call.mode), [
+				'SESSION_TOOL_PERMISSION_MODE_PERMIT',
+				'SESSION_TOOL_PERMISSION_MODE_ASK',
+			]);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('overlapping setPermissionMode failure does not restore the newer choice to the earlier previous', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			let releaseFirst: ((value: { ok: boolean; message?: string }) => void) | undefined;
+			let firstStarted: (() => void) | undefined;
+			const firstEntered = new Promise<void>(resolve => { firstStarted = resolve; });
+			const firstHold = new Promise<{ ok: boolean; message?: string }>(resolve => { releaseFirst = resolve; });
+			let releaseSecond: ((value: { ok: boolean; message?: string }) => void) | undefined;
+			let secondStarted: (() => void) | undefined;
+			const secondEntered = new Promise<void>(resolve => { secondStarted = resolve; });
+			const secondHold = new Promise<{ ok: boolean; message?: string }>(resolve => { releaseSecond = resolve; });
+			let calls = 0;
+			const uaConnection = fixture.host.uaConnection as {
+				setPermissionMode: (request: { sessionId: string; mode: string }) => Promise<{ ok: boolean; message?: string }>;
+			};
+			uaConnection.setPermissionMode = async request => {
+				fixture.permissionCalls.push(request);
+				calls++;
+				if (calls === 1) {
+					firstStarted?.();
+					return firstHold;
+				}
+				secondStarted?.();
+				return secondHold;
+			};
+			const permit = applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await firstEntered;
+			const agent = applySessionPermissionIndex(fixture.host, 'sess-leftover', 1);
+			releaseFirst!({ ok: false, message: 'stale permit failed' });
+			await secondEntered;
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 1);
+			// The stale Permit failure must not paint a notice or roll the select back.
+			// gateRow starts visible; the failure flag and label are the notice signal.
+			assert.strictEqual(fixture.host.postFailureVisible, false);
+			assert.strictEqual(fixture.host.gateLabel.textContent, '');
+			releaseSecond!({ ok: false, message: 'agent failed' });
+			await permit;
+			await agent;
+			// Latest failure rolls back to the last engine-confirmed mode (Ask), not the
+			// unconfirmed Permit index this request started from.
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.deepStrictEqual(fixture.permissionCalls.map(call => call.mode), [
+				'SESSION_TOOL_PERMISSION_MODE_PERMIT',
+				'SESSION_TOOL_PERMISSION_MODE_AGENT',
+			]);
+			assert.strictEqual(fixture.host.gateRow.hidden, false);
+			assert.strictEqual(fixture.host.postFailureVisible, true);
+			assert.ok(fixture.host.gateLabel.textContent?.includes('agent failed'));
 		} finally {
 			fixture.dispose();
 		}

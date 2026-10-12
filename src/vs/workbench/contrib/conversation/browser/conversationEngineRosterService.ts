@@ -1659,14 +1659,23 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			this._onDidChangeActiveSession.fire(nextId);
 		}
 		this._onDidChangeSession.fire(sessionId);
-		this.persistEngineAwareRoster();
+		// An empty remote delete must not persist yet. buildPersistedEngineCache
+		// would write the previous bucket back while the unary is still open.
+		const remoteEmptiedRoster = !!remoteDeleteSettled && this.engineSessions.length === 0;
+		if (!remoteEmptiedRoster) {
+			this.persistEngineAwareRoster();
+		}
 		if (remoteDeleteSettled) {
 			// Fire only after this delete's dispatch promise is true. Refusal
 			// already ran rollback and must not look like a successful delete.
 			void remoteDeleteSettled.then(applied => {
-				if (applied) {
-					this._onDidDeleteSession.fire(sessionId);
+				if (!applied) {
+					return;
 				}
+				if (!this.engineSessions.some(session => session.id === sessionId) && this.engineSessions.length === 0) {
+					this.persistEngineAwareRoster(this.wasEverConnected, { sessions: [] });
+				}
+				this._onDidDeleteSession.fire(sessionId);
 			}, () => {
 				// recover() threw after reporting the failure. Do not fire.
 			});

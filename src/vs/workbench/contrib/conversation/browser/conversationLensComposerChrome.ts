@@ -835,52 +835,251 @@ export function updateComposerSessionSelectsEnabled(host: IConversationLensCompo
 	
 }
 
-function restoreSessionPermissionIndex(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): void {
-
-		setSessionConfig(host, sessionId, { permissionIndex });
-		if (host.getBoundSessionId() === sessionId) {
-			host.permissionSelectBox.select(permissionIndex);
-		}
-	
+interface SessionChoiceEpochWait {
+	inFlight: boolean;
+	waiters: Array<() => void>;
 }
 
-export async function applySessionPermissionIndex(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): Promise<void> {
+interface SessionPermissionEpoch extends SessionChoiceEpochWait {
+	generation: number;
+	targetIndex: number;
+	/** Last mode the engine accepted. Not the optimistic index of an in-flight choice. */
+	confirmedIndex: number;
+}
 
-		const previous = getSessionConfig(host, sessionId).permissionIndex;
-		if (permissionIndex === previous) {
-			return;
-		}
-		if (!isSessionPermissionModeAvailable(host) || !host.uaConnection.setPermissionMode) {
-			restoreSessionPermissionIndex(host, sessionId, previous);
-			return;
-		}
-		setSessionConfig(host, sessionId, { permissionIndex });
-		if (host.getBoundSessionId() === sessionId) {
-			host.permissionSelectBox.select(permissionIndex);
-		}
-		const mode = SESSION_TOOL_PERMISSION_MODES[permissionIndex] ?? SESSION_TOOL_PERMISSION_MODES[0];
+interface SessionModelEpoch extends SessionChoiceEpochWait {
+	generation: number;
+	targetIndex: number;
+	targetModelId: string;
+	/** Index and id captured when the current target was accepted. */
+	rollbackIndex: number;
+	rollbackId: string;
+}
+
+const sessionPermissionEpochs = new WeakMap<IConversationLensComposerChromeHost, Map<string, SessionPermissionEpoch>>();
+const sessionModelEpochs = new WeakMap<IConversationLensComposerChromeHost, Map<string, SessionModelEpoch>>();
+
+function resolveSessionEpochWaiters(waiters: Array<() => void>): void {
+	const pending = waiters.splice(0, waiters.length);
+	for (const resolve of pending) {
+		resolve();
+	}
+}
+
+function waitForSessionEpochIdle(epoch: SessionChoiceEpochWait): Promise<void> {
+	if (!epoch.inFlight) {
+		return Promise.resolve();
+	}
+	return new Promise(resolve => {
+		epoch.waiters.push(resolve);
+	});
+}
+
+function sessionPermissionEpoch(host: IConversationLensComposerChromeHost, sessionId: string): SessionPermissionEpoch {
+	let sessions = sessionPermissionEpochs.get(host);
+	if (!sessions) {
+		sessions = new Map();
+		sessionPermissionEpochs.set(host, sessions);
+	}
+	let epoch = sessions.get(sessionId);
+	if (!epoch) {
+		const confirmedIndex = getSessionConfig(host, sessionId).permissionIndex;
+		epoch = {
+			generation: 0,
+			targetIndex: confirmedIndex,
+			confirmedIndex,
+			inFlight: false,
+			waiters: [],
+		};
+		sessions.set(sessionId, epoch);
+	}
+	return epoch;
+}
+
+function sessionModelEpoch(host: IConversationLensComposerChromeHost, sessionId: string): SessionModelEpoch {
+	let sessions = sessionModelEpochs.get(host);
+	if (!sessions) {
+		sessions = new Map();
+		sessionModelEpochs.set(host, sessions);
+	}
+	let epoch = sessions.get(sessionId);
+	if (!epoch) {
+		epoch = {
+			generation: 0,
+			targetIndex: host.modelSelectedIndex,
+			targetModelId: (host.catalogModelIds[host.modelSelectedIndex] ?? '').trim(),
+			rollbackIndex: host.modelSelectedIndex,
+			rollbackId: (host.catalogModelIds[host.modelSelectedIndex] ?? '').trim(),
+			inFlight: false,
+			waiters: [],
+		};
+		sessions.set(sessionId, epoch);
+	}
+	return epoch;
+}
+
+/**
+ * One in-flight setPermissionMode per session. A stale result must not restore
+ * or leave its mode on the engine; the newest target is sent next.
+ */
+async function drainSessionPermission(host: IConversationLensComposerChromeHost, sessionId: string, epoch: SessionPermissionEpoch): Promise<void> {
+	const setPermissionMode = host.uaConnection.setPermissionMode;
+	if (!setPermissionMode) {
+		restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
+		return;
+	}
+	while (true) {
+		const sentGeneration = epoch.generation;
+		const sentIndex = epoch.targetIndex;
+		const mode = SESSION_TOOL_PERMISSION_MODES[sentIndex] ?? SESSION_TOOL_PERMISSION_MODES[0];
 		try {
-			const result = await host.uaConnection.setPermissionMode({ sessionId, mode });
+			const result = await setPermissionMode.call(host.uaConnection, { sessionId, mode });
+			if (epoch.generation !== sentGeneration) {
+				// Pairing-hold cannot take a correcting write. Leave the newer choice.
+				if (!isComposerSessionWriteLive(host)) {
+					return;
+				}
+				// The engine accepted this mode. A later still-latest failure rolls
+				// back here, not to the unconfirmed index the next request started from.
+				if (result.ok) {
+					epoch.confirmedIndex = sentIndex;
+				}
+				continue;
+			}
 			// D383 leftover-looks-live: pairing-hold first. D450 KEEP leftover index; do not keep live apply.
 			if (!isComposerSessionWriteLive(host)) {
-				restoreSessionPermissionIndex(host, sessionId, previous);
+				restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
 				return;
 			}
 			if (result.ok) {
+				epoch.confirmedIndex = sentIndex;
 				return;
 			}
-			restoreSessionPermissionIndex(host, sessionId, previous);
+			restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
 			if (host.getBoundSessionId() === sessionId) {
 				showGateNotice(host, result.message?.trim() || conversationLensDockPermissionFailed);
 			}
+			return;
 		} catch (error) {
-			restoreSessionPermissionIndex(host, sessionId, previous);
+			if (epoch.generation !== sentGeneration) {
+				if (!isComposerSessionWriteLive(host)) {
+					return;
+				}
+				continue;
+			}
+			restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
 			if (host.getBoundSessionId() === sessionId) {
 				const detail = error instanceof Error ? error.message.trim() : '';
 				showGateNotice(host, detail || conversationLensDockPermissionFailed);
 			}
+			return;
 		}
-	
+	}
+}
+
+/**
+ * One in-flight switchModel per session, separate from permission epochs.
+ * A stale result must not restore or keep its modelId.
+ */
+async function drainSessionModel(host: IConversationLensComposerChromeHost, sessionId: string, epoch: SessionModelEpoch): Promise<void> {
+	const switchModel = host.uaConnection.switchModel;
+	if (!switchModel) {
+		restoreSessionModelIndex(host, sessionId, epoch.rollbackIndex, epoch.rollbackId);
+		return;
+	}
+	while (true) {
+		const sentGeneration = epoch.generation;
+		const sentIndex = epoch.targetIndex;
+		const sentModelId = epoch.targetModelId;
+		if (!sentModelId) {
+			// Honest empty slot stays a local rollback. Do not call switchModel.
+			restoreSessionModelIndex(host, sessionId, epoch.rollbackIndex, epoch.rollbackId);
+			return;
+		}
+		try {
+			const result = await switchModel.call(host.uaConnection, {
+				sessionId,
+				agentId: '',
+				modelType: '',
+				modelId: sentModelId,
+			});
+			if (epoch.generation !== sentGeneration) {
+				if (!epoch.targetModelId || !isComposerSessionWriteLive(host)) {
+					return;
+				}
+				continue;
+			}
+			// D383 leftover-looks-live: pairing-hold first. D450 KEEP leftover index; do not keep live model.
+			if (!isComposerSessionWriteLive(host)) {
+				restoreSessionModelIndex(host, sessionId, epoch.rollbackIndex, epoch.rollbackId);
+				return;
+			}
+			if (!result.resolvedModelId.trim()) {
+				restoreSessionModelIndex(host, sessionId, epoch.rollbackIndex, epoch.rollbackId);
+				if (host.getBoundSessionId() === sessionId) {
+					showGateNotice(host, conversationLensDockModelFailed);
+				}
+				return;
+			}
+			epoch.rollbackIndex = sentIndex;
+			epoch.rollbackId = sentModelId;
+			ensureSessionModelProfileIds(host).set(sessionId, sentModelId);
+			return;
+		} catch (error) {
+			if (epoch.generation !== sentGeneration) {
+				if (!epoch.targetModelId || !isComposerSessionWriteLive(host)) {
+					return;
+				}
+				continue;
+			}
+			restoreSessionModelIndex(host, sessionId, epoch.rollbackIndex, epoch.rollbackId);
+			if (host.getBoundSessionId() === sessionId) {
+				const detail = error instanceof Error ? error.message.trim() : '';
+				showGateNotice(host, detail || conversationLensDockModelFailed);
+			}
+			return;
+		}
+	}
+}
+
+function restoreSessionPermissionIndex(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): void {
+	setSessionConfig(host, sessionId, { permissionIndex });
+	if (host.getBoundSessionId() === sessionId) {
+		host.permissionSelectBox.select(permissionIndex);
+	}
+}
+
+export async function applySessionPermissionIndex(host: IConversationLensComposerChromeHost, sessionId: string, permissionIndex: number): Promise<void> {
+	const epoch = sessionPermissionEpoch(host, sessionId);
+	const previous = getSessionConfig(host, sessionId).permissionIndex;
+	if (permissionIndex === previous && !epoch.inFlight) {
+		return;
+	}
+	if (!isSessionPermissionModeAvailable(host) || !host.uaConnection.setPermissionMode) {
+		if (!epoch.inFlight) {
+			restoreSessionPermissionIndex(host, sessionId, previous);
+		}
+		return;
+	}
+	if (permissionIndex === previous) {
+		return;
+	}
+	epoch.generation++;
+	epoch.targetIndex = permissionIndex;
+	setSessionConfig(host, sessionId, { permissionIndex });
+	if (host.getBoundSessionId() === sessionId) {
+		host.permissionSelectBox.select(permissionIndex);
+	}
+	if (epoch.inFlight) {
+		return waitForSessionEpochIdle(epoch);
+	}
+	epoch.inFlight = true;
+	try {
+		await drainSessionPermission(host, sessionId, epoch);
+	} finally {
+		epoch.inFlight = false;
+		resolveSessionEpochWaiters(epoch.waiters);
+	}
 }
 
 export function isSessionSwitchModelAvailable(host: IConversationLensComposerChromeHost): boolean {
@@ -942,54 +1141,52 @@ function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, ses
 }
 
 export async function applySessionModelIndex(host: IConversationLensComposerChromeHost, sessionId: string, modelIndex: number): Promise<void> {
-
-		const previous = host.modelSelectedIndex;
-		if (modelIndex === previous) {
-			return;
-		}
-		const previousId = (host.catalogModelIds[previous] ?? '').trim();
-		if (!isSessionSwitchModelAvailable(host) || !host.uaConnection.switchModel) {
+	const epoch = sessionModelEpoch(host, sessionId);
+	const previous = host.modelSelectedIndex;
+	const previousId = (host.catalogModelIds[previous] ?? '').trim();
+	if (modelIndex === previous && (!epoch.inFlight || epoch.targetIndex === modelIndex)) {
+		return;
+	}
+	if (!isSessionSwitchModelAvailable(host) || !host.uaConnection.switchModel) {
+		if (!epoch.inFlight) {
 			restoreSessionModelIndex(host, sessionId, previous, previousId);
-			return;
 		}
-		if (host.getBoundSessionId() === sessionId) {
-			host.modelSelectedIndex = modelIndex;
-			host.modelSelectBox.select(modelIndex);
-			updateSendEnabled(host);
+		return;
+	}
+	const modelId = (host.catalogModelIds[modelIndex] ?? '').trim();
+	if (!modelId) {
+		// Honest empty slot: local rollback, no switchModel. A stale flight must not
+		// restore its own previous (often 0) over this choice.
+		if (epoch.inFlight) {
+			epoch.generation++;
+			epoch.targetIndex = modelIndex;
+			epoch.targetModelId = '';
+			epoch.rollbackIndex = previous;
+			epoch.rollbackId = previousId;
 		}
-		const modelId = (host.catalogModelIds[modelIndex] ?? '').trim();
-		if (!modelId) {
-			restoreSessionModelIndex(host, sessionId, previous, previousId);
-			return;
-		}
-		try {
-			const result = await host.uaConnection.switchModel({
-				sessionId,
-				agentId: '',
-				modelType: '',
-				modelId,
-			});
-			// D383 leftover-looks-live: pairing-hold first. D450 KEEP leftover index; do not keep live model.
-			if (!isComposerSessionWriteLive(host)) {
-				restoreSessionModelIndex(host, sessionId, previous, previousId);
-				return;
-			}
-			if (!result.resolvedModelId.trim()) {
-				restoreSessionModelIndex(host, sessionId, previous, previousId);
-				if (host.getBoundSessionId() === sessionId) {
-					showGateNotice(host, conversationLensDockModelFailed);
-				}
-				return;
-			}
-			ensureSessionModelProfileIds(host).set(sessionId, modelId);
-		} catch (error) {
-			restoreSessionModelIndex(host, sessionId, previous, previousId);
-			if (host.getBoundSessionId() === sessionId) {
-				const detail = error instanceof Error ? error.message.trim() : '';
-				showGateNotice(host, detail || conversationLensDockModelFailed);
-			}
-		}
-	
+		restoreSessionModelIndex(host, sessionId, previous, previousId);
+		return;
+	}
+	epoch.generation++;
+	epoch.targetIndex = modelIndex;
+	epoch.targetModelId = modelId;
+	epoch.rollbackIndex = previous;
+	epoch.rollbackId = previousId;
+	if (host.getBoundSessionId() === sessionId) {
+		host.modelSelectedIndex = modelIndex;
+		host.modelSelectBox.select(modelIndex);
+		updateSendEnabled(host);
+	}
+	if (epoch.inFlight) {
+		return waitForSessionEpochIdle(epoch);
+	}
+	epoch.inFlight = true;
+	try {
+		await drainSessionModel(host, sessionId, epoch);
+	} finally {
+		epoch.inFlight = false;
+		resolveSessionEpochWaiters(epoch.waiters);
+	}
 }
 
 export function syncSessionConfigSelects(host: IConversationLensComposerChromeHost, sessionId: string): void {

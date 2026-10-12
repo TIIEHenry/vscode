@@ -822,10 +822,58 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			assert.strictEqual(service.getActiveSessionId(), 'ua-only');
 			assert.strictEqual(service.getSessionGoal('ua-only'), 'Keep this goal');
 			assert.strictEqual(service.isEngineSessionReady(), true);
+			const stored = JSON.parse(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? '{}') as ConversationRosterStorageV1;
+			assert.ok(stored.engineCache?.sessions.some(session => session.id === 'ua-only'));
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('connected deleteSession last entry persists an empty engine bucket after the unary resolves', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		const sessionView = store.add(new LeftoverProjectionSessionView());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		connection.setPublishedLink('engine-gone', 7, true);
+		const service = store.add(createService(connection, storage, sessionView));
+		await awaitEngineCatalogRefresh(service);
+		const lease = store.add(service.acquireSessionView('ua-only'));
+		assert.ok(await (lease as { whenBindReady?: () => Promise<boolean> }).whenBindReady?.());
+		await timeout(0);
+		assert.ok(service.getTurns('ua-only').some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+		service.switchSession('ua-only');
+
+		const readBucket = () => {
+			const stored = JSON.parse(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? '{}') as ConversationRosterStorageV1;
+			return stored.engineCaches?.['engine-gone'];
+		};
+		const before = readBucket();
+		assert.strictEqual(before?.sessions[0]?.id, 'ua-only');
+		assert.ok(JSON.stringify(before).includes(LEFTOVER_CACHE_TURN_TEXT));
+
+		let releaseDelete!: () => void;
+		connection.deleteSessionGate = new Promise<void>(resolve => { releaseDelete = resolve; });
+		assert.strictEqual(service.deleteSession('ua-only'), true);
+		assert.strictEqual(service.getSessions()[0]?.id, ENGINE_BIND_FAILED_SESSION_ID);
+		assert.strictEqual(readBucket()?.sessions[0]?.id, 'ua-only');
+
+		releaseDelete();
+		await timeout(0);
+		assert.deepStrictEqual(readBucket()?.sessions, []);
+
+		const coldConnection = store.add(new MockUniverseAgentConnection());
+		const cold = store.add(createService(coldConnection, storage));
+		assert.ok(!cold.getSessions().some(session => session.id === 'ua-only'));
+		assert.ok(!cold.getTurns('ua-only').some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+
+		coldConnection.setPublishedLink('engine-other', 8, false);
+		assert.ok(!cold.getSessions().some(session => session.id === 'ua-only'));
+		assert.ok(!cold.getTurns('ua-only').some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+		coldConnection.setPublishedLink('engine-gone', 7, false);
+		assert.ok(!cold.getSessions().some(session => session.id === 'ua-only'));
+		assert.ok(!cold.getTurns('ua-only').some(turn => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+		assert.deepStrictEqual(readBucket()?.sessions, []);
 	});
 
 	test('connected deleteSession mid-list remote throw restores row index and active', async () => {
