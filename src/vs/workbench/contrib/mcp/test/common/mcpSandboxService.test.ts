@@ -4,14 +4,25 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
+import { VSBuffer } from '../../../../../base/common/buffer.js';
+import { Event } from '../../../../../base/common/event.js';
 import { OperatingSystem } from '../../../../../base/common/platform.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { mcpDefaultCwdToFsPath, resolveMcpServerSandboxWorkingDirectory } from '../../common/mcpSandboxService.js';
+import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
+import { IEnvironmentService } from '../../../../../platform/environment/common/environment.js';
+import { IFileService } from '../../../../../platform/files/common/files.js';
+import { ILogService, LogLevel } from '../../../../../platform/log/common/log.js';
+import { IMcpSandboxConfiguration } from '../../../../../platform/mcp/common/mcpPlatformTypes.js';
+import { IMcpResourceScannerService } from '../../../../../platform/mcp/common/mcpResourceScannerService.js';
+import { IRemoteAgentEnvironment } from '../../../../../platform/remote/common/remoteAgentEnvironment.js';
+import { IRemoteAgentService } from '../../../../services/remote/common/remoteAgentService.js';
+import { McpSandboxService, mcpDefaultCwdToFsPath, resolveMcpServerSandboxWorkingDirectory } from '../../common/mcpSandboxService.js';
+import { McpServerDefinition, McpServerLaunch, McpServerTransportType } from '../../common/mcpTypes.js';
 
 suite('MCP Sandbox Service', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('converts default cwd URIs for the target operating system', () => {
 		assert.deepStrictEqual({
@@ -46,4 +57,88 @@ suite('MCP Sandbox Service', () => {
 			implicit: '/home/test/workspace',
 		});
 	});
+
+	test('later launch does not inherit the previous cwd or overwrite its settings file', async () => {
+		const firstCwd = '/work/server-a';
+		const secondCwd = '/work/server-b';
+		const firstAllowWrite = '/allowed/server-a';
+		const secondAllowWrite = '/allowed/server-b';
+		const written = new Map<string, string>();
+		const createdUris: URI[] = [];
+		const fileService = {
+			async createFile(resource: URI, content?: VSBuffer): Promise<void> {
+				createdUris.push(resource);
+				written.set(resource.toString(), content?.toString() ?? '');
+			}
+		};
+		const remoteEnvironment = {
+			os: OperatingSystem.Linux,
+			tmpDir: URI.from({ scheme: 'file', path: '/tmp/mcp-sandbox' }),
+			userHome: URI.from({ scheme: 'file', path: '/home/test' }),
+			appRoot: URI.from({ scheme: 'file', path: '/app' }),
+		} as IRemoteAgentEnvironment;
+		const logService: ILogService = {
+			_serviceBrand: undefined,
+			onDidChangeLogLevel: Event.None,
+			getLevel: () => LogLevel.Info,
+			setLevel: () => { },
+			trace: () => { },
+			debug: () => { },
+			info: () => { },
+			warn: () => { },
+			error: () => { },
+			flush: () => { },
+			dispose: () => { },
+		};
+		const service = store.add(new McpSandboxService(
+			fileService as unknown as IFileService,
+			{} as IEnvironmentService,
+			logService,
+			{} as IMcpResourceScannerService,
+			{ getEnvironment: async () => remoteEnvironment } as IRemoteAgentService,
+		));
+
+		const configTarget = ConfigurationTarget.USER;
+		await service.launchInSandboxIfEnabled(serverDefinition(), launchFor(firstCwd, firstAllowWrite), 'test-remote', configTarget);
+		const firstUri = createdUris[0];
+		const firstBody = firstUri ? written.get(firstUri.toString()) : undefined;
+		await service.launchInSandboxIfEnabled(serverDefinition(), launchFor(secondCwd, secondAllowWrite), 'test-remote', configTarget);
+
+		assert.strictEqual(createdUris.length, 2);
+		assert.notStrictEqual(createdUris[0].toString(), createdUris[1].toString());
+		assert.strictEqual(written.get(createdUris[0].toString()), firstBody);
+		const secondAllowWrites = [...allowWriteOf(written.get(createdUris[1].toString())!)];
+		assert.deepStrictEqual(secondAllowWrites.sort(), [secondAllowWrite, secondCwd, '~/.npm'].sort());
+		assert.ok(!secondAllowWrites.includes(firstCwd));
+		assert.deepStrictEqual([...allowWriteOf(firstBody!)].sort(), [firstAllowWrite, firstCwd, '~/.npm'].sort());
+	});
 });
+
+function serverDefinition(): McpServerDefinition {
+	return {
+		id: 'server',
+		label: 'Server',
+		cacheNonce: 'nonce',
+		sandboxEnabled: true,
+		launch: launchFor('/unused', '/unused'),
+	};
+}
+
+function launchFor(cwd: string, allowWrite: string): McpServerLaunch {
+	return {
+		type: McpServerTransportType.Stdio,
+		command: 'server',
+		args: [],
+		env: {},
+		envFile: undefined,
+		cwd,
+		sandbox: {
+			filesystem: { allowWrite: [allowWrite] },
+		},
+	};
+}
+
+function allowWriteOf(body: string): readonly string[] {
+	const parsed = JSON.parse(body) as IMcpSandboxConfiguration;
+	return parsed.filesystem?.allowWrite ?? [];
+}
