@@ -64,7 +64,14 @@ class ScriptedStorageDatabase implements IStorageDatabase {
 		this.emitter.fire(change);
 	}
 
-	async updateItems(_request: IUpdateRequest): Promise<void> { }
+	readonly updates: IUpdateRequest[] = [];
+
+	async updateItems(request: IUpdateRequest): Promise<void> {
+		this.updates.push({
+			insert: new Map(request.insert ?? []),
+			delete: new Set(request.delete ?? []),
+		});
+	}
 
 	async optimize(): Promise<void> { }
 
@@ -227,5 +234,92 @@ suite('Storage init', () => {
 		strictEqual(database.getItemsCalls, 2);
 		strictEqual(storage.get('color', 'missing'), 'missing');
 		strictEqual(storage.get('size'), 'large');
+	});
+
+	test('delete of a key never stored in memory is omitted from the loaded snapshot', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase(['defer'], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+		const changes: string[] = [];
+		disposables.add(storage.onDidChangeStorage(e => changes.push(e.key)));
+
+		const initPromise = storage.init();
+		await flushMicrotasks();
+		strictEqual(database.getItemsCalls, 1);
+
+		const removing = storage.delete('color');
+		await storage.flush(0);
+
+		strictEqual(database.updates.length, 0);
+		strictEqual(changes.length, 0);
+
+		database.release(new Map([
+			['color', 'blue'],
+			['size', 'large'],
+		]));
+		await initPromise;
+		await removing;
+
+		strictEqual(database.updates.length, 0);
+		strictEqual(changes.length, 0);
+		strictEqual(storage.get('color', 'missing'), 'missing');
+		strictEqual(storage.get('size'), 'large');
+	});
+
+	test('set after deleting a key never stored in memory keeps the written value', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase(['defer'], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+
+		const initPromise = storage.init();
+		await flushMicrotasks();
+
+		const removing = storage.delete('color');
+		const writing = storage.set('color', 'red');
+		await storage.flush(0);
+
+		strictEqual(database.updates.length, 1);
+		strictEqual(database.updates[0].insert?.get('color'), 'red');
+		strictEqual(database.updates[0].delete?.has('color'), false);
+
+		database.release(new Map([
+			['color', 'blue'],
+			['size', 'large'],
+		]));
+		await initPromise;
+		await Promise.all([removing, writing]);
+
+		strictEqual(storage.get('color'), 'red');
+		strictEqual(storage.get('size'), 'large');
+	});
+
+	test('delete of a missing key after init does not enqueue pending changes', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['size', 'large']])
+		], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+
+		await storage.init();
+
+		const changes: string[] = [];
+		disposables.add(storage.onDidChangeStorage(e => changes.push(e.key)));
+
+		const removingMissing = storage.delete('color');
+		await storage.flush(0);
+		await removingMissing;
+
+		strictEqual(database.updates.length, 0);
+		strictEqual(changes.length, 0);
+		strictEqual(storage.get('color', 'missing'), 'missing');
+		strictEqual(storage.get('size'), 'large');
+
+		const removingCached = storage.delete('size');
+		await storage.flush(0);
+		await removingCached;
+
+		strictEqual(database.updates.length, 1);
+		strictEqual(database.updates[0].delete?.has('size'), true);
+		strictEqual(database.updates[0].insert?.has('size'), false);
+		strictEqual(database.updates[0].insert?.has('color'), false);
+		strictEqual(changes.length, 1);
+		strictEqual(storage.get('size', 'missing'), 'missing');
 	});
 });

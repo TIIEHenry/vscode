@@ -380,6 +380,12 @@ export class Storage extends Disposable implements IStorage {
 		// Remove from cache and add to pending
 		const wasDeleted = this.cache.delete(key);
 		if (!wasDeleted) {
+			// The key was never in memory. While getItems is still outstanding,
+			// remember it so the snapshot cannot bring it back. A cache miss is
+			// not a pending insert or delete.
+			if (this.state === StorageState.None) {
+				this.noteUninitializedRemoval(key);
+			}
 			return; // Return early if value already deleted
 		}
 
