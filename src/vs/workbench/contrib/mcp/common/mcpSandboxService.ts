@@ -79,11 +79,8 @@ export function resolveMcpServerSandboxWorkingDirectory(cwd: string | undefined,
 export class McpSandboxService extends Disposable implements IMcpSandboxService {
 	readonly _serviceBrand: undefined;
 
-	private _sandboxSettingsId: string | undefined;
 	private _remoteEnvDetailsPromise: Promise<IRemoteAgentEnvironment | null>;
 	private readonly _defaultAllowedDomains: readonly string[] = ['registry.npmjs.org']; // Default allowed domains that are commonly needed for MCP servers, even if the user doesn't specify them in their sandbox config
-	private _defaultAllowWritePaths: string[] = ['~/.npm'];
-	private _sandboxConfigPerConfigurationTarget: Map<string, string> = new Map();
 
 	constructor(
 		@IFileService private readonly _fileService: IFileService,
@@ -93,7 +90,6 @@ export class McpSandboxService extends Disposable implements IMcpSandboxService 
 		@IRemoteAgentService private readonly _remoteAgentService: IRemoteAgentService,
 	) {
 		super();
-		this._sandboxSettingsId = generateUuid();
 		this._remoteEnvDetailsPromise = this._remoteAgentService.getEnvironment();
 
 	}
@@ -384,14 +380,8 @@ export class McpSandboxService extends Disposable implements IMcpSandboxService 
 
 	private async _updateSandboxConfig(tempDir: URI, configTarget: ConfigurationTarget, sandboxConfig?: IMcpSandboxConfiguration, launchCwd?: string): Promise<string> {
 		const normalizedSandboxConfig = this._withDefaultSandboxConfig(sandboxConfig, launchCwd);
-		let configFileUri: URI;
 		const configTargetKey = ConfigurationTargetToString(configTarget);
-		if (this._sandboxConfigPerConfigurationTarget.has(configTargetKey)) {
-			configFileUri = URI.parse(this._sandboxConfigPerConfigurationTarget.get(configTargetKey)!);
-		} else {
-			configFileUri = URI.joinPath(tempDir, `vscode-${configTargetKey}-mcp-sandbox-settings-${this._sandboxSettingsId}.json`);
-			this._sandboxConfigPerConfigurationTarget.set(configTargetKey, configFileUri.toString());
-		}
+		const configFileUri = URI.joinPath(tempDir, `vscode-${configTargetKey}-mcp-sandbox-settings-${generateUuid()}.json`);
 		await this._fileService.createFile(configFileUri, VSBuffer.fromString(JSON.stringify(normalizedSandboxConfig, null, '\t')), { overwrite: true });
 		return configFileUri.path;
 	}
@@ -428,13 +418,14 @@ export class McpSandboxService extends Disposable implements IMcpSandboxService 
 	}
 
 	private _getDefaultAllowWrite(directories?: string[]): readonly string[] {
+		const allowWrite = ['~/.npm'];
 		for (const launchCwd of directories ?? []) {
 			const trimmed = launchCwd.trim();
 			if (trimmed) {
-				this._defaultAllowWritePaths.push(trimmed);
+				allowWrite.push(trimmed);
 			}
 		}
-		return this._defaultAllowWritePaths;
+		return allowWrite;
 	}
 
 	private _pathJoin = (os: OperatingSystem, ...segments: string[]) => {
