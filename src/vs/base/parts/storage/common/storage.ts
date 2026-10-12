@@ -179,6 +179,11 @@ export class Storage extends Disposable implements IStorage {
 		// Item got removed, check for deletion
 		if (isUndefinedOrNull(value)) {
 			changed = this.cache.delete(key);
+			// Drop an unflushed set() so flush does not write that string back.
+			// A cache miss is not a storage change and does not enter pending.
+			if (changed) {
+				this.pendingInserts.delete(key);
+			}
 			// A key that has not entered the cache can still sit in the snapshot
 			// getItems is about to return. While uninitialized, remember that
 			// removal too. A cache miss is not a storage change and is not a
@@ -195,6 +200,14 @@ export class Storage extends Disposable implements IStorage {
 				this.cache.set(key, value);
 				this.noteUninitializedUpdate(key);
 				changed = true;
+
+				// Only keys already queued are adjusted. Do not create pending work.
+				if (this.pendingInserts.has(key)) {
+					this.pendingInserts.set(key, value);
+				}
+				if (this.pendingDeletes.has(key)) {
+					this.pendingDeletes.delete(key);
+				}
 			}
 		}
 
