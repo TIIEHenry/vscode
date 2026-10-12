@@ -87,6 +87,15 @@ describe('SessionStore', () => {
 		expect(turns).toHaveLength(1);
 		expect(turns[0].user_message).toBe('Hello');
 		expect(turns[0].assistant_response).toBe('Hi!');
+
+		const helloHits = store.search('Hello');
+		const hiHits = store.search('"Hi"');
+		expect(helloHits.some(hit => hit.session_id === 'session-1')).toBe(true);
+		expect(hiHits.some(hit => hit.session_id === 'session-1')).toBe(true);
+		for (const hit of [...helloHits, ...hiHits].filter(row => row.session_id === 'session-1')) {
+			expect(hit.content).toContain('Hello');
+			expect(hit.content).toContain('Hi!');
+		}
 	});
 
 	it('inserts and retrieves files', () => {

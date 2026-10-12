@@ -37,7 +37,7 @@ export function buildToolInputSchema(schema: Record<string, unknown> | undefined
 	return { type: 'object', properties: {}, ...rest };
 }
 
-/** `tool_use.input` field when assistant `function.arguments` is not valid JSON. */
+/** `tool_use.input` field when assistant `function.arguments` is not a JSON object. */
 export const TOOL_USE_UNPARSED_ARGUMENTS_FIELD = 'unparsedArguments';
 
 /**
@@ -342,11 +342,17 @@ export function rawMessagesToMessagesAPI(messages: readonly Raw.ChatMessage[], v
 				if (message.toolCalls) {
 					for (const toolCall of message.toolCalls) {
 						const rawArguments = toolCall.function.arguments;
-						let parsedInput: Record<string, unknown>;
+						const unparsedInput = { [TOOL_USE_UNPARSED_ARGUMENTS_FIELD]: rawArguments };
+						let parsedInput: Record<string, unknown> = unparsedInput;
 						try {
-							parsedInput = JSON.parse(rawArguments);
+							const parsed: unknown = JSON.parse(rawArguments);
+							if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+								parsedInput = parsed as Record<string, unknown>;
+							} else {
+								parsedInput = unparsedInput;
+							}
 						} catch {
-							parsedInput = { [TOOL_USE_UNPARSED_ARGUMENTS_FIELD]: rawArguments };
+							parsedInput = unparsedInput;
 						}
 						content.push({
 							type: 'tool_use',
