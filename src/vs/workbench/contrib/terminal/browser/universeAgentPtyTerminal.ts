@@ -181,7 +181,9 @@ export class UniverseAgentCustomPty extends BasePty implements ITerminalChildPro
 				if (!this._launch.isSettled) {
 					this._launch.complete({ message: frame[1].message });
 				} else {
-					this._onProcessExit.fire(undefined);
+					// BasePty exit is a number. The failure text stays on the data stream.
+					this._onProcessData.fire(frame[1].message);
+					this._onProcessExit.fire(1);
 				}
 				break;
 		}
