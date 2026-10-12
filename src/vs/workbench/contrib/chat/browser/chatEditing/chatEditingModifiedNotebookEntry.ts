@@ -25,7 +25,7 @@ import { IModelService } from '../../../../../editor/common/services/model.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
 import { localize } from '../../../../../nls.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { IFileService } from '../../../../../platform/files/common/files.js';
+import { FileOperationResult, IFileService, toFileOperationResult } from '../../../../../platform/files/common/files.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IUndoRedoElement, IUndoRedoService, UndoRedoElementType } from '../../../../../platform/undoRedo/common/undoRedo.js';
 import { IEditorPane, SaveReason } from '../../../../common/editor.js';
@@ -447,7 +447,13 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 		if (this.createdInRequestId === this._telemetryInfo.requestId) {
 			await this._applyEdits(async () => {
 				await this.modifiedResourceRef.object.revert({ soft: true });
-				await this._fileService.del(this.modifiedURI);
+				try {
+					await this._fileService.del(this.modifiedURI);
+				} catch (err) {
+					if (toFileOperationResult(err) !== FileOperationResult.FILE_NOT_FOUND) {
+						throw err;
+					}
+				}
 			});
 			this._onDidDelete.fire();
 		} else {

@@ -12,6 +12,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/
 import { nullDocumentDiff } from '../../../../../../editor/common/diff/documentDiffProvider.js';
 import { ITextModel } from '../../../../../../editor/common/model.js';
 import { SaveReason } from '../../../../../common/editor.js';
+import { FileOperationError, FileOperationResult } from '../../../../../../platform/files/common/files.js';
 import { CellEditType, CellKind, ICell, ICellEditOperation, NotebookCellsChangeType } from '../../../../notebook/common/notebookCommon.js';
 import { ChatEditingModifiedNotebookEntry } from '../../../browser/chatEditing/chatEditingModifiedNotebookEntry.js';
 import { adjustCellDiffAndOriginalModelBasedOnCellAddDelete, adjustCellDiffAndOriginalModelBasedOnCellMovements, adjustCellDiffForKeepingADeletedCell, adjustCellDiffForKeepingAnInsertedCell, adjustCellDiffForRevertingADeletedCell, adjustCellDiffForRevertingAnInsertedCell } from '../../../browser/chatEditing/notebook/helpers.js';
@@ -2137,6 +2138,74 @@ suite('ChatEditingModifiedNotebookEntry', function () {
 				reason: SaveReason.AUTO,
 				skipSaveParticipants: true,
 			});
+		});
+	});
+
+	suite('Reject created notebook', function () {
+		const requestId = 'request-1';
+
+		function createCreatedEntry(del: () => Promise<void>) {
+			const notebookUri = URI.from({ scheme: Schemas.file, path: '/created.ipynb' });
+			let deleteCount = 0;
+			let fireCount = 0;
+			const entry = {
+				createdInRequestId: requestId,
+				_telemetryInfo: { requestId },
+				modifiedURI: notebookUri,
+				modifiedResourceRef: {
+					object: {
+						revert: async () => { }
+					}
+				},
+				_fileService: {
+					del: async () => {
+						deleteCount++;
+						await del();
+					}
+				},
+				_onDidDelete: {
+					fire: () => { fireCount++; }
+				},
+				updateCellDiffInfo() { },
+				_applyEdits: async (operation: () => Promise<void>) => operation(),
+			};
+			return {
+				entry,
+				get deleteCount() { return deleteCount; },
+				get fireCount() { return fireCount; },
+			};
+		}
+
+		async function rejectCreated(entry: object): Promise<void> {
+			// eslint-disable-next-line local/code-no-any-casts
+			await (ChatEditingModifiedNotebookEntry.prototype as any)._doReject.call(entry);
+		}
+
+		test('does not fire and rejects when delete fails for a reason other than FILE_NOT_FOUND', async function () {
+			const error = new FileOperationError('busy', FileOperationResult.FILE_PERMISSION_DENIED);
+			const harness = createCreatedEntry(async () => { throw error; });
+			await assert.rejects(
+				() => rejectCreated(harness.entry),
+				(err: unknown) => err === error
+			);
+			assert.strictEqual(harness.deleteCount, 1);
+			assert.strictEqual(harness.fireCount, 0);
+		});
+
+		test('fires once when delete succeeds', async function () {
+			const harness = createCreatedEntry(async () => { });
+			await rejectCreated(harness.entry);
+			assert.strictEqual(harness.deleteCount, 1);
+			assert.strictEqual(harness.fireCount, 1);
+		});
+
+		test('fires once when delete fails with FILE_NOT_FOUND', async function () {
+			const harness = createCreatedEntry(async () => {
+				throw new FileOperationError('missing', FileOperationResult.FILE_NOT_FOUND);
+			});
+			await rejectCreated(harness.entry);
+			assert.strictEqual(harness.deleteCount, 1);
+			assert.strictEqual(harness.fireCount, 1);
 		});
 	});
 
