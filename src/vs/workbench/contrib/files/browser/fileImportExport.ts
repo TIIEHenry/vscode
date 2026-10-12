@@ -30,7 +30,7 @@ import { listenStream } from '../../../../base/common/stream.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { createSingleCallFunction } from '../../../../base/common/functional.js';
 import { coalesce } from '../../../../base/common/arrays.js';
-import { canceled, onUnexpectedError } from '../../../../base/common/errors.js';
+import { canceled, isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { WebFileSystemAccess } from '../../../../platform/files/browser/webFileSystemAccess.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -275,9 +275,22 @@ export class BrowserFileUpload {
 		}
 	}
 
-	private async listUploadChildNames(resource: URI): Promise<string[]> {
+	private uploadChildKey(parent: URI, name: string): string {
+		// A case-insensitive provider stores one file for `Old.txt` and `old.txt`.
+		// Treating the upload name as new would delete that file on cancel.
+		if (this.fileService.hasCapability(parent, FileSystemProviderCapabilities.PathCaseSensitive)) {
+			return name;
+		}
+		return name.toLowerCase();
+	}
+
+	private async listUploadChildNames(resource: URI): Promise<ReadonlySet<string>> {
 		const stat = await this.fileService.resolve(resource);
-		return (stat.children ?? []).map(child => child.name);
+		const names = new Set<string>();
+		for (const child of stat.children ?? []) {
+			names.add(this.uploadChildKey(resource, child.name));
+		}
+		return names;
 	}
 
 	private async deleteCreatedUploadTree(resource: URI): Promise<void> {
@@ -369,7 +382,7 @@ export class BrowserFileUpload {
 				// Create target folder
 				await this.fileService.createFolder(resource);
 				if (folderExisted) {
-					preExistingChildNames = new Set(await this.listUploadChildNames(resource));
+					preExistingChildNames = await this.listUploadChildNames(resource);
 				}
 
 				if (token.isCancellationRequested) {
@@ -402,7 +415,7 @@ export class BrowserFileUpload {
 					} else if (childEntry.isDirectory) {
 						folderChildEntries.push(childEntry);
 					}
-					if (folderExisted && preExistingChildNames && childEntry.name && !preExistingChildNames.has(childEntry.name)) {
+					if (folderExisted && preExistingChildNames && childEntry.name && !preExistingChildNames.has(this.uploadChildKey(resource, childEntry.name))) {
 						created.push(joinPath(resource, childEntry.name));
 					}
 				}
@@ -765,6 +778,11 @@ interface IDownloadOperation {
 	fileBytesDownloaded: number;
 }
 
+interface IBrowserDownloadWriteResult {
+	committed: boolean;
+	error?: unknown;
+}
+
 export class FileDownload {
 
 	private static readonly LAST_USED_DOWNLOAD_PATH_STORAGE_KEY = 'workbench.explorer.downloadPath';
@@ -846,8 +864,7 @@ export class FileDownload {
 				};
 
 				if (stat.isDirectory) {
-					const targetFolder = await parentFolder.getDirectoryHandle(stat.name, { create: true });
-					await this.downloadFolderBrowser(stat, targetFolder, operation, cts.token);
+					await this.downloadFolderBrowser(parentFolder, stat, operation, cts.token);
 				} else {
 					await this.downloadFileBrowser(parentFolder, stat, operation, cts.token);
 				}
@@ -971,6 +988,29 @@ export class FileDownload {
 		}
 	}
 
+	private async downloadDirectoryExisted(parent: FileSystemDirectoryHandle, name: string): Promise<boolean> {
+		try {
+			await parent.getDirectoryHandle(name);
+			return true;
+		} catch (error) {
+			if (error instanceof DOMException && error.name === 'NotFoundError') {
+				return false;
+			}
+			throw error;
+		}
+	}
+
+	private async removeDownloadEntry(parent: FileSystemDirectoryHandle, name: string, recursive: boolean): Promise<void> {
+		try {
+			await parent.removeEntry(name, { recursive });
+		} catch (error) {
+			if (error instanceof DOMException && error.name === 'NotFoundError') {
+				return;
+			}
+			throw error;
+		}
+	}
+
 	private observeDownloadClose(writer: FileSystemWritableFileStream, onClosed: () => void): FileSystemWritableFileStream {
 		const close = writer.close.bind(writer);
 		const write = writer.write.bind(writer);
@@ -985,20 +1025,19 @@ export class FileDownload {
 		} as unknown as FileSystemWritableFileStream;
 	}
 
-	private async downloadFileBrowser(targetFolder: FileSystemDirectoryHandle, file: IFileStatWithMetadata, operation: IDownloadOperation, token: CancellationToken): Promise<void> {
+	private async downloadFileBrowser(targetFolder: FileSystemDirectoryHandle, file: IFileStatWithMetadata, operation: IDownloadOperation, token: CancellationToken): Promise<boolean> {
+		if (token.isCancellationRequested) {
+			return false;
+		}
 
 		// Report progress
 		operation.filesDownloaded++;
 		operation.fileBytesDownloaded = 0; // reset for this file
 		this.reportProgress(file.name, 0, 0, operation);
 
-		if (token.isCancellationRequested) {
-			return;
-		}
-
 		const created = !(await this.downloadTargetExisted(targetFolder, file.name));
 		if (token.isCancellationRequested) {
-			return;
+			return false;
 		}
 
 		// Start to download
@@ -1023,9 +1062,9 @@ export class FileDownload {
 
 		if (created && !closed) {
 			try {
-				await targetFolder.removeEntry(file.name);
+				await this.removeDownloadEntry(targetFolder, file.name, false);
 			} catch (cleanupError) {
-				if (errorToThrow === undefined) {
+				if (errorToThrow === undefined || isCancellationError(errorToThrow)) {
 					errorToThrow = cleanupError;
 				}
 			}
@@ -1034,27 +1073,84 @@ export class FileDownload {
 		if (errorToThrow) {
 			throw errorToThrow;
 		}
+
+		return closed;
 	}
 
-	private async downloadFolderBrowser(folder: IFileStatWithMetadata, targetFolder: FileSystemDirectoryHandle, operation: IDownloadOperation, token: CancellationToken): Promise<void> {
+	private async withDownloadDirectory(parent: FileSystemDirectoryHandle, name: string, token: CancellationToken, write: (handle: FileSystemDirectoryHandle) => Promise<IBrowserDownloadWriteResult>): Promise<IBrowserDownloadWriteResult> {
+		if (token.isCancellationRequested) {
+			return { committed: false };
+		}
+		const created = !(await this.downloadDirectoryExisted(parent, name));
+		if (token.isCancellationRequested) {
+			return { committed: false };
+		}
+		const handle = await parent.getDirectoryHandle(name, { create: true });
+		let result: IBrowserDownloadWriteResult = { committed: false };
+		try {
+			if (!token.isCancellationRequested) {
+				result = await write(handle);
+			}
+		} catch (error) {
+			result = { committed: result.committed, error };
+		}
+		// Drop a directory this download created when nothing in it was closed.
+		// A finished download of an empty source folder must still leave that directory.
+		if (created && !result.committed && (result.error !== undefined || token.isCancellationRequested)) {
+			try {
+				await this.removeDownloadEntry(parent, name, true);
+			} catch (cleanupError) {
+				if (result.error === undefined || isCancellationError(result.error)) {
+					result = { committed: result.committed, error: cleanupError };
+				}
+			}
+		}
+		if (result.error && !isCancellationError(result.error)) {
+			throw result.error;
+		}
+		return { committed: result.committed };
+	}
+
+	private async writeDownloadFolder(targetFolder: FileSystemDirectoryHandle, folder: IFileStatWithMetadata, operation: IDownloadOperation, token: CancellationToken): Promise<IBrowserDownloadWriteResult> {
+		let committed = false;
 		if (folder.children) {
 			operation.filesTotal += (folder.children.map(child => child.isFile)).length;
 
 			for (const child of folder.children) {
 				if (token.isCancellationRequested) {
-					return;
+					return { committed };
 				}
 
 				if (child.isFile) {
-					await this.downloadFileBrowser(targetFolder, child, operation, token);
+					try {
+						if (await this.downloadFileBrowser(targetFolder, child, operation, token)) {
+							committed = true;
+						}
+					} catch (error) {
+						return { committed, error };
+					}
 				} else {
-					const childFolder = await targetFolder.getDirectoryHandle(child.name, { create: true });
-					const resolvedChildFolder = await this.fileService.resolve(child.resource, { resolveMetadata: true });
-
-					await this.downloadFolderBrowser(resolvedChildFolder, childFolder, operation, token);
+					let childResult: IBrowserDownloadWriteResult;
+					try {
+						childResult = await this.withDownloadDirectory(targetFolder, child.name, token, async handle => {
+							const resolvedChildFolder = await this.fileService.resolve(child.resource, { resolveMetadata: true });
+							return this.writeDownloadFolder(handle, resolvedChildFolder, operation, token);
+						});
+					} catch (error) {
+						return { committed, error };
+					}
+					if (childResult.committed) {
+						committed = true;
+					}
 				}
 			}
 		}
+		return { committed };
+	}
+
+	private async downloadFolderBrowser(parentFolder: FileSystemDirectoryHandle, folder: IFileStatWithMetadata, operation: IDownloadOperation, token: CancellationToken): Promise<boolean> {
+		const result = await this.withDownloadDirectory(parentFolder, folder.name, token, handle => this.writeDownloadFolder(handle, folder, operation, token));
+		return result.committed;
 	}
 
 	private reportProgress(name: string, fileSize: number, bytesDownloaded: number, operation: IDownloadOperation): void {

@@ -60,7 +60,8 @@ interface IDownloadOperation {
 interface IDownloadApi {
 	downloadFileUnbufferedBrowser(resource: URI, target: FileSystemWritableFileStream, operation: IDownloadOperation, token: CancellationToken): Promise<void>;
 	downloadFileBufferedBrowser(resource: URI, target: FileSystemWritableFileStream, operation: IDownloadOperation, token: CancellationToken): Promise<void>;
-	downloadFileBrowser(targetFolder: FileSystemDirectoryHandle, file: { resource: URI; name: string; size: number }, operation: IDownloadOperation, token: CancellationToken): Promise<void>;
+	downloadFileBrowser(targetFolder: FileSystemDirectoryHandle, file: { resource: URI; name: string; size: number }, operation: IDownloadOperation, token: CancellationToken): Promise<boolean>;
+	downloadFolderBrowser(parent: FileSystemDirectoryHandle, folder: { resource: URI; name: string; children?: ReadonlyArray<{ resource: URI; name: string; size: number; isFile: boolean }> }, operation: IDownloadOperation, token: CancellationToken): Promise<boolean>;
 }
 
 type FileReaderMode = 'error' | 'cancel-on-read' | 'load';
@@ -228,6 +229,145 @@ function fakeDownloadDirectory(initialNames: string[], createWritableError?: Err
 	};
 }
 
+interface IFakeFsNode {
+	files: Set<string>;
+	dirs: Map<string, IFakeFsNode>;
+	handle: FileSystemDirectoryHandle;
+}
+
+function fakeDownloadTree(): {
+	root: FileSystemDirectoryHandle;
+	removed: string[];
+	calls: string[];
+	hasFile(path: string): boolean;
+	hasDir(path: string): boolean;
+	putDir(path: string): void;
+	putFile(path: string): void;
+} {
+	const removed: string[] = [];
+	const calls: string[] = [];
+
+	const makeNode = (nodePath: string): IFakeFsNode => {
+		const node: IFakeFsNode = {
+			files: new Set(),
+			dirs: new Map(),
+			handle: undefined!,
+		};
+		const handle = {
+			getFileHandle: async (name: string, options?: { create?: boolean }) => {
+				if (node.dirs.has(name)) {
+					throw new DOMException('type mismatch', 'TypeMismatchError');
+				}
+				if (!node.files.has(name)) {
+					if (!options?.create) {
+						throw new DOMException('not found', 'NotFoundError');
+					}
+					node.files.add(name);
+				}
+				const filePath = nodePath ? `${nodePath}/${name}` : name;
+				return {
+					createWritable: async () => ({
+						write: async () => { calls.push(`write:${filePath}`); },
+						close: async () => { calls.push(`close:${filePath}`); },
+						abort: async () => { calls.push(`abort:${filePath}`); },
+					}),
+				};
+			},
+			getDirectoryHandle: async (name: string, options?: { create?: boolean }) => {
+				if (node.files.has(name)) {
+					throw new DOMException('type mismatch', 'TypeMismatchError');
+				}
+				let child = node.dirs.get(name);
+				if (!child) {
+					if (!options?.create) {
+						throw new DOMException('not found', 'NotFoundError');
+					}
+					const childPath = nodePath ? `${nodePath}/${name}` : name;
+					child = makeNode(childPath);
+					node.dirs.set(name, child);
+				}
+				return child.handle;
+			},
+			removeEntry: async (name: string, options?: { recursive?: boolean }) => {
+				const childDir = node.dirs.get(name);
+				if (childDir) {
+					const empty = childDir.files.size === 0 && childDir.dirs.size === 0;
+					if (!empty && !options?.recursive) {
+						throw new DOMException('not empty', 'InvalidModificationError');
+					}
+					node.dirs.delete(name);
+					removed.push(nodePath ? `${nodePath}/${name}` : name);
+					return;
+				}
+				if (!node.files.has(name)) {
+					throw new DOMException('not found', 'NotFoundError');
+				}
+				node.files.delete(name);
+				removed.push(nodePath ? `${nodePath}/${name}` : name);
+			},
+		};
+		node.handle = handle as unknown as FileSystemDirectoryHandle;
+		return node;
+	};
+
+	const root = makeNode('');
+	const lookup = (path: string): IFakeFsNode | undefined => {
+		if (!path) {
+			return root;
+		}
+		let current: IFakeFsNode | undefined = root;
+		for (const part of path.split('/')) {
+			current = current?.dirs.get(part);
+			if (!current) {
+				return undefined;
+			}
+		}
+		return current;
+	};
+	const ensureDir = (path: string): IFakeFsNode => {
+		let current = root;
+		let currentPath = '';
+		for (const part of path.split('/')) {
+			currentPath = currentPath ? `${currentPath}/${part}` : part;
+			let child = current.dirs.get(part);
+			if (!child) {
+				child = makeNode(currentPath);
+				current.dirs.set(part, child);
+			}
+			current = child;
+		}
+		return current;
+	};
+
+	return {
+		root: root.handle,
+		removed,
+		calls,
+		hasFile(path: string): boolean {
+			const slash = path.lastIndexOf('/');
+			const parentPath = slash === -1 ? '' : path.slice(0, slash);
+			const name = slash === -1 ? path : path.slice(slash + 1);
+			return !!lookup(parentPath)?.files.has(name);
+		},
+		hasDir(path: string): boolean {
+			if (!path) {
+				return false;
+			}
+			return !!lookup(path);
+		},
+		putDir(path: string): void {
+			ensureDir(path);
+		},
+		putFile(path: string): void {
+			const slash = path.lastIndexOf('/');
+			const parentPath = slash === -1 ? '' : path.slice(0, slash);
+			const name = slash === -1 ? path : path.slice(slash + 1);
+			const parent = parentPath ? ensureDir(parentPath) : root;
+			parent.files.add(name);
+		},
+	};
+}
+
 suite('Files - Browser download cancel', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -361,10 +501,12 @@ suite('Files - Browser download cancel', () => {
 		const download = createDownload({
 			readFile: async () => { throw new Error('should not read'); },
 		});
+		const operation = downloadOperation(store);
 
-		await download.downloadFileBrowser(dir.handle, { resource, name: 'note.txt', size: 4 }, downloadOperation(store), cts.token);
+		await download.downloadFileBrowser(dir.handle, { resource, name: 'note.txt', size: 4 }, operation, cts.token);
 
 		assert.strictEqual(dir.handleGets, 0);
+		assert.strictEqual(operation.filesDownloaded, 0);
 		assert.deepStrictEqual(dir.removed, []);
 		assert.strictEqual(dir.names.has('note.txt'), false);
 	});
@@ -462,6 +604,213 @@ suite('Files - Browser download cancel', () => {
 		assert.deepStrictEqual(dir.calls, ['write', 'close']);
 		assert.deepStrictEqual(dir.removed, []);
 		assert.strictEqual(dir.names.has('note.txt'), true);
+	});
+
+	test('canceled token does not create a download folder', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		cts.cancel();
+		const tree = fakeDownloadTree();
+		let reads = 0;
+		const download = createDownload({
+			readFile: async () => {
+				reads++;
+				return { name: 'a.txt', size: 4, value: VSBuffer.fromString('data') };
+			},
+		});
+
+		const committed = await download.downloadFolderBrowser(tree.root, {
+			resource: URI.file('/src/notes'),
+			name: 'notes',
+			children: [{ resource: URI.file('/src/notes/a.txt'), name: 'a.txt', size: 4, isFile: true }],
+		}, downloadOperation(store), cts.token);
+
+		assert.strictEqual(committed, false);
+		assert.strictEqual(tree.hasDir('notes'), false);
+		assert.deepStrictEqual(tree.removed, []);
+		assert.deepStrictEqual(tree.calls, []);
+		assert.strictEqual(reads, 0);
+	});
+
+	test('canceled download of a new folder removes the folder and its file', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const tree = fakeDownloadTree();
+		const download = createDownload({
+			readFile: async () => {
+				cts.cancel();
+				return { name: 'a.txt', size: 4, value: VSBuffer.fromString('data') };
+			},
+		});
+
+		const committed = await download.downloadFolderBrowser(tree.root, {
+			resource: URI.file('/src/notes'),
+			name: 'notes',
+			children: [{ resource: URI.file('/src/notes/a.txt'), name: 'a.txt', size: 4, isFile: true }],
+		}, downloadOperation(store), cts.token);
+
+		assert.strictEqual(committed, false);
+		assert.strictEqual(tree.hasDir('notes'), false);
+		assert.strictEqual(tree.hasFile('notes/a.txt'), false);
+		assert.deepStrictEqual(tree.calls, ['abort:notes/a.txt']);
+		assert.deepStrictEqual(tree.removed, ['notes/a.txt', 'notes']);
+	});
+
+	test('canceled download into an existing folder keeps the folder and its old file', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const tree = fakeDownloadTree();
+		tree.putDir('kept');
+		tree.putFile('kept/old.txt');
+		const download = createDownload({
+			readFile: async () => {
+				cts.cancel();
+				return { name: 'a.txt', size: 4, value: VSBuffer.fromString('data') };
+			},
+		});
+
+		const committed = await download.downloadFolderBrowser(tree.root, {
+			resource: URI.file('/src/kept'),
+			name: 'kept',
+			children: [{ resource: URI.file('/src/kept/a.txt'), name: 'a.txt', size: 4, isFile: true }],
+		}, downloadOperation(store), cts.token);
+
+		assert.strictEqual(committed, false);
+		assert.strictEqual(tree.hasDir('kept'), true);
+		assert.strictEqual(tree.hasFile('kept/old.txt'), true);
+		assert.strictEqual(tree.hasFile('kept/a.txt'), false);
+		assert.deepStrictEqual(tree.removed, ['kept/a.txt']);
+	});
+
+	test('partial folder download keeps closed files and removes the unfinished file', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const tree = fakeDownloadTree();
+		const download = createDownload({
+			readFile: async (resource: URI) => {
+				if (resource.path.endsWith('/b.txt')) {
+					cts.cancel();
+				}
+				return { name: 'file.txt', size: 4, value: VSBuffer.fromString('data') };
+			},
+		});
+
+		const committed = await download.downloadFolderBrowser(tree.root, {
+			resource: URI.file('/src/notes'),
+			name: 'notes',
+			children: [
+				{ resource: URI.file('/src/notes/a.txt'), name: 'a.txt', size: 4, isFile: true },
+				{ resource: URI.file('/src/notes/b.txt'), name: 'b.txt', size: 4, isFile: true },
+			],
+		}, downloadOperation(store), cts.token);
+
+		assert.strictEqual(committed, true);
+		assert.strictEqual(tree.hasDir('notes'), true);
+		assert.strictEqual(tree.hasFile('notes/a.txt'), true);
+		assert.strictEqual(tree.hasFile('notes/b.txt'), false);
+		assert.deepStrictEqual(tree.calls, ['write:notes/a.txt', 'close:notes/a.txt', 'abort:notes/b.txt']);
+		assert.deepStrictEqual(tree.removed, ['notes/b.txt']);
+	});
+
+	test('canceled nested download removes empty directories this download created', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const tree = fakeDownloadTree();
+		const nested = URI.file('/src/notes/nested');
+		const nestedFile = URI.file('/src/notes/nested/b.txt');
+		const download = createDownload({
+			readFile: async () => {
+				cts.cancel();
+				return { name: 'b.txt', size: 4, value: VSBuffer.fromString('data') };
+			},
+			resolve: async (resource: URI) => ({
+				resource,
+				name: 'nested',
+				children: [{ resource: nestedFile, name: 'b.txt', size: 4, isFile: true }],
+			}),
+		});
+
+		const committed = await download.downloadFolderBrowser(tree.root, {
+			resource: URI.file('/src/notes'),
+			name: 'notes',
+			children: [{ resource: nested, name: 'nested', size: 0, isFile: false }],
+		}, downloadOperation(store), cts.token);
+
+		assert.strictEqual(committed, false);
+		assert.strictEqual(tree.hasDir('notes'), false);
+		assert.strictEqual(tree.hasDir('notes/nested'), false);
+		assert.strictEqual(tree.hasFile('notes/nested/b.txt'), false);
+		assert.deepStrictEqual(tree.removed, ['notes/nested/b.txt', 'notes/nested', 'notes']);
+	});
+
+	test('folder download keeps a parent that already closed a file when a nested folder cancels', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const tree = fakeDownloadTree();
+		const nested = URI.file('/src/notes/nested');
+		const nestedFile = URI.file('/src/notes/nested/b.txt');
+		const download = createDownload({
+			readFile: async (resource: URI) => {
+				if (resource.path.endsWith('/b.txt')) {
+					cts.cancel();
+				}
+				return { name: 'file.txt', size: 4, value: VSBuffer.fromString('data') };
+			},
+			resolve: async (resource: URI) => ({
+				resource,
+				name: 'nested',
+				children: [{ resource: nestedFile, name: 'b.txt', size: 4, isFile: true }],
+			}),
+		});
+
+		const committed = await download.downloadFolderBrowser(tree.root, {
+			resource: URI.file('/src/notes'),
+			name: 'notes',
+			children: [
+				{ resource: URI.file('/src/notes/a.txt'), name: 'a.txt', size: 4, isFile: true },
+				{ resource: nested, name: 'nested', size: 0, isFile: false },
+			],
+		}, downloadOperation(store), cts.token);
+
+		assert.strictEqual(committed, true);
+		assert.strictEqual(tree.hasDir('notes'), true);
+		assert.strictEqual(tree.hasFile('notes/a.txt'), true);
+		assert.strictEqual(tree.hasDir('notes/nested'), false);
+		assert.strictEqual(tree.hasFile('notes/nested/b.txt'), false);
+		assert.deepStrictEqual(tree.removed, ['notes/nested/b.txt', 'notes/nested']);
+	});
+
+	test('completed empty folder download leaves the directory', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const tree = fakeDownloadTree();
+		const download = createDownload({
+			readFile: async () => { throw new Error('should not read'); },
+		});
+
+		const committed = await download.downloadFolderBrowser(tree.root, {
+			resource: URI.file('/src/notes'),
+			name: 'notes',
+			children: [],
+		}, downloadOperation(store), cts.token);
+
+		assert.strictEqual(committed, false);
+		assert.strictEqual(tree.hasDir('notes'), true);
+		assert.deepStrictEqual(tree.removed, []);
+	});
+
+	test('read failure removes a new download folder', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const tree = fakeDownloadTree();
+		const download = createDownload({
+			readFile: async () => { throw new Error('read failed'); },
+		});
+
+		await assert.rejects(
+			() => download.downloadFolderBrowser(tree.root, {
+				resource: URI.file('/src/notes'),
+				name: 'notes',
+				children: [{ resource: URI.file('/src/notes/a.txt'), name: 'a.txt', size: 4, isFile: true }],
+			}, downloadOperation(store), cts.token),
+			/read failed/,
+		);
+		assert.strictEqual(tree.hasDir('notes'), false);
+		assert.strictEqual(tree.hasFile('notes/a.txt'), false);
+		assert.deepStrictEqual(tree.calls, ['abort:notes/a.txt']);
+		assert.deepStrictEqual(tree.removed, ['notes/a.txt', 'notes']);
 	});
 });
 
@@ -932,9 +1281,12 @@ suite('Files - Browser upload cancel', () => {
 		return new Map(resources.map(resource => [resource.toString(), resource]));
 	}
 
-	function uploadFileService(files: Map<string, URI>, onWrite?: (resource: URI) => void) {
+	// FileSystemProviderCapabilities is a const enum and is erased from this test bundle.
+	const PathCaseSensitive = 1 << 10;
+
+	function uploadFileService(files: Map<string, URI>, onWrite?: (resource: URI) => void, caseSensitive = false) {
 		return {
-			hasCapability: () => false,
+			hasCapability: (_resource: URI, capability: number) => caseSensitive && capability === PathCaseSensitive,
 			exists: async (resource: URI) => files.has(resource.toString()),
 			resolve: async (resource: URI) => {
 				const prefix = resource.toString();
@@ -1065,5 +1417,107 @@ suite('Files - Browser upload cancel', () => {
 		assert.strictEqual(files.has(createdFile.toString()), false);
 		assert.strictEqual(files.has(createdFolder.toString()), false);
 		assert.strictEqual(files.has(createdNested.toString()), false);
+	});
+
+	test('completed new directory upload keeps the directory and returns it', async () => {
+		installFileReader('load');
+		const root = URI.file('/upload-root');
+		const folder = joinPath(root, 'fresh');
+		const child = joinPath(folder, 'a.txt');
+		const files = rememberUploadFiles([]);
+		const cts = store.add(new CancellationTokenSource());
+		let bulkEdits = 0;
+		const fileService = uploadFileService(files);
+		const upload = new BrowserFileUpload(
+			undefined!,
+			{ confirm: async () => ({ confirmed: true }) } as never,
+			{ applyBulkEdit: async () => { bulkEdits++; } } as never,
+			{ openEditor: async () => undefined } as never,
+			fileService as unknown as IFileService,
+			{ undo: async () => undefined } as unknown as IUndoRedoService,
+		) as unknown as IUploadApi;
+		const target = new ExplorerItem(root, fileService as unknown as IFileService, undefined!, undefined!, undefined, true, false, false, false, 'upload-root');
+
+		const results = await upload.doUpload(target, {
+			items: [{
+				webkitGetAsEntry: () => directoryEntry('fresh', [
+					fileEntry('a.txt', { name: 'a.txt', size: 3 } as File),
+				]),
+			}],
+		}, { report() { } }, cts.token);
+
+		assert.strictEqual(bulkEdits, 0);
+		assert.strictEqual(results.length, 1);
+		assert.strictEqual(results[0].isFile, false);
+		assert.strictEqual(results[0].resource.toString(), folder.toString());
+		assert.strictEqual(files.has(folder.toString()), true);
+		assert.strictEqual(files.has(child.toString()), true);
+	});
+
+	async function uploadDifferentCase(caseSensitive: boolean): Promise<{ deleted: string[]; hasExisting: boolean; hasUploaded: boolean; results: IUploadResult[] }> {
+		installFileReader('load');
+		const root = URI.file('/upload-root');
+		const folder = joinPath(root, 'kept');
+		const existing = joinPath(folder, 'Old.txt');
+		const uploaded = joinPath(folder, 'old.txt');
+		const files = rememberUploadFiles([folder, existing]);
+		const cts = store.add(new CancellationTokenSource());
+		const deleted: string[] = [];
+		const base = uploadFileService(files, resource => {
+			if (resource.toString() === uploaded.toString()) {
+				cts.cancel();
+			}
+		}, caseSensitive);
+		const fileService = {
+			...base,
+			del: async (resource: URI, options?: { recursive?: boolean }) => {
+				deleted.push(resource.toString());
+				await base.del(resource, options);
+			},
+		};
+		const upload = new BrowserFileUpload(
+			undefined!,
+			{ confirm: async () => ({ confirmed: true }) } as never,
+			{ applyBulkEdit: async () => { throw new Error('bulk edit'); } } as never,
+			{ openEditor: async () => undefined } as never,
+			fileService as unknown as IFileService,
+			{ undo: async () => undefined } as unknown as IUndoRedoService,
+		) as unknown as IUploadApi;
+		const target = new ExplorerItem(root, fileService as unknown as IFileService, undefined!, undefined!, undefined, true, false, false, false, 'upload-root');
+		target.addChild(new ExplorerItem(folder, fileService as unknown as IFileService, undefined!, undefined!, undefined, true, false, false, false, 'kept'));
+
+		const results = await upload.doUpload(target, {
+			items: [{
+				webkitGetAsEntry: () => directoryEntry('kept', [
+					fileEntry('old.txt', { name: 'old.txt', size: 3 } as File),
+				]),
+			}],
+		}, { report() { } }, cts.token);
+
+		return {
+			deleted,
+			hasExisting: files.has(existing.toString()),
+			hasUploaded: files.has(uploaded.toString()),
+			results,
+		};
+	}
+
+	test('canceled case-insensitive upload does not delete the existing child it overwrote', async () => {
+		const { deleted, hasExisting, hasUploaded, results } = await uploadDifferentCase(false);
+
+		assert.deepStrictEqual(results, []);
+		assert.deepStrictEqual(deleted, []);
+		assert.strictEqual(hasExisting, true);
+		assert.strictEqual(hasUploaded, true);
+	});
+
+	test('canceled case-sensitive upload deletes only the new different-cased child', async () => {
+		const root = URI.file('/upload-root');
+		const { deleted, hasExisting, hasUploaded, results } = await uploadDifferentCase(true);
+
+		assert.deepStrictEqual(results, []);
+		assert.deepStrictEqual(deleted, [joinPath(root, 'kept', 'old.txt').toString()]);
+		assert.strictEqual(hasExisting, true);
+		assert.strictEqual(hasUploaded, false);
 	});
 });
