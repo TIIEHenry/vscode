@@ -10,7 +10,7 @@ import { runWithFakedTimers } from '../../../../base/test/common/timeTravelSched
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IConfigurationService } from '../../../configuration/common/configuration.js';
 import { ConfigurationScope, Extensions, IConfigurationRegistry } from '../../../configuration/common/configurationRegistry.js';
-import { IFileService } from '../../../files/common/files.js';
+import { FileOperationError, FileOperationResult, IFileService } from '../../../files/common/files.js';
 import { Registry } from '../../../registry/common/platform.js';
 import { IUserDataProfile, IUserDataProfilesService } from '../../../userDataProfile/common/userDataProfile.js';
 import { ISettingsSyncContent, parseSettingsSyncContent, SettingsSynchroniser } from '../../common/settingsSync.js';
@@ -522,6 +522,71 @@ suite('SettingsSync - Auto', () => {
 			'b': 2,
 		});
 	}));
+
+	test('sync rejects when settings read fails with FILE_PERMISSION_DENIED and remote content stays', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		await assertSettingsReadFailureLeavesRemoteUnchanged(FileOperationResult.FILE_PERMISSION_DENIED);
+	}));
+
+	test('sync rejects when settings read fails with FILE_TOO_LARGE and remote content stays', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		await assertSettingsReadFailureLeavesRemoteUnchanged(FileOperationResult.FILE_TOO_LARGE);
+	}));
+
+	test('sync treats FILE_NOT_FOUND as empty settings and merges to remote', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const synced = await syncRemoteWithNonIgnoredSettings();
+		failSettingsRead(FileOperationResult.FILE_NOT_FOUND);
+
+		await testObject.sync(synced.ref);
+
+		const lastSyncUserData = await testObject.getLastSyncUserData();
+		const remoteUserData = await testObject.getRemoteUserData(null);
+		assert.strictEqual(lastSyncUserData!.ref, remoteUserData.ref);
+		assert.deepStrictEqual(lastSyncUserData!.syncData, remoteUserData.syncData);
+		assert.notStrictEqual(remoteUserData.syncData!.content, synced.content);
+		assert.strictEqual(parseSettingsSyncContent(remoteUserData.syncData!.content)?.settings, '{}');
+	}));
+
+	async function syncRemoteWithNonIgnoredSettings(): Promise<{ content: string; ref: string }> {
+		await updateSettings('{\n\t"files.autoSave": "afterDelay"\n}', client);
+		await testObject.sync(await client.getLatestRef(SyncResource.Settings));
+
+		const lastSyncUserData = await testObject.getLastSyncUserData();
+		const remoteUserData = await testObject.getRemoteUserData(null);
+		assert.strictEqual(lastSyncUserData!.ref, remoteUserData.ref);
+		assert.deepStrictEqual(lastSyncUserData!.syncData, remoteUserData.syncData);
+		const remoteSettings = parseSettingsSyncContent(remoteUserData.syncData!.content)!.settings;
+		assert.ok(remoteSettings.includes('"files.autoSave"'));
+		return { content: remoteUserData.syncData!.content, ref: remoteUserData.ref };
+	}
+
+	async function assertSettingsReadFailureLeavesRemoteUnchanged(result: FileOperationResult): Promise<void> {
+		const synced = await syncRemoteWithNonIgnoredSettings();
+		failSettingsRead(result);
+
+		try {
+			await testObject.sync(synced.ref);
+			assert.fail('should fail when settings cannot be read');
+		} catch (e) {
+			assert.ok(e instanceof FileOperationError);
+			assert.strictEqual(e.fileOperationResult, result);
+		}
+
+		const remoteUserData = await testObject.getRemoteUserData(null);
+		assert.strictEqual(remoteUserData.ref, synced.ref);
+		assert.strictEqual(remoteUserData.syncData!.content, synced.content);
+	}
+
+	function failSettingsRead(result: FileOperationResult): void {
+		const fileService = client.instantiationService.get(IFileService);
+		const settingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.settingsResource.toString();
+		const target = fileService as { readFile: IFileService['readFile'] };
+		const originalReadFile = target.readFile.bind(fileService);
+		target.readFile = (resource, options, token) => {
+			if (resource.toString() === settingsResource) {
+				return Promise.reject(new FileOperationError('settings read failed', result));
+			}
+			return originalReadFile(resource, options, token);
+		};
+	}
 
 });
 

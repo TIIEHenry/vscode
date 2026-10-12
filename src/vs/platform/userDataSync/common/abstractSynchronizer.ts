@@ -810,7 +810,10 @@ export abstract class AbstractFileSynchroniser extends AbstractSynchroniser {
 		try {
 			return await this.fileService.readFile(this.file);
 		} catch (error) {
-			return null;
+			if (toFileOperationResult(error) === FileOperationResult.FILE_NOT_FOUND) {
+				return null;
+			}
+			throw error;
 		}
 	}
 
