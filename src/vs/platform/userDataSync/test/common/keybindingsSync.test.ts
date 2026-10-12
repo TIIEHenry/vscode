@@ -450,7 +450,8 @@ suite('KeybindingsInitializer', () => {
 			}
 
 			assert.strictEqual(await fileService.exists(keybindingsResource), false);
-			assert.deepStrictEqual(thrown === undefined ? loggedErrors : [thrown], [readError]);
+			assert.strictEqual(thrown, readError);
+			assert.deepStrictEqual(loggedErrors, [readError]);
 			assert.ok(!infos.includes('Skipping initializing keybindings because local keybindings exist.'));
 		}
 	});

@@ -692,7 +692,8 @@ suite('TasksInitializer', () => {
 			}
 
 			assert.strictEqual(await fileService.exists(tasksResource), false);
-			assert.deepStrictEqual(thrown === undefined ? loggedErrors : [thrown], [readError]);
+			assert.strictEqual(thrown, readError);
+			assert.deepStrictEqual(loggedErrors, [readError]);
 			assert.ok(!infos.includes('Skipping initializing tasks because local tasks exist.'));
 		}
 	});
