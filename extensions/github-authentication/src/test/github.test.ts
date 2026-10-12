@@ -155,6 +155,106 @@ suite('GitHub session persistence', () => {
 		assert.strictEqual(persisted.length, 2);
 		assert.ok(persisted.some(session => session.id === 'other-session' && session.account.id === 'other-account'));
 		assert.ok(persisted.some(session => session.accessToken === 'new-token' && session.account.id === 'new-account'));
+		const inMemory = await provider._persistedSessionsPromise;
+		assert.strictEqual(inMemory.length, 2);
+		assert.ok(inMemory.some(session => session.id === 'other-session' && session.account.id === 'other-account'));
+		assert.ok(inMemory.some(session => session.accessToken === 'new-token' && session.account.id === 'new-account'));
+	});
+
+	test('does not publish a login when the keychain write fails', async () => {
+		const existing: vscode.AuthenticationSession = {
+			id: 'existing-session',
+			accessToken: 'existing-token',
+			account: { id: 'existing-account', label: 'hubot' },
+			scopes: ['repo']
+		};
+		const before = Promise.resolve([existing]);
+		const added: vscode.AuthenticationSession[] = [];
+		const info: string[] = [];
+
+		const provider: TestGitHubAuthenticationProvider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: before,
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionChangeEmitter: {
+				fire: (e: vscode.AuthenticationProviderAuthenticationSessionsChangeEvent) => {
+					added.push(...(e.added ?? []));
+				}
+			},
+			_keychain: {
+				getToken: async () => '',
+				deleteToken: async () => { },
+				setToken: async () => { throw new Error('secret storage failed'); }
+			},
+			_githubServer: {
+				login: async () => 'new-token',
+				getUserInfo: async () => ({
+					id: 'new-account',
+					accountName: 'octocat',
+					avatarUrl: undefined
+				}),
+				logout: async () => { },
+				sendAdditionalTelemetryInfo: async () => { }
+			},
+			_logger: {
+				error: () => { },
+				info: (message: string) => { info.push(message); },
+				trace: () => { }
+			}
+		});
+
+		await assert.rejects(() => provider.createSession(['repo']), /secret storage failed/);
+
+		assert.strictEqual(provider._persistedSessionsPromise, before);
+		const persisted = await provider._persistedSessionsPromise;
+		assert.deepStrictEqual(persisted.map(session => session.id), ['existing-session']);
+		assert.deepStrictEqual(added, []);
+		assert.ok(!info.includes('Login success!'));
+	});
+
+	test('readSessions still resolves when rewriting migrated sessions fails', async () => {
+		const storedSessions = JSON.stringify([{
+			id: 'session-id',
+			scopes: ['repo'],
+			accessToken: 'access-token',
+			account: { id: 1, label: 'octocat' }
+		}]);
+		const previous: vscode.AuthenticationSession = {
+			id: 'previous-session',
+			accessToken: 'previous-token',
+			account: { id: 'previous-account', label: 'hubot' },
+			scopes: ['repo']
+		};
+		const before = Promise.resolve([previous]);
+
+		const provider: TestGitHubAuthenticationProvider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: before,
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionChangeEmitter: { fire: () => { } },
+			_keychain: {
+				getToken: async () => storedSessions,
+				deleteToken: async () => { },
+				setToken: async () => { throw new Error('secret storage failed'); }
+			},
+			_githubServer: {
+				getUserInfo: async () => ({ id: 'unused', accountName: 'unused', avatarUrl: undefined }),
+				login: async () => 'unused',
+				logout: async () => { },
+				sendAdditionalTelemetryInfo: async () => { }
+			},
+			_logger: {
+				error: () => { },
+				info: () => { },
+				trace: () => { }
+			}
+		});
+
+		const sessions = await provider.readSessions();
+
+		assert.strictEqual(provider._persistedSessionsPromise, before);
+		assert.deepStrictEqual((await provider._persistedSessionsPromise).map(session => session.id), ['previous-session']);
+		assert.deepStrictEqual(sessions.map(session => ({ id: session.id, accountId: session.account.id })), [{ id: 'session-id', accountId: '1' }]);
 	});
 
 	test('removeSession does not restore tokens another window removed while awaiting persisted sessions', async () => {
@@ -207,6 +307,58 @@ suite('GitHub session persistence', () => {
 
 		const persisted = JSON.parse(storedToken!) as vscode.AuthenticationSession[];
 		assert.strictEqual(persisted.length, 0);
+	});
+
+	test('removeSession still signs the user out when the keychain write fails', async () => {
+		const sessionToRemove: vscode.AuthenticationSession = {
+			id: 'sign-out-me',
+			accessToken: 'token-a',
+			account: { id: 'account-a', label: 'octocat' },
+			scopes: ['repo']
+		};
+		const removed: string[] = [];
+		let loggedOut = false;
+
+		const provider: TestGitHubAuthenticationProvider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: Promise.resolve([sessionToRemove]),
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionChangeEmitter: {
+				fire: (e: vscode.AuthenticationProviderAuthenticationSessionsChangeEvent) => {
+					removed.push(...(e.removed ?? []).map(session => session.id));
+				}
+			},
+			_accountLinks: new AccountLinks(new TestMemento(), 'github.auth.microsoftAccountLinks', new Log(AuthProviderType.github)),
+			_keychain: {
+				getToken: async () => '',
+				deleteToken: async () => { },
+				setToken: async () => { throw new Error('secret storage failed'); }
+			},
+			_githubServer: {
+				login: async () => 'unused',
+				getUserInfo: async () => ({ id: 'unused', accountName: 'unused', avatarUrl: undefined }),
+				logout: async () => { loggedOut = true; },
+				sendAdditionalTelemetryInfo: async () => { }
+			},
+			_logger: {
+				error: () => { },
+				info: () => { },
+				trace: () => { }
+			}
+		});
+
+		await provider.removeSession('sign-out-me');
+
+		const persisted = await provider._persistedSessionsPromise;
+		assert.deepStrictEqual({
+			loggedOut,
+			removed,
+			ids: persisted.map(session => session.id)
+		}, {
+			loggedOut: true,
+			removed: ['sign-out-me'],
+			ids: []
+		});
 	});
 });
 

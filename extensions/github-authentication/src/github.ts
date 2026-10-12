@@ -687,7 +687,13 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 		this._logger.info(`Got ${verifiedSessions.length} verified sessions.`);
 		// Account data discovered during reads must not trigger a secret write because web embedders can re-expose accountless sessions.
 		if (seenNumberAccountId || verifiedSessions.length !== sessionData.length) {
-			await this.storeSessions(verifiedSessions);
+			try {
+				await this.storeSessions(verifiedSessions);
+			} catch (e) {
+				// Constructor and checkForUpdates install this read as `_persistedSessionsPromise`.
+				// A thrown rewrite would reject that promise for good, and every later getSessions would fail.
+				this._logger.error(`Error storing sessions: ${e}`);
+			}
 		}
 
 		return verifiedSessions;
@@ -695,8 +701,10 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 
 	private async storeSessions(sessions: vscode.AuthenticationSession[]): Promise<void> {
 		this._logger.info(`Storing ${sessions.length} sessions...`);
-		this._persistedSessionsPromise = Promise.resolve(sessions);
+		// getSessions trusts this list. Swap it in only after the keychain accepts the write,
+		// so a login that did not persist is not published.
 		await this._keychain.setToken(JSON.stringify(sessions));
+		this._persistedSessionsPromise = Promise.resolve(sessions);
 		this._logger.info(`Stored ${sessions.length} sessions!`);
 	}
 
@@ -907,7 +915,14 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 				const session = sessions[sessionIndex];
 				sessions.splice(sessionIndex, 1);
 
-				await this.storeSessions(sessions);
+				try {
+					await this.storeSessions(sessions);
+				} catch (e) {
+					// A lost keychain write must not trap the user. Drop the session in memory anyway,
+					// the same way account links keep a sign-out when the memento write fails.
+					this._logger.error(`Error storing sessions: ${e}`);
+					this._persistedSessionsPromise = Promise.resolve(sessions);
+				}
 				await this._githubServer.logout(session);
 				await this.forgetAccountLinkIfSignedOut(session.account);
 
