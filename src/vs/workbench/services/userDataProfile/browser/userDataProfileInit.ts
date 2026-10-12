@@ -10,7 +10,7 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { Barrier, Promises } from '../../../../base/common/async.js';
 import { IUriIdentityService } from '../../../../platform/uriIdentity/common/uriIdentity.js';
 import { IUserDataInitializer } from '../../userData/browser/userDataInit.js';
-import { IProfileResourceInitializer, IUserDataProfileService, IUserDataProfileTemplate } from '../common/userDataProfile.js';
+import { IProfileResourceInitializer, IUserDataProfileService, IUserDataProfileTemplate, isUserDataProfileTemplate } from '../common/userDataProfile.js';
 import { SettingsResourceInitializer } from './settingsResource.js';
 import { GlobalStateResourceInitializer } from './globalStateResource.js';
 import { KeybindingsResourceInitializer } from './keybindingsResource.js';
@@ -122,35 +122,60 @@ export class UserDataProfileInitializer implements IUserDataInitializer {
 	private profileTemplatePromise: Promise<IUserDataProfileTemplate | null> | undefined;
 	private getProfileTemplate(): Promise<IUserDataProfileTemplate | null> {
 		if (!this.profileTemplatePromise) {
-			this.profileTemplatePromise = this.doGetProfileTemplate();
+			const pending: { promise?: Promise<IUserDataProfileTemplate | null> } = {};
+			pending.promise = (async () => {
+				try {
+					const { template, retain } = await this.doGetProfileTemplate();
+					// A template object stays cached. Null stays cached only when there
+					// are no profile contents. Every other null is read again next time.
+					if (!retain && this.profileTemplatePromise === pending.promise) {
+						this.profileTemplatePromise = undefined;
+					}
+					return template;
+				} catch (error) {
+					if (this.profileTemplatePromise === pending.promise) {
+						this.profileTemplatePromise = undefined;
+					}
+					throw error;
+				}
+			})();
+			this.profileTemplatePromise = pending.promise;
 		}
 		return this.profileTemplatePromise;
 	}
 
-	private async doGetProfileTemplate(): Promise<IUserDataProfileTemplate | null> {
+	private async doGetProfileTemplate(): Promise<{ template: IUserDataProfileTemplate | null; retain: boolean }> {
 		if (!this.environmentService.options?.profile?.contents) {
-			return null;
+			return { template: null, retain: true };
 		}
+
+		const fromParsed = (parsed: unknown): { template: IUserDataProfileTemplate | null; retain: boolean } => {
+			if (isUserDataProfileTemplate(parsed)) {
+				return { template: parsed, retain: true };
+			}
+			return { template: null, retain: false };
+		};
+
 		if (isString(this.environmentService.options.profile.contents)) {
 			try {
-				return JSON.parse(this.environmentService.options.profile.contents);
+				return fromParsed(JSON.parse(this.environmentService.options.profile.contents));
 			} catch (error) {
 				this.logService.error(error);
-				return null;
+				return { template: null, retain: false };
 			}
 		}
 		try {
 			const url = URI.revive(this.environmentService.options.profile.contents).toString(true);
 			const context = await this.requestService.request({ type: 'GET', url, callSite: 'userDataProfileInit.initializeProfile' }, CancellationToken.None);
 			if (context.res.statusCode === 200) {
-				return await asJson(context);
+				return fromParsed(await asJson(context));
 			} else {
 				this.logService.warn(`UserDataProfileInitializer: Failed to get profile from URL: ${url}. Status code: ${context.res.statusCode}.`);
 			}
 		} catch (error) {
 			this.logService.error(error);
 		}
-		return null;
+		return { template: null, retain: false };
 	}
 
 	private async initialize(initializer: IProfileResourceInitializer, content: string, profileResource: ProfileResourceType): Promise<void> {
