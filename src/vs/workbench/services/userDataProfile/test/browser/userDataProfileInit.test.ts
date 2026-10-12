@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { VSBuffer } from '../../../../../base/common/buffer.js';
+import { bufferToStream, VSBuffer } from '../../../../../base/common/buffer.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IFileService, IFileStatWithMetadata } from '../../../../../platform/files/common/files.js';
@@ -21,6 +21,58 @@ import { ExtensionsResourceInitializer } from '../../browser/extensionsResource.
 
 function stub<T>(partial: Partial<T>): T {
 	return partial as T;
+}
+
+const settingsDocument = '{"settings":"{}"}';
+
+function profileResponse(statusCode: number, body: unknown) {
+	const text = typeof body === 'string' ? body : JSON.stringify(body);
+	return {
+		res: { statusCode, headers: {} },
+		stream: bufferToStream(VSBuffer.fromString(text)),
+	};
+}
+
+function createTrackedInitializer(profile: { name: string; contents?: string | URI }, request: IRequestService['request']) {
+	const info: string[] = [];
+	const errors: Array<string | Error> = [];
+	const warns: string[] = [];
+	const written: Array<{ resource: string; text: string }> = [];
+	const settingsResource = URI.file('/profile/settings.json');
+	const keybindingsResource = URI.file('/profile/keybindings.json');
+	const initializer = new UserDataProfileInitializer(
+		stub<IBrowserWorkbenchEnvironmentService>({
+			options: { profile } as IBrowserWorkbenchEnvironmentService['options'],
+		}),
+		stub<IFileService>({
+			async writeFile(resource, content) {
+				written.push({
+					resource: resource.toString(),
+					text: content instanceof VSBuffer ? content.toString() : '',
+				});
+				return writtenStat(resource);
+			},
+		}),
+		stub<IUserDataProfileService>({
+			currentProfile: { settingsResource, keybindingsResource } as IUserDataProfile,
+		}),
+		stub<IStorageService>({}),
+		stub<ILogService>({
+			trace() { },
+			info(message: string) {
+				info.push(message);
+			},
+			warn(message: string) {
+				warns.push(message);
+			},
+			error(message: string | Error) {
+				errors.push(message);
+			},
+		}),
+		stub<IUriIdentityService>({}),
+		stub<IRequestService>({ request }),
+	);
+	return { initializer, info, errors, warns, written, settingsResource, keybindingsResource };
 }
 
 function writtenStat(resource: URI): IFileStatWithMetadata {
@@ -368,5 +420,263 @@ suite('UserDataProfileInitializer', () => {
 		assert.strictEqual(third, first);
 		await third;
 		assert.strictEqual(created, 0);
+	});
+
+	test('shares one in-flight profile template read, then keeps the template object', async () => {
+		const profileUri = URI.parse('https://example.com/profile.json');
+		const template = {
+			settings: settingsDocument,
+			keybindings: JSON.stringify({ platform: 'Linux', keybindings: '[]' }),
+		};
+		let requests = 0;
+		let release!: () => void;
+		let started!: () => void;
+		const gate = new Promise<void>(resolve => { release = resolve; });
+		const startedPromise = new Promise<void>(resolve => { started = resolve; });
+		const tracked = createTrackedInitializer({ name: 'test', contents: profileUri }, (async () => {
+			requests++;
+			started();
+			await gate;
+			return profileResponse(200, template);
+		}) as IRequestService['request']);
+		const instantiationService = stub<IInstantiationService>({
+			createInstance: (() => {
+				throw new Error('extensions initializer should not be created');
+			}) as IInstantiationService['createInstance'],
+		});
+
+		const required = tracked.initializer.initializeRequiredResources();
+		const other = tracked.initializer.initializeOtherResources(instantiationService);
+		await startedPromise;
+		assert.strictEqual(requests, 1);
+		release();
+		await required;
+		await other;
+		assert.strictEqual(requests, 1);
+		assert.deepStrictEqual(tracked.written, [
+			{ resource: tracked.settingsResource.toString(), text: '{}' },
+			{ resource: tracked.keybindingsResource.toString(), text: '[]' },
+		]);
+		assert.deepStrictEqual(tracked.info, [
+			'UserDataProfileInitializer: Initialized settings',
+			'UserDataProfileInitializer: Initialized keybindings',
+		]);
+
+		await tracked.initializer.initializeRequiredResources();
+		await tracked.initializer.initializeOtherResources(instantiationService);
+		assert.strictEqual(requests, 1);
+		assert.strictEqual(tracked.written.length, 2);
+		assert.deepStrictEqual(tracked.info, [
+			'UserDataProfileInitializer: Initialized settings',
+			'UserDataProfileInitializer: Initialized keybindings',
+			'UserDataProfileInitializer: settings initialized already.',
+			'UserDataProfileInitializer: keybindings initialized already.',
+		]);
+	});
+
+	test('keeps null when the profile has no contents', async () => {
+		let storedContents: string | undefined;
+		let contentReads = 0;
+		const profile = {
+			name: 'test',
+			get contents() {
+				contentReads++;
+				return storedContents;
+			},
+		};
+		const tracked = createTrackedInitializer(profile, (async () => {
+			throw new Error('profile template should not be requested');
+		}) as IRequestService['request']);
+
+		await tracked.initializer.initializeRequiredResources();
+		const readsAfterFirst = contentReads;
+		assert.ok(readsAfterFirst > 0);
+		await tracked.initializer.initializeRequiredResources();
+		assert.strictEqual(contentReads, readsAfterFirst);
+
+		storedContents = JSON.stringify({ settings: settingsDocument });
+		await tracked.initializer.initializeRequiredResources();
+		assert.strictEqual(contentReads, readsAfterFirst);
+		assert.deepStrictEqual(tracked.written, []);
+		assert.deepStrictEqual(tracked.info, []);
+		assert.deepStrictEqual(tracked.errors, []);
+	});
+
+	test('reads again after profile JSON fails to parse, then initializes settings', async () => {
+		const profile = { name: 'test', contents: '{' };
+		const tracked = createTrackedInitializer(profile, (async () => {
+			throw new Error('profile template should not be requested');
+		}) as IRequestService['request']);
+
+		await tracked.initializer.initializeRequiredResources();
+		assert.deepStrictEqual(tracked.written, []);
+		assert.deepStrictEqual(tracked.info, []);
+		assert.strictEqual(tracked.errors.length, 1);
+		assert.ok(tracked.errors[0] instanceof Error);
+
+		profile.contents = JSON.stringify({ settings: settingsDocument });
+		await tracked.initializer.initializeRequiredResources();
+		assert.strictEqual(tracked.errors.length, 1);
+		assert.deepStrictEqual(tracked.written, [{
+			resource: tracked.settingsResource.toString(),
+			text: '{}',
+		}]);
+		assert.deepStrictEqual(tracked.info, ['UserDataProfileInitializer: Initialized settings']);
+	});
+
+	test('reads again when profile JSON is not a template object, then initializes settings', async () => {
+		const profile = { name: 'test', contents: '{"settings":1}' };
+		const tracked = createTrackedInitializer(profile, (async () => {
+			throw new Error('profile template should not be requested');
+		}) as IRequestService['request']);
+
+		await tracked.initializer.initializeRequiredResources();
+		assert.deepStrictEqual(tracked.written, []);
+		assert.deepStrictEqual(tracked.info, []);
+		assert.deepStrictEqual(tracked.errors, []);
+
+		profile.contents = JSON.stringify({ settings: settingsDocument });
+		await tracked.initializer.initializeRequiredResources();
+		assert.deepStrictEqual(tracked.written, [{
+			resource: tracked.settingsResource.toString(),
+			text: '{}',
+		}]);
+		assert.deepStrictEqual(tracked.info, ['UserDataProfileInitializer: Initialized settings']);
+	});
+
+	test('shares one in-flight failed profile request, then initializes settings on the next read', async () => {
+		const requestError = new Error('profile request failed');
+		let requests = 0;
+		let release!: () => void;
+		let started!: () => void;
+		const gate = new Promise<void>(resolve => { release = resolve; });
+		const startedPromise = new Promise<void>(resolve => { started = resolve; });
+		const tracked = createTrackedInitializer({
+			name: 'test',
+			contents: URI.parse('https://example.com/profile.json'),
+		}, (async () => {
+			requests++;
+			started();
+			await gate;
+			if (requests === 1) {
+				throw requestError;
+			}
+			return profileResponse(200, { settings: settingsDocument });
+		}) as IRequestService['request']);
+
+		const first = tracked.initializer.initializeRequiredResources();
+		const second = tracked.initializer.initializeRequiredResources();
+		await startedPromise;
+		assert.strictEqual(requests, 1);
+		release();
+		await first;
+		await second;
+		assert.strictEqual(requests, 1);
+		assert.deepStrictEqual(tracked.written, []);
+		assert.deepStrictEqual(tracked.info, []);
+		assert.deepStrictEqual(tracked.errors, [requestError]);
+
+		await tracked.initializer.initializeRequiredResources();
+		assert.strictEqual(requests, 2);
+		assert.deepStrictEqual(tracked.written, [{
+			resource: tracked.settingsResource.toString(),
+			text: '{}',
+		}]);
+		assert.deepStrictEqual(tracked.info, ['UserDataProfileInitializer: Initialized settings']);
+	});
+
+	test('reads again after a non-200 profile response, then initializes settings', async () => {
+		const profileUri = URI.parse('https://example.com/profile.json');
+		let live = false;
+		let requests = 0;
+		const tracked = createTrackedInitializer({ name: 'test', contents: profileUri }, (async () => {
+			requests++;
+			if (!live) {
+				return profileResponse(503, '');
+			}
+			return profileResponse(200, { settings: settingsDocument });
+		}) as IRequestService['request']);
+
+		await tracked.initializer.initializeRequiredResources();
+		assert.strictEqual(requests, 1);
+		assert.deepStrictEqual(tracked.written, []);
+		assert.deepStrictEqual(tracked.info, []);
+		assert.deepStrictEqual(tracked.errors, []);
+		assert.deepStrictEqual(tracked.warns, [
+			`UserDataProfileInitializer: Failed to get profile from URL: ${profileUri.toString(true)}. Status code: 503.`,
+		]);
+
+		live = true;
+		await tracked.initializer.initializeRequiredResources();
+		assert.strictEqual(requests, 2);
+		assert.deepStrictEqual(tracked.written, [{
+			resource: tracked.settingsResource.toString(),
+			text: '{}',
+		}]);
+		assert.deepStrictEqual(tracked.info, ['UserDataProfileInitializer: Initialized settings']);
+	});
+
+	test('reads again when a 200 profile response has no template object, then initializes settings', async () => {
+		const bodies: unknown[] = [null, { settings: 1 }, { settings: settingsDocument }];
+		let requests = 0;
+		const tracked = createTrackedInitializer({
+			name: 'test',
+			contents: URI.parse('https://example.com/profile.json'),
+		}, (async () => {
+			return profileResponse(200, bodies[requests++]);
+		}) as IRequestService['request']);
+
+		await tracked.initializer.initializeRequiredResources();
+		await tracked.initializer.initializeRequiredResources();
+		assert.strictEqual(requests, 2);
+		assert.deepStrictEqual(tracked.written, []);
+		assert.deepStrictEqual(tracked.info, []);
+		assert.deepStrictEqual(tracked.errors, []);
+
+		await tracked.initializer.initializeRequiredResources();
+		assert.strictEqual(requests, 3);
+		assert.deepStrictEqual(tracked.written, [{
+			resource: tracked.settingsResource.toString(),
+			text: '{}',
+		}]);
+		assert.deepStrictEqual(tracked.info, ['UserDataProfileInitializer: Initialized settings']);
+	});
+
+	test('initializeOtherResources reads again after a failed template fetch and initializes keybindings', async () => {
+		const profileUri = URI.parse('https://example.com/profile.json');
+		let live = false;
+		let requests = 0;
+		const tracked = createTrackedInitializer({ name: 'test', contents: profileUri }, (async () => {
+			requests++;
+			if (!live) {
+				return profileResponse(503, '');
+			}
+			return profileResponse(200, {
+				keybindings: JSON.stringify({ platform: 'Linux', keybindings: '[]' }),
+			});
+		}) as IRequestService['request']);
+		const instantiationService = stub<IInstantiationService>({
+			createInstance: (() => {
+				throw new Error('extensions initializer should not be created');
+			}) as IInstantiationService['createInstance'],
+		});
+
+		await tracked.initializer.initializeOtherResources(instantiationService);
+		assert.strictEqual(requests, 2);
+		assert.deepStrictEqual(tracked.written, []);
+		assert.deepStrictEqual(tracked.info, []);
+		assert.deepStrictEqual(tracked.warns, [
+			`UserDataProfileInitializer: Failed to get profile from URL: ${profileUri.toString(true)}. Status code: 503.`,
+			`UserDataProfileInitializer: Failed to get profile from URL: ${profileUri.toString(true)}. Status code: 503.`,
+		]);
+
+		live = true;
+		await tracked.initializer.initializeOtherResources(instantiationService);
+		assert.strictEqual(requests, 3);
+		assert.deepStrictEqual(tracked.written, [{
+			resource: tracked.keybindingsResource.toString(),
+			text: '[]',
+		}]);
+		assert.deepStrictEqual(tracked.info, ['UserDataProfileInitializer: Initialized keybindings']);
 	});
 });
