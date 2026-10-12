@@ -9,7 +9,8 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { buildAnnotationsUri } from '../../common/annotationsUri.js';
-import { ActionType, type ActionEnvelope, type ClientChangesetAction } from '../../common/state/sessionActions.js';
+import { ActionType, type ActionEnvelope, type AnnotationsRemovedAction, type ClientChangesetAction } from '../../common/state/sessionActions.js';
+import type { ChangesetFilesReviewChangedAction } from '../../common/state/protocol/actions.js';
 import { AutomationOperation, AutomationRunOriginKind, AutomationRunStatus, ChangesetStatus, MessageKind, ResponsePartKind, SessionLifecycle, SessionStatus, TerminalClaimKind, TerminalLifecycleStatus, TurnState, type AnnotationsState, type AutomationCatalogState, type AutomationRunState, type ChangesetState, type ErrorInfo, type RootState, type SessionState, type SessionSummary, type TerminalState, type Turn } from '../../common/state/protocol/state.js';
 import { AUTOMATION_CATALOG_URI, buildDefaultChatUri, createChatState, createDefaultChatSummary, getTurnError, ROOT_STATE_URI, StateComponents, type ChatState } from '../../common/state/sessionState.js';
 import { AgentSubscriptionManager, AnnotationsStateSubscription, AutomationCatalogSubscription, AutomationRunSubscription, ChangesetStateSubscription, ChatStateSubscription, isActionEnvelopeRelevantToSubscriptionUris, RootStateSubscription, SessionStateSubscription, TerminalStateSubscription } from '../../common/state/agentSubscription.js';
@@ -356,7 +357,7 @@ suite('AnnotationsStateSubscription', () => {
 
 	test('rejected own annotation removal removes pending without updating confirmed', () => {
 		const subscription = createSubscription();
-		const action = { type: ActionType.AnnotationsRemoved, annotationId: annotation.id };
+		const action: AnnotationsRemovedAction = { type: ActionType.AnnotationsRemoved, annotationId: annotation.id };
 		const clientSeq = subscription.applyOptimistic(action);
 		subscription.receiveEnvelope(makeEnvelope(action, 1, { clientId: 'c1', clientSeq }, 'denied', annotationsUri));
 
@@ -375,7 +376,7 @@ suite('AnnotationsStateSubscription', () => {
 
 	test('rejected annotation envelopes from another client or an unmatched seq do not update confirmed', () => {
 		const subscription = createSubscription();
-		const action = { type: ActionType.AnnotationsRemoved, annotationId: annotation.id };
+		const action: AnnotationsRemovedAction = { type: ActionType.AnnotationsRemoved, annotationId: annotation.id };
 		const clientSeq = subscription.applyOptimistic(action);
 		subscription.receiveEnvelope(makeEnvelope(action, 1, { clientId: 'other-client', clientSeq }, 'denied', annotationsUri));
 		subscription.receiveEnvelope(makeEnvelope(action, 2, { clientId: 'c1', clientSeq: clientSeq + 1 }, 'denied', annotationsUri));
@@ -393,7 +394,7 @@ suite('AnnotationsStateSubscription', () => {
 
 	test('annotation echoes without rejectionReason still update confirmed', () => {
 		const subscription = createSubscription();
-		const action = { type: ActionType.AnnotationsRemoved, annotationId: annotation.id };
+		const action: AnnotationsRemovedAction = { type: ActionType.AnnotationsRemoved, annotationId: annotation.id };
 		subscription.receiveEnvelope(makeEnvelope(action, 1, { clientId: 'other-client', clientSeq: 4 }, undefined, annotationsUri));
 		assert.deepStrictEqual(subscription.verifiedValue?.annotations, []);
 
@@ -1499,7 +1500,7 @@ suite('AgentSubscriptionManager', () => {
 			return { mgr, ref };
 		}
 
-		const reviewAction = {
+		const reviewAction: ChangesetFilesReviewChangedAction = {
 			type: ActionType.ChangesetFilesReviewChanged,
 			files: ['file:///test.txt'],
 			reviewed: true,
