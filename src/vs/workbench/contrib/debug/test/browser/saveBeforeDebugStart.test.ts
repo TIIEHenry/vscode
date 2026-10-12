@@ -13,7 +13,8 @@ import { ServiceIdentifier, ServicesAccessor } from '../../../../../platform/ins
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { DEBUG_START_COMMAND_ID } from '../../browser/debugCommands.js';
 import { DebugService } from '../../browser/debugService.js';
-import { IDebugService, State } from '../../common/debug.js';
+import { DebugTaskRunner, TaskRunResult } from '../../browser/debugTaskRunner.js';
+import { IDebugService, IDebugSession, State } from '../../common/debug.js';
 import { saveAllBeforeDebugStart } from '../../common/debugUtils.js';
 
 function editorService(options: {
@@ -63,6 +64,38 @@ function accessorFor(services: Map<ServiceIdentifier<unknown>, unknown>): Servic
 			return services.get(id as ServiceIdentifier<unknown>) as T;
 		},
 	};
+}
+
+type DebugServiceTestStub = {
+	workspaceTrustRequestService: { requestWorkspaceTrust(): Promise<boolean> };
+	haveDoneLazySetup: boolean;
+	initializing: boolean;
+	previousState: State | undefined;
+	hasDebugged: { set(): void };
+	extensionService: {
+		activateByEvent(): Promise<void>;
+		whenInstalledExtensionsRegistered(): Promise<void>;
+	};
+	configurationService: IConfigurationService;
+	editorService: IEditorService;
+	viewModel: { focusedSession: undefined };
+	contextKeyService: { bufferChangeEvents(callback: () => void): void };
+	debugState: { set(): void };
+	inDebugMode: { set(): void };
+	adapterManager: { hasEnabledDebuggers(): boolean };
+	configurationManager: { selectedConfiguration: { name: undefined } };
+	debugUx: { set(): void };
+	debugStorage: { storeDebugUxState(): void };
+	_onDidChangeState: { fire(state: State): void };
+	notificationService: { error(): void };
+	taskRunner: Pick<DebugTaskRunner, 'runTask' | 'runTaskAndCheckErrors'>;
+	startDebugging: DebugService['startDebugging'];
+	restartSession: DebugService['restartSession'];
+	readonly state: State;
+};
+
+function createDebugServiceTestStub(): DebugServiceTestStub {
+	return Object.create(DebugService.prototype) as unknown as DebugServiceTestStub;
 }
 
 suite('Debug - saveAllBeforeDebugStart', () => {
@@ -130,7 +163,7 @@ suite('Debug - saveAllBeforeDebugStart', () => {
 		const editors = editorService({ saveAllSuccess: false });
 		const seenStates: State[] = [];
 		let notified = false;
-		const service = Object.create(DebugService.prototype) as DebugService & Record<string, unknown>;
+		const service = createDebugServiceTestStub();
 		service.workspaceTrustRequestService = { requestWorkspaceTrust: async () => true };
 		service.haveDoneLazySetup = true;
 		service.initializing = false;
@@ -192,17 +225,17 @@ suite('Debug - saveAllBeforeDebugStart', () => {
 		const configuration = configurationService('allEditorsInActiveGroup');
 		const editors = editorService({ saveAllSuccess: false });
 		let tasks = 0;
-		const service = Object.create(DebugService.prototype) as DebugService & Record<string, unknown>;
+		const service = createDebugServiceTestStub();
 		service.configurationService = configuration.service;
 		service.editorService = editors;
 		service.taskRunner = {
-			runTask: () => {
+			runTask: (root, taskId, token?) => {
 				tasks++;
-				return Promise.resolve();
+				return Promise.resolve(null);
 			},
-			runTaskAndCheckErrors: () => {
+			runTaskAndCheckErrors: (root, taskId) => {
 				tasks++;
-				return Promise.resolve(0);
+				return Promise.resolve(TaskRunResult.Failure);
 			},
 		};
 		const session = {
@@ -210,7 +243,7 @@ suite('Debug - saveAllBeforeDebugStart', () => {
 			configuration: { type: 'node', name: 'app', request: 'launch' },
 			root: undefined,
 		};
-		await service.restartSession(session);
+		await service.restartSession(session as unknown as IDebugSession);
 		assert.strictEqual(tasks, 0);
 		assert.strictEqual(configuration.reloads(), 0);
 	});

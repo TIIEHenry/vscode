@@ -40,7 +40,7 @@ suite('DebugSession - sendDataBreakpoints toDAP failure', () => {
 		session.raw = upcastPartial<RawDebugSession>({
 			readyForBreakpoints: true,
 			capabilities: { supportsDataBreakpoints: true },
-			setDataBreakpoints: async () => ({ body: { breakpoints: [] } }),
+			setDataBreakpoints: async (args: DebugProtocol.SetDataBreakpointsArguments) => ({ body: { breakpoints: [] } } as unknown as DebugProtocol.SetDataBreakpointsResponse),
 		});
 		await session.sendDataBreakpoints([bp]);
 		return { message: bp.message, verified: bp.verified, stored };
