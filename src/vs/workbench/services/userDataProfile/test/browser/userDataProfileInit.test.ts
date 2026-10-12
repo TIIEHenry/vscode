@@ -12,9 +12,10 @@ import { ILogService } from '../../../../../platform/log/common/log.js';
 import { IRequestService } from '../../../../../platform/request/common/request.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/uriIdentity.js';
+import { IUserDataProfile } from '../../../../../platform/userDataProfile/common/userDataProfile.js';
 import { IBrowserWorkbenchEnvironmentService } from '../../../environment/browser/environmentService.js';
 import { UserDataProfileInitializer } from '../../browser/userDataProfileInit.js';
-import { IUserDataProfile, IUserDataProfileService } from '../../common/userDataProfile.js';
+import { IUserDataProfileService } from '../../common/userDataProfile.js';
 
 function stub<T>(partial: Partial<T>): T {
 	return partial as T;
