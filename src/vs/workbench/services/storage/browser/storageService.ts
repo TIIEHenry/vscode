@@ -84,18 +84,32 @@ export class BrowserStorageService extends AbstractStorageService {
 	}
 
 	private async createApplicationStorage(): Promise<void> {
-		const applicationStorageIndexedDB = await IndexedDBStorageDatabase.createApplicationStorage(this.logService);
+		try {
+			const applicationStorageIndexedDB = await IndexedDBStorageDatabase.createApplicationStorage(this.logService);
 
-		this.applicationStorageDatabase = this._register(applicationStorageIndexedDB);
-		this.applicationStorage = this._register(new Storage(this.applicationStorageDatabase));
+			this.applicationStorageDatabase = this._register(applicationStorageIndexedDB);
+			this.applicationStorage = this._register(new Storage(this.applicationStorageDatabase));
 
-		this._register(this.applicationStorage.onDidChangeStorage(e => this.emitDidChangeValue(StorageScope.APPLICATION, e)));
+			this._register(this.applicationStorage.onDidChangeStorage(e => this.emitDidChangeValue(StorageScope.APPLICATION, e)));
 
-		await this.applicationStorage.init();
+			await this.applicationStorage.init();
 
-		this.updateIsNew(this.applicationStorage);
+			this.updateIsNew(this.applicationStorage);
 
-		this.applicationStoragePromise.complete({ indexedDb: applicationStorageIndexedDB, storage: this.applicationStorage });
+			this.applicationStoragePromise.complete({ indexedDb: applicationStorageIndexedDB, storage: this.applicationStorage });
+		} catch (error) {
+			// createProfileStorage awaits this promise only for the default profile.
+			// Rejecting it on a non-default profile would be unhandled, so observe it there.
+			if (!this.applicationStoragePromise.isSettled) {
+				const observedRejection = isProfileUsingDefaultStorage(this.profileStorageProfile)
+					? undefined
+					: this.applicationStoragePromise.p.catch(() => undefined);
+				await this.applicationStoragePromise.error(error);
+				await observedRejection;
+			}
+
+			throw error;
+		}
 	}
 
 	private async createApplicationSharedStorage(): Promise<void> {
