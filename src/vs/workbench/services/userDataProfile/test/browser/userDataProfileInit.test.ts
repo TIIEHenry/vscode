@@ -422,6 +422,60 @@ suite('UserDataProfileInitializer', () => {
 		assert.strictEqual(created, 0);
 	});
 
+	test('does not cache a null template skip, then initializes extensions after a later read', async () => {
+		const extensionsContent = '[{"identifier":{"id":"pub.ext"}}]';
+		const profileUri = URI.parse('https://example.com/profile.json');
+		let live = false;
+		let requests = 0;
+		let created = 0;
+		const attempts: string[] = [];
+		let release!: () => void;
+		let started!: () => void;
+		const gate = new Promise<void>(resolve => { release = resolve; });
+		const startedPromise = new Promise<void>(resolve => { started = resolve; });
+		const tracked = createTrackedInitializer({ name: 'test', contents: profileUri }, (async () => {
+			requests++;
+			if (!live) {
+				started();
+				await gate;
+				return profileResponse(503, '');
+			}
+			return profileResponse(200, { extensions: extensionsContent });
+		}) as IRequestService['request']);
+		const instantiationService = stub<IInstantiationService>({
+			createInstance: ((ctor: unknown) => {
+				assert.strictEqual(ctor, ExtensionsResourceInitializer);
+				created++;
+				return {
+					async initialize(content: string) {
+						attempts.push(content);
+					},
+				};
+			}) as IInstantiationService['createInstance'],
+		});
+
+		const first = tracked.initializer.initializeInstalledExtensions(instantiationService);
+		const second = tracked.initializer.initializeInstalledExtensions(instantiationService);
+		assert.strictEqual(first, second);
+		await startedPromise;
+		assert.strictEqual(requests, 1);
+		assert.strictEqual(created, 0);
+		release();
+		await first;
+		await second;
+		assert.strictEqual(created, 0);
+		assert.deepStrictEqual(attempts, []);
+
+		live = true;
+		const third = tracked.initializer.initializeInstalledExtensions(instantiationService);
+		assert.notStrictEqual(third, first);
+		await third;
+		assert.strictEqual(requests, 2);
+		assert.strictEqual(created, 1);
+		assert.deepStrictEqual(attempts, [extensionsContent]);
+		assert.deepStrictEqual(tracked.info, ['UserDataProfileInitializer: Initialized extensions']);
+	});
+
 	test('shares one in-flight profile template read, then keeps the template object', async () => {
 		const profileUri = URI.parse('https://example.com/profile.json');
 		const template = {

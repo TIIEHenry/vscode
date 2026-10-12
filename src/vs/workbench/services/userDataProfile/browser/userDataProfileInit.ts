@@ -100,7 +100,16 @@ export class UserDataProfileInitializer implements IUserDataInitializer {
 			const pending: { promise?: Promise<void> } = {};
 			pending.promise = (async () => {
 				const profileTemplate = await this.getProfileTemplate();
-				if (!profileTemplate?.extensions) {
+				if (!profileTemplate) {
+					// A null template is a missed read, not a profile without extensions.
+					// Drop this attempt so a later read that includes extensions still
+					// creates and runs the initializer. In-flight callers share this promise.
+					if (this.initializeInstalledExtensionsPromise === pending.promise) {
+						this.initializeInstalledExtensionsPromise = undefined;
+					}
+					return;
+				}
+				if (!profileTemplate.extensions) {
 					return;
 				}
 				try {
