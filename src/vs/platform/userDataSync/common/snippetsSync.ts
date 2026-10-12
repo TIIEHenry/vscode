@@ -545,7 +545,13 @@ export class SnippetsInitializer extends AbstractInitializer {
 			const stat = await this.fileService.resolve(this.userDataProfilesService.defaultProfile.snippetsHome);
 			return !stat.children?.length;
 		} catch (error) {
-			return (<FileOperationError>error).fileOperationResult === FileOperationResult.FILE_NOT_FOUND;
+			if (error instanceof FileOperationError) {
+				if (error.fileOperationResult === FileOperationResult.FILE_NOT_FOUND) {
+					return true;
+				}
+				throw error;
+			}
+			return false;
 		}
 	}
 

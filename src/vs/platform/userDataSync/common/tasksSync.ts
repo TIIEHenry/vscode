@@ -6,7 +6,7 @@
 import { VSBuffer } from '../../../base/common/buffer.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
 import { IEnvironmentService } from '../../environment/common/environment.js';
-import { IFileService } from '../../files/common/files.js';
+import { FileOperationError, FileOperationResult, IFileService } from '../../files/common/files.js';
 import { ILogService } from '../../log/common/log.js';
 import { IStorageService } from '../../storage/common/storage.js';
 import { ITelemetryService } from '../../telemetry/common/telemetry.js';
@@ -92,7 +92,18 @@ export class TasksInitializer extends AbstractInitializer {
 	}
 
 	private async isEmpty(): Promise<boolean> {
-		return this.fileService.exists(this.tasksResource);
+		try {
+			const fileContent = await this.fileService.readFile(this.tasksResource);
+			return fileContent.value.toString().trim().length === 0;
+		} catch (error) {
+			if (error instanceof FileOperationError) {
+				if (error.fileOperationResult === FileOperationResult.FILE_NOT_FOUND) {
+					return true;
+				}
+				throw error;
+			}
+			return false;
+		}
 	}
 
 }

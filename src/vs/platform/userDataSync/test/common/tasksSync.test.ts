@@ -7,11 +7,11 @@ import assert from 'assert';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { runWithFakedTimers } from '../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IFileService } from '../../../files/common/files.js';
+import { FileOperationError, FileOperationResult, IFileService } from '../../../files/common/files.js';
 import { ILogService } from '../../../log/common/log.js';
 import { IUserDataProfilesService } from '../../../userDataProfile/common/userDataProfile.js';
-import { getTasksContentFromSyncContent, TasksSynchroniser } from '../../common/tasksSync.js';
-import { Change, IUserDataSyncStoreService, MergeState, SyncResource, SyncStatus } from '../../common/userDataSync.js';
+import { getTasksContentFromSyncContent, TasksInitializer, TasksSynchroniser } from '../../common/tasksSync.js';
+import { Change, IUserDataSyncLogService, IUserDataSyncStoreService, MergeState, SyncResource, SyncStatus } from '../../common/userDataSync.js';
 import { UserDataSyncClient, UserDataSyncTestServer } from './userDataSyncClient.js';
 
 suite('TasksSync', () => {
@@ -571,5 +571,167 @@ suite('TasksSync', () => {
 			assert.strictEqual(actual, expected);
 		});
 	});
+
+});
+
+suite('TasksInitializer', () => {
+
+	const server = new UserDataSyncTestServer();
+	let client: UserDataSyncClient;
+	let testObject: TasksInitializer;
+
+	teardown(async () => {
+		await client.instantiationService.get(IUserDataSyncStoreService).clear();
+	});
+
+	const disposableStore = ensureNoDisposablesAreLeakedInTestSuite();
+
+	setup(async () => {
+		client = disposableStore.add(new UserDataSyncClient(server));
+		await client.setUp(true);
+		testObject = client.instantiationService.createInstance(TasksInitializer);
+	});
+
+	test('writes tasksResource when the tasks file is missing', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const tasksResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.tasksResource;
+		assert.strictEqual(await fileService.exists(tasksResource), false);
+
+		const remoteContent = JSON.stringify({
+			'version': '2.0.0',
+			'tasks': [{
+				'type': 'npm',
+				'script': 'watch',
+				'label': 'Watch'
+			}]
+		});
+		await testObject.initialize(remoteTasksUserData(remoteContent));
+
+		assert.strictEqual((await fileService.readFile(tasksResource)).value.toString(), remoteContent);
+	});
+
+	test('skips initialization and does not overwrite when local tasks exist', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const tasksResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.tasksResource;
+		const localContent = JSON.stringify({
+			'version': '2.0.0',
+			'tasks': [{
+				'type': 'npm',
+				'script': 'build',
+				'label': 'Keep local'
+			}]
+		});
+		await fileService.writeFile(tasksResource, VSBuffer.fromString(localContent));
+
+		await testObject.initialize(remoteTasksUserData(JSON.stringify({
+			'version': '2.0.0',
+			'tasks': [{
+				'type': 'npm',
+				'script': 'watch',
+				'label': 'Watch'
+			}]
+		})));
+
+		assert.strictEqual((await fileService.readFile(tasksResource)).value.toString(), localContent);
+	});
+
+	test('does not overwrite a non-empty tasks file and writes when the file is empty', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const tasksResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.tasksResource;
+		const localContent = JSON.stringify({
+			'version': '2.0.0',
+			'tasks': [{
+				'label': 'Keep'
+			}]
+		});
+		const remoteContent = JSON.stringify({
+			'version': '2.0.0',
+			'tasks': [{
+				'label': 'Remote'
+			}]
+		});
+		await fileService.writeFile(tasksResource, VSBuffer.fromString(localContent));
+		await testObject.initialize(remoteTasksUserData(remoteContent));
+		assert.strictEqual((await fileService.readFile(tasksResource)).value.toString(), localContent);
+
+		await fileService.writeFile(tasksResource, VSBuffer.fromString(''));
+		await testObject.initialize(remoteTasksUserData(remoteContent));
+		assert.strictEqual((await fileService.readFile(tasksResource)).value.toString(), remoteContent);
+
+		await fileService.writeFile(tasksResource, VSBuffer.fromString(' \n\t '));
+		const whitespaceRemote = `${remoteContent}\n`;
+		await testObject.initialize(remoteTasksUserData(whitespaceRemote));
+		assert.strictEqual((await fileService.readFile(tasksResource)).value.toString(), whitespaceRemote);
+	});
+
+	test('initialize surfaces the read error and does not write when tasks read fails with FILE_PERMISSION_DENIED or FILE_TOO_LARGE', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const tasksResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.tasksResource;
+		const remoteContent = JSON.stringify({
+			'version': '2.0.0',
+			'tasks': [{
+				'type': 'npm',
+				'script': 'watch',
+				'label': 'Watch'
+			}]
+		});
+
+		for (const result of [FileOperationResult.FILE_PERMISSION_DENIED, FileOperationResult.FILE_TOO_LARGE]) {
+			if (await fileService.exists(tasksResource)) {
+				await fileService.del(tasksResource);
+			}
+			const readError = failTasksInitializerRead(fileService, tasksResource.toString(), result);
+			const loggedErrors: unknown[] = [];
+			const infos: unknown[] = [];
+			captureInitializerLogs(loggedErrors, infos);
+			let thrown: unknown;
+			try {
+				await testObject.initialize(remoteTasksUserData(remoteContent));
+			} catch (error) {
+				thrown = error;
+			}
+
+			assert.strictEqual(await fileService.exists(tasksResource), false);
+			assert.deepStrictEqual(thrown === undefined ? loggedErrors : [thrown], [readError]);
+			assert.ok(!infos.includes('Skipping initializing tasks because local tasks exist.'));
+		}
+	});
+
+	function remoteTasksUserData(tasksContent: string) {
+		return {
+			ref: '1',
+			content: JSON.stringify({
+				version: 1,
+				content: JSON.stringify({ tasks: tasksContent }),
+			}),
+		};
+	}
+
+	function failTasksInitializerRead(fileService: IFileService, tasksResource: string, result: FileOperationResult): FileOperationError {
+		const readError = new FileOperationError('tasks read failed', result);
+		const target = fileService as { readFile: IFileService['readFile'] };
+		const originalReadFile = target.readFile.bind(fileService);
+		target.readFile = (resource, options, token) => {
+			if (resource.toString() === tasksResource) {
+				return Promise.reject(readError);
+			}
+			return originalReadFile(resource, options, token);
+		};
+		return readError;
+	}
+
+	function captureInitializerLogs(loggedErrors: unknown[], infos: unknown[]): void {
+		const logService = client.instantiationService.get(IUserDataSyncLogService);
+		const originalError = logService.error.bind(logService);
+		const originalInfo = logService.info.bind(logService);
+		logService.error = (message: string | Error, ...args: unknown[]) => {
+			loggedErrors.push(message);
+			originalError(message, ...args);
+		};
+		logService.info = (message: string, ...args: unknown[]) => {
+			infos.push(message);
+			originalInfo(message, ...args);
+		};
+	}
 
 });

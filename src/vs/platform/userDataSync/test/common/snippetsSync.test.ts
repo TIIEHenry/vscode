@@ -10,10 +10,10 @@ import { dirname, joinPath } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IEnvironmentService } from '../../../environment/common/environment.js';
-import { IFileService } from '../../../files/common/files.js';
+import { FileOperationError, FileOperationResult, IFileService, IResolveFileOptions } from '../../../files/common/files.js';
 import { IUserDataProfile, IUserDataProfilesService } from '../../../userDataProfile/common/userDataProfile.js';
-import { SnippetsSynchroniser } from '../../common/snippetsSync.js';
-import { IResourcePreview, ISyncData, IUserDataSyncStoreService, PREVIEW_DIR_NAME, SyncResource, SyncStatus } from '../../common/userDataSync.js';
+import { SnippetsInitializer, SnippetsSynchroniser } from '../../common/snippetsSync.js';
+import { IResourcePreview, ISyncData, IUserDataSyncLogService, IUserDataSyncStoreService, PREVIEW_DIR_NAME, SyncResource, SyncStatus } from '../../common/userDataSync.js';
 import { UserDataSyncClient, UserDataSyncTestServer } from './userDataSyncClient.js';
 
 const tsSnippet1 = `{
@@ -906,6 +906,128 @@ suite('SnippetsSync', () => {
 
 	function assertPreviews(actual: IResourcePreview[], expected: URI[]) {
 		assert.deepStrictEqual(actual.map(({ previewResource }) => previewResource.toString()), expected.map(uri => uri.toString()));
+	}
+
+});
+
+suite('SnippetsInitializer', () => {
+
+	const server = new UserDataSyncTestServer();
+	let client: UserDataSyncClient;
+	let testObject: SnippetsInitializer;
+
+	teardown(async () => {
+		await client.instantiationService.get(IUserDataSyncStoreService).clear();
+	});
+
+	const disposableStore = ensureNoDisposablesAreLeakedInTestSuite();
+
+	setup(async () => {
+		client = disposableStore.add(new UserDataSyncClient(server));
+		await client.setUp(true);
+		testObject = client.instantiationService.createInstance(SnippetsInitializer);
+	});
+
+	test('writes snippets when snippetsHome is missing', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const snippetsHome = client.instantiationService.get(IUserDataProfilesService).defaultProfile.snippetsHome;
+		const snippetResource = joinPath(snippetsHome, 'html.json');
+		assert.strictEqual(await fileService.exists(snippetsHome), false);
+
+		await testObject.initialize(remoteSnippetsUserData({ 'html.json': htmlSnippet1 }));
+
+		assert.strictEqual((await fileService.readFile(snippetResource)).value.toString(), htmlSnippet1);
+	});
+
+	test('skips initialization and does not overwrite when local snippets exist', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const snippetsHome = client.instantiationService.get(IUserDataProfilesService).defaultProfile.snippetsHome;
+		const snippetResource = joinPath(snippetsHome, 'html.json');
+		await fileService.writeFile(snippetResource, VSBuffer.fromString(htmlSnippet1));
+
+		await testObject.initialize(remoteSnippetsUserData({
+			'html.json': htmlSnippet2,
+			'typescript.json': tsSnippet1,
+		}));
+
+		assert.strictEqual((await fileService.readFile(snippetResource)).value.toString(), htmlSnippet1);
+		assert.strictEqual(await fileService.exists(joinPath(snippetsHome, 'typescript.json')), false);
+	});
+
+	test('does not overwrite when snippetsHome already has children', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const snippetsHome = client.instantiationService.get(IUserDataProfilesService).defaultProfile.snippetsHome;
+		const child = joinPath(snippetsHome, 'local.json');
+		const local = '{ "keep": true }';
+		await fileService.writeFile(child, VSBuffer.fromString(local));
+
+		await testObject.initialize(remoteSnippetsUserData({ 'html.json': htmlSnippet1 }));
+
+		assert.strictEqual((await fileService.readFile(child)).value.toString(), local);
+		assert.strictEqual(await fileService.exists(joinPath(snippetsHome, 'html.json')), false);
+	});
+
+	test('initialize surfaces the resolve error and does not write when snippets resolve fails with FILE_PERMISSION_DENIED or FILE_TOO_LARGE', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const snippetsHome = client.instantiationService.get(IUserDataProfilesService).defaultProfile.snippetsHome;
+		const snippetResource = joinPath(snippetsHome, 'html.json');
+
+		for (const result of [FileOperationResult.FILE_PERMISSION_DENIED, FileOperationResult.FILE_TOO_LARGE]) {
+			if (await fileService.exists(snippetResource)) {
+				await fileService.del(snippetResource);
+			}
+			const resolveError = failSnippetsInitializerResolve(fileService, snippetsHome.toString(), result);
+			const loggedErrors: unknown[] = [];
+			const infos: unknown[] = [];
+			captureInitializerLogs(loggedErrors, infos);
+			let thrown: unknown;
+			try {
+				await testObject.initialize(remoteSnippetsUserData({ 'html.json': htmlSnippet1 }));
+			} catch (error) {
+				thrown = error;
+			}
+
+			assert.strictEqual(await fileService.exists(snippetResource), false);
+			assert.deepStrictEqual(thrown === undefined ? loggedErrors : [thrown], [resolveError]);
+			assert.ok(!infos.includes('Skipping initializing snippets because local snippets exist.'));
+		}
+	});
+
+	function remoteSnippetsUserData(snippets: Record<string, string>) {
+		return {
+			ref: '1',
+			content: JSON.stringify({
+				version: 1,
+				content: JSON.stringify(snippets),
+			}),
+		};
+	}
+
+	function failSnippetsInitializerResolve(fileService: IFileService, snippetsHome: string, result: FileOperationResult): FileOperationError {
+		const resolveError = new FileOperationError('snippets resolve failed', result);
+		const target = fileService as { resolve: IFileService['resolve'] };
+		const originalResolve = target.resolve.bind(fileService);
+		target.resolve = ((resource: URI, options?: IResolveFileOptions) => {
+			if (resource.toString() === snippetsHome) {
+				return Promise.reject(resolveError);
+			}
+			return originalResolve(resource, options);
+		}) as IFileService['resolve'];
+		return resolveError;
+	}
+
+	function captureInitializerLogs(loggedErrors: unknown[], infos: unknown[]): void {
+		const logService = client.instantiationService.get(IUserDataSyncLogService);
+		const originalError = logService.error.bind(logService);
+		const originalInfo = logService.info.bind(logService);
+		logService.error = (message: string | Error, ...args: unknown[]) => {
+			loggedErrors.push(message);
+			originalError(message, ...args);
+		};
+		logService.info = (message: string, ...args: unknown[]) => {
+			infos.push(message);
+			originalInfo(message, ...args);
+		};
 	}
 
 });
