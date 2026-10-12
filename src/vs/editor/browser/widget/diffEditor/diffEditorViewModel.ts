@@ -30,6 +30,8 @@ export class DiffEditorViewModel extends Disposable implements IDiffEditorViewMo
 	public readonly isDiffUpToDate: IObservable<boolean> = this._isDiffUpToDate;
 
 	private _lastDiff: IDocumentDiff | undefined;
+	/** Bumped on every diff autorun entry so a stale compute cannot publish. */
+	private _diffComputationGeneration = 0;
 	private readonly _diff = observableValue<DiffState | undefined>(this, undefined);
 	public readonly diff: IObservable<DiffState | undefined> = this._diff;
 
@@ -263,6 +265,7 @@ export class DiffEditorViewModel extends Disposable implements IDiffEditorViewMo
 
 		this._register(autorun(async (reader) => {
 			/** @description compute diff */
+			const diffComputationGeneration = ++this._diffComputationGeneration;
 			const store = reader.store;
 
 			// So that they get recomputed when these settings change
@@ -297,6 +300,9 @@ export class DiffEditorViewModel extends Disposable implements IDiffEditorViewMo
 				computeMoves: this._options.showMoves.read(reader),
 			}, this._cancellationTokenSource.token).catch(rejectIfNotCanceled);
 
+			if (diffComputationGeneration !== this._diffComputationGeneration) {
+				return;
+			}
 			if (!result || this._cancellationTokenSource.token.isCancellationRequested) {
 				return;
 			}
@@ -304,9 +310,28 @@ export class DiffEditorViewModel extends Disposable implements IDiffEditorViewMo
 				// TODO@hediet fishy?
 				return;
 			}
+			// Untranslated edits belong to a newer document. Drop this result before normalizing it.
+			if (originalTextEditInfos.length > 0 || modifiedTextEditInfos.length > 0) {
+				if (originalTextEditInfos.length > 0) {
+					const translatedOriginal = applyOriginalEdits(result, originalTextEditInfos, model.original, model.modified);
+					if (!translatedOriginal) {
+						return;
+					}
+					result = translatedOriginal;
+				}
+				if (modifiedTextEditInfos.length > 0) {
+					const translatedModified = applyModifiedEdits(result, modifiedTextEditInfos, model.original, model.modified);
+					if (!translatedModified) {
+						return;
+					}
+					result = translatedModified;
+				}
+			}
 			result = normalizeDocumentDiff(result, model.original, model.modified);
-			result = applyOriginalEdits(result, originalTextEditInfos, model.original, model.modified) ?? result;
-			result = applyModifiedEdits(result, modifiedTextEditInfos, model.original, model.modified) ?? result;
+			if (originalTextEditInfos.length === 0 && modifiedTextEditInfos.length === 0) {
+				result = applyOriginalEdits(result, originalTextEditInfos, model.original, model.modified) ?? result;
+				result = applyModifiedEdits(result, modifiedTextEditInfos, model.original, model.modified) ?? result;
+			}
 
 			transaction(tx => {
 				/** @description write diff result */
