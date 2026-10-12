@@ -6,7 +6,7 @@
 import { localize } from '../../../../nls.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { getFileNamesMessage, IConfirmation, IDialogService, IFileDialogService, IPromptButton } from '../../../../platform/dialogs/common/dialogs.js';
-import { ByteSize, FileSystemProviderCapabilities, IFileService, IFileStatWithMetadata } from '../../../../platform/files/common/files.js';
+import { ByteSize, FileOperationResult, FileSystemProviderCapabilities, IFileService, IFileStatWithMetadata, toFileOperationResult } from '../../../../platform/files/common/files.js';
 import { INotificationService, Severity } from '../../../../platform/notification/common/notification.js';
 import { IProgress, IProgressService, IProgressStep, ProgressLocation } from '../../../../platform/progress/common/progress.js';
 import { IExplorerService } from './files.js';
@@ -27,7 +27,7 @@ import { getActiveWindow, isDragEvent, triggerDownload } from '../../../../base/
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { FileAccess, Schemas } from '../../../../base/common/network.js';
 import { listenStream } from '../../../../base/common/stream.js';
-import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { createSingleCallFunction } from '../../../../base/common/functional.js';
 import { coalesce } from '../../../../base/common/arrays.js';
 import { canceled, onUnexpectedError } from '../../../../base/common/errors.js';
@@ -35,6 +35,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { WebFileSystemAccess } from '../../../../platform/files/browser/webFileSystemAccess.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
+import { IUndoRedoElement, IUndoRedoService, ResourceEditStackSnapshot } from '../../../../platform/undoRedo/common/undoRedo.js';
 
 //#region Browser File Upload (drag and drop, input element)
 
@@ -78,7 +79,8 @@ export class BrowserFileUpload {
 		@IDialogService private readonly dialogService: IDialogService,
 		@IExplorerService private readonly explorerService: IExplorerService,
 		@IEditorService private readonly editorService: IEditorService,
-		@IFileService private readonly fileService: IFileService
+		@IFileService private readonly fileService: IFileService,
+		@IUndoRedoService private readonly undoRedoService: IUndoRedoService
 	) {
 	}
 
@@ -93,7 +95,9 @@ export class BrowserFileUpload {
 				cancellable: true,
 				title: localize('uploadingFiles', "Uploading")
 			},
-			async progress => this.doUpload(target, this.toTransfer(source), progress, cts.token),
+			async progress => {
+				await this.doUpload(target, this.toTransfer(source), progress, cts.token);
+			},
 			() => cts.dispose(true)
 		);
 
@@ -131,7 +135,7 @@ export class BrowserFileUpload {
 		return transfer;
 	}
 
-	private async doUpload(target: ExplorerItem, source: IWebkitDataTransfer, progress: IProgress<IProgressStep>, token: CancellationToken): Promise<void> {
+	private async doUpload(target: ExplorerItem, source: IWebkitDataTransfer, progress: IProgress<IProgressStep>, token: CancellationToken): Promise<{ isFile: boolean; resource: URI }[]> {
 		const items = source.items;
 
 		// Somehow the items thing is being modified at random, maybe as a security
@@ -168,28 +172,55 @@ export class BrowserFileUpload {
 					return;
 				}
 
-				// Confirm overwrite as needed
-				if (target && entry.name && target.getChild(entry.name)) {
-					const { confirmed } = await this.dialogService.confirm(getFileOverwriteConfirm(entry.name));
+				// Confirm overwrite as needed. Directories are not deleted here:
+				// undo of a directory delete only recreates an empty folder.
+				const entryName = entry.name;
+				const destination = entryName ? joinPath(target.resource, entryName) : undefined;
+				let deletedExistingFile = false;
+				let deleteUndo: IUndoRedoElement | undefined;
+				let undoSnapshot: ResourceEditStackSnapshot | undefined;
+				if (target && entryName && destination && target.getChild(entryName)) {
+					const { confirmed } = await this.dialogService.confirm(getFileOverwriteConfirm(entryName));
 					if (!confirmed) {
 						return;
 					}
 
-					await this.explorerService.applyBulkEdit([new ResourceFileEdit(joinPath(target.resource, entry.name), undefined, { recursive: true, folder: target.getChild(entry.name)?.isDirectory })], {
-						undoLabel: localize('overwrite', "Overwrite {0}", entry.name),
-						progressLabel: localize('overwriting', "Overwriting {0}", entry.name),
-					});
+					const existing = target.getChild(entryName);
+					if (existing && !existing.isDirectory) {
+						// Snapshot before the explorer delete. That delete is pushed with
+						// UNDO_REDO_SOURCE, so undo(uri) uses source 0 and can be refused.
+						undoSnapshot = this.undoRedoService.createSnapshot(destination);
+						const undoBeforeDelete = this.undoRedoService.getLastElement(destination);
+						await this.explorerService.applyBulkEdit([new ResourceFileEdit(destination, undefined, { recursive: true, folder: existing.isDirectory })], {
+							undoLabel: localize('overwrite', "Overwrite {0}", entryName),
+							progressLabel: localize('overwriting', "Overwriting {0}", entryName),
+						});
+						deletedExistingFile = true;
+						const undoAfterDelete = this.undoRedoService.getLastElement(destination);
+						if (undoAfterDelete && undoAfterDelete !== undoBeforeDelete) {
+							deleteUndo = undoAfterDelete;
+						}
 
-					if (token.isCancellationRequested) {
-						return;
+						if (token.isCancellationRequested) {
+							await this.restoreOverwrittenFile(destination, deleteUndo, undoSnapshot, false);
+							return;
+						}
 					}
 				}
 
 				// Upload entry
-				const result = await this.doUploadEntry(entry, target.resource, target, progress, operation, token);
-				if (result) {
-					results.push(result);
+				let result: { isFile: boolean; resource: URI } | undefined;
+				try {
+					result = await this.doUploadEntry(entry, target.resource, target, progress, operation, token);
+				} catch {
+					await this.rollbackUpload(deletedExistingFile, destination, entry.isFile, deleteUndo, undoSnapshot);
+					return;
 				}
+				if (!result) {
+					await this.rollbackUpload(deletedExistingFile, destination, entry.isFile, deleteUndo, undoSnapshot);
+					return;
+				}
+				results.push(result);
 			});
 		}));
 
@@ -199,6 +230,48 @@ export class BrowserFileUpload {
 		const firstUploadedFile = results[0];
 		if (!token.isCancellationRequested && firstUploadedFile?.isFile) {
 			await this.editorService.openEditor({ resource: firstUploadedFile.resource, options: { pinned: true } });
+		}
+
+		return results;
+	}
+
+	private async deleteUploadTargetIfExists(resource: URI): Promise<void> {
+		try {
+			await this.fileService.del(resource);
+		} catch (error) {
+			if (toFileOperationResult(error) !== FileOperationResult.FILE_NOT_FOUND) {
+				throw error;
+			}
+		}
+	}
+
+	private async restoreOverwrittenFile(resource: URI, deleteUndo: IUndoRedoElement | undefined, snapshot: ResourceEditStackSnapshot | undefined, removePartial: boolean): Promise<void> {
+		if (removePartial) {
+			await this.deleteUploadTargetIfExists(resource);
+		}
+		if (!deleteUndo) {
+			return;
+		}
+		// Invoke the delete's own undo so the bytes it captured are written back
+		// without UndoRedoService's different-source confirmation.
+		await deleteUndo.undo();
+		if (snapshot) {
+			this.undoRedoService.restoreSnapshot(snapshot);
+		}
+	}
+
+	private async rollbackUpload(deletedExistingFile: boolean, resource: URI | undefined, entryIsFile: boolean, deleteUndo?: IUndoRedoElement, snapshot?: ResourceEditStackSnapshot): Promise<void> {
+		if (!resource) {
+			return;
+		}
+
+		if (deletedExistingFile) {
+			await this.restoreOverwrittenFile(resource, deleteUndo, snapshot, true);
+			return;
+		}
+
+		if (entryIsFile) {
+			await this.deleteUploadTargetIfExists(resource);
 		}
 	}
 
@@ -253,7 +326,11 @@ export class BrowserFileUpload {
 
 			// Fallback to unbuffered upload for other browsers or small files
 			else {
-				await this.doUploadFileUnbuffered(resource, file, reportProgress);
+				await this.doUploadFileUnbuffered(resource, file, reportProgress, token);
+			}
+
+			if (token.isCancellationRequested) {
+				return undefined;
 			}
 
 			return { isFile: true, resource };
@@ -308,6 +385,10 @@ export class BrowserFileUpload {
 				await this.doUploadEntry(folderChildEntry, resource, folderTarget, progress, operation, token);
 			}
 
+			if (token.isCancellationRequested) {
+				return undefined;
+			}
+
 			return { isFile: false, resource };
 		}
 	}
@@ -345,28 +426,72 @@ export class BrowserFileUpload {
 
 				res = await reader.read();
 			}
-			writeableStream.end(undefined);
+
+			if (token.isCancellationRequested) {
+				writeableStream.error(canceled());
+				writeableStream.end();
+			} else {
+				writeableStream.end(undefined);
+			}
 		} catch (error) {
 			writeableStream.error(error);
 			writeableStream.end();
 		}
 
-		if (token.isCancellationRequested) {
-			return undefined;
+		try {
+			await writeFilePromise;
+		} catch (error) {
+			if (token.isCancellationRequested) {
+				throw canceled();
+			}
+			throw error;
 		}
 
-		// Wait for file being written to target
-		await writeFilePromise;
+		if (token.isCancellationRequested) {
+			throw canceled();
+		}
 	}
 
-	private doUploadFileUnbuffered(resource: URI, file: File, progressReporter: (fileSize: number, bytesUploaded: number) => void): Promise<void> {
+	private doUploadFileUnbuffered(resource: URI, file: File, progressReporter: (fileSize: number, bytesUploaded: number) => void, token: CancellationToken): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
+			if (token.isCancellationRequested) {
+				reject(canceled());
+				return;
+			}
+
 			const reader = new FileReader();
+			let settled = false;
+			const listener = token.onCancellationRequested(() => reader.abort());
+			const finish = (settle: () => void) => {
+				if (settled) {
+					return;
+				}
+				settled = true;
+				listener.dispose();
+				settle();
+			};
+
+			reader.onerror = () => {
+				finish(() => reject(reader.error ?? new Error('Could not read from dropped file.')));
+			};
+			reader.onabort = () => {
+				finish(() => reject(canceled()));
+			};
 			reader.onload = async event => {
 				try {
+					if (token.isCancellationRequested) {
+						finish(() => reject(canceled()));
+						return;
+					}
+
 					if (event.target?.result instanceof ArrayBuffer) {
 						const buffer = VSBuffer.wrap(new Uint8Array(event.target.result));
 						await this.fileService.writeFile(resource, buffer);
+
+						if (token.isCancellationRequested) {
+							finish(() => reject(canceled()));
+							return;
+						}
 
 						// Report progress
 						progressReporter(file.size, buffer.byteLength);
@@ -374,9 +499,9 @@ export class BrowserFileUpload {
 						throw new Error('Could not read from dropped file.');
 					}
 
-					resolve();
+					finish(() => resolve());
 				} catch (error) {
-					reject(error);
+					finish(() => reject(error));
 				}
 			};
 
@@ -705,48 +830,88 @@ export class FileDownload {
 	}
 
 	private async downloadFileBufferedBrowser(resource: URI, target: FileSystemWritableFileStream, operation: IDownloadOperation, token: CancellationToken): Promise<void> {
-		const contents = await this.fileService.readFileStream(resource, undefined, token);
+		let targetSettled = false;
+		const settleTarget = async (action: 'abort' | 'close'): Promise<void> => {
+			if (targetSettled) {
+				return;
+			}
+			targetSettled = true;
+			if (action === 'abort') {
+				await target.abort();
+			} else {
+				await target.close();
+			}
+		};
+
+		let contents;
+		try {
+			contents = await this.fileService.readFileStream(resource, undefined, token);
+		} catch (error) {
+			await settleTarget('abort');
+			throw error;
+		}
+
 		if (token.isCancellationRequested) {
-			target.close();
+			await settleTarget('abort');
 			return;
 		}
 
+		const streamContents = contents;
 		return new Promise<void>((resolve, reject) => {
-			const sourceStream = contents.value;
-
+			const sourceStream = streamContents.value;
 			const disposables = new DisposableStore();
-			disposables.add(toDisposable(() => target.close()));
+			const fail = (error: Error) => {
+				const aborting = settleTarget('abort');
+				disposables.dispose();
+				void aborting.then(() => reject(error), () => reject(error));
+			};
 
 			disposables.add(createSingleCallFunction(token.onCancellationRequested)(() => {
-				disposables.dispose();
-				reject(canceled());
+				if (targetSettled) {
+					return;
+				}
+				fail(canceled());
 			}));
 
 			listenStream(sourceStream, {
 				onData: data => {
 					target.write(data.buffer as Uint8Array<ArrayBuffer>);
-					this.reportProgress(contents.name, contents.size, data.byteLength, operation);
+					this.reportProgress(streamContents.name, streamContents.size, data.byteLength, operation);
 				},
 				onError: error => {
-					disposables.dispose();
-					reject(error);
+					if (targetSettled) {
+						return;
+					}
+					fail(error);
 				},
 				onEnd: () => {
+					if (targetSettled) {
+						return;
+					}
 					disposables.dispose();
-					resolve();
+					void settleTarget('close').then(() => resolve(), reject);
 				}
 			}, token);
 		});
 	}
 
 	private async downloadFileUnbufferedBrowser(resource: URI, target: FileSystemWritableFileStream, operation: IDownloadOperation, token: CancellationToken): Promise<void> {
-		const contents = await this.fileService.readFile(resource, undefined, token);
-		if (!token.isCancellationRequested) {
-			target.write(contents.value.buffer as Uint8Array<ArrayBuffer>);
-			this.reportProgress(contents.name, contents.size, contents.value.byteLength, operation);
+		let contents;
+		try {
+			contents = await this.fileService.readFile(resource, undefined, token);
+		} catch (error) {
+			await target.abort();
+			throw error;
 		}
 
-		target.close();
+		if (token.isCancellationRequested) {
+			await target.abort();
+			return;
+		}
+
+		await target.write(contents.value.buffer as Uint8Array<ArrayBuffer>);
+		this.reportProgress(contents.name, contents.size, contents.value.byteLength, operation);
+		await target.close();
 	}
 
 	private async downloadFileBrowser(targetFolder: FileSystemDirectoryHandle, file: IFileStatWithMetadata, operation: IDownloadOperation, token: CancellationToken): Promise<void> {
