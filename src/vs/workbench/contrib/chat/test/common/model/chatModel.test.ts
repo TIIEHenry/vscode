@@ -38,6 +38,34 @@ import { IToolResult, ToolDataSource } from '../../../common/tools/languageModel
 import { ChatAgentLocation, ChatModeKind } from '../../../common/constants.js';
 import { MockChatService } from '../chatService/mockChatService.js';
 
+function requestWithPart(text: string, kind: string) {
+	return {
+		requestId: `req-${kind}-${text}`,
+		message: {
+			text,
+			parts: [{
+				kind,
+				range: { start: 0, endExclusive: text.length },
+				editorRange: { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: text.length + 1 },
+				text,
+			}],
+		},
+		variableData: { variables: [] },
+	};
+}
+
+function sessionWithRequests(sessionId: string, requests: ReturnType<typeof requestWithPart>[]): ISerializableChatData3 {
+	return {
+		version: 3,
+		sessionId,
+		creationDate: 1_700_000_000_000,
+		customTitle: undefined,
+		initialLocation: ChatAgentLocation.Chat,
+		requests,
+		responderUsername: 'bot',
+	} as unknown as ISerializableChatData3;
+}
+
 suite('ChatModel', () => {
 	const testDisposables = ensureNoDisposablesAreLeakedInTestSuite();
 
@@ -94,6 +122,7 @@ suite('ChatModel', () => {
 		assert.strictEqual(model.sessionId, 'existing-session');
 		assert.strictEqual(model.timestamp, now - 1000);
 		assert.strictEqual(model.customTitle, 'My Chat');
+		assert.strictEqual(model.restoreDroppedAllRequests, false);
 	});
 
 	test('legacy requests without timestamps keep display time unknown', () => {
@@ -143,7 +172,65 @@ suite('ChatModel', () => {
 
 		// Should handle gracefully with empty state
 		assert.strictEqual(model.getRequests().length, 0);
+		assert.strictEqual(model.restoreDroppedAllRequests, false);
 		assert.ok(model.sessionId); // Should have generated ID
+	});
+
+	test('keeps requests that revive when one request has an unknown part kind', () => {
+		const model = testDisposables.add(instantiationService.createInstance(
+			ChatModel,
+			{ value: sessionWithRequests('partial-revive', [requestWithPart('kept-request', 'text'), requestWithPart('dropped-request', 'unknown-kind')]), serializer: undefined! },
+			{ initialLocation: ChatAgentLocation.Chat, canUseTools: true }
+		));
+
+		assert.deepStrictEqual(model.getRequests().map(request => request.message.text), ['kept-request']);
+		assert.strictEqual(model.restoreDroppedAllRequests, false);
+	});
+
+	test('marks a model unpersistable when every request fails to revive', () => {
+		const model = testDisposables.add(instantiationService.createInstance(
+			ChatModel,
+			{ value: sessionWithRequests('all-failed', [requestWithPart('bad-a', 'unknown-kind'), requestWithPart('bad-b', 'unknown-kind')]), serializer: undefined! },
+			{ initialLocation: ChatAgentLocation.Chat, canUseTools: true }
+		));
+
+		assert.strictEqual(model.getRequests().length, 0);
+		assert.strictEqual(model.restoreDroppedAllRequests, true);
+	});
+
+	test('clears the unpersistable mark after a request is appended', () => {
+		const model = testDisposables.add(instantiationService.createInstance(
+			ChatModel,
+			{ value: sessionWithRequests('all-failed-then-append', [requestWithPart('bad-only', 'unknown-kind')]), serializer: undefined! },
+			{ initialLocation: ChatAgentLocation.Chat, canUseTools: true }
+		));
+		assert.strictEqual(model.restoreDroppedAllRequests, true);
+
+		model.addRequest({ text: 'recovered-request', parts: [] }, { variables: [] }, 0);
+
+		assert.strictEqual(model.restoreDroppedAllRequests, false);
+		assert.strictEqual(model.getRequests()[0].message.text, 'recovered-request');
+	});
+
+	test('clears the unpersistable mark when a request is adopted', () => {
+		const target = testDisposables.add(instantiationService.createInstance(
+			ChatModel,
+			{ value: sessionWithRequests('adopt-target', [requestWithPart('bad-only', 'unknown-kind')]), serializer: undefined! },
+			{ initialLocation: ChatAgentLocation.Chat, canUseTools: true }
+		));
+		const source = testDisposables.add(instantiationService.createInstance(
+			ChatModel,
+			undefined,
+			{ initialLocation: ChatAgentLocation.Chat, canUseTools: true }
+		));
+		const request = source.addRequest({ text: 'moved-request', parts: [] }, { variables: [] }, 0);
+		assert.strictEqual(target.restoreDroppedAllRequests, true);
+
+		target.adoptRequest(request);
+
+		assert.strictEqual(target.restoreDroppedAllRequests, false);
+		assert.strictEqual(target.getRequests()[0].message.text, 'moved-request');
+		assert.strictEqual(source.getRequests().length, 0);
 	});
 
 	test('initialization without data', async () => {
@@ -155,6 +242,7 @@ suite('ChatModel', () => {
 
 		assert.strictEqual(model.isImported, false);
 		assert.strictEqual(model.getRequests().length, 0);
+		assert.strictEqual(model.restoreDroppedAllRequests, false);
 		assert.ok(model.sessionId);
 		assert.ok(model.timestamp > 0);
 	});

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { VSBuffer } from '../../../../../../base/common/buffer.js';
 import { Emitter } from '../../../../../../base/common/event.js';
 import { Disposable } from '../../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -13,7 +14,7 @@ import { IFileDeleteOptions, IFileService } from '../../../../../../platform/fil
 import { ServiceCollection } from '../../../../../../platform/instantiation/common/serviceCollection.js';
 import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { ILogService, NullLogService } from '../../../../../../platform/log/common/log.js';
-import { IStorageService } from '../../../../../../platform/storage/common/storage.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../../../platform/telemetry/common/telemetry.js';
 import { NullTelemetryService } from '../../../../../../platform/telemetry/common/telemetryUtils.js';
 import { IUserDataProfilesService, toUserDataProfile } from '../../../../../../platform/userDataProfile/common/userDataProfile.js';
@@ -22,13 +23,15 @@ import { TestWorkspace, Workspace } from '../../../../../../platform/workspace/t
 import { ILifecycleService } from '../../../../../services/lifecycle/common/lifecycle.js';
 import { IDidEnterWorkspaceEvent, IWorkspaceEditingService } from '../../../../../services/workspaces/common/workspaceEditing.js';
 import { InMemoryTestFileService, TestContextService, TestLifecycleService, TestStorageService } from '../../../../../test/common/workbenchTestServices.js';
+import { ResponseModelState } from '../../../common/chatService/chatService.js';
+import { ChatAgentLocation, ChatModeKind } from '../../../common/constants.js';
 import { ChatModel, ISerializableChatData3 } from '../../../common/model/chatModel.js';
+import { ChatSessionOperationLog } from '../../../common/model/chatSessionOperationLog.js';
 import { ChatSessionStore, IChatTransfer } from '../../../common/model/chatSessionStore.js';
-import { LocalChatSessionUri } from '../../../common/model/chatUri.js';
+import { getChatSessionStorageResource, LocalChatSessionUri } from '../../../common/model/chatUri.js';
 import { MockChatModel } from './mockChatModel.js';
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { ChatModeKind } from '../../../common/constants.js';
 import { IChatRequestVariableEntry } from '../../../common/attachments/chatVariableEntries.js';
 
 function createMockChatModel(sessionResource: URI, options?: { customTitle?: string }): ChatModel {
@@ -495,6 +498,126 @@ suite('ChatSessionStore', () => {
 			const result = store.getTransferredSessionData();
 			assert.ok(result);
 			assert.strictEqual(result.toString(), session2Resource.toString());
+		});
+	});
+
+	function storedSession(sessionId: string, text: string): ISerializableChatData3 {
+		return {
+			version: 3,
+			sessionId,
+			creationDate: 1,
+			customTitle: undefined,
+			initialLocation: ChatAgentLocation.Chat,
+			requests: [{
+				requestId: `req-${text}`,
+				message: text,
+				variableData: { variables: [] },
+				response: undefined,
+			}],
+			responderUsername: 'bot',
+		};
+	}
+
+	function firstRequestText(session: Awaited<ReturnType<ChatSessionStore['readSession']>>): string | undefined {
+		const message = session?.value.requests[0]?.message;
+		if (!message) {
+			return undefined;
+		}
+		return typeof message === 'string' ? message : message.text;
+	}
+
+	test('readSession falls back to flat json when the log cannot be parsed', async () => {
+		const store = createChatSessionStore();
+		const sessionId = 'log-fallback';
+		const root = store.getChatStorageFolder();
+		const flat = getChatSessionStorageResource(root, sessionId, '.json');
+		const log = getChatSessionStorageResource(root, sessionId, '.jsonl');
+		await fileService.writeFile(flat, VSBuffer.fromString(JSON.stringify(storedSession(sessionId, 'from-flat'))));
+		await fileService.writeFile(log, VSBuffer.fromString('{"kind":'));
+
+		const session = await store.readSession(sessionId);
+		assert.strictEqual(firstRequestText(session), 'from-flat');
+	});
+
+	test('readSession falls back to flat json when the log file is empty', async () => {
+		const store = createChatSessionStore();
+		const sessionId = 'empty-log-fallback';
+		const root = store.getChatStorageFolder();
+		await fileService.writeFile(getChatSessionStorageResource(root, sessionId, '.json'), VSBuffer.fromString(JSON.stringify(storedSession(sessionId, 'from-empty-log-flat'))));
+		await fileService.writeFile(getChatSessionStorageResource(root, sessionId, '.jsonl'), VSBuffer.fromString(''));
+
+		const session = await store.readSession(sessionId);
+		assert.strictEqual(firstRequestText(session), 'from-empty-log-flat');
+	});
+
+	test('readSession returns undefined when only an unusable log exists', async () => {
+		const store = createChatSessionStore();
+		const sessionId = 'log-only-bad';
+		await fileService.writeFile(getChatSessionStorageResource(store.getChatStorageFolder(), sessionId, '.jsonl'), VSBuffer.fromString(''));
+
+		const session = await store.readSession(sessionId);
+		assert.strictEqual(session, undefined);
+	});
+
+	test('readSession does not read flat json when the log parses', async () => {
+		const store = createChatSessionStore();
+		const sessionId = 'log-wins';
+		const root = store.getChatStorageFolder();
+		const flat = getChatSessionStorageResource(root, sessionId, '.json');
+		const log = getChatSessionStorageResource(root, sessionId, '.jsonl');
+		await fileService.writeFile(flat, VSBuffer.fromString(JSON.stringify(storedSession(sessionId, 'from-flat'))));
+		await fileService.writeFile(log, new ChatSessionOperationLog().createInitialFromSerialized(storedSession(sessionId, 'from-log')));
+		const readsBefore = fileService.readOperations.length;
+
+		const session = await store.readSession(sessionId);
+
+		assert.strictEqual(firstRequestText(session), 'from-log');
+		assert.deepStrictEqual(fileService.readOperations.slice(readsBefore).map(operation => operation.resource.toString()), [log.toString()]);
+	});
+
+	test('getIndex rewrites persisted Pending and NeedsInput to Complete', async () => {
+		const storageService = instantiationService.get(IStorageService) as TestStorageService;
+		const entry = (sessionId: string, lastResponseState?: ResponseModelState | null) => {
+			const metadata: Record<string, unknown> = {
+				sessionId,
+				title: sessionId,
+				lastMessageDate: 1,
+			};
+			if (lastResponseState !== undefined) {
+				metadata.lastResponseState = lastResponseState;
+			}
+			return metadata;
+		};
+		storageService.store('chat.ChatSessionStore.index', {
+			version: 1,
+			entries: {
+				pending: entry('pending', ResponseModelState.Pending),
+				needsInput: entry('needsInput', ResponseModelState.NeedsInput),
+				missing: entry('missing'),
+				explicitNull: entry('explicitNull', null),
+				cancelled: entry('cancelled', ResponseModelState.Cancelled),
+				failed: entry('failed', ResponseModelState.Failed),
+				complete: entry('complete', ResponseModelState.Complete),
+			},
+		}, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+
+		const index = await createChatSessionStore().getIndex();
+		assert.deepStrictEqual({
+			pending: index['pending'].lastResponseState,
+			needsInput: index['needsInput'].lastResponseState,
+			missing: index['missing'].lastResponseState,
+			explicitNull: index['explicitNull'].lastResponseState,
+			cancelled: index['cancelled'].lastResponseState,
+			failed: index['failed'].lastResponseState,
+			complete: index['complete'].lastResponseState,
+		}, {
+			pending: ResponseModelState.Complete,
+			needsInput: ResponseModelState.Complete,
+			missing: ResponseModelState.Complete,
+			explicitNull: ResponseModelState.Complete,
+			cancelled: ResponseModelState.Cancelled,
+			failed: ResponseModelState.Failed,
+			complete: ResponseModelState.Complete,
 		});
 	});
 

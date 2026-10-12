@@ -23,7 +23,7 @@ import { IModelService } from '../../../../../editor/common/services/model.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../../editor/common/services/resolverService.js';
 import { localize } from '../../../../../nls.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
-import { IFileService } from '../../../../../platform/files/common/files.js';
+import { FileOperationResult, IFileService, toFileOperationResult } from '../../../../../platform/files/common/files.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IMarkerService } from '../../../../../platform/markers/common/markers.js';
 import { IUndoRedoElement, IUndoRedoService } from '../../../../../platform/undoRedo/common/undoRedo.js';
@@ -292,9 +292,13 @@ export class ChatEditingModifiedDocumentEntry extends AbstractChatEditingModifie
 		if (this.createdInRequestId === this._telemetryInfo.requestId) {
 			if (isTextFileEditorModel(this._docFileEditorModel)) {
 				await this._docFileEditorModel.revert({ soft: true });
-				await this._fileService.del(this.modifiedURI).catch(err => {
-					// don't block if file is already deleted
-				});
+			}
+			try {
+				await this._fileService.del(this.modifiedURI);
+			} catch (err) {
+				if (toFileOperationResult(err) !== FileOperationResult.FILE_NOT_FOUND) {
+					throw err;
+				}
 			}
 			this._onDidDelete.fire();
 		} else {

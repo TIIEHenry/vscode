@@ -2726,6 +2726,11 @@ export class ChatModel extends Disposable implements IChatModel {
 	get isDeleted(): boolean {
 		return this._isDeleted;
 	}
+
+	private _restoreDroppedAllRequests = false;
+	get restoreDroppedAllRequests(): boolean {
+		return this._restoreDroppedAllRequests;
+	}
 	markDeleted(): void {
 		this._isDeleted = true;
 	}
@@ -2932,12 +2937,20 @@ export class ChatModel extends Disposable implements IChatModel {
 			return [];
 		}
 
-		try {
-			return requests.map(r => this._deserializeRequest(r));
-		} catch (error) {
-			this.logService.error('Failed to parse chat data', error);
-			return [];
+		const deserialized: ChatRequestModel[] = [];
+		for (const request of requests) {
+			try {
+				deserialized.push(this._deserializeRequest(request));
+			} catch (error) {
+				this.logService.error('Failed to parse chat request', error);
+			}
 		}
+
+		if (requests.length > 0 && deserialized.length === 0) {
+			this._restoreDroppedAllRequests = true;
+		}
+
+		return deserialized;
 	}
 
 	private _deserializeRequest(raw: ISerializableChatRequestData): ChatRequestModel {
@@ -3211,6 +3224,7 @@ export class ChatModel extends Disposable implements IChatModel {
 			codeBlockInfos: undefined,
 		});
 		this._requests.push(request);
+		this._restoreDroppedAllRequests = false;
 		markChat(this.sessionResource, ChatPerfMark.RequestUiUpdated);
 		this._onDidChange.fire({ kind: 'addRequest', request });
 		return request;
@@ -3240,6 +3254,7 @@ export class ChatModel extends Disposable implements IChatModel {
 		request.adoptTo(this);
 		request.response?.adoptTo(this);
 		this._requests.push(request);
+		this._restoreDroppedAllRequests = false;
 
 		oldOwner._onDidChange.fire({ kind: 'removeRequest', requestId: request.id, responseId: request.response?.id, reason: ChatRequestRemovalReason.Adoption });
 		this._onDidChange.fire({ kind: 'addRequest', request });
