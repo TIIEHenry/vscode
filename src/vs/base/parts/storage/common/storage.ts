@@ -179,7 +179,11 @@ export class Storage extends Disposable implements IStorage {
 		// Item got removed, check for deletion
 		if (isUndefinedOrNull(value)) {
 			changed = this.cache.delete(key);
-			if (changed) {
+			// A key that has not entered the cache can still sit in the snapshot
+			// getItems is about to return. While uninitialized, remember that
+			// removal too. A cache miss is not a storage change and is not a
+			// pending delete.
+			if (changed || this.state === StorageState.None) {
 				this.noteUninitializedRemoval(key);
 			}
 		}

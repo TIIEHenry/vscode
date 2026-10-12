@@ -322,4 +322,77 @@ suite('Storage init', () => {
 		strictEqual(changes.length, 1);
 		strictEqual(storage.get('size', 'missing'), 'missing');
 	});
+
+	test('external delete of a key only in the in-flight snapshot is omitted after merge', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase(['defer'], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+		const changes: string[] = [];
+		disposables.add(storage.onDidChangeStorage(e => changes.push(e.key)));
+
+		const initPromise = storage.init();
+		await flushMicrotasks();
+		strictEqual(database.getItemsCalls, 1);
+
+		database.emitExternal({ deleted: new Set(['color']) });
+
+		const pendingDeletes = (storage as unknown as { pendingDeletes: Set<string> }).pendingDeletes;
+		strictEqual(pendingDeletes.has('color'), false);
+		strictEqual(changes.length, 0);
+
+		await storage.flush(0);
+		strictEqual(database.updates.length, 0);
+		strictEqual(pendingDeletes.has('color'), false);
+
+		database.release(new Map([
+			['color', 'blue'],
+			['size', 'large'],
+		]));
+		await initPromise;
+
+		strictEqual(storage.get('color'), undefined);
+		strictEqual(storage.get('size'), 'large');
+		strictEqual(changes.length, 0);
+		strictEqual((storage as unknown as { pendingDeletes: Set<string> }).pendingDeletes.has('color'), false);
+	});
+
+	test('external write after external delete of an unloaded key keeps the written value', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase(['defer'], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+
+		const initPromise = storage.init();
+		await flushMicrotasks();
+
+		database.emitExternal({ deleted: new Set(['color']) });
+		database.emitExternal({ changed: new Map([['color', 'red']]) });
+
+		database.release(new Map([
+			['color', 'blue'],
+			['size', 'large'],
+		]));
+		await initPromise;
+
+		strictEqual(storage.get('color'), 'red');
+		strictEqual(storage.get('size'), 'large');
+	});
+
+	test('external delete of a missing key after init does not emit', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['size', 'large']])
+		], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+
+		await storage.init();
+
+		const changes: string[] = [];
+		disposables.add(storage.onDidChangeStorage(e => changes.push(e.key)));
+
+		database.emitExternal({ deleted: new Set(['color']) });
+		await storage.flush(0);
+
+		strictEqual(changes.length, 0);
+		strictEqual(database.updates.length, 0);
+		strictEqual((storage as unknown as { pendingDeletes: Set<string> }).pendingDeletes.has('color'), false);
+		strictEqual(storage.get('color'), undefined);
+		strictEqual(storage.get('size'), 'large');
+	});
 });
