@@ -624,9 +624,10 @@ export class DebugSession implements IDebugSession {
 			const converted = await Promise.all(dataBreakpoints.map(async bp => {
 				try {
 					const dap = await bp.toDAP(this);
-					return { dap, bp };
+					return { dap, bp, message: undefined as string | undefined };
 				} catch (e) {
-					return { bp, message: e.message };
+					const message = e instanceof Error ? e.message : String(e);
+					return { dap: undefined, bp, message };
 				}
 			}));
 			const response = await this.raw.setDataBreakpoints({ breakpoints: converted.map(d => d.dap).filter(isDefined) });
@@ -635,7 +636,8 @@ export class DebugSession implements IDebugSession {
 				let i = 0;
 				for (const dap of converted) {
 					if (!dap.dap) {
-						data.set(dap.bp.getId(), dap.message);
+						// No dataId is not an error string; keep the previous undefined session entry.
+						data.set(dap.bp.getId(), typeof dap.message === 'string' ? { verified: false, message: dap.message } : undefined!);
 					} else if (i < response.body.breakpoints.length) {
 						data.set(dap.bp.getId(), response.body.breakpoints[i++]);
 					}

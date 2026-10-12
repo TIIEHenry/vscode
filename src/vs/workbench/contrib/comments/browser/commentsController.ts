@@ -1122,7 +1122,7 @@ export class CommentController extends Disposable implements IEditorContribution
 			} else if (existingPendingComment.body.includes(thread.comment.body)) {
 				pendingComment = existingPendingComment;
 			} else {
-				pendingComment = { body: `${existingPendingComment}\n${thread.comment.body}`, cursor: thread.comment.cursor };
+				pendingComment = { body: `${existingPendingComment.body}\n${thread.comment.body}`, cursor: thread.comment.cursor };
 			}
 			matchedZones[0].setPendingComment(pendingComment);
 		} else if (!thread.isReply) {

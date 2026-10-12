@@ -365,7 +365,11 @@ export class DebugService implements IDebugService {
 			// make sure to save all files and that the configuration is up to date
 			await this.extensionService.activateByEvent('onDebug');
 			if (saveBeforeStart) {
-				await saveAllBeforeDebugStart(this.configurationService, this.editorService);
+				const saved = await saveAllBeforeDebugStart(this.configurationService, this.editorService);
+				if (!saved) {
+					this.endInitializingState();
+					return false;
+				}
 			}
 			await this.extensionService.whenInstalledExtensionsRegistered();
 
@@ -812,7 +816,10 @@ export class DebugService implements IDebugService {
 
 	async restartSession(session: IDebugSession, restartData?: any): Promise<void> {
 		if (session.saveBeforeRestart) {
-			await saveAllBeforeDebugStart(this.configurationService, this.editorService);
+			const saved = await saveAllBeforeDebugStart(this.configurationService, this.editorService);
+			if (!saved) {
+				return;
+			}
 		}
 
 		const isAutoRestart = !!restartData;

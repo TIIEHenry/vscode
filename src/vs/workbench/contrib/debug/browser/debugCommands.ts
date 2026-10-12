@@ -769,7 +769,10 @@ KeybindingsRegistry.registerCommandAndKeybindingRule({
 	when: ContextKeyExpr.and(CONTEXT_DEBUGGERS_AVAILABLE, CONTEXT_DEBUG_STATE.isEqualTo('inactive')),
 	handler: async (accessor: ServicesAccessor, debugStartOptions?: { config?: Partial<IConfig>; noDebug?: boolean }) => {
 		const debugService = accessor.get(IDebugService);
-		await saveAllBeforeDebugStart(accessor.get(IConfigurationService), accessor.get(IEditorService));
+		const saved = await saveAllBeforeDebugStart(accessor.get(IConfigurationService), accessor.get(IEditorService));
+		if (!saved) {
+			return;
+		}
 		const { launch, name, getConfig } = debugService.getConfigurationManager().selectedConfiguration;
 		const config = await getConfig();
 		const configOrName = config ? Object.assign(deepClone(config), debugStartOptions?.config) : name;

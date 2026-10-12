@@ -374,19 +374,26 @@ function compareOrders(first: number | undefined, second: number | undefined): n
 	return first - second;
 }
 
-export async function saveAllBeforeDebugStart(configurationService: IConfigurationService, editorService: IEditorService): Promise<void> {
+export async function saveAllBeforeDebugStart(configurationService: IConfigurationService, editorService: IEditorService): Promise<boolean> {
 	const saveBeforeStartConfig: string = configurationService.getValue('debug.saveBeforeStart', { overrideIdentifier: editorService.activeTextEditorLanguageId });
 	if (saveBeforeStartConfig !== 'none') {
-		await editorService.saveAll();
+		const saveAllResult = await editorService.saveAll();
+		if (saveAllResult.success === false) {
+			return false;
+		}
 		if (saveBeforeStartConfig === 'allEditorsInActiveGroup') {
 			const activeEditor = editorService.activeEditorPane;
 			if (activeEditor && activeEditor.input.resource?.scheme === Schemas.untitled) {
 				// Make sure to save the active editor in case it is in untitled file it wont be saved as part of saveAll #111850
-				await editorService.save({ editor: activeEditor.input, groupId: activeEditor.group.id });
+				const saveResult = await editorService.save({ editor: activeEditor.input, groupId: activeEditor.group.id });
+				if (saveResult.success === false) {
+					return false;
+				}
 			}
 		}
 	}
 	await configurationService.reloadConfiguration();
+	return true;
 }
 
 export const sourcesEqual = (a: DebugProtocol.Source | undefined, b: DebugProtocol.Source | undefined): boolean =>
