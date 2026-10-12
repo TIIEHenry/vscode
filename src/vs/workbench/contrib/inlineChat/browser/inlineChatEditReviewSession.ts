@@ -237,10 +237,16 @@ export class InlineChatEditReviewSession extends Disposable implements IChatEdit
 	private async _createExternalEditEntry(edit: IChatExternalEdit, telemetryInfo: IModifiedEntryTelemetryInfo): Promise<void> {
 		let initialContent = this._initialContents.get(edit.uri);
 		if (initialContent === undefined) {
-			initialContent = await this._readBeforeContent(edit);
+			const beforeContent = await this._readBeforeContent(edit);
 			if (this._store.isDisposed) {
 				return;
 			}
+			// A missing or unreadable baseline must not be stored as ''. Reject would then
+			// wipe the file. Creates still start from empty content.
+			if (beforeContent === undefined && edit.editKind !== 'create') {
+				throw new Error(`No pre-edit content for ${edit.uri}`);
+			}
+			initialContent = beforeContent ?? '';
 			this._initialContents.set(edit.uri, initialContent);
 		}
 
@@ -267,16 +273,16 @@ export class InlineChatEditReviewSession extends Disposable implements IChatEdit
 		}
 	}
 
-	private async _readBeforeContent(edit: IChatExternalEdit): Promise<string> {
+	private async _readBeforeContent(edit: IChatExternalEdit): Promise<string | undefined> {
 		if (!edit.beforeContentUri) {
-			return '';
+			return undefined;
 		}
 
 		try {
 			return (await this._fileService.readFile(edit.beforeContentUri)).value.toString();
 		} catch (error) {
 			this._logService.warn(`Failed to read pre-edit content for ${edit.uri}.`, error);
-			return '';
+			return undefined;
 		}
 	}
 

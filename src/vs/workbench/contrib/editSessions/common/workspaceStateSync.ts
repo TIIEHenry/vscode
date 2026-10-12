@@ -149,7 +149,8 @@ export class WorkspaceStateSynchroniser extends AbstractSynchroniser implements 
 			this.storageService.storeAll(storageEntries, true);
 		}
 
-		this.editSessionsStorageService.delete('workspaceState', resource.ref);
+		const pendingWorkspaceStateDelete = this.editSessionsStorageService.delete('workspaceState', resource.ref);
+		void pendingWorkspaceStateDelete.catch(error => this.logService.error(error));
 		return null;
 	}
 

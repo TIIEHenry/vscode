@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { IFileService } from '../../../../../platform/files/common/files.js';
 import { FileService } from '../../../../../platform/files/common/fileService.js';
 import { Schemas } from '../../../../../base/common/network.js';
@@ -11,6 +12,7 @@ import { InMemoryFileSystemProvider } from '../../../../../platform/files/common
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { EditSessionsContribution } from '../../browser/editSessions.contribution.js';
+import { EditSessionsWorkbenchService } from '../../browser/editSessionsStorageService.js';
 import { ProgressService } from '../../../../services/progress/browser/progressService.js';
 import { IProgressService } from '../../../../../platform/progress/common/progress.js';
 import { ISCMService } from '../../../scm/common/scm.js';
@@ -309,6 +311,137 @@ suite('Edit session sync', () => {
 		assert.strictEqual((await fileService.readFile(validFileUri)).value.toString(), fileContents);
 		assert.strictEqual(await fileService.exists(escapedUri), false);
 	});
+
+	test('delete throws when deleteResource throws', async function () {
+		const failure = new Error('deleteResource failed');
+		const logged: unknown[] = [];
+		const service = Object.create(EditSessionsWorkbenchService.prototype) as EditSessionsWorkbenchService;
+		const writable = service as unknown as {
+			initialized: boolean;
+			_initChain: Promise<void>;
+			logService: { error(ex: unknown): void };
+			storeClient: { deleteResource(): Promise<void> };
+		};
+		writable.initialized = true;
+		writable._initChain = Promise.resolve();
+		writable.logService = { error: (ex) => { logged.push(ex); } };
+		writable.storeClient = { deleteResource: async () => { throw failure; } };
+
+		await assert.rejects(() => service.delete('editSessions', 'ref-1'), (thrown: unknown) => thrown === failure);
+		assert.deepStrictEqual(logged, [failure]);
+	});
+
+	test('reports resumeSucceeded when the first cloud delete succeeds', async function () {
+		const relativePath = 'dir1/deleted-on-success.txt';
+		const fileUri = joinPath(folderUri, relativePath);
+		const editSession = {
+			version: 1,
+			folders: [{
+				name: folderName,
+				workingChanges: [{
+					relativeFilePath: relativePath,
+					fileType: FileType.File,
+					contents: undefined,
+					type: ChangeType.Deletion,
+				}],
+			}],
+		};
+		const outcomes = trackResumeOutcomes();
+		const del = sandbox.spy(fileService, 'del');
+		try {
+			instantiationService.stub(IEditSessionsStorageService, 'read', sandbox.stub().callsFake(async (resource: string) => {
+				if (resource === 'editSessions') {
+					return { content: JSON.stringify(editSession), ref: 'success-ref' };
+				}
+				return undefined;
+			}));
+			(instantiationService.get(IEditSessionsStorageService) as unknown as { lastReadResources: Map<string, { ref: string; content: string }> }).lastReadResources = new Map();
+			instantiationService.stub(IEditSessionsStorageService, 'initialize', async () => true);
+			const deleteStub = sandbox.stub().resolves();
+			instantiationService.stub(IEditSessionsStorageService, 'delete', deleteStub);
+
+			await fileService.createFolder(folderUri);
+			await fileService.writeFile(fileUri, VSBuffer.fromString('present'));
+			await editSessionsContribution.resumeEditSession();
+
+			assert.strictEqual(deleteStub.calledOnce, true);
+			assert.strictEqual(del.calledOnce, true);
+			assert.strictEqual(await fileService.exists(fileUri), false);
+			assert.deepStrictEqual(outcomes.events, ['resumeSucceeded']);
+		} finally {
+			del.restore();
+			outcomes.restore();
+		}
+	});
+
+	test('skips a second local deletion when cloud delete failed for the same ref', async function () {
+		const relativePath = 'dir1/kept-after-retry.txt';
+		const fileUri = joinPath(folderUri, relativePath);
+		const editSession = {
+			version: 1,
+			folders: [{
+				name: folderName,
+				workingChanges: [{
+					relativeFilePath: relativePath,
+					fileType: FileType.File,
+					contents: undefined,
+					type: ChangeType.Deletion,
+				}],
+			}],
+		};
+		const outcomes = trackResumeOutcomes();
+		const del = sandbox.spy(fileService, 'del');
+		let failDelete = true;
+		try {
+			instantiationService.stub(IEditSessionsStorageService, 'read', sandbox.stub().callsFake(async (resource: string) => {
+				if (resource === 'editSessions') {
+					return { content: JSON.stringify(editSession), ref: 'retry-ref' };
+				}
+				return undefined;
+			}));
+			(instantiationService.get(IEditSessionsStorageService) as unknown as { lastReadResources: Map<string, { ref: string; content: string }> }).lastReadResources = new Map();
+			instantiationService.stub(IEditSessionsStorageService, 'initialize', async () => true);
+			const deleteStub = sandbox.stub().callsFake(async () => {
+				if (failDelete) {
+					throw new Error('deleteResource failed');
+				}
+			});
+			instantiationService.stub(IEditSessionsStorageService, 'delete', deleteStub);
+
+			await fileService.createFolder(folderUri);
+			await fileService.writeFile(fileUri, VSBuffer.fromString('original'));
+			await editSessionsContribution.resumeEditSession();
+
+			assert.strictEqual(del.calledOnce, true);
+			assert.strictEqual(await fileService.exists(fileUri), false);
+			assert.deepStrictEqual(outcomes.events, []);
+
+			await fileService.writeFile(fileUri, VSBuffer.fromString('restored'));
+			failDelete = false;
+			await editSessionsContribution.resumeEditSession(undefined, true);
+
+			assert.strictEqual(del.calledOnce, true);
+			assert.strictEqual((await fileService.readFile(fileUri)).value.toString(), 'restored');
+			assert.strictEqual(deleteStub.callCount, 2);
+			assert.deepStrictEqual(outcomes.events, ['resumeSucceeded']);
+		} finally {
+			del.restore();
+			outcomes.restore();
+		}
+	});
+
+	function trackResumeOutcomes(): { events: string[]; restore(): void } {
+		const events: string[] = [];
+		const telemetry = instantiationService.get(ITelemetryService) as unknown as {
+			publicLog2(event: string, data?: { outcome?: string }): void;
+		};
+		const stub = sandbox.stub(telemetry, 'publicLog2').callsFake((event: string, data?: { outcome?: string }) => {
+			if (event === 'editSessions.resume.outcome' && data?.outcome) {
+				events.push(data.outcome);
+			}
+		});
+		return { events, restore: () => stub.restore() };
+	}
 
 	test('Edit session not stored if there are no edits', async function () {
 		const writeStub = sandbox.stub();

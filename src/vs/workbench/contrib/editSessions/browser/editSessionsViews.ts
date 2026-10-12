@@ -19,6 +19,7 @@ import { registerAction2, Action2, MenuId } from '../../../../platform/actions/c
 import { ContextKeyExpr, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { joinPath } from '../../../../base/common/resources.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
@@ -125,6 +126,7 @@ export class EditSessionsDataViews extends Disposable {
 				const editSessionId = URI.parse(handle.$treeItemHandle).path.substring(1);
 				const dialogService = accessor.get(IDialogService);
 				const editSessionStorageService = accessor.get(IEditSessionsStorageService);
+				const notificationService = accessor.get(INotificationService);
 				const result = await dialogService.confirm({
 					message: localize('confirm delete.v2', 'Are you sure you want to permanently delete your working changes with ref {0}?', editSessionId),
 					detail: localize('confirm delete detail.v2', ' You cannot undo this action.'),
@@ -132,8 +134,13 @@ export class EditSessionsDataViews extends Disposable {
 					title: EDIT_SESSIONS_TITLE.value
 				});
 				if (result.confirmed) {
-					await editSessionStorageService.delete('editSessions', editSessionId);
-					await treeView.refresh();
+					try {
+						await editSessionStorageService.delete('editSessions', editSessionId);
+						await treeView.refresh();
+					} catch (error) {
+						const detail = error instanceof Error ? error.message : String(error);
+						notificationService.error(localize('delete failed.v2', "Failed to delete your working changes from the cloud: {0}", detail));
+					}
 				}
 			}
 		}));
@@ -154,6 +161,7 @@ export class EditSessionsDataViews extends Disposable {
 			async run(accessor: ServicesAccessor): Promise<void> {
 				const dialogService = accessor.get(IDialogService);
 				const editSessionStorageService = accessor.get(IEditSessionsStorageService);
+				const notificationService = accessor.get(INotificationService);
 				const result = await dialogService.confirm({
 					message: localize('confirm delete all', 'Are you sure you want to permanently delete all stored changes from the cloud?'),
 					detail: localize('confirm delete all detail', ' You cannot undo this action.'),
@@ -161,8 +169,13 @@ export class EditSessionsDataViews extends Disposable {
 					title: EDIT_SESSIONS_TITLE.value
 				});
 				if (result.confirmed) {
-					await editSessionStorageService.delete('editSessions', null);
-					await treeView.refresh();
+					try {
+						await editSessionStorageService.delete('editSessions', null);
+						await treeView.refresh();
+					} catch (error) {
+						const detail = error instanceof Error ? error.message : String(error);
+						notificationService.error(localize('delete all failed', "Failed to delete all stored changes from the cloud: {0}", detail));
+					}
 				}
 			}
 		}));

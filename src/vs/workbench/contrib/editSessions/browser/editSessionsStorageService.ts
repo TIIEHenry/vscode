@@ -179,6 +179,7 @@ export class EditSessionsWorkbenchService extends Disposable implements IEditSes
 			await this.storeClient?.deleteResource(resource, ref);
 		} catch (ex) {
 			this.logService.error(ex);
+			throw ex;
 		}
 	}
 
