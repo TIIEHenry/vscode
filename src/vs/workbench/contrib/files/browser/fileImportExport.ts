@@ -275,7 +275,22 @@ export class BrowserFileUpload {
 		}
 	}
 
-	private async doUploadEntry(entry: IWebkitDataTransferItemEntry, parentResource: URI, target: ExplorerItem | undefined, progress: IProgress<IProgressStep>, operation: IBrowserUploadOperation, token: CancellationToken): Promise<{ isFile: boolean; resource: URI } | undefined> {
+	private async listUploadChildNames(resource: URI): Promise<string[]> {
+		const stat = await this.fileService.resolve(resource);
+		return (stat.children ?? []).map(child => child.name);
+	}
+
+	private async deleteCreatedUploadTree(resource: URI): Promise<void> {
+		try {
+			await this.fileService.del(resource, { recursive: true });
+		} catch (error) {
+			if (toFileOperationResult(error) !== FileOperationResult.FILE_NOT_FOUND) {
+				throw error;
+			}
+		}
+	}
+
+	private async doUploadEntry(entry: IWebkitDataTransferItemEntry, parentResource: URI, target: ExplorerItem | undefined, progress: IProgress<IProgressStep>, operation: IBrowserUploadOperation, token: CancellationToken, createdResources?: URI[]): Promise<{ isFile: boolean; resource: URI } | undefined> {
 		if (token.isCancellationRequested || !entry.name || (!entry.isFile && !entry.isDirectory)) {
 			return undefined;
 		}
@@ -338,58 +353,88 @@ export class BrowserFileUpload {
 
 		// Handle folder upload
 		else {
-
-			// Create target folder
-			await this.fileService.createFolder(resource);
-
+			const folderExisted = await this.fileService.exists(resource);
 			if (token.isCancellationRequested) {
 				return undefined;
 			}
 
-			// Recursive upload files in this directory
-			const dirReader = entry.createReader();
-			const childEntries: IWebkitDataTransferItemEntry[] = [];
-			let done = false;
-			do {
-				const childEntriesChunk = await new Promise<IWebkitDataTransferItemEntry[]>((resolve, reject) => dirReader.readEntries(resolve, reject));
-				if (childEntriesChunk.length > 0) {
-					childEntries.push(...childEntriesChunk);
-				} else {
-					done = true; // an empty array is a signal that all entries have been read
+			// Nested folders share the root upload's list. Only the outermost
+			// folder deletes it, after every nested level has recorded the
+			// names created inside an already-existing directory.
+			const ownsCleanup = createdResources === undefined;
+			const created = createdResources ?? [];
+			let preExistingChildNames: ReadonlySet<string> | undefined;
+			let succeeded = false;
+			try {
+				// Create target folder
+				await this.fileService.createFolder(resource);
+				if (folderExisted) {
+					preExistingChildNames = new Set(await this.listUploadChildNames(resource));
 				}
-			} while (!done && !token.isCancellationRequested);
 
-			// Update operation total based on new counts
-			operation.filesTotal += childEntries.length;
+				if (token.isCancellationRequested) {
+					return undefined;
+				}
 
-			// Split up files from folders to upload
-			const folderTarget = target?.getChild(entry.name) || undefined;
-			const fileChildEntries: IWebkitDataTransferItemEntry[] = [];
-			const folderChildEntries: IWebkitDataTransferItemEntry[] = [];
-			for (const childEntry of childEntries) {
-				if (childEntry.isFile) {
-					fileChildEntries.push(childEntry);
-				} else if (childEntry.isDirectory) {
-					folderChildEntries.push(childEntry);
+				// Recursive upload files in this directory
+				const dirReader = entry.createReader();
+				const childEntries: IWebkitDataTransferItemEntry[] = [];
+				let done = false;
+				do {
+					const childEntriesChunk = await new Promise<IWebkitDataTransferItemEntry[]>((resolve, reject) => dirReader.readEntries(resolve, reject));
+					if (childEntriesChunk.length > 0) {
+						childEntries.push(...childEntriesChunk);
+					} else {
+						done = true; // an empty array is a signal that all entries have been read
+					}
+				} while (!done && !token.isCancellationRequested);
+
+				// Update operation total based on new counts
+				operation.filesTotal += childEntries.length;
+
+				// Split up files from folders to upload
+				const folderTarget = target?.getChild(entry.name) || undefined;
+				const fileChildEntries: IWebkitDataTransferItemEntry[] = [];
+				const folderChildEntries: IWebkitDataTransferItemEntry[] = [];
+				for (const childEntry of childEntries) {
+					if (childEntry.isFile) {
+						fileChildEntries.push(childEntry);
+					} else if (childEntry.isDirectory) {
+						folderChildEntries.push(childEntry);
+					}
+					if (folderExisted && preExistingChildNames && childEntry.name && !preExistingChildNames.has(childEntry.name)) {
+						created.push(joinPath(resource, childEntry.name));
+					}
+				}
+
+				// Upload files (up to `MAX_PARALLEL_UPLOADS` in parallel)
+				const fileUploadQueue = new Limiter(BrowserFileUpload.MAX_PARALLEL_UPLOADS);
+				await Promises.settled(fileChildEntries.map(fileChildEntry => {
+					return fileUploadQueue.queue(() => this.doUploadEntry(fileChildEntry, resource, folderTarget, progress, operation, token, created));
+				}));
+
+				// Upload folders (sequentially give we don't know their sizes)
+				for (const folderChildEntry of folderChildEntries) {
+					await this.doUploadEntry(folderChildEntry, resource, folderTarget, progress, operation, token, created);
+				}
+
+				if (token.isCancellationRequested) {
+					return undefined;
+				}
+
+				succeeded = true;
+				return { isFile: false, resource };
+			} finally {
+				if (!succeeded && ownsCleanup) {
+					if (folderExisted) {
+						for (const createdResource of created) {
+							await this.deleteCreatedUploadTree(createdResource);
+						}
+					} else {
+						await this.deleteCreatedUploadTree(resource);
+					}
 				}
 			}
-
-			// Upload files (up to `MAX_PARALLEL_UPLOADS` in parallel)
-			const fileUploadQueue = new Limiter(BrowserFileUpload.MAX_PARALLEL_UPLOADS);
-			await Promises.settled(fileChildEntries.map(fileChildEntry => {
-				return fileUploadQueue.queue(() => this.doUploadEntry(fileChildEntry, resource, folderTarget, progress, operation, token));
-			}));
-
-			// Upload folders (sequentially give we don't know their sizes)
-			for (const folderChildEntry of folderChildEntries) {
-				await this.doUploadEntry(folderChildEntry, resource, folderTarget, progress, operation, token);
-			}
-
-			if (token.isCancellationRequested) {
-				return undefined;
-			}
-
-			return { isFile: false, resource };
 		}
 	}
 
@@ -914,6 +959,32 @@ export class FileDownload {
 		await target.close();
 	}
 
+	private async downloadTargetExisted(targetFolder: FileSystemDirectoryHandle, name: string): Promise<boolean> {
+		try {
+			await targetFolder.getFileHandle(name);
+			return true;
+		} catch (error) {
+			if (error instanceof DOMException && error.name === 'NotFoundError') {
+				return false;
+			}
+			throw error;
+		}
+	}
+
+	private observeDownloadClose(writer: FileSystemWritableFileStream, onClosed: () => void): FileSystemWritableFileStream {
+		const close = writer.close.bind(writer);
+		const write = writer.write.bind(writer);
+		const abort = writer.abort.bind(writer);
+		return {
+			write,
+			abort,
+			close: async () => {
+				await close();
+				onClosed();
+			},
+		} as unknown as FileSystemWritableFileStream;
+	}
+
 	private async downloadFileBrowser(targetFolder: FileSystemDirectoryHandle, file: IFileStatWithMetadata, operation: IDownloadOperation, token: CancellationToken): Promise<void> {
 
 		// Report progress
@@ -921,17 +992,48 @@ export class FileDownload {
 		operation.fileBytesDownloaded = 0; // reset for this file
 		this.reportProgress(file.name, 0, 0, operation);
 
-		// Start to download
-		const targetFile = await targetFolder.getFileHandle(file.name, { create: true });
-		const targetFileWriter = await targetFile.createWritable();
-
-		// For large files, write buffered using streams
-		if (file.size > ByteSize.MB) {
-			return this.downloadFileBufferedBrowser(file.resource, targetFileWriter, operation, token);
+		if (token.isCancellationRequested) {
+			return;
 		}
 
-		// For small files prefer to write unbuffered to reduce overhead
-		return this.downloadFileUnbufferedBrowser(file.resource, targetFileWriter, operation, token);
+		const created = !(await this.downloadTargetExisted(targetFolder, file.name));
+		if (token.isCancellationRequested) {
+			return;
+		}
+
+		// Start to download
+		const targetFile = await targetFolder.getFileHandle(file.name, { create: true });
+		let closed = false;
+		let errorToThrow: unknown;
+		try {
+			if (!token.isCancellationRequested) {
+				const targetFileWriter = this.observeDownloadClose(await targetFile.createWritable(), () => { closed = true; });
+
+				// For large files, write buffered using streams
+				if (file.size > ByteSize.MB) {
+					await this.downloadFileBufferedBrowser(file.resource, targetFileWriter, operation, token);
+				} else {
+					// For small files prefer to write unbuffered to reduce overhead
+					await this.downloadFileUnbufferedBrowser(file.resource, targetFileWriter, operation, token);
+				}
+			}
+		} catch (error) {
+			errorToThrow = error;
+		}
+
+		if (created && !closed) {
+			try {
+				await targetFolder.removeEntry(file.name);
+			} catch (cleanupError) {
+				if (errorToThrow === undefined) {
+					errorToThrow = cleanupError;
+				}
+			}
+		}
+
+		if (errorToThrow) {
+			throw errorToThrow;
+		}
 	}
 
 	private async downloadFolderBrowser(folder: IFileStatWithMetadata, targetFolder: FileSystemDirectoryHandle, operation: IDownloadOperation, token: CancellationToken): Promise<void> {
