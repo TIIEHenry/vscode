@@ -443,7 +443,6 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 	}
 
 	protected override async _doReject(): Promise<void> {
-		this.updateCellDiffInfo([], undefined);
 		if (this.createdInRequestId === this._telemetryInfo.requestId) {
 			await this._applyEdits(async () => {
 				await this.modifiedResourceRef.object.revert({ soft: true });
@@ -456,7 +455,9 @@ export class ChatEditingModifiedNotebookEntry extends AbstractChatEditingModifie
 				}
 			});
 			this._onDidDelete.fire();
+			this.updateCellDiffInfo([], undefined);
 		} else {
+			this.updateCellDiffInfo([], undefined);
 			await this._applyEdits(async () => {
 				const snapshot = createSnapshot(this.originalModel, this.transientOptions, this.configurationService);
 				this.restoreSnapshotInModifiedModel(snapshot);

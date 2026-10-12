@@ -2148,6 +2148,7 @@ suite('ChatEditingModifiedNotebookEntry', function () {
 			const notebookUri = URI.from({ scheme: Schemas.file, path: '/created.ipynb' });
 			let deleteCount = 0;
 			let fireCount = 0;
+			let updateCellDiffInfoCount = 0;
 			const entry = {
 				createdInRequestId: requestId,
 				_telemetryInfo: { requestId },
@@ -2166,13 +2167,14 @@ suite('ChatEditingModifiedNotebookEntry', function () {
 				_onDidDelete: {
 					fire: () => { fireCount++; }
 				},
-				updateCellDiffInfo() { },
+				updateCellDiffInfo() { updateCellDiffInfoCount++; },
 				_applyEdits: async (operation: () => Promise<void>) => operation(),
 			};
 			return {
 				entry,
 				get deleteCount() { return deleteCount; },
 				get fireCount() { return fireCount; },
+				get updateCellDiffInfoCount() { return updateCellDiffInfoCount; },
 			};
 		}
 
@@ -2190,6 +2192,7 @@ suite('ChatEditingModifiedNotebookEntry', function () {
 			);
 			assert.strictEqual(harness.deleteCount, 1);
 			assert.strictEqual(harness.fireCount, 0);
+			assert.strictEqual(harness.updateCellDiffInfoCount, 0);
 		});
 
 		test('fires once when delete succeeds', async function () {
@@ -2197,6 +2200,7 @@ suite('ChatEditingModifiedNotebookEntry', function () {
 			await rejectCreated(harness.entry);
 			assert.strictEqual(harness.deleteCount, 1);
 			assert.strictEqual(harness.fireCount, 1);
+			assert.strictEqual(harness.updateCellDiffInfoCount, 1);
 		});
 
 		test('fires once when delete fails with FILE_NOT_FOUND', async function () {
@@ -2206,6 +2210,7 @@ suite('ChatEditingModifiedNotebookEntry', function () {
 			await rejectCreated(harness.entry);
 			assert.strictEqual(harness.deleteCount, 1);
 			assert.strictEqual(harness.fireCount, 1);
+			assert.strictEqual(harness.updateCellDiffInfoCount, 1);
 		});
 	});
 
