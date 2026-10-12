@@ -925,6 +925,7 @@ export abstract class AbstractInitializer implements IUserDataSyncResourceInitia
 			await this.doInitialize({ ref, syncData });
 		} catch (error) {
 			this.logService.error(error);
+			throw error;
 		}
 	}
 

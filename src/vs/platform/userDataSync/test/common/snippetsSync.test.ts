@@ -988,7 +988,8 @@ suite('SnippetsInitializer', () => {
 			}
 
 			assert.strictEqual(await fileService.exists(snippetResource), false);
-			assert.deepStrictEqual(thrown === undefined ? loggedErrors : [thrown], [resolveError]);
+			assert.strictEqual(thrown, resolveError);
+			assert.deepStrictEqual(loggedErrors, [resolveError]);
 			assert.ok(!infos.includes('Skipping initializing snippets because local snippets exist.'));
 		}
 	});

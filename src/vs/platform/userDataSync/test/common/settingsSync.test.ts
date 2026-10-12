@@ -756,7 +756,8 @@ suite('SettingsInitializer', () => {
 			}
 
 			assert.strictEqual(await fileService.exists(settingsResource), false);
-			assert.deepStrictEqual(thrown === undefined ? loggedErrors : [thrown], [readError]);
+			assert.strictEqual(thrown, readError);
+			assert.deepStrictEqual(loggedErrors, [readError]);
 			assert.ok(!infos.includes('Skipping initializing settings because local settings exist.'));
 		}
 	});
