@@ -160,6 +160,35 @@ suite('rawMessagesToMessagesAPI', function () {
 		expect(toolUse!.input).toEqual({ path: '/tmp/test.txt' });
 	});
 
+	test('stores non-object JSON tool arguments as unparsedArguments', function () {
+		function toolUseInput(rawArguments: string): unknown {
+			const messages: Raw.ChatMessage[] = [
+				{
+					role: Raw.ChatRole.Assistant,
+					content: [],
+					toolCalls: [
+						{
+							id: 'call_case',
+							type: 'function',
+							function: { name: 'read_file', arguments: rawArguments },
+						},
+					],
+				},
+			];
+			const result = rawMessagesToMessagesAPI(messages);
+			const content = assertContentArray(result.messages[0].content);
+			const toolUse = findBlock(content, 'tool_use');
+			expect(toolUse).toBeDefined();
+			return toolUse!.input;
+		}
+
+		for (const rawArguments of ['[]', 'null', '42', '"text"', 'true']) {
+			expect(toolUseInput(rawArguments)).toEqual({ [TOOL_USE_UNPARSED_ARGUMENTS_FIELD]: rawArguments });
+		}
+		expect(toolUseInput('{}')).toEqual({});
+		expect(toolUseInput('{"path":"/tmp/test.txt"}')).toEqual({ path: '/tmp/test.txt' });
+	});
+
 	test('sanitizes provider-specific tool call IDs for Anthropic', function () {
 		const messages: Raw.ChatMessage[] = [
 			{

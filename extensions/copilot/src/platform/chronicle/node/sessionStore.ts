@@ -333,11 +333,16 @@ export class SessionStore implements ISessionStore {
 			turn.timestamp ?? new Date().toISOString(),
 		);
 
-		// Index searchable content
-		const content = [turn.user_message, turn.assistant_response].filter(Boolean).join('\n');
+		// Index the merged columns. This call may omit one side; COALESCE kept it.
+		const merged = db.prepare(
+			'SELECT user_message, assistant_response FROM turns WHERE session_id = ? AND turn_index = ?',
+		).get(turn.session_id, turn.turn_index);
+		const userMessage = typeof merged?.user_message === 'string' ? merged.user_message : undefined;
+		const assistantResponse = typeof merged?.assistant_response === 'string' ? merged.assistant_response : undefined;
+		const content = [userMessage, assistantResponse].filter(Boolean).join('\n');
 		if (content) {
 			const turnId = `${turn.session_id}:turn:${turn.turn_index}`;
-			// Remove old FTS entry if exists, then insert new one
+			// Remove old FTS entry if exists, then insert the full merged text
 			db.prepare('DELETE FROM search_index WHERE source_id = ?').run(turnId);
 			db.prepare(
 				'INSERT INTO search_index (content, session_id, source_type, source_id) VALUES (?, ?, ?, ?)',
