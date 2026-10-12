@@ -587,7 +587,19 @@ export class RemoteSessionExporter extends Disposable implements IExtensionContr
 			{ location: vscode.ProgressLocation.Notification, title: vscode.l10n.t('Deleting sessions...') },
 			async () => {
 				for (const session of sessionsToDelete) {
-					// Delete locally when scope is "everywhere"
+					// A mapped session is removed locally and from the id store only
+					// after the cloud delete actually succeeds.
+					const cached = this._cloudSessions.get(session.id);
+					if (cached) {
+						const result = await this._cloudClient.deleteSession(cached.cloudTaskId);
+						if (result === 'deleted' || result === 'not_found') {
+							cloudDeleted++;
+						} else {
+							cloudErrors++;
+							continue;
+						}
+					}
+
 					if (deleteLocal) {
 						try {
 							this._sessionStore.deleteSession(session.id);
@@ -597,18 +609,6 @@ export class RemoteSessionExporter extends Disposable implements IExtensionContr
 						}
 					}
 
-					// Delete from cloud using the stored cloud task ID
-					const cached = this._cloudSessions.get(session.id);
-					if (cached) {
-						const result = await this._cloudClient.deleteSession(cached.cloudTaskId);
-						switch (result) {
-							case 'deleted': cloudDeleted++; break;
-							case 'not_found': cloudDeleted++; break; // Already gone — count as success
-							case 'error': cloudErrors++; break;
-						}
-					}
-
-					// Remove from caches and persisted store
 					this._cloudSessions.delete(session.id);
 					this._translationStates.delete(session.id);
 					this._disabledSessions.delete(session.id);
@@ -650,8 +650,10 @@ export class RemoteSessionExporter extends Disposable implements IExtensionContr
 	// ── Delete from cloud + local SQLite (called by sessions window delete action) ─
 
 	/**
-	 * Best-effort cloud and local SQLite deletion for the given session IDs.
+	 * Cloud and local SQLite deletion for the given session IDs.
 	 * Called from the sessions window right-click delete action — no UI shown.
+	 * When this call deletes a mapped cloud session, the local row and the
+	 * mapping stay until deleteSession returns 'deleted' or 'not_found'.
 	 */
 	private async _deleteSessionsFromCloud(sessionIds: string[]): Promise<void> {
 		if (!sessionIds || sessionIds.length === 0) {
@@ -664,25 +666,26 @@ export class RemoteSessionExporter extends Disposable implements IExtensionContr
 		const cloudEnabled = this._configService.getNonExtensionConfig<boolean>('chat.sessionSync.enabled') ?? false;
 
 		for (const sessionId of sessionIds) {
-			// Delete from local SQLite store
+			const cached = this._cloudSessions.get(sessionId);
+			if (cloudEnabled && cached) {
+				let result: 'deleted' | 'not_found' | 'error';
+				try {
+					result = await this._cloudClient.deleteSession(cached.cloudTaskId);
+				} catch {
+					// Don't block the caller, and don't drop local data we couldn't confirm.
+					result = 'error';
+				}
+				if (result !== 'deleted' && result !== 'not_found') {
+					continue;
+				}
+			}
+
 			try {
 				this._sessionStore.deleteSession(sessionId);
 			} catch {
 				// Best effort
 			}
 
-			// Delete from cloud only when session sync is enabled
-			const wasCloudSynced = this._cloudSessions.has(sessionId);
-			if (cloudEnabled && wasCloudSynced) {
-				const cached = this._cloudSessions.get(sessionId)!;
-				try {
-					await this._cloudClient.deleteSession(cached.cloudTaskId);
-				} catch {
-					// Best effort — don't block the caller
-				}
-			}
-
-			// Remove from in-memory caches
 			this._cloudSessions.delete(sessionId);
 			this._translationStates.delete(sessionId);
 			this._disabledSessions.delete(sessionId);
@@ -1355,6 +1358,7 @@ export class RemoteSessionExporter extends Disposable implements IExtensionContr
 			let rateLimitedSessions = 0;
 			let submittedCount = 0;
 			const requeueOnRateLimit: typeof batch = [];
+			const requeueOnTransientError: typeof batch = [];
 			for (const [cloudSessionId, slot] of eventsBySession) {
 				submittedCount += slot.events.length;
 				const filteredEvents = slot.events.map(e => filterSecretsFromObj(e));
@@ -1380,12 +1384,18 @@ export class RemoteSessionExporter extends Disposable implements IExtensionContr
 					requeueOnRateLimit.push(...slot.entries);
 					flushFailed = true;
 				} else {
+					// Transient failure: put this slot back for the safety-cadence retry.
+					// Successful slots never reach here; policy_blocked stays dropped.
 					hadTransientError = true;
+					requeueOnTransientError.push(...slot.entries);
 				}
 			}
 
 			if (requeueOnRateLimit.length > 0) {
 				this._eventBuffer.unshift(...requeueOnRateLimit);
+			}
+			if (requeueOnTransientError.length > 0) {
+				this._eventBuffer.unshift(...requeueOnTransientError);
 			}
 
 			const allSuccess = !hadTransientError && policyBlockedSessions === 0 && rateLimitedSessions === 0;
