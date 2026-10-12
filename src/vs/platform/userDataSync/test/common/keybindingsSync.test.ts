@@ -9,7 +9,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { FileOperationError, FileOperationResult, IFileService } from '../../../files/common/files.js';
 import { ILogService } from '../../../log/common/log.js';
 import { IUserDataProfilesService } from '../../../userDataProfile/common/userDataProfile.js';
-import { getKeybindingsContentFromSyncContent, KeybindingsSynchroniser } from '../../common/keybindingsSync.js';
+import { getKeybindingsContentFromSyncContent, KeybindingsInitializer, KeybindingsSynchroniser } from '../../common/keybindingsSync.js';
 import { IUserDataSyncStoreService, SyncResource, UserDataSyncError, UserDataSyncErrorCode } from '../../common/userDataSync.js';
 import { UserDataSyncClient, UserDataSyncTestServer } from './userDataSyncClient.js';
 
@@ -328,6 +328,129 @@ suite('KeybindingsSync', () => {
 				return Promise.reject(new FileOperationError('keybindings read failed', result));
 			}
 			return originalReadFile(resource, options, token);
+		};
+	}
+
+});
+
+suite('KeybindingsInitializer', () => {
+
+	const server = new UserDataSyncTestServer();
+	let client: UserDataSyncClient;
+	let testObject: KeybindingsInitializer;
+
+	teardown(async () => {
+		await client.instantiationService.get(IUserDataSyncStoreService).clear();
+	});
+
+	const disposableStore = ensureNoDisposablesAreLeakedInTestSuite();
+
+	setup(async () => {
+		client = disposableStore.add(new UserDataSyncClient(server));
+		await client.setUp(true);
+		testObject = client.instantiationService.createInstance(KeybindingsInitializer);
+	});
+
+	test('skips initialization and does not overwrite when local keybindings are a non-empty array', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const profile = client.instantiationService.get(IUserDataProfilesService).defaultProfile;
+		const keybindingsResource = profile.keybindingsResource;
+		const settingsResource = profile.settingsResource;
+		assert.notStrictEqual(keybindingsResource.toString(), settingsResource.toString());
+
+		const localKeybindings = JSON.stringify([
+			{
+				'key': 'alt+a',
+				'command': 'workbench.action.keepLocal',
+			}
+		]);
+		const settingsContent = '{}';
+		await fileService.writeFile(keybindingsResource, VSBuffer.fromString(localKeybindings));
+		await fileService.writeFile(settingsResource, VSBuffer.fromString(settingsContent));
+
+		const reads = trackReads(fileService);
+		try {
+			await testObject.initialize(remoteKeybindingsUserData(JSON.stringify([
+				{
+					'key': 'shift+cmd+w',
+					'command': 'workbench.action.closeAllEditors',
+				}
+			])));
+		} finally {
+			reads.restore();
+		}
+
+		assert.deepStrictEqual(reads.resources, [keybindingsResource.toString()]);
+		assert.ok(!reads.resources.includes(settingsResource.toString()));
+		assert.strictEqual((await fileService.readFile(keybindingsResource)).value.toString(), localKeybindings);
+		assert.strictEqual((await fileService.readFile(settingsResource)).value.toString(), settingsContent);
+	});
+
+	test('writes keybindingsResource when the keybindings file is missing', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const profile = client.instantiationService.get(IUserDataProfilesService).defaultProfile;
+		const keybindingsResource = profile.keybindingsResource;
+		const settingsResource = profile.settingsResource;
+		assert.notStrictEqual(keybindingsResource.toString(), settingsResource.toString());
+
+		if (await fileService.exists(keybindingsResource)) {
+			await fileService.del(keybindingsResource);
+		}
+		const settingsContent = JSON.stringify([
+			{
+				'key': 'ctrl+s',
+				'command': 'settings.should.not.be.read',
+			}
+		]);
+		await fileService.writeFile(settingsResource, VSBuffer.fromString(settingsContent));
+		assert.strictEqual(await fileService.exists(keybindingsResource), false);
+
+		const remoteContent = JSON.stringify([
+			{
+				'key': 'shift+cmd+w',
+				'command': 'workbench.action.closeAllEditors',
+			}
+		]);
+		const reads = trackReads(fileService);
+		try {
+			await testObject.initialize(remoteKeybindingsUserData(remoteContent));
+		} finally {
+			reads.restore();
+		}
+
+		assert.deepStrictEqual(reads.resources, [keybindingsResource.toString()]);
+		assert.ok(!reads.resources.includes(settingsResource.toString()));
+		assert.strictEqual((await fileService.readFile(keybindingsResource)).value.toString(), remoteContent);
+		assert.strictEqual((await fileService.readFile(settingsResource)).value.toString(), settingsContent);
+	});
+
+	function remoteKeybindingsUserData(keybindingsContent: string) {
+		return {
+			ref: '1',
+			content: JSON.stringify({
+				version: 2,
+				content: JSON.stringify({
+					mac: keybindingsContent,
+					linux: keybindingsContent,
+					windows: keybindingsContent,
+				}),
+			}),
+		};
+	}
+
+	function trackReads(fileService: IFileService): { resources: string[]; restore: () => void } {
+		const resources: string[] = [];
+		const target = fileService as { readFile: IFileService['readFile'] };
+		const originalReadFile = target.readFile.bind(fileService);
+		target.readFile = (resource, options, token) => {
+			resources.push(resource.toString());
+			return originalReadFile(resource, options, token);
+		};
+		return {
+			resources,
+			restore: () => {
+				target.readFile = originalReadFile;
+			},
 		};
 	}
 

@@ -374,7 +374,7 @@ export class KeybindingsInitializer extends AbstractInitializer {
 
 	private async isEmpty(): Promise<boolean> {
 		try {
-			const fileContent = await this.fileService.readFile(this.userDataProfilesService.defaultProfile.settingsResource);
+			const fileContent = await this.fileService.readFile(this.userDataProfilesService.defaultProfile.keybindingsResource);
 			const keybindings = parse(fileContent.value.toString());
 			return !isNonEmptyArray(keybindings);
 		} catch (error) {
