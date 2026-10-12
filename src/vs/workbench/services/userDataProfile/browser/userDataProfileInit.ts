@@ -97,7 +97,8 @@ export class UserDataProfileInitializer implements IUserDataInitializer {
 	private initializeInstalledExtensionsPromise: Promise<void> | undefined;
 	initializeInstalledExtensions(instantiationService: IInstantiationService): Promise<void> {
 		if (!this.initializeInstalledExtensionsPromise) {
-			const promise = (async () => {
+			const pending: { promise?: Promise<void> } = {};
+			pending.promise = (async () => {
 				const profileTemplate = await this.getProfileTemplate();
 				if (!profileTemplate?.extensions) {
 					return;
@@ -108,12 +109,12 @@ export class UserDataProfileInitializer implements IUserDataInitializer {
 					// initialize() logs and swallows failures, so this promise still fulfills.
 					// Drop it when the template had extensions: the next call must create and
 					// run the initializer again, or take the "initialized already" path.
-					if (this.initializeInstalledExtensionsPromise === promise) {
+					if (this.initializeInstalledExtensionsPromise === pending.promise) {
 						this.initializeInstalledExtensionsPromise = undefined;
 					}
 				}
 			})();
-			this.initializeInstalledExtensionsPromise = promise;
+			this.initializeInstalledExtensionsPromise = pending.promise;
 		}
 		return this.initializeInstalledExtensionsPromise;
 	}
