@@ -395,4 +395,106 @@ suite('Storage init', () => {
 		strictEqual(storage.get('color'), undefined);
 		strictEqual(storage.get('size'), 'large');
 	});
+
+	test('external delete of a cached pending insert does not flush the old string', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['color', 'blue']])
+		], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+
+		await storage.init();
+		strictEqual(storage.get('color'), 'blue');
+
+		const writing = storage.set('color', 'red');
+		const pendingInserts = (storage as unknown as { pendingInserts: Map<string, string> }).pendingInserts;
+		strictEqual(pendingInserts.get('color'), 'red');
+
+		database.emitExternal({ deleted: new Set(['color']) });
+
+		strictEqual(pendingInserts.has('color'), false);
+		strictEqual(storage.get('color', 'missing'), 'missing');
+
+		await storage.flush(0);
+		await writing;
+
+		strictEqual(database.updates.length, 0);
+		strictEqual(pendingInserts.has('color'), false);
+		strictEqual(storage.get('color', 'missing'), 'missing');
+	});
+
+	test('external update of an unflushed insert flushes the new value', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['color', 'blue']])
+		], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+
+		await storage.init();
+
+		const writing = storage.set('color', 'red');
+		const pendingInserts = (storage as unknown as { pendingInserts: Map<string, string> }).pendingInserts;
+		strictEqual(pendingInserts.get('color'), 'red');
+
+		database.emitExternal({ changed: new Map([['color', 'green']]) });
+
+		strictEqual(storage.get('color'), 'green');
+		strictEqual(pendingInserts.get('color'), 'green');
+
+		await storage.flush(0);
+		await writing;
+
+		strictEqual(database.updates.length, 1);
+		strictEqual(database.updates[0].insert?.get('color'), 'green');
+		strictEqual(database.updates[0].delete?.has('color'), false);
+		strictEqual(storage.get('color'), 'green');
+	});
+
+	test('external update of a pending delete does not flush that delete', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['color', 'blue']])
+		], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+
+		await storage.init();
+
+		const removing = storage.delete('color');
+		const pending = storage as unknown as { pendingInserts: Map<string, string>; pendingDeletes: Set<string> };
+		strictEqual(pending.pendingDeletes.has('color'), true);
+
+		database.emitExternal({ changed: new Map([['color', 'green']]) });
+
+		strictEqual(storage.get('color'), 'green');
+		strictEqual(pending.pendingDeletes.has('color'), false);
+		strictEqual(pending.pendingInserts.has('color'), false);
+
+		await storage.flush(0);
+		await removing;
+
+		strictEqual(database.updates.length, 0);
+		strictEqual(pending.pendingDeletes.has('color'), false);
+		strictEqual(pending.pendingInserts.has('color'), false);
+		strictEqual(storage.get('color'), 'green');
+	});
+
+	test('external delete of a key missing from cache does not enter pending', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['size', 'large']])
+		], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+
+		await storage.init();
+
+		database.emitExternal({ deleted: new Set(['color']) });
+
+		const pending = storage as unknown as { pendingInserts: Map<string, string>; pendingDeletes: Set<string> };
+		strictEqual(pending.pendingInserts.has('color'), false);
+		strictEqual(pending.pendingDeletes.has('color'), false);
+
+		await storage.flush(0);
+
+		strictEqual(database.updates.length, 0);
+		strictEqual(pending.pendingInserts.has('color'), false);
+		strictEqual(pending.pendingDeletes.has('color'), false);
+		strictEqual(storage.get('color'), undefined);
+		strictEqual(storage.get('size'), 'large');
+	});
 });
