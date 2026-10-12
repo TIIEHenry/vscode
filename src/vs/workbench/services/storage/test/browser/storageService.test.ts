@@ -21,7 +21,7 @@ import { IUserDataProfile } from '../../../../../platform/userDataProfile/common
 import { BrowserStorageService, IndexedDBStorageDatabase } from '../../browser/storageService.js';
 import { UserDataProfileService } from '../../../userDataProfile/common/userDataProfileService.js';
 
-async function createStorageService(): Promise<[DisposableStore, BrowserStorageService]> {
+async function createStorageService(options?: { readonly isDefault?: boolean; readonly initialize?: boolean; readonly workspaceId?: string }): Promise<[DisposableStore, BrowserStorageService]> {
 	const disposables = new DisposableStore();
 	const logService = new NullLogService();
 
@@ -36,7 +36,7 @@ async function createStorageService(): Promise<[DisposableStore, BrowserStorageS
 	const inMemoryExtraProfile: IUserDataProfile = {
 		id: 'id',
 		name: 'inMemory',
-		isDefault: false,
+		isDefault: options?.isDefault ?? false,
 		location: inMemoryExtraProfileRoot,
 		globalStorageHome: joinPath(inMemoryExtraProfileRoot, 'globalStorageHome'),
 		settingsResource: joinPath(inMemoryExtraProfileRoot, 'settingsResource'),
@@ -51,11 +51,22 @@ async function createStorageService(): Promise<[DisposableStore, BrowserStorageS
 		agentPluginsHome: joinPath(inMemoryExtraProfileRoot, 'agentPluginsHome'),
 	};
 
-	const storageService = disposables.add(new BrowserStorageService({ id: 'workspace-storage-test' }, disposables.add(new UserDataProfileService(inMemoryExtraProfile)), logService));
+	const storageService = disposables.add(new BrowserStorageService({ id: options?.workspaceId ?? 'workspace-storage-test' }, disposables.add(new UserDataProfileService(inMemoryExtraProfile)), logService));
 
-	await storageService.initialize();
+	if (options?.initialize !== false) {
+		await storageService.initialize();
+	}
 
 	return [disposables, storageService];
+}
+
+interface ICompletedApplicationStorage {
+	readonly indexedDb: { getValue(key: string): Promise<string | undefined> };
+	readonly storage: { get(key: string, fallbackValue?: string): string | undefined };
+}
+
+function applicationStoragePromiseOf(service: BrowserStorageService): { readonly p: Promise<ICompletedApplicationStorage> } {
+	return (service as unknown as { readonly applicationStoragePromise: { readonly p: Promise<ICompletedApplicationStorage> } }).applicationStoragePromise;
 }
 
 flakySuite('StorageService (browser)', function () {
@@ -133,6 +144,66 @@ flakySuite('StorageService (browser specific)', () => {
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+});
+
+flakySuite('StorageService (browser default profile)', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('initialize rejects with the application storage init error instead of hanging', async () => {
+		const initError = new Error('application storage init failed');
+		const originalCreateApplicationStorage = IndexedDBStorageDatabase.createApplicationStorage;
+		IndexedDBStorageDatabase.createApplicationStorage = async logService => {
+			const database = await originalCreateApplicationStorage(logService);
+			database.getItems = () => Promise.reject(initError);
+			return database;
+		};
+
+		let disposables: DisposableStore | undefined;
+		let storageService: BrowserStorageService | undefined;
+		try {
+			const created = await createStorageService({ isDefault: true, initialize: false, workspaceId: 'workspace-storage-default-profile-init-failure' });
+			disposables = created[0];
+			storageService = created[1];
+			const applicationStorage = applicationStoragePromiseOf(storageService).p;
+			const [initializeOutcome, applicationStorageOutcome] = await Promise.allSettled([
+				storageService.initialize(),
+				applicationStorage,
+			]);
+
+			strictEqual(initializeOutcome.status, 'rejected');
+			strictEqual(applicationStorageOutcome.status, 'rejected');
+			strictEqual(initializeOutcome.reason, initError);
+			strictEqual(applicationStorageOutcome.reason, initError);
+		} finally {
+			IndexedDBStorageDatabase.createApplicationStorage = originalCreateApplicationStorage;
+			try {
+				await storageService?.clear();
+			} finally {
+				disposables?.dispose();
+			}
+		}
+	});
+
+	test('initialize completes the application storage promise with the database and storage', async () => {
+		const [disposables, storageService] = await createStorageService({ isDefault: true, initialize: false, workspaceId: 'workspace-storage-default-profile-ready' });
+		try {
+			const pending = applicationStoragePromiseOf(storageService).p;
+			await storageService.initialize();
+			const completed = await pending;
+
+			storageService.store('default-profile-ready', 'yes', StorageScope.APPLICATION, StorageTarget.USER);
+			strictEqual(completed.storage.get('default-profile-ready'), 'yes');
+			strictEqual(storageService.get('default-profile-ready', StorageScope.PROFILE), 'yes');
+			await storageService.flush();
+			strictEqual(await completed.indexedDb.getValue('default-profile-ready'), 'yes');
+		} finally {
+			try {
+				await storageService.clear();
+			} finally {
+				disposables.dispose();
+			}
+		}
+	});
 });
 
 flakySuite('IndexDBStorageDatabase (browser)', () => {
