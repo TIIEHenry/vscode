@@ -132,12 +132,17 @@ suite('SessionViewHost intent ownership (F2)', () => {
 
 		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: 'corr-check' });
 		assert.strictEqual(outcome.accepted, true);
+		if (!outcome.accepted) {
+			assert.fail('submitInput must be accepted');
+		}
 
 		const sends = frames.flatMap(event => {
 			const body = event.frame.frame.body;
 			return body.kind === 'patches' ? body.patches : [];
 		}).filter((patch): patch is Extract<ViewPatch, { op: 'upsertLocalSend' }> => patch.op === 'upsertLocalSend');
-		assert.ok(sends.some(patch => String(patch.send.operationId).startsWith('write:')));
+		assert.ok(sends.length > 0);
+		assert.ok(sends.every(patch => patch.send.operationId === outcome.correlation.id));
+		assert.ok(String(outcome.correlation.id).startsWith('write:'));
 	});
 
 	test('NodeSchedulerPort onFire runs; cancelTimer suppresses fire', async () => {

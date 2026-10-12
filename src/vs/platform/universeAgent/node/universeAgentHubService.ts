@@ -460,8 +460,11 @@ export class UniverseAgentHubService extends Disposable implements IUniverseAgen
 		const activeKey = hubBaseUrlIdentityKey(hubBaseUrl);
 		const existing = this._connectionProfileStore.list().find(profile =>
 			profile.target.kind === 'hubDevice'
+			&& profile.target.accountId === accountId
 			&& hubBaseUrlIdentityKey(profile.target.hubBaseUrl) === activeKey
 			&& profile.target.hubDeviceId === hubDeviceId
+			&& profile.state !== 'revoked'
+			&& profile.state !== 'disabled'
 		);
 		if (existing) {
 			return { ok: true, profileId: existing.profileId };

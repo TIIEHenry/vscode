@@ -918,6 +918,15 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async listTeams() { return { teams: [] }; }
 }
 
+class CloseCountingTransport extends RecordingMockTransport {
+	closes = 0;
+
+	override close(): void {
+		this.closes++;
+		super.close();
+	}
+}
+
 function createPairingProfile(): ConnectionProfile {
 	return {
 		profileId: '11111111-1111-4111-8111-111111111111',
@@ -1933,5 +1942,88 @@ suite('pairingOrchestrator H2', () => {
 		const stale = await formalOrchestrator.confirmSas();
 		assert.deepStrictEqual(stale, { ok: false, code: 'no_active_pairing', reason: 'no pairing awaiting SAS confirmation' });
 		assert.ok(!formalDialed.includes('formal-only.example'));
+	});
+
+	async function confirmSasAfterProvisional(
+		identity: TestIdentityMaterial,
+		laterSigner: () => Promise<((input: DeviceAuthTranscriptInput) => Uint8Array) | undefined>,
+	): Promise<{ readonly result?: Awaited<ReturnType<ReturnType<typeof createPairingOrchestrator>['confirmSas']>>; readonly error?: unknown; readonly closes: number }> {
+		let signerCalls = 0;
+		let dials = 0;
+		let formal: CloseCountingTransport | undefined;
+		const sasCode = derivePairingSasCode({
+			engineIdentityId,
+			engineCertFingerprint: leafSha256Hex,
+			clientPublicKey: identity.clientPublicKey,
+			pairingNonce: pairingNonceBytes,
+			protocolVersion: DEVICE_GRANT_AUTH_PROTOCOL_VERSION,
+		});
+		const identityStore = new TestClientIdentityStore(identity);
+		const orchestrator = createPairingOrchestrator({
+			clientIdentityStore: {
+				getState: () => identityStore.getState(),
+				getOrCreateIdentity: () => identityStore.getOrCreateIdentity(),
+				createSigner: async () => {
+					signerCalls++;
+					if (signerCalls === 1) {
+						return identityStore.createSigner();
+					}
+					return laterSigner();
+				},
+			},
+			engineTrustStore: { get: () => undefined, list: () => [], put: () => { }, remove: () => { } },
+			connectionProfileStore: { list: () => [], get: () => undefined, put: () => { }, remove: () => { }, createDraft: () => createPairingProfile() },
+			observeCandidateLeafFn: async () => ({ ok: true, leafDer, leafSha256Hex }),
+			createPinnedTransport: () => {
+				dials++;
+				if (dials === 1) {
+					return new RecordingMockTransport({
+						getAuthNonce: async () => nonceResult(),
+						connectWithDeviceAuth: async () => ({
+							pairingNonce: pairingNonceB64,
+							sasCode,
+							methods: [],
+							events: [],
+						}),
+					});
+				}
+				formal = new CloseCountingTransport({});
+				return formal;
+			},
+		});
+
+		const started = await orchestrator.startPairing(createPairingProfile(), endpoint);
+		assert.strictEqual(started.ok, true);
+		assert.strictEqual(dials, 1);
+		try {
+			const result = await orchestrator.confirmSas({ userConfirmed: true });
+			assert.ok(formal, 'formal transport must be created before createSigner returns');
+			return { result, closes: formal.closes };
+		} catch (error) {
+			assert.ok(formal, 'formal transport must be created before createSigner rejects');
+			return { error, closes: formal.closes };
+		}
+	}
+
+	test('confirmSas closes the pinned transport when createSigner returns undefined', async () => {
+		const identity = mintTestIdentity();
+		const formal = await confirmSasAfterProvisional(identity, async () => undefined);
+		assert.strictEqual(formal.error, undefined);
+		assert.ok(formal.result);
+		assert.strictEqual(formal.result.ok, false);
+		if (!formal.result.ok) {
+			assert.strictEqual(formal.result.code, 'signer_unavailable');
+		}
+		assert.strictEqual(formal.closes, 1);
+	});
+
+	test('confirmSas closes the pinned transport when createSigner rejects', async () => {
+		const identity = mintTestIdentity();
+		const formal = await confirmSasAfterProvisional(identity, async () => {
+			throw new Error('signer exploded');
+		});
+		assert.ok(formal.error instanceof Error);
+		assert.strictEqual(formal.error.message, 'signer exploded');
+		assert.strictEqual(formal.closes, 1);
 	});
 });

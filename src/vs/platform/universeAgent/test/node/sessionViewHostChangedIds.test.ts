@@ -126,9 +126,13 @@ suite('SessionViewHost patch changedIds', () => {
 		const frames = await subscribe(store, viewHost, leaseId);
 		const outcome = viewHost.post(leaseId, { kind: 'submitInput', text: 'hello' });
 		assert.strictEqual(outcome.accepted, true);
+		if (!outcome.accepted) {
+			assert.fail('submitInput must be accepted');
+		}
 		connection.pushStreamEvent('sess-send', { session_closed: {} });
 
 		const ids = changedIdsOf(frames);
+		assert.ok(ids.has(`send:${outcome.correlation.id}`), `expected send:${outcome.correlation.id} in ${[...ids].join(', ')}`);
 		assert.ok([...ids].some(id => id.startsWith('send:write:')), `expected send:write:… in ${[...ids].join(', ')}`);
 		assert.ok(ids.has('sync'), `expected sync in ${[...ids].join(', ')}`);
 		assertNoBareOpNames(ids);

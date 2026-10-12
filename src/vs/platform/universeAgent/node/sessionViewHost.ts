@@ -494,7 +494,8 @@ export class SessionViewHost extends Disposable {
 		if (!this.connection.isEngineConnected()) {
 			return { accepted: false as const, reason: 'not_authenticated' as const };
 		}
-		const fact = writeMessageToCoreFact(msg, binding.leaseId, this.ids.nextWriteId() as unknown as CorrelationRef);
+		const writeId = this.ids.nextWriteId();
+		const fact = writeMessageToCoreFact(msg, binding.leaseId, writeId as unknown as CorrelationRef);
 		this.postingLeaseId = msg.kind === 'submitInput' ? String(binding.leaseId) : undefined;
 		let outcome: PostOutcome;
 		try {
@@ -503,7 +504,8 @@ export class SessionViewHost extends Disposable {
 			this.postingLeaseId = undefined;
 		}
 		if (outcome.accepted) {
-			return { accepted: true as const, correlation: { id: String(outcome.correlation) } };
+			const correlationId = msg.kind === 'submitInput' ? String(writeId) : String(outcome.correlation);
+			return { accepted: true as const, correlation: { id: correlationId } };
 		}
 		return { accepted: false as const, reason: outcome.reason };
 	}

@@ -377,16 +377,15 @@ export class PairingOrchestrator {
 			tls: tlsPlanFromTrust(candidateTrust),
 		});
 
-		const signer = await this.deps.clientIdentityStore.createSigner();
-		if (!this.isCurrentConfirmSas(context, generation)) {
-			transport.close();
-			return staleConfirmSas();
-		}
-		if (!signer) {
-			return { ok: false, code: 'signer_unavailable', reason: 'device auth signer unavailable' };
-		}
-
 		try {
+			const signer = await this.deps.clientIdentityStore.createSigner();
+			if (!this.isCurrentConfirmSas(context, generation)) {
+				return staleConfirmSas();
+			}
+			if (!signer) {
+				return { ok: false, code: 'signer_unavailable', reason: 'device auth signer unavailable' };
+			}
+
 			const handshake = await runDeviceAuthHandshake(
 				transport,
 				{

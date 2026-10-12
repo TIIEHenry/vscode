@@ -442,6 +442,82 @@ suite('UniverseAgentHubService addHubDeviceProfile', () => {
 		service.dispose();
 	});
 
+	test('revoked or disabled hub device is not treated as already added', async () => {
+		for (const state of ['revoked', 'disabled'] as const) {
+			const profileStore = new TestConnectionProfileStore();
+			const hubSessionStore = new InMemoryHubSessionStore();
+			await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+			const stale = profileStore.createDraft({
+				displayName: 'Old',
+				target: { kind: 'hubDevice', hubBaseUrl: HUB_BASE, accountId: 'usr_1', hubDeviceId: 'dev-1' },
+			});
+			profileStore.put({ ...stale, state });
+			const service = new UniverseAgentHubService({
+				hubSessionStore,
+				connectionProfileStore: profileStore,
+				nowMs: () => FIXTURE_NOW_MS,
+				skipStartupRestore: true,
+			});
+			service.setActiveHubBaseUrl(HUB_BASE);
+
+			const added = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1', displayName: 'Studio' });
+			assert.strictEqual(added.ok, true, state);
+			if (!added.ok) {
+				service.dispose();
+				continue;
+			}
+			assert.notStrictEqual(added.profileId, stale.profileId, state);
+			const stored = profileStore.get(added.profileId);
+			assert.ok(stored && stored.target.kind === 'hubDevice', state);
+			if (stored && stored.target.kind === 'hubDevice') {
+				assert.strictEqual(stored.target.accountId, 'usr_1', state);
+				assert.strictEqual(stored.state, 'pairingPending', state);
+			}
+			assert.strictEqual(profileStore.get(stale.profileId)?.state, state);
+			const again = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1' });
+			assert.strictEqual(again.ok, true, state);
+			if (again.ok) {
+				assert.strictEqual(again.profileId, added.profileId, state);
+			}
+			service.dispose();
+		}
+	});
+
+	test('hub device profile for another account is not reused', async () => {
+		const profileStore = new TestConnectionProfileStore();
+		const hubSessionStore = new InMemoryHubSessionStore();
+		await hubSessionStore.applyAuthSession(HUB_BASE, FIXTURE_SESSION, FIXTURE_NOW_MS, 'refresh-token');
+		const other = profileStore.createDraft({
+			displayName: 'Other account',
+			target: { kind: 'hubDevice', hubBaseUrl: HUB_BASE, accountId: 'usr_other', hubDeviceId: 'dev-1' },
+		});
+		const service = new UniverseAgentHubService({
+			hubSessionStore,
+			connectionProfileStore: profileStore,
+			nowMs: () => FIXTURE_NOW_MS,
+			skipStartupRestore: true,
+		});
+		service.setActiveHubBaseUrl(HUB_BASE);
+
+		const added = await service.addHubDeviceProfile({ hubDeviceId: 'dev-1', displayName: 'Studio' });
+		assert.strictEqual(added.ok, true);
+		if (added.ok) {
+			assert.notStrictEqual(added.profileId, other.profileId);
+			const stored = profileStore.get(added.profileId);
+			assert.ok(stored && stored.target.kind === 'hubDevice');
+			if (stored && stored.target.kind === 'hubDevice') {
+				assert.strictEqual(stored.target.accountId, 'usr_1');
+				assert.strictEqual(stored.state, 'pairingPending');
+			}
+		}
+		assert.strictEqual(profileStore.get(other.profileId)?.target.kind, 'hubDevice');
+		const kept = profileStore.get(other.profileId);
+		if (kept && kept.target.kind === 'hubDevice') {
+			assert.strictEqual(kept.target.accountId, 'usr_other');
+		}
+		service.dispose();
+	});
+
 	test('signedOut refuses with hub_session_required', async () => {
 		const service = new UniverseAgentHubService({
 			hubSessionStore: new InMemoryHubSessionStore(),
