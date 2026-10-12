@@ -258,8 +258,9 @@ export interface IAgentHostGitService {
 	createBranch(workingDirectory: URI, branchName: string, options?: { readonly checkout?: boolean }): Promise<void>;
 	/**
 	 * Returns true when the working tree has any tracked, staged, or
-	 * untracked changes. Used by archive cleanup to skip removing a
-	 * worktree that still contains uncommitted work.
+	 * untracked changes. Rejects when `git status` fails — timeout, signal,
+	 * lock, or any other non-zero exit — instead of reporting a clean tree.
+	 * Callers must leave the worktree in place when this rejects.
 	 */
 	hasUncommittedChanges(workingDirectory: URI): Promise<boolean>;
 

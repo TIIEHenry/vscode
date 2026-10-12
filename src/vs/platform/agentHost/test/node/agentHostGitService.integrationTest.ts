@@ -44,6 +44,90 @@ function createGitService(disposables: Pick<DisposableStore, 'add'>, logService:
 	return new AgentHostGitService(fileService, env as INativeEnvironmentService, logService);
 }
 
+function listTreeIds(dir: string, gitEnv: NodeJS.ProcessEnv): string[] {
+	const out = cp.execFileSync('git', ['cat-file', '--batch-check', '--batch-all-objects'], {
+		cwd: dir,
+		env: gitEnv,
+		encoding: 'utf8',
+	});
+	return out.split(/\n/).flatMap(line => {
+		const [oid, type] = line.trim().split(' ');
+		return type === 'tree' && oid ? [oid] : [];
+	}).sort();
+}
+
+/**
+ * chmod cannot make `read-tree HEAD` fail while HEAD still resolves, and it
+ * cannot make `rev-parse --verify --quiet HEAD` exit 128 while the repository
+ * stays readable. A PATH-local `git` wrapper exits 128 for exactly one of
+ * those argv sequences and execs the real git binary for every other command.
+ */
+async function withInjectedGitFailure(kind: 'rev-parse-head' | 'read-tree-head', body: () => Promise<void>): Promise<void> {
+	const fs = await import('fs/promises');
+	const bin = mkdtempSync(join(tmpdir(), 'agent-host-git-inject-'));
+	const realGit = cp.execFileSync('sh', ['-c', 'command -v git'], { encoding: 'utf8' }).trim();
+	const wrapper = join(bin, 'git');
+	const failRevParse = kind === 'rev-parse-head' ? '1' : '0';
+	const failReadTree = kind === 'read-tree-head' ? '1' : '0';
+	await fs.writeFile(wrapper, `#!/bin/sh
+if [ "$1" = "rev-parse" ] && [ "$2" = "--verify" ] && [ "$3" = "--quiet" ] && [ "$4" = "HEAD" ] && [ "${failRevParse}" = "1" ]; then
+  echo "injected rev-parse --verify --quiet HEAD failure" >&2
+  exit 128
+fi
+if [ "$1" = "read-tree" ] && [ "$2" = "HEAD" ] && [ "${failReadTree}" = "1" ]; then
+  echo "injected read-tree HEAD failure" >&2
+  exit 128
+fi
+exec ${JSON.stringify(realGit)} "$@"
+`);
+	await fs.chmod(wrapper, 0o755);
+	const previousPath = process.env.PATH;
+	process.env.PATH = `${bin}:${previousPath ?? ''}`;
+	try {
+		await body();
+	} finally {
+		if (previousPath === undefined) {
+			delete process.env.PATH;
+		} else {
+			process.env.PATH = previousPath;
+		}
+		rmDirWithRetry(bin);
+	}
+}
+
+/**
+ * `child.kill()` sends SIGTERM only to the direct `git` child. A
+ * `core.fsmonitor` hook can keep that child alive until the hook returns,
+ * and a shell waiting on `sleep` does not run a TERM trap until `sleep`
+ * exits. `status` therefore `exec`s `sleep`, so the timer's SIGTERM hits
+ * the process `_runGit` is waiting on.
+ */
+async function withHungGitStatus(body: () => Promise<void>): Promise<void> {
+	const fs = await import('fs/promises');
+	const bin = mkdtempSync(join(tmpdir(), 'agent-host-git-hang-'));
+	const realGit = cp.execFileSync('sh', ['-c', 'command -v git'], { encoding: 'utf8' }).trim();
+	const wrapper = join(bin, 'git');
+	await fs.writeFile(wrapper, `#!/bin/sh
+if [ "$1" = "status" ]; then
+  exec sleep 30
+fi
+exec ${JSON.stringify(realGit)} "$@"
+`);
+	await fs.chmod(wrapper, 0o755);
+	const previousPath = process.env.PATH;
+	process.env.PATH = `${bin}:${previousPath ?? ''}`;
+	try {
+		await body();
+	} finally {
+		if (previousPath === undefined) {
+			delete process.env.PATH;
+		} else {
+			process.env.PATH = previousPath;
+		}
+		rmDirWithRetry(bin);
+	}
+}
+
 function rmDirWithRetry(path: string | undefined): void {
 	if (!path) {
 		return;
@@ -550,6 +634,93 @@ suite('AgentHostGitService - computeSessionFileDiffs (real git)', () => {
 		}
 	});
 
+	(hasGit && !isWindows ? test : test.skip)('captureWorkingTreeAsTree returns undefined and writes no partial tree when read-tree HEAD fails', async () => {
+		const fs = await import('fs/promises');
+		const { dir, run } = initRepo();
+		await fs.writeFile(join(dir, 'kept.txt'), 'kept\n');
+		run('add', '.');
+		run('commit', '-q', '-m', 'init');
+		await fs.writeFile(join(dir, 'fresh.txt'), 'fresh\n');
+		const treesBefore = listTreeIds(dir, env);
+
+		let tree: string | undefined;
+		await withInjectedGitFailure('read-tree-head', async () => {
+			tree = await svc!.captureWorkingTreeAsTree(URI.file(dir));
+		});
+
+		assert.deepStrictEqual({
+			tree,
+			addedTrees: listTreeIds(dir, env).filter(id => !treesBefore.includes(id)),
+		}, {
+			tree: undefined,
+			addedTrees: [],
+		});
+	});
+
+	(hasGit && !isWindows ? test : test.skip)('captureWorkingTreeAsTree returns undefined when rev-parse fails for a reason other than a missing HEAD', async () => {
+		const fs = await import('fs/promises');
+		const { dir, run } = initRepo();
+		await fs.writeFile(join(dir, 'kept.txt'), 'kept\n');
+		run('add', '.');
+		run('commit', '-q', '-m', 'init');
+		await fs.writeFile(join(dir, 'fresh.txt'), 'fresh\n');
+		const treesBefore = listTreeIds(dir, env);
+
+		let tree: string | undefined;
+		await withInjectedGitFailure('rev-parse-head', async () => {
+			tree = await svc!.captureWorkingTreeAsTree(URI.file(dir));
+		});
+
+		assert.deepStrictEqual({
+			tree,
+			addedTrees: listTreeIds(dir, env).filter(id => !treesBefore.includes(id)),
+		}, {
+			tree: undefined,
+			addedTrees: [],
+		});
+	});
+
+	(hasGit ? test : test.skip)('captureWorkingTreeAsTree records an unborn repository as additions', async () => {
+		const fs = await import('fs/promises');
+		const { dir } = initRepo();
+		await fs.writeFile(join(dir, 'first.txt'), 'hello\n');
+
+		const tree = await svc!.captureWorkingTreeAsTree(URI.file(dir));
+		assert.ok(tree);
+		const treePaths = cp.execFileSync('git', ['ls-tree', '-r', '--name-only', tree], { cwd: dir, env, encoding: 'utf8' })
+			.trim()
+			.split(/\r?\n/g)
+			.filter(Boolean);
+
+		assert.deepStrictEqual(treePaths, ['first.txt']);
+	});
+
+	(hasGit && !isWindows ? test : test.skip)('computeSessionFileDiffs returns undefined and does not delete unchanged files when read-tree HEAD fails', async () => {
+		const fs = await import('fs/promises');
+		const { dir, run } = initRepo();
+		await fs.writeFile(join(dir, 'kept.txt'), 'kept\n');
+		run('add', '.');
+		run('commit', '-q', '-m', 'init');
+		await fs.writeFile(join(dir, 'fresh.txt'), 'fresh\n');
+
+		let result: Awaited<ReturnType<AgentHostGitService['computeSessionFileDiffs']>> | undefined;
+		await withInjectedGitFailure('read-tree-head', async () => {
+			result = await svc!.computeSessionFileDiffs(URI.file(dir), { sessionUri: 'copilot:/s' });
+		});
+		const deletedKept = (result ?? []).filter(diff => {
+			const uri = diff.before?.uri;
+			return !!diff.before && !diff.after && typeof uri === 'string' && uri.endsWith('/kept.txt');
+		});
+
+		assert.deepStrictEqual({
+			result,
+			deletedKept: deletedKept.length,
+		}, {
+			result: undefined,
+			deletedKept: 0,
+		});
+	});
+
 	(hasGit ? test : test.skip)('showBlob retrieves committed content', async () => {
 		const fs = await import('fs/promises');
 		const { dir, run } = initRepo();
@@ -640,6 +811,21 @@ suite('AgentHostGitService - worktree helpers (real git)', () => {
 		cp.execFileSync('git', ['add', 'a.txt'], { cwd: dir, env, stdio: 'pipe' });
 		cp.execFileSync('git', ['commit', '-q', '-m', 'add a'], { cwd: dir, env, stdio: 'pipe' });
 		assert.strictEqual(await svc!.hasUncommittedChanges(URI.file(dir)), false);
+	});
+
+	(hasGit ? test : test.skip)('hasUncommittedChanges rejects when status exits non-zero', async () => {
+		const dir = initRepo();
+		const fs = await import('fs/promises');
+		await fs.writeFile(join(dir, '.git', 'index'), 'not-an-index');
+		await assert.rejects(() => svc!.hasUncommittedChanges(URI.file(dir)), /exited with code/);
+	});
+
+	(hasGit && !isWindows ? test : test.skip)('hasUncommittedChanges rejects when status times out', async function () {
+		this.timeout(20_000);
+		const dir = initRepo();
+		await withHungGitStatus(async () => {
+			await assert.rejects(() => svc!.hasUncommittedChanges(URI.file(dir)), /timed out/);
+		});
 	});
 
 	(hasGit && !isWindows ? test : test.skip)('status probes do not acquire optional index locks', async () => {
