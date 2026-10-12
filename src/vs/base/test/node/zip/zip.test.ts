@@ -253,6 +253,73 @@ suite('Zip', () => {
 		await Promises.rm(testDir);
 	});
 
+	test('extract overwrite keeps original contents when swap and restore both fail', async () => {
+		const testDir = getRandomTestPath(tmpdir(), 'vsctests', 'zip-overwrite-swap-fail');
+		const targetDir = path.join(testDir, 'out');
+		const zipPath = path.join(testDir, 'content.zip');
+		const markerPath = path.join(targetDir, 'keep-me.txt');
+		const bypassPath = `${targetDir}.extract-replace`;
+		await fs.promises.mkdir(targetDir, { recursive: true });
+		await fs.promises.writeFile(markerPath, 'marker');
+		await zip(zipPath, [
+			{ path: 'new.txt', contents: 'new' },
+		]);
+
+		let tempRenameFailed = false;
+		let restoreRenameFailed = false;
+		const originalRename = fs.promises.rename.bind(fs.promises);
+		fs.promises.rename = (async (source: fs.PathLike, target: fs.PathLike) => {
+			const sourceText = String(source);
+			const targetText = String(target);
+			if (sourceText.includes('.extract-temp-') && targetText === targetDir) {
+				tempRenameFailed = true;
+				const error = new Error('temp rename failed') as NodeJS.ErrnoException;
+				error.code = 'EIO';
+				throw error;
+			}
+			if (sourceText === bypassPath && targetText === targetDir) {
+				restoreRenameFailed = true;
+				const error = new Error('restore rename failed') as NodeJS.ErrnoException;
+				error.code = 'EIO';
+				throw error;
+			}
+			return originalRename(source, target);
+		}) as typeof fs.promises.rename;
+
+		let swapError: Error & { bypassPath?: string } | undefined;
+		try {
+			await assert.rejects(
+				createCancelablePromise(token => extract(zipPath, targetDir, { overwrite: true }, token)),
+				(err: Error & { bypassPath?: string }) => {
+					swapError = err;
+					return true;
+				}
+			);
+		} finally {
+			fs.promises.rename = originalRename;
+		}
+
+		assert.strictEqual(tempRenameFailed, true);
+		assert.strictEqual(restoreRenameFailed, true);
+		assert.ok(swapError);
+		const reportedBypass = swapError!.bypassPath && swapError!.message.includes(swapError!.bypassPath)
+			? swapError!.bypassPath
+			: (swapError!.message.includes(bypassPath) ? bypassPath : undefined);
+		const markerAtTarget = await Promises.exists(markerPath);
+		if (markerAtTarget) {
+			assert.strictEqual(await fs.promises.readFile(markerPath, 'utf8'), 'marker');
+		} else {
+			assert.ok(reportedBypass);
+			assert.strictEqual(await Promises.exists(reportedBypass!), true);
+			assert.strictEqual(await fs.promises.readFile(path.join(reportedBypass!, 'keep-me.txt'), 'utf8'), 'marker');
+		}
+		assert.strictEqual(await Promises.exists(bypassPath), true);
+		const entries = await fs.promises.readdir(testDir);
+		assert.strictEqual(entries.filter(entry => entry.includes('.extract-temp-')).length, 0);
+
+		await Promises.rm(testDir);
+	});
+
 	test('validateZip enforces entry and expanded-size limits', async () => {
 		const testDir = getRandomTestPath(tmpdir(), 'vsctests', 'zip-validation');
 		const zipPath = path.join(testDir, 'logs.zip');

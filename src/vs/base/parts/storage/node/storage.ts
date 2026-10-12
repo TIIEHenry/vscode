@@ -23,6 +23,8 @@ interface IDatabaseConnection {
 interface IRestoreRecoveryResult {
 	readonly preserveCandidateFallback: boolean;
 	readonly restoredFromBackup: boolean;
+	/** Validated recovery file that could not be renamed onto the missing main path. */
+	readonly preservedCandidatePath?: string;
 }
 
 export interface ISQLiteStorageDatabaseOptions {
@@ -99,7 +101,7 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 			this.logger.trace(`[storage ${this.name}] updateItems(): insert(${request.insert ? mapToString(request.insert) : '0'}), delete(${request.delete ? setToString(request.delete) : '0'})`);
 		}
 
-		return this.transaction(connection, () => {
+		return this.transaction(connection, onStatementError => {
 			const toInsert = request.insert;
 			const toDelete = request.delete;
 
@@ -133,7 +135,7 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 						});
 
 						return `Keys: ${keys.join(', ')} Length: ${length}`;
-					});
+					}, onStatementError);
 				});
 			}
 
@@ -166,7 +168,7 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 						});
 
 						return `Keys: ${keys.join(', ')}`;
-					});
+					}, onStatementError);
 				});
 			}
 		});
@@ -318,7 +320,7 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 						return { preserveCandidateFallback: false, restoredFromBackup: false };
 					}
 					if (await Promises.exists(tempPath)) {
-						return { preserveCandidateFallback: true, restoredFromBackup: false };
+						return { preserveCandidateFallback: true, restoredFromBackup: false, preservedCandidatePath: tempPath };
 					}
 				}
 			}
@@ -334,7 +336,7 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 						return { preserveCandidateFallback: false, restoredFromBackup: false };
 					}
 					if (await Promises.exists(replacePath)) {
-						return { preserveCandidateFallback: true, restoredFromBackup: false };
+						return { preserveCandidateFallback: true, restoredFromBackup: false, preservedCandidatePath: replacePath };
 					}
 				}
 			}
@@ -353,6 +355,82 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		}
 
 		return { preserveCandidateFallback: false, restoredFromBackup: false };
+	}
+
+	/**
+	 * Read keys from a recovery file that stayed on disk after rename failed,
+	 * then write them into a new main database. The session connection is the
+	 * new main file. It is not the candidate, and it is not an empty `:memory:`
+	 * database: close would otherwise insert this session's cache into the candidate.
+	 */
+	private async openMainSeededFromRecoveryCandidate(path: string, candidatePath: string): Promise<IDatabaseConnection> {
+		const items = await this.readRecoveryCandidateItems(candidatePath);
+		let connection: IDatabaseConnection | undefined;
+		try {
+			connection = await this.doConnect(path);
+			if (items.size > 0) {
+				await this.doUpdateItems(connection, { insert: items });
+			}
+			return connection;
+		} catch (error) {
+			this.logger.error(`[storage ${this.name}] open(): Unable to seed main database from recovery candidate due to ${error}`);
+			if (connection) {
+				await this.closeDatabaseHandle(connection).catch(() => { /* ignore */ });
+			}
+			try {
+				await fs.promises.unlink(path);
+			} catch (unlinkError) {
+				this.logger.error(`[storage ${this.name}] open(): Unable to remove partial main database due to ${unlinkError}`);
+			}
+			throw error;
+		}
+	}
+
+	private readRecoveryCandidateItems(candidatePath: string): Promise<Map<string, string>> {
+		return import('@vscode/sqlite3').then(sqlite3 => {
+			return new Promise((resolve, reject) => {
+				const openMode = (sqlite3.default?.OPEN_READONLY ?? sqlite3.OPEN_READONLY ?? 1);
+				let settled = false;
+				const finish = (error: Error | undefined, items: Map<string, string> | undefined, db?: Database) => {
+					if (settled) {
+						return;
+					}
+					settled = true;
+					const done = () => error ? reject(error) : resolve(items ?? new Map());
+					if (db) {
+						db.close(() => done());
+					} else {
+						done();
+					}
+				};
+
+				let opened = false;
+				const db: Database = new sqlite3.default.Database(candidatePath, openMode, (err: Error | null) => {
+					if (err) {
+						finish(err, undefined);
+						return;
+					}
+
+					opened = true;
+					db.all('SELECT key, value FROM ItemTable', (queryErr: Error | null, rows: { key: string; value: string }[] | undefined) => {
+						if (queryErr) {
+							finish(queryErr, undefined, db);
+							return;
+						}
+
+						const items = new Map<string, string>();
+						for (const row of rows ?? []) {
+							items.set(row.key, row.value);
+						}
+						finish(undefined, items, db);
+					});
+				});
+
+				db.on('error', (error: Error) => {
+					finish(error, undefined, opened ? db : undefined);
+				});
+			});
+		});
 	}
 
 	private async swapRecoveryDatabaseIntoPlace(tempPath: string): Promise<void> {
@@ -462,7 +540,10 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		if (retryOnBusy && path !== SQLiteStorageDatabase.IN_MEMORY_PATH) {
 			const recoveryResult = await this.restoreRecoveryDatabaseIfMissing(path);
 			if (recoveryResult.preserveCandidateFallback) {
-				return this.doConnect(SQLiteStorageDatabase.IN_MEMORY_PATH);
+				if (!recoveryResult.preservedCandidatePath) {
+					throw new Error(`[storage ${this.name}] open(): recovery candidate to preserve is missing`);
+				}
+				return this.openMainSeededFromRecoveryCandidate(path, recoveryResult.preservedCandidatePath);
 			}
 			restoredFromBackup = recoveryResult.restoredFromBackup;
 		} else {
@@ -632,18 +713,28 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		});
 	}
 
-	private transaction(connection: IDatabaseConnection, transactions: () => void): Promise<void> {
+	private transaction(connection: IDatabaseConnection, transactions: (onStatementError: () => void) => void): Promise<void> {
 		return new Promise((resolve, reject) => {
+			let statementFailed = false;
+
 			connection.db.serialize(() => {
 				connection.db.run('BEGIN TRANSACTION');
 
-				transactions();
+				transactions(() => {
+					statementFailed = true;
+				});
 
+				// END is already queued when a statement error arrives, so this does not
+				// replace it with ROLLBACK. The flag only rejects the transaction promise.
 				connection.db.run('END TRANSACTION', error => {
 					if (error) {
 						this.handleSQLiteError(connection, `[storage ${this.name}] transaction(): ${error}`);
 
 						return reject(error);
+					}
+
+					if (statementFailed) {
+						return reject(new Error(connection.lastError ?? `[storage ${this.name}] transaction(): statement failed`));
 					}
 
 					return resolve();
@@ -652,10 +743,11 @@ export class SQLiteStorageDatabase implements IStorageDatabase {
 		});
 	}
 
-	private prepare(connection: IDatabaseConnection, sql: string, runCallback: (stmt: Statement) => void, errorDetails: () => string): void {
+	private prepare(connection: IDatabaseConnection, sql: string, runCallback: (stmt: Statement) => void, errorDetails: () => string, onStatementError: () => void): void {
 		const stmt = connection.db.prepare(sql);
 
 		const statementErrorListener = (error: Error) => {
+			onStatementError();
 			this.handleSQLiteError(connection, `[storage ${this.name}] prepare(): ${error} (${sql}). Details: ${errorDetails()}`);
 		};
 

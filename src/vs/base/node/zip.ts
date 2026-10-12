@@ -92,10 +92,15 @@ async function swapExtractedDirectoryIntoPlace(tempPath: string, targetPath: str
 		await Promises.rename(tempPath, targetPath, false /* no retry */);
 	} catch (error) {
 		if (targetExisted) {
+			// Move-back stays in this function. The outer extract catch only sees the
+			// thrown error and only removes the temp directory, so a failed restore must
+			// surface the bypass path and must not delete that directory.
 			try {
 				await Promises.rename(bypassPath, targetPath, false /* no retry */);
-			} catch {
-				// ignore — same as recovery swap restore failure
+			} catch (restoreError) {
+				const swapError = new Error(`Failed to replace ${targetPath} (${error}). Original contents remain at ${bypassPath} (${restoreError})`) as Error & { bypassPath: string };
+				swapError.bypassPath = bypassPath;
+				throw swapError;
 			}
 		}
 

@@ -643,7 +643,9 @@ flakySuite('Storage Library', function () {
 
 			await Promises.writeFile(storageFile, 'This is a broken DB');
 
-			await storage.set('foo', 'bar');
+			// The insert hits the overwritten file and the statement errors.
+			// updateItems rejects; close still rebuilds from the cache.
+			await rejects(storage.set('foo', 'bar'));
 
 			strictEqual(storage.get('bar'), 'foo');
 			strictEqual(storage.get('foo'), 'bar');
@@ -668,6 +670,21 @@ flakySuite('SQLite Storage Library', function () {
 		elements.forEach(element => set.add(element));
 
 		return set;
+	}
+
+	function execSqlite(dbPath: string, sql: string): Promise<void> {
+		return import('@vscode/sqlite3').then(sqlite3 => new Promise((resolve, reject) => {
+			const db = new sqlite3.default.Database(dbPath, (err: Error | null) => {
+				if (err) {
+					reject(err);
+					return;
+				}
+
+				db.exec(sql, (execErr: Error | null) => {
+					db.close(() => execErr ? reject(execErr) : resolve());
+				});
+			});
+		}));
 	}
 
 	let testdir: string;
@@ -1252,6 +1269,139 @@ flakySuite('SQLite Storage Library', function () {
 
 		strictEqual(await fs.promises.readFile(tempPath, 'utf8'), 'Corrupted temp db');
 		strictEqual(await fs.promises.readFile(replacePath, 'utf8'), 'Corrupted replace db');
+	});
+
+	(isWindows ? test.skip : test)('startup recovery keeps validated .recovery-temp keys when rename onto missing main fails', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const tempPath = `${storagePath}.recovery-temp`;
+
+		let seed = new SQLiteStorageDatabase(tempPath);
+		const originalItems = new Map<string, string>();
+		originalItems.set('K', 'old');
+		await seed.updateItems({ insert: originalItems });
+		await seed.close();
+		strictEqual(await Promises.exists(storagePath), false);
+
+		let renameAttempts = 0;
+		const originalRename = fs.promises.rename.bind(fs.promises);
+		fs.promises.rename = (async (source: fs.PathLike, target: fs.PathLike) => {
+			if (String(source) === tempPath && String(target) === storagePath) {
+				renameAttempts++;
+				const error = new Error('restore rename failed') as NodeJS.ErrnoException;
+				error.code = 'EIO';
+				throw error;
+			}
+			return originalRename(source, target);
+		}) as typeof fs.promises.rename;
+
+		try {
+			const database = new SQLiteStorageDatabase(storagePath);
+			const storage = new Storage(database);
+			await storage.init();
+			strictEqual(renameAttempts >= 1, true);
+			strictEqual(await Promises.exists(tempPath), true);
+			strictEqual(await Promises.exists(storagePath), true);
+			strictEqual(storage.get('K'), 'old');
+			strictEqual(await database.checkIntegrity(false), 'ok');
+
+			await storage.set('K', 'new');
+			await storage.close();
+		} finally {
+			fs.promises.rename = originalRename;
+		}
+
+		strictEqual(await Promises.exists(tempPath), true);
+		const preserved = new SQLiteStorageDatabase(tempPath);
+		const preservedItems = await preserved.getItems();
+		strictEqual(preservedItems.get('K'), 'old');
+		await preserved.close();
+
+		const main = new SQLiteStorageDatabase(storagePath);
+		const mainItems = await main.getItems();
+		strictEqual(mainItems.get('K'), 'new');
+		await main.close();
+	});
+
+	(isWindows ? test.skip : test)('startup recovery keeps validated .recovery-replace keys when temp is corrupt and rename onto missing main fails', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const tempPath = `${storagePath}.recovery-temp`;
+		const replacePath = `${storagePath}.recovery-replace`;
+		const corruptTemp = 'Corrupted SQLite temp database bytes';
+
+		let seed = new SQLiteStorageDatabase(replacePath);
+		const originalItems = new Map<string, string>();
+		originalItems.set('K', 'old');
+		await seed.updateItems({ insert: originalItems });
+		await seed.close();
+		await fs.promises.writeFile(tempPath, corruptTemp);
+		strictEqual(await Promises.exists(storagePath), false);
+
+		let renameAttempts = 0;
+		const originalRename = fs.promises.rename.bind(fs.promises);
+		fs.promises.rename = (async (source: fs.PathLike, target: fs.PathLike) => {
+			if (String(source) === replacePath && String(target) === storagePath) {
+				renameAttempts++;
+				const error = new Error('restore rename failed') as NodeJS.ErrnoException;
+				error.code = 'EIO';
+				throw error;
+			}
+			return originalRename(source, target);
+		}) as typeof fs.promises.rename;
+
+		try {
+			const database = new SQLiteStorageDatabase(storagePath);
+			const storage = new Storage(database);
+			await storage.init();
+			strictEqual(renameAttempts >= 1, true);
+			strictEqual(await Promises.exists(replacePath), true);
+			strictEqual(await Promises.exists(storagePath), true);
+			strictEqual(storage.get('K'), 'old');
+			strictEqual(await database.checkIntegrity(false), 'ok');
+
+			await storage.set('K', 'new');
+			await storage.close();
+		} finally {
+			fs.promises.rename = originalRename;
+		}
+
+		strictEqual(await fs.promises.readFile(tempPath, 'utf8'), corruptTemp);
+		const preserved = new SQLiteStorageDatabase(replacePath);
+		const preservedItems = await preserved.getItems();
+		strictEqual(preservedItems.get('K'), 'old');
+		await preserved.close();
+
+		const main = new SQLiteStorageDatabase(storagePath);
+		const mainItems = await main.getItems();
+		strictEqual(mainItems.get('K'), 'new');
+		await main.close();
+	});
+
+	(isWindows ? test.skip /* second connection cannot write a trigger while the DB is open */ : test)('statement error rejects updateItems and whenFlushed and returns the key to pending', async () => {
+		const storagePath = join(testdir, 'storage.db');
+		const database = new SQLiteStorageDatabase(storagePath);
+		const storage = new Storage(database);
+		await storage.init();
+
+		// Inject a statement error. ItemTable uses ON CONFLICT REPLACE, so a normal
+		// duplicate insert does not fail. END TRANSACTION still succeeds; the
+		// transaction promise must reject from the statement error flag.
+		await execSqlite(storagePath, 'CREATE TRIGGER storage_fail_item_insert BEFORE INSERT ON ItemTable BEGIN SELECT RAISE(ABORT, \'injected statement error\'); END;');
+
+		try {
+			const setPromise = storage.set('K', 'new');
+			const whenFlushedPromise = storage.whenFlushed();
+			await Promise.all([
+				rejects(setPromise, /injected statement error/),
+				rejects(whenFlushedPromise, /injected statement error/),
+			]);
+
+			const pendingInserts = (storage as any).pendingInserts as Map<string, string>;
+			const pendingDeletes = (storage as any).pendingDeletes as Set<string>;
+			ok(pendingInserts.get('K') === 'new' || pendingDeletes.has('K'));
+		} finally {
+			await execSqlite(storagePath, 'DROP TRIGGER IF EXISTS storage_fail_item_insert;').catch(() => { /* ignore */ });
+			await storage.close().catch(() => { /* connection is already erroneous */ });
+		}
 	});
 
 	test('real world example', async function () {
