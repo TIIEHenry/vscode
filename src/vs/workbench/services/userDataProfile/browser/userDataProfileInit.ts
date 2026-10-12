@@ -147,9 +147,9 @@ export class UserDataProfileInitializer implements IUserDataInitializer {
 				this.logService.info(`UserDataProfileInitializer: ${profileResource} initialized already.`);
 				return;
 			}
-			this.initialized.push(profileResource);
 			this.logService.trace(`UserDataProfileInitializer: Initializing ${profileResource}`);
 			await initializer.initialize(content);
+			this.initialized.push(profileResource);
 			this.logService.info(`UserDataProfileInitializer: Initialized ${profileResource}`);
 		} catch (error) {
 			this.logService.info(`UserDataProfileInitializer: Error while initializing ${profileResource}`);
