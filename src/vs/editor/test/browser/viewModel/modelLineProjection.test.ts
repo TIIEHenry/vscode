@@ -995,6 +995,58 @@ suite('SplitLinesCollection', () => {
 		}
 	});
 
+	test('getViewLinesBracketGuides aligns horizontal guides with the wrapped vertical render column', () => {
+		const indent = '                    ';
+		const model = createTextModel(`${indent}0123456789012345678(\n${indent}0123456789012345678)`);
+		const bracketGuideOptions: BracketGuideOptions = {
+			includeInactive: true,
+			horizontalGuides: HorizontalGuidesState.Enabled,
+			highlightActive: false,
+		};
+		try {
+			const modelGuides = model.guides.getLinesBracketGuides(1, 2, null, bracketGuideOptions).flat();
+			const modelGuideColumn = modelGuides.find(guide => !guide.horizontalLine && guide.visibleColumn !== -1)!.visibleColumn;
+			const modelHorizontal = modelGuides.filter(guide => !!guide.horizontalLine && guide.visibleColumn !== -1);
+			assert.ok(modelHorizontal.length >= 1);
+			for (const guide of modelHorizontal) {
+				assert.strictEqual(guide.visibleColumn, modelGuideColumn);
+				assert.notStrictEqual(guide.bracketGuideVisibleColumnSourceLineNumber, -1);
+			}
+
+			withSplitLinesCollection(model, 'wordWrapColumn', 16, false, (linesCollection) => {
+				const viewLineCount = linesCollection.getViewLineCount();
+				const viewGuides = linesCollection.getViewLinesBracketGuides(1, viewLineCount, null, bracketGuideOptions);
+				const verticalColumns: number[] = [];
+				const horizontalColumns: number[] = [];
+				for (const lineGuides of viewGuides) {
+					for (const guide of lineGuides) {
+						if (guide.visibleColumn === -1) {
+							continue;
+						}
+						if (guide.horizontalLine) {
+							horizontalColumns.push(guide.visibleColumn);
+						} else {
+							verticalColumns.push(guide.visibleColumn);
+						}
+					}
+				}
+				assert.ok(verticalColumns.length >= 2);
+				assert.ok(horizontalColumns.length >= 1);
+				const renderColumn = verticalColumns[0];
+				assert.strictEqual(new Set(verticalColumns).size, 1);
+				assert.notStrictEqual(renderColumn, modelGuideColumn);
+				for (const column of horizontalColumns) {
+					assert.strictEqual(column, renderColumn);
+					assert.notStrictEqual(column, modelGuideColumn);
+				}
+
+				linesCollection.dispose();
+			});
+		} finally {
+			model.dispose();
+		}
+	});
+
 	test('setWrappingSettings wrapOnEscapedLineFeeds toggles literal backslash-n line breaks', () => {
 		const model = createTextModel('hello\\nworld');
 		const configuration = new TestConfiguration({

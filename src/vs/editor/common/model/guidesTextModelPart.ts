@@ -448,6 +448,7 @@ export class GuidesTextModelPart extends TextModelPart implements IGuidesTextMod
 							new IndentGuideHorizontalLine(false, start.column),
 							-1,
 							-1,
+							guideVisibleColumnSourceLine,
 						)
 					);
 				}
@@ -461,6 +462,7 @@ export class GuidesTextModelPart extends TextModelPart implements IGuidesTextMod
 							new IndentGuideHorizontalLine(!renderHorizontalEndLineAtTheBottom, end.column),
 							-1,
 							-1,
+							guideVisibleColumnSourceLine,
 						)
 					);
 				}

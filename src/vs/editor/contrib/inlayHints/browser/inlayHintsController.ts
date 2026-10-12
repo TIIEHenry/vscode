@@ -395,7 +395,13 @@ export class InlayHintsController implements IEditorContribution {
 				return;
 			}
 			e.event.preventDefault();
+			const model = this._editor.getModel();
+			const versionId = model?.getVersionId();
 			await part.item.resolve(CancellationToken.None);
+			const currentModel = this._editor.getModel();
+			if (!model || model.isDisposed() || model !== currentModel || model.getVersionId() !== versionId) {
+				return;
+			}
 			if (isNonEmptyArray(part.item.hint.textEdits)) {
 				const edits = part.item.hint.textEdits.map(edit => EditOperation.replace(Range.lift(edit.range), edit.text));
 				this._editor.executeEdits('inlayHint.default', edits);

@@ -675,7 +675,12 @@ export class ViewModelLinesFromProjectedModel implements IViewModelLines {
 					const viewPosition = this.convertModelPositionToViewPosition(viewLineInfo.modelLineNumber, g.horizontalLine.endColumn);
 					const p = this.modelLineProjections[viewLineInfo.modelLineNumber - 1].getViewPositionOfModelPosition(0, g.horizontalLine.endColumn);
 					if (p.lineNumber === viewLineInfo.modelLineWrappedLineIdx) {
-						return new IndentGuide(g.visibleColumn, column, g.className,
+						let visibleColumn = g.visibleColumn;
+						if (g.visibleColumn !== -1 && g.bracketGuideVisibleColumnSourceLineNumber !== -1) {
+							const sourceProjection = this.modelLineProjections[g.bracketGuideVisibleColumnSourceLineNumber - 1];
+							visibleColumn = bracketGuideModelVisibleColumnToRenderVisibleColumn(sourceProjection, g.visibleColumn);
+						}
+						return new IndentGuide(visibleColumn, column, g.className,
 							new IndentGuideHorizontalLine(g.horizontalLine.top,
 								viewPosition.column),
 							-1,

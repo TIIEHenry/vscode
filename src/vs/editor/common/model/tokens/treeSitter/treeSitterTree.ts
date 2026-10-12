@@ -356,7 +356,11 @@ export class TreeSitterTree extends Disposable {
 
 		} while (!this._store.isDisposed && !newTree && inProgressVersion === this.textModel.getVersionId());
 		this._sendParseTimeTelemetry(parseType, time, passes);
-		return (newTree && (inProgressVersion === this.textModel.getVersionId())) ? newTree : undefined;
+		if (newTree && inProgressVersion !== this.textModel.getVersionId()) {
+			newTree.delete();
+			return undefined;
+		}
+		return newTree ? newTree : undefined;
 	}
 
 	private _parseCallback(index: number): string | undefined {
