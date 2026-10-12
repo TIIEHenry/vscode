@@ -1602,9 +1602,10 @@ export class SessionsService extends Disposable implements ISessionsService {
 		// autorun, which observes the active-session change.
 
 		// Place any sessions that became available later in their correct
-		// positions around the already-established layout.
+		// positions around the already-established layout. The active slot
+		// joins this pass when its first wait left it unresolved.
 		await Promise.all(targets.map(async (target, idx) => {
-			if (idx === activeIdx || !target.resource || token.isCancellationRequested || resolved[idx] !== undefined) {
+			if (!target.resource || token.isCancellationRequested || resolved[idx] !== undefined) {
 				return;
 			}
 			const session = await this._waitForSession(target.resource, token, RESTORE_SESSION_WAIT_TIMEOUT);
