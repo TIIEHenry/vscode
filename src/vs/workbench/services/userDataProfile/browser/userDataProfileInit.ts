@@ -95,14 +95,25 @@ export class UserDataProfileInitializer implements IUserDataInitializer {
 	}
 
 	private initializeInstalledExtensionsPromise: Promise<void> | undefined;
-	async initializeInstalledExtensions(instantiationService: IInstantiationService): Promise<void> {
+	initializeInstalledExtensions(instantiationService: IInstantiationService): Promise<void> {
 		if (!this.initializeInstalledExtensionsPromise) {
-			this.initializeInstalledExtensionsPromise = (async () => {
+			const promise = (async () => {
 				const profileTemplate = await this.getProfileTemplate();
-				if (profileTemplate?.extensions) {
+				if (!profileTemplate?.extensions) {
+					return;
+				}
+				try {
 					await this.initialize(instantiationService.createInstance(ExtensionsResourceInitializer), profileTemplate.extensions, ProfileResourceType.Extensions);
+				} finally {
+					// initialize() logs and swallows failures, so this promise still fulfills.
+					// Drop it when the template had extensions: the next call must create and
+					// run the initializer again, or take the "initialized already" path.
+					if (this.initializeInstalledExtensionsPromise === promise) {
+						this.initializeInstalledExtensionsPromise = undefined;
+					}
 				}
 			})();
+			this.initializeInstalledExtensionsPromise = promise;
 		}
 		return this.initializeInstalledExtensionsPromise;
 	}
