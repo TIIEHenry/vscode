@@ -276,6 +276,9 @@ export class KeybindingsSynchroniser extends AbstractJsonFileSynchroniser implem
 			}
 		} catch (error) {
 			if ((<FileOperationError>error).fileOperationResult !== FileOperationResult.FILE_NOT_FOUND) {
+				if (error instanceof FileOperationError) {
+					throw error;
+				}
 				return true;
 			}
 		}

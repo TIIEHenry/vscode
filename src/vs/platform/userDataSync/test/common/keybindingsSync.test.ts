@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { IFileService } from '../../../files/common/files.js';
+import { FileOperationError, FileOperationResult, IFileService } from '../../../files/common/files.js';
 import { ILogService } from '../../../log/common/log.js';
 import { IUserDataProfilesService } from '../../../userDataProfile/common/userDataProfile.js';
 import { getKeybindingsContentFromSyncContent, KeybindingsSynchroniser } from '../../common/keybindingsSync.js';
@@ -237,5 +237,98 @@ suite('KeybindingsSync', () => {
 			}
 		]);
 	});
+
+	test('hasLocalData throws when keybindings read fails with FILE_PERMISSION_DENIED or FILE_TOO_LARGE', async () => {
+		for (const result of [FileOperationResult.FILE_PERMISSION_DENIED, FileOperationResult.FILE_TOO_LARGE]) {
+			failKeybindingsRead(result);
+			try {
+				await testObject.hasLocalData();
+				assert.fail(`should throw when keybindings cannot be read: ${result}`);
+			} catch (e) {
+				assert.ok(e instanceof FileOperationError);
+				assert.strictEqual(e.fileOperationResult, result);
+			}
+		}
+	});
+
+	test('hasLocalData returns false when keybindings file is missing, empty, or not a non-empty array', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const keybindingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.keybindingsResource;
+		if (await fileService.exists(keybindingsResource)) {
+			await fileService.del(keybindingsResource);
+		}
+
+		assert.strictEqual(await testObject.hasLocalData(), false);
+
+		await fileService.writeFile(keybindingsResource, VSBuffer.fromString(''));
+		assert.strictEqual(await testObject.hasLocalData(), false);
+
+		await fileService.writeFile(keybindingsResource, VSBuffer.fromString('[]'));
+		assert.strictEqual(await testObject.hasLocalData(), false);
+
+		await fileService.writeFile(keybindingsResource, VSBuffer.fromString('{}'));
+		assert.strictEqual(await testObject.hasLocalData(), false);
+
+		await fileService.writeFile(keybindingsResource, VSBuffer.fromString('// Empty Keybindings'));
+		assert.strictEqual(await testObject.hasLocalData(), false);
+	});
+
+	test('hasLocalData returns true when keybindings file is a non-empty array', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const keybindingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.keybindingsResource;
+		await fileService.writeFile(keybindingsResource, VSBuffer.fromString(JSON.stringify([
+			{
+				'key': 'shift+cmd+w',
+				'command': 'workbench.action.closeAllEditors',
+			}
+		])));
+
+		assert.strictEqual(await testObject.hasLocalData(), true);
+	});
+
+	test('hasLocalData returns true when keybindings parse throws a non-FileOperationError', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const keybindingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.keybindingsResource;
+		await fileService.writeFile(keybindingsResource, VSBuffer.fromString('[]'));
+
+		const target = fileService as { readFile: IFileService['readFile'] };
+		const originalReadFile = target.readFile.bind(fileService);
+		target.readFile = async (resource, options, token) => {
+			if (resource.toString() !== keybindingsResource.toString()) {
+				return originalReadFile(resource, options, token);
+			}
+			const content = await originalReadFile(resource, options, token);
+			return {
+				...content,
+				value: {
+					toString(): string {
+						return new Proxy(Object.create(null), {
+							get(_target, prop) {
+								if (prop === 'length' || prop === 'charCodeAt') {
+									throw new TypeError('keybindings parse failed');
+								}
+								return undefined;
+							}
+						}) as unknown as string;
+					}
+				} as typeof content.value
+			};
+		};
+
+		assert.strictEqual(await testObject.hasLocalData(), true);
+	});
+
+	function failKeybindingsRead(result: FileOperationResult): void {
+		const fileService = client.instantiationService.get(IFileService);
+		const keybindingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.keybindingsResource.toString();
+		const target = fileService as { readFile: IFileService['readFile'] };
+		const originalReadFile = target.readFile.bind(fileService);
+		target.readFile = (resource, options, token) => {
+			if (resource.toString() === keybindingsResource) {
+				return Promise.reject(new FileOperationError('keybindings read failed', result));
+			}
+			return originalReadFile(resource, options, token);
+		};
+	}
 
 });
