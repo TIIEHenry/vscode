@@ -397,7 +397,13 @@ export class SettingsInitializer extends AbstractInitializer {
 			const fileContent = await this.fileService.readFile(this.userDataProfilesService.defaultProfile.settingsResource);
 			return isEmpty(fileContent.value.toString().trim());
 		} catch (error) {
-			return (<FileOperationError>error).fileOperationResult === FileOperationResult.FILE_NOT_FOUND;
+			if (error instanceof FileOperationError) {
+				if (error.fileOperationResult === FileOperationResult.FILE_NOT_FOUND) {
+					return true;
+				}
+				throw error;
+			}
+			return false;
 		}
 	}
 
