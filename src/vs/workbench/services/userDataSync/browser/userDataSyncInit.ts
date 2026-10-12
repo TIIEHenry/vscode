@@ -187,11 +187,8 @@ export class UserDataSyncInitializer implements IUserDataInitializer {
 	}
 
 	private async initializeExtensions(instantiationService: IInstantiationService): Promise<void> {
-		try {
-			await Promise.all([this.initializeInstalledExtensions(instantiationService), this.initializeNewExtensions(instantiationService)]);
-		} finally {
-			this.initialized.push(SyncResource.Extensions);
-		}
+		await Promise.all([this.initializeInstalledExtensions(instantiationService), this.initializeNewExtensions(instantiationService)]);
+		this.initialized.push(SyncResource.Extensions);
 	}
 
 	private initializeInstalledExtensionsPromise: Promise<void> | undefined;

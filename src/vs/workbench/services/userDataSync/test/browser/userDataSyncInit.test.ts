@@ -44,6 +44,10 @@ interface IUserDataSyncInitializerAccess {
 	_userDataSyncStoreClientPromise: Promise<IStoreClientDouble | undefined>;
 	createSyncResourceInitializer(syncResource: SyncResource): IUserDataSyncResourceInitializer;
 	initialize(syncResources: SyncResource[]): Promise<void>;
+	readonly initialized: SyncResource[];
+	initializeExtensions(instantiationService: never): Promise<void>;
+	initializeInstalledExtensions(instantiationService: never): Promise<void>;
+	initializeNewExtensions(instantiationService: never): Promise<void>;
 }
 
 function already(resource: SyncResource): string {
@@ -168,5 +172,50 @@ suite('UserDataSyncInitializer', () => {
 		assert.deepStrictEqual(reads, [SyncResource.Settings, SyncResource.Settings]);
 		assert.deepStrictEqual(inits, [SyncResource.Settings]);
 		assert.strictEqual(countMessage(log, already(SyncResource.Settings)), 1);
+	});
+
+	test('does not record extensions when either extension initializer rejects', async () => {
+		const installedFailure = new Error('installed extensions failed');
+		const newFailure = new Error('new extensions failed');
+		const failures: { installed?: Error; created?: Error }[] = [
+			{ installed: installedFailure },
+			{ created: newFailure },
+		];
+
+		for (const failure of failures) {
+			const { access } = createSubject();
+			access.initializeInstalledExtensions = async () => {
+				if (failure.installed) {
+					throw failure.installed;
+				}
+			};
+			access.initializeNewExtensions = async () => {
+				if (failure.created) {
+					throw failure.created;
+				}
+			};
+
+			const expected = failure.installed ?? failure.created;
+			await assert.rejects(
+				() => access.initializeExtensions(undefined as never),
+				(error: unknown) => error === expected,
+			);
+			assert.deepStrictEqual(access.initialized, []);
+		}
+	});
+
+	test('records extensions when both extension initializers succeed', async () => {
+		const { access } = createSubject();
+		const calls: string[] = [];
+		access.initializeInstalledExtensions = async () => {
+			calls.push('installed');
+		};
+		access.initializeNewExtensions = async () => {
+			calls.push('new');
+		};
+
+		await access.initializeExtensions(undefined as never);
+		assert.deepStrictEqual(calls, ['installed', 'new']);
+		assert.deepStrictEqual(access.initialized, [SyncResource.Extensions]);
 	});
 });
