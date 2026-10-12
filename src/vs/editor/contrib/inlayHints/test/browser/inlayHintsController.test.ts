@@ -18,6 +18,7 @@ import { InjectedText } from '../../../../common/modelLineProjectionData.js';
 import { ModelDecorationInjectedTextOptions } from '../../../../common/model/textModel.js';
 import { ILanguageFeatureDebounceService } from '../../../../common/services/languageFeatureDebounce.js';
 import { ILanguageFeaturesService } from '../../../../common/services/languageFeatures.js';
+import { TextModelEditSource } from '../../../../common/textModelEditSource.js';
 import { ITestCodeEditor, withAsyncTestCodeEditor } from '../../../../test/browser/testCodeEditor.js';
 import { instantiateTextModel } from '../../../../test/common/testTextModel.js';
 import { InlayHintAnchor, InlayHintItem } from '../../browser/inlayHints.js';
@@ -62,9 +63,14 @@ suite('InlayHintsController double click', () => {
 		} as IEditorMouseEvent;
 	}
 
+	type RecordedExecuteEdit = {
+		source: string | TextModelEditSource | null | undefined;
+		edits: IIdentifiedSingleEditOperation[];
+	};
+
 	async function runDoubleClick(
 		duringResolve: (editor: ITestCodeEditor, model: ITextModel, instantiationService: TestInstantiationService) => void,
-		assertAfter: (model: ITextModel, calls: { source: string | null | undefined; edits: IIdentifiedSingleEditOperation[] }[], editor: ITestCodeEditor) => void,
+		assertAfter: (model: ITextModel, calls: RecordedExecuteEdit[], editor: ITestCodeEditor) => void,
 	): Promise<void> {
 		await withAsyncTestCodeEditor('foo bar', {}, async (editor, _viewModel, instantiationService) => {
 			const languageFeatures = instantiationService.get(ILanguageFeaturesService);
@@ -85,16 +91,20 @@ suite('InlayHintsController double click', () => {
 			};
 			const registration = languageFeatures.inlayHintsProvider.register('*', provider);
 			const item = new InlayHintItem(hint, new InlayHintAnchor(new Range(1, 1, 1, 2), 'before'), provider);
-			const calls: { source: string | null | undefined; edits: IIdentifiedSingleEditOperation[] }[] = [];
-			const originalExecuteEdits = editor.executeEdits.bind(editor);
-			editor.executeEdits = (source, edits, endCursorState) => {
+			const calls: RecordedExecuteEdit[] = [];
+			const originalExecuteEdits = editor.executeEdits.bind(editor) as (
+				source: RecordedExecuteEdit['source'],
+				edits: IIdentifiedSingleEditOperation[],
+				endCursorState?: Parameters<ITestCodeEditor['executeEdits']>[2],
+			) => boolean;
+			editor.executeEdits = ((source: RecordedExecuteEdit['source'], edits: IIdentifiedSingleEditOperation[], endCursorState?: Parameters<ITestCodeEditor['executeEdits']>[2]) => {
 				calls.push({ source, edits });
 				return originalExecuteEdits(source, edits, endCursorState);
-			};
+			}) as typeof editor.executeEdits;
 			const cache = {
 				get() { return undefined; },
 				set() { },
-			} as ConstructorParameters<typeof InlayHintsController>[3];
+			} as unknown as ConstructorParameters<typeof InlayHintsController>[3];
 			const controller = new InlayHintsController(
 				editor,
 				languageFeatures,
