@@ -12,6 +12,7 @@ import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorun, constObservable, observableValue } from '../../../../../base/common/observable.js';
 import { extUriBiasedIgnorePathCase } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { runWithFakedTimers } from '../../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { mock } from '../../../../../base/test/common/mock.js';
@@ -535,6 +536,73 @@ suite('SessionsManagementService', () => {
 			restoreComplete: true,
 		});
 	});
+
+	test('restoreVisibleSessions places the active session at its original index when it appears during the second wait', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const activeSession = stubSession({ sessionId: 'active', providerId: 'test' });
+		const neighborSession = stubSession({ sessionId: 'neighbor', providerId: 'test' });
+		const onDidChangeSessions = disposables.add(new Emitter<ISessionChangeEvent>());
+
+		// The neighbor is already listed. The active resource stays absent until
+		// the first RESTORE_SESSION_WAIT_TIMEOUT has elapsed.
+		let sessions: ISession[] = [neighborSession];
+		const provider = new class extends TestSessionsProvider {
+			override readonly onDidChangeSessions = onDidChangeSessions.event;
+			constructor() { super(neighborSession); }
+			override getSessions(): ISession[] { return sessions; }
+		};
+
+		const instantiationService = disposables.add(new TestInstantiationService());
+		const storage = disposables.add(new InMemoryStorageService());
+		storage.store(
+			'agentSessions.activeSessionStates',
+			JSON.stringify([
+				{ sessionResource: activeSession.resource.toString(), visibleOrder: 0, isActive: true },
+				{ sessionResource: neighborSession.resource.toString(), visibleOrder: 1, isActive: false },
+			]),
+			1 /* StorageScope.WORKSPACE */,
+			1 /* StorageTarget.MACHINE */,
+		);
+
+		instantiationService.stub(IStorageService, storage);
+		instantiationService.stub(ILogService, new NullLogService());
+		instantiationService.stub(IContextKeyService, disposables.add(new MockContextKeyService()));
+		instantiationService.stub(ISessionsProvidersService, new TestSessionsProvidersService([provider]));
+		instantiationService.stub(IUriIdentityService, { extUri: extUriBiasedIgnorePathCase });
+		instantiationService.stub(IChatWidgetService, new TestChatWidgetService());
+		instantiationService.stub(IProgressService, new TestProgressService());
+		instantiationService.stub(IChatService, new class extends mock<IChatService>() {
+			override readonly onDidSubmitRequest = Event.None;
+		});
+
+		const service = disposables.add(instantiationService.createInstance(SessionsManagementService));
+		const view = createView(instantiationService, service, disposables);
+
+		const restorePromise = view.restoreVisibleSessions();
+		await timeout(0);
+		await timeout(30_000);
+
+		assert.deepStrictEqual({
+			visible: view.visibleSessions.get().map(s => s?.sessionId ?? null),
+			restoreComplete: view.initialRestoreComplete.get(),
+		}, {
+			visible: ['neighbor'],
+			restoreComplete: false,
+		});
+
+		sessions = [neighborSession, activeSession];
+		onDidChangeSessions.fire({ added: [activeSession], removed: [], changed: [] });
+
+		await restorePromise;
+		assert.deepStrictEqual({
+			visible: view.visibleSessions.get().map(s => s?.sessionId ?? null),
+			activeIndex: view.visibleSessions.get().findIndex(s => s?.sessionId === 'active'),
+			restoreComplete: view.initialRestoreComplete.get(),
+		}, {
+			visible: ['active', 'neighbor'],
+			activeIndex: 0,
+			restoreComplete: true,
+		});
+	}));
 
 	test('ROUNDTRIP: opened session is retained across save + restore', async () => {
 		const createdChat: IChat = { ...stubChat, resource: URI.parse('test:///chat-x'), status: constObservable(1) };
