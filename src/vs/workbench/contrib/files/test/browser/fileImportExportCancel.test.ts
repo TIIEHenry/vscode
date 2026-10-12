@@ -60,6 +60,7 @@ interface IDownloadOperation {
 interface IDownloadApi {
 	downloadFileUnbufferedBrowser(resource: URI, target: FileSystemWritableFileStream, operation: IDownloadOperation, token: CancellationToken): Promise<void>;
 	downloadFileBufferedBrowser(resource: URI, target: FileSystemWritableFileStream, operation: IDownloadOperation, token: CancellationToken): Promise<void>;
+	downloadFileBrowser(targetFolder: FileSystemDirectoryHandle, file: { resource: URI; name: string; size: number }, operation: IDownloadOperation, token: CancellationToken): Promise<void>;
 }
 
 type FileReaderMode = 'error' | 'cancel-on-read' | 'load';
@@ -164,15 +165,66 @@ function pushCapturedDeletion(service: UndoRedoService, resource: URI, files: Ma
 	service.pushElement(element, undefined, UNDO_REDO_SOURCE);
 }
 
-function directoryEntry(name: string): IUploadEntry {
+function directoryEntry(name: string, children: IUploadEntry[] = []): IUploadEntry {
 	return {
 		name,
 		isFile: false,
 		isDirectory: true,
 		file: (_resolve, reject) => reject(),
-		createReader: () => ({
-			readEntries: resolve => resolve([]),
-		}),
+		createReader: () => {
+			let pending = children;
+			return {
+				readEntries: resolve => {
+					const chunk = pending;
+					pending = [];
+					resolve(chunk);
+				},
+			};
+		},
+	};
+}
+
+function fakeDownloadDirectory(initialNames: string[], createWritableError?: Error): { names: Set<string>; removed: string[]; calls: string[]; handleGets: number; handle: FileSystemDirectoryHandle } {
+	const names = new Set(initialNames);
+	const removed: string[] = [];
+	const calls: string[] = [];
+	let handleGets = 0;
+	const handle = {
+		getFileHandle: async (name: string, options?: { create?: boolean }) => {
+			handleGets++;
+			if (!names.has(name)) {
+				if (!options?.create) {
+					throw new DOMException('not found', 'NotFoundError');
+				}
+				names.add(name);
+			}
+			return {
+				createWritable: async () => {
+					if (createWritableError) {
+						throw createWritableError;
+					}
+					return {
+						write: async () => { calls.push('write'); },
+						close: async () => { calls.push('close'); },
+						abort: async () => { calls.push('abort'); },
+					};
+				},
+			};
+		},
+		removeEntry: async (name: string) => {
+			if (!names.has(name)) {
+				throw new DOMException('not found', 'NotFoundError');
+			}
+			names.delete(name);
+			removed.push(name);
+		},
+	};
+	return {
+		names,
+		removed,
+		calls,
+		get handleGets() { return handleGets; },
+		handle: handle as unknown as FileSystemDirectoryHandle,
 	};
 }
 
@@ -300,6 +352,116 @@ suite('Files - Browser download cancel', () => {
 		await download.downloadFileBufferedBrowser(resource, target, downloadOperation(store), cts.token);
 
 		assert.deepStrictEqual(calls, ['write', 'close']);
+	});
+
+	test('canceled token does not create a download file handle', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		cts.cancel();
+		const dir = fakeDownloadDirectory([]);
+		const download = createDownload({
+			readFile: async () => { throw new Error('should not read'); },
+		});
+
+		await download.downloadFileBrowser(dir.handle, { resource, name: 'note.txt', size: 4 }, downloadOperation(store), cts.token);
+
+		assert.strictEqual(dir.handleGets, 0);
+		assert.deepStrictEqual(dir.removed, []);
+		assert.strictEqual(dir.names.has('note.txt'), false);
+	});
+
+	test('new download file is removed when canceled before close', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const dir = fakeDownloadDirectory([]);
+		const download = createDownload({
+			readFile: async () => {
+				cts.cancel();
+				return { name: 'note.txt', size: 4, value: VSBuffer.fromString('data') };
+			},
+		});
+
+		await download.downloadFileBrowser(dir.handle, { resource, name: 'note.txt', size: 4 }, downloadOperation(store), cts.token);
+
+		assert.deepStrictEqual(dir.calls, ['abort']);
+		assert.deepStrictEqual(dir.removed, ['note.txt']);
+		assert.strictEqual(dir.names.has('note.txt'), false);
+	});
+
+	test('existing download file is kept when canceled before close', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const dir = fakeDownloadDirectory(['note.txt']);
+		const download = createDownload({
+			readFile: async () => {
+				cts.cancel();
+				return { name: 'note.txt', size: 4, value: VSBuffer.fromString('data') };
+			},
+		});
+
+		await download.downloadFileBrowser(dir.handle, { resource, name: 'note.txt', size: 4 }, downloadOperation(store), cts.token);
+
+		assert.deepStrictEqual(dir.calls, ['abort']);
+		assert.deepStrictEqual(dir.removed, []);
+		assert.strictEqual(dir.names.has('note.txt'), true);
+	});
+
+	test('new download file is removed when createWritable fails', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const dir = fakeDownloadDirectory([], new Error('cannot write'));
+		const download = createDownload({
+			readFile: async () => { throw new Error('should not read'); },
+		});
+
+		await assert.rejects(
+			() => download.downloadFileBrowser(dir.handle, { resource, name: 'note.txt', size: 4 }, downloadOperation(store), cts.token),
+			/cannot write/,
+		);
+		assert.deepStrictEqual(dir.removed, ['note.txt']);
+		assert.strictEqual(dir.names.has('note.txt'), false);
+	});
+
+	test('existing download file is kept when createWritable fails', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const dir = fakeDownloadDirectory(['note.txt'], new Error('cannot write'));
+		const download = createDownload({
+			readFile: async () => { throw new Error('should not read'); },
+		});
+
+		await assert.rejects(
+			() => download.downloadFileBrowser(dir.handle, { resource, name: 'note.txt', size: 4 }, downloadOperation(store), cts.token),
+			/cannot write/,
+		);
+		assert.deepStrictEqual(dir.removed, []);
+		assert.strictEqual(dir.names.has('note.txt'), true);
+	});
+
+	test('new large download file is removed when canceled before close', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const dir = fakeDownloadDirectory([]);
+		const download = createDownload({
+			readFileStream: async () => {
+				cts.cancel();
+				return { name: 'note.txt', size: ByteSize.MB + 1, value: newWriteableBufferStream() };
+			},
+		});
+
+		await download.downloadFileBrowser(dir.handle, { resource, name: 'note.txt', size: ByteSize.MB + 1 }, downloadOperation(store), cts.token);
+
+		assert.deepStrictEqual(dir.calls, ['abort']);
+		assert.deepStrictEqual(dir.removed, ['note.txt']);
+		assert.strictEqual(dir.names.has('note.txt'), false);
+	});
+
+	test('completed small download keeps the new file', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const dir = fakeDownloadDirectory([]);
+		const download = createDownload({
+			readFile: async () => ({ name: 'note.txt', size: 4, value: VSBuffer.fromString('data') }),
+		});
+
+		await download.downloadFileBrowser(dir.handle, { resource, name: 'note.txt', size: 4 }, downloadOperation(store), cts.token);
+
+		assert.deepStrictEqual(dir.calls, ['write', 'close']);
+		assert.deepStrictEqual(dir.removed, []);
+		assert.strictEqual(dir.names.has('note.txt'), true);
 	});
 });
 
@@ -653,6 +815,8 @@ suite('Files - Browser upload cancel', () => {
 		let confirmations = 0;
 		const fileService = {
 			hasCapability: () => false,
+			exists: async () => true,
+			resolve: async () => ({ children: [] }),
 			createFolder: async () => undefined,
 			writeFile: async () => undefined,
 			del: async () => undefined,
@@ -762,5 +926,144 @@ suite('Files - Browser upload cancel', () => {
 			(error: unknown) => isCancellationError(error),
 		);
 		assert.strictEqual(writeCount, 0);
+	});
+
+	function rememberUploadFiles(resources: URI[]): Map<string, URI> {
+		return new Map(resources.map(resource => [resource.toString(), resource]));
+	}
+
+	function uploadFileService(files: Map<string, URI>, onWrite?: (resource: URI) => void) {
+		return {
+			hasCapability: () => false,
+			exists: async (resource: URI) => files.has(resource.toString()),
+			resolve: async (resource: URI) => {
+				const prefix = resource.toString();
+				if (!files.has(prefix)) {
+					throw new FileOperationError('missing', FileOperationResult.FILE_NOT_FOUND);
+				}
+				const children: { resource: URI; name: string }[] = [];
+				for (const [key, uri] of files) {
+					if (!key.startsWith(prefix + '/')) {
+						continue;
+					}
+					const name = key.slice(prefix.length + 1);
+					if (name.includes('/')) {
+						continue;
+					}
+					children.push({ resource: uri, name });
+				}
+				return { children };
+			},
+			createFolder: async (resource: URI) => {
+				files.set(resource.toString(), resource);
+			},
+			writeFile: async (resource: URI) => {
+				files.set(resource.toString(), resource);
+				onWrite?.(resource);
+			},
+			del: async (resource: URI, options?: { recursive?: boolean }) => {
+				const key = resource.toString();
+				const victims = [...files.keys()].filter(existing => existing === key || (options?.recursive === true && existing.startsWith(key + '/')));
+				if (victims.length === 0) {
+					throw new FileOperationError('missing', FileOperationResult.FILE_NOT_FOUND);
+				}
+				for (const victim of victims) {
+					files.delete(victim);
+				}
+			},
+		};
+	}
+
+	test('canceled new directory upload removes the directory and its child file', async () => {
+		installFileReader('load');
+		const root = URI.file('/upload-root');
+		const folder = joinPath(root, 'fresh');
+		const child = joinPath(folder, 'a.txt');
+		const files = rememberUploadFiles([]);
+		const cts = store.add(new CancellationTokenSource());
+		let bulkEdits = 0;
+		const fileService = uploadFileService(files, resource => {
+			if (resource.toString() === child.toString()) {
+				cts.cancel();
+			}
+		});
+		const upload = new BrowserFileUpload(
+			undefined!,
+			{ confirm: async () => ({ confirmed: true }) } as never,
+			{ applyBulkEdit: async () => { bulkEdits++; } } as never,
+			{ openEditor: async () => undefined } as never,
+			fileService as unknown as IFileService,
+			{ undo: async () => undefined } as unknown as IUndoRedoService,
+		) as unknown as IUploadApi;
+		const target = new ExplorerItem(root, fileService as unknown as IFileService, undefined!, undefined!, undefined, true, false, false, false, 'upload-root');
+
+		const results = await upload.doUpload(target, {
+			items: [{
+				webkitGetAsEntry: () => directoryEntry('fresh', [
+					fileEntry('a.txt', { name: 'a.txt', size: 3 } as File),
+				]),
+			}],
+		}, { report() { } }, cts.token);
+
+		assert.strictEqual(bulkEdits, 0);
+		assert.deepStrictEqual(results, []);
+		assert.strictEqual(files.has(child.toString()), false);
+		assert.strictEqual(files.has(folder.toString()), false);
+	});
+
+	test('canceled upload into an existing directory removes only names created by this upload', async () => {
+		installFileReader('load');
+		const root = URI.file('/upload-root');
+		const folder = joinPath(root, 'kept');
+		const oldFile = joinPath(folder, 'old.txt');
+		const nested = joinPath(folder, 'nested');
+		const stayed = joinPath(nested, 'stay.txt');
+		const fresh = joinPath(nested, 'fresh.txt');
+		const createdFile = joinPath(folder, 'new.txt');
+		const createdFolder = joinPath(folder, 'sub');
+		const createdNested = joinPath(createdFolder, 'b.txt');
+		const files = rememberUploadFiles([folder, oldFile, nested, stayed]);
+		const cts = store.add(new CancellationTokenSource());
+		let bulkEdits = 0;
+		const fileService = uploadFileService(files, resource => {
+			if (resource.toString() === createdNested.toString()) {
+				cts.cancel();
+			}
+		});
+		const upload = new BrowserFileUpload(
+			undefined!,
+			{ confirm: async () => ({ confirmed: true }) } as never,
+			{ applyBulkEdit: async () => { bulkEdits++; } } as never,
+			{ openEditor: async () => undefined } as never,
+			fileService as unknown as IFileService,
+			{ undo: async () => undefined } as unknown as IUndoRedoService,
+		) as unknown as IUploadApi;
+		const target = new ExplorerItem(root, fileService as unknown as IFileService, undefined!, undefined!, undefined, true, false, false, false, 'upload-root');
+		target.addChild(new ExplorerItem(folder, fileService as unknown as IFileService, undefined!, undefined!, undefined, true, false, false, false, 'kept'));
+
+		const results = await upload.doUpload(target, {
+			items: [{
+				webkitGetAsEntry: () => directoryEntry('kept', [
+					fileEntry('new.txt', { name: 'new.txt', size: 3 } as File),
+					directoryEntry('nested', [
+						fileEntry('fresh.txt', { name: 'fresh.txt', size: 3 } as File),
+					]),
+					directoryEntry('sub', [
+						fileEntry('b.txt', { name: 'b.txt', size: 3 } as File),
+					]),
+				]),
+			}],
+		}, { report() { } }, cts.token);
+
+		assert.strictEqual(bulkEdits, 0);
+		assert.deepStrictEqual(results, []);
+		assert.strictEqual(files.has(folder.toString()), true);
+		assert.strictEqual(files.has(oldFile.toString()), true);
+		assert.strictEqual(files.has(nested.toString()), true);
+		assert.strictEqual(files.has(stayed.toString()), true);
+		assert.strictEqual(files.has(fresh.toString()), false);
+		assert.strictEqual(files.has(createdFile.toString()), false);
+		assert.strictEqual(files.has(createdFolder.toString()), false);
+		assert.strictEqual(files.has(createdNested.toString()), false);
 	});
 });
