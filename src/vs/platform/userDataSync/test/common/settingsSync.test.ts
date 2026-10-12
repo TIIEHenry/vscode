@@ -545,6 +545,40 @@ suite('SettingsSync - Auto', () => {
 		assert.strictEqual(parseSettingsSyncContent(remoteUserData.syncData!.content)?.settings, '{}');
 	}));
 
+	test('SettingsSynchroniser hasLocalData throws when settings read fails with FILE_PERMISSION_DENIED or FILE_TOO_LARGE', async () => {
+		for (const result of [FileOperationResult.FILE_PERMISSION_DENIED, FileOperationResult.FILE_TOO_LARGE]) {
+			failSettingsRead(result);
+			try {
+				await testObject.hasLocalData();
+				assert.fail(`should throw when settings cannot be read: ${result}`);
+			} catch (e) {
+				assert.ok(e instanceof FileOperationError);
+				assert.strictEqual(e.fileOperationResult, result);
+			}
+		}
+	});
+
+	test('SettingsSynchroniser hasLocalData returns false when settings file is missing or empty', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const settingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.settingsResource;
+		if (await fileService.exists(settingsResource)) {
+			await fileService.del(settingsResource);
+		}
+
+		assert.strictEqual(await testObject.hasLocalData(), false);
+
+		await fileService.writeFile(settingsResource, VSBuffer.fromString(''));
+		assert.strictEqual(await testObject.hasLocalData(), false);
+	});
+
+	test('SettingsSynchroniser hasLocalData returns true when settings file is non-empty', async () => {
+		const fileService = client.instantiationService.get(IFileService);
+		const settingsResource = client.instantiationService.get(IUserDataProfilesService).defaultProfile.settingsResource;
+		await fileService.writeFile(settingsResource, VSBuffer.fromString('{\n\t"files.autoSave": "afterDelay"\n}'));
+
+		assert.strictEqual(await testObject.hasLocalData(), true);
+	});
+
 	async function syncRemoteWithNonIgnoredSettings(): Promise<{ content: string; ref: string }> {
 		await updateSettings('{\n\t"files.autoSave": "afterDelay"\n}', client);
 		await testObject.sync(await client.getLatestRef(SyncResource.Settings));
