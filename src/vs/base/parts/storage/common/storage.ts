@@ -129,6 +129,11 @@ export class Storage extends Disposable implements IStorage {
 	private pendingDeletes = new Set<string>();
 	private pendingInserts = new Map<string, string>();
 
+	// Removals from cache while state is still None. Flush can clear
+	// pendingDeletes before getItems resolves, so the pending map is not a
+	// replay source.
+	private readonly keysRemovedWhileUninitialized = new Set<string>();
+
 	private pendingClose: Promise<void> | undefined = undefined;
 	private pendingInit: Promise<void> | undefined = undefined;
 
@@ -174,6 +179,9 @@ export class Storage extends Disposable implements IStorage {
 		// Item got removed, check for deletion
 		if (isUndefinedOrNull(value)) {
 			changed = this.cache.delete(key);
+			if (changed) {
+				this.noteUninitializedRemoval(key);
+			}
 		}
 
 		// Item got updated, check for change
@@ -181,6 +189,7 @@ export class Storage extends Disposable implements IStorage {
 			const currentValue = this.cache.get(key);
 			if (currentValue !== value) {
 				this.cache.set(key, value);
+				this.noteUninitializedUpdate(key);
 				changed = true;
 			}
 		}
@@ -222,25 +231,65 @@ export class Storage extends Disposable implements IStorage {
 		}
 	}
 
+	private noteUninitializedRemoval(key: string): void {
+		if (this.state === StorageState.None) {
+			this.keysRemovedWhileUninitialized.add(key);
+		}
+	}
+
+	private noteUninitializedUpdate(key: string): void {
+		if (this.state === StorageState.None) {
+			this.keysRemovedWhileUninitialized.delete(key);
+		}
+	}
+
 	private async doInit(): Promise<void> {
 		if (this.options.hint === StorageHint.STORAGE_DOES_NOT_EXIST) {
 			// return early if we know the storage file does not exist. this is a performance
 			// optimization to not load all items of the underlying storage if we know that
 			// there can be no items because the storage does not exist.
+			this.keysRemovedWhileUninitialized.clear();
 			this.state = StorageState.Initialized;
 			return;
 		}
 
-		this.cache = await this.database.getItems();
+		const loadedItems = await this.database.getItems();
 
 		// getItems can settle after close(). The pre-await check narrowed
 		// `this.state` to None, so read it back before deciding it is initialized.
 		const stateAfterLoad = this.state as StorageState;
 		if (stateAfterLoad === StorageState.Closed) {
+			this.keysRemovedWhileUninitialized.clear();
+			this.cache = loadedItems;
 			return;
 		}
 
+		// Loaded rows are the base. Keys still in cache — written before this
+		// await, or set / accepted while it was in flight — win. Keys removed
+		// from cache while uninitialized must not come back from the snapshot.
+		this.cache = this.mergeLoadedItems(loadedItems);
 		this.state = StorageState.Initialized;
+		this.keysRemovedWhileUninitialized.clear();
+	}
+
+	private mergeLoadedItems(loadedItems: Map<string, string>): Map<string, string> {
+		const removed = this.keysRemovedWhileUninitialized;
+		if (this.cache.size === 0 && removed.size === 0) {
+			return loadedItems;
+		}
+
+		const merged = new Map(loadedItems);
+		for (const key of removed) {
+			if (!this.cache.has(key)) {
+				merged.delete(key);
+			}
+		}
+
+		for (const [key, value] of this.cache) {
+			merged.set(key, value);
+		}
+
+		return merged;
 	}
 
 	get(key: string, fallbackValue: string): string;
@@ -312,6 +361,7 @@ export class Storage extends Disposable implements IStorage {
 
 		// Update in cache and pending
 		this.cache.set(key, valueStr);
+		this.noteUninitializedUpdate(key);
 		this.pendingInserts.set(key, valueStr);
 		this.pendingDeletes.delete(key);
 
@@ -332,6 +382,8 @@ export class Storage extends Disposable implements IStorage {
 		if (!wasDeleted) {
 			return; // Return early if value already deleted
 		}
+
+		this.noteUninitializedRemoval(key);
 
 		if (!this.pendingDeletes.has(key)) {
 			this.pendingDeletes.add(key);
