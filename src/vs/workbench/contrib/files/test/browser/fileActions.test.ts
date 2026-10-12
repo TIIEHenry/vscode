@@ -5,11 +5,26 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { extUri } from '../../../../../base/common/resources.js';
+import { basename, extUri } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
+import type { ResourceFileEdit } from '../../../../../editor/browser/services/bulkEditService.js';
+import { ServiceIdentifier, ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
+import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { IFileService } from '../../../../../platform/files/common/files.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/uriIdentity.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { IHostService } from '../../../../services/host/browser/host.js';
+import type { ExplorerItem } from '../../common/explorerModel.js';
+import { IExplorerService } from '../../browser/files.js';
 import {
 	clearPasteMoveState,
+	cutFileHandler,
+	findValidPasteFileTarget,
 	incrementFileName,
+	pasteFileHandler,
 	pathsPasteAllowOverwrite,
 	readPasteMoveState,
 	shouldClearPasteMoveInFinally,
@@ -383,10 +398,137 @@ suite('Files - paste paths move guard', () => {
 	});
 
 	test('allowOverwrite from cut only when paths paste is a move', () => {
-		assert.strictEqual(pathsPasteAllowOverwrite(true, 'simple'), true);
-		assert.strictEqual(pathsPasteAllowOverwrite(false, 'simple'), false);
-		assert.strictEqual(pathsPasteAllowOverwrite(false, 'disabled'), true);
+		const cutSimple = pathsPasteAllowOverwrite('simple');
+		const disabled = pathsPasteAllowOverwrite('disabled');
+		const copySimple = pathsPasteAllowOverwrite('simple');
+		assert.strictEqual(cutSimple, false);
+		assert.strictEqual(disabled, true);
+		assert.strictEqual(copySimple, false);
+	});
+
+	test('findValidPasteFileTarget increments when allowOverwrite is false and the original name exists', async () => {
+		const folder = URI.file('/workspace/folder');
+		const originalName = 'test.js';
+		const original = URI.file('/workspace/folder/test.js');
+		let sawOriginal = false;
+		const result = await findValidPasteFileTarget(
+			{
+				findClosest(candidate: URI) {
+					if (!extUri.isEqual(candidate, original)) {
+						return null;
+					}
+					sawOriginal = true;
+					return { resource: candidate };
+				}
+			} as unknown as IExplorerService,
+			{ exists: async () => { throw new Error('exists should not be called'); } } as unknown as IFileService,
+			{ confirm: async () => { throw new Error('confirm should not be called'); } } as unknown as IDialogService,
+			{ resource: folder } as ExplorerItem,
+			{ resource: URI.file('/elsewhere/test.js'), isDirectory: false, allowOverwrite: false },
+			'simple'
+		);
+		assert.strictEqual(sawOriginal, true);
+		assert.ok(result);
+		assert.strictEqual(basename(result), incrementFileName(originalName, false, 'simple'));
+	});
+
+	test('pasteFileHandler does not clear cut state when applyBulkEdit rejects', async () => {
+		clearPasteMoveState();
+		const sourceResource = URI.file('/workspace/src/test.js');
+		const harness = createCutPasteHarness(sourceResource, URI.file('/workspace/dest'), true);
+		try {
+			await cutFileHandler(harness.accessor);
+			await pasteFileHandler(harness.accessor);
+			assert.strictEqual(harness.bulkEdits.length, 1);
+			assert.strictEqual(harness.bulkEdits[0][0].options?.overwrite, false);
+			assert.strictEqual(basename(harness.bulkEdits[0][0].newResource!), incrementFileName('test.js', false, 'simple'));
+			assert.deepStrictEqual(harness.setToCopyCalls, [{ count: 1, cut: true }]);
+			const state = readPasteMoveState();
+			assert.strictEqual(state.pasteShouldMove, true);
+			assert.strictEqual(state.cutPasteResourceUris.length, 1);
+			assert.ok(extUri.isEqual(state.cutPasteResourceUris[0], sourceResource));
+		} finally {
+			clearPasteMoveState();
+		}
+	});
+
+	test('pasteFileHandler keeps the source name when a cut is pasted back into its folder', async () => {
+		clearPasteMoveState();
+		const sourceResource = URI.file('/workspace/src/test.js');
+		const harness = createCutPasteHarness(sourceResource, URI.file('/workspace/src'), false);
+		try {
+			await cutFileHandler(harness.accessor);
+			await pasteFileHandler(harness.accessor);
+			assert.strictEqual(harness.bulkEdits.length, 1);
+			assert.strictEqual(harness.bulkEdits[0][0].options?.overwrite, false);
+			assert.ok(extUri.isEqual(harness.bulkEdits[0][0].newResource, sourceResource));
+			assert.deepStrictEqual(harness.setToCopyCalls, [{ count: 1, cut: true }, { count: 0, cut: false }]);
+			const state = readPasteMoveState();
+			assert.strictEqual(state.pasteShouldMove, false);
+			assert.deepStrictEqual([...state.cutPasteResourceUris], []);
+		} finally {
+			clearPasteMoveState();
+		}
 	});
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 });
+
+function createCutPasteHarness(sourceResource: URI, destination: URI, rejectBulkEdit: boolean): {
+	accessor: ServicesAccessor;
+	bulkEdits: ResourceFileEdit[][];
+	setToCopyCalls: { count: number; cut: boolean }[];
+} {
+	const sourceItem = { resource: sourceResource, isDirectory: false };
+	const destItem = { resource: destination, isDirectory: true };
+	const bulkEdits: ResourceFileEdit[][] = [];
+	const setToCopyCalls: { count: number; cut: boolean }[] = [];
+	const services = new Map<unknown, unknown>();
+	services.set(IClipboardService, { readResources: async () => [sourceResource] });
+	services.set(IExplorerService, {
+		roots: [destItem],
+		getContext(respectMultiSelection: boolean) {
+			return respectMultiSelection ? [sourceItem] : [destItem];
+		},
+		getEditable() { return undefined; },
+		findClosest(resource: URI) {
+			return basename(resource) === 'test.js' ? { resource, isDirectory: false } : null;
+		},
+		async setToCopy(stats: readonly unknown[], cut: boolean) {
+			setToCopyCalls.push({ count: stats.length, cut });
+		},
+		async applyBulkEdit(edits: ResourceFileEdit[]) {
+			bulkEdits.push(edits);
+			if (rejectBulkEdit) {
+				throw new Error('applyBulkEdit rejected');
+			}
+		},
+		async select() { },
+	});
+	services.set(IFileService, {
+		stat: async () => ({ isDirectory: false }),
+		exists: async () => { throw new Error('exists should not be called'); },
+	});
+	services.set(INotificationService, { error() { } });
+	services.set(IEditorService, { async openEditor() { } });
+	services.set(IConfigurationService, {
+		getValue() {
+			return { explorer: { incrementalNaming: 'simple', confirmUndo: 'default' } };
+		}
+	});
+	services.set(IUriIdentityService, { extUri });
+	services.set(IDialogService, { async confirm() { throw new Error('confirm should not be called'); } });
+	services.set(IHostService, {});
+	return {
+		accessor: {
+			get<T>(id: ServiceIdentifier<T>): T {
+				if (!services.has(id)) {
+					throw new Error(`Missing service ${id.toString()}`);
+				}
+				return services.get(id) as T;
+			}
+		},
+		bulkEdits,
+		setToCopyCalls,
+	};
+}

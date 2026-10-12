@@ -1095,8 +1095,8 @@ export function shouldPastePathsAsMove(extUri: resources.IExtUri, pasteShouldMov
 	return arePastePathUriSetsEqual(extUri, normalizedCut, pastePaths);
 }
 
-export function pathsPasteAllowOverwrite(shouldMovePaths: boolean, incrementalNaming: string | undefined): boolean {
-	return shouldMovePaths || incrementalNaming === 'disabled';
+export function pathsPasteAllowOverwrite(incrementalNaming: string | undefined): boolean {
+	return incrementalNaming === 'disabled';
 }
 
 export function shouldClearPasteMoveInFinally(executedMove: boolean): boolean {
@@ -1268,12 +1268,17 @@ export const pasteFileHandler = async (accessor: ServicesAccessor, fileList?: Fi
 					target = element.isDirectory ? element : element.parent!;
 				}
 
+				// A cut pasted back onto its own resource keeps that name. Another folder increments.
+				const allowOverwrite = pathsPasteAllowOverwrite(incrementalNaming) || (shouldMovePaths && uriIdentityService.extUri.isEqual(
+					fileToPaste,
+					resources.joinPath(target.resource, resources.basenameOrAuthority(fileToPaste))
+				));
 				const targetFile = await findValidPasteFileTarget(
 					explorerService,
 					fileService,
 					dialogService,
 					target,
-					{ resource: fileToPaste, isDirectory: fileToPasteStat.isDirectory, allowOverwrite: pathsPasteAllowOverwrite(shouldMovePaths, incrementalNaming) },
+					{ resource: fileToPaste, isDirectory: fileToPasteStat.isDirectory, allowOverwrite },
 					incrementalNaming
 				);
 
@@ -1287,7 +1292,6 @@ export const pasteFileHandler = async (accessor: ServicesAccessor, fileList?: Fi
 			if (sourceTargetPairs.length >= 1) {
 				// Move/Copy File
 				if (shouldMovePaths) {
-					executedMove = true;
 					const resourceFileEdits = sourceTargetPairs.map(pair => new ResourceFileEdit(pair.source, pair.target, { overwrite: incrementalNaming === 'disabled' }));
 					const options = {
 						confirmBeforeUndo: configurationService.getValue<IFilesConfiguration>().explorer.confirmUndo === UndoConfirmLevel.Verbose,
@@ -1297,6 +1301,7 @@ export const pasteFileHandler = async (accessor: ServicesAccessor, fileList?: Fi
 							: nls.localize({ key: 'moveFileBulkEdit', comment: ['Placeholder will be replaced by the name of the file moved.'] }, "Move {0}", resources.basenameOrAuthority(sourceTargetPairs[0].target))
 					};
 					await explorerService.applyBulkEdit(resourceFileEdits, options);
+					executedMove = true;
 				} else {
 					const resourceFileEdits = sourceTargetPairs.map(pair => new ResourceFileEdit(pair.source, pair.target, { copy: true, overwrite: incrementalNaming === 'disabled' }));
 					await applyCopyResourceEdit(sourceTargetPairs.map(pair => pair.target), resourceFileEdits);
@@ -1314,7 +1319,7 @@ export const pasteFileHandler = async (accessor: ServicesAccessor, fileList?: Fi
 					fileService,
 					dialogService,
 					target,
-					{ resource: file.name, isDirectory: false, allowOverwrite: pathsPasteAllowOverwrite(false, incrementalNaming) },
+					{ resource: file.name, isDirectory: false, allowOverwrite: pathsPasteAllowOverwrite(incrementalNaming) },
 					incrementalNaming
 				);
 				if (!targetFile) {
