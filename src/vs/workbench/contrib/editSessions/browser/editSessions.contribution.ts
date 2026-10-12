@@ -121,6 +121,7 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
 	private readonly pendingEditSessionsContext: IContextKey<boolean>;
 
 	private static APPLICATION_LAUNCHED_VIA_CONTINUE_ON_STORAGE_KEY = 'applicationLaunchedViaContinueOn';
+	private static readonly PENDING_CLOUD_DELETE_REF_STORAGE_KEY = 'editSessions.pendingCloudDeleteRef';
 	private readonly accountsMenuBadgeDisposable = this._register(new MutableDisposable());
 
 	private registeredCommands = new Set<string>();
@@ -558,18 +559,25 @@ export class EditSessionsContribution extends Disposable implements IWorkbenchCo
 				}
 			}
 
+			const pendingCloudDeleteRef = this.storageService.get(EditSessionsContribution.PENDING_CLOUD_DELETE_REF_STORAGE_KEY, StorageScope.WORKSPACE);
 			for (const { uri, type, contents } of changes) {
 				if (type === ChangeType.Addition) {
 					await this.fileService.writeFile(uri, decodeEditSessionFileContent(editSession.version, contents!));
 				} else if (type === ChangeType.Deletion && await this.fileService.exists(uri)) {
-					await this.fileService.del(uri);
+					// willChangeLocalContents does not confirm files outside the SCM change set.
+					// Once this ref is applied, retry cloud delete without deleting the local file again.
+					if (pendingCloudDeleteRef !== ref) {
+						await this.fileService.del(uri);
+					}
 				}
 			}
 
 			await this.workspaceStateSynchronizer?.apply();
 
+			this.storageService.store(EditSessionsContribution.PENDING_CLOUD_DELETE_REF_STORAGE_KEY, ref, StorageScope.WORKSPACE, StorageTarget.MACHINE);
 			this.logService.info(`Deleting edit session with ref ${ref} after successfully applying it to current workspace...`);
 			await this.editSessionsStorageService.delete('editSessions', ref);
+			this.storageService.remove(EditSessionsContribution.PENDING_CLOUD_DELETE_REF_STORAGE_KEY, StorageScope.WORKSPACE);
 			this.logService.info(`Deleted edit session with ref ${ref}.`);
 
 			this.telemetryService.publicLog2<ResumeEvent, ResumeClassification>('editSessions.resume.outcome', { hashedId: hashedEditSessionId(ref), outcome: 'resumeSucceeded' });

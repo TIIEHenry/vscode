@@ -14,7 +14,7 @@ import { IWorkbenchContribution, IWorkbenchContributionsRegistry, Extensions as 
 import { IJSONEditingService } from '../../../services/configuration/common/jsonEditing.js';
 import { LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
 
-class EncryptionContribution implements IWorkbenchContribution {
+export class EncryptionContribution implements IWorkbenchContribution {
 	constructor(
 		@IJSONEditingService private readonly jsonEditingService: IJSONEditingService,
 		@IEnvironmentService private readonly environmentService: IEnvironmentService,
@@ -37,7 +37,7 @@ class EncryptionContribution implements IWorkbenchContribution {
 			const content = await this.fileService.readFile(this.environmentService.argvResource);
 			const argv = parse<{ 'password-store'?: string }>(content.value.toString());
 			if (argv['password-store'] === 'gnome' || argv['password-store'] === 'gnome-keyring') {
-				this.jsonEditingService.write(this.environmentService.argvResource, [{ path: ['password-store'], value: 'gnome-libsecret' }], true);
+				await this.jsonEditingService.write(this.environmentService.argvResource, [{ path: ['password-store'], value: 'gnome-libsecret' }], true);
 			}
 			this.storageService.store('encryption.migratedToGnomeLibsecret', true, StorageScope.APPLICATION, StorageTarget.USER);
 		} catch (error) {

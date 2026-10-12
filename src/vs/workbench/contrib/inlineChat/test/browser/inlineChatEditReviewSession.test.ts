@@ -41,6 +41,7 @@ suite('InlineChatEditReviewSession', () => {
 	let readonlyUpdates: { resource: URI; value: true | false | 'toggle' | 'reset' | { value: string } }[];
 	let seededContents: ResourceMap<string>;
 	let beforeContents: ResourceMap<string>;
+	const throwingReads = new ResourceSet();
 	let models: ResourceMap<ITextModel>;
 	let dirtyResources: ResourceSet;
 	let cancelSave: boolean;
@@ -92,6 +93,7 @@ suite('InlineChatEditReviewSession', () => {
 		readonlyUpdates = [];
 		seededContents = new ResourceMap<string>();
 		beforeContents = new ResourceMap<string>();
+		throwingReads.clear();
 		models = new ResourceMap<ITextModel>();
 		dirtyResources = new ResourceSet();
 		cancelSave = false;
@@ -136,6 +138,9 @@ suite('InlineChatEditReviewSession', () => {
 				return Disposable.None;
 			}
 			override async readFile(resource: URI): Promise<IFileContent> {
+				if (throwingReads.has(resource)) {
+					throw new Error(`Cannot read ${resource.toString()}`);
+				}
 				return { value: VSBuffer.fromString(beforeContents.get(resource) ?? '') } as IFileContent;
 			}
 		}();
@@ -308,6 +313,71 @@ suite('InlineChatEditReviewSession', () => {
 		}, { entryCount: 0, locksLeftHeld: 0 });
 	});
 
+	test('does not record an empty baseline when an edit has no readable before content', async () => {
+		const missingUri = URI.parse('test:/missing-before.ts');
+		const unreadableUri = URI.parse('test:/unreadable-before.ts');
+		const unreadableBeforeUri = URI.parse('test:/before-unreadable.ts');
+		seededContents.set(targetUri, 'target before');
+		seededContents.set(missingUri, 'kept missing');
+		seededContents.set(unreadableUri, 'kept unreadable');
+		throwingReads.add(unreadableBeforeUri);
+		getModel(missingUri);
+		getModel(unreadableUri);
+		const response = createResponse([
+			{
+				kind: 'externalEdit',
+				uri: missingUri,
+				editKind: 'edit',
+			},
+			{
+				kind: 'externalEdit',
+				uri: unreadableUri,
+				editKind: 'edit',
+				beforeContentUri: unreadableBeforeUri,
+			},
+		]);
+
+		await beginAndEnd('target after', response);
+
+		const initialContents = (session as unknown as { _initialContents: ResourceMap<string> })._initialContents;
+		const entryUris = session.entries.get().map(entry => entry.modifiedURI.toString());
+		assert.strictEqual(entryUris.includes(missingUri.toString()), false);
+		assert.strictEqual(entryUris.includes(unreadableUri.toString()), false);
+		assert.strictEqual(initialContents.has(missingUri), false);
+		assert.strictEqual(initialContents.has(unreadableUri), false);
+		assert.strictEqual([...initialContents.values()].includes(''), false);
+
+		await session.reject(missingUri, unreadableUri);
+
+		assert.strictEqual(getModel(missingUri).getValue(), 'kept missing');
+		assert.strictEqual(getModel(unreadableUri).getValue(), 'kept unreadable');
+	});
+
+	test('tracks an off-target edit with empty before content as modified', async () => {
+		const externalUri = URI.parse('test:/empty-before.ts');
+		const beforeContentUri = URI.parse('test:/before-empty.ts');
+		seededContents.set(targetUri, 'target before');
+		seededContents.set(externalUri, 'external after');
+		beforeContents.set(beforeContentUri, '');
+		const response = createResponse([{
+			kind: 'externalEdit',
+			uri: externalUri,
+			editKind: 'edit',
+			beforeContentUri,
+		}]);
+
+		await beginAndEnd('target after', response);
+
+		const entry = session.entries.get().find(candidate => candidate.modifiedURI.toString() === externalUri.toString()) as ChatEditingModifiedDocumentEntry;
+		assert.deepStrictEqual({
+			initialContent: entry.initialContent,
+			createdInRequestId: entry.createdInRequestId,
+		}, {
+			initialContent: '',
+			createdInRequestId: undefined,
+		});
+	});
+
 	test('tracks a created off-target file as created so rejecting deletes it', async () => {
 		const createdUri = URI.parse('test:/created.ts');
 		seededContents.set(targetUri, 'before');
@@ -342,12 +412,15 @@ suite('InlineChatEditReviewSession', () => {
 
 	test('accepts all entries', async () => {
 		const externalUri = URI.parse('test:/accepted-external.ts');
+		const beforeContentUri = URI.parse('test:/before-accepted-external.ts');
 		seededContents.set(targetUri, 'before');
 		seededContents.set(externalUri, 'external');
+		beforeContents.set(beforeContentUri, 'external before');
 		await beginAndEnd('accepted', createResponse([{
 			kind: 'externalEdit',
 			uri: externalUri,
 			editKind: 'edit',
+			beforeContentUri,
 		}]));
 
 		await session.accept();
