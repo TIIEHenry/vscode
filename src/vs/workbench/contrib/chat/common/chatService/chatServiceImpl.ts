@@ -393,6 +393,9 @@ export class ChatService extends Disposable implements IChatService {
 	 * Only persist local sessions from chat that are not imported.
 	 */
 	private shouldStoreSession(session: ChatModel): boolean {
+		if (session.restoreDroppedAllRequests) {
+			return false;
+		}
 		if (session.isDeleted) {
 			return false;
 		}

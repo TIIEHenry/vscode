@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
-import { Disposable, DisposableStore, IDisposable } from '../../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, IDisposable, IReference } from '../../../../../../base/common/lifecycle.js';
 import { autorun, IReader, observableValue, waitForState } from '../../../../../../base/common/observable.js';
 import { isEqual } from '../../../../../../base/common/resources.js';
 import { assertType } from '../../../../../../base/common/types.js';
@@ -17,12 +17,13 @@ import { EditOperation } from '../../../../../../editor/common/core/editOperatio
 import { Position } from '../../../../../../editor/common/core/position.js';
 import { Range } from '../../../../../../editor/common/core/range.js';
 import { TextEdit } from '../../../../../../editor/common/languages.js';
-import { DeferredPromise } from '../../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../../base/common/async.js';
 import { VSBuffer } from '../../../../../../base/common/buffer.js';
-import { IFileService } from '../../../../../../platform/files/common/files.js';
+import { FileOperationError, FileOperationResult, IFileService } from '../../../../../../platform/files/common/files.js';
+import { IBulkEditResult, IBulkEditService } from '../../../../../../editor/browser/services/bulkEditService.js';
 import { IEditorWorkerService } from '../../../../../../editor/common/services/editorWorker.js';
 import { IModelService } from '../../../../../../editor/common/services/model.js';
-import { ITextModelService } from '../../../../../../editor/common/services/resolverService.js';
+import { IResolvedTextEditorModel, ITextModelService } from '../../../../../../editor/common/services/resolverService.js';
 import { SyncDescriptor } from '../../../../../../platform/instantiation/common/descriptors.js';
 import { IInstantiationService } from '../../../../../../platform/instantiation/common/instantiation.js';
 import { ServiceCollection } from '../../../../../../platform/instantiation/common/serviceCollection.js';
@@ -30,7 +31,8 @@ import { MockContextKeyService } from '../../../../../../platform/keybinding/tes
 import { IWorkbenchAssignmentService } from '../../../../../services/assignment/common/assignmentService.js';
 import { NullWorkbenchAssignmentService } from '../../../../../services/assignment/test/common/nullAssignmentService.js';
 import { nullExtensionDescription } from '../../../../../services/extensions/common/extensions.js';
-import { workbenchInstantiationService } from '../../../../../test/browser/workbenchTestServices.js';
+import { TestTextFileService, workbenchInstantiationService } from '../../../../../test/browser/workbenchTestServices.js';
+import { ITextFileService, isTextFileEditorModel } from '../../../../../services/textfile/common/textfiles.js';
 import { IWorkspaceEditingService } from '../../../../../services/workspaces/common/workspaceEditing.js';
 import { TestWorkerService } from '../../../../inlineChat/test/browser/testWorkerService.js';
 import { IMcpService } from '../../../../mcp/common/mcpTypes.js';
@@ -110,6 +112,11 @@ suite('ChatEditingService', function () {
 		});
 		collection.set(IWorkspaceEditingService, new class extends mock<IWorkspaceEditingService>() {
 			override readonly onDidEnterWorkspace = Event.None;
+		});
+		collection.set(IBulkEditService, new class extends mock<IBulkEditService>() {
+			override async apply(): Promise<IBulkEditResult> {
+				return { ariaSummary: '', isApplied: true };
+			}
 		});
 		collection.set(INotebookService, new class extends mock<INotebookService>() {
 			override getNotebookTextModel(_uri: URI): NotebookTextModel | undefined {
@@ -505,6 +512,148 @@ suite('ChatEditingService', function () {
 
 		assert.strictEqual(entry.initialContent, initialBeforeExternal);
 		assert.strictEqual(stopProgress.length, 0, 'timeline must not record edits when contentFor read fails at stop');
+	});
+
+	async function rejectCreatedFile(options: {
+		resource: URI;
+		prepare?: () => void;
+		deleteResult: 'ok' | 'missing' | 'denied';
+		textFile: boolean;
+	}): Promise<void> {
+		options.prepare?.();
+		const modelRef = store.add(chatService.startNewLocalSession(ChatAgentLocation.Chat));
+		const model = modelRef.object as ChatModel;
+		const session = model.editingSession;
+		assertType(session, 'session not created');
+
+		const fileService = testInsta.invokeFunction(accessor => accessor.get(IFileService));
+		const originalDel = fileService.del.bind(fileService);
+		const worker = testInsta.invokeFunction(accessor => accessor.get(IEditorWorkerService)) as TestWorkerService;
+		const modelService = testInsta.invokeFunction(accessor => accessor.get(IModelService));
+		const originalComputeDiff = worker.computeDiff.bind(worker);
+		worker.computeDiff = (async (...args: Parameters<TestWorkerService['computeDiff']>) => {
+			const [original, modified] = args;
+			try {
+				return await originalComputeDiff(...args);
+			} catch (error) {
+				if (!modelService.getModel(original) || !modelService.getModel(modified)) {
+					return null;
+				}
+				throw error;
+			}
+		}) as TestWorkerService['computeDiff'];
+		let resolved: IReference<IResolvedTextEditorModel> | undefined;
+		let entry: ChatEditingModifiedDocumentEntry | undefined;
+		try {
+			const created = await idleAfterEdit(session, model, options.resource, [{ range: new Range(1, 1, 1, 1), text: 'created-body\n' }]);
+			assert.ok(created instanceof ChatEditingModifiedDocumentEntry);
+			entry = created;
+			assert.strictEqual(created.createdInRequestId, created.lastModifyingRequestId);
+
+			resolved = await textModelService.createModelReference(options.resource);
+			assert.strictEqual(isTextFileEditorModel(resolved.object), options.textFile);
+			const events: string[] = [];
+			if (isTextFileEditorModel(resolved.object)) {
+				const originalRevert = resolved.object.revert.bind(resolved.object);
+				resolved.object.revert = async revertOptions => {
+					events.push('revert');
+					assert.strictEqual(revertOptions?.soft, true);
+					return originalRevert(revertOptions);
+				};
+			}
+
+			fileService.del = async (target, deleteOptions) => {
+				events.push('del');
+				if (options.deleteResult === 'missing') {
+					throw new FileOperationError('missing', FileOperationResult.FILE_NOT_FOUND);
+				}
+				if (options.deleteResult === 'denied') {
+					throw new FileOperationError('denied', FileOperationResult.FILE_PERMISSION_DENIED);
+				}
+				return originalDel(target, deleteOptions);
+			};
+
+			if (options.deleteResult === 'denied') {
+				await assertThrowsAsync(() => created.reject());
+				assert.strictEqual(session.entries.get().some(candidate => isEqual(candidate.modifiedURI, options.resource)), true);
+				assert.strictEqual(created.state.get(), ModifiedFileEntryState.Modified);
+			} else {
+				await created.reject();
+				assert.strictEqual(session.entries.get().some(candidate => isEqual(candidate.modifiedURI, options.resource)), false);
+			}
+			assert.deepStrictEqual(events, options.textFile ? ['revert', 'del'] : ['del']);
+		} finally {
+			fileService.del = originalDel;
+			resolved?.dispose();
+			if (options.deleteResult === 'denied') {
+				entry?.dispose();
+			}
+			// Text file models are disposed asynchronously after the last reference drops.
+			await timeout(0);
+		}
+	}
+
+	function failFirstTextFileRead(): void {
+		const textFileService = testInsta.invokeFunction(accessor => accessor.get(ITextFileService)) as TestTextFileService;
+		textFileService.setReadStreamErrorOnce(new FileOperationError('missing', FileOperationResult.FILE_NOT_FOUND));
+	}
+
+	function failFirstVirtualResolve(scheme: string): void {
+		let failedOnce = false;
+		store.add(textModelService.registerTextModelContentProvider(scheme, {
+			async provideTextContent(resource) {
+				if (!failedOnce) {
+					failedOnce = true;
+					return null;
+				}
+				return store.add(testInsta.invokeFunction(accessor => accessor.get(IModelService)).createModel('created', null, resource));
+			}
+		}));
+	}
+
+	test('rejecting a created text file deletes it and drops the entry', async () => {
+		await rejectCreatedFile({
+			resource: URI.file('/created-by-chat-ok.txt'),
+			prepare: failFirstTextFileRead,
+			deleteResult: 'ok',
+			textFile: true,
+		});
+	});
+
+	test('rejecting a created text file treats FILE_NOT_FOUND as deleted', async () => {
+		await rejectCreatedFile({
+			resource: URI.file('/created-by-chat-missing.txt'),
+			prepare: failFirstTextFileRead,
+			deleteResult: 'missing',
+			textFile: true,
+		});
+	});
+
+	test('rejecting a created text file keeps the entry when delete fails', async () => {
+		await rejectCreatedFile({
+			resource: URI.file('/created-by-chat-denied.txt'),
+			prepare: failFirstTextFileRead,
+			deleteResult: 'denied',
+			textFile: true,
+		});
+	});
+
+	test('rejecting a created non-text file deletes it and drops the entry', async () => {
+		await rejectCreatedFile({
+			resource: URI.from({ scheme: 'created-virtual-ok', path: '/created.txt' }),
+			prepare: () => failFirstVirtualResolve('created-virtual-ok'),
+			deleteResult: 'ok',
+			textFile: false,
+		});
+	});
+
+	test('rejecting a created non-text file keeps the entry when delete fails', async () => {
+		await rejectCreatedFile({
+			resource: URI.from({ scheme: 'created-virtual-denied', path: '/created.txt' }),
+			prepare: () => failFirstVirtualResolve('created-virtual-denied'),
+			deleteResult: 'denied',
+			textFile: false,
+		});
 	});
 
 });

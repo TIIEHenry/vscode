@@ -581,7 +581,11 @@ export class ChatSessionStore extends Disposable {
 			};
 
 			// TODO@connor4312: the check for Pending/NeedsInput guards old sessions from Insiders pre PR #288161 and it can be safely removed after a transition period, to only backfill the "complete" state when missing.
-			entry.lastResponseState ??= entry.lastResponseState === ResponseModelState.Pending || entry.lastResponseState === ResponseModelState.NeedsInput ? ResponseModelState.Complete : entry.lastResponseState || ResponseModelState.Complete;
+			if (entry.lastResponseState === ResponseModelState.Pending || entry.lastResponseState === ResponseModelState.NeedsInput) {
+				entry.lastResponseState = ResponseModelState.Complete;
+			} else {
+				entry.lastResponseState ??= ResponseModelState.Complete;
+			}
 		}
 
 		return this.indexCache;
@@ -651,43 +655,42 @@ export class ChatSessionStore extends Disposable {
 	}
 
 	private async readSessionFromLocation(flatStorageLocation: URI, logStorageLocation: URI | undefined, sessionId: string): Promise<ISerializedChatDataReference | undefined> {
-		let fromLocation = flatStorageLocation;
-		let rawData: VSBuffer | undefined;
-
 		if (logStorageLocation) {
 			try {
-				rawData = (await this.fileService.readFile(logStorageLocation)).value;
-				fromLocation = logStorageLocation;
+				const rawData = (await this.fileService.readFile(logStorageLocation)).value;
+				const revived = this.reviveStoredSession(rawData, logStorageLocation, true);
+				if (revived) {
+					return revived;
+				}
 			} catch (e) {
 				this.reportError('sessionReadFile', `Error reading log chat session file ${sessionId}`, e);
 			}
 		}
 
-		if (!rawData) {
-			try {
-				rawData = (await this.fileService.readFile(flatStorageLocation)).value;
-				fromLocation = flatStorageLocation;
-			} catch (e) {
-				this.reportError('sessionReadFile', `Error reading flat chat session file ${sessionId}`, e);
-
-				if (toFileOperationResult(e) === FileOperationResult.FILE_NOT_FOUND && this.previousEmptyWindowStorageRoot) {
-					rawData = await this.readSessionFromPreviousLocation(sessionId);
-				}
-			}
-		}
-
-		if (!rawData) {
+		const flat = await this.readFlatSessionBuffer(flatStorageLocation, sessionId);
+		if (!flat) {
 			return undefined;
 		}
+		return this.reviveStoredSession(flat, flatStorageLocation, false);
+	}
 
+	private async readFlatSessionBuffer(flatStorageLocation: URI, sessionId: string): Promise<VSBuffer | undefined> {
 		try {
-			let session: ISerializableChatDataIn;
-			const log = new ChatSessionOperationLog();
-			if (fromLocation === logStorageLocation) {
-				session = revive(log.read(rawData));
-			} else {
-				session = revive(JSON.parse(rawData.toString()));
+			return (await this.fileService.readFile(flatStorageLocation)).value;
+		} catch (e) {
+			this.reportError('sessionReadFile', `Error reading flat chat session file ${sessionId}`, e);
+
+			if (toFileOperationResult(e) === FileOperationResult.FILE_NOT_FOUND && this.previousEmptyWindowStorageRoot) {
+				return this.readSessionFromPreviousLocation(sessionId);
 			}
+			return undefined;
+		}
+	}
+
+	private reviveStoredSession(rawData: VSBuffer, fromLocation: URI, asLog: boolean): ISerializedChatDataReference | undefined {
+		try {
+			const log = new ChatSessionOperationLog();
+			const session: ISerializableChatDataIn = asLog ? revive(log.read(rawData)) : revive(JSON.parse(rawData.toString()));
 
 			// TODO Copied from ChatService.ts, cleanup
 			// Revive serialized markdown strings in response data

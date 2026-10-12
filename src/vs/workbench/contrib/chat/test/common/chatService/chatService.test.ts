@@ -149,6 +149,34 @@ function getAgentData(id: string): IChatAgentData {
 	};
 }
 
+function serializableRequest(text: string, kind: string) {
+	return {
+		requestId: `req-${kind}-${text}`,
+		message: {
+			text,
+			parts: [{
+				kind,
+				range: { start: 0, endExclusive: text.length },
+				editorRange: { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: text.length + 1 },
+				text,
+			}],
+		},
+		variableData: { variables: [] },
+	};
+}
+
+function serializableSession(sessionId: string, requests: ReturnType<typeof serializableRequest>[]): ISerializableChatData {
+	return {
+		version: 3,
+		sessionId,
+		creationDate: 1_700_000_000_000,
+		customTitle: undefined,
+		initialLocation: ChatAgentLocation.Chat,
+		requests,
+		responderUsername: 'bot',
+	} as unknown as ISerializableChatData;
+}
+
 suite('ChatService', () => {
 	const testDisposables = new DisposableStore();
 
@@ -3675,6 +3703,96 @@ suite('ChatService', () => {
 			!historyItems.some(item => item.sessionResource.toString() === model.sessionResource.toString()),
 			'Deleted session should NOT reappear in history after model disposal'
 		);
+	});
+
+	test('keeps revived requests and still persists when one request fails to revive', async () => {
+		const testService = createChatService();
+		const ref = testService.loadSessionFromData(serializableSession('revive-partial', [
+			serializableRequest('kept-request', 'text'),
+			serializableRequest('dropped-request', 'unknown-kind'),
+		]));
+		const model = ref.object as ChatModel;
+
+		assert.deepStrictEqual({
+			requests: model.getRequests().map(request => request.message.text),
+			unpersistable: model.restoreDroppedAllRequests,
+			hasSerializer: !!model.dataSerializer,
+		}, {
+			requests: ['kept-request'],
+			unpersistable: false,
+			hasSerializer: true,
+		});
+
+		const resource = model.sessionResource;
+		ref.dispose();
+		await testService.waitForModelDisposals();
+
+		const restored = await getOrRestoreModel(createChatService(), resource);
+		assert.ok(restored);
+		assert.deepStrictEqual(restored.getRequests().map(request => request.message.text), ['kept-request']);
+	});
+
+	test('does not store or delete a session when every request fails to revive', async () => {
+		const testService = createChatService();
+		const good = testService.loadSessionFromData(serializableSession('revive-all-failed', [
+			serializableRequest('persisted-good-request', 'text'),
+		]));
+		const resource = good.object.sessionResource;
+		good.dispose();
+		await testService.waitForModelDisposals();
+
+		const written = testFileService.writeOperations.find(operation => operation.content.includes('persisted-good-request'));
+		assert.ok(written);
+		const before = (await testFileService.readFile(written.resource)).value.toString();
+
+		const bad = testService.loadSessionFromData(serializableSession('revive-all-failed', [
+			serializableRequest('bad-a', 'unknown-kind'),
+			serializableRequest('bad-b', 'unknown-kind'),
+		]));
+		const badModel = bad.object as ChatModel;
+		assert.deepStrictEqual({
+			requests: badModel.getRequests().length,
+			unpersistable: badModel.restoreDroppedAllRequests,
+			hasSerializer: !!badModel.dataSerializer,
+		}, {
+			requests: 0,
+			unpersistable: true,
+			hasSerializer: true,
+		});
+
+		const storageService = instantiationService.get(IStorageService) as TestStorageService;
+		storageService.testEmitWillSaveState(WillSaveStateReason.SHUTDOWN);
+		await timeout(50);
+
+		bad.dispose();
+		await testService.waitForModelDisposals();
+
+		const afterSave = (await testFileService.readFile(written.resource)).value.toString();
+		assert.strictEqual(afterSave, before);
+
+		const restored = await getOrRestoreModel(createChatService(), resource);
+		assert.ok(restored);
+		assert.strictEqual(restored.getRequests()[0].message.text, 'persisted-good-request');
+	});
+
+	test('persists again after a request is appended to a fully dropped restore', async () => {
+		const testService = createChatService();
+		const ref = testService.loadSessionFromData(serializableSession('revive-then-append', [
+			serializableRequest('bad-only', 'unknown-kind'),
+		]));
+		const model = ref.object as ChatModel;
+		assert.strictEqual(model.restoreDroppedAllRequests, true);
+
+		model.addRequest({ parts: [], text: 'recovered-request' }, { variables: [] }, 0);
+		assert.strictEqual(model.restoreDroppedAllRequests, false);
+
+		const resource = model.sessionResource;
+		ref.dispose();
+		await testService.waitForModelDisposals();
+
+		const restored = await getOrRestoreModel(createChatService(), resource);
+		assert.ok(restored);
+		assert.strictEqual(restored.getRequests()[0].message.text, 'recovered-request');
 	});
 });
 
