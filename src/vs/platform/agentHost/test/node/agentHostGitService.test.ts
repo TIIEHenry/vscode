@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { formatGitError, getRemoteTrackingRef, GitCheckoutProgressParser, isRetryableWorktreeRemovalError, parseChangedPaths, parseDefaultBranchRef, parseFetchRemoteUrls, parseGitDiffRawNumstat, parseGitHubRepoFromRemote, parseGitStatusV2, parseHasGitHubRemote, parseSingleLsTreeEntry, parseUntrackedPaths, summarizeStderrForError } from '../../node/agentHostGitService.js';
+import { formatGitError, getRemoteTrackingRef, GitCheckoutProgressParser, isAbsentHeadRevision, isRetryableWorktreeRemovalError, parseChangedPaths, parseDefaultBranchRef, parseFetchRemoteUrls, parseGitDiffRawNumstat, parseGitHubRepoFromRemote, parseGitStatusV2, parseHasGitHubRemote, parseSingleLsTreeEntry, parseUntrackedPaths, summarizeStderrForError } from '../../node/agentHostGitService.js';
 import { buildGitBlobUri } from '../../node/gitDiffContent.js';
 import { URI } from '../../../../base/common/uri.js';
 import { EMPTY_TREE_OBJECT, getBranchCompletions, resolveDiffBaseBranchName } from '../../common/agentHostGitService.js';
@@ -437,6 +437,22 @@ suite('AgentHostGitService', () => {
 
 	test('exports the well-known empty-tree object SHA', () => {
 		assert.strictEqual(EMPTY_TREE_OBJECT, '4b825dc642cb6eb9a060e54bf8d69288fbee4904');
+	});
+
+	test('absent HEAD is exit code 1 and not a killed process', () => {
+		assert.deepStrictEqual({
+			missing: isAbsentHeadRevision(new Error('missing', { cause: { code: 1, killed: false } })),
+			killedExit: isAbsentHeadRevision(new Error('killed', { cause: { code: 1, killed: true } })),
+			fatal: isAbsentHeadRevision(new Error('fatal', { cause: { code: 128, killed: false } })),
+			timeout: isAbsentHeadRevision(new Error('timeout', { cause: { killed: true } })),
+			noCause: isAbsentHeadRevision(new Error('bare')),
+		}, {
+			missing: true,
+			killedExit: false,
+			fatal: false,
+			timeout: false,
+			noCause: false,
+		});
 	});
 
 	suite('formatGitError', () => {

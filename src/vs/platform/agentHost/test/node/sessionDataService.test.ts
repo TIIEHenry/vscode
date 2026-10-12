@@ -66,6 +66,26 @@ suite('SessionDataService', () => {
 		assert.ok(!(await fileService.exists(dir)));
 	});
 
+	test('deleteSessionData removes only the addressed directory', async () => {
+		const session = AgentSession.uri('copilot', 'session-1');
+		const peer = URI.parse(buildChatUri(session, 'peer-1'));
+		const sessionDir = service.getSessionDataDir(session);
+		const peerDir = service.getSessionDataDir(peer);
+		await fileService.createFolder(sessionDir);
+		await fileService.createFolder(peerDir);
+		await fileService.writeFile(URI.joinPath(peerDir, 'marker.txt'), VSBuffer.fromString('peer'));
+
+		await service.deleteSessionData(session);
+
+		assert.deepStrictEqual({
+			sessionDir: await fileService.exists(sessionDir),
+			peerDir: await fileService.exists(peerDir),
+		}, {
+			sessionDir: false,
+			peerDir: true,
+		});
+	});
+
 	test('deleteSessionData is a no-op when directory does not exist', async () => {
 		const session = AgentSession.uri('copilot', 'nonexistent');
 		// Should not throw

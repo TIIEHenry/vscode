@@ -365,7 +365,7 @@ export class AgentHostGitService implements IAgentHostGitService {
 	}
 
 	async hasUncommittedChanges(workingDirectory: URI): Promise<boolean> {
-		const output = await this._runGitStatus(workingDirectory, ['--porcelain']);
+		const output = await this._runGitStatus(workingDirectory, ['--porcelain'], { throwOnError: true });
 		return !!output && output.trim().length > 0;
 	}
 
@@ -533,8 +533,7 @@ export class AgentHostGitService implements IAgentHostGitService {
 	private async _runWithTempIndex(repositoryRoot: URI, mergeBaseCommit: string, changedPaths: readonly string[]): Promise<string | undefined> {
 		// Build a throwaway index so we can stage the changed working tree
 		// paths (including untracked files) without disturbing the user's real
-		// index. `read-tree HEAD` seeds it; in empty repos that fails so we
-		// fall back to the empty tree, leaving everything as "added".
+		// index. Only a confirmed-absent HEAD may seed from the empty tree.
 		const tempDir = URI.joinPath(this._environmentService.tmpDir, `agent-host-git-diff-${generateUuid()}`);
 		await this._fileService.createFolder(tempDir);
 		// `GIT_INDEX_FILE` is consumed by the `git` subprocess so it must be
@@ -547,10 +546,8 @@ export class AgentHostGitService implements IAgentHostGitService {
 		// the extension's `buildTempIndexEnv` does for the same reason.
 		env.COMMAND_HOOK_LOCK = '1';
 		try {
-			const seeded = await this._runGit(repositoryRoot, ['read-tree', 'HEAD'], { env });
-			if (seeded === undefined) {
-				// Empty repo (no HEAD yet) - `read-tree` of the empty tree always succeeds.
-				await this._runGit(repositoryRoot, ['read-tree', EMPTY_TREE_OBJECT], { env });
+			if (!(await this._seedTempIndexFromHead(repositoryRoot, env))) {
+				return undefined;
 			}
 			if (!(await this._stageChangedPaths(repositoryRoot, tempDir, changedPaths, env))) {
 				return undefined;
@@ -559,6 +556,26 @@ export class AgentHostGitService implements IAgentHostGitService {
 		} finally {
 			try { await this._fileService.del(tempDir, { recursive: true, useTrash: false }); } catch { /* best-effort */ }
 		}
+	}
+
+	/**
+	 * Seeds the throwaway index from `HEAD`. Only an unborn repository —
+	 * `rev-parse --verify --quiet HEAD` exits 1 and was not killed — may
+	 * fall back to {@link EMPTY_TREE_OBJECT}. Timeouts, signals, and any
+	 * other failure return false so the caller abandons the tree or diff.
+	 */
+	private async _seedTempIndexFromHead(repositoryRoot: URI, env: Record<string, string>): Promise<boolean> {
+		let headAbsent = false;
+		try {
+			await this._runGit(repositoryRoot, ['rev-parse', '--verify', '--quiet', 'HEAD'], { throwOnError: true, env });
+		} catch (error) {
+			if (!isAbsentHeadRevision(error)) {
+				return false;
+			}
+			headAbsent = true;
+		}
+		const tree = headAbsent ? EMPTY_TREE_OBJECT : 'HEAD';
+		return await this._runGit(repositoryRoot, ['read-tree', tree], { env }) !== undefined;
 	}
 
 	private async _stageChangedPaths(repositoryRoot: URI, tempDir: URI, changedPaths: readonly string[], env: Record<string, string>): Promise<boolean> {
@@ -758,10 +775,8 @@ export class AgentHostGitService implements IAgentHostGitService {
 		const indexFile = URI.joinPath(tempDir, 'index').fsPath;
 		const env: Record<string, string> = { GIT_INDEX_FILE: indexFile, COMMAND_HOOK_LOCK: '1' };
 		try {
-			// Seed the temp index from HEAD; for empty repos seed from the empty tree.
-			const seeded = await this._runGit(repositoryRoot, ['read-tree', 'HEAD'], { env });
-			if (seeded === undefined) {
-				await this._runGit(repositoryRoot, ['read-tree', EMPTY_TREE_OBJECT], { env });
+			if (!(await this._seedTempIndexFromHead(repositoryRoot, env))) {
+				return undefined;
 			}
 			if (!(await this._stageChangedPaths(repositoryRoot, tempDir, changedPaths, env))) {
 				return undefined;
@@ -1049,9 +1064,9 @@ export class AgentHostGitService implements IAgentHostGitService {
 		return Number.isFinite(count) ? { hasChanges: count > 0, count } : undefined;
 	}
 
-	private _runGitStatus(workingDirectory: URI, args: readonly string[]): Promise<string | undefined> {
+	private _runGitStatus(workingDirectory: URI, args: readonly string[], options?: { readonly throwOnError?: boolean }): Promise<string | undefined> {
 		// Background status probes must not contend with mutating git commands for index.lock.
-		return this._runGit(workingDirectory, ['status', ...args], { env: { GIT_OPTIONAL_LOCKS: '0' } });
+		return this._runGit(workingDirectory, ['status', ...args], { env: { GIT_OPTIONAL_LOCKS: '0' }, throwOnError: options?.throwOnError });
 	}
 
 	private _runGit(workingDirectory: URI, args: readonly string[], options?: { readonly timeout?: number; readonly throwOnError?: boolean; readonly env?: Record<string, string>; readonly maxBuffer?: number; readonly onStderr?: (chunk: string) => void }): Promise<string | undefined> {
@@ -1276,6 +1291,31 @@ export function isRetryableWorktreeRemovalError(error: unknown): boolean {
 		|| /\bindex\.lock\b/i.test(message)
 		|| /unable to (?:create|write|append)[^\n]*\.lock/i.test(message)
 		|| /could not lock/i.test(message);
+}
+
+/**
+ * `git rev-parse --verify --quiet HEAD` exits 1 when the revision does not
+ * resolve (an unborn branch) and was not killed. Timeouts and other fatals
+ * are a different failure: callers must not treat them as "no HEAD".
+ *
+ * Exported for tests.
+ */
+export function isAbsentHeadRevision(error: unknown): boolean {
+	const cause = error instanceof Error ? error.cause : undefined;
+	if (!cause || typeof cause !== 'object') {
+		return false;
+	}
+	if (execCauseFlag(cause, 'killed')) {
+		return false;
+	}
+	return execCauseFlag(cause, 'code') === 1;
+}
+
+function execCauseFlag(cause: object, key: 'code' | 'killed'): unknown {
+	if (!Object.prototype.hasOwnProperty.call(cause, key)) {
+		return undefined;
+	}
+	return Reflect.get(cause, key);
 }
 
 /**

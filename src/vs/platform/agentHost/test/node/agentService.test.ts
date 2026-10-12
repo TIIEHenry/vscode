@@ -40,8 +40,9 @@ import { GitRefType } from '../../common/agentHostGitService.js';
 import { SessionConfigKey } from '../../common/sessionConfigKeys.js';
 import { AgentMergeConfigKey, readAgentMergeSessionState } from '../../common/agentMerge.js';
 import { SessionDatabase } from '../../node/sessionDatabase.js';
+import { SessionDataService } from '../../node/sessionDataService.js';
 import { ActionType, ActionEnvelope, NotificationType, type INotification } from '../../common/state/sessionActions.js';
-import { AH_META_CREATED_BY_SESSION_DB_KEY, AH_META_IS_READ_DB_KEY, AH_META_EHCLI_ADOPTED_DB_KEY, readSessionEhcliAdopted, AH_META_IS_ARCHIVED_DB_KEY, AH_META_WORKSPACELESS_DB_KEY, ChangesetStatus, CustomizationType, MessageAttachmentKind, MessageKind, SessionActiveClient, ResponsePartKind, ROOT_STATE_URI, SESSION_META_FOLDER_PICKER_KEY, SESSION_META_MULTI_ROOT_KEY, SessionLifecycle, SessionSourceControlOutcome, SessionStatus, ToolCallCancellationReason, ToolCallConfirmationReason, ToolCallStatus, ToolResultContentType, TurnState, buildChatUri, buildDefaultChatUri, buildSubagentChatUri, buildSubagentSessionUri, createErrorResponsePart, customizationId, isDefaultChatUri, isMessageHiddenFromTranscript, isSubagentSession, parseChatUri, parseSubagentSessionUri, readSessionCreationReference, readSessionExternal, readSessionGitHubState, readSessionMultiRootMetadata, readSessionFolderPickerDecision, readSessionSourceControlState, withSessionEhcliAdoptable, withSessionExternal, withSessionMultiRootMetadata, ChatOriginKind, type ChangesetState, type ISessionFolderPickerDecision, type ISessionWithDefaultChat, type MarkdownResponsePart, type SessionState, type SessionSummary, type ToolCallCompletedState, type ToolCallResponsePart, type Turn } from '../../common/state/sessionState.js';
+import { AH_META_CREATED_BY_SESSION_DB_KEY, AH_META_IS_READ_DB_KEY, AH_META_EHCLI_ADOPTED_DB_KEY, readSessionEhcliAdopted, AH_META_IS_ARCHIVED_DB_KEY, AH_META_WORKSPACELESS_DB_KEY, ChangesetStatus, CustomizationType, FileEditKind, MessageAttachmentKind, MessageKind, SessionActiveClient, ResponsePartKind, ROOT_STATE_URI, SESSION_META_FOLDER_PICKER_KEY, SESSION_META_MULTI_ROOT_KEY, SessionLifecycle, SessionSourceControlOutcome, SessionStatus, ToolCallCancellationReason, ToolCallConfirmationReason, ToolCallStatus, ToolResultContentType, TurnState, buildChatUri, buildDefaultChatUri, buildSubagentChatUri, chatStorageUri, buildSubagentSessionUri, createErrorResponsePart, customizationId, isDefaultChatUri, isMessageHiddenFromTranscript, isSubagentSession, parseChatUri, parseSubagentSessionUri, readSessionCreationReference, readSessionExternal, readSessionGitHubState, readSessionMultiRootMetadata, readSessionFolderPickerDecision, readSessionSourceControlState, withSessionEhcliAdoptable, withSessionExternal, withSessionMultiRootMetadata, ChatOriginKind, type ChangesetState, type ISessionFolderPickerDecision, type ISessionWithDefaultChat, type MarkdownResponsePart, type SessionState, type SessionSummary, type ToolCallCompletedState, type ToolCallResponsePart, type Turn } from '../../common/state/sessionState.js';
 import { ChatInteractivity, type MessageAttachment } from '../../common/state/protocol/state.js';
 import { isHostSnapshotAttachment, toHostSnapshotAttachmentMeta } from '../../common/meta/agentSnapshotAttachmentMeta.js';
 import { readAgentMessageDelegationMeta } from '../../common/meta/agentMessageDelegationMeta.js';
@@ -98,6 +99,88 @@ function getCheckpointService(service: AgentService) {
 
 function getStateManager(service: AgentService) {
 	return getTestAgentStateManager(service);
+}
+
+/**
+ * Session and peer-chat directories live on the in-memory file service.
+ * `getDbPath` keeps the peer `file_edits` row in `:memory:` so the test
+ * never creates a real sqlite file. The directory keys are still the ones
+ * {@link SessionDataService} would delete in production.
+ */
+async function createSessionWithPeerFileEdit(disposables: DisposableStore, fileService: FileService): Promise<{
+	localService: AgentService;
+	session: URI;
+	peerStorage: URI;
+	sessionDir: URI;
+	peerDir: URI;
+	workingDirectories: readonly string[] | undefined;
+	deleted: { uri: string; workingDirectories: readonly string[] | undefined }[];
+}> {
+	class PeerFileEditAgent extends MockAgent {
+		override async createChat(): Promise<{ providerData?: string }> {
+			return { providerData: 'peer-blob' };
+		}
+		override async disposeChat(): Promise<void> { }
+	}
+
+	const sessionDataService = new SessionDataService(
+		URI.from({ scheme: Schemas.inMemory, path: '/r02-user-data' }),
+		fileService,
+		new NullLogService(),
+		() => ':memory:',
+	);
+	const deleted: { uri: string; workingDirectories: readonly string[] | undefined }[] = [];
+	disposables.add(sessionDataService.onWillDeleteSessionData(event => {
+		deleted.push({ uri: event.session.toString(), workingDirectories: event.workingDirectories });
+	}));
+	const localService = disposables.add(createTestAgentService(new NullLogService(), fileService, sessionDataService, { _serviceBrand: undefined } as IProductService, createNoopGitService()));
+	const agent = new PeerFileEditAgent('copilot');
+	disposables.add(toDisposable(() => agent.dispose()));
+	registerTestAgentProvider(localService, agent);
+	const workspace = URI.file('/workspace/r02');
+	const session = await localService.createSession({ provider: 'copilot', workingDirectories: [workspace] });
+	const peer = URI.parse(buildChatUri(session, 'peer-1'));
+	await localService.createChat(session, peer);
+	const peerStorage = chatStorageUri(peer);
+	assert.ok(peerStorage);
+	assert.notStrictEqual(peerStorage.toString(), session.toString());
+
+	const sessionDir = sessionDataService.getSessionDataDir(session);
+	const peerDir = sessionDataService.getSessionDataDir(peerStorage);
+	assert.notStrictEqual(sessionDir.toString(), peerDir.toString());
+	await fileService.createFolder(sessionDir);
+	await fileService.createFolder(peerDir);
+	await fileService.writeFile(URI.joinPath(sessionDir, 'marker.txt'), VSBuffer.fromString('session'));
+	await fileService.writeFile(URI.joinPath(peerDir, 'marker.txt'), VSBuffer.fromString('peer'));
+
+	const ref = sessionDataService.openDatabase(peerStorage);
+	try {
+		await ref.object.storeFileEdit({
+			turnId: 'turn-peer',
+			toolCallId: 'tc-peer',
+			kind: FileEditKind.Edit,
+			filePath: '/workspace/peer.ts',
+			beforeContent: new TextEncoder().encode('before-text'),
+			afterContent: new TextEncoder().encode('after-text'),
+			addedLines: 1,
+			removedLines: 1,
+		});
+		const content = await ref.object.readFileEditContent('tc-peer', '/workspace/peer.ts');
+		assert.strictEqual(new TextDecoder().decode(content?.beforeContent), 'before-text');
+		assert.strictEqual(new TextDecoder().decode(content?.afterContent), 'after-text');
+	} finally {
+		ref.dispose();
+	}
+
+	return {
+		localService,
+		session,
+		peerStorage,
+		sessionDir,
+		peerDir,
+		workingDirectories: getStateManager(localService).getSessionState(session.toString())?.workingDirectories,
+		deleted,
+	};
 }
 
 function isWorkingDirectoryPending(service: AgentService, session: URI | string): boolean {
@@ -3074,6 +3157,26 @@ suite('AgentService (node dispatcher)', () => {
 			await svc.disposeSession(session);
 
 			assert.deepStrictEqual(order, ['prepareSessionDeletion', 'deleteSessionData', 'removeSessionWorktree:file:///worktree']);
+		});
+
+		test('disposeSession deletes the session directory and each peer chat directory', async () => {
+			const seeded = await createSessionWithPeerFileEdit(disposables, fileService);
+			const workspace = URI.file('/workspace/r02').toString();
+			assert.deepStrictEqual(seeded.workingDirectories, [workspace]);
+
+			await seeded.localService.disposeSession(seeded.session);
+
+			assert.deepStrictEqual({
+				sessionDir: await fileService.exists(seeded.sessionDir),
+				peerDir: await fileService.exists(seeded.peerDir),
+				deleted: seeded.deleted.map(event => event.uri).sort(),
+				workingDirectories: seeded.deleted.map(event => event.workingDirectories),
+			}, {
+				sessionDir: false,
+				peerDir: false,
+				deleted: [seeded.peerStorage.toString(), seeded.session.toString()].sort(),
+				workingDirectories: [[workspace], [workspace]],
+			});
 		});
 
 		test('preserves session data when worktree metadata cannot be read', async () => {
@@ -12189,6 +12292,23 @@ suite('AgentService (node dispatcher)', () => {
 			}, {
 				afterCreate: [peerUri.toString()],
 				afterDispose: [],
+			});
+		});
+
+		test('disposeChat deletes only the peer chat directory', async () => {
+			const seeded = await createSessionWithPeerFileEdit(disposables, fileService);
+			const workspace = URI.file('/workspace/r02').toString();
+
+			await seeded.localService.disposeChat(seeded.session, seeded.peerStorage);
+
+			assert.deepStrictEqual({
+				sessionDir: await fileService.exists(seeded.sessionDir),
+				peerDir: await fileService.exists(seeded.peerDir),
+				deleted: seeded.deleted.map(event => ({ uri: event.uri, workingDirectories: event.workingDirectories })),
+			}, {
+				sessionDir: true,
+				peerDir: false,
+				deleted: [{ uri: seeded.peerStorage.toString(), workingDirectories: [workspace] }],
 			});
 		});
 

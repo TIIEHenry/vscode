@@ -860,9 +860,10 @@ export class WorktreeIsolation extends Disposable implements IAgentHostWorktreeI
 
 	/**
 	 * On archive, removes the worktree directory when its branch is preserved
-	 * and the working tree is clean, so the worktree can be recreated on
-	 * unarchive without losing work. Skips the removal when the branch is
-	 * missing or the tree is dirty.
+	 * and uncommitted work is either absent or successfully committed, so the
+	 * worktree can be recreated on unarchive without losing work. Leaves the
+	 * directory in place when the branch is missing, status cannot be read,
+	 * or the commit fails.
 	 */
 	async cleanupWorktreeOnArchive(sessionUri: URI, sessionId: string): Promise<void> {
 		return this._sequencer.queue(sessionId, () => this._cleanupWorktreeOnArchive(sessionUri, sessionId));
@@ -891,8 +892,16 @@ export class WorktreeIsolation extends Disposable implements IAgentHostWorktreeI
 			return;
 		}
 
-		// Commit any uncommitted changes before archiving the session
-		const hasUncommittedChanges = await this._gitService.hasUncommittedChanges(worktreePath).catch(() => true);
+		// Only a successful status may decide that the tree is clean enough to
+		// delete. A timeout, lock, or other failure leaves the directory in
+		// place, the same as a failed commit.
+		let hasUncommittedChanges: boolean;
+		try {
+			hasUncommittedChanges = await this._gitService.hasUncommittedChanges(worktreePath);
+		} catch (error) {
+			this._logService.warn(`[${this._logLabel}:${sessionId}] Failed to determine uncommitted changes in '${worktreePath.fsPath}': ${errorMessage(error)}`);
+			return;
+		}
 		if (hasUncommittedChanges) {
 			try {
 				await this._gitService.commitAll(worktreePath, localize('worktreeIsolation.commitMessage', 'Saving uncommitted changes before archiving session'));

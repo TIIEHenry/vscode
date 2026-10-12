@@ -12,7 +12,7 @@ import { join } from '../../../../../base/common/path.js';
 import { basename } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { NullLogService } from '../../../../log/common/log.js';
+import { ILogService, NullLogService } from '../../../../log/common/log.js';
 import { GitRefType, IAgentHostGitService, type IAddWorktreeOptions } from '../../../common/agentHostGitService.js';
 import { SessionConfigKey } from '../../../common/sessionConfigKeys.js';
 import { AH_META_IS_ARCHIVED_DB_KEY, AH_META_IS_DONE_DB_KEY, MessageKind, ResponsePartKind, TurnState, type Turn } from '../../../common/state/sessionState.js';
@@ -119,7 +119,7 @@ suite('WorktreeIsolation', () => {
 		};
 	}
 
-	function createIsolation(disposableStore: Pick<DisposableStore, 'add'>, options?: { readonly branchNameGenerator?: IAgentBranchNameGenerator; readonly gitService?: IAgentHostGitService }): WorktreeIsolation {
+	function createIsolation(disposableStore: Pick<DisposableStore, 'add'>, options?: { readonly branchNameGenerator?: IAgentBranchNameGenerator; readonly gitService?: IAgentHostGitService; readonly logService?: ILogService }): WorktreeIsolation {
 		const branchNameGenerator = options?.branchNameGenerator ?? {
 			_serviceBrand: undefined,
 			generateBranchName: async () => branchName,
@@ -128,7 +128,7 @@ suite('WorktreeIsolation', () => {
 			branchNameGenerator,
 			options?.gitService ?? createGitService(),
 			createSessionDataService(db),
-			new NullLogService(),
+			options?.logService ?? new NullLogService(),
 		));
 	}
 
@@ -910,6 +910,33 @@ suite('WorktreeIsolation', () => {
 			removedDuringArchive: true,
 			addExistingCalls: [{ worktree: worktree!.toString(), branchName }],
 			restoredDuringUnarchive: true,
+		});
+	});
+
+	test('cleanup on archive leaves the worktree when status fails', async () => {
+		const gitService = createGitService();
+		let commitAllCalls = 0;
+		gitService.hasUncommittedChanges = async () => { throw new Error('status failed'); };
+		gitService.commitAll = async () => { commitAllCalls++; };
+		const warnings: string[] = [];
+		const logService: ILogService = Object.assign(new NullLogService(), {
+			warn: (message: string) => { warnings.push(message); },
+		});
+		const isolation = createIsolation(disposables, { gitService, logService });
+		const worktree = await isolation.resolveWorkingDirectory({ sessionUri, sessionId, workingDirectory: repoRoot, config: { [SessionConfigKey.Isolation]: 'worktree', [SessionConfigKey.Branch]: 'main' } });
+
+		await isolation.cleanupWorktreeOnArchive(sessionUri, sessionId);
+
+		assert.deepStrictEqual({
+			removeCalls,
+			commitAllCalls,
+			worktreeStillPresent: worktree ? existsSync(worktree.fsPath) : false,
+			warned: warnings.some(message => message.includes('Failed to determine uncommitted changes') && message.includes('status failed')),
+		}, {
+			removeCalls: [],
+			commitAllCalls: 0,
+			worktreeStillPresent: true,
+			warned: true,
 		});
 	});
 
