@@ -21,7 +21,7 @@ import { IProductService } from '../../../product/common/productService.js';
 
 import { ISharedProcessService } from '../../../ipc/electron-browser/services.js';
 import { IQuickInputService } from '../../../quickinput/common/quickInput.js';
-import { addSSHRemoteAgentHostEntry, IRemoteAgentHostService, readSSHRemoteAgentHostEntries, RemoteAgentHostConnectionStatus, RemoteAgentHostEntryType, RemoteAgentHostsEnabledSettingId, RemoteAgentHostsSettingId, SSH_REMOTE_AGENT_HOSTS_STORAGE_KEY, type IRawRemoteAgentHostEntry, type IRemoteAgentHostConnectionFactory, type IRemoteAgentHostConnectionInfo } from '../../common/remoteAgentHostService.js';
+import { addSSHRemoteAgentHostEntry, IRemoteAgentHostService, readSSHRemoteAgentHostEntries, RemoteAgentHostConnectionStatus, RemoteAgentHostEntryType, RemoteAgentHostsEnabledSettingId, RemoteAgentHostsSettingId, SSH_REMOTE_AGENT_HOSTS_STORAGE_KEY, type IRawRemoteAgentHostEntry, type IRemoteAgentHostConnectionFactory, type IRemoteAgentHostConnectionInfo, type IRemoteAgentHostSSHConnection } from '../../common/remoteAgentHostService.js';
 import type { IAgentConnection } from '../../common/agentService.js';
 import { AHP_UNSUPPORTED_PROTOCOL_VERSION, ProtocolError } from '../../common/state/sessionProtocol.js';
 import { IRemoteAgentHostLocationPreferenceService, type RemoteAgentHostLocationPreference } from '../../common/remoteAgentHostLocationPreference.js';
@@ -683,7 +683,7 @@ suite('SSHRemoteAgentHostService (renderer)', () => {
 				address: 'ssh:added.example',
 				sshConfigHost: 'added.example',
 				hostName: 'added.example',
-			},
+			} satisfies IRemoteAgentHostSSHConnection,
 		};
 		for (const raw of ['{not json', '{"hosts":[]}']) {
 			storeRawSSHStorage(raw);
@@ -745,7 +745,13 @@ suite('SSHRemoteAgentHostService (renderer)', () => {
 			},
 		]);
 		assert.deepStrictEqual(
-			readSSHRemoteAgentHostEntries(sshStorageService).map(entry => entry.connection.address),
+			readSSHRemoteAgentHostEntries(sshStorageService).map(entry => {
+				const connection = entry.connection;
+				if (!('address' in connection)) {
+					throw new Error('Expected a remote agent host connection with an address.');
+				}
+				return connection.address;
+			}),
 			['ssh:other.example', 'ssh:remote.example'],
 		);
 	});
