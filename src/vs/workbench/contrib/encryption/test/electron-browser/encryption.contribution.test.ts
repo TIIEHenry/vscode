@@ -48,7 +48,7 @@ suite('EncryptionContribution', () => {
 			setEncryptionContributionTestIsLinux(value: boolean): void;
 		};
 		setLinux = platform.setEncryptionContributionTestIsLinux;
-		({ EncryptionContribution } = await import('../../electron-browser/encryption.contribution.js') as Promise<{ EncryptionContribution: EncryptionContributionCtor }>);
+		({ EncryptionContribution } = await import('../../electron-browser/encryption.contribution.js') as { EncryptionContribution: EncryptionContributionCtor });
 	});
 
 	setup(() => setLinux(true));
