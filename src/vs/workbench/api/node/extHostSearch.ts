@@ -77,7 +77,14 @@ export class NativeExtHostSearch extends ExtHostSearch implements IDisposable {
 
 	async getNumThreadsCached(): Promise<number | undefined> {
 		if (!this._numThreadsPromise) {
-			this._numThreadsPromise = this.getNumThreads();
+			const promise = this.getNumThreads();
+			this._numThreadsPromise = promise;
+			// Drop only this attempt. A later search reads again; an in-flight or fulfilled promise stays shared.
+			promise.catch(() => {
+				if (this._numThreadsPromise === promise) {
+					this._numThreadsPromise = undefined;
+				}
+			});
 		}
 		return this._numThreadsPromise;
 	}
