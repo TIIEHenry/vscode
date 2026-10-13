@@ -185,7 +185,14 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 
 	private async doCreateOutputChannel(name: string, languageId: string | undefined, extension: IExtensionDescription, channelDisposables: DisposableStore): Promise<ExtHostOutputChannel> {
 		if (!this.outputDirectoryPromise) {
-			this.outputDirectoryPromise = this.extHostFileSystem.value.createDirectory(this.outputsLocation).then(() => this.outputsLocation);
+			const promise = this.extHostFileSystem.value.createDirectory(this.outputsLocation).then(() => this.outputsLocation);
+			this.outputDirectoryPromise = promise;
+			// Drop only this attempt. A later channel must create the directory again; an in-flight or fulfilled promise stays shared.
+			promise.catch(() => {
+				if (this.outputDirectoryPromise === promise) {
+					this.outputDirectoryPromise = undefined;
+				}
+			});
 		}
 		const outputDir = await this.outputDirectoryPromise;
 		const file = this.extHostFileSystemInfo.extUri.joinPath(outputDir, `${this.namePool++}-${name.replace(/[\\/:\*\?"<>\|]/g, '')}.log`);
@@ -207,7 +214,7 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 		const extensionLogDirectory = this.extHostFileSystemInfo.extUri.dirname(file);
 		let extensionLogDirectoryPromise = this.extensionLogDirectoryCreationPromise.get(extensionLogDirectory);
 		if (!extensionLogDirectoryPromise) {
-			this.extensionLogDirectoryCreationPromise.set(extensionLogDirectory, extensionLogDirectoryPromise = (async () => {
+			const promise = (async () => {
 				try {
 					await this.extHostFileSystem.value.createDirectory(extensionLogDirectory);
 				} catch (err) {
@@ -215,7 +222,15 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 						throw err;
 					}
 				}
-			})());
+			})();
+			this.extensionLogDirectoryCreationPromise.set(extensionLogDirectory, promise);
+			// FileExists resolves and stays cached. Drop any other rejection only while the map still points at this attempt.
+			promise.catch(() => {
+				if (this.extensionLogDirectoryCreationPromise.get(extensionLogDirectory) === promise) {
+					this.extensionLogDirectoryCreationPromise.delete(extensionLogDirectory);
+				}
+			});
+			extensionLogDirectoryPromise = promise;
 		}
 		return extensionLogDirectoryPromise;
 	}
