@@ -28,7 +28,14 @@ export abstract class ExtensionRecommendations extends Disposable {
 	get activated(): boolean { return this._activationPromise !== null; }
 	activate(): Promise<void> {
 		if (!this._activationPromise) {
-			this._activationPromise = this.doActivate();
+			const promise = this.doActivate();
+			this._activationPromise = promise;
+			// Drop only this attempt. Callers still see the rejection. The next activate calls doActivate again; an in-flight or fulfilled promise stays shared.
+			promise.catch(() => {
+				if (this._activationPromise === promise) {
+					this._activationPromise = null;
+				}
+			});
 		}
 		return this._activationPromise;
 	}
