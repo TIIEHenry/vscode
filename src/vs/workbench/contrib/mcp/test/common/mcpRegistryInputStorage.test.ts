@@ -217,9 +217,9 @@ suite('Workbench - MCP - RegistryInputStorage', () => {
 	}
 
 	function readStoredInputs(): IStoredInputs {
-		const stored = testStorageService.getObject<IStoredInputs>('mcpInputs', StorageScope.APPLICATION);
+		const stored = testStorageService.getObject('mcpInputs', StorageScope.APPLICATION);
 		assert.ok(stored);
-		return stored;
+		return stored as IStoredInputs;
 	}
 
 	async function assertStoredCiphertextSurvivesKeyFailure(corruptKey: string): Promise<void> {
