@@ -987,7 +987,16 @@ export class UserDataProfilesEditorModel extends EditorModel {
 
 	getTemplates(): Promise<readonly IProfileTemplateInfo[]> {
 		if (!this.templates) {
-			this.templates = this.userDataProfileManagementService.getBuiltinProfileTemplates();
+			const templates = this.userDataProfileManagementService.getBuiltinProfileTemplates();
+			this.templates = templates;
+			// In-flight callers share this promise. A resolved list, including [], stays
+			// cached. On rejection, drop it only while the field is still this promise so
+			// the next setInput can request again.
+			void templates.catch(() => {
+				if (this.templates === templates) {
+					this.templates = undefined;
+				}
+			});
 		}
 		return this.templates;
 	}

@@ -161,19 +161,24 @@ export class UserDataProfileManagementService extends Disposable implements IUse
 	}
 
 	async getBuiltinProfileTemplates(): Promise<IProfileTemplateInfo[]> {
-		if (this.productService.profileTemplatesUrl) {
-			try {
-				const context = await this.requestService.request({ type: 'GET', url: this.productService.profileTemplatesUrl, callSite: 'userDataProfileManagement.getProfileTemplates' }, CancellationToken.None);
-				if (context.res.statusCode === 200) {
-					return (await asJson<IProfileTemplateInfo[]>(context)) || [];
-				} else {
-					this.logService.error('Could not get profile templates.', context.res.statusCode);
-				}
-			} catch (error) {
-				this.logService.error(error);
-			}
+		if (!this.productService.profileTemplatesUrl) {
+			return [];
 		}
-		return [];
+
+		let context: Awaited<ReturnType<IRequestService['request']>>;
+		try {
+			context = await this.requestService.request({ type: 'GET', url: this.productService.profileTemplatesUrl, callSite: 'userDataProfileManagement.getProfileTemplates' }, CancellationToken.None);
+		} catch (error) {
+			this.logService.error(error);
+			throw error;
+		}
+
+		if (context.res.statusCode !== 200) {
+			this.logService.error('Could not get profile templates.', context.res.statusCode);
+			throw new Error(`Could not get profile templates: ${context.res.statusCode}`);
+		}
+
+		return (await asJson<IProfileTemplateInfo[]>(context)) || [];
 	}
 
 	private async changeCurrentProfile(profile: IUserDataProfile, reloadMessage?: string): Promise<void> {
