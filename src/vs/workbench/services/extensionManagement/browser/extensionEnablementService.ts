@@ -900,7 +900,7 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 	}
 }
 
-class ExtensionsManager extends Disposable {
+export class ExtensionsManager extends Disposable {
 
 	private _extensions: IExtension[] = [];
 	get extensions(): readonly IExtension[] { return this._extensions; }
@@ -908,7 +908,8 @@ class ExtensionsManager extends Disposable {
 	private _onDidChangeExtensions = this._register(new Emitter<{ added: readonly IExtension[]; removed: readonly IExtension[]; readonly isProfileSwitch: boolean }>());
 	readonly onDidChangeExtensions = this._onDidChangeExtensions.event;
 
-	private readonly initializePromise;
+	private initializePromise: Promise<void> | undefined;
+	private extensionListenersRegistered = false;
 	private disposed: boolean = false;
 
 	constructor(
@@ -922,22 +923,50 @@ class ExtensionsManager extends Disposable {
 	}
 
 	whenInitialized(): Promise<void> {
+		if (!this.initializePromise) {
+			this.initializePromise = this.initialize();
+		}
 		return this.initializePromise;
 	}
 
-	private async initialize(): Promise<void> {
-		try {
-			this._extensions = [
-				...await this.extensionManagementService.getInstalled(),
-				...await this.extensionManagementService.getInstalledWorkspaceExtensions(true)
-			];
-			if (this.disposed) {
+	private initialize(): Promise<void> {
+		const attempt: { promise?: Promise<void> } = {};
+		const promise = (async () => {
+			let failed = false;
+			try {
+				this._extensions = [
+					...await this.extensionManagementService.getInstalled(),
+					...await this.extensionManagementService.getInstalledWorkspaceExtensions(true)
+				];
+				if (this.disposed) {
+					return;
+				}
+				this._onDidChangeExtensions.fire({ added: this.extensions, removed: [], isProfileSwitch: false });
+			} catch (error) {
+				failed = true;
+				this.logService.error(error);
+			}
+			this.registerExtensionListeners();
+			if (!failed) {
 				return;
 			}
-			this._onDidChangeExtensions.fire({ added: this.extensions, removed: [], isProfileSwitch: false });
-		} catch (error) {
-			this.logService.error(error);
+			// A synchronous getInstalled throw is caught before this promise is stored.
+			// Drop it only while it is still this attempt so the next whenInitialized reads again.
+			await Promise.resolve();
+			if (this.initializePromise === attempt.promise) {
+				this.initializePromise = undefined;
+			}
+		})();
+		attempt.promise = promise;
+		this.initializePromise = promise;
+		return promise;
+	}
+
+	private registerExtensionListeners(): void {
+		if (this.extensionListenersRegistered) {
+			return;
 		}
+		this.extensionListenersRegistered = true;
 		this._register(this.extensionManagementService.onDidInstallExtensions(e =>
 			this.updateExtensions(e.reduce<IExtension[]>((result, { local, operation }) => {
 				if (local && operation !== InstallOperation.Migrate) { result.push(local); } return result;
