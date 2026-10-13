@@ -19,15 +19,46 @@ export class TextResourcePropertiesService implements ITextResourcePropertiesSer
 
 	declare readonly _serviceBrand: undefined;
 
-	private remoteEnvironment: IRemoteAgentEnvironment | null = null;
+	private _remoteEnvironment: IRemoteAgentEnvironment | null = null;
+	/** True after a fulfilled read, including `null` (no remote environment). Rejection does not set this. */
+	private remoteEnvironmentSettled = false;
+	private remoteEnvironmentInflight = false;
+
+	private get remoteEnvironment(): IRemoteAgentEnvironment | null {
+		return this._remoteEnvironment;
+	}
+
+	private set remoteEnvironment(remoteEnv: IRemoteAgentEnvironment | null) {
+		this._remoteEnvironment = remoteEnv;
+		this.remoteEnvironmentSettled = true;
+	}
 
 	constructor(
 		@IConfigurationService private readonly configurationService: IConfigurationService,
-		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
+		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 		@IStorageService private readonly storageService: IStorageService
 	) {
-		remoteAgentService.getEnvironment().then(remoteEnv => this.remoteEnvironment = remoteEnv).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.readRemoteEnvironment();
+	}
+
+	private readRemoteEnvironment(): void {
+		if (this.remoteEnvironmentSettled || this.remoteEnvironmentInflight) {
+			return;
+		}
+
+		const remoteAgentService = this.remoteAgentService;
+		// Double catch fulfills on rejection, so the promise is dropped and is not a failure cache.
+		this.releaseRemoteEnvironmentAttempt(remoteAgentService.getEnvironment().then(remoteEnv => this.remoteEnvironment = remoteEnv).catch(onUnexpectedError).catch(onUnexpectedError));
+	}
+
+	private releaseRemoteEnvironmentAttempt(swallowed: Promise<unknown>): void {
+		this.remoteEnvironmentInflight = true;
+		swallowed.then(() => {
+			this.remoteEnvironmentInflight = false;
+		}, () => {
+			this.remoteEnvironmentInflight = false;
+		});
 	}
 
 	getEOL(resource?: URI, language?: string): string {
@@ -45,6 +76,7 @@ export class TextResourcePropertiesService implements ITextResourcePropertiesSer
 		const remoteAuthority = this.environmentService.remoteAuthority;
 		if (remoteAuthority) {
 			if (resource && resource.scheme !== Schemas.file) {
+				this.readRemoteEnvironment();
 				const osCacheKey = `resource.authority.os.${remoteAuthority}`;
 				os = this.remoteEnvironment ? this.remoteEnvironment.os : /* Get it from cache */ this.storageService.getNumber(osCacheKey, StorageScope.WORKSPACE, OS);
 				this.storageService.store(osCacheKey, os, StorageScope.WORKSPACE, StorageTarget.MACHINE);
