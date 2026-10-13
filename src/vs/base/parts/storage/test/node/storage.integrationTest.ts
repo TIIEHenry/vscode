@@ -588,6 +588,77 @@ flakySuite('Storage Library', function () {
 		});
 	});
 
+	test('queued flush rejects the caller while the first updateItems is in flight', () => {
+		return runWithFakedTimers({}, async function () {
+			let updateCalls = 0;
+			const gates: Array<{ resolve: () => void; reject: (error: Error) => void }> = [];
+
+			class ControlledStorageDatabase implements IStorageDatabase {
+				readonly onDidChangeItemsExternal = Event.None;
+
+				async getItems(): Promise<Map<string, string>> {
+					return new Map();
+				}
+
+				updateItems(request: IUpdateRequest): Promise<void> {
+					updateCalls++;
+					if (updateCalls === 1) {
+						strictEqual(request.insert?.get('key1'), 'value1');
+					} else if (updateCalls === 2) {
+						strictEqual(request.insert?.get('key2'), 'value2');
+					} else {
+						return Promise.resolve();
+					}
+					return new Promise((resolve, reject) => {
+						gates.push({ resolve, reject });
+					});
+				}
+
+				async optimize(): Promise<void> { }
+				async close(): Promise<void> { }
+			}
+
+			const storage = new Storage(new ControlledStorageDatabase());
+			await storage.init();
+
+			const unhandled: unknown[] = [];
+			const onUnhandled = (reason: unknown) => { unhandled.push(reason); };
+			process.on('unhandledRejection', onUnhandled);
+
+			try {
+				const firstSet = storage.set('key1', 'value1');
+				const flush1 = storage.flush(0);
+				await timeout(1);
+				strictEqual(updateCalls, 1);
+
+				const secondSet = storage.set('key2', 'value2');
+				const flush2 = storage.flush(0);
+				await timeout(1);
+				strictEqual(updateCalls, 1);
+
+				gates[0].resolve();
+				await Promise.all([flush1, firstSet]);
+				await timeout(1);
+				strictEqual(updateCalls, 2);
+
+				const secondRejected = Promise.all([
+					rejects(flush2, /second flush failed/),
+					rejects(secondSet, /second flush failed/),
+				]);
+				gates[1].reject(new Error('second flush failed'));
+				await secondRejected;
+
+				await new Promise<void>(resolve => process.nextTick(resolve));
+				strictEqual(unhandled.length, 0);
+				await storage.close();
+				await new Promise<void>(resolve => process.nextTick(resolve));
+				strictEqual(unhandled.length, 0);
+			} finally {
+				process.off('unhandledRejection', onUnhandled);
+			}
+		});
+	});
+
 	test('conflicting updates', () => {
 		return runWithFakedTimers({}, async function () {
 			const storage = new Storage(new SQLiteStorageDatabase(join(testDir, 'storage.db')));

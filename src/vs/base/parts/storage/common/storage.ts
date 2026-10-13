@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ThrottledDelayer } from '../../../common/async.js';
+import { Delayer, Sequencer } from '../../../common/async.js';
 import { onUnexpectedError } from '../../../common/errors.js';
 import { Event, PauseableEmitter } from '../../../common/event.js';
-import { Disposable, IDisposable } from '../../../common/lifecycle.js';
+import { Disposable, IDisposable, toDisposable } from '../../../common/lifecycle.js';
 import { parse, stringify } from '../../../common/marshalling.js';
 import { isObject, isUndefined, isUndefinedOrNull } from '../../../common/types.js';
 
@@ -113,6 +113,13 @@ export enum StorageState {
 	Closed
 }
 
+interface IFlushScheduleBatch {
+	readonly promise: Promise<void>;
+	settled: boolean;
+	resolve: () => void;
+	reject: (error: unknown) => void;
+}
+
 export class Storage extends Disposable implements IStorage {
 
 	private static readonly DEFAULT_FLUSH_DELAY = 100;
@@ -124,7 +131,15 @@ export class Storage extends Disposable implements IStorage {
 
 	private cache = new Map<string, string>();
 
-	private readonly flushDelayer = this._register(new ThrottledDelayer<void>(Storage.DEFAULT_FLUSH_DELAY));
+	// ThrottledDelayer queues through Throttler. A flush that starts while an
+	// earlier flushPending is still running is that queued task. If it rejects,
+	// `activePromise.then(onComplete, onComplete).then(resolve)` never settles
+	// the caller and leaves the rejection unhandled. Debounce here, sequence
+	// below, and settle the delay window ourselves.
+	private flushSchedulingDisposed = false;
+	private readonly flushDelayer = this.createFlushDelayer();
+	private readonly flushSequencer = new Sequencer();
+	private flushScheduleBatch: IFlushScheduleBatch | undefined;
 
 	private pendingDeletes = new Set<string>();
 	private pendingInserts = new Map<string, string>();
@@ -583,12 +598,99 @@ export class Storage extends Disposable implements IStorage {
 		return this.doFlush(delay);
 	}
 
-	private async doFlush(delay?: number): Promise<void> {
+	private doFlush(delay?: number): Promise<void> {
 		if (this.options.hint === StorageHint.STORAGE_IN_MEMORY) {
 			return this.flushPending(); // return early if in-memory
 		}
 
-		return this.flushDelayer.trigger(() => this.flushPending(), delay);
+		return this.scheduleFlush(delay);
+	}
+
+	private createFlushDelayer(): Delayer<void> {
+		const delayer = new Delayer<void>(Storage.DEFAULT_FLUSH_DELAY);
+		this._register(toDisposable(() => {
+			this.flushSchedulingDisposed = true;
+			delayer.dispose();
+		}));
+		return delayer;
+	}
+
+	private scheduleFlush(delay?: number): Promise<void> {
+		const batch = this.flushScheduleBatch ?? this.openFlushBatch();
+		// Each call resets the debounce. One delay window shares one promise.
+		const scheduled = this.flushDelayer.trigger(() => {
+			return this.queueFlushBatch(this.detachFlushBatch(batch));
+		}, delay);
+		scheduled.catch(error => this.rejectFlushBatch(batch, error));
+		return batch.promise;
+	}
+
+	private openFlushBatch(): IFlushScheduleBatch {
+		let resolve!: () => void;
+		let reject!: (error: unknown) => void;
+		const promise = new Promise<void>((res, rej) => {
+			resolve = res;
+			reject = rej;
+		});
+		const batch: IFlushScheduleBatch = {
+			promise,
+			settled: false,
+			resolve: () => { },
+			reject: () => { },
+		};
+		batch.resolve = () => {
+			if (batch.settled) {
+				return;
+			}
+			batch.settled = true;
+			resolve();
+		};
+		batch.reject = (error: unknown) => {
+			if (batch.settled) {
+				return;
+			}
+			batch.settled = true;
+			reject(error);
+		};
+		this.flushScheduleBatch = batch;
+		return batch;
+	}
+
+	private detachFlushBatch(batch: IFlushScheduleBatch): IFlushScheduleBatch {
+		if (this.flushScheduleBatch === batch) {
+			this.flushScheduleBatch = undefined;
+		}
+		return batch;
+	}
+
+	private rejectFlushBatch(batch: IFlushScheduleBatch, error: unknown): void {
+		if (this.flushScheduleBatch === batch) {
+			this.flushScheduleBatch = undefined;
+		}
+		batch.reject(error);
+	}
+
+	private queueFlushBatch(batch: IFlushScheduleBatch): Promise<void> {
+		return this.flushSequencer.queue(() => {
+			if (batch.settled) {
+				return Promise.resolve();
+			}
+
+			// Already handed to the sequencer, then disposed. Throttler skips that
+			// queued task and resolves it (cancelled onComplete returns undefined).
+			if (this.flushSchedulingDisposed) {
+				batch.resolve();
+				return Promise.resolve();
+			}
+
+			// Do not rethrow. The caller is batch.promise; a rejection here would
+			// be the sequencer/delayer promise, which is not that caller.
+			return this.flushPending().then(() => {
+				batch.resolve();
+			}, error => {
+				batch.reject(error);
+			});
+		});
 	}
 
 	async whenFlushed(): Promise<void> {
