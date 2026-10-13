@@ -81,6 +81,7 @@ export abstract class AbstractExtensionResourceLoaderService extends Disposable 
 		private readonly _configurationService: IConfigurationService,
 		private readonly _extensionGalleryManifestService: IExtensionGalleryManifestService,
 		protected readonly _logService: ILogService,
+		private readonly _readServiceMachineId: typeof getServiceMachineId = getServiceMachineId,
 	) {
 		super();
 		this._initPromise = this._init();
@@ -149,7 +150,14 @@ export abstract class AbstractExtensionResourceLoaderService extends Disposable 
 	private _serviceMachineIdPromise: Promise<string> | undefined;
 	private _getServiceMachineId(): Promise<string> {
 		if (!this._serviceMachineIdPromise) {
-			this._serviceMachineIdPromise = getServiceMachineId(this._environmentService, this._fileService, this._storageService);
+			const promise = this._readServiceMachineId(this._environmentService, this._fileService, this._storageService);
+			this._serviceMachineIdPromise = promise;
+			// In-flight callers share this promise. Drop it only while the field still points at this attempt.
+			promise.catch(() => {
+				if (this._serviceMachineIdPromise === promise) {
+					this._serviceMachineIdPromise = undefined;
+				}
+			});
 		}
 		return this._serviceMachineIdPromise;
 	}
