@@ -151,31 +151,45 @@ export class LanguageDetectionWorker implements ILanguageDetectionWorker {
 		if (this._modelOperations) {
 			return Promise.resolve(this._modelOperations);
 		}
+
 		if (!this._modelOperationsLoadPromise) {
-			this._modelOperationsLoadPromise = (async () => {
-				const uri: string = await this._host.$getIndexJsUri();
-				const { ModelOperations } = await importAMDNodeModule(uri, '') as typeof import('@vscode/vscode-languagedetection');
-				this._modelOperations = new ModelOperations({
-					modelJsonLoaderFunc: async () => {
-						const response = await fetch(await this._host.$getModelJsonUri());
-						try {
-							const modelJSON = await response.json();
-							return modelJSON;
-						} catch (e) {
-							const message = `Failed to parse model JSON.`;
-							throw new Error(message);
-						}
-					},
-					weightsLoaderFunc: async () => {
-						const response = await fetch(await this._host.$getWeightsUri());
-						const buffer = await response.arrayBuffer();
-						return buffer;
-					}
-				});
-				return this._modelOperations;
-			})();
+			const loadPromise = this.createModelOperations().then(operations => {
+				this._modelOperations = operations;
+				return operations;
+			});
+			this._modelOperationsLoadPromise = loadPromise;
+			// Drop only this attempt. A later call loads again; an in-flight or fulfilled promise stays shared.
+			loadPromise.catch(() => {
+				if (this._modelOperationsLoadPromise === loadPromise) {
+					this._modelOperationsLoadPromise = undefined;
+				}
+			});
 		}
 		return this._modelOperationsLoadPromise;
+	}
+
+	private createModelOperations(): Promise<ModelOperations> {
+		return (async () => {
+			const uri: string = await this._host.$getIndexJsUri();
+			const { ModelOperations } = await importAMDNodeModule(uri, '') as typeof import('@vscode/vscode-languagedetection');
+			return new ModelOperations({
+				modelJsonLoaderFunc: async () => {
+					const response = await fetch(await this._host.$getModelJsonUri());
+					try {
+						const modelJSON = await response.json();
+						return modelJSON;
+					} catch (e) {
+						const message = `Failed to parse model JSON.`;
+						throw new Error(message);
+					}
+				},
+				weightsLoaderFunc: async () => {
+					const response = await fetch(await this._host.$getWeightsUri());
+					const buffer = await response.arrayBuffer();
+					return buffer;
+				}
+			});
+		})();
 	}
 
 	// This adjusts the language confidence scores to be more accurate based on:
