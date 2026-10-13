@@ -109,7 +109,8 @@ export class WalkThroughInput extends EditorInput {
 
 	override resolve(): Promise<WalkThroughModel> {
 		if (!this.promise) {
-			this.promise = moduleToContent(this.instantiationService, this.options.resource)
+			// Drop only this failed attempt. A resolved model stays cached; the caller still sees the rejection.
+			const promise = this.promise = moduleToContent(this.instantiationService, this.options.resource)
 				.then(content => {
 					if (this.resource.path.endsWith('.html')) {
 						return new WalkThroughModel(content, []);
@@ -130,6 +131,11 @@ export class WalkThroughInput extends EditorInput {
 					return Promise.all(snippets)
 						.then(refs => new WalkThroughModel(content, refs));
 				});
+			promise.catch(() => {
+				if (this.promise === promise) {
+					this.promise = null;
+				}
+			});
 		}
 
 		return this.promise;
