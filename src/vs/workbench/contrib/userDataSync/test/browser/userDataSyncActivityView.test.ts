@@ -9,7 +9,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
-import { IFileService, IFileStat } from '../../../../../platform/files/common/files.js';
+import { IFileService, IFileStatWithMetadata, IResolveFileOptions } from '../../../../../platform/files/common/files.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IUriIdentityService } from '../../../../../platform/uriIdentity/common/uriIdentity.js';
 import { IUserDataProfile, IUserDataProfilesService } from '../../../../../platform/userDataProfile/common/userDataProfile.js';
@@ -302,7 +302,7 @@ function resourceProvider(overrides: Partial<IUserDataSyncResourceProviderServic
 	});
 }
 
-function createInstantiationService(disposables: DisposableStore, onError?: () => void): TestInstantiationService {
+function createInstantiationService(disposables: Pick<DisposableStore, 'add'>, onError?: () => void): TestInstantiationService {
 	const instantiationService = disposables.add(new TestInstantiationService());
 	const defaultProfile = upcastPartial<IUserDataProfile>({ id: 'default', name: 'Default', isDefault: true });
 	const otherProfile = upcastPartial<IUserDataProfile>({ id: otherProfileId, name: 'Other', isDefault: false });
@@ -319,10 +319,11 @@ function createInstantiationService(disposables: DisposableStore, onError?: () =
 	return instantiationService;
 }
 
-function createExtractedInstantiationService(disposables: DisposableStore, onError?: () => void): TestInstantiationService {
+function createExtractedInstantiationService(disposables: Pick<DisposableStore, 'add'>, onError?: () => void): TestInstantiationService {
 	const instantiationService = createInstantiationService(disposables, onError);
+	const resolve: IFileService['resolve'] = async (_resource: URI, _options?: IResolveFileOptions): Promise<IFileStatWithMetadata> => upcastPartial<IFileStatWithMetadata>({ isDirectory: true });
 	instantiationService.stub(IFileService, upcastPartial<IFileService>({
-		resolve: async () => upcastPartial<IFileStat>({ isDirectory: true }),
+		resolve,
 	}));
 	instantiationService.stub(IUriIdentityService, upcastPartial<IUriIdentityService>({}));
 	return instantiationService;
