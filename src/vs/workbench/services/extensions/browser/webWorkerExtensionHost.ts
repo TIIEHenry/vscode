@@ -10,7 +10,7 @@ import { Barrier } from '../../../../base/common/async.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { canceled, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { AppResourcePath, COI, FileAccess } from '../../../../base/common/network.js';
 import * as platform from '../../../../base/common/platform.js';
 import { joinPath } from '../../../../base/common/resources.js';
@@ -134,123 +134,141 @@ export class WebWorkerExtensionHost extends Disposable implements IExtensionHost
 
 	public async start(): Promise<IMessagePassingProtocol> {
 		if (!this._protocolPromise) {
-			this._protocolPromise = this._startInsideIframe();
+			const protocolPromise = this._startInsideIframe();
+			this._protocolPromise = protocolPromise;
 			this._protocolPromise.then(protocol => this._protocol = protocol).catch(onUnexpectedError).catch(onUnexpectedError);
+			// In-flight callers share this promise. Drop it when this attempt rejects
+			// and the field still points at it, so the next start() tries again.
+			// A resolved protocol stays cached.
+			protocolPromise.catch(() => {
+				if (this._protocolPromise === protocolPromise) {
+					this._protocolPromise = null;
+				}
+			});
 		}
 		return this._protocolPromise;
 	}
 
 	private async _startInsideIframe(): Promise<IMessagePassingProtocol> {
 		const webWorkerExtensionHostIframeSrc = await this._getWebWorkerExtensionHostIframeSrc();
-		const emitter = this._register(new Emitter<VSBuffer>());
+		// Kept until host dispose on success. A failed attempt drops the store so a
+		// retry does not stack another iframe or message listener.
+		const attemptStore = this._register(new DisposableStore());
+		try {
+			const emitter = attemptStore.add(new Emitter<VSBuffer>());
 
-		const iframe = document.createElement('iframe');
-		iframe.setAttribute('class', 'web-worker-ext-host-iframe');
-		iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
-		iframe.setAttribute('allow', 'usb; serial; hid; cross-origin-isolated; local-network-access;');
-		iframe.setAttribute('aria-hidden', 'true');
-		iframe.style.display = 'none';
+			const iframe = document.createElement('iframe');
+			iframe.setAttribute('class', 'web-worker-ext-host-iframe');
+			iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+			iframe.setAttribute('allow', 'usb; serial; hid; cross-origin-isolated; local-network-access;');
+			iframe.setAttribute('aria-hidden', 'true');
+			iframe.style.display = 'none';
 
-		const vscodeWebWorkerExtHostId = generateUuid();
-		iframe.setAttribute('src', `${webWorkerExtensionHostIframeSrc}&vscodeWebWorkerExtHostId=${vscodeWebWorkerExtHostId}`);
+			const vscodeWebWorkerExtHostId = generateUuid();
+			iframe.setAttribute('src', `${webWorkerExtensionHostIframeSrc}&vscodeWebWorkerExtHostId=${vscodeWebWorkerExtHostId}`);
 
-		const barrier = new Barrier();
-		let port!: MessagePort;
-		let barrierError: Error | null = null;
-		let barrierHasError = false;
-		let startTimeout: Timeout | undefined = undefined;
+			const barrier = new Barrier();
+			let port!: MessagePort;
+			let barrierError: Error | null = null;
+			let barrierHasError = false;
+			let startTimeout: Timeout | undefined = undefined;
 
-		const rejectBarrier = (exitCode: number, error: Error) => {
-			barrierError = error;
-			barrierHasError = true;
-			onUnexpectedError(barrierError);
-			clearTimeout(startTimeout);
-			this._onDidExit.fire([ExtensionHostExitCode.UnexpectedError, barrierError.message]);
-			barrier.open();
-		};
+			const rejectBarrier = (exitCode: number, error: Error) => {
+				barrierError = error;
+				barrierHasError = true;
+				onUnexpectedError(barrierError);
+				clearTimeout(startTimeout);
+				this._onDidExit.fire([ExtensionHostExitCode.UnexpectedError, barrierError.message]);
+				barrier.open();
+			};
 
-		const resolveBarrier = (messagePort: MessagePort) => {
-			port = messagePort;
-			clearTimeout(startTimeout);
-			barrier.open();
-		};
+			const resolveBarrier = (messagePort: MessagePort) => {
+				port = messagePort;
+				clearTimeout(startTimeout);
+				barrier.open();
+			};
 
-		startTimeout = setTimeout(() => {
-			console.warn(`The Web Worker Extension Host did not start in 60s, that might be a problem.`);
-		}, 60000);
+			startTimeout = setTimeout(() => {
+				console.warn(`The Web Worker Extension Host did not start in 60s, that might be a problem.`);
+			}, 60000);
+			attemptStore.add(toDisposable(() => clearTimeout(startTimeout)));
 
-		this._register(dom.addDisposableListener(mainWindow, 'message', (event) => {
-			if (event.source !== iframe.contentWindow) {
-				return;
-			}
-			if (event.data.vscodeWebWorkerExtHostId !== vscodeWebWorkerExtHostId) {
-				return;
-			}
-			if (event.data.error) {
-				const { name, message, stack } = event.data.error;
-				const err = new Error();
-				err.message = message;
-				err.name = name;
-				err.stack = stack;
-				return rejectBarrier(ExtensionHostExitCode.UnexpectedError, err);
-			}
-			if (event.data.type === 'vscode.bootstrap.nls') {
-				iframe.contentWindow!.postMessage({
-					type: event.data.type,
-					data: {
-						workerUrl: this._webWorkerService.getWorkerUrl(extensionHostWorkerMainDescriptor),
-						fileRoot: globalThis._VSCODE_FILE_ROOT,
-						nls: {
-							messages: getNLSMessages(),
-							language: getNLSLanguage()
+			attemptStore.add(dom.addDisposableListener(mainWindow, 'message', (event) => {
+				if (event.source !== iframe.contentWindow) {
+					return;
+				}
+				if (event.data.vscodeWebWorkerExtHostId !== vscodeWebWorkerExtHostId) {
+					return;
+				}
+				if (event.data.error) {
+					const { name, message, stack } = event.data.error;
+					const err = new Error();
+					err.message = message;
+					err.name = name;
+					err.stack = stack;
+					return rejectBarrier(ExtensionHostExitCode.UnexpectedError, err);
+				}
+				if (event.data.type === 'vscode.bootstrap.nls') {
+					iframe.contentWindow!.postMessage({
+						type: event.data.type,
+						data: {
+							workerUrl: this._webWorkerService.getWorkerUrl(extensionHostWorkerMainDescriptor),
+							fileRoot: globalThis._VSCODE_FILE_ROOT,
+							nls: {
+								messages: getNLSMessages(),
+								language: getNLSLanguage()
+							}
 						}
-					}
-				}, '*');
-				return;
+					}, '*');
+					return;
+				}
+				const { data } = event.data;
+				if (barrier.isOpen() || !(data instanceof MessagePort)) {
+					console.warn('UNEXPECTED message', event);
+					const err = new Error('UNEXPECTED message');
+					return rejectBarrier(ExtensionHostExitCode.UnexpectedError, err);
+				}
+				resolveBarrier(data);
+			}));
+
+			this._layoutService.mainContainer.appendChild(iframe);
+			attemptStore.add(toDisposable(() => iframe.remove()));
+
+			// await MessagePort and use it to directly communicate
+			// with the worker extension host
+			await barrier.wait();
+
+			if (barrierHasError) {
+				throw barrierError;
 			}
-			const { data } = event.data;
-			if (barrier.isOpen() || !(data instanceof MessagePort)) {
-				console.warn('UNEXPECTED message', event);
-				const err = new Error('UNEXPECTED message');
-				return rejectBarrier(ExtensionHostExitCode.UnexpectedError, err);
-			}
-			resolveBarrier(data);
-		}));
 
-		this._layoutService.mainContainer.appendChild(iframe);
-		this._register(toDisposable(() => iframe.remove()));
+			// Send over message ports for extension API
+			const messagePorts = this._environmentService.options?.messagePorts ?? new Map();
+			iframe.contentWindow!.postMessage({ type: 'vscode.init', data: messagePorts }, '*', [...messagePorts.values()]);
 
-		// await MessagePort and use it to directly communicate
-		// with the worker extension host
-		await barrier.wait();
+			port.onmessage = (event) => {
+				const { data } = event;
+				if (!(data instanceof ArrayBuffer)) {
+					console.warn('UNKNOWN data received', data);
+					this._onDidExit.fire([77, 'UNKNOWN data received']);
+					return;
+				}
+				emitter.fire(VSBuffer.wrap(new Uint8Array(data, 0, data.byteLength)));
+			};
 
-		if (barrierHasError) {
-			throw barrierError;
+			const protocol: IMessagePassingProtocol = {
+				onMessage: emitter.event,
+				send: vsbuf => {
+					const data = vsbuf.buffer.buffer.slice(vsbuf.buffer.byteOffset, vsbuf.buffer.byteOffset + vsbuf.buffer.byteLength);
+					port.postMessage(data, [data]);
+				}
+			};
+
+			return await this._performHandshake(protocol);
+		} catch (error) {
+			this._store.delete(attemptStore);
+			throw error;
 		}
-
-		// Send over message ports for extension API
-		const messagePorts = this._environmentService.options?.messagePorts ?? new Map();
-		iframe.contentWindow!.postMessage({ type: 'vscode.init', data: messagePorts }, '*', [...messagePorts.values()]);
-
-		port.onmessage = (event) => {
-			const { data } = event;
-			if (!(data instanceof ArrayBuffer)) {
-				console.warn('UNKNOWN data received', data);
-				this._onDidExit.fire([77, 'UNKNOWN data received']);
-				return;
-			}
-			emitter.fire(VSBuffer.wrap(new Uint8Array(data, 0, data.byteLength)));
-		};
-
-		const protocol: IMessagePassingProtocol = {
-			onMessage: emitter.event,
-			send: vsbuf => {
-				const data = vsbuf.buffer.buffer.slice(vsbuf.buffer.byteOffset, vsbuf.buffer.byteOffset + vsbuf.buffer.byteLength);
-				port.postMessage(data, [data]);
-			}
-		};
-
-		return this._performHandshake(protocol);
 	}
 
 	private async _performHandshake(protocol: IMessagePassingProtocol): Promise<IMessagePassingProtocol> {
