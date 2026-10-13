@@ -595,6 +595,13 @@ export class OutputService extends Disposable implements IOutputService, ITextMo
 		}
 		if (!this.outputFolderCreationPromise) {
 			this.outputFolderCreationPromise = this.fileService.createFolder(this.outputLocation).then(() => undefined);
+			const creation = this.outputFolderCreationPromise;
+			// Separate catch: do not chain onto the assignment. Callers must still see this rejection.
+			creation.catch(() => {
+				if (this.outputFolderCreationPromise === creation) {
+					this.outputFolderCreationPromise = null;
+				}
+			});
 		}
 		return this.instantiationService.createInstance(OutputChannel, channelData, this.outputLocation, this.outputFolderCreationPromise);
 	}
