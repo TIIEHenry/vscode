@@ -59,9 +59,27 @@ export class NativeKeyboardLayoutService extends Disposable implements INativeKe
 
 	public initialize(): Promise<void> {
 		if (!this._initPromise) {
-			this._initPromise = this._doInitialize();
+			this._initPromise = this._startInitialize();
 		}
 		return this._initPromise;
+	}
+
+	private _startInitialize(): Promise<void> {
+		const pending: { promise?: Promise<void> } = {};
+		// In-flight callers share this promise. Drop it when init rejects so the next
+		// call reads again, but only if the field still points at this attempt.
+		const promise = (async () => {
+			try {
+				await this._doInitialize();
+			} catch (error) {
+				if (this._initPromise === pending.promise) {
+					this._initPromise = null;
+				}
+				throw error;
+			}
+		})();
+		pending.promise = promise;
+		return promise;
 	}
 
 	private async _doInitialize(): Promise<void> {
