@@ -47,22 +47,47 @@ export class WorkbenchMcpGalleryManifestService extends McpGalleryManifestServic
 	}
 
 	private initPromise: Promise<void> | undefined;
+	private configurationListenerRegistered = false;
+
 	override async getMcpGalleryManifest(): Promise<IMcpGalleryManifest | null> {
 		if (!this.initPromise) {
-			this.initPromise = this.doGetMcpGalleryManifest();
+			this.initPromise = this.startInit();
 		}
 		await this.initPromise;
 		return this.mcpGalleryManifest;
 	}
 
-	private async doGetMcpGalleryManifest(): Promise<void> {
-		await this.getAndUpdateMcpGalleryManifest();
-
-		this._register(this.configurationService.onDidChangeConfiguration(e => {
-			if (e.affectsConfiguration(mcpGalleryServiceUrlConfig) || e.affectsConfiguration('chat.mcp.gallery.version')) {
-				this.getAndUpdateMcpGalleryManifest().catch(onUnexpectedError).catch(onUnexpectedError);
+	private startInit(): Promise<void> {
+		const pending: { promise?: Promise<void> } = {};
+		// In-flight callers share this promise. Drop it when this attempt rejects
+		// and it is still current, so the next read fetches again. Success stays cached.
+		const promise = (async () => {
+			try {
+				await this.doGetMcpGalleryManifest();
+			} catch (error) {
+				if (this.initPromise === pending.promise) {
+					this.initPromise = undefined;
+				}
+				throw error;
 			}
-		}));
+		})();
+		pending.promise = promise;
+		return promise;
+	}
+
+	private async doGetMcpGalleryManifest(): Promise<void> {
+		// Retries call doGet again. The listener must be attached even if the
+		// fetch rejects, and a later attempt must not stack another one.
+		if (!this.configurationListenerRegistered) {
+			this.configurationListenerRegistered = true;
+			this._register(this.configurationService.onDidChangeConfiguration(e => {
+				if (e.affectsConfiguration(mcpGalleryServiceUrlConfig) || e.affectsConfiguration('chat.mcp.gallery.version')) {
+					this.getAndUpdateMcpGalleryManifest().catch(onUnexpectedError).catch(onUnexpectedError);
+				}
+			}));
+		}
+
+		await this.getAndUpdateMcpGalleryManifest();
 	}
 
 	private async getAndUpdateMcpGalleryManifest(): Promise<void> {
