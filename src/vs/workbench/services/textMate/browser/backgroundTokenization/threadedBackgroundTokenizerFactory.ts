@@ -123,7 +123,23 @@ export class ThreadedBackgroundTokenizerFactory implements IDisposable {
 
 	private _getWorkerProxy(): Promise<Proxied<TextMateTokenizationWorker> | null> {
 		if (!this._workerProxyPromise) {
-			this._workerProxyPromise = this._createWorkerProxy();
+			const attempt = this._createWorkerProxy();
+			const worker = this._worker;
+			this._workerProxyPromise = attempt;
+			// In-flight callers share this promise. Drop a rejected $init only while
+			// the field still points at it, and dispose that attempt's worker.
+			// setGrammarDefinitions clears the field through _disposeWorker first.
+			attempt.catch(() => {
+				if (this._workerProxyPromise !== attempt) {
+					return;
+				}
+				this._workerProxyPromise = null;
+				this._workerProxy = null;
+				if (this._worker === worker) {
+					this._worker = null;
+				}
+				worker?.dispose();
+			});
 		}
 		return this._workerProxyPromise;
 	}
