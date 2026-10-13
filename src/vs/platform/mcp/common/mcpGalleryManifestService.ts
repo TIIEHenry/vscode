@@ -49,7 +49,28 @@ export class McpGalleryManifestService extends Disposable implements IMcpGallery
 		if (!version) {
 			let versionPromise = this.versionByUrl.get(url);
 			if (!versionPromise) {
-				this.versionByUrl.set(url, versionPromise = this.getVersion(url));
+				const pending: { promise?: Promise<string> } = {};
+				// In-flight callers share this probe. A supported version, or a fallback
+				// chosen after every probe got an answer, stays cached. A thrown probe
+				// still returns the fallback for this call, but is not kept: the next
+				// manifest read probes again.
+				const promise = (async () => {
+					try {
+						const resolved = await this.getVersion(url);
+						if (!resolved.retain && this.versionByUrl.get(url) === pending.promise) {
+							this.versionByUrl.delete(url);
+						}
+						return resolved.version;
+					} catch (error) {
+						if (this.versionByUrl.get(url) === pending.promise) {
+							this.versionByUrl.delete(url);
+						}
+						throw error;
+					}
+				})();
+				pending.promise = promise;
+				this.versionByUrl.set(url, promise);
+				versionPromise = promise;
 			}
 			version = await versionPromise;
 		}
@@ -120,16 +141,21 @@ export class McpGalleryManifestService extends Disposable implements IMcpGallery
 		};
 	}
 
-	private async getVersion(url: string): Promise<string> {
+	private async getVersion(url: string): Promise<{ version: string; retain: boolean }> {
+		let failed = false;
 		for (const version of SUPPORTED_VERSIONS) {
-			if (await this.checkVersion(url, version)) {
-				return version;
+			const result = await this.checkVersion(url, version);
+			if (result === 'supported') {
+				return { version, retain: true };
+			}
+			if (result === 'failed') {
+				failed = true;
 			}
 		}
-		return SUPPORTED_VERSIONS[0];
+		return { version: SUPPORTED_VERSIONS[0], retain: !failed };
 	}
 
-	private async checkVersion(url: string, version: string): Promise<boolean> {
+	private async checkVersion(url: string, version: string): Promise<'supported' | 'unsupported' | 'failed'> {
 		try {
 			const context = await this.requestService.request({
 				type: 'GET',
@@ -137,12 +163,13 @@ export class McpGalleryManifestService extends Disposable implements IMcpGallery
 				callSite: 'mcpGalleryManifestService.checkVersion'
 			}, CancellationToken.None);
 			if (isSuccess(context)) {
-				return true;
+				return 'supported';
 			}
 			this.logService.info(`The service at ${url} does not support version ${version}. Service returned status ${context.res.statusCode}.`);
+			return 'unsupported';
 		} catch (error) {
 			this.logService.error(error);
+			return 'failed';
 		}
-		return false;
 	}
 }
