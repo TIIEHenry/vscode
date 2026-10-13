@@ -13,7 +13,7 @@ import { IEnvironmentService } from '../../../environment/common/environment.js'
 import { AbstractExtensionsProfileScannerService, ProfileExtensionsEvent } from '../../common/extensionsProfileScannerService.js';
 import { ExtensionType, IExtension, IExtensionManifest, TargetPlatform } from '../../../extensions/common/extensions.js';
 import { FileService } from '../../../files/common/fileService.js';
-import { IFileService } from '../../../files/common/files.js';
+import { FileOperationError, FileOperationResult, IFileService } from '../../../files/common/files.js';
 import { InMemoryFileSystemProvider } from '../../../files/common/inMemoryFilesystemProvider.js';
 import { TestInstantiationService } from '../../../instantiation/test/common/instantiationServiceMock.js';
 import { ILogService, NullLogService } from '../../../log/common/log.js';
@@ -595,6 +595,118 @@ suite('ExtensionsProfileScannerService', () => {
 		assert.deepStrictEqual(actual[0].identifier.id, 'pub.a');
 		assert.deepStrictEqual(actual[0].identifier.uuid, 'uuid');
 	});
+
+	test('reads the old default profile extensions again after the first migration read fails', async () => {
+		const { testObject, fileService, oldLocation, newLocation, uriIdentityService } = createDefaultProfileMigrationScanner();
+		const extension = await writeOldDefaultProfileExtensions(fileService, oldLocation);
+		const error = new FileOperationError('read failed', FileOperationResult.FILE_PERMISSION_DENIED);
+		const readFile = fileService.readFile.bind(fileService);
+		let oldReads = 0;
+		sinon.stub(fileService, 'readFile').callsFake((...args: Parameters<IFileService['readFile']>) => {
+			if (uriIdentityService.extUri.isEqual(args[0], oldLocation)) {
+				oldReads++;
+				if (oldReads === 1) {
+					throw error;
+				}
+			}
+			return readFile(...args);
+		});
+
+		await assert.rejects(() => testObject.scanProfileExtensions(newLocation), (reason: unknown) => reason === error);
+		assert.strictEqual(oldReads, 1);
+
+		const migrated = await testObject.scanProfileExtensions(newLocation);
+		assert.deepStrictEqual(migrated.map(entry => entry.identifier.id), [extension.identifier.id]);
+		assert.strictEqual(oldReads, 2);
+
+		await testObject.scanProfileExtensions(newLocation);
+		assert.strictEqual(oldReads, 2);
+	});
+
+	test('reads the old default profile extensions again after the first migration write fails', async () => {
+		const { testObject, fileService, oldLocation, newLocation, uriIdentityService } = createDefaultProfileMigrationScanner();
+		const extension = await writeOldDefaultProfileExtensions(fileService, oldLocation);
+		const error = new FileOperationError('write failed', FileOperationResult.FILE_PERMISSION_DENIED);
+		const readFile = fileService.readFile.bind(fileService);
+		let oldReads = 0;
+		sinon.stub(fileService, 'readFile').callsFake((...args: Parameters<IFileService['readFile']>) => {
+			if (uriIdentityService.extUri.isEqual(args[0], oldLocation)) {
+				oldReads++;
+			}
+			return readFile(...args);
+		});
+		const createFile = fileService.createFile.bind(fileService);
+		let creates = 0;
+		sinon.stub(fileService, 'createFile').callsFake((...args: Parameters<IFileService['createFile']>) => {
+			creates++;
+			if (creates === 1) {
+				throw error;
+			}
+			return createFile(...args);
+		});
+
+		await assert.rejects(() => testObject.scanProfileExtensions(newLocation), (reason: unknown) => reason === error);
+		assert.strictEqual(oldReads, 1);
+		assert.strictEqual(creates, 1);
+
+		const migrated = await testObject.scanProfileExtensions(newLocation);
+		assert.deepStrictEqual(migrated.map(entry => entry.identifier.id), [extension.identifier.id]);
+		assert.strictEqual(oldReads, 2);
+		assert.strictEqual(creates, 2);
+
+		await testObject.scanProfileExtensions(newLocation);
+		assert.strictEqual(oldReads, 2);
+	});
+
+	test('does not read the old default profile extensions again when the old file is missing', async () => {
+		const { testObject, fileService, oldLocation, newLocation, uriIdentityService } = createDefaultProfileMigrationScanner();
+		const readFile = fileService.readFile.bind(fileService);
+		let oldReads = 0;
+		sinon.stub(fileService, 'readFile').callsFake((...args: Parameters<IFileService['readFile']>) => {
+			if (uriIdentityService.extUri.isEqual(args[0], oldLocation)) {
+				oldReads++;
+			}
+			return readFile(...args);
+		});
+
+		assert.deepStrictEqual(await testObject.scanProfileExtensions(newLocation), []);
+		assert.strictEqual(oldReads, 1);
+
+		assert.deepStrictEqual(await testObject.scanProfileExtensions(newLocation), []);
+		assert.strictEqual(oldReads, 1);
+	});
+
+	function createDefaultProfileMigrationScanner(): { testObject: TestObject; fileService: IFileService; oldLocation: URI; newLocation: URI; uriIdentityService: IUriIdentityService } {
+		class MigrationUserDataProfilesService extends UserDataProfilesService {
+			protected override getDefaultProfileExtensionsLocation(): URI {
+				return joinPath(extensionsLocation, 'extensions.json');
+			}
+		}
+		const fileService = instantiationService.get(IFileService);
+		const uriIdentityService = instantiationService.get(IUriIdentityService);
+		const profiles = disposables.add(new MigrationUserDataProfilesService(
+			instantiationService.get(IEnvironmentService),
+			fileService,
+			uriIdentityService,
+			instantiationService.get(ILogService),
+		));
+		instantiationService.stub(IUserDataProfilesService, profiles);
+		const testObject = disposables.add(instantiationService.createInstance(TestObject, extensionsLocation));
+		const oldLocation = uriIdentityService.extUri.joinPath(profiles.defaultProfile.location, 'extensions.json');
+		const newLocation = profiles.defaultProfile.extensionsResource;
+		assert.ok(!uriIdentityService.extUri.isEqual(oldLocation, newLocation));
+		return { testObject, fileService, oldLocation, newLocation, uriIdentityService };
+	}
+
+	async function writeOldDefaultProfileExtensions(fileService: IFileService, oldLocation: URI): Promise<IExtension> {
+		const extension = aExtension('pub.a', joinPath(ROOT, 'pub.a-1.0.0'));
+		await fileService.writeFile(oldLocation, VSBuffer.fromString(JSON.stringify([{
+			identifier: extension.identifier,
+			location: extension.location.toJSON(),
+			version: extension.manifest.version,
+		}])));
+		return extension;
+	}
 
 	function aExtension(id: string, location: URI, e?: Partial<IExtension>, manifest?: Partial<IExtensionManifest>): IExtension {
 		return {

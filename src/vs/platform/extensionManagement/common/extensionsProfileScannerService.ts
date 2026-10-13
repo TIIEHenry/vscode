@@ -316,68 +316,78 @@ export abstract class AbstractExtensionsProfileScannerService extends Disposable
 	}
 
 	private _migrationPromise: Promise<IStoredProfileExtension[] | undefined> | undefined;
-	private async migrateFromOldDefaultProfileExtensionsLocation(): Promise<IStoredProfileExtension[] | undefined> {
-		if (!this._migrationPromise) {
-			this._migrationPromise = (async () => {
-				const oldDefaultProfileExtensionsLocation = this.uriIdentityService.extUri.joinPath(this.userDataProfilesService.defaultProfile.location, 'extensions.json');
-				const oldDefaultProfileExtensionsInitLocation = this.uriIdentityService.extUri.joinPath(this.extensionsLocation, '.init-default-profile-extensions');
-				let content: string;
-				try {
-					content = (await this.fileService.readFile(oldDefaultProfileExtensionsLocation)).value.toString();
-				} catch (error) {
-					if (toFileOperationResult(error) === FileOperationResult.FILE_NOT_FOUND) {
-						return undefined;
-					}
-					throw error;
-				}
+	private migrateFromOldDefaultProfileExtensionsLocation(): Promise<IStoredProfileExtension[] | undefined> {
+		const current = this._migrationPromise;
+		if (current) {
+			return current;
+		}
 
-				this.logService.info('Migrating extensions from old default profile location', oldDefaultProfileExtensionsLocation.toString());
-				let storedProfileExtensions: IStoredProfileExtension[] | undefined;
+		const promise = (async () => {
+			const oldDefaultProfileExtensionsLocation = this.uriIdentityService.extUri.joinPath(this.userDataProfilesService.defaultProfile.location, 'extensions.json');
+			const oldDefaultProfileExtensionsInitLocation = this.uriIdentityService.extUri.joinPath(this.extensionsLocation, '.init-default-profile-extensions');
+			let content: string;
+			try {
+				content = (await this.fileService.readFile(oldDefaultProfileExtensionsLocation)).value.toString();
+			} catch (error) {
+				if (toFileOperationResult(error) === FileOperationResult.FILE_NOT_FOUND) {
+					return undefined;
+				}
+				throw error;
+			}
+
+			this.logService.info('Migrating extensions from old default profile location', oldDefaultProfileExtensionsLocation.toString());
+			let storedProfileExtensions: IStoredProfileExtension[] | undefined;
+			try {
+				const parsedData = JSON.parse(content);
+				if (Array.isArray(parsedData) && parsedData.every(candidate => isStoredProfileExtension(candidate))) {
+					storedProfileExtensions = parsedData;
+				} else {
+					this.logService.warn('Skipping migrating from old default profile locaiton: Found invalid data', parsedData);
+				}
+			} catch (error) {
+				/* Ignore */
+				this.logService.error(error);
+			}
+
+			if (storedProfileExtensions) {
 				try {
-					const parsedData = JSON.parse(content);
-					if (Array.isArray(parsedData) && parsedData.every(candidate => isStoredProfileExtension(candidate))) {
-						storedProfileExtensions = parsedData;
-					} else {
-						this.logService.warn('Skipping migrating from old default profile locaiton: Found invalid data', parsedData);
-					}
+					await this.fileService.createFile(this.userDataProfilesService.defaultProfile.extensionsResource, VSBuffer.fromString(JSON.stringify(storedProfileExtensions)), { overwrite: false });
+					this.logService.info('Migrated extensions from old default profile location to new location', oldDefaultProfileExtensionsLocation.toString(), this.userDataProfilesService.defaultProfile.extensionsResource.toString());
 				} catch (error) {
-					/* Ignore */
+					if (toFileOperationResult(error) === FileOperationResult.FILE_MODIFIED_SINCE) {
+						this.logService.info('Migration from old default profile location to new location is done by another window', oldDefaultProfileExtensionsLocation.toString(), this.userDataProfilesService.defaultProfile.extensionsResource.toString());
+					} else {
+						throw error;
+					}
+				}
+			}
+
+			try {
+				await this.fileService.del(oldDefaultProfileExtensionsLocation);
+			} catch (error) {
+				if (toFileOperationResult(error) !== FileOperationResult.FILE_NOT_FOUND) {
 					this.logService.error(error);
 				}
+			}
 
-				if (storedProfileExtensions) {
-					try {
-						await this.fileService.createFile(this.userDataProfilesService.defaultProfile.extensionsResource, VSBuffer.fromString(JSON.stringify(storedProfileExtensions)), { overwrite: false });
-						this.logService.info('Migrated extensions from old default profile location to new location', oldDefaultProfileExtensionsLocation.toString(), this.userDataProfilesService.defaultProfile.extensionsResource.toString());
-					} catch (error) {
-						if (toFileOperationResult(error) === FileOperationResult.FILE_MODIFIED_SINCE) {
-							this.logService.info('Migration from old default profile location to new location is done by another window', oldDefaultProfileExtensionsLocation.toString(), this.userDataProfilesService.defaultProfile.extensionsResource.toString());
-						} else {
-							throw error;
-						}
-					}
+			try {
+				await this.fileService.del(oldDefaultProfileExtensionsInitLocation);
+			} catch (error) {
+				if (toFileOperationResult(error) !== FileOperationResult.FILE_NOT_FOUND) {
+					this.logService.error(error);
 				}
+			}
 
-				try {
-					await this.fileService.del(oldDefaultProfileExtensionsLocation);
-				} catch (error) {
-					if (toFileOperationResult(error) !== FileOperationResult.FILE_NOT_FOUND) {
-						this.logService.error(error);
-					}
-				}
-
-				try {
-					await this.fileService.del(oldDefaultProfileExtensionsInitLocation);
-				} catch (error) {
-					if (toFileOperationResult(error) !== FileOperationResult.FILE_NOT_FOUND) {
-						this.logService.error(error);
-					}
-				}
-
-				return storedProfileExtensions;
-			})();
-		}
-		return this._migrationPromise;
+			return storedProfileExtensions;
+		})();
+		this._migrationPromise = promise;
+		// Drop only this attempt. Callers still see the rejection. The next migration reads again; an in-flight or fulfilled promise stays shared.
+		promise.catch(() => {
+			if (this._migrationPromise === promise) {
+				this._migrationPromise = undefined;
+			}
+		});
+		return promise;
 	}
 
 	private getResourceAccessQueue(file: URI): Queue<IScannedProfileExtension[]> {
