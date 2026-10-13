@@ -283,6 +283,13 @@ export class SnippetFile {
 				}
 				return this;
 			});
+			const promise = this._loadPromise!;
+			// Drop only this attempt. The next load reads again; an in-flight or fulfilled promise stays shared.
+			promise.catch(() => {
+				if (this._loadPromise === promise) {
+					this._loadPromise = undefined;
+				}
+			});
 		}
 		return this._loadPromise;
 	}
