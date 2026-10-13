@@ -68,7 +68,8 @@ export abstract class AbstractExtensionResourceLoaderService extends Disposable 
 
 	readonly _serviceBrand: undefined;
 
-	private readonly _initPromise: Promise<void>;
+	private _initPromise: Promise<void> | undefined;
+	private _galleryManifestListenerRegistered = false;
 
 	private _extensionGalleryResourceUrlTemplate: string | undefined;
 	private _extensionGalleryAuthority: string | undefined;
@@ -84,17 +85,41 @@ export abstract class AbstractExtensionResourceLoaderService extends Disposable 
 		private readonly _readServiceMachineId: typeof getServiceMachineId = getServiceMachineId,
 	) {
 		super();
-		this._initPromise = this._init();
+		this._ensureInitialized();
 	}
 
-	private async _init(): Promise<void> {
-		try {
-			const manifest = await this._extensionGalleryManifestService.getExtensionGalleryManifest();
-			this.resolve(manifest);
-			this._register(this._extensionGalleryManifestService.onDidChangeExtensionGalleryManifest(() => this.resolve(manifest)));
-		} catch (error) {
-			this._logService.error(error);
+	private _ensureInitialized(): Promise<void> {
+		if (!this._initPromise) {
+			const attempt: { promise?: Promise<void> } = {};
+			let read: Promise<IExtensionGalleryManifest | null>;
+			try {
+				read = this._extensionGalleryManifestService.getExtensionGalleryManifest();
+			} catch (error) {
+				read = Promise.reject(error);
+			}
+			// In-flight callers share this promise. Drop a failed read only while the field still
+			// points at this attempt. The handler runs after attempt.promise is assigned.
+			const promise = read.then(manifest => {
+				this.resolve(manifest);
+				this._registerGalleryManifestListener();
+			}, error => {
+				this._logService.error(error);
+				if (this._initPromise === attempt.promise) {
+					this._initPromise = undefined;
+				}
+			});
+			attempt.promise = promise;
+			this._initPromise = promise;
 		}
+		return this._initPromise;
+	}
+
+	private _registerGalleryManifestListener(): void {
+		if (this._galleryManifestListenerRegistered) {
+			return;
+		}
+		this._galleryManifestListenerRegistered = true;
+		this._register(this._extensionGalleryManifestService.onDidChangeExtensionGalleryManifest(manifest => this.resolve(manifest)));
 	}
 
 	private resolve(manifest: IExtensionGalleryManifest | null): void {
@@ -103,12 +128,12 @@ export abstract class AbstractExtensionResourceLoaderService extends Disposable 
 	}
 
 	public async supportsExtensionGalleryResources(): Promise<boolean> {
-		await this._initPromise;
+		await this._ensureInitialized();
 		return this._extensionGalleryResourceUrlTemplate !== undefined;
 	}
 
 	public async getExtensionGalleryResourceURL({ publisher, name, version, targetPlatform }: { publisher: string; name: string; version: string; targetPlatform?: TargetPlatform }, path?: string): Promise<URI | undefined> {
-		await this._initPromise;
+		await this._ensureInitialized();
 		if (this._extensionGalleryResourceUrlTemplate) {
 			const uri = URI.parse(format2(this._extensionGalleryResourceUrlTemplate, {
 				publisher,
@@ -129,7 +154,7 @@ export abstract class AbstractExtensionResourceLoaderService extends Disposable 
 	public abstract readExtensionResource(uri: URI): Promise<string>;
 
 	async isExtensionGalleryResource(uri: URI): Promise<boolean> {
-		await this._initPromise;
+		await this._ensureInitialized();
 		return !!this._extensionGalleryAuthority && this._extensionGalleryAuthority === this._getExtensionGalleryAuthority(uri);
 	}
 
