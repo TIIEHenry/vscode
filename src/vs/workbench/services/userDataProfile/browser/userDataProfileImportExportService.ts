@@ -547,7 +547,7 @@ class FileUserDataProfileContentHandler implements IUserDataProfileContentHandle
 const USER_DATA_PROFILE_EXPORT_SCHEME = 'userdataprofileexport';
 const USER_DATA_PROFILE_EXPORT_PREVIEW_SCHEME = 'userdataprofileexportpreview';
 
-abstract class UserDataProfileImportExportState extends Disposable implements ITreeViewDataProvider {
+export abstract class UserDataProfileImportExportState extends Disposable implements ITreeViewDataProvider {
 
 	private readonly _onDidChangeRoots = this._register(new Emitter<void>());
 	readonly onDidChangeRoots = this._onDidChangeRoots.event;
@@ -580,7 +580,7 @@ abstract class UserDataProfileImportExportState extends Disposable implements IT
 	private rootsPromise: Promise<IProfileResourceTreeItem[]> | undefined;
 	getRoots(): Promise<IProfileResourceTreeItem[]> {
 		if (!this.rootsPromise) {
-			this.rootsPromise = (async () => {
+			const promise = (async () => {
 				this.roots = await this.fetchRoots();
 				for (const root of this.roots) {
 					const labelText = isMarkdownString(root.label.label) ? root.label.label.value : root.label.label;
@@ -597,6 +597,13 @@ abstract class UserDataProfileImportExportState extends Disposable implements IT
 				}
 				return this.roots;
 			})();
+			this.rootsPromise = promise;
+			// In-flight callers share this promise. Drop it only while the field still points at this attempt.
+			promise.catch(() => {
+				if (this.rootsPromise === promise) {
+					this.rootsPromise = undefined;
+				}
+			});
 		}
 		return this.rootsPromise;
 	}
