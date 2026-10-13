@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { deepStrictEqual, strictEqual, ok } from 'assert';
+import { deepStrictEqual, ok, rejects, strictEqual } from 'assert';
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
 import { IChannel } from '../../../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
@@ -1626,5 +1626,59 @@ suite('TerminalSandboxService - network domains', () => {
 
 		const expectedTempDir = URI.joinPath(URI.file('/home/local-user'), productService.dataFolderName, 'tmp', `tmp_vscode_${windowId}`);
 		strictEqual(sandboxService.getTempDir()?.path, expectedTempDir.path, 'Local workbench should fall back to the native user home + dataFolderName for the temp dir');
+	});
+
+	test('reads the remote environment again after the first getEnvironment rejects', async () => {
+		const error = new Error('remote environment unavailable');
+		let calls = 0;
+		remoteAgentService.getEnvironment = async () => {
+			calls++;
+			if (calls === 1) {
+				throw error;
+			}
+			return remoteAgentService.remoteEnvironment;
+		};
+		const sandboxService = store.add(instantiationService.createInstance(TerminalSandboxService));
+		strictEqual(calls, 1, 'Construction should start the first remote environment read');
+
+		await rejects(sandboxService.getOS(), (reason: unknown) => reason === error);
+		strictEqual(calls, 1, 'A rejected read should not start another read until the next resolve');
+
+		strictEqual(await sandboxService.getOS(), OperatingSystem.Linux, 'The next resolve should read the remote environment again');
+		strictEqual(calls, 2, 'The resolve after a rejection should call getEnvironment again');
+		strictEqual(await sandboxService.getOS(), OperatingSystem.Linux, 'A successful read should stay cached');
+		strictEqual(calls, 2, 'A successful read should not call getEnvironment again');
+	});
+
+	test('shares one in-flight getEnvironment and does not call again after it settles', async () => {
+		let calls = 0;
+		let release!: (value: IRemoteAgentEnvironment | null) => void;
+		remoteAgentService.getEnvironment = () => {
+			calls++;
+			return new Promise(resolve => { release = resolve; });
+		};
+		const sandboxService = store.add(instantiationService.createInstance(TerminalSandboxService));
+		const first = sandboxService.getOS();
+		const second = sandboxService.getOS();
+		strictEqual(calls, 1, 'Concurrent resolves should share the in-flight getEnvironment');
+
+		release(remoteAgentService.remoteEnvironment);
+		strictEqual(await first, OperatingSystem.Linux);
+		strictEqual(await second, OperatingSystem.Linux);
+		strictEqual(await sandboxService.getOS(), OperatingSystem.Linux);
+		strictEqual(calls, 1, 'A fulfilled read should not call getEnvironment again');
+	});
+
+	test('does not read the remote environment again after getEnvironment resolves to null', async () => {
+		let calls = 0;
+		remoteAgentService.getEnvironment = async () => {
+			calls++;
+			return null;
+		};
+		const sandboxService = store.add(instantiationService.createInstance(TerminalSandboxService));
+
+		strictEqual(await sandboxService.getOS(), OS, 'A null remote environment should fall back to the local OS');
+		strictEqual(await sandboxService.getOS(), OS, 'A cached null remote environment should keep the local OS');
+		strictEqual(calls, 1, 'null is a successful read and should not call getEnvironment again');
 	});
 });

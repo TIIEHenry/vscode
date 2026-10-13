@@ -59,7 +59,7 @@ export class TerminalSandboxService extends Disposable implements ITerminalSandb
 	readonly _serviceBrand: undefined;
 
 	private readonly _engine: TerminalSandboxEngine;
-	private readonly _remoteEnvDetailsPromise: Promise<IRemoteAgentEnvironment | null>;
+	private _remoteEnvDetailsPromise: Promise<IRemoteAgentEnvironment | null> | undefined;
 	private _remoteEnvDetails: IRemoteAgentEnvironment | null | undefined;
 	private readonly _onDidChangeRoots = this._register(new Emitter<void>());
 
@@ -77,7 +77,7 @@ export class TerminalSandboxService extends Disposable implements ITerminalSandb
 		@IInstantiationService instantiationService: IInstantiationService,
 	) {
 		super();
-		this._remoteEnvDetailsPromise = this._remoteAgentService.getEnvironment();
+		this._ensureRemoteEnvRead();
 
 		const onDidChangeSandboxSettings = Event.filter(this._configurationService.onDidChangeConfiguration, affectsSandboxSettings);
 
@@ -161,9 +161,24 @@ export class TerminalSandboxService extends Disposable implements ITerminalSandb
 
 	// ---- host adapter helpers -----------------------------------------------
 
+	private _ensureRemoteEnvRead(): Promise<IRemoteAgentEnvironment | null> {
+		if (!this._remoteEnvDetailsPromise) {
+			const promise = this._remoteAgentService.getEnvironment();
+			this._remoteEnvDetailsPromise = promise;
+			// Drop only this attempt. Callers still see the rejection. The next resolve reads again; an in-flight or fulfilled read stays shared.
+			promise.catch(() => {
+				if (this._remoteEnvDetailsPromise === promise) {
+					this._remoteEnvDetailsPromise = undefined;
+				}
+			});
+		}
+		return this._remoteEnvDetailsPromise;
+	}
+
 	private async _resolveRemoteEnv(): Promise<IRemoteAgentEnvironment | null> {
 		if (this._remoteEnvDetails === undefined) {
-			this._remoteEnvDetails = await this._remoteEnvDetailsPromise;
+			// A rejection throws before this assignment, so a failed read is not cached. null is a successful result.
+			this._remoteEnvDetails = await this._ensureRemoteEnvRead();
 		}
 		return this._remoteEnvDetails;
 	}
