@@ -129,7 +129,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 	private _customBuiltinExtensionsInfoPromise: Promise<{ extensions: ExtensionInfo[]; extensionsToMigrate: [string, string][]; extensionLocations: URI[]; extensionGalleryResources: URI[] }> | undefined;
 	private readCustomBuiltinExtensionsInfoFromEnv(): Promise<{ extensions: ExtensionInfo[]; extensionsToMigrate: [string, string][]; extensionLocations: URI[]; extensionGalleryResources: URI[] }> {
 		if (!this._customBuiltinExtensionsInfoPromise) {
-			this._customBuiltinExtensionsInfoPromise = (async () => {
+			const promise = (async () => {
 				let extensions: ExtensionInfo[] = [];
 				const extensionLocations: URI[] = [];
 				const extensionGalleryResources: URI[] = [];
@@ -166,6 +166,13 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 				}
 				return { extensions, extensionsToMigrate, extensionLocations, extensionGalleryResources };
 			})();
+			this._customBuiltinExtensionsInfoPromise = promise;
+			// In-flight callers share this promise. Drop it only while the field still points at this attempt.
+			promise.catch(() => {
+				if (this._customBuiltinExtensionsInfoPromise === promise) {
+					this._customBuiltinExtensionsInfoPromise = undefined;
+				}
+			});
 		}
 		return this._customBuiltinExtensionsInfoPromise;
 	}
@@ -304,7 +311,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 	private _migrateExtensionsStoragePromise: Promise<void> | undefined;
 	private async migrateExtensionsStorage(customBuiltinExtensions: IExtension[]): Promise<void> {
 		if (!this._migrateExtensionsStoragePromise) {
-			this._migrateExtensionsStoragePromise = (async () => {
+			const promise = (async () => {
 				const { extensionsToMigrate } = await this.readCustomBuiltinExtensionsInfoFromEnv();
 				if (!extensionsToMigrate.length) {
 					return;
@@ -327,6 +334,13 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 					this.logService.error(error);
 				}
 			})();
+			this._migrateExtensionsStoragePromise = promise;
+			// In-flight callers share this promise. Drop it only while the field still points at this attempt.
+			promise.catch(() => {
+				if (this._migrateExtensionsStoragePromise === promise) {
+					this._migrateExtensionsStoragePromise = undefined;
+				}
+			});
 		}
 		return this._migrateExtensionsStoragePromise;
 	}
@@ -349,7 +363,7 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 	private _updateCustomBuiltinExtensionsCachePromise: Promise<IWebExtension[]> | undefined;
 	private async updateCustomBuiltinExtensionsCache(): Promise<IWebExtension[]> {
 		if (!this._updateCustomBuiltinExtensionsCachePromise) {
-			this._updateCustomBuiltinExtensionsCachePromise = (async () => {
+			const promise = (async () => {
 				this.logService.info('Updating additional builtin extensions cache');
 				const { extensions, extensionGalleryResources } = await this.readCustomBuiltinExtensionsInfoFromEnv();
 				const [galleryWebExtensions, extensionGalleryResourceWebExtensions] = await Promise.all([
@@ -365,6 +379,13 @@ export class WebExtensionsScannerService extends Disposable implements IWebExten
 				await this.writeCustomBuiltinExtensionsCache(() => webExtensions);
 				return webExtensions;
 			})();
+			this._updateCustomBuiltinExtensionsCachePromise = promise;
+			// In-flight callers share this promise. Drop it only while the field still points at this attempt.
+			promise.catch(() => {
+				if (this._updateCustomBuiltinExtensionsCachePromise === promise) {
+					this._updateCustomBuiltinExtensionsCachePromise = undefined;
+				}
+			});
 		}
 		return this._updateCustomBuiltinExtensionsCachePromise;
 	}
