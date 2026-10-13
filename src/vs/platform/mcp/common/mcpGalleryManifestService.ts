@@ -110,10 +110,6 @@ export class McpGalleryManifestService extends Disposable implements IMcpGallery
 				type: McpGalleryResourceType.ContactSupportUri
 			});
 			resources.push({
-				id: this.productService.mcpGallery.supportUrl,
-				type: McpGalleryResourceType.ContactSupportUri
-			});
-			resources.push({
 				id: this.productService.mcpGallery.privacyPolicyUrl,
 				type: McpGalleryResourceType.PrivacyPolicyUri
 			});

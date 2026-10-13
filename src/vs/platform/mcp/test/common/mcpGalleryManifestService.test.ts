@@ -11,6 +11,7 @@ import { IRequestContext, IRequestOptions } from '../../../../base/parts/request
 import { NullLogService } from '../../../log/common/log.js';
 import { IRequestService } from '../../../request/common/request.js';
 import { IProductService } from '../../../product/common/productService.js';
+import { McpGalleryResourceType } from '../../common/mcpGalleryManifest.js';
 import { McpGalleryManifestService } from '../../common/mcpGalleryManifestService.js';
 
 const GALLERY = 'https://example.test/gallery';
@@ -165,6 +166,39 @@ suite('McpGalleryManifestService version probe', () => {
 
 		assert.strictEqual((await service.manifestFor(GALLERY)).version, 'v0');
 		assert.strictEqual(requests.urls.length, 4);
+	});
+
+});
+
+suite('McpGalleryManifestService product gallery', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('ContactSupportUri is registered once with the support URL', async () => {
+		const supportUrl = 'https://example.test/support';
+		const product = {
+			mcpGallery: {
+				serviceUrl: GALLERY,
+				itemWebUrl: 'https://example.test/item',
+				publisherUrl: 'https://example.test/publisher',
+				supportUrl,
+				privacyPolicyUrl: 'https://example.test/privacy',
+				termsOfServiceUrl: 'https://example.test/terms',
+				reportUrl: 'https://example.test/report',
+			},
+		} as IProductService;
+		const requests = new ScriptedRequestService(() => {
+			throw new Error('should not probe');
+		});
+		const service = store.add(new ProbeManifestService(product, requests, new TestLogService()));
+
+		const manifest = await service.getMcpGalleryManifest();
+		assert.ok(manifest);
+		const support = manifest.resources.filter(resource => resource.type === McpGalleryResourceType.ContactSupportUri);
+
+		assert.strictEqual(support.length, 1);
+		assert.strictEqual(support[0].id, supportUrl);
+		assert.deepStrictEqual(requests.urls, []);
 	});
 
 });
