@@ -60,13 +60,20 @@ export class ExtensionSignatureVerificationService implements IExtensionSignatur
 
 	private vsceSign(): Promise<typeof vsceSign> {
 		if (!this.moduleLoadingPromise) {
-			this.moduleLoadingPromise = this.resolveVsceSign();
+			const promise = this.resolveVsceSign();
+			this.moduleLoadingPromise = promise;
+			// Drop only this attempt. A later verify must import again; an in-flight or fulfilled promise stays shared.
+			promise.catch(() => {
+				if (this.moduleLoadingPromise === promise) {
+					this.moduleLoadingPromise = undefined;
+				}
+			});
 		}
 
 		return this.moduleLoadingPromise;
 	}
 
-	private async resolveVsceSign(): Promise<typeof vsceSign> {
+	protected async resolveVsceSign(): Promise<typeof vsceSign> {
 		const mod = '@vscode/vsce-sign';
 		return import(mod);
 	}
