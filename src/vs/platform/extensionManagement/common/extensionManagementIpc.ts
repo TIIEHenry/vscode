@@ -251,7 +251,14 @@ export class ExtensionManagementChannelClient extends CommontExtensionManagement
 	protected _targetPlatformPromise: Promise<TargetPlatform> | undefined;
 	getTargetPlatform(): Promise<TargetPlatform> {
 		if (!this._targetPlatformPromise) {
-			this._targetPlatformPromise = this.channel.call<TargetPlatform>('getTargetPlatform');
+			const promise = this.channel.call<TargetPlatform>('getTargetPlatform');
+			this._targetPlatformPromise = promise;
+			// Drop only this attempt. A later call must ask the channel again; an in-flight or fulfilled promise stays shared.
+			promise.catch(() => {
+				if (this._targetPlatformPromise === promise) {
+					this._targetPlatformPromise = undefined;
+				}
+			});
 		}
 		return this._targetPlatformPromise;
 	}
