@@ -14,9 +14,9 @@ import { AbstractLoggerService, AbstractMessageLogger, ILogger, ILoggerOptions, 
 
 const MAX_FILE_SIZE = 5 * ByteSize.MB;
 
-class FileLogger extends AbstractMessageLogger implements ILogger {
+export class FileLogger extends AbstractMessageLogger implements ILogger {
 
-	private readonly initializePromise: Promise<void>;
+	private initializePromise: Promise<void> | undefined;
 	private readonly flushDelayer: ThrottledDelayer<void>;
 	private backupIndex: number = 1;
 	private buffer: string = '';
@@ -31,7 +31,7 @@ class FileLogger extends AbstractMessageLogger implements ILogger {
 		super();
 		this.setLevel(level);
 		this.flushDelayer = new ThrottledDelayer<void>(100 /* buffer saves over a short time */);
-		this.initializePromise = this.initialize();
+		this.ensureInitialized();
 	}
 
 	override async flush(): Promise<void> {
@@ -44,7 +44,7 @@ class FileLogger extends AbstractMessageLogger implements ILogger {
 		if (!this.buffer) {
 			return;
 		}
-		await this.initializePromise;
+		await this.ensureInitialized();
 		let content = await this.loadContent();
 		if (content.length > MAX_FILE_SIZE) {
 			await this.fileService.writeFile(this.getBackupResource(), VSBuffer.fromString(content));
@@ -55,6 +55,21 @@ class FileLogger extends AbstractMessageLogger implements ILogger {
 			this.buffer = '';
 			await this.fileService.writeFile(this.resource, VSBuffer.fromString(content));
 		}
+	}
+
+	private ensureInitialized(): Promise<void> {
+		if (!this.initializePromise) {
+			const promise = this.initialize();
+			this.initializePromise = promise;
+			// Drop only this attempt. The next flush creates the file again; an in-flight or fulfilled promise stays shared.
+			promise.catch(() => {
+				if (this.initializePromise === promise) {
+					this.initializePromise = undefined;
+				}
+			});
+		}
+
+		return this.initializePromise;
 	}
 
 	private async initialize(): Promise<void> {
