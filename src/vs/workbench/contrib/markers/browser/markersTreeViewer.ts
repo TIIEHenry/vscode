@@ -642,12 +642,19 @@ export class MarkerViewModel extends Disposable {
 			.then<CodeActionSet | null>(model => {
 				if (model) {
 					if (!this.codeActionsPromise) {
-						this.codeActionsPromise = createCancelablePromise(cancellationToken => {
+						const attempt = createCancelablePromise(cancellationToken => {
 							return getCodeActions(this.languageFeaturesService.codeActionProvider, model, new Range(this.marker.range.startLineNumber, this.marker.range.startColumn, this.marker.range.endLineNumber, this.marker.range.endColumn), {
 								type: CodeActionTriggerType.Invoke, triggerAction: CodeActionTriggerSource.ProblemsView, filter: { include: CodeActionKind.QuickFix }
 							}, Progress.None, cancellationToken).then(actions => {
 								return this._register(actions);
 							});
+						});
+						this.codeActionsPromise = attempt;
+						// Drop only this attempt. Callers still see the rejection. The next read calls getCodeActions again; an in-flight or fulfilled promise stays shared.
+						attempt.catch(() => {
+							if (this.codeActionsPromise === attempt) {
+								this.codeActionsPromise = null;
+							}
 						});
 					}
 					return this.codeActionsPromise;
