@@ -26,13 +26,14 @@ export interface IRemoteUserDataProfilesService {
 	getRemoteProfile(localProfile: IUserDataProfile): Promise<IUserDataProfile>;
 }
 
-class RemoteUserDataProfilesService extends Disposable implements IRemoteUserDataProfilesService {
+export class RemoteUserDataProfilesService extends Disposable implements IRemoteUserDataProfilesService {
 
 	readonly _serviceBrand: undefined;
 
-	private readonly initPromise: Promise<void>;
+	private initPromise: Promise<void> | undefined;
+	private subscribedToLocalProfileChanges = false;
 
-	private remoteUserDataProfilesService: IUserDataProfilesService | undefined;
+	private remoteUserDataProfilesService: UserDataProfilesService | undefined;
 
 	constructor(
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
@@ -43,22 +44,63 @@ class RemoteUserDataProfilesService extends Disposable implements IRemoteUserDat
 		@ILogService private readonly logService: ILogService,
 	) {
 		super();
-		this.initPromise = this.init();
+		this.initPromise = this.startInit();
 	}
 
-	private async init(): Promise<void> {
+	override dispose(): void {
+		this.remoteUserDataProfilesService?.dispose();
+		this.remoteUserDataProfilesService = undefined;
+		super.dispose();
+	}
+
+	private startInit(): Promise<void> {
+		const pending: { promise?: Promise<void> } = {};
+		// In-flight callers share this promise. Drop it when init rejects, and when a
+		// connection exists but getEnvironment returns null (errors come back as null).
+		// No connection means a local window and stays settled.
+		const promise = (async () => {
+			try {
+				const retry = await this.init();
+				if (retry && this.initPromise === pending.promise) {
+					this.initPromise = undefined;
+				}
+			} catch (error) {
+				this.remoteUserDataProfilesService?.dispose();
+				this.remoteUserDataProfilesService = undefined;
+				if (this.initPromise === pending.promise) {
+					this.initPromise = undefined;
+				}
+				throw error;
+			}
+		})();
+		pending.promise = promise;
+		return promise;
+	}
+
+	private whenInitialized(): Promise<void> {
+		if (!this.initPromise) {
+			this.initPromise = this.startInit();
+		}
+		return this.initPromise;
+	}
+
+	private async init(): Promise<boolean> {
 		const connection = this.remoteAgentService.getConnection();
 		if (!connection) {
-			return;
+			return false;
 		}
 
 		const environment = await this.remoteAgentService.getEnvironment();
 		if (!environment) {
-			return;
+			return true;
 		}
 
+		this.remoteUserDataProfilesService?.dispose();
 		this.remoteUserDataProfilesService = new UserDataProfilesService(environment.profiles.all, environment.profiles.home, connection.getChannel('userDataProfiles'));
-		this._register(this.userDataProfilesService.onDidChangeProfiles(e => this.onDidChangeLocalProfiles(e)));
+		if (!this.subscribedToLocalProfileChanges) {
+			this.subscribedToLocalProfileChanges = true;
+			this._register(this.userDataProfilesService.onDidChangeProfiles(e => this.onDidChangeLocalProfiles(e)));
+		}
 
 		// Associate current local profile with remote profile
 		const remoteProfile = await this.getAssociatedRemoteProfile(this.userDataProfileService.currentProfile, this.remoteUserDataProfilesService);
@@ -67,6 +109,7 @@ class RemoteUserDataProfilesService extends Disposable implements IRemoteUserDat
 		}
 
 		this.cleanUp().catch(onUnexpectedError).catch(onUnexpectedError);
+		return false;
 	}
 
 	private async onDidChangeLocalProfiles(e: DidChangeProfilesEvent): Promise<void> {
@@ -79,7 +122,7 @@ class RemoteUserDataProfilesService extends Disposable implements IRemoteUserDat
 	}
 
 	async getRemoteProfiles(): Promise<readonly IUserDataProfile[]> {
-		await this.initPromise;
+		await this.whenInitialized();
 
 		if (!this.remoteUserDataProfilesService) {
 			throw new ErrorNoTelemetry('Remote profiles service not available in the current window');
@@ -89,7 +132,7 @@ class RemoteUserDataProfilesService extends Disposable implements IRemoteUserDat
 	}
 
 	async getRemoteProfile(localProfile: IUserDataProfile): Promise<IUserDataProfile> {
-		await this.initPromise;
+		await this.whenInitialized();
 
 		if (!this.remoteUserDataProfilesService) {
 			throw new ErrorNoTelemetry('Remote profiles service not available in the current window');
