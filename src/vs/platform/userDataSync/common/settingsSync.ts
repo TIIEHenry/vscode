@@ -325,22 +325,43 @@ export class SettingsSynchroniser extends AbstractJsonFileSynchroniser implement
 	private userExtensionsIgnoredSettings: Promise<string[]> | undefined = undefined;
 	private async getIgnoredSettings(content?: string): Promise<string[]> {
 		if (!this.coreIgnoredSettings) {
-			this.coreIgnoredSettings = this.userDataSyncUtilService.resolveDefaultCoreIgnoredSettings();
+			const promise = this.userDataSyncUtilService.resolveDefaultCoreIgnoredSettings();
+			this.coreIgnoredSettings = promise;
+			this.forgetIgnoredSettingsOnReject(promise, () => this.coreIgnoredSettings, () => {
+				this.coreIgnoredSettings = undefined;
+			});
 		}
 		if (!this.systemExtensionsIgnoredSettings) {
-			this.systemExtensionsIgnoredSettings = this.getIgnoredSettingForSystemExtensions();
+			const promise = this.getIgnoredSettingForSystemExtensions();
+			this.systemExtensionsIgnoredSettings = promise;
+			this.forgetIgnoredSettingsOnReject(promise, () => this.systemExtensionsIgnoredSettings, () => {
+				this.systemExtensionsIgnoredSettings = undefined;
+			});
 		}
 		if (!this.userExtensionsIgnoredSettings) {
-			this.userExtensionsIgnoredSettings = this.getIgnoredSettingForUserExtensions();
+			const promise = this.getIgnoredSettingForUserExtensions();
+			this.userExtensionsIgnoredSettings = promise;
 			const disposable = this._register(Event.any<any>(
 				Event.filter(this.extensionManagementService.onDidInstallExtensions, (e => e.some(({ local }) => !!local))),
 				Event.filter(this.extensionManagementService.onDidUninstallExtension, (e => !e.error)))(() => {
 					disposable.dispose();
 					this.userExtensionsIgnoredSettings = undefined;
 				}));
+			this.forgetIgnoredSettingsOnReject(promise, () => this.userExtensionsIgnoredSettings, () => {
+				this.userExtensionsIgnoredSettings = undefined;
+				disposable.dispose();
+			});
 		}
 		const defaultIgnoredSettings = (await Promise.all([this.coreIgnoredSettings, this.systemExtensionsIgnoredSettings, this.userExtensionsIgnoredSettings])).flat();
 		return getIgnoredSettings(defaultIgnoredSettings, this.configurationService, content);
+	}
+
+	private forgetIgnoredSettingsOnReject(promise: Promise<string[]>, current: () => Promise<string[]> | undefined, clear: () => void): void {
+		void promise.then(undefined, () => {
+			if (current() === promise) {
+				clear();
+			}
+		});
 	}
 
 	private async getIgnoredSettingForSystemExtensions(): Promise<string[]> {

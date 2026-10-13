@@ -5,11 +5,13 @@
 
 import assert from 'assert';
 import { VSBuffer } from '../../../../base/common/buffer.js';
-import { Event } from '../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { runWithFakedTimers } from '../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IConfigurationService } from '../../../configuration/common/configuration.js';
 import { ConfigurationScope, Extensions, IConfigurationRegistry } from '../../../configuration/common/configurationRegistry.js';
+import { DidUninstallExtensionEvent, IExtensionManagementService, ILocalExtension } from '../../../extensionManagement/common/extensionManagement.js';
+import { ExtensionType } from '../../../extensions/common/extensions.js';
 import { FileOperationError, FileOperationResult, IFileService } from '../../../files/common/files.js';
 import { Registry } from '../../../registry/common/platform.js';
 import { IUserDataProfile, IUserDataProfilesService } from '../../../userDataProfile/common/userDataProfile.js';
@@ -579,6 +581,129 @@ suite('SettingsSync - Auto', () => {
 		assert.strictEqual(await testObject.hasLocalData(), true);
 	});
 
+	test('retries ignored settings when getInstalled rejects and reuses a successful computation', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const calls: Array<ExtensionType | undefined> = [];
+		const failure = new Error('getInstalled failed');
+		stubGetInstalled(calls, (invocation) => {
+			if (invocation === 1) {
+				throw failure;
+			}
+			return [extensionWithMachineSetting()];
+		});
+		await updateSettings(extensionMachineSettings, client);
+
+		let thrown: unknown;
+		try {
+			await testObject.sync(await client.getLatestRef(SyncResource.Settings));
+			assert.fail('first sync should fail when getInstalled rejects');
+		} catch (error) {
+			thrown = error;
+		}
+		assert.strictEqual(thrown, failure);
+		assert.strictEqual(testObject.status, SyncStatus.Idle);
+		assert.deepStrictEqual(calls, [ExtensionType.System, ExtensionType.User]);
+
+		await testObject.sync(await client.getLatestRef(SyncResource.Settings));
+		assert.strictEqual(testObject.status, SyncStatus.Idle);
+		assert.deepStrictEqual(calls, [ExtensionType.System, ExtensionType.User, ExtensionType.System]);
+		await assertExtensionMachineSettingWasNotSynced();
+
+		await testObject.sync(await client.getLatestRef(SyncResource.Settings));
+		assert.deepStrictEqual(calls, [ExtensionType.System, ExtensionType.User, ExtensionType.System]);
+	}));
+
+	test('computes extension ignored settings once across syncs until a user extension is uninstalled', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const calls: Array<ExtensionType | undefined> = [];
+		const extensionManagement = stubGetInstalled(calls, () => [extensionWithMachineSetting()]);
+		const uninstallEmitter = disposableStore.add(new Emitter<DidUninstallExtensionEvent>());
+		extensionManagement.onDidUninstallExtension = uninstallEmitter.event;
+		await updateSettings(extensionMachineSettings, client);
+
+		await testObject.sync(await client.getLatestRef(SyncResource.Settings));
+		assert.deepStrictEqual(calls, [ExtensionType.System, ExtensionType.User]);
+		await assertExtensionMachineSettingWasNotSynced();
+
+		await testObject.sync(await client.getLatestRef(SyncResource.Settings));
+		assert.deepStrictEqual(calls, [ExtensionType.System, ExtensionType.User]);
+
+		uninstallEmitter.fire({
+			identifier: { id: 'fixture.ignored' },
+			profileLocation: client.instantiationService.get(IUserDataProfilesService).defaultProfile.extensionsResource,
+		});
+		await testObject.sync(await client.getLatestRef(SyncResource.Settings));
+		assert.deepStrictEqual(calls, [ExtensionType.System, ExtensionType.User, ExtensionType.User]);
+	}));
+
+	test('does not stack user extension listeners when that lookup rejects', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const extensionManagement = client.instantiationService.get(IExtensionManagementService);
+		let userCalls = 0;
+		let liveInstallListeners = 0;
+		const originalOnDidInstallExtensions = extensionManagement.onDidInstallExtensions;
+		extensionManagement.onDidInstallExtensions = (listener, thisArgs, disposables) => {
+			liveInstallListeners++;
+			const subscription = originalOnDidInstallExtensions(listener, thisArgs, disposables);
+			let disposed = false;
+			const originalDispose = subscription.dispose.bind(subscription);
+			subscription.dispose = () => {
+				if (disposed) {
+					return;
+				}
+				disposed = true;
+				liveInstallListeners--;
+				originalDispose();
+			};
+			return subscription;
+		};
+		const failure = new Error('getInstalled failed');
+		extensionManagement.getInstalled = async (type?: ExtensionType) => {
+			if (type === ExtensionType.User) {
+				userCalls++;
+				if (userCalls === 1) {
+					throw failure;
+				}
+			}
+			return [extensionWithMachineSetting()];
+		};
+		await updateSettings(extensionMachineSettings, client);
+
+		let thrown: unknown;
+		try {
+			await testObject.sync(await client.getLatestRef(SyncResource.Settings));
+			assert.fail('first sync should fail when the user extension lookup rejects');
+		} catch (error) {
+			thrown = error;
+		}
+		assert.strictEqual(thrown, failure);
+		assert.strictEqual(userCalls, 1);
+		assert.strictEqual(liveInstallListeners, 0);
+
+		await testObject.sync(await client.getLatestRef(SyncResource.Settings));
+		assert.strictEqual(testObject.status, SyncStatus.Idle);
+		assert.strictEqual(userCalls, 2);
+		assert.strictEqual(liveInstallListeners, 1);
+
+		await testObject.sync(await client.getLatestRef(SyncResource.Settings));
+		assert.strictEqual(userCalls, 2);
+		assert.strictEqual(liveInstallListeners, 1);
+	}));
+
+	function stubGetInstalled(calls: Array<ExtensionType | undefined>, getInstalled: (invocation: number, type: ExtensionType | undefined) => ILocalExtension[]): IExtensionManagementService {
+		const extensionManagement = client.instantiationService.get(IExtensionManagementService);
+		extensionManagement.getInstalled = async (type?: ExtensionType) => {
+			calls.push(type);
+			return getInstalled(calls.length, type);
+		};
+		return extensionManagement;
+	}
+
+	async function assertExtensionMachineSettingWasNotSynced(): Promise<void> {
+		const { content } = await client.read(testObject.resource);
+		assert.ok(content !== null);
+		const actual = parseSettings(content);
+		assert.ok(actual.includes('"files.autoSave"'));
+		assert.ok(!actual.includes('settingsSync.extensionMachine'));
+	}
+
 	async function syncRemoteWithNonIgnoredSettings(): Promise<{ content: string; ref: string }> {
 		await updateSettings('{\n\t"files.autoSave": "afterDelay"\n}', client);
 		await testObject.sync(await client.getLatestRef(SyncResource.Settings));
@@ -850,6 +975,32 @@ suite('SettingsInitializer', () => {
 	}
 
 });
+
+const extensionMachineSettings = `{
+	"files.autoSave": "afterDelay",
+	"settingsSync.extensionMachine": "desktop"
+}`;
+
+function extensionWithMachineSetting(): ILocalExtension {
+	return {
+		manifest: {
+			name: 'ignored',
+			publisher: 'fixture',
+			version: '1.0.0',
+			engines: { vscode: '*' },
+			contributes: {
+				configuration: {
+					properties: {
+						'settingsSync.extensionMachine': {
+							type: 'string',
+							scope: ConfigurationScope.MACHINE,
+						},
+					},
+				},
+			},
+		},
+	} as ILocalExtension;
+}
 
 function parseSettings(content: string): string {
 	const syncData: ISyncData = JSON.parse(content);
