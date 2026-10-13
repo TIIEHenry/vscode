@@ -19,7 +19,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { areSameExtensions, computeTargetPlatform } from '../../../../platform/extensionManagement/common/extensionManagementUtil.js';
+import { areSameExtensions, computeTargetPlatform as computeHostTargetPlatform } from '../../../../platform/extensionManagement/common/extensionManagementUtil.js';
 import { localize } from '../../../../nls.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
 import { Schemas } from '../../../../base/common/network.js';
@@ -1103,9 +1103,20 @@ export class ExtensionManagementService extends CommontExtensionManagementServic
 	private _targetPlatformPromise: Promise<TargetPlatform> | undefined;
 	getTargetPlatform(): Promise<TargetPlatform> {
 		if (!this._targetPlatformPromise) {
-			this._targetPlatformPromise = computeTargetPlatform(this.fileService, this.logService);
+			const promise = this.computeTargetPlatform();
+			this._targetPlatformPromise = promise;
+			// In-flight callers share this promise. Drop it only while the field still points at this attempt.
+			promise.catch(() => {
+				if (this._targetPlatformPromise === promise) {
+					this._targetPlatformPromise = undefined;
+				}
+			});
 		}
 		return this._targetPlatformPromise;
+	}
+
+	protected computeTargetPlatform(): Promise<TargetPlatform> {
+		return computeHostTargetPlatform(this.fileService, this.logService);
 	}
 
 	async cleanUp(): Promise<void> {
