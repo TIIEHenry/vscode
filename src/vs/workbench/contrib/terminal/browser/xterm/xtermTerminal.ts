@@ -700,7 +700,7 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 	private _searchAddonPromise: Promise<SearchAddonType> | undefined;
 	private _getSearchAddon(): Promise<SearchAddonType> {
 		if (!this._searchAddonPromise) {
-			this._searchAddonPromise = this._xtermAddonLoader.importAddon('search').then((AddonCtor) => {
+			const promise = this._xtermAddonLoader.importAddon('search').then((AddonCtor) => {
 				if (this._store.isDisposed) {
 					return Promise.reject('Could not create search addon, terminal is disposed');
 				}
@@ -717,6 +717,13 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 					this._onAfterSearch.fire();
 				}));
 				return this._searchAddon;
+			});
+			this._searchAddonPromise = promise;
+			// Drop only this attempt. Callers still see the rejection. The next search imports again; an in-flight or loaded addon stays shared.
+			promise.catch(() => {
+				if (this._searchAddonPromise === promise) {
+					this._searchAddonPromise = undefined;
+				}
 			});
 		}
 		return this._searchAddonPromise;
