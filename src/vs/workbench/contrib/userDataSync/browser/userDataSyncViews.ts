@@ -342,6 +342,24 @@ interface ProfileTreeItem extends ITreeItem {
 	profile: Profile;
 }
 
+// Share one in-flight read. After rejection, drop it only when the slot still
+// holds that promise. Keep a fulfilled read until root refresh clears the slot.
+async function awaitCachedFlight<T>(read: () => Promise<T> | undefined, write: (promise: Promise<T> | undefined) => void, create: () => Promise<T>): Promise<T> {
+	let promise = read();
+	if (!promise) {
+		promise = create();
+		write(promise);
+	}
+	try {
+		return await promise;
+	} catch (error) {
+		if (read() === promise) {
+			write(undefined);
+		}
+		throw error;
+	}
+}
+
 abstract class UserDataSyncActivityViewDataProvider<T = Profile> implements ITreeViewDataProvider {
 
 	private readonly syncResourceHandlesByProfile = new Map<string, Promise<SyncResourceHandleTreeItem[]>>();
@@ -361,11 +379,18 @@ abstract class UserDataSyncActivityViewDataProvider<T = Profile> implements ITre
 				return await this.getRoots();
 			}
 			if ((<ProfileTreeItem>element).profile || element.handle === this.userDataProfilesService.defaultProfile.id) {
-				let promise = this.syncResourceHandlesByProfile.get(element.handle);
-				if (!promise) {
-					this.syncResourceHandlesByProfile.set(element.handle, promise = this.getSyncResourceHandles(<T>(<ProfileTreeItem>element).profile));
-				}
-				return await promise;
+				const handle = element.handle;
+				return await awaitCachedFlight(
+					() => this.syncResourceHandlesByProfile.get(handle),
+					promise => {
+						if (promise) {
+							this.syncResourceHandlesByProfile.set(handle, promise);
+						} else {
+							this.syncResourceHandlesByProfile.delete(handle);
+						}
+					},
+					() => this.getSyncResourceHandles(<T>(<ProfileTreeItem>element).profile),
+				);
 			}
 			if ((<SyncResourceHandleTreeItem>element).syncResourceHandle) {
 				return await this.getChildrenForSyncResourceTreeItem(<SyncResourceHandleTreeItem>element);
@@ -484,7 +509,7 @@ abstract class UserDataSyncActivityViewDataProvider<T = Profile> implements ITre
 	protected abstract getResourceHandles(syncResource: SyncResource, profile?: T): Promise<IResourceHandle[]>;
 }
 
-class LocalUserDataSyncActivityViewDataProvider extends UserDataSyncActivityViewDataProvider<ISyncUserDataProfile> {
+export class LocalUserDataSyncActivityViewDataProvider extends UserDataSyncActivityViewDataProvider<ISyncUserDataProfile> {
 
 	protected getResourceHandles(syncResource: SyncResource, profile: ISyncUserDataProfile | undefined): Promise<IResourceHandle[]> {
 		return this.userDataSyncResourceProviderService.getLocalSyncResourceHandles(syncResource, profile);
@@ -501,7 +526,7 @@ class LocalUserDataSyncActivityViewDataProvider extends UserDataSyncActivityView
 	}
 }
 
-class RemoteUserDataSyncActivityViewDataProvider extends UserDataSyncActivityViewDataProvider<ISyncUserDataProfile> {
+export class RemoteUserDataSyncActivityViewDataProvider extends UserDataSyncActivityViewDataProvider<ISyncUserDataProfile> {
 
 	private machinesPromise: Promise<IUserDataSyncMachine[]> | undefined;
 
@@ -525,10 +550,11 @@ class RemoteUserDataSyncActivityViewDataProvider extends UserDataSyncActivityVie
 	}
 
 	private getMachines(): Promise<IUserDataSyncMachine[]> {
-		if (this.machinesPromise === undefined) {
-			this.machinesPromise = this.userDataSyncMachinesService.getMachines();
-		}
-		return this.machinesPromise;
+		return awaitCachedFlight(
+			() => this.machinesPromise,
+			promise => { this.machinesPromise = promise; },
+			() => this.userDataSyncMachinesService.getMachines(),
+		);
 	}
 
 	protected getResourceHandles(syncResource: SyncResource, profile?: ISyncUserDataProfile): Promise<IResourceHandle[]> {
@@ -553,7 +579,7 @@ class RemoteUserDataSyncActivityViewDataProvider extends UserDataSyncActivityVie
 	}
 }
 
-class ExtractedUserDataSyncActivityViewDataProvider extends UserDataSyncActivityViewDataProvider<ISyncUserDataProfile> {
+export class ExtractedUserDataSyncActivityViewDataProvider extends UserDataSyncActivityViewDataProvider<ISyncUserDataProfile> {
 
 	private machinesPromise: Promise<IUserDataSyncMachine[]> | undefined;
 
@@ -627,10 +653,11 @@ class ExtractedUserDataSyncActivityViewDataProvider extends UserDataSyncActivity
 	}
 
 	private getMachines(): Promise<IUserDataSyncMachine[]> {
-		if (this.machinesPromise === undefined) {
-			this.machinesPromise = this.userDataSyncResourceProviderService.getLocalSyncedMachines(this.activityDataLocation);
-		}
-		return this.machinesPromise;
+		return awaitCachedFlight(
+			() => this.machinesPromise,
+			promise => { this.machinesPromise = promise; },
+			() => this.userDataSyncResourceProviderService.getLocalSyncedMachines(this.activityDataLocation),
+		);
 	}
 }
 
