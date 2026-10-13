@@ -66,11 +66,42 @@ class ScriptedStorageDatabase implements IStorageDatabase {
 
 	readonly updates: IUpdateRequest[] = [];
 
+	private updatePause: { signalEntered: () => void; gate: Promise<void>; failAfterCopy: boolean } | undefined;
+
+	/**
+	 * The next updateItems yields before copying. Callers emit external
+	 * changes after `entered`, then `release`, so the copy sees those changes.
+	 */
+	armPausedUpdate(): { entered: Promise<void>; release: () => void; failAfterCopy: () => void } {
+		let signalEntered!: () => void;
+		const entered = new Promise<void>(resolve => { signalEntered = resolve; });
+		let release!: () => void;
+		const gate = new Promise<void>(resolve => { release = resolve; });
+		const pause = { signalEntered, gate, failAfterCopy: false };
+		this.updatePause = pause;
+		return {
+			entered,
+			release,
+			failAfterCopy: () => { pause.failAfterCopy = true; },
+		};
+	}
+
 	async updateItems(request: IUpdateRequest): Promise<void> {
+		const pause = this.updatePause;
+		if (pause) {
+			this.updatePause = undefined;
+			pause.signalEntered();
+			await pause.gate;
+		}
+
 		this.updates.push({
 			insert: new Map(request.insert ?? []),
 			delete: new Set(request.delete ?? []),
 		});
+
+		if (pause?.failAfterCopy) {
+			throw this.failure;
+		}
 	}
 
 	async optimize(): Promise<void> { }
@@ -496,5 +527,231 @@ suite('Storage init', () => {
 		strictEqual(pending.pendingDeletes.has('color'), false);
 		strictEqual(storage.get('color'), undefined);
 		strictEqual(storage.get('size'), 'large');
+	});
+
+	test('external delete during updateItems is absent from the insert that is read', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['color', 'blue'], ['size', 'large']])
+		], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+		await storage.init();
+
+		const pause = database.armPausedUpdate();
+		storage.set('color', 'red');
+		storage.set('size', 'xl');
+		const flushing = storage.flush(0);
+		await pause.entered;
+
+		database.emitExternal({ deleted: new Set(['color']) });
+		pause.release();
+		await flushing;
+
+		strictEqual(database.updates.length, 1);
+		strictEqual(database.updates[0].insert?.has('color'), false);
+		strictEqual(database.updates[0].insert?.get('size'), 'xl');
+		strictEqual(database.updates[0].delete?.has('color'), false);
+		strictEqual(storage.get('color', 'missing'), 'missing');
+		strictEqual(storage.get('size'), 'xl');
+	});
+
+	test('external update during updateItems is the insert value that is read', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['color', 'blue'], ['size', 'large']])
+		], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+		await storage.init();
+
+		const pause = database.armPausedUpdate();
+		storage.set('color', 'red');
+		storage.set('size', 'xl');
+		const flushing = storage.flush(0);
+		await pause.entered;
+
+		database.emitExternal({ changed: new Map([['color', 'green']]) });
+		pause.release();
+		await flushing;
+
+		strictEqual(database.updates.length, 1);
+		strictEqual(database.updates[0].insert?.get('color'), 'green');
+		strictEqual(database.updates[0].insert?.get('size'), 'xl');
+		strictEqual(database.updates[0].delete?.has('color'), false);
+		strictEqual(storage.get('color'), 'green');
+		strictEqual(storage.get('size'), 'xl');
+	});
+
+	test('external update during updateItems drops that key from the delete that is read', async () => {
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['color', 'blue'], ['size', 'large']])
+		], new Error('unused')));
+		const storage = disposables.add(new Storage(database));
+		await storage.init();
+
+		const pause = database.armPausedUpdate();
+		storage.delete('color');
+		storage.delete('size');
+		const flushing = storage.flush(0);
+		await pause.entered;
+
+		database.emitExternal({ changed: new Map([['color', 'green']]) });
+		pause.release();
+		await flushing;
+
+		strictEqual(database.updates.length, 1);
+		strictEqual(database.updates[0].delete?.has('color'), false);
+		strictEqual(database.updates[0].delete?.has('size'), true);
+		strictEqual(database.updates[0].insert?.has('color'), false);
+		strictEqual(storage.get('color'), 'green');
+		strictEqual(storage.get('size', 'missing'), 'missing');
+	});
+
+	test('failed flush does not restore insert strings that left the cache and retries the rest', async () => {
+		const failure = new Error('updateItems failed');
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['color', 'blue'], ['name', 'old'], ['size', 'large']])
+		], failure));
+		const storage = disposables.add(new Storage(database));
+		await storage.init();
+
+		const pause = database.armPausedUpdate();
+		const writes = Promise.all([
+			storage.set('color', 'red'),
+			storage.set('name', 'temp'),
+			storage.set('size', 'xl'),
+		]);
+		const flushing = storage.flush(0);
+		const outcome = Promise.all([flushing, writes]).then(() => undefined, (error: unknown) => error);
+		await pause.entered;
+
+		database.emitExternal({ deleted: new Set(['color']) });
+		database.emitExternal({ changed: new Map([['name', 'green']]) });
+		pause.failAfterCopy();
+		pause.release();
+		strictEqual(await outcome, failure);
+
+		strictEqual(database.updates.length, 1);
+		strictEqual(database.updates[0].insert?.has('color'), false);
+		strictEqual(database.updates[0].insert?.get('name'), 'green');
+		strictEqual(database.updates[0].insert?.get('size'), 'xl');
+
+		const pending = storage as unknown as { pendingInserts: Map<string, string>; pendingDeletes: Set<string> };
+		strictEqual(pending.pendingInserts.has('color'), false);
+		strictEqual(pending.pendingInserts.has('name'), false);
+		strictEqual(pending.pendingInserts.get('size'), 'xl');
+		strictEqual(storage.get('color', 'missing'), 'missing');
+		strictEqual(storage.get('name'), 'green');
+		strictEqual(storage.get('size'), 'xl');
+
+		await storage.flush(0);
+
+		strictEqual(database.updates.length, 2);
+		strictEqual(database.updates[1].insert?.has('color'), false);
+		strictEqual(database.updates[1].insert?.has('name'), false);
+		strictEqual(database.updates[1].insert?.get('size'), 'xl');
+		strictEqual(database.updates[1].delete?.has('color'), false);
+		strictEqual(database.updates[1].delete?.has('name'), false);
+	});
+
+	test('failed flush retries an insert that is still the cached value', async () => {
+		const failure = new Error('updateItems failed');
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['color', 'blue']])
+		], failure));
+		const storage = disposables.add(new Storage(database));
+		await storage.init();
+
+		const pause = database.armPausedUpdate();
+		const writing = storage.set('color', 'red');
+		const flushing = storage.flush(0);
+		const outcome = Promise.all([flushing, writing]).then(() => undefined, (error: unknown) => error);
+		await pause.entered;
+
+		pause.failAfterCopy();
+		pause.release();
+		strictEqual(await outcome, failure);
+
+		const pendingInserts = (storage as unknown as { pendingInserts: Map<string, string> }).pendingInserts;
+		strictEqual(pendingInserts.get('color'), 'red');
+		strictEqual(storage.get('color'), 'red');
+
+		await storage.flush(0);
+
+		strictEqual(database.updates.length, 2);
+		strictEqual(database.updates[0].insert?.get('color'), 'red');
+		strictEqual(database.updates[1].insert?.get('color'), 'red');
+		strictEqual(storage.get('color'), 'red');
+	});
+
+	test('failed flush keeps a newer pending insert instead of the stale string', async () => {
+		const failure = new Error('updateItems failed');
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['color', 'blue']])
+		], failure));
+		const storage = disposables.add(new Storage(database));
+		await storage.init();
+
+		const pause = database.armPausedUpdate();
+		const writing = storage.set('color', 'red');
+		const flushing = storage.flush(0);
+		const outcome = Promise.all([flushing, writing]).then(() => undefined, (error: unknown) => error);
+		await pause.entered;
+
+		const newer = storage.set('color', 'blue');
+		pause.failAfterCopy();
+		pause.release();
+		strictEqual(await outcome, failure);
+
+		const pendingInserts = (storage as unknown as { pendingInserts: Map<string, string> }).pendingInserts;
+		strictEqual(pendingInserts.get('color'), 'blue');
+		strictEqual(storage.get('color'), 'blue');
+
+		await storage.flush(0);
+		await newer;
+
+		strictEqual(database.updates.length, 2);
+		strictEqual(database.updates[1].insert?.get('color'), 'blue');
+		strictEqual(database.updates[1].insert?.get('color') === 'red', false);
+		strictEqual(storage.get('color'), 'blue');
+	});
+
+	test('failed flush does not restore a delete after an external write', async () => {
+		const failure = new Error('updateItems failed');
+		const database = disposables.add(new ScriptedStorageDatabase([
+			new Map([['color', 'blue'], ['size', 'large']])
+		], failure));
+		const storage = disposables.add(new Storage(database));
+		await storage.init();
+
+		const pause = database.armPausedUpdate();
+		const writes = Promise.all([
+			storage.delete('color'),
+			storage.delete('size'),
+		]);
+		const flushing = storage.flush(0);
+		const outcome = Promise.all([flushing, writes]).then(() => undefined, (error: unknown) => error);
+		await pause.entered;
+
+		database.emitExternal({ changed: new Map([['color', 'green']]) });
+		pause.failAfterCopy();
+		pause.release();
+		strictEqual(await outcome, failure);
+
+		strictEqual(database.updates.length, 1);
+		strictEqual(database.updates[0].delete?.has('color'), false);
+		strictEqual(database.updates[0].delete?.has('size'), true);
+
+		const pending = storage as unknown as { pendingInserts: Map<string, string>; pendingDeletes: Set<string> };
+		strictEqual(pending.pendingDeletes.has('color'), false);
+		strictEqual(pending.pendingDeletes.has('size'), true);
+		strictEqual(pending.pendingInserts.has('color'), false);
+		strictEqual(storage.get('color'), 'green');
+		strictEqual(storage.get('size', 'missing'), 'missing');
+
+		await storage.flush(0);
+
+		strictEqual(database.updates.length, 2);
+		strictEqual(database.updates[1].delete?.has('color'), false);
+		strictEqual(database.updates[1].delete?.has('size'), true);
+		strictEqual(database.updates[1].insert?.has('color'), false);
+		strictEqual(storage.get('color'), 'green');
 	});
 });

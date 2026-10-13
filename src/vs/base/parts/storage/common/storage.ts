@@ -466,17 +466,26 @@ export class Storage extends Disposable implements IStorage {
 	}
 
 	private mergePendingAfterFailedFlush(failedInserts: Map<string, string>, failedDeletes: Set<string>): void {
+		// A newer pending insert or delete for the same key wins. Do not put
+		// a string back into pendingInserts after it has left the cache.
 		for (const [key, value] of failedInserts) {
 			if (this.pendingDeletes.has(key)) {
 				continue;
 			}
-			if (!this.pendingInserts.has(key)) {
-				this.pendingInserts.set(key, value);
+			if (this.pendingInserts.has(key)) {
+				continue;
 			}
+			if (this.cache.get(key) !== value) {
+				continue;
+			}
+			this.pendingInserts.set(key, value);
 		}
 
 		for (const key of failedDeletes) {
 			if (this.pendingInserts.has(key)) {
+				continue;
+			}
+			if (this.cache.has(key)) {
 				continue;
 			}
 			this.pendingDeletes.add(key);
@@ -488,32 +497,69 @@ export class Storage extends Disposable implements IStorage {
 			return; // return early if nothing to do
 		}
 
-		// Get pending data
+		// The original batch is what failure merge retries. updateItems may
+		// await before it reads (SQLite awaits whenConnected, then reads the
+		// Map). Copies below are updated from the cache when an external
+		// change arrives during that wait, so this call does not observe a
+		// string that has already left the cache.
 		const failedInserts = this.pendingInserts;
 		const failedDeletes = this.pendingDeletes;
-		const updateRequest: IUpdateRequest = { insert: failedInserts, delete: failedDeletes };
+		const requestInserts = new Map(failedInserts);
+		const requestDeletes = new Set(failedDeletes);
+		const updateRequest: IUpdateRequest = { insert: requestInserts, delete: requestDeletes };
 
 		// Reset pending data for next run
 		this.pendingDeletes = new Set<string>();
 		this.pendingInserts = new Map<string, string>();
+
+		const syncInFlightKey = (key: string): void => {
+			if (failedInserts.has(key)) {
+				const cached = this.cache.get(key);
+				if (cached === undefined) {
+					requestInserts.delete(key);
+				} else {
+					requestInserts.set(key, cached);
+				}
+			}
+			if (failedDeletes.has(key) && this.cache.has(key)) {
+				requestDeletes.delete(key);
+			}
+		};
+
+		const externalListener = this.database.onDidChangeItemsExternal(change => {
+			const keys: string[] = [];
+			if (change.deleted) {
+				keys.push(...change.deleted);
+			}
+			if (change.changed) {
+				keys.push(...change.changed.keys());
+			}
+			for (const key of keys) {
+				syncInFlightKey(key);
+			}
+		});
 
 		// Snapshot callbacks waiting for this flush batch
 		const callbacks = this.whenFlushedCallbacks.splice(0, this.whenFlushedCallbacks.length);
 
 		const promise: Promise<void> = (async () => {
 			try {
-				await this.database.updateItems(updateRequest);
+				try {
+					await this.database.updateItems(updateRequest);
 
-				for (const callback of callbacks) {
-					callback.resolve();
+					for (const callback of callbacks) {
+						callback.resolve();
+					}
+				} catch (error) {
+					this.mergePendingAfterFailedFlush(failedInserts, failedDeletes);
+					const err = error instanceof Error ? error : new Error(String(error));
+					for (const callback of callbacks) {
+						callback.reject(err);
+					}
+					throw error;
 				}
-			} catch (error) {
-				this.mergePendingAfterFailedFlush(failedInserts, failedDeletes);
-				const err = error instanceof Error ? error : new Error(String(error));
-				for (const callback of callbacks) {
-					callback.reject(err);
-				}
-				throw error;
+			} finally {
+				externalListener.dispose();
 			}
 		})().finally(() => {
 			if (this.currentFlushPromise === promise) {
