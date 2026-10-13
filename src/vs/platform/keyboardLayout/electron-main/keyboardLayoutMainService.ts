@@ -25,6 +25,7 @@ export class KeyboardLayoutMainService extends Disposable implements INativeKeyb
 
 	private _initPromise: Promise<void> | null;
 	private _keyboardLayoutData: IKeyboardLayoutData | null;
+	private _keyboardLayoutListenerRegistered = false;
 
 	constructor(
 		@ILifecycleMainService lifecycleMainService: ILifecycleMainService
@@ -41,24 +42,48 @@ export class KeyboardLayoutMainService extends Disposable implements INativeKeyb
 
 	private _initialize(): Promise<void> {
 		if (!this._initPromise) {
-			this._initPromise = this._doInitialize();
+			this._initPromise = this._startInitialize();
 		}
 		return this._initPromise;
 	}
 
+	private _startInitialize(): Promise<void> {
+		const pending: { promise?: Promise<void> } = {};
+		// In-flight callers share this promise. Drop it when init rejects so the next
+		// call reads again, but only if the field still points at this attempt.
+		const promise = (async () => {
+			try {
+				await this._doInitialize();
+			} catch (error) {
+				if (this._initPromise === pending.promise) {
+					this._initPromise = null;
+				}
+				throw error;
+			}
+		})();
+		pending.promise = promise;
+		return promise;
+	}
+
 	private async _doInitialize(): Promise<void> {
-		const nativeKeymapMod = await import('native-keymap');
+		const nativeKeymapMod = await this._loadNativeKeymap();
 
 		this._keyboardLayoutData = readKeyboardLayoutData(nativeKeymapMod);
-		if (!platform.isCI) {
-			// See https://github.com/microsoft/vscode/issues/152840
-			// Do not register the keyboard layout change listener in CI because it doesn't work
-			// on the build machines and it just adds noise to the build logs.
+		// See https://github.com/microsoft/vscode/issues/152840
+		// Do not register the keyboard layout change listener in CI because it doesn't work
+		// on the build machines and it just adds noise to the build logs.
+		// Set the flag before subscribe so a retry cannot stack another listener.
+		if (!platform.isCI && !this._keyboardLayoutListenerRegistered) {
+			this._keyboardLayoutListenerRegistered = true;
 			nativeKeymapMod.onDidChangeKeyboardLayout(() => {
 				this._keyboardLayoutData = readKeyboardLayoutData(nativeKeymapMod);
 				this._onDidChangeKeyboardLayout.fire(this._keyboardLayoutData);
 			});
 		}
+	}
+
+	protected _loadNativeKeymap(): Promise<typeof nativeKeymap> {
+		return import('native-keymap');
 	}
 
 	public async getKeyboardLayoutData(): Promise<IKeyboardLayoutData> {
