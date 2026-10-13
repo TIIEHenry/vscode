@@ -21,7 +21,7 @@ import { URI } from '../../../base/common/uri.js';
 import { localize } from '../../../nls.js';
 import { IEnvironmentService } from '../../environment/common/environment.js';
 import { IProductVersion, Metadata } from './extensionManagement.js';
-import { areSameExtensions, computeTargetPlatform, getExtensionId, getGalleryExtensionId } from './extensionManagementUtil.js';
+import { areSameExtensions, computeTargetPlatform as computeHostTargetPlatform, getExtensionId, getGalleryExtensionId } from './extensionManagementUtil.js';
 import { ExtensionType, ExtensionIdentifier, IExtensionManifest, TargetPlatform, IExtensionIdentifier, IRelaxedExtensionManifest, UNDEFINED_PUBLISHER, IExtensionDescription, BUILTIN_MANIFEST_CACHE_FILE, USER_MANIFEST_CACHE_FILE, ExtensionIdentifierMap, parseEnabledApiProposalNames } from '../../extensions/common/extensions.js';
 import { validateExtensionManifest } from '../../extensions/common/extensionValidator.js';
 import { FileOperationResult, IFileService, toFileOperationResult } from '../../files/common/files.js';
@@ -197,11 +197,22 @@ export abstract class AbstractExtensionsScannerService extends Disposable implem
 	}
 
 	private _targetPlatformPromise: Promise<TargetPlatform> | undefined;
-	private getTargetPlatform(): Promise<TargetPlatform> {
+	protected getTargetPlatform(): Promise<TargetPlatform> {
 		if (!this._targetPlatformPromise) {
-			this._targetPlatformPromise = computeTargetPlatform(this.fileService, this.logService);
+			const promise = this.computeTargetPlatform();
+			this._targetPlatformPromise = promise;
+			// Drop only this attempt. A later call must compute again; an in-flight or fulfilled promise stays shared.
+			promise.catch(() => {
+				if (this._targetPlatformPromise === promise) {
+					this._targetPlatformPromise = undefined;
+				}
+			});
 		}
 		return this._targetPlatformPromise;
+	}
+
+	protected computeTargetPlatform(): Promise<TargetPlatform> {
+		return computeHostTargetPlatform(this.fileService, this.logService);
 	}
 
 	async scanAllExtensions(systemScanOptions: SystemExtensionsScanOptions, userScanOptions: UserExtensionsScanOptions): Promise<IScannedExtension[]> {

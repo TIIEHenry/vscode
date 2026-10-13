@@ -37,7 +37,7 @@ import {
 	VerifyExtensionSignatureConfigKey,
 	shouldRequireRepositorySignatureFor,
 } from '../common/extensionManagement.js';
-import { areSameExtensions, computeTargetPlatform, ExtensionKey, getGalleryExtensionId, groupByExtension } from '../common/extensionManagementUtil.js';
+import { areSameExtensions, computeTargetPlatform as computeHostTargetPlatform, ExtensionKey, getGalleryExtensionId, groupByExtension } from '../common/extensionManagementUtil.js';
 import { IExtensionsProfileScannerService, IScannedProfileExtension } from '../common/extensionsProfileScannerService.js';
 import { IExtensionsScannerService, IScannedExtension, ManifestMetadata, UserExtensionsScanOptions } from '../common/extensionsScannerService.js';
 import { ExtensionsDownloader } from './extensionDownloader.js';
@@ -108,9 +108,20 @@ export class ExtensionManagementService extends AbstractExtensionManagementServi
 	private _targetPlatformPromise: Promise<TargetPlatform> | undefined;
 	getTargetPlatform(): Promise<TargetPlatform> {
 		if (!this._targetPlatformPromise) {
-			this._targetPlatformPromise = computeTargetPlatform(this.fileService, this.logService);
+			const promise = this.computeTargetPlatform();
+			this._targetPlatformPromise = promise;
+			// Drop only this attempt. A later call must compute again; an in-flight or fulfilled promise stays shared.
+			promise.catch(() => {
+				if (this._targetPlatformPromise === promise) {
+					this._targetPlatformPromise = undefined;
+				}
+			});
 		}
 		return this._targetPlatformPromise;
+	}
+
+	protected computeTargetPlatform(): Promise<TargetPlatform> {
+		return computeHostTargetPlatform(this.fileService, this.logService);
 	}
 
 	async zip(extension: ILocalExtension): Promise<URI> {
