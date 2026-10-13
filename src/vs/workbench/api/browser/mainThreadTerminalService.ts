@@ -59,7 +59,17 @@ export class MainThreadTerminalService extends Disposable implements MainThreadT
 	 */
 	private readonly _linkProvider = this._register(new MutableDisposable());
 
-	private _os: OperatingSystem = OS;
+	// Set only when getEnvironment resolves. Unset means the last read did not succeed.
+	private _remoteOs: OperatingSystem | undefined;
+	private _remoteOsRead: Promise<void> | undefined;
+
+	private get _os(): OperatingSystem {
+		return this._remoteOs ?? OS;
+	}
+
+	private set _os(os: OperatingSystem) {
+		this._remoteOs = os;
+	}
 
 	constructor(
 		_extHostContext: IExtHostContext,
@@ -70,7 +80,7 @@ export class MainThreadTerminalService extends Disposable implements MainThreadT
 		@IEnvironmentVariableService private readonly _environmentVariableService: IEnvironmentVariableService,
 		@ILogService private readonly _logService: ILogService,
 		@ITerminalProfileResolverService private readonly _terminalProfileResolverService: ITerminalProfileResolverService,
-		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
+		@IRemoteAgentService private readonly _remoteAgentService: IRemoteAgentService,
 		@ITerminalGroupService private readonly _terminalGroupService: ITerminalGroupService,
 		@ITerminalEditorService private readonly _terminalEditorService: ITerminalEditorService,
 		@ITerminalProfileService private readonly _terminalProfileService: ITerminalProfileService,
@@ -116,14 +126,41 @@ export class MainThreadTerminalService extends Disposable implements MainThreadT
 			});
 			this._proxy.$initEnvironmentVariableCollections(serializedCollections);
 		}
-		remoteAgentService.getEnvironment().then(async env => {
-			this._os = env?.os || OS;
-			this._updateDefaultProfile();
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this._beginRemoteOsRead();
 		this._register(this._terminalProfileService.onDidChangeAvailableProfiles(() => this._updateDefaultProfile()));
 	}
 
-	private async _updateDefaultProfile() {
+	private _beginRemoteOsRead(): Promise<void> {
+		if (this._remoteOs) {
+			return Promise.resolve();
+		}
+		if (this._remoteOsRead) {
+			return this._remoteOsRead;
+		}
+		const remoteAgentService = this._remoteAgentService;
+		const read = remoteAgentService.getEnvironment().then(async env => {
+			this._os = env?.os || OS;
+			this._updateDefaultProfile();
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._remoteOsRead = read;
+		// Double catch fulfills a rejection, so `read` is not a failed-read cache.
+		// Drop the settled attempt. The next update calls getEnvironment again unless the OS was cached.
+		void read.then(() => {
+			if (this._remoteOsRead === read) {
+				this._remoteOsRead = undefined;
+			}
+		});
+		return read;
+	}
+
+	private async _updateDefaultProfile(): Promise<void> {
+		if (this._remoteOs === undefined) {
+			await this._beginRemoteOsRead();
+			// A resolved read already called this method from its then. Do not start another getEnvironment in this update.
+			if (this._remoteOs !== undefined) {
+				return;
+			}
+		}
 		const remoteAuthority = this._environmentService.remoteAuthority;
 		const defaultProfile = this._terminalProfileResolverService.getDefaultProfile({ remoteAuthority, os: this._os });
 		const defaultAutomationProfile = this._terminalProfileResolverService.getDefaultProfile({ remoteAuthority, os: this._os, allowAutomationShell: true });
