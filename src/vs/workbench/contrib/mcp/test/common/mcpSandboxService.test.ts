@@ -112,7 +112,110 @@ suite('MCP Sandbox Service', () => {
 		assert.ok(!secondAllowWrites.includes(firstCwd));
 		assert.deepStrictEqual([...allowWriteOf(firstBody!)].sort(), [firstAllowWrite, firstCwd, '~/.npm'].sort());
 	});
+
+	test('calls getEnvironment again on the next remote read after rejection, then caches success', async () => {
+		const error = new Error('remote env unavailable');
+		const remoteEnvironment = { os: OperatingSystem.Windows } as IRemoteAgentEnvironment;
+		let calls = 0;
+		let releaseSuccess!: (value: IRemoteAgentEnvironment | null) => void;
+		const service = store.add(new McpSandboxService(
+			{} as IFileService,
+			{} as IEnvironmentService,
+			{} as ILogService,
+			{} as IMcpResourceScannerService,
+			{
+				getEnvironment: () => {
+					calls++;
+					if (calls === 1) {
+						return Promise.reject(error);
+					}
+					return new Promise(resolve => {
+						releaseSuccess = resolve;
+					});
+				},
+			} as IRemoteAgentService,
+		));
+
+		assert.strictEqual(calls, 1);
+		await assert.rejects(
+			() => service.isEnabled(serverDefinition(), 'test-remote'),
+			(reason: unknown) => reason === error,
+		);
+		assert.strictEqual(calls, 1);
+
+		await service.isEnabled(serverDefinition());
+		assert.strictEqual(calls, 1);
+
+		const firstRetry = service.isEnabled(serverDefinition(), 'test-remote');
+		const sharedRetry = service.isEnabled(serverDefinition(), 'test-remote');
+		assert.strictEqual(calls, 2);
+		releaseSuccess(remoteEnvironment);
+		assert.deepStrictEqual(await Promise.all([firstRetry, sharedRetry]), [false, false]);
+
+		assert.strictEqual(await service.isEnabled(serverDefinition(), 'test-remote'), false);
+		assert.strictEqual(calls, 2);
+	});
+
+	test('caches a getEnvironment result that resolves to null', async () => {
+		let calls = 0;
+		const service = store.add(new McpSandboxService(
+			{} as IFileService,
+			{} as IEnvironmentService,
+			{} as ILogService,
+			{} as IMcpResourceScannerService,
+			{
+				getEnvironment: async () => {
+					calls++;
+					return null;
+				},
+			} as IRemoteAgentService,
+		));
+
+		assert.strictEqual(calls, 1);
+		await service.isEnabled(serverDefinition(), 'test-remote');
+		await service.isEnabled(serverDefinition(), 'test-remote');
+		assert.strictEqual(calls, 1);
+	});
+
+	test('a rejected remote environment read drops the promise only while it still points at that attempt', async () => {
+		const error = new Error('remote env unavailable');
+		let rejectFirst!: (reason: Error) => void;
+		const firstRead = new Promise<IRemoteAgentEnvironment | null>((_resolve, reject) => {
+			rejectFirst = reject;
+		});
+		let calls = 0;
+		const service = store.add(new McpSandboxService(
+			{} as IFileService,
+			{} as IEnvironmentService,
+			{} as ILogService,
+			{} as IMcpResourceScannerService,
+			{
+				getEnvironment: () => {
+					calls++;
+					return calls === 1 ? firstRead : Promise.resolve({ os: OperatingSystem.Windows } as IRemoteAgentEnvironment);
+				},
+			} as IRemoteAgentService,
+		));
+		const probe = service as unknown as IRemoteEnvProbe;
+
+		const reading = service.isEnabled(serverDefinition(), 'test-remote');
+		const replacement = Promise.resolve<IRemoteAgentEnvironment | null>(null);
+		probe._remoteEnvDetailsPromise = replacement;
+		rejectFirst(error);
+
+		await assert.rejects(() => reading, (reason: unknown) => reason === error);
+		assert.strictEqual(probe._remoteEnvDetailsPromise, replacement);
+		assert.strictEqual(calls, 1);
+
+		await service.isEnabled(serverDefinition(), 'test-remote');
+		assert.strictEqual(calls, 1);
+		assert.strictEqual(probe._remoteEnvDetailsPromise, replacement);
+	});
 });
+
+interface IRemoteEnvProbe {
+	_remoteEnvDetailsPromise: Promise<IRemoteAgentEnvironment | null> | undefined;
+}
 
 function serverDefinition(): McpServerDefinition {
 	return {

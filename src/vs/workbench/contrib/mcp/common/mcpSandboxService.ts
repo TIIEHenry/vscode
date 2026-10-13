@@ -79,7 +79,7 @@ export function resolveMcpServerSandboxWorkingDirectory(cwd: string | undefined,
 export class McpSandboxService extends Disposable implements IMcpSandboxService {
 	readonly _serviceBrand: undefined;
 
-	private _remoteEnvDetailsPromise: Promise<IRemoteAgentEnvironment | null>;
+	private _remoteEnvDetailsPromise: Promise<IRemoteAgentEnvironment | null> | undefined;
 	private readonly _defaultAllowedDomains: readonly string[] = ['registry.npmjs.org']; // Default allowed domains that are commonly needed for MCP servers, even if the user doesn't specify them in their sandbox config
 
 	constructor(
@@ -90,8 +90,7 @@ export class McpSandboxService extends Disposable implements IMcpSandboxService 
 		@IRemoteAgentService private readonly _remoteAgentService: IRemoteAgentService,
 	) {
 		super();
-		this._remoteEnvDetailsPromise = this._remoteAgentService.getEnvironment();
-
+		this._ensureRemoteEnv();
 	}
 
 	public async isEnabled(serverDef: McpServerDefinition, remoteAuthority?: string): Promise<boolean> {
@@ -333,11 +332,27 @@ export class McpSandboxService extends Disposable implements IMcpSandboxService 
 		return result;
 	}
 
+	private _ensureRemoteEnv(): Promise<IRemoteAgentEnvironment | null> {
+		const current = this._remoteEnvDetailsPromise;
+		if (current) {
+			return current;
+		}
+		const promise = this._remoteAgentService.getEnvironment();
+		this._remoteEnvDetailsPromise = promise;
+		// Drop only this attempt. A later read with a remote authority starts again; an in-flight or fulfilled promise stays shared.
+		promise.catch(() => {
+			if (this._remoteEnvDetailsPromise === promise) {
+				this._remoteEnvDetailsPromise = undefined;
+			}
+		});
+		return promise;
+	}
+
 	private async _getRemoteEnv(remoteAuthority?: string): Promise<IRemoteAgentEnvironment | null> {
 		if (!remoteAuthority) {
 			return null;
 		}
-		return this._remoteEnvDetailsPromise;
+		return this._ensureRemoteEnv();
 	}
 
 	private async _getUserHome(remoteAuthority?: string): Promise<URI | undefined> {
