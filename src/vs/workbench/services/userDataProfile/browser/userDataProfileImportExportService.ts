@@ -50,17 +50,19 @@ interface IUserDataProfileTemplate {
 	readonly snippets?: string;
 	readonly globalState?: string;
 	readonly extensions?: string;
+	readonly mcp?: string;
 }
 
 function isUserDataProfileTemplate(thing: unknown): thing is IUserDataProfileTemplate {
 	const candidate = thing as IUserDataProfileTemplate | undefined;
 
-	return !!(candidate && typeof candidate === 'object'
+	return !!(candidate && typeof candidate === 'object' && !Array.isArray(candidate)
 		&& (candidate.name && typeof candidate.name === 'string')
 		&& (isUndefined(candidate.icon) || typeof candidate.icon === 'string')
 		&& (isUndefined(candidate.settings) || typeof candidate.settings === 'string')
 		&& (isUndefined(candidate.globalState) || typeof candidate.globalState === 'string')
-		&& (isUndefined(candidate.extensions) || typeof candidate.extensions === 'string'));
+		&& (isUndefined(candidate.extensions) || typeof candidate.extensions === 'string')
+		&& (isUndefined(candidate.mcp) || typeof candidate.mcp === 'string'));
 }
 
 export class UserDataProfileImportExportService extends Disposable implements IUserDataProfileImportExportService {
