@@ -439,14 +439,15 @@ export abstract class AbstractSynchroniser extends Disposable implements IUserDa
 			return;
 		}
 
-		let preview = await this.syncPreviewPromise;
+		const previousPreviewPromise = this.syncPreviewPromise;
+		let preview = await previousPreviewPromise;
 		const index = preview.resourcePreviews.findIndex(({ localResource, remoteResource, previewResource }) =>
 			this.extUri.isEqual(localResource, resource) || this.extUri.isEqual(remoteResource, resource) || this.extUri.isEqual(previewResource, resource));
 		if (index === -1) {
 			return;
 		}
 
-		this.syncPreviewPromise = createCancelablePromise(async token => {
+		const updatePromise = createCancelablePromise(async token => {
 			const resourcePreviews = [...preview.resourcePreviews];
 			resourcePreviews[index] = await updateResourcePreview(resourcePreviews[index]);
 			return {
@@ -454,8 +455,22 @@ export abstract class AbstractSynchroniser extends Disposable implements IUserDa
 				resourcePreviews
 			};
 		});
+		// Callers that arrive while this update is in flight await the same promise.
+		this.syncPreviewPromise = updatePromise;
 
-		preview = await this.syncPreviewPromise;
+		try {
+			preview = await updatePromise;
+		} catch (error) {
+			// A rejected accept/discard must not stick. Put back the last successful
+			// preview when this call still owns the field, then rethrow. Null would
+			// make the next accept/discard return without running the update.
+			// stop() and doSync replace the field themselves; leave those writes alone.
+			if (this.syncPreviewPromise === updatePromise) {
+				this.syncPreviewPromise = previousPreviewPromise;
+			}
+			throw error;
+		}
+
 		this.updateConflicts(preview.resourcePreviews);
 		if (preview.resourcePreviews.some(({ mergeState }) => mergeState === MergeState.Conflict)) {
 			this.setStatus(SyncStatus.HasConflicts);

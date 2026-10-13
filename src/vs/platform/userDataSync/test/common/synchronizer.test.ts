@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { Barrier } from '../../../../base/common/async.js';
+import { isCancellationError } from '../../../../base/common/errors.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
@@ -29,6 +30,12 @@ class TestSynchroniser extends AbstractSynchroniser {
 	syncResult: { hasConflicts: boolean; hasError: boolean } = { hasConflicts: false, hasError: false };
 	onDoSyncCall: Emitter<void> = this._register(new Emitter<void>());
 	failWhenGettingLatestRemoteUserData: boolean = false;
+	acceptResultCalls = 0;
+	acceptResultError: Error | undefined;
+	acceptResultBarrier: Barrier | undefined;
+	onDidEnterAcceptResult: (() => void) | undefined;
+	mergeResultCalls = 0;
+	mergeResultError: Error | undefined;
 
 	protected readonly version: number = 1;
 
@@ -87,6 +94,13 @@ class TestSynchroniser extends AbstractSynchroniser {
 	}
 
 	protected async getMergeResult(resourcePreview: ITestResourcePreview, token: CancellationToken): Promise<IMergeResult> {
+		this.mergeResultCalls++;
+		if (this.mergeResultError) {
+			const error = this.mergeResultError;
+			this.mergeResultError = undefined;
+			throw error;
+		}
+
 		return {
 			content: resourcePreview.ref,
 			localChange: Change.Modified,
@@ -96,6 +110,18 @@ class TestSynchroniser extends AbstractSynchroniser {
 	}
 
 	protected async getAcceptResult(resourcePreview: ITestResourcePreview, resource: URI, content: string | null | undefined, token: CancellationToken): Promise<IAcceptResult> {
+		this.acceptResultCalls++;
+		this.onDidEnterAcceptResult?.();
+		if (this.acceptResultBarrier) {
+			const barrier = this.acceptResultBarrier;
+			this.acceptResultBarrier = undefined;
+			await barrier.wait();
+		}
+		if (this.acceptResultError) {
+			const error = this.acceptResultError;
+			this.acceptResultError = undefined;
+			throw error;
+		}
 
 		if (isEqual(resource, resourcePreview.localResource)) {
 			return {
@@ -509,6 +535,183 @@ suite('TestSynchronizer - Auto Sync', () => {
 			}
 
 			assert.strictEqual(testObject.status, SyncStatus.Idle);
+		});
+	});
+
+	test('preview generation failure still clears the preview', async () => {
+		await runWithFakedTimers<void>({}, async () => {
+			const testObject: TestSynchroniser = disposableStore.add(client.instantiationService.createInstance(TestSynchroniser, { syncResource: SyncResource.Settings, profile: client.instantiationService.get(IUserDataProfilesService).defaultProfile }, undefined));
+			testObject.syncResult = { hasError: true, hasConflicts: false };
+			testObject.syncBarrier.open();
+
+			try {
+				await testObject.sync(await client.getLatestRef(testObject.resource));
+				assert.fail('Should fail');
+			} catch (error) {
+				assert.strictEqual((error as Error).message, 'failed');
+			}
+
+			assert.deepStrictEqual(testObject.status, SyncStatus.Idle);
+
+			testObject.syncResult = { hasError: false, hasConflicts: false };
+			await testObject.sync(await client.getLatestRef(testObject.resource));
+			assert.deepStrictEqual(testObject.status, SyncStatus.Idle);
+		});
+	});
+
+	test('failed accept during conflicts does not stick the rejected preview', async () => {
+		await runWithFakedTimers<void>({}, async () => {
+			const testObject: TestSynchroniser = disposableStore.add(client.instantiationService.createInstance(TestSynchroniser, { syncResource: SyncResource.Settings, profile: client.instantiationService.get(IUserDataProfilesService).defaultProfile }, undefined));
+			testObject.syncResult = { hasConflicts: true, hasError: false };
+			testObject.syncBarrier.open();
+			const ref = await client.getLatestRef(testObject.resource);
+			await testObject.sync(ref);
+			assert.deepStrictEqual(testObject.status, SyncStatus.HasConflicts);
+
+			const failure = new Error('accept failed');
+			testObject.acceptResultError = failure;
+			const resource = testObject.conflicts.conflicts[0].previewResource;
+			let rejected: unknown;
+			try {
+				await testObject.accept(resource);
+			} catch (error) {
+				rejected = error;
+			}
+			assert.strictEqual(rejected, failure);
+			assert.strictEqual(testObject.acceptResultCalls, 1);
+			assert.deepStrictEqual(testObject.status, SyncStatus.HasConflicts);
+			assertConflicts(testObject.conflicts.conflicts, [testObject.localResource]);
+
+			let doSyncCalls = 0;
+			disposableStore.add(testObject.onDoSyncCall.event(() => { doSyncCalls++; }));
+			const preview = await testObject.sync(ref);
+			assert.strictEqual(doSyncCalls, 0);
+			assert.ok(preview);
+			assert.strictEqual(preview!.resourcePreviews[0].mergeState, MergeState.Conflict);
+			assert.deepStrictEqual(testObject.status, SyncStatus.HasConflicts);
+
+			await testObject.accept(resource);
+			assert.strictEqual(testObject.acceptResultCalls, 2);
+			assert.deepStrictEqual(testObject.status, SyncStatus.Syncing);
+			assertConflicts(testObject.conflicts.conflicts, []);
+		});
+	});
+
+	test('failed discard during conflicts does not stick the rejected preview', async () => {
+		await runWithFakedTimers<void>({}, async () => {
+			const testObject: TestSynchroniser = disposableStore.add(client.instantiationService.createInstance(TestSynchroniser, { syncResource: SyncResource.Settings, profile: client.instantiationService.get(IUserDataProfilesService).defaultProfile }, undefined));
+			testObject.syncResult = { hasConflicts: true, hasError: false };
+			testObject.syncBarrier.open();
+			const ref = await client.getLatestRef(testObject.resource);
+			await testObject.sync(ref);
+			const mergesAfterPreview = testObject.mergeResultCalls;
+			assert.deepStrictEqual(testObject.status, SyncStatus.HasConflicts);
+
+			const failure = new Error('discard failed');
+			testObject.mergeResultError = failure;
+			const resource = testObject.conflicts.conflicts[0].previewResource;
+			let rejected: unknown;
+			try {
+				await testObject.discard(resource);
+			} catch (error) {
+				rejected = error;
+			}
+			assert.strictEqual(rejected, failure);
+			assert.strictEqual(testObject.mergeResultCalls, mergesAfterPreview + 1);
+			assert.deepStrictEqual(testObject.status, SyncStatus.HasConflicts);
+			assertConflicts(testObject.conflicts.conflicts, [testObject.localResource]);
+
+			const preview = await testObject.sync(ref);
+			assert.ok(preview);
+			assert.strictEqual(preview!.resourcePreviews[0].mergeState, MergeState.Conflict);
+
+			await testObject.discard(resource);
+			assert.strictEqual(testObject.mergeResultCalls, mergesAfterPreview + 2);
+			assert.deepStrictEqual(testObject.status, SyncStatus.Syncing);
+			assertConflicts(testObject.conflicts.conflicts, []);
+		});
+	});
+
+	test('in-flight accept calls share one update and the next accept runs again', async () => {
+		await runWithFakedTimers<void>({}, async () => {
+			const testObject: TestSynchroniser = disposableStore.add(client.instantiationService.createInstance(TestSynchroniser, { syncResource: SyncResource.Settings, profile: client.instantiationService.get(IUserDataProfilesService).defaultProfile }, undefined));
+			testObject.syncResult = { hasConflicts: true, hasError: false };
+			testObject.syncBarrier.open();
+			await testObject.sync(await client.getLatestRef(testObject.resource));
+
+			const failure = new Error('accept failed');
+			const barrier = new Barrier();
+			testObject.acceptResultError = failure;
+			testObject.acceptResultBarrier = barrier;
+			const resource = testObject.conflicts.conflicts[0].previewResource;
+			const entered = new Promise<void>(resolve => {
+				testObject.onDidEnterAcceptResult = () => {
+					testObject.onDidEnterAcceptResult = undefined;
+					resolve();
+				};
+			});
+
+			const first = testObject.accept(resource);
+			await entered;
+			assert.strictEqual(testObject.acceptResultCalls, 1);
+			const second = testObject.accept(resource);
+			assert.strictEqual(testObject.acceptResultCalls, 1);
+			barrier.open();
+
+			const errors = await Promise.all([
+				first.then(() => assert.fail('Should fail'), error => error),
+				second.then(() => assert.fail('Should fail'), error => error),
+			]);
+			assert.strictEqual(errors[0], failure);
+			assert.strictEqual(errors[1], failure);
+			assert.strictEqual(testObject.acceptResultCalls, 1);
+			assert.deepStrictEqual(testObject.status, SyncStatus.HasConflicts);
+			assertConflicts(testObject.conflicts.conflicts, [testObject.localResource]);
+
+			await testObject.accept(resource);
+			assert.strictEqual(testObject.acceptResultCalls, 2);
+			assert.deepStrictEqual(testObject.status, SyncStatus.Syncing);
+			assertConflicts(testObject.conflicts.conflicts, []);
+		});
+	});
+
+	test('stop during accept still clears the preview', async () => {
+		await runWithFakedTimers<void>({}, async () => {
+			const testObject: TestSynchroniser = disposableStore.add(client.instantiationService.createInstance(TestSynchroniser, { syncResource: SyncResource.Settings, profile: client.instantiationService.get(IUserDataProfilesService).defaultProfile }, undefined));
+			testObject.syncResult = { hasConflicts: true, hasError: false };
+			testObject.syncBarrier.open();
+			await testObject.sync(await client.getLatestRef(testObject.resource));
+
+			const barrier = new Barrier();
+			testObject.acceptResultBarrier = barrier;
+			const resource = testObject.conflicts.conflicts[0].previewResource;
+			const entered = new Promise<void>(resolve => {
+				testObject.onDidEnterAcceptResult = () => {
+					testObject.onDidEnterAcceptResult = undefined;
+					resolve();
+				};
+			});
+			const pending = testObject.accept(resource).then(() => assert.fail('Should fail'), error => error);
+			const becameIdle = new Promise<void>(resolve => {
+				const listener = disposableStore.add(testObject.onDidChangeStatus(status => {
+					if (status === SyncStatus.Idle) {
+						listener.dispose();
+						resolve();
+					}
+				}));
+			});
+			await entered;
+			await testObject.stop();
+			const error = await pending;
+			assert.ok(isCancellationError(error));
+			await becameIdle;
+			assert.deepStrictEqual(testObject.status, SyncStatus.Idle);
+			assert.deepStrictEqual(testObject.conflicts.conflicts, []);
+			barrier.open();
+
+			testObject.syncResult = { hasConflicts: false, hasError: false };
+			await testObject.sync(await client.getLatestRef(testObject.resource));
+			assert.deepStrictEqual(testObject.status, SyncStatus.Idle);
 		});
 	});
 });
