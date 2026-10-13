@@ -276,7 +276,7 @@ CommandsRegistry.registerCommand({
 });
 
 export const WorkspacePlatform = new RawContextKey<'mac' | 'linux' | 'windows' | 'webworker' | undefined>('workspacePlatform', undefined, localize('workspacePlatform', "The platform of the current workspace, which in remote or serverless contexts may be different from the platform of the UI"));
-class WorkspacePlatformContribution {
+export class WorkspacePlatformContribution {
 
 	static readonly ID = 'workbench.contrib.workspacePlatform';
 
@@ -285,30 +285,36 @@ class WorkspacePlatformContribution {
 		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
 		@IContextKeyService private readonly contextService: IContextKeyService,
 	) {
+		// A rejection has no remote OS. Fall back once; do not call getEnvironment again.
 		this.remoteAgentService.getEnvironment().then(env => {
-			const remoteOS = env?.os;
-
-			const remotePlatform = remoteOS === OS.Macintosh ? 'mac'
-				: remoteOS === OS.Windows ? 'windows'
-					: remoteOS === OS.Linux ? 'linux'
-						: undefined;
-
-			if (remotePlatform) {
-				WorkspacePlatform.bindTo(this.contextService).set(remotePlatform);
-			} else if (this.extensionManagementServerService.localExtensionManagementServer) {
-				if (isMacintosh) {
-					WorkspacePlatform.bindTo(this.contextService).set('mac');
-				} else if (isLinux) {
-					WorkspacePlatform.bindTo(this.contextService).set('linux');
-				} else if (isWindows) {
-					WorkspacePlatform.bindTo(this.contextService).set('windows');
-				}
-			} else if (this.extensionManagementServerService.webExtensionManagementServer) {
-				WorkspacePlatform.bindTo(this.contextService).set('webworker');
-			} else {
-				console.error('Error: Unable to detect workspace platform');
-			}
+			this.setWorkspacePlatform(env?.os);
+		}, err => {
+			this.setWorkspacePlatform(undefined);
+			onUnexpectedError(err);
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
+	}
+
+	private setWorkspacePlatform(remoteOS: OS | undefined): void {
+		const remotePlatform = remoteOS === OS.Macintosh ? 'mac'
+			: remoteOS === OS.Windows ? 'windows'
+				: remoteOS === OS.Linux ? 'linux'
+					: undefined;
+
+		if (remotePlatform) {
+			WorkspacePlatform.bindTo(this.contextService).set(remotePlatform);
+		} else if (this.extensionManagementServerService.localExtensionManagementServer) {
+			if (isMacintosh) {
+				WorkspacePlatform.bindTo(this.contextService).set('mac');
+			} else if (isLinux) {
+				WorkspacePlatform.bindTo(this.contextService).set('linux');
+			} else if (isWindows) {
+				WorkspacePlatform.bindTo(this.contextService).set('windows');
+			}
+		} else if (this.extensionManagementServerService.webExtensionManagementServer) {
+			WorkspacePlatform.bindTo(this.contextService).set('webworker');
+		} else {
+			console.error('Error: Unable to detect workspace platform');
+		}
 	}
 }
 

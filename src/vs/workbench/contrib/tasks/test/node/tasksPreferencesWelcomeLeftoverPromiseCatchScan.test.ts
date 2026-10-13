@@ -85,32 +85,37 @@ suite('tasks/preferences/welcome leftover Promise fire-and-forget catch scan (D6
 		assert.ok(startup.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(onboarding.includes("import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const envThen = `this.remoteAgentService.getEnvironment().then(env => {
-			const remoteOS = env?.os;
-
-			const remotePlatform = remoteOS === OS.Macintosh ? 'mac'
-				: remoteOS === OS.Windows ? 'windows'
-					: remoteOS === OS.Linux ? 'linux'
-						: undefined;
-
-			if (remotePlatform) {
-				WorkspacePlatform.bindTo(this.contextService).set(remotePlatform);
-			} else if (this.extensionManagementServerService.localExtensionManagementServer) {
-				if (isMacintosh) {
-					WorkspacePlatform.bindTo(this.contextService).set('mac');
-				} else if (isLinux) {
-					WorkspacePlatform.bindTo(this.contextService).set('linux');
-				} else if (isWindows) {
-					WorkspacePlatform.bindTo(this.contextService).set('windows');
-				}
-			} else if (this.extensionManagementServerService.webExtensionManagementServer) {
-				WorkspacePlatform.bindTo(this.contextService).set('webworker');
-			} else {
-				console.error('Error: Unable to detect workspace platform');
-			}
+			this.setWorkspacePlatform(env?.os);
+		}, err => {
+			this.setWorkspacePlatform(undefined);
+			onUnexpectedError(err);
 		})`;
 		assert.ok(contribution.includes(`${envThen}${doubleCatch};`));
 		assert.ok(!contribution.includes(`${envThen};`));
 		assert.ok(!contribution.includes(`${envThen}.catch(onUnexpectedError);`));
+		const setPlatform = `private setWorkspacePlatform(remoteOS: OS | undefined): void {
+		const remotePlatform = remoteOS === OS.Macintosh ? 'mac'
+			: remoteOS === OS.Windows ? 'windows'
+				: remoteOS === OS.Linux ? 'linux'
+					: undefined;
+
+		if (remotePlatform) {
+			WorkspacePlatform.bindTo(this.contextService).set(remotePlatform);
+		} else if (this.extensionManagementServerService.localExtensionManagementServer) {
+			if (isMacintosh) {
+				WorkspacePlatform.bindTo(this.contextService).set('mac');
+			} else if (isLinux) {
+				WorkspacePlatform.bindTo(this.contextService).set('linux');
+			} else if (isWindows) {
+				WorkspacePlatform.bindTo(this.contextService).set('windows');
+			}
+		} else if (this.extensionManagementServerService.webExtensionManagementServer) {
+			WorkspacePlatform.bindTo(this.contextService).set('webworker');
+		} else {
+			console.error('Error: Unable to detect workspace platform');
+		}
+	}`;
+		assert.ok(contribution.includes(setPlatform));
 		const installedThen = `this.extensionManagementService.getInstalled().then(installed => {
 			installed.forEach(ext => this.progressByEvent(\`extensionInstalled:\${ext.identifier.id.toLowerCase()}\`));
 		})`;
