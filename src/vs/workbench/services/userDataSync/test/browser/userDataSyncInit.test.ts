@@ -385,6 +385,66 @@ suite('UserDataSyncInitializer', () => {
 		assert.strictEqual(attempt.installedCalls, 2);
 		assert.strictEqual(seen.length, 3);
 	});
+
+	test('retries new extensions after failure, shares one in-flight attempt, and caches success', async () => {
+		const { access, log } = createSubject();
+		const attempt = bindExtensionsAttempt(access, log);
+		let rejectNew: ((error: Error) => void) | undefined;
+		let releaseNew: (() => void) | undefined;
+		let phase: 'fail' | 'succeed' = 'fail';
+		let newCalls = 0;
+		attempt.setNewInitialize(async preview => {
+			await preview.getPreview();
+			newCalls++;
+			if (phase === 'fail') {
+				await new Promise<void>((_resolve, reject) => {
+					rejectNew = reject;
+				});
+			} else {
+				await new Promise<void>(resolve => {
+					releaseNew = resolve;
+				});
+			}
+		});
+		const service = attempt.instantiationService as never;
+		const failure = new Error('new extensions init failed');
+		const newInitializerCount = () => attempt.created.filter(name => name === 'NewExtensionsInitializer').length;
+
+		const first = access.initializeNewExtensions(service);
+		const second = access.initializeNewExtensions(service);
+		assert.strictEqual(second, first);
+		await until(() => newCalls === 1, 'new extensions init did not start');
+		assert.strictEqual(newInitializerCount(), 1);
+		assert.deepStrictEqual(attempt.reads, [SyncResource.Extensions]);
+		rejectNew!(failure);
+
+		await assert.rejects(() => first, (error: unknown) => error === failure);
+		await assert.rejects(() => second, (error: unknown) => error === failure);
+		assert.strictEqual(newCalls, 1);
+		assert.strictEqual(newInitializerCount(), 1);
+		assert.deepStrictEqual(access.initialized, []);
+
+		phase = 'succeed';
+		const retried = access.initializeNewExtensions(service);
+		const sharedRetry = access.initializeNewExtensions(service);
+		assert.notStrictEqual(retried, first);
+		assert.strictEqual(sharedRetry, retried);
+		await until(() => newCalls === 2, 'new extensions init did not retry');
+		assert.strictEqual(newInitializerCount(), 2);
+		assert.deepStrictEqual(attempt.reads, [SyncResource.Extensions]);
+		releaseNew!();
+		await retried;
+		await sharedRetry;
+		assert.strictEqual(newCalls, 2);
+
+		const cached = access.initializeNewExtensions(service);
+		assert.strictEqual(cached, retried);
+		await cached;
+		assert.strictEqual(newCalls, 2);
+		assert.strictEqual(newInitializerCount(), 2);
+		assert.strictEqual(attempt.reads.length, 1);
+		assert.strictEqual(attempt.created.filter(name => name === 'ExtensionsPreviewInitializer').length, 1);
+	});
 });
 
 function extensionsUserData(): IUserData {

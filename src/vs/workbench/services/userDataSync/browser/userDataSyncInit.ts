@@ -216,15 +216,25 @@ export class UserDataSyncInitializer implements IUserDataInitializer {
 	}
 
 	private initializeNewExtensionsPromise: Promise<void> | undefined;
-	private async initializeNewExtensions(instantiationService: IInstantiationService): Promise<void> {
+	private initializeNewExtensions(instantiationService: IInstantiationService): Promise<void> {
 		if (!this.initializeNewExtensionsPromise) {
-			this.initializeNewExtensionsPromise = (async () => {
+			const pending: { promise?: Promise<void> } = {};
+			// In-flight callers share this promise. Drop it only after rejection so the
+			// next call runs again; a fulfilled result stays cached.
+			const promise = (async () => {
 				this.logService.trace(`UserDataInitializationService#initializeNewExtensions`);
 				const extensionsPreviewInitializer = await this.getExtensionsPreviewInitializer(instantiationService);
 				if (extensionsPreviewInitializer) {
 					await instantiationService.createInstance(NewExtensionsInitializer, extensionsPreviewInitializer).initialize();
 				}
-			})();
+			})().catch(error => {
+				if (this.initializeNewExtensionsPromise === pending.promise) {
+					this.initializeNewExtensionsPromise = undefined;
+				}
+				throw error;
+			});
+			pending.promise = promise;
+			this.initializeNewExtensionsPromise = promise;
 		}
 		return this.initializeNewExtensionsPromise;
 	}
