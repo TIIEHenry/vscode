@@ -19,11 +19,36 @@ import { Promises } from '../../../base/common/async.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
 import { clamp } from '../../../base/common/numbers.js';
 
-let unixShellEnvPromise: Promise<typeof process.env> | undefined = undefined;
+export interface IShellEnvAttemptSlot<T> {
+	promise: Promise<T> | undefined;
+}
+
+/**
+ * Share one in-flight shell environment resolution.
+ * A rejection is dropped only while the slot still points at that attempt, so
+ * the next caller resolves again. A fulfilled promise stays cached.
+ */
+export function loadShellEnvAttempt<T>(slot: IShellEnvAttemptSlot<T>, resolve: () => Promise<T>): Promise<T> {
+	if (!slot.promise) {
+		const attempt = resolve();
+		slot.promise = attempt;
+		// Drop only this attempt. The next call resolves again; an in-flight or fulfilled promise stays shared.
+		attempt.catch(() => {
+			if (slot.promise === attempt) {
+				slot.promise = undefined;
+			}
+		});
+	}
+
+	return slot.promise;
+}
+
+const unixShellEnvSlot: IShellEnvAttemptSlot<typeof process.env> = { promise: undefined };
 
 /**
  * Resolves the shell environment by spawning a shell. This call will cache
  * the shell spawning so that subsequent invocations use that cached result.
+ * A failed attempt is not cached: the next caller spawns again.
  *
  * Will throw an error if:
  * - we hit a timeout of `MAX_SHELL_RESOLVE_TIME`
@@ -60,42 +85,37 @@ export async function getResolvedShellEnv(configurationService: IConfigurationSe
 			logService.trace('resolveShellEnv(): running (macOS/Linux)');
 		}
 
-		// Call this only once and cache the promise for
-		// subsequent calls since this operation can be
-		// expensive (spawns a process).
-		if (!unixShellEnvPromise) {
-			unixShellEnvPromise = Promises.withAsyncBody<NodeJS.ProcessEnv>(async (resolve, reject) => {
-				const cts = new CancellationTokenSource();
+		// Share one in-flight spawn. A rejection is dropped so the next caller
+		// resolves again; a fulfilled promise stays cached.
+		return loadShellEnvAttempt(unixShellEnvSlot, () => Promises.withAsyncBody<NodeJS.ProcessEnv>(async (resolve, reject) => {
+			const cts = new CancellationTokenSource();
 
-				let timeoutValue = 10000; // default to 10 seconds
-				const configuredTimeoutValue = configurationService.getValue<unknown>('application.shellEnvironmentResolutionTimeout');
-				if (typeof configuredTimeoutValue === 'number') {
-					timeoutValue = clamp(configuredTimeoutValue, 1, 120) * 1000 /* convert from seconds */;
+			let timeoutValue = 10000; // default to 10 seconds
+			const configuredTimeoutValue = configurationService.getValue<unknown>('application.shellEnvironmentResolutionTimeout');
+			if (typeof configuredTimeoutValue === 'number') {
+				timeoutValue = clamp(configuredTimeoutValue, 1, 120) * 1000 /* convert from seconds */;
+			}
+
+			// Give up resolving shell env after some time
+			const timeout = setTimeout(() => {
+				cts.dispose(true);
+				reject(new Error(localize('resolveShellEnvTimeout', "Unable to resolve your shell environment in a reasonable time. Please review your shell configuration and restart.")));
+			}, timeoutValue);
+
+			// Resolve shell env and handle errors
+			try {
+				resolve(await doResolveUnixShellEnv(logService, cts.token));
+			} catch (error) {
+				if (!isCancellationError(error) && !cts.token.isCancellationRequested) {
+					reject(new Error(localize('resolveShellEnvError', "Unable to resolve your shell environment: {0}", toErrorMessage(error))));
+				} else {
+					resolve({});
 				}
-
-				// Give up resolving shell env after some time
-				const timeout = setTimeout(() => {
-					cts.dispose(true);
-					reject(new Error(localize('resolveShellEnvTimeout', "Unable to resolve your shell environment in a reasonable time. Please review your shell configuration and restart.")));
-				}, timeoutValue);
-
-				// Resolve shell env and handle errors
-				try {
-					resolve(await doResolveUnixShellEnv(logService, cts.token));
-				} catch (error) {
-					if (!isCancellationError(error) && !cts.token.isCancellationRequested) {
-						reject(new Error(localize('resolveShellEnvError', "Unable to resolve your shell environment: {0}", toErrorMessage(error))));
-					} else {
-						resolve({});
-					}
-				} finally {
-					clearTimeout(timeout);
-					cts.dispose();
-				}
-			});
-		}
-
-		return unixShellEnvPromise;
+			} finally {
+				clearTimeout(timeout);
+				cts.dispose();
+			}
+		}));
 	}
 }
 
