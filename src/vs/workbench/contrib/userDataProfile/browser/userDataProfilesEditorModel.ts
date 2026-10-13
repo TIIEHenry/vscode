@@ -556,7 +556,7 @@ export class NewProfileElement extends AbstractUserDataProfileElement {
 	private _copyFromTemplates = new ResourceMap<string>();
 	get copyFromTemplates(): ResourceMap<string> { return this._copyFromTemplates; }
 
-	private templatePromise: CancelablePromise<void> | undefined;
+	private templatePromise: CancelablePromise<IUserDataProfileTemplate | null> | undefined;
 	private template: IUserDataProfileTemplate | null = null;
 	private _initializeSeq = 0;
 
@@ -749,12 +749,26 @@ export class NewProfileElement extends AbstractUserDataProfileElement {
 
 	async resolveTemplate(uri: URI): Promise<IUserDataProfileTemplate | null> {
 		if (!this.templatePromise) {
-			this.templatePromise = createCancelablePromise(async token => {
+			const promise = createCancelablePromise(async token => {
 				const template = await this.userDataProfileImportExportService.resolveProfileTemplate(uri);
 				if (!token.isCancellationRequested
 					&& this.copyFrom instanceof URI
 					&& this.uriIdentityService.extUri.isEqual(this.copyFrom, uri)) {
 					this.template = template;
+				}
+				return template;
+			});
+			this.templatePromise = promise;
+			// In-flight callers share this promise. Drop it after null or rejection so the
+			// next call reads again; a non-null template stays. A source change may already
+			// have replaced the field, so only clear when it is still this promise.
+			void promise.then(template => {
+				if (template === null && this.templatePromise === promise) {
+					this.templatePromise = undefined;
+				}
+			}, () => {
+				if (this.templatePromise === promise) {
+					this.templatePromise = undefined;
 				}
 			});
 		}
