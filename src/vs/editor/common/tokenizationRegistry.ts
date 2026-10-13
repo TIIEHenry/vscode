@@ -115,7 +115,7 @@ export class TokenizationRegistry<TSupport> implements ITokenizationRegistry<TSu
 class TokenizationSupportFactoryData<TSupport> extends Disposable {
 
 	private _isDisposed: boolean = false;
-	private _resolvePromise: Promise<void> | null = null;
+	private _resolvePromise: Promise<void> | undefined;
 	private _isResolved: boolean = false;
 
 	public get isResolved(): boolean {
@@ -135,9 +135,16 @@ class TokenizationSupportFactoryData<TSupport> extends Disposable {
 		super.dispose();
 	}
 
-	public async resolve(): Promise<void> {
+	public resolve(): Promise<void> {
 		if (!this._resolvePromise) {
-			this._resolvePromise = this._create();
+			const promise = this._create();
+			this._resolvePromise = promise;
+			// Drop only this attempt. The next resolve asks the factory again; an in-flight or fulfilled promise stays shared.
+			promise.catch(() => {
+				if (this._resolvePromise === promise) {
+					this._resolvePromise = undefined;
+				}
+			});
 		}
 		return this._resolvePromise;
 	}
