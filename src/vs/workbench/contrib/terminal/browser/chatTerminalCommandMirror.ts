@@ -609,14 +609,20 @@ export class DetachedTerminalCommandMirror extends Disposable implements IDetach
 				getBackgroundColor: (theme: IColorTheme) => getChatTerminalBackgroundColor(theme, this._contextKeyService)
 			};
 			const processInfo = new DetachedProcessInfo({ initialCwd: '' });
-			const detached = await this._terminalService.createDetachedTerminal({
-				cols: this._xtermTerminal.raw.cols ?? ChatTerminalMirrorMetrics.MirrorColCountFallback,
-				rows: ChatTerminalMirrorMetrics.MirrorRowCount,
-				readonly: false,
-				processInfo,
-				disableOverviewRuler: true,
-				colorProvider
-			});
+			let detached: IDetachedTerminalInstance;
+			try {
+				detached = await this._terminalService.createDetachedTerminal({
+					cols: this._xtermTerminal.raw.cols ?? ChatTerminalMirrorMetrics.MirrorColCountFallback,
+					rows: ChatTerminalMirrorMetrics.MirrorRowCount,
+					readonly: false,
+					processInfo,
+					disableOverviewRuler: true,
+					colorProvider
+				});
+			} catch (error) {
+				processInfo.dispose();
+				throw error;
+			}
 			if (this._store.isDisposed) {
 				processInfo.dispose();
 				detached.dispose();
@@ -632,6 +638,12 @@ export class DetachedTerminalCommandMirror extends Disposable implements IDetach
 			return detached;
 		})();
 		this._detachedTerminalPromise = createPromise;
+		// Drop only this attempt. Callers still see the rejection. The next call creates the detached terminal again; an in-flight or fulfilled promise stays shared.
+		createPromise.catch(() => {
+			if (this._detachedTerminalPromise === createPromise) {
+				this._detachedTerminalPromise = undefined;
+			}
+		});
 		return createPromise;
 	}
 

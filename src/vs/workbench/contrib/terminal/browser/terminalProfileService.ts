@@ -35,7 +35,7 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 
 	private _webExtensionContributedProfileContextKey: IContextKey<boolean>;
 	private _profilesReadyBarrier: AutoOpenBarrier | undefined;
-	private _profilesReadyPromise: Promise<void>;
+	private _profilesReadyPromise: Promise<void> | undefined;
 	private _availableProfiles: ITerminalProfile[] | undefined;
 	private _automationProfile: unknown;
 	private _contributedProfiles: IExtensionTerminalProfile[] = [];
@@ -52,7 +52,29 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 	private readonly _onDidChangeAvailableProfiles = this._register(new Emitter<ITerminalProfile[]>());
 	get onDidChangeAvailableProfiles(): Event<ITerminalProfile[]> { return this._onDidChangeAvailableProfiles.event; }
 
-	get profilesReady(): Promise<void> { return this._profilesReadyPromise; }
+	get profilesReady(): Promise<void> { return this._ensureProfilesReady(); }
+
+	private _ensureProfilesReady(): Promise<void> {
+		if (!this._profilesReadyPromise) {
+			const promise = this._remoteAgentService.getEnvironment()
+				.then(() => {
+					// Wait up to 20 seconds for profiles to be ready so it's assured that we know the actual
+					// default terminal before launching the first terminal. This isn't expected to ever take
+					// this long.
+					this._profilesReadyBarrier = new AutoOpenBarrier(20000);
+					return this._profilesReadyBarrier.wait().then(() => { });
+				});
+			this._profilesReadyPromise = promise;
+			// Drop only this attempt. Callers still see the rejection. The next profilesReady read calls getEnvironment again; an in-flight or fulfilled promise stays shared.
+			promise.catch(() => {
+				if (this._profilesReadyPromise === promise) {
+					this._profilesReadyPromise = undefined;
+				}
+			});
+		}
+		return this._profilesReadyPromise;
+	}
+
 	get availableProfiles(): ITerminalProfile[] {
 		if (!this._platformConfigJustRefreshed) {
 			this.refreshAvailableProfiles();
@@ -82,14 +104,7 @@ export class TerminalProfileService extends Disposable implements ITerminalProfi
 
 		this._webExtensionContributedProfileContextKey = TerminalContextKeys.webExtensionContributedProfile.bindTo(this._contextKeyService);
 		this._updateWebContextKey();
-		this._profilesReadyPromise = this._remoteAgentService.getEnvironment()
-			.then(() => {
-				// Wait up to 20 seconds for profiles to be ready so it's assured that we know the actual
-				// default terminal before launching the first terminal. This isn't expected to ever take
-				// this long.
-				this._profilesReadyBarrier = new AutoOpenBarrier(20000);
-				return this._profilesReadyBarrier.wait().then(() => { });
-			});
+		this._ensureProfilesReady();
 		this.refreshAvailableProfiles();
 		void this._setupConfigListener().catch(onUnexpectedError).catch(onUnexpectedError);
 	}

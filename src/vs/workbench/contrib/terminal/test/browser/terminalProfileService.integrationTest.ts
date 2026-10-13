@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual, rejects, strictEqual } from 'assert';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { isLinux, isWindows, OperatingSystem } from '../../../../../base/common/platform.js';
@@ -327,6 +328,60 @@ suite('TerminalProfileService', () => {
 		deepStrictEqual(terminalProfileService.availableProfiles, [powershellProfile]);
 		deepStrictEqual(terminalProfileService.contributedProfiles, [jsdebugProfile]);
 	});
+	test('profilesReady calls getEnvironment again after a rejection and not again after it succeeds', async () => {
+		const error = new Error('remote environment unavailable');
+		let calls = 0;
+		let fail = true;
+		let holdEnvironment: Promise<void> | undefined;
+		instantiationService.stub(IRemoteAgentService, {
+			getEnvironment: async (): Promise<IRemoteAgentEnvironment | null> => {
+				calls++;
+				if (holdEnvironment) {
+					await holdEnvironment;
+				}
+				if (fail) {
+					throw error;
+				}
+				return { os: OperatingSystem.Linux } satisfies Partial<IRemoteAgentEnvironment> as unknown as IRemoteAgentEnvironment;
+			}
+		});
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { /* constructor refresh and the config listener also hit the rejected environment */ });
+		let service!: TestTerminalProfileService;
+		try {
+			service = store.add(instantiationService.createInstance(TestTerminalProfileService));
+			void service.hasRefreshedProfiles?.then(() => undefined, () => undefined);
+			const callsBeforeRead = calls;
+			const first = service.profilesReady;
+			strictEqual(calls, callsBeforeRead, 'an in-flight profilesReady attempt should be shared');
+			await rejects(first, (reason: unknown) => reason === error);
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			const beforeRetry = calls;
+			await rejects(service.profilesReady, (reason: unknown) => reason === error);
+			strictEqual(calls, beforeRetry + 1, 'the next profilesReady read should call getEnvironment again');
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			instantiationService.stub(IRemoteAgentService, remoteAgentService);
+		}
+
+		let releaseEnvironment!: () => void;
+		holdEnvironment = new Promise<void>(resolve => { releaseEnvironment = resolve; });
+		fail = false;
+		const beforeShared = calls;
+		const firstReady = service.profilesReady;
+		const secondReady = service.profilesReady;
+		strictEqual(secondReady, firstReady, 'concurrent profilesReady reads should share one getEnvironment');
+		strictEqual(calls, beforeShared + 1);
+		releaseEnvironment();
+		holdEnvironment = undefined;
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		await service.refreshAndAwaitAvailableProfiles();
+		await firstReady;
+		const afterSuccess = calls;
+		await service.profilesReady;
+		strictEqual(calls, afterSuccess, 'a successful profilesReady should stay cached');
+	});
+
 	suite('Profiles Quickpick', () => {
 		let quickInputService: MockQuickInputService;
 		let mockTerminalProfileService: MockTerminalProfileService;
