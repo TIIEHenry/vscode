@@ -33,17 +33,22 @@ interface IHydratedData extends IStoredData {
 export class McpRegistryInputStorage extends Disposable {
 	private static secretSequencer = new Sequencer();
 	private readonly _secretsSealerSequencer = new Sequencer();
+	private _encryptionKeyPromise: Promise<CryptoKey> | undefined;
 
-	private readonly _getEncryptionKey = new Lazy(() => {
-		return McpRegistryInputStorage.secretSequencer.queue(async () => {
+	/**
+	 * Callers of one read share the same promise. A successful CryptoKey stays.
+	 * After rejection, drop that promise so the next read starts over.
+	 */
+	private _getEncryptionKey(): Promise<CryptoKey> {
+		if (this._encryptionKeyPromise) {
+			return this._encryptionKeyPromise;
+		}
+
+		const promise = McpRegistryInputStorage.secretSequencer.queue(async () => {
 			const existing = await this._secretStorageService.get(MCP_ENCRYPTION_KEY_NAME);
 			if (existing) {
-				try {
-					const parsed: JsonWebKey = JSON.parse(existing);
-					return await crypto.subtle.importKey('jwk', parsed, MCP_ENCRYPTION_KEY_ALGORITHM, false, ['encrypt', 'decrypt']);
-				} catch {
-					// fall through
-				}
+				const parsed: JsonWebKey = JSON.parse(existing);
+				return await crypto.subtle.importKey('jwk', parsed, MCP_ENCRYPTION_KEY_ALGORITHM, false, ['encrypt', 'decrypt']);
 			}
 
 			const key = await crypto.subtle.generateKey(
@@ -56,7 +61,15 @@ export class McpRegistryInputStorage extends Disposable {
 			await this._secretStorageService.set(MCP_ENCRYPTION_KEY_NAME, JSON.stringify(exported));
 			return key;
 		});
-	});
+
+		this._encryptionKeyPromise = promise;
+		void promise.catch(() => {
+			if (this._encryptionKeyPromise === promise) {
+				this._encryptionKeyPromise = undefined;
+			}
+		});
+		return promise;
+	}
 
 	private _didChange = false;
 
@@ -127,7 +140,7 @@ export class McpRegistryInputStorage extends Disposable {
 	}
 
 	private async _sealSecrets() {
-		const key = await this._getEncryptionKey.value;
+		const key = await this._getEncryptionKey();
 		return this._secretsSealerSequencer.queue(async () => {
 			if (!this._record.value.unsealedSecrets || isEmptyObject(this._record.value.unsealedSecrets)) {
 				this._record.value.secrets = undefined;
@@ -158,7 +171,7 @@ export class McpRegistryInputStorage extends Disposable {
 		}
 
 		try {
-			const key = await this._getEncryptionKey.value;
+			const key = await this._getEncryptionKey();
 			const iv = decodeBase64(this._record.value.secrets.iv);
 			const encrypted = decodeBase64(this._record.value.secrets.value);
 
@@ -173,9 +186,7 @@ export class McpRegistryInputStorage extends Disposable {
 			return unsealedSecrets;
 		} catch (e) {
 			this._logService.warn('Error unsealing MCP secrets', e);
-			this._record.value.secrets = undefined;
+			throw e;
 		}
-
-		return {};
 	}
 }
