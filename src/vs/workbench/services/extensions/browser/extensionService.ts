@@ -125,9 +125,13 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 	}
 
 	private _scanWebExtensionsPromise: Promise<IExtensionDescription[]> | undefined;
-	private async _scanWebExtensions(): Promise<IExtensionDescription[]> {
+	private _scanWebExtensions(): Promise<IExtensionDescription[]> {
 		if (!this._scanWebExtensionsPromise) {
-			this._scanWebExtensionsPromise = (async () => {
+			let promise!: Promise<IExtensionDescription[]>;
+			// Publish the promise before the scan body runs. In-flight callers share it.
+			// A failed attempt drops the field only while it still points at this promise,
+			// including when a scanner throws synchronously.
+			promise = Promise.resolve().then(async () => {
 				const system: IExtensionDescription[] = [], user: IExtensionDescription[] = [], development: IExtensionDescription[] = [];
 				try {
 					await Promise.all([
@@ -137,9 +141,13 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 					]);
 				} catch (error) {
 					this._logService.error(error);
+					if (this._scanWebExtensionsPromise === promise) {
+						this._scanWebExtensionsPromise = undefined;
+					}
 				}
 				return dedupExtensions(system, user, [], development, this._logService);
-			})();
+			});
+			this._scanWebExtensionsPromise = promise;
 		}
 		return this._scanWebExtensionsPromise;
 	}
