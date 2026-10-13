@@ -119,8 +119,18 @@ export class BrowserSessionRemote implements IBrowserSessionRemote {
 			return;
 		}
 		const wasRemote = this._proxy !== undefined;
+		const previousProxy = this._proxy;
 		this._proxy = info;
-		this._readyPromise = this._applyProxy();
+		const ready = this._applyProxy();
+		this._readyPromise = ready;
+		// Callers still observe this rejection. Roll back only while this attempt is current
+		// so the same proxy is applied again; a newer _setProxy keeps its proxy and promise.
+		ready.catch(() => {
+			if (this._readyPromise === ready) {
+				this._proxy = previousProxy;
+				this._readyPromise = Promise.resolve();
+			}
+		});
 		if (info) {
 			this._onDidStart.fire();
 		} else if (wasRemote) {
