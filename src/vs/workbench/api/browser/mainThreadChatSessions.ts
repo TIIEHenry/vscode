@@ -134,9 +134,27 @@ export class ObservableChatSession extends Disposable implements IChatSession {
 
 	initialize(token: CancellationToken, context: ChatSessionContentContextDto): Promise<void> {
 		if (!this._initializationPromise) {
-			this._initializationPromise = this._doInitializeContent(token, context);
+			this._initializationPromise = this._startInitialize(token, context);
 		}
 		return this._initializationPromise;
+	}
+
+	private _startInitialize(token: CancellationToken, context: ChatSessionContentContextDto): Promise<void> {
+		const pending: { promise?: Promise<void> } = {};
+		// In-flight callers share this promise. Drop a rejection or cancellation only
+		// while the field still points at this attempt. A success stays cached.
+		const promise = (async () => {
+			try {
+				await this._doInitializeContent(token, context);
+			} catch (error) {
+				if (this._initializationPromise === pending.promise) {
+					this._initializationPromise = undefined;
+				}
+				throw error;
+			}
+		})();
+		pending.promise = promise;
+		return promise;
 	}
 
 	private async _doInitializeContent(token: CancellationToken, context: ChatSessionContentContextDto): Promise<void> {
