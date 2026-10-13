@@ -28,6 +28,7 @@ import { IDownloadService } from '../../../../platform/download/common/download.
 import { DownloadServiceChannel } from '../../../../platform/download/common/downloadIpc.js';
 import { RemoteLoggerChannelClient } from '../../../../platform/log/common/logIpc.js';
 import { REMOTE_DEFAULT_IF_LOCAL_EXTENSIONS } from '../../../../platform/remote/common/remote.js';
+import { IRemoteAgentEnvironment } from '../../../../platform/remote/common/remoteAgentEnvironment.js';
 import product from '../../../../platform/product/common/product.js';
 
 
@@ -45,26 +46,33 @@ export class LabelContribution implements IWorkbenchContribution {
 
 	private registerFormatters(): void {
 		this.remoteAgentService.getEnvironment().then(remoteEnvironment => {
-			const os = remoteEnvironment?.os || OS;
-			const formatting: ResourceLabelFormatting = {
-				label: '${path}',
-				separator: os === OperatingSystem.Windows ? '\\' : '/',
-				tildify: os !== OperatingSystem.Windows,
-				normalizeDriveLetter: os === OperatingSystem.Windows,
-				workspaceSuffix: isWeb ? undefined : Schemas.vscodeRemote
-			};
-			this.labelService.registerFormatter({
-				scheme: Schemas.vscodeRemote,
-				formatting
-			});
+			this.registerRemoteLabelFormatter(remoteEnvironment);
+		}, () => {
+			// Failure has no remote OS. Register once, the same as an empty environment.
+			this.registerRemoteLabelFormatter(null);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
+	}
 
-			if (remoteEnvironment) {
+	private registerRemoteLabelFormatter(remoteEnvironment: IRemoteAgentEnvironment | null): void {
+		const os = remoteEnvironment?.os || OS;
+		const formatting: ResourceLabelFormatting = {
+			label: '${path}',
+			separator: os === OperatingSystem.Windows ? '\\' : '/',
+			tildify: os !== OperatingSystem.Windows,
+			normalizeDriveLetter: os === OperatingSystem.Windows,
+			workspaceSuffix: isWeb ? undefined : Schemas.vscodeRemote
+		};
+		this.labelService.registerFormatter({
+			scheme: Schemas.vscodeRemote,
+			formatting
+		});
+
+		if (remoteEnvironment) {
 			this.labelService.registerFormatter({
 				scheme: Schemas.vscodeUserData,
 				formatting
 			});
-			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}
 	}
 }
 

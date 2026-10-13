@@ -144,15 +144,15 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 		assert.ok(explorer.includes(`${explorerThen}${doubleCatch};`));
 		assert.ok(!explorer.includes(`${explorerThen};`));
 		assert.ok(!explorer.includes(`${explorerThen}.catch(onUnexpectedError);`));
-		assert.ok(contrib.includes('this.remoteAgentService.getEnvironment().then(remoteEnvironment => {'));
-		assert.ok(contrib.includes(`			}
-		})${doubleCatch};`));
-		assert.ok(!contrib.includes(`			}
-		});
-	}
-}
-
-class RemoteChannelsContribution`));
+		const labelThen = `this.remoteAgentService.getEnvironment().then(remoteEnvironment => {
+			this.registerRemoteLabelFormatter(remoteEnvironment);
+		}, () => {
+			// Failure has no remote OS. Register once, the same as an empty environment.
+			this.registerRemoteLabelFormatter(null);
+		})`;
+		assert.ok(contrib.includes(`${labelThen}${doubleCatch};`));
+		assert.ok(!contrib.includes(`${labelThen};`));
+		assert.ok(!contrib.includes(`${labelThen}.catch(onUnexpectedError);`));
 		assert.strictEqual((contrib.match(/this\.remoteAgentService\.getEnvironment\(\)\.then\(remoteEnvironment => \{/g) ?? []).length, 1);
 		const detectorThen = `remoteAgentService.getEnvironment().then(remoteEnv => {
 				if (remoteEnv) {
