@@ -42,7 +42,8 @@ interface IStoreClientDouble {
 }
 
 interface IUserDataSyncInitializerAccess {
-	_userDataSyncStoreClientPromise: Promise<IStoreClientDouble | undefined>;
+	_userDataSyncStoreClientPromise: Promise<IStoreClientDouble | undefined> | undefined;
+	createUserDataSyncStoreClient(): Promise<IStoreClientDouble | undefined>;
 	createSyncResourceInitializer(syncResource: SyncResource): IUserDataSyncResourceInitializer;
 	initialize(syncResources: SyncResource[]): Promise<void>;
 	readonly initialized: SyncResource[];
@@ -445,7 +446,135 @@ suite('UserDataSyncInitializer', () => {
 		assert.strictEqual(attempt.reads.length, 1);
 		assert.strictEqual(attempt.created.filter(name => name === 'ExtensionsPreviewInitializer').length, 1);
 	});
+
+	test('retries sync client creation after an outer failure, shares one in-flight attempt, and still returns undefined', async () => {
+		let releaseSession!: (value: string) => void;
+		const { initializer, access, log, counts } = createWebAttempt(
+			() => new Promise<string>(resolve => { releaseSession = resolve; }),
+			true,
+		);
+
+		const first = access.createUserDataSyncStoreClient();
+		const second = access.createUserDataSyncStoreClient();
+		assert.strictEqual(second, first);
+		assert.strictEqual(counts.secretGets, 1);
+		assert.strictEqual(counts.storeReads, 0);
+
+		releaseSession(webSession());
+		assert.strictEqual(await first, undefined);
+		assert.strictEqual(await second, undefined);
+		assert.strictEqual(counts.secretGets, 1);
+		assert.strictEqual(counts.storeReads, 1);
+		assert.strictEqual(access._userDataSyncStoreClientPromise, undefined);
+		assert.ok(log.errors.some(error => error instanceof Error && error.message === 'sync store failed'));
+		await initializer.whenInitializationFinished();
+
+		const retried = access.createUserDataSyncStoreClient();
+		const sharedRetry = access.createUserDataSyncStoreClient();
+		assert.notStrictEqual(retried, first);
+		assert.strictEqual(sharedRetry, retried);
+		assert.strictEqual(counts.secretGets, 2);
+		assert.strictEqual(counts.storeReads, 1);
+		releaseSession(webSession());
+		assert.strictEqual(await retried, undefined);
+		assert.strictEqual(await sharedRetry, undefined);
+		assert.strictEqual(counts.secretGets, 2);
+		assert.strictEqual(counts.storeReads, 2);
+
+		const required = initializer.requiresInitialization();
+		assert.strictEqual(counts.secretGets, 3);
+		assert.strictEqual(counts.storeReads, 2);
+		releaseSession(webSession());
+		assert.strictEqual(await required, false);
+		assert.strictEqual(counts.secretGets, 3);
+		assert.strictEqual(counts.storeReads, 3);
+	});
+
+	test('does not create the sync client again when there is no authentication session', async () => {
+		const { initializer, access, log, counts } = createWebAttempt(async () => undefined, false);
+
+		const first = access.createUserDataSyncStoreClient();
+		const second = access.createUserDataSyncStoreClient();
+		assert.strictEqual(second, first);
+		assert.strictEqual(await first, undefined);
+		assert.strictEqual(await second, undefined);
+		assert.strictEqual(counts.secretGets, 1);
+		assert.strictEqual(counts.storeReads, 0);
+		assert.strictEqual(log.errors.length, 0);
+		assert.strictEqual(access._userDataSyncStoreClientPromise, first);
+
+		assert.strictEqual(await initializer.requiresInitialization(), false);
+		assert.strictEqual(access.createUserDataSyncStoreClient(), first);
+		assert.strictEqual(counts.secretGets, 1);
+		assert.strictEqual(counts.storeReads, 0);
+		await initializer.whenInitializationFinished();
+	});
+
+	test('keeps the cached skip when reading the authentication session fails', async () => {
+		const { initializer, access, log, counts } = createWebAttempt(async () => {
+			throw new Error('secret read failed');
+		}, false);
+
+		const first = access.createUserDataSyncStoreClient();
+		assert.strictEqual(await first, undefined);
+		assert.strictEqual(counts.secretGets, 1);
+		assert.strictEqual(counts.storeReads, 0);
+		assert.ok(log.errors.some(error => error instanceof Error && error.message === 'secret read failed'));
+		assert.strictEqual(access._userDataSyncStoreClientPromise, first);
+
+		assert.strictEqual(await initializer.requiresInitialization(), false);
+		assert.strictEqual(access.createUserDataSyncStoreClient(), first);
+		assert.strictEqual(counts.secretGets, 1);
+		assert.strictEqual(counts.storeReads, 0);
+		await initializer.whenInitializationFinished();
+	});
 });
+
+class WebUserDataSyncInitializer extends UserDataSyncInitializer {
+	protected override get isWebPlatform(): boolean {
+		return true;
+	}
+}
+
+function webSession(): string {
+	return JSON.stringify({ id: 'session-1', accessToken: 'token', providerId: 'github' });
+}
+
+interface IWebAttemptCounts {
+	secretGets: number;
+	storeReads: number;
+}
+
+function createWebAttempt(getSession: () => Promise<string | undefined>, failStore: boolean): { initializer: UserDataSyncInitializer; access: IUserDataSyncInitializerAccess; log: CaptureLogService; counts: IWebAttemptCounts } {
+	const log = new CaptureLogService();
+	const counts: IWebAttemptCounts = { secretGets: 0, storeReads: 0 };
+	const initializer = new WebUserDataSyncInitializer(
+		{} as never,
+		{
+			get: (_key: string) => {
+				counts.secretGets++;
+				return getSession();
+			},
+		} as never,
+		{
+			get userDataSyncStore() {
+				counts.storeReads++;
+				if (failStore) {
+					throw new Error('sync store failed');
+				}
+				return undefined;
+			},
+		} as never,
+		undefined as never,
+		undefined as never,
+		{ isNew: () => true } as never,
+		{ urlProtocol: 'vscode' } as never,
+		undefined as never,
+		log,
+		undefined as never,
+	);
+	return { initializer, access: initializer as unknown as IUserDataSyncInitializerAccess, log, counts };
+}
 
 function extensionsUserData(): IUserData {
 	return { ref: 'ext-1', content: JSON.stringify({ version: 3, content: '[]' }) };

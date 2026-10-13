@@ -65,11 +65,17 @@ export class UserDataSyncInitializer implements IUserDataInitializer {
 	}
 
 	private _userDataSyncStoreClientPromise: Promise<UserDataSyncStoreClient | undefined> | undefined;
+
+	protected get isWebPlatform(): boolean {
+		return isWeb;
+	}
+
 	private createUserDataSyncStoreClient(): Promise<UserDataSyncStoreClient | undefined> {
 		if (!this._userDataSyncStoreClientPromise) {
-			this._userDataSyncStoreClientPromise = (async (): Promise<UserDataSyncStoreClient | undefined> => {
+			const attempt: { promise?: Promise<UserDataSyncStoreClient | undefined> } = {};
+			const promise = (async (): Promise<UserDataSyncStoreClient | undefined> => {
 				try {
-					if (!isWeb) {
+					if (!this.isWebPlatform) {
 						this.logService.trace(`Skipping initializing user data in desktop`);
 						return;
 					}
@@ -123,9 +129,17 @@ export class UserDataSyncInitializer implements IUserDataInitializer {
 
 				} catch (error) {
 					this.logService.error(error);
+					// In-flight callers still share this promise and get undefined.
+					// Drop it only while it is still this attempt so the next call retries.
+					// Intentional skips return above and stay cached.
+					if (this._userDataSyncStoreClientPromise === attempt.promise) {
+						this._userDataSyncStoreClientPromise = undefined;
+					}
 					return;
 				}
 			})();
+			attempt.promise = promise;
+			this._userDataSyncStoreClientPromise = promise;
 		}
 
 		return this._userDataSyncStoreClientPromise;
