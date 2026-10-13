@@ -40,6 +40,7 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 	declare _serviceBrand: undefined;
 
 	private _primaryBackendOs: OperatingSystem | undefined;
+	private _primaryBackendOsInFlight: Promise<OperatingSystem | undefined> | undefined;
 
 	private readonly _iconRegistry: IIconRegistry = getIconRegistry();
 
@@ -59,11 +60,7 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 	) {
 		super();
 
-		if (this._remoteAgentService.getConnection()) {
-			this._remoteAgentService.getEnvironment().then(env => this._primaryBackendOs = env?.os || OS).catch(onUnexpectedError).catch(onUnexpectedError);
-		} else {
-			this._primaryBackendOs = OS;
-		}
+		void this._ensurePrimaryBackendOs();
 		this._register(this._configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(TerminalSettingId.DefaultProfileWindows) ||
 				e.affectsConfiguration(TerminalSettingId.DefaultProfileMacOs) ||
@@ -81,11 +78,37 @@ export abstract class BaseTerminalProfileResolverService extends Disposable impl
 		return run;
 	}
 
-	private async _refreshDefaultProfileNameBody() {
+	private _ensurePrimaryBackendOs(): Promise<OperatingSystem | undefined> {
 		if (this._primaryBackendOs) {
+			return Promise.resolve(this._primaryBackendOs);
+		}
+		// No connection is the local OS, not a failed remote read.
+		if (!this._remoteAgentService.getConnection()) {
+			this._primaryBackendOs = OS;
+			return Promise.resolve(this._primaryBackendOs);
+		}
+		if (this._primaryBackendOsInFlight) {
+			return this._primaryBackendOsInFlight;
+		}
+		const read = this._remoteAgentService.getEnvironment().then(env => this._primaryBackendOs = env?.os || OS).catch(onUnexpectedError).catch(onUnexpectedError);
+		const attempt = read.then(() => this._primaryBackendOs);
+		this._primaryBackendOsInFlight = attempt;
+		// Double catch fulfills a rejection, so this promise is not the failed-read cache.
+		// Drop the settled attempt. The next resolution calls getEnvironment again unless the OS was cached.
+		void attempt.then(() => {
+			if (this._primaryBackendOsInFlight === attempt) {
+				this._primaryBackendOsInFlight = undefined;
+			}
+		});
+		return attempt;
+	}
+
+	private async _refreshDefaultProfileNameBody() {
+		const os = await this._ensurePrimaryBackendOs();
+		if (os) {
 			this._defaultProfileName = (await this.getDefaultProfile({
 				remoteAuthority: this._remoteAgentService.getConnection()?.remoteAuthority,
-				os: this._primaryBackendOs
+				os
 			}))?.profileName;
 		}
 	}
