@@ -6,7 +6,7 @@
 import assert from 'assert';
 import * as sinon from 'sinon';
 import type * as vscode from 'vscode';
-import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { CancellationError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -323,6 +323,68 @@ suite('ObservableChatSession', function () {
 
 		// Should only call proxy once even though initialize was called twice
 		assert.ok(asSinonMethodStub(proxy.$provideChatSessionContent).calledOnce);
+	});
+
+	test('a failed content read is tried again and then cached', async function () {
+		const resource = LocalChatSessionUri.forSession('retry-id');
+		const session = disposables.add(new ObservableChatSession(resource, 1, proxy, logService, dialogService));
+		const provide = asSinonMethodStub(proxy.$provideChatSessionContent);
+		provide.onFirstCall().rejects(new Error('content unavailable'));
+		provide.onSecondCall().resolves(createSessionContent({ title: 'Recovered' }));
+
+		await assert.rejects(session.initialize(CancellationToken.None, { initialSessionOptions: [] }), /content unavailable/);
+		assert.strictEqual(provide.callCount, 1);
+		assert.strictEqual(session.title, undefined);
+
+		await session.initialize(CancellationToken.None, { initialSessionOptions: [] });
+		assert.strictEqual(provide.callCount, 2);
+		assert.strictEqual(session.title, 'Recovered');
+
+		await session.initialize(CancellationToken.None, { initialSessionOptions: [] });
+		assert.strictEqual(provide.callCount, 2);
+	});
+
+	test('in-flight initialize shares one content read', async function () {
+		const resource = LocalChatSessionUri.forSession('shared-id');
+		const session = disposables.add(new ObservableChatSession(resource, 1, proxy, logService, dialogService));
+		let release!: (content: IChatSessionDto) => void;
+		const gate = new Promise<IChatSessionDto>(resolve => { release = resolve; });
+		const provide = asSinonMethodStub(proxy.$provideChatSessionContent);
+		provide.callsFake(() => gate);
+
+		const first = session.initialize(CancellationToken.None, { initialSessionOptions: [] });
+		const second = session.initialize(CancellationToken.None, { initialSessionOptions: [] });
+		assert.strictEqual(first, second);
+		assert.strictEqual(provide.callCount, 1);
+
+		release(createSessionContent({ title: 'Loaded' }));
+		await first;
+		await second;
+		assert.strictEqual(session.title, 'Loaded');
+		assert.strictEqual(provide.callCount, 1);
+
+		await session.initialize(CancellationToken.None, { initialSessionOptions: [] });
+		assert.strictEqual(provide.callCount, 1);
+	});
+
+	test('a cancelled content read is tried again with a new token', async function () {
+		const resource = LocalChatSessionUri.forSession('cancel-id');
+		const session = disposables.add(new ObservableChatSession(resource, 1, proxy, logService, dialogService));
+		// Stay pending so cancellation, not the extension result, settles the first read.
+		const gate = new Promise<IChatSessionDto>(() => { /* never settles */ });
+		const provide = asSinonMethodStub(proxy.$provideChatSessionContent);
+		provide.onFirstCall().returns(gate);
+		provide.onSecondCall().resolves(createSessionContent({ title: 'After cancel' }));
+
+		const cts = disposables.add(new CancellationTokenSource());
+		const first = session.initialize(cts.token, { initialSessionOptions: [] });
+		assert.strictEqual(provide.callCount, 1);
+		cts.cancel();
+		await assert.rejects(first, (error: unknown) => error instanceof CancellationError);
+
+		await session.initialize(CancellationToken.None, { initialSessionOptions: [] });
+		assert.strictEqual(provide.callCount, 2);
+		assert.strictEqual(session.title, 'After cancel');
 	});
 
 	test('initialization forwards initial session options context', async function () {
