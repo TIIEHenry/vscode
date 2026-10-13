@@ -192,15 +192,25 @@ export class UserDataSyncInitializer implements IUserDataInitializer {
 	}
 
 	private initializeInstalledExtensionsPromise: Promise<void> | undefined;
-	async initializeInstalledExtensions(instantiationService: IInstantiationService): Promise<void> {
+	initializeInstalledExtensions(instantiationService: IInstantiationService): Promise<void> {
 		if (!this.initializeInstalledExtensionsPromise) {
-			this.initializeInstalledExtensionsPromise = (async () => {
+			const pending: { promise?: Promise<void> } = {};
+			// In-flight callers share this promise. Drop it only after rejection so the
+			// next call runs again; a fulfilled result stays cached.
+			const promise = (async () => {
 				this.logService.trace(`UserDataInitializationService#initializeInstalledExtensions`);
 				const extensionsPreviewInitializer = await this.getExtensionsPreviewInitializer(instantiationService);
 				if (extensionsPreviewInitializer) {
 					await instantiationService.createInstance(InstalledExtensionsInitializer, extensionsPreviewInitializer).initialize();
 				}
-			})();
+			})().catch(error => {
+				if (this.initializeInstalledExtensionsPromise === pending.promise) {
+					this.initializeInstalledExtensionsPromise = undefined;
+				}
+				throw error;
+			});
+			pending.promise = promise;
+			this.initializeInstalledExtensionsPromise = promise;
 		}
 		return this.initializeInstalledExtensionsPromise;
 	}
@@ -222,14 +232,24 @@ export class UserDataSyncInitializer implements IUserDataInitializer {
 	private extensionsPreviewInitializerPromise: Promise<ExtensionsPreviewInitializer | null> | undefined;
 	private getExtensionsPreviewInitializer(instantiationService: IInstantiationService): Promise<ExtensionsPreviewInitializer | null> {
 		if (!this.extensionsPreviewInitializerPromise) {
-			this.extensionsPreviewInitializerPromise = (async () => {
+			const pending: { promise?: Promise<ExtensionsPreviewInitializer | null> } = {};
+			// In-flight callers share this promise. A rejected read is tried again next time.
+			// Null and a created initializer are successes and stay cached.
+			const promise = (async () => {
 				const userDataSyncStoreClient = await this.createUserDataSyncStoreClient();
 				if (!userDataSyncStoreClient) {
 					return null;
 				}
 				const userData = await userDataSyncStoreClient.readResource(SyncResource.Extensions, null);
 				return instantiationService.createInstance(ExtensionsPreviewInitializer, userData);
-			})();
+			})().catch(error => {
+				if (this.extensionsPreviewInitializerPromise === pending.promise) {
+					this.extensionsPreviewInitializerPromise = undefined;
+				}
+				throw error;
+			});
+			pending.promise = promise;
+			this.extensionsPreviewInitializerPromise = promise;
 		}
 		return this.extensionsPreviewInitializerPromise;
 	}
@@ -293,7 +313,17 @@ class ExtensionsPreviewInitializer extends AbstractExtensionsInitializer {
 
 	getPreview(): Promise<IExtensionsInitializerPreviewResult | null> {
 		if (!this.previewPromise) {
-			this.previewPromise = super.initialize(this.extensionsData).then(() => this.preview);
+			const pending: { promise?: Promise<IExtensionsInitializerPreviewResult | null> } = {};
+			// In-flight callers share this promise. Drop it only when initialize rejects
+			// so the next getPreview runs again; a fulfilled preview stays cached.
+			const promise = super.initialize(this.extensionsData).then(() => this.preview).catch(error => {
+				if (this.previewPromise === pending.promise) {
+					this.previewPromise = undefined;
+				}
+				throw error;
+			});
+			pending.promise = promise;
+			this.previewPromise = promise;
 		}
 		return this.previewPromise;
 	}
