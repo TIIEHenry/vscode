@@ -704,8 +704,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 	 */
 	private _isShuttingDown = false;
 
-	// Immutable window state
-	protected readonly _osBackend: Promise<OperatingSystem>;
+	private _osBackend: Promise<OperatingSystem> | undefined;
 
 	private static readonly _activeExecutions = new Map<string, IActiveTerminalExecution & { dispose(): void }>();
 
@@ -875,8 +874,6 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 			this._isShuttingDown = true;
 		}));
 
-		this._osBackend = this._remoteAgentService.getEnvironment().then(remoteEnv => remoteEnv?.os ?? OS);
-
 		this._terminalToolCreator = this._instantiationService.createInstance(ToolTerminalCreator);
 		this._treeSitterCommandParser = this._register(this._instantiationService.createInstance(TreeSitterCommandParser));
 		this._telemetry = this._instantiationService.createInstance(RunInTerminalToolTelemetry);
@@ -940,6 +937,21 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 
 	}
 
+	protected _ensureOsBackend(): Promise<OperatingSystem> {
+		if (this._osBackend) {
+			return this._osBackend;
+		}
+		this._osBackend = this._remoteAgentService.getEnvironment().then(remoteEnv => remoteEnv?.os ?? OS);
+		const attempt = this._osBackend;
+		// Drop only this attempt. Callers still see the rejection. The next read calls getEnvironment again; an in-flight or fulfilled promise stays shared.
+		attempt.catch(() => {
+			if (this._osBackend === attempt) {
+				this._osBackend = undefined;
+			}
+		});
+		return attempt;
+	}
+
 	async handleToolStream(context: IToolInvocationStreamContext, _token: CancellationToken): Promise<IStreamedToolInvocation | undefined> {
 		const partialInput = context.rawInput as Partial<IRunInTerminalInputParams> | undefined;
 		if (partialInput && typeof partialInput === 'object' && partialInput.command) {
@@ -964,7 +976,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 			}
 		}
 		const [os, shell, cwd, sandboxPrereqs] = await Promise.all([
-			this._osBackend,
+			this._ensureOsBackend(),
 			this._profileFetcher.getCopilotShell(),
 			(async () => {
 				let cwd = await instance?.getCwdResource();
@@ -1666,7 +1678,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 		const requestAllowNetwork = options.retryKind === 'allowNetwork';
 		const requestUnsandboxedExecution = options.retryKind === 'unsandboxed' && options.allowUnsandboxedCommands;
 		const [os, shell] = await Promise.all([
-			this._osBackend,
+			this._ensureOsBackend(),
 			this._profileFetcher.getCopilotShell(),
 		]);
 		const retryRewriteResult = await this._rewriteCommandLine(options.args.command, {
@@ -2759,7 +2771,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 
 		this._logService.debug(`RunInTerminalTool: Creating ${isBackground ? 'background' : 'foreground'} terminal with ID=${termId}`);
 		const profile = await this._profileFetcher.getCopilotProfile();
-		const os = await this._osBackend;
+		const os = await this._ensureOsBackend();
 		const toolTerminal = await this._terminalToolCreator.createTerminal(profile, os, token);
 		if (token.isCancellationRequested) {
 			toolTerminal.instance.dispose();
@@ -3490,7 +3502,7 @@ export class TerminalProfileFetcher {
 
 	private static readonly _posixShellFallbacks = ['/bin/bash', '/usr/bin/bash', '/bin/sh'];
 
-	readonly osBackend: Promise<OperatingSystem>;
+	private _osBackend: Promise<OperatingSystem> | undefined;
 
 	constructor(
 		@IConfigurationService private readonly _configurationService: IConfigurationService,
@@ -3499,7 +3511,21 @@ export class TerminalProfileFetcher {
 		@IFileService private readonly _fileService: IFileService,
 		@ITerminalLogService private readonly _logService: ITerminalLogService,
 	) {
-		this.osBackend = this._remoteAgentService.getEnvironment().then(remoteEnv => remoteEnv?.os ?? OS);
+	}
+
+	get osBackend(): Promise<OperatingSystem> {
+		if (this._osBackend) {
+			return this._osBackend;
+		}
+		this._osBackend = this._remoteAgentService.getEnvironment().then(remoteEnv => remoteEnv?.os ?? OS);
+		const attempt = this._osBackend;
+		// Drop only this attempt. Callers still see the rejection. The next osBackend read calls getEnvironment again; an in-flight or fulfilled promise stays shared.
+		attempt.catch(() => {
+			if (this._osBackend === attempt) {
+				this._osBackend = undefined;
+			}
+		});
+		return attempt;
 	}
 
 	async getCopilotProfile(): Promise<ITerminalProfile> {

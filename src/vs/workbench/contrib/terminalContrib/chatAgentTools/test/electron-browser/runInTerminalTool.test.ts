@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ok, strictEqual } from 'assert';
+import { ok, rejects, strictEqual } from 'assert';
 import { Separator } from '../../../../../../base/common/actions.js';
 import { DeferredPromise } from '../../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { constObservable } from '../../../../../../base/common/observable.js';
 import { Schemas } from '../../../../../../base/common/network.js';
-import { isLinux, isWindows, OperatingSystem } from '../../../../../../base/common/platform.js';
+import { isLinux, isWindows, OperatingSystem, OS } from '../../../../../../base/common/platform.js';
 import { count } from '../../../../../../base/common/strings.js';
 import { hasKey, type SingleOrMany } from '../../../../../../base/common/types.js';
 import { URI } from '../../../../../../base/common/uri.js';
@@ -27,9 +27,11 @@ import { NullLogService } from '../../../../../../platform/log/common/log.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../../platform/storage/common/storage.js';
 import { TerminalCapability } from '../../../../../../platform/terminal/common/capabilities/capabilities.js';
 import { ITerminalProfile } from '../../../../../../platform/terminal/common/terminal.js';
+import { IRemoteAgentEnvironment } from '../../../../../../platform/remote/common/remoteAgentEnvironment.js';
 import { IWorkspaceContextService, toWorkspaceFolder } from '../../../../../../platform/workspace/common/workspace.js';
 import { Workspace } from '../../../../../../platform/workspace/test/common/testWorkspace.js';
 import { IHistoryService } from '../../../../../services/history/common/history.js';
+import { IRemoteAgentService } from '../../../../../services/remote/common/remoteAgentService.js';
 import { TreeSitterLibraryService } from '../../../../../services/treeSitter/browser/treeSitterLibraryService.js';
 import { workbenchInstantiationService } from '../../../../../test/browser/workbenchTestServices.js';
 import { TestContextService } from '../../../../../test/common/workbenchTestServices.js';
@@ -47,7 +49,7 @@ import { IToolResultCompressor } from '../../../../chat/common/tools/toolResultC
 import { ITerminalChatService, ITerminalService, type ITerminalInstance } from '../../../../terminal/browser/terminal.js';
 import { ITerminalProfileResolverService } from '../../../../terminal/common/terminal.js';
 import type { ICommandLinePresenter } from '../../browser/tools/commandLinePresenter/commandLinePresenter.js';
-import { createRunInTerminalToolData, outputLooksBubblewrapHostRestricted, RunInTerminalTool, shouldAutomaticallyRetryAllowNetworkInSandboxed, shouldAutomaticallyRetryUnsandboxed, type IRunInTerminalInputParams } from '../../browser/tools/runInTerminalTool.js';
+import { createRunInTerminalToolData, outputLooksBubblewrapHostRestricted, RunInTerminalTool, TerminalProfileFetcher, shouldAutomaticallyRetryAllowNetworkInSandboxed, shouldAutomaticallyRetryUnsandboxed, type IRunInTerminalInputParams } from '../../browser/tools/runInTerminalTool.js';
 import { ShellIntegrationQuality } from '../../browser/toolTerminalCreator.js';
 import { terminalChatAgentToolsConfiguration, TerminalChatAgentToolsSettingId } from '../../common/terminalChatAgentToolsConfiguration.js';
 import { AgentNetworkDomainSettingId } from '../../../../../../platform/networkFilter/common/settings.js';
@@ -65,7 +67,11 @@ import { ILanguageModelsService } from '../../../../chat/common/languageModels.j
 import { IChatSessionsService } from '../../../../chat/common/chatSessionsService.js';
 
 class TestRunInTerminalTool extends RunInTerminalTool {
-	protected override _osBackend: Promise<OperatingSystem> = Promise.resolve(OperatingSystem.Windows);
+	private _testOsBackend: Promise<OperatingSystem> = Promise.resolve(OperatingSystem.Windows);
+
+	protected override _ensureOsBackend(): Promise<OperatingSystem> {
+		return this._testOsBackend;
+	}
 
 	get sessionTerminalAssociations() { return this._sessionTerminalAssociations; }
 	get sessionTerminalInstances() { return this._sessionTerminalInstances; }
@@ -79,7 +85,13 @@ class TestRunInTerminalTool extends RunInTerminalTool {
 	}
 
 	setBackendOs(os: OperatingSystem) {
-		this._osBackend = Promise.resolve(os);
+		this._testOsBackend = Promise.resolve(os);
+	}
+}
+
+class OsBackendReadTool extends RunInTerminalTool {
+	readOsBackend(): Promise<OperatingSystem> {
+		return this._ensureOsBackend();
 	}
 }
 
@@ -3226,6 +3238,64 @@ suite('RunInTerminalTool', () => {
 			assertAutoApproved(result);
 			const terminalData = result!.toolSpecificData as IChatTerminalToolInvocationData;
 			strictEqual(terminalData.autoApproveInfo, undefined, 'Expected no terminal auto-approve info in Bypass Approvals mode');
+		});
+	});
+
+	suite('remote OS backend', () => {
+		async function assertRemoteOsRetriesThenCaches(createRead: () => () => Promise<OperatingSystem>): Promise<void> {
+			const error = new Error('remote environment unavailable');
+			let fail = true;
+			let calls = 0;
+			const remoteAgentService = instantiationService.get(IRemoteAgentService);
+			remoteAgentService.getEnvironment = async () => {
+				calls++;
+				if (fail) {
+					throw error;
+				}
+				return { os: OperatingSystem.Linux } satisfies Partial<IRemoteAgentEnvironment> as unknown as IRemoteAgentEnvironment;
+			};
+			const read = createRead();
+
+			const first = read();
+			const second = read();
+			strictEqual(second, first, 'in-flight OS reads should share one getEnvironment');
+			const both = Promise.allSettled([first, second]);
+			await rejects(first, (reason: unknown) => reason === error);
+			await both;
+			strictEqual(calls, 1, 'a rejected read should not start another read until the next one');
+
+			await rejects(read(), (reason: unknown) => reason === error);
+			strictEqual(calls, 2, 'the next OS read after rejection should call getEnvironment again');
+
+			fail = false;
+			strictEqual(await read(), OperatingSystem.Linux);
+			strictEqual(calls, 3);
+			strictEqual(await read(), OperatingSystem.Linux);
+			strictEqual(calls, 3, 'a successful OS read should stay cached');
+
+			calls = 0;
+			remoteAgentService.getEnvironment = async () => {
+				calls++;
+				return null;
+			};
+			const readNull = createRead();
+			strictEqual(await readNull(), OS, 'a null remote environment should fall back to the local OS');
+			strictEqual(await readNull(), OS);
+			strictEqual(calls, 1, 'a null remote environment is a successful read and should stay cached');
+		}
+
+		test('RunInTerminalTool reads getEnvironment again after rejection and then caches success', async () => {
+			await assertRemoteOsRetriesThenCaches(() => {
+				const tool = store.add(instantiationService.createInstance(OsBackendReadTool));
+				return () => tool.readOsBackend();
+			});
+		});
+
+		test('TerminalProfileFetcher reads getEnvironment again after rejection and then caches success', async () => {
+			await assertRemoteOsRetriesThenCaches(() => {
+				const fetcher = instantiationService.createInstance(TerminalProfileFetcher);
+				return () => fetcher.osBackend;
+			});
 		});
 	});
 
