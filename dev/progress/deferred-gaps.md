@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-14
-summary: "D1298：a30f971680a 扩展 leftover 扫描 exit 1。D1297 仍开。D24 仍开。D8 / D16 / D147 / D405 仍开。"
+summary: "D1298 已修：恶意扩展循环递归 then 恢复为扫描跳过形态。D1297 仍开。D24 仍开。D8 / D16 / D147 / D405 仍开。"
 ---
 
 # Deferred Gaps
@@ -1246,4 +1246,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1297 | P3 | **open** 目录刷新拿掉焦点会话时不补窗口。`doRefreshEngineCatalog` 替换 `engineSessions` 后，若活动 id 不在新名单里，只 `activateEngineSession` 发出 `onDidChangeActiveSession`，不发 `onDidDeleteSession`。窗口服务在焦点会话已不在 `getSessions()` 时跳过 reveal；继任窗口只在删除成功且没有可见叶时才打开。别的客户端删掉当前焦点会话、本端只收到 List 时，旧叶留着，新活动会话没有窗。 | 本刀只修远程删除在途时的乐观活动切换。禁止改 roster 活动 id 时序，也禁止在 `rollbackEngineSessionDelete` 里重建叶 | 焦点会话被 List 刷新移除且没有 `onDidDeleteSession` 时，仍在名册里的新活动会话得到可见窗口，被刷掉的 id 不再占着可见叶；补测锁住 | conversation | open |
 | G-TL-1 | P3 | **overlay 追加式 chunk**（F8 全文 IPC 在超长回答时每帧仍为 O(L)） | 上游协议由 Actor 决定，渲染端已按前缀增量处理 | 上游 overlay 支持追加式 chunk 传输 | conversation | open |
 | G-TL-2 | P3 | **overlay chunk 分类应由上游提供**（D10 临时由前端按 chunkId 识别） | 上游尚未输出 chunk 类别，前端借 `:think:` 钉住 | 上游 SessionViewFrame 显式标注 chunk 类别 | conversation | open |
-| D1298 | P2 | **open** 验证泳道 HEAD `a30f971680ac45b8b0883a10817964082cfe77f1`（Node 24.18.0）：`./scripts/test.sh --run src/vs/workbench/services/extensions/test/node/extensionsServicesLeftoverPromiseCatchScan.test.ts` **exit 1**（10 passing / 1 failing）。失败用例要求 `extensionEnablementService.ts` 仍含 `.then(() => this.loopCheckForMaliciousExtensions());`，源码已是双链 `.catch(onUnexpectedError).catch(onUnexpectedError)`（`4f0e88133e0`）。日志 `.build/loop-verify/a30f971680a/2-extensionsServicesLeftoverPromiseCatchScan.log`（不进 git）。同批其余五份 exit 0，见 `.build/loop-verify/a30f971680a/summary.txt`。 | 验证泳道不改产品代码 | 上述 `--run` exit 0 | extensions / verify | open |
+| D1298 | P2 | **closed** 已修。`extensionEnablementService.ts` 的 `loopCheckForMaliciousExtensions` 递归链恢复为 `.then(() => this.loopCheckForMaliciousExtensions());`，分号紧跟递归 then，不接双链。`whenInitialized` 双链未动，扫描未放宽。Node 24.18.0：`./scripts/test.sh --run src/vs/workbench/services/extensions/test/node/extensionsServicesLeftoverPromiseCatchScan.test.ts` **exit 0**（11 passing）。工位 F 提交 `fix(extensionManagement): 恶意扩展循环的递归 then 恢复为扫描要求的跳过形态`。原红：验证泳道 `a30f971680a` 该测 exit 1（10 passing / 1 failing），源码曾是双链（`4f0e88133e0`）。 | 验证泳道不改产品代码；本工位只恢复这条递归跳过形态 | 上述 `--run` exit 0 | extensions / verify | closed |
