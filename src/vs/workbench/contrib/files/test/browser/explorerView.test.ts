@@ -7,7 +7,7 @@ import assert from 'assert';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { ExplorerItem } from '../../common/explorerModel.js';
-import { getContext, shouldPreserveWorkspaceNameCase } from '../../browser/views/explorerView.js';
+import { ExplorerView, getContext, shouldPreserveWorkspaceNameCase } from '../../browser/views/explorerView.js';
 import { listInvalidItemForeground } from '../../../../../platform/theme/common/colorRegistry.js';
 import { CompressedNavigationController } from '../../browser/views/explorerViewer.js';
 import * as dom from '../../../../../base/browser/dom.js';
@@ -144,5 +144,35 @@ suite('Files - ExplorerView', () => {
 		assert.strictEqual(navigationController.current, s2);
 		navigationController.setIndex(44);
 		assert.strictEqual(navigationController.current, s2);
+	});
+
+	test('setTreeInput calls setInput again after the previous setInput rejects', async () => {
+		async function rejectOnce(roots: { error: undefined }[]): Promise<number> {
+			let calls = 0;
+			const visible = { error: undefined };
+			const view = Object.assign(Object.create(ExplorerView.prototype), {
+				tree: {
+					getInput: () => visible,
+					getViewState: () => undefined,
+					setInput: () => {
+						calls++;
+						return calls === 1 ? Promise.reject(new Error('setInput failed')) : Promise.resolve();
+					},
+				},
+				explorerService: { roots },
+				contextService: { getWorkbenchState: () => WorkbenchState.FOLDER },
+				isBodyVisible: () => true,
+				progressService: { withProgress() { } },
+				layoutService: { isRestored: () => true },
+			}) as ExplorerView;
+
+			await assert.rejects(() => view.setTreeInput(), /setInput failed/);
+			assert.strictEqual(calls, 1);
+			await view.setTreeInput();
+			return calls;
+		}
+
+		assert.strictEqual(await rejectOnce([{ error: undefined }]), 2);
+		assert.strictEqual(await rejectOnce([]), 2);
 	});
 });

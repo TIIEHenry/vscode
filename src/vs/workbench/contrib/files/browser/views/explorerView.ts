@@ -1026,6 +1026,18 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		return DOM.getLargestChildWidth(parentNode, childNodes);
 	}
 
+	/**
+	 * Drops a rejected attempt only while the field still points at it.
+	 * Callers awaiting that promise still see the rejection. A successful attempt stays until the next assignment.
+	 */
+	private forgetSetTreeInputPromiseOnReject(promise: Promise<void>): void {
+		void promise.catch(() => {
+			if (this.setTreeInputPromise === promise) {
+				this.setTreeInputPromise = undefined;
+			}
+		});
+	}
+
 	async setTreeInput(): Promise<void> {
 		if (this.findProvider) {
 			return this.findProvider.enqueueTreeWork(() => this._setTreeInputNow());
@@ -1049,8 +1061,9 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		}
 		const roots = this.explorerService.roots;
 		if (!roots.length) {
-			this.setTreeInputPromise = this.tree.setInput([]);
-			await this.setTreeInputPromise;
+			const emptyInputPromise = this.setTreeInputPromise = this.tree.setInput([]);
+			this.forgetSetTreeInputPromiseOnReject(emptyInputPromise);
+			await emptyInputPromise;
 			return;
 		}
 		let input: ExplorerItem | ExplorerItem[] = roots[0];
@@ -1109,6 +1122,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 				perf.mark('code/didResolveExplorer');
 			}
 		});
+		this.forgetSetTreeInputPromiseOnReject(promise);
 
 		this.progressService.withProgress({
 			location: ProgressLocation.Explorer,
