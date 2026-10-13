@@ -87,12 +87,33 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 	private _accountAccessGeneration = 0;
 
 	private extensionGalleryManifestPromise: Promise<void> | undefined;
+	private subscribedToGalleryManifestChanges = false;
+
 	override async getExtensionGalleryManifest(): Promise<IExtensionGalleryManifest | null> {
 		if (!this.extensionGalleryManifestPromise) {
-			this.extensionGalleryManifestPromise = this.doGetExtensionGalleryManifest();
+			this.extensionGalleryManifestPromise = this.startGetExtensionGalleryManifest();
 		}
 		await this.extensionGalleryManifestPromise;
 		return this.extensionGalleryManifest;
+	}
+
+	private startGetExtensionGalleryManifest(): Promise<void> {
+		const pending: { promise?: Promise<void> } = {};
+		// In-flight callers share this promise. Drop it when this read rejects and it is
+		// still the current attempt, so the next call tries again. Resolved reads stay
+		// cached, including no service URL and an AccessDenied enterprise manifest.
+		const promise = (async () => {
+			try {
+				await this.doGetExtensionGalleryManifest();
+			} catch (error) {
+				if (this.extensionGalleryManifestPromise === pending.promise) {
+					this.extensionGalleryManifestPromise = undefined;
+				}
+				throw error;
+			}
+		})();
+		pending.promise = promise;
+		return promise;
 	}
 
 	private async doGetExtensionGalleryManifest(): Promise<void> {
@@ -105,10 +126,22 @@ export class WorkbenchExtensionGalleryManifestService extends ExtensionGalleryMa
 		if (configuredServiceUrl) {
 			this.logService.trace('[Marketplace] Private marketplace configured, checking access and fetching manifest', configuredServiceUrl);
 			await this.handleDefaultAccountAccess(configuredServiceUrl);
-			this._register(this.defaultAccountService.onDidChangeDefaultAccount(() => this.handleDefaultAccountAccess(configuredServiceUrl)));
 		} else {
 			const defaultExtensionGalleryManifest = await super.getExtensionGalleryManifest();
 			this.update(defaultExtensionGalleryManifest);
+		}
+
+		this.registerGalleryManifestChangeListeners(configuredServiceUrl);
+	}
+
+	private registerGalleryManifestChangeListeners(configuredServiceUrl: string): void {
+		if (this.subscribedToGalleryManifestChanges) {
+			return;
+		}
+		this.subscribedToGalleryManifestChanges = true;
+
+		if (configuredServiceUrl) {
+			this._register(this.defaultAccountService.onDidChangeDefaultAccount(() => this.handleDefaultAccountAccess(configuredServiceUrl)));
 		}
 
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
