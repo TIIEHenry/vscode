@@ -584,7 +584,7 @@ export class SessionsSetUpService extends Disposable implements ISessionsSetUpSe
 
 	declare readonly _serviceBrand: undefined;
 
-	private readonly _initPromise: Promise<void>;
+	private _initPromise: Promise<void> | undefined;
 	private readonly _welcomeDoneDeferred = new DeferredPromise<void>();
 	private _initialSignInDialogShown = false;
 
@@ -601,7 +601,7 @@ export class SessionsSetUpService extends Disposable implements ISessionsSetUpSe
 	) {
 		super();
 
-		this._initPromise = this.initialize();
+		this._initPromise = this.ensureInitialized();
 
 		this._register(this.instantiationService.createInstance(
 			SessionsSetUpWidget,
@@ -613,8 +613,37 @@ export class SessionsSetUpService extends Disposable implements ISessionsSetUpSe
 	}
 
 	private async whenSetupDone(): Promise<boolean> {
-		await this._initPromise;
+		await this.ensureInitialized();
 		return this.chatEntitlementService.sentiment.completed === true;
+	}
+
+	private ensureInitialized(): Promise<void> {
+		if (!this._initPromise) {
+			this._initPromise = this.startInitialize();
+		}
+		return this._initPromise;
+	}
+
+	private startInitialize(): Promise<void> {
+		const attempt: { promise?: Promise<void> } = {};
+		// In-flight callers share this promise. A failed read stays logged and resolves
+		// as not done. Drop it only while the field still points at this attempt, so the
+		// next whenSetupDone reads again. The check runs after attempt.promise is stored.
+		const promise = (async () => {
+			try {
+				const succeeded = await this.initialize();
+				if (!succeeded && this._initPromise === attempt.promise) {
+					this._initPromise = undefined;
+				}
+			} catch (error) {
+				if (this._initPromise === attempt.promise) {
+					this._initPromise = undefined;
+				}
+				throw error;
+			}
+		})();
+		attempt.promise = promise;
+		return promise;
 	}
 
 	private markDone(): void {
@@ -625,9 +654,9 @@ export class SessionsSetUpService extends Disposable implements ISessionsSetUpSe
 		return this._welcomeDoneDeferred.p;
 	}
 
-	private async initialize(): Promise<void> {
+	private async initialize(): Promise<boolean> {
 		if (this.chatEntitlementService.sentiment.completed) {
-			return;
+			return true;
 		}
 
 		try {
@@ -645,8 +674,10 @@ export class SessionsSetUpService extends Disposable implements ISessionsSetUpSe
 					defaultContext.dispose();
 				}
 			});
+			return true;
 		} catch (error) {
 			this.logService.error('[sessions welcome] Failed to read setup state from default profile:', error);
+			return false;
 		}
 	}
 }
