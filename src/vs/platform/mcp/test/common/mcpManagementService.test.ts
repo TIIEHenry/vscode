@@ -1292,6 +1292,47 @@ suite('McpResourceManagementService', () => {
 			errors: [],
 		});
 	});
+
+	test('getInstalled rescans after a rejected scan and then reuses the success', async () => {
+		let scans = 0;
+		let watchCalls = 0;
+		const originalWatch = fileService.watch.bind(fileService);
+		fileService.watch = ((resource: URI, options?: Parameters<FileService['watch']>[1]) => {
+			watchCalls++;
+			return originalWatch(resource, options);
+		}) as typeof fileService.watch;
+		const retryResource = URI.from({ scheme: Schemas.inMemory, path: '/mcp-retry.json' });
+		const retryService = disposables.add(new TestMcpResourceManagementService(
+			retryResource,
+			fileService,
+			uriIdentityService,
+			upcastPartial<McpResourceScannerService>({
+				scanMcpServers: async () => {
+					scans++;
+					if (scans === 1) {
+						throw new Error('scan failed');
+					}
+					return {
+						servers: {
+							recovered: { type: McpServerType.LOCAL, command: 'node' }
+						}
+					};
+				}
+			}),
+		));
+
+		await assert.rejects(() => retryService.getInstalled(), /scan failed/);
+		assert.strictEqual(scans, 1);
+
+		const installed = await retryService.getInstalled();
+		assert.strictEqual(scans, 2);
+		assert.deepStrictEqual(installed.map(server => server.name), ['recovered']);
+
+		const cached = await retryService.getInstalled();
+		assert.strictEqual(scans, 2);
+		assert.deepStrictEqual(cached.map(server => server.name), ['recovered']);
+		assert.strictEqual(watchCalls, 1);
+	});
 });
 
 suite('McpResourceManagementService - install policy enforcement', () => {

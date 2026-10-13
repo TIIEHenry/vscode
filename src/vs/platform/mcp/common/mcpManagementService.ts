@@ -307,6 +307,7 @@ export abstract class AbstractCommonMcpManagementService extends Disposable impl
 export abstract class AbstractMcpResourceManagementService extends AbstractCommonMcpManagementService {
 
 	private initializePromise: Promise<void> | undefined;
+	private didStartWatching = false;
 	private readonly reloadConfigurationScheduler: RunOnceScheduler;
 	private local = new Map<string, ILocalMcpServer>();
 
@@ -358,8 +359,14 @@ export abstract class AbstractMcpResourceManagementService extends AbstractCommo
 			this.initializePromise = (async () => {
 				try {
 					this.local = await this.populateLocalServers();
+				} catch (error) {
+					this.initializePromise = undefined;
+					throw error;
 				} finally {
-					this.startWatching();
+					if (!this.didStartWatching) {
+						this.didStartWatching = true;
+						this.startWatching();
+					}
 				}
 			})();
 		}
