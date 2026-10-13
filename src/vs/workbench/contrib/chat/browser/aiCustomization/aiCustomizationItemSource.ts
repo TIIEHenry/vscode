@@ -374,7 +374,13 @@ export class ItemProviderItemSource extends Disposable implements IAICustomizati
 
 	async fetchProviderItems(): Promise<readonly ICustomizationItem[]> {
 		if (!this.cachedPromise) {
-			this.cachedPromise = this.itemProvider.provideChatSessionCustomizations(this.sessionResource, CancellationToken.None);
+			const promise = this.itemProvider.provideChatSessionCustomizations(this.sessionResource, CancellationToken.None);
+			this.cachedPromise = promise;
+			promise.catch(() => {
+				if (this.cachedPromise === promise) {
+					this.cachedPromise = undefined;
+				}
+			});
 		}
 		const cached = this.cachedPromise;
 		const allItems = await cached;
