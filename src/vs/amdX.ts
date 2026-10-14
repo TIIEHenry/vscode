@@ -202,6 +202,33 @@ class AMDModuleImporter {
 const cache = new Map<string, Promise<any>>();
 
 /**
+ * Shares one in-flight or successful AMD node-module import.
+ * A rejection clears the cache entry only while it still points at that attempt,
+ * so the next import calls `load` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareAmdNodeModuleImport<T>(
+	cache: Map<string, Promise<any>>,
+	key: string,
+	load: () => Promise<T>,
+): Promise<T> {
+	const existing = cache.get(key) as Promise<T> | undefined;
+	if (existing) {
+		return existing;
+	}
+
+	const attempt = load();
+	cache.set(key, attempt);
+	// Not assigned. Callers still observe this rejection; the next import calls load again.
+	void attempt.catch(() => {
+		if (cache.get(key) === attempt) {
+			cache.delete(key);
+		}
+	});
+	return attempt;
+}
+
+/**
  * Utility for importing an AMD node module. This util supports AMD and ESM contexts and should be used while the ESM adoption
  * is on its way.
  *
@@ -214,23 +241,21 @@ export async function importAMDNodeModule<T>(nodeModuleName: string, pathInsideN
 	}
 
 	const nodeModulePath = pathInsideNodeModule ? `${nodeModuleName}/${pathInsideNodeModule}` : nodeModuleName;
-	if (cache.has(nodeModulePath)) {
-		return cache.get(nodeModulePath)!;
-	}
-	let scriptSrc: string;
-	if (/^\w[\w\d+.-]*:\/\//.test(nodeModulePath)) {
-		// looks like a URL
-		// bit of a special case for: src/vs/workbench/services/languageDetection/browser/languageDetectionWebWorker.ts
-		scriptSrc = nodeModulePath;
-	} else {
-		const useASAR = (isBuilt && (platform.isElectron || (platform.isWebWorker && platform.hasElectronUserAgent)));
-		const actualNodeModulesPath = (useASAR ? nodeModulesAsarPath : nodeModulesPath);
-		const resourcePath: AppResourcePath = `${actualNodeModulesPath}/${nodeModulePath}`;
-		scriptSrc = FileAccess.asBrowserUri(resourcePath).toString(true);
-	}
-	const result = AMDModuleImporter.INSTANCE.load<T>(scriptSrc);
-	cache.set(nodeModulePath, result);
-	return result;
+	const built = isBuilt;
+	return shareAmdNodeModuleImport(cache, nodeModulePath, () => {
+		let scriptSrc: string;
+		if (/^\w[\w\d+.-]*:\/\//.test(nodeModulePath)) {
+			// looks like a URL
+			// bit of a special case for: src/vs/workbench/services/languageDetection/browser/languageDetectionWebWorker.ts
+			scriptSrc = nodeModulePath;
+		} else {
+			const useASAR = (built && (platform.isElectron || (platform.isWebWorker && platform.hasElectronUserAgent)));
+			const actualNodeModulesPath = (useASAR ? nodeModulesAsarPath : nodeModulesPath);
+			const resourcePath: AppResourcePath = `${actualNodeModulesPath}/${nodeModulePath}`;
+			scriptSrc = FileAccess.asBrowserUri(resourcePath).toString(true);
+		}
+		return AMDModuleImporter.INSTANCE.load<T>(scriptSrc);
+	});
 }
 
 export function resolveAmdNodeModulePath(nodeModuleName: string, pathInsideNodeModule: string): string {
