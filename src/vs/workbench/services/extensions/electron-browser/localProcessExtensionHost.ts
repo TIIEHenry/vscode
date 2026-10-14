@@ -39,6 +39,7 @@ import { ExtensionHostExtensions, ExtensionHostStartup, IExtensionHost, IExtensi
 import { IHostService } from '../../host/browser/host.js';
 import { ILifecycleService, WillShutdownEvent } from '../../lifecycle/common/lifecycle.js';
 import { parseExtensionDevOptions } from '../common/extensionDevOptions.js';
+import { shareLocalProcessExtensionHostStart } from './localProcessExtensionHostStart.js';
 import { IDefaultLogLevelsService } from '../../log/common/defaultLogLevels.js';
 
 export interface ILocalProcessExtensionHostInitData {
@@ -118,7 +119,15 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 	// Resources, in order they get acquired/created when .start() is called:
 	private _inspectListener: IExtensionInspectInfo | null;
 	private _extensionHostProcess: ExtensionHostProcess | null;
-	private _messageProtocol: Promise<IMessagePassingProtocol> | null;
+	private readonly _messageProtocolSlot: { promise: Promise<IMessagePassingProtocol> | undefined } = { promise: undefined };
+
+	private get _messageProtocol(): Promise<IMessagePassingProtocol> | null {
+		return this._messageProtocolSlot.promise ?? null;
+	}
+
+	private set _messageProtocol(value: Promise<IMessagePassingProtocol> | null) {
+		this._messageProtocolSlot.promise = value ?? undefined;
+	}
 
 	constructor(
 		public readonly runningLocation: LocalProcessRunningLocation,
@@ -217,11 +226,7 @@ export class NativeLocalProcessExtensionHost extends Disposable implements IExte
 			throw new CancellationError();
 		}
 
-		if (!this._messageProtocol) {
-			this._messageProtocol = this._start();
-		}
-
-		return this._messageProtocol;
+		return shareLocalProcessExtensionHostStart(this._messageProtocolSlot, () => this._start());
 	}
 
 	private async _start(): Promise<IMessagePassingProtocol> {
