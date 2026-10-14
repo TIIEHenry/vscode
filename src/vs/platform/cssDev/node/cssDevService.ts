@@ -20,11 +20,36 @@ export interface ICSSDevelopmentService {
 	getCssModules(): Promise<string[]>;
 }
 
+/**
+ * Shares one in-flight or successful CSS module computation.
+ * A rejection clears the slot only while it still points at that attempt,
+ * so the next read calls `load` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareCssModules<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next read calls load again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 export class CSSDevelopmentService implements ICSSDevelopmentService {
 
 	declare _serviceBrand: undefined;
 
-	private _cssModules?: Promise<string[]>;
+	private readonly _cssModulesSlot: { promise: Promise<string[]> | undefined } = { promise: undefined };
 
 	constructor(
 		@IEnvironmentService private readonly envService: IEnvironmentService,
@@ -36,8 +61,7 @@ export class CSSDevelopmentService implements ICSSDevelopmentService {
 	}
 
 	getCssModules(): Promise<string[]> {
-		this._cssModules ??= this.computeCssModules();
-		return this._cssModules;
+		return shareCssModules(this._cssModulesSlot, () => this.computeCssModules());
 	}
 
 	private async computeCssModules(): Promise<string[]> {
