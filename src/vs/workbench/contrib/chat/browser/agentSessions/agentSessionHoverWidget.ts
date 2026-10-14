@@ -31,6 +31,28 @@ const HEADER_HEIGHT = 60;
 const CHAT_LIST_HEIGHT = 240;
 const CHAT_HOVER_WIDTH = 500;
 
+/**
+ * Shares one hover-model load. In-flight callers reuse the same promise.
+ * A rejection clears `modelRef` only while it still points at that attempt,
+ * so the next call starts again. A fulfillment, including `undefined`, stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function loadCachedHoverModel<T>(slot: { modelRef?: Promise<T> }, start: () => Promise<T>): Promise<T> {
+	if (slot.modelRef) {
+		return slot.modelRef;
+	}
+
+	const attempt = start();
+	slot.modelRef = attempt;
+	// Drop only this rejected attempt. In-flight callers share it; a fulfilled result, including undefined, stays cached.
+	attempt.catch(() => {
+		if (slot.modelRef === attempt) {
+			slot.modelRef = undefined;
+		}
+	});
+	return attempt;
+}
+
 export class AgentSessionHoverWidget extends Disposable {
 
 	readonly domNode: HTMLElement;
@@ -71,7 +93,7 @@ export class AgentSessionHoverWidget extends Disposable {
 	}
 
 	onRendered() {
-		this.modelRef ??= this.loadModel();
+		this.ensureModel();
 
 		if (this.listWidget) {
 			this.listWidget.layout(CHAT_LIST_HEIGHT, CHAT_HOVER_WIDTH);
@@ -115,9 +137,16 @@ export class AgentSessionHoverWidget extends Disposable {
 		return modelRef.object;
 	}
 
+	private ensureModel(): Promise<IChatModel | undefined> {
+		const widget = this;
+		return loadCachedHoverModel({
+			get modelRef() { return widget.modelRef; },
+			set modelRef(value: Promise<IChatModel | undefined> | undefined) { widget.modelRef = value; },
+		}, () => widget.loadModel());
+	}
+
 	private async render() {
-		this.modelRef ??= this.loadModel();
-		const model = await this.modelRef;
+		const model = await this.ensureModel();
 		if (!model || this._store.isDisposed || !this.domNode.isConnected) {
 			return;
 		}
