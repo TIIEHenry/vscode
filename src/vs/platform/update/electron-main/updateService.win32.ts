@@ -37,6 +37,7 @@ import { AvailableForDownload, DisablementReason, IUpdate, State, StateType, Upd
 import { AbstractUpdateService, createUpdateURL, getUpdateRequestHeaders, IUpdateURLOptions, UpdateErrorClassification } from './abstractUpdateService.js';
 import { getRelaunchArguments } from './updateRelaunchArguments.js';
 import { getWin32UpdateType } from './win32UpdateType.js';
+import { shareWindowsMutex } from './windowsMutex.js';
 
 interface IAvailableUpdate {
 	packagePath: string;
@@ -70,6 +71,7 @@ export class Win32UpdateService extends AbstractUpdateService implements IRelaun
 	private readonly readyMutexName: string;
 	private readonly updatingMutexName: string;
 	private readonly setupMutexName: string;
+	private readonly _mutexSlot: { promise: Promise<typeof import('@vscode/windows-mutex')> | undefined } = { promise: undefined };
 
 	private get cachePathSync(): string {
 		return path.join(tmpdir(), `vscode-${this.productService.quality}-${this.productService.target}-${process.arch}`);
@@ -81,9 +83,8 @@ export class Win32UpdateService extends AbstractUpdateService implements IRelaun
 		return mkdir(result, { recursive: true }).then(() => result);
 	}
 
-	@memoize
 	private get mutex(): Promise<typeof import('@vscode/windows-mutex')> {
-		return import('@vscode/windows-mutex');
+		return shareWindowsMutex(this._mutexSlot, () => import('@vscode/windows-mutex'));
 	}
 
 	constructor(
