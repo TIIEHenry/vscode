@@ -10,7 +10,6 @@ import { IStorageService, IStorageValueChangeEvent, InMemoryStorageService, Stor
 import { Emitter, Event } from '../../../base/common/event.js';
 import { ILogService } from '../../log/common/log.js';
 import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
-import { Lazy } from '../../../base/common/lazy.js';
 import { isWindows } from '../../../base/common/platform.js';
 
 /**
@@ -98,6 +97,31 @@ export interface ISecretStorageService extends ISecretStorageProvider {
 	readonly onDidChangeSecret: Event<string>;
 }
 
+/**
+ * Shares one in-flight or successful secret-storage initialization.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next read initializes again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareSecretStorageInit<T>(
+	slot: { promise: Promise<T> | undefined },
+	create: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = create();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next read initializes again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 export class BaseSecretStorageService extends Disposable implements ISecretStorageService {
 	declare readonly _serviceBrand: undefined;
 
@@ -131,9 +155,9 @@ export class BaseSecretStorageService extends Disposable implements ISecretStora
 		return this._type;
 	}
 
-	private _lazyStorageService: Lazy<Promise<IStorageService>> = new Lazy(() => this.initialize());
-	protected get resolvedStorageService() {
-		return this._lazyStorageService.value;
+	private readonly _storageSlot: { promise: Promise<IStorageService> | undefined } = { promise: undefined };
+	protected get resolvedStorageService(): Promise<IStorageService> {
+		return shareSecretStorageInit(this._storageSlot, () => this.initialize());
 	}
 
 	get(key: string): Promise<string | undefined> {
@@ -267,7 +291,8 @@ export class BaseSecretStorageService extends Disposable implements ISecretStora
 	}
 
 	protected reinitialize(): void {
-		this._lazyStorageService = new Lazy(() => this.initialize());
+		// Encryption backend changes must init again even after a successful init.
+		this._storageSlot.promise = undefined;
 	}
 
 	private onDidChangeValue(key: string): void {
