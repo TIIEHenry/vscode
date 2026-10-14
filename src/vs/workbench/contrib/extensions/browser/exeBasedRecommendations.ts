@@ -8,6 +8,31 @@ import { ExtensionRecommendations, ExtensionRecommendation } from './extensionRe
 import { localize } from '../../../../nls.js';
 import { ExtensionRecommendationReason } from '../../../services/extensionRecommendations/common/extensionRecommendations.js';
 
+/**
+ * Shares one in-flight or successful important executable-based recommendation fetch.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next read fetches again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareImportantExeBasedRecommendations<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next read fetches again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 export class ExeBasedRecommendations extends ExtensionRecommendations {
 
 	private _otherTips: IExecutableBasedExtensionTip[] = [];
@@ -41,12 +66,9 @@ export class ExeBasedRecommendations extends ExtensionRecommendations {
 		await this.fetchImportantExeBasedRecommendations();
 	}
 
-	private _importantExeBasedRecommendations: Promise<Map<string, IExecutableBasedExtensionTip>> | undefined;
-	private async fetchImportantExeBasedRecommendations(): Promise<Map<string, IExecutableBasedExtensionTip>> {
-		if (!this._importantExeBasedRecommendations) {
-			this._importantExeBasedRecommendations = this.doFetchImportantExeBasedRecommendations();
-		}
-		return this._importantExeBasedRecommendations;
+	private readonly _importantExeBasedRecommendations: { promise: Promise<Map<string, IExecutableBasedExtensionTip>> | undefined } = { promise: undefined };
+	private fetchImportantExeBasedRecommendations(): Promise<Map<string, IExecutableBasedExtensionTip>> {
+		return shareImportantExeBasedRecommendations(this._importantExeBasedRecommendations, () => this.doFetchImportantExeBasedRecommendations());
 	}
 
 	private async doFetchImportantExeBasedRecommendations(): Promise<Map<string, IExecutableBasedExtensionTip>> {
