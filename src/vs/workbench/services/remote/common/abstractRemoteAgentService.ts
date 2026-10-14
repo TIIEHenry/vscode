@@ -57,22 +57,33 @@ export abstract class AbstractRemoteAgentService extends Disposable implements I
 
 	getRawEnvironment(): Promise<IRemoteAgentEnvironment | null> {
 		if (!this._environment) {
-			this._environment = this._withChannel(
-				async (channel, connection) => {
-					const env = await RemoteExtensionEnvironmentChannelClient.getEnvironmentData(channel, connection.remoteAuthority, this.userDataProfileService.currentProfile.isDefault ? undefined : this.userDataProfileService.currentProfile.id);
-					this._remoteAuthorityResolverService._setAuthorityConnectionToken(connection.remoteAuthority, env.connectionToken);
-					if (typeof env.reconnectionGraceTime === 'number') {
-						this._logService.info(`[reconnection-grace-time] Client received grace time from server: ${env.reconnectionGraceTime}ms (${Math.floor(env.reconnectionGraceTime / 1000)}s)`);
-						connection.updateGraceTime(env.reconnectionGraceTime);
-					} else {
-						this._logService.info(`[reconnection-grace-time] Server did not provide grace time, using default`);
-					}
-					return env;
-				},
-				null
-			);
+			const promise = this.fetchRawEnvironment();
+			this._environment = promise;
+			// Drop only this rejected attempt. In-flight callers share it; a fulfilled result, including null, stays cached.
+			promise.catch(() => {
+				if (this._environment === promise) {
+					this._environment = null;
+				}
+			});
 		}
 		return this._environment;
+	}
+
+	protected fetchRawEnvironment(): Promise<IRemoteAgentEnvironment | null> {
+		return this._withChannel(
+			async (channel, connection) => {
+				const env = await RemoteExtensionEnvironmentChannelClient.getEnvironmentData(channel, connection.remoteAuthority, this.userDataProfileService.currentProfile.isDefault ? undefined : this.userDataProfileService.currentProfile.id);
+				this._remoteAuthorityResolverService._setAuthorityConnectionToken(connection.remoteAuthority, env.connectionToken);
+				if (typeof env.reconnectionGraceTime === 'number') {
+					this._logService.info(`[reconnection-grace-time] Client received grace time from server: ${env.reconnectionGraceTime}ms (${Math.floor(env.reconnectionGraceTime / 1000)}s)`);
+					connection.updateGraceTime(env.reconnectionGraceTime);
+				} else {
+					this._logService.info(`[reconnection-grace-time] Server did not provide grace time, using default`);
+				}
+				return env;
+			},
+			null
+		);
 	}
 
 	getExtensionHostExitInfo(reconnectionToken: string): Promise<IExtensionHostExitInfo | null> {
