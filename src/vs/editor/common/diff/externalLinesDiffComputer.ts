@@ -14,30 +14,46 @@ import { lineRangeMappingFromRangeMappings, LineRangeMapping, RangeMapping } fro
 
 type ExternalDiffModule = { createDiffComputer: typeof createExternalDiffComputer };
 
-let externalModulePromise: Promise<ExternalDiffModule> | undefined;
-let externalDiffComputerPromise: Promise<IExternalDiffComputer> | undefined;
-let externalWasmDiffComputerPromise: Promise<IExternalDiffComputer> | undefined;
+/**
+ * Shares one in-flight or successful external diff module load.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next read loads again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareExternalDiffModule<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next read loads again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
+const externalModuleSlot: { promise: Promise<ExternalDiffModule> | undefined } = { promise: undefined };
+const externalDiffComputerSlot: { promise: Promise<IExternalDiffComputer> | undefined } = { promise: undefined };
+const externalWasmDiffComputerSlot: { promise: Promise<IExternalDiffComputer> | undefined } = { promise: undefined };
 
 function loadExternalModule(): Promise<ExternalDiffModule> {
-	if (!externalModulePromise) {
+	return shareExternalDiffModule(externalModuleSlot, () => {
 		const url = resolveAmdNodeModulePath('@vscode/diff', 'dist/index.js');
 		// Use a runtime-computed URL to keep bundlers from rewriting the import.
-		externalModulePromise = import(/* webpackIgnore: true */ /* @vite-ignore */ `${url}`) as Promise<ExternalDiffModule>;
-	}
-	return externalModulePromise;
+		return import(/* webpackIgnore: true */ /* @vite-ignore */ `${url}`) as Promise<ExternalDiffModule>;
+	});
 }
 
 function loadExternalComputer(useWasm: boolean): Promise<IExternalDiffComputer> {
-	if (useWasm) {
-		if (!externalWasmDiffComputerPromise) {
-			externalWasmDiffComputerPromise = loadExternalModule().then(m => m.createDiffComputer({ useWasm: true }));
-		}
-		return externalWasmDiffComputerPromise;
-	}
-	if (!externalDiffComputerPromise) {
-		externalDiffComputerPromise = loadExternalModule().then(m => m.createDiffComputer({ useWasm: false }));
-	}
-	return externalDiffComputerPromise;
+	const slot = useWasm ? externalWasmDiffComputerSlot : externalDiffComputerSlot;
+	return shareExternalDiffModule(slot, () => loadExternalModule().then(m => m.createDiffComputer({ useWasm })));
 }
 
 export async function getExternalLinesDiffComputer(useWasm: boolean): Promise<ILinesDiffComputer> {
