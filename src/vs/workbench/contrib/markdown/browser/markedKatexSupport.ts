@@ -7,9 +7,33 @@ import { importAMDNodeModule, resolveAmdNodeModulePath } from '../../../../amdX.
 import * as domSanitize from '../../../../base/browser/domSanitize.js';
 import { MarkdownSanitizerConfig } from '../../../../base/browser/markdownRenderer.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
-import { Lazy } from '../../../../base/common/lazy.js';
 import type * as marked from '../../../../base/common/marked/marked.js';
 import { katexContainerLatexAttributeName, MarkedKatexExtension } from '../common/markedKatexExtension.js';
+
+/**
+ * Shares one in-flight or successful KaTeX load.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next load calls `load` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareKatexLoad<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next load calls load again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
 
 export class MarkedKatexSupport {
 
@@ -130,10 +154,14 @@ export class MarkedKatexSupport {
 	}
 
 	private static _katex?: typeof import('katex').default;
-	private static _katexPromise = new Lazy(async () => {
-		this._katex = await importAMDNodeModule<typeof import('katex').default>('katex', 'dist/katex.min.js');
-		return this._katex;
-	});
+	private static readonly _katexSlot: { promise: Promise<typeof import('katex').default> | undefined } = { promise: undefined };
+
+	private static loadKatex(): Promise<typeof import('katex').default> {
+		return shareKatexLoad(MarkedKatexSupport._katexSlot, async () => {
+			MarkedKatexSupport._katex = await importAMDNodeModule<typeof import('katex').default>('katex', 'dist/katex.min.js');
+			return MarkedKatexSupport._katex;
+		});
+	}
 
 	public static getExtension(window: CodeWindow, options: MarkedKatexExtension.MarkedKatexOptions = {}): marked.MarkedExtension | undefined {
 		if (!this._katex) {
@@ -145,7 +173,7 @@ export class MarkedKatexSupport {
 	}
 
 	public static async loadExtension(window: CodeWindow, options: MarkedKatexExtension.MarkedKatexOptions = {}): Promise<marked.MarkedExtension> {
-		const katex = await this._katexPromise.value;
+		const katex = await this.loadKatex();
 		this.ensureKatexStyles(window);
 		return MarkedKatexExtension.extension(katex, options);
 	}
