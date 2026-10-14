@@ -7,7 +7,6 @@
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import * as errors from '../../../../../base/common/errors.js';
 import { Emitter, Event, PauseableEmitter } from '../../../../../base/common/event.js';
-import { Lazy } from '../../../../../base/common/lazy.js';
 import { Disposable, IDisposable } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -21,6 +20,31 @@ import { IFileMatch, IPatternInfo, ISearchComplete, ISearchConfigurationProperti
 import { IChangeEvent, mergeSearchResultEvents, SearchModelLocation, ISearchModel, ISearchResult, SEARCH_MODEL_PREFIX } from './searchTreeCommon.js';
 import { SearchResultImpl } from './searchResult.js';
 import { ISearchViewModelWorkbenchService } from './searchViewModelWorkbenchService.js';
+
+/**
+ * Shares one in-flight or successful AI text-result provider name lookup.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next read looks up again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareAITextResultProviderName<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next read looks up again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
 
 export class SearchModelImpl extends Disposable implements ISearchModel {
 
@@ -49,7 +73,7 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 	private searchCancelledForNewSearch: boolean = false;
 	private aiSearchCancelledForNewSearch: boolean = false;
 	public location: SearchModelLocation = SearchModelLocation.PANEL;
-	private readonly _aiTextResultProviderName: Lazy<Promise<string | undefined>>;
+	private readonly _aiTextResultProviderName: { promise: Promise<string | undefined> | undefined } = { promise: undefined };
 
 	private readonly _id: string;
 
@@ -65,7 +89,6 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 		this._searchResult = this.instantiationService.createInstance(SearchResultImpl, this);
 		this._register(this._searchResult.onChange((e) => this._onSearchResultChanged.fire(e)));
 
-		this._aiTextResultProviderName = new Lazy(async () => this.searchService.getAIName());
 		this._id = SEARCH_MODEL_PREFIX + Date.now().toString();
 	}
 
@@ -74,7 +97,7 @@ export class SearchModelImpl extends Disposable implements ISearchModel {
 	}
 
 	async getAITextResultProviderName(): Promise<string> {
-		const result = await this._aiTextResultProviderName.value;
+		const result = await shareAITextResultProviderName(this._aiTextResultProviderName, () => this.searchService.getAIName());
 		if (!result) {
 			throw Error('Fetching AI name when no provider present.');
 		}
