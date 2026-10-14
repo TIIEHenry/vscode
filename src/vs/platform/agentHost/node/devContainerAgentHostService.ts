@@ -364,13 +364,26 @@ export class DevContainerAgentHostMainService extends Disposable implements IDev
 		return this._nativeRequire;
 	}
 
-	protected _resolveShellEnvironment(): Promise<typeof process.env> {
-		this._shellEnvironment ??= getResolvedShellEnv(
+	protected loadShellEnvironment(): Promise<typeof process.env> {
+		return getResolvedShellEnv(
 			this._configurationService,
 			this._logService,
 			{ ...this._environmentService.args, 'force-user-env': true },
 			process.env,
 		);
+	}
+
+	protected _resolveShellEnvironment(): Promise<typeof process.env> {
+		if (!this._shellEnvironment) {
+			const attempt = this.loadShellEnvironment();
+			this._shellEnvironment = attempt;
+			// Drop only this rejected attempt. In-flight callers share it; a fulfilled result stays cached.
+			attempt.catch(() => {
+				if (this._shellEnvironment === attempt) {
+					this._shellEnvironment = undefined;
+				}
+			});
+		}
 		return this._shellEnvironment;
 	}
 
@@ -379,9 +392,18 @@ export class DevContainerAgentHostMainService extends Disposable implements IDev
 	}
 
 	isDockerAvailable(): Promise<boolean> {
-		this._dockerAvailable ??= this._resolveShellEnvironment()
-			.then(environment => findExecutable('docker', undefined, undefined, environment))
-			.then(executable => executable !== undefined);
+		if (!this._dockerAvailable) {
+			const attempt = this._resolveShellEnvironment()
+				.then(environment => findExecutable('docker', undefined, undefined, environment))
+				.then(executable => executable !== undefined);
+			this._dockerAvailable = attempt;
+			// Drop only this rejected attempt. In-flight callers share it; a fulfilled result stays cached.
+			attempt.catch(() => {
+				if (this._dockerAvailable === attempt) {
+					this._dockerAvailable = undefined;
+				}
+			});
+		}
 		return this._dockerAvailable;
 	}
 
