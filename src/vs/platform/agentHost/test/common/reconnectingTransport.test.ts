@@ -181,4 +181,22 @@ suite('ReconnectingTransport', () => {
 
 		assert.strictEqual(establishCount, 1);
 	});
+
+	test('establishes again after the first connect rejects', async () => {
+		let establishCount = 0;
+		const transport = disposables.add(new ReconnectingTransport(
+			async () => {
+				establishCount++;
+				throw new Error('unavailable');
+			},
+			new NullLogService(),
+			'[ReconnectingTransport]',
+		));
+
+		await assert.rejects(transport.connect(), /unavailable/);
+		assert.strictEqual(establishCount, 1);
+
+		await assert.rejects(transport.connect(), /unavailable/);
+		assert.strictEqual(establishCount, 2);
+	});
 });

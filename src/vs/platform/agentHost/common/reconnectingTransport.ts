@@ -57,7 +57,15 @@ export class ReconnectingTransport extends Disposable implements IClientTranspor
 			return Promise.reject(new Error('Transport is disposed'));
 		}
 
-		this._connectPromise ??= this._establishTransport();
+		if (!this._connectPromise) {
+			const promise = this._establishTransport();
+			this._connectPromise = promise;
+			promise.catch(() => {
+				if (this._connectPromise === promise) {
+					this._connectPromise = undefined;
+				}
+			});
+		}
 		return this._connectPromise;
 	}
 
