@@ -62,6 +62,7 @@ import { NotebookEditorExtensionsRegistry } from './notebookEditorExtensions.js'
 import { INotebookEditorService } from './services/notebookEditorService.js';
 import { notebookDebug } from './notebookLogger.js';
 import { NotebookCellStateChangedEvent, NotebookLayoutChangedEvent, NotebookLayoutInfo } from './notebookViewEvents.js';
+import { shareNotebookWebviewResolve } from './notebookWebviewResolveCache.js';
 import { CellContextKeyManager } from './view/cellParts/cellContextKeys.js';
 import { CellDragAndDropController } from './view/cellParts/cellDnd.js';
 import { ListViewInfoAccessor, NotebookCellList, NOTEBOOK_WEBVIEW_BOUNDARY } from './view/notebookCellList.js';
@@ -1396,46 +1397,47 @@ export class NotebookEditorWidget extends Disposable implements INotebookEditorD
 			return null;
 		}
 
-		if (this._webviewResolvePromise) {
-			return this._webviewResolvePromise;
-		}
-
-		if (!this._webview) {
-			this._ensureWebview(this.getId(), this.textModel.viewType, this.textModel.uri);
-		}
-
-		this._webviewResolvePromise = (async () => {
-			if (!this._webview) {
-				throw new Error('Notebook output webview object is not created successfully.');
+		const textModel = this.textModel;
+		const editor = this;
+		return shareNotebookWebviewResolve({
+			get promise() { return editor._webviewResolvePromise; },
+			set promise(value) { editor._webviewResolvePromise = value; },
+		}, () => {
+			if (!editor._webview) {
+				editor._ensureWebview(editor.getId(), textModel.viewType, textModel.uri);
 			}
 
-			await this._webview.createWebview(this.creationOptions.codeWindow ?? mainWindow);
-			if (!this._webview.webview) {
-				throw new Error('Notebook output webview element was not created successfully.');
-			}
+			return (async () => {
+				if (!editor._webview) {
+					throw new Error('Notebook output webview object is not created successfully.');
+				}
 
-			this._localStore.add(this._webview.webview.onDidBlur(() => {
-				this._outputFocus.set(false);
-				this._webviewFocused = false;
+				await editor._webview.createWebview(editor.creationOptions.codeWindow ?? mainWindow);
+				if (!editor._webview.webview) {
+					throw new Error('Notebook output webview element was not created successfully.');
+				}
 
-				this.updateEditorFocus();
-				this.updateCellFocusMode();
-			}));
+				editor._localStore.add(editor._webview.webview.onDidBlur(() => {
+					editor._outputFocus.set(false);
+					editor._webviewFocused = false;
 
-			this._localStore.add(this._webview.webview.onDidFocus(() => {
-				this._outputFocus.set(true);
-				this.updateEditorFocus();
-				this._webviewFocused = true;
-			}));
+					editor.updateEditorFocus();
+					editor.updateCellFocusMode();
+				}));
 
-			this._localStore.add(this._webview.onMessage(e => {
-				this._onDidReceiveMessage.fire(e);
-			}));
+				editor._localStore.add(editor._webview.webview.onDidFocus(() => {
+					editor._outputFocus.set(true);
+					editor.updateEditorFocus();
+					editor._webviewFocused = true;
+				}));
 
-			return this._webview;
-		})();
+				editor._localStore.add(editor._webview.onMessage(e => {
+					editor._onDidReceiveMessage.fire(e);
+				}));
 
-		return this._webviewResolvePromise;
+				return editor._webview;
+			})();
+		});
 	}
 
 	private _ensureWebview(id: string, viewType: string, resource: URI) {
