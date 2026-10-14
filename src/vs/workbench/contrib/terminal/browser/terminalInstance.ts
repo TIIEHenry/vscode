@@ -85,6 +85,7 @@ import { AccessibilityCommandId } from '../../accessibility/common/accessibility
 import { terminalStrings } from '../common/terminalStrings.js';
 import { TerminalIconPicker } from './terminalIconPicker.js';
 import { TerminalResizeDebouncer } from './terminalResizeDebouncer.js';
+import { shareXtermConstructor } from './xtermConstructorCache.js';
 import { openContextMenu } from './terminalContextMenu.js';
 import type { IMenu } from '../../../../platform/actions/common/actions.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
@@ -107,7 +108,7 @@ const enum Constants {
 	MaxCanvasWidth = 4096
 }
 
-let xtermConstructor: Promise<typeof XTermTerminal> | undefined;
+const xtermConstructorSlot: { promise: Promise<typeof XTermTerminal> | undefined } = { promise: undefined };
 
 interface ICanvasDimensions {
 	width: number;
@@ -813,17 +814,13 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 
 	public static getXtermConstructor(keybindingService: IKeybindingService, contextKeyService: IContextKeyService) {
 		const keybinding = keybindingService.lookupKeybinding(TerminalContribCommandId.A11yFocusAccessibleBuffer, contextKeyService);
-		if (xtermConstructor) {
-			return xtermConstructor;
-		}
-		xtermConstructor = Promises.withAsyncBody<typeof XTermTerminal>(async (resolve) => {
+		return shareXtermConstructor(xtermConstructorSlot, () => Promises.withAsyncBody<typeof XTermTerminal>(async (resolve) => {
 			const Terminal = (await importAMDNodeModule<typeof import('@xterm/xterm')>('@xterm/xterm', 'lib/xterm.js')).Terminal;
 			// Localize strings
 			Terminal.strings.promptLabel = nls.localize('terminal.integrated.a11yPromptLabel', 'Terminal input');
 			Terminal.strings.tooMuchOutput = keybinding ? nls.localize('terminal.integrated.useAccessibleBuffer', 'Use the accessible buffer {0} to manually review output', keybinding.getLabel()) : nls.localize('terminal.integrated.useAccessibleBufferNoKb', 'Use the Terminal: Focus Accessible Buffer command to manually review output');
 			resolve(Terminal);
-		});
-		return xtermConstructor;
+		}));
 	}
 
 	/**
