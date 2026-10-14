@@ -19,6 +19,7 @@ import { disposableWindowInterval, getActiveDocument, getWindowId, getWindowsCou
 import { memoize } from '../../../../base/common/decorators.js';
 import { isAuxiliaryWindow } from '../../../../base/browser/window.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
+import { shareNativeWindowHandle } from './nativeWindowHandleCache.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { showBrowserToast } from '../browser/toasts.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
@@ -236,11 +237,8 @@ class WorkbenchHostService extends Disposable implements IHostService {
 	//#region Native Handle
 
 	private _nativeWindowHandleCache = new Map<number, Promise<VSBuffer | undefined>>();
-	async getNativeWindowHandle(windowId: number): Promise<VSBuffer | undefined> {
-		if (!this._nativeWindowHandleCache.has(windowId)) {
-			this._nativeWindowHandleCache.set(windowId, this.nativeHostService.getNativeWindowHandle(windowId));
-		}
-		return this._nativeWindowHandleCache.get(windowId)!;
+	getNativeWindowHandle(windowId: number): Promise<VSBuffer | undefined> {
+		return shareNativeWindowHandle(this._nativeWindowHandleCache, windowId, () => this.nativeHostService.getNativeWindowHandle(windowId));
 	}
 
 	//#endregion
