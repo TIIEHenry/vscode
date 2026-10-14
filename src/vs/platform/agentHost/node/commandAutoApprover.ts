@@ -184,11 +184,36 @@ interface ITreeSitterResources {
 	readonly powershellLanguage: PromiseSettledResult<Language>;
 }
 
-let treeSitterResourcesPromise: Promise<ITreeSitterResources> | undefined;
+/**
+ * Shares one in-flight or successful tree-sitter resource load.
+ * Parser.init mutates process-global WASM state, so a fulfillment stays cached.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next call loads again. The returned promise still rejects;
+ * this does not start another attempt.
+ */
+export function shareCommandAutoApproverResources<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next call loads again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
+const treeSitterResourcesSlot: { promise: Promise<ITreeSitterResources> | undefined } = { promise: undefined };
 
 function getTreeSitterResources(): Promise<ITreeSitterResources> {
-	// Parser.init and Language.load mutate process-global WASM state, so load them once.
-	return treeSitterResourcesPromise ??= loadTreeSitterResources();
+	return shareCommandAutoApproverResources(treeSitterResourcesSlot, loadTreeSitterResources);
 }
 
 async function loadTreeSitterResources(): Promise<ITreeSitterResources> {
