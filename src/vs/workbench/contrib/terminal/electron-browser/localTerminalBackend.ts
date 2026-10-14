@@ -34,11 +34,11 @@ import { mark, PerformanceMark } from '../../../../base/common/performance.js';
 import { ILifecycleService, LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
 import { DeferredPromise } from '../../../../base/common/async.js';
 import { IStatusbarService } from '../../../services/statusbar/browser/statusbar.js';
-import { memoize } from '../../../../base/common/decorators.js';
 import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
 import { INativeWorkbenchEnvironmentService } from '../../../services/environment/electron-browser/environmentService.js';
 import { shouldUseEnvironmentVariableCollection } from '../../../../platform/terminal/common/terminalEnvironment.js';
+import { shareLocalTerminalEnvironment } from '../common/localTerminalEnvironment.js';
 import { DisposableStore, MutableDisposable } from '../../../../base/common/lifecycle.js';
 
 export class LocalTerminalBackendContribution implements IWorkbenchContribution {
@@ -170,7 +170,7 @@ class LocalTerminalBackend extends BaseTerminalBackend implements ITerminalBacke
 			store.add(directProxy.onProcessOrphanQuestion(e => this._ptys.get(e.id)?.handleOrphanQuestion()));
 			store.add(directProxy.onDidRequestDetach(e => this._onDidRequestDetach.fire(e)));
 
-			// Eagerly fetch the backend's environment for memoization
+			// Eagerly fetch the backend's environment. A success stays cached; a failure is read again.
 			this.getEnvironment();
 		});
 	}
@@ -296,13 +296,17 @@ class LocalTerminalBackend extends BaseTerminalBackend implements ITerminalBacke
 		return this._localPtyService.getProfiles(this._workspaceContextService.getWorkspace().id, profiles, defaultProfile, includeDetectedProfiles) || [];
 	}
 
-	@memoize
-	async getEnvironment(): Promise<IProcessEnvironment> {
-		return this._proxy.getEnvironment();
+	private readonly _environmentSlot: { promise: Promise<IProcessEnvironment> | undefined } = { promise: undefined };
+	getEnvironment(): Promise<IProcessEnvironment> {
+		return shareLocalTerminalEnvironment(this._environmentSlot, () => this._proxy.getEnvironment());
 	}
 
-	@memoize
-	async getShellEnvironment(): Promise<IProcessEnvironment> {
+	private readonly _shellEnvironmentSlot: { promise: Promise<IProcessEnvironment> | undefined } = { promise: undefined };
+	getShellEnvironment(): Promise<IProcessEnvironment> {
+		return shareLocalTerminalEnvironment(this._shellEnvironmentSlot, () => this._loadShellEnvironment());
+	}
+
+	private async _loadShellEnvironment(): Promise<IProcessEnvironment> {
 		const env = { ... await this._shellEnvironmentService.getShellEnv() };
 
 		// If running in the context of an extension development host, include the environment derived from the launch configuration
