@@ -6,10 +6,10 @@
 import { importAMDNodeModule, resolveAmdNodeModulePath } from '../../../amdX.js';
 import { WindowIntervalTimer } from '../../../base/browser/dom.js';
 import { mainWindow } from '../../../base/browser/window.js';
-import { memoize } from '../../../base/common/decorators.js';
 import { IProductService } from '../../product/common/productService.js';
 import { AbstractSignService, IVsdaValidator } from '../common/abstractSignService.js';
 import { ISignService } from '../common/sign.js';
+import { shareVsdaLoad } from './vsdaLoad.js';
 
 declare namespace vsdaWeb {
 	export function sign(salted_message: string): string;
@@ -38,6 +38,8 @@ const IV_SIZE = 16;
 const STEP_SIZE = KEY_SIZE + IV_SIZE;
 
 export class SignService extends AbstractSignService implements ISignService {
+	private readonly _vsdaSlot: { promise: Promise<typeof vsda_web> | undefined } = { promise: undefined };
+
 	constructor(@IProductService private readonly productService: IProductService) {
 		super();
 	}
@@ -56,8 +58,11 @@ export class SignService extends AbstractSignService implements ISignService {
 		return this.vsda().then(vsda => vsda.sign(arg));
 	}
 
-	@memoize
-	private async vsda(): Promise<typeof vsda_web> {
+	private vsda(): Promise<typeof vsda_web> {
+		return shareVsdaLoad(this._vsdaSlot, () => this.loadVsda());
+	}
+
+	private async loadVsda(): Promise<typeof vsda_web> {
 		const checkInterval = new WindowIntervalTimer();
 		let [wasm] = await Promise.all([
 			this.getWasmBytes(),
