@@ -57,6 +57,7 @@ import { Memento } from '../../../common/memento.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { NotebookEditor } from '../../notebook/browser/notebookEditor.js';
 import { ExcludePatternInputWidget, IncludePatternInputWidget } from './patternInputWidget.js';
+import { acquirePendingSemanticSearch } from './pendingSemanticSearchCache.js';
 import { IFindInFilesArgs } from './searchActionsBase.js';
 import { searchDetailsIcon } from './searchIcons.js';
 import { renderSearchMessage } from './searchMessage.js';
@@ -2003,17 +2004,17 @@ export class SearchView extends ViewPane {
 		this.tree.setFocus([]);
 
 		this.viewModel.replaceString = this.searchWidget.getReplaceValue();
-		// Reuse pending aiSearch if available
-		let aiSearchPromise = this._pendingSemanticSearchPromise;
-		if (!aiSearchPromise) {
-			this.viewModel.searchResult.setAIQueryUsingTextQuery();
-			aiSearchPromise = this._pendingSemanticSearchPromise = this.viewModel.aiSearch(() => {
+		const view = this;
+		const aiSearchPromise = acquirePendingSemanticSearch({
+			get promise() { return view._pendingSemanticSearchPromise; },
+			set promise(value) { view._pendingSemanticSearchPromise = value; },
+		}, clearIfCurrent => {
+			view.viewModel.searchResult.setAIQueryUsingTextQuery();
+			return view.viewModel.aiSearch(() => {
 				// Clear pending promise when first result comes in
-				if (this._pendingSemanticSearchPromise === aiSearchPromise) {
-					this._pendingSemanticSearchPromise = undefined;
-				}
+				clearIfCurrent();
 			});
-		}
+		});
 
 		aiSearchPromise.then((complete) => {
 			if (this.isDisposed || this.viewModel !== searchModel) {
@@ -2213,23 +2214,23 @@ export class SearchView extends ViewPane {
 
 	private async getKeywordSuggestions() {
 		const epoch = ++this._keywordSuggestionEpoch;
-		// Reuse pending aiSearch if available
-		let aiSearchPromise = this._pendingSemanticSearchPromise;
-		if (!aiSearchPromise) {
-			this.viewModel.searchResult.setAIQueryUsingTextQuery();
-			aiSearchPromise = this._pendingSemanticSearchPromise = this.viewModel.aiSearch(result => {
+		const view = this;
+		const aiSearchPromise = acquirePendingSemanticSearch({
+			get promise() { return view._pendingSemanticSearchPromise; },
+			set promise(value) { view._pendingSemanticSearchPromise = value; },
+		}, clearIfCurrent => {
+			view.viewModel.searchResult.setAIQueryUsingTextQuery();
+			return view.viewModel.aiSearch(result => {
 				if (result && isAIKeyword(result)) {
-					if (this._keywordSuggestionEpoch === epoch) {
-						this.updateKeywordSuggestionUI(result);
+					if (view._keywordSuggestionEpoch === epoch) {
+						view.updateKeywordSuggestionUI(result);
 					}
 					return;
 				}
 				// Clear pending promise when first result comes in
-				if (this._pendingSemanticSearchPromise === aiSearchPromise) {
-					this._pendingSemanticSearchPromise = undefined;
-				}
+				clearIfCurrent();
 			});
-		}
+		});
 		const complete = await aiSearchPromise;
 		if (this._keywordSuggestionEpoch === epoch) {
 			this._cachedResults = complete;
