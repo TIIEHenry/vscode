@@ -614,7 +614,7 @@ suite('PreviewCategoryPart', () => {
 		assert.strictEqual(part.getGroup(codeId)?.id, codeId);
 	});
 
-	test('closing the last editor in the last group still hides the preview', async () => {
+	test('closing the last editor in the last group leaves the empty preview visible', async () => {
 		const service = workbenchInstantiationService(undefined, disposables);
 		const hidden: Parts[] = [];
 		service.invokeFunction(accessor => {
@@ -636,12 +636,16 @@ suite('PreviewCategoryPart', () => {
 		await code.openEditor(editor, { pinned: true });
 		assert.strictEqual(code.count, 1);
 
+		// new untitled file, then revertAndClose, closes this only editor.
+		// The empty root group must stay so Preview does not drop Group 1.
 		hidden.length = 0;
 		const closed = await code.closeEditor(editor);
 
 		assert.strictEqual(closed, true);
 		assert.strictEqual(code.count, 0);
-		assert.ok(hidden.includes(Parts.EDITOR_PART));
+		assert.strictEqual(code.isEmpty, true);
+		assert.deepStrictEqual(hidden, []);
+		assert.strictEqual(part.isGroupVisible(code), true);
 		assert.strictEqual(part.getGroup(code.id)?.id, code.id);
 	});
 });

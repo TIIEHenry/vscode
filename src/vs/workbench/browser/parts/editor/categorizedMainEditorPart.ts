@@ -269,9 +269,9 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 	}
 
 	/**
-	 * Close All on an already-empty group. The last root group stays, so
-	 * closeAllEditors does not call removeGroup and does not hide the part.
-	 * Close Group still goes through removeGroup.
+	 * The last root group of a category stays on screen. Close All on an
+	 * already-empty group, and closing its last editor, skip removeGroup.
+	 * That call hides the editor part. Close Group still goes through it.
 	 */
 	override keepsLastRootGroupOnCloseAll(group: IEditorGroupView): boolean {
 		const category = this.getGroupCategory(group) ?? PreviewCategory.Code;

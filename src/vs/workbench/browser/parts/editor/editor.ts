@@ -248,8 +248,9 @@ export interface IEditorGroupsView {
 	isGroupExcludedFromNavigation(group: IEditorGroupView): boolean;
 
 	/**
-	 * Close All on a group that is already empty. True keeps the last root
-	 * group of a preview category on screen. Close Group still uses removeGroup.
+	 * True keeps the last root group of a preview category on screen.
+	 * Close All on an already-empty group, and closing that group's last
+	 * editor, must not call removeGroup. Close Group still uses removeGroup.
 	 */
 	keepsLastRootGroupOnCloseAll(group: IEditorGroupView): boolean;
 }
