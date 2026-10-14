@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-15
-summary: "D1301 已关。D1299 仍开。D1297 仍开。D24 仍开。D8 / D16 / D147 / D405 仍开。"
+summary: "D1301 已关。D1299 仍开。D1297 仍开。D24 仍开。D8 / D16 / D147 / D405 仍开。loop/merge a2cfd3d2d2dd1eeca44ae940236859c61094d92d 壳冒烟截图 PASS，证据 /home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/vscode-playwright-mcp/evidence/editor-shell-2026-10-14T19-18-00-347Z；externalDiffModule.test.ts exit 0，3 passing。"
 ---
 
 # Deferred Gaps
