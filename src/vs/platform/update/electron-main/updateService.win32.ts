@@ -11,7 +11,6 @@ import { release, tmpdir } from 'os';
 import { Delayer, ProcessTimeRunOnceScheduler, timeout } from '../../../base/common/async.js';
 import { VSBuffer } from '../../../base/common/buffer.js';
 import { CancellationTokenSource } from '../../../base/common/cancellation.js';
-import { memoize } from '../../../base/common/decorators.js';
 import { isCancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { hash } from '../../../base/common/hash.js';
 import * as path from '../../../base/common/path.js';
@@ -38,6 +37,7 @@ import { AbstractUpdateService, createUpdateURL, getUpdateRequestHeaders, IUpdat
 import { getRelaunchArguments } from './updateRelaunchArguments.js';
 import { getWin32UpdateType } from './win32UpdateType.js';
 import { shareWindowsMutex } from './windowsMutex.js';
+import { shareWindowsUpdateCachePath } from './windowsUpdateCachePath.js';
 
 interface IAvailableUpdate {
 	packagePath: string;
@@ -72,15 +72,17 @@ export class Win32UpdateService extends AbstractUpdateService implements IRelaun
 	private readonly updatingMutexName: string;
 	private readonly setupMutexName: string;
 	private readonly _mutexSlot: { promise: Promise<typeof import('@vscode/windows-mutex')> | undefined } = { promise: undefined };
+	private readonly _cachePathSlot: { promise: Promise<string> | undefined } = { promise: undefined };
 
 	private get cachePathSync(): string {
 		return path.join(tmpdir(), `vscode-${this.productService.quality}-${this.productService.target}-${process.arch}`);
 	}
 
-	@memoize
 	get cachePath(): Promise<string> {
-		const result = this.cachePathSync;
-		return mkdir(result, { recursive: true }).then(() => result);
+		return shareWindowsUpdateCachePath(this._cachePathSlot, () => {
+			const result = this.cachePathSync;
+			return mkdir(result, { recursive: true }).then(() => result);
+		});
 	}
 
 	private get mutex(): Promise<typeof import('@vscode/windows-mutex')> {
