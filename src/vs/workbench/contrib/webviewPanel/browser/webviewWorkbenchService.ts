@@ -5,7 +5,6 @@
 
 import { CancelablePromise, createCancelablePromise, DeferredPromise } from '../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
-import { memoize } from '../../../../base/common/decorators.js';
 import { isCancellationError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Iterable } from '../../../../base/common/iterator.js';
@@ -19,6 +18,7 @@ import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IEditorGroup, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { ACTIVE_GROUP_TYPE, IEditorService, SIDE_GROUP_TYPE } from '../../../services/editor/common/editorService.js';
 import { IOverlayWebview, IWebviewService, WebviewInitInfo } from '../../webview/browser/webview.js';
+import { shareLazilyResolvedWebview } from './lazilyResolvedWebviewResolve.js';
 import { CONTEXT_ACTIVE_WEBVIEW_PANEL_ID } from './webviewEditor.js';
 import { WebviewIconPath, WebviewInput, WebviewInputInitInfo } from './webviewEditorInput.js';
 
@@ -115,6 +115,7 @@ export class LazilyResolvedWebviewEditorInput extends WebviewInput {
 
 	private _resolved = false;
 	private _resolvePromise?: CancelablePromise<void>;
+	private readonly _resolveSlot: { promise: Promise<IDisposable | null> | undefined } = { promise: undefined };
 
 	constructor(
 		init: WebviewInputInitInfo,
@@ -131,8 +132,11 @@ export class LazilyResolvedWebviewEditorInput extends WebviewInput {
 		this._resolvePromise = undefined;
 	}
 
-	@memoize
-	public override async resolve() {
+	public override resolve(): Promise<IDisposable | null> {
+		return shareLazilyResolvedWebview(this._resolveSlot, () => this._resolveLazily());
+	}
+
+	private async _resolveLazily(): Promise<IDisposable | null> {
 		if (!this._resolved) {
 			this._resolved = true;
 			this._resolvePromise = createCancelablePromise(token => this._webviewWorkbenchService.resolveWebview(this, token));
@@ -140,6 +144,8 @@ export class LazilyResolvedWebviewEditorInput extends WebviewInput {
 				await this._resolvePromise;
 			} catch (e) {
 				if (!isCancellationError(e)) {
+					// Drop only this attempt. The next resolve tries again.
+					this._resolved = false;
 					throw e;
 				}
 			}
