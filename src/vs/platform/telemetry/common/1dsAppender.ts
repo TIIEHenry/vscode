@@ -79,11 +79,36 @@ async function getClient(instrumentationKey: string, addInternalFlag?: boolean, 
 	return appInsightsCore;
 }
 
+/**
+ * Shares one in-flight or successful OneDS client load.
+ * A rejection clears the slot only while it still points at that attempt,
+ * so the next read loads again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareOneDataSystemClient<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next read loads again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 // TODO @lramos15 maybe make more in line with src/vs/platform/telemetry/browser/appInsightsAppender.ts with caching support
 export abstract class AbstractOneDataSystemAppender implements ITelemetryAppender {
 
 	protected _aiCoreOrKey: IAppInsightsCore | string | undefined;
-	private _asyncAiCore: Promise<IAppInsightsCore> | null;
+	private readonly _asyncAiCoreSlot: { promise: Promise<IAppInsightsCore> | undefined } = { promise: undefined };
 	protected readonly endPointUrl = endpointUrl;
 	protected readonly endPointHealthUrl = endpointHealthUrl;
 
@@ -103,7 +128,6 @@ export abstract class AbstractOneDataSystemAppender implements ITelemetryAppende
 		} else {
 			this._aiCoreOrKey = iKeyOrClientFactory;
 		}
-		this._asyncAiCore = null;
 	}
 
 	private _withAIClient(callback: (aiCore: IAppInsightsCore) => void): void {
@@ -116,11 +140,9 @@ export abstract class AbstractOneDataSystemAppender implements ITelemetryAppende
 			return;
 		}
 
-		if (!this._asyncAiCore) {
-			this._asyncAiCore = getClient(this._aiCoreOrKey, this._isInternalTelemetry, this._xhrOverride);
-		}
-
-		this._asyncAiCore.then(
+		const instrumentationKey = this._aiCoreOrKey;
+		const client = shareOneDataSystemClient(this._asyncAiCoreSlot, () => getClient(instrumentationKey, this._isInternalTelemetry, this._xhrOverride));
+		client.then(
 			(aiClient) => {
 				callback(aiClient);
 			},
