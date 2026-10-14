@@ -2400,6 +2400,8 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 	private inMaximizedAuxiliaryBarTransition = false;
 	private inMaximizedPanelTransition = false;
 	private panelMaximizeEntryPanelVisible: boolean | undefined;
+	/** End column width and split captured before panel maximize hides Preview / Sources. */
+	private panelMaximizeEndColumnSize: { width: number; editorHeight?: number; sourcesHeight?: number } | undefined;
 
 	isAuxiliaryBarMaximized(): boolean {
 		return this.stateModel.getRuntimeValue(LayoutStateKeys.AUXILIARYBAR_WAS_LAST_MAXIMIZED);
@@ -2519,18 +2521,23 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				panelVisible,
 			};
 			this.stateModel.setRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_VISIBILITY, state);
+			this.capturePanelMaximizeEndColumnSize();
 
 			this.inMaximizedPanelTransition = true;
 			try {
-				if (state.editorVisible) {
-					this.setEditorHidden(true);
-				}
+				// Sources is Low priority and Preview is High. Hiding Preview first
+				// lets Sources absorb the End column height, and that expanded
+				// height is what the grid caches. Hide Sources first so its cache
+				// stays the pre-maximize split.
 				if (state.sourcesVisible) {
 					this.setSourcesHidden(true);
 				}
-				if (!state.editorVisible && !state.sourcesVisible) {
+				if (state.editorVisible) {
 					this.setEditorHidden(true);
+				}
+				if (!state.editorVisible && !state.sourcesVisible) {
 					this.setSourcesHidden(true);
+					this.setEditorHidden(true);
 				}
 			} finally {
 				this.inMaximizedPanelTransition = false;
@@ -2549,13 +2556,73 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 				this.inMaximizedPanelTransition = false;
 			}
 
-			this.workbenchGrid.resizeView(this.panelPartView, {
-				width: isHorizontal(panelPosition) ? size.width : this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_WIDTH),
-				height: isHorizontal(panelPosition) ? this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_HEIGHT) : size.height
-			});
+			// `size` was read while the End column was hidden, so a horizontal
+			// panel's width is the center branch stretched across that gap.
+			// Writing it back resizes the center branch and crushes Preview
+			// and Sources to their minimum width. Keep the post-restore width.
+			const restoredPanelSize = this.workbenchGrid.getViewSize(this.panelPartView);
+			const horizontalPanel = isHorizontal(panelPosition);
+			const panelWidth = horizontalPanel
+				? restoredPanelSize.width
+				: this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_WIDTH);
+			const panelHeight = horizontalPanel
+				? this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_LAST_NON_MAXIMIZED_HEIGHT)
+				: restoredPanelSize.height;
+			if (panelWidth > 0 && panelHeight > 0) {
+				this.workbenchGrid.resizeView(this.panelPartView, {
+					width: panelWidth,
+					height: panelHeight
+				});
+			}
+			this.restorePanelMaximizeEndColumnSize(state);
 		}
 
 		this.stateModel.setRuntimeValue(LayoutStateKeys.PANEL_WAS_LAST_MAXIMIZED, maximize);
+	}
+
+	private capturePanelMaximizeEndColumnSize(): void {
+		const editorVisible = this.isVisible(Parts.EDITOR_PART, mainWindow);
+		const sourcesVisible = this.isVisible(Parts.SOURCES_PART);
+		if (!editorVisible && !sourcesVisible) {
+			this.panelMaximizeEndColumnSize = undefined;
+			return;
+		}
+
+		const editorBox = this.workbenchGrid.getViewSize(this.editorPartView);
+		const sourcesBox = this.workbenchGrid.getViewSize(this.sourcesPartView);
+		this.panelMaximizeEndColumnSize = {
+			width: editorVisible ? editorBox.width : sourcesBox.width,
+			editorHeight: editorVisible ? editorBox.height : undefined,
+			sourcesHeight: sourcesVisible ? sourcesBox.height : undefined,
+		};
+	}
+
+	private restorePanelMaximizeEndColumnSize(state: { editorVisible?: boolean; sourcesVisible?: boolean } | undefined): void {
+		const saved = this.panelMaximizeEndColumnSize;
+		this.panelMaximizeEndColumnSize = undefined;
+		if (!saved || saved.width <= 0) {
+			return;
+		}
+
+		const editorVisible = state?.editorVisible ?? true;
+		const sourcesVisible = state?.sourcesVisible ?? true;
+
+		// Sources height is the split; the remainder goes back to Preview.
+		// Width is the End column, a horizontal sibling of the center branch.
+		if (sourcesVisible && typeof saved.sourcesHeight === 'number') {
+			this.workbenchGrid.resizeView(this.sourcesPartView, {
+				width: saved.width,
+				height: saved.sourcesHeight,
+			});
+			return;
+		}
+
+		if (editorVisible && typeof saved.editorHeight === 'number') {
+			this.workbenchGrid.resizeView(this.editorPartView, {
+				width: saved.width,
+				height: saved.editorHeight,
+			});
+		}
 	}
 
 	private panelOpensMaximized(): boolean {
