@@ -3,13 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Lazy } from '../common/lazy.js';
+/**
+ * Shares one in-flight or successful ripgrep path lookup.
+ * A rejection clears the slot only while it still points at that attempt,
+ * so the next lookup calls `load` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareRgDiskPath<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
 
-const _rgDiskPath = new Lazy(async () => {
-	const m = await import('@vscode/ripgrep-universal');
-	return m.rgPath.replace(/\bnode_modules\.asar\b/, 'node_modules.asar.unpacked');
-});
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next lookup calls load again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
+const rgDiskPathSlot: { promise: Promise<string> | undefined } = { promise: undefined };
 
 export function rgDiskPath(): Promise<string> {
-	return _rgDiskPath.value;
+	return shareRgDiskPath(rgDiskPathSlot, async () => {
+		const m = await import('@vscode/ripgrep-universal');
+		return m.rgPath.replace(/\bnode_modules\.asar\b/, 'node_modules.asar.unpacked');
+	});
 }
