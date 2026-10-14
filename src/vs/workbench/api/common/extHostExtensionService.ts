@@ -46,6 +46,7 @@ import { StopWatch } from '../../../base/common/stopwatch.js';
 import { isCI, setTimeout0 } from '../../../base/common/platform.js';
 import { IExtHostManagedSockets } from './extHostManagedSockets.js';
 import { Dto } from '../../services/extensions/common/proxyIdentifier.js';
+import { shareExtensionPathIndex, shareExtensionRealPath } from './extHostExtensionPathIndex.js';
 
 interface ITestRunner {
 	/** Old test runner API, as exported from `vscode/lib/testrunner` */
@@ -114,7 +115,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 	private readonly _secretState: ExtHostSecretState;
 	private readonly _storagePath: IExtensionStoragePaths;
 	private readonly _activator: ExtensionsActivator;
-	private _extensionPathIndex: Promise<ExtensionPaths> | null;
+	private readonly _extensionPathIndexSlot: { promise: Promise<ExtensionPaths> | null } = { promise: null };
 	private _realPathCache = new Map<string, Promise<string>>();
 
 	private readonly _resolvers: { [authorityPrefix: string]: vscode.RemoteAuthorityResolver };
@@ -199,7 +200,6 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 			},
 			this._logService
 		));
-		this._extensionPathIndex = null;
 		this._resolvers = Object.create(null);
 		this._started = false;
 		this._remoteConnectionData = this._initData.remote.connectionData;
@@ -356,28 +356,26 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 
 	/**
 	 * Applies realpath to file-uris and returns all others uris unmodified.
-	 * The real path is cached for the lifetime of the extension host.
+	 * A successful real path stays cached for the lifetime of the extension host.
+	 * A rejected realpath is not reused.
 	 */
 	private async _realPathExtensionUri(uri: URI): Promise<URI> {
-		if (uri.scheme === Schemas.file && this._hostUtils.fsRealpath) {
+		const fsRealpath = this._hostUtils.fsRealpath;
+		if (uri.scheme === Schemas.file && fsRealpath) {
 			const fsPath = uri.fsPath;
-			if (!this._realPathCache.has(fsPath)) {
-				this._realPathCache.set(fsPath, this._hostUtils.fsRealpath(fsPath));
-			}
-			const realpathValue = await this._realPathCache.get(fsPath)!;
+			const realpathValue = await shareExtensionRealPath(this._realPathCache, fsPath, () => fsRealpath(fsPath));
 			return URI.file(realpathValue);
 		}
 		return uri;
 	}
 
 	// create trie to enable fast 'filename -> extension id' look up
-	public async getExtensionPathIndex(): Promise<ExtensionPaths> {
-		if (!this._extensionPathIndex) {
-			this._extensionPathIndex = this._createExtensionPathIndex(this._myRegistry.getAllExtensionDescriptions()).then((searchTree) => {
+	public getExtensionPathIndex(): Promise<ExtensionPaths> {
+		return shareExtensionPathIndex(this._extensionPathIndexSlot, () => {
+			return this._createExtensionPathIndex(this._myRegistry.getAllExtensionDescriptions()).then((searchTree) => {
 				return new ExtensionPaths(searchTree);
 			});
-		}
-		return this._extensionPathIndex;
+		});
 	}
 
 	/**
