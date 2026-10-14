@@ -7,6 +7,7 @@ import { importAMDNodeModule, resolveAmdNodeModulePath } from '../../../../amdX.
 import * as domSanitize from '../../../../base/browser/domSanitize.js';
 import { MarkdownSanitizerConfig } from '../../../../base/browser/markdownRenderer.js';
 import { CodeWindow } from '../../../../base/browser/window.js';
+import { Lazy } from '../../../../base/common/lazy.js';
 import type * as marked from '../../../../base/common/marked/marked.js';
 import { katexContainerLatexAttributeName, MarkedKatexExtension } from '../common/markedKatexExtension.js';
 
