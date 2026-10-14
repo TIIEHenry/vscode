@@ -192,7 +192,7 @@ export class BrowserEditorInput extends EditorInput {
 
 	override async resolve(): Promise<IBrowserViewModel> {
 		if (!this._model && !this._modelPromise) {
-			this._modelPromise = (async () => {
+			const promise = (async () => {
 				const model = await this._resolveModel();
 				this._modelPromise = undefined;
 				if (this.isDisposed()) {
@@ -205,6 +205,13 @@ export class BrowserEditorInput extends EditorInput {
 				this._model = model;
 				return this._model;
 			})();
+			this._modelPromise = promise;
+			// Drop only this rejected attempt. Callers still see the rejection. A fulfilled model stays cached.
+			promise.catch(() => {
+				if (this._modelPromise === promise) {
+					this._modelPromise = undefined;
+				}
+			});
 		}
 		return this._model || this._modelPromise!;
 	}
