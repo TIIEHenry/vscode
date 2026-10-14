@@ -2514,17 +2514,44 @@ export interface ILazyTokenizationSupport<TSupport> {
 }
 
 /**
+ * Shares one in-flight or successful tokenization-support creation.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next read creates again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ *
+ * @internal
+ */
+export function shareLazyTokenizationSupport<T>(
+	slot: { promise: Promise<T> | undefined },
+	create: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = create();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next read creates again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
+/**
  * @internal
  */
 export class LazyTokenizationSupport<TSupport = ITokenizationSupport> implements IDisposable, ILazyTokenizationSupport<TSupport> {
-	private _tokenizationSupport: Promise<TSupport & IDisposable | null> | null = null;
+	private readonly _tokenizationSupport: { promise: Promise<TSupport & IDisposable | null> | undefined } = { promise: undefined };
 
 	constructor(private readonly createSupport: () => Promise<TSupport & IDisposable | null>) {
 	}
 
 	dispose(): void {
-		if (this._tokenizationSupport) {
-			this._tokenizationSupport.then((support) => {
+		if (this._tokenizationSupport.promise) {
+			this._tokenizationSupport.promise.then((support) => {
 				if (support) {
 					support.dispose();
 				}
@@ -2533,10 +2560,7 @@ export class LazyTokenizationSupport<TSupport = ITokenizationSupport> implements
 	}
 
 	get tokenizationSupport(): Promise<TSupport | null> {
-		if (!this._tokenizationSupport) {
-			this._tokenizationSupport = this.createSupport();
-		}
-		return this._tokenizationSupport;
+		return shareLazyTokenizationSupport(this._tokenizationSupport, () => this.createSupport());
 	}
 }
 
