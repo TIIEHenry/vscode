@@ -10,7 +10,6 @@ import type { RequestInit as UndiciRequestInit } from 'undici';
 import { onUnexpectedError } from '../../../base/common/errors.js';
 import { parseEnvFile } from '../../../base/common/envfile.js';
 import { untildify } from '../../../base/common/labels.js';
-import { Lazy } from '../../../base/common/lazy.js';
 import { DisposableMap } from '../../../base/common/lifecycle.js';
 import * as path from '../../../base/common/path.js';
 import { URI } from '../../../base/common/uri.js';
@@ -145,12 +144,37 @@ export class NodeExtHostMpcService extends ExtHostMcpService {
 	}
 }
 
+/**
+ * Shares one in-flight or successful undici import.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next read imports again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareUndiciImport<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next read imports again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 class McpHTTPHandleNode extends McpHTTPHandle {
-	private readonly _undici = new Lazy(() => import('undici'));
+	private readonly _undici: { promise: Promise<typeof import('undici')> | undefined } = { promise: undefined };
 
 	protected override async _fetchInternal(url: string, init?: CommonRequestInit): Promise<CommonResponse> {
 		// Note: imported async so that we can ensure we load undici after proxy patches have been applied
-		const { fetch, Agent } = await this._undici.value;
+		const { fetch, Agent } = await shareUndiciImport(this._undici, () => import('undici'));
 
 		const undiciInit: UndiciRequestInit = { ...init };
 
