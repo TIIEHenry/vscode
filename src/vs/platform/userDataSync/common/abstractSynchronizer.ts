@@ -35,6 +35,7 @@ import {
 	IUserDataSyncResource, IUserDataSyncResourcePreview,
 	NON_EXISTING_RESOURCE_REF,
 } from './userDataSync.js';
+import { shareFormattingOptions } from './formattingOptionsCache.js';
 import { IUserDataProfile, IUserDataProfilesService } from '../../userDataProfile/common/userDataProfile.js';
 
 export function isRemoteUserData(thing: any): thing is IRemoteUserData {
@@ -897,12 +898,9 @@ export abstract class AbstractJsonFileSynchroniser extends AbstractFileSynchroni
 		return parseErrors.length > 0 || (!isUndefined(result) && isArray !== Array.isArray(result));
 	}
 
-	private _formattingOptions: Promise<FormattingOptions> | undefined = undefined;
+	private readonly _formattingOptionsSlot: { promise: Promise<FormattingOptions> | undefined } = { promise: undefined };
 	protected getFormattingOptions(): Promise<FormattingOptions> {
-		if (!this._formattingOptions) {
-			this._formattingOptions = this.userDataSyncUtilService.resolveFormattingOptions(this.file);
-		}
-		return this._formattingOptions;
+		return shareFormattingOptions(this._formattingOptionsSlot, () => this.userDataSyncUtilService.resolveFormattingOptions(this.file));
 	}
 
 }
