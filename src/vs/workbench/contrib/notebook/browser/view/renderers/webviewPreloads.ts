@@ -1975,7 +1975,16 @@ async function webviewPreloads(ctx: PreloadContext) {
 		}
 
 		private load(): Promise<rendererApi.RendererApi | undefined> {
-			this._loadPromise ??= this._load();
+			if (!this._loadPromise) {
+				const promise = this._load();
+				this._loadPromise = promise;
+				// Drop only this rejected attempt. In-flight callers share it; a fulfilled result stays cached.
+				promise.catch(() => {
+					if (this._loadPromise === promise) {
+						this._loadPromise = undefined;
+					}
+				});
+			}
 			return this._loadPromise;
 		}
 
