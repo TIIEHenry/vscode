@@ -30,6 +30,33 @@ export function getModuleLocation(environmentService: IEnvironmentService): AppR
 	return `${useAsarUnpacked ? nodeModulesAsarUnpackedPath : nodeModulesPath}/${MODULE_LOCATION_SUBPATH}`;
 }
 
+/**
+ * Shares one in-flight or successful tree-sitter language load for `languageId`.
+ * A rejection deletes that entry only while it still points at that attempt,
+ * so the next load calls `load` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareTreeSitterLanguageLoad<T>(
+	cache: Map<string, ObservablePromise<T>>,
+	languageId: string,
+	load: () => Promise<T>,
+): ObservablePromise<T> {
+	const existing = cache.get(languageId);
+	if (existing) {
+		return existing;
+	}
+
+	const attempt = new ObservablePromise(load());
+	cache.set(languageId, attempt);
+	// Not assigned. Callers still observe this rejection; the next load calls load again.
+	void attempt.promise.catch(() => {
+		if (cache.get(languageId) === attempt) {
+			cache.delete(languageId);
+		}
+	});
+	return attempt;
+}
+
 export class TreeSitterLibraryService extends Disposable implements ITreeSitterLibraryService {
 	_serviceBrand: undefined;
 	isTest: boolean = false;
@@ -55,22 +82,24 @@ export class TreeSitterLibraryService extends Disposable implements ITreeSitterL
 		return observableConfigValue(`${EDITOR_EXPERIMENTAL_PREFER_TREESITTER}.${languageId}`, false, this._configurationService);
 	});
 
-	private readonly _languagesCache = new CachedFunction((languageId: string) => {
-		return ObservablePromise.fromFn(async () => {
-			const languageLocation = getModuleLocation(this._environmentService);
-			const grammarName = `tree-sitter-${languageId}`;
+	private readonly _languageLoads = new Map<string, ObservablePromise<Language>>();
 
-			const wasmPath: AppResourcePath = `${languageLocation}/${grammarName}.wasm`;
+	private getLanguageLoad(languageId: string): ObservablePromise<Language> {
+		return shareTreeSitterLanguageLoad(this._languageLoads, languageId, () => this.loadLanguage(languageId));
+	}
+
+	private loadLanguage(languageId: string): Promise<Language> {
+		const languageLocation = getModuleLocation(this._environmentService);
+		const grammarName = `tree-sitter-${languageId}`;
+		const wasmPath: AppResourcePath = `${languageLocation}/${grammarName}.wasm`;
+		return (async () => {
 			const [treeSitter, languageFile] = await Promise.all([
 				this._treeSitterImport.value,
 				this._fileService.readFile(FileAccess.asFileUri(wasmPath))
 			]);
-
-			const Language = treeSitter.Language;
-			const language = await Language.load(languageFile.value.buffer);
-			return language;
-		});
-	});
+			return treeSitter.Language.load(languageFile.value.buffer);
+		})();
+	}
 
 	private readonly _injectionQueries = new CachedFunction({ getCacheKey: JSON.stringify }, (arg: { languageId: string; kind: 'injections' | 'highlights' }) => {
 		const loadQuerySource = async () => {
@@ -93,7 +122,7 @@ export class TreeSitterLibraryService extends Disposable implements ITreeSitterL
 				treeSitter
 			] = await Promise.all([
 				loadQuerySource(),
-				this._languagesCache.get(arg.languageId).promise,
+				this.getLanguageLoad(arg.languageId).promise,
 				this._treeSitterImport.value,
 			]);
 
@@ -127,12 +156,12 @@ export class TreeSitterLibraryService extends Disposable implements ITreeSitterL
 		if (!ignoreSupportsCheck && !this.supportsLanguage(languageId, reader)) {
 			return undefined;
 		}
-		const lang = this._languagesCache.get(languageId).resolvedValue.read(reader);
+		const lang = this.getLanguageLoad(languageId).resolvedValue.read(reader);
 		return lang;
 	}
 
 	async getLanguagePromise(languageId: string): Promise<Language | undefined> {
-		return this._languagesCache.get(languageId).promise;
+		return this.getLanguageLoad(languageId).promise;
 	}
 
 	getInjectionQueries(languageId: string, reader: IReader | undefined): Query | null | undefined {
