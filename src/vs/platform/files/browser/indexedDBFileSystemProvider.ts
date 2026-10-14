@@ -152,6 +152,31 @@ class IndexedDBFileSystemNode {
 	}
 }
 
+/**
+ * Shares one in-flight or successful IndexedDB file tree read.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next read loads again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareIndexedDBFiletree<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next read loads again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 export class IndexedDBFileSystemProvider extends Disposable implements IFileSystemProviderWithFileReadWriteCapability {
 
 	readonly capabilities: FileSystemProviderCapabilities =
@@ -168,7 +193,7 @@ export class IndexedDBFileSystemProvider extends Disposable implements IFileSyst
 
 	private readonly mtimes = new Map<string, number>();
 
-	private cachedFiletree: Promise<IndexedDBFileSystemNode> | undefined;
+	private readonly cachedFiletree: { promise: Promise<IndexedDBFileSystemNode> | undefined } = { promise: undefined };
 	private writeManyThrottler: Throttler;
 
 	constructor(readonly scheme: string, private indexedDB: IndexedDB, private readonly store: string, watchCrossWindowChanges: boolean) {
@@ -375,20 +400,17 @@ export class IndexedDBFileSystemProvider extends Disposable implements IFileSyst
 	}
 
 	private getFiletree(): Promise<IndexedDBFileSystemNode> {
-		if (!this.cachedFiletree) {
-			this.cachedFiletree = (async () => {
-				const rootNode = new IndexedDBFileSystemNode({
-					children: new Map(),
-					path: '',
-					type: FileType.Directory
-				});
-				const result = await this.indexedDB.runInTransaction(this.store, 'readonly', objectStore => objectStore.getAllKeys());
-				const keys = result.map(key => key.toString());
-				keys.forEach(key => rootNode.add(key, { type: 'file' }));
-				return rootNode;
-			})();
-		}
-		return this.cachedFiletree;
+		return shareIndexedDBFiletree(this.cachedFiletree, async () => {
+			const rootNode = new IndexedDBFileSystemNode({
+				children: new Map(),
+				path: '',
+				type: FileType.Directory
+			});
+			const result = await this.indexedDB.runInTransaction(this.store, 'readonly', objectStore => objectStore.getAllKeys());
+			const keys = result.map(key => key.toString());
+			keys.forEach(key => rootNode.add(key, { type: 'file' }));
+			return rootNode;
+		});
 	}
 
 	private async bulkWrite(files: [URI, Uint8Array][]): Promise<void> {
