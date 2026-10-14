@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Lazy } from '../../../base/common/lazy.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import * as path from '../../../base/common/path.js';
 import * as process from '../../../base/common/process.js';
@@ -133,28 +132,35 @@ class ExtHostVariableResolverService extends AbstractVariableResolverService {
 	}
 }
 
+/**
+ * Shares one in-flight or successful extension-host variable resolver.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next call creates the resolver again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareExtHostVariableResolver<T>(
+	slot: { promise: Promise<T> | undefined },
+	create: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = create();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next call creates again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 export class ExtHostVariableResolverProviderService extends Disposable implements IExtHostVariableResolverProvider {
 	declare readonly _serviceBrand: undefined;
 
-	private _resolver = new Lazy(async () => {
-		const configProvider = await this.configurationService.getConfigProvider();
-		const folders = await this.workspaceService.getWorkspaceFolders2() || [];
-
-		const dynamic: DynamicContext = { folders };
-		this._register(this.workspaceService.onDidChangeWorkspace(async e => {
-			dynamic.folders = await this.workspaceService.getWorkspaceFolders2() || [];
-		}));
-
-		return new ExtHostVariableResolverService(
-			this.extensionService,
-			this.workspaceService,
-			this.editorService,
-			this.editorTabs,
-			configProvider,
-			dynamic,
-			this.homeDir(),
-		);
-	});
+	private readonly _resolverSlot: { promise: Promise<IConfigurationResolverService> | undefined } = { promise: undefined };
 
 	constructor(
 		@IExtHostExtensionService private readonly extensionService: IExtHostExtensionService,
@@ -167,7 +173,27 @@ export class ExtHostVariableResolverProviderService extends Disposable implement
 	}
 
 	public getResolver(): Promise<IConfigurationResolverService> {
-		return this._resolver.value;
+		return shareExtHostVariableResolver(this._resolverSlot, () => this.createResolver());
+	}
+
+	private async createResolver(): Promise<IConfigurationResolverService> {
+		const configProvider = await this.configurationService.getConfigProvider();
+		const folders = await this.workspaceService.getWorkspaceFolders2() || [];
+
+		const dynamic: DynamicContext = { folders };
+		const resolver = new ExtHostVariableResolverService(
+			this.extensionService,
+			this.workspaceService,
+			this.editorService,
+			this.editorTabs,
+			configProvider,
+			dynamic,
+			this.homeDir(),
+		);
+		this._register(this.workspaceService.onDidChangeWorkspace(async () => {
+			dynamic.folders = await this.workspaceService.getWorkspaceFolders2() || [];
+		}));
+		return resolver;
 	}
 
 	protected homeDir(): string | undefined {
