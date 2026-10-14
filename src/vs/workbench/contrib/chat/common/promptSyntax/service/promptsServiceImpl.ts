@@ -63,6 +63,31 @@ import { ChatConfiguration } from '../../constants.js';
 const PROMPT_FILE_DISCOVERY_CONCURRENCY = 10;
 
 /**
+ * Shares one in-flight or successful prompt-file list.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next list calls `list` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function sharePromptFileList<T>(
+	slot: { promise: Promise<T> | undefined },
+	list: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = list();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next list calls list again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
+/**
  * Provides prompt services.
  */
 export class PromptsService extends Disposable implements IPromptsService {
@@ -373,17 +398,16 @@ export class PromptsService extends Disposable implements IPromptsService {
 		return ast;
 	}
 
-	public async listPromptFiles(type: PromptsType, token: CancellationToken): Promise<readonly IPromptPath[]> {
-		let listPromise = this.cachedFileLocations[type];
-		if (!listPromise) {
-			listPromise = this.computeListPromptFiles(type, token);
-			if (!this.fileLocatorEvents[type]) {
-				return listPromise;
-			}
-			this.cachedFileLocations[type] = listPromise;
-			return listPromise;
+	public listPromptFiles(type: PromptsType, token: CancellationToken): Promise<readonly IPromptPath[]> {
+		// No locator event means nothing will invalidate a cached list, so do not keep it.
+		if (!this.fileLocatorEvents[type]) {
+			return this.computeListPromptFiles(type, token);
 		}
-		return listPromise;
+		const locations = this.cachedFileLocations;
+		return sharePromptFileList({
+			get promise() { return locations[type]; },
+			set promise(value: Promise<readonly IPromptPath[]> | undefined) { locations[type] = value; },
+		}, () => this.computeListPromptFiles(type, token));
 	}
 
 	private async computeListPromptFiles(type: PromptsType, token: CancellationToken): Promise<readonly IPromptPath[]> {
