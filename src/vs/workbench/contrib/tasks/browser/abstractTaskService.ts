@@ -55,6 +55,7 @@ import { getTemplates as getTaskTemplates } from '../common/taskTemplates.js';
 
 import * as TaskConfig from '../common/taskConfiguration.js';
 import { TerminalTaskSystem } from './terminalTaskSystem.js';
+import { shareWorkspaceTasksPromise } from './workspaceTasksPromiseCache.js';
 
 import { IQuickInputService, IQuickPickItem, IQuickPickSeparator, QuickPickInput } from '../../../../platform/quickinput/common/quickInput.js';
 
@@ -2581,8 +2582,12 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
 	}
 
 	private async _updateWorkspaceTasks(runSource: TaskRunSource = TaskRunSource.User): Promise<Map<string, IWorkspaceFolderTaskResult>> {
-		const compute = this._computeWorkspaceTasks(runSource);
-		this._workspaceTasksPromise = compute;
+		const service = this;
+		// false: a refresh replaces any cached attempt. getWorkspaceTasks still shares the stored promise.
+		const compute = shareWorkspaceTasksPromise({
+			get promise() { return service._workspaceTasksPromise; },
+			set promise(value: Promise<Map<string, IWorkspaceFolderTaskResult>> | undefined) { service._workspaceTasksPromise = value; },
+		}, () => this._computeWorkspaceTasks(runSource), false);
 		const mapStringToFolderTasks = await compute;
 		if (this._workspaceTasksPromise !== compute) {
 			return mapStringToFolderTasks;
