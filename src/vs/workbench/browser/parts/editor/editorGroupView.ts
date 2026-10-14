@@ -1619,7 +1619,11 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 		// optimization, this group (if active) would first trigger a active editor change
 		// event because it became empty, only to then trigger another one when the next
 		// group gets active.
-		const closeEmptyGroup = this.groupsView.partOptions.closeEmptyGroups;
+		// The last root group of a preview category must stay. removeGroup on that empty
+		// group hides the editor part, so closing the only editor (new untitled, then
+		// revert and close) would drop Preview and its Group 1 tab.
+		const closeEmptyGroup = this.groupsView.partOptions.closeEmptyGroups
+			&& !this.groupsView.keepsLastRootGroupOnCloseAll(this);
 		if (closeEmptyGroup && this.active && this.count === 1) {
 			const nextActiveGroup = nextNavigableGroup(this.groupsView, this);
 			if (nextActiveGroup) {
