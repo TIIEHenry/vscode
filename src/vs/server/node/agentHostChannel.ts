@@ -191,6 +191,31 @@ class LazyUpstreamConnection extends Disposable implements IUpstreamConnection {
 	}
 }
 
+/**
+ * Shares one in-flight or successful WebSocket upstream connect.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next connect calls `doConnect` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareWebSocketUpstreamConnect(
+	slot: { promise: Promise<void> | undefined },
+	doConnect: () => Promise<void>,
+): Promise<void> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = doConnect();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next connect calls doConnect again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 class WebSocketUpstreamConnection extends Disposable implements IUpstreamConnection {
 	private readonly _onFrame = this._register(new Emitter<string>());
 	readonly onFrame: Event<string> = this._onFrame.event;
@@ -213,7 +238,11 @@ class WebSocketUpstreamConnection extends Disposable implements IUpstreamConnect
 		if (this._store.isDisposed) {
 			return Promise.reject(new Error('UpstreamConnection is disposed'));
 		}
-		return this._connectPromise ??= this._doConnect();
+		const connection = this;
+		return shareWebSocketUpstreamConnect({
+			get promise() { return connection._connectPromise; },
+			set promise(value: Promise<void> | undefined) { connection._connectPromise = value; },
+		}, () => connection._doConnect());
 	}
 
 	private async _doConnect(): Promise<void> {
