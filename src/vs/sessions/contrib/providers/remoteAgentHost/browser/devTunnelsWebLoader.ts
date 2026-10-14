@@ -74,16 +74,39 @@ type AssertSatisfies<TSubset, TActual extends TSubset> = TActual;
 export type ManagementClientConformance = AssertSatisfies<IDevTunnelsWebManagementClient, TunnelManagementHttpClient>;
 export type RelayClientConformance = AssertSatisfies<IDevTunnelsWebRelayClient, TunnelRelayTunnelClient>;
 
-let devTunnelsWeb: Promise<IDevTunnelsWeb> | undefined;
+/**
+ * Shares one in-flight or successful Dev Tunnels SDK load.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next load calls `load` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareDevTunnelsWebLoad<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next load calls load again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
+const devTunnelsWebSlot: { promise: Promise<IDevTunnelsWeb> | undefined } = { promise: undefined };
 
 /** Loads the browser-compatible Dev Tunnels SDK bundle on first use. */
 export function loadDevTunnelsWeb(): Promise<IDevTunnelsWeb> {
-	devTunnelsWeb ??= (async () => {
+	return shareDevTunnelsWebLoad(devTunnelsWebSlot, () => {
 		// This generated browser-only module is emitted beside its loader.
 		const devTunnelsWebUrl = FileAccess.asBrowserUri(devTunnelsWebBundlePath).toString(true);
 		// Keep the URL runtime-resolved so bundlers do not rewrite the import.
-		const module = await import(/* webpackIgnore: true */ /* @vite-ignore */ `${devTunnelsWebUrl}`) as IDevTunnelsWeb;
-		return module;
-	})();
-	return devTunnelsWeb;
+		return import(/* webpackIgnore: true */ /* @vite-ignore */ `${devTunnelsWebUrl}`) as Promise<IDevTunnelsWeb>;
+	});
 }
