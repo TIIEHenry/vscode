@@ -8,7 +8,6 @@ import type { Parser, Language, Query } from '@vscode/tree-sitter-wasm';
 import { IReader, ObservablePromise } from '../../../../base/common/observable.js';
 import { ITreeSitterLibraryService } from '../../../../editor/common/services/treeSitter/treeSitterLibraryService.js';
 import { importAMDNodeModule } from '../../../../amdX.js';
-import { Lazy } from '../../../../base/common/lazy.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { FileOperationResult, IFileContent, IFileService, toFileOperationResult } from '../../../../platform/files/common/files.js';
 import { observableConfigValue } from '../../../../platform/observable/common/platformObservableUtils.js';
@@ -57,11 +56,43 @@ export function shareTreeSitterLanguageLoad<T>(
 	return attempt;
 }
 
+/**
+ * Shares one in-flight or successful tree-sitter runtime import.
+ * A rejection clears the slot only while it still points at that attempt,
+ * so the next import calls `load` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareTreeSitterImport<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	const existing = slot.promise;
+	if (existing) {
+		return existing;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next import calls load again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 export class TreeSitterLibraryService extends Disposable implements ITreeSitterLibraryService {
 	_serviceBrand: undefined;
 	isTest: boolean = false;
 
-	private readonly _treeSitterImport = new Lazy(async () => {
+	private readonly _treeSitterImportSlot: { promise: Promise<typeof import('@vscode/tree-sitter-wasm')> | undefined } = { promise: undefined };
+
+	private getTreeSitterImport(): Promise<typeof import('@vscode/tree-sitter-wasm')> {
+		return shareTreeSitterImport(this._treeSitterImportSlot, () => this.loadTreeSitter());
+	}
+
+	private async loadTreeSitter(): Promise<typeof import('@vscode/tree-sitter-wasm')> {
 		const TreeSitter = await importAMDNodeModule<typeof import('@vscode/tree-sitter-wasm')>('@vscode/tree-sitter-wasm', 'wasm/tree-sitter.js');
 		const environmentService = this._environmentService;
 		const isTest = this.isTest;
@@ -76,7 +107,7 @@ export class TreeSitterLibraryService extends Disposable implements ITreeSitterL
 			}
 		});
 		return TreeSitter;
-	});
+	}
 
 	private readonly _supportsLanguage = new CachedFunction((languageId: string) => {
 		return observableConfigValue(`${EDITOR_EXPERIMENTAL_PREFER_TREESITTER}.${languageId}`, false, this._configurationService);
@@ -94,7 +125,7 @@ export class TreeSitterLibraryService extends Disposable implements ITreeSitterL
 		const wasmPath: AppResourcePath = `${languageLocation}/${grammarName}.wasm`;
 		return (async () => {
 			const [treeSitter, languageFile] = await Promise.all([
-				this._treeSitterImport.value,
+				this.getTreeSitterImport(),
 				this._fileService.readFile(FileAccess.asFileUri(wasmPath))
 			]);
 			return treeSitter.Language.load(languageFile.value.buffer);
@@ -123,7 +154,7 @@ export class TreeSitterLibraryService extends Disposable implements ITreeSitterL
 			] = await Promise.all([
 				loadQuerySource(),
 				this.getLanguageLoad(arg.languageId).promise,
-				this._treeSitterImport.value,
+				this.getTreeSitterImport(),
 			]);
 
 			if (querySource === undefined) {
@@ -148,7 +179,7 @@ export class TreeSitterLibraryService extends Disposable implements ITreeSitterL
 	}
 
 	async getParserClass(): Promise<typeof Parser> {
-		const treeSitter = await this._treeSitterImport.value;
+		const treeSitter = await this.getTreeSitterImport();
 		return treeSitter.Parser;
 	}
 
@@ -181,7 +212,7 @@ export class TreeSitterLibraryService extends Disposable implements ITreeSitterL
 	}
 
 	async createQuery(language: Language, querySource: string): Promise<Query> {
-		const treeSitter = await this._treeSitterImport.value;
+		const treeSitter = await this.getTreeSitterImport();
 		return new treeSitter.Query(language, querySource);
 	}
 }
