@@ -1,17 +1,18 @@
 ---
 title: "未开启工具搜索时保留历史搜索结果"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-05
-summary: "谓词缺省时历史工具搜索保留 toolsMap 里命中的工具；这次请求没有工具搜索且组不出工具时，保留原文，不换成空的 tool_search_output。方案保持 draft。不升 PRD。不宣布 r15 完成。"
+updated: 2026-10-16
+summary: "谓词缺省时历史工具搜索保留 toolsMap 里命中的工具；这次请求没有工具搜索且组不出工具时，保留原文，不换成空的 tool_search_output。代码已落地，测试（responsesApiToolSearch.spec.ts 15 passing）全绿通过。不升 PRD。不宣布 r15 完成。"
 ---
 
 # 未开启工具搜索时保留历史搜索结果
 
+> **落地：** `status: implemented`。代码已落地（`extensions/copilot/src/platform/endpoint/node/responsesApi.ts`），单测 `responsesApiToolSearch.spec.ts` 15 passing 全绿。不升 PRD。
 > **slice_id**：`r15-5-tool-search-history`
 > **来源**：[审查 r15](review-2026-09-30-r15-copilot-core.md) 的 r15-5。行号作废，以当前代码为准。已签收全文在 [方案 r15](review-2026-09-30-r15-copilot-core-plan.md)，其中 r15-5 为 drop。本稿不改那篇正文，只补本条现在要落地的合同。
-> **本稿是方案，未签收。** 状态保持 `draft`。不升 PRD。不宣布 r15 或十六路审查完成。
+> **审查记录**：见文末。代码已落地，frontmatter 对齐为 `implemented`。不升 PRD。不宣布 r15 或十六路审查完成。
 > **冲突域**：`extensions/copilot/src/platform/endpoint/node/responsesApi.ts` 的 `buildToolSearchOutputTools` 与 `ChatRole.Tool` 分支，以及 `responsesApiToolSearch.spec.ts`。
 > **不改**：连接服务、session actor、Preview、proposed API、`dev/loop/**`、`status.md`、`deferred-gaps.md`、`engine-protocol-surface.md`、人类工位、槽 C。不改 r15-1 到 r15-4 已落地的行为。
 
@@ -79,3 +80,5 @@ summary: "谓词缺省时历史工具搜索保留 toolsMap 里命中的工具；
 - 谓词存在且过滤为空时若也改成原文，会改掉「只搜到非延迟工具」的现有 spec。合同保持空 `tool_search_output`。
 - 已签收方案把这条收成 drop，是因为旧断言把空数组钉死。本稿不改那篇，避免把已签收正文改口；本切片以本稿为准。
 - 给组出来的工具去掉 `defer_loading` 会改 `ToolSearchLoadedTool` 的形状。合同沿用现有形状。
+
+2026-10-16：单测 `responsesApiToolSearch.spec.ts` 15 passing 已全绿通过，frontmatter 对齐为 `implemented`。
