@@ -4,12 +4,15 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-16
-summary: "2026-10-16：多工位并行合入第十批（Slot A: 聊天流缺失时权限回复不得假装成功方案状态收归 implemented；Slot B: 未开启工具搜索时保留历史搜索结果方案状态收归 implemented）。transpile-client 0 错误，测试 40 passing，文档门禁全绿。"
+summary: "2026-10-16：多工位并行合入第十一批（Slot A: 本机发现单测等待时序修复与提交闸/信任锚方案状态收归 implemented；Slot B: 平台审查 r04 方案 4 项缺陷验证全绿与状态收归 implemented）。transpile-client 0 错误，测试 79 passing，文档门禁全绿。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **多工位并行实施与方案状态收归 Wave 2026-10-16（第十一批）**：
+  - **Slot A: 本机发现等待时序修复与提交闸/信任锚方案状态收归 (提交 3956d9792b9)**：在 `localEngineDiscovery.test.ts` 中针对重试连接补充 `await settleIo()` 确保全套能力探测结算完成（单测 31 passing 全绿）；更新 `loopback-link-commit.md` 为 `implemented`（确认 `4406489a595` 提交闸落地）；更新 `local-engine-trust-anchor.md` 为 `implemented`（确认 `98a8b10550f` 信任锚落地）；同步更新 `INDEX.md`。
+  - **Slot B: 平台审查 r04 方案落地事实与状态收归 (提交 846aa465cd2)**：验证 r04-1 到 r04-4（设置读异常防止覆写云端、submitInput 关联 ID 绑定 writeId、Hub 设备已撤销/不同账号防止复用、SAS 握手保证关闭传输）及对应单测全绿通过（`universeAgentHubService.test.ts` 与 `pairingOrchestrator.test.ts` 48 passing）；更新 `review-2026-10-11-r04-platform-plan.md` 为 `implemented`；同步更新 `INDEX.md`。
 - **多工位并行实施与方案状态收归 Wave 2026-10-16（第十批）**：
   - **Slot A: 聊天流缺失时权限回复不得假装成功状态收归 (提交 95711d9786d)**：更新 `r12-permission-reply-fail-closed.md` 为 `implemented`，确认没有聊天流时权限回复返回拒绝并留下重试标记，纪元前进清理并留可再点失败（单测 `sessionViewHostChatClose.test.ts` & `sessionActorReconnectHistoryRegen.test.ts` 25 passing 全绿）；同步更新 `INDEX.md`。
   - **Slot B: 未开启工具搜索时保留历史搜索结果状态收归 (提交 37d8ca8a7de)**：更新 `r15-5-tool-search-history.md` 为 `implemented`，确认谓词缺省时历史工具搜索保留 `toolsMap` 命中的工具，缺工具搜索且组不出工具时保留原文（单测 `responsesApiToolSearch.spec.ts` 15 passing 全绿）；同步更新 `INDEX.md`。
