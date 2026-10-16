@@ -17,6 +17,7 @@ import {
 	UNIVERSE_AGENT_CONVERSATION_ENTRY_KEYS,
 	createEmptyCapabilitySnapshot,
 } from '../common/universeAgentCapabilities.js';
+import { encodeListProjectRulesRequest } from './grpc/grpcCatalogUnaryWire.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices, UniverseAgentSessionListMethodKey } from './grpc/grpcTransport.js';
 
 /** Maps Connect-advertised methods to probe targets (Singularity GrpcCapabilityProbe equivalent). */
@@ -148,6 +149,12 @@ export interface GrpcCapabilityProbeInput {
 	readonly transport: IUniverseAgentGrpcTransport;
 }
 
+const PROJECT_RULE_PROBE_SCOPE_GLOBAL = 2;
+
+export function projectRuleListProbeRequest(): Uint8Array {
+	return encodeListProjectRulesRequest({ scope: PROJECT_RULE_PROBE_SCOPE_GLOBAL, sessionId: '' });
+}
+
 /**
  * Handshake may advertise `FooService.*` as a wildcard for every method on that
  * service. Exact `FooService.Bar` still matches only itself.
@@ -184,7 +191,11 @@ export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): 
 			};
 			continue;
 		}
-		const status = await input.transport.probeRpc(target.service, target.method);
+		const status = await input.transport.probeRpc(
+			target.service,
+			target.method,
+			key === 'globalRules' || key === 'projectRules' ? projectRuleListProbeRequest() : undefined,
+		);
 		if (status === GrpcStatusCode.UNIMPLEMENTED) {
 			snapshot[key] = { support: 'UNSUPPORTED', reason: 'UNIMPLEMENTED' };
 			continue;

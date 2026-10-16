@@ -453,7 +453,7 @@ export interface IUniverseAgentGrpcTransport {
 
 	close(): void;
 
-	probeRpc(service: string, method: string): Promise<number>;
+	probeRpc(service: string, method: string, request?: Uint8Array): Promise<number>;
 
 	listSessions(request: UniverseAgentListSessionsRequest): Promise<UniverseAgentListSessionsResult>;
 

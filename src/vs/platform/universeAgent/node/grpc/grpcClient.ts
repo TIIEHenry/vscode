@@ -1273,14 +1273,14 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		}
 	}
 
-	async probeRpc(service: string, method: string): Promise<number> {
+	async probeRpc(service: string, method: string, request?: Uint8Array): Promise<number> {
 		return new Promise<number>(resolve => {
 			const path = `/${service}/${method}`;
 			this._channel.makeUnaryRequest(
 				path,
 				asUnaryProtoBytes,
 				(buffer: Buffer) => buffer,
-				encodeProbeRpcRequest(),
+				request ?? encodeProbeRpcRequest(),
 				(error: grpc.ServiceError | null) => resolve(grpcErrorCode(error)),
 			);
 		});
