@@ -1,17 +1,18 @@
 ---
 title: "本机引擎链路走拨号提交路径"
 type: plan
-status: draft
+status: implemented
 phase: M7
-updated: 2026-10-01
-summary: "ELR-10：本机自动连接捕获 epoch、在 captured 上跑完探针、经 _applyConnectedCommit 提交；链路订阅随尝试走，提交时才进服务槽；用户拨号取消发现；_liveConnectedPublished 与 isEngineConnected 同判据。不改 IPC，不改信任（ELR-11 另案）。"
+updated: 2026-10-16
+summary: "ELR-10：本机自动连接捕获 epoch、在 captured 上跑完探针、经 _applyConnectedCommit 提交；链路订阅随尝试走，提交时才进服务槽；用户拨号取消发现；_liveConnectedPublished 与 isEngineConnected 同判据。确认 commit 4406489a595 已落地，单测全绿通过。不改 IPC，不改信任（ELR-11 另案）。"
 ---
 
 # 本机引擎链路走拨号提交路径
 
+> **落地：** `status: implemented`。确认 commit `4406489a595` 已落地（本机自动连接改经同一套拨号提交闸，不再在探针前占用服务槽；用户点 Connect 取消发现），单测 `localEngineDiscovery.test.ts` 与 `universeAgentConnection.test.ts` 全绿通过。不改 IPC，不改信任。不升 PRD-008。
 > **slice_id**：`loopback-link-commit`
 > **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-10。
-> **本稿是方案，未签收。**
+> **审查记录**：见文末。代码已落地，frontmatter 对齐为 `implemented`。
 > **基线**：HEAD `7cf1474419e`，行号以此为准。以 `node/`、`common/`、`test/` 开头的路径在 `src/vs/platform/universeAgent/` 下。
 > **冲突域**：`node/universeAgentConnectionService.ts`（**只**改：`AuthenticatedLinkAttempt` 加 `events`、`_armAuthenticatedLink`、`_closeoutAuthenticatedLink` 的订阅释放、新增 `_adoptLinkEvents` 与 `_afterLoopbackProbe`、`_dialDeviceAuth` 提交后接管订阅、`_connectLocalSkipAuth` 全函数、删除 `_afterAuthenticatedAwait`、`_applyConnectedCommit` 加 `skipAuth`、`_dropPublishedTransport` 清旗、`_liveConnectedPublished` 判据、`_canDiscoverLocalEngine`、`connectProfile` 用户拨号臂取消发现定时器），以及 `test/node/localEngineDiscovery.test.ts`、`test/node/universeAgentConnection.test.ts`。
 > **依赖**：无前置。[local-engine-trust-anchor](local-engine-trust-anchor.md)（ELR-11）改本机拨号的目标与凭据，须在本稿之后落，或与本稿同一切片。
@@ -140,3 +141,4 @@ summary: "ELR-10：本机自动连接捕获 epoch、在 captured 上跑完探针
 
 | 轮 | Assessment | 处置 |
 |:---|:-----------|:-----|
+| 实施 | — | 2026-10-16：确认 commit `4406489a595` 已落地，单测全绿通过，frontmatter 对齐为 `implemented`。 |

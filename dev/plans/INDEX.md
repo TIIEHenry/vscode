@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-10-16
-summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查方案仍 draft，未实施。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
+summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查方案仍 draft，未实施。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。本机链路经拨号提交闸（4406489a595）与本机引擎信任锚（98a8b10550f）单测已全绿落地。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
 # 方案
@@ -195,8 +195,8 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [十六路视觉审查 2026-10-06](review-2026-10-06-ui.md) | `draft` | 2026-10-06 视觉十六路审查。发现 68 条。核查后 hold 39，weaken 15，drop 14。方案均为 draft，未实施。 |
 | [ui-gap-closeout-2026-10-01.md](ui-gap-closeout-2026-10-01.md) | `draft` | UI 缺口收口：Changes 写闸、焦点环、配对框绑窗、诚实态与 Sessions 残留。status draft。不升 PRD-008。 |
 | [自有界面视觉审查问题收口](visual-audit-remediation-2026-10-05.md) | `accepted` | 八项已确认问题分切片：窄宽裁切、焦点、Light+ 对比度、Sources 密度、减少动态；Customizations 窄模态先实测。 |
-| [loopback-link-commit.md](loopback-link-commit.md) | `draft` | ELR-10：本机自动连接改经拨号提交闸。未签收。不升 PRD-008。 |
-| [local-engine-trust-anchor.md](local-engine-trust-anchor.md) | `draft` | ELR-11：代码已落，方案仍 draft。本机自动连接只信同一用户可读的引擎 home 锚。未签收。不升 PRD-008。 |
+| [loopback-link-commit.md](loopback-link-commit.md) | `implemented` | ELR-10：本机自动连接改经拨号提交闸。代码已于 4406489a595 落地，单测全绿通过。不升 PRD-008。 |
+| [local-engine-trust-anchor.md](local-engine-trust-anchor.md) | `implemented` | ELR-11：本机自动连接只信同一用户可读的引擎 home 锚。代码已于 98a8b10550f 落地，单测全绿通过。不升 PRD-008。 |
 | [审查 r01：base](review-2026-10-08-r01-base.md) | `draft` | 3 条；最重的是主库缺失时，恢复改名失败会用旧备份或新空库挡住仍在的恢复库，打开失败还会把仅存备份改名损坏。 |
 | [审查 r02：storage-policy](review-2026-10-08-r02-storage-policy.md) | `draft` | 2 条，最重是缺文件重试会取消监听防抖并提前清空已加载的托管设置。 |
 | [审查 r03：agent-host](review-2026-10-08-r03-agent-host.md) | `draft` | 四条，最重为中：未就绪的 branch changeset 会挡住 session 变更计数，列表芯片不亮。 |
