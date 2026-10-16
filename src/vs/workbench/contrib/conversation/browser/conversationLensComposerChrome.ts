@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, addStandardDisposableListener, append, getWindow } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append, clearNode, getWindow } from '../../../../base/browser/dom.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { ISelectBoxOptions, SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -112,6 +112,9 @@ export interface ConversationSessionConfigSelection {
 
 export interface IConversationLensComposerChromeHost {
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
+	submitInFlight?: boolean;
+	lastAttachedEntries?: readonly { readonly streaming?: boolean }[];
+	hasStreamingEntry?: () => boolean;
 	editingTurnId: string | undefined;
 	editingQueueItemId: string | undefined;
 	composeDraftSnapshot: string;
@@ -299,7 +302,7 @@ function getSelectedAgentName(host: IConversationLensComposerChromeHost): string
 			return text;
 		}
 	}
-	return conversationLensDockNoAgent;
+	return isSessionSwitchAgentAvailable(host) ? conversationLensDockNoAgent : conversationLensDockAgentUnavailable;
 }
 
 function appendMoreMenuCurrentAgent(popup: HTMLElement, host: IConversationLensComposerChromeHost): void {
@@ -580,9 +583,42 @@ export function updateMaximizeInputButton(host: IConversationLensComposerChromeH
 	
 }
 
+export function isComposerStreaming(host: {
+	uaConnection: IUniverseAgentConnection;
+	stubService: IConversationRosterService;
+	hasStreamingEntry?: () => boolean;
+	lastAttachedEntries?: readonly { readonly streaming?: boolean }[];
+	getBoundSessionId?: () => string;
+}): boolean {
+	if (isConversationPairingHold(host.uaConnection)) {
+		return false;
+	}
+	if (!host.stubService.isEngineConnected()) {
+		return false;
+	}
+	if (host.stubService.isEngineSessionReady?.() === false) {
+		return false;
+	}
+	if (host.hasStreamingEntry?.()) {
+		return true;
+	}
+	if (host.lastAttachedEntries?.some(entry => entry.streaming === true)) {
+		return true;
+	}
+	const sessionId = host.getBoundSessionId?.();
+	if (sessionId && host.stubService.getTurns?.(sessionId).some(turn => turn.streaming)) {
+		return true;
+	}
+	return false;
+}
+
 export function updateSendEnabled(host: IConversationLensComposerChromeHost): void {
 
 		if (isConversationPairingHold(host.uaConnection) || isComposerKeepLeftoverListFailed(host)) {
+			host.sendButton.enabled = false;
+			return;
+		}
+		if (host.submitInFlight || isComposerStreaming(host)) {
 			host.sendButton.enabled = false;
 			return;
 		}
@@ -805,18 +841,38 @@ export function updatePermissionSelectEnabled(host: IConversationLensComposerChr
 	
 }
 
-export function isSessionSwitchAgentAvailable(host: IConversationLensComposerChromeHost): boolean {
+export function isSessionSwitchAgentAvailable(host: {
+	stubService: IConversationRosterService;
+	uaConnection: IUniverseAgentConnection;
+}): boolean {
 
-		return isComposerSessionWriteLive(host) && conversationEntryHookPresent(host.uaConnection.getConnectionSnapshot(), 'switchAgent', (host.uaConnection as { switchAgent?: unknown }).switchAgent);
+		return isComposerSessionWriteLive(host as IConversationLensComposerChromeHost) && conversationEntryHookPresent(host.uaConnection.getConnectionSnapshot(), 'switchAgent', (host.uaConnection as { switchAgent?: unknown }).switchAgent);
 	
 }
 
 export function updateAgentSelectEnabled(host: IConversationLensComposerChromeHost): void {
 
+		const available = isSessionSwitchAgentAvailable(host);
+		if (host.agentContainer) {
+			if (!available) {
+				clearNode(host.agentContainer);
+				const label = append(host.agentContainer, $('span.conversation-lens-dock-agent-readonly'));
+				label.textContent = conversationLensDockAgentUnavailable;
+				label.setAttribute('aria-label', conversationLensDockAgentUnavailable);
+				label.title = conversationLensDockAgentUnavailable;
+				return;
+			} else {
+				if (!host.agentContainer.querySelector('select')) {
+					clearNode(host.agentContainer);
+					if (host.agentSelectBox) {
+						host.agentSelectBox.render(host.agentContainer);
+					}
+				}
+			}
+		}
 		if (!host.agentSelectBox) {
 			return;
 		}
-		const available = isSessionSwitchAgentAvailable(host);
 		syncComposerSelectEnabledChrome(
 			host.agentSelectBox,
 			host.agentContainer,
@@ -1192,7 +1248,9 @@ export async function applySessionModelIndex(host: IConversationLensComposerChro
 export function syncSessionConfigSelects(host: IConversationLensComposerChromeHost, sessionId: string): void {
 
 		const { agentIndex, permissionIndex } = getSessionConfig(host, sessionId);
-		host.agentSelectBox.select(agentIndex);
+		if (isSessionSwitchAgentAvailable(host)) {
+			host.agentSelectBox.select(agentIndex);
+		}
 		host.permissionSelectBox.select(permissionIndex);
 		const modelIndex = modelIndexForRecordedId(host.catalogModelIds, sessionModelProfileId(host, sessionId));
 		host.modelSelectedIndex = modelIndex;

@@ -1908,7 +1908,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		connection.setConnected(true);
 		service.setEngineConnected(true);
 		await awaitEngineCatalogRefresh(service);
-		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'live item'), true);
+		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'live item'), false);
 		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q-live'), true);
 		service.pauseMessageQueue('ua-only');
 		service.resumeMessageQueue('ua-only');
@@ -1916,7 +1916,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.holdMessageQueueItem('ua-only', 'q-live', 'EDITING');
 		service.releaseMessageQueueItemHold('ua-only', 'q-live');
 		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q-live', 'live edit'), true);
-		assert.strictEqual(connection.enqueueCalls.length, 1);
+		assert.strictEqual(connection.enqueueCalls.length, 0);
 		assert.strictEqual(connection.retryQueueItemCalls.length, 1);
 		assert.strictEqual(connection.pauseQueueCalls.length, 1);
 		assert.strictEqual(connection.resumeQueueCalls.length, 1);
@@ -1940,7 +1940,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.holdMessageQueueItem('ua-only', 'q-looks-live', 'EDITING');
 		service.releaseMessageQueueItemHold('ua-only', 'q-looks-live');
 		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q-looks-live', 'looks-live edit'), false);
-		assert.strictEqual(connection.enqueueCalls.length, 1);
+		assert.strictEqual(connection.enqueueCalls.length, 0);
 		assert.strictEqual(connection.retryQueueItemCalls.length, 1);
 		assert.strictEqual(connection.retryQueueItemUploadCalls.length, 0);
 		assert.strictEqual(connection.pauseQueueCalls.length, 1);
@@ -1954,7 +1954,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.setEngineConnected(true);
 		assert.strictEqual(service.isEngineConnected(), true);
 		assert.strictEqual(isConversationPairingHold(connection), false);
-		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'live again'), true);
+		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'live again'), false);
 		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q-again'), true);
 		service.pauseMessageQueue('ua-only');
 		service.resumeMessageQueue('ua-only');
@@ -1962,7 +1962,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.holdMessageQueueItem('ua-only', 'q-again', 'EDITING');
 		service.releaseMessageQueueItemHold('ua-only', 'q-again');
 		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q-again', 'live again'), true);
-		assert.strictEqual(connection.enqueueCalls.length, 2);
+		assert.strictEqual(connection.enqueueCalls.length, 0);
 		assert.strictEqual(connection.retryQueueItemCalls.length, 2);
 		assert.strictEqual(connection.retryQueueItemUploadCalls.length, 0);
 		assert.strictEqual(connection.pauseQueueCalls.length, 2);
@@ -3679,14 +3679,14 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			isProcessing: false,
 		});
 
-		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', '  later  ', { priority: 'HIGH', opId: '  op-1  ' }), true);
+		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', '  later  ', { priority: 'HIGH', opId: '  op-1  ' }), false);
 		service.pauseMessageQueue('ua-only');
 		service.resumeMessageQueue('ua-only');
 		service.clearMessageQueue('ua-only');
 		service.holdMessageQueueItem('ua-only', '  q1  ', 'EDITING');
 		service.releaseMessageQueueItemHold('ua-only', '  q1  ');
 		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', '  q1  ', '  later  '), true);
-		assert.deepStrictEqual(connection.enqueueCalls, [{ sessionId: 'ua-only', text: 'later', priority: 'HIGH', opId: 'op-1' }]);
+		assert.deepStrictEqual(connection.enqueueCalls, []);
 		assert.deepStrictEqual(connection.pauseQueueCalls, [{ sessionId: 'ua-only' }]);
 		assert.deepStrictEqual(connection.resumeQueueCalls, [{ sessionId: 'ua-only' }]);
 		assert.deepStrictEqual(connection.clearQueueCalls, [{ sessionId: 'ua-only' }]);
@@ -3701,7 +3701,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.releaseMessageQueueItemHold('missing', 'q1');
 		assert.strictEqual(service.updateMessageQueueItemContent('ua-only', 'q1', '   '), false);
 		assert.strictEqual(service.updateMessageQueueItemContent('missing', 'q1', 'Nope'), false);
-		assert.strictEqual(connection.enqueueCalls.length, 1);
+		assert.strictEqual(connection.enqueueCalls.length, 0);
 		assert.strictEqual(connection.pauseQueueCalls.length, 1);
 		assert.strictEqual(connection.holdQueueCalls.length, 1);
 		assert.strictEqual(connection.releaseQueueCalls.length, 1);
@@ -3766,7 +3766,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			})));
 
 			connection.queueResult = { ok: false, error: 'denied', itemId: 'q-new' };
-			assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'later'), true);
+			assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'later'), false);
 			service.pauseMessageQueue('ua-only');
 			service.resumeMessageQueue('ua-only');
 			service.clearMessageQueue('ua-only');
@@ -3778,7 +3778,6 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			await new Promise<void>(resolve => setTimeout(resolve, 0));
 
 			assert.deepStrictEqual(failures, [
-				{ action: 'enqueueQueueItem', message: 'denied' },
 				{ action: 'pauseQueue', message: 'denied' },
 				{ action: 'resumeQueue', message: 'denied' },
 				{ action: 'clearQueue', message: 'denied' },
@@ -3818,13 +3817,12 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 				error: failure.error,
 			})));
 
-			assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'later'), true);
+			assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'later'), false);
 			service.pauseMessageQueue('ua-only');
 			assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q1'), true);
 			await new Promise<void>(resolve => setTimeout(resolve, 0));
 
 			assert.deepStrictEqual(failures, [
-				{ action: 'enqueueQueueItem', error: boom },
 				{ action: 'pauseQueue', error: boom },
 				{ action: 'retryQueueItem', error: boom },
 			]);
