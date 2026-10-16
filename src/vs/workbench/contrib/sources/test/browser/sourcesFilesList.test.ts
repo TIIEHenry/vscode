@@ -956,6 +956,8 @@ suite('Sources - Files explorer engine directory', () => {
 		}
 		protected layoutBody(): void { }
 		dockInlineFilter(): void { }
+		dockActions(): void { }
+		getActionsElement(): HTMLElement | undefined { return undefined; }
 		setVisible(): void { }
 	}
 
