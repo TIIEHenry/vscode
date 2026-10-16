@@ -36,6 +36,7 @@ export const conversationIdentityEngineChipClass = 'conversation-identity-chip-e
 export const conversationIdentityEngineOfflineClass = 'conversation-identity-chip-engine--offline';
 export const conversationIdentityFolderChipClass = 'conversation-identity-chip-folder';
 export const conversationIdentityBranchChipClass = 'conversation-identity-chip-branch';
+export const conversationIdentityBranchReadOnlyClass = 'conversation-identity-chip-branch--readonly';
 
 export interface IConversationIdentityFolder {
 	readonly resource: URI;
@@ -296,10 +297,12 @@ export class ConversationIdentityStrip extends Disposable {
 			this.branchChip.removeAttribute('aria-label');
 			this.branchChip.removeAttribute('aria-haspopup');
 			this.branchChip.removeAttribute('aria-expanded');
+			this.branchChip.classList.remove(conversationIdentityBranchReadOnlyClass);
 			return;
 		}
 		this.branchChip.hidden = false;
 		this.branchLabel.data = name;
+		this.branchChip.classList.toggle(conversationIdentityBranchReadOnlyClass, !menuEnabled);
 		if (menuEnabled) {
 			this.branchChip.setAttribute('aria-haspopup', 'listbox');
 			this.branchChip.setAttribute('aria-label', localize('conversationIdentityStrip.branchAriaLabel', "Git branch: {0}. Open the branch list.", name));

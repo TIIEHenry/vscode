@@ -113,6 +113,15 @@
 	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-focusBorder) 40%, transparent);
 }
 
+.monaco-workbench .part.conversation button.conversation-identity-chip.conversation-identity-chip-branch--readonly {
+	cursor: default;
+}
+
+.monaco-workbench .part.conversation button.conversation-identity-chip.conversation-identity-chip-branch--readonly:hover,
+.monaco-workbench .part.conversation button.conversation-identity-chip.conversation-identity-chip-branch--readonly:active {
+	background-color: var(--vscode-input-background);
+}
+
 .monaco-workbench .part.conversation .conversation-identity-chip-engine--failed {
 	border: none !important;
 	background-color: transparent !important;

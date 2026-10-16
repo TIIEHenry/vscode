@@ -325,12 +325,12 @@ suite('conversationEngineFrameSource scan and contract (r08-1, r08-2, r08-4)', (
 
 		// 4. Overlay must have reparent method
 		assert.ok(
-			overlaySource.includes('reparent(newParent: HTMLElement): void'),
+			overlaySource.includes('reparent(parent: HTMLElement): void'),
 			'ConversationSubAgentOverlay must have reparent method'
 		);
 		assert.ok(
-			overlaySource.includes('append(newParent, this.element);'),
-			'Overlay reparent must append this.element to newParent'
+			overlaySource.includes('append(parent, this.element);'),
+			'Overlay reparent must append this.element to parent'
 		);
 	});
 

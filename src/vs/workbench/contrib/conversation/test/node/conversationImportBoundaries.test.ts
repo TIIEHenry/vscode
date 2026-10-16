@@ -25,11 +25,32 @@ const FORBIDDEN_IMPORT_SUBSTRINGS = [
 	'vs/sessions',
 ] as const;
 
-function isForbiddenChatImport(importPath: string): boolean {
-	if (importPath.includes('contrib/chat/')) {
-		return !importPath.includes(CHAT_CONTENT_PARTS_PREFIX);
+/**
+ * Documented gap (architecture-2026-10-16-concrete.md §5 / B7):
+ * Legacy contribution action files that still directly import chat actions/services
+ * for fallback execution pending architectural migration out of contrib/conversation.
+ */
+const KNOWN_LEGACY_CHAT_CONTRIBUTION_EXEMPTIONS = new Set([
+	'browser/conversationCreateSnapshotActions.contribution.ts',
+	'browser/conversationForkActions.contribution.ts',
+	'browser/conversationKillActions.contribution.ts',
+]);
+
+function normalizeChatImportPath(importPath: string, importerFilePath?: string): string {
+	if (importPath.startsWith('.') && importerFilePath) {
+		const resolved = path.resolve(path.dirname(importerFilePath), importPath);
+		const srcRoot = path.resolve(CONVERSATION_SRC_ROOT, '../../../..');
+		return path.relative(srcRoot, resolved).split(path.sep).join('/');
 	}
-	return FORBIDDEN_IMPORT_SUBSTRINGS.some(forbidden => importPath.includes(forbidden));
+	return importPath;
+}
+
+function isForbiddenChatImport(importPath: string, importerFilePath?: string): boolean {
+	const normalized = normalizeChatImportPath(importPath, importerFilePath);
+	if (normalized.includes('contrib/chat/')) {
+		return !normalized.includes(CHAT_CONTENT_PARTS_PREFIX);
+	}
+	return FORBIDDEN_IMPORT_SUBSTRINGS.some(forbidden => normalized.includes(forbidden));
 }
 
 suite('conversationImportBoundaries', () => {
@@ -43,9 +64,12 @@ suite('conversationImportBoundaries', () => {
 		const violations: string[] = [];
 		for (const filePath of files) {
 			const relativePath = path.relative(CONVERSATION_SRC_ROOT, filePath).split(path.sep).join('/');
+			if (KNOWN_LEGACY_CHAT_CONTRIBUTION_EXEMPTIONS.has(relativePath)) {
+				continue;
+			}
 			const source = fs.readFileSync(filePath, 'utf8');
 			for (const importPath of extractImportPaths(source)) {
-				if (isForbiddenChatImport(importPath)) {
+				if (isForbiddenChatImport(importPath, filePath)) {
 					violations.push(`${relativePath}: ${importPath}`);
 				}
 			}
@@ -55,6 +79,18 @@ suite('conversationImportBoundaries', () => {
 			violations,
 			[],
 			`Forbidden imports in contrib/conversation production code:\n${violations.join('\n')}`,
+		);
+	});
+
+	test('relative ../../chat/... import paths normalize to contrib/chat/ and are detected', () => {
+		const fakeFilePath = path.join(CONVERSATION_SRC_ROOT, 'browser/fakeFile.ts');
+		assert.strictEqual(
+			isForbiddenChatImport('../../chat/browser/chatShellRouting.js', fakeFilePath),
+			true,
+		);
+		assert.strictEqual(
+			isForbiddenChatImport('../../chat/browser/widget/chatContentParts/chatContentCodePools.js', fakeFilePath),
+			false,
 		);
 	});
 
