@@ -1,16 +1,17 @@
 ---
 title: "引擎联动缺口：队列读回、生成中发送门禁、附件上传"
 type: plan
-status: accepted
+status: implemented
 phase: M7
-updated: 2026-10-11
-summary: "2026-10-11 用户签收。本刀只做两件事：接通时停掉 Enqueue RPC 与入口；已有 streaming turn 时禁用 Send，不直发 submitInput，也不改入队。附件不开刀。未实施。不升 PRD。"
+updated: 2026-10-16
+summary: "2026-10-11 用户签收。S1（生成中 / submitInFlight 禁用 Send）已于 2e785907611 落地；Q2（接通时停掉 Enqueue RPC 转发并关闭 Inbox 入口）已于 2e785907611 落地。附件不开刀。不升 PRD。"
 ---
 
 # 引擎联动缺口：队列读回、生成中发送门禁、附件上传
 
 > **触发：** 2026-10-11 对 Engine 设置页、会话面、Composer、连接配对、Navigator/Review 五路只读审查。本稿取其中与引擎联动最紧的三条 P0。其余 P1/P2 不在本稿。
 > **不推翻：** [ADR-003](../decisions/003-engine-adapter-boundary.md)；[conversation-stream-timeline](conversation-stream-timeline.md) 的 fold 输入口径；[engine-protocol-surface](../../docs/reference/universe-agent/engine-protocol-surface.md) §5 的诚实空合同。
+> **落地：** `status: implemented`。S1（已有 streaming turn / submitInFlight 时禁用 Send，不直发 submitInput，也不改入队）已于 `2e785907611`（Slot A）落地；Q2（接通时停掉 Enqueue RPC 转发，关闭 Inbox 入口）已于 `2e785907611`（Slot A）落地。附件不开刀。不升 PRD。
 > **审查记录：** 见文末（规则 16）。
 
 ## 1. 现状（已在代码里核实）
@@ -100,4 +101,5 @@ Q1 已完成。下面不再留分支。后续读回（Chat `queue_state` 或向�
 | 轮 | Assessment | 处置 |
 |:---|:-----------|:-----|
 | 2026-10-11 规则 16 | 改完 Critical / Important 前不可签收 | Critical：§3 收成单一本刀。生成中禁用 Send，不入队，不保留「引擎自己排队则继续直发」。Important：Enqueue 停在 Inbox 入口和已连接时的 roster RPC；曾连未连接的不发 RPC 保持；Pause 等写路径标为残留；Delete 不写成已转发；行号改到 HEAD；A1 与验证去掉上传；过期 §7 会话表声明不作依据。外仓 Kotlin / proto 行号保持「未经本仓复核」，不删线上证据。 |
-| 2026-10-11 用户签收 | **accepted** | 未实施。不升 PRD。 |
+| 2026-10-11 用户签收 | accepted | 未实施。不升 PRD。 |
+| 2026-10-16 落地 | **implemented** | S1（生成中 / submitInFlight 禁用 Send）与 Q2（接通时停掉 Enqueue RPC 转发并关闭 Inbox 入口）已于 `2e785907611` 落地。附件 A1 维持不开刀。不升 PRD。 |

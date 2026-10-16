@@ -1,16 +1,17 @@
 ---
 title: "对话动作失败、未归因变更与空任务列表"
 type: plan
-status: draft
+status: implemented
 phase: M7
 updated: 2026-10-16
-summary: "Kill、Retry、delete/edit/fork/队列失败与 AutoDrive 空列表维持现有行为。缺 path 或 operation 的 file_mutation 仍不归因，只加计数。mailbox 的 fail_closed 跳过不改。未实施。不升 PRD。"
+summary: "§1、§2、§4 为明确不做改动/行为验证通过（explicit no-op decisions/verifications）；§3（缺字段的 file_mutation 累加 unattributedDropCount 计数）已于 83ef402a254 落地。不升 PRD。"
 ---
 
 # 对话动作失败、未归因变更与空任务列表
 
 > **触发：** [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) G8、G9、G12、G13、G14、G18。
 > **不推翻：** [engine-gap-queue-send-attachments](engine-gap-queue-send-attachments.md) 的生成中禁用 Send。不签收 G-CORE-2 的 S5。不升 PRD。
+> **落地：** `status: implemented`。§1（Kill 与 Continue）、§2（失败不回滚）、§4（mailbox 与 AutoDrive 空列表）明确为不做改动与行为验证（explicit no-op decisions/verifications）；§3（缺字段的 file_mutation 累加 unattributedDropCount 计数）已于 `83ef402a254`（Slot B）落地合入。不升 PRD。
 
 ## 1. Kill 与 Continue
 
