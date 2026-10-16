@@ -33,6 +33,7 @@ import { stubConversationTimelineLinkServices } from './conversationTimelineLink
 import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
 import {
 	conversationIdentityBranchChipClass,
+	conversationIdentityBranchReadOnlyClass,
 	conversationIdentityEngineChipClass,
 	conversationIdentityEngineOfflineClass,
 	conversationIdentityFolderChipClass,
@@ -898,6 +899,7 @@ suite('ConversationIdentityStrip', () => {
 		assert.strictEqual(branchChip.textContent, 'alpha-branch');
 		assert.strictEqual(branchChip.getAttribute('aria-haspopup'), 'listbox');
 		assert.strictEqual(branchChevron().hidden, false);
+		assert.strictEqual(branchChip.classList.contains(conversationIdentityBranchReadOnlyClass), false);
 
 		branchChip.click();
 		await timeout(0);
@@ -973,10 +975,23 @@ suite('ConversationIdentityStrip', () => {
 		assert.strictEqual(branchChip.textContent, 'engine-branch');
 		assert.strictEqual(branchChip.getAttribute('aria-haspopup'), null);
 		assert.strictEqual(branchChevron().hidden, true);
+		assert.strictEqual(branchChip.classList.contains(conversationIdentityBranchReadOnlyClass), true);
 		assert.ok(!branchChip.getAttribute('aria-label')?.includes('Open the branch list'));
 		const showsBeforeClick = actionWidget.shows.length;
 		branchChip.click();
 		await timeout(0);
 		assert.strictEqual(actionWidget.shows.length, showsBeforeClick);
+
+		current = {
+			sessionId: 's-local-again',
+			engineIdentityId: 'eng',
+			workDir: alpha.path,
+			source: 'session',
+			access: 'local',
+			localRoot: alpha,
+			projectKey: `eng\n${alpha.path}`,
+		};
+		onDidChangeActiveWorkRoot.fire(current);
+		assert.strictEqual(branchChip.classList.contains(conversationIdentityBranchReadOnlyClass), false);
 	});
 });
