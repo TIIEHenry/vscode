@@ -299,6 +299,17 @@ export class EngineToolsSection extends Disposable {
 			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
+		if (this.sessionContext?.onDidChangeActiveSession) {
+			this._register(this.sessionContext.onDidChangeActiveSession(() => {
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			}));
+		}
+		if (this.sessionContext?.onDidChangeActiveWorkRoot) {
+			this._register(this.sessionContext.onDidChangeActiveWorkRoot(() => {
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			}));
+		}
+
 		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
@@ -627,6 +638,17 @@ export class EngineToolsSection extends Disposable {
 		this.renderStatus();
 	}
 
+	private listSessionTools(): ReturnType<IUniverseAgentConnection['listTools']> {
+		const projectPath = this.sessionContext?.getActiveWorkRoot?.().workDir?.trim();
+		if (!projectPath) {
+			return this.connection.listTools();
+		}
+		const listTools = this.connection.listTools as (
+			request?: { readonly projectPath?: string },
+		) => ReturnType<IUniverseAgentConnection['listTools']>;
+		return listTools.call(this.connection, { projectPath });
+	}
+
 	private listSessionAgentProfiles(): ReturnType<IUniverseAgentConnection['listAgentProfiles']> {
 		const projectPath = this.sessionContext?.getActiveWorkRoot?.().workDir?.trim();
 		if (!projectPath) {
@@ -678,7 +700,7 @@ export class EngineToolsSection extends Disposable {
 
 		try {
 			const [toolsResult, profilesResult] = await Promise.all([
-				this.connection.listTools(),
+				this.listSessionTools(),
 				this.listSessionAgentProfiles(),
 			]);
 			if (generation !== this.refreshGeneration) {
