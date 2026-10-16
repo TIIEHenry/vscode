@@ -4,12 +4,15 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-16
-summary: "2026-10-16：多工位并行合入第五批（Slot A: S5 Composer 进行中空稿单行布局与卡片 token、Slot D: S9 筛选芯片中性底、Navigator 输入去描边与首选项分节 24px、Slot B: G4/G15/G16 拦截 Triggers/Clipboard 空载荷与收紧门禁）。10012 文件 transpile-client 0 错误，测试全绿。"
+summary: "2026-10-16：多工位并行合入第六批（Slot A: S10 Markdown 预览排版居中、Frontmatter 无边框表与字阶收归；Slot D: 视觉审查、对话入口探测与功能缺口实施状态全面对齐）。transpile-client 0 错误，文档门禁全绿。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **多工位并行实施与视觉收归 Wave 2026-10-16（第六批）**：
+  - **Slot A: Markdown 预览排版与属性表无边框规范对齐 (S10，提交 693ec548c89)**：`body` 约束约 760px 居中（`max-width: 760px; margin: 0 auto; box-sizing: border-box;`）；正文字号收归 `13px`；H1 保留 600，H2~H6 统一收敛为 400 并保持阶差；列表悬挂缩进（`padding-left: 2em;`）；行内代码统一为中性浅灰底、`cornerRadius.xSmall`（3px）及等宽字；Frontmatter 表去掉内外表格框线，长值换行，JSON `<code>` 弱化等宽呈现；单测与 CSS 扫描全绿通过。
+  - **Slot D: 审查发现稿与规划状态全面对齐 (提交 b73029ec955)**：将 `visual-review-2026-10-16-plan.md`（V2–V4、V8）与 `conversation-entry-capability.md` 标记为 `implemented`；对齐 `review-2026-10-16-feature-gaps.md`、`cursor-visual-alignment.md` 与 `INDEX.md` 落地记录；文档检查 0 error 全绿。
 - **多工位并行实施与视觉收归 Wave 2026-10-16（第五批）**：
   - **Slot A: Composer 进行中空稿单行布局与卡片 token (S5，提交 a86e019d72b)**：实现纯函数判定 `isComposerSingleLine`（进行中会话、空稿无提及芯片、未放大、宽度 ≥ 450px），切换 `.is-single-line` 并使用 CSS flex 重排控件（Tools、输入、Permission、Model、放大、发送）；PreFirst 居中态保持两行；高度变化前后保持阅读列贴底状态；边框与投影收归 token；单测 `conversationLensComposer.test.ts`、`conversationLensCssScan.test.ts` 46 passing 全绿。
   - **Slot D: 目录列表、筛选芯片与搜索框视觉规范对齐 (S9，提交 6c1d33127fd)**：透镜切换 tablist、Sources 页签与 Engine 首选项筛选芯片统一 24px 行高及内边距，选中态改用中性淡底 `var(--vscode-toolbar-hoverBackground)` 且不加粗；Navigator 过滤输入框去常驻静态描边，聚焦出标准焦点环；Engine 偏好设置过滤框收敛为药丸胶囊；分节列表统一 24px 单行并补弱化计数；单测与 CSS 扫描 174 passing 全绿。
