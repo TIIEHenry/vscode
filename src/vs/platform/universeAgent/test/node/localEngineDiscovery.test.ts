@@ -152,6 +152,7 @@ suite('local engine discovery', () => {
 		assert.strictEqual(timers.length, 1);
 		timers.shift()!();
 		await flushDiscovery();
+		await settleIo();
 		assert.strictEqual(service.isEngineConnected(), true);
 		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
 	});

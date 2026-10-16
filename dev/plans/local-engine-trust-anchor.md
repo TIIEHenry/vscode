@@ -1,17 +1,18 @@
 ---
 title: "本机引擎信任锚：同一系统用户可读的引擎 home 文件"
 type: plan
-status: draft
+status: implemented
 phase: M7
-updated: 2026-10-05
-summary: "ELR-11：代码已落，方案仍 draft。本机自动连接不再扫固定端口、不再不 pin 的 TLS。先找 agent-home 下 0700 目录里的 UDS；否则读 0600 的 server.lock 取端口、读 0600 的 engine-tls.crt 作 pin。没有锚就不自动连接。无 token 时先探一次 Session/List，回 16 即判为强制鉴权、不提交。S0 ADR-012 未写。"
+updated: 2026-10-16
+summary: "ELR-11：确认 commit 98a8b10550f 已落地，单测全绿通过。本机自动连接不再扫固定端口、不再不 pin 的 TLS。先找 agent-home 下 0700 目录里的 UDS；否则读 0600 的 server.lock 取端口、读 0600 的 engine-tls.crt 作 pin。没有锚就不自动连接。无 token 时先探一次 Session/List，回 16 即判为强制鉴权、不提交。S0 ADR-012 未写。"
 ---
 
 # 本机引擎信任锚：同一系统用户可读的引擎 home 文件
 
+> **落地：** `status: implemented`。确认 commit `98a8b10550f` 已落地（本机自动连接改为只信同一用户的引擎 home 锚，支持 UDS 与 pinned TLS 证书），单测 `localEngineDiscovery.test.ts` 全绿通过。不升 PRD-008。
 > **slice_id**：`local-engine-trust-anchor`
 > **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-11。
-> **本稿是方案，未签收。**
+> **审查记录**：见文末。代码已落地，frontmatter 对齐为 `implemented`。
 > **基线**：HEAD `7cf1474419e`，行号以此为准。以 `node/`、`common/`、`electron-main/`、`test/` 开头的路径在 `src/vs/platform/universeAgent/` 下。仓外引擎路径相对钉死工位 `vscode-debug-engine/universe-agent/grpc-server/src/jvmMain/kotlin/universe/agentic/grpc/`（PIN `748e7698e6`）。
 > **冲突域**：`node/localEngineDiscovery.ts`（重写）、`node/universeAgentChannel.ts`（删不 pin 的 loopback 凭据）、`node/grpc/grpcClient.ts`（删 `createLoopbackTlsGrpcClient`，加 UDS 与 pinned 本机两个工厂）、`node/universeAgentConnectionService.ts`（**只**改服务选项 `findLocalEnginePort` / `openLocalEngineTransport` 的类型与默认值、`_discoverAndConnectLocalEngine` 与 `_connectLocalSkipAuth` 的入参、S5 在 `_connectLocalSkipAuth` 里加一次 `probeRpc`），以及 `test/node/localEngineDiscovery.test.ts`。
 > **依赖**：[loopback-link-commit](loopback-link-commit.md)（ELR-10）先落，或与本稿同一切片。本稿沿用它的提交路径，只换目标与凭据。
@@ -155,3 +156,4 @@ summary: "ELR-11：代码已落，方案仍 draft。本机自动连接不再扫�
 | 轮 | Assessment | 处置 |
 |:---|:-----------|:-----|
 | 实施 | — | 2026-10-05：S1–S5 代码已落，方案仍 draft。S0 ADR-012 未写，ADR-003 正文未改。 |
+| 对齐 | — | 2026-10-16：确认 commit `98a8b10550f` 已落地，单测全绿通过，frontmatter 对齐为 `implemented`。 |
