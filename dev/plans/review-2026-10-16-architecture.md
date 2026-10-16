@@ -4,7 +4,7 @@ type: reference
 status: draft
 phase: M7
 updated: 2026-10-16
-summary: "六路只读架构审查。根因是派生状态与判断规则没有唯一所有者：链路状态、会话投影、Sources 读模型、本地或引擎判定、异步进行中请求各写一份。另有接口过宽、边界守卫失效、异步原语不用、扫描测试钉实现。具体缺陷 7 条，含换 profile 不复位 agent tree 探测、引擎 diff URI 不分会话、一条扫描测试按文本必挂。发现稿，未切实施，未改代码。"
+summary: "六路只读架构审查。根因是派生状态与判断规则没有唯一所有者：链路状态、会话投影、Sources 读模型、本地或引擎判定、异步进行中请求各写一份。具体缺陷 B1–B4、B6、B7 与文档偏差 D1–D4 已随 architecture-2026-10-16-concrete.md 全面落地（提交 4fa4f3eab56、99bd6829c11、1a4c4295b45、83ef402a254、68308db93b5、cc6e17a9d8f）。Q1–Q7、A1–A5、B5 维持原状待确认。发现稿保持 draft。"
 ---
 
 # 架构设计审查 2026-10-16
@@ -124,4 +124,4 @@ summary: "六路只读架构审查。根因是派生状态与判断规则没有�
 
 ## 7. 方案
 
-B1–B4、B6、B7 与 §4 的文档偏差见 [architecture-2026-10-16-concrete](architecture-2026-10-16-concrete.md)，`draft`，未实施。G17 与 B1 同收在该稿第一节。Q1–Q7、A1–A5、B5 仍不在该稿里选定。
+B1–B4、B6、B7 与 §4 的文档偏差在 [architecture-2026-10-16-concrete](architecture-2026-10-16-concrete.md) 中已全部实施合入（提交 `4fa4f3eab56`、`99bd6829c11`、`1a4c4295b45`、`83ef402a254`、`68308db93b5`、`cc6e17a9d8f`）。G17 与 B1 同收在该稿第一节。Q1–Q7、A1–A5、B5 仍不在该稿里选定，维持原状待确认。
