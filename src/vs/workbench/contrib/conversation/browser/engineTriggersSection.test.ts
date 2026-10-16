@@ -11,7 +11,8 @@ import type { UniverseAgentListTriggersResult, UniverseAgentTrigger } from '../.
 import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
 import { formatEngineTriggerListLabel } from './engineTriggerList.js';
 import { EngineTriggersSection } from './engineTriggersSection.js';
-import { createConversationConnectionTestStub } from '../test/common/conversationConnectionTestStub.js';
+import { createUnknownConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
 
 suite('EngineTriggersSection (browser)', () => {
 
@@ -34,6 +35,17 @@ suite('EngineTriggersSection (browser)', () => {
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+				conversationEntryCapability: {
+					...createUnknownConversationEntryCapability(),
+					listTriggers: 'SUPPORTED',
+				},
+			}),
 			listTriggers: () => new Promise(resolve => {
 				releaseList = resolve;
 			}),

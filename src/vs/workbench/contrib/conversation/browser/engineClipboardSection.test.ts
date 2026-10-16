@@ -11,7 +11,8 @@ import type { UniverseAgentListClipboardResult } from '../../../../platform/univ
 import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
 import { formatEngineClipboardListLabel } from './engineClipboardList.js';
 import { EngineClipboardSection } from './engineClipboardSection.js';
-import { createConversationConnectionTestStub } from '../test/common/conversationConnectionTestStub.js';
+import { createUnknownConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
 
 suite('EngineClipboardSection (browser)', () => {
 
@@ -29,6 +30,17 @@ suite('EngineClipboardSection (browser)', () => {
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+				conversationEntryCapability: {
+					...createUnknownConversationEntryCapability(),
+					listClipboard: 'SUPPORTED',
+				},
+			}),
 			listClipboard: () => new Promise(resolve => {
 				releaseList = resolve;
 			}),

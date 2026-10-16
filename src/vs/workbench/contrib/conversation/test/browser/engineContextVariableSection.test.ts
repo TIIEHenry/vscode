@@ -8,6 +8,7 @@ import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { createUnknownConversationEntryCapability, readConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentConnectionSnapshot,
@@ -26,7 +27,25 @@ import {
 import { EngineContextVariableSection } from '../../browser/engineContextVariableSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+import { createConversationConnectionTestStub as baseCreateConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+
+function createConversationConnectionTestStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
+	const stub = baseCreateConversationConnectionTestStub(overrides);
+	if (!overrides.getConnectionSnapshot) {
+		const originalGetSnapshot = stub.getConnectionSnapshot.bind(stub);
+		stub.getConnectionSnapshot = (): UniverseAgentConnectionSnapshot => {
+			const base = originalGetSnapshot();
+			return {
+				...base,
+				conversationEntryCapability: {
+					...readConversationEntryCapability(base),
+					listContextVariable: 'SUPPORTED',
+				},
+			};
+		};
+	}
+	return stub;
+}
 
 suite('EngineContextVariableSection', () => {
 
@@ -76,6 +95,68 @@ suite('EngineContextVariableSection', () => {
 		await flushMicrotasks();
 		assert.deepStrictEqual(readCalls, []);
 	}
+
+	test('List does not send when listContextVariable capability is UNKNOWN', async () => {
+		let listContextVariableCalls = 0;
+		const pane = mountSection(baseCreateConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listContextVariable: async () => {
+				listContextVariableCalls++;
+				return { current: [], inherited: [] };
+			},
+		}));
+		await flushMicrotasks();
+		assert.strictEqual(listContextVariableCalls, 0);
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'unsupported');
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('List success then capability becomes UNKNOWN keeps leftover rows and does not call list', async () => {
+		let listCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const leftover = {
+			name: 'leftover-var',
+			scope: 'VARIABLE_GLOBAL' as const,
+			updatedBy: 'agent',
+			updatedAt: 1,
+			contentPreview: 'preview',
+		};
+		let capability: 'SUPPORTED' | 'UNKNOWN' = 'SUPPORTED';
+		const connection = baseCreateConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+				conversationEntryCapability: {
+					...createUnknownConversationEntryCapability(),
+					listContextVariable: capability,
+				},
+			}),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listContextVariable: async () => {
+				listCalls++;
+				return { current: [leftover], inherited: [] };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(listCalls, 1);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
+
+		capability = 'UNKNOWN';
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+		assert.strictEqual(listCalls, 1);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
+		pane.getDomNode().parentElement?.remove();
+	});
 
 	test('List does not send when disconnected or hook missing', async () => {
 		let listContextVariableCalls = 0;
@@ -297,7 +378,10 @@ suite('EngineContextVariableSection', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities: createEmptyTestCapabilitySnapshot(),
-		});
+			conversationEntryCapability: {
+				...readConversationEntryCapability(undefined),
+				listContextVariable: 'SUPPORTED',
+			},		});
 		const readCalls: UniverseAgentContextVariableReadRequest[] = [];
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => connected && !pairingPending,
@@ -376,6 +460,10 @@ suite('EngineContextVariableSection', () => {
 			channelAlive: true,
 			sharedFsRootSent: false,
 			capabilities: createEmptyTestCapabilitySnapshot(),
+			conversationEntryCapability: {
+				...readConversationEntryCapability(undefined),
+				listContextVariable: 'SUPPORTED',
+			},
 		});
 		const readCalls: UniverseAgentContextVariableReadRequest[] = [];
 		const connection = createConversationConnectionTestStub({
@@ -487,6 +575,10 @@ suite('EngineContextVariableSection', () => {
 			channelAlive: true,
 			sharedFsRootSent: false,
 			capabilities: createEmptyTestCapabilitySnapshot(),
+			conversationEntryCapability: {
+				...readConversationEntryCapability(undefined),
+				listContextVariable: 'SUPPORTED',
+			},
 		};
 		const readCalls: UniverseAgentContextVariableReadRequest[] = [];
 		const connection = createConversationConnectionTestStub({
