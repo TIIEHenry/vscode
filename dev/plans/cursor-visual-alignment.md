@@ -4,14 +4,14 @@ type: plan
 status: draft
 phase: N/A
 updated: 2026-10-16
-summary: "对照 Cursor 截图与 HEAD 实拍收壳与会话观感。S1–S5（进行中空稿一行与卡片 token 改造）、S6（Preview 空态去框、Sources 标题栏并入 tab 条）、S7（会话切换接入菜单 Picker 与弱化元信息）、S8（Sources 错误去重、Navigator 加载藏闪电、会话不可用固定原因与输入控件保留）、S9（6c1d33127fd：透镜芯片/Sources tab/首选项中性淡底 hover 与 400 字重、Navigator 过滤框去描边、Engine 分节 24px 单行）已落地。Markdown 预览（S10）未做。方案仍 draft，不升 PRD-028。"
+summary: "对照 Cursor 截图与 HEAD 实拍收壳与会话观感。S1–S5（进行中空稿一行与卡片 token 改造）、S6（Preview 空态去框、Sources 标题栏并入 tab 条）、S7（会话切换接入菜单 Picker 与弱化元信息）、S8（Sources 错误去重、Navigator 加载藏闪电、会话不可用固定原因与输入控件保留）、S9（6c1d33127fd：透镜芯片/Sources tab/首选项中性淡底 hover 与 400 字重、Navigator 过滤框去描边、Engine 分节 24px 单行）、S10（693ec548c89：Markdown 预览居中阅读列、属性表去框与字阶收归）已落地。History / Snapshots / Inbox 铬与产品遮罩色未做。方案仍 draft，不升 PRD-028。"
 ---
 
 # 壳与对话观感向 Cursor 靠齐（保留 IDE 密度）
 
 需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度)（`accepted`，2026-10-11 用户选定见该条「依赖或未决」）。系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md)、[主题与 token](../../docs/architecture/cross-cutting/theming.md)、[Composer 与 Inbox](../../docs/systems/conversation/composer-and-inbox.md)、[Conversation 透镜与轨迹](../../docs/systems/conversation/lens-and-trajectory.md)。相邻方案：[自有界面视觉审查问题收口](visual-audit-remediation-2026-10-05.md)（焦点环、Sources 行高等，本稿不重做）、[时间线重构](conversation-timeline-refactor.md) D3（置顶提示）。
 
-实施进度（2026-10-16）：S1–S5（Composer 进行中空稿一行、卡片 token 描边/投影改造与贴底保持）、S6（Preview 空态键帽去框、Sources 标题栏动作并入 tab 条）、S7（接通 sessionSelectBox 至 attachComposerPicker，支持弱化元信息与原生下拉保留）、S8（Sources 读失败只出现一次、Navigator 读代理树时藏闪电、会话不可用补充固定原因说明且底栏控件与 SessionBar 导航保留禁用态）、S9（6c1d33127fd：透镜芯片/Sources tab/首选项中性淡底 hover 与 400 字重、Navigator 过滤框去描边、Engine 分节 24px 单行）已落地。History / Snapshots / Inbox 铬、产品遮罩色、S10 未做。不升 PRD-028。
+实施进度（2026-10-16）：S1–S5（Composer 进行中空稿一行、卡片 token 描边/投影改造与贴底保持）、S6（Preview 空态键帽去框、Sources 标题栏动作并入 tab 条）、S7（接通 sessionSelectBox 至 attachComposerPicker，支持弱化元信息与原生下拉保留）、S8（Sources 读失败只出现一次、Navigator 读代理树时藏闪电、会话不可用补充固定原因说明且底栏控件与 SessionBar 导航保留禁用态）、S9（6c1d33127fd：透镜芯片/Sources tab/首选项中性淡底 hover 与 400 字重、Navigator 过滤框去描边、Engine 分节 24px 单行）、S10（693ec548c89：Markdown 预览居中阅读列、属性表去框与字阶收归）已落地。History / Snapshots / Inbox 铬、产品遮罩色未做。不升 PRD-028。
 
 ## 1. 对照基线
 
