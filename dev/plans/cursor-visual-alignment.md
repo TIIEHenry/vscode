@@ -3,7 +3,7 @@ title: "壳与对话观感向 Cursor 靠齐（保留 IDE 密度）"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-11
+updated: 2026-10-16
 summary: "对照 Cursor 截图与 HEAD 实拍收壳与会话观感。S1 主题三档、活动栏颜色、弹出层高亮与中性主按钮，S2 画布 token，S3 对话头与身份条，S4 用户回合卡与置顶提示已落地；S6 只去了 Preview 键帽框，S7 只补了原生菜单判断，S8 只去掉空树重复错误。进行中一行 Composer、会话切换菜单、目录列表与 Markdown 预览未做。四钮、状态栏、置顶判定、PRD-015 控件集不动。方案仍 draft，不升 PRD-028。"
 ---
 
@@ -152,7 +152,7 @@ S0 提交按规则 3b、13 拆开：本稿的决策段落随方案提交；PRD-0
 
 ### S9 目录列表、筛选芯片与搜索框
 
-- 目录列表：按 [UI 设计原则 §5.3](../../docs/architecture/cross-cutting/ui-design-principles.md#53-工程表格与列表轨迹表sourcesnavigator首选项列表) 改 Engine 首选项各分区与 Connection 设备列表。分组头加弱化计数与至多一个次按钮，组体淡底容器，内容行收成 24px 单行（图标块、名称、同行说明、悬停 `…`）。左栏导航保持 22px。导航计数继续用全量条数、不含分组行（[engine-catalog](../../docs/systems/workbench/engine-catalog.md)）；「再显示 N 个」不改变这个计数，展开状态在分区内记住。设备列表不得为了只显示 5 行而藏起当前设备。键盘：↑↓ 在行间移动，「再显示 N 个」可聚焦。`connectionPreferencesPane.css` 是视觉审查 V3 的文件，等 V3 合入再改；在此之前设备行的新样式写到不与 V3 重叠的新文件。行高合同（Agents 28 / 44px、设备 36px）在代码改动的同一笔里同步 `engine-catalog.md`，代码未改前不改那篇的 HEAD 描述。
+- 目录列表：按 [UI 设计原则 §5.3](../../docs/architecture/cross-cutting/ui-design-principles.md#53-工程表格与列表轨迹表sourcesnavigator首选项列表) 改 Engine 首选项各分区与 Connection 设备列表。分组头加弱化计数与至多一个次按钮，组体淡底容器，内容行收成 24px 单行（图标块、名称、同行说明、悬停 `…`）。左栏导航保持 22px。导航计数继续用全量条数、不含分组行（[engine-catalog](../../docs/systems/workbench/engine-catalog.md)）；「再显示 N 个」不改变这个计数，展开状态在分区内记住。设备列表不得为了只显示 5 行而藏起当前设备。键盘：↑↓ 在行间移动，「再显示 N 个」可聚焦。`connectionPreferencesPane.css` 是视觉审查 V3 的文件，等 V3 合入再改；在此之前设备行的新样式写到不与 V3 重叠的新文件。行高合同（Agents 28 / 44px、设备 36px）在代码改动的同一笔里同步 `engine-catalog.md`，代码未改前不改那篇的 HEAD 描述。Tools 分节 2026-10-16 工作区已从 48px 收到 28 / 44px，仍是双行、分组头仍全大写，见 [视觉审查 2026-10-16](../progress/visual-review-2026-10-16.md) V1。
 - 筛选芯片：透镜切换、Sources tab、Engine 首选项分类改用 §5.7 的同一选中样式（中性淡底、不加粗）。透镜切换的 `role="tablist"` 与方向键行为不变。
 - 搜索框：Navigator 过滤框去常驻描边，聚焦时按原则四出描边；Engine 首选项若有搜索，改成整宽圆角药丸。
 - Navigator 视图标题的全大写不在本切片改，见 §6。
