@@ -1,16 +1,17 @@
 ---
 title: "架构审查 2026-10-16：可单独实施的缺陷"
 type: plan
-status: draft
+status: implemented
 phase: M7
 updated: 2026-10-16
-summary: "换 profile 复位 agent tree 探测，diff URI 带会话，设置列表跟活动工作根刷新，路径键只统一盘符。扫描测试与 chat 边界按真实路径判定。Q1–Q7 与 B5 不在本稿。未实施。不升 PRD。"
+summary: "换 profile 复位 agent tree 探测，diff URI 带会话，设置列表跟活动工作根刷新，路径键只统一盘符。扫描测试与 chat 边界按真实路径判定。Q1–Q7 与 B5 不在本稿。§1–§6 已全部落地合入（4fa4f3eab56、99bd6829c11、1a4c4295b45、83ef402a254、68308db93b5、cc6e17a9d8f）。不升 PRD。"
 ---
 
 # 架构审查 2026-10-16：可单独实施的缺陷
 
 > **触发：** [架构设计审查 2026-10-16](review-2026-10-16-architecture.md) B1–B4、B6、B7 与 §4 文档偏差。功能缺口 G17 与 B1 同一类，收在第一节。
 > **不选定** 该审查 §6 的 Q1–Q7。不升 PRD。
+> **落地：** `status: implemented`。§1（B1、G17）落入 `4fa4f3eab56`；§2（B2）落入 `99bd6829c11`；§3（B3）落入 `1a4c4295b45`；§4（B4）落入 `83ef402a254`；§5（B6、B7）落入 `68308db93b5`；§6（Docs）落入 `cc6e17a9d8f`。
 
 ## 1. 换 profile 后的 agent tree 与能力快照（B1、G17）
 

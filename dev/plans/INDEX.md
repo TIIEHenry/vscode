@@ -16,12 +16,12 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | --- | --- | --- |
 | [架构设计审查 2026-10-16](review-2026-10-16-architecture.md) | `draft` | 六路只读架构审查。根因是派生状态与判断规则没有唯一所有者；另有接口过宽、边界守卫失效、异步原语不用、扫描测试钉实现。具体缺陷 7 条。发现稿，未切实施，未改代码。 |
 | [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) | `draft` | 复查 2026-10-11 引擎联动缺口并补新发现。已签收的停 Enqueue 与生成中禁用 Send 未实施；MCP Add、Triggers Add、Clipboard Write 按钮可点但不发或发空载荷；Files 未改用会话工作根。发现稿，未切实施，未改代码。 |
-| [架构审查 2026-10-16：可单独实施的缺陷](architecture-2026-10-16-concrete.md) | `draft` | 换 profile 复位 agent tree 探测，diff URI 带会话，设置列表跟活动工作根刷新，路径键只统一盘符。扫描测试与 chat 边界按真实路径判定。Q1–Q7 与 B5 不在本稿。未实施。不升 PRD。 |
-| [Composer：不能切换的 Agent 控件改为只读](composer-agent-picker.md) | `draft` | switchAgent 没有握手方法，选择会立刻滚回。不可用时底栏只显示现有不可用文案。底栏的 agentIndex 不进发送载荷。未实施。不升 PRD。 |
+| [架构审查 2026-10-16：可单独实施的缺陷](architecture-2026-10-16-concrete.md) | `implemented` | 换 profile 复位 agent tree 探测，diff URI 带会话，设置列表跟活动工作根刷新，路径键只统一盘符。扫描测试与 chat 边界按真实路径判定。Q1–Q7 与 B5 不在本稿。§1–§6 已全部落地合入（4fa4f3eab56、99bd6829c11、1a4c4295b45、83ef402a254、68308db93b5、cc6e17a9d8f）。不升 PRD。 |
+| [Composer：不能切换的 Agent 控件改为只读](composer-agent-picker.md) | `implemented` | switchAgent 没有握手方法，选择会立刻滚回。不可用时底栏只显示现有不可用文案。底栏的 agentIndex 不进发送载荷。已于 2e785907611 落地。不升 PRD。 |
 | [对话动作失败、未归因变更与空任务列表](conversation-failure-and-mutation.md) | `draft` | Kill、Retry、delete/edit/fork/队列失败与 AutoDrive 空列表维持现有行为。缺 path 或 operation 的 file_mutation 仍不归因，只加计数。mailbox 的 fail_closed 跳过不改。未实施。不升 PRD。 |
-| [MCP 定义：Add / Update 先有表单](engine-mcp-definition-form.md) | `draft` | 工具栏 Add 只展开表单，无配置不发 addMcpServer。工具栏 Update 在无改动时不写回。表单只收集已有配置字段里的必填项。未实施。不升 PRD。 |
-| [Triggers 与 Clipboard：空载荷不发，未知能力不拉列表](engine-trigger-clipboard-actions.md) | `draft` | Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 status 为空时画错误。三节列表在能力未知时不调用。未实施。不升 PRD。 |
-| [功能缺口 2026-10-16：已有方案与维持传输层](feature-gaps-2026-10-16-boundary.md) | `draft` | G1、G2、G5、G10、G19、G20 指向已有方案。G7、G11 与协议面已写明只进传输的入口不新开产品面。两处文档偏差在本切片改正。未实施。不升 PRD。 |
+| [MCP 定义：Add / Update 先有表单](engine-mcp-definition-form.md) | `implemented` | 工具栏 Add 只展开表单，无配置不发 addMcpServer。工具栏 Update 在无改动时不写回。表单只收集已有配置字段里的必填项。已于 05a17c38879 落地。不升 PRD。 |
+| [Triggers 与 Clipboard：空载荷不发，未知能力不拉列表](engine-trigger-clipboard-actions.md) | `implemented` | Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 status 为空时画错误。三节列表在能力未知时不调用。已于 05a17c38879 与 1a4c4295b45 落地。不升 PRD。 |
+| [功能缺口 2026-10-16：已有方案与维持传输层](feature-gaps-2026-10-16-boundary.md) | `implemented` | G1、G2、G5、G10、G19、G20 指向已实施方案。G7、G11 与协议面已写明只进传输的入口不新开产品面。D2 与 D3 文档偏差已于 cc6e17a9d8f 落地合入。不升 PRD。 |
 | [视觉审查 2026-10-16：字重、发丝线、只读分支、零值统计](visual-review-2026-10-16-plan.md) | `draft` | 过程折、确认控件与复选框的 500 字重改为 400，发丝线改为 8%，只读分支芯片去掉手型与悬停，零值统计用弱化色。V1 归目录列表切片。V5–V7 未决。未实施。不升 PRD-028。 |
 | [引擎联动缺口：队列读回、生成中发送门禁、附件上传](engine-gap-queue-send-attachments.md) | `accepted` | 2026-10-11 用户签收。本刀只做两件事：接通时停掉 Enqueue RPC 与入口；已有 streaming turn 时禁用 Send，不直发 submitInput，也不改入队。附件不开刀。未实施。不升 PRD。 |
 | [草稿会话提交后保留 Agent 浏览器页归属](browser-owner-draft-graduation.md) | `draft` | 草稿 chat URI 替换后按替换事件映射旧 owner；真实删除按事件原始身份清理。工具访问与存储作用域分开验证，未实施。 |

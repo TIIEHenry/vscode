@@ -23,6 +23,7 @@ summary: "2026-10-16：多工位并行合入 S1–S4 会话工作根、Slot F �
     - `engineToolsSection.ts` 与 `engineAgentsSection.ts` 注入 `IAgentSessionContext`，监听 `onDidChangeActiveSession` 与 `onDidChangeActiveWorkRoot` 并携带 `projectPath` 刷新；
     - `engineTriggersSection.ts` 落地 G15 执行状态语义（对 `FAILED`、`REJECTED`、`ERROR` 及被拒 reason 渲染 `error` 色调）与 G16 操作级门禁（UNKNOWN/UNSUPPORTED 时写操作按钮保持禁用并提示）；
     - 单测 `engineToolsSection.test.ts` 与 `engineTriggersSection.test.ts`（59 passing）全绿。
+  - **Slot F: 文档事实偏差修复与 GFS 行数快照更新（提交 cc6e17a9d8f，D2、D3、GFS）**：改写 sources overview 消除提供者缺失偏差；更新 engine-protocol-surface hunk 暂存为 S1 已落；刷新 GFS 门面行数快照（954/1322/3404/2773 行）；更新 lens 与 session-work-root 事实；
   - **多工位并行实施与架构缺陷修复 Wave 2026-10-16（第一批）**：
     - **PRD-029 会话工作根与 Workbench 双层状态落地 S1–S4（提交 4615d3aa990）**：`agentWorkRoot.ts` 状态机、`agentSessionContext.ts`、Navigator/Sources 树过滤与评审归属；
     - **Slot F 引擎能力复位（提交 4fa4f3eab56，B1、G17）**：Profile 切换与断链时清理能力快照与探测标志；

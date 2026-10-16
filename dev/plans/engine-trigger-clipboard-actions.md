@@ -1,16 +1,17 @@
 ---
 title: "Triggers 与 Clipboard：空载荷不发，未知能力不拉列表"
 type: plan
-status: draft
+status: implemented
 phase: M7
 updated: 2026-10-16
-summary: "Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 status 为空时画错误。三节列表在能力未知时不调用。未实施。不升 PRD。"
+summary: "Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 status 为空时画错误。三节列表在能力未知时不调用。已于 05a17c38879 与 1a4c4295b45 落地。不升 PRD。"
 ---
 
 # Triggers 与 Clipboard：空载荷不发，未知能力不拉列表
 
 > **触发：** [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) G4、G15、G16。
 > **不推翻：** [对话入口按广告探测](conversation-entry-capability.md) 对其余入口的 UNKNOWN 退路。不发明 Trigger 或 Clipboard 字段。不升 PRD。
+> **落地：** `status: implemented`。已于 `05a17c38879` 与 `1a4c4295b45`（Slot B）落地合入。
 
 ## 1. 现状
 

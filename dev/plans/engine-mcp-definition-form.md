@@ -1,16 +1,17 @@
 ---
 title: "MCP 定义：Add / Update 先有表单"
 type: plan
-status: draft
+status: implemented
 phase: M7
 updated: 2026-10-16
-summary: "工具栏 Add 只展开表单，无配置不发 addMcpServer。工具栏 Update 在无改动时不写回。表单只收集已有配置字段里的必填项。未实施。不升 PRD。"
+summary: "工具栏 Add 只展开表单，无配置不发 addMcpServer。工具栏 Update 在无改动时不写回。表单只收集已有配置字段里的必填项。已于 05a17c38879 落地。不升 PRD。"
 ---
 
 # MCP 定义：Add / Update 先有表单
 
 > **触发：** [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) G3、D1。
 > **不推翻：** [engine-catalog](../../docs/systems/workbench/engine-catalog.md) 的 List / Toggle / Remove 与 Runtime tab。不改 `UniverseAgentMcpServerConfig` 的字段。不升 PRD-025。
+> **落地：** `status: implemented`。已于 `05a17c38879`（Slot B）落地合入。
 
 ## 1. 现状
 
