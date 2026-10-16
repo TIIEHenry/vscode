@@ -7,8 +7,9 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isEqualOrParent } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { SOURCES_FILES_LIST_MODE_STORAGE_KEY, sourcesFilterFitsOnBar, sourcesListDirectoryTarget } from '../../common/sourcesFilesListMode.js';
-import { readSourcesFilesListMode, sourcesFilesListModeScope, sourcesFilesListModeStorageKey } from '../../browser/sourcesFilesExplorer.js';
+import { readSourcesFilesListMode, SOURCES_FILES_EXPLORER_ID, sourcesFilesListModeScope, sourcesFilesListModeStorageKey } from '../../browser/sourcesFilesExplorer.js';
 
 suite('Sources - files list mode', () => {
 
@@ -111,5 +112,31 @@ suite('Sources - files list mode', () => {
 		assert.strictEqual(readSourcesFilesListMode(read, left, 'sess-left').writeSeed, false);
 		assert.strictEqual(readSourcesFilesListMode(read, right, 'sess-right').mode, 'tree');
 		assert.strictEqual(readSourcesFilesListMode(read, left, 'sess-left').mode, 'list');
+	});
+
+	test('files explorer registers six navigation actions in ViewTitle with correct orders and metadata', function () {
+		const items = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem);
+		const filesItems = items.filter(item => {
+			const when = item.when?.serialize();
+			return when?.includes(`view == '${SOURCES_FILES_EXPLORER_ID}'`) || when?.includes(`view == ${SOURCES_FILES_EXPLORER_ID}`);
+		});
+
+		const expectedActions = [
+			{ id: 'sources.files.action.createFile', order: 10 },
+			{ id: 'sources.files.action.createFolder', order: 20 },
+			{ id: 'sources.files.action.refresh', order: 30 },
+			{ id: 'sources.files.action.collapse', order: 40 },
+			{ id: 'sources.files.action.viewAsTree', order: 50 },
+			{ id: 'sources.files.action.viewAsList', order: 60 },
+		];
+
+		for (const expected of expectedActions) {
+			const found = filesItems.find(item => item.command.id === expected.id);
+			assert.ok(found, `Expected action ${expected.id} to be registered in ViewTitle`);
+			assert.strictEqual(found.group, 'navigation');
+			assert.strictEqual(found.order, expected.order);
+			assert.ok(found.command.icon, `Expected action ${expected.id} to have an icon`);
+			assert.ok(found.command.title, `Expected action ${expected.id} to have a title`);
+		}
 	});
 });

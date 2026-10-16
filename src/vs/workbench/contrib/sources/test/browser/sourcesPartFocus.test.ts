@@ -44,9 +44,15 @@ suite('Sources - part focus', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stubInstance(SourcesFilesExplorerHost, Object.assign(toDisposable(() => { }), {
 			setFilesTabActive() { },
+			setFilterDock() { },
+			setActionsDock() { },
 		}));
-		instantiationService.stubInstance(SourcesChangesList, toDisposable(() => { }));
-		instantiationService.stubInstance(SourcesReviewList, toDisposable(() => { }));
+		instantiationService.stubInstance(SourcesChangesList, Object.assign(toDisposable(() => { }), {
+			setFilterDock() { },
+		}));
+		instantiationService.stubInstance(SourcesReviewList, Object.assign(toDisposable(() => { }), {
+			setFilterDock() { },
+		}));
 		instantiationService.stub(ISourcesReviewHostService, {
 			registerReviewListHost() { },
 			showForPaths() { },

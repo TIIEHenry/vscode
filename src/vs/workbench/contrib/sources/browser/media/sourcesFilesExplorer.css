@@ -16,9 +16,8 @@
 	min-height: 0;
 }
 
-.monaco-workbench .part.sources .sources-files-explorer .pane > .pane-header.not-collapsible {
-	background-color: var(--vscode-sideBarSectionHeader-background) !important;
-	color: var(--vscode-sideBarSectionHeader-foreground);
+.monaco-workbench .part.sources .sources-files-explorer .pane > .pane-header {
+	display: none !important;
 }
 
 .monaco-workbench .part.sources .sources-files-explorer-empty {

@@ -123,6 +123,10 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		this.reviewList?.toggleReviewedSelected();
 	}
 
+	getFilterSlot(): HTMLElement | undefined {
+		return this.filterSlot;
+	}
+
 	markAllReviewed(): void {
 		this.reviewList?.markAllReviewed();
 	}
@@ -312,15 +316,17 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		if (!slot) {
 			return;
 		}
+		const isFiles = this.selectedTab === SourcesTabId.Files;
 		const dock = sourcesFilterFitsOnBar(this.partWidth()) ? slot : undefined;
-		this.filesExplorer?.setFilterDock(this.selectedTab === SourcesTabId.Files ? dock : undefined);
+		this.filesExplorer?.setFilterDock(isFiles ? dock : undefined);
+		this.filesExplorer?.setActionsDock(isFiles ? slot : undefined);
 		this.changesList?.setFilterDock(this.selectedTab === SourcesTabId.Changes ? dock : undefined);
 		this.reviewList?.setFilterDock(this.selectedTab === SourcesTabId.Review ? dock : undefined);
 	}
 
 	private partWidth(): number {
 		const part = this.tabHost.closest('.part.sources');
-		return part instanceof HTMLElement ? part.clientWidth : 0;
+		return dom.isHTMLElement(part) ? part.clientWidth : 0;
 	}
 
 	private focusDockedFilter(): boolean {
@@ -328,13 +334,29 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		if (!slot || !sourcesFilterFitsOnBar(this.partWidth())) {
 			return false;
 		}
-		const input = slot.querySelector('input');
-		if (!(input instanceof HTMLInputElement) || input.offsetParent === null) {
+		const input = findFirstInput(slot);
+		if (!input || input.offsetParent === null) {
 			return false;
 		}
 		input.focus();
 		return dom.isActiveElement(input);
 	}
+}
+
+function findFirstInput(container: HTMLElement): HTMLInputElement | undefined {
+	for (let i = 0; i < container.children.length; i++) {
+		const child = container.children[i];
+		if (dom.isHTMLInputElement(child)) {
+			return child;
+		}
+		if (dom.isHTMLElement(child)) {
+			const nested = findFirstInput(child);
+			if (nested) {
+				return nested;
+			}
+		}
+	}
+	return undefined;
 }
 
 function focusFirstControlInSourcesPanel(panel: HTMLElement): boolean {

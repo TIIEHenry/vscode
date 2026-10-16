@@ -111,6 +111,9 @@ export class SourcesFilesExplorer extends ExplorerView {
 	private listRootItem: ExplorerItem | undefined;
 	private savedTreeViewState: IAsyncDataTreeViewState | undefined;
 	private readonly listModeContext: IContextKey<boolean> = SourcesFilesListModeContext.bindTo(this.scopedContextKeyService);
+	private actionsElement?: HTMLElement;
+	private actionsHome?: HTMLElement;
+	private actionsHost?: HTMLElement;
 
 	constructor(
 		options: IExplorerViewPaneOptions,
@@ -142,7 +145,62 @@ export class SourcesFilesExplorer extends ExplorerView {
 		@IAgentSessionContext private readonly session: IAgentSessionContext | undefined,
 	) {
 		super(options, contextMenuService, viewDescriptorService, instantiationService, contextService, progressService, editorService, editorResolverService, layoutService, keybindingService, contextKeyService, configurationService, labelService, themeService, telemetryService, hoverService, explorerService, storageService, clipboardService, fileService, uriIdentityService, commandService, openerService, accessibilityService, environmentService, editorGroupsService);
+		this.headerVisible = false;
 		this.bindListModeToWorkRoot();
+	}
+
+	override get headerVisible(): boolean {
+		return false;
+	}
+
+	override set headerVisible(_visible: boolean) {
+		super.headerVisible = false;
+	}
+
+	protected override renderHeader(container: HTMLElement): void {
+		super.renderHeader(container);
+		for (let i = 0; i < container.children.length; i++) {
+			const child = container.children[i];
+			if (dom.isHTMLElement(child) && child.classList.contains('actions')) {
+				this.actionsElement = child;
+				break;
+			}
+		}
+		if (this.actionsHost && this.actionsElement) {
+			this.dockActions(this.actionsHost);
+		}
+	}
+
+	dockActions(host: HTMLElement | undefined): void {
+		this.actionsHost = host;
+		if (!this.actionsElement) {
+			return;
+		}
+		if (host) {
+			if (!this.actionsHome) {
+				this.actionsHome = this.actionsElement.parentElement ?? undefined;
+			}
+			if (this.actionsElement.parentElement !== host) {
+				host.appendChild(this.actionsElement);
+			}
+			this.actionsElement.classList.add('is-docked');
+		} else {
+			this.actionsElement.classList.remove('is-docked');
+			if (this.actionsHome && this.actionsElement.parentElement !== this.actionsHome) {
+				this.actionsHome.appendChild(this.actionsElement);
+			}
+		}
+	}
+
+	getActionsElement(): HTMLElement | undefined {
+		return this.actionsElement;
+	}
+
+	override dispose(): void {
+		if (this.actionsElement && this.actionsElement.parentElement !== this.actionsHome) {
+			this.actionsElement.remove();
+		}
+		super.dispose();
 	}
 
 	override get suppressesSiblingAutoReveal(): boolean {
@@ -364,6 +422,7 @@ export class SourcesFilesExplorerHost extends Disposable {
 	private engineMounting = false;
 	private filesTabActive = false;
 	private filterDock: HTMLElement | undefined;
+	private actionsDock: HTMLElement | undefined;
 
 	constructor(
 		container: HTMLElement,
@@ -395,6 +454,23 @@ export class SourcesFilesExplorerHost extends Disposable {
 	setFilterDock(dock: HTMLElement | undefined): void {
 		this.filterDock = dock;
 		this.explorer?.dockInlineFilter(dock);
+		const actions = this.explorer?.getActionsElement();
+		if (dock && actions && actions.parentElement === dock) {
+			dock.appendChild(actions);
+		}
+	}
+
+	setActionsDock(dock: HTMLElement | undefined): void {
+		this.actionsDock = dock;
+		this.explorer?.dockActions(dock);
+		const actions = this.explorer?.getActionsElement();
+		if (dock && actions && actions.parentElement === dock) {
+			dock.appendChild(actions);
+		}
+	}
+
+	getActionsElement(): HTMLElement | undefined {
+		return this.explorer?.getActionsElement();
 	}
 
 	setFilesTabActive(active: boolean): void {
@@ -530,10 +606,16 @@ export class SourcesFilesExplorerHost extends Disposable {
 		this.paneView = paneView;
 		this.explorer = explorer;
 		explorer.dockInlineFilter(this.filterDock);
+		explorer.dockActions(this.actionsDock);
+		const actions = explorer.getActionsElement();
+		if (this.actionsDock && actions && actions.parentElement === this.actionsDock) {
+			this.actionsDock.appendChild(actions);
+		}
 	}
 
 	private disposeExplorer(): void {
 		const element = this.paneView?.element;
+		this.explorer?.dockActions(undefined);
 		this.explorer?.dispose();
 		this.explorer = undefined;
 		this.paneView?.dispose();
