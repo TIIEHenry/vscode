@@ -1,18 +1,19 @@
 ---
 title: "恢复信任改为新的一次配对尝试"
 type: plan
-status: draft
+status: implemented
 phase: M7
-updated: 2026-10-05
-summary: "ELR-3 剩余半边：身份就绪时 confirmRecoverTrust 先重新观测、中继各续一次票、再握手，指纹一致且拿到 session_token 才写信任。身份未就绪仍按连接服务测试锁住的批准即写信任。不改连接服务。不升 PRD-024。"
+updated: 2026-10-16
+summary: "ELR-3 剩余半边：身份就绪时 confirmRecoverTrust 先重新观测、中继各续一次票、再握手，指纹一致且拿到 session_token 才写信任。身份未就绪仍按连接服务测试锁住的批准即写信任。编排器与单测（pairingOrchestrator 23 passing）已全面落地合入。不改连接服务。不升 PRD-024。"
 ---
 
 # 恢复信任改为新的一次配对尝试
 
+> **落地：** `status: implemented`。编排器与单测已全面落地合入（pairingOrchestrator.test.ts 23 passing 全绿）。不改连接服务。不升 PRD-024。
 > **slice_id**：`recover-trust-new-attempt`
 > **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-3。超时已是 `transport_failed`，确认框已在 main。本稿只补「批准之后仍把试连叶写进信任」这一半。
-> **本稿是方案，未签收。**
-> **实施（2026-10-05）**：编排器与本方案单测已落。方案仍是 `draft`。不升 PRD-024。
+> **审查记录**：见文末。编排器与单测已全面落地合入（提交 `c9affe7df1c`，pairingOrchestrator.test.ts 23 passing 全绿）。frontmatter 对齐为 `implemented`。
+> **实施（2026-10-05）**：编排器与本方案单测已落（提交 `c9affe7df1c`）。不改连接服务。不升 PRD-024。
 > **冲突域**：`src/vs/platform/universeAgent/node/pairingOrchestrator.ts`、`src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts`。审查现状句可改 `dev/progress/engine-link-architecture-review-2026-09-28.md` 里 ELR-3 那一条。
 > **不改**：`universeAgentConnectionService.ts`、`universeAgentConnection.test.ts`、conversation 窗格、协议文档、`deferred-gaps.md`、`status.md`。
 > **不发明** RPC、快照字段或失败码。沿用已有 `fingerprint_mismatch`、`sas_mismatch`、`observe_failed`、`hub_ticket_failed`、`pairing_superseded`、`signer_unavailable`。
