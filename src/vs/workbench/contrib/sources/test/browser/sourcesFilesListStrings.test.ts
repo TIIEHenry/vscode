@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureMessage } from '../../browser/sourcesFilesListStrings.js';
+import { sourcesFilesListEmptyMessage, sourcesFilesListReadFailureDetail, sourcesFilesListReadFailureSummaryFor } from '../../browser/sourcesFilesListStrings.js';
 
 suite('Sources - Files list strings', () => {
 
@@ -19,10 +19,31 @@ suite('Sources - Files list strings', () => {
 		assert.ok(!sourcesFilesListEmptyMessage.match(/copilot/i), 'must not mention Copilot');
 	});
 
-	test('read failure is not empty-workspace success copy', () => {
-		const message = sourcesFilesListReadFailureMessage(new Error('boom'));
-		assert.ok(message.includes('Unable to read workspace files:'));
-		assert.ok(message.includes('boom'));
-		assert.ok(!message.includes('No workspace files'));
+	test('read failure summary is not the raw error or empty-workspace success copy', () => {
+		const error = new Error('boom');
+		const summary = sourcesFilesListReadFailureSummaryFor(error);
+		assert.strictEqual(summary, 'Unable to read workspace files.');
+		assert.ok(!summary.includes('boom'));
+		assert.ok(!summary.includes('No workspace files'));
+		assert.strictEqual(sourcesFilesListReadFailureDetail(error), 'boom');
+	});
+
+	test('a known status code gets its own sentence and the raw text stays in the detail', () => {
+		const denied = new Error('7 PERMISSION_DENIED: Path traversal detected: /secret');
+		const summary = sourcesFilesListReadFailureSummaryFor(denied);
+		assert.strictEqual(summary, 'Workspace files cannot be read from this path.');
+		assert.ok(!summary.includes('PERMISSION_DENIED'));
+		assert.ok(!summary.includes('Path traversal'));
+		assert.ok(sourcesFilesListReadFailureDetail(denied).includes('PERMISSION_DENIED'));
+		assert.ok(sourcesFilesListReadFailureDetail(denied).includes('/secret'));
+
+		const coded = Object.assign(new Error('disk'), { code: 5 });
+		assert.strictEqual(sourcesFilesListReadFailureSummaryFor(coded), 'The workspace folder was not found.');
+		assert.strictEqual(sourcesFilesListReadFailureDetail(coded), 'disk');
+
+		const internal = new Error('13 INTERNAL: disk on fire');
+		assert.strictEqual(sourcesFilesListReadFailureSummaryFor(internal), 'Unable to read workspace files.');
+		assert.ok(!sourcesFilesListReadFailureSummaryFor(internal).includes('INTERNAL'));
+		assert.ok(sourcesFilesListReadFailureDetail(internal).includes('disk on fire'));
 	});
 });

@@ -1327,6 +1327,8 @@ suite('Navigator Agents subviews', () => {
 		assert.ok(hierarchyEmpty);
 		assert.strictEqual(hierarchyEmpty.style.display, 'flex');
 		assert.strictEqual(hierarchyEmpty.textContent, pendingCopy);
+		assert.ok(hierarchyEmpty.classList.contains('navigator-stub-empty'));
+		assert.ok(hierarchyEmpty.classList.contains('is-loading'));
 		assert.ok(!hierarchyEmpty.textContent?.includes('no engine'));
 		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined }).hierarchyTree;
 		assert.strictEqual(hierarchyTree?.getNode(null)?.children.length ?? 0, 0, 'first-pull UNKNOWN must not install leftover nodes');
@@ -1371,6 +1373,8 @@ suite('Navigator Agents subviews', () => {
 		assert.strictEqual(pendingNote.textContent, pendingCopy);
 		const hierarchyEmpty = view.element.querySelector('.navigator-agents-subview.active .navigator-stub-empty') as HTMLElement | null;
 		assert.ok(hierarchyEmpty);
+		assert.ok(hierarchyEmpty.classList.contains('navigator-stub-empty'));
+		assert.ok(!hierarchyEmpty.classList.contains('is-loading'));
 		assert.notStrictEqual(hierarchyEmpty.style.display, 'flex', 'pending leftover must not be painted as first-pull empty');
 	});
 
@@ -1391,6 +1395,8 @@ suite('Navigator Agents subviews', () => {
 		assert.ok(hierarchyEmpty);
 		assert.strictEqual(hierarchyEmpty.style.display, 'flex');
 		assert.strictEqual(hierarchyEmpty.textContent, pendingCopy);
+		assert.ok(hierarchyEmpty.classList.contains('navigator-stub-empty'));
+		assert.ok(hierarchyEmpty.classList.contains('is-loading'));
 		assert.ok(!hierarchyEmpty.textContent?.includes('no engine'));
 		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> | undefined }).hierarchyTree;
 		assert.strictEqual(hierarchyTree?.getNode(null)?.children.length ?? 0, 0, 'first-pull pending must not install leftover nodes');

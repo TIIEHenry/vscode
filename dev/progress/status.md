@@ -10,6 +10,7 @@ summary: "2026-10-16：多工位并行合入 S1–S4 会话工作根、Slot F �
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **S8 Navigator 加载与 Sources 读失败（2026-10-16）**：读代理树时 `.navigator-stub-empty` 加 `.is-loading`，只藏闪电伪元素，并用视图进度条。Sources 文件列表有行时错误只在状态行，无行时只在居中空态；说明是前景色，原始错误在 tooltip 和可展开详情，带重试。会话不可用固定句未做。方案 [cursor-visual-alignment](../plans/cursor-visual-alignment.md) 仍 `draft`。
 - **多工位并行实施与架构缺陷修复 Wave 2026-10-16（第二批）**：
   - **Slot F: ProjectRule 全局探测增加 GLOBAL scope 载荷（提交 4ceec227b19，G16、B3）**：
     - `grpcTransport.ts` 与 `grpcClient.ts` 扩充 `probeRpc` 接受可选 `request` 参数；

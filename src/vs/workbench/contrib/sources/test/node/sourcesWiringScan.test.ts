@@ -356,7 +356,7 @@ suite('Sources - files list leftover - 源码接线扫描', () => {
 		assert.ok(model.includes('Promise.allSettled'));
 		assert.ok(model.includes('disregardIgnoreFiles: false'));
 		assert.ok(model.includes('disregardParentIgnoreFiles: false'));
-		assert.ok(list.includes('sourcesFilesListReadFailureMessage'));
+		assert.ok(list.includes('sourcesFilesListReadFailureSummaryFor'));
 		assert.ok(list.includes('lastGoodEntries'));
 		assert.ok(list.includes('sources-files-status'));
 		assert.ok(list.includes("classList.add('is-error')"));

@@ -25,6 +25,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { WorkbenchList, WorkbenchObjectTree } from '../../../../platform/list/browser/listService.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
+import { IProgressRunner } from '../../../../platform/progress/common/progress.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { ItemAttribution } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -51,7 +52,7 @@ import {
 	isRootOnlyAgentTree,
 	liveAgentTreeToHierarchyNodes,
 } from '../common/navigatorAgentHierarchy.js';
-import { getNavigatorAgentTreePendingCopy, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
+import { getNavigatorAgentTreePendingCopy, isNavigatorAgentTreeLoadingCopy, NAVIGATOR_ACTIVITY_FETCH_FAILED_COPY, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { filterNavigatorAgentsHierarchyNodes, matchesNavigatorAgentsInlineFilter } from '../common/navigatorAgentsInlineFilter.js';
 import {
@@ -289,6 +290,7 @@ export class NavigatorAgentsView extends ViewPane {
 	private hierarchyRenderer: AgentsHierarchyRenderer | undefined;
 	private lastBodyHeight = 0;
 	private lastBodyWidth = 0;
+	private agentTreeLoadRunner: IProgressRunner | undefined;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -340,6 +342,12 @@ export class NavigatorAgentsView extends ViewPane {
 			this.inspectService.setLiveAgentIds('agents', undefined);
 			this.inspectService.setLiveActivityIds(undefined);
 		}
+	}
+
+	override dispose(): void {
+		this.agentTreeLoadRunner?.done();
+		this.agentTreeLoadRunner = undefined;
+		super.dispose();
 	}
 
 	getActiveSubview(): NavigatorAgentsSubview {
@@ -789,6 +797,7 @@ export class NavigatorAgentsView extends ViewPane {
 			this.hierarchyNote.style.display = 'none';
 			this.hierarchyNote.classList.remove('is-error');
 		}
+		this.syncAgentTreeLoadingChrome();
 		this.relayoutCurrentSubview();
 	}
 
@@ -804,6 +813,7 @@ export class NavigatorAgentsView extends ViewPane {
 			this.activityNote.style.display = 'none';
 			this.activityNote.classList.remove('is-error');
 		}
+		this.syncAgentTreeLoadingChrome();
 		this.relayoutCurrentSubview();
 	}
 
@@ -956,6 +966,7 @@ export class NavigatorAgentsView extends ViewPane {
 		this.hierarchyBody.classList.toggle('is-empty', isEmpty);
 		this.hierarchyEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.hierarchyTreeContainer.style.display = isEmpty ? 'none' : 'block';
+		this.syncAgentTreeLoadingChrome();
 	}
 
 	private updateActivityDisplay(): void {
@@ -971,6 +982,43 @@ export class NavigatorAgentsView extends ViewPane {
 		this.activityBody.classList.toggle('is-empty', isEmpty);
 		this.activityEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.activityListContainer.style.display = isEmpty ? 'none' : 'block';
+		this.syncAgentTreeLoadingChrome();
+	}
+
+	/** Hide the lightning glyph only while the visible empty copy is the agent-tree read. */
+	private syncStubEmptyLoading(empty: HTMLElement | undefined): void {
+		if (!empty) {
+			return;
+		}
+		const shown = empty.style.display !== 'none';
+		empty.classList.toggle('is-loading', shown && isNavigatorAgentTreeLoadingCopy(empty.textContent));
+	}
+
+	private stubShowsAgentTreeLoading(element: HTMLElement | undefined): boolean {
+		if (!element || element.style.display === 'none') {
+			return false;
+		}
+		return isNavigatorAgentTreeLoadingCopy(element.textContent);
+	}
+
+	private syncAgentTreeLoadingChrome(): void {
+		this.syncStubEmptyLoading(this.hierarchyEmpty);
+		this.syncStubEmptyLoading(this.activityEmpty);
+		if (!this.element) {
+			return;
+		}
+		const loading = this.stubShowsAgentTreeLoading(this.hierarchyEmpty)
+			|| this.stubShowsAgentTreeLoading(this.hierarchyNote)
+			|| this.stubShowsAgentTreeLoading(this.activityEmpty)
+			|| this.stubShowsAgentTreeLoading(this.activityNote);
+		if (loading) {
+			if (!this.agentTreeLoadRunner) {
+				this.agentTreeLoadRunner = this.getProgressIndicator().show(true);
+			}
+			return;
+		}
+		this.agentTreeLoadRunner?.done();
+		this.agentTreeLoadRunner = undefined;
 	}
 
 	private updateSubviewVisibility(): void {

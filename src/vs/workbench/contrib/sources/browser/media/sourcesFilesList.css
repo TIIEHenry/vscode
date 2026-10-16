@@ -182,7 +182,10 @@
 }
 
 .monaco-workbench .part.sources .sources-files-empty.is-error {
-	color: var(--vscode-errorForeground);
+	justify-content: flex-start;
+	min-height: 0;
+	overflow: auto;
+	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .part.sources .sources-files-empty.is-error::before {
@@ -192,11 +195,85 @@
 }
 
 .monaco-workbench .part.sources .sources-files-status {
+	flex: 0 1 auto;
+	min-height: 0;
+	max-height: 40%;
 	padding: 4px 8px 6px;
+	overflow: auto;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
+	line-height: 1.5;
+	white-space: normal;
+	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .part.sources .sources-files-status.is-error {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+	position: relative;
+	box-sizing: border-box;
+	padding-left: 28px;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.sources .sources-files-status.is-error::before {
+	position: absolute;
+	left: 8px;
+	top: 6px;
+	font-family: codicon;
+	font-size: 16px;
+	line-height: 1;
+	content: "\ea87";
 	color: var(--vscode-errorForeground);
+}
+
+.monaco-workbench .part.sources .sources-files-error-summary {
+	color: var(--vscode-foreground);
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .part.sources .sources-files-empty .sources-files-error-summary {
+	text-align: center;
+}
+
+.monaco-workbench .part.sources .sources-files-error-details {
+	max-width: 100%;
+	color: var(--vscode-foreground);
+	font-size: 12px;
+	text-align: start;
+}
+
+.monaco-workbench .part.sources .sources-files-error-details > summary {
+	cursor: pointer;
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .part.sources .sources-files-error-raw {
+	margin: 4px 0 0;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	text-align: start;
+	color: var(--vscode-descriptionForeground);
+	font-family: var(--monaco-monospace-font, var(--vscode-editor-font-family));
+	font-size: 11px;
+	line-height: 1.4;
+	user-select: text;
+}
+
+.monaco-workbench .part.sources .sources-files-error-retry {
+	border: none;
+	background: transparent;
+	padding: 0;
+	color: var(--vscode-textLink-foreground);
+	font-size: 12px;
+	line-height: 1.5;
+	cursor: pointer;
+}
+
+.monaco-workbench .part.sources .sources-files-error-retry:focus-visible,
+.monaco-workbench .part.sources .sources-files-error-details > summary:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: 2px;
 }

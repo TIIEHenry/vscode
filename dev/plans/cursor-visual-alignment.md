@@ -4,14 +4,14 @@ type: plan
 status: draft
 phase: N/A
 updated: 2026-10-16
-summary: "对照 Cursor 截图与 HEAD 实拍收壳与会话观感。S1 主题三档、活动栏颜色、弹出层高亮与中性主按钮，S2 画布 token，S3 对话头与身份条，S4 用户回合卡与置顶提示已落地；S6 只去了 Preview 键帽框，S7 只补了原生菜单判断，S8 只去掉空树重复错误。进行中一行 Composer、会话切换菜单、目录列表与 Markdown 预览未做。四钮、状态栏、置顶判定、PRD-015 控件集不动。方案仍 draft，不升 PRD-028。"
+summary: "对照 Cursor 截图与 HEAD 实拍收壳与会话观感。S1–S4 已落地；S6 只去了 Preview 键帽框，S7 只补了原生菜单判断。S8 已收 Sources 读失败只出现一次，并在读代理树时用 .is-loading 藏闪电。会话不可用固定句、一行 Composer、会话切换菜单、目录列表与 Markdown 预览未做。方案仍 draft，不升 PRD-028。"
 ---
 
 # 壳与对话观感向 Cursor 靠齐（保留 IDE 密度）
 
 需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度)（`accepted`，2026-10-11 用户选定见该条「依赖或未决」）。系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md)、[主题与 token](../../docs/architecture/cross-cutting/theming.md)、[Composer 与 Inbox](../../docs/systems/conversation/composer-and-inbox.md)、[Conversation 透镜与轨迹](../../docs/systems/conversation/lens-and-trajectory.md)。相邻方案：[自有界面视觉审查问题收口](visual-audit-remediation-2026-10-05.md)（焦点环、Sources 行高等，本稿不重做）、[时间线重构](conversation-timeline-refactor.md) D3（置顶提示）。
 
-实施进度（2026-10-11）：S1–S4 已落地。S6 只做了 Preview 空态键帽去框。S7 只补了 `hasNativeContextMenu` 为真时 Profile 选择器留下原生下拉。S8 只去掉树模式没有文件时状态行与空态各写一遍错误。S5、Sources 标题栏并入 tab 条、会话切换改菜单、History / Snapshots / Inbox 铬、产品遮罩色、会话不可用固定句、Navigator 加载态、S9、S10 未做。不升 PRD-028。
+实施进度（2026-10-16）：S1–S4 已落地。S6 只做了 Preview 空态键帽去框。S7 只补了 `hasNativeContextMenu` 为真时 Profile 选择器留下原生下拉。S8 的 Sources 读失败已改成有行只写状态行、无行只写居中空态，说明是前景色，原始错误在 tooltip 和详情里，并有重试。Navigator 读代理树时在保留的 `.navigator-stub-empty` 上加 `.is-loading` 藏闪电图标，并用视图进度条。会话不可用固定句、S5、Sources 标题栏并入 tab 条、会话切换改菜单、History / Snapshots / Inbox 铬、产品遮罩色、S9、S10 未做。不升 PRD-028。
 
 ## 1. 对照基线
 
@@ -147,7 +147,7 @@ S0 提交按规则 3b、13 拆开：本稿的决策段落随方案提交；PRD-0
 
 - Sources 文件列表：树模式读失败时，空态和状态行各写一遍（`sourcesFilesList.ts:504-512`）；列表模式只留空态并清掉状态行（`:671-672`）。改成有列表内容时只用顶部状态行，没有内容时只用居中空态。呈现为错误图标，加一行前景色说明（只对能确定的错误码给专门文案，其余用通用说明），加一个操作（重试）。原始 `getErrorMessage(error)` 进 tooltip 与可展开的详情，文字不再整段 `errorForeground`。保证不被状态栏截断（换行，容器可滚动）。同一切片改掉锁住原文的断言：`sourcesFilesList.test.ts:274`、`:308`、`:337`，`sourcesFilesListStrings.test.ts:24`。
 - 会话不可用：在现有 “Session unavailable” 上补一句固定原因，对应 `isEngineConnected() && isEngineSessionReady()===false`（`conversationLensComposerChrome.ts:752-754`）。名单失败的 `catch` 把异常丢掉了（`conversationEngineRosterService.ts:1952-1964`），没有可展示的原始原因，不用 `getErrorMessage`。颜色用 `descriptionForeground`。Permission、Model、Tools 保持禁用和现有诚实空文案，不省略（PRD-015 验收 4）。SessionBar 上一级、下一级按合同常驻禁用。会话名保持前景色。`composer-and-inbox.md` 补上这句固定文案和「控件仍留在输入行」。
-- Navigator 加载：加载态换一个不带 `::before` 闪电图标的类，加一行弱化文字。空态继续用 `.navigator-stub-empty::before`，不拿掉所有空态的图标。进度用视图自己的 `ViewPane.getProgressIndicator()`（`viewPane.ts:667-683`）；`NavigatorTeamView` 与 `NavigatorAgentsView` 都是 `ViewPane`。文案函数在 `navigatorAgentTreeEmptyState.ts:31`，Team 与 Agents 共用，`navigatorTeam.test.ts:57` 锁着 “Reading agent tree…”，同一切片改断言。加载失败时按上面的错误呈现。
+- Navigator 加载：空态容器继续用 `.navigator-stub-empty`（Agents / Team 的 DOM 查询靠这个类）。读代理树时再加 `.is-loading`，只让 `.navigator-stub-empty.is-loading::before` 藏起闪电图标；其它空态图标不动。文案仍是 “Reading agent tree…”。进度用视图自己的 `ViewPane.getProgressIndicator()`（`viewPane.ts:667-683`）；`NavigatorTeamView` 与 `NavigatorAgentsView` 都是 `ViewPane`。加载失败仍是失败文案，不加 `.is-loading`。
 - 文案进各自的 `*Strings.ts`，带 `localize`；单测锁住「同一错误只出现一处」「原始错误码不在可见正文里」「不可用时 Permission / Model / Tools 仍在且禁用」。
 
 ### S9 目录列表、筛选芯片与搜索框
