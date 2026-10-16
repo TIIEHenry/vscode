@@ -4,14 +4,14 @@ type: plan
 status: draft
 phase: N/A
 updated: 2026-10-16
-summary: "对照 Cursor 截图与 HEAD 实拍收壳与会话观感。S1–S5（进行中空稿一行与卡片 token 改造）、S6（Preview 空态去框、Sources 标题栏并入 tab 条）、S7（会话切换接入菜单 Picker 与弱化元信息）、S8（Sources 错误去重、Navigator 加载藏闪电、会话不可用固定原因与输入控件保留）已落地。目录列表与 Markdown 预览未做。方案仍 draft，不升 PRD-028。"
+summary: "对照 Cursor 截图与 HEAD 实拍收壳与会话观感。S1–S5（进行中空稿一行与卡片 token 改造）、S6（Preview 空态去框、Sources 标题栏并入 tab 条）、S7（会话切换接入菜单 Picker 与弱化元信息）、S8（Sources 错误去重、Navigator 加载藏闪电、会话不可用固定原因与输入控件保留）、S9（6c1d33127fd：透镜芯片/Sources tab/首选项中性淡底 hover 与 400 字重、Navigator 过滤框去描边、Engine 分节 24px 单行）已落地。Markdown 预览（S10）未做。方案仍 draft，不升 PRD-028。"
 ---
 
 # 壳与对话观感向 Cursor 靠齐（保留 IDE 密度）
 
 需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度)（`accepted`，2026-10-11 用户选定见该条「依赖或未决」）。系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md)、[主题与 token](../../docs/architecture/cross-cutting/theming.md)、[Composer 与 Inbox](../../docs/systems/conversation/composer-and-inbox.md)、[Conversation 透镜与轨迹](../../docs/systems/conversation/lens-and-trajectory.md)。相邻方案：[自有界面视觉审查问题收口](visual-audit-remediation-2026-10-05.md)（焦点环、Sources 行高等，本稿不重做）、[时间线重构](conversation-timeline-refactor.md) D3（置顶提示）。
 
-实施进度（2026-10-16）：S1–S5（Composer 进行中空稿一行、卡片 token 描边/投影改造与贴底保持）、S6（Preview 空态键帽去框、Sources 标题栏动作并入 tab 条）、S7（接通 sessionSelectBox 至 attachComposerPicker，支持弱化元信息与原生下拉保留）、S8（Sources 读失败只出现一次、Navigator 读代理树时藏闪电、会话不可用补充固定原因说明且底栏控件与 SessionBar 导航保留禁用态）、S9（透镜芯片、Sources tab 与首选项分类选中态改中性淡底不加粗；Navigator 过滤框去常驻描边聚焦出焦点环；Engine 首选项目录各分节 24px 单行与分组弱化计数）已落地。History / Snapshots / Inbox 铬、产品遮罩色、S10 未做。不升 PRD-028。
+实施进度（2026-10-16）：S1–S5（Composer 进行中空稿一行、卡片 token 描边/投影改造与贴底保持）、S6（Preview 空态键帽去框、Sources 标题栏动作并入 tab 条）、S7（接通 sessionSelectBox 至 attachComposerPicker，支持弱化元信息与原生下拉保留）、S8（Sources 读失败只出现一次、Navigator 读代理树时藏闪电、会话不可用补充固定原因说明且底栏控件与 SessionBar 导航保留禁用态）、S9（6c1d33127fd：透镜芯片/Sources tab/首选项中性淡底 hover 与 400 字重、Navigator 过滤框去描边、Engine 分节 24px 单行）已落地。History / Snapshots / Inbox 铬、产品遮罩色、S10 未做。不升 PRD-028。
 
 ## 1. 对照基线
 
@@ -151,6 +151,8 @@ S0 提交按规则 3b、13 拆开：本稿的决策段落随方案提交；PRD-0
 - 文案进各自的 `*Strings.ts`，带 `localize`；单测锁住「同一错误只出现一处」「原始错误码不在可见正文里」「不可用时 Permission / Model / Tools 仍在且禁用」。
 
 ### S9 目录列表、筛选芯片与搜索框
+
+> 已于 `6c1d33127fd` 落地。
 
 - 目录列表：按 [UI 设计原则 §5.3](../../docs/architecture/cross-cutting/ui-design-principles.md#53-工程表格与列表轨迹表sourcesnavigator首选项列表) 改 Engine 首选项各分区与 Connection 设备列表。分组头加弱化计数与至多一个次按钮，组体淡底容器，内容行收成 24px 单行（图标块、名称、同行说明、悬停 `…`）。左栏导航保持 22px。导航计数继续用全量条数、不含分组行（[engine-catalog](../../docs/systems/workbench/engine-catalog.md)）；「再显示 N 个」不改变这个计数，展开状态在分区内记住。设备列表不得为了只显示 5 行而藏起当前设备。键盘：↑↓ 在行间移动，「再显示 N 个」可聚焦。`connectionPreferencesPane.css` 是视觉审查 V3 的文件，等 V3 合入再改；在此之前设备行的新样式写到不与 V3 重叠的新文件。行高合同（Agents 28 / 44px、设备 36px）在代码改动的同一笔里同步 `engine-catalog.md`，代码未改前不改那篇的 HEAD 描述。Tools 分节 2026-10-16 工作区已从 48px 收到 28 / 44px，仍是双行、分组头仍全大写，见 [视觉审查 2026-10-16](../progress/visual-review-2026-10-16.md) V1。
 - 筛选芯片：透镜切换、Sources tab、Engine 首选项分类改用 §5.7 的同一选中样式（中性淡底、不加粗）。透镜切换的 `role="tablist"` 与方向键行为不变。

@@ -4,7 +4,7 @@ type: reference
 status: draft
 phase: M7
 updated: 2026-10-16
-summary: "复查 2026-10-11 引擎联动缺口并补新发现。已签收的停 Enqueue 与生成中禁用 Send 未实施；MCP Add、Triggers Add、Clipboard Write 按钮可点但不发或发空载荷；Files 未改用会话工作根。发现稿，未切实施，未改代码。"
+summary: "复查 2026-10-11 引擎联动缺口并补新发现。G3/D1（05a17c38879）、G4/G15/G16（05a17c38879、1a4c4295b45、f342680627e）、G6（2e785907611）、G8（83ef402a254）、G17（4fa4f3eab56）、D2/D3（cc6e17a9d8f）均已实施。发现稿保持 draft，未闭环缺口待后续迭代。"
 ---
 
 # 功能缺口审查 2026-10-16
@@ -74,13 +74,14 @@ G1、G2 即 [engine-gap-queue-send-attachments](engine-gap-queue-send-attachment
 
 ## 7. 方案
 
-发现稿保持 `draft`。条目归宿：
+发现稿保持 `draft`。条目归宿与落地情况：
 
-- G1、G2、G5、G7、G10、G11、G19、G20、P2、D2、D3 → [feature-gaps-2026-10-16-boundary](feature-gaps-2026-10-16-boundary.md)
-- G3、D1 → [engine-mcp-definition-form](engine-mcp-definition-form.md)
-- G4、G15、G16 → [engine-trigger-clipboard-actions](engine-trigger-clipboard-actions.md)
-- G6 → [composer-agent-picker](composer-agent-picker.md)
-- G8、G9、G12、G13、G14、G18 → [conversation-failure-and-mutation](conversation-failure-and-mutation.md)
-- G17 → [architecture-2026-10-16-concrete](architecture-2026-10-16-concrete.md) §1
+- G1、G2、G5、G7、G10、G11、G19、G20、P2 → [feature-gaps-2026-10-16-boundary](feature-gaps-2026-10-16-boundary.md)
+- G3、D1 → [engine-mcp-definition-form](engine-mcp-definition-form.md)（已于 `05a17c38879` 实施）
+- G4、G15、G16 → [engine-trigger-clipboard-actions](engine-trigger-clipboard-actions.md)（已于 `05a17c38879`、`1a4c4295b45`、`f342680627e` 实施）
+- G6 → [composer-agent-picker](composer-agent-picker.md)（已于 `2e785907611` 实施）
+- G8、G9、G12、G13、G14、G18 → [conversation-failure-and-mutation](conversation-failure-and-mutation.md)（其中 G8 路径键盘符与 Kill 动作已于 `83ef402a254` 实施；G9、G12、G13、G14、G18 待后续迭代）
+- G17 → [architecture-2026-10-16-concrete](architecture-2026-10-16-concrete.md) §1（断链清理能力快照已于 `4fa4f3eab56` 实施）
+- D2、D3 → 文档与代码偏差已于 `cc6e17a9d8f` 实施纠正
 
-以上方案均为 `draft`，未实施。
+落地状态总括：G3/D1（`05a17c38879`）、G4/G15/G16（`05a17c38879`、`1a4c4295b45`、`f342680627e`）、G6（`2e785907611`）、G8（`83ef402a254`）、G17（`4fa4f3eab56`）、D2/D3（`cc6e17a9d8f`）均已实施。其余缺口方案推进中。
