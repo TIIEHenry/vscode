@@ -528,6 +528,72 @@ export function updateComposerEditChrome(host: IConversationLensComposerChromeHo
 	
 }
 
+export interface IConversationLensComposerSingleLineHost {
+	composer: HTMLElement;
+	composerCluster: HTMLElement;
+	dockRoot: HTMLElement;
+	prefirstHero: HTMLElement;
+	dockTextarea: HTMLTextAreaElement;
+	composerPolicy: ComposerPolicy;
+	inputMaximized: boolean;
+	lastReadingWidth: number;
+	composerRefResources?: readonly unknown[];
+	slotHosts?: IConversationLensSlots;
+	timelineTree?: {
+		isScrolledToBottom?(): boolean;
+		scrollToEnd?(): void;
+	};
+	isPreFirst(): boolean;
+}
+
+export function isComposerSingleLine(host: IConversationLensComposerSingleLineHost): boolean {
+	if (host.isPreFirst()) {
+		return false;
+	}
+	if (host.composerPolicy !== 'compose') {
+		return false;
+	}
+	if (host.inputMaximized) {
+		return false;
+	}
+	if (host.dockTextarea?.value && host.dockTextarea.value.length > 0) {
+		return false;
+	}
+	if (host.composerRefResources && host.composerRefResources.length > 0) {
+		return false;
+	}
+	if (host.composerCluster?.parentElement !== host.dockRoot || host.composer?.parentElement !== host.composerCluster) {
+		return false;
+	}
+	if (host.lastReadingWidth > 0) {
+		if (host.lastReadingWidth < 450) {
+			return false;
+		}
+	} else {
+		if (host.slotHosts?.dock?.classList.contains('is-narrow') || host.composer?.closest?.('.is-narrow')) {
+			return false;
+		}
+	}
+	return true;
+}
+
+export function updateComposerSingleLineLayout(host: IConversationLensComposerSingleLineHost): void {
+	if (!host.composer) {
+		return;
+	}
+	const prevSingle = host.composer.classList.contains('is-single-line');
+	const nextSingle = isComposerSingleLine(host);
+	if (prevSingle === nextSingle) {
+		return;
+	}
+	const wasAtBottom = host.timelineTree?.isScrolledToBottom?.() ?? false;
+	host.composer.classList.toggle('is-single-line', nextSingle);
+	host.composer.classList.toggle('composer-single-line', nextSingle);
+	if (wasAtBottom) {
+		host.timelineTree?.scrollToEnd?.();
+	}
+}
+
 export function syncComposerPlacement(host: IConversationLensComposerChromeHost): void {
 
 		if (host.composerPolicy === 'turnEdit' && host.editingTurnId && isComposerEditSurfaceLive(host)) {
@@ -554,12 +620,14 @@ export function syncComposerPlacement(host: IConversationLensComposerChromeHost)
 			if (host.composerCluster.parentElement !== host.prefirstHero) {
 				host.prefirstHero.appendChild(host.composerCluster);
 			}
+			updateComposerSingleLineLayout(host);
 			return;
 		}
 
 		if (host.composerCluster.parentElement !== host.dockRoot) {
 			host.dockRoot.appendChild(host.composerCluster);
 		}
+		updateComposerSingleLineLayout(host);
 	
 }
 
@@ -643,6 +711,7 @@ export function updateSendEnabled(host: IConversationLensComposerChromeHost): vo
 			return;
 		}
 		host.sendButton.enabled = hasDraft;
+		updateComposerSingleLineLayout(host);
 	
 }
 

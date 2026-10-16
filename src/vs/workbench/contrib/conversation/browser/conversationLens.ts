@@ -137,6 +137,7 @@ import {
 	updateMaximizeInputButton,
 	updateSendEnabled,
 	updateSessionConfigVisibility,
+	updateComposerSingleLineLayout,
 	type ComposerPolicy,
 	type ConversationSessionConfigSelection,
 } from './conversationLensComposerChrome.js';
@@ -561,6 +562,7 @@ export class ConversationLens extends Disposable {
 		}
 		this.readingColumn.classList.toggle(conversationLensInputMaximizedClass, maximized);
 		this.updateMaximizeInputButton();
+		this.updateComposerSingleLineLayout();
 		if (maximized) {
 			this.inboxOverlay.closeListPanel();
 			this.engineHistoryList?.close();
@@ -579,6 +581,10 @@ export class ConversationLens extends Disposable {
 
 	updateSendEnabled(): void {
 		updateSendEnabled(this);
+	}
+
+	updateComposerSingleLineLayout(): void {
+		updateComposerSingleLineLayout(this);
 	}
 
 	updateGateRow(): void {
@@ -819,6 +825,7 @@ export class ConversationLens extends Disposable {
 
 	applyConversationWidth(width: number): void {
 		applyConversationWidth(this, width);
+		this.updateComposerSingleLineLayout();
 	}
 
 	updateSyncChrome(_sync?: SyncChrome): void {

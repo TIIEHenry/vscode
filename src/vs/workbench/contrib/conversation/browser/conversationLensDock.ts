@@ -44,6 +44,7 @@ import {
 	type IConversationLensComposerChromeHost,
 	showPostFailure,
 	updateComposerSessionSelectsEnabled,
+	updateGateRow,
 } from './conversationLensComposerChrome.js';
 
 /**

@@ -3252,17 +3252,110 @@
 	flex-direction: column;
 	gap: 12px;
 	padding: 10px 0 0;
-	border: 1px solid rgba(0, 0, 0, 0.08);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	/* Cursor-style capsule card: large radius, neutral hairline, soft lift. */
 	border-radius: 20px;
 	background-color: var(--vscode-input-background);
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 10px rgba(0, 0, 0, 0.04);
+	box-shadow: 0 1px 2px color-mix(in srgb, var(--vscode-widget-shadow) 25%, transparent), 0 2px 8px color-mix(in srgb, var(--vscode-widget-shadow) 20%, transparent);
 	overflow: hidden;
 }
 
-.monaco-workbench.vs-dark .part.conversation .conversation-lens-composer {
-	border-color: rgba(255, 255, 255, 0.08);
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+/* S5 Composer single-line layout (during ongoing session with empty draft, leaf width >= 450px) */
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line {
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 6px 4px 8px;
+	min-height: 34px;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-input-row,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-input-row,
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-bottom-bar,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-bottom-bar,
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-bottom-leading,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-bottom-leading,
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-bottom-trailing,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-bottom-trailing {
+	display: contents;
+}
+
+/* 1. Tools */
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-tune,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-tune {
+	order: 1;
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+}
+
+/* 2. Message input */
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-input,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-input {
+	order: 2;
+	flex: 1 1 0%;
+	min-width: 0;
+	height: 24px;
+	min-height: 24px;
+	max-height: 24px;
+	line-height: 24px;
+	padding: 0 4px;
+	overflow: hidden;
+	field-sizing: normal;
+}
+
+/* 3. Permission */
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-permission,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-permission {
+	order: 3;
+	flex-shrink: 0;
+}
+
+/* 4. Model */
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-model,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-model {
+	order: 4;
+	flex-shrink: 0;
+}
+
+/* 5. Maximize input */
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-maximize-input,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-maximize-input {
+	order: 5;
+	position: static;
+	opacity: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 24px;
+	height: 24px;
+	top: auto;
+	right: auto;
+	z-index: auto;
+	transition: none;
+}
+
+/* 6. Send button */
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-send,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-send {
+	order: 6;
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+}
+
+/* Hidden elements in single-line mode */
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-agent,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-agent,
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-dock-more,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-dock-more,
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-lens-composer-edit-header,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-lens-composer-edit-header,
+.monaco-workbench .part.conversation .conversation-lens-composer.is-single-line .conversation-composer-ref-row,
+.monaco-workbench .part.conversation .conversation-lens-composer.composer-single-line .conversation-composer-ref-row {
+	display: none !important;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-composer-cluster {
@@ -3479,12 +3572,7 @@
 .monaco-workbench .part.conversation .conversation-lens-composer:focus,
 .monaco-workbench .part.conversation .conversation-lens-composer:focus-within {
 	outline: none;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.monaco-workbench.vs-dark .part.conversation .conversation-lens-composer:focus,
-.monaco-workbench.vs-dark .part.conversation .conversation-lens-composer:focus-within {
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), 0 8px 24px rgba(0, 0, 0, 0.35);
+	box-shadow: 0 1px 3px color-mix(in srgb, var(--vscode-widget-shadow) 40%, transparent), 0 4px 14px color-mix(in srgb, var(--vscode-widget-shadow) 35%, transparent);
 }
 
 .monaco-workbench.hc-black .part.conversation .conversation-lens-composer,

@@ -297,6 +297,80 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(!/badge-background/.test(badge!.body));
 	});
 
+	test('S5 composer tokens and single-line layout rules', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const rules = collectCssRules(css);
+		const rule = (selectorIncludes: string, bodyIncludes?: string) => rules.find(candidate => {
+			if (!candidate.selector.includes(selectorIncludes)) {
+				return false;
+			}
+			return bodyIncludes === undefined || candidate.body.includes(bodyIncludes);
+		});
+
+		// 1. Composer card uses color-mix 8% border and widget shadow tokens without hardcoded rgba
+		const composer = rules.find(candidate => candidate.selector.trim().endsWith('.conversation-lens-composer') && /border-radius/.test(candidate.body));
+		assert.ok(composer);
+		assert.match(composer!.body, /border:\s*1px solid color-mix\(in srgb, var\(--vscode-foreground\) 8%, transparent\)/);
+		assert.match(composer!.body, /var\(--vscode-widget-shadow\)/);
+		assert.ok(!/rgba\(/.test(composer!.body), 'composer card must not use hardcoded rgba in border or shadow');
+
+		// 2. Focus state deepens widget shadow without focusBorder or hardcoded rgba
+		const focus = rule('.conversation-lens-composer:focus-within');
+		assert.ok(focus);
+		assert.match(focus!.body, /var\(--vscode-widget-shadow\)/);
+		assert.ok(!/rgba\(/.test(focus!.body), 'composer focus state must not use hardcoded rgba');
+		assert.ok(!/focusBorder/.test(focus!.body));
+
+		// 3. No dark-theme override with hardcoded rgba
+		const darkComposer = rules.find(candidate => candidate.selector.includes('.vs-dark') && candidate.selector.includes('.conversation-lens-composer'));
+		assert.strictEqual(darkComposer, undefined, 'no vs-dark hardcoded rgba override for composer');
+
+		// 4. Single-line row layout and display: contents
+		const singleLine = rule('.conversation-lens-composer.is-single-line', 'flex-direction: row');
+		assert.ok(singleLine, 'missing .conversation-lens-composer.is-single-line rule');
+		assert.match(singleLine!.body, /align-items:\s*center/);
+
+		const singleLineWrappers = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-input-row');
+		assert.ok(singleLineWrappers);
+		assert.match(singleLineWrappers!.body, /display:\s*contents/);
+
+		// 5. Flex order 1 through 6
+		const tune = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-tune');
+		assert.ok(tune);
+		assert.match(tune!.body, /order:\s*1/);
+
+		const input = rules.find(candidate => candidate.selector.includes('.conversation-lens-composer.is-single-line .conversation-lens-dock-input') && !candidate.selector.includes('.conversation-lens-dock-input-row'));
+		assert.ok(input);
+		assert.match(input!.body, /order:\s*2/);
+		assert.match(input!.body, /flex:\s*1 1 0%/);
+
+		const permission = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-permission');
+		assert.ok(permission);
+		assert.match(permission!.body, /order:\s*3/);
+
+		const model = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-model');
+		assert.ok(model);
+		assert.match(model!.body, /order:\s*4/);
+
+		const maximize = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-maximize-input');
+		assert.ok(maximize);
+		assert.match(maximize!.body, /order:\s*5/);
+		assert.match(maximize!.body, /position:\s*static/);
+
+		const send = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-send');
+		assert.ok(send);
+		assert.match(send!.body, /order:\s*6/);
+
+		// 6. Hidden controls in single line
+		const hiddenAgent = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-agent');
+		assert.ok(hiddenAgent);
+		assert.match(hiddenAgent!.body, /display:\s*none\s*!important/);
+
+		const hiddenMore = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-more');
+		assert.ok(hiddenMore);
+		assert.match(hiddenMore!.body, /display:\s*none\s*!important/);
+	});
+
 	test('composer card uses the Cursor-style capsule input and a 24px neutral send control', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		const dock = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts'), 'utf8');
