@@ -18,8 +18,11 @@ import { IAgentSessionContext } from '../../../services/agentSession/common/agen
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import type { UniverseAgentCapabilitySupport, UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
+import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
+import type { UniverseAgentCapabilitySupport, UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary, UniverseAgentMcpServerTransport } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	type EngineCatalogPaneMode,
@@ -35,6 +38,8 @@ import { writeStatus } from './connectionPreferencesPane.js';
 const $ = DOM.$;
 
 type EngineMcpTab = 'definitions' | 'runtime';
+
+const MCP_FORM_TRANSPORTS: readonly UniverseAgentMcpServerTransport[] = ['stdio', 'sse', 'streamable_http'];
 
 const MCP_FEATURE = localize('ua.engineMcpFeatureLabel', "MCP server definitions");
 
@@ -217,6 +222,13 @@ export class EngineMcpSection extends Disposable {
 	private readonly runtimePanel: EngineMcpRuntimePanel;
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly writeToolbar: HTMLElement;
+	private readonly formHost: HTMLElement;
+	private readonly nameInput: InputBox;
+	private readonly transportSelect: SelectBox;
+	private readonly commandRow: HTMLElement;
+	private readonly commandInput: InputBox;
+	private readonly urlRow: HTMLElement;
+	private readonly urlInput: InputBox;
 	private readonly catalogWriteStatus: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly instantiationService: IInstantiationService;
@@ -234,11 +246,15 @@ export class EngineMcpSection extends Disposable {
 	private _removeServerGeneration = 0;
 	private lastLayout: { readonly width: number; readonly listHeight: number } | undefined;
 
+	private formMode: 'add' | 'update' | undefined;
+	private formTransport: UniverseAgentMcpServerTransport = 'stdio';
+
 	constructor(
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
+		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IAgentSessionContext private readonly sessionContext: IAgentSessionContext,
 	) {
 		super();
@@ -270,13 +286,67 @@ export class EngineMcpSection extends Disposable {
 		this.writeToolbar.style.display = 'none';
 		const addButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
 		addButton.label = localize('ua.engineMcpAdd', "Add");
-		this._register(addButton.onDidClick(() => void this.addServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(addButton.onDidClick(() => this.openAddForm()));
 		const updateButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		updateButton.label = localize('ua.engineMcpUpdate', "Update");
-		this._register(updateButton.onDidClick(() => void this.updateSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(updateButton.onDidClick(() => this.openUpdateForm()));
 		const removeButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
 		removeButton.label = localize('ua.engineMcpRemove', "Remove");
 		this._register(removeButton.onDidClick(() => void this.removeSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+
+		this.formHost = DOM.append(this.definitionsPanel, $('.engine-mcp-form'));
+		this.formHost.style.display = 'none';
+
+		const nameRow = DOM.append(this.formHost, $('.engine-mcp-form-row'));
+		DOM.append(nameRow, $('label')).textContent = localize('ua.engineMcpName', "Name");
+		this.nameInput = this._register(new InputBox(nameRow, this.contextViewService, {
+			ariaLabel: localize('ua.engineMcpName', "Name"),
+			inputBoxStyles: defaultInputBoxStyles,
+		}));
+		this.nameInput.element.classList.add('engine-mcp-name-input');
+
+		const transportRow = DOM.append(this.formHost, $('.engine-mcp-form-row'));
+		DOM.append(transportRow, $('label')).textContent = localize('ua.engineMcpTransport', "Transport");
+		this.transportSelect = this._register(new SelectBox(
+			MCP_FORM_TRANSPORTS.map(text => ({ text })),
+			0,
+			this.contextViewService,
+			defaultSelectBoxStyles,
+			{ ariaLabel: localize('ua.engineMcpTransport', "Transport") },
+		));
+		this.transportSelect.render(transportRow);
+		this._register(this.transportSelect.onDidSelect(e => {
+			this.formTransport = MCP_FORM_TRANSPORTS[e.index];
+			this.updateFormFieldsVisibility();
+		}));
+
+		this.commandRow = DOM.append(this.formHost, $('.engine-mcp-form-row'));
+		DOM.append(this.commandRow, $('label')).textContent = localize('ua.engineMcpCommand', "Command");
+		this.commandInput = this._register(new InputBox(this.commandRow, this.contextViewService, {
+			ariaLabel: localize('ua.engineMcpCommand', "Command"),
+			inputBoxStyles: defaultInputBoxStyles,
+		}));
+		this.commandInput.element.classList.add('engine-mcp-command-input');
+
+		this.urlRow = DOM.append(this.formHost, $('.engine-mcp-form-row'));
+		DOM.append(this.urlRow, $('label')).textContent = localize('ua.engineMcpUrl', "URL");
+		this.urlInput = this._register(new InputBox(this.urlRow, this.contextViewService, {
+			ariaLabel: localize('ua.engineMcpUrl', "URL"),
+			inputBoxStyles: defaultInputBoxStyles,
+		}));
+		this.urlInput.element.classList.add('engine-mcp-url-input');
+
+		const formActions = DOM.append(this.formHost, $('.engine-mcp-form-actions'));
+		const submitButton = this._register(new Button(formActions, defaultButtonStyles));
+		submitButton.element.classList.add('engine-mcp-form-submit');
+		submitButton.label = localize('ua.engineMcpSubmit', "Submit");
+		this._register(submitButton.onDidClick(() => void this.handleFormSubmit().catch(onUnexpectedError).catch(onUnexpectedError)));
+
+		const cancelButton = this._register(new Button(formActions, { ...defaultButtonStyles, secondary: true }));
+		cancelButton.element.classList.add('engine-mcp-form-cancel');
+		cancelButton.label = localize('ua.engineMcpCancel', "Cancel");
+		this._register(cancelButton.onDidClick(() => this.closeForm()));
+
 		this.catalogWriteStatus = DOM.append(this.definitionsPanel, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
 		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
@@ -291,6 +361,17 @@ export class EngineMcpSection extends Disposable {
 			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 			this.runtimePanel.render();
 		}));
+
+		if (this.sessionContext?.onDidChangeActiveSession) {
+			this._register(this.sessionContext.onDidChangeActiveSession(() => {
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			}));
+		}
+		if (this.sessionContext?.onDidChangeActiveWorkRoot) {
+			this._register(this.sessionContext.onDidChangeActiveWorkRoot(() => {
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			}));
+		}
 
 		this.setActiveTab('definitions');
 		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
@@ -402,6 +483,197 @@ export class EngineMcpSection extends Disposable {
 		if (entry?.kind === 'server') {
 			await this.toggleServer(entry.server, enabled);
 		}
+	}
+
+	private openAddForm(): void {
+		if (!this.canWrite()) {
+			return;
+		}
+		this.formMode = 'add';
+		this.formTransport = 'stdio';
+		this.nameInput.value = '';
+		this.commandInput.value = '';
+		this.urlInput.value = '';
+		this.transportSelect.select(0);
+		this.updateFormFieldsVisibility();
+		this.formHost.style.display = '';
+	}
+
+	private openUpdateForm(): void {
+		if (!this.canWrite() || !this.selectedServer) {
+			return;
+		}
+		this.formMode = 'update';
+		this.nameInput.value = this.selectedServer.name || '';
+		const transport = this.selectedServer.transport;
+		const knownIndex = MCP_FORM_TRANSPORTS.indexOf(transport as any);
+		if (knownIndex >= 0) {
+			this.formTransport = transport;
+			this.transportSelect.select(knownIndex);
+		} else {
+			this.formTransport = 'unknown';
+			this.transportSelect.select(0);
+		}
+		this.commandInput.value = this.selectedServer.command || '';
+		this.urlInput.value = this.selectedServer.url || '';
+		this.updateFormFieldsVisibility();
+		this.formHost.style.display = '';
+	}
+
+	closeForm(): void {
+		this.formHost.style.display = 'none';
+		this.formMode = undefined;
+		this.nameInput.value = '';
+		this.commandInput.value = '';
+		this.urlInput.value = '';
+	}
+
+	private updateFormFieldsVisibility(): void {
+		const isStdio = this.formTransport === 'stdio';
+		this.commandRow.style.display = isStdio ? '' : 'none';
+		const isUrl = this.formTransport === 'sse' || this.formTransport === 'streamable_http';
+		this.urlRow.style.display = isUrl ? '' : 'none';
+	}
+
+	isFormVisible(): boolean {
+		return this.formHost.style.display !== 'none';
+	}
+
+	getFormMode(): 'add' | 'update' | undefined {
+		return this.formHost.style.display !== 'none' ? this.formMode : undefined;
+	}
+
+	getFormValues(): { name: string; transport: string; command: string; url: string } {
+		return {
+			name: this.nameInput.value,
+			transport: this.formTransport,
+			command: this.commandInput.value,
+			url: this.urlInput.value,
+		};
+	}
+
+	setFormValues(values: { name?: string; transport?: UniverseAgentMcpServerTransport; command?: string; url?: string }): void {
+		if (values.name !== undefined) {
+			this.nameInput.value = values.name;
+		}
+		if (values.transport !== undefined) {
+			this.formTransport = values.transport;
+			const index = MCP_FORM_TRANSPORTS.indexOf(values.transport as any);
+			if (index >= 0) {
+				this.transportSelect.select(index);
+			}
+			this.updateFormFieldsVisibility();
+		}
+		if (values.command !== undefined) {
+			this.commandInput.value = values.command;
+		}
+		if (values.url !== undefined) {
+			this.urlInput.value = values.url;
+		}
+	}
+
+	async submitFormForTest(): Promise<boolean> {
+		return this.handleFormSubmit();
+	}
+
+	private async handleFormSubmit(): Promise<boolean> {
+		if (this.formMode === 'add') {
+			return this.submitAddForm();
+		}
+		if (this.formMode === 'update') {
+			return this.submitUpdateForm();
+		}
+		return false;
+	}
+
+	private async submitAddForm(): Promise<boolean> {
+		const trimmedName = this.nameInput.value.trim();
+		if (!trimmedName) {
+			return false;
+		}
+		const currentTransport = this.formTransport;
+		if (currentTransport === 'unknown') {
+			return false;
+		}
+		const trimmedCommand = currentTransport === 'stdio' ? this.commandInput.value.trim() : undefined;
+		const trimmedUrl = (currentTransport === 'sse' || currentTransport === 'streamable_http') ? this.urlInput.value.trim() : undefined;
+		const config: UniverseAgentMcpServerConfig = {
+			name: trimmedName,
+			transport: currentTransport,
+			...(currentTransport === 'stdio' ? { command: trimmedCommand } : {}),
+			...(currentTransport === 'sse' || currentTransport === 'streamable_http' ? { url: trimmedUrl } : {}),
+		};
+		if (!isCompleteMcpAddConfig(config)) {
+			return false;
+		}
+		const ok = await this.addServer(config);
+		if (ok) {
+			this.closeForm();
+		}
+		return ok;
+	}
+
+	private async submitUpdateForm(): Promise<boolean> {
+		if (!this.selectedServer) {
+			return false;
+		}
+		const trimmedName = this.nameInput.value.trim();
+		const currentTransport = this.formTransport;
+		const trimmedCommand = currentTransport === 'stdio' ? this.commandInput.value.trim() : undefined;
+		const trimmedUrl = (currentTransport === 'sse' || currentTransport === 'streamable_http') ? this.urlInput.value.trim() : undefined;
+
+		const nameSame = trimmedName === (this.selectedServer.name ?? '');
+		const transportSame = currentTransport === this.selectedServer.transport;
+		let commandSame = true;
+		if (currentTransport === 'stdio') {
+			commandSame = trimmedCommand === (this.selectedServer.command ?? '');
+		}
+		let urlSame = true;
+		if (currentTransport === 'sse' || currentTransport === 'streamable_http') {
+			urlSame = trimmedUrl === (this.selectedServer.url ?? '');
+		}
+
+		if (nameSame && transportSame && commandSame && urlSame) {
+			return false;
+		}
+
+		const merged: UniverseAgentMcpServerConfig = {
+			id: this.selectedServer.id,
+			name: trimmedName,
+			transport: currentTransport,
+			command: currentTransport === 'stdio' ? trimmedCommand : this.selectedServer.command,
+			args: this.selectedServer.args,
+			env: this.selectedServer.env,
+			url: (currentTransport === 'sse' || currentTransport === 'streamable_http') ? trimmedUrl : this.selectedServer.url,
+			enabled: this.selectedServer.enabled,
+		};
+
+		if (!isCompleteMcpAddConfig(merged)) {
+			return false;
+		}
+
+		const partial: Partial<UniverseAgentMcpServerConfig> = {};
+		if (trimmedName !== (this.selectedServer.name ?? '')) {
+			partial.name = trimmedName;
+		}
+		if (currentTransport !== this.selectedServer.transport) {
+			partial.transport = currentTransport;
+		}
+		if (currentTransport === 'stdio') {
+			if (trimmedCommand !== (this.selectedServer.command ?? '')) {
+				partial.command = trimmedCommand;
+			}
+		} else if (currentTransport === 'sse' || currentTransport === 'streamable_http') {
+			if (trimmedUrl !== (this.selectedServer.url ?? '')) {
+				partial.url = trimmedUrl;
+			}
+		}
+
+		const ok = await this.updateSelectedServer(partial);
+		if (ok) {
+			this.closeForm();
+		}
+		return ok;
 	}
 
 	async addServer(config?: UniverseAgentMcpServerConfig): Promise<boolean> {
@@ -728,6 +1000,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private clearCatalogPresentation(): void {
+		this.closeForm();
 		this.listEntries = [];
 		this.setServerCount(0);
 		this.list?.splice(0, this.list?.length ?? 0, []);

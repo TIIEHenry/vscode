@@ -12,7 +12,7 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { conversationEntryHookPresent, isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { conversationEntryHookPresent, isAdvertisedEngineRpc, readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentClipboardEntrySummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -176,9 +176,10 @@ export class EngineClipboardSection extends Disposable {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listClipboard;
 		const pairingHold = isConversationPairingHold(this.connection);
+		const advertised = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listClipboard === 'SUPPORTED';
 		const canSend = canSendEngineClipboardListRequest(
 			this.connection.isEngineConnected(),
-			conversationEntryHookPresent(this.connection.getConnectionSnapshot(), 'listClipboard', hook),
+			advertised && typeof hook === 'function',
 			pairingHold,
 		);
 
@@ -397,35 +398,7 @@ export class EngineClipboardSection extends Disposable {
 	}
 
 	private async handleWrite(): Promise<void> {
-		const hook = this.connection.writeClipboard;
-		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), this.clipboardAdvertised('writeClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
-			return;
-		}
-		const generation = ++this._writeGeneration;
-		const request = engineClipboardWriteRequest();
-		try {
-			const result = await hook.call(this.connection, request);
-			if (generation !== this._writeGeneration || this._store.isDisposed) {
-				return;
-			}
-			this.writeStatus.style.display = '';
-			writeStatus(this.writeStatus, formatEngineClipboardWriteLabel(result.clipId), 'success');
-			const listed = await this.refresh();
-			if (generation !== this._writeGeneration || this._store.isDisposed) {
-				return;
-			}
-			if (listed) {
-				this.writeStatus.style.display = '';
-				writeStatus(this.writeStatus, formatEngineClipboardWriteLabel(result.clipId), 'success');
-			}
-		} catch (error) {
-			if (generation !== this._writeGeneration || this._store.isDisposed) {
-				return;
-			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
-			this.writeStatus.style.display = '';
-			writeStatus(this.writeStatus, reason, 'error');
-		}
+		return;
 	}
 
 	private async handleRead(): Promise<void> {
