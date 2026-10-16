@@ -16,7 +16,26 @@ import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_D
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+import { readConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { createConversationConnectionTestStub as baseCreateConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
+
+function createConversationConnectionTestStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
+	const stub = baseCreateConversationConnectionTestStub(overrides);
+	if (!overrides.getConnectionSnapshot) {
+		const originalGetSnapshot = stub.getConnectionSnapshot.bind(stub);
+		stub.getConnectionSnapshot = (): UniverseAgentConnectionSnapshot => {
+			const base = originalGetSnapshot();
+			return {
+				...base,
+				conversationEntryCapability: {
+					...readConversationEntryCapability(base),
+					listTriggers: 'SUPPORTED',
+				},
+			};
+		};
+	}
+	return stub;
+}
 
 suite('EngineTriggersSection', () => {
 
@@ -35,6 +54,26 @@ suite('EngineTriggersSection', () => {
 	async function flushMicrotasks(): Promise<void> {
 		await new Promise(resolve => setTimeout(resolve, 0));
 	}
+
+	test('ListTriggers does not send when listTriggers capability is UNKNOWN', async () => {
+		let listTriggersCalls = 0;
+		const baseStub = baseCreateConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => {
+				listTriggersCalls++;
+				return { triggers: [] };
+			},
+		});
+		const pane = mountSection(baseStub);
+		await flushMicrotasks();
+		assert.strictEqual(listTriggersCalls, 0);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 0);
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'unsupported');
+		pane.getDomNode().parentElement?.remove();
+	});
 
 	test('ListTriggers does not send when disconnected or hook missing', async () => {
 		let listTriggersCalls = 0;
@@ -264,6 +303,10 @@ suite('EngineTriggersSection', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities: createEmptyTestCapabilitySnapshot(),
+			conversationEntryCapability: {
+				...readConversationEntryCapability(undefined),
+				listTriggers: 'SUPPORTED',
+			},
 		});
 		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
 		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
@@ -349,6 +392,10 @@ suite('EngineTriggersSection', () => {
 			channelAlive: true,
 			sharedFsRootSent: false,
 			capabilities: createEmptyTestCapabilitySnapshot(),
+			conversationEntryCapability: {
+				...readConversationEntryCapability(undefined),
+				listTriggers: 'SUPPORTED',
+			},
 		});
 		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
 		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
@@ -464,6 +511,10 @@ suite('EngineTriggersSection', () => {
 			channelAlive: true,
 			sharedFsRootSent: false,
 			capabilities: createEmptyTestCapabilitySnapshot(),
+			conversationEntryCapability: {
+				...readConversationEntryCapability(undefined),
+				listTriggers: 'SUPPORTED',
+			},
 		};
 		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
 		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
@@ -731,7 +782,10 @@ suite('EngineTriggersSection', () => {
 				if (call === 1) {
 					return { status: '', eventId: '', reason: '' };
 				}
-				return { status: 'FIRED', eventId: 'evt-1', reason: 'queued' };
+				if (call === 2) {
+					return { status: 'FIRED', eventId: 'evt-1', reason: 'queued' };
+				}
+				return { status: '', eventId: 'evt-2', reason: 'rejected' };
 			},
 		}));
 		await flushMicrotasks();
@@ -743,15 +797,21 @@ suite('EngineTriggersSection', () => {
 		assert.ok(status);
 		assert.strictEqual(status.textContent, `${''} — ${''} — ${''}`.trim());
 		assert.ok(!status.classList.contains('is-success'));
-		assert.ok(!status.classList.contains('is-error'));
+		assert.ok(status.classList.contains('is-error'));
 		assert.ok(!status.classList.contains('is-warning'));
 		assert.ok(!status.classList.contains('is-pending'));
-		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status']);
+		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status', 'is-error']);
 		fire.click();
 		await flushMicrotasks();
 		assert.strictEqual(status.textContent, 'FIRED — evt-1 — queued');
 		assert.ok(!status.classList.contains('is-success'));
+		assert.ok(!status.classList.contains('is-error'));
 		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status']);
+		fire.click();
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, '— evt-2 — rejected');
+		assert.ok(status.classList.contains('is-error'));
+		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status', 'is-error']);
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -1174,7 +1234,7 @@ suite('EngineTriggersSection', () => {
 		noHook.getDomNode().parentElement?.remove();
 	});
 
-	test('UpsertTrigger Add sends empty trigger as-is when connected with no selection', async () => {
+	test('UpsertTrigger Add does not send empty trigger when clicked with no selection', async () => {
 		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
 		const pane = mountSection(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -1190,12 +1250,11 @@ suite('EngineTriggersSection', () => {
 		assert.ok(add);
 		add.click();
 		await flushMicrotasks();
-		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: emptyTrigger() }]);
-		assert.ok((pane.getDomNode().textContent ?? '').includes('—  —'));
+		assert.deepStrictEqual(upsertCalls, []);
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('UpsertTrigger Edit sends empty trigger as-is when connected with no selection', async () => {
+	test('UpsertTrigger Edit does not send empty trigger when connected with no selection', async () => {
 		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
 		const pane = mountSection(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -1211,11 +1270,11 @@ suite('EngineTriggersSection', () => {
 		assert.ok(edit);
 		edit.click();
 		await flushMicrotasks();
-		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: emptyTrigger() }]);
+		assert.deepStrictEqual(upsertCalls, []);
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('UpsertTrigger Add still sends empty trigger when a row is selected', async () => {
+	test('UpsertTrigger Add does not send empty trigger when a row is selected', async () => {
 		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
 		const selected = emptyTrigger({
 			triggerId: '  trig  ',
@@ -1242,7 +1301,10 @@ suite('EngineTriggersSection', () => {
 		assert.ok(add);
 		add.click();
 		await flushMicrotasks();
-		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: emptyTrigger() }]);
+		assert.deepStrictEqual(upsertCalls, []);
+		const edit = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_EDIT_LABEL) as HTMLButtonElement | null;
+		assert.ok(edit);
+		assert.strictEqual(edit.classList.contains('disabled'), false);
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -1278,10 +1340,16 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('UpsertTrigger Add success refreshes so the new row appears', async () => {
-		const created = emptyTrigger({
+	test('UpsertTrigger Edit success refreshes so the updated row appears', async () => {
+		const existing = emptyTrigger({
 			triggerId: 'trig-nightly',
 			name: 'Nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+		});
+		const updated = emptyTrigger({
+			triggerId: 'trig-nightly',
+			name: 'Nightly Updated',
 			type: 'cron',
 			target: { kind: 'self' },
 		});
@@ -1293,29 +1361,31 @@ suite('EngineTriggersSection', () => {
 			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
 				listTriggersCalls++;
 				if (upserted) {
-					return { triggers: [created] };
+					return { triggers: [updated] };
 				}
-				return { triggers: [] };
+				return { triggers: [existing] };
 			},
 			upsertTrigger: async () => {
 				upserted = true;
-				return { trigger: created };
+				return { trigger: updated };
 			},
 		}));
 		await flushMicrotasks();
 		assert.strictEqual(listTriggersCalls, 1);
-		assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-row'), null);
-		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
-		assert.ok(add);
-		add.click();
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const edit = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_EDIT_LABEL);
+		assert.ok(edit);
+		edit.click();
 		await flushMicrotasks();
 		assert.ok(listTriggersCalls >= 2);
-		const row = pane.getDomNode().querySelector('.engine-triggers-row');
-		assert.ok(row);
-		assert.strictEqual(row.textContent, formatEngineTriggerListLabel(created));
+		const updatedRow = pane.getDomNode().querySelector('.engine-triggers-row');
+		assert.ok(updatedRow);
+		assert.strictEqual(updatedRow.textContent, formatEngineTriggerListLabel(updated));
 		const upsertStatus = pane.getDomNode().querySelector('.engine-triggers-upsert-status') as HTMLElement | null;
 		assert.ok(upsertStatus);
-		assert.strictEqual(upsertStatus.textContent, formatEngineTriggerListLabel(created));
+		assert.strictEqual(upsertStatus.textContent, formatEngineTriggerListLabel(updated));
 		assert.notStrictEqual(upsertStatus.style.display, 'none');
 		pane.getDomNode().parentElement?.remove();
 	});
@@ -1354,9 +1424,12 @@ suite('EngineTriggersSection', () => {
 			}));
 			await flushMicrotasks();
 			assert.strictEqual(listTriggersCalls, 1);
-			const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
-			assert.ok(add);
-			add.click();
+			const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+			assert.ok(row);
+			row.click();
+			const edit = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_EDIT_LABEL);
+			assert.ok(edit);
+		edit.click();
 			await flushMicrotasks();
 			assert.ok(listTriggersCalls >= 2);
 			const leftoverRow = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
@@ -1402,9 +1475,10 @@ suite('EngineTriggersSection', () => {
 		assert.strictEqual(listTriggersCalls, 1);
 		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
 		assert.ok(row);
-		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
-		assert.ok(add);
-		add.click();
+		row.click();
+		const edit = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_EDIT_LABEL);
+		assert.ok(edit);
+		edit.click();
 		await flushMicrotasks();
 		assert.strictEqual(listTriggersCalls, 1);
 		const leftover = pane.getDomNode().querySelector('.engine-triggers-row');
@@ -1468,6 +1542,7 @@ suite('EngineTriggersSection', () => {
 	async function assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows(options: {
 		readonly buttonLabel: string;
 		readonly statusSelector: string;
+		readonly initialTriggers?: readonly UniverseAgentTrigger[];
 		readonly fireTrigger?: IUniverseAgentConnection['fireTrigger'];
 		readonly setTriggerEnabled?: IUniverseAgentConnection['setTriggerEnabled'];
 		readonly deleteTrigger?: IUniverseAgentConnection['deleteTrigger'];
@@ -1493,13 +1568,18 @@ suite('EngineTriggersSection', () => {
 			const pane = mountSection(createConversationConnectionTestStub({
 				isEngineConnected: () => true,
 				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-				listTriggers: async () => ({ triggers: [] }),
+				listTriggers: async () => ({ triggers: [...(options.initialTriggers ?? [])] }),
 				fireTrigger: options.fireTrigger,
 				setTriggerEnabled: options.setTriggerEnabled,
 				deleteTrigger: options.deleteTrigger,
 				upsertTrigger: options.upsertTrigger,
 			}));
 			await flushMicrotasks();
+			if (options.initialTriggers && options.initialTriggers.length > 0) {
+				const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+				assert.ok(row);
+				row.click();
+			}
 			const writeStatusEl = pane.getDomNode().querySelector(options.statusSelector) as HTMLElement | null;
 			assert.ok(writeStatusEl);
 			Object.defineProperty(writeStatusEl, 'textContent', {
@@ -1528,8 +1608,9 @@ suite('EngineTriggersSection', () => {
 
 	test('does not leak unhandled rejection when handleUpsert catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
 		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
-			buttonLabel: ENGINE_TRIGGER_ADD_LABEL,
+			buttonLabel: ENGINE_TRIGGER_EDIT_LABEL,
 			statusSelector: '.engine-triggers-upsert-status',
+			initialTriggers: [emptyTrigger({ triggerId: 'trig-1', name: 'Trig 1' })],
 			upsertTrigger: async () => {
 				throw new Error('upsert boom');
 			},

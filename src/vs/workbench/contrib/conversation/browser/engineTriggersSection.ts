@@ -12,7 +12,7 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { conversationEntryHookPresent, isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { conversationEntryHookPresent, isAdvertisedEngineRpc, readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentTrigger } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -203,9 +203,10 @@ export class EngineTriggersSection extends Disposable {
 		++this._setEnabledGeneration;
 		const hook = this.connection.listTriggers;
 		const pairingHold = isConversationPairingHold(this.connection);
+		const advertised = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listTriggers === 'SUPPORTED';
 		const canSend = canSendEngineTriggerListRequest(
 			this.connection.isEngineConnected(),
-			conversationEntryHookPresent(this.connection.getConnectionSnapshot(), 'listTriggers', hook),
+			advertised && typeof hook === 'function',
 			pairingHold,
 		);
 
@@ -478,7 +479,8 @@ export class EngineTriggersSection extends Disposable {
 		try {
 			const result = await hook.call(this.connection, request);
 			this.fireStatus.style.display = '';
-			writeStatus(this.fireStatus, `${result.status} — ${result.eventId} — ${result.reason}`, 'neutral');
+			const tone = result.status === '' ? 'error' : 'neutral';
+			writeStatus(this.fireStatus, `${result.status} — ${result.eventId} — ${result.reason}`, tone);
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.fireStatus.style.display = '';
@@ -509,6 +511,9 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private async handleUpsert(mode: 'add' | 'edit'): Promise<void> {
+		if (mode === 'add' || !this.selectedTrigger) {
+			return;
+		}
 		const hook = this.connection.upsertTrigger;
 		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerAdvertised('upsertTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;

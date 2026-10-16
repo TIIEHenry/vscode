@@ -12,7 +12,7 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-import { conversationEntryHookPresent, isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { conversationEntryHookPresent, isAdvertisedEngineRpc, readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
@@ -143,9 +143,10 @@ export class EngineContextVariableSection extends Disposable {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listContextVariable;
 		const pairingHold = isConversationPairingHold(this.connection);
+		const advertised = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listContextVariable === 'SUPPORTED';
 		const canSend = canSendEngineContextVariableListRequest(
 			this.connection.isEngineConnected(),
-			conversationEntryHookPresent(this.connection.getConnectionSnapshot(), 'listContextVariable', hook),
+			advertised && typeof hook === 'function',
 			pairingHold,
 		);
 
