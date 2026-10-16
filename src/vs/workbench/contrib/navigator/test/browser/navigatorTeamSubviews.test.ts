@@ -1036,6 +1036,10 @@ suite('Navigator Team subviews', () => {
 		assert.ok(membersEmpty);
 		assert.strictEqual(membersEmpty.style.display, 'flex');
 		assert.strictEqual(membersEmpty.textContent, pendingCopy);
+		assert.ok(membersEmpty.classList.contains('navigator-stub-empty'));
+		assert.ok(membersEmpty.classList.contains('is-loading'));
+		const tasksEmpty = view.element.querySelector('.navigator-team-subview:not(.active) .navigator-stub-empty') as HTMLElement | null;
+		assert.ok(tasksEmpty?.classList.contains('is-loading'));
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		assert.ok(!membersEmpty.textContent?.includes('no engine'));
 		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> | undefined }).membersList;
@@ -1073,6 +1077,8 @@ suite('Navigator Team subviews', () => {
 		assert.ok(membersEmpty);
 		assert.strictEqual(membersEmpty.style.display, 'flex');
 		assert.strictEqual(membersEmpty.textContent, treeEmptyCopy);
+		assert.ok(membersEmpty.classList.contains('navigator-stub-empty'));
+		assert.ok(!membersEmpty.classList.contains('is-loading'));
 		assert.notStrictEqual(membersEmpty.textContent, TEAM_MEMBERS_EMPTY_COPY);
 		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> | undefined }).membersList;
 		assert.strictEqual(membersList?.length ?? 0, 0, 'first-pull treeEmpty must not install leftover member rows');

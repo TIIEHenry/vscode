@@ -21,6 +21,7 @@ import { IKeybindingService } from '../../../../platform/keybinding/common/keybi
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
+import { IProgressRunner } from '../../../../platform/progress/common/progress.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -42,7 +43,7 @@ import {
 	NAVIGATOR_TEAM_LOADING_COPY,
 } from '../common/navigatorTeamData.js';
 import { collectLiveAgentTreeAgentIds, EMPTY_LIVE_AGENT_IDS } from '../common/navigatorAgentHierarchy.js';
-import { getNavigatorAgentTreePendingCopy, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
+import { getNavigatorAgentTreePendingCopy, isNavigatorAgentTreeLoadingCopy, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COPY, NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import {
 	AGENT_INSPECT_VIEW_ID,
 	OPEN_NAVIGATOR_TEAM_INSPECT_COMMAND_ID,
@@ -201,6 +202,7 @@ export class NavigatorTeamView extends ViewPane {
 	private leftoverRowActionsClosed = false;
 	private lastBodyHeight = 0;
 	private lastBodyWidth = 0;
+	private agentTreeLoadRunner: IProgressRunner | undefined;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -250,6 +252,12 @@ export class NavigatorTeamView extends ViewPane {
 			this.inspectService.setLiveAgentIds('team', undefined);
 			this.inspectService.setLiveTaskIds(undefined);
 		}
+	}
+
+	override dispose(): void {
+		this.agentTreeLoadRunner?.done();
+		this.agentTreeLoadRunner = undefined;
+		super.dispose();
 	}
 
 	getActiveSubview(): NavigatorTeamSubview {
@@ -648,6 +656,7 @@ export class NavigatorTeamView extends ViewPane {
 				note.classList.remove('is-error');
 			}
 		}
+		this.syncAgentTreeLoadingChrome();
 		this.relayoutCurrentSubview();
 	}
 
@@ -716,6 +725,7 @@ export class NavigatorTeamView extends ViewPane {
 		this.membersBody.classList.toggle('is-empty', isEmpty);
 		this.membersEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.membersListContainer.style.display = isEmpty ? 'none' : 'block';
+		this.syncAgentTreeLoadingChrome();
 	}
 
 	private updateTasksDisplay(): void {
@@ -730,6 +740,43 @@ export class NavigatorTeamView extends ViewPane {
 		this.tasksBody.classList.toggle('is-empty', isEmpty);
 		this.tasksEmpty.style.display = isEmpty ? 'flex' : 'none';
 		this.tasksListContainer.style.display = isEmpty ? 'none' : 'block';
+		this.syncAgentTreeLoadingChrome();
+	}
+
+	/** Hide the lightning glyph only while the visible empty copy is the agent-tree read. */
+	private syncStubEmptyLoading(empty: HTMLElement | undefined): void {
+		if (!empty) {
+			return;
+		}
+		const shown = empty.style.display !== 'none';
+		empty.classList.toggle('is-loading', shown && isNavigatorAgentTreeLoadingCopy(empty.textContent));
+	}
+
+	private stubShowsAgentTreeLoading(element: HTMLElement | undefined): boolean {
+		if (!element || element.style.display === 'none') {
+			return false;
+		}
+		return isNavigatorAgentTreeLoadingCopy(element.textContent);
+	}
+
+	private syncAgentTreeLoadingChrome(): void {
+		this.syncStubEmptyLoading(this.membersEmpty);
+		this.syncStubEmptyLoading(this.tasksEmpty);
+		if (!this.element) {
+			return;
+		}
+		const loading = this.stubShowsAgentTreeLoading(this.membersEmpty)
+			|| this.stubShowsAgentTreeLoading(this.tasksEmpty)
+			|| this.stubShowsAgentTreeLoading(this.membersNote)
+			|| this.stubShowsAgentTreeLoading(this.tasksNote);
+		if (loading) {
+			if (!this.agentTreeLoadRunner) {
+				this.agentTreeLoadRunner = this.getProgressIndicator().show(true);
+			}
+			return;
+		}
+		this.agentTreeLoadRunner?.done();
+		this.agentTreeLoadRunner = undefined;
 	}
 
 	private updateSubviewContextKeys(): void {

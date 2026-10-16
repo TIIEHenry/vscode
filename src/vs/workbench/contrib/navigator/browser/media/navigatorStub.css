@@ -33,6 +33,10 @@
 	opacity: 0.65;
 }
 
+.monaco-workbench .navigator-stub-empty.is-loading::before {
+	display: none;
+}
+
 .monaco-workbench .navigator-stub-note {
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;

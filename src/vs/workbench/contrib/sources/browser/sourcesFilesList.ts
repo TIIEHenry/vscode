@@ -56,7 +56,7 @@ import {
 	sourcesEngineReadonlyTextInput,
 } from '../common/sourcesFilesEngineRead.js';
 import { collectSourcesFileEntries, ISourcesFileEntry, ISourcesFilesCollectOutcome, resolveSourcesFilesCollectResult } from '../common/sourcesFilesModel.js';
-import { sourcesFilesListEmptyFolderMessage, sourcesFilesListEmptyMessage, sourcesFilesListNoOpenFileMessage, sourcesFilesListReadFailureMessage, sourcesFilesListTruncatedMessage } from './sourcesFilesListStrings.js';
+import { sourcesFilesListEmptyFolderMessage, sourcesFilesListEmptyMessage, sourcesFilesListNoOpenFileMessage, sourcesFilesListReadFailureDetail, sourcesFilesListReadFailureDetailsLabel, sourcesFilesListReadFailureRetryLabel, sourcesFilesListReadFailureSummaryFor, sourcesFilesListTruncatedMessage } from './sourcesFilesListStrings.js';
 import { buildSourcesEngineLevel, buildSourcesWorkspaceLevel, filterSourcesLevelNodes, sourcesDirectoryLabel, sourcesEngineParentKey, sourcesFileDescription } from './sourcesFilesLevel.js';
 import { readSourcesFilesViewMode, SOURCES_FILES_VIEW_MODE_SETTING, SourcesFilesViewMode } from '../common/sourcesFilesViewMode.js';
 import { buildSourcesFileTree, ISourcesFilesTreeNode } from './sourcesFilesTree.js';
@@ -135,7 +135,7 @@ export class SourcesFilesList extends Disposable {
 	private labels: ResourceLabels | undefined;
 	private lastGoodEntries: ISourcesFileEntry[] = [];
 	private lastOutcome: ISourcesFilesCollectOutcome | undefined;
-	private lastReadError: string | undefined;
+	private lastReadFailure: { readonly error: unknown } | undefined;
 	private filesSearchDirty = false;
 	private filesTabActive = true;
 	private readonly refreshScheduler: RunOnceScheduler;
@@ -188,6 +188,14 @@ export class SourcesFilesList extends Disposable {
 		this.emptyMessage = dom.append(host, $('.sources-files-empty'));
 		this.emptyMessage.setAttribute('role', 'status');
 		this.emptyMessage.style.display = 'none';
+		this._register(dom.addDisposableListener(host, 'click', event => {
+			const retry = (event.target as HTMLElement | null)?.closest('.sources-files-error-retry');
+			if (!retry || !host.contains(retry)) {
+				return;
+			}
+			event.preventDefault();
+			this.scheduleRefresh();
+		}));
 
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError), 250));
 		this.scheduleRefresh();
@@ -370,7 +378,7 @@ export class SourcesFilesList extends Disposable {
 		const sources = this.replaceFolderCancellations();
 		const engineToken = this.replaceEngineCancellation();
 		if (!this.list || this.list.getNode(null).children.length === 0) {
-			this.emptyMessage.textContent = localize('sourcesFilesList.loading', "Loading…");
+			this.paintPlainMessage(this.emptyMessage, localize('sourcesFilesList.loading', "Loading…"));
 			this.emptyMessage.classList.remove('is-error');
 			this.emptyMessage.style.display = '';
 			this.listContainer.style.display = 'none';
@@ -412,12 +420,12 @@ export class SourcesFilesList extends Disposable {
 		if (!resolved.failed && collected && !partialFailure) {
 			this.lastGoodEntries = [...resolved.entries];
 			this.lastOutcome = { ...collected, entries: resolved.entries };
-			this.lastReadError = undefined;
+			this.lastReadFailure = undefined;
 		} else if (resolved.failed) {
 			this.lastOutcome = undefined;
-			this.lastReadError = sourcesFilesListReadFailureMessage(error);
+			this.lastReadFailure = { error };
 		} else if (partialFailure && collected) {
-			this.lastReadError = sourcesFilesListReadFailureMessage(collected.firstFolderFailure);
+			this.lastReadFailure = { error: collected.firstFolderFailure };
 		}
 
 		this.paintCollected();
@@ -494,23 +502,33 @@ export class SourcesFilesList extends Disposable {
 		this.levelSeq++;
 		this.location.textContent = '';
 		this.location.style.display = 'none';
-		const readError = this.lastReadError;
+		const failure = this.lastReadFailure;
 		const allEntries = this.lastOutcome?.entries ?? this.lastGoodEntries;
 		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
-		const truncated = !!this.lastOutcome?.truncated && !readError;
+		const truncated = !!this.lastOutcome?.truncated && !failure;
 		const hasAnyEntries = allEntries.length > 0;
 		const hasVisibleEntries = entries.length > 0;
 
 		if (!hasAnyEntries) {
-			this.emptyMessage.textContent = readError ?? sourcesFilesListEmptyMessage;
+			if (failure) {
+				this.paintReadFailure(this.emptyMessage, failure.error);
+			} else {
+				this.paintPlainMessage(this.emptyMessage, sourcesFilesListEmptyMessage);
+			}
 		} else if (!hasVisibleEntries) {
-			this.emptyMessage.textContent = localize('sourcesFilesList.noMatching', "No matching files.");
+			this.paintPlainMessage(this.emptyMessage, localize('sourcesFilesList.noMatching', "No matching files."));
 		}
 
-		// The empty state already says the failure when there are no rows. Status is the second copy.
-		const errorInEmpty = !!readError && !hasAnyEntries;
-		this.setStatusMessage(errorInEmpty ? undefined : (readError ?? (truncated ? sourcesFilesListTruncatedMessage() : undefined)), !!readError && !errorInEmpty);
-		this.emptyMessage.classList.toggle('is-error', !!readError && !hasAnyEntries);
+		// Rows already on screen: the status line is the only copy. No rows: the empty state is the only copy.
+		const errorInEmpty = !!failure && !hasAnyEntries;
+		if (errorInEmpty) {
+			this.setStatusMessage(undefined);
+		} else if (failure) {
+			this.setStatusMessage(sourcesFilesListReadFailureSummaryFor(failure.error), true, failure);
+		} else {
+			this.setStatusMessage(truncated ? sourcesFilesListTruncatedMessage() : undefined, false);
+		}
+		this.emptyMessage.classList.toggle('is-error', errorInEmpty);
 		this.emptyMessage.style.display = hasVisibleEntries ? 'none' : '';
 		this.listContainer.style.display = hasVisibleEntries ? 'block' : 'none';
 		this.filterBox.element.style.display = hasAnyEntries ? 'block' : 'none';
@@ -618,7 +636,7 @@ export class SourcesFilesList extends Disposable {
 			if (seq !== this.levelSeq || this.viewMode !== 'list') {
 				return;
 			}
-			this.renderLevel([], undefined, sourcesFilesListReadFailureMessage(error), true, false);
+			this.renderLevel([], undefined, '', true, false, error);
 		}
 	}
 
@@ -660,7 +678,7 @@ export class SourcesFilesList extends Disposable {
 		return localize('sourcesFilesList.workspaceRoot', "Workspace");
 	}
 
-	private renderLevel(nodes: readonly ISourcesFilesTreeNode[], label: string | undefined, emptyText: string, isError: boolean, showFilter: boolean): void {
+	private renderLevel(nodes: readonly ISourcesFilesTreeNode[], label: string | undefined, emptyText: string, isError: boolean, showFilter: boolean, error?: unknown): void {
 		if (label) {
 			this.location.textContent = label;
 			this.location.title = label;
@@ -670,11 +688,25 @@ export class SourcesFilesList extends Disposable {
 			this.location.removeAttribute('title');
 			this.location.style.display = 'none';
 		}
-		this.setStatusMessage(undefined);
-		this.emptyMessage.textContent = emptyText;
-		this.emptyMessage.classList.toggle('is-error', isError);
 		const visible = nodes.length > 0;
-		this.emptyMessage.style.display = visible ? 'none' : '';
+		if (isError) {
+			if (visible) {
+				this.paintPlainMessage(this.emptyMessage, '');
+				this.emptyMessage.classList.remove('is-error');
+				this.emptyMessage.style.display = 'none';
+				this.setStatusMessage(sourcesFilesListReadFailureSummaryFor(error), true, { error });
+			} else {
+				this.setStatusMessage(undefined);
+				this.paintReadFailure(this.emptyMessage, error);
+				this.emptyMessage.classList.add('is-error');
+				this.emptyMessage.style.display = '';
+			}
+		} else {
+			this.setStatusMessage(undefined);
+			this.paintPlainMessage(this.emptyMessage, emptyText);
+			this.emptyMessage.classList.remove('is-error');
+			this.emptyMessage.style.display = visible ? 'none' : '';
+		}
 		this.listContainer.style.display = visible ? 'block' : 'none';
 		this.filterBox.element.style.display = showFilter ? 'block' : 'none';
 		if (!visible) {
@@ -687,20 +719,48 @@ export class SourcesFilesList extends Disposable {
 		this.listViewport?.layout();
 	}
 
-	private setStatusMessage(message: string | undefined, isError = true): void {
+	private setStatusMessage(message: string | undefined, isError = true, failure?: { readonly error: unknown }): void {
 		if (!message) {
-			this.statusMessage.textContent = '';
+			this.paintPlainMessage(this.statusMessage, '');
 			this.statusMessage.style.display = 'none';
 			this.statusMessage.classList.remove('is-error');
 			return;
 		}
-		this.statusMessage.textContent = message;
-		this.statusMessage.style.display = 'block';
+		if (isError && failure) {
+			this.paintReadFailure(this.statusMessage, failure.error);
+			this.statusMessage.style.display = '';
+			this.statusMessage.classList.add('is-error');
+			return;
+		}
+		this.paintPlainMessage(this.statusMessage, message);
+		this.statusMessage.style.display = '';
 		if (isError) {
 			this.statusMessage.classList.add('is-error');
 		} else {
 			this.statusMessage.classList.remove('is-error');
 		}
+	}
+
+	private paintPlainMessage(target: HTMLElement, text: string): void {
+		target.replaceChildren();
+		target.textContent = text;
+		target.removeAttribute('title');
+	}
+
+	private paintReadFailure(target: HTMLElement, error: unknown): void {
+		const detail = sourcesFilesListReadFailureDetail(error);
+		target.replaceChildren();
+		const summary = dom.append(target, $('span.sources-files-error-summary'));
+		summary.textContent = sourcesFilesListReadFailureSummaryFor(error);
+		const details = dom.append(target, $('details.sources-files-error-details'));
+		const toggle = dom.append(details, $('summary'));
+		toggle.textContent = sourcesFilesListReadFailureDetailsLabel;
+		const raw = dom.append(details, $('pre.sources-files-error-raw'));
+		raw.textContent = detail;
+		const retry = dom.append(target, $('button.sources-files-error-retry')) as HTMLButtonElement;
+		retry.type = 'button';
+		retry.textContent = sourcesFilesListReadFailureRetryLabel;
+		target.title = detail;
 	}
 }
 
