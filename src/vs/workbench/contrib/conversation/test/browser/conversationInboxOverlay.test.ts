@@ -1042,6 +1042,13 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		return button;
 	}
 
+	function forceEnable(button: HTMLElement): void {
+		button.classList.remove('disabled');
+		(button as HTMLButtonElement).disabled = false;
+		button.removeAttribute('disabled');
+		button.setAttribute('aria-disabled', 'false');
+	}
+
 	test('PRD-015 验收 5: 无 Task 芯片，空队列停在芯片上且不展开死列表', () => {
 		const overlay = createOverlay(store.add(new ConversationStubService()));
 		const left = overlay.element.querySelector('.conversation-lens-inbox-left')!;
@@ -1090,16 +1097,17 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		assert.strictEqual(roster.enqueueMessageQueueItem(roster.getActiveSessionId(), 'Should not enqueue'), false);
 	});
 
-	test('connected Enqueue forwards enqueueMessageQueueItem', async () => {
+	test('connected Enqueue is disabled and does not call enqueueMessageQueueItem', async () => {
 		const roster = store.add(new EnqueueRoster());
 		const overlay = createOverlay(roster, '  later  ');
 		const button = getEnqueueButton(openQueuePanel(overlay));
-		assert.strictEqual(button.disabled, false);
-		assert.strictEqual(button.getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(button.disabled, true);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(button.title, conversationLensInboxQueueEnqueueUnavailable);
 		assert.strictEqual(button.textContent, conversationLensInboxQueueEnqueue);
 		button.click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
-		assert.deepStrictEqual(roster.enqueueCalls, [{ sessionId: roster.getActiveSessionId(), text: 'later' }]);
+		assert.deepStrictEqual(roster.enqueueCalls, []);
 	});
 
 	test('connected Enqueue prompt cancel does not enqueue', async () => {
@@ -1114,7 +1122,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		roster.enqueueResult = false;
 		getEnqueueButton(openQueuePanel(createOverlay(roster, '   '))).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
-		assert.deepStrictEqual(roster.enqueueCalls, [{ sessionId: roster.getActiveSessionId(), text: '' }]);
+		assert.deepStrictEqual(roster.enqueueCalls, []);
 		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
 	});
 
@@ -1129,23 +1137,23 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		assert.strictEqual((connection as { ListQueue?: unknown }).ListQueue, undefined);
 		const overlay = createOverlay(roster, 'Nope', failures, undefined, undefined, connection);
 		const panel = openQueuePanel(overlay);
-		getEnqueueButton(panel).click();
+		const button = getEnqueueButton(panel);
+		assert.strictEqual(button.disabled, true);
+		button.click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
-		assert.deepStrictEqual(roster.enqueueCalls, [{ sessionId: roster.getActiveSessionId(), text: 'Nope' }]);
+		assert.deepStrictEqual(roster.enqueueCalls, []);
 		assert.deepStrictEqual(roster.getMessageQueueState(roster.getActiveSessionId()).items, []);
 		assert.ok(panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxQueueNotListed));
 		assert.ok(!panel.querySelector('.conversation-lens-inbox-list-empty')?.textContent?.includes(conversationLensDockInboxNoQueue));
-		assert.deepStrictEqual(failures, ['failed']);
 	});
 
-	test('Enqueue after disconnect during prompt shows engine_disconnected without enqueue', async () => {
+	test('Enqueue after disconnect shows engine_disconnected without enqueue', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new EnqueueRoster());
+		roster.connected = false;
+		roster.history = true;
 		roster.enqueueResult = false;
-		const overlay = createOverlay(roster, 'Nope', failures, () => {
-			roster.connected = false;
-			roster.history = true;
-		});
+		const overlay = createOverlay(roster, 'Nope', failures);
 		const panel = openQueuePanel(overlay);
 		getEnqueueButton(panel).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -1157,6 +1165,8 @@ suite('ConversationInboxOverlay Enqueue', () => {
 
 	test('live Enqueue disables when pairingPending', () => {
 		const roster = store.add(new EnqueueRoster());
+		roster.connected = false;
+		roster.history = true;
 		let pairingPending = false;
 		const base = createConversationConnectionTestStub();
 		const connection = createConversationConnectionTestStub({
@@ -1172,8 +1182,6 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		assert.strictEqual(getEnqueueButton(panel).getAttribute('aria-disabled'), 'false');
 
 		pairingPending = true;
-		roster.connected = false;
-		roster.history = true;
 		overlay.render();
 		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
 		assert.strictEqual(chip.getAttribute('aria-pressed'), 'true');
@@ -1209,7 +1217,8 @@ suite('ConversationInboxOverlay Enqueue', () => {
 			assert.strictEqual(isConversationPairingHold(connection), true);
 		}, undefined, connection);
 		const panel = openQueuePanel(overlay);
-		assert.strictEqual(getEnqueueButton(panel).disabled, false);
+		assert.strictEqual(getEnqueueButton(panel).disabled, true);
+		forceEnable(getEnqueueButton(panel));
 		getEnqueueButton(panel).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
@@ -1257,6 +1266,8 @@ suite('ConversationInboxOverlay Enqueue', () => {
 	test('does not leak unhandled rejection when Enqueue click catch-path showPostFailure throws and onUnexpectedError warn-then-rethrows', async () => {
 		const paintBoom = new Error('paint boom');
 		const roster = store.add(new EnqueueRoster());
+		roster.connected = false;
+		roster.history = true;
 		roster.enqueueResult = false;
 		const overlay = createOverlay(roster, 'Nope');
 		const button = getEnqueueButton(openQueuePanel(overlay));
@@ -1271,6 +1282,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		const overlay = createOverlay(roster, 'later');
 		const button = getEnqueueButton(openQueuePanel(overlay));
 		await assertInboxClickCatchPathDoesNotLeak(overlay, paintBoom, 'render', () => {
+			forceEnable(button);
 			button.click();
 		});
 	});
@@ -2458,7 +2470,7 @@ suite('ConversationInboxOverlay KEEP leftover list-fail writes', () => {
 		assert.strictEqual(isConversationPairingHold(connection), false);
 		assert.strictEqual(getGoalButton(overlay).getAttribute('aria-disabled'), 'false');
 		assert.strictEqual(getStopButton(overlay).getAttribute('aria-disabled'), 'false');
-		assert.strictEqual(getEnqueueButton(openQueuePanel(overlay)).disabled, false);
+		assert.strictEqual(getEnqueueButton(openQueuePanel(overlay)).disabled, true);
 		assertNoWriteCalls(roster, inputCalls);
 	});
 });

@@ -606,7 +606,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return false;
 		}
 		if (this.isEngineConnected()) {
-			return this.enqueueEngineQueueItem(sessionId, text, options, true);
+			return false;
 		}
 		if (this.wasEverConnected) {
 			return this.enqueueEngineQueueItem(sessionId, text, options, false);

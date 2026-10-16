@@ -288,13 +288,15 @@ export class ConversationInboxOverlay extends Disposable {
 
 	/** No rows and Enqueue unavailable: the chip already shows the status. */
 	private queueListCanOpen(queueState: ConversationMessageQueueState): boolean {
-		return queueState.items.length > 0 || this.isEnqueueOffered();
+		return queueState.items.length > 0
+			|| this.isEnqueueOffered()
+			|| (this.isEngineQueueUnlisted() && !this.isKeepLeftoverListFailWrite() && !isConversationPairingHold(this.uaConnection));
 	}
 
 	private isEnqueueOffered(): boolean {
 		return !isConversationPairingHold(this.uaConnection)
 			&& !this.isKeepLeftoverListFailWrite()
-			&& (this.stubService.isEngineConnected() || this.stubService.hasEngineConnectionHistory());
+			&& (!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory());
 	}
 
 	/** KEEP leftover list-fail (D451): connected but roster not ready is not a live Inbox write surface. */

@@ -32,13 +32,15 @@ import {
 import { shouldRestoreComposerDrafts } from '../common/uaClientSettingsHelpers.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
-import { ensureSessionModelProfileIds, sessionModelProfileId, type ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
+import { ensureSessionModelProfileIds, isComposerStreaming, sessionModelProfileId, type ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
 import { applyComposerSurfaceText, composerDraftText, composerSubmitText, turnEditLoadedPayload } from './conversationComposerRefs.js';
 
 export interface IConversationLensComposerHost {
 	filterAgentId: string | undefined;
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	submitInFlight: boolean;
+	lastAttachedEntries?: readonly { readonly streaming?: boolean }[];
+	hasStreamingEntry?: () => boolean;
 	modelSelectedIndex: number;
 	/** Session id → model profile id. Not part of ConversationSessionConfigSelection. */
 	modelProfileIdBySessionId?: Map<string, string>;
@@ -207,6 +209,13 @@ function activeComposerProjectPath(host: IConversationLensComposerHost): string 
 	} catch {
 		return undefined;
 	}
+	const boundSessionId = host.getBoundSessionId?.();
+	if (boundSessionId && session?.getWorkRoot) {
+		const boundWorkDir = session.getWorkRoot(boundSessionId)?.workDir?.trim();
+		if (boundWorkDir) {
+			return boundWorkDir;
+		}
+	}
 	const projectPath = session?.getActiveWorkRoot?.().workDir?.trim();
 	return projectPath || undefined;
 }
@@ -327,15 +336,15 @@ export function postBound(
 
 export async function submitDraft(host: IConversationLensComposerHost): Promise<void> {
 
+		if (host.submitInFlight || isComposerStreaming(host)) {
+			return;
+		}
 		if (host.composerPolicy === 'turnEdit') {
 			saveTurnEdit(host);
 			return;
 		}
 		if (host.composerPolicy === 'queueEdit') {
 			saveQueueEdit(host);
-			return;
-		}
-		if (host.submitInFlight) {
 			return;
 		}
 		const text = composerSubmitText(host);
