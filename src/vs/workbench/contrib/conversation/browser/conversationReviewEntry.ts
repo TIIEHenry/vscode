@@ -17,6 +17,7 @@ import {
 	isWorkDirCompatible,
 	resolveMutationResource,
 } from '../../sources/common/sourcesReviewAttribution.js';
+import { sourcesGitUnrootedChangeResource } from '../../sources/common/sourcesChangesGitRead.js';
 
 export const IConversationReviewNavService = createDecorator<IConversationReviewNavService>('conversationReviewNavService');
 
@@ -219,8 +220,17 @@ export function materializeReviewNavRecords(options: {
 	readonly workDir: string | undefined;
 	readonly workspaceRoots: readonly URI[];
 	readonly hasScmProvider: boolean;
+	/** Absent keeps the SCM + workspace-root gate. `'engine'` lists unrooted git paths. */
+	readonly access?: 'local' | 'engine' | 'none';
 }): IReviewNavRecord[] {
-	if (!options.hasScmProvider || !options.workDir || !isWorkDirCompatible(options.workDir, options.workspaceRoots)) {
+	if (options.access === 'none') {
+		return [];
+	}
+	const engine = options.access === 'engine';
+	if (!options.workDir) {
+		return [];
+	}
+	if (!engine && (!options.hasScmProvider || !isWorkDirCompatible(options.workDir, options.workspaceRoots))) {
 		return [];
 	}
 
@@ -229,7 +239,9 @@ export function materializeReviewNavRecords(options: {
 		if (!options.settledTurnIds.has(record.turnId)) {
 			continue;
 		}
-		const resource = resolveMutationResource(options.workDir, record.path, options.workspaceRoots);
+		const resource = engine
+			? sourcesGitUnrootedChangeResource(record.path)
+			: resolveMutationResource(options.workDir, record.path, options.workspaceRoots);
 		if (!resource) {
 			continue;
 		}

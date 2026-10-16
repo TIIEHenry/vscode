@@ -11,6 +11,9 @@ import { FileChangeType, FileChangesEvent, IFileService } from '../../../../../p
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IFileMutationRecord } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ISCMService } from '../../../scm/common/scm.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
+import { sourcesGitUnrootedChangeResource } from '../../common/sourcesChangesGitRead.js';
 import { buildSourcesReviewProgressKey, sourcesReviewProgressBucket } from '../../common/sourcesReviewProgress.js';
 import { SourcesReviewProgressService } from '../../browser/sourcesReviewProgressService.js';
 
@@ -22,6 +25,7 @@ suite('Sources - review progress service', () => {
 		stat?: (resource: URI) => Promise<{ etag: string }>;
 		repositoryFor?: (resource: URI) => { rootUri: URI } | undefined;
 		workDir?: string;
+		getWorkRoot?: (sessionId: string) => IAgentWorkRoot;
 	} = {}): SourcesReviewProgressService & {
 		fileChangeEmitter: Emitter<FileChangesEvent>;
 		mutationEmitter: Emitter<IFileMutationRecord>;
@@ -48,7 +52,10 @@ suite('Sources - review progress service', () => {
 			getConnectionSnapshot: () => ({ workDir: options.workDir }),
 		} as unknown as IUniverseAgentConnection;
 
-		const service = store.add(new SourcesReviewProgressService(fileService, scmService, connection));
+		const session = options.getWorkRoot
+			? { getWorkRoot: options.getWorkRoot } as IAgentSessionContext
+			: undefined;
+		const service = store.add(new SourcesReviewProgressService(fileService, scmService, connection, session));
 		return Object.assign(service, { fileChangeEmitter, mutationEmitter });
 	}
 
@@ -254,6 +261,50 @@ suite('Sources - review progress service', () => {
 		assert.notStrictEqual(first.contentHash, second.contentHash);
 		assert.strictEqual(service.isReviewed(first), false);
 		assert.strictEqual(service.isEntryReviewed(target), false);
+	});
+
+	test('engine-root row records progress and keeps it after reload', async function () {
+		const resource = sourcesGitUnrootedChangeResource('src/a.ts');
+		const service = createService({
+			workDir: '/connection',
+			getWorkRoot: sessionId => ({
+				sessionId,
+				engineIdentityId: 'eng',
+				workDir: '/engine/project',
+				source: 'session',
+				access: 'engine',
+				localRoot: undefined,
+				projectKey: 'eng\n/engine/project',
+			}),
+		});
+		const mutation = (path: string, turnId: string, toolCallId: string): IFileMutationRecord => ({
+			sessionId: 'sess',
+			toolCallId,
+			turnId,
+			agentId: 'agent',
+			path,
+			operation: 'edit',
+		});
+		const target = { resource, origin: 'engine' as const, sessionId: 'sess', gitPath: 'src/a.ts' };
+		const fileTarget = {
+			resource: URI.file('/connection/src/a.ts'),
+			origin: 'engine' as const,
+			sessionId: 'sess',
+			gitPath: 'other.ts',
+		};
+
+		service.mutationEmitter.fire(mutation('/connection/src/a.ts', 'turn-decoy', 'tc-decoy'));
+		assert.strictEqual((await service.resolveKey(fileTarget)).contentHash, '');
+
+		service.mutationEmitter.fire(mutation('/engine/project/src/a.ts', 'turn-1', 'tc-1'));
+		const key = await service.resolveKey(target);
+		assert.strictEqual(key.contentHash, 'turn-1\0tc-1');
+		service.markReviewed(key);
+
+		const reloaded = await service.resolveKey({ ...target, resource: sourcesGitUnrootedChangeResource('src/a.ts') });
+		service.noteRefreshedKey(reloaded);
+		assert.strictEqual(service.isReviewed(key), true);
+		assert.strictEqual(service.isEntryReviewed(target), true);
 	});
 
 	test('never calls IStorageService at runtime', async function () {

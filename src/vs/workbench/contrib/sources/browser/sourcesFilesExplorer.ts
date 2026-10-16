@@ -68,6 +68,35 @@ export const SOURCES_FILES_EXPLORER_ID = 'sources.files.explorer';
 
 const SOURCES_FILES_TREE_STATE_KEY = 'sources.files.explorer.treeViewState';
 
+export type SourcesFilesListMode = 'list' | 'tree';
+
+/** Project-layer scope. A missing project key is private to the session. */
+export function sourcesFilesListModeScope(projectKey: string | undefined, sessionId: string): string {
+	return projectKey ? projectKey : `session:${sessionId}`;
+}
+
+export function sourcesFilesListModeStorageKey(projectKey: string | undefined, sessionId: string): string {
+	return `${SOURCES_FILES_LIST_MODE_STORAGE_KEY}/${sourcesFilesListModeScope(projectKey, sessionId)}`;
+}
+
+/**
+ * Own key wins. A missing own key is seeded once from the window key.
+ * The window key is left in place.
+ */
+export function readSourcesFilesListMode(
+	read: (key: string) => string | undefined,
+	projectKey: string | undefined,
+	sessionId: string,
+): { readonly mode: SourcesFilesListMode; readonly storageKey: string; readonly writeSeed: boolean } {
+	const storageKey = sourcesFilesListModeStorageKey(projectKey, sessionId);
+	const own = read(storageKey);
+	if (own !== undefined) {
+		return { mode: own === 'list' ? 'list' : 'tree', storageKey, writeSeed: false };
+	}
+	const legacy = read(SOURCES_FILES_LIST_MODE_STORAGE_KEY);
+	return { mode: legacy === 'list' ? 'list' : 'tree', storageKey, writeSeed: true };
+}
+
 /**
  * Workspace explorer hosted in the Sources Files tab. It is not a view-container
  * entry, so it does not add an activity-bar icon or replace the sidebar explorer.
@@ -77,6 +106,7 @@ const SOURCES_FILES_TREE_STATE_KEY = 'sources.files.explorer.treeViewState';
 export class SourcesFilesExplorer extends ExplorerView {
 
 	private listMode = false;
+	private listModeReady = false;
 	private listDirectory: URI | undefined;
 	private listRootItem: ExplorerItem | undefined;
 	private savedTreeViewState: IAsyncDataTreeViewState | undefined;
@@ -109,8 +139,10 @@ export class SourcesFilesExplorer extends ExplorerView {
 		@IAccessibilityService accessibilityService: IAccessibilityService,
 		@IEnvironmentService environmentService: IEnvironmentService,
 		@IEditorGroupsService editorGroupsService: IEditorGroupsService,
+		@IAgentSessionContext private readonly session: IAgentSessionContext | undefined,
 	) {
 		super(options, contextMenuService, viewDescriptorService, instantiationService, contextService, progressService, editorService, editorResolverService, layoutService, keybindingService, contextKeyService, configurationService, labelService, themeService, telemetryService, hoverService, explorerService, storageService, clipboardService, fileService, uriIdentityService, commandService, openerService, accessibilityService, environmentService, editorGroupsService);
+		this.bindListModeToWorkRoot();
 	}
 
 	override get suppressesSiblingAutoReveal(): boolean {
@@ -139,10 +171,16 @@ export class SourcesFilesExplorer extends ExplorerView {
 	}
 
 	protected override renderBody(container: HTMLElement): void {
-		this.listMode = this.storageService.get(SOURCES_FILES_LIST_MODE_STORAGE_KEY, StorageScope.WORKSPACE) === 'list';
+		const scope = this.currentListModeScope();
+		const stored = this.readListMode(scope.projectKey, scope.sessionId);
+		this.listMode = stored.mode === 'list';
+		if (stored.writeSeed) {
+			this.persistListMode(stored.storageKey, stored.mode);
+		}
 		this.listModeContext.set(this.listMode);
 		super.renderBody(container);
 		this.element.classList.toggle('is-list', this.listMode);
+		this.listModeReady = true;
 		this._register(this.contextService.onDidChangeWorkspaceFolders(() => {
 			this.listDirectory = undefined;
 			this.listRootItem = undefined;
@@ -172,9 +210,60 @@ export class SourcesFilesExplorer extends ExplorerView {
 		this.listMode = list;
 		this.listModeContext.set(list);
 		this.element?.classList.toggle('is-list', list);
-		this.storageService.store(SOURCES_FILES_LIST_MODE_STORAGE_KEY, list ? 'list' : 'tree', StorageScope.WORKSPACE, StorageTarget.USER);
+		const scope = this.currentListModeScope();
+		this.persistListMode(sourcesFilesListModeStorageKey(scope.projectKey, scope.sessionId), list ? 'list' : 'tree');
 		this.updateLocationBreadcrumb();
 		void this.setTreeInput().then(() => this.updateLocationBreadcrumb()).catch(onUnexpectedError).catch(onUnexpectedError);
+	}
+
+	private bindListModeToWorkRoot(): void {
+		const session = this.session;
+		if (!session) {
+			return;
+		}
+		const onWorkRoot = session.onDidChangeActiveWorkRoot;
+		if (onWorkRoot) {
+			this._register(onWorkRoot(root => this.reloadListMode(root.projectKey, root.sessionId)));
+			return;
+		}
+		this._register(session.onDidChangeActiveSession(sessionId => {
+			const root = session.getWorkRoot?.(sessionId);
+			this.reloadListMode(root?.projectKey, sessionId);
+		}));
+	}
+
+	private currentListModeScope(): { projectKey: string | undefined; sessionId: string } {
+		const root = this.session?.getActiveWorkRoot?.();
+		return {
+			projectKey: root?.projectKey,
+			sessionId: root?.sessionId || this.session?.getActiveSessionId() || '',
+		};
+	}
+
+	private readListMode(projectKey: string | undefined, sessionId: string): { mode: SourcesFilesListMode; storageKey: string; writeSeed: boolean } {
+		return readSourcesFilesListMode(
+			key => this.storageService.get(key, StorageScope.WORKSPACE),
+			projectKey,
+			sessionId,
+		);
+	}
+
+	private persistListMode(storageKey: string, mode: SourcesFilesListMode): void {
+		this.storageService.store(storageKey, mode, StorageScope.WORKSPACE, StorageTarget.USER);
+	}
+
+	private reloadListMode(projectKey: string | undefined, sessionId: string): void {
+		if (!this.listModeReady) {
+			return;
+		}
+		const stored = this.readListMode(projectKey, sessionId);
+		if (stored.writeSeed) {
+			this.persistListMode(stored.storageKey, stored.mode);
+		}
+		const list = stored.mode === 'list';
+		if (this.listMode !== list) {
+			this.setListMode(list);
+		}
 	}
 
 	override collapseAll(): void {

@@ -9,7 +9,8 @@ import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/com
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { IDialogService, type IConfirmation } from '../../../../../platform/dialogs/common/dialogs.js';
+import { IConversationRosterService } from '../../browser/conversationStubService.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 import { type HubAuthStatus, type HubDeviceProjection, type HubDirectoryStatus, IUniverseAgentHubService } from '../../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -91,6 +92,14 @@ import {
 import { Dimension, getWindow } from '../../../../../base/browser/dom.js';
 
 const CONNECTION_EMPTY_COPY = 'No connection profiles yet';
+const ENGINE_SWITCH_PENDING_ONE = 'This window has 1 open session waiting for confirmation.';
+const ENGINE_SWITCH_PENDING_DETAIL = 'Switching engines stays in this window and disconnects the current connection. Cancel keeps the current connection.';
+
+function engineSwitchPendingMessage(count: number): string {
+	return count === 1
+		? ENGINE_SWITCH_PENDING_ONE
+		: `This window has ${count} open sessions waiting for confirmation.`;
+}
 const FAKE_PROFILE_LABELS = ['Local Engine', 'Home Server'];
 
 function device(partial: Partial<HubDeviceProjection> & Pick<HubDeviceProjection, 'id' | 'name'>): HubDeviceProjection {
@@ -137,6 +146,14 @@ suite('ConnectionPreferencesPane', () => {
 		return createConversationConnectionTestStub(overrides);
 	}
 
+	function createOpenedRoster(sessions: readonly { readonly id: string; readonly pending: boolean }[]): IConversationRosterService {
+		const pending = new Set(sessions.filter(session => session.pending).map(session => session.id));
+		return {
+			getSessions: () => sessions.map(session => ({ id: session.id, title: session.id, turns: [] })),
+			hasPendingAttentionSeat: (sessionId: string) => pending.has(sessionId),
+		} as unknown as IConversationRosterService;
+	}
+
 	function getPaneList(pane: ConnectionPreferencesPane): WorkbenchList<IConnectionProfileEntry> {
 		return (pane as unknown as { list: WorkbenchList<IConnectionProfileEntry> }).list;
 	}
@@ -157,15 +174,23 @@ suite('ConnectionPreferencesPane', () => {
 	function mountPane(
 		hubOverrides?: Partial<IUniverseAgentHubService>,
 		connectionOverrides?: Partial<IUniverseAgentConnection>,
+		extras?: {
+			readonly dialog?: Partial<IDialogService>;
+			readonly roster?: IConversationRosterService;
+		},
 	): ConnectionPreferencesPane {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentHubService, createHubStub(hubOverrides));
 		instantiationService.stub(IUniverseAgentConnection, createConnectionStub(connectionOverrides));
+		if (extras?.roster) {
+			instantiationService.stub(IConversationRosterService, extras.roster);
+		}
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
 			prompt: async () => ({ result: false }),
 			confirm: async () => ({ confirmed: true }),
 			input: async () => ({ confirmed: true, values: ['Renamed Studio'] }),
+			...extras?.dialog,
 		} as unknown as IDialogService);
 		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
 		const container = pane.getDomNode();
@@ -813,6 +838,172 @@ suite('ConnectionPreferencesPane', () => {
 		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
 		assert.deepStrictEqual(calls, ['forget', 'disconnect', 'add']);
 		assert.strictEqual((pane as unknown as { connectedProfileId?: string }).connectedProfileId, 'direct-new');
+		container.remove();
+	});
+
+	test('selected profile with a pending seat prompts and shows the count and cancel does not call connectProfile', async () => {
+		let connectCalls = 0;
+		let confirm: IConfirmation | undefined;
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => {
+				connectCalls++;
+				return { ok: true, path: 'hubRelay', pairingPending: false };
+			},
+		}, {
+			dialog: {
+				confirm: async confirmation => {
+					confirm = confirmation;
+					return { confirmed: false };
+				},
+			},
+			roster: createOpenedRoster([
+				{ id: 'open-pending-a', pending: true },
+				{ id: 'open-pending-b', pending: true },
+				{ id: 'open-idle', pending: false },
+			]),
+		});
+		const container = pane.getDomNode();
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		assert.strictEqual(connectCalls, 0);
+		assert.strictEqual(confirm?.message, engineSwitchPendingMessage(2));
+		assert.strictEqual(confirm?.detail, ENGINE_SWITCH_PENDING_DETAIL);
+		assert.strictEqual(confirm?.primaryButton, 'Continue');
+		container.remove();
+	});
+
+	test('Direct Address cancel does not call forgetConnectionProfile or disconnect', async () => {
+		let forgets = 0;
+		let disconnects = 0;
+		let connects = 0;
+		let confirm: IConfirmation | undefined;
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-old',
+				displayName: '127.0.0.1:50061',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+			forgetConnectionProfile: async () => {
+				forgets++;
+				return { ok: true };
+			},
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-new' }),
+		}, {
+			disconnect: async () => {
+				disconnects++;
+			},
+			connectProfile: async () => {
+				connects++;
+				return { ok: true, path: 'direct', pairingPending: false };
+			},
+		}, {
+			dialog: {
+				confirm: async confirmation => {
+					confirm = confirmation;
+					return { confirmed: false };
+				},
+			},
+			roster: createOpenedRoster([{ id: 'open-pending', pending: true }]),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		assert.strictEqual(forgets, 0);
+		assert.strictEqual(disconnects, 0);
+		assert.strictEqual(connects, 0);
+		assert.strictEqual(confirm?.message, ENGINE_SWITCH_PENDING_ONE);
+		assert.strictEqual(confirm?.detail, ENGINE_SWITCH_PENDING_DETAIL);
+		assert.strictEqual(container.querySelector('.connection-direct-address-status')?.textContent, '');
+		container.remove();
+	});
+
+	test('same host:port reconnect does not prompt', async () => {
+		let confirmCalls = 0;
+		let connectCalls = 0;
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'direct-old',
+				displayName: '127.0.0.1:50061',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'directAddress',
+			}],
+			forgetConnectionProfile: async () => ({ ok: true }),
+			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-new' }),
+		}, {
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			disconnect: async () => { },
+			connectProfile: async () => {
+				connectCalls++;
+				return { ok: true, path: 'direct', pairingPending: false };
+			},
+		}, {
+			dialog: {
+				confirm: async () => {
+					confirmCalls++;
+					return { confirmed: false };
+				},
+			},
+			roster: createOpenedRoster([{ id: 'open-pending', pending: true }]),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		pane.selectZone('direct');
+		(pane as unknown as { connectedProfileId?: string }).connectedProfileId = 'direct-old';
+		const hostInput = (pane as unknown as { directHostInput: { value: string } }).directHostInput;
+		const portInput = (pane as unknown as { directPortInput: { value: string } }).directPortInput;
+		hostInput.value = '127.0.0.1';
+		portInput.value = '50061';
+		await (pane as unknown as { handleConnectDirectAddress(): Promise<void> }).handleConnectDirectAddress();
+		assert.strictEqual(confirmCalls, 0);
+		assert.strictEqual(connectCalls, 1);
+		container.remove();
+	});
+
+	test('no pending session does not prompt', async () => {
+		let confirmCalls = 0;
+		let connectCalls = 0;
+		const pane = mountPane({
+			listConnectionProfiles: () => [{
+				profileId: 'hub-profile-1',
+				displayName: 'Studio',
+				state: 'active',
+				hasTrust: true,
+				targetKind: 'hubDevice',
+			}],
+		}, {
+			connectProfile: async () => {
+				connectCalls++;
+				return { ok: true, path: 'hubRelay', pairingPending: false };
+			},
+		}, {
+			dialog: {
+				confirm: async () => {
+					confirmCalls++;
+					return { confirmed: false };
+				},
+			},
+			roster: createOpenedRoster([{ id: 'open-idle', pending: false }]),
+		});
+		const container = pane.getDomNode();
+		await (pane as unknown as { connectProfileWithPairing(profileId: string): Promise<void> }).connectProfileWithPairing('hub-profile-1');
+		assert.strictEqual(confirmCalls, 0);
+		assert.strictEqual(connectCalls, 1);
 		container.remove();
 	});
 

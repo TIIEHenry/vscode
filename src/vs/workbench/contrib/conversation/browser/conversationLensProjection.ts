@@ -33,6 +33,28 @@ export const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
 
 export type ConversationLensId = 'conversation' | 'trajectory';
 
+/** Session-layer key. The window key stays a one-time seed and is not removed. */
+export function conversationLensIdStorageKey(sessionId: string): string {
+	return `${CONVERSATION_LENS_ID_STORAGE_KEY}.session:${sessionId}`;
+}
+
+export function readConversationLensId(
+	read: (key: string) => string | undefined,
+	sessionId: string,
+): { readonly lensId: ConversationLensId; readonly storageKey: string; readonly writeSeed: boolean } {
+	const storageKey = conversationLensIdStorageKey(sessionId);
+	const own = read(storageKey);
+	if (own === 'conversation' || own === 'trajectory') {
+		return { lensId: own, storageKey, writeSeed: false };
+	}
+	if (own !== undefined) {
+		return { lensId: 'conversation', storageKey, writeSeed: false };
+	}
+	const legacy = read(CONVERSATION_LENS_ID_STORAGE_KEY);
+	const lensId: ConversationLensId = legacy === 'conversation' || legacy === 'trajectory' ? legacy : 'conversation';
+	return { lensId, storageKey, writeSeed: true };
+}
+
 export interface IConversationLensProjectionHost {
 	/** Same dispose gate Mermaid resolve uses. */
 	readonly isDisposed: boolean;
@@ -309,20 +331,21 @@ export function navigateToTrajectoryFromTurn(host: IConversationLensProjectionHo
 }
 
 export function loadLensId(host: IConversationLensProjectionHost): ConversationLensId {
-
-		const stored = host.storageService.get(CONVERSATION_LENS_ID_STORAGE_KEY, StorageScope.WORKSPACE);
-		if (stored === 'conversation' || stored === 'trajectory') {
-			return stored;
-		}
-		return 'conversation';
-	
+	const seeded = readConversationLensId(
+		key => host.storageService.get(key, StorageScope.WORKSPACE),
+		host.getBoundSessionId(),
+	);
+	if (seeded.writeSeed && !host.pinConversationLens) {
+		host.storageService.store(seeded.storageKey, seeded.lensId, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+	}
+	return seeded.lensId;
 }
 
-function storeLensId(host: IConversationLensProjectionHost, lensId: ConversationLensId): void {
+export function storeLensId(host: IConversationLensProjectionHost, lensId: ConversationLensId): void {
 	if (host.pinConversationLens) {
 		return;
 	}
-	host.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, lensId, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+	host.storageService.store(conversationLensIdStorageKey(host.getBoundSessionId()), lensId, StorageScope.WORKSPACE, StorageTarget.MACHINE);
 }
 
 export function setLensId(host: IConversationLensProjectionHost, lensId: ConversationLensId): void {

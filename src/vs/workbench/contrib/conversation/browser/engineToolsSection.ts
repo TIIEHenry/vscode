@@ -16,6 +16,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
@@ -69,9 +70,34 @@ type EngineToolListEntry =
 	| { readonly kind: 'group'; readonly group: EngineToolCatalogGroup; readonly label: string }
 	| { readonly kind: 'tool'; readonly tool: UniverseAgentToolSummary };
 
+const TOOL_GROUP_ROW_HEIGHT = 28;
+const TOOL_NAME_ROW_HEIGHT = 28;
+const TOOL_DETAIL_ROW_HEIGHT = 44;
+
+/** Category and description share the second line. Blank parts are not a line. */
+function toolSubtitle(tool: UniverseAgentToolSummary): string {
+	const parts: string[] = [];
+	const category = tool.category?.trim();
+	const description = tool.description?.trim();
+	if (category) {
+		parts.push(category);
+	}
+	if (description) {
+		parts.push(description);
+	}
+	return parts.join(' — ');
+}
+
+function toolEntryHeight(entry: EngineToolListEntry): number {
+	if (entry.kind === 'group') {
+		return TOOL_GROUP_ROW_HEIGHT;
+	}
+	return toolSubtitle(entry.tool) ? TOOL_DETAIL_ROW_HEIGHT : TOOL_NAME_ROW_HEIGHT;
+}
+
 class EngineToolListDelegate implements IListVirtualDelegate<EngineToolListEntry> {
 	getHeight(entry: EngineToolListEntry): number {
-		return entry.kind === 'group' ? 28 : 48;
+		return toolEntryHeight(entry);
 	}
 
 	getTemplateId(entry: EngineToolListEntry): string {
@@ -151,14 +177,9 @@ class EngineToolRowRenderer implements IListRenderer<EngineToolListEntry, IToolR
 		templateData.tool = entry.tool;
 		(templateData.row as unknown as { __tool?: UniverseAgentToolSummary }).__tool = entry.tool;
 		templateData.name.textContent = entry.tool.name;
-		const parts: string[] = [];
-		if (entry.tool.category) {
-			parts.push(entry.tool.category);
-		}
-		if (entry.tool.description) {
-			parts.push(entry.tool.description);
-		}
-		templateData.description.textContent = parts.join(' — ');
+		const subtitle = toolSubtitle(entry.tool);
+		templateData.description.textContent = subtitle;
+		templateData.description.style.display = subtitle ? '' : 'none';
 		templateData.checkbox.setTitle(localize('ua.engineToolsRowToggle', "Enable {0}", entry.tool.name));
 		templateData.checkbox.checked = this.isEnabled(entry.tool.name);
 		templateData.checkbox.enable();
@@ -228,6 +249,7 @@ export class EngineToolsSection extends Disposable {
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IContextViewService contextViewService: IContextViewService,
+		@IAgentSessionContext private readonly sessionContext: IAgentSessionContext,
 	) {
 		super();
 		this.instantiationService = instantiationService;
@@ -605,6 +627,14 @@ export class EngineToolsSection extends Disposable {
 		this.renderStatus();
 	}
 
+	private listSessionAgentProfiles(): ReturnType<IUniverseAgentConnection['listAgentProfiles']> {
+		const projectPath = this.sessionContext?.getActiveWorkRoot?.().workDir?.trim();
+		if (!projectPath) {
+			return this.connection.listAgentProfiles();
+		}
+		return this.connection.listAgentProfiles({ projectPath });
+	}
+
 	private async refresh(): Promise<void> {
 		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
@@ -649,7 +679,7 @@ export class EngineToolsSection extends Disposable {
 		try {
 			const [toolsResult, profilesResult] = await Promise.all([
 				this.connection.listTools(),
-				this.connection.listAgentProfiles(),
+				this.listSessionAgentProfiles(),
 			]);
 			if (generation !== this.refreshGeneration) {
 				return;

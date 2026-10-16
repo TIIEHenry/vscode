@@ -13,6 +13,8 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import { ISCMService } from '../../../scm/common/scm.js';
 import type { IFileMutationRecord } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
 import { ConversationReviewNavService } from '../../browser/conversationReviewNavService.js';
 import {
 	attachReviewEntries,
@@ -23,6 +25,7 @@ import {
 	reviewNavEntryId,
 	reviewNavIndicesOutsideProcessFold,
 } from '../../browser/conversationReviewEntry.js';
+import { sourcesGitUnrootedChangeResource } from '../../../sources/common/sourcesChangesGitRead.js';
 import {
 	entriesToLegacyTurns,
 	projectSnapshotToEntries,
@@ -271,6 +274,8 @@ suite('conversationReviewEntry (R4b)', () => {
 		connectionWorkDir: string;
 		sessionWorkDir?: string;
 		roots: readonly URI[];
+		workRoot?: IAgentWorkRoot;
+		hasScm?: boolean;
 	}): ConversationReviewNavService {
 		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
 		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
@@ -299,8 +304,11 @@ suite('conversationReviewEntry (R4b)', () => {
 				folders: options.roots.map((uri, index) => ({ uri, name: `root-${index}`, index, toResource: () => uri })),
 			}),
 		} as unknown as IWorkspaceContextService;
-		const scm = { repositories: [{}] } as unknown as ISCMService;
-		const service = store.add(new ConversationReviewNavService(connection, roster, workspace, scm));
+		const scm = { repositories: options.hasScm === false ? [] : [{}] } as unknown as ISCMService;
+		const session = options.workRoot
+			? { getWorkRoot: () => options.workRoot } as IAgentSessionContext
+			: undefined;
+		const service = store.add(new ConversationReviewNavService(connection, roster, workspace, scm, session));
 		mutationEmitter.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'runtime-1' }));
 		settleEmitter.fire({ sessionId: 'session-1', runtimeTurnId: 'runtime-1', assistantTurnId: 'assistant-1' });
 		return service;
@@ -325,6 +333,26 @@ suite('conversationReviewEntry (R4b)', () => {
 			roots: [WORKSPACE_ROOT],
 		});
 		assert.deepStrictEqual(service.getReviewNavForSession('session-1'), []);
+	});
+
+	test('engine root still yields rows', () => {
+		const service = reviewService({
+			connectionWorkDir: WORKSPACE_ROOT.fsPath,
+			roots: [WORKSPACE_ROOT],
+			hasScm: false,
+			workRoot: {
+				sessionId: 'session-1',
+				engineIdentityId: undefined,
+				workDir: '/remote/project',
+				source: 'session',
+				access: 'engine',
+				localRoot: undefined,
+				projectKey: undefined,
+			},
+		});
+		const records = service.getReviewNavForSession('session-1');
+		assert.strictEqual(records.length, 1);
+		assert.deepStrictEqual(records[0]!.paths, [sourcesGitUnrootedChangeResource('src/a.ts').toString()]);
 	});
 
 	test('blank session workDir falls back to the connection workDir', () => {

@@ -7,6 +7,7 @@ import { basename } from '../../../../base/common/path.js';
 import { localize } from '../../../../nls.js';
 import type { IWindowOpenable } from '../../../../platform/window/common/window.js';
 import { URI } from '../../../../base/common/uri.js';
+import { normalizeAgentWorkDirKey } from '../../../services/agentSession/common/agentWorkRoot.js';
 import type { ConversationStubSession } from '../../conversation/browser/conversationStubModel.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
 import type { NavigatorCapabilitySupport } from '../common/navigatorEngineBridge.js';
@@ -44,11 +45,7 @@ export interface INavigatorLocalFolderEntry {
 }
 
 export function normalizeNavigatorWorkDirKey(workDir: string | undefined): string {
-	if (!workDir) {
-		return '';
-	}
-	const normalized = workDir.replace(/\\/g, '/').replace(/\/+$/, '');
-	return normalized || '/';
+	return normalizeAgentWorkDirKey(workDir);
 }
 
 export function isNavigatorCurrentWorkspace(workDir: string | undefined, workspaceRoots: readonly string[]): boolean {
@@ -65,10 +62,16 @@ export function currentWorkspaceRowLabel(name: string, currentWorkspace: boolean
 		: name;
 }
 
-export function workDirGroupLabel(workDir: string | undefined, currentWorkspace: boolean): string {
+export function workDirGroupLabel(workDir: string | undefined, currentSession: boolean): string {
 	const rawBase = workDir ? basename(workDir.replace(/\\/g, '/')) : '';
 	const base = rawBase || localize('navigatorProjects.defaultWorkDir', "Working directory");
-	return currentWorkspaceRowLabel(base, currentWorkspace);
+	return currentSession
+		? localize('navigatorProjects.currentSessionWorkDir', "{0} · current session", base)
+		: base;
+}
+
+function groupContainsActiveSession(sessions: readonly ConversationStubSession[], activeSessionId: string | undefined): boolean {
+	return !!activeSessionId && sessions.some(session => session.id === activeSessionId);
 }
 
 /** New-session tooltip for a workdir row. Uses the folder name, not the Open Folder workspace. */
@@ -112,7 +115,7 @@ function buildWorkDirGroups(
 		return [{
 			id: `workdir:${fallbackWorkDir ?? 'default'}`,
 			kind: 'workdir',
-			label: workDirGroupLabel(fallbackWorkDir, currentWorkspace),
+			label: workDirGroupLabel(fallbackWorkDir, false),
 			description: fallbackWorkDir,
 			currentWorkspace,
 			children: [],
@@ -129,10 +132,11 @@ function buildWorkDirGroups(
 		})
 		.map(([, group]) => {
 			const currentWorkspace = isNavigatorCurrentWorkspace(group.workDir, workspaceRoots);
+			const currentSession = groupContainsActiveSession(group.sessions, activeSessionId);
 			return {
 				id: `workdir:${group.workDir ?? 'default'}`,
 				kind: 'workdir' as const,
-				label: workDirGroupLabel(group.workDir, currentWorkspace),
+				label: workDirGroupLabel(group.workDir, currentSession),
 				description: group.workDir,
 				currentWorkspace,
 				children: group.sessions.map(session => ({

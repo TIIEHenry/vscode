@@ -5,7 +5,8 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { applySessionViewTimeline, isPreFirst, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
+import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
+import { applySessionViewTimeline, CONVERSATION_LENS_ID_STORAGE_KEY, conversationLensIdStorageKey, isPreFirst, loadLensId, storeLensId, type IConversationLensProjectionHost } from '../../browser/conversationLensProjection.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
 
 suite('ConversationLensProjection', () => {
@@ -94,6 +95,47 @@ suite('ConversationLensProjection', () => {
 		} as unknown as IConversationLensProjectionHost;
 
 		assert.strictEqual(isPreFirst(host), false);
+	});
+
+	test('two sessions remember two lens ids and a missing key seeds once from the window key', () => {
+		const values = new Map<string, string>();
+		values.set(CONVERSATION_LENS_ID_STORAGE_KEY, 'trajectory');
+		let sessionId = 'sess-a';
+		const host = {
+			pinConversationLens: false,
+			getBoundSessionId: () => sessionId,
+			storageService: {
+				get: (key: string, scope: StorageScope) => {
+					assert.strictEqual(scope, StorageScope.WORKSPACE);
+					return values.get(key);
+				},
+				store: (key: string, value: string, scope: StorageScope, target: StorageTarget) => {
+					assert.strictEqual(scope, StorageScope.WORKSPACE);
+					assert.strictEqual(target, StorageTarget.MACHINE);
+					values.set(key, value);
+				},
+			},
+		} as unknown as IConversationLensProjectionHost;
+
+		assert.strictEqual(loadLensId(host), 'trajectory');
+		assert.strictEqual(values.get(conversationLensIdStorageKey('sess-a')), 'trajectory');
+		assert.strictEqual(values.get(CONVERSATION_LENS_ID_STORAGE_KEY), 'trajectory');
+
+		storeLensId(host, 'conversation');
+		values.set(CONVERSATION_LENS_ID_STORAGE_KEY, 'trajectory');
+		assert.strictEqual(loadLensId(host), 'conversation');
+		assert.strictEqual(values.get(CONVERSATION_LENS_ID_STORAGE_KEY), 'trajectory');
+
+		sessionId = 'sess-b';
+		assert.strictEqual(loadLensId(host), 'trajectory');
+		storeLensId(host, 'trajectory');
+		assert.strictEqual(values.get(conversationLensIdStorageKey('sess-b')), 'trajectory');
+
+		sessionId = 'sess-a';
+		assert.strictEqual(loadLensId(host), 'conversation');
+		sessionId = 'sess-b';
+		assert.strictEqual(loadLensId(host), 'trajectory');
+		assert.strictEqual(values.get(CONVERSATION_LENS_ID_STORAGE_KEY), 'trajectory');
 	});
 
 });

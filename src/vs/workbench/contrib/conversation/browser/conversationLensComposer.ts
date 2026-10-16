@@ -5,7 +5,9 @@
 
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
@@ -52,6 +54,7 @@ export interface IConversationLensComposerHost {
 	agentSelectBox: SelectBox;
 	modelSelectBox: SelectBox;
 	readonly stubService: IConversationRosterService;
+	readonly instantiationService?: IInstantiationService;
 	readonly configurationService: IConfigurationService;
 	readonly storageService: IStorageService;
 	readonly uaConnection: IUniverseAgentConnection;
@@ -192,6 +195,22 @@ function restoreComposerCatalogLeftoverOrKeepPainted(host: IConversationLensComp
 	}
 }
 
+/** Active session work root. Missing API keeps the connection workDir fallback. */
+function activeComposerProjectPath(host: IConversationLensComposerHost): string | undefined {
+	const instantiationService = host.instantiationService;
+	if (!instantiationService) {
+		return undefined;
+	}
+	let session: IAgentSessionContext | undefined;
+	try {
+		session = instantiationService.invokeFunction(accessor => accessor.get(IAgentSessionContext));
+	} catch {
+		return undefined;
+	}
+	const projectPath = session?.getActiveWorkRoot?.().workDir?.trim();
+	return projectPath || undefined;
+}
+
 export async function loadConnectedComposerCatalogs(host: IConversationLensComposerHost, generation: number): Promise<void> {
 
 		const caps = ensureCapabilitySnapshot(host.uaConnection.getCapabilitySnapshot());
@@ -201,7 +220,10 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 		applyUnknownComposerCatalogHonesty(host, caps);
 		if (caps.agentProfiles.support === 'SUPPORTED') {
 			try {
-				const result = await host.uaConnection.listAgentProfiles();
+				const projectPath = activeComposerProjectPath(host);
+				const result = await (projectPath
+					? host.uaConnection.listAgentProfiles({ projectPath })
+					: host.uaConnection.listAgentProfiles());
 				if (generation !== host.composerCatalogGeneration) {
 					return;
 				}

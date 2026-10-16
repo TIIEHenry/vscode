@@ -17,6 +17,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
@@ -328,6 +329,7 @@ export class EngineAgentsSection extends Disposable {
 		@ICommandService private readonly commandService: ICommandService,
 		@IContextViewService contextViewService: IContextViewService,
 		@IDialogService private readonly dialogService: IDialogService,
+		@IAgentSessionContext private readonly sessionContext: IAgentSessionContext,
 	) {
 		super();
 
@@ -1443,6 +1445,14 @@ export class EngineAgentsSection extends Disposable {
 		return false;
 	}
 
+	private listSessionAgentProfiles(): ReturnType<IUniverseAgentConnection['listAgentProfiles']> {
+		const projectPath = this.sessionContext?.getActiveWorkRoot?.().workDir?.trim();
+		if (!projectPath) {
+			return this.connection.listAgentProfiles();
+		}
+		return this.connection.listAgentProfiles({ projectPath });
+	}
+
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
@@ -1488,7 +1498,7 @@ export class EngineAgentsSection extends Disposable {
 		this.renderStatus({ loadingKind: 'list' });
 
 		try {
-			const result = await this.connection.listAgentProfiles();
+			const result = await this.listSessionAgentProfiles();
 			if (generation !== this.refreshGeneration) {
 				return false;
 			}

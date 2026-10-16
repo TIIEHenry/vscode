@@ -261,8 +261,12 @@ export class SourcesChangesModel extends Disposable implements ISourcesChangesMo
 	}
 
 	private getRootUri(): URI | undefined {
+		const sessionId = this.session.getActiveSessionId();
+		if (this.session.getWorkRoot) {
+			return this.session.getWorkRoot(sessionId).localRoot;
+		}
 		return resolveSourcesGitResourceRoot({
-			workDir: this.session.getSessionWorkDir?.(this.session.getActiveSessionId()),
+			workDir: this.session.getSessionWorkDir?.(sessionId),
 			repositoryRoots: sourcesRepositoryRootUris(this.scmService.repositories ?? []),
 			workspaceFolders: this.workspaceContext.getWorkspace().folders.map(folder => folder.uri),
 		});

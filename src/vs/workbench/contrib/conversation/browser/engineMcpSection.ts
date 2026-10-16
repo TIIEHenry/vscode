@@ -14,6 +14,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
@@ -165,6 +166,12 @@ class EngineMcpListAccessibilityProvider implements IListAccessibilityProvider<E
 	}
 }
 
+/** Session work root, when the optional API is present. Blank stays off the request. */
+function sessionWorkDir(session: IAgentSessionContext | undefined): string | undefined {
+	const workDir = session?.getActiveWorkRoot?.().workDir?.trim();
+	return workDir || undefined;
+}
+
 function getMcpOriginGroupLabel(origin: UniverseAgentMcpServerOrigin): string {
 	switch (origin) {
 		case 'global':
@@ -232,6 +239,7 @@ export class EngineMcpSection extends Disposable {
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
+		@IAgentSessionContext private readonly sessionContext: IAgentSessionContext,
 	) {
 		super();
 		this.instantiationService = instantiationService;
@@ -404,7 +412,8 @@ export class EngineMcpSection extends Disposable {
 		this.hideCatalogWriteStatus();
 		const scope = 'global';
 		try {
-			const result = await this.connection.addMcpServer({ config, scope });
+			const workDir = sessionWorkDir(this.sessionContext);
+			const result = await this.connection.addMcpServer(workDir ? { config, scope, workDir } : { config, scope });
 			if (!result.ok) {
 				this.showWriteFailed(result.reason);
 				return false;
@@ -439,7 +448,13 @@ export class EngineMcpSection extends Disposable {
 			enabled: config?.enabled ?? this.selectedServer.enabled,
 		};
 		try {
-			const result = await this.connection.updateMcpServer({
+			const workDir = sessionWorkDir(this.sessionContext);
+			const result = await this.connection.updateMcpServer(workDir ? {
+				serverId: this.selectedServer.id,
+				config: merged,
+				scope,
+				workDir,
+			} : {
 				serverId: this.selectedServer.id,
 				config: merged,
 				scope,
@@ -470,7 +485,12 @@ export class EngineMcpSection extends Disposable {
 		const serverId = this.selectedServer.id;
 		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
 		try {
-			const result = await this.connection.removeMcpServer({
+			const workDir = sessionWorkDir(this.sessionContext);
+			const result = await this.connection.removeMcpServer(workDir ? {
+				serverId,
+				scope,
+				workDir,
+			} : {
 				serverId,
 				scope,
 			});
@@ -640,7 +660,10 @@ export class EngineMcpSection extends Disposable {
 		this.renderStatus({ loadingKind: 'list' });
 
 		try {
-			const result = await this.connection.listMcpServers();
+			const workDir = sessionWorkDir(this.sessionContext);
+			const result = await (workDir
+				? this.connection.listMcpServers({ workDir })
+				: this.connection.listMcpServers());
 			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return false;
 			}
@@ -759,7 +782,13 @@ export class EngineMcpSection extends Disposable {
 		}
 		const scope = server.origin === 'project' ? 'project' : 'global';
 		try {
-			const result = await this.connection.toggleMcpServer({
+			const workDir = sessionWorkDir(this.sessionContext);
+			const result = await this.connection.toggleMcpServer(workDir ? {
+				id: server.id,
+				enabled,
+				scope,
+				workDir,
+			} : {
 				id: server.id,
 				enabled,
 				scope,
