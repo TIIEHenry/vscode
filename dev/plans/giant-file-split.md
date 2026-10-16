@@ -3,8 +3,8 @@ title: "巨型文件按状态机 / 投影 / IO 拆分"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-05
-summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）；GFS-1/GFS-2/GFS-3 已在 HEAD 落地（含 GFS-3 residue @ 533fc6c42d5：readingColumn + sessionBinding，门面 783 行）；GFS-4 已 sync 本仓 @ a4ab1a3e754（PIN Desktop 0dd3146cd）；每文件 ≤800 硬上限；sessionCore/sessionView 仿既有 SYNC.md 回同步，禁止手改 vendored"
+updated: 2026-10-16
+summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）；GFS-1/GFS-2/GFS-3 已在 HEAD 落地（核对行数：conversationLens.ts 954，conversationLensComposerChrome.ts 1322，grpcClient.ts 3404，grpcClientMappersCatalog.ts 2773，每文件 ≤800 行硬上限尚未达到）；GFS-4 已 sync 本仓 @ a4ab1a3e754（PIN Desktop 0dd3146cd）；sessionCore/sessionView 仿既有 SYNC.md 回同步，禁止手改 vendored"
 ---
 
 # 巨型文件按状态机 / 投影 / IO 拆分
@@ -14,7 +14,7 @@ summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）�
 > **文档：** 不在 `src/vs/` 新建 docs 树（[DOCUMENTATION.md](../../docs/DOCUMENTATION.md)）。既有 `SYNC.md` 由同步脚本覆写，本方案**不**另建 SYNC.md。  
 > **本稿地位：** `accepted`（2026-09-04 两轮审查后签收，见文末）。  
 > **审查记录：** 见文末（规则 16）。  
-> **落地（HEAD @ `40d61319677` · 2026-09-05）：** **GFS-1 已落** @ `32f71812`/`32198d0b`（`grpcClientMappers.test.ts` + facade / Session·Catalog·Team mappers / `grpcClientCalls.ts`）。**GFS-2 已落** @ `78bc8bbc`（`conversationTimelineTypes.ts` + `conversationTimelineRenderer.ts` + 门面 `conversationTimelineTree.ts`）。**GFS-3 已落** @ `c5d791c7`（`conversationLensProjection.ts` + `conversationLensSessionBar.ts` + `conversationLensDock.ts` + `conversationLensComposer.ts` + `conversationLensComposerChrome.ts` + 门面 `conversationLens.ts`）。**GFS-3 residue 已落** @ `533fc6c42d5`（`conversationLensReadingColumn.ts` + `conversationLensSessionBinding.ts`；门面 `conversationLens.ts` **783** 行；仍 `export class ConversationLens`）。**G6 已在 Desktop 闭合** @ `48cd90952`（上游删四处 dead `private`；session-core vitest 1419 绿）。**Desktop GFS-4 已拆** @ `0dd3146cd`（同 class 文件搬迁；`session-actor.ts` 736 + `session-actor-stream-fold.ts` 733 + `session-actor-overlay-fold.ts` 288 + `session-actor-local-fact.ts` 659 + `session-actor-timeline-items.ts` 138 + `session-actor-chat-outbox.ts` 220；另有 `session-actor-fold-interface.ts` / `session-actor-production-source.ts`；均 ≤800；方法挂 `SessionActor.prototype`；上游 barrel 仍不 re-export `SessionActor`）。**GFS-4 已 sync 本仓** @ `a4ab1a3e754`（vendored PIN `0dd3146cd05efdcce118d0c3c7e19eb28b615f5c`；`sessionView/index.ts` 未手改）。
+> **落地（HEAD @ `40d61319677` · 2026-09-05）：** **GFS-1 已落** @ `32f71812`/`32198d0b`（`grpcClientMappers.test.ts` + facade / Session·Catalog·Team mappers / `grpcClientCalls.ts`）。**GFS-2 已落** @ `78bc8bbc`（`conversationTimelineTypes.ts` + `conversationTimelineRenderer.ts` + 门面 `conversationTimelineTree.ts`）。**GFS-3 已落** @ `c5d791c7`（`conversationLensProjection.ts` + `conversationLensSessionBar.ts` + `conversationLensDock.ts` + `conversationLensComposer.ts` + `conversationLensComposerChrome.ts` + 门面 `conversationLens.ts`）。**GFS-3 residue 已落** @ `533fc6c42d5`（`conversationLensReadingColumn.ts` + `conversationLensSessionBinding.ts`；门面 `conversationLens.ts` 现为 954 行，`conversationLensComposerChrome.ts` 1322 行，`grpcClient.ts` 3404 行，`grpcClientMappersCatalog.ts` 2773 行，≤800 行上限尚未达到；仍 `export class ConversationLens`）。**G6 已在 Desktop 闭合** @ `48cd90952`（上游删四处 dead `private`；session-core vitest 1419 绿）。**Desktop GFS-4 已拆** @ `0dd3146cd`（同 class 文件搬迁；`session-actor.ts` 736 + `session-actor-stream-fold.ts` 733 + `session-actor-overlay-fold.ts` 288 + `session-actor-local-fact.ts` 659 + `session-actor-timeline-items.ts` 138 + `session-actor-chat-outbox.ts` 220；另有 `session-actor-fold-interface.ts` / `session-actor-production-source.ts`；均 ≤800；方法挂 `SessionActor.prototype`；上游 barrel 仍不 re-export `SessionActor`）。**GFS-4 已 sync 本仓** @ `a4ab1a3e754`（vendored PIN `0dd3146cd05efdcce118d0c3c7e19eb28b615f5c`；`sessionView/index.ts` 未手改）。
 
 ## 0. 目标 / 非目标
 
@@ -114,7 +114,7 @@ summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）�
 | sessionBar 所列块 | ~210 |
 | **初案门面残留** | **~1110（>1000 硬上限，必须扩）** |
 | 扩：composer chrome（上表新文件） | ~390 |
-| **扩后门面残留** | **~720（≤800 软上限）** |
+| **扩后门面残留** | **~720（≤800 软上限；2026-10-16 快照：conversationLens.ts 954 行、conversationLensComposerChrome.ts 1322 行、grpcClient.ts 3404 行、grpcClientMappersCatalog.ts 2773 行，≤800 行上限尚未达到）** |
 
 `conversationLensComposer.ts` 初案 ~520 超新模块软上限 400：实施时把 `mountDock`（~200）再切到 `conversationLensDock.ts`，与 catalog/draft/voice/submit（~320）分开，仍算 GFS-3，不另开方案。
 

@@ -3,7 +3,7 @@ title: "会话工作根与 Workbench 双层状态"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-11
+updated: 2026-10-16
 summary: "PRD-029：路径按会话工作根解析（会话 workDir，缺省连接 workDir），本地根沿用 SCM 根优先；项目层按引擎身份 + 工作根，v1 只装 Preview 的 Code 类别；会话层按会话 id。并排会话的 Preview 跟显式切换。换引擎留在原窗口，断旧连接前只提示本窗口等待确认的会话。S1–S4 实施中，方案仍 draft。Preview 换入换出等 PRD-027 P3。不升 PRD。"
 ---
 
@@ -27,7 +27,7 @@ summary: "PRD-029：路径按会话工作根解析（会话 workDir，缺省连�
 | 引擎设置的项目作用域：`engineMcpSection.ts` 643 行、`engineAgentsSection.ts` 1491 行、`engineToolsSection.ts` 672 行、`conversationLensComposer.ts` 204 行，都不带参数；node 侧 `universeAgentConnectionService.ts` 1752–1840 行补连接 `workDir`（MCP 字段叫 `workDir`，AgentProfiles 叫 `projectPath`） | 连接 `workDir` | 不跟会话 |
 | PTY 终端（`universeAgentPtyTerminal.ts`） | 引擎回报的 `workingDirectory` | 引擎决定，本稿不动 |
 
-路径规范化至少有五份：`sourcesFilesWorkDirIsWorkspaceRoot` / `sourcesFilesNormalizedRoot`（`sourcesFilesEngineRead.ts`）、`sourcesGitNormalizedRoot`（`sourcesChangesGitRead.ts` 168 行）、`normalizeReviewPath` / `isWorkDirCompatible`（`sourcesReviewAttribution.ts`）、`normalizeNavigatorWorkDirKey`（`navigatorProjectsTree.ts` 46 行）。
+路径规范化至少有六份活跃函数：`sourcesGitChangeResource`（`sourcesChangesGitRead.ts` 168 行）、`sourcesFilesWorkDirIsWorkspaceRoot`（`sourcesFilesEngineRead.ts` 51 行）、`normalizeReviewPath` / `isWorkDirCompatible`（`sourcesReviewAttribution.ts`）、`normalizeNavigatorWorkDirKey`（`navigatorProjectsTree.ts` 46 行）、`normalizeAgentWorkDirKey`。
 
 Workbench 状态全按窗口存：Preview 编辑器是窗口级的；`StorageScope.WORKSPACE` 存着 Files 列表模式（`sourcesFilesExplorer.ts` 142 / 175 行）、透镜 id（`conversationLensProjection.ts` 313 / 325 行）、编辑器工作集（`editorParts.ts` 847 行）；Sources 当前标签只在内存。
 
