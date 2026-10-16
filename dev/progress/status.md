@@ -4,13 +4,16 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-16
-summary: "2026-10-16：多工位并行合入 S1–S4 会话工作根、Slot F 能力复位、Slot D 视觉与边界、Slot B MCP/触发器、Slot A Composer 代理选择器、Slot B 盘符与文件变更计数、Slot D 零值统计、Slot F 会话隔离 Diff URI；第二批合入 Slot F ProjectRule 全局探测 (G16/B3)、Slot D 会话工作根完整收口 (G5/S2)、Slot B Tools/Agents 工作根跟随与 Triggers 门禁完善 (B3, G15, G16)。10012 文件 transpile-client 0 错误，测试全绿。"
+summary: "2026-10-16：多工位并行合入 S1–S4 会话工作根、Slot F 能力复位、Slot D 视觉与边界、Slot B MCP/触发器、Slot A Composer 代理选择器、Slot B 盘符与文件变更计数、Slot D 零值统计、Slot F 会话隔离 Diff URI；第二批合入 Slot F ProjectRule 全局探测 (G16/B3)、Slot D 会话工作根完整收口 (G5/S2)、Slot B Tools/Agents 工作根跟随与 Triggers 门禁完善 (B3, G15, G16)；第三批合入 Slot A 弹出层 token (S7)、Slot D Navigator 加载态与 Sources 错误去重 (S8)、Slot F 方案状态对齐。10012 文件 transpile-client 0 错误，测试全绿。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **S8 Navigator 加载与 Sources 读失败（2026-10-16）**：读代理树时 `.navigator-stub-empty` 加 `.is-loading`，只藏闪电伪元素，并用视图进度条。Sources 文件列表有行时错误只在状态行，无行时只在居中空态；说明是前景色，原始错误在 tooltip 和可展开详情，带重试。会话不可用固定句未做。方案 [cursor-visual-alignment](../plans/cursor-visual-alignment.md) 仍 `draft`。
+- **多工位并行实施与视觉收归 Wave 2026-10-16（第三批）**：
+  - **Slot A: 弹出层与浮动面板圆角阴影收归 (S7，提交 0808165ae06)**：History/Snapshots 面板与 Inbox 浮层圆角收归为 8px token（`var(--vscode-cornerRadius-large, 8px)`），阴影收归为 `var(--vscode-widget-shadow)`，消除硬编码 12px 与 rgba 投影；单测 `conversationLensCssScan.test.ts` 30 passing 全绿。
+  - **Slot D: Navigator 加载态与 Sources 错误呈现去重 (S8，提交 c64a22ff72b)**：读代理树时加 `.is-loading` 抑制闪电图标；Sources 列表有内容时仅状态行显示错误，空态时居中显示错误，原始错误移至 tooltip 与展开详情；单测与子视图用例 185 passing 全绿。
+  - **Slot F: 缺口修复方案实施状态对齐 (提交 0e6934b544f)**：对齐 `engine-gap-queue-send-attachments.md` 与 `conversation-failure-and-mutation.md` 至 `implemented`，文档门禁 0 error 全绿。
 - **多工位并行实施与架构缺陷修复 Wave 2026-10-16（第二批）**：
   - **Slot F: ProjectRule 全局探测增加 GLOBAL scope 载荷（提交 4ceec227b19，G16、B3）**：
     - `grpcTransport.ts` 与 `grpcClient.ts` 扩充 `probeRpc` 接受可选 `request` 参数；
