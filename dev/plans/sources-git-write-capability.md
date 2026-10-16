@@ -1,13 +1,15 @@
 ---
 title: "Sources Git 写能力按广告探测"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-05
-summary: "Stage / Commit / Accept 不再把桌面代理上的函数当成引擎已提供 WriteGit*。三项写能力跟 sessionList 一样放在连接快照专用字段，不进 Engine Overview。稿仍 draft。不升 PRD-009。"
+updated: 2026-10-16
+summary: "Stage / Commit / Accept 改看连接快照 gitWriteCapability，不把桌面代理函数当成已广告的 WriteGit*。已于 c7d53074df5 落地。不进 Engine Overview。不升 PRD-009。"
 ---
 
 # Sources Git 写能力按广告探测
+
+> **落地：** `status: implemented`。已于 `c7d53074df5` 落地（Stage / Commit / Accept 改看连接快照 `gitWriteCapability`，不把桌面代理函数当成已广告的 WriteGit*；平台与渲染端缓存同步生效）。不进 Engine Overview。不升 PRD-009。
 
 桌面 `ProxyChannel` 让 `IUniverseAgentConnection` 上每个方法都是函数。`typeof writeGitStagePaths === 'function'` 在生产里恒真，引擎没广告或探测为 `UNIMPLEMENTED` 时，Changes 的 Stage / Commit 和 Diff 的 Accept 仍会走引擎写。读路径 `readGitChanges` 已经用能力快照；写路径没有。
 
