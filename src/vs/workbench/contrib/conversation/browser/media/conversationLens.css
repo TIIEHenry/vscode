@@ -2700,8 +2700,8 @@
 	line-height: 16px;
 	color: var(--vscode-descriptionForeground);
 	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
+	white-space: normal;
+	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-gate-row.is-error {
@@ -2712,7 +2712,7 @@
 	flex: 1;
 	min-width: 0;
 	overflow: hidden;
-	text-overflow: ellipsis;
+	overflow-wrap: anywhere;
 }
 
 /* Author display beats UA hidden rule; ensure hidden inbox items are strictly display: none */

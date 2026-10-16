@@ -132,6 +132,7 @@ import {
 	toggleMoreContextView,
 	toggleTuneContextView,
 	updateComposerEditChrome,
+	updateComposerSessionSelectsEnabled,
 	updateGateRow,
 	updateMaximizeInputButton,
 	updateSendEnabled,
@@ -377,6 +378,8 @@ export class ConversationLens extends Disposable {
 				}
 				this.renderInboxStatus();
 				this.updateConversationPhase();
+				this.updateGateRow();
+				updateComposerSessionSelectsEnabled(this);
 				if (this.lensId === 'trajectory' && sessionId === this.getBoundSessionId()) {
 					this.refreshTrajectoryRecords(sessionId);
 				}

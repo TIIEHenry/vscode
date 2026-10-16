@@ -239,15 +239,27 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			void applySessionModelIndex(host, host.getBoundSessionId(), e.index).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		updateComposerSessionSelectsEnabled(host);
-		host.register(host.stubService.onDidChangeSession(() => host.updateSendEnabled()));
-		host.register(host.stubService.onDidChangeEngineConnection(() => {
-			updateComposerSessionSelectsEnabled(host);
-			host.updateSendEnabled();
-		}));
-		host.register(host.uaConnection.onDidChangeConnection(() => {
-			updateComposerSessionSelectsEnabled(host);
-			host.updateSendEnabled();
-		}));
+		if (host.stubService.onDidChangeSession) {
+			host.register(host.stubService.onDidChangeSession(() => {
+				updateComposerSessionSelectsEnabled(host);
+				updateGateRow(host);
+				host.updateSendEnabled();
+			}));
+		}
+		if (host.stubService.onDidChangeEngineConnection) {
+			host.register(host.stubService.onDidChangeEngineConnection(() => {
+				updateComposerSessionSelectsEnabled(host);
+				updateGateRow(host);
+				host.updateSendEnabled();
+			}));
+		}
+		if (host.uaConnection.onDidChangeConnection) {
+			host.register(host.uaConnection.onDidChangeConnection(() => {
+				updateComposerSessionSelectsEnabled(host);
+				updateGateRow(host);
+				host.updateSendEnabled();
+			}));
+		}
 
 		const sendContainer = append(bottomTrailing, $('.conversation-lens-dock-send'));
 		host.sendButton = host.register(new Button(sendContainer, {

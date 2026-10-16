@@ -25,6 +25,7 @@ import {
 	conversationLensDockMaximizeInput,
 	conversationLensDockEngineNotConnected,
 	conversationLensDockSessionUnavailable,
+	conversationLensDockSessionUnavailableReason,
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoTools,
 	conversationLensDockMoreTitle,
@@ -182,6 +183,9 @@ function registerPopupEscape(container: HTMLElement, close: () => void): IDispos
 
 export function toggleTuneContextView(host: IConversationLensComposerChromeHost, anchor?: HTMLElement): void {
 
+		if (isComposerKeepLeftoverListFailed(host)) {
+			return;
+		}
 		if (host.tuneContextView) {
 			host.tuneContextView.close();
 			return;
@@ -658,7 +662,7 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 		}
 		// KEEP leftover list-fail: Loopback/Direct can still be up. Do not call that "Engine not connected".
 		if (isComposerKeepLeftoverListFailed(host)) {
-			showGateStatus(host, conversationLensDockSessionUnavailable);
+			showGateStatus(host, `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`);
 			return;
 		}
 		// Idle engine/session status lives on the identity strip (PreFirst) or SessionBar badge
@@ -786,7 +790,7 @@ export function setSessionConfig(host: IConversationLensComposerChromeHost, sess
 }
 
 /** KEEP leftover (D450): same predicate as SessionBar D449. List-fail leftover is not a live write surface. */
-function isComposerKeepLeftoverListFailed(host: IConversationLensComposerChromeHost): boolean {
+export function isComposerKeepLeftoverListFailed(host: IConversationLensComposerChromeHost): boolean {
 	return host.stubService.isEngineConnected()
 		&& host.stubService.isEngineSessionReady?.() === false;
 }
@@ -811,6 +815,7 @@ function syncComposerSelectEnabledChrome(
 	}
 	container.title = available ? availableLabel : unavailableLabel;
 	container.setAttribute('aria-disabled', String(!available));
+	// eslint-disable-next-line no-restricted-syntax -- DOM element inspection for aria-disabled sync
 	const select = container.querySelector('select');
 	if (select) {
 		select.setAttribute('aria-disabled', String(!available));
@@ -855,6 +860,7 @@ export function updateAgentSelectEnabled(host: IConversationLensComposerChromeHo
 		const available = isSessionSwitchAgentAvailable(host);
 		if (host.agentContainer) {
 			if (!available) {
+				host.agentSelectBox?.setEnabled(false);
 				clearNode(host.agentContainer);
 				const label = append(host.agentContainer, $('span.conversation-lens-dock-agent-readonly'));
 				label.textContent = conversationLensDockAgentUnavailable;
@@ -862,6 +868,7 @@ export function updateAgentSelectEnabled(host: IConversationLensComposerChromeHo
 				label.title = conversationLensDockAgentUnavailable;
 				return;
 			} else {
+				// eslint-disable-next-line no-restricted-syntax -- DOM element inspection for selectBox restoration
 				if (!host.agentContainer.querySelector('select')) {
 					clearNode(host.agentContainer);
 					if (host.agentSelectBox) {
@@ -888,6 +895,9 @@ export function updateComposerSessionSelectsEnabled(host: IConversationLensCompo
 		updatePermissionSelectEnabled(host);
 		updateAgentSelectEnabled(host);
 		updateModelSelectEnabled(host);
+		if (host.tuneButton) {
+			host.tuneButton.enabled = !isComposerKeepLeftoverListFailed(host);
+		}
 	
 }
 

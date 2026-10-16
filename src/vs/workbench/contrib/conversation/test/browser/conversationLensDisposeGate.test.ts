@@ -45,6 +45,7 @@ import { mountDock, type IConversationLensDockHost } from '../../browser/convers
 import {
 	conversationLensDockAgentLabel,
 	conversationLensDockSessionUnavailable,
+	conversationLensDockSessionUnavailableReason,
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoTools,
 	conversationLensDockPermissionLabel,
@@ -3159,7 +3160,10 @@ suite('conversation lens dispose gate', () => {
 				select(index: number) { permissionSelect.selectedIndex = index; },
 			},
 			agentSelectBox: {
-				setEnabled(enabled: boolean) { agentSelect.disabled = !enabled; },
+				setEnabled(enabled: boolean) {
+					agentSelect.disabled = !enabled;
+					agentSelect.setAttribute('aria-disabled', String(!enabled));
+				},
 				setAriaLabel() { },
 				select(index: number) { agentSelect.selectedIndex = index; },
 			},
@@ -3515,7 +3519,7 @@ suite('conversation lens dispose gate', () => {
 			updateGateRow(fixture.host);
 			assert.strictEqual(fixture.host.sendButton.enabled, false);
 			assert.strictEqual(fixture.host.gateRow.hidden, false, 'KEEP leftover gate must not hide as live');
-			assert.strictEqual(fixture.host.gateLabel.textContent, conversationLensDockSessionUnavailable);
+			assert.strictEqual(fixture.host.gateLabel.textContent, `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`);
 			assert.strictEqual(fixture.permissionSelect.disabled, true);
 			assert.strictEqual(fixture.permissionSelect.getAttribute('aria-disabled'), 'true');
 			assert.strictEqual(fixture.agentSelect.disabled, true);
