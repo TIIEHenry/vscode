@@ -27,7 +27,10 @@ export function normalizeAgentWorkDirKey(workDir: string | undefined): string {
 	if (!workDir?.trim()) {
 		return '';
 	}
-	const normalized = workDir.trim().replace(/\\/g, '/').replace(/\/+$/, '');
+	let normalized = workDir.trim().replace(/\\/g, '/').replace(/\/+$/, '');
+	if (/^[A-Za-z]:/.test(normalized)) {
+		normalized = normalized[0].toLowerCase() + normalized.slice(1);
+	}
 	return normalized || '/';
 }
 

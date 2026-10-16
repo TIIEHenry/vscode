@@ -61,7 +61,7 @@ suite('agentWorkRoot', () => {
 
 	test('trailing slash and backslash normalize to one project key', () => {
 		assert.strictEqual(normalizeAgentWorkDirKey('/proj/'), '/proj');
-		assert.strictEqual(normalizeAgentWorkDirKey('C:\\proj\\'), 'C:/proj');
+		assert.strictEqual(normalizeAgentWorkDirKey('C:\\proj\\'), 'c:/proj');
 		assert.strictEqual(normalizeAgentWorkDirKey('/'), '/');
 		const left = resolveAgentWorkRoot({
 			sessionId: 's1',
@@ -80,6 +80,12 @@ suite('agentWorkRoot', () => {
 			workspaceFolders: [],
 		});
 		assert.strictEqual(left.projectKey, right.projectKey);
+	});
+
+	test('drive letter is lowercased while posix paths preserve case', () => {
+		assert.strictEqual(normalizeAgentWorkDirKey('C:/proj'), 'c:/proj');
+		assert.strictEqual(normalizeAgentWorkDirKey('C:/proj'), normalizeAgentWorkDirKey(URI.file('C:/proj').fsPath));
+		assert.notStrictEqual(normalizeAgentWorkDirKey('/Proj/A'), normalizeAgentWorkDirKey('/proj/a'));
 	});
 
 	test('SCM root wins over a window folder, including a nested repository', () => {

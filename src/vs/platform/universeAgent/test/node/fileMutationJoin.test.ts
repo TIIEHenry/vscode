@@ -354,4 +354,134 @@ suite('FileMutationJoin', () => {
 			assistantTurnId: 'assistant-nested',
 		}]);
 	});
+
+	test('unattributedDropCount increments on missing path or operation object in snapshot or history, ignores non-objects', () => {
+		const join = new FileMutationJoin('sess-drop');
+		let recordCount = 0;
+		const onRecord = () => { recordCount++; };
+
+		assert.strictEqual(join.unattributedDropCount, 0);
+
+		// Non-object payload does not increment unattributedDropCount
+		join.handleStreamPayload({
+			tool_runtime_snapshot: {
+				tool_call_id: 'tc-non-obj',
+				payload: {
+					file_mutation_payload: 'string-not-object',
+				},
+			},
+		}, onRecord);
+		join.handleStreamPayload({
+			tool_runtime_snapshot: {
+				tool_call_id: 'tc-null',
+				payload: {
+					file_mutation_payload: null,
+				},
+			},
+		}, onRecord);
+		join.handleStreamPayload({
+			tool_runtime_snapshot: {
+				tool_call_id: 'tc-empty-payload',
+				payload: {},
+			},
+		}, onRecord);
+		assert.strictEqual(recordCount, 0);
+		assert.strictEqual(join.unattributedDropCount, 0);
+
+		// Snapshot payload is object lacking path: onRecord not called, unattributedDropCount increments
+		join.handleStreamPayload({
+			tool_runtime_snapshot: {
+				tool_call_id: 'tc-snap-no-path',
+				payload: {
+					file_mutation_payload: {
+						operation: 'edit',
+					},
+				},
+			},
+		}, onRecord);
+		assert.strictEqual(recordCount, 0);
+		assert.strictEqual(join.unattributedDropCount, 1);
+
+		// Snapshot payload is object lacking operation: onRecord not called, unattributedDropCount increments
+		join.handleStreamPayload({
+			tool_runtime_snapshot: {
+				tool_call_id: 'tc-snap-no-op',
+				payload: {
+					file_mutation_payload: {
+						path: 'snap.ts',
+					},
+				},
+			},
+		}, onRecord);
+		assert.strictEqual(recordCount, 0);
+		assert.strictEqual(join.unattributedDropCount, 2);
+
+		// Root file_mutation_payload lacking path
+		join.handleStreamPayload({
+			tool_runtime_snapshot: {
+				tool_call_id: 'tc-snap-root-no-path',
+				file_mutation_payload: {
+					operation: 'create',
+				},
+			},
+		}, onRecord);
+		assert.strictEqual(recordCount, 0);
+		assert.strictEqual(join.unattributedDropCount, 3);
+
+		// History non-object payload does not increment unattributedDropCount
+		join.handleHistoryPayload({
+			turn_id: 'turn-h',
+			agent_id: 'agent-h',
+			blocks: [{
+				tool_call_block: {
+					tool_call_id: 'tc-hist-null',
+					file_mutation: null,
+				},
+			}],
+		}, onRecord);
+		join.handleHistoryPayload({
+			turn_id: 'turn-h',
+			agent_id: 'agent-h',
+			blocks: [{
+				tool_call_block: {
+					tool_call_id: 'tc-hist-string',
+					file_mutation: 'not-object',
+				},
+			}],
+		}, onRecord);
+		assert.strictEqual(recordCount, 0);
+		assert.strictEqual(join.unattributedDropCount, 3);
+
+		// History payload is object lacking path: onRecord not called, unattributedDropCount increments
+		join.handleHistoryPayload({
+			turn_id: 'turn-h',
+			agent_id: 'agent-h',
+			blocks: [{
+				tool_call_block: {
+					tool_call_id: 'tc-hist-no-path',
+					file_mutation: {
+						operation: 'edit',
+					},
+				},
+			}],
+		}, onRecord);
+		assert.strictEqual(recordCount, 0);
+		assert.strictEqual(join.unattributedDropCount, 4);
+
+		// History payload is object lacking operation: onRecord not called, unattributedDropCount increments
+		join.handleHistoryPayload({
+			turn_id: 'turn-h',
+			agent_id: 'agent-h',
+			blocks: [{
+				tool_call_block: {
+					tool_call_id: 'tc-hist-no-op',
+					file_mutation: {
+						path: 'hist.ts',
+					},
+				},
+			}],
+		}, onRecord);
+		assert.strictEqual(recordCount, 0);
+		assert.strictEqual(join.unattributedDropCount, 5);
+	});
 });
