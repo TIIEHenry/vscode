@@ -4,10 +4,12 @@ type: plan
 status: draft
 phase: N/A
 updated: 2026-10-16
-summary: "PRD-029：路径按会话工作根解析（会话 workDir，缺省连接 workDir），本地根沿用 SCM 根优先；项目层按引擎身份 + 工作根，v1 只装 Preview 的 Code 类别；会话层按会话 id。并排会话的 Preview 跟显式切换。换引擎留在原窗口，断旧连接前只提示本窗口等待确认的会话。S1–S4 实施中，方案仍 draft。Preview 换入换出等 PRD-027 P3。不升 PRD。"
+summary: "PRD-029：路径按会话工作根解析（会话 workDir，缺省连接 workDir），本地根沿用 SCM 根优先；项目层按引擎身份 + 工作根，v1 只装 Preview 的 Code 类别；会话层按会话 id。并排会话的 Preview 跟显式切换。换引擎留在原窗口，断旧连接前只提示本窗口等待确认的会话。S1–S4 已全面落地合入（提交 4615d3aa990 与 b6bccf8ff2c）。Preview 换入换出等 PRD-027 P3。不升 PRD。"
 ---
 
 # 会话工作根与 Workbench 双层状态
+
+> **落地：** S1–S4 已全面落地合入（提交 `4615d3aa990` 与 `b6bccf8ff2c`）。路径按会话工作根解析、消费方接入、换引擎提示门与会话/项目层存储已落地通过；Preview 换入换出（S5）等 PRD-027 P3。不升 PRD。
 
 需求：[PRD-029](../../docs/product/requirements.md#prd-029-会话工作根与-workbench-状态跟随会话)（`proposed`）。
 
