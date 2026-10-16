@@ -10,6 +10,7 @@ import { ENGINE_BIND_FAILED_SESSION_ID } from '../../browser/conversationEngineR
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { postBound, pruneOrphanComposerDrafts, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { isComposerSingleLine, updateComposerSingleLineLayout, type IConversationLensComposerSingleLineHost } from '../../browser/conversationLensComposerChrome.js';
 import { loadUaClientComposerDraft, storeUaClientComposerDraft, uaClientComposerDraftEntryKey } from '../../browser/uaClientComposerDrafts.js';
 
 suite('conversationLensComposer', () => {
@@ -128,6 +129,161 @@ suite('conversationLensComposer', () => {
 		await postBound(host, { kind: 'submitInput', text: 'hello' }, leaseA as unknown as IConversationSessionViewLease);
 
 		assert.deepStrictEqual(posted, ['sess-A']);
+	});
+
+	function createSingleLineTestHost(overrides?: Partial<IConversationLensComposerSingleLineHost>) {
+		const composer = document.createElement('div');
+		composer.className = 'conversation-lens-composer';
+		const composerCluster = document.createElement('div');
+		composerCluster.className = 'conversation-lens-composer-cluster';
+		const dockRoot = document.createElement('div');
+		dockRoot.className = 'conversation-lens-dock-root';
+		const prefirstHero = document.createElement('div');
+		prefirstHero.className = 'conversation-lens-prefirst-hero';
+		const textarea = document.createElement('textarea');
+		textarea.className = 'conversation-lens-dock-input';
+		textarea.value = '';
+
+		dockRoot.appendChild(composerCluster);
+		composerCluster.appendChild(composer);
+
+		let scrolledToEndCount = 0;
+		let atBottom = true;
+
+		const host: IConversationLensComposerSingleLineHost = {
+			composer,
+			composerCluster,
+			dockRoot,
+			prefirstHero,
+			dockTextarea: textarea,
+			composerPolicy: 'compose',
+			inputMaximized: false,
+			lastReadingWidth: 500,
+			composerRefResources: [],
+			slotHosts: {
+				dock: document.createElement('div'),
+			} as any,
+			timelineTree: {
+				isScrolledToBottom: () => atBottom,
+				scrollToEnd: () => { scrolledToEndCount++; },
+			},
+			isPreFirst: () => false,
+			...overrides,
+		};
+
+		return {
+			host,
+			getScrolledToEndCount: () => scrolledToEndCount,
+			setAtBottom: (value: boolean) => { atBottom = value; },
+		};
+	}
+
+	test('S5: isComposerSingleLine returns true when docked in active session with empty draft, no chips, width >= 450', () => {
+		const { host } = createSingleLineTestHost();
+		assert.strictEqual(isComposerSingleLine(host), true);
+	});
+
+	test('S5: isComposerSingleLine returns false in PreFirst', () => {
+		const { host } = createSingleLineTestHost({
+			isPreFirst: () => true,
+		});
+		assert.strictEqual(isComposerSingleLine(host), false);
+	});
+
+	test('S5: isComposerSingleLine returns false when textarea has draft text', () => {
+		const { host } = createSingleLineTestHost();
+		host.dockTextarea.value = 'hello';
+		assert.strictEqual(isComposerSingleLine(host), false);
+	});
+
+	test('S5: isComposerSingleLine returns false when mention chips are present', () => {
+		const { host } = createSingleLineTestHost({
+			composerRefResources: [{ id: 'ref-1' }],
+		});
+		assert.strictEqual(isComposerSingleLine(host), false);
+	});
+
+	test('S5: isComposerSingleLine returns false when leaf width is under 450px or marked is-narrow', () => {
+		const { host: hostNarrowWidth } = createSingleLineTestHost({
+			lastReadingWidth: 400,
+		});
+		assert.strictEqual(isComposerSingleLine(hostNarrowWidth), false);
+
+		const { host: hostNarrowClass } = createSingleLineTestHost({
+			lastReadingWidth: 0,
+		});
+		hostNarrowClass.slotHosts!.dock.classList.add('is-narrow');
+		assert.strictEqual(isComposerSingleLine(hostNarrowClass), false);
+	});
+
+	test('S5: isComposerSingleLine returns false when input is maximized or policy is not compose', () => {
+		const { host: hostMaximized } = createSingleLineTestHost({
+			inputMaximized: true,
+		});
+		assert.strictEqual(isComposerSingleLine(hostMaximized), false);
+
+		const { host: hostTurnEdit } = createSingleLineTestHost({
+			composerPolicy: 'turnEdit',
+		});
+		assert.strictEqual(isComposerSingleLine(hostTurnEdit), false);
+
+		const { host: hostQueueEdit } = createSingleLineTestHost({
+			composerPolicy: 'queueEdit',
+		});
+		assert.strictEqual(isComposerSingleLine(hostQueueEdit), false);
+	});
+
+	test('S5: isComposerSingleLine returns false when composer is not in dock', () => {
+		const { host } = createSingleLineTestHost();
+		host.prefirstHero.appendChild(host.composerCluster);
+		assert.strictEqual(isComposerSingleLine(host), false);
+	});
+
+	test('S5: updateComposerSingleLineLayout toggles classes and maintains bottom scroll when at bottom', () => {
+		const { host, getScrolledToEndCount } = createSingleLineTestHost();
+		assert.strictEqual(host.composer.classList.contains('is-single-line'), false);
+		assert.strictEqual(host.composer.classList.contains('composer-single-line'), false);
+
+		// 1. Initial transition to single-line
+		updateComposerSingleLineLayout(host);
+		assert.strictEqual(host.composer.classList.contains('is-single-line'), true);
+		assert.strictEqual(host.composer.classList.contains('composer-single-line'), true);
+		assert.strictEqual(getScrolledToEndCount(), 1, 'must scrollToEnd when transitioning while at bottom');
+
+		// Idempotent when no change
+		updateComposerSingleLineLayout(host);
+		assert.strictEqual(getScrolledToEndCount(), 1);
+
+		// 2. Typing text transitions to double-line
+		host.dockTextarea.value = 'typed message';
+		updateComposerSingleLineLayout(host);
+		assert.strictEqual(host.composer.classList.contains('is-single-line'), false);
+		assert.strictEqual(host.composer.classList.contains('composer-single-line'), false);
+		assert.strictEqual(getScrolledToEndCount(), 2, 'must scrollToEnd when expanding while at bottom');
+
+		// 3. Clearing text transitions back to single-line
+		host.dockTextarea.value = '';
+		updateComposerSingleLineLayout(host);
+		assert.strictEqual(host.composer.classList.contains('is-single-line'), true);
+		assert.strictEqual(host.composer.classList.contains('composer-single-line'), true);
+		assert.strictEqual(getScrolledToEndCount(), 3, 'must scrollToEnd when collapsing back while at bottom');
+	});
+
+	test('S5: updateComposerSingleLineLayout does not scrollToEnd when reading column is not at bottom', () => {
+		const { host, getScrolledToEndCount, setAtBottom } = createSingleLineTestHost();
+		setAtBottom(false);
+
+		updateComposerSingleLineLayout(host);
+		assert.strictEqual(host.composer.classList.contains('is-single-line'), true);
+		assert.strictEqual(host.composer.classList.contains('composer-single-line'), true);
+		assert.strictEqual(getScrolledToEndCount(), 0, 'must not scrollToEnd when not at bottom');
+
+		// Type text to revert to double-line
+		host.dockTextarea.value = 'hello';
+		updateComposerSingleLineLayout(host);
+		assert.strictEqual(host.composer.classList.contains('is-single-line'), false);
+		assert.strictEqual(host.composer.classList.contains('composer-single-line'), false);
+		assert.strictEqual(getScrolledToEndCount(), 0, 'must not scrollToEnd when not at bottom');
 	});
 
 });

@@ -231,6 +231,7 @@ export function updateConversationPhase(host: IConversationLensProjectionHost): 
 		if (host.conversationPhase === nextPhase) {
 			// Agent SelectBox mounts after the first phase apply; keep PreFirst XOR in sync.
 			host.updateSessionConfigVisibility(preFirst);
+			(host as { updateComposerSingleLineLayout?(): void }).updateComposerSingleLineLayout?.();
 			return;
 		}
 		host.conversationPhase = nextPhase;

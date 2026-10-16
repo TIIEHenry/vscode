@@ -338,6 +338,7 @@ export function applyConversationWidth(host: IConversationLensReadingColumnHost,
 	applyLeafWidthClasses(host.readingColumn, width);
 	applyLeafWidthClasses(host.slotHosts.timeline, width);
 	applyLeafWidthClasses(host.slotHosts.dock, width);
+	(host as { updateComposerSingleLineLayout?(): void }).updateComposerSingleLineLayout?.();
 	if (host.slotHosts.sessionBar) {
 		// Part 级 sessionBar 用自己的盒宽，避免并列窄叶把共享栏打成 .is-narrow。
 		// Overlay 自备栏在尚未 paint 时回退到本次叶宽。
