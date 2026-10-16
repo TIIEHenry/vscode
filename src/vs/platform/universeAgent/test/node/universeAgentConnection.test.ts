@@ -10969,6 +10969,115 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('switching profile after AgentService.Tree UNIMPLEMENTED resets probe flag and allows engine B to fetchAgentTree (B1)', async () => {
+		const treeNodeB = {
+			agentId: 'b-root',
+			name: 'Root B',
+			type: 'AGENT_TYPE_ROOT',
+			status: 'AGENT_STATUS_IDLE',
+			model: '',
+			turnCount: 0,
+			createdAt: 0,
+			children: [],
+		};
+		let fetchedOnB = false;
+		const transportA = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-a',
+				methods: ['AgentService.Tree'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+			fetchAgentTree: async () => {
+				throw new UniverseAgentTransportError(GrpcStatusCode.UNIMPLEMENTED, 'no tree on A');
+			},
+		});
+		const transportB = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-b',
+				methods: ['AgentService.Tree'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+			fetchAgentTree: async () => {
+				fetchedOnB = true;
+				return treeNodeB;
+			},
+		});
+
+		let transportIndex = 0;
+		const transports = [transportA, transportB];
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: {
+				resolve: async (profileId: string) => ({
+					ok: true as const,
+					allowRelayFallback: false as const,
+					endpoint: {
+						attemptId: `endpoint-${profileId}`,
+						authority: '127.0.0.1:9',
+						port: 9,
+						resolvedIp: '127.0.0.1',
+						servername: '127.0.0.1',
+						relayTicketId: null,
+						tls: null,
+						expiresAtMs: Date.now() + 60_000,
+						path: 'direct' as const,
+					},
+				}),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transports[transportIndex++],
+		});
+
+		const connectA = await service.connectProfile('profile-a');
+		assert.strictEqual(connectA.ok, true);
+		await assert.rejects(() => service.fetchAgentTree('s1'));
+		assert.strictEqual(service.isAgentTreeUnsupported(), true);
+
+		// Switch profile to profile-b
+		const connectB = await service.connectProfile('profile-b');
+		assert.strictEqual(connectB.ok, true);
+		assert.strictEqual((service as unknown as { _agentTreeProbeUnsupported?: boolean })._agentTreeProbeUnsupported, false);
+		assert.strictEqual(service.isAgentTreeUnsupported(), false);
+
+		const rootB = await service.fetchAgentTree('s1');
+		assert.strictEqual(fetchedOnB, true);
+		assert.deepStrictEqual(rootB, treeNodeB);
+
+		service.dispose();
+	});
+
+	test('_dropPublishedTransport resets capabilities and probe flags (B1, G17)', async () => {
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['AgentService.Tree', 'ToolService.ListSkills'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+		});
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport,
+		});
+		await connectPlainFixture(service);
+		assert.strictEqual(service.getConnectionSnapshot().capabilities.agentTree.support, 'SUPPORTED');
+
+		(service as unknown as { _dropPublishedTransport(): void })._dropPublishedTransport();
+
+		const snapshot = service.getConnectionSnapshot();
+		assert.strictEqual(snapshot.capabilities.agentTree.support, 'UNKNOWN');
+		assert.strictEqual(snapshot.capabilities.skills.support, 'UNKNOWN');
+		assert.strictEqual(snapshot.sessionListCapability, 'UNKNOWN');
+		assert.strictEqual(snapshot.listFilesCapability, 'UNKNOWN');
+		assert.strictEqual(service.getCapabilitySnapshot().agentTree.support, 'UNKNOWN');
+		assert.strictEqual(service.isAgentTreeUnsupported(), false);
+
+		service.dispose();
+	});
+
 	test('disconnect clears isAgentTreeFetchFailed (D21)', async () => {
 		const transport = new MockUniverseAgentGrpcTransport({
 			connect: async () => ({
@@ -14534,6 +14643,7 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 				readonly onProbe?: (transport: HandshakeTransport) => number | Promise<number>;
 				readonly listSessions?: () => Promise<{ sessions: []; totalCount: 0 }>;
 				readonly closeEmitsUnavailable?: boolean;
+				readonly methods?: readonly string[];
 			} = {},
 		) {
 			super();
@@ -14556,14 +14666,14 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 			if (this.behavior.pairingNonce) {
 				return {
 					pairingNonce: this.behavior.pairingNonce,
-					methods: ['ToolService.ListSkills'],
+					methods: this.behavior.methods ?? ['ToolService.ListSkills'],
 					events: [],
 				};
 			}
 			return {
 				sessionToken: this.token,
 				workDir: '/tmp/work',
-				methods: ['ToolService.ListSkills'],
+				methods: this.behavior.methods ?? ['ToolService.ListSkills'],
 				events: [],
 			};
 		}
@@ -14991,6 +15101,76 @@ suite('UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)', () =
 		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
 		assert.strictEqual(clock.pending.size, 0);
 		assert.strictEqual(transport.isChannelAlive, false);
+		service.dispose();
+	});
+
+	test('condemn and closeoutAuthenticatedLink resets capability snapshot to UNKNOWN (B1, G17)', async () => {
+		const clock = createReconnectClock();
+		let now = 1_000;
+		const transportA = new HandshakeTransport('token-a', {
+			methods: ['AgentService.Tree', 'ToolService.ListSkills'],
+		});
+		const transportB = new HandshakeTransport('token-b', {
+			methods: ['ToolService.ListSkills'],
+		});
+		const service = serviceFor({
+			transports: [transportA, transportB],
+			clock,
+			now: () => now,
+		});
+		const connected = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(connected.ok, true);
+
+		// Connected: capabilities should reflect engine A
+		const connectedSnapshot = service.getConnectionSnapshot();
+		assert.strictEqual(connectedSnapshot.capabilities.agentTree.support, 'SUPPORTED');
+		assert.strictEqual(connectedSnapshot.capabilities.skills.support, 'SUPPORTED');
+
+		// Condemn after grace window so it triggers reconnect closeout
+		now = 1_000 + SESSION_TOKEN_REJECT_GRACE_MS + 1;
+		transportA.rejectSessionToken();
+
+		// Immediately after condemnation and before next commit, capabilities must be UNKNOWN
+		const condemnedSnapshot = service.getConnectionSnapshot();
+		assert.strictEqual(condemnedSnapshot.capabilities.agentTree.support, 'UNKNOWN');
+		assert.strictEqual(condemnedSnapshot.capabilities.skills.support, 'UNKNOWN');
+		assert.strictEqual(condemnedSnapshot.sessionListCapability, 'UNKNOWN');
+		assert.strictEqual(condemnedSnapshot.listFilesCapability, 'UNKNOWN');
+		assert.strictEqual(condemnedSnapshot.gitWriteCapability?.writeGitCommit, 'UNKNOWN');
+		assert.strictEqual(condemnedSnapshot.conversationEntryCapability?.setPermissionMode, 'UNKNOWN');
+		assert.strictEqual(service.getCapabilitySnapshot().agentTree.support, 'UNKNOWN');
+		assert.strictEqual(service.isAgentTreeUnsupported(), false);
+
+		// Allow reconnect to settle to clean up timer
+		clock.fireAll();
+		await flush();
+		service.dispose();
+	});
+
+	test('grace condemn and closeoutAuthenticatedLink resets capability snapshot to UNKNOWN (B1, G17)', async () => {
+		const clock = createReconnectClock();
+		const transport = new HandshakeTransport('token-a', {
+			methods: ['AgentService.Tree', 'ToolService.ListSkills'],
+		});
+		const service = serviceFor({ transports: [transport], clock, now: () => 5_000 });
+		const connected = await service.connectProfile(PAIRING_PROFILE_ID);
+		assert.strictEqual(connected.ok, true);
+
+		assert.strictEqual(service.getConnectionSnapshot().capabilities.agentTree.support, 'SUPPORTED');
+
+		transport.rejectSessionToken();
+		assert.strictEqual(service.getConnectionPhase().kind, 'failed');
+
+		const snapshot = service.getConnectionSnapshot();
+		assert.strictEqual(snapshot.capabilities.agentTree.support, 'UNKNOWN');
+		assert.strictEqual(snapshot.capabilities.skills.support, 'UNKNOWN');
+		assert.strictEqual(snapshot.sessionListCapability, 'UNKNOWN');
+		assert.strictEqual(snapshot.listFilesCapability, 'UNKNOWN');
+		assert.strictEqual(snapshot.gitWriteCapability?.writeGitCommit, 'UNKNOWN');
+		assert.strictEqual(snapshot.conversationEntryCapability?.setPermissionMode, 'UNKNOWN');
+		assert.strictEqual(service.getCapabilitySnapshot().agentTree.support, 'UNKNOWN');
+		assert.strictEqual(service.isAgentTreeUnsupported(), false);
+
 		service.dispose();
 	});
 
