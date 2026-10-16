@@ -90,7 +90,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [conversation-reading-surface.md](conversation-reading-surface.md) | `accepted` | 对话阅读面不显示 You / Agent；非 default 代理名 11px；用户气泡无描边无投影。不升 PRD-028。 |
 | [sessions-chat-composer-glass.md](sessions-chat-composer-glass.md) | `draft` | 追问卡去毛玻璃和投影已落；工作态聚焦描边仍被 40% 混色覆盖，须修到 focusBorder 并补状态测试。方案保持 draft，不升 PRD-028。 |
 | [cursor-visual-alignment.md](cursor-visual-alignment.md) | `draft` | S1–S5（进行中空稿一行与卡片 token 改造）、S6（Preview 空态去框、Sources 标题栏并入 tab 条）、S7（会话切换接入菜单 Picker 与弱化元信息）、S8（Sources 错误去重、Navigator 加载藏闪电、会话不可用固定原因与输入控件保留）、S9（6c1d33127fd：透镜芯片/Sources tab/首选项中性淡底 hover 与 400 字重、Navigator 过滤框去描边、Engine 分节 24px 单行）、S10（693ec548c89：Markdown 预览居中阅读列、属性表去框与字阶收归）已落地。History / Snapshots / Inbox 铬与产品遮罩色未做。方案仍 draft，不升 PRD-028。 |
-| [modal-mask-no-glass.md](modal-mask-no-glass.md) | `draft` | 去模糊代码已落，但默认浅色主题的对话框遮罩因 widget.shadow 为透明而没有半透明底色；需独立遮罩色和目视验证。方案仍 draft，不升 PRD-028。 |
+| [modal-mask-no-glass.md](modal-mask-no-glass.md) | `implemented` | 对话框与引导页遮罩已去掉背景模糊；对话框遮罩已改用独立半透明底色 rgba(0, 0, 0, 0.45) 避免浅色主题透明；扫描测试已对齐。不升 PRD-028。 |
 | [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-011：两级标签，2026-09-28 签收；显隐与路由同一次合入 |
 | [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `implemented` | v3.2 一次性重构（2026-09-28 已获用户明确签收并建立 ADR-010）：动画帧调度（16ms 兜底）+ 隐藏只停宿主 DOM + effects 接发送失败并回填文本 + 投影按输入身份缓存 + 宿主侧按 turn 的 H1 交接；原生文档流宿主（content-visibility、窗口化含未决座位、重资源预算），删除树与测高；marked 词法块冻结；HEAD 解锁语义 + 自身写入台账 + 发送上锁；性能挂 PRD-020 |
 | [remote-link-auth-and-relay.md](remote-link-auth-and-relay.md) | `accepted` | S1–S4 已落：调用挂 Bearer；被拒或不可用先摘掉再换链路；Hub 首配逐段签票，已交出的票离开拨号缓存。不升 PRD-024。 |

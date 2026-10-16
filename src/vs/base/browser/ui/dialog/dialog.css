@@ -17,7 +17,7 @@
 }
 
 .monaco-dialog-modal-block.dimmed {
-	background: var(--vscode-widget-shadow, rgba(0, 0, 0, 0.45));
+	background: rgba(0, 0, 0, 0.45);
 }
 
 /** Dialog: Container */
