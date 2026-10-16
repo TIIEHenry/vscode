@@ -4,12 +4,15 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-16
-summary: "2026-10-16：多工位并行合入第九批（Slot A: 已发布链路引擎身份与窗口连接服务注册方案状态收归 implemented；Slot B: 恢复信任方案状态收归 implemented 并同步会话工作根 S1-S4 落地事实）。transpile-client 0 错误，文档门禁全绿。"
+summary: "2026-10-16：多工位并行合入第十批（Slot A: 聊天流缺失时权限回复不得假装成功方案状态收归 implemented；Slot B: 未开启工具搜索时保留历史搜索结果方案状态收归 implemented）。transpile-client 0 错误，测试 40 passing，文档门禁全绿。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **多工位并行实施与方案状态收归 Wave 2026-10-16（第十批）**：
+  - **Slot A: 聊天流缺失时权限回复不得假装成功状态收归 (提交 95711d9786d)**：更新 `r12-permission-reply-fail-closed.md` 为 `implemented`，确认没有聊天流时权限回复返回拒绝并留下重试标记，纪元前进清理并留可再点失败（单测 `sessionViewHostChatClose.test.ts` & `sessionActorReconnectHistoryRegen.test.ts` 25 passing 全绿）；同步更新 `INDEX.md`。
+  - **Slot B: 未开启工具搜索时保留历史搜索结果状态收归 (提交 37d8ca8a7de)**：更新 `r15-5-tool-search-history.md` 为 `implemented`，确认谓词缺省时历史工具搜索保留 `toolsMap` 命中的工具，缺工具搜索且组不出工具时保留原文（单测 `responsesApiToolSearch.spec.ts` 15 passing 全绿）；同步更新 `INDEX.md`。
 - **多工位并行实施与视觉收归 Wave 2026-10-16（第九批）**：
   - **Slot A: 已发布链路引擎身份与窗口连接服务注册方案状态收归 (提交 88ce89b5a57)**：更新 `published-link-identity.md` 为 `implemented`，确认连接快照可选 `engineIdentityId` / `linkId` 字段、渲染端同步缓存与 `SessionViewHost` 换链切流/保持绑定逻辑已落地（`sessionViewHostEngineBind.test.ts` 26 passing）；更新 `sessions-window-connection-registration.md` 为 `implemented`，确认桌面与 Web 入口已侧载对应连接服务注册（`sessionsUniverseAgentConnectionRegistration.test.ts` 5 passing）；同步更新 `INDEX.md`。
   - **Slot B: 恢复信任状态收归与会话工作根 S1–S4 落地事实同步 (提交 8ac51f24131)**：更新 `recover-trust-new-attempt.md` 为 `implemented`，确认身份就绪时重新观测与续票握手逻辑落地（`pairingOrchestrator.test.ts` 23 passing）；更新 `session-work-root-and-workbench-scope.md` 摘要与正文文首，确认 S1–S4 已全面落地合入（提交 `4615d3aa990` 与 `b6bccf8ff2c`，`agentWorkRoot.test.ts` 10 passing）；同步更新 `INDEX.md`。
