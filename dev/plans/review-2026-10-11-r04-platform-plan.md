@@ -1,11 +1,19 @@
 ---
 title: "方案 r04：platform"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-11
-summary: "hold 4，drop 0，weaken 0。2026-10-11 Sonnet 第 1 路审查：可按稿实施。文末记下测试套件名和 regenerateTurn。"
+updated: 2026-10-16
+summary: "hold 4，drop 0，weaken 0。r04-1 到 r04-4 四条平台缺陷均已在生产代码和单测中落地，单测全部通过。"
 ---
+
+# 方案 r04：platform
+
+> **落地记录（2026-10-16）：** `status: implemented`。r04-1 到 r04-4 四条平台缺陷均已在生产代码和单测中落地，单测全部通过：
+> - **r04-1**（`src/vs/platform/userDataSync/common/abstractSynchronizer.ts`）：`getLocalFileContent` 捕获仅在 `FILE_NOT_FOUND` 时返回 `null`，其余错误原样抛出，避免将读取失败误当空设置覆盖远端（单测 `src/vs/platform/userDataSync/test/common/settingsSync.test.ts`）；
+> - **r04-2**（`src/vs/platform/universeAgent/node/sessionViewHost.ts`）：`post` 在 `submitInput` 被接受时，返回的 `correlation.id` 等于写进 fact 的 `writeId`（单测 `src/vs/platform/universeAgent/test/node/sessionViewHostIntentOwner.test.ts`、`src/vs/platform/universeAgent/test/node/sessionViewHostChangedIds.test.ts`）；
+> - **r04-3**（`src/vs/platform/universeAgent/node/universeAgentHubService.ts`）：`addHubDeviceProfile` 的 `find` 增加了 `accountId`、`profile.state !== 'revoked'` 与 `profile.state !== 'disabled'` 过滤，避免误复用已撤销或已停用 profile（单测 `src/vs/platform/universeAgent/test/node/universeAgentHubService.test.ts`）；
+> - **r04-4**（`src/vs/platform/universeAgent/node/pairingOrchestrator.ts`）：`confirmSas` 中 `createPinnedTransport` 之后立刻进入 `try/finally`，确保任何退出分支（签名器不可用、代际过期、握手结束等）均执行 `transport.close()`（单测 `src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts`）。
 
 hold 4，drop 0，weaken 0。
 
@@ -79,9 +87,12 @@ SAS 确认在签名器失败时不关闭已创建的传输。
 ### 本地验证
 `src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts` 套件 `pairingOrchestrator H2` 没有「签名器失败仍 close」的用例。新增：`createSigner` 解析为 `undefined` 时结果码为 `signer_unavailable`，且该次 `createPinnedTransport` 返回的传输 `close` 被调用一次；`createSigner` 拒绝时错误继续抛出，`close` 仍被调用一次。
 
-## 审查备注
+## 审查记录
 
 2026-10-11 Sonnet 第 1 路，Minor，不改变 hold：
+
+2026-10-16：r04-1 到 r04-4 四条缺陷均已在生产代码与单测中落地，测试全部通过，状态置为 `implemented`。
+
 
 - r04-2：`writeMessageToCoreFact` 里 `regenerateTurn` 同样把 `nextWriteId()` 写进 fact 的 `correlation`，返回的也是 `c:N`。只修 `submitInput` 时要写明 `regenerateTurn` 的 id 没有消费者，或把它一并列入。
 - r04-3：`addHubDeviceProfile creates then reuses a hubDevice profile` 在 `universeAgentHubService.test.ts` 的 `runtime refresh` 套件（约第 320 行）。`addHubDeviceProfile` 套件（约第 398 行起）里对应的是 `signedIn creates hubDevice profile with accountId userId and reuses same id`。`canonical hub URL` 套件也依赖同账号同设备复用，改条件时要确认那条预置 profile 仍然命中。
