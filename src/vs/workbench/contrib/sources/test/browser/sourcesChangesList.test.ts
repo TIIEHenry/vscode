@@ -774,8 +774,8 @@ suite('Sources - Changes list open', () => {
 		assert.strictEqual(openedFile, undefined);
 		assert.ok(openedOriginal?.startsWith('sources-git-diff:'));
 		assert.ok(openedModified?.startsWith('sources-git-diff:'));
-		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('original', 'src/a.ts', 'WORKTREE'))?.text, 'old\n');
-		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('modified', 'src/a.ts', 'WORKTREE'))?.text, 'new\n');
+		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('original', 'src/a.ts', 'WORKTREE', entry.sessionId ?? ''))?.text, 'old\n');
+		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('modified', 'src/a.ts', 'WORKTREE', entry.sessionId ?? ''))?.text, 'new\n');
 
 		let openedUnsupported = false;
 		await assert.rejects(async () => {
@@ -3415,8 +3415,8 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.ok(opened[0]?.modified?.startsWith('sources-git-diff:'));
 		assert.ok(!opened[0]?.original?.startsWith(`${SOURCES_GIT_UNROOTED_SCHEME}:`));
 		assert.ok(!opened[0]?.modified?.startsWith(`${SOURCES_GIT_UNROOTED_SCHEME}:`));
-		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('original', 'src/a.ts', 'WORKTREE'))?.text, 'old\n');
-		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('modified', 'src/a.ts', 'WORKTREE'))?.text, 'new\n');
+		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('original', 'src/a.ts', 'WORKTREE', list.element(0).sessionId ?? ''))?.text, 'old\n');
+		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('modified', 'src/a.ts', 'WORKTREE', list.element(0).sessionId ?? ''))?.text, 'new\n');
 
 		const unsupportedOpened: string[] = [];
 		const unsupported = createGitReadConnection({

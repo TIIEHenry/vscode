@@ -70,10 +70,11 @@ export class SourcesGitDiffContentStore {
 
 export const sourcesGitDiffContentStore = new SourcesGitDiffContentStore();
 
-export function sourcesGitDiffModelUri(side: 'original' | 'modified', path: string, indexState: string): URI {
+export function sourcesGitDiffModelUri(side: 'original' | 'modified', path: string, indexState: string, sessionId?: string): URI {
 	return URI.from({
 		scheme: SOURCES_GIT_DIFF_SCHEME,
 		path: `/${side}/${encodeURIComponent(path)}/${encodeURIComponent(indexState)}`,
+		query: sessionId ? `session=${encodeURIComponent(sessionId)}` : undefined,
 	});
 }
 

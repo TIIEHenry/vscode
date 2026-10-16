@@ -108,8 +108,8 @@ async function applySourcesGitFileDiffIfNeeded(
 		return ref;
 	}
 
-	const originalUri = sourcesGitDiffModelUri('original', entry.gitPath ?? '', entry.indexState ?? '');
-	const modifiedUri = sourcesGitDiffModelUri('modified', entry.gitPath ?? '', entry.indexState ?? '');
+	const originalUri = sourcesGitDiffModelUri('original', entry.gitPath ?? '', entry.indexState ?? '', entry.sessionId ?? '');
+	const modifiedUri = sourcesGitDiffModelUri('modified', entry.gitPath ?? '', entry.indexState ?? '', entry.sessionId ?? '');
 	const generation = sourcesGitDiffContentStore.begin([originalUri, modifiedUri]);
 	const result = await deps.readGitFileDiff(entry);
 	if (sourcesGitDiffContentStore.generation(originalUri) !== generation) {
