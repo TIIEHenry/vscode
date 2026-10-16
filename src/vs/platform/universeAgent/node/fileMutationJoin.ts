@@ -90,8 +90,13 @@ export class FileMutationJoin {
 	private readonly pending = new Map<string, PendingMutation[]>();
 	private readonly emitted = new Set<EmittedKey>();
 	private readonly records: IFileMutationRecord[] = [];
+	private _unattributedDropCount = 0;
 
 	constructor(private readonly sessionId: string) {
+	}
+
+	get unattributedDropCount(): number {
+		return this._unattributedDropCount;
 	}
 
 	getRecords(): readonly IFileMutationRecord[] {
@@ -173,7 +178,7 @@ export class FileMutationJoin {
 		if (typeof toolCallId !== 'string' || !toolCallId) {
 			return;
 		}
-		const parsed = parseFileMutation(fileMutationFromSnapshot(body));
+		const parsed = this.parseFileMutation(fileMutationFromSnapshot(body));
 		if (!parsed) {
 			return;
 		}
@@ -275,7 +280,7 @@ export class FileMutationJoin {
 			if (typeof toolCallId !== 'string' || !toolCallId) {
 				continue;
 			}
-			const parsed = parseFileMutation(readField(toolCall, 'file_mutation', 'fileMutation'));
+			const parsed = this.parseFileMutation(readField(toolCall, 'file_mutation', 'fileMutation'));
 			if (!parsed) {
 				continue;
 			}
@@ -310,6 +315,35 @@ export class FileMutationJoin {
 		this.emitted.add(key);
 		this.records.push(record);
 		onRecord(record);
+	}
+
+	private parseFileMutation(mutation: unknown): {
+		readonly path: string;
+		readonly operation: string;
+		readonly diffStats?: IFileMutationRecord['diffStats'];
+	} | undefined {
+		if (mutation === null || typeof mutation !== 'object' || Array.isArray(mutation)) {
+			return undefined;
+		}
+		const path = readField(mutation, 'path');
+		const operation = readField(mutation, 'operation');
+		if (typeof path !== 'string' || !path || typeof operation !== 'string' || !operation) {
+			this._unattributedDropCount++;
+			return undefined;
+		}
+		const diffStatsRaw = readField(mutation, 'diff_stats', 'diffStats');
+		let diffStats: IFileMutationRecord['diffStats'];
+		if (diffStatsRaw && typeof diffStatsRaw === 'object' && !Array.isArray(diffStatsRaw)) {
+			const added = readField(diffStatsRaw as object, 'added_lines', 'addedLines');
+			const removed = readField(diffStatsRaw as object, 'removed_lines', 'removedLines');
+			const changed = readField(diffStatsRaw as object, 'changed_files', 'changedFiles');
+			diffStats = {
+				addedLines: typeof added === 'number' ? added : 0,
+				removedLines: typeof removed === 'number' ? removed : 0,
+				changedFiles: typeof changed === 'number' ? changed : 0,
+			};
+		}
+		return { path, operation, ...(diffStats !== undefined ? { diffStats } : {}) };
 	}
 }
 
@@ -361,34 +395,6 @@ function collectHistoryEnvelopes(payload: unknown): readonly unknown[] {
 		return [payload];
 	}
 	return [];
-}
-
-function parseFileMutation(mutation: unknown): {
-	readonly path: string;
-	readonly operation: string;
-	readonly diffStats?: IFileMutationRecord['diffStats'];
-} | undefined {
-	if (mutation === null || typeof mutation !== 'object' || Array.isArray(mutation)) {
-		return undefined;
-	}
-	const path = readField(mutation, 'path');
-	const operation = readField(mutation, 'operation');
-	if (typeof path !== 'string' || !path || typeof operation !== 'string' || !operation) {
-		return undefined;
-	}
-	const diffStatsRaw = readField(mutation, 'diff_stats', 'diffStats');
-	let diffStats: IFileMutationRecord['diffStats'];
-	if (diffStatsRaw && typeof diffStatsRaw === 'object' && !Array.isArray(diffStatsRaw)) {
-		const added = readField(diffStatsRaw as object, 'added_lines', 'addedLines');
-		const removed = readField(diffStatsRaw as object, 'removed_lines', 'removedLines');
-		const changed = readField(diffStatsRaw as object, 'changed_files', 'changedFiles');
-		diffStats = {
-			addedLines: typeof added === 'number' ? added : 0,
-			removedLines: typeof removed === 'number' ? removed : 0,
-			changedFiles: typeof changed === 'number' ? changed : 0,
-		};
-	}
-	return { path, operation, ...(diffStats !== undefined ? { diffStats } : {}) };
 }
 
 export function isMultiAgentStatusPayload(payload: unknown): boolean {
