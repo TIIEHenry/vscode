@@ -1309,17 +1309,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._workDir = undefined;
 		this._sharedFsRootSent = false;
 		this._pairingPending = false;
-		this._agentTreeProbeUnsupported = false;
-		this._agentTreeFetchFailed = false;
-		this._fetchToolDetailUnsupported = false;
-		this._advertisedMethods = [];
+		this._resetCapabilitiesAndProbeFlags();
 		this._clearSaveSkillContentBinding();
 		this._transportState = 'idle';
-		this._capabilities = createEmptyCapabilitySnapshot();
-		this._sessionListCapability = 'UNKNOWN';
-		this._gitWriteCapability = createUnknownGitWriteCapability();
-		this._conversationEntryCapability = createUnknownConversationEntryCapability();
-		this._listFilesCapability = 'UNKNOWN';
 		this._connectionPhase = { kind: 'closed' };
 		this._activeProfileId = undefined;
 		this._clearPublishedLink();
@@ -2869,6 +2861,18 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		captured.close();
 	}
 
+	private _resetCapabilitiesAndProbeFlags(): void {
+		this._agentTreeProbeUnsupported = false;
+		this._agentTreeFetchFailed = false;
+		this._fetchToolDetailUnsupported = false;
+		this._advertisedMethods = [];
+		this._capabilities = createEmptyCapabilitySnapshot();
+		this._sessionListCapability = 'UNKNOWN';
+		this._gitWriteCapability = createUnknownGitWriteCapability();
+		this._conversationEntryCapability = createUnknownConversationEntryCapability();
+		this._listFilesCapability = 'UNKNOWN';
+	}
+
 	private _dropPublishedTransport(): void {
 		this._clearPublishedLink();
 		this._loopbackSkipAuth = false;
@@ -2876,17 +2880,13 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		if (!current) {
 			return;
 		}
+		this._resetCapabilitiesAndProbeFlags();
 		this._disposeLinkEvents();
 		this._transport = undefined;
 		current.close();
 		this._sessionToken = undefined;
 		this._workDir = undefined;
 		this._clearSaveSkillContentBinding();
-		this._capabilities = createEmptyCapabilitySnapshot();
-		this._sessionListCapability = 'UNKNOWN';
-		this._gitWriteCapability = createUnknownGitWriteCapability();
-		this._conversationEntryCapability = createUnknownConversationEntryCapability();
-		this._listFilesCapability = 'UNKNOWN';
 		this._transportState = 'idle';
 	}
 
@@ -2969,6 +2969,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		this._pairingPending = false;
 		this._transportState = 'ok';
 		this._rememberAdvertisedMethods(input.methods);
+		this._agentTreeProbeUnsupported = false;
 		this._capabilities = input.capabilities;
 		this._sessionListCapability = input.sessionList;
 		this._gitWriteCapability = input.gitWrite;
@@ -3351,6 +3352,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		attempt.settled = withinGrace ? 'grace' : 'reconnect';
 		const transport = attempt.transport;
 		if (this._transport === transport) {
+			this._resetCapabilitiesAndProbeFlags();
 			this._transport = undefined;
 			this._clearPublishedLink();
 		}
