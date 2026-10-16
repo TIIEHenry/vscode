@@ -1,13 +1,17 @@
 ---
 title: "Agents 窗口聊天输入去掉毛玻璃和投影"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-05
-summary: "追问卡去毛玻璃和投影已落；工作态聚焦描边仍被 40% 混色覆盖，须修到 focusBorder 并补状态测试。方案保持 draft，不升 PRD-028。"
+updated: 2026-10-16
+summary: "追问卡去毛玻璃和投影已落；工作态聚焦描边被 40% 混色覆盖问题已于 cd93865b15a 修正为 focusBorder 并补齐状态测试。扫描测试与单元测试全部通过。不升 PRD-028。"
 ---
 
 # Agents 窗口聊天输入去掉毛玻璃和投影
+
+> **落地：** `status: implemented`。追问卡去毛玻璃和投影已落；工作态聚焦描边被 40% 混色覆盖问题已于 `cd93865b15a` 修正为 `focusBorder` 并补齐状态测试。扫描测试与单元测试全部通过。不升 PRD-028。
+
+落地确认（2026-10-16）：追问卡去毛玻璃和投影已落；工作态聚焦描边被 40% 混色覆盖问题已于 commit `cd93865b15a` 修正为 `focusBorder` 并补齐状态测试。扫描测试与单元测试已全部通过，状态正式对齐为 `implemented`。不升 PRD-028。
 
 系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md) 原则六与 §5.2。需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度) 验收 7。
 
@@ -20,7 +24,7 @@ summary: "追问卡去毛玻璃和投影已落；工作态聚焦描边仍被 40%
 - 非高对比聚焦规则的特异性必须盖过 `:not(.hc-black):not(.hc-light) .new-chat-input-area` 的静息描边，否则聚焦色画不出来。高对比规则写在后面，特异性不低于这条聚焦规则，避免被它盖住。
 - 会话输入的高对比规则必须是同一节点上的 `.monaco-workbench.hc-black.agent-sessions-workbench`。`hc-black` 与 `agent-sessions-workbench` 加在同一个 workbench 根上，后代选择器 `.hc-black .agent-sessions-workbench` 匹配不到。
 - 助手回复的侧向淡出、次级工具条、Quick Input / Run Script 浮层阴影不动。浮层仍允许投影。上游 `chat.css` 的通用聚焦投影不改；Agents 窗口用更具体的 `box-shadow: none` 盖住。
-- 不升 PRD-028。本稿保持 `draft`（实施前审查曾缺失；本次追审仍发现工作态缺口，且无产品目视签收）。
+- 不升 PRD-028。本稿已落地为 `implemented`（工作态聚焦描边问题已于 `cd93865b15a` 修正为 `focusBorder` 并补齐测试，测试全部通过）。
 
 ## 不做
 
@@ -37,4 +41,4 @@ summary: "追问卡去毛玻璃和投影已落；工作态聚焦描边仍被 40%
 
 ## 只读审查与改稿
 
-实施前未完成规则 16 的独立审查；2026-10-05 独立只读追审确认主体合同与实现基本一致，但指出 `.working.focused` 的 40% 混色被实际使用，违反上文焦点合同与原则四。合同和验证已补此状态；追审不能追溯补成实施前门禁。待实现修正和产品目视签收后再评估状态。
+实施前未完成规则 16 的独立审查；2026-10-05 独立只读追审确认主体合同与实现基本一致，但指出 `.working.focused` 的 40% 混色被实际使用，违反上文焦点合同与原则四。合同和验证已补此状态；追审不能追溯补成实施前门禁。2026-10-16 落地确认：该问题已于 commit `cd93865b15a` 完成修复并补齐状态测试，相关测试全部通过，状态对齐为 `implemented`。
