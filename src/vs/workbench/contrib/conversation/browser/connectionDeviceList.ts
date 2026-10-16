@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import './media/connectionDeviceList.css';
 import { localize } from '../../../../nls.js';
 import type { HubDeviceProjection } from '../../../../platform/universeAgent/common/hub.js';
 import type { UniverseAgentDeviceInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';

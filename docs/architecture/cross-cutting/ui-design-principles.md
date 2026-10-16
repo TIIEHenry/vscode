@@ -135,7 +135,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 | 元素 | 上限 / 目标 | HEAD（2026-09-28） |
 |------|-------------|--------------------|
 | 产品列表 / 树 / 表格行 | 22px；第二行信息改为同行右侧 | Projects 会话树与菜单行同高，24px。轨迹表、Engine 首选项导航仍是 22px 单行。轨迹表类型列是图标加正常大小写，表头 11px、无大写、无底色；来源芯片是淡底。Engine 导航计数是同行弱化数字。Overview 是高 12px 的分段条，文字在 tooltip 与 aria 名称 |
-| 目录类列表行 | 24px 单行 | 2026-10-11 用户选定。导航行仍是 22px。Agents 档案行 HEAD 是 28 / 44px，设备行是 36px，随方案改 |
+| 目录类列表行 | 24px 单行 | 2026-10-11 用户选定。导航行仍是 22px。Agents/Skills/Tools/MCP 行收敛为 24px 单行，分组头加弱化计数，设备行随隔离样式收敛 |
 | 产品自有弹出层行 | 24px | 上游快速选择保持 22px，上游菜单行已是 24px，都不改 CSS |
 | 区域标题条（SessionBar、透镜条、Sources tab 条、Preview 类别条） | 不高于 28px，同一行控件等高 | Conversation 标题条与 Hide Conversation 为 28px，命中区 24px，底边与 Preview 类别条对齐；Preview 类别钮 24px |
 | 上游 Part 标题、编辑器 tab、状态栏 | 沿用上游，不另加高 | 沿用 |
@@ -260,7 +260,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 | 圆角 | 12 / 14 / 16px 残留 13 处（10 个文件）；Conversation 样式目录另有 3px、10px |
 | 行高 | 见 §4 HEAD 列 |
 | 焦点 | 全仓 78 处 `outline: none !important`（39 个文件，含编辑器隐藏 textarea 等合法用例），需逐处确认有替代焦点样式 |
-| 全大写 | 对话阅读面不再显示 YOU / AGENT。轨迹角色列、Inspector 区段标题与状态徽标不再 `text-transform: uppercase`。轨迹表头、类型列与 Overview 标题已是正常大小写。图示选项徽标与 Engine 技能 / 目录分组标签仍全大写，不在 [阅读面方案](../../../dev/plans/conversation-reading-surface.md) |
+| 全大写 | 对话阅读面不再显示 YOU / AGENT。轨迹角色列、Inspector 区段标题与状态徽标不再 `text-transform: uppercase`。轨迹表头、类型列与 Overview 标题已是正常大小写。图示选项徽标仍全大写；Engine 技能与目录分组标签已在 S9 去除全大写并收敛为正常字重与弱化计数 |
 | 空态 | Preview 类别空态无边框，标题与说明用字号 token，按钮可换行并有键盘焦点。其他表面的大图标居中卡片仍在 |
 | 阴影与毛玻璃 | Agents 窗口跟在聊天背景上的追问卡已是不透明 `--session-view-background`，不再 `backdrop-filter`，也不再投影；会话里和新建里的输入聚焦只把描边换成 `focusBorder`（高对比仍用对比描边）。对话框遮罩与引导页遮罩不再 `backdrop-filter`，半透明底色仍在，对话框与引导卡的浮层投影保留（[modal-mask-no-glass](../../../dev/plans/modal-mask-no-glass.md)，方案仍 `draft`）。图示浮层与子代理浮层不再 `backdrop-filter`，半透明底色仍在；图示推荐项不再投影。用户回合占满阅读列、左对齐，底色 `input.background`，前景色 8% 细边，不投影；置顶提示用独立类，底色是画布 token。阅读列身份条的引擎芯片去描边，离线 / 失败保留状态色。Conversation Composer 卡片参照 Cursor：圆角 20px、带很淡的投影（高对比仍无投影），聚焦只加深已有投影，不改成蓝色描边；宽于阅读列 32px。发送钮 24px，实心前景色圆加反色图标，悬停与按压由前景色派生（原则七的例外），禁用时 0.25 透明度；底栏其余控件是无底的圆形幽灵钮。工具行选择器用 `fontSize.label1`。Permission / Agent / Model、Tools 与 More 浮层用 `cornerRadius.large`、行用 `cornerRadius.small`，阴影走 `widget-shadow`。首屏（PreFirst）上方的身份条靠左对齐卡片，芯片去描边，引擎离线 / 失败芯片保留状态色。输入框光标跟 `input.foreground`。轨迹搜索聚焦仍用 `box-shadow`。其余验收未齐 |
 | Inbox | 空队列 / 空 Goal / 未生成的 Stop 为幽灵芯片（无描边）。队列名是 `list-ordered` 图标，状态文案在旁；空 Goal 是 `target` 图标，文字在 tooltip。待确认用链接色。队列列表在 context-view 里，空态一行 |

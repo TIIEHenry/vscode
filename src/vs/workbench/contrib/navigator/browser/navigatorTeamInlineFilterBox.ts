@@ -41,6 +41,14 @@ export class NavigatorTeamInlineFilterBox extends Disposable {
 		this.clearButton.setAttribute('aria-label', localize('navigatorTeam.clearFilter', "Clear filter"));
 		this.clearButton.appendChild(renderIcon(Codicon.close));
 
+		this._register(dom.addStandardDisposableListener(this.input, 'focus', () => {
+			this.element.classList.add('focused');
+			this.input.classList.add('focused');
+		}));
+		this._register(dom.addStandardDisposableListener(this.input, 'blur', () => {
+			this.element.classList.remove('focused');
+			this.input.classList.remove('focused');
+		}));
 		this._register(dom.addStandardDisposableListener(this.input, 'input', () => {
 			this.updateClearVisibility();
 			this._onDidChange.fire(this.input.value);

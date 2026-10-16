@@ -197,9 +197,9 @@
 	cursor: pointer;
 	font-family: inherit;
 	font-size: 12px;
-	font-weight: 500;
-	line-height: normal;
-	height: calc(100% - 8px);
+	font-weight: 400;
+	line-height: 24px;
+	height: 24px;
 	margin: 4px 2px;
 	padding: 0 10px;
 	display: inline-flex;
@@ -233,12 +233,12 @@
 
 .monaco-workbench .part.sources .sources-tab.selected {
 	color: var(--vscode-panelTitle-activeForeground, var(--vscode-tab-activeForeground, var(--vscode-foreground)));
-	font-weight: 600;
-	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.31));
+	font-weight: 400;
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .part.sources .sources-tab.selected:hover {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(90, 93, 94, 0.45));
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .part.sources .sources-tab.selected::after {

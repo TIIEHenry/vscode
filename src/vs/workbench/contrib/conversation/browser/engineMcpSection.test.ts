@@ -73,4 +73,48 @@ suite('EngineMcpSection (browser)', () => {
 		assert.strictEqual(section.getDomNode().querySelectorAll('.engine-catalog-row').length, 0);
 		assert.ok(!(section.getDomNode().textContent ?? '').includes('late-after-dispose-mcp'));
 	});
+
+	test('group header renders group item count in .engine-catalog-group-count (S9)', async () => {
+		const capabilities = {
+			...createEmptyTestCapabilitySnapshot(),
+			mcp: { support: 'SUPPORTED' as const },
+		};
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			authenticated: true,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listMcpServers: async () => ({
+				servers: [
+					{ id: 'mcp-1', name: 'mcp-1', transport: 'stdio', origin: 'global', enabled: true },
+					{ id: 'mcp-2', name: 'mcp-2', transport: 'stdio', origin: 'global', enabled: true },
+				],
+			}),
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const section = store.add(instantiationService.createInstance(EngineMcpSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		await timeout(0);
+		section.layout(640, 160);
+
+		const counts = Array.from(parent.querySelectorAll('.engine-catalog-group-count')).map(el => el.textContent?.trim());
+		assert.ok(counts.includes('2'), `expected count 2 in group counts, got: ${counts.join(', ')}`);
+	});
 });

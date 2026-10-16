@@ -62,12 +62,12 @@ function isCompleteMcpAddConfig(config: UniverseAgentMcpServerConfig | undefined
 }
 
 type EngineMcpListEntry =
-	| { readonly kind: 'group'; readonly origin: UniverseAgentMcpServerOrigin; readonly label: string }
+	| { readonly kind: 'group'; readonly origin: UniverseAgentMcpServerOrigin; readonly label: string; readonly count?: number }
 	| { readonly kind: 'server'; readonly server: UniverseAgentMcpServerSummary };
 
 class EngineMcpListDelegate implements IListVirtualDelegate<EngineMcpListEntry> {
-	getHeight(entry: EngineMcpListEntry): number {
-		return entry.kind === 'group' ? 28 : 48;
+	getHeight(_entry: EngineMcpListEntry): number {
+		return 24;
 	}
 
 	getTemplateId(entry: EngineMcpListEntry): string {
@@ -77,6 +77,7 @@ class EngineMcpListDelegate implements IListVirtualDelegate<EngineMcpListEntry> 
 
 interface IMcpGroupTemplateData {
 	readonly label: HTMLElement;
+	readonly count: HTMLElement;
 }
 
 interface IMcpRowTemplateData {
@@ -94,7 +95,9 @@ class EngineMcpGroupRenderer implements IListRenderer<EngineMcpListEntry, IMcpGr
 
 	renderTemplate(container: HTMLElement): IMcpGroupTemplateData {
 		container.classList.add('engine-catalog-group');
-		return { label: DOM.append(container, $('.engine-catalog-group-label')) };
+		const label = DOM.append(container, $('.engine-catalog-group-label'));
+		const count = DOM.append(container, $('.engine-catalog-group-count'));
+		return { label, count };
 	}
 
 	renderElement(entry: EngineMcpListEntry, _index: number, templateData: IMcpGroupTemplateData): void {
@@ -102,6 +105,7 @@ class EngineMcpGroupRenderer implements IListRenderer<EngineMcpListEntry, IMcpGr
 			return;
 		}
 		templateData.label.textContent = entry.label;
+		templateData.count.textContent = typeof entry.count === 'number' ? String(entry.count) : '';
 	}
 
 	disposeTemplate(): void {
@@ -1016,7 +1020,7 @@ export class EngineMcpSection extends Disposable {
 		this.setServerCount(servers.length);
 		const entries: EngineMcpListEntry[] = [];
 		for (const [origin, group] of groupMcpServersByOrigin(servers)) {
-			entries.push({ kind: 'group', origin, label: getMcpOriginGroupLabel(origin) });
+			entries.push({ kind: 'group', origin, label: getMcpOriginGroupLabel(origin), count: group.length });
 			for (const server of group) {
 				entries.push({ kind: 'server', server });
 			}
