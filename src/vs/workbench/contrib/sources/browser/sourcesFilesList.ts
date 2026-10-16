@@ -380,7 +380,7 @@ export class SourcesFilesList extends Disposable {
 		const listSource = resolveSourcesFilesListSource({
 			workspaceFolders: folders,
 			sessionId,
-			workDir: this.session.getSessionWorkDir?.(sessionId),
+			workDir: this.session.getWorkRoot?.(sessionId)?.workDir,
 			hasListFiles: sourcesFilesListHookPresent(this.connection.getConnectionSnapshot?.(), this.connection.listFiles),
 		});
 		const excludePattern = getExcludes(this.configurationService.getValue<ISearchConfiguration>());
@@ -650,7 +650,7 @@ export class SourcesFilesList extends Disposable {
 
 	private engineRootLabel(): string {
 		const sessionId = this.session.getActiveSessionId();
-		const workDir = this.session.getSessionWorkDir?.(sessionId);
+		const workDir = this.session.getWorkRoot?.(sessionId)?.workDir;
 		if (workDir) {
 			const name = workDir.replace(/\\/g, '/').replace(/\/+$/g, '').split('/').pop();
 			if (name) {
