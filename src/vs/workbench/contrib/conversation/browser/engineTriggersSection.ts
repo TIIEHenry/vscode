@@ -66,32 +66,6 @@ const $ = DOM.$;
  * failed and closes Fire/Enable/Delete/Upsert (D437); write gate is not only
  * connected+pairingHold (`leftoverListFailed` / mode failed).
  */
-const FIRE_FAILURE_STATUS = new Set([
-	'FAILED', 'FAILURE', 'REJECTED', 'REJECT', 'ERROR', 'UNSUCCESSFUL',
-]);
-
-function isFireTriggerFailure(result: { status: string; reason: string }): boolean {
-	const status = result.status.trim().toUpperCase();
-	if (status.length === 0) {
-		return true;
-	}
-	const tokens = status.split(/[^A-Z0-9]+/).filter(token => token.length > 0);
-	if (tokens.some(token => FIRE_FAILURE_STATUS.has(token))) {
-		return true;
-	}
-
-	const reason = result.reason.trim();
-	if (reason.length === 0) {
-		return false;
-	}
-	const english = reason.replace(
-		/\b(?:no|not|without|non)[\s_-]+(?:errors?|fail(?:ed|ure)?s?|reject(?:ed|ion)?)\b/gi,
-		' ',
-	);
-	return /(?:^|[^a-z])(?:fail(?:ed|ure)?s?|reject(?:ed|ion)?|errors?)(?![a-z])/i.test(english)
-		|| /被拒|失败/.test(reason);
-}
-
 export class EngineTriggersSection extends Disposable {
 
 	private readonly container: HTMLElement;
@@ -529,7 +503,7 @@ export class EngineTriggersSection extends Disposable {
 		try {
 			const result = await hook.call(this.connection, request);
 			this.fireStatus.style.display = '';
-			const tone = isFireTriggerFailure(result) ? 'error' : 'neutral';
+			const tone = result.status === '' ? 'error' : 'neutral';
 			writeStatus(this.fireStatus, `${result.status} — ${result.eventId} — ${result.reason}`, tone);
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);

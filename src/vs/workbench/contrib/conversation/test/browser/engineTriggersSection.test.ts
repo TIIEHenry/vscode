@@ -904,7 +904,7 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('FireTrigger failure statuses or rejected reason paint error tone', async () => {
+	test('FireTrigger non-empty status renders neutral regardless of status words or reason', async () => {
 		let call = 0;
 		const pane = mountSection(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -927,43 +927,49 @@ suite('EngineTriggersSection', () => {
 				if (call === 5) {
 					return { status: 'FIRED', eventId: 'evt-ok', reason: 'no error' };
 				}
-				return { status: 'FIRED', eventId: 'evt-6', reason: 'queued' };
+				return { status: '   ', eventId: 'evt-ws', reason: 'whitespace status' };
 			},
 		}));
 		await flushMicrotasks();
 		const fire = findFireButton(pane.getDomNode());
 		assert.ok(fire);
 
-		// Call 1: FAILED
+		// Call 1: FAILED -> neutral
 		fire.click();
 		await flushMicrotasks();
 		let status = pane.getDomNode().querySelector('.engine-triggers-fire-status') as HTMLElement | null;
 		assert.ok(status);
 		assert.strictEqual(status.textContent, 'FAILED — evt-fail — quota exceeded');
-		assert.ok(status.classList.contains('is-error'));
+		assert.ok(!status.classList.contains('is-error'));
 
-		// Call 2: REJECTED
+		// Call 2: REJECTED -> neutral
 		fire.click();
 		await flushMicrotasks();
 		assert.strictEqual(status.textContent, 'TRIGGER_FIRE_STATUS_REJECTED — evt-rej — policy check rejected');
-		assert.ok(status.classList.contains('is-error'));
+		assert.ok(!status.classList.contains('is-error'));
 
-		// Call 3: ERROR
+		// Call 3: ERROR -> neutral
 		fire.click();
 		await flushMicrotasks();
 		assert.strictEqual(status.textContent, 'ERROR — evt-err — crash');
-		assert.ok(status.classList.contains('is-error'));
+		assert.ok(!status.classList.contains('is-error'));
 
-		// Call 4: Chinese failure reason
+		// Call 4: Chinese failure reason -> neutral
 		fire.click();
 		await flushMicrotasks();
 		assert.strictEqual(status.textContent, 'CUSTOM_STATUS — evt-cn — 触发失败：权限不足');
-		assert.ok(status.classList.contains('is-error'));
+		assert.ok(!status.classList.contains('is-error'));
 
-		// Call 5: FIRED with 'no error' should NOT be error
+		// Call 5: FIRED with 'no error' -> neutral
 		fire.click();
 		await flushMicrotasks();
 		assert.strictEqual(status.textContent, 'FIRED — evt-ok — no error');
+		assert.ok(!status.classList.contains('is-error'));
+
+		// Call 6: Whitespace-only status -> neutral
+		fire.click();
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, '— evt-ws — whitespace status');
 		assert.ok(!status.classList.contains('is-error'));
 
 		pane.getDomNode().parentElement?.remove();
