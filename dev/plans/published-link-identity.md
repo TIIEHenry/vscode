@@ -1,13 +1,15 @@
 ---
 title: "已发布链路的引擎身份"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-05
-summary: "ELR-8：连接快照增加可选 engineIdentityId 与 linkId。换链路时 SessionViewHost 先断开再连，roster 按引擎身份分桶。全应用仍是一条连接。稿仍 draft。不升 PRD。不改 ADR-003 正文。"
+updated: 2026-10-16
+summary: "ELR-8：连接快照增加可选 engineIdentityId 与 linkId。换链路时 SessionViewHost 先断开再连，roster 按引擎身份分桶。全应用仍是一条连接。代码与单测（sessionViewHostEngineBind 26 passing）均已全面落地合入。不升 PRD。不改 ADR-003 正文。"
 ---
 
 # 已发布链路的引擎身份
+
+> **落地：** `status: implemented`。连接快照字段、渲染端同步缓存与 SessionViewHost 换链切流/保持绑定逻辑已全面落地合入，单测 `sessionViewHostEngineBind.test.ts` 全绿。不升 PRD。
 
 审查 [ELR-8](../progress/engine-link-architecture-review-2026-09-28.md) 写的是：连接快照看不出当前是哪一台引擎。换 profile 时 `SessionViewHost` 没有「先断开」的边沿，会把引擎 A 的 session id 拿到引擎 B 上 `Resume`。`conversation.roster.v1` 的 `engineCache` 也没有引擎键。
 

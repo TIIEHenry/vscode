@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-10-16
-summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查方案仍 draft，未实施。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果的方案为 draft。聊天流缺失时的权限失败方案为 draft。删除旧明文 connect() 代码已落地（87865dbf5bb）。已发布链路身份方案为 draft。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
+summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查方案仍 draft，未实施。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果的方案为 draft。聊天流缺失时的权限失败方案为 draft。删除旧明文 connect() 代码已落地（87865dbf5bb）。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
 # 方案
@@ -28,14 +28,14 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [未开启工具搜索时保留历史搜索结果](r15-5-tool-search-history.md) | `draft` | 谓词缺省时历史工具搜索保留 toolsMap 里命中的工具；这次请求没有工具搜索且组不出工具时，保留原文，不换成空的 tool_search_output。方案保持 draft。不升 PRD。不宣布 r15 完成。 |
 | [聊天流缺失时权限回复不得假装成功](r12-permission-reply-fail-closed.md) | `draft` | 没有聊天流时权限回复返回拒绝并留下可再点的失败；后到的普通补洞继续并进已有重写丢弃范围；纪元前进清掉未写出的权限决定时同样留下可再点的失败。方案保持 draft。不升 PRD。 |
 | [remove-legacy-plaintext-connect.md](remove-legacy-plaintext-connect.md) | `implemented` | ELR-14：从连接服务和窗口契约去掉明文 connect()，并删掉只为它服务的 127.0.0.1:50051 回环打开路径。命令名 connect 仍拒绝。测试改走无信任的明文 profile 拨号，或本机跳过鉴权。代码已落地。不改身份合同。不升 PRD。 |
-| [published-link-identity.md](published-link-identity.md) | `draft` | ELR-8：快照增加可选 engineIdentityId 与 linkId。换链路先断开再连，roster 按引擎身份分桶。全应用仍是一条连接。不改 ADR-003。不升 PRD。 |
+| [published-link-identity.md](published-link-identity.md) | `implemented` | ELR-8：连接快照增加可选 engineIdentityId 与 linkId。换链路时 SessionViewHost 先断开再连，roster 按引擎身份分桶。全应用仍是一条连接。代码与单测（sessionViewHostEngineBind 26 passing）均已全面落地合入。不升 PRD。不改 ADR-003 正文。 |
 | [会话工作根与 Workbench 双层状态](session-work-root-and-workbench-scope.md) | `draft` | PRD-029：路径按会话工作根解析；并排会话的 Preview 跟显式切换；换引擎前提示只数本窗口待确认会话。S1–S4 实施中。Preview 换入换出等 PRD-027 P3。不升 PRD。 |
 | [sources-files-list-capability.md](sources-files-list-capability.md) | `implemented` | Sources 文件列表的 listFiles 门闩改读快照 listFilesCapability。已于 b6bccf8ff2c 落地。不进 Engine Overview。不重做 conversationEntryCapability 与 gitWriteCapability。不升 PRD。不宣布 ELR-13 全部完成。 |
 | [conversation-entry-capability.md](conversation-entry-capability.md) | `implemented` | 对话里用 typeof 连接方法决定入口的门闩改读快照 conversationEntryCapability。已于 3cb1f1055bb 全面落地（连接快照 conversationEntryCapability、平台与渲染端缓存同步及各对话入口门闩生效）。不进 Engine Overview。不重做 gitWriteCapability。不升 PRD。 |
 | [connection-ipc-allowlist.md](connection-ipc-allowlist.md) | `implemented` | ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调流不对窗口开放；Hub 使用 universeAgentHub 通道并仍打到同一连接实例；宿主 token 用适配器；桌面 Team 三元调用补上嵌套对象过不了 ProxyChannel 的缺口。代码已落地。不升 PRD。 |
 | [unspecified-address-private-denial.md](unspecified-address-private-denial.md) | `implemented` | 未勾选 allowPrivateNetwork 时，直连与 Hub 中继在写入 resolvedIp 之前把 IPv4 0.0.0.0/8 与 IPv6 未指定地址 :: 并进既有私网分类器。失败码仍是 private_network_denied。loopback 目标形态不过闸。已全面落地（afda5a04283）。不改已签收方案正文。不升 PRD。 |
 | [recover-trust-new-attempt.md](recover-trust-new-attempt.md) | `draft` | ELR-3 剩余半边已落在编排器：身份就绪时先重新观测、中继各续一次票、再握手，指纹一致且拿到 session_token 才写信任。身份未就绪仍按连接服务测试锁住的批准即写信任。方案仍 draft。不改连接服务。不升 PRD-024。 |
-| [sessions-window-connection-registration.md](sessions-window-connection-registration.md) | `draft` | Agents 桌面与 Web 入口侧载与对应工作台相同的 IUniverseAgentConnection 登记。Changes 与布局不再因服务未注册而起不来。不新开连接，不升 PRD。 |
+| [sessions-window-connection-registration.md](sessions-window-connection-registration.md) | `implemented` | Agents 桌面与 Web 入口侧载与对应工作台相同的 IUniverseAgentConnection 登记。Changes 与布局不再因服务未注册而起不来。测试（sessionsUniverseAgentConnectionRegistration 5 passing）已全绿落地。不新开连接，不升 PRD。 |
 | [sources-git-write-capability.md](sources-git-write-capability.md) | `implemented` | Stage / Commit / Accept 改看连接快照 gitWriteCapability，不把桌面代理函数当成已广告的 WriteGit*。已于 c7d53074df5 落地。不进 Engine Overview。不升 PRD-009。 |
 | [live-stream-bytes-decode.md](live-stream-bytes-decode.md) | `accepted` | 2026-10-05 S1 剩余已落：turn_completed 解出 turn_id 与 assistant_turn_id，仅当前 turn 才 hold clear；overlay field 7 与 join 嵌套 37、根上 field 23 已接。S4/S5/S6 此前已落。不升 `implemented`。不升 PRD-008。 |
 | [connection-dial-generation.md](connection-dial-generation.md) | `accepted` | 2026-09-19 用户签收：!tls 禁 this.connect()；失配不写提交集；pairing 第一行闸。不发明字段。S1–S5 已落，方案仍 accepted。 |
