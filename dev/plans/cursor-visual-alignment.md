@@ -4,14 +4,14 @@ type: plan
 status: draft
 phase: N/A
 updated: 2026-10-16
-summary: "对照 Cursor 截图与 HEAD 实拍收壳与会话观感。S1–S4 已落地；S6 只去了 Preview 键帽框，S7 只补了原生菜单判断。S8 已收 Sources 读失败只出现一次，并在读代理树时用 .is-loading 藏闪电。会话不可用固定句、一行 Composer、会话切换菜单、目录列表与 Markdown 预览未做。方案仍 draft，不升 PRD-028。"
+summary: "对照 Cursor 截图与 HEAD 实拍收壳与会话观感。S1–S4 已落地；S6 只去了 Preview 键帽框，S7 只补了原生菜单判断。S8 已收 Sources 读失败只出现一次，读代理树时用 .is-loading 藏闪电，会话不可用固定原因与输入控件保留已落地。一行 Composer、会话切换菜单、目录列表与 Markdown 预览未做。方案仍 draft，不升 PRD-028。"
 ---
 
 # 壳与对话观感向 Cursor 靠齐（保留 IDE 密度）
 
 需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度)（`accepted`，2026-10-11 用户选定见该条「依赖或未决」）。系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md)、[主题与 token](../../docs/architecture/cross-cutting/theming.md)、[Composer 与 Inbox](../../docs/systems/conversation/composer-and-inbox.md)、[Conversation 透镜与轨迹](../../docs/systems/conversation/lens-and-trajectory.md)。相邻方案：[自有界面视觉审查问题收口](visual-audit-remediation-2026-10-05.md)（焦点环、Sources 行高等，本稿不重做）、[时间线重构](conversation-timeline-refactor.md) D3（置顶提示）。
 
-实施进度（2026-10-16）：S1–S4 已落地。S6 只做了 Preview 空态键帽去框。S7 只补了 `hasNativeContextMenu` 为真时 Profile 选择器留下原生下拉。S8 的 Sources 读失败已改成有行只写状态行、无行只写居中空态，说明是前景色，原始错误在 tooltip 和详情里，并有重试。Navigator 读代理树时在保留的 `.navigator-stub-empty` 上加 `.is-loading` 藏闪电图标，并用视图进度条。会话不可用固定句、S5、Sources 标题栏并入 tab 条、会话切换改菜单、History / Snapshots / Inbox 铬、产品遮罩色、S9、S10 未做。不升 PRD-028。
+实施进度（2026-10-16）：S1–S4 已落地。S6 只做了 Preview 空态键帽去框。S7 只补了 `hasNativeContextMenu` 为真时 Profile 选择器留下原生下拉。S8 已落地（Sources 读失败只出现一次、Navigator 读代理树时藏闪电、会话不可用补充固定原因说明且底栏控件与 SessionBar 导航保留禁用态）。S5、Sources 标题栏并入 tab 条、会话切换改菜单、History / Snapshots / Inbox 铬、产品遮罩色、S9、S10 未做。不升 PRD-028。
 
 ## 1. 对照基线
 

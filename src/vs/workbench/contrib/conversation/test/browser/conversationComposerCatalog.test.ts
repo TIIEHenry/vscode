@@ -9,10 +9,11 @@ import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/com
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel, conversationLensDockSessionUnavailable, conversationLensPostFailedDisconnected, type ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
+import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason, conversationLensPostFailedDisconnected, type ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
 import { draftMapKey, loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, writeComposerDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
-import { showPostFailure, updateGateRow, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import { isComposerKeepLeftoverListFailed, showPostFailure, toggleTuneContextView, updateComposerSessionSelectsEnabled, updateGateRow, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
@@ -887,7 +888,7 @@ suite('conversationComposerCatalog', () => {
 		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
 		assert.strictEqual(sendButton.enabled, false, 'KEEP leftover Send stays off');
 		assert.strictEqual(gateRow.hidden, false, 'KEEP leftover gate must not hide as live');
-		assert.strictEqual(gateLabel.textContent, conversationLensDockSessionUnavailable);
+		assert.strictEqual(gateLabel.textContent, `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`);
 
 		engineSessionReady = true;
 		assert.strictEqual(host.stubService.isEngineSessionReady(), true);
@@ -943,8 +944,8 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(gateRow.hidden, false);
 		assert.strictEqual(gateRow.getAttribute('role'), 'status');
 		assert.ok(!gateRow.classList.contains('is-error'));
-		assert.strictEqual(gateLabel.textContent, conversationLensDockSessionUnavailable);
-		assert.strictEqual(gateRow.getAttribute('aria-label'), conversationLensDockSessionUnavailable);
+		assert.strictEqual(gateLabel.textContent, `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`);
+		assert.strictEqual(gateRow.getAttribute('aria-label'), `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`);
 
 		sessionReady = true;
 		showPostFailure(host, 'engine_disconnected');
@@ -1096,6 +1097,164 @@ suite('conversationComposerCatalog', () => {
 				throw paintBoom;
 			};
 		});
+	});
+
+	test('KEEP leftover list-fail session unavailable presents fixed reason and retains disabled bottom bar controls', async () => {
+		const store = new DisposableStore();
+		const dockRoot = document.createElement('div');
+		document.body.appendChild(dockRoot);
+		store.add({ dispose: () => dockRoot.remove() });
+
+		const gateRow = document.createElement('div');
+		gateRow.className = 'conversation-lens-dock-gate-row';
+		gateRow.setAttribute('role', 'status');
+		const gateLabel = document.createElement('span');
+		gateLabel.className = 'conversation-lens-dock-gate-label';
+		gateRow.appendChild(gateLabel);
+		dockRoot.appendChild(gateRow);
+
+		const permissionContainer = document.createElement('div');
+		permissionContainer.className = 'conversation-lens-dock-permission';
+		const permissionSelect = document.createElement('select');
+		permissionSelect.add(new Option('Ask', '0'));
+		permissionSelect.add(new Option('Agent', '1'));
+		permissionSelect.add(new Option('Permit', '2'));
+		permissionContainer.appendChild(permissionSelect);
+		dockRoot.appendChild(permissionContainer);
+
+		const modelContainer = document.createElement('div');
+		modelContainer.className = 'conversation-lens-dock-model';
+		const modelSelect = document.createElement('select');
+		modelSelect.add(new Option('No model', ''));
+		modelSelect.add(new Option('gpt-test', 'gpt-test'));
+		modelContainer.appendChild(modelSelect);
+		dockRoot.appendChild(modelContainer);
+
+		const tuneContainer = document.createElement('div');
+		tuneContainer.className = 'conversation-lens-dock-tune';
+		const tuneButtonElement = document.createElement('button');
+		tuneButtonElement.className = 'monaco-button conversation-lens-dock-control';
+		tuneContainer.appendChild(tuneButtonElement);
+		dockRoot.appendChild(tuneContainer);
+
+		let tuneEnabled = true;
+		const tuneButton = {
+			element: tuneButtonElement,
+			get enabled(): boolean { return tuneEnabled; },
+			set enabled(value: boolean) {
+				tuneEnabled = value;
+				tuneButtonElement.classList.toggle('disabled', !value);
+				tuneButtonElement.setAttribute('aria-disabled', String(!value));
+			},
+		};
+
+		const engineConnected = true;
+		let engineSessionReady = false;
+		const pairingPending = false;
+		const sessionConfigBySessionId = new Map<string, { agentIndex: number; permissionIndex: number }>([
+			['s1', { agentIndex: 0, permissionIndex: 0 }],
+		]);
+
+		const host = {
+			catalogToolNames: ['bash', 'read'],
+			catalogModelIds: ['', 'gpt-test'],
+			modelSelectedIndex: 0,
+			sessionConfigBySessionId,
+			gateRow,
+			gateLabel,
+			postFailureVisible: false,
+			sendFailureTimeout: undefined,
+			dockRoot,
+			dockTextarea: { value: 'some draft' },
+			sendButton: { enabled: true },
+			tuneButton,
+			permissionSelectBox: {
+				setEnabled(enabled: boolean) { permissionSelect.disabled = !enabled; },
+				setAriaLabel() { },
+				select(index: number) { permissionSelect.selectedIndex = index; },
+			},
+			modelSelectBox: {
+				setEnabled(enabled: boolean) { modelSelect.disabled = !enabled; },
+				setAriaLabel() { },
+				select(index: number) { modelSelect.selectedIndex = index; },
+			},
+			stubService: {
+				isEngineConnected: () => engineConnected,
+				isEngineSessionReady: () => engineSessionReady,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending }),
+				setPermissionMode: async () => ({ ok: true }),
+				switchModel: async () => ({ resolvedModelId: 'gpt-test', provider: '', level: 0, cost: '', speed: '' }),
+			},
+			getBoundSessionId: () => 's1',
+		} as unknown as IConversationLensComposerChromeHost;
+
+		try {
+			// Initially in KEEP leftover list-fail state
+			assert.strictEqual(isComposerKeepLeftoverListFailed(host), true);
+			updateGateRow(host);
+			updateComposerSessionSelectsEnabled(host);
+			updateSendEnabled(host);
+
+			// 1. Gate row & fixed reason assertions
+			assert.strictEqual(gateRow.hidden, false, 'gate row must be visible when session is unavailable');
+			assert.strictEqual(gateRow.getAttribute('role'), 'status');
+			assert.strictEqual(gateRow.classList.contains('is-error'), false, 'gate row must not be styled as is-error');
+			assert.strictEqual(gateRow.getAttribute('title'), null);
+			const expectedGateMessage = `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`;
+			assert.strictEqual(gateLabel.textContent, expectedGateMessage);
+			assert.strictEqual(gateRow.getAttribute('aria-label'), expectedGateMessage);
+			assert.ok(gateLabel.textContent.includes(conversationLensDockSessionUnavailableReason));
+
+			// 2. Raw error codes must NOT enter visible body text
+			const rawErrors = ['PERMISSION_DENIED', 'UNAVAILABLE', 'INTERNAL', 'DEADLINE_EXCEEDED', 'SessionBindFailedException', 'rpc error 14', 'code: 14'];
+			for (const rawError of rawErrors) {
+				assert.ok(!gateLabel.textContent.includes(rawError), `visible text must not contain raw error ${rawError}`);
+				assert.ok(!gateRow.textContent?.includes(rawError), `gateRow text must not contain raw error ${rawError}`);
+			}
+
+			// 3. Permission, Model, Tools bottom bar controls remain present and disabled
+			assert.ok(dockRoot.contains(permissionContainer), 'permission container must remain in dock');
+			assert.ok(dockRoot.contains(modelContainer), 'model container must remain in dock');
+			assert.ok(dockRoot.contains(tuneContainer), 'tools container must remain in dock');
+
+			assert.strictEqual(permissionSelect.disabled, true, 'permission select must be disabled');
+			assert.strictEqual(permissionContainer.getAttribute('aria-disabled'), 'true');
+			assert.strictEqual(permissionSelect.options[0].text, 'Ask', 'permission options remain honest');
+
+			assert.strictEqual(modelSelect.disabled, true, 'model select must be disabled');
+			assert.strictEqual(modelContainer.getAttribute('aria-disabled'), 'true');
+			assert.strictEqual(modelSelect.options[0].text, 'No model', 'model options remain honest');
+
+			assert.strictEqual(tuneButton.enabled, false, 'tools tune button must be disabled');
+			assert.strictEqual(tuneButtonElement.classList.contains('disabled'), true, 'tools button element has disabled class');
+			assert.strictEqual(tuneButtonElement.getAttribute('aria-disabled'), 'true');
+
+			assert.strictEqual(host.sendButton.enabled, false, 'send button must be disabled');
+
+			// 4. Toggle tune view is a no-op when session is unavailable
+			toggleTuneContextView(host);
+			assert.strictEqual(host.tuneContextView, undefined, 'toggleTuneContextView must be blocked');
+
+			// 5. Restore readiness: gate hides and controls re-enable
+			engineSessionReady = true;
+			assert.strictEqual(isComposerKeepLeftoverListFailed(host), false);
+			updateGateRow(host);
+			updateComposerSessionSelectsEnabled(host);
+			updateSendEnabled(host);
+
+			assert.strictEqual(gateRow.hidden, true, 'gate row hides when session becomes ready');
+			assert.strictEqual(gateLabel.textContent, '');
+			assert.strictEqual(permissionSelect.disabled, false, 'permission re-enables');
+			assert.strictEqual(modelSelect.disabled, false, 'model re-enables');
+			assert.strictEqual(tuneButton.enabled, true, 'tools re-enables');
+			assert.strictEqual(tuneButtonElement.classList.contains('disabled'), false);
+			assert.strictEqual(host.sendButton.enabled, true, 'send button re-enables with draft');
+		} finally {
+			store.dispose();
+		}
 	});
 
 	test('refreshComposerCatalogs loadConnectedComposerCatalogs fire-and-forget void double-catch onUnexpectedError', async () => {
