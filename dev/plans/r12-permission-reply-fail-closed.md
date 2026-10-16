@@ -1,14 +1,15 @@
 ---
 title: "聊天流缺失时权限回复不得假装成功"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-05
-summary: "没有聊天流时权限回复返回拒绝并留下可再点的失败；后到的普通补洞继续并进已有重写丢弃范围；纪元前进清掉未写出的权限决定时同样留下可再点的失败。方案保持 draft。不升 PRD。"
+updated: 2026-10-16
+summary: "没有聊天流时权限回复返回拒绝并留下可再点的失败；后到的普通补洞继续并进已有重写丢弃范围；纪元前进清掉未写出的权限决定时同样留下可再点的失败。已于 2e8bd69c453 落地合入，单测（25 passing）全绿。不升 PRD。"
 ---
 
 # 聊天流缺失时权限回复不得假装成功
 
+> **落地：** `status: implemented`。代码已全面落地（提交 `2e8bd69c453`），单测 `sessionViewHostChatClose.test.ts` 与 `sessionActorReconnectHistoryRegen.test.ts` 25 passing 全绿。不升 PRD。
 > **slice_id**：`r12-permission-reply-fail-closed`
 > **来源**：[审查 r12](review-2026-09-30-r12-agent-host.md) 的 r12-2、r12-3、r12-4。行号作废，以当前代码为准。已签收全文在 [方案 r12](review-2026-09-30-r12-agent-host-plan.md)，本稿只补还没对齐审查方向的三处，不改那篇已签收正文。
 > **本稿是方案，未签收。** 状态保持 `draft`。不升 PRD。不宣布 r12 或十六路审查完成。
