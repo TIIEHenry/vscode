@@ -8,6 +8,12 @@ import { localize } from '../../../../nls.js';
 /** SessionBar chrome copy — product session actions, not Copilot New Chat. */
 export const conversationLensSessionBarNewSession = localize('conversationLens.newSession', "New session");
 export const conversationLensSessionBarConversationTab = localize('conversationLens.conversationTab', "Conversation");
+/** Session switcher metadata formatting */
+export function formatSessionBarTurnCount(count: number): string {
+	return count === 1
+		? localize('conversationLens.sessionBarTurnCountOne', "1 message")
+		: localize('conversationLens.sessionBarTurnCountMany', "{0} messages", count);
+}
 export const conversationLensSessionBarTrajectoryTab = localize('conversationLens.trajectoryTab', "Trajectory");
 export const conversationLensSessionBarTrajectoryListAria = localize('conversationLens.trajectoryListAria', "Session trajectory");
 export const conversationLensSessionBarNoTrajectory = localize('conversationLens.trajectoryEmptyTitle', "No activity yet");

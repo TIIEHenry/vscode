@@ -17,6 +17,8 @@ export interface PersistedConversationSession {
 	readonly turns: readonly ConversationStubTurn[];
 	readonly source: ConversationSessionSource;
 	readonly workDir?: string;
+	readonly turnCount?: number;
+	readonly lastAccessedAt?: number;
 }
 
 export interface ConversationRosterEngineCache {
@@ -131,6 +133,8 @@ export function buildLocalSessionsFromModel(model: ConversationStubModel): Persi
 			turns: model.getTurns(session.id).map(cloneTurn),
 			source: 'local' as const,
 			...(session.workDir ? { workDir: session.workDir } : {}),
+			...(typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? { turnCount: session.turnCount } : {}),
+			...(typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? { lastAccessedAt: session.lastAccessedAt } : {}),
 		}));
 }
 
@@ -141,6 +145,8 @@ export function persistedSessionsToStubSessions(sessions: readonly PersistedConv
 		source: session.source,
 		turns: session.turns.map(cloneTurn),
 		...(session.workDir ? { workDir: session.workDir } : {}),
+		...(typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? { turnCount: session.turnCount } : {}),
+		...(typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? { lastAccessedAt: session.lastAccessedAt } : {}),
 	}));
 }
 
@@ -190,12 +196,16 @@ function sanitizeSessions(
 			continue;
 		}
 		const source = defaultSource;
+		const turnCount = typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? session.turnCount : undefined;
+		const lastAccessedAt = typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? session.lastAccessedAt : undefined;
 		result.push({
 			id: session.id,
 			title: session.title,
 			turns: session.turns.filter(isTurn).map(cloneTurn),
 			source,
 			...(typeof session.workDir === 'string' && session.workDir ? { workDir: session.workDir } : {}),
+			...(turnCount !== undefined ? { turnCount } : {}),
+			...(lastAccessedAt !== undefined ? { lastAccessedAt } : {}),
 		});
 	}
 	return result;

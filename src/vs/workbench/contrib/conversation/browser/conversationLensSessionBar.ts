@@ -7,7 +7,8 @@ import { $, addDisposableListener, addStandardDisposableListener, append } from 
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { getBaseLayerHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegate2.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
-import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
+import { ISelectBoxOptions, SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
+import { fromNow } from '../../../../base/common/date.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
@@ -17,7 +18,7 @@ import { IDisposable, DisposableStore, toDisposable } from '../../../../base/com
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
+import { IContextMenuService, IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -25,7 +26,9 @@ import { hasNativeContextMenu } from '../../../../platform/window/common/window.
 import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
-import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTrajectoryTab } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTrajectoryTab, formatSessionBarTurnCount } from './conversationLensSessionBarStrings.js';
+import { attachComposerPicker } from './conversationComposerPicker.js';
+import type { ConversationStubSession } from './conversationStubModel.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
@@ -59,6 +62,7 @@ export interface IConversationLensSessionBarHost {
 	readonly stubService: IConversationRosterService;
 	readonly uaConnection: IUniverseAgentConnection;
 	readonly contextViewService: IContextViewService;
+	readonly contextMenuService: IContextMenuService;
 	readonly configurationService: IConfigurationService;
 	readonly instantiationService: IInstantiationService;
 	readonly visualizeOverlay: ConversationVisualizeOverlay;
@@ -300,16 +304,57 @@ export function mountLensTablist(host: IConversationLensSessionBarHost, tablistH
 
 }
 
+export function formatSessionSwitchMeta(session: ConversationStubSession | undefined): string | undefined {
+	if (!session) {
+		return undefined;
+	}
+	const turnCount = typeof session.turnCount === 'number' && Number.isFinite(session.turnCount)
+		? session.turnCount
+		: (session.turnCount === undefined && session.turns && session.turns.length > 0 ? session.turns.length : undefined);
+	if (typeof turnCount === 'number' && turnCount > 0) {
+		return formatSessionBarTurnCount(turnCount);
+	}
+	if (typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0) {
+		const ms = session.lastAccessedAt < 1e12 ? session.lastAccessedAt * 1000 : session.lastAccessedAt;
+		return fromNow(ms, true);
+	}
+	return undefined;
+}
+
+export class SessionSelectBox extends SelectBox {
+	constructor(
+		options: { text: string }[],
+		selectedIndex: number,
+		private readonly host: IConversationLensSessionBarHost,
+		selectBoxOptions: ISelectBoxOptions,
+	) {
+		super(options, selectedIndex, host.contextViewService, defaultSelectBoxStyles, selectBoxOptions);
+	}
+
+	override render(container: HTMLElement): void {
+		super.render(container);
+		const picker = attachComposerPicker(container, this.host.contextViewService, this.host.contextMenuService, {
+			ariaLabel: localize('conversationLens.sessionSwitcher', "Switch session"),
+			useNativeSelect: hasNativeContextMenu(this.host.configurationService),
+			alignment: AnchorAlignment.LEFT,
+			getItemDetail: (index: number) => {
+				const sessions = this.host.stubService.getSessions();
+				return formatSessionSwitchMeta(sessions[index]);
+			},
+		});
+		this._register(picker);
+	}
+}
+
 export function createSessionSelectBox(host: IConversationLensSessionBarHost): SelectBox {
 
 		const sessions = host.stubService.getSessions();
 		const selectedId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
 		const selectedIndex = Math.max(0, sessions.findIndex(s => s.id === selectedId));
-		return new SelectBox(
+		return new SessionSelectBox(
 			sessions.map(s => ({ text: s.title })),
 			selectedIndex,
-			host.contextViewService,
-			defaultSelectBoxStyles,
+			host,
 			{
 				ariaLabel: localize('conversationLens.sessionSwitcher', "Switch session"),
 				useCustomDrawn: !hasNativeContextMenu(host.configurationService),
