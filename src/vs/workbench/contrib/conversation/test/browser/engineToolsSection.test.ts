@@ -14,6 +14,7 @@ import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentCapabilitySupport,
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentListAgentProfilesResult,
 	UniverseAgentListToolsResult,
 	UniverseAgentSaveAgentProfileRequest,
 	UniverseAgentSessionEvent,
@@ -21,6 +22,8 @@ import type {
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
@@ -56,7 +59,8 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		connected?: boolean;
 		looksLive?: boolean;
 		toolsSupport?: UniverseAgentCapabilitySupport;
-		listTools?: () => Promise<UniverseAgentListToolsResult>;
+		listTools?: (request?: { readonly projectPath?: string }) => Promise<UniverseAgentListToolsResult>;
+		listAgentProfiles?: (request?: { readonly projectPath?: string }) => Promise<UniverseAgentListAgentProfilesResult>;
 		saveAgentProfile?: (request: UniverseAgentSaveAgentProfileRequest) => Promise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>;
 		getToolInfo?: (request: UniverseAgentToolInfoRequest) => Promise<UniverseAgentToolInfoResult>;
 	} = {}): IUniverseAgentConnection & {
@@ -134,9 +138,9 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			listSkills: async () => ({ skills: [] }),
 			setSkillEnabled: async () => ({ ok: true }),
 			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
-			listAgentProfiles: async () => ({
+			listAgentProfiles: options.listAgentProfiles ?? (async () => ({
 				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
-			}),
+			})),
 			saveAgentProfile: options.saveAgentProfile ?? (async (request) => ({ profile: request.profile })),
 			deleteAgentProfile: async () => ({ ok: true }),
 			resetAgentProfile: async () => ({ ok: true }),
@@ -177,11 +181,30 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		};
 	}
 
-	function mountSection(connection: IUniverseAgentConnection): EngineToolsSection {
+	function createSessionContextStub(overrides: Partial<IAgentSessionContext> = {}): IAgentSessionContext {
+		return {
+			_serviceBrand: undefined,
+			getActiveSessionId: () => 'sess-1',
+			isEngineSessionReady: () => true,
+			isPairingHold: () => false,
+			getActiveWorkRoot: () => ({ workDir: '' }),
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			onDidChangeActiveWorkRoot: Event.None,
+			acquireSessionView: () => ({ snapshot: {} as any, attribution: new Map(), dispose: () => { } }),
+			...overrides,
+		} as IAgentSessionContext;
+	}
+
+	function mountSection(
+		connection: IUniverseAgentConnection,
+		sessionContext?: IAgentSessionContext,
+	): EngineToolsSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		instantiationService.stub(IAgentSessionContext, sessionContext ?? createSessionContextStub());
 		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
 		section.setSectionActive(true);
 		section.layout(640, 160);
@@ -661,4 +684,71 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+	test('switching active session or work root triggers list refresh with projectPath', async () => {
+		const listToolsRequests: Array<{ readonly projectPath?: string } | undefined> = [];
+		const listProfilesRequests: Array<{ readonly projectPath?: string } | undefined> = [];
+
+		const onDidChangeActiveSession = store.add(new Emitter<string>());
+		const onDidChangeActiveWorkRoot = store.add(new Emitter<IAgentWorkRoot>());
+
+		let currentWorkRoot: IAgentWorkRoot = { workDir: '/workspace/initial' };
+
+		const sessionContext = createSessionContextStub({
+			getActiveWorkRoot: () => currentWorkRoot,
+			onDidChangeActiveSession: onDidChangeActiveSession.event,
+			onDidChangeActiveWorkRoot: onDidChangeActiveWorkRoot.event,
+		});
+
+		const connection = createConnectionStub({
+			listTools: async (request) => {
+				listToolsRequests.push(request);
+				return { tools: [leftoverBashTool()] };
+			},
+			listAgentProfiles: async (request) => {
+				listProfilesRequests.push(request);
+				return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' }] };
+			},
+		});
+
+		const section = mountSection(connection, sessionContext);
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsRequests.length, 1);
+		assert.deepStrictEqual(listToolsRequests[0], { projectPath: '/workspace/initial' });
+		assert.strictEqual(listProfilesRequests.length, 1);
+		assert.deepStrictEqual(listProfilesRequests[0], { projectPath: '/workspace/initial' });
+
+		// 1. Change active session
+		currentWorkRoot = { workDir: '/workspace/session-2' };
+		onDidChangeActiveSession.fire('sess-2');
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsRequests.length, 2);
+		assert.deepStrictEqual(listToolsRequests[1], { projectPath: '/workspace/session-2' });
+		assert.strictEqual(listProfilesRequests.length, 2);
+		assert.deepStrictEqual(listProfilesRequests[1], { projectPath: '/workspace/session-2' });
+
+		// 2. Change active work root
+		currentWorkRoot = { workDir: '/workspace/workroot-change' };
+		onDidChangeActiveWorkRoot.fire(currentWorkRoot);
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsRequests.length, 3);
+		assert.deepStrictEqual(listToolsRequests[2], { projectPath: '/workspace/workroot-change' });
+		assert.strictEqual(listProfilesRequests.length, 3);
+		assert.deepStrictEqual(listProfilesRequests[2], { projectPath: '/workspace/workroot-change' });
+
+		// 3. Change work root to empty
+		currentWorkRoot = { workDir: '' };
+		onDidChangeActiveWorkRoot.fire(currentWorkRoot);
+		await flushMicrotasks();
+
+		assert.strictEqual(listToolsRequests.length, 4);
+		assert.strictEqual(listToolsRequests[3], undefined);
+		assert.strictEqual(listProfilesRequests.length, 4);
+		assert.strictEqual(listProfilesRequests[3], undefined);
+
+		section.getDomNode().parentElement?.remove();
+	});
+
 });

@@ -20,13 +20,25 @@ import { readConversationEntryCapability } from '../../../../../platform/univers
 import { createConversationConnectionTestStub as baseCreateConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 function createConversationConnectionTestStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
-	const stub = baseCreateConversationConnectionTestStub(overrides);
+	const defaultCapabilities = overrides.getCapabilitySnapshot
+		? overrides.getCapabilitySnapshot()
+		: createTestCapabilitySnapshot({
+			fireTrigger: { support: 'SUPPORTED' },
+			setTriggerEnabled: { support: 'SUPPORTED' },
+			deleteTrigger: { support: 'SUPPORTED' },
+			upsertTrigger: { support: 'SUPPORTED' },
+		});
+	const stub = baseCreateConversationConnectionTestStub({
+		getCapabilitySnapshot: () => defaultCapabilities,
+		...overrides,
+	});
 	if (!overrides.getConnectionSnapshot) {
 		const originalGetSnapshot = stub.getConnectionSnapshot.bind(stub);
 		stub.getConnectionSnapshot = (): UniverseAgentConnectionSnapshot => {
 			const base = originalGetSnapshot();
 			return {
 				...base,
+				capabilities: defaultCapabilities,
 				conversationEntryCapability: {
 					...readConversationEntryCapability(base),
 					listTriggers: 'SUPPORTED',
@@ -510,7 +522,12 @@ suite('EngineTriggersSection', () => {
 			pairingPending: false,
 			channelAlive: true,
 			sharedFsRootSent: false,
-			capabilities: createEmptyTestCapabilitySnapshot(),
+			capabilities: createTestCapabilitySnapshot({
+				fireTrigger: { support: 'SUPPORTED' },
+				setTriggerEnabled: { support: 'SUPPORTED' },
+				deleteTrigger: { support: 'SUPPORTED' },
+				upsertTrigger: { support: 'SUPPORTED' },
+			}),
 			conversationEntryCapability: {
 				...readConversationEntryCapability(undefined),
 				listTriggers: 'SUPPORTED',
@@ -524,6 +541,7 @@ suite('EngineTriggersSection', () => {
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			getConnectionSnapshot: () => liveSnapshot,
+			getCapabilitySnapshot: () => liveSnapshot.capabilities,
 			onDidChangeConnection: onDidChangeConnection.event,
 			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => {
 				listTriggersCalls++;
@@ -715,6 +733,55 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
+	test('write buttons stay disabled with hover hints when capability is UNKNOWN', async () => {
+		const unknownCapability = { support: 'UNKNOWN' as const };
+		const pane = mountSection(baseCreateConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createTestCapabilitySnapshot({
+					fireTrigger: unknownCapability,
+					setTriggerEnabled: unknownCapability,
+					deleteTrigger: unknownCapability,
+					upsertTrigger: unknownCapability,
+				}),
+				conversationEntryCapability: {
+					...readConversationEntryCapability(undefined),
+					listTriggers: 'SUPPORTED',
+				},
+			}),
+			getCapabilitySnapshot: () => createTestCapabilitySnapshot({
+				fireTrigger: unknownCapability,
+				setTriggerEnabled: unknownCapability,
+				deleteTrigger: unknownCapability,
+				upsertTrigger: unknownCapability,
+			}),
+			listTriggers: async () => ({ triggers: [] }),
+			fireTrigger: async () => ({ status: '', eventId: '', reason: '' }),
+			setTriggerEnabled: async () => ({ trigger: emptyTrigger() }),
+			deleteTrigger: async () => ({}),
+			upsertTrigger: async () => ({ trigger: emptyTrigger() }),
+		}));
+		await flushMicrotasks();
+		assertWriteButtonsDisabled(pane.getDomNode());
+
+		const fireButton = findFireButton(pane.getDomNode());
+		assert.ok(fireButton);
+		assert.ok(fireButton.title.length > 0);
+		assert.ok(fireButton.title.includes('Fire'));
+
+		const addButton = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+		assert.ok(addButton);
+		assert.ok(addButton.title.length > 0);
+		assert.ok(addButton.title.includes('Add'));
+
+		pane.getDomNode().parentElement?.remove();
+	});
+
 	test('FireTrigger sends empty ids as-is when connected with no selection', async () => {
 		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
 		const pane = mountSection(createConversationConnectionTestStub({
@@ -834,6 +901,71 @@ suite('EngineTriggersSection', () => {
 		assert.strictEqual(status.textContent, 'fire boom');
 		assert.ok(status.classList.contains('is-error'));
 		assert.ok(!status.classList.contains('is-success'));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('FireTrigger failure statuses or rejected reason paint error tone', async () => {
+		let call = 0;
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+			fireTrigger: async () => {
+				call++;
+				if (call === 1) {
+					return { status: 'FAILED', eventId: 'evt-fail', reason: 'quota exceeded' };
+				}
+				if (call === 2) {
+					return { status: 'TRIGGER_FIRE_STATUS_REJECTED', eventId: 'evt-rej', reason: 'policy check rejected' };
+				}
+				if (call === 3) {
+					return { status: 'ERROR', eventId: 'evt-err', reason: 'crash' };
+				}
+				if (call === 4) {
+					return { status: 'CUSTOM_STATUS', eventId: 'evt-cn', reason: '触发失败：权限不足' };
+				}
+				if (call === 5) {
+					return { status: 'FIRED', eventId: 'evt-ok', reason: 'no error' };
+				}
+				return { status: 'FIRED', eventId: 'evt-6', reason: 'queued' };
+			},
+		}));
+		await flushMicrotasks();
+		const fire = findFireButton(pane.getDomNode());
+		assert.ok(fire);
+
+		// Call 1: FAILED
+		fire.click();
+		await flushMicrotasks();
+		let status = pane.getDomNode().querySelector('.engine-triggers-fire-status') as HTMLElement | null;
+		assert.ok(status);
+		assert.strictEqual(status.textContent, 'FAILED — evt-fail — quota exceeded');
+		assert.ok(status.classList.contains('is-error'));
+
+		// Call 2: REJECTED
+		fire.click();
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, 'TRIGGER_FIRE_STATUS_REJECTED — evt-rej — policy check rejected');
+		assert.ok(status.classList.contains('is-error'));
+
+		// Call 3: ERROR
+		fire.click();
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, 'ERROR — evt-err — crash');
+		assert.ok(status.classList.contains('is-error'));
+
+		// Call 4: Chinese failure reason
+		fire.click();
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, 'CUSTOM_STATUS — evt-cn — 触发失败：权限不足');
+		assert.ok(status.classList.contains('is-error'));
+
+		// Call 5: FIRED with 'no error' should NOT be error
+		fire.click();
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, 'FIRED — evt-ok — no error');
+		assert.ok(!status.classList.contains('is-error'));
+
 		pane.getDomNode().parentElement?.remove();
 	});
 

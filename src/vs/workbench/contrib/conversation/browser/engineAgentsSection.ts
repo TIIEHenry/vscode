@@ -487,6 +487,17 @@ export class EngineAgentsSection extends Disposable {
 			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
+		if (this.sessionContext?.onDidChangeActiveSession) {
+			this._register(this.sessionContext.onDidChangeActiveSession(() => {
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			}));
+		}
+		if (this.sessionContext?.onDidChangeActiveWorkRoot) {
+			this._register(this.sessionContext.onDidChangeActiveWorkRoot(() => {
+				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			}));
+		}
+
 		this.renderModelTab();
 		this.setActiveDetailTab('instructions');
 		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
@@ -1249,7 +1260,11 @@ export class EngineAgentsSection extends Disposable {
 			return;
 		}
 		try {
-			const result = await this.connection.listTools();
+			const projectPath = this.sessionContext?.getActiveWorkRoot?.().workDir?.trim();
+			const listTools = this.connection.listTools as (
+				request?: { readonly projectPath?: string },
+			) => ReturnType<IUniverseAgentConnection['listTools']>;
+			const result = await (projectPath ? listTools.call(this.connection, { projectPath }) : this.connection.listTools());
 			if (generation !== this.agentToolsLoadGeneration) {
 				return;
 			}

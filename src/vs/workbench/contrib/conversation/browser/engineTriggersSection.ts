@@ -66,6 +66,32 @@ const $ = DOM.$;
  * failed and closes Fire/Enable/Delete/Upsert (D437); write gate is not only
  * connected+pairingHold (`leftoverListFailed` / mode failed).
  */
+const FIRE_FAILURE_STATUS = new Set([
+	'FAILED', 'FAILURE', 'REJECTED', 'REJECT', 'ERROR', 'UNSUCCESSFUL',
+]);
+
+function isFireTriggerFailure(result: { status: string; reason: string }): boolean {
+	const status = result.status.trim().toUpperCase();
+	if (status.length === 0) {
+		return true;
+	}
+	const tokens = status.split(/[^A-Z0-9]+/).filter(token => token.length > 0);
+	if (tokens.some(token => FIRE_FAILURE_STATUS.has(token))) {
+		return true;
+	}
+
+	const reason = result.reason.trim();
+	if (reason.length === 0) {
+		return false;
+	}
+	const english = reason.replace(
+		/\b(?:no|not|without|non)[\s_-]+(?:errors?|fail(?:ed|ure)?s?|reject(?:ed|ion)?)\b/gi,
+		' ',
+	);
+	return /(?:^|[^a-z])(?:fail(?:ed|ure)?s?|reject(?:ed|ion)?|errors?)(?![a-z])/i.test(english)
+		|| /被拒|失败/.test(reason);
+}
+
 export class EngineTriggersSection extends Disposable {
 
 	private readonly container: HTMLElement;
@@ -404,49 +430,73 @@ export class EngineTriggersSection extends Disposable {
 		}
 	}
 
-	private triggerAdvertised(key: 'fireTrigger' | 'setTriggerEnabled' | 'deleteTrigger' | 'upsertTrigger', method: unknown): boolean {
-		return isAdvertisedEngineRpc(this.connection.getCapabilitySnapshot(), key, method);
+	private triggerSupported(key: 'fireTrigger' | 'setTriggerEnabled' | 'deleteTrigger' | 'upsertTrigger', method: unknown): boolean {
+		const entry = this.connection.getCapabilitySnapshot()?.[key];
+		return entry?.support === 'SUPPORTED' && typeof method === 'function';
+	}
+
+	private updateButtonCapabilityHover(
+		button: Button,
+		key: 'fireTrigger' | 'setTriggerEnabled' | 'deleteTrigger' | 'upsertTrigger',
+		actionLabel: string,
+	): void {
+		const entry = this.connection.getCapabilitySnapshot()?.[key];
+		const title = entry?.support === 'SUPPORTED'
+			? actionLabel
+			: (entry?.reason?.trim() || getEngineSectionApiUnavailableCopy(actionLabel));
+		button.setTitle(title);
+		button.element.title = title;
 	}
 
 	private updateFireAction(): void {
+		const supported = this.triggerSupported('fireTrigger', this.connection.fireTrigger);
 		this.fireButton.enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerFire(
 			this.connection.isEngineConnected(),
-			this.triggerAdvertised('fireTrigger', this.connection.fireTrigger),
+			supported,
 			this.isTriggerWritePairingHold(),
 		);
+		this.updateButtonCapabilityHover(this.fireButton, 'fireTrigger', ENGINE_TRIGGER_FIRE_LABEL);
 	}
 
 	private updateSetEnabledAction(): void {
+		const supported = this.triggerSupported('setTriggerEnabled', this.connection.setTriggerEnabled);
 		const enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerSetEnabled(
 			this.connection.isEngineConnected(),
-			this.triggerAdvertised('setTriggerEnabled', this.connection.setTriggerEnabled),
+			supported,
 			this.isTriggerWritePairingHold(),
 		);
 		this.enableButton.enabled = enabled;
 		this.disableButton.enabled = enabled;
+		this.updateButtonCapabilityHover(this.enableButton, 'setTriggerEnabled', ENGINE_TRIGGER_ENABLE_LABEL);
+		this.updateButtonCapabilityHover(this.disableButton, 'setTriggerEnabled', ENGINE_TRIGGER_DISABLE_LABEL);
 	}
 
 	private updateDeleteAction(): void {
+		const supported = this.triggerSupported('deleteTrigger', this.connection.deleteTrigger);
 		this.deleteButton.enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerDelete(
 			this.connection.isEngineConnected(),
-			this.triggerAdvertised('deleteTrigger', this.connection.deleteTrigger),
+			supported,
 			this.isTriggerWritePairingHold(),
 		);
+		this.updateButtonCapabilityHover(this.deleteButton, 'deleteTrigger', ENGINE_TRIGGER_DELETE_LABEL);
 	}
 
 	private updateUpsertAction(): void {
+		const supported = this.triggerSupported('upsertTrigger', this.connection.upsertTrigger);
 		const enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerUpsert(
 			this.connection.isEngineConnected(),
-			this.triggerAdvertised('upsertTrigger', this.connection.upsertTrigger),
+			supported,
 			this.isTriggerWritePairingHold(),
 		);
 		this.addButton.enabled = enabled;
 		this.editButton.enabled = enabled;
+		this.updateButtonCapabilityHover(this.addButton, 'upsertTrigger', ENGINE_TRIGGER_ADD_LABEL);
+		this.updateButtonCapabilityHover(this.editButton, 'upsertTrigger', ENGINE_TRIGGER_EDIT_LABEL);
 	}
 
 	private async handleSetEnabled(enabled: boolean): Promise<void> {
 		const hook = this.connection.setTriggerEnabled;
-		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), this.triggerAdvertised('setTriggerEnabled', hook), this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), this.triggerSupported('setTriggerEnabled', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const generation = ++this._setEnabledGeneration;
@@ -472,14 +522,14 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleFire(): Promise<void> {
 		const hook = this.connection.fireTrigger;
-		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerFire(this.connection.isEngineConnected(), this.triggerAdvertised('fireTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerFire(this.connection.isEngineConnected(), this.triggerSupported('fireTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerFireRequest(this.selectedTrigger);
 		try {
 			const result = await hook.call(this.connection, request);
 			this.fireStatus.style.display = '';
-			const tone = result.status === '' ? 'error' : 'neutral';
+			const tone = isFireTriggerFailure(result) ? 'error' : 'neutral';
 			writeStatus(this.fireStatus, `${result.status} — ${result.eventId} — ${result.reason}`, tone);
 		} catch (error) {
 			const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -490,7 +540,7 @@ export class EngineTriggersSection extends Disposable {
 
 	private async handleDelete(): Promise<void> {
 		const hook = this.connection.deleteTrigger;
-		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerDelete(this.connection.isEngineConnected(), this.triggerAdvertised('deleteTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerDelete(this.connection.isEngineConnected(), this.triggerSupported('deleteTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerDeleteRequest(this.selectedTrigger);
@@ -515,7 +565,7 @@ export class EngineTriggersSection extends Disposable {
 			return;
 		}
 		const hook = this.connection.upsertTrigger;
-		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerAdvertised('upsertTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerSupported('upsertTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const request = engineTriggerUpsertRequest(this.selectedTrigger, mode);
