@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-10-16
-summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查方案仍 draft，未实施。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。本机链路经拨号提交闸（4406489a595）与本机引擎信任锚（98a8b10550f）单测已全绿落地。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
+summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查中 r04 platform 方案 4 项缺陷已全绿落地合入（其余方案仍 draft 未实施）。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。本机链路经拨号提交闸（4406489a595）与本机引擎信任锚（98a8b10550f）单测已全绿落地。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
 # 方案
@@ -234,7 +234,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [审查 r03：agent-host-rest](review-2026-10-11-r03-agent-host-rest.md) | `draft` | 5 条；SSH 连接表在读失败或条目被滤掉之后，会被下一次保存整表覆盖。 |
 | [方案 r03：agent-host-rest](review-2026-10-11-r03-agent-host-rest-plan.md) | `draft` | hold 4，weaken 1。发布 ack 失败要写明与 github-ui 分叉。未实施。 |
 | [审查 r04：platform](review-2026-10-11-r04-platform.md) | `draft` | 4 条；设置文件读失败会被当成空设置，远端未变时把删除同步到云端。 |
-| [方案 r04：platform](review-2026-10-11-r04-platform-plan.md) | `draft` | hold 4。可按稿实施。未实施。 |
+| [方案 r04：platform](review-2026-10-11-r04-platform-plan.md) | `implemented` | hold 4。r04-1 到 r04-4 四条平台缺陷（读文件非缺失错误原样抛出、submitInput 返回 writeId、addHubDeviceProfile 账号与状态过滤、confirmSas 退出分支始终 close）及单测已全绿落地合入。 |
 | [审查 r05：editor](review-2026-10-11-r05-editor.md) | `draft` | 4 条；差异计算尚未跟上编辑就把旧 diff 标成最新，回退会按旧行号改修改稿。 |
 | [方案 r05：editor](review-2026-10-11-r05-editor-plan.md) | `draft` | hold 4。四处行为仍在原行号。未实施。 |
 | [审查 r06：sessions](review-2026-10-11-r06-sessions.md) | `draft` | 4 条；宿主拒绝审批级别变更后，界面仍显示新级别。 |
