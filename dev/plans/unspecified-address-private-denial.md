@@ -1,18 +1,17 @@
 ---
 title: "未指定地址并进私网拒绝"
 type: plan
-status: draft
+status: implemented
 phase: M7
-updated: 2026-10-05
-summary: "未勾选 allowPrivateNetwork 时，直连与 Hub 中继在写入 resolvedIp 之前把 IPv4 0.0.0.0/8 与 IPv6 未指定地址 :: 并进既有私网分类器。失败码仍是 private_network_denied。loopback 目标形态不过闸。代码已落，方案仍 draft。不改已签收方案正文。不升 PRD。"
+updated: 2026-10-16
+summary: "未勾选 allowPrivateNetwork 时，直连与 Hub 中继在写入 resolvedIp 之前把 IPv4 0.0.0.0/8 与 IPv6 未指定地址 :: 并进既有私网分类器。失败码仍是 private_network_denied。loopback 目标形态不过闸。已全面落地（afda5a04283）。不改已签收方案正文。不升 PRD。"
 ---
 
 # 未指定地址并进私网拒绝
 
 > **slice_id**：`unspecified-address-private-denial`
 > **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) 对已签收方案的补充：BH-01 S1 的分类还缺 `0.0.0.0/8` 与 `::`。Linux 上拨这两个地址会落到本机，等于绕过环回拒绝。
-> **本稿是方案，未签收。**
-> **实施（2026-10-05）**：分类器与本方案单测已落。方案仍是 `draft`。不升 PRD。
+> **落地：** `status: implemented`。已全面落地（提交 `afda5a04283`，分类器与单测已全部合入）。不改已签收方案正文。不升 PRD。
 > **冲突域**：`src/vs/platform/universeAgent/node/connectionResolver.ts`、`src/vs/platform/universeAgent/test/node/connectionResolver.test.ts`。
 > **不改**：`universeAgentConnectionService.ts`、`pairingOrchestrator.ts`、conversation 状态栏、[bug-hunt 01](bug-hunt-2026-09-24/01-connection-trust.md) 与 [connection-hub-client](connection-hub-client.md) 已签收正文、`deferred-gaps.md`、`status.md`。
 > **不发明**失败码、理由字符串、快照字段或开关。沿用 `private_network_denied` 与现有理由 `direct address resolves to private or loopback network without allowPrivateNetwork`。

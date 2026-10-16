@@ -1,13 +1,15 @@
 ---
 title: "Sources 文件列表按广告探测"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-05
-summary: "Sources 文件列表的 listFiles 门闩改读连接快照 listFilesCapability。不进 Engine Overview。不重做 conversationEntryCapability 与 gitWriteCapability。稿仍 draft。不升 PRD。不宣布 ELR-13 全部完成。"
+updated: 2026-10-16
+summary: "Sources 文件列表的 listFiles 门闩改读连接快照 listFilesCapability。已于 b6bccf8ff2c 落地。不进 Engine Overview。不重做 conversationEntryCapability 与 gitWriteCapability。不升 PRD。不宣布 ELR-13 全部完成。"
 ---
 
 # Sources 文件列表按广告探测
+
+> **落地：** `status: implemented`。已于 `b6bccf8ff2c` 落地（Sources 文件列表的 `listFiles` 门闩改读连接快照 `listFilesCapability`、平台与渲染端缓存同步生效）。不进 Engine Overview。不重做 `conversationEntryCapability` 与 `gitWriteCapability`。不升 PRD。不宣布 ELR-13 全部完成。
 
 桌面 `ProxyChannel` 让 `IUniverseAgentConnection` 上每个属性都是函数。`typeof listFiles === 'function'` 在生产里恒真，引擎没广告 `FileService.ListFiles` 时，Sources 文件列表仍会走引擎。`conversationEntryCapability` 与 `gitWriteCapability` 已落地，不重做，也不改回 `typeof`。本刀只改文件列表这一项，不宣布 ELR-13 全部完成。
 
