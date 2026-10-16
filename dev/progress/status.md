@@ -4,12 +4,16 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-16
-summary: "2026-10-16：多工位并行合入第四批（Slot A: S8 会话不可用固定原因与控件保留、Slot D: S6 Sources Files 标题栏动作并入 Tab 条与 Preview 去框、Slot B: S7 会话切换下拉接通 attachComposerPicker 与弱化元信息）。10013 文件 transpile-client 0 错误，测试全绿。"
+summary: "2026-10-16：多工位并行合入第五批（Slot A: S5 Composer 进行中空稿单行布局与卡片 token、Slot D: S9 筛选芯片中性底、Navigator 输入去描边与首选项分节 24px、Slot B: G4/G15/G16 拦截 Triggers/Clipboard 空载荷与收紧门禁）。10012 文件 transpile-client 0 错误，测试全绿。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **多工位并行实施与视觉收归 Wave 2026-10-16（第五批）**：
+  - **Slot A: Composer 进行中空稿单行布局与卡片 token (S5，提交 a86e019d72b)**：实现纯函数判定 `isComposerSingleLine`（进行中会话、空稿无提及芯片、未放大、宽度 ≥ 450px），切换 `.is-single-line` 并使用 CSS flex 重排控件（Tools、输入、Permission、Model、放大、发送）；PreFirst 居中态保持两行；高度变化前后保持阅读列贴底状态；边框与投影收归 token；单测 `conversationLensComposer.test.ts`、`conversationLensCssScan.test.ts` 46 passing 全绿。
+  - **Slot D: 目录列表、筛选芯片与搜索框视觉规范对齐 (S9，提交 6c1d33127fd)**：透镜切换 tablist、Sources 页签与 Engine 首选项筛选芯片统一 24px 行高及内边距，选中态改用中性淡底 `var(--vscode-toolbar-hoverBackground)` 且不加粗；Navigator 过滤输入框去常驻静态描边，聚焦出标准焦点环；Engine 偏好设置过滤框收敛为药丸胶囊；分节列表统一 24px 单行并补弱化计数；单测与 CSS 扫描 174 passing 全绿。
+  - **Slot B: 拦截 Triggers 与 Clipboard 空载荷并收紧 UNKNOWN 列表门禁 (G4, G15, G16，提交 f342680627e)**：拦截 Triggers Add/Edit、Clipboard Write 空载荷；简化 FireTrigger 执行状态色调；对 UNKNOWN 能力门禁保持禁用；单测 `engineTriggersSection.test.ts` 等全绿。
 - **多工位并行实施与视觉收归 Wave 2026-10-16（第四批）**：
   - **Slot A: 会话不可用固定原因与输入底栏控件保留 (S8，提交 dfb39029655)**：会话不可用时 gate row 呈现 `Session unavailable — The engine is connected, but the active session is not ready.`，使用 `var(--vscode-descriptionForeground)` 消除整段红底报错；保留 Permission、Model 与 Tools 底栏控件在空态/禁用态，SessionBar 导航保留禁用；单测 `conversationComposerCatalog.test.ts` 35 passing 全绿。
   - **Slot D: Sources Files 标题栏动作并入 Tab 条与 Preview 空态去框 (S6，提交 9689d96793b)**：隐藏 Files ViewPane 独立标题栏垂直空间，将新建文件/目录、刷新、折叠、树/列表模式等 6 个动作按钮吸附并入 Sources Tab 筛选栏（激活 Files 时显示，切换 Changes/Review 时隐藏）；单测 `sourcesTabs.test.ts`、`sourcesFilesListMode.test.ts` 等 54 passing 全绿。
