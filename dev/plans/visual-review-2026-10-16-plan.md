@@ -1,19 +1,21 @@
 ---
 title: "视觉审查 2026-10-16：字重、发丝线、只读分支、零值统计"
 type: plan
-status: draft
+status: implemented
 phase: M7
 updated: 2026-10-16
-summary: "过程折、确认控件与复选框的 500 字重改为 400，发丝线改为 8%，只读分支芯片去掉手型与悬停，零值统计用弱化色。V1 归目录列表切片。V5–V7 未决。未实施。不升 PRD-028。"
+summary: "过程折、确认控件与复选框的 500 字重改为 400，发丝线改为 8%，只读分支芯片去掉手型与悬停，零值统计用弱化色。V2–V4 已于 68308db93b5 落地；V8 已于 ad333e998fa 落地。V1 归目录列表切片。V5–V7 未决。不升 PRD-028。"
 ---
 
 # 视觉审查 2026-10-16：字重、发丝线、只读分支、零值统计
 
 > **触发：** [视觉设计只读审查 2026-10-16](../progress/visual-review-2026-10-16.md) V2、V3、V4、V8。
 > **规范：** [UI 设计原则](../../docs/architecture/cross-cutting/ui-design-principles.md)。字重只用 400 / 600。低对比描边 8%。
-> 不升 PRD-028。
+> **落地：** `status: implemented`。V2–V4（字重 400、发丝线 8%、只读分支芯片）已于 `68308db93b5` 落地；V8（零值增删统计弱化）已于 `ad333e998fa` 落地。V1 归 [cursor-visual-alignment](cursor-visual-alignment.md) S9。V5–V7 未决。不升 PRD-028。
 
 ## 1. 字重（V2）
+
+> 已于 `68308db93b5` 落地。
 
 `conversationLens.css` 里这四处是 `font-weight: 500`：
 
@@ -28,6 +30,8 @@ summary: "过程折、确认控件与复选框的 500 字重改为 400，发丝�
 
 ## 2. 发丝线（V3）
 
+> 已于 `68308db93b5` 落地。
+
 过程折文件卡描边是 `color-mix(in srgb, var(--vscode-foreground) 10%, transparent)`（`conversationLens.css:1791`）。错误回合描边是同一混合的 `12%`（`:4131`）。
 
 **改法：** 两处都改为 `8%`。内边距、圆角、错误标题的 `errorForeground` 不动。
@@ -35,6 +39,8 @@ summary: "过程折、确认控件与复选框的 500 字重改为 400，发丝�
 **验证：** CSS 扫描断言这两条规则的混合比例是 `8%`。
 
 ## 3. 只读分支芯片（V4）
+
+> 已于 `68308db93b5` 落地。
 
 引擎工作根下 `paintBranch(..., false)` 去掉 `aria-haspopup`，读屏名是 `Git branch: {0}`（`conversationIdentityStrip.ts:308-310`）。元素仍是 `button`。共用规则 `button.conversation-identity-chip` 设了 `cursor: pointer`（`conversationIdentityStrip.css:95-98`），`:hover` 铺 `list-hoverBackground`（`:107-109`）。`onBranchChipClick` 在 `branchMenuEnabled` 为 false 时已经返回。
 
@@ -45,6 +51,8 @@ summary: "过程折、确认控件与复选框的 500 字重改为 400，发丝�
 **验证：** `conversationIdentityStrip.test.ts`。引擎工作根下的分支芯片带只读类，没有 `aria-haspopup`，点击不调用菜单。本地工作根下的芯片没有只读类，点击仍打开列表。
 
 ## 4. 零值统计（V8）
+
+> 已于 `ad333e998fa` 落地。
 
 `fillProcessFoldDiffStats` 把 `+N` 放进 `.conversation-diff-stat-add`，把 `−M` 放进 `.conversation-diff-stat-del`（`conversationProcessFold.ts:539-551`）。过程折在 `:656` 调用，时间线工具行在 `conversationTimelineRenderer.ts:733` 调用。增删色在 `conversationLens.css:4463` 与 `:4467`。`+0` 与 `−0` 也会上色。
 

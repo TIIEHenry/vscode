@@ -15,14 +15,14 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
 | [架构设计审查 2026-10-16](review-2026-10-16-architecture.md) | `draft` | 六路只读架构审查。根因是派生状态与判断规则没有唯一所有者；另有接口过宽、边界守卫失效、异步原语不用、扫描测试钉实现。具体缺陷 7 条。发现稿，未切实施，未改代码。 |
-| [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) | `draft` | 复查 2026-10-11 引擎联动缺口并补新发现。已签收的停 Enqueue 与生成中禁用 Send 未实施；MCP Add、Triggers Add、Clipboard Write 按钮可点但不发或发空载荷；Files 未改用会话工作根。发现稿，未切实施，未改代码。 |
+| [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) | `draft` | 复查 2026-10-11 引擎联动缺口并补新发现。G3/D1（05a17c38879）、G4/G15/G16（05a17c38879、1a4c4295b45、f342680627e）、G6（2e785907611）、G8（83ef402a254）、G17（4fa4f3eab56）、D2/D3（cc6e17a9d8f）均已实施。发现稿保持 draft，未闭环缺口待后续迭代。 |
 | [架构审查 2026-10-16：可单独实施的缺陷](architecture-2026-10-16-concrete.md) | `implemented` | 换 profile 复位 agent tree 探测，diff URI 带会话，设置列表跟活动工作根刷新，路径键只统一盘符。扫描测试与 chat 边界按真实路径判定。Q1–Q7 与 B5 不在本稿。§1–§6 已全部落地合入（4fa4f3eab56、99bd6829c11、1a4c4295b45、83ef402a254、68308db93b5、cc6e17a9d8f）。不升 PRD。 |
 | [Composer：不能切换的 Agent 控件改为只读](composer-agent-picker.md) | `implemented` | switchAgent 没有握手方法，选择会立刻滚回。不可用时底栏只显示现有不可用文案。底栏的 agentIndex 不进发送载荷。已于 2e785907611 落地。不升 PRD。 |
 | [对话动作失败、未归因变更与空任务列表](conversation-failure-and-mutation.md) | `implemented` | §1、§2、§4 为明确不做改动/行为验证通过（explicit no-op decisions/verifications）；§3（缺字段的 file_mutation 累加 unattributedDropCount 计数）已于 83ef402a254 落地。不升 PRD。 |
 | [MCP 定义：Add / Update 先有表单](engine-mcp-definition-form.md) | `implemented` | 工具栏 Add 只展开表单，无配置不发 addMcpServer。工具栏 Update 在无改动时不写回。表单只收集已有配置字段里的必填项。已于 05a17c38879 落地。不升 PRD。 |
 | [Triggers 与 Clipboard：空载荷不发，未知能力不拉列表](engine-trigger-clipboard-actions.md) | `implemented` | Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 status 为空时画错误。三节列表在能力未知时不调用。已于 05a17c38879 与 1a4c4295b45 落地。不升 PRD。 |
 | [功能缺口 2026-10-16：已有方案与维持传输层](feature-gaps-2026-10-16-boundary.md) | `implemented` | G1、G2、G5、G10、G19、G20 指向已实施方案。G7、G11 与协议面已写明只进传输的入口不新开产品面。D2 与 D3 文档偏差已于 cc6e17a9d8f 落地合入。不升 PRD。 |
-| [视觉审查 2026-10-16：字重、发丝线、只读分支、零值统计](visual-review-2026-10-16-plan.md) | `draft` | 过程折、确认控件与复选框的 500 字重改为 400，发丝线改为 8%，只读分支芯片去掉手型与悬停，零值统计用弱化色。V1 归目录列表切片。V5–V7 未决。未实施。不升 PRD-028。 |
+| [视觉审查 2026-10-16：字重、发丝线、只读分支、零值统计](visual-review-2026-10-16-plan.md) | `implemented` | 过程折、确认控件与复选框的 500 字重改为 400，发丝线改为 8%，只读分支芯片去掉手型与悬停，零值统计用弱化色。V2–V4 已于 68308db93b5 落地；V8 已于 ad333e998fa 落地。V1 归目录列表切片。V5–V7 未决。不升 PRD-028。 |
 | [引擎联动缺口：队列读回、生成中发送门禁、附件上传](engine-gap-queue-send-attachments.md) | `implemented` | 2026-10-11 用户签收。S1（生成中 / submitInFlight 禁用 Send）已于 2e785907611 落地；Q2（接通时停掉 Enqueue RPC 转发并关闭 Inbox 入口）已于 2e785907611 落地。附件不开刀。不升 PRD。 |
 | [草稿会话提交后保留 Agent 浏览器页归属](browser-owner-draft-graduation.md) | `draft` | 草稿 chat URI 替换后按替换事件映射旧 owner；真实删除按事件原始身份清理。工具访问与存储作用域分开验证，未实施。 |
 | [未开启工具搜索时保留历史搜索结果](r15-5-tool-search-history.md) | `draft` | 谓词缺省时历史工具搜索保留 toolsMap 里命中的工具；这次请求没有工具搜索且组不出工具时，保留原文，不换成空的 tool_search_output。方案保持 draft。不升 PRD。不宣布 r15 完成。 |
@@ -31,7 +31,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [published-link-identity.md](published-link-identity.md) | `draft` | ELR-8：快照增加可选 engineIdentityId 与 linkId。换链路先断开再连，roster 按引擎身份分桶。全应用仍是一条连接。不改 ADR-003。不升 PRD。 |
 | [会话工作根与 Workbench 双层状态](session-work-root-and-workbench-scope.md) | `draft` | PRD-029：路径按会话工作根解析；并排会话的 Preview 跟显式切换；换引擎前提示只数本窗口待确认会话。S1–S4 实施中。Preview 换入换出等 PRD-027 P3。不升 PRD。 |
 | [sources-files-list-capability.md](sources-files-list-capability.md) | `draft` | Sources 文件列表的 listFiles 门闩改读快照 listFilesCapability。不进 Engine Overview。不重做 conversationEntryCapability 与 gitWriteCapability。不升 PRD。不宣布 ELR-13 全部完成。 |
-| [conversation-entry-capability.md](conversation-entry-capability.md) | `draft` | 对话里用 typeof 连接方法决定入口的门闩改读快照 conversationEntryCapability。不进 Engine Overview。不重做 gitWriteCapability。不升 PRD。 |
+| [conversation-entry-capability.md](conversation-entry-capability.md) | `implemented` | 对话里用 typeof 连接方法决定入口的门闩改读快照 conversationEntryCapability。已于 3cb1f1055bb 全面落地（连接快照 conversationEntryCapability、平台与渲染端缓存同步及各对话入口门闩生效）。不进 Engine Overview。不重做 gitWriteCapability。不升 PRD。 |
 | [connection-ipc-allowlist.md](connection-ipc-allowlist.md) | `draft` | ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调流不对窗口开放；Hub 使用 universeAgentHub 通道并仍打到同一连接实例；宿主 token 用适配器；桌面 Team 三元调用补上嵌套对象过不了 ProxyChannel 的缺口。代码已落，方案仍 draft。不升 PRD。 |
 | [unspecified-address-private-denial.md](unspecified-address-private-denial.md) | `draft` | 未勾选 allowPrivateNetwork 时，直连与 Hub 中继在写入 resolvedIp 之前把 IPv4 0.0.0.0/8 与 IPv6 未指定地址 :: 并进既有私网分类器。失败码仍是 private_network_denied。loopback 目标形态不过闸。代码已落，方案仍 draft。不改已签收方案正文。不升 PRD。 |
 | [recover-trust-new-attempt.md](recover-trust-new-attempt.md) | `draft` | ELR-3 剩余半边已落在编排器：身份就绪时先重新观测、中继各续一次票、再握手，指纹一致且拿到 session_token 才写信任。身份未就绪仍按连接服务测试锁住的批准即写信任。方案仍 draft。不改连接服务。不升 PRD-024。 |
@@ -89,7 +89,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [conversation-session-bar-down.md](conversation-session-bar-down.md) | `accepted` | 会话栏下一级列出直接子代理；根上无父 fork 算孩子；窄宽与上一级一起留在栏上。不升 PRD。 |
 | [conversation-reading-surface.md](conversation-reading-surface.md) | `accepted` | 对话阅读面不显示 You / Agent；非 default 代理名 11px；用户气泡无描边无投影。不升 PRD-028。 |
 | [sessions-chat-composer-glass.md](sessions-chat-composer-glass.md) | `draft` | 追问卡去毛玻璃和投影已落；工作态聚焦描边仍被 40% 混色覆盖，须修到 focusBorder 并补状态测试。方案保持 draft，不升 PRD-028。 |
-| [cursor-visual-alignment.md](cursor-visual-alignment.md) | `draft` | S1–S4 已落地；S6 只去了 Preview 键帽框，S7 只补了原生菜单判断。S8 已收 Sources 读失败只出现一次，并在读代理树时用 .is-loading 藏闪电。会话不可用固定句、一行 Composer、会话切换菜单、目录列表与 Markdown 预览未做。方案仍 draft，不升 PRD-028。 |
+| [cursor-visual-alignment.md](cursor-visual-alignment.md) | `draft` | S1–S5（进行中空稿一行与卡片 token 改造）、S6（Preview 空态去框、Sources 标题栏并入 tab 条）、S7（会话切换接入菜单 Picker 与弱化元信息）、S8（Sources 错误去重、Navigator 加载藏闪电、会话不可用固定原因与输入控件保留）、S9（6c1d33127fd：透镜芯片/Sources tab/首选项中性淡底 hover 与 400 字重、Navigator 过滤框去描边、Engine 分节 24px 单行）已落地。Markdown 预览（S10）未做。方案仍 draft，不升 PRD-028。 |
 | [modal-mask-no-glass.md](modal-mask-no-glass.md) | `draft` | 去模糊代码已落，但默认浅色主题的对话框遮罩因 widget.shadow 为透明而没有半透明底色；需独立遮罩色和目视验证。方案仍 draft，不升 PRD-028。 |
 | [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-011：两级标签，2026-09-28 签收；显隐与路由同一次合入 |
 | [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `implemented` | v3.2 一次性重构（2026-09-28 已获用户明确签收并建立 ADR-010）：动画帧调度（16ms 兜底）+ 隐藏只停宿主 DOM + effects 接发送失败并回填文本 + 投影按输入身份缓存 + 宿主侧按 turn 的 H1 交接；原生文档流宿主（content-visibility、窗口化含未决座位、重资源预算），删除树与测高；marked 词法块冻结；HEAD 解锁语义 + 自身写入台账 + 发送上锁；性能挂 PRD-020 |

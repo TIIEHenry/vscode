@@ -1,13 +1,15 @@
 ---
 title: "对话入口按广告探测"
 type: plan
-status: draft
+status: implemented
 phase: N/A
 updated: 2026-10-16
-summary: "对话里用 typeof 连接方法决定列表、按钮或选择器是否存在的门闩，改读连接快照 conversationEntryCapability。不进 Engine Overview。不重做 gitWriteCapability。稿仍 draft。不升 PRD。"
+summary: "对话里用 typeof 连接方法决定列表、按钮或选择器是否存在的门闩，改读连接快照 conversationEntryCapability。已于 3cb1f1055bb 全面落地（连接快照 conversationEntryCapability、平台与渲染端缓存同步及各对话入口门闩生效）。不进 Engine Overview。不重做 gitWriteCapability。不升 PRD。"
 ---
 
 # 对话入口按广告探测
+
+> **落地：** `status: implemented`。已于 `3cb1f1055bb` 全面落地（连接快照 `conversationEntryCapability`、平台与渲染端缓存同步及各对话入口门闩生效）。不进 Engine Overview。不重做 `gitWriteCapability`。不升 PRD。
 
 桌面 `ProxyChannel` 让 `IUniverseAgentConnection` 上每个属性都是函数。`typeof listClipboard === 'function'` 在生产里恒真，引擎没广告或探测为 `UNIMPLEMENTED` 时，Clipboard / Triggers / Context / Snapshots 列表、设备配对动作、插件详情、MCP 工具、会话目标、权限模式和模型切换仍会露出入口。写按钮里已经走能力键的（`writeClipboard`、`fireTrigger`、`readContextVariable`、`restoreSnapshot` 等）不动。`gitWriteCapability` 已落地，不重做，也不改回 `typeof`。
 
