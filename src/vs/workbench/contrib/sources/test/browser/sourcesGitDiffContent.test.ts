@@ -171,6 +171,78 @@ suite('Sources - git diff content provider', () => {
 		assert.strictEqual(await older, 'stale');
 		assert.strictEqual(staleShows, 1);
 	});
+
+	test('different sessionIds isolate URI text in content store and separate from rows without sessionId', async function () {
+		const path = 'src/shared.ts';
+		const indexState = 'WORKTREE';
+
+		const sessionAUri = sourcesGitDiffModelUri('modified', path, indexState, 'session-A');
+		const sessionBUri = sourcesGitDiffModelUri('modified', path, indexState, 'session-B');
+		const noSessionUri = sourcesGitDiffModelUri('modified', path, indexState);
+		const emptySessionUri = sourcesGitDiffModelUri('modified', path, indexState, '');
+
+		// Query 格式检验：传入 sessionId 且非空放入 session=<encoded>；无 sessionId 时 query 为空
+		assert.strictEqual(sessionAUri.query, 'session=session-A');
+		assert.strictEqual(sessionBUri.query, 'session=session-B');
+		assert.strictEqual(noSessionUri.query, '');
+		assert.strictEqual(emptySessionUri.query, '');
+		assert.strictEqual(noSessionUri.toString(), emptySessionUri.toString());
+		assert.notStrictEqual(sessionAUri.toString(), sessionBUri.toString());
+		assert.notStrictEqual(sessionAUri.toString(), noSessionUri.toString());
+
+		// 检查 original 侧 URI 行为一致
+		const origSessionAUri = sourcesGitDiffModelUri('original', path, indexState, 'session-A');
+		const origSessionBUri = sourcesGitDiffModelUri('original', path, indexState, 'session-B');
+		const origNoSessionUri = sourcesGitDiffModelUri('original', path, indexState);
+		assert.strictEqual(origSessionAUri.query, 'session=session-A');
+		assert.strictEqual(origSessionBUri.query, 'session=session-B');
+		assert.strictEqual(origNoSessionUri.query, '');
+		assert.notStrictEqual(origSessionAUri.toString(), origSessionBUri.toString());
+		assert.notStrictEqual(origSessionAUri.toString(), origNoSessionUri.toString());
+
+		// 同一 path 与 indexState、不同 sessionId 的两次 begin / 写入，后一次不改变前一个 URI 的文本
+		const genA = sourcesGitDiffContentStore.begin([sessionAUri, origSessionAUri]);
+		assert.strictEqual(sourcesGitDiffContentStore.put(sessionAUri, 'content for session A (modified)', genA, accessor.modelService), true);
+		assert.strictEqual(sourcesGitDiffContentStore.put(origSessionAUri, 'content for session A (original)', genA, accessor.modelService), true);
+
+		const genB = sourcesGitDiffContentStore.begin([sessionBUri, origSessionBUri]);
+		assert.strictEqual(sourcesGitDiffContentStore.put(sessionBUri, 'content for session B (modified)', genB, accessor.modelService), true);
+		assert.strictEqual(sourcesGitDiffContentStore.put(origSessionBUri, 'content for session B (original)', genB, accessor.modelService), true);
+
+		assert.strictEqual(sourcesGitDiffContentStore.get(sessionAUri)?.text, 'content for session A (modified)');
+		assert.strictEqual(sourcesGitDiffContentStore.get(origSessionAUri)?.text, 'content for session A (original)');
+		assert.strictEqual(sourcesGitDiffContentStore.get(sessionBUri)?.text, 'content for session B (modified)');
+		assert.strictEqual(sourcesGitDiffContentStore.get(origSessionBUri)?.text, 'content for session B (original)');
+
+		// 没有 sessionId 的 SCM 行与带 sessionId 的行分开
+		const genScm = sourcesGitDiffContentStore.begin([noSessionUri, origNoSessionUri]);
+		assert.strictEqual(sourcesGitDiffContentStore.put(noSessionUri, 'content for scm (modified)', genScm, accessor.modelService), true);
+		assert.strictEqual(sourcesGitDiffContentStore.put(origNoSessionUri, 'content for scm (original)', genScm, accessor.modelService), true);
+
+		assert.strictEqual(sourcesGitDiffContentStore.get(noSessionUri)?.text, 'content for scm (modified)');
+		assert.strictEqual(sourcesGitDiffContentStore.get(emptySessionUri)?.text, 'content for scm (modified)');
+		assert.strictEqual(sourcesGitDiffContentStore.get(origNoSessionUri)?.text, 'content for scm (original)');
+
+		// session A 与 session B 的内容未被覆盖
+		assert.strictEqual(sourcesGitDiffContentStore.get(sessionAUri)?.text, 'content for session A (modified)');
+		assert.strictEqual(sourcesGitDiffContentStore.get(origSessionAUri)?.text, 'content for session A (original)');
+		assert.strictEqual(sourcesGitDiffContentStore.get(sessionBUri)?.text, 'content for session B (modified)');
+		assert.strictEqual(sourcesGitDiffContentStore.get(origSessionBUri)?.text, 'content for session B (original)');
+
+		// 验证 textModelResolverService 对各 session URI 能正确提供独立的文本模型
+		disposables.add(accessor.textModelResolverService.registerTextModelContentProvider(sessionAUri.scheme, {
+			provideTextContent: uri => Promise.resolve(provideSourcesGitDiffTextContent(uri, accessor.modelService)),
+		}));
+		const refA = await accessor.textModelResolverService.createModelReference(sessionAUri);
+		const refB = await accessor.textModelResolverService.createModelReference(sessionBUri);
+		const refScm = await accessor.textModelResolverService.createModelReference(noSessionUri);
+		disposables.add(refA);
+		disposables.add(refB);
+		disposables.add(refScm);
+		assert.strictEqual(refA.object.textEditorModel.getValue(), 'content for session A (modified)');
+		assert.strictEqual(refB.object.textEditorModel.getValue(), 'content for session B (modified)');
+		assert.strictEqual(refScm.object.textEditorModel.getValue(), 'content for scm (modified)');
+	});
 });
 
 function diff(unifiedDiff: string) {
