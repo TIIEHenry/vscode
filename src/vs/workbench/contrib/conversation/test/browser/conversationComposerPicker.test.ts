@@ -171,4 +171,47 @@ suite('Conversation composer picker', () => {
 		assert.deepStrictEqual(changes, []);
 		disposables.dispose();
 	});
+
+	test('getItemDetail supplies detail to keybinding and action without altering label', () => {
+		const disposables = store.add(new DisposableStore());
+		const container = mainWindow.document.createElement('div');
+		const select = mainWindow.document.createElement('select');
+		for (const text of ['Session 1', 'Session 2']) {
+			const option = mainWindow.document.createElement('option');
+			option.text = text;
+			select.appendChild(option);
+		}
+		select.selectedIndex = 0;
+		container.appendChild(select);
+		mainWindow.document.body.appendChild(container);
+		disposables.add({ dispose: () => container.remove() });
+
+		let delegate: IContextMenuDelegate | undefined;
+		const contextViewService = {
+			hideContextView() { },
+		} as unknown as IContextViewService;
+		const contextMenuService = {
+			showContextMenu(next: IContextMenuDelegate) {
+				delegate = next;
+			},
+		} as unknown as IContextMenuService;
+
+		disposables.add(attachComposerPicker(container, contextViewService, contextMenuService, {
+			ariaLabel: 'Session',
+			getItemDetail: (index: number) => index === 0 ? '5 messages' : undefined,
+		}));
+
+		press(select);
+		assert.ok(delegate);
+		const actions = delegate.getActions();
+		assert.strictEqual(actions[0].label, 'Session 1');
+		assert.strictEqual((actions[0] as { detail?: string }).detail, '5 messages');
+		assert.strictEqual(delegate.getKeyBinding?.(actions[0])?.getLabel(), '5 messages');
+
+		assert.strictEqual(actions[1].label, 'Session 2');
+		assert.strictEqual((actions[1] as { detail?: string }).detail, undefined);
+		assert.strictEqual(delegate.getKeyBinding?.(actions[1]), undefined);
+
+		disposables.dispose();
+	});
 });

@@ -5,7 +5,8 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { beginSessionTitleEdit, updateSessionTitle, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
+import { beginSessionTitleEdit, updateSessionTitle, formatSessionSwitchMeta, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
+import type { ConversationStubSession } from '../../browser/conversationStubModel.js';
 
 suite('ConversationLensSessionBar', () => {
 
@@ -74,4 +75,56 @@ suite('ConversationLensSessionBar', () => {
 		assert.ok(host.sessionTitleInput.hidden);
 	});
 
+	suite('formatSessionSwitchMeta', () => {
+		test('returns undefined for undefined session', () => {
+			assert.strictEqual(formatSessionSwitchMeta(undefined), undefined);
+		});
+
+		test('returns 1 message when turnCount is 1', () => {
+			const session: ConversationStubSession = { id: 's1', title: 'Test', turns: [], turnCount: 1 };
+			assert.strictEqual(formatSessionSwitchMeta(session), '1 message');
+		});
+
+		test('returns N messages when turnCount > 1', () => {
+			const session: ConversationStubSession = { id: 's1', title: 'Test', turns: [], turnCount: 4 };
+			assert.strictEqual(formatSessionSwitchMeta(session), '4 messages');
+		});
+
+		test('prioritizes turnCount over lastAccessedAt', () => {
+			const session: ConversationStubSession = { id: 's1', title: 'Test', turns: [], turnCount: 3, lastAccessedAt: Date.now() - 60_000 };
+			assert.strictEqual(formatSessionSwitchMeta(session), '3 messages');
+		});
+
+		test('falls back to lastAccessedAt when turnCount is 0', () => {
+			const now = Date.now();
+			const session: ConversationStubSession = { id: 's1', title: 'Test', turns: [], turnCount: 0, lastAccessedAt: now - 120_000 };
+			assert.strictEqual(formatSessionSwitchMeta(session), '2 mins ago');
+		});
+
+		test('falls back to lastAccessedAt when turnCount is undefined and turns are empty', () => {
+			const now = Date.now();
+			const session: ConversationStubSession = { id: 's1', title: 'Test', turns: [], lastAccessedAt: now - 3600_000 };
+			assert.strictEqual(formatSessionSwitchMeta(session), '1 hr ago');
+		});
+
+		test('converts seconds timestamp to milliseconds for relative time', () => {
+			const nowSeconds = Math.floor(Date.now() / 1000);
+			const session: ConversationStubSession = { id: 's1', title: 'Test', turns: [], turnCount: 0, lastAccessedAt: nowSeconds - 300 };
+			assert.strictEqual(formatSessionSwitchMeta(session), '5 mins ago');
+		});
+
+		test('returns undefined when both turnCount and lastAccessedAt are 0 or empty', () => {
+			const session: ConversationStubSession = { id: 's1', title: 'Test', turns: [], turnCount: 0, lastAccessedAt: 0 };
+			assert.strictEqual(formatSessionSwitchMeta(session), undefined);
+		});
+
+		test('uses turns.length when turnCount is undefined and turns exist', () => {
+			const session: ConversationStubSession = {
+				id: 's1',
+				title: 'Test',
+				turns: [{ id: 't1', kind: 'user', text: 'Hi' }, { id: 't2', kind: 'assistant', text: 'Hello' }],
+			};
+			assert.strictEqual(formatSessionSwitchMeta(session), '2 messages');
+		});
+	});
 });

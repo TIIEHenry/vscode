@@ -7,6 +7,7 @@ import { addDisposableListener, addStandardDisposableListener } from '../../../.
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { IAction, Separator, toAction } from '../../../../base/common/actions.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
+import { ResolvedChord, ResolvedKeybinding, SingleModifierChord } from '../../../../base/common/keybindings.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IContextMenuService, IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 
@@ -29,6 +30,22 @@ export interface IComposerPickerOptions {
 	readonly footer?: IComposerPickerFooter;
 	/** When the window uses the native menu, leave the platform `<select>` popup alone. */
 	readonly useNativeSelect?: boolean;
+	readonly getItemDetail?: (index: number, label: string) => string | undefined;
+}
+
+class MenuDetailKeybinding extends ResolvedKeybinding {
+	constructor(private readonly detail: string) {
+		super();
+	}
+	override getLabel(): string | null { return this.detail; }
+	override getAriaLabel(): string | null { return this.detail; }
+	override getElectronAccelerator(): string | null { return null; }
+	override getUserSettingsLabel(): string | null { return null; }
+	override isWYSIWYG(): boolean { return false; }
+	override hasMultipleChords(): boolean { return false; }
+	override getChords(): ResolvedChord[] { return []; }
+	override getDispatchChords(): (string | null)[] { return []; }
+	override getSingleModifierDispatchChords(): (SingleModifierChord | null)[] { return []; }
 }
 
 export function attachComposerPicker(container: HTMLElement, contextViewService: IContextViewService, contextMenuService: IContextMenuService, options: IComposerPickerOptions): IDisposable {
@@ -51,19 +68,28 @@ export function attachComposerPicker(container: HTMLElement, contextViewService:
 		}
 		const labels = Array.from(select.options, option => option.text);
 		const selected = select.selectedIndex;
-		const actions: IAction[] = labels.map((label, index) => toAction({
-			id: `conversation.composer.pick.${index}`,
-			label,
-			checked: index === selected,
-			run: () => {
-				// The options can be replaced while the menu is open (catalog refresh, disconnect).
-				const stale = select.disabled || select.options[index]?.text !== label;
-				if (!stale && index !== select.selectedIndex) {
-					select.selectedIndex = index;
-					select.dispatchEvent(new Event('change', { bubbles: true }));
-				}
-			},
-		}));
+		const details = new Map<IAction, string>();
+		const actions: IAction[] = labels.map((label, index) => {
+			const action = toAction({
+				id: `conversation.composer.pick.${index}`,
+				label,
+				checked: index === selected,
+				run: () => {
+					// The options can be replaced while the menu is open (catalog refresh, disconnect).
+					const stale = select.disabled || select.options[index]?.text !== label;
+					if (!stale && index !== select.selectedIndex) {
+						select.selectedIndex = index;
+						select.dispatchEvent(new Event('change', { bubbles: true }));
+					}
+				},
+			});
+			const detail = options.getItemDetail?.(index, label);
+			if (detail) {
+				details.set(action, detail);
+				(action as { detail?: string }).detail = detail;
+			}
+			return action;
+		});
 		if (options.footer) {
 			const footer = options.footer;
 			actions.push(new Separator());
@@ -79,6 +105,10 @@ export function attachComposerPicker(container: HTMLElement, contextViewService:
 			getAnchor: () => select,
 			getActions: () => actions,
 			getCheckedActionsRepresentation: () => 'radio',
+			getKeyBinding: action => {
+				const detail = details.get(action);
+				return detail ? new MenuDetailKeybinding(detail) : undefined;
+			},
 			anchorAlignment: options.alignment,
 			autoSelectFirstItem: true,
 			onHide: () => {

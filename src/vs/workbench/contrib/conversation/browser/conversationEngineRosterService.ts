@@ -1623,7 +1623,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		const removed = this.engineSessions[index]!;
 		const snapshot: EngineSessionDeleteSnapshot = {
-			session: { id: removed.id, title: removed.title, turns: removed.turns, source: removed.source },
+			session: {
+				id: removed.id,
+				title: removed.title,
+				turns: removed.turns,
+				source: removed.source,
+				...(typeof removed.turnCount === 'number' && Number.isFinite(removed.turnCount) ? { turnCount: removed.turnCount } : {}),
+				...(typeof removed.lastAccessedAt === 'number' && Number.isFinite(removed.lastAccessedAt) && removed.lastAccessedAt > 0 ? { lastAccessedAt: removed.lastAccessedAt } : {}),
+			},
 			index,
 			previousGoal: this.sessionGoals.get(sessionId),
 			previousActiveId: this.activeEngineSessionId,
@@ -1954,12 +1961,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					const id = s.sessionId;
 					const cached = this.engineFrameSource.getCachedProjection(id);
 					const carried = !cached ? previousRowTurns.get(id) : undefined;
+					const turnCount = typeof s.turnCount === 'number' && Number.isFinite(s.turnCount) ? s.turnCount : undefined;
+					const lastAccessedAt = typeof s.lastAccessedAt === 'number' && Number.isFinite(s.lastAccessedAt) && s.lastAccessedAt > 0 ? s.lastAccessedAt : undefined;
 					return {
 						id,
 						title: s.title ?? localize('conversationLens.sessionUntitled', "Untitled session"),
 						turns: carried ? carried.map(turn => ({ ...turn })) : [],
 						source: 'engine-cache' as const,
 						...(s.workDir ? { workDir: s.workDir } : {}),
+						...(turnCount !== undefined ? { turnCount } : {}),
+						...(lastAccessedAt !== undefined ? { lastAccessedAt } : {}),
 					};
 				});
 			this.listCompleted = true;
@@ -2052,6 +2063,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			turns: session.turns.map(turn => ({ ...turn })),
 			source: 'engine-cache' as const,
 			...(session.workDir ? { workDir: session.workDir } : {}),
+			...(typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? { turnCount: session.turnCount } : {}),
+			...(typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? { lastAccessedAt: session.lastAccessedAt } : {}),
 		}));
 		const restoreLast = shouldRestoreLastSessionOnStartup(this.configurationService);
 		this.activeEngineSessionId = restoreLast && cache.activeSessionId && this.engineSessions.some(session => session.id === cache.activeSessionId)
@@ -2080,6 +2093,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				turns: [...turns],
 				source: 'engine-cache',
 				...(session.workDir ? { workDir: session.workDir } : {}),
+				...(typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? { turnCount: session.turnCount } : {}),
+				...(typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? { lastAccessedAt: session.lastAccessedAt } : {}),
 			};
 			this.model.upsertCachedSession(cached);
 			return {
@@ -2088,6 +2103,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				turns: cached.turns,
 				source: 'engine-cache' as const,
 				...(cached.workDir ? { workDir: cached.workDir } : {}),
+				...(typeof cached.turnCount === 'number' && Number.isFinite(cached.turnCount) ? { turnCount: cached.turnCount } : {}),
+				...(typeof cached.lastAccessedAt === 'number' && Number.isFinite(cached.lastAccessedAt) && cached.lastAccessedAt > 0 ? { lastAccessedAt: cached.lastAccessedAt } : {}),
 			};
 		});
 		this.engineSessions = sessions.map(session => ({
@@ -2096,6 +2113,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			turns: session.turns.map(turn => ({ ...turn })),
 			source: 'engine-cache',
 			...(session.workDir ? { workDir: session.workDir } : {}),
+			...(typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? { turnCount: session.turnCount } : {}),
+			...(typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? { lastAccessedAt: session.lastAccessedAt } : {}),
 		}));
 		this.persistEngineAwareRoster(true, {
 			activeSessionId: isEngineRosterPlaceholderSessionId(this.activeEngineSessionId)
@@ -2157,6 +2176,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					turns: turns.map(turn => ({ ...turn })),
 					source: 'engine-cache' as const,
 					...(session.workDir ? { workDir: session.workDir } : {}),
+					...(typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? { turnCount: session.turnCount } : {}),
+					...(typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? { lastAccessedAt: session.lastAccessedAt } : {}),
 				};
 			}),
 		};

@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import type { IContextMenuDelegate } from '../../../../../base/browser/contextmenu.js';
+import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -534,10 +537,13 @@ suite('ConversationLens', () => {
 		return select.options[select.selectedIndex]?.text;
 	}
 
-	function mountLens(options?: { storageService?: TestStorageService; layoutWidth?: number; layoutHeight?: number; connection?: IUniverseAgentConnection; stubService?: ConversationStubService; sessionKey?: string; tablistOnly?: boolean; pinConversationLens?: boolean; filterAgentId?: string }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void; openInEditorCalls: { count: number }; layoutContainer: HTMLElement } {
+	function mountLens(options?: { storageService?: TestStorageService; configurationService?: IConfigurationService; layoutWidth?: number; layoutHeight?: number; connection?: IUniverseAgentConnection; stubService?: ConversationStubService; sessionKey?: string; tablistOnly?: boolean; pinConversationLens?: boolean; filterAgentId?: string }): { part: ConversationPart; lens: ConversationLens; stubService: ConversationStubService; clipboardService: TestClipboardService; storageService: TestStorageService; layoutReadingColumn: () => void; openInEditorCalls: { count: number }; layoutContainer: HTMLElement } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const storageService = options?.storageService ?? store.add(new TestStorageService());
 		instantiationService.stub(IStorageService, storageService);
+		if (options?.configurationService) {
+			instantiationService.stub(IConfigurationService, options.configurationService);
+		}
 		const stubService = options?.stubService ?? store.add(new ConversationStubService());
 		const clipboardService = new TestClipboardService();
 		const openInEditorCalls = { count: 0 };
@@ -1930,6 +1936,132 @@ suite('ConversationLens', () => {
 		assert.strictEqual(title.textContent, second.title);
 		assert.ok(slots.timeline.textContent?.includes('Second session message'));
 		assert.ok(!slots.timeline.textContent?.includes('First session message'));
+	});
+
+	test('session switcher select connects attachComposerPicker and marks current session checked', () => {
+		let lastContextMenuDelegate: IContextMenuDelegate | undefined;
+		const stubService = store.add(new ConversationStubService());
+		const firstId = stubService.getActiveSessionId();
+		const secondId = stubService.createSession();
+		stubService.switchSession(firstId);
+
+		const { part, lens } = mountLens({ stubService });
+		const origShowContextMenu = lens.contextMenuService.showContextMenu.bind(lens.contextMenuService);
+		lens.contextMenuService.showContextMenu = (delegate: IContextMenuDelegate) => {
+			lastContextMenuDelegate = delegate;
+			origShowContextMenu(delegate);
+		};
+
+		const slots = getLensSlots(part);
+		const select = slots.sessionBar!.querySelector('.conversation-lens-session-select select.monaco-select-box') as HTMLSelectElement | null;
+		assert.ok(select);
+		assert.strictEqual(select.getAttribute('aria-haspopup'), 'menu');
+		assert.strictEqual(select.getAttribute('aria-expanded'), 'false');
+
+		select.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 }));
+		assert.ok(lastContextMenuDelegate);
+		assert.strictEqual(select.getAttribute('aria-expanded'), 'true');
+
+		const actions = lastContextMenuDelegate.getActions();
+		const sessions = stubService.getSessions();
+		assert.strictEqual(actions.length, sessions.length);
+		for (let i = 0; i < sessions.length; i++) {
+			assert.strictEqual(actions[i].label, sessions[i].title);
+			assert.strictEqual(actions[i].checked, sessions[i].id === firstId);
+		}
+
+		assert.deepStrictEqual(Array.from(select.options, o => o.text), sessions.map(s => s.title));
+
+		const targetIndex = sessions.findIndex(s => s.id === secondId);
+		assert.ok(targetIndex >= 0);
+		void actions[targetIndex].run();
+		assert.strictEqual(stubService.getActiveSessionId(), secondId);
+	});
+
+	test('session switcher menu renders metadata prioritizing turnCount over lastAccessedAt', () => {
+		let lastContextMenuDelegate: IContextMenuDelegate | undefined;
+		const stubService = store.add(new ConversationStubService());
+		const now = Date.now();
+		const s1Id = stubService.createSession();
+		const s2Id = stubService.createSession();
+		const s3Id = stubService.createSession();
+		const s4Id = stubService.createSession();
+
+		const sessions = stubService.getSessions();
+		const s1 = sessions.find(s => s.id === s1Id)!;
+		s1.turnCount = 3;
+		s1.lastAccessedAt = now - 60_000;
+
+		const s2 = sessions.find(s => s.id === s2Id)!;
+		s2.turnCount = 1;
+
+		const s3 = sessions.find(s => s.id === s3Id)!;
+		s3.turnCount = 0;
+		s3.lastAccessedAt = now - 120_000;
+
+		const s4 = sessions.find(s => s.id === s4Id)!;
+		s4.turnCount = 0;
+		s4.lastAccessedAt = 0;
+
+		const { part, lens } = mountLens({ stubService });
+		const origShowContextMenu = lens.contextMenuService.showContextMenu.bind(lens.contextMenuService);
+		lens.contextMenuService.showContextMenu = (delegate: IContextMenuDelegate) => {
+			lastContextMenuDelegate = delegate;
+			origShowContextMenu(delegate);
+		};
+
+		const slots = getLensSlots(part);
+		const select = slots.sessionBar!.querySelector('.conversation-lens-session-select select.monaco-select-box') as HTMLSelectElement | null;
+		assert.ok(select);
+
+		select.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 }));
+		assert.ok(lastContextMenuDelegate);
+		const actions = lastContextMenuDelegate.getActions();
+		assert.strictEqual(actions.length, sessions.length);
+
+		const a1 = actions[sessions.indexOf(s1)];
+		assert.strictEqual(a1.label, s1.title);
+		assert.strictEqual((a1 as { detail?: string }).detail, '3 messages');
+		assert.strictEqual(lastContextMenuDelegate.getKeyBinding?.(a1)?.getLabel(), '3 messages');
+
+		const a2 = actions[sessions.indexOf(s2)];
+		assert.strictEqual(a2.label, s2.title);
+		assert.strictEqual((a2 as { detail?: string }).detail, '1 message');
+		assert.strictEqual(lastContextMenuDelegate.getKeyBinding?.(a2)?.getLabel(), '1 message');
+
+		const a3 = actions[sessions.indexOf(s3)];
+		assert.strictEqual(a3.label, s3.title);
+		assert.strictEqual((a3 as { detail?: string }).detail, '2 mins ago');
+		assert.strictEqual(lastContextMenuDelegate.getKeyBinding?.(a3)?.getLabel(), '2 mins ago');
+
+		const a4 = actions[sessions.indexOf(s4)];
+		assert.strictEqual(a4.label, s4.title);
+		assert.strictEqual((a4 as { detail?: string }).detail, undefined);
+		assert.strictEqual(lastContextMenuDelegate.getKeyBinding?.(a4), undefined);
+
+		assert.deepStrictEqual(Array.from(select.options, o => o.text), sessions.map(s => s.title));
+	});
+
+	test('session switcher leaves native select alone when hasNativeContextMenu is true', () => {
+		const testConfigService = new TestConfigurationService({
+			window: {
+				menuStyle: 'native',
+				titleBarStyle: 'native',
+			},
+		});
+		let contextMenuOpened = false;
+		const { part, lens } = mountLens({ configurationService: testConfigService });
+		lens.contextMenuService.showContextMenu = () => {
+			contextMenuOpened = true;
+		};
+
+		const slots = getLensSlots(part);
+		const select = slots.sessionBar!.querySelector('.conversation-lens-session-select select.monaco-select-box') as HTMLSelectElement | null;
+		assert.ok(select);
+		assert.strictEqual(select.getAttribute('aria-haspopup'), null);
+
+		select.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 }));
+		assert.strictEqual(contextMenuOpened, false);
 	});
 
 	test('two leaves bound to different sessionKeys render their own sessions', async () => {

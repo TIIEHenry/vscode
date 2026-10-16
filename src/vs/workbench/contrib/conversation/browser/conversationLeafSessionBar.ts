@@ -12,7 +12,7 @@ import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
-import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
+import { IContextMenuService, IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
@@ -86,6 +86,7 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		@IConversationRosterService public readonly stubService: IConversationRosterService,
 		@IUniverseAgentConnection public readonly uaConnection: IUniverseAgentConnection,
 		@IContextViewService public readonly contextViewService: IContextViewService,
+		@IContextMenuService public readonly contextMenuService: IContextMenuService,
 		@IConfigurationService public readonly configurationService: IConfigurationService,
 		@IInstantiationService public readonly instantiationService: IInstantiationService,
 		@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,
