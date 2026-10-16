@@ -384,6 +384,23 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(!/font-size\s*:\s*12\.5px/.test(css));
 	});
 
+	test('history, snapshots, and inbox panels use popover radius and widget shadow tokens (S7)', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const rules = collectCssRules(css);
+		for (const cls of ['.conversation-lens-history-panel', '.conversation-lens-snapshots-panel', '.conversation-lens-inbox-list-panel']) {
+			const panel = rules.find(candidate => candidate.selector.includes(cls));
+			assert.ok(panel, `missing rule for ${cls}`);
+			const radius = panel.body.match(/border-radius\s*:\s*([^;]+)/)?.[1]?.trim();
+			assert.ok(radius, `missing border-radius for ${cls}`);
+			assert.match(radius, /^var\(--vscode-cornerRadius-large/);
+			assert.ok(!/12px/.test(radius), `${cls} must not use hardcoded 12px`);
+			const shadow = panel.body.match(/box-shadow\s*:\s*([^;]+)/)?.[1]?.trim();
+			assert.ok(shadow, `missing box-shadow for ${cls}`);
+			assert.match(shadow, /var\(--vscode-widget-shadow\)/);
+			assert.ok(!/rgba\(/.test(shadow), `${cls} must not use hardcoded rgba shadow`);
+		}
+	});
+
 	test('sync badge max-width is 28ch by default and 12ch when narrow or compact', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		let defaultMax = '';
