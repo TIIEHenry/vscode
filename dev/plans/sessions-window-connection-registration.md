@@ -1,15 +1,16 @@
 ---
 title: "Agents 窗口登记引擎连接服务"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-05
-summary: "Agents 桌面与 Web 入口侧载与对应工作台相同的 IUniverseAgentConnection 登记。Changes 与布局不再因服务未注册而起不来。不新开连接，不升 PRD。"
+updated: 2026-10-16
+summary: "Agents 桌面与 Web 入口侧载与对应工作台相同的 IUniverseAgentConnection 登记。Changes 与布局不再因服务未注册而起不来。测试（sessionsUniverseAgentConnectionRegistration 5 passing）已全绿落地。不新开连接，不升 PRD。"
 ---
 
 # Agents 窗口登记引擎连接服务
 
-> **本稿是方案，未签收。** 本轮没有另派只读审查，`status` 保持 `draft`。
+> **落地：** `status: implemented`。桌面与 Web 入口已侧载对应连接服务注册，单测 `sessionsUniverseAgentConnectionRegistration.test.ts` 全绿。不升 PRD。
+> **审查记录**：见文末。代码已落地，frontmatter 对齐为 `implemented`。
 > **不改** `universeAgentConnectionService` 的拨号、握手、快照形状，也不改主进程通道注册。
 > **不升** PRD-008、PRD-019、PRD-024。
 
@@ -70,3 +71,4 @@ Agents 窗口不加载 `workbench.desktop.main` / `workbench.web.main`。`Change
 ## 审查记录
 
 2026-10-05：写稿时没有另派只读审查。`status` 保持 `draft`。
+2026-10-16：测试（`sessionsUniverseAgentConnectionRegistration` 5 passing）已全绿落地，frontmatter 对齐为 `implemented`。
