@@ -697,4 +697,47 @@ suite('Conversation lens keyboard focus ring', () => {
 		assertFocusVisibleRingFollowsNone(part, '.conversation-lens-session-bar .monaco-button:focus', '.conversation-lens-session-bar .monaco-button:focus-visible');
 		assertFocusVisibleRingFollowsNone(part, '.conversation-window-nav .monaco-button:focus', '.conversation-window-nav .monaco-button:focus-visible');
 	});
+
+	test('S9: filter chips, search boxes, and engine catalog group/row heights follow visual specification', () => {
+		const lensCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8');
+		const sourcesCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/sources/browser/media/sourcesTabs.css'), 'utf8');
+		const enginePaneCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css'), 'utf8');
+		const devListCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/connectionDeviceList.css'), 'utf8');
+
+		// 1. Lens tabs: 24px height, line-height 24px, unbolded selected state with toolbar-hoverBackground
+		assert.match(lensCss, /\.conversation-lens-lens-tab\s*\{[^}]*height:\s*24px/s);
+		assert.match(lensCss, /\.conversation-lens-lens-tab\s*\{[^}]*line-height:\s*24px/s);
+		assert.match(lensCss, /\.conversation-lens-lens-tab\[aria-selected="true"\]\s*\{[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground\)/s);
+		assert.match(lensCss, /\.conversation-lens-lens-tab\[aria-selected="true"\]\s*\{[^}]*font-weight:\s*400/s);
+
+		// 2. Sources tabs: 24px height, line-height 24px, unbolded selected state with toolbar-hoverBackground
+		assert.match(sourcesCss, /\.sources-tab\s*\{[^}]*height:\s*24px/s);
+		assert.match(sourcesCss, /\.sources-tab\s*\{[^}]*line-height:\s*24px/s);
+		assert.match(sourcesCss, /\.sources-tab\.selected\s*\{[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground\)/s);
+		assert.match(sourcesCss, /\.sources-tab\.selected\s*\{[^}]*font-weight:\s*400/s);
+
+		// 3. Engine navigation: 22px, selected toolbar-hoverBackground, font-weight 400
+		assert.match(enginePaneCss, /\.engine-preferences-nav-row\.selected\s*\{[^}]*background:\s*var\(--vscode-toolbar-hoverBackground/s);
+		assert.match(enginePaneCss, /\.engine-preferences-nav-row\.selected \.engine-preferences-nav-label\s*\{[^}]*font-weight:\s*400/s);
+
+		// 4. Engine MCP tabs: 24px height, active toolbar-hoverBackground, font-weight 400
+		assert.match(enginePaneCss, /\.engine-mcp-tab\s*\{[^}]*height:\s*24px/s);
+		assert.match(enginePaneCss, /\.engine-mcp-tab--active\s*\{[^}]*background:\s*var\(--vscode-toolbar-hoverBackground\)/s);
+
+		// 5. Engine catalog group headers and counts
+		assert.match(enginePaneCss, /\.engine-catalog-group\s*\{[^}]*height:\s*24px/s);
+		assert.match(enginePaneCss, /\.engine-skill-group[^}]*height:\s*24px/s);
+		assert.match(enginePaneCss, /\.engine-catalog-group-count/);
+		assert.match(enginePaneCss, /\.engine-skill-group-count/);
+
+		// 6. Engine catalog rows: 24px height
+		assert.match(enginePaneCss, /\.engine-catalog-row\s*\{[^}]*height:\s*24px/s);
+		assert.match(enginePaneCss, /\.engine-skill-row\s*\{[^}]*height:\s*24px/s);
+
+		// 7. Engine preferences search input: full-width rounded pill
+		assert.match(enginePaneCss, /\.engine-preferences-search-input[^}]*border-radius:\s*var\(--vscode-cornerRadius-circle,\s*9999px\)/s);
+
+		// 8. Connection device list isolated row height: 24px
+		assert.match(devListCss, /\.connection-hub-devices-list \.connection-hub-device-row\s*\{[^}]*height:\s*24px/s);
+	});
 });

@@ -213,9 +213,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setConnected(value: boolean) {
 				connected = value;
-				if (value) {
-					explicitPhase = undefined;
-				}
+				explicitPhase = undefined;
 				onDidChangeConnection.fire(snapshot());
 			},
 			setPairingPending(value: boolean) {
@@ -592,20 +590,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		];
 	}
 
-	/** Group 28, name-only 28, summary 44. Matches the list delegate. */
+	/** Group 24, name-only and summary 24 (S9 24px single line). Matches the list delegate. */
 	function profileListHeightLandsOnRow(height: number): boolean {
-		const rowHeights = [28, 28, 44, ...Array.from({ length: 24 }, () => 28)];
-		let used = 0;
-		for (const rowHeight of rowHeights) {
-			used += rowHeight;
-			if (used === height) {
-				return true;
-			}
-			if (used > height) {
-				return false;
-			}
-		}
-		return false;
+		return height > 0 && height % 24 === 0;
 	}
 
 	test('Agents: name-only rows stay one line tall and a wide column keeps the editor beside the list', async () => {
@@ -624,8 +611,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const list = section.getDomNode().querySelector('.engine-agents-profile-list') as HTMLElement;
 		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')] as HTMLElement[];
 		const heights = new Set(rows.map(row => row.style.height));
-		assert.ok(heights.has('28px'), `expected a one-line row, got ${[...heights].join(',')}`);
-		assert.ok(heights.has('44px'), `expected a summary row, got ${[...heights].join(',')}`);
+		assert.ok(heights.has('24px'), `expected a 24px row, got ${[...heights].join(',')}`);
+		assert.ok(!heights.has('28px'));
+		assert.ok(!heights.has('44px'));
 		assert.ok(!heights.has('52px'));
 		const filled = Number.parseInt(list.style.height, 10);
 		assert.strictEqual(section.getDomNode().style.height, '480px');

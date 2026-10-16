@@ -67,12 +67,11 @@ function toolsSaveFailedMessage(error: unknown): string {
 }
 
 type EngineToolListEntry =
-	| { readonly kind: 'group'; readonly group: EngineToolCatalogGroup; readonly label: string }
+	| { readonly kind: 'group'; readonly group: EngineToolCatalogGroup; readonly label: string; readonly count?: number }
 	| { readonly kind: 'tool'; readonly tool: UniverseAgentToolSummary };
 
-const TOOL_GROUP_ROW_HEIGHT = 28;
-const TOOL_NAME_ROW_HEIGHT = 28;
-const TOOL_DETAIL_ROW_HEIGHT = 44;
+const TOOL_GROUP_ROW_HEIGHT = 24;
+const TOOL_ROW_HEIGHT = 24;
 
 /** Category and description share the second line. Blank parts are not a line. */
 function toolSubtitle(tool: UniverseAgentToolSummary): string {
@@ -88,11 +87,8 @@ function toolSubtitle(tool: UniverseAgentToolSummary): string {
 	return parts.join(' — ');
 }
 
-function toolEntryHeight(entry: EngineToolListEntry): number {
-	if (entry.kind === 'group') {
-		return TOOL_GROUP_ROW_HEIGHT;
-	}
-	return toolSubtitle(entry.tool) ? TOOL_DETAIL_ROW_HEIGHT : TOOL_NAME_ROW_HEIGHT;
+function toolEntryHeight(_entry: EngineToolListEntry): number {
+	return TOOL_ROW_HEIGHT;
 }
 
 class EngineToolListDelegate implements IListVirtualDelegate<EngineToolListEntry> {
@@ -107,6 +103,7 @@ class EngineToolListDelegate implements IListVirtualDelegate<EngineToolListEntry
 
 interface IToolGroupTemplateData {
 	readonly label: HTMLElement;
+	readonly count: HTMLElement;
 }
 
 class EngineToolGroupRenderer implements IListRenderer<EngineToolListEntry, IToolGroupTemplateData> {
@@ -115,7 +112,9 @@ class EngineToolGroupRenderer implements IListRenderer<EngineToolListEntry, IToo
 
 	renderTemplate(container: HTMLElement): IToolGroupTemplateData {
 		container.classList.add('engine-catalog-group');
-		return { label: DOM.append(container, $('.engine-catalog-group-label')) };
+		const label = DOM.append(container, $('.engine-catalog-group-label'));
+		const count = DOM.append(container, $('.engine-catalog-group-count'));
+		return { label, count };
 	}
 
 	renderElement(entry: EngineToolListEntry, _index: number, templateData: IToolGroupTemplateData): void {
@@ -123,6 +122,7 @@ class EngineToolGroupRenderer implements IListRenderer<EngineToolListEntry, IToo
 			return;
 		}
 		templateData.label.textContent = entry.label;
+		templateData.count.textContent = typeof entry.count === 'number' ? String(entry.count) : '';
 	}
 
 	disposeTemplate(): void {
@@ -916,6 +916,7 @@ export class EngineToolsSection extends Disposable {
 				label: group.group === 'client'
 					? localize('ua.engineToolsClientGroup', "Client tools")
 					: localize('ua.engineToolsEngineGroup', "Engine tools"),
+				count: group.tools.length,
 			});
 			for (const tool of group.tools) {
 				entries.push({ kind: 'tool', tool });

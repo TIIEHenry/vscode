@@ -1,0 +1,11 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-workbench .connection-hub-devices-list .connection-hub-device-row {
+	height: 24px;
+	line-height: 24px;
+	box-sizing: border-box;
+	padding: 0 8px;
+}

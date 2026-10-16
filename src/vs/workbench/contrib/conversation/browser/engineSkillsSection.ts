@@ -47,18 +47,15 @@ const SKILL_TOGGLE_SUCCESS_COPY = localize('ua.engineSkillToggleSuccess', "Updat
 const SKILL_SAVE_SUCCESS_COPY = localize('ua.engineSkillBodySaveSuccess', "Saved.");
 
 type EngineSkillListEntry =
-	| { readonly kind: 'group'; readonly source: UniverseAgentSkillSummary['source']; readonly label: string }
+	| { readonly kind: 'group'; readonly source: UniverseAgentSkillSummary['source']; readonly label: string; readonly count?: number }
 	| { readonly kind: 'skill'; readonly skill: UniverseAgentSkillSummary };
 
-const SKILL_GROUP_ROW_HEIGHT = 28;
-const SKILL_NAME_ROW_HEIGHT = 28;
-const SKILL_SUMMARY_ROW_HEIGHT = 44;
+const SKILL_GROUP_ROW_HEIGHT = 24;
+const SKILL_NAME_ROW_HEIGHT = 24;
+const SKILL_SUMMARY_ROW_HEIGHT = 24;
 
-function skillEntryHeight(entry: EngineSkillListEntry): number {
-	if (entry.kind === 'group') {
-		return SKILL_GROUP_ROW_HEIGHT;
-	}
-	return entry.skill.description?.trim() ? SKILL_SUMMARY_ROW_HEIGHT : SKILL_NAME_ROW_HEIGHT;
+function skillEntryHeight(_entry: EngineSkillListEntry): number {
+	return 24;
 }
 
 class EngineSkillListDelegate implements IListVirtualDelegate<EngineSkillListEntry> {
@@ -73,6 +70,7 @@ class EngineSkillListDelegate implements IListVirtualDelegate<EngineSkillListEnt
 
 interface ISkillGroupTemplateData {
 	readonly label: HTMLElement;
+	readonly count: HTMLElement;
 }
 
 interface ISkillRowTemplateData {
@@ -90,7 +88,9 @@ class EngineSkillGroupRenderer implements IListRenderer<EngineSkillListEntry, IS
 
 	renderTemplate(container: HTMLElement): ISkillGroupTemplateData {
 		container.classList.add('engine-skill-group');
-		return { label: DOM.append(container, $('.engine-skill-group-label')) };
+		const label = DOM.append(container, $('.engine-skill-group-label'));
+		const count = DOM.append(container, $('.engine-skill-group-count'));
+		return { label, count };
 	}
 
 	renderElement(entry: EngineSkillListEntry, _index: number, templateData: ISkillGroupTemplateData): void {
@@ -98,6 +98,7 @@ class EngineSkillGroupRenderer implements IListRenderer<EngineSkillListEntry, IS
 			return;
 		}
 		templateData.label.textContent = entry.label;
+		templateData.count.textContent = typeof entry.count === 'number' ? String(entry.count) : '';
 	}
 
 	disposeTemplate(): void {
@@ -784,7 +785,7 @@ export class EngineSkillsSection extends Disposable {
 		this.setSkillsCount(skills.length);
 		const entries: EngineSkillListEntry[] = [];
 		for (const [source, group] of groupSkillsBySource(skills)) {
-			entries.push({ kind: 'group', source, label: getSkillSourceGroupLabel(source) });
+			entries.push({ kind: 'group', source, label: getSkillSourceGroupLabel(source), count: group.length });
 			for (const skill of group) {
 				entries.push({ kind: 'skill', skill });
 			}

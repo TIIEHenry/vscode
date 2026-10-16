@@ -26,4 +26,16 @@ suite('Navigator projects row chrome', () => {
 		assert.ok(!/inset\s+2px\s+0\s+0\s+var\(--vscode-focusBorder\)/.test(css), 'rounded inset shadow reads as a parenthesis');
 		assert.match(css, /\.monaco-list-row:has\(\.is-active-session\)::after\s*\{[^}]*width:\s*2px/s);
 	});
+
+	test('inline filter boxes have transparent resting border and focusBorder on focus (S9)', () => {
+		const projectsFilterCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/navigator/browser/media/navigatorProjectsInlineFilter.css'), 'utf8');
+		const agentsFilterCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/navigator/browser/media/navigatorAgentsInlineFilter.css'), 'utf8');
+		const teamFilterCss = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/navigator/browser/media/navigatorTeamInlineFilter.css'), 'utf8');
+
+		for (const css of [projectsFilterCss, agentsFilterCss, teamFilterCss]) {
+			assert.match(css, /border:\s*1px solid transparent;/);
+			assert.match(css, /border-color:\s*var\(--vscode-focusBorder\);/);
+			assert.match(css, /border-color:\s*var\(--vscode-contrastActiveBorder,\s*var\(--vscode-focusBorder\)\);/);
+		}
+	});
 });

@@ -75,14 +75,12 @@ export const ENGINE_AGENTS_SAVE_SUCCESS_COPY = localize('ua.engineAgentsSaveSucc
 type EngineAgentDetailTab = 'instructions' | 'tools' | 'model';
 
 type EngineAgentListEntry =
-	| { readonly kind: 'group'; readonly source: UniverseAgentAgentProfileSource; readonly label: string }
+	| { readonly kind: 'group'; readonly source: UniverseAgentAgentProfileSource; readonly label: string; readonly count?: number }
 	| { readonly kind: 'profile'; readonly profile: UniverseAgentAgentProfileSummary };
 
-/** One text line. Matches the preferences nav row so a name-only profile is not a blank slab. */
-const AGENT_GROUP_ROW_HEIGHT = 28;
-const AGENT_NAME_ROW_HEIGHT = 28;
-/** Name plus a one-line summary. */
-const AGENT_SUMMARY_ROW_HEIGHT = 44;
+const AGENT_GROUP_ROW_HEIGHT = 24;
+const AGENT_NAME_ROW_HEIGHT = 24;
+const AGENT_SUMMARY_ROW_HEIGHT = 24;
 const AGENT_LIST_MIN_HEIGHT = 80;
 /**
  * Room kept under the list when the column is too narrow to sit the editor beside it.
@@ -99,11 +97,8 @@ function agentListColumnWidth(width: number): number {
 	return Math.min(AGENT_LIST_COLUMN_MAX, Math.max(AGENT_LIST_COLUMN_MIN, preferred));
 }
 
-function agentEntryHeight(entry: EngineAgentListEntry): number {
-	if (entry.kind === 'group') {
-		return AGENT_GROUP_ROW_HEIGHT;
-	}
-	return entry.profile.summary?.trim() ? AGENT_SUMMARY_ROW_HEIGHT : AGENT_NAME_ROW_HEIGHT;
+function agentEntryHeight(_entry: EngineAgentListEntry): number {
+	return 24;
 }
 
 class EngineAgentListDelegate implements IListVirtualDelegate<EngineAgentListEntry> {
@@ -118,6 +113,7 @@ class EngineAgentListDelegate implements IListVirtualDelegate<EngineAgentListEnt
 
 interface IAgentGroupTemplateData {
 	readonly label: HTMLElement;
+	readonly count: HTMLElement;
 }
 
 interface IAgentRowTemplateData {
@@ -132,6 +128,7 @@ class EngineAgentGroupRenderer implements IListRenderer<EngineAgentListEntry, IA
 	renderTemplate(container: HTMLElement): IAgentGroupTemplateData {
 		container.classList.add('engine-catalog-group');
 		const label = DOM.append(container, $('.engine-catalog-group-label'));
+		const count = DOM.append(container, $('.engine-catalog-group-count'));
 		// The list row would otherwise inherit a line box as tall as the row.
 		label.style.display = 'flex';
 		label.style.alignItems = 'center';
@@ -140,7 +137,7 @@ class EngineAgentGroupRenderer implements IListRenderer<EngineAgentListEntry, IA
 		label.style.lineHeight = '20px';
 		label.style.paddingTop = '0';
 		label.style.paddingBottom = '0';
-		return { label };
+		return { label, count };
 	}
 
 	renderElement(entry: EngineAgentListEntry, _index: number, templateData: IAgentGroupTemplateData): void {
@@ -148,6 +145,7 @@ class EngineAgentGroupRenderer implements IListRenderer<EngineAgentListEntry, IA
 			return;
 		}
 		templateData.label.textContent = entry.label;
+		templateData.count.textContent = typeof entry.count === 'number' ? String(entry.count) : '';
 	}
 
 	disposeTemplate(): void {
@@ -1657,7 +1655,7 @@ export class EngineAgentsSection extends Disposable {
 	private setProfiles(profiles: readonly UniverseAgentAgentProfileSummary[]): void {
 		const entries: EngineAgentListEntry[] = [];
 		for (const [source, group] of groupProfilesBySource(profiles)) {
-			entries.push({ kind: 'group', source, label: getAgentSourceGroupLabel(source) });
+			entries.push({ kind: 'group', source, label: getAgentSourceGroupLabel(source), count: group.length });
 			for (const profile of group) {
 				entries.push({ kind: 'profile', profile });
 			}

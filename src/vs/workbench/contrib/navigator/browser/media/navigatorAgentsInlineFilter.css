@@ -38,8 +38,8 @@
 	height: 22px;
 	margin: 0;
 	padding: 0 6px;
-	border: 1px solid var(--vscode-input-border, transparent);
-	border-radius: 4px;
+	border: 1px solid transparent;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	outline: none;
 	background: var(--vscode-input-background);
 	color: var(--vscode-input-foreground);
@@ -47,6 +47,7 @@
 	line-height: 20px;
 	box-sizing: border-box;
 	text-overflow: ellipsis;
+	transition: border-color 0.12s ease;
 }
 
 .monaco-workbench .navigator-agents-inline-filter.has-text .navigator-agents-inline-filter-input {
@@ -57,9 +58,17 @@
 	color: var(--vscode-input-placeholderForeground);
 }
 
-.monaco-workbench .navigator-agents-inline-filter-input:focus {
+.monaco-workbench .navigator-agents-inline-filter-input:focus,
+.monaco-workbench .navigator-agents-inline-filter-input.focused,
+.monaco-workbench .navigator-agents-inline-filter.focused .navigator-agents-inline-filter-input {
 	outline: none;
-	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+	border-color: var(--vscode-focusBorder);
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .navigator-agents-inline-filter-input:focus,
+:is(.hc-black, .hc-light) .monaco-workbench .navigator-agents-inline-filter-input.focused,
+:is(.hc-black, .hc-light) .monaco-workbench .navigator-agents-inline-filter.focused .navigator-agents-inline-filter-input {
+	border-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
 .monaco-workbench .navigator-agents-inline-filter-clear {
