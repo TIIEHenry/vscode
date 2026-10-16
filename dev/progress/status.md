@@ -4,12 +4,15 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-16
-summary: "2026-10-16：多工位并行合入第七批（Slot A: 对话框遮罩改用独立半透明底色 rgba(0, 0, 0, 0.45) 杜绝浅色主题透明并对齐扫描测试与方案；Slot B: 架构审查落地事实与能力探测方案状态全面对齐）。transpile-client 0 错误，文档门禁全绿。"
+summary: "2026-10-16：多工位并行合入第八批（Slot A: 视觉靠齐向 Cursor 靠齐 S1-S10 全量实施与会话追问卡去毛玻璃方案状态收归 implemented；Slot B: Sources Git 写能力、IPC 白名单与删明文连接方案状态全面收归 implemented）。transpile-client 0 错误，文档门禁全绿。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **多工位并行实施与视觉收归 Wave 2026-10-16（第八批）**：
+  - **Slot A: 视觉靠齐 S1–S10 与会话追问卡去毛玻璃方案状态收归 (提交 b3cbd2ffefa)**：更新 `cursor-visual-alignment.md` 为 `implemented`，确认 S1–S10（主题三档、画布 token、对话头与身份条、用户卡与置顶提示、空稿单行 Composer、Sources 动作吸附 tab 与 Preview 去框、Picker 菜单与圆角阴影收归、错误与加载态去重、列表筛选芯片 24px 单行、Markdown 居中阅读列与属性表去框）及对话框独立半透明遮罩全部落地；更新 `sessions-chat-composer-glass.md` 为 `implemented`，确认 `cd93865b15a` 修复聚焦描边并补齐测试；同步更新 `INDEX.md`；扫描测试与单测全绿。
+  - **Slot B: Sources Git 写能力、IPC 白名单与删明文连接方案状态收归 (提交 ed593b55bf2)**：更新 `sources-git-write-capability.md` 为 `implemented`（确认 `c7d53074df5` 落地）、更新 `connection-ipc-allowlist.md` 为 `implemented`（确认 `143c96bef91` 落地）、更新 `remove-legacy-plaintext-connect.md` 为 `implemented`（确认 `87865dbf5bb` 落地）；同步更新 `INDEX.md`；能力探测测试 16 passing 全绿。
 - **多工位并行实施与视觉收归 Wave 2026-10-16（第七批）**：
   - **Slot A: 对话框遮罩改用独立半透明底色并对齐扫描测试与方案 (提交 b6cca021418)**：修改 `dialog.css` 中 `.monaco-dialog-modal-block.dimmed` 为明确的 `background: rgba(0, 0, 0, 0.45);`，解决默认浅色主题下因 `--vscode-widget-shadow` 过于透明导致的遮罩失效；对齐更新 `modalMaskGlassScan.test.ts` 扫描测试断言并全部通过；对齐 `modal-mask-no-glass.md` 与 `INDEX.md` 为 `implemented`。
   - **Slot B: 架构审查落地事实与能力探测方案状态全面对齐 (提交 bd67572e78b)**：更新 `review-2026-10-16-architecture.md` 总结与 §7，明确记录具体缺陷 B1–B4、B6、B7 和 D1–D4 已在 `architecture-2026-10-16-concrete.md`（4fa4f3eab56、99bd6829c11、1a4c4295b45、83ef402a254、68308db93b5、cc6e17a9d8f）全部落地；对齐 `sources-files-list-capability.md`（b6bccf8ff2c）与 `unspecified-address-private-denial.md`（afda5a04283）为 `implemented`；同步更新 `INDEX.md`。
