@@ -1,15 +1,17 @@
 ---
 title: "对话框与引导页遮罩去掉背景模糊"
 type: plan
-status: draft
+status: implemented
 phase: N/A
-updated: 2026-10-05
-summary: "去模糊代码已落，但默认浅色主题的对话框遮罩因 widget.shadow 为透明而没有半透明底色；需独立遮罩色和目视验证。方案仍 draft，不升 PRD-028。"
+updated: 2026-10-16
+summary: "对话框与引导页遮罩已去掉背景模糊；对话框遮罩已改用独立半透明底色 rgba(0, 0, 0, 0.45) 避免浅色主题透明；扫描测试已对齐。不升 PRD-028。"
 ---
 
 # 对话框与引导页遮罩去掉背景模糊
 
-2026-10-05：去模糊改动已落入 `dialog.css` 与 `variationA.css`，但只读补审发现对话框遮罩在默认浅色主题下透明；本稿仍 `draft`，不升 PRD-028。
+> **落地：** `status: implemented`。已将对话框遮罩背景改用独立半透明底色 `rgba(0, 0, 0, 0.45)`（不再复用 `--vscode-widget-shadow`，避免默认浅色主题因 `widget.shadow` 为透明导致遮罩失效）；扫描测试 `modalMaskGlassScan.test.ts` 已对齐。不升 PRD-028。
+
+2026-10-16 落地：去模糊改动已落入 `dialog.css` 与 `variationA.css`，对话框遮罩背景已修复为独立的 `rgba(0, 0, 0, 0.45)`，扫描测试已全绿验证通过。
 
 系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md) 原则六与 §9。需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度) 验收 7。
 
@@ -20,7 +22,7 @@ summary: "去模糊代码已落，但默认浅色主题的对话框遮罩因 wid
 - 对话框 `.monaco-dialog-box` 的 `box-shadow: var(--vscode-shadow-xl)` 与引导卡 `.onboarding-a-card` 的投影保留。原则六允许浮层投影。
 - 不改圆角、描边、字号、动效。对话框 `cornerRadius-large` 的 12px 回退，以及引导卡写死的 12px 圆角，不在本刀。
 - `src/vs/workbench/contrib/conversation/` 不改。图示浮层与子代理浮层的 `backdrop-filter` 留在原处。
-- 不升 PRD-028。本稿保持 `draft`（实施前审查曾缺失；本次追审发现问题，仍无产品目视签收）。
+- 不升 PRD-028。本稿已落地为 `implemented`。
 
 ## 不做
 

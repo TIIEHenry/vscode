@@ -38,9 +38,11 @@ suite('modal mask has no backdrop-filter', () => {
 		assert.ok(!dialog.includes('backdrop-filter'), 'dialog.css must not blur the modal mask');
 		assert.ok(!onboarding.includes('backdrop-filter'), 'variationA.css must not blur the onboarding mask');
 
+		assert.ok(!dialog.includes('var(--vscode-widget-shadow'), 'dialog.css must not rely on widget-shadow variable');
+		assert.ok(dialog.includes('background: rgba(0, 0, 0, 0.45);'), 'dialog dim keeps its translucent background');
 		assert.ok(
-			dialog.includes('.monaco-dialog-modal-block.dimmed {\n\tbackground: var(--vscode-widget-shadow, rgba(0, 0, 0, 0.45));\n}'),
-			'dialog dim keeps its translucent background',
+			dialog.includes('.monaco-dialog-modal-block.dimmed {\n\tbackground: rgba(0, 0, 0, 0.45);\n}'),
+			'dialog dim keeps its translucent background rule',
 		);
 		assert.ok(dialog.includes('box-shadow: var(--vscode-shadow-xl);'), 'dialog box keeps its floating shadow');
 
