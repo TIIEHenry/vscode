@@ -4,12 +4,15 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-16
-summary: "2026-10-16：多工位并行合入第八批（Slot A: 视觉靠齐向 Cursor 靠齐 S1-S10 全量实施与会话追问卡去毛玻璃方案状态收归 implemented；Slot B: Sources Git 写能力、IPC 白名单与删明文连接方案状态全面收归 implemented）。transpile-client 0 错误，文档门禁全绿。"
+summary: "2026-10-16：多工位并行合入第九批（Slot A: 已发布链路引擎身份与窗口连接服务注册方案状态收归 implemented；Slot B: 恢复信任方案状态收归 implemented 并同步会话工作根 S1-S4 落地事实）。transpile-client 0 错误，文档门禁全绿。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **多工位并行实施与视觉收归 Wave 2026-10-16（第九批）**：
+  - **Slot A: 已发布链路引擎身份与窗口连接服务注册方案状态收归 (提交 88ce89b5a57)**：更新 `published-link-identity.md` 为 `implemented`，确认连接快照可选 `engineIdentityId` / `linkId` 字段、渲染端同步缓存与 `SessionViewHost` 换链切流/保持绑定逻辑已落地（`sessionViewHostEngineBind.test.ts` 26 passing）；更新 `sessions-window-connection-registration.md` 为 `implemented`，确认桌面与 Web 入口已侧载对应连接服务注册（`sessionsUniverseAgentConnectionRegistration.test.ts` 5 passing）；同步更新 `INDEX.md`。
+  - **Slot B: 恢复信任状态收归与会话工作根 S1–S4 落地事实同步 (提交 8ac51f24131)**：更新 `recover-trust-new-attempt.md` 为 `implemented`，确认身份就绪时重新观测与续票握手逻辑落地（`pairingOrchestrator.test.ts` 23 passing）；更新 `session-work-root-and-workbench-scope.md` 摘要与正文文首，确认 S1–S4 已全面落地合入（提交 `4615d3aa990` 与 `b6bccf8ff2c`，`agentWorkRoot.test.ts` 10 passing）；同步更新 `INDEX.md`。
 - **多工位并行实施与视觉收归 Wave 2026-10-16（第八批）**：
   - **Slot A: 视觉靠齐 S1–S10 与会话追问卡去毛玻璃方案状态收归 (提交 b3cbd2ffefa)**：更新 `cursor-visual-alignment.md` 为 `implemented`，确认 S1–S10（主题三档、画布 token、对话头与身份条、用户卡与置顶提示、空稿单行 Composer、Sources 动作吸附 tab 与 Preview 去框、Picker 菜单与圆角阴影收归、错误与加载态去重、列表筛选芯片 24px 单行、Markdown 居中阅读列与属性表去框）及对话框独立半透明遮罩全部落地；更新 `sessions-chat-composer-glass.md` 为 `implemented`，确认 `cd93865b15a` 修复聚焦描边并补齐测试；同步更新 `INDEX.md`；扫描测试与单测全绿。
   - **Slot B: Sources Git 写能力、IPC 白名单与删明文连接方案状态收归 (提交 ed593b55bf2)**：更新 `sources-git-write-capability.md` 为 `implemented`（确认 `c7d53074df5` 落地）、更新 `connection-ipc-allowlist.md` 为 `implemented`（确认 `143c96bef91` 落地）、更新 `remove-legacy-plaintext-connect.md` 为 `implemented`（确认 `87865dbf5bb` 落地）；同步更新 `INDEX.md`；能力探测测试 16 passing 全绿。
