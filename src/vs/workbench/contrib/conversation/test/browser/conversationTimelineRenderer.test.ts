@@ -268,6 +268,8 @@ suite('renderStandaloneThinkingOrToolRow (D36)', () => {
 			const diffStats = container.querySelector('.conversation-lens-turn-diff-stats');
 			assert.ok(diffStats);
 			assert.strictEqual(diffStats.textContent, '+5 \u22122');
+			assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-add')?.textContent, '+5');
+			assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-del')?.textContent, '\u22122');
 
 			const toggleBtn = container.querySelector('.conversation-lens-turn-diff-toggle') as HTMLButtonElement | null;
 			assert.ok(toggleBtn);

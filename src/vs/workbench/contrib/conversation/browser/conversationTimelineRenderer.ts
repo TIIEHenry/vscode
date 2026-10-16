@@ -18,7 +18,7 @@ import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensT
 import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './conversationMermaidHost.js';
 import type { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/chatContentCodePools.js';
-import { formatProcessFoldDiffStats, renderProcessFoldDiffBlock, renderProcessFoldSpan } from './conversationProcessFold.js';
+import { fillProcessFoldDiffStats, formatProcessFoldDiffStats, renderProcessFoldDiffBlock, renderProcessFoldSpan } from './conversationProcessFold.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import {
 	getConversationEntryAriaLabel,
@@ -730,7 +730,7 @@ export function renderStandaloneThinkingOrToolRow(
 		const diffStatsText = formatProcessFoldDiffStats(metadata, diffText);
 		if (diffStatsText) {
 			const diffStats = append(header, $('span.conversation-lens-turn-diff-stats'));
-			diffStats.textContent = diffStatsText;
+			fillProcessFoldDiffStats(diffStats, diffStatsText);
 		}
 
 		const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
