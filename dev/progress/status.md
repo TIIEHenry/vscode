@@ -4,12 +4,16 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-16
-summary: "2026-10-16：多工位并行合入 S1–S4 会话工作根、Slot F 能力复位、Slot D 视觉与边界、Slot B MCP/触发器、Slot A Composer 代理选择器、Slot B 盘符与文件变更计数、Slot D 零值统计、Slot F 会话隔离 Diff URI；第二批合入 Slot F ProjectRule 全局探测 (G16/B3)、Slot D 会话工作根完整收口 (G5/S2)、Slot B Tools/Agents 工作根跟随与 Triggers 门禁完善 (B3, G15, G16)；第三批合入 Slot A 弹出层 token (S7)、Slot D Navigator 加载态与 Sources 错误去重 (S8)、Slot F 方案状态对齐。10012 文件 transpile-client 0 错误，测试全绿。"
+summary: "2026-10-16：多工位并行合入第四批（Slot A: S8 会话不可用固定原因与控件保留、Slot D: S6 Sources Files 标题栏动作并入 Tab 条与 Preview 去框、Slot B: S7 会话切换下拉接通 attachComposerPicker 与弱化元信息）。10013 文件 transpile-client 0 错误，测试全绿。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **多工位并行实施与视觉收归 Wave 2026-10-16（第四批）**：
+  - **Slot A: 会话不可用固定原因与输入底栏控件保留 (S8，提交 dfb39029655)**：会话不可用时 gate row 呈现 `Session unavailable — The engine is connected, but the active session is not ready.`，使用 `var(--vscode-descriptionForeground)` 消除整段红底报错；保留 Permission、Model 与 Tools 底栏控件在空态/禁用态，SessionBar 导航保留禁用；单测 `conversationComposerCatalog.test.ts` 35 passing 全绿。
+  - **Slot D: Sources Files 标题栏动作并入 Tab 条与 Preview 空态去框 (S6，提交 9689d96793b)**：隐藏 Files ViewPane 独立标题栏垂直空间，将新建文件/目录、刷新、折叠、树/列表模式等 6 个动作按钮吸附并入 Sources Tab 筛选栏（激活 Files 时显示，切换 Changes/Review 时隐藏）；单测 `sourcesTabs.test.ts`、`sourcesFilesListMode.test.ts` 等 54 passing 全绿。
+  - **Slot B: 会话切换下拉框接通 attachComposerPicker (S7，提交 6c69a831e30)**：为 sessionSelectBox 接入 `attachComposerPicker`，根据 `hasNativeContextMenu` 判定保留原生 select 或接入工作台菜单样式；菜单项通过 Keybinding 弱化呈现会话元信息（优先 turnCount，无则回退至 lastAccessedAt），保持 session.title 原文字符串不动；单测 `conversationComposerPicker.test.ts`、`conversationLensSessionBar.test.ts` 与 `conversationLens.test.ts` 全绿。
 - **多工位并行实施与视觉收归 Wave 2026-10-16（第三批）**：
   - **Slot A: 弹出层与浮动面板圆角阴影收归 (S7，提交 0808165ae06)**：History/Snapshots 面板与 Inbox 浮层圆角收归为 8px token（`var(--vscode-cornerRadius-large, 8px)`），阴影收归为 `var(--vscode-widget-shadow)`，消除硬编码 12px 与 rgba 投影；单测 `conversationLensCssScan.test.ts` 30 passing 全绿。
   - **Slot D: Navigator 加载态与 Sources 错误呈现去重 (S8，提交 c64a22ff72b)**：读代理树时加 `.is-loading` 抑制闪电图标；Sources 列表有内容时仅状态行显示错误，空态时居中显示错误，原始错误移至 tooltip 与展开详情；单测与子视图用例 185 passing 全绿。
