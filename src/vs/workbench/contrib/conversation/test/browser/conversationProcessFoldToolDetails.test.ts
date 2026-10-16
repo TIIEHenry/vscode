@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { ProcessFoldDomOptions, conversationProcessFoldToolCancel, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
+import { ProcessFoldDomOptions, conversationProcessFoldToolCancel, fillProcessFoldDiffStats, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
 import { ProcessFoldSpan } from '../../browser/conversationProcessFoldModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { UA_CLIENT_CLIENT_TOOLS_SHOW_TOOL_INVOCATION_DETAILS } from '../../common/uaClientSettingsKeys.js';
@@ -147,6 +147,8 @@ suite('ConversationProcessFoldToolDetails', () => {
 		const diffStats = row.querySelector('.conversation-process-fold-tool-diff-stats');
 		assert.ok(diffStats);
 		assert.strictEqual(diffStats.textContent, '+3 \u22121');
+		assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-add')?.textContent, '+3');
+		assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-del')?.textContent, '\u22121');
 
 		const body = row.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
 		assert.ok(body);
@@ -267,5 +269,67 @@ suite('ConversationProcessFoldToolDetails', () => {
 
 		const diffStats = row.querySelector('.conversation-process-fold-tool-diff-stats');
 		assert.strictEqual(diffStats, null);
+	});
+
+	test('fillProcessFoldDiffStats weakens zero counts and retains color classes for non-zero counts (V8)', () => {
+		const host = document.createElement('span');
+
+		// "+0 −3": plus span has no add class, minus span has del class
+		fillProcessFoldDiffStats(host, '+0 \u22123');
+		assert.strictEqual(host.textContent, '+0 \u22123');
+		const spans03 = host.querySelectorAll('span');
+		assert.strictEqual(spans03.length, 2);
+		assert.strictEqual(spans03[0].textContent, '+0');
+		assert.strictEqual(spans03[0].classList.contains('conversation-diff-stat-add'), false);
+		assert.strictEqual(host.querySelector('.conversation-diff-stat-add'), null);
+		assert.strictEqual(spans03[1].textContent, '\u22123');
+		assert.strictEqual(spans03[1].classList.contains('conversation-diff-stat-del'), true);
+		assert.strictEqual(host.querySelector('.conversation-diff-stat-del')?.textContent, '\u22123');
+
+		// "+2 −0": opposite
+		fillProcessFoldDiffStats(host, '+2 \u22120');
+		assert.strictEqual(host.textContent, '+2 \u22120');
+		const spans20 = host.querySelectorAll('span');
+		assert.strictEqual(spans20.length, 2);
+		assert.strictEqual(spans20[0].textContent, '+2');
+		assert.strictEqual(spans20[0].classList.contains('conversation-diff-stat-add'), true);
+		assert.strictEqual(host.querySelector('.conversation-diff-stat-add')?.textContent, '+2');
+		assert.strictEqual(spans20[1].textContent, '\u22120');
+		assert.strictEqual(spans20[1].classList.contains('conversation-diff-stat-del'), false);
+		assert.strictEqual(host.querySelector('.conversation-diff-stat-del'), null);
+
+		// "+1 −2": both spans have colored classes
+		fillProcessFoldDiffStats(host, '+1 \u22122');
+		assert.strictEqual(host.textContent, '+1 \u22122');
+		const spans12 = host.querySelectorAll('span');
+		assert.strictEqual(spans12.length, 2);
+		assert.strictEqual(spans12[0].textContent, '+1');
+		assert.strictEqual(spans12[0].classList.contains('conversation-diff-stat-add'), true);
+		assert.strictEqual(host.querySelector('.conversation-diff-stat-add')?.textContent, '+1');
+		assert.strictEqual(spans12[1].textContent, '\u22122');
+		assert.strictEqual(spans12[1].classList.contains('conversation-diff-stat-del'), true);
+		assert.strictEqual(host.querySelector('.conversation-diff-stat-del')?.textContent, '\u22122');
+
+		// Fallback for non-matching text
+		fillProcessFoldDiffStats(host, 'fallback plain');
+		assert.strictEqual(host.textContent, 'fallback plain');
+		assert.strictEqual(host.children.length, 0);
+	});
+
+	test('file_edit tool row with zero additions omits add class and keeps del class', () => {
+		const turn = toolTurn({
+			toolName: 'file_edit',
+			summary: 'deleted lines',
+			metadata: {
+				diff: '--- a/file.ts\n+++ b/file.ts\n-one\n-two\n-three',
+				filediff: { file: 'file.ts', additions: 0, deletions: 3 },
+			},
+		});
+		const container = renderFold(foldOptions({ showToolInvocationDetails: true }), toolSpan(turn));
+		const diffStats = container.querySelector('.conversation-process-fold-tool-diff-stats') as HTMLElement;
+		assert.ok(diffStats);
+		assert.strictEqual(diffStats.textContent, '+0 \u22123');
+		assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-add'), null);
+		assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-del')?.textContent, '\u22123');
 	});
 });

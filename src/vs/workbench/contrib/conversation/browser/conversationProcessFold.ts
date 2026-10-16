@@ -535,6 +535,24 @@ export function formatProcessFoldDiffStats(metadata: Record<string, unknown> | u
 	return undefined;
 }
 
+/** Paint `+N −M` so only the counts take color. Parent textContent stays the same string. Zero counts omit color classes (V8). */
+export function fillProcessFoldDiffStats(el: HTMLElement, text: string): void {
+	const match = /^\+(\d+) \u2212(\d+)$/.exec(text);
+	el.replaceChildren();
+	if (!match) {
+		el.textContent = text;
+		return;
+	}
+	const addCount = Number(match[1]);
+	const delCount = Number(match[2]);
+
+	const added = append(el, $(addCount > 0 ? 'span.conversation-diff-stat-add' : 'span'));
+	added.textContent = `+${match[1]}`;
+	el.appendChild(document.createTextNode(' '));
+	const removed = append(el, $(delCount > 0 ? 'span.conversation-diff-stat-del' : 'span'));
+	removed.textContent = `\u2212${match[2]}`;
+}
+
 export function renderProcessFoldDiffBlock(
 	container: HTMLElement,
 	diffText: string,
@@ -635,7 +653,7 @@ function renderToolRow(
 	const diffStatsText = showDetails && isFileEdit ? formatProcessFoldDiffStats(metadata, diffText) : undefined;
 	if (diffStatsText) {
 		const diffStats = append(header, $('span.conversation-process-fold-tool-diff-stats'));
-		diffStats.textContent = diffStatsText;
+		fillProcessFoldDiffStats(diffStats, diffStatsText);
 	}
 
 	const statusIcon = resolveToolStatusIcon(turn, options);
