@@ -34,7 +34,8 @@ import { IEditorGroupsService, preferredSideBySideGroupDirection } from '../../.
 import { ConversationChatInput, getConversationChatResource, getDefaultConversationChatResource } from '../../../conversation/common/conversationChatInput.js';
 import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
-import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
+import { type IAgentWorkRoot, resolveAgentLocalRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
+import { sourcesRepositoryRootUris } from '../../common/sourcesChangesGit.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { conversationDiffComparisonLoadFailedMessage } from '../../browser/conversationDiffReviewPane.js';
 import { openSourcesChangeEntry, openSourcesChangeInConversation, ISourcesChangeEntryOpenDeps, sourcesConversationLeafMissingMessage } from '../../browser/sourcesChangeEntryOpen.js';
@@ -963,7 +964,24 @@ suite('Sources - Changes list leftover honesty', () => {
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(ISCMService, scmService);
 		instantiationService.stub(IConversationRosterService, roster);
-		instantiationService.stub(IAgentSessionContext, createSessionContext(connection, roster, workDir, workRoot));
+		const effectiveWorkRoot = workRoot ?? (workDir ? {
+			sessionId: roster.getActiveSessionId(),
+			engineIdentityId: undefined,
+			workDir,
+			source: 'session' as const,
+			access: (resolveAgentLocalRoot({
+				workDir,
+				repositoryRoots: sourcesRepositoryRootUris(scmService.repositories ?? []),
+				workspaceFolders: [],
+			}) ? 'local' : 'engine') as const,
+			localRoot: resolveAgentLocalRoot({
+				workDir,
+				repositoryRoots: sourcesRepositoryRootUris(scmService.repositories ?? []),
+				workspaceFolders: [],
+			}),
+			projectKey: undefined,
+		} : undefined);
+		instantiationService.stub(IAgentSessionContext, createSessionContext(connection, roster, workDir, effectiveWorkRoot));
 		instantiationService.stub(ISourcesChangesModel, store.add(instantiationService.createInstance(SourcesChangesModel)));
 		instantiationService.stub(IQuickDiffService, {
 			getQuickDiffs: async () => [],
@@ -3326,6 +3344,39 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(list.element(0).gitPath, 'src/a.ts');
 		assert.strictEqual(list.element(0).resource.fsPath, URI.joinPath(repoB, 'src/a.ts').fsPath);
 		assert.strictEqual(commitButton(host)?.textContent, 'Commit');
+	});
+
+	test('engine row resolves repository root from connection workRoot fallback when session has no workDir', async function () {
+		const repoA = URI.file('/repo-a');
+		const repoB = URI.file('/repo-b');
+		const connection = createGitReadConnection({
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+		});
+		const scm = createScmService([
+			createRepo({ rootUri: repoA, label: 'repo-a', groups: [{ id: 'workingTree', label: 'Changes' }] }),
+			createRepo({ rootUri: repoB, label: 'repo-b', groups: [{ id: 'workingTree', label: 'Changes' }] }),
+		]);
+		const host = mountHost();
+		const workRoot: IAgentWorkRoot = {
+			sessionId: 'sess-fallback',
+			engineIdentityId: 'engine-1',
+			workDir: '/repo-b',
+			source: 'connection',
+			access: 'local',
+			localRoot: repoB,
+			projectKey: 'engine-1\n/repo-b',
+		};
+		const widget = store.add(stubChangesListServices(connection, scm, undefined, undefined, createRoster('sess-fallback'), undefined, workRoot).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual(list.element(0).gitPath, 'src/a.ts');
+		assert.strictEqual(list.element(0).resource.fsPath, URI.joinPath(repoB, 'src/a.ts').fsPath);
 	});
 
 	test('engine row whose workDir matches no root is listed and does not open a file', async function () {

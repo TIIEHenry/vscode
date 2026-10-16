@@ -22,6 +22,7 @@ import { TestWorkspace, testWorkspace } from '../../../../../platform/workspace/
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { createFileStat, TestContextService, TestFileService } from '../../../../test/common/workbenchTestServices.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
 import { IFileQuery, ISearchComplete, ISearchService } from '../../../../services/search/common/search.js';
 import { SourcesFilesExplorer, SourcesFilesExplorerHost } from '../../browser/sourcesFilesExplorer.js';
 import { SourcesFilesList } from '../../browser/sourcesFilesList.js';
@@ -46,6 +47,7 @@ suite('Sources - Files list search', () => {
 
 	interface IFilesListMountOptions {
 		readonly workDir?: string;
+		readonly workRoot?: IAgentWorkRoot;
 		readonly sessionId?: string;
 		readonly emptyWorkspace?: boolean;
 		readonly listFiles?: (request: UniverseAgentListFilesRequest) => Promise<UniverseAgentListFilesResult>;
@@ -119,6 +121,15 @@ suite('Sources - Files list search', () => {
 			isEngineSessionReady: () => false,
 			isPairingHold: () => false,
 			getSessionWorkDir: () => options?.workDir,
+			getWorkRoot: () => options?.workRoot ?? ({
+				sessionId: options?.sessionId ?? '',
+				engineIdentityId: undefined,
+				workDir: options?.workDir,
+				source: options?.workDir ? 'session' : 'none',
+				access: options?.workDir ? 'engine' : 'none',
+				localRoot: undefined,
+				projectKey: undefined,
+			}),
 			onDidChangeActiveSession: Event.None,
 			onDidChangeSession: Event.None,
 			acquireSessionView: () => {
@@ -524,6 +535,35 @@ suite('Sources - Files list search', () => {
 		assert.ok(mounted.search.queries.length > 0);
 	});
 
+	test('session without own workDir enters engine mode when connection has remote workDir', async function () {
+		const mounted = mountList.call(this, {
+			sessionId: 'sess-fallback',
+			workRoot: {
+				sessionId: 'sess-fallback',
+				engineIdentityId: 'engine-1',
+				workDir: '/remote/connection/workdir',
+				source: 'connection',
+				access: 'engine',
+				localRoot: undefined,
+				projectKey: 'engine-1\n/remote/connection/workdir',
+			},
+			listFiles: async () => ({
+				entries: [engineFile('remote.ts', '/remote/connection/workdir/src/remote.ts')],
+				total: 1,
+			}),
+		});
+		(mounted.host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		await flush(mounted.widget);
+		const list = await waitForTree(mounted.widget as unknown as { list?: SourcesFilesTree });
+		assert.strictEqual(mounted.search.queries.length, 0);
+		assert.strictEqual(mounted.listFilesCalls.length, 1);
+		assert.strictEqual(mounted.listFilesCalls[0].path, '/remote/connection/workdir');
+		assert.strictEqual(mounted.listFilesCalls[0].sessionId, 'sess-fallback');
+		const file = firstFile(list);
+		assert.strictEqual(file.file?.resource.scheme, SOURCES_ENGINE_FILE_SCHEME);
+		assert.strictEqual(file.file?.engine?.path, '/remote/connection/workdir/src/remote.ts');
+	});
+
 	test('workDir outside every workspace root lists through listFiles and opens read-only text', async function () {
 		const opened: Array<{ resource?: { scheme: string }; contents?: string }> = [];
 		const mounted = mountList.call(this, {
@@ -892,6 +932,7 @@ suite('Sources - Files explorer engine directory', () => {
 	function mountHost(this: Mocha.Context, options?: {
 		readonly emptyWorkspace?: boolean;
 		readonly workDir?: string;
+		readonly workRoot?: IAgentWorkRoot;
 		readonly withListFiles?: boolean;
 		readonly stubExplorer?: boolean;
 	}): IHostMount {
@@ -909,12 +950,22 @@ suite('Sources - Files explorer engine directory', () => {
 		}
 
 		let workDir = options?.workDir;
+		let workRoot = options?.workRoot;
 		const sessionChanged = store.add(new Emitter<string>());
 		instantiationService.stub(IAgentSessionContext, {
 			getActiveSessionId: () => 'sess-1',
 			isEngineSessionReady: () => false,
 			isPairingHold: () => false,
 			getSessionWorkDir: () => workDir,
+			getWorkRoot: () => workRoot ?? ({
+				sessionId: 'sess-1',
+				engineIdentityId: undefined,
+				workDir,
+				source: workDir ? 'session' : 'none',
+				access: workDir ? 'engine' : 'none',
+				localRoot: undefined,
+				projectKey: undefined,
+			}),
 			onDidChangeActiveSession: Event.None,
 			onDidChangeSession: sessionChanged.event,
 			acquireSessionView: () => {
@@ -966,6 +1017,15 @@ suite('Sources - Files explorer engine directory', () => {
 			readFileCalls,
 			setWorkDir(next) {
 				workDir = next;
+				workRoot = next ? {
+					sessionId: 'sess-1',
+					engineIdentityId: undefined,
+					workDir: next,
+					source: 'session',
+					access: 'engine',
+					localRoot: undefined,
+					projectKey: undefined,
+				} : undefined;
 			},
 			setListFiles(next) {
 				listFiles = next;
@@ -1038,6 +1098,38 @@ suite('Sources - Files explorer engine directory', () => {
 		assert.strictEqual(explorerEmpty(mounted.container).style.display, '');
 		assert.strictEqual(mounted.container.querySelector('.sources-files-engine'), null);
 		assert.strictEqual(mounted.listFilesCalls.length, 0);
+	});
+
+	test('session without own workDir enters engine mode when connection has remote workDir and renders engine directory', async function () {
+		const mounted = mountHost.call(this, {
+			emptyWorkspace: true,
+			workRoot: {
+				sessionId: 'sess-1',
+				engineIdentityId: 'engine-1',
+				workDir: '/remote/engine/proj',
+				source: 'connection',
+				access: 'engine',
+				localRoot: undefined,
+				projectKey: 'engine-1\n/remote/engine/proj',
+			},
+		});
+		mounted.setListFiles(async () => ({
+			entries: [engineFile('remote.ts', '/remote/engine/proj/remote.ts')],
+			total: 1,
+		}));
+		mounted.fireConnection();
+		const row = mounted.container.querySelector('.sources-files-list') as HTMLElement;
+		assert.ok(row);
+		row.style.height = '120px';
+		const tree = await waitForEngineNames(mounted.host, ['remote.ts']);
+		assert.strictEqual(mounted.listFilesCalls.length, 1);
+		assert.strictEqual(mounted.listFilesCalls[0].sessionId, 'sess-1');
+		assert.strictEqual(mounted.listFilesCalls[0].path, '/remote/engine/proj');
+		assert.strictEqual(explorerEmpty(mounted.container).style.display, 'none');
+		assert.strictEqual(mounted.container.querySelector('.monaco-pane-view'), null);
+		const file = tree.getNode(null).children[0].element;
+		assert.strictEqual(file?.file?.resource.scheme, SOURCES_ENGINE_FILE_SCHEME);
+		assert.strictEqual(file?.file?.engine?.path, '/remote/engine/proj/remote.ts');
 	});
 
 	test('empty workspace with an engine workDir lists that directory and opens its text', async function () {

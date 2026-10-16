@@ -809,8 +809,9 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private getGitResourceRoot(): URI | undefined {
+		const sessionId = this.session.getActiveSessionId();
 		return resolveSourcesGitResourceRoot({
-			workDir: this.session.getSessionWorkDir?.(this.session.getActiveSessionId()),
+			workDir: this.session.getWorkRoot?.(sessionId)?.workDir,
 			repositoryRoots: sourcesRepositoryRootUris(this.scmService.repositories),
 			workspaceFolders: this.workspaceContext.getWorkspace().folders.map(folder => folder.uri),
 		});

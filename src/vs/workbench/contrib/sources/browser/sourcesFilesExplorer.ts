@@ -420,7 +420,8 @@ export class SourcesFilesExplorerHost extends Disposable {
 	}
 
 	private syncExplorer(): void {
-		if (this.listsEngineDirectory()) {
+		const sessionId = this.session.getActiveSessionId();
+		if (this.listsEngineDirectory(sessionId)) {
 			this.showEngineDirectory();
 			return;
 		}
@@ -443,13 +444,16 @@ export class SourcesFilesExplorerHost extends Disposable {
 	}
 
 	/** Work directory is not an open local root, and the listFiles capability allows the engine list. */
-	private listsEngineDirectory(): boolean {
+	private listsEngineDirectory(sessionId: string = this.session.getActiveSessionId()): boolean {
+		const root = this.session.getWorkRoot?.(sessionId);
+		if (root?.access === 'local') {
+			return false;
+		}
 		const folders = this.contextService.getWorkspace().folders.map(folder => folder.uri);
-		const sessionId = this.session.getActiveSessionId();
 		return resolveSourcesFilesListSource({
 			workspaceFolders: folders,
 			sessionId,
-			workDir: this.session.getSessionWorkDir?.(sessionId),
+			workDir: root?.access === 'engine' ? root.workDir : (root?.workDir ?? this.session.getSessionWorkDir?.(sessionId)),
 			hasListFiles: sourcesFilesListHookPresent(this.connection.getConnectionSnapshot?.(), this.connection.listFiles),
 		}).kind === 'engine';
 	}
