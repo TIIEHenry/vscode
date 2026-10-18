@@ -1,10 +1,10 @@
 ---
 title: "方案 r02：agent-host-node"
 type: plan
-status: draft
+status: implemented
 phase: N/A
 updated: 2026-10-11
-summary: "hold 3，drop 0，weaken 0。2026-10-11 Sonnet 第 1 路审查：可按稿实施。文末记下调用方、测试目录和失败原因区分。"
+summary: "hold 3，drop 0，weaken 0。r02-1 到 r02-3 三项缺陷（status 失败保留目录、销毁时清理多聊天数据目录、无 HEAD 才回退空树）已随提交 8fa74ccdaa326f2bd898459f868bd62c2daf8524 落地合入，单测全绿。"
 ---
 
 hold 3，drop 0，weaken 0。
