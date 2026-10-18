@@ -236,7 +236,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [审查 r04：platform](review-2026-10-11-r04-platform.md) | `draft` | 4 条；设置文件读失败会被当成空设置，远端未变时把删除同步到云端。 |
 | [方案 r04：platform](review-2026-10-11-r04-platform-plan.md) | `implemented` | hold 4。r04-1 到 r04-4 四条平台缺陷（读文件非缺失错误原样抛出、submitInput 返回 writeId、addHubDeviceProfile 账号与状态过滤、confirmSas 退出分支始终 close）及单测已全绿落地合入。 |
 | [审查 r05：editor](review-2026-10-11-r05-editor.md) | `draft` | 4 条；差异计算尚未跟上编辑就把旧 diff 标成最新，回退会按旧行号改修改稿。 |
-| [方案 r05：editor](review-2026-10-11-r05-editor-plan.md) | `draft` | hold 4。四处行为仍在原行号。未实施。 |
+| [方案 r05：editor](review-2026-10-11-r05-editor-plan.md) | `implemented` | hold 4。r05-1 到 r05-4 四项缺陷已随提交 528b09279ac 落地合入，单测全绿。 |
 | [审查 r06：sessions](review-2026-10-11-r06-sessions.md) | `draft` | 4 条；宿主拒绝审批级别变更后，界面仍显示新级别。 |
 | [方案 r06：sessions](review-2026-10-11-r06-sessions-plan.md) | `draft` | hold 3，weaken 1。审批选择器写入不会被宿主拒绝。未实施。 |
 | [审查 r07：workbench-shell](review-2026-10-11-r07-workbench-shell.md) | `draft` | 4 条；createOnly 在没有文件提供者时仍会覆盖已打开的可写文本。 |
