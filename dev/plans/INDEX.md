@@ -230,7 +230,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [审查 r01：base](review-2026-10-11-r01-base.md) | `draft` | 5 条；恢复库改名失败后改走空内存库，关闭时同名键会覆盖磁盘上的原值。 |
 | [方案 r01：base](review-2026-10-11-r01-base-plan.md) | `draft` | hold 3，weaken 2。语句失败改为拒绝事务 Promise。压缩错误已会关连接，只清卡住的队列标志。未实施。 |
 | [审查 r02：agent-host-node](review-2026-10-11-r02-agent-host-node.md) | `draft` | 3 条；归档会话时 git status 失败会被当成工作区干净，随后强制删除 worktree。 |
-| [方案 r02：agent-host-node](review-2026-10-11-r02-agent-host-node-plan.md) | `draft` | hold 3。可按稿实施。未实施。 |
+| [方案 r02：agent-host-node](review-2026-10-11-r02-agent-host-node-plan.md) | `implemented` | hold 3。r02-1 到 r02-3 三项缺陷已随提交 8fa74ccdaa326f2bd898459f868bd62c2daf8524 落地合入，单测全绿。 |
 | [审查 r03：agent-host-rest](review-2026-10-11-r03-agent-host-rest.md) | `draft` | 5 条；SSH 连接表在读失败或条目被滤掉之后，会被下一次保存整表覆盖。 |
 | [方案 r03：agent-host-rest](review-2026-10-11-r03-agent-host-rest-plan.md) | `draft` | hold 4，weaken 1。发布 ack 失败要写明与 github-ui 分叉。未实施。 |
 | [审查 r04：platform](review-2026-10-11-r04-platform.md) | `draft` | 4 条；设置文件读失败会被当成空设置，远端未变时把删除同步到云端。 |
