@@ -1,10 +1,10 @@
 ---
 title: "方案 r05：editor"
 type: plan
-status: draft
+status: implemented
 phase: N/A
 updated: 2026-10-11
-summary: "hold 4，drop 0，weaken 0。四处行为仍在原行号，按发现稿修。"
+summary: "hold 4，drop 0，weaken 0。r05-1 到 r05-4 四项缺陷（过期 diff 丢弃、双击 inlay 校验版本、多行括号水平线对齐折行渲染列、tree-sitter 让出释放旧树）已随提交 528b09279ac 落地合入，单测全绿。"
 ---
 
 hold 4，drop 0，weaken 0。
