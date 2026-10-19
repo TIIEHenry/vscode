@@ -17,6 +17,31 @@ import { Emitter } from '../../../../base/common/event.js';
 import { ResourceMap } from '../../../../base/common/map.js';
 import { SEARCH_RESULT_LANGUAGE_ID } from '../../../services/search/common/search.js';
 
+/**
+ * Shares one in-flight or successful search editor model resolve.
+ * A rejection clears the slot only while it still points at that attempt,
+ * so the next resolve starts again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareSearchEditorModelResolve<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next resolve starts again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 export type SearchEditorData = { resultsModel: ITextModel; configurationModel: SearchConfigurationModel };
 
 export class SearchConfigurationModel {
@@ -52,26 +77,20 @@ class SearchEditorModelFactory {
 		const instantiationService = accessor.get(IInstantiationService);
 		const workingCopyBackupService = accessor.get(IWorkingCopyBackupService);
 
-		let ongoingResolve: Promise<SearchEditorData> | undefined;
+		const resolveSlot: { promise: Promise<SearchEditorData> | undefined } = { promise: undefined };
 
 		this.models.set(resource, {
-			resolve: () => {
-				if (!ongoingResolve) {
-					ongoingResolve = (async () => {
-
-						const backup = await this.tryFetchModelFromBackupService(resource, languageService, modelService, workingCopyBackupService, instantiationService);
-						if (backup) {
-							return backup;
-						}
-
-						return Promise.resolve({
-							resultsModel: modelService.getModel(resource) ?? modelService.createModel('', languageService.createById(SEARCH_RESULT_LANGUAGE_ID), resource),
-							configurationModel: new SearchConfigurationModel(config)
-						});
-					})();
+			resolve: () => shareSearchEditorModelResolve(resolveSlot, async () => {
+				const backup = await this.tryFetchModelFromBackupService(resource, languageService, modelService, workingCopyBackupService, instantiationService);
+				if (backup) {
+					return backup;
 				}
-				return ongoingResolve;
-			}
+
+				return {
+					resultsModel: modelService.getModel(resource) ?? modelService.createModel('', languageService.createById(SEARCH_RESULT_LANGUAGE_ID), resource),
+					configurationModel: new SearchConfigurationModel(config)
+				};
+			}),
 		});
 	}
 
@@ -85,26 +104,20 @@ class SearchEditorModelFactory {
 		const instantiationService = accessor.get(IInstantiationService);
 		const workingCopyBackupService = accessor.get(IWorkingCopyBackupService);
 
-		let ongoingResolve: Promise<SearchEditorData> | undefined;
+		const resolveSlot: { promise: Promise<SearchEditorData> | undefined } = { promise: undefined };
 
 		this.models.set(resource, {
-			resolve: () => {
-				if (!ongoingResolve) {
-					ongoingResolve = (async () => {
-
-						const backup = await this.tryFetchModelFromBackupService(resource, languageService, modelService, workingCopyBackupService, instantiationService);
-						if (backup) {
-							return backup;
-						}
-
-						return Promise.resolve({
-							resultsModel: modelService.createModel(contents ?? '', languageService.createById(SEARCH_RESULT_LANGUAGE_ID), resource),
-							configurationModel: new SearchConfigurationModel(config)
-						});
-					})();
+			resolve: () => shareSearchEditorModelResolve(resolveSlot, async () => {
+				const backup = await this.tryFetchModelFromBackupService(resource, languageService, modelService, workingCopyBackupService, instantiationService);
+				if (backup) {
+					return backup;
 				}
-				return ongoingResolve;
-			}
+
+				return {
+					resultsModel: modelService.createModel(contents ?? '', languageService.createById(SEARCH_RESULT_LANGUAGE_ID), resource),
+					configurationModel: new SearchConfigurationModel(config)
+				};
+			}),
 		});
 	}
 
@@ -118,27 +131,21 @@ class SearchEditorModelFactory {
 		const instantiationService = accessor.get(IInstantiationService);
 		const workingCopyBackupService = accessor.get(IWorkingCopyBackupService);
 
-		let ongoingResolve: Promise<SearchEditorData> | undefined;
+		const resolveSlot: { promise: Promise<SearchEditorData> | undefined } = { promise: undefined };
 
 		this.models.set(resource, {
-			resolve: async () => {
-				if (!ongoingResolve) {
-					ongoingResolve = (async () => {
-
-						const backup = await this.tryFetchModelFromBackupService(resource, languageService, modelService, workingCopyBackupService, instantiationService);
-						if (backup) {
-							return backup;
-						}
-
-						const { text, config } = await instantiationService.invokeFunction(parseSavedSearchEditor, existingFile);
-						return ({
-							resultsModel: modelService.createModel(text ?? '', languageService.createById(SEARCH_RESULT_LANGUAGE_ID), resource),
-							configurationModel: new SearchConfigurationModel(config)
-						});
-					})();
+			resolve: () => shareSearchEditorModelResolve(resolveSlot, async () => {
+				const backup = await this.tryFetchModelFromBackupService(resource, languageService, modelService, workingCopyBackupService, instantiationService);
+				if (backup) {
+					return backup;
 				}
-				return ongoingResolve;
-			}
+
+				const { text, config } = await instantiationService.invokeFunction(parseSavedSearchEditor, existingFile);
+				return {
+					resultsModel: modelService.createModel(text ?? '', languageService.createById(SEARCH_RESULT_LANGUAGE_ID), resource),
+					configurationModel: new SearchConfigurationModel(config)
+				};
+			}),
 		});
 	}
 
