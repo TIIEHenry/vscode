@@ -82,17 +82,18 @@ export class FileManagedSettingsChannelClient extends Disposable implements IFil
 	}
 
 	private readInitialSnapshot(channel: IChannel): Promise<void> {
-		const rawSnapshot = channel.call<RawManagedSettingsData>('getRawManagedSettings').then(managedSettings => {
+		// Apply only after both calls succeed. A sibling rejection must not record an empty payload as received.
+		return Promise.all([
+			channel.call<RawManagedSettingsData>('getRawManagedSettings'),
+			channel.call<ManagedSettingsData>('getManagedSettings'),
+		]).then(([rawManagedSettings, managedSettings]) => {
 			if (!this.hasReceivedRawManagedSettings) {
-				this.updateRawManagedSettings(managedSettings, true);
+				this.updateRawManagedSettings(rawManagedSettings, true);
 			}
-		});
-		const managedSnapshot = channel.call<ManagedSettingsData>('getManagedSettings').then(managedSettings => {
 			if (!this.hasReceivedManagedSettings) {
 				this.updateManagedSettings(managedSettings, true);
 			}
 		});
-		return Promise.all([rawSnapshot, managedSnapshot]).then(() => undefined);
 	}
 
 	private updateRawManagedSettings(managedSettings: RawManagedSettingsData, fireEvent: boolean): void {
