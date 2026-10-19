@@ -2796,5 +2796,107 @@ suite('Async', () => {
 			// Should have called next() only once despite multiple concurrent operations
 			assert.strictEqual(nextCallCount, 1);
 		});
+
+		test('read - a rejected extend is not reused; the next read reads again', async () => {
+			const error = new Error('extend failed');
+			let starts = 0;
+			let rejectFirst: ((reason: unknown) => void) | undefined;
+			const iterator: AsyncIterator<number> = {
+				next() {
+					starts++;
+					if (starts === 1) {
+						return new Promise<IteratorResult<number>>((_resolve, reject) => {
+							rejectFirst = reject;
+						});
+					}
+					return Promise.resolve({ value: 1, done: false });
+				}
+			};
+
+			const reader = new async.AsyncReader(iterator);
+			const first = reader.read();
+			assert.strictEqual(starts, 1);
+
+			rejectFirst!(error);
+			await assert.rejects(first, (reason: unknown) => reason === error);
+			assert.strictEqual(starts, 1, 'a rejected read must not call next again inside the same call');
+
+			assert.strictEqual(await reader.read(), 1);
+			assert.strictEqual(starts, 2, 'the next read must call next again');
+		});
+
+		test('read - a synchronously thrown next is not reused', async () => {
+			const error = new Error('sync extend failed');
+			let starts = 0;
+			const iterator: AsyncIterator<number> = {
+				next() {
+					starts++;
+					if (starts === 1) {
+						throw error;
+					}
+					return Promise.resolve({ value: 4, done: false });
+				}
+			};
+
+			const reader = new async.AsyncReader(iterator);
+			await assert.rejects(reader.read(), (reason: unknown) => reason === error);
+			assert.strictEqual(starts, 1, 'a rejected read must not call next again inside the same call');
+			assert.strictEqual(await reader.read(), 4);
+			assert.strictEqual(starts, 2, 'the next read must call next again');
+		});
+
+		test('read - concurrent in-flight reads share one next call', async () => {
+			let starts = 0;
+			let resolveNext: ((result: IteratorResult<number>) => void) | undefined;
+			const iterator: AsyncIterator<number> = {
+				next() {
+					starts++;
+					if (starts === 1) {
+						return new Promise<IteratorResult<number>>(resolve => {
+							resolveNext = resolve;
+						});
+					}
+					return Promise.resolve({ value: starts, done: false });
+				}
+			};
+
+			const reader = new async.AsyncReader(iterator);
+			const first = reader.read();
+			const second = reader.read();
+			assert.strictEqual(starts, 1, 'in-flight reads must share one next call');
+
+			resolveNext!({ value: 1, done: false });
+			assert.deepStrictEqual(await Promise.all([first, second]), [1, async.AsyncReaderEndOfStream]);
+			assert.strictEqual(starts, 1, 'settling the shared read must not call next again');
+		});
+
+		test('read - a rejection does not clear a replacement extend', async () => {
+			const error = new Error('late extend failure');
+			let starts = 0;
+			let rejectFirst: ((reason: unknown) => void) | undefined;
+			const iterator: AsyncIterator<number> = {
+				next() {
+					starts++;
+					if (starts === 1) {
+						return new Promise<IteratorResult<number>>((_resolve, reject) => {
+							rejectFirst = reject;
+						});
+					}
+					return Promise.resolve({ value: 9, done: false });
+				}
+			};
+
+			const reader = new async.AsyncReader(iterator);
+			const first = reader.read();
+			assert.strictEqual(starts, 1);
+			const replacement = Promise.resolve();
+			(reader as unknown as { _extendBufferPromise: Promise<void> })._extendBufferPromise = replacement;
+
+			rejectFirst!(error);
+			await assert.rejects(first, (reason: unknown) => reason === error);
+			assert.strictEqual(starts, 1, 'a rejected read must not call next again inside the same call');
+			assert.strictEqual(await reader.read(), async.AsyncReaderEndOfStream);
+			assert.strictEqual(starts, 1, 'a rejection must not clear an extend that replaced this attempt');
+		});
 	});
 });

@@ -2727,15 +2727,23 @@ export class AsyncReader<T> {
 		}
 
 		if (!this._extendBufferPromise) {
-			this._extendBufferPromise = (async () => {
+			const attempt = (async () => {
 				const { value, done } = await this._source.next();
-				this._extendBufferPromise = undefined;
 				if (done) {
 					this._atEnd = true;
 				} else {
 					this._buffer.push(value);
 				}
 			})();
+			this._extendBufferPromise = attempt;
+			// Not assigned. Callers still observe this rejection; the next read calls next() again.
+			// Clear only while the field still points here, after the buffer or end update, so a success is not cached.
+			const clearIfCurrent = () => {
+				if (this._extendBufferPromise === attempt) {
+					this._extendBufferPromise = undefined;
+				}
+			};
+			void attempt.then(clearIfCurrent, clearIfCurrent);
 		}
 
 		return this._extendBufferPromise;
