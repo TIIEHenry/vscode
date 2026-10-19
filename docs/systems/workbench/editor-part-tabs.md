@@ -3,8 +3,8 @@ title: "EditorPart：组、Tabs、EditorInput"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-10
-summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S6 已落）；Preview 两级标签（类别条独占一行、七个类别、每个编辑器组属于一个类别）见 ADR-009 / ADR-011 / PRD-027；HEAD 仍是单组过滤实现"
+updated: 2026-10-11
+summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S6 已落）；Preview 两级标签（类别条独占一行、七个类别、每个编辑器组属于一个类别）见 ADR-009 / ADR-011 / PRD-027；HEAD 已落 P2 组归属与显隐，P3 未做"
 ---
 
 # EditorPart：组、Tabs、EditorInput

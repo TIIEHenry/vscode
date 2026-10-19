@@ -213,7 +213,15 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setConnected(value: boolean) {
 				connected = value;
-				explicitPhase = undefined;
+				if (value) {
+					explicitPhase = undefined;
+				} else {
+					// True disconnect. Production disconnect() leaves connecting
+					// and clears pairingPending; a pinned connecting phase would
+					// still look like pairing-hold and keep leftover rows.
+					explicitPhase = undefined;
+					pairingPending = false;
+				}
 				onDidChangeConnection.fire(snapshot());
 			},
 			setPairingPending(value: boolean) {
@@ -263,11 +271,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		return section;
 	}
 
-	function mountMcpSection(connection: IUniverseAgentConnection): EngineMcpSection {
+	function mountMcpSection(connection: IUniverseAgentConnection, dialog?: TestDialogService): EngineMcpSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		if (dialog) {
+			instantiationService.stub(IDialogService, dialog);
+		}
 		const section = store.add(instantiationService.createInstance(EngineMcpSection, parent));
 		section.setSectionActive(true);
 		section.layout(640, 160);
@@ -683,9 +694,10 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 		await section.selectProfileByIdForTest('review');
 
-		const deleteButton = [...section.getDomNode().querySelectorAll('.monaco-button')]
-			.find(button => (button.textContent ?? '').includes('Delete')) as HTMLElement | undefined;
+		const deleteButton = section.getDomNode().querySelector('[aria-label="Delete"]') as HTMLElement | null;
 		assert.ok(deleteButton, 'Delete must be available for a user profile');
+		assert.strictEqual(deleteButton.textContent, '');
+		assert.ok(deleteButton.classList.contains('codicon-trash'));
 		assert.notStrictEqual(deleteButton.style.display, 'none');
 
 		deleteButton.click();
@@ -4531,6 +4543,32 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		}
 	});
 
+	test('Agents: New opens an input dialog and does not save without a name', async () => {
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [] }),
+			saveAgentProfile: async (request) => {
+				saves.push(request);
+				return { profile: request.profile };
+			},
+		});
+		const section = mountAgentsSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		const button = section.getDomNode().querySelector('[aria-label="New agent"]') as HTMLElement | null;
+		assert.ok(button);
+		assert.strictEqual(button.textContent, '');
+		assert.ok(button.classList.contains('codicon-add'));
+		button.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(saves, []);
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus.textContent?.includes('Agent name is required.'));
+		section.getDomNode().parentElement?.remove();
+	});
+
 	test('does not leak unhandled rejection when createProfile catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
 		// createProfile() already catches RPC throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path paint throws.
@@ -4558,7 +4596,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 					throw new Error('create boom');
 				},
 			});
-			const section = mountAgentsSection(connection);
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			instantiationService.stub(IUniverseAgentConnection, connection);
+			const dialog = instantiationService.get(IDialogService) as TestDialogService;
+			dialog.input = async () => ({ confirmed: true, values: ['Paint Agent'] });
+			const section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
+			section.layout(640, 120);
 			section.setSectionActive(true);
 			await flushMicrotasks();
 			const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
@@ -4572,8 +4617,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 					}
 				},
 			});
-			const create = Array.from(section.getDomNode().querySelectorAll('.monaco-button'))
-				.find(button => (button.textContent ?? '').includes('New')) as HTMLElement | undefined;
+			const create = section.getDomNode().querySelector('[aria-label="New agent"]') as HTMLElement | null;
 			assert.ok(create, 'New write button must be painted');
 			create.click();
 			await timeout(0);
@@ -5136,6 +5180,83 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.ok(!writeStatus?.textContent || writeStatus.style.display === 'none');
 	});
 
+	test('MCP: Add and Update open an input dialog before writing', async () => {
+		const addRequests: UniverseAgentAddMcpServerRequest[] = [];
+		const updateCalls: UniverseAgentUpdateMcpServerRequest[] = [];
+		const listedServer = {
+			id: 'stdio-demo',
+			name: 'Demo MCP',
+			transport: 'stdio' as const,
+			origin: 'global' as const,
+			enabled: true,
+			command: 'npx',
+			args: ['-y', 'mcp-demo'],
+			env: { TOKEN: 'secret' },
+			url: 'http://mcp',
+		};
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { mcp: { support: 'SUPPORTED' } },
+			listMcpServers: async () => ({ servers: [listedServer] }),
+			addMcpServer: async (request) => {
+				addRequests.push(request);
+				return { ok: true, assignedId: 'added' };
+			},
+			updateMcpServer: async (request) => {
+				updateCalls.push(request);
+				return { ok: true };
+			},
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const dialog = instantiationService.get(IDialogService) as TestDialogService;
+		const section = store.add(instantiationService.createInstance(EngineMcpSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		await flushMicrotasks();
+
+		const add = section.getDomNode().querySelector('[aria-label="Add"]') as HTMLElement | null;
+		const update = section.getDomNode().querySelector('[aria-label="Update"]') as HTMLElement | null;
+		assert.ok(add);
+		assert.ok(update);
+		assert.strictEqual(add.textContent, '');
+		assert.ok(add.classList.contains('codicon-add'));
+		assert.ok(update.classList.contains('codicon-edit'));
+
+		add.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(addRequests, []);
+		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(writeStatus.textContent?.includes('Name, transport, and a command or URL are required.'));
+
+		dialog.input = async () => ({ confirmed: true, values: ['Added MCP', 'stdio', 'npx', ''] });
+		add.click();
+		await flushMicrotasks();
+		assert.strictEqual(addRequests.length, 1);
+		assert.deepStrictEqual(addRequests[0]!.config, { name: 'Added MCP', transport: 'stdio', command: 'npx' });
+		assert.strictEqual(addRequests[0]!.scope, 'global');
+
+		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		dialog.input = async () => ({ confirmed: true, values: ['Demo MCP', 'stdio', 'npx', 'http://mcp'] });
+		update.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(updateCalls, []);
+
+		dialog.input = async () => ({ confirmed: true, values: ['Renamed', 'stdio', 'npx', 'http://mcp'] });
+		update.click();
+		await flushMicrotasks();
+		assert.strictEqual(updateCalls.length, 1);
+		assert.strictEqual(updateCalls[0]!.config.name, 'Renamed');
+		assert.strictEqual(updateCalls[0]!.config.command, 'npx');
+		assert.deepStrictEqual(updateCalls[0]!.config.args, ['-y', 'mcp-demo']);
+		assert.deepStrictEqual(updateCalls[0]!.config.env, { TOKEN: 'secret' });
+		assert.strictEqual(updateCalls[0]!.config.url, 'http://mcp');
+		assert.strictEqual(updateCalls[0]!.scope, 'global');
+		parent.remove();
+	});
+
 	test('MCP: addMcpServer ok does not keep add-success when subsequent listMcpServers fails', async () => {
 		let listMcpServersCalls = 0;
 		const unhandledRejections: unknown[] = [];
@@ -5402,7 +5523,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 					throw new Error('remove boom');
 				},
 			});
-			const section = mountMcpSection(connection);
+			const dialog = new TestDialogService();
+			dialog.setConfirmResult({ confirmed: true });
+			const section = mountMcpSection(connection, dialog);
 			await flushMicrotasks();
 			assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
 			const status = (section as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
@@ -5413,9 +5536,10 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				}
 				originalRender(options);
 			};
-			const remove = Array.from(section.getDomNode().querySelectorAll('.monaco-button'))
-				.find(button => (button.textContent ?? '').includes('Remove')) as HTMLElement | undefined;
+			const remove = section.getDomNode().querySelector('[aria-label="Remove"]') as HTMLElement | null;
 			assert.ok(remove, 'Remove write button must be painted');
+			assert.strictEqual(remove.textContent, '');
+			assert.ok(remove.classList.contains('codicon-trash'));
 			remove.click();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {

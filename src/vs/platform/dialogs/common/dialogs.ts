@@ -92,12 +92,20 @@ export interface IInput extends IConfirmation {
 	 * If not provided, defaults to `Ok`.
 	 */
 	readonly primaryButton?: string;
+
+	/**
+	 * Called with the current field values when the primary button or Enter
+	 * would accept the dialog. A returned string stays in the dialog.
+	 */
+	readonly validate?: (values: readonly string[]) => string | undefined;
 }
 
 export interface IInputElement {
 	readonly type?: 'text' | 'password';
 	readonly value?: string;
 	readonly placeholder?: string;
+	/** Visible name for the field. Placeholder alone disappears once a value is set. */
+	readonly label?: string;
 }
 
 export interface IInputResult extends IConfirmationResult {

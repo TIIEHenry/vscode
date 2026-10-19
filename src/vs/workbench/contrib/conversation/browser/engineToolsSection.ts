@@ -30,7 +30,7 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
-import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
 	applyToolEnablementChange,
 	applyToolEnablementChanges,
@@ -260,11 +260,12 @@ export class EngineToolsSection extends Disposable {
 		this.heading = DOM.append(this.container, $('h3.engine-section-heading'));
 		this.heading.textContent = localize('ua.engineToolsSectionTitle', "Tools");
 		this.heading.style.display = 'none';
+		appendCatalogScopeNote(this.container, localize('ua.engineToolsScope', "These checkboxes enable tools on the selected agent profile. They do not change the open session."));
 
 		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
 		const profileRow = DOM.append(this.container, $('.engine-tools-profile-row'));
-		const profileLabel = localize('ua.engineToolsProfileLabel', "Profile");
+		const profileLabel = localize('ua.engineToolsProfileLabel', "Agent profile");
 		DOM.append(profileRow, $('label')).textContent = profileLabel;
 		this.profileSelectHost = DOM.append(profileRow, $('.engine-tools-profile-select'));
 		this.profileSelectHost.style.display = 'none';

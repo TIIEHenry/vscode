@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import type { UniverseAgentTrigger } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import {
 	canSendEngineTriggerDelete,
 	canSendEngineTriggerFire,
@@ -148,41 +149,17 @@ suite('Engine trigger list bind', () => {
 		assert.strictEqual(ENGINE_TRIGGER_DELETE_LABEL, 'Delete');
 	});
 
-	test('UpsertTrigger gate is connected + hook; empty ids stay empty on add and edit', () => {
+	test('UpsertTrigger gate is connected + hook; dialog draft is sent with empty scope', () => {
 		assert.strictEqual(canSendEngineTriggerUpsert(false, true), false);
 		assert.strictEqual(canSendEngineTriggerUpsert(true, false), false);
 		assert.strictEqual(canSendEngineTriggerUpsert(true, true), true);
 		const empty = emptyEngineTrigger();
-		assert.deepStrictEqual(engineTriggerUpsertRequest(undefined, 'add'), {
+		assert.deepStrictEqual(engineTriggerUpsertRequest(empty), {
 			scope: '',
 			scopeId: '',
 			trigger: empty,
 		});
-		assert.deepStrictEqual(engineTriggerUpsertRequest({
-			...empty,
-			triggerId: '  trig  ',
-		}, 'add'), {
-			scope: '',
-			scopeId: '',
-			trigger: empty,
-		});
-		assert.deepStrictEqual(engineTriggerUpsertRequest(undefined, 'edit'), {
-			scope: '',
-			scopeId: '',
-			trigger: empty,
-		});
-		assert.deepStrictEqual(engineTriggerUpsertRequest({
-			...empty,
-			triggerId: '',
-			name: '',
-			type: '',
-			enabled: false,
-		}, 'edit'), {
-			scope: '',
-			scopeId: '',
-			trigger: empty,
-		});
-		assert.deepStrictEqual(engineTriggerUpsertRequest({
+		const drafted: UniverseAgentTrigger = {
 			triggerId: '  trig  ',
 			name: '  Nightly  ',
 			type: 'cron',
@@ -193,21 +170,11 @@ suite('Engine trigger list bind', () => {
 			intervalMs: 0,
 			cronExpression: '',
 			runAtEpochMs: 0,
-		}, 'edit'), {
+		};
+		assert.deepStrictEqual(engineTriggerUpsertRequest(drafted), {
 			scope: '',
 			scopeId: '',
-			trigger: {
-				triggerId: '  trig  ',
-				name: '  Nightly  ',
-				type: 'cron',
-				promptTemplate: '',
-				enabled: false,
-				pauseReason: '',
-				target: { kind: 'self' },
-				intervalMs: 0,
-				cronExpression: '',
-				runAtEpochMs: 0,
-			},
+			trigger: drafted,
 		});
 		assert.strictEqual(ENGINE_TRIGGER_ADD_LABEL, 'Add');
 		assert.strictEqual(ENGINE_TRIGGER_EDIT_LABEL, 'Edit');

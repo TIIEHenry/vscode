@@ -3890,6 +3890,79 @@ export interface UniverseAgentListModelsResult {
 	readonly models: readonly UniverseAgentModelEntry[];
 }
 
+/** ConfigService.UpsertModel. Blank level stays 0 and means "keep or undeclared". */
+export interface UniverseAgentUpsertModelRequest {
+	readonly id: string;
+	readonly type: string;
+	readonly enabled: boolean;
+	readonly level: number;
+	readonly description: string;
+	readonly cost: string;
+	readonly speed: string;
+	readonly provider: string;
+	readonly modelId: string;
+}
+
+export interface UniverseAgentDeleteModelRequest {
+	readonly id: string;
+}
+
+export interface UniverseAgentDeleteModelResult {
+	readonly deleted: boolean;
+}
+
+export interface UniverseAgentSetModelEnabledRequest {
+	readonly id: string;
+	readonly enabled: boolean;
+}
+
+/** Names and sources only. Api keys stay in the main process. */
+export interface UniverseAgentHarnessProviderPreview {
+	readonly providerId: string;
+	readonly label: string;
+	readonly source: string;
+	readonly protocol: string;
+	readonly hasApiKey: boolean;
+	readonly hasBaseUrl: boolean;
+	readonly modelIds: readonly string[];
+}
+
+export interface UniverseAgentHarnessProviderPreviewResult {
+	readonly items: readonly UniverseAgentHarnessProviderPreview[];
+}
+
+export interface UniverseAgentImportHarnessProvidersRequest {
+	readonly providerIds: readonly string[];
+}
+
+export interface UniverseAgentImportHarnessProvidersResult {
+	readonly imported: number;
+	readonly updated: number;
+	readonly skipped: number;
+	readonly modelWrites: number;
+	readonly errors: readonly string[];
+}
+
+/**
+ * One Singularity-shaped provider preset. Built-in rows are local overlays.
+ * Cloud rows come from models.dev. Neither carries an API key.
+ */
+export interface UniverseAgentProviderPreset {
+	readonly id: string;
+	readonly displayName: string;
+	readonly defaultApiBaseUrl: string;
+	readonly defaultProtocol: string;
+	readonly defaultModels: readonly string[];
+	readonly quickPick: boolean;
+}
+
+export interface UniverseAgentProviderPresetCatalog {
+	readonly builtin: readonly UniverseAgentProviderPreset[];
+	readonly cloud: readonly UniverseAgentProviderPreset[];
+	readonly cloudStatus: 'loaded' | 'unavailable';
+	readonly cloudError?: string;
+}
+
 /** ConfigService.Get — generic config read (≠ Set / Watch / ListModels / SwitchModel / TestModelProfile). */
 export interface UniverseAgentGetConfigRequest {
 	/** Proto `key`. Empty sent as-is (engine returns all). */

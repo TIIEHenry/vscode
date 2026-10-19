@@ -7,6 +7,7 @@ import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -15,6 +16,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -23,8 +25,9 @@ import type { UniverseAgentCapabilitySupport, UniverseAgentSkillSource, Universe
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { canPerformCatalogWriteLive, canShowCatalogRows, getCatalogListLoadingCopy } from './engineCatalog.js';
+import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
-import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
 	EngineSkillsPaneMode,
 	canEditSkillBody,
@@ -221,6 +224,7 @@ export class EngineSkillsSection extends Disposable {
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IContextViewService contextViewService: IContextViewService,
+		@IDialogService private readonly dialogService: IDialogService,
 	) {
 		super();
 		this.instantiationService = instantiationService;
@@ -231,6 +235,7 @@ export class EngineSkillsSection extends Disposable {
 		this.heading = DOM.append(this.container, $('h3.engine-section-heading'));
 		this.heading.textContent = localize('ua.engineSkillsSectionTitle', "Skills");
 		this.heading.style.display = 'none';
+		appendCatalogScopeNote(this.container, localize('ua.engineSkillsScope', "Project skills follow the open work root. User and bundled skills are engine-wide."));
 
 		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
@@ -238,11 +243,10 @@ export class EngineSkillsSection extends Disposable {
 		this.freezeNotice.textContent = getSkillToggleFreezeNotice();
 		this.freezeNotice.style.display = 'none';
 
-		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
+		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.writeToolbar.style.display = 'none';
-		const newButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
-		newButton.label = localize('ua.engineSkillsNew', "New");
-		this._register(newButton.onDidClick(() => void this.createSkill().catch(onUnexpectedError).catch(onUnexpectedError)));
+		const newButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineSkillsNew', "New skill"), Codicon.add));
+		this._register(newButton.onDidClick(() => void this.promptNewSkill().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.writeStatus = DOM.append(this.container, $('.engine-skill-write-status'));
 		this.writeStatus.setAttribute('role', 'status');
@@ -384,6 +388,37 @@ export class EngineSkillsSection extends Disposable {
 		if (entry?.kind === 'skill') {
 			await this.toggleSkill(entry.skill, enabled);
 		}
+	}
+
+	private async promptNewSkill(): Promise<void> {
+		if (!this.canWrite() || !this.connection.saveSkillContent) {
+			return;
+		}
+		const required = localize('ua.engineSkillNameRequired', "Skill name is required.");
+		const result = await this.dialogService.input({
+			type: 'question',
+			message: localize('ua.engineSkillsNewTitle', "New skill"),
+			detail: localize('ua.engineSkillsNewDetail', "Skill name. The body starts from the default template."),
+			primaryButton: localize('ua.engineSkillsNewCreate', "Create"),
+			inputs: [
+				{
+					type: 'text',
+					label: localize('ua.engineSkillsNewName', "Skill name"),
+					placeholder: localize('ua.engineSkillsNewName', "Skill name"),
+				},
+			],
+			validate: values => (values[0] ?? '').trim() ? undefined : required,
+		});
+		if (!result.confirmed || !result.values || !this.canWrite() || !this.connection.saveSkillContent) {
+			return;
+		}
+		const skillName = (result.values[0] ?? '').trim();
+		if (!skillName) {
+			this.writeStatus.style.display = '';
+			writeStatus(this.writeStatus, required, 'error');
+			return;
+		}
+		await this.createSkill({ skillName });
 	}
 
 	async createSkill(options?: { skillName?: string; content?: string }): Promise<boolean> {

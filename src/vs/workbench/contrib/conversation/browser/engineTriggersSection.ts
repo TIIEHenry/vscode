@@ -5,16 +5,19 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { hasModifierKeys, StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
-import { Button } from '../../../../base/browser/ui/button/button.js';
+import { Button, type IButtonStyles } from '../../../../base/browser/ui/button/button.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
+import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { conversationEntryHookPresent, isAdvertisedEngineRpc, readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentTrigger } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentTrigger, UniverseAgentTriggerDeliveryTarget } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import {
@@ -46,12 +49,43 @@ import { writeStatus } from './connectionPreferencesPane.js';
 const $ = DOM.$;
 
 /**
+ * Button writes these inline. Leaving them unset lets the toolbar class rules
+ * paint the ghost icon buttons.
+ */
+const triggerIconButtonStyles: IButtonStyles = {
+	buttonBackground: undefined,
+	buttonHoverBackground: undefined,
+	buttonSeparator: undefined,
+	buttonForeground: undefined,
+	buttonBorder: undefined,
+	buttonSecondaryBackground: undefined,
+	buttonSecondaryForeground: undefined,
+	buttonSecondaryHoverBackground: undefined,
+	buttonSecondaryBorder: undefined,
+};
+
+function createTriggerIconButton(parent: HTMLElement, label: string, icon: ThemeIcon): Button {
+	const button = new Button(parent, {
+		...triggerIconButtonStyles,
+		supportIcons: true,
+		title: label,
+		ariaLabel: label,
+	});
+	button.icon = icon;
+	return button;
+}
+
+/**
  * Engine Preferences Triggers — honest ListTriggers list + FireTrigger +
  * SetTriggerEnabled + DeleteTrigger + UpsertTrigger add/edit. Connected +
- * hook only. Empty scope / scopeId / typeFilter / triggerId are sent as-is.
- * Add always sends an empty TriggerDto. Edit sends the selected trigger
- * as-is (empty DTO when none). `enabled` false is sent as-is. Empty
- * triggerId / name / type stay empty.
+ * hook only. List, fire, enable, and delete still send empty scope /
+ * scopeId / typeFilter / triggerId as-is. Add and Edit open a dialog after
+ * the upsert gate passes. Edit with nothing selected returns before the
+ * dialog. Name and type are required; an empty form does not send. Enabled
+ * comes from the checkbox, and a missing checkbox sends false. Blank
+ * prompt, interval, cron, and target keep the selected values on edit and
+ * send '', 0, '', and an unspecified target on add. Upsert scope and
+ * scopeId stay empty.
  * List throw after a live paint keeps leftover rows + failed (D240);
  * first-pull throw stays empty+failed and must not paint empty-success.
  * Connected + missing list hook after a live paint keeps leftover rows +
@@ -97,6 +131,7 @@ export class EngineTriggersSection extends Disposable {
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@ICommandService private readonly commandService: ICommandService,
+		@IDialogService private readonly dialogService: IDialogService,
 	) {
 		super();
 
@@ -110,28 +145,22 @@ export class EngineTriggersSection extends Disposable {
 		this.listHost.style.display = 'none';
 
 		const actionsRow = DOM.append(this.container, $('.engine-triggers-actions'));
-		this.addButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.addButton.label = ENGINE_TRIGGER_ADD_LABEL;
+		this.addButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_ADD_LABEL, Codicon.add));
 		this._register(this.addButton.onDidClick(() => void this.handleUpsert('add').catch(onUnexpectedError).catch(onUnexpectedError)));
 
-		this.editButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.editButton.label = ENGINE_TRIGGER_EDIT_LABEL;
+		this.editButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_EDIT_LABEL, Codicon.edit));
 		this._register(this.editButton.onDidClick(() => void this.handleUpsert('edit').catch(onUnexpectedError).catch(onUnexpectedError)));
 
-		this.fireButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.fireButton.label = ENGINE_TRIGGER_FIRE_LABEL;
+		this.fireButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_FIRE_LABEL, Codicon.play));
 		this._register(this.fireButton.onDidClick(() => void this.handleFire().catch(onUnexpectedError).catch(onUnexpectedError)));
 
-		this.enableButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.enableButton.label = ENGINE_TRIGGER_ENABLE_LABEL;
+		this.enableButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_ENABLE_LABEL, Codicon.check));
 		this._register(this.enableButton.onDidClick(() => void this.handleSetEnabled(true).catch(onUnexpectedError).catch(onUnexpectedError)));
 
-		this.disableButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.disableButton.label = ENGINE_TRIGGER_DISABLE_LABEL;
+		this.disableButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_DISABLE_LABEL, Codicon.circleSlash));
 		this._register(this.disableButton.onDidClick(() => void this.handleSetEnabled(false).catch(onUnexpectedError).catch(onUnexpectedError)));
 
-		this.deleteButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.deleteButton.label = ENGINE_TRIGGER_DELETE_LABEL;
+		this.deleteButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_DELETE_LABEL, Codicon.trash));
 		this._register(this.deleteButton.onDidClick(() => void this.handleDelete().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.fireStatus = DOM.append(this.container, $('.engine-triggers-fire-status'));
@@ -534,17 +563,56 @@ export class EngineTriggersSection extends Disposable {
 		}
 	}
 
-	private async handleUpsert(mode: 'add' | 'edit'): Promise<void> {
-		if (mode === 'add' || !this.selectedTrigger) {
-			return;
+	private async promptTrigger(mode: 'add' | 'edit'): Promise<UniverseAgentTrigger | undefined> {
+		const selected = mode === 'edit' ? this.selectedTrigger : undefined;
+		if (mode === 'edit' && !selected) {
+			return undefined;
 		}
+		const result = await this.dialogService.input({
+			type: 'question',
+			message: mode === 'add'
+				? localize('ua.engineTriggerAddTitle', "Add trigger")
+				: localize('ua.engineTriggerEditTitle', "Edit trigger"),
+			detail: localize('ua.engineTriggerDialogDetail', "Name and type are required."),
+			primaryButton: mode === 'add'
+				? ENGINE_TRIGGER_ADD_LABEL
+				: localize('ua.engineTriggerSave', "Save"),
+			checkbox: {
+				label: localize('ua.engineTriggerEnabled', "Enabled"),
+				checked: selected ? selected.enabled : false,
+			},
+			inputs: triggerFormInputs(selected),
+			validate: triggerFormValidate,
+		});
+		if (!result.confirmed) {
+			return undefined;
+		}
+		const values = result.values ?? [];
+		const problem = triggerFormProblem(values);
+		if (problem) {
+			this.upsertStatus.style.display = '';
+			writeStatus(this.upsertStatus, problem, 'error');
+			return undefined;
+		}
+		return buildTriggerDraft(mode, selected, values, result.checkboxChecked);
+	}
+
+	private async handleUpsert(mode: 'add' | 'edit'): Promise<void> {
 		const hook = this.connection.upsertTrigger;
 		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerSupported('upsertTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
-		const request = engineTriggerUpsertRequest(this.selectedTrigger, mode);
+		const drafted = await this.promptTrigger(mode);
+		if (!drafted) {
+			return;
+		}
+		const liveHook = this.connection.upsertTrigger;
+		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerSupported('upsertTrigger', liveHook), this.isTriggerWritePairingHold()) || !liveHook) {
+			return;
+		}
+		const request = engineTriggerUpsertRequest(drafted);
 		try {
-			const result = await hook.call(this.connection, request);
+			const result = await liveHook.call(this.connection, request);
 			this.upsertStatus.style.display = '';
 			writeStatus(this.upsertStatus, formatEngineTriggerListLabel(result.trigger), 'success');
 			const listed = await this.refresh();
@@ -583,4 +651,131 @@ function stopEngineListRowKey(event: KeyboardEvent): void {
 	const standard = new StandardKeyboardEvent(event);
 	standard.preventDefault();
 	standard.stopPropagation();
+}
+
+const ENGINE_TRIGGER_NAME_REQUIRED = localize('ua.engineTriggerNameRequired', "Name is required.");
+const ENGINE_TRIGGER_TYPE_REQUIRED = localize('ua.engineTriggerTypeRequired', "Type is required.");
+const ENGINE_TRIGGER_INTERVAL_INVALID = localize('ua.engineTriggerIntervalInvalid', "Interval must be a whole number, or left blank.");
+const ENGINE_TRIGGER_TARGET_INVALID = localize('ua.engineTriggerTargetInvalid', "Target must be self, bound:<sessionId>, or new:<profileId>.");
+const ENGINE_TRIGGER_TARGET_PLACEHOLDER = localize('ua.engineTriggerTargetPlaceholder', "self, bound:<sessionId>, or new:<profileId>");
+
+function triggerTextField(key: string, label: string, value: string): { type: 'text'; label: string; placeholder: string; value: string } {
+	const text = localize(key, label);
+	return { type: 'text', label: text, placeholder: text, value };
+}
+
+function triggerFormInputs(selected: UniverseAgentTrigger | undefined) {
+	return [
+		triggerTextField('ua.engineTriggerName', "Name", selected?.name ?? ''),
+		triggerTextField('ua.engineTriggerType', "Type", selected?.type ?? ''),
+		triggerTextField('ua.engineTriggerPrompt', "Prompt", selected?.promptTemplate ?? ''),
+		triggerTextField('ua.engineTriggerInterval', "Interval (ms)", selected ? String(selected.intervalMs) : ''),
+		triggerTextField('ua.engineTriggerCron', "Cron", selected?.cronExpression ?? ''),
+		{
+			type: 'text' as const,
+			label: localize('ua.engineTriggerTarget', "Target"),
+			placeholder: ENGINE_TRIGGER_TARGET_PLACEHOLDER,
+			value: selected ? formatTriggerTarget(selected.target) : '',
+		},
+	];
+}
+
+/** Name, then type. Interval and target stay out of the dialog so a bad value can reach write-status. */
+function triggerFormValidate(values: readonly string[]): string | undefined {
+	if (isBlankField(values[0])) {
+		return ENGINE_TRIGGER_NAME_REQUIRED;
+	}
+	if (isBlankField(values[1])) {
+		return ENGINE_TRIGGER_TYPE_REQUIRED;
+	}
+	return undefined;
+}
+
+/** Same required checks as validate, plus interval and target. Skipped validate still stops here. */
+function triggerFormProblem(values: readonly string[]): string | undefined {
+	const required = triggerFormValidate(values);
+	if (required) {
+		return required;
+	}
+	if (!isBlankField(values[3]) && !isWholeInterval((values[3] ?? '').trim())) {
+		return ENGINE_TRIGGER_INTERVAL_INVALID;
+	}
+	if (!isBlankField(values[5]) && !parseTriggerTarget(values[5] ?? '')) {
+		return ENGINE_TRIGGER_TARGET_INVALID;
+	}
+	return undefined;
+}
+
+function isBlankField(value: string | undefined): boolean {
+	return !(value ?? '').trim();
+}
+
+function isWholeInterval(trimmed: string): boolean {
+	if (!/^\d+$/.test(trimmed)) {
+		return false;
+	}
+	return Number.isSafeInteger(Number(trimmed));
+}
+
+function parseTriggerTarget(raw: string): UniverseAgentTriggerDeliveryTarget | undefined {
+	const trimmed = raw.trim();
+	if (trimmed === 'self') {
+		return { kind: 'self' };
+	}
+	if (trimmed.startsWith('bound:')) {
+		return { kind: 'boundSession', sessionId: trimmed.slice('bound:'.length) };
+	}
+	if (trimmed.startsWith('new:')) {
+		return { kind: 'newSession', engineProfileId: trimmed.slice('new:'.length) };
+	}
+	return undefined;
+}
+
+function formatTriggerTarget(target: UniverseAgentTriggerDeliveryTarget): string {
+	switch (target.kind) {
+		case 'self':
+			return 'self';
+		case 'boundSession':
+			return `bound:${target.sessionId}`;
+		case 'newSession':
+			return `new:${target.engineProfileId}`;
+		case 'unspecified':
+			return '';
+		default: {
+			const unknown: never = target;
+			return unknown;
+		}
+	}
+}
+
+function keptText(raw: string | undefined, kept: string): string {
+	return isBlankField(raw) ? kept : (raw ?? '');
+}
+
+function buildTriggerDraft(
+	mode: 'add' | 'edit',
+	selected: UniverseAgentTrigger | undefined,
+	values: readonly string[],
+	checkboxChecked: boolean | undefined,
+): UniverseAgentTrigger {
+	const editing = mode === 'edit' && !!selected;
+	const intervalRaw = values[3] ?? '';
+	const targetRaw = values[5] ?? '';
+	const parsedTarget = isBlankField(targetRaw) ? undefined : parseTriggerTarget(targetRaw);
+	const target: UniverseAgentTriggerDeliveryTarget = parsedTarget
+		?? (editing && selected ? selected.target : { kind: 'unspecified' });
+	return {
+		triggerId: editing && selected ? selected.triggerId : '',
+		name: values[0] ?? '',
+		type: values[1] ?? '',
+		promptTemplate: keptText(values[2], editing && selected ? selected.promptTemplate : ''),
+		enabled: checkboxChecked ?? false,
+		pauseReason: editing && selected ? selected.pauseReason : '',
+		target,
+		intervalMs: isBlankField(intervalRaw)
+			? (editing && selected ? selected.intervalMs : 0)
+			: Number(intervalRaw.trim()),
+		cronExpression: keptText(values[4], editing && selected ? selected.cronExpression : ''),
+		runAtEpochMs: editing && selected ? selected.runAtEpochMs : 0,
+	};
 }

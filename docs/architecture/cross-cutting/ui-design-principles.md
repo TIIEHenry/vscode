@@ -3,13 +3,13 @@ title: "UI 设计原则与规范"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-11
-summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA（PRD-028）：中性底色与强调色约束、排版分层、平台 token 为唯一尺寸来源、密度上限、焦点可见、以面代线、阴影只给浮层（Composer 极淡投影例外）且不用毛玻璃、2026-10-11 用户回合改 Cursor 式卡、主按钮中性近黑、弹出层 / 按钮层级 / 筛选条 / 文档预览 / 目录列表分组规范、错误与会话不可用态（方案仍 draft，S1–S4 已落地）、PC 按压零形变、两级空态；对话阅读面与工程表格组件规范；Agents 窗口追问卡、对话框遮罩和引导页遮罩已去掉毛玻璃，§10 其余差距仍在"
+updated: 2026-10-20
+summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA（PRD-028）：中性底色与强调色约束、排版分层、平台 token 为唯一尺寸来源、密度上限、焦点可见、以面代线、阴影只给浮层（Composer 极淡投影例外）且不用毛玻璃、2026-10-11 用户回合改 Cursor 式卡、主按钮中性近黑、弹出层 / 按钮层级 / 筛选条 / 文档预览 / 目录列表分组规范、行内与工具栏操作以幽灵图标钮为先、错误与会话不可用态（方案仍 draft，S1–S4 已落地）、PC 按压零形变、两级空态；对话阅读面与工程表格组件规范；Agents 窗口追问卡、对话框遮罩和引导页遮罩已去掉毛玻璃，§10 其余差距仍在；2026-10-15 外部密度对照不改本节"
 ---
 
 # UI 设计原则与规范
 
-> 导航：[横切索引](INDEX.md) · [主题与 token](theming.md) · [布局拓扑](../../systems/workbench/parts-and-grid.md) · [产品愿景](../../product/vision.md) 原则 4、6 · 需求 [PRD-028](../../product/requirements.md#prd-028-视觉语言与信息密度)（`accepted`）。  
+> 导航：[横切索引](INDEX.md) · [主题与 token](theming.md) · [布局拓扑](../../systems/workbench/parts-and-grid.md) · [产品愿景](../../product/vision.md) 原则 4、6 · 需求 [PRD-028](../../product/requirements.md#prd-028-视觉语言与信息密度)（`accepted`） · 外部对照：[对话界面密度](../../reference/external-chat-ui-density.md)（不改本节）。  
 > 适用范围：工作台壳、Conversation、Sources、Navigator、Preview 类别条、Engine / Connection 首选项，以及 `src/vs/sessions/`、`src/vs/workbench/contrib/*` 下的自定义视图与卡片。上游组件（Monaco 编辑器、设置编辑器、扩展视图等）只在产品主题与 token 层对齐，见 §9。  
 > 2026-09-28 按用户选定的方向改写（默认浅色；生成中的 Stop 留在 Inbox 右簇），同日随 PRD-028 由用户签收。
 
@@ -24,6 +24,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 - **两轨密度**：对话区像 ChatGPT 一样好读，但更紧凑（正文 13px、行高 1.5）；工程区（树、表格、Diff、编辑器、轨迹、Sources）按 IDEA 密度。
 - **明确不用**：毛玻璃、营销式卡片栅格、大面积强调色、全大写标签、装饰性大插图、按压缩放。
+- **外部对照**：2026-10-15 对 Cursor、ChatGPT、Claude 的取样见 [外部对话界面密度对照](../../reference/external-chat-ui-density.md)。那一页只记录哪些结构收得进本节的密度上限，2026-10-16 用户签收为只读记录，不改本节，也不改 PRD-028。
 
 ---
 
@@ -38,6 +39,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 - 徽标与标签用弱化文字色，必要时加 10%–14% 淡底，不用实心强调色填充。上游计数徽标（`badge.*`、`activityBarBadge.*` 等）保留实心样式，由产品主题改为中性或低饱和色。
 - 用户回合卡用输入框底色加低对比描边（§3.2），不用强调色。
 - 次按钮、芯片、下拉默认幽灵样式：常态无底无框，悬停出 `toolbar.hoverBackground`。例外是分组头上至多一个次按钮，以及筛选芯片的未选态，这两处可以是低对比描边（§5.6、§5.7，2026-10-11 用户选定）。它们不是无数据的状态芯片（反模式 9）。
+- 行内与工具栏操作优先用幽灵图标钮：一个动作一个图标，可见文字留在 tooltip 与 aria 名称上（§5.6，2026-10-19）。
 - `color-mix` 只用来从已有 token 派生透明度层级；禁止写死 hex。
 
 ### 原则二：以排版分层，不以框分层
@@ -154,7 +156,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 - **用户回合**：Cursor 式卡片（2026-10-11 用户选定）。占满阅读列宽、文字左对齐，外观像输入框（`cornerRadius.large`、输入框底色、低对比描边、无阴影）；长文按现有规则折叠。点卡进入现有回合编辑（[composer-and-inbox](../../systems/conversation/composer-and-inbox.md) `turnEdit`），发送中的乐观行不可点。阅读列顶部的置顶提示（[lens-and-trajectory](../../systems/conversation/lens-and-trajectory.md)，时间线重构 D3）与卡片同一观感，判定与交互不变。不显示 "YOU" 标签。
 - **助手回合**：不放头像，不显示 "AGENT" 标签，正文直接起排。多代理会话需要区分来源时，在回合首行用 11px 弱化字显示代理名。
 - **读屏**：回合角色的读屏名称由 `getConversationTurnAriaLabel` 提供（[lens-and-trajectory §1](../../systems/conversation/lens-and-trajectory.md)），去掉可见标签不影响 PRD-018。
-- **过程折**（PRD-013）：摘要是一行弱化文字（chevron 加摘要）；展开后每个思考 / 工具步骤占一行：图标、动作、目标，有数据时再加元信息（增删行数、耗时）。不画卡片框。
+- **过程折**（PRD-013）：摘要是一行弱化文字（chevron 加摘要）；展开后每个思考 / 工具步骤占一行：图标、动作、目标，有数据时再加元信息（增删行数、耗时）。普通步骤不画卡片框，字重与说明文字同级。只有 `file_edit` 升级成无投影的发丝线圆角卡（`cornerRadius.large`）。增删数字是这一行里唯一的彩色，分别用 `chat.linesAddedForeground` / `chat.linesRemovedForeground`。阻塞或错误用发丝线描边，不用红色铺底；红色只留在错误标题上。
 - **权限 / 提问座位**（PRD-004）：`cornerRadius.medium` 淡底卡片，无阴影；标题一行、按钮一行，主按钮唯一；有键位时在按钮旁显示快捷键提示。
 - **代码块与 Diff 块**：`cornerRadius.medium`，紧凑头部（语言或文件名加操作，11–12px）。
 - **回合操作**：复制、重试等在悬停或焦点时出现，不常驻。
@@ -194,7 +196,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 - 主按钮：中性近黑实心（`button.background`），一个视图内至多一个。
 - 次按钮：小号描边按钮（低对比描边、无底），如 `+ New`。
 - 文本按钮：无底无框，如「再显示 N 个」「+ 添加属性」。
-- 行内与工具栏操作：幽灵图标钮（原则一），常见的是行尾 `…`。
+- 行内与工具栏操作：优先幽灵图标钮（原则一）。图标 16px，命中区 22–24px 方形；常态无底无框，悬停与按压只用 `toolbar.hoverBackground` / `toolbar.activeBackground`。每个钮有 tooltip 和 aria 名称。行尾操作在悬停或焦点时出现，未出现时不接收点击。输入对话框的字段有可见名称，校验留在对话框里。动作能排开时一动作一图标；一行放不下时才收成行尾 `…`。确认框和输入对话框的按钮保留文字。Engine Preferences 的 Triggers、Providers、Models、Skills、Agents、MCP、Plugins、Clipboard、Context Variables 工具栏按此绘制。Providers、Models、Skills、Agents、MCP 的新建和编辑用输入对话框。正文保存、页签和状态按钮保留文字。图标见 [engine-catalog](../../systems/workbench/engine-catalog.md)。
 
 ### 5.7 搜索与筛选条
 
@@ -272,5 +274,6 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 ## 11. 相关文档
 
 - 需求：[PRD-028](../../product/requirements.md#prd-028-视觉语言与信息密度) · [产品愿景](../../product/vision.md)
+- 外部对照：[对话界面密度](../../reference/external-chat-ui-density.md)（2026-10-15 取样，2026-10-16 用户签收；不改本节）
 - [主题与 token](theming.md)
 - [Conversation 透镜与轨迹](../../systems/conversation/lens-and-trajectory.md) · [Composer 与 Inbox](../../systems/conversation/composer-and-inbox.md) · [EditorPart 与 Preview 类别](../../systems/workbench/editor-part-tabs.md)

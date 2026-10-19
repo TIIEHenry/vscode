@@ -438,13 +438,89 @@
 
 .monaco-workbench .engine-catalog-status-actions,
 .monaco-workbench .engine-agents-editor-toolbar,
-.monaco-workbench .engine-triggers-actions,
 .monaco-workbench .engine-clipboard-actions,
 .monaco-workbench .engine-context-variable-actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 	margin-top: 8px;
+}
+
+/* Ghost icon buttons. Labels stay on the tooltip and aria name. */
+.monaco-workbench .engine-triggers-actions,
+.monaco-workbench .engine-catalog-icon-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--vscode-spacing-size20, 2px);
+}
+
+.monaco-workbench .engine-triggers-actions {
+	margin-top: var(--vscode-spacing-size80, 8px);
+}
+
+.monaco-workbench .engine-triggers-actions .monaco-button,
+.monaco-workbench .engine-catalog-icon-actions .monaco-button {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 22px;
+	height: 22px;
+	min-width: 22px;
+	padding: 0;
+	margin: 0;
+	border: none;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background-color: transparent;
+	color: var(--vscode-descriptionForeground);
+	box-shadow: none;
+	font-size: var(--vscode-codiconFontSize, 16px);
+	line-height: 16px;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.monaco-workbench .engine-triggers-actions .monaco-button:hover:not(.disabled),
+.monaco-workbench .engine-catalog-icon-actions .monaco-button:hover:not(.disabled) {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .engine-triggers-actions .monaco-button:active:not(.disabled),
+.monaco-workbench .engine-catalog-icon-actions .monaco-button:active:not(.disabled) {
+	background-color: var(--vscode-toolbar-activeBackground);
+	filter: none;
+}
+
+.monaco-workbench .engine-triggers-actions .monaco-button:focus-visible,
+.monaco-workbench .engine-catalog-icon-actions .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: 1px;
+}
+
+.monaco-workbench .engine-triggers-actions .monaco-button.disabled,
+.monaco-workbench .engine-catalog-icon-actions .monaco-button.disabled {
+	background-color: transparent;
+	cursor: default;
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .engine-triggers-actions .monaco-button,
+:is(.hc-black, .hc-light) .monaco-workbench .engine-catalog-icon-actions .monaco-button {
+	border: 1px solid var(--vscode-contrastBorder);
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .engine-triggers-actions .monaco-button:focus-visible,
+:is(.hc-black, .hc-light) .monaco-workbench .engine-catalog-icon-actions .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder);
+}
+
+.monaco-workbench.monaco-reduce-motion .engine-triggers-actions .monaco-button,
+.monaco-workbench.monaco-reduce-motion .engine-catalog-icon-actions .monaco-button,
+.monaco-workbench.monaco-reduce-motion .engine-catalog-row-actions {
+	transition: none;
 }
 
 /* Every per-action result line reads the same, whichever section raised it. */
@@ -601,6 +677,83 @@
 .monaco-workbench .engine-models-row--disabled,
 .monaco-workbench .engine-provider-status-row--disabled {
 	opacity: 0.55;
+}
+
+.monaco-workbench .engine-providers-section .engine-catalog-row,
+.monaco-workbench .engine-models-section .engine-catalog-row {
+	align-items: center;
+}
+
+.monaco-workbench .engine-providers-section .engine-catalog-text,
+.monaco-workbench .engine-models-section .engine-catalog-text {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.monaco-workbench .engine-provider-catalog {
+	margin-top: 12px;
+}
+
+.monaco-workbench .engine-provider-catalog-filter {
+	box-sizing: border-box;
+	width: 100%;
+	margin: 0 0 8px;
+	padding: 4px 8px;
+	color: var(--vscode-input-foreground);
+	background: var(--vscode-input-background);
+	border: 1px solid var(--vscode-input-border, transparent);
+	font: inherit;
+}
+
+.monaco-workbench .engine-provider-catalog-filter:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+.monaco-workbench .engine-provider-catalog-heading {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.monaco-workbench .engine-provider-cloud-status {
+	margin: 0 8px 8px;
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label1);
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .engine-catalog-action-message {
+	margin: 4px 0 8px;
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label1);
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
+.monaco-workbench .engine-catalog-action-message--error {
+	color: var(--vscode-errorForeground);
+}
+
+.monaco-workbench .engine-catalog-scope-note {
+	margin: 0 0 8px;
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label1);
+	overflow-wrap: anywhere;
+}
+
+.monaco-workbench .engine-catalog-row-actions.engine-catalog-icon-actions {
+	margin-left: auto;
+	flex: 0 0 auto;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.1s ease;
+}
+
+.monaco-workbench .engine-catalog-row:hover > .engine-catalog-row-actions,
+.monaco-workbench .engine-catalog-row:focus-within > .engine-catalog-row-actions {
+	opacity: 1;
+	pointer-events: auto;
 }
 
 .monaco-workbench .engine-rules-scopes,
@@ -856,6 +1009,44 @@
 	padding-top: 0;
 	padding-bottom: 0;
 	line-height: 24px;
+}
+
+/* List rows set line-height to the row height. A 48px line box drops the name
+   under the floated checkbox and leaves a blank band that looks like an empty tool. */
+.monaco-workbench .engine-tools-section .engine-catalog-row {
+	align-items: center;
+	box-sizing: border-box;
+	height: 100%;
+	line-height: 18px;
+}
+
+.monaco-workbench .engine-tools-section .engine-catalog-text {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.monaco-workbench .engine-tools-section .engine-catalog-row .monaco-custom-toggle {
+	flex: 0 0 auto;
+	float: none;
+	margin: 0;
+}
+
+.monaco-workbench .engine-tools-section .monaco-list-row .engine-catalog-name,
+.monaco-workbench .engine-tools-section .monaco-list-row .engine-catalog-description {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	line-height: 18px;
+}
+
+.monaco-workbench .engine-tools-section .engine-catalog-group-label {
+	display: flex;
+	align-items: center;
+	box-sizing: border-box;
+	height: 100%;
+	padding-top: 0;
+	padding-bottom: 0;
+	line-height: 20px;
 }
 
 .monaco-workbench .engine-agents-section .engine-catalog-text {

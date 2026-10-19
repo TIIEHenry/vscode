@@ -3,8 +3,8 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-10-11
-summary: "PRD-001–028：PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案已写、仍 accepted；对话框与引导页遮罩不再模糊，PRD 仍 accepted；2026-10-11 用户选定 Cursor 式用户回合卡与 Composer，向 Cursor 靠齐的方案仍 draft，S1–S4 已落地）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，代码仍是单组过滤）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
+updated: 2026-10-20
+summary: "PRD-001–029：PRD-029 会话工作根与 Workbench 状态跟随会话（2026-10-11 新增，proposed，方案 draft）；PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案已写、仍 accepted；对话框与引导页遮罩不再模糊，PRD 仍 accepted；2026-10-11 用户选定 Cursor 式用户回合卡与 Composer，向 Cursor 靠齐的方案仍 draft，S1–S4 已落地）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，P2 组归属与显隐 2026-10-05 已落，P3 未做）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
 # Agent IDE 产品需求
@@ -312,7 +312,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   4. 引擎不提供 Agent 树或 Team 能力时，对应段写「当前引擎不提供 …」，不用空列表冒充「没有 agent / 没有团队」；当前会话只有根 Agent 时写「只有根 Agent」而不是「no agents」。
   5. 引擎断开后三段保留断开前内容并标明「显示为断开前快照」；不写「已同步」。
   6. 三段与 Inspect Panel 里没有任何会改变引擎状态的按钮。
-- **依赖或未决**：活数据依赖 PRD-008。方案见 [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（N1–N4 已在 HEAD；N5 隔离 profile 冒烟未做，故本条不升 `implemented`）。G-NAV-1 仍缺：`SessionSummary` 没有 `work_dir`，分组只用连接级 `workDir`。G-NAV-2 仍缺：引擎没有 `ListTeams`；`liveTeamId` 为空时节标题不写团队状态。Agent 树只读会话视图；成员与任务经 `MemberStatus` / `TaskList` / `TeamInfo` 取得（导航区不直接碰协议）。根 Agent 对应对话窗口的根 tab；非根子代理 / 成员的对话 id 逐字等于引擎 `agent_id`。指挥类操作（Kill / StartMember / MessageMember / TaskUpdate）不在本条，需另立需求与权限座位设计。
+- **依赖或未决**：活数据依赖 PRD-008。方案见 [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（N1–N4 已在 HEAD；N5 隔离 profile 冒烟未做，故本条不升 `implemented`）。G-NAV-1 已接：roster 盖 `SessionSummary.workDir`，Projects 按会话 `workDir` 分组，缺则退连接级 `workDir`。G-NAV-2 已接：`liveTeamId` 为空时经 `listTeams(sessionId)` 取标题，冷启动仍可能无标题（引擎不落盘）。Agent 树只读会话视图；成员与任务经 `MemberStatus` / `TaskList` / `TeamInfo` 取得（导航区不直接碰协议）。根 Agent 对应对话窗口的根 tab；非根子代理 / 成员的对话 id 逐字等于引擎 `agent_id`。指挥类操作（Kill / StartMember / MessageMember / TaskUpdate）不在本条，需另立需求与权限座位设计。
 
 ### PRD-023 Sources Review 审阅进度与归因
 
@@ -348,7 +348,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
 
 - **状态**：`accepted`
 - **用户价值**：用户在一个 Engine 设置页里完成运行时与 catalog 配置，不需要在 Copilot、文件工具和多个零散页面之间寻找。
-- **用户可观察陈述**：Engine 页以 vscode Preferences 的同一套视觉呈现 Overview、Providers、Models、Skills、Agents、Rules、Hooks、Triggers、Clipboard、Context Variables、MCP Servers、Plugins、Tools。Providers 是凭据状态，Models 是模型注册表，两节分开。每节都有加载、空、不可用、失败、可用状态。MCP 定义与运行态在同一节分 tab；Plugins 指 Engine plugin，不是 vscode Extension。
+- **用户可观察陈述**：Engine 页以 vscode Preferences 的同一套视觉呈现 15 节，顺序是 Overview、Providers、Models、Token Usage、Skills、Agents、Rules、Memory、Hooks、Triggers、Clipboard、Context Variables、MCP Servers、Plugins、Tools。Providers 是凭据，Models 是模型注册表，两节分开。桌面已连接且引擎提供写接口时，Providers 可以添加、编辑、清除凭据，并从本机 CC Switch 与各 harness 导入；Models 可以添加、启用、停用、删除，并测试连通。Models 的添加和编辑在 level 之后还有 Description、Cost、Speed：编辑留空重发已存值（没有则空串），非空会去掉首尾空白，新建留空发空串；level 留空仍发 0。没有 temperature、maxTokens、topP、lanes 或 discovery。Providers 同时列出 Singularity 的内置预设；桌面再列出 models.dev 云端目录。选中一条打开同一个凭据对话框，并预填 id、protocol 和 base URL。网页只显示内置预设。Token Usage 无参调用 `getGlobalUsage()`，显示 Input tokens、Output tokens、Thinking tokens、Cache read tokens、Cache write tokens、Request count、Total cost (micros)、Currency。micros 原样显示，没有 24h/7d。Refresh 是幽灵图标。缺方法是不可用，不是零快照。`getSessionUsage` 与 Agent.Usage 不是这一页。Rules 在桌面可以添加、编辑和删除：标题必填，正文可空，优先级是 0–3 的整数（编辑留空保留当前值，新建留空发 0），Enabled 复选框（新建默认勾选；没有复选框结果则发 false）。编辑保留 id、globs、appliesTo 和 scope。Global 是 2，Project 是 1，sessionId 是空串。请求不带 work_dir 或 agent_home。删除先确认。网页不实现这两条写方法。Hooks 仍是只读列表，没有 hook 定义写。Memory 的 scope 始终是 `global`。列表的 category 为空表示全部；搜索使用 query、空 keywords 和 limit 50。保存时 content 必填，category 可空。删除先确认。没有 memory-enabled 开关。Add、Refresh 和行 Delete 是幽灵图标。searchDeep、read、reflect、rebuild、revert、history 不在这一页。MCP 的添加和编辑仍是同一个输入对话框，并增加 Arguments（一行一个）和 Environment（一行 KEY=VALUE）。编辑时这两项留空保留选中值；新建留空则省略这些键，也不设 enabled。没有 `=` 或 key 为空时提示 “Environment lines must be KEY=VALUE.” 且不发 RPC。只改参数会发送。stdio 编辑只改 URL 仍忽略。字段没有变化不调用 update。没有 enabled 文本框。Plugins 在选中项 status 为 `active` 时，同一个幽灵按钮是 Disable（`Codicon.debugPause`，读屏 “Disable {name}”），调用 `enablePlugin(id, false)`，成功文案是 “Disabled.”。status 为 disabled、error 或 unknown 时仍是 Enable，调用 `enablePlugin(id, true)`。Scan、reload、unload 不变。Triggers 的 Add 与 Edit 只在既有写入门通过后打开输入对话框，字段是 Name、Type（都必填）、Prompt、Interval (ms)、Cron、Target、Enabled。scope 与 scopeId 保持空串。新建发空 triggerId，空的 prompt 和 cron 发空串，空的 interval 发 0，空的 target 是 `{ kind: 'unspecified' }`，pauseReason 为空串，runAtEpochMs 为 0。编辑时这些项留空则保留选中触发器上的值。Target 只接受 `self`、`bound:<sessionId>`、`new:<profileId>`；其他非空不发 RPC。没有选中项的编辑不发。Enabled 取复选框结果，缺了则 false。Fire、Enable、Disable、Delete 不变。Clipboard 的 Write 打开对话框要 Label 和 Content。Content 为空不发 RPC。Label 可空并发空串。请求仍只是文本：sessionId 与 agentId 为空串，type 为 CLIPBOARD_TEXT，filePath 与 url 为空串。Read 和 Clear 仍立即执行。这些工具栏和行尾操作是幽灵图标钮，名称在 tooltip 和 aria-label 上。确认框和输入对话框的按钮保留文字。正文保存、页签和状态按钮保留文字。密钥不回显，也不写入 `settings.json` 或渲染进程。网页没有凭据写控件，也没有 Rules 写控件。会话里选哪个模型仍在 Composer。每节都有加载、空、不可用、失败、可用状态。MCP 定义与运行态在同一节分 tab；Plugins 指 Engine plugin，不是 vscode Extension。仍不是 Engine 页的有：model groups、prompts / input templates、environment variables、Galaxy、Gateway、Engine storage、skill store、provider 启用开关、provider 连接测试、model discovery、openai-responses chips、hook 定义写，以及新的 `ua.client.*` 键。设备仍在 Connection。
 - **产品验收标准**：
   1. 各节都可从页内导航到达，窄宽度切成可返回的单栏，不使用 Material 卡网或 Copilot marketing。
   2. 无 Engine 时整页诚实空（零条目、零写按钮；各节导航仍可达，不整节隐藏）；能力 `UNSUPPORTED`、探测中、传输失败、真空列表四种状态文案互不冒充。
@@ -356,7 +356,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   4. Rules 不把 Copilot instructions 当 UA 权威；Hooks 无 metadata RPC 时不抄静态点位；Plugins 无 marketplace。
   5. MCP Definitions 与 Runtime 共用 Engine server id，但不读取 vscode `IMcpService` 作为 UA 运行态。
   6. Skills / Agents / Tools 已有编辑状态迁入新宿主后不丢选择、未保存内容或能力门控。
-- **依赖或未决**：UI 不等待所有 RPC；缺能力先交付完整 unsupported/failed 状态，真实数据接线后只替换数据源。实施见 [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted` @2026-09-02）。**引擎面核对（2026-09-02，[protocol-surface §1b](../reference/universe-agent/engine-protocol-surface.md)）**：Model 组数据源是 `ConfigService.ListModels` 只读注册表（无「上下文上限 / 能力标签」，无写 RPC）；会话级 `SwitchModel` / 模型策略属 Composer，不在本条；Provider 凭据、Instructions Rules、Hook 点位的引擎 RPC 已合，本仓 connection 只读列表已接（G-ENG-1/2/3），**不**画凭据/规则写表单；无 hook 时这三节仍以 unsupported 完整态满足；MCP 运行态与 Plugins 的 IDE 绑定由 M7 P 槽提供。测试失败进入非阻塞验证债，但没有用户可观察证据不得升 `implemented`。
+- **依赖或未决**：UI 不等待所有 RPC；缺能力先交付完整 unsupported/failed 状态，真实数据接线后只替换数据源。实施见 [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted` @2026-09-02）。**引擎面核对（2026-10-19，[protocol-surface §1b](../reference/universe-agent/engine-protocol-surface.md) 与 [engine-catalog](../systems/workbench/engine-catalog.md)）**：Models 仍没有「上下文上限 / 能力标签」。会话级 `SwitchModel` 属 Composer，不在本条。桌面 Providers 走 `UpsertProviderCredentials` / `ClearProviderCredentials`，并可从本地 harness 导入；内置预设在本地，桌面云端目录走 `listProviderPresetCatalog?`（models.dev，不是引擎 RPC）。桌面 Models 走 `UpsertModel` / `DeleteModel` / `SetModelEnabled`，Test 走已有 `TestModelProfile`。密钥不回显、不进 `settings.json`。网页不实现这些写方法。Rules 的 Upsert/Delete 已进桌面 connection（G-ENG-2），网页不实现；Hooks 仍只读（G-ENG-3）。无 hook 时 Hooks 仍以 unsupported 完整态满足。没有用户可观察的产品验证，本条保持 `accepted`。
 
 ### PRD-026 Client 设置完整性
 
@@ -415,7 +415,26 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   9. 参考 Cursor / ChatGPT / IDEA 的设计语言，不复制其商标、图标与像素级外观（见下方排除项）。
   10. 菜单、下拉、快速选择与产品自有弹出层观感一致：同一档圆角、细边、淡投影；高亮行是中性灰底，当前值用对勾标出，不用实心强调色整行填充。（2026-10-11 用户增补）
   11. 面板里的错误态只出现一次：一个状态图标，一行用户读得懂的说明和下一步操作；原始错误码、路径等细节放进提示或可展开的详情，说明文字不用整段语义色。会话不可用时用现有连接状态说明原因，原始信息进详情。PRD-015 要求留在输入行的 Permission、Model、Tools 保持禁用和现有诚实空文案，不省略。（2026-10-11 用户增补，同日审查收窄）
-- **依赖或未决**：视觉规格、token 与密度尺寸见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)；产品默认主题的落地方式见 [主题与 token](../architecture/cross-cutting/theming.md)；阅读面这一刀见 [conversation-reading-surface](../../dev/plans/conversation-reading-surface.md)（`accepted`）。**签收（2026-09-28，用户）**：本条 `accepted`，含以下选定——默认浅色；生成中的 Stop 保持在 Inbox 右簇，不与发送钮合并（PRD-015 不变）；验收 3 把 Sessions 列表现有的 44px 双行会话卡改为单行。**2026-10-01**：Sessions roster、轨迹表和 Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写，表头不再全大写、没有底色；来源芯片是淡底。Engine 导航计数是同行弱化数字。**2026-10-05**：验收 5 的对话阅读面不再显示 You / Agent；非 default 助手在首行用 11px 弱化代理名；用户气泡无描边、无投影，焦点是 1px `focusBorder`。轨迹角色列与 Inspector 区段标题不再全大写，状态徽标改为淡底。读屏名仍在文章 `aria-label`。Agents 窗口跟在聊天背景上的追问卡不再毛玻璃、不再投影，输入聚焦只换 `focusBorder`（见 [sessions-chat-composer-glass](../../dev/plans/sessions-chat-composer-glass.md)）。对话框遮罩与引导页遮罩不再 `backdrop-filter`，半透明底色保留（见 [modal-mask-no-glass](../../dev/plans/modal-mask-no-glass.md)，方案仍 `draft`）。图示浮层与子代理浮层不再模糊。Conversation Composer 已参照 Cursor 改成 20px 圆角、淡投影，发送钮是 24px 前景色实心圆；聚焦只加深已有投影、不画蓝色焦点框（2026-10-11 用户选定），底栏左侧设置钮无底（见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)）。**2026-10-11（用户选定）**：用户回合改为 Cursor 式卡片（占满阅读列宽、像输入框；点卡编辑与现有置顶提示的判定、交互不变，只改观感）；Composer 保留 Cursor 式 20px 圆角加极淡投影，进行中会话的空草稿收成一行（空会话仍至少两行）；活动栏保留，只调视觉样式。同日增补：主按钮改中性近黑；弹出层统一观感（验收 10）；错误与会话不可用态的呈现（验收 11）；目录类列表借 Cursor 的分组头、计数、「再显示 N 个」与图标块，但行仍是 24px 单行。实施见 [cursor-visual-alignment](../../dev/plans/cursor-visual-alignment.md)（方案仍 `draft`，S1–S4 已落地）。其余验收未齐，本条不升 `implemented`。本条只约束观感与密度，不改变其他 PRD 的功能验收。
+- **依赖或未决**：视觉规格、token 与密度尺寸见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)；产品默认主题的落地方式见 [主题与 token](../architecture/cross-cutting/theming.md)；阅读面这一刀见 [conversation-reading-surface](../../dev/plans/conversation-reading-surface.md)（`accepted`）。**签收（2026-09-28，用户）**：本条 `accepted`，含以下选定——默认浅色；生成中的 Stop 保持在 Inbox 右簇，不与发送钮合并（PRD-015 不变）；验收 3 把 Sessions 列表现有的 44px 双行会话卡改为单行。**2026-10-01**：Sessions roster、轨迹表和 Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写，表头不再全大写、没有底色；来源芯片是淡底。Engine 导航计数是同行弱化数字。**2026-10-05**：验收 5 的对话阅读面不再显示 You / Agent；非 default 助手在首行用 11px 弱化代理名；用户气泡无描边、无投影，焦点是 1px `focusBorder`。轨迹角色列与 Inspector 区段标题不再全大写，状态徽标改为淡底。读屏名仍在文章 `aria-label`。Agents 窗口跟在聊天背景上的追问卡不再毛玻璃、不再投影，输入聚焦只换 `focusBorder`（见 [sessions-chat-composer-glass](../../dev/plans/sessions-chat-composer-glass.md)）。对话框遮罩与引导页遮罩不再 `backdrop-filter`，半透明底色保留（见 [modal-mask-no-glass](../../dev/plans/modal-mask-no-glass.md)，方案仍 `draft`）。图示浮层与子代理浮层不再模糊。Conversation Composer 已参照 Cursor 改成 20px 圆角、淡投影，发送钮是 24px 前景色实心圆；聚焦只加深已有投影、不画蓝色焦点框（2026-10-11 用户选定），底栏左侧设置钮无底（见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)）。**2026-10-11（用户选定）**：用户回合改为 Cursor 式卡片（占满阅读列宽、像输入框；点卡编辑与现有置顶提示的判定、交互不变，只改观感）；Composer 保留 Cursor 式 20px 圆角加极淡投影，进行中会话的空草稿收成一行（空会话仍至少两行）；活动栏保留，只调视觉样式。同日增补：主按钮改中性近黑；弹出层统一观感（验收 10）；错误与会话不可用态的呈现（验收 11）；目录类列表借 Cursor 的分组头、计数、「再显示 N 个」与图标块，但行仍是 24px 单行。实施见 [cursor-visual-alignment](../../dev/plans/cursor-visual-alignment.md)（方案仍 `draft`，S1–S4 已落地）。其余验收未齐，本条不升 `implemented`。**2026-10-19：** 行内与工具栏操作以幽灵图标钮为先（[UI 设计原则 §5.6](../architecture/cross-cutting/ui-design-principles.md)）。Engine Preferences 的 Triggers、Providers、Models、Skills、Agents、MCP、Plugins、Clipboard、Context Variables 已按此绘制。Skills、Agents、MCP 的新建和编辑用输入对话框。本条只约束观感与密度，不改变其他 PRD 的功能验收。
+
+## 会话工作根与 Workbench 状态（2026-10-11 新增；`proposed`）
+
+### PRD-029 会话工作根与 Workbench 状态跟随会话
+
+- **状态**：`proposed`
+- **用户价值**：换会话时，文件、改动、审阅和打开的编辑器跟着这个会话的项目走，不再被窗口打开的文件夹钉死；换引擎时，不会悄悄漏掉还在等自己处理的会话。
+- **用户可观察陈述**：每个会话属于某个引擎上的一个工作目录：引擎给出了会话自己的工作目录就用它，否则用这个引擎当前的工作目录（与 Navigator Projects 分组一致，见 [PRD-022](#prd-022-navigator-引擎段)）。Sources 的 Files、Changes、Review、归因标签、对话里的「查看更改」、阅读列身份条上的文件夹和分支，都以当前会话的工作目录为根，而不是窗口打开的文件夹。同一引擎、同一工作目录下的会话共用 Preview Code 类别里的编辑器；当前激活哪个编辑器、Sources 停在哪个标签、对话停在哪个透镜，每个会话各自记住。换引擎在当前窗口进行，不开新窗口；本窗口还有等待确认的会话时，断开旧连接前提示一次，用户可以继续。窗口打开的文件夹和窗口标题不随会话改变。
+- **产品验收标准**：
+  1. 两个会话的工作目录不同，切换后 Files 的根、Changes 行能打开的文件、Review 归因与「查看更改」的路径都按当前会话的工作目录解析。只能经引擎读取的目录（不是本窗口的文件夹）仍能列出并只读打开，不画成打不开的行。
+  2. 会话没有自己的工作目录时，退到引擎当前工作目录。
+  3. 切到同一引擎、同一工作目录的另一个会话，Preview 不关也不新开任何编辑器；回到某个会话时，激活它上次激活、且仍开着的编辑器。
+  4. 切到另一个工作目录或另一个引擎的会话，Preview 的 Code 类别换成那个项目上次打开的编辑器；从没打开过就是空的。其他类别不变。未保存的编辑器不丢，仍留在 Preview 里。切回原项目，原来的编辑器和分屏恢复。并排两个会话时，只在两者之间换焦点不换 Preview。
+  5. 在对话里切换子 Agent 不改变 Preview 与 Sources。
+  6. 断连、重连中或配对等待时，Preview 不换、Sources 不清空，仍显示最后一个会话的内容。
+  7. 换引擎前，如果本窗口打开着的会话里有等待确认的，在断开旧连接之前出现一次提示并给出数量，用户可以继续或取消；取消时旧连接不动。没有这类会话、或重连同一个引擎地址时不提示。正在生成没有按会话可读的状态，不计入。
+  8. 窗口打开的文件夹、窗口标题与 VS Code 自带的 Explorer、Search 不因切会话而改变。
+  9. 引擎身份未知时，不同引擎上的同一路径不共用 Preview 编辑器，按会话各自保存。
+- **依赖或未决**：方案见 [session-work-root-and-workbench-scope](../../dev/plans/session-work-root-and-workbench-scope.md)（`draft`）。验收 3、4 的 Preview 换入换出必须与 [PRD-027](#prd-027-preview-类别隔离与-surface-宿主) 的类别隔离同时成立，PRD-027 方案 P3 完成后另写设计再实施。验收 7 只数等待确认：正在生成没有按会话的只读来源。同时连接多个引擎、每个引擎开一个窗口不在本条：引擎连接是全应用一份（见 [published-link-identity](../../dev/plans/published-link-identity.md)），要做须另立 ADR。在其他工作目录新建会话不在本条，需要 `CreateSession` 带工作目录或先建会话再切工作目录，另开方案。参照来源（`source`，不继承正文）：UniverseAgentDesktop `attention-and-action-reachability`（换引擎前提示）、Singularity ADR-243 / ADR-250 / ADR-297（工作目录挂在会话上、Workbench 分项目层与会话层、作用域跟当前会话的引擎）。
 
 ## 明确排除（不是需求）
 

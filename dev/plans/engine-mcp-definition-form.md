@@ -12,6 +12,8 @@ summary: "工具栏 Add 只展开表单，无配置不发 addMcpServer。工具�
 > **触发：** [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) G3、D1。
 > **不推翻：** [engine-catalog](../../docs/systems/workbench/engine-catalog.md) 的 List / Toggle / Remove 与 Runtime tab。不改 `UniverseAgentMcpServerConfig` 的字段。不升 PRD-025。
 > **落地：** `status: implemented`。已于 `05a17c38879`（Slot B）落地合入。
+>
+> **2026-10-19：** 设置页新建已改成 `IDialogService.input`，不在列表下展开内联表单。§2 的内联表单没有按原文实施。点击 Add / Update 打开输入对话框，字段顺序是 name、transport、command、url。判定、无改动不写回、`addServer(config)` 和无参 `updateSelectedServer()` 仍供测试调用，这些与 §2 相同。方案仍 `draft`。
 
 ## 1. 现状
 

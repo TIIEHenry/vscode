@@ -3,7 +3,7 @@ title: "归档索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-01
+updated: 2026-10-16
 summary: "dev/archive 登记表：过时文档只移入不删除；健康检查跳过本目录"
 ---
 
@@ -16,3 +16,5 @@ summary: "dev/archive 登记表：过时文档只移入不删除；健康检查�
 | [status-current-session-slot-catalog-2026-09-05.md](status-current-session-slot-catalog-2026-09-05.md) | `dev/progress/status.md` §Current Session | 2026-09-05 | [status.md](../progress/status.md)（docs-burden S4 当前迭代账） |
 | [status-current-session-2026-09-30.md](status-current-session-2026-09-30.md) | `dev/progress/status.md` §Current Session | 2026-10-01 | [status.md](../progress/status.md)（对齐 `7cf1474419e`） |
 | [status-current-session-2026-10-05.md](status-current-session-2026-10-05.md) | `dev/progress/status.md` §Current Session | 2026-10-06 | [status.md](../progress/status.md)（超过 200 行上限归档） |
+| [status-wave-28-2026-10-13.md](status-wave-28-2026-10-13.md) | `dev/progress/status.md` Wave 28 | 2026-10-13 | [status.md](../progress/status.md)（当前调度留在 200 行内） |
+| [status-wave-29-2026-10-16.md](status-wave-29-2026-10-16.md) | `dev/progress/status.md` Wave 29 | 2026-10-16 | [status.md](../progress/status.md)（当前条目留在 200 行内） |

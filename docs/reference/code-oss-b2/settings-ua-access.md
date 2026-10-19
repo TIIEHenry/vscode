@@ -3,8 +3,8 @@ title: "Settings 接入：UA 设置项如何挂进 vscode Preferences"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-05
-summary: "混合宿主已落；Client 9 键与 Engine E2-1–E2-7 代码完成线已落；PRD-025/026 仍 accepted，待产品验证"
+updated: 2026-10-20
+summary: "混合宿主已落；Client 9 键与 Engine E2-1–E2-7 代码完成线已落；HEAD Engine 左栏 15 节，Rules 桌面可写，Hooks 仍只读；PRD-025/026 仍 accepted，待产品验证"
 ---
 
 # Settings 接入：UA 设置项如何挂进 vscode Preferences
@@ -50,9 +50,9 @@ Desktop：Overlay `OverlayKind.settings`；齿轮在 AppTabBar；StatusBar profi
 |----|-------------|----------|--------|
 | Client | Display / Chat Input / Startup / Keyboard Enter / Notifications / Permissions / Client Tools | `IConfigurationRegistry.registerConfiguration` → `IConfigurationService`；**必须**写入 `tocData` 新产品名分组（只注册不进 TOC 的键不会出现在 UI，只会 leftover 警告）。窗口差异用注册项 `agentsWindow.default` / `.readOnly`（`settingsTreeModels.ts`） | 用户 settings.json |
 | Connection | Profile 列表、host/port/TLS、Test Connection | Settings TOC **链接行**（`SettingsTreeNavigationLinkElement`，`navigationLinks[]` in `tocData`）→ command `workbench.action.openConnectionPreferences` → 关 Client 模态 → `openPreferences({ paneId: 'ua.connection' })`。**禁止**普通 setting key；**禁止** settings 树内非 setting 自定义 renderer | 切片占位 = 内存 UI（`ConnectionPreferencesPane`）；引擎 adapter 后经 UA；本仓无第二套 |
-| Engine | Provider / Model / Skill catalog / Agent Profile / Rules / Hooks / MCP 定义 / 引擎工具 | Settings TOC **链接行** → `openPreferences({ paneId: 'ua.engine' })`。catalog 产品面见 [settings-two-surfaces.md](../../../dev/plans/settings-two-surfaces.md)。**允许进 `IConfigurationRegistry` 的 Engine 键 = 空集 `[]`** | 引擎侧，非第二套会话真相 |
+| Engine | Provider / Model / Token Usage / Skill catalog / Agent Profile / Rules（桌面可写）/ Memory / Hooks（只读点位）/ MCP 定义 / 引擎工具。左栏 15 节 | Settings TOC **链接行** → `openPreferences({ paneId: 'ua.engine' })`。catalog 产品面见 [settings-two-surfaces.md](../../../dev/plans/settings-two-surfaces.md) 与 [engine-catalog](../../systems/workbench/engine-catalog.md)。**允许进 `IConfigurationRegistry` 的 Engine 键 = 空集 `[]`** | 引擎侧，非第二套会话真相。密钥不进 `settings.json` 或渲染进程 |
 
-**HEAD 与 M7：** `registerUaClientSettings()` 已注册九键（均为 `WINDOW`），含 `ua.client.clientTools.showToolInvocationDetails`（过程折全部 tool 行 payload 显隐；不改变 Engine 工具是否可用）。未注册已删键 `advertiseWorkspaceTools` / `showAgentIdentity` / `confirmBeforeExternalOpen` / `openConversation`。CS-6 **代码完成线**已落：`IConfigurationMigrationRegistry` 把非法 `conversationDensity` / `keyboardEnter.behavior` 回默认，并把上述已删键从 settings.json 清掉；七组有真实键后不再渲染 `SettingsTreeEmptyCopyElement`；搜索走 `SettingsEditor2`（description / enum / keywords）。§6 产品验证（重载、草稿不进 Sync、两种 Enter、通知语义、300px 目视）未做，**PRD-026 仍为 `accepted`，不升 `implemented`**。[PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) / [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md) 的 E2-1–E2-7 九节六态 **代码已落**，产品验证未做。
+**HEAD 与 M7：** `registerUaClientSettings()` 已注册九键（均为 `WINDOW`），含 `ua.client.clientTools.showToolInvocationDetails`（过程折全部 tool 行 payload 显隐；不改变 Engine 工具是否可用）。未注册已删键 `advertiseWorkspaceTools` / `showAgentIdentity` / `confirmBeforeExternalOpen` / `openConversation`。CS-6 **代码完成线**已落：`IConfigurationMigrationRegistry` 把非法 `conversationDensity` / `keyboardEnter.behavior` 回默认，并把上述已删键从 settings.json 清掉；七组有真实键后不再渲染 `SettingsTreeEmptyCopyElement`；搜索走 `SettingsEditor2`（description / enum / keywords）。§6 产品验证（重载、草稿不进 Sync、两种 Enter、通知语义、300px 目视）未做，**PRD-026 仍为 `accepted`，不升 `implemented`**。[PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) / [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md) 的 E2-1–E2-7 九节六态 **代码已落**，产品验证未做。HEAD 左栏是 15 节：Token Usage 在 Models 之后，Memory 在 Rules 之后。Rules 桌面可增删改，网页不实现；Hooks 定义写仍无。不新增 `ua.client.*` 键。
 
 **TOC 链接允许族（签收形态 A，钉死）：** HEAD 新增 `SettingsTreeNavigationLinkElement`（`settingsTreeModels.ts` / `SettingNavigationLinkRenderer` in `settingsTree.ts`）——仅 `label` + `commandId`，零内嵌控件。Connection / Engine / Customizations「Open …」三行同族。走 group 级 `ITOCEntry.command` 备选 **须人类回签**。
 
@@ -78,7 +78,7 @@ Client 与 vscode 原生重叠的项 **不要双入口**：
 | 面 | 宿主 | 禁止 |
 |----|------|------|
 | 打开某份 UA markdown / `tools.json` | `AICustomizationManagementEditor`（`aiCustomization.openManagementEditor`，`RequiresModal`） | Settings TOC 再做一份 catalog 列表；默认窗构造 Plugins/Tools widget |
-| Skill/Agent catalog 等产品面 | Preferences **Engine pane**（[engine-catalog §3](../../systems/workbench/engine-catalog.md)：九节两栏 + Skills/Agents/MCP/Tools/Plugins 写路径 @ HEAD） | 把 Copilot Overview 当 Engine 首页；无引擎扫盘 Stub catalog；不得把 Provider 凭据或 Rules/Hooks 列表标成已接 |
+| Skill/Agent catalog 等产品面 | Preferences **Engine pane**（[engine-catalog §3](../../systems/workbench/engine-catalog.md)：15 节两栏。Skills/Agents/MCP/Tools/Plugins 写路径 @ HEAD；桌面 Providers / Models 可写；Providers 另有内置预设，桌面再有 models.dev 云端目录；Rules 桌面可增删改，网页不实现；Token Usage 与 Memory 已是节；Skills、Agents、MCP 的新建和编辑用输入对话框；目录工具栏与行尾是幽灵图标钮） | 把 Copilot Overview 当 Engine 首页；无引擎扫盘 Stub catalog；不得把 Hooks 定义写标成已接。产品验证未做不得标 `implemented` |
 | 跳转 | TOC「Open Customizations…」→ `aiCustomization.openManagementEditor`（C5 已落；**无**第三 Preferences pane） | 复制列表进 Settings 树 |
 
 MCP：vscode 本地 `mcp.json` 可在 donor 当普通文件；引擎 MCP 定义 CRUD 与 Runtime tab 都在 Engine 页 MCP Servers 节。

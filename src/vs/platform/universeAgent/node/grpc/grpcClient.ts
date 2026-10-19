@@ -356,6 +356,11 @@ import type {
 	UniverseAgentClearClipboardRequest,
 	UniverseAgentClearClipboardResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentUpsertModelRequest,
+	UniverseAgentModelEntry,
+	UniverseAgentDeleteModelRequest,
+	UniverseAgentDeleteModelResult,
+	UniverseAgentSetModelEnabledRequest,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
 	UniverseAgentSwitchModelRequest,
@@ -443,6 +448,7 @@ import {
 	mapListLoopSnapshotsResponse,
 	mapListMcpServersResponse,
 	mapListModelsResponse,
+	mapModelEntry,
 	mapListNodesResponse,
 	mapListPendingResponse,
 	mapListPluginsResponse,
@@ -883,6 +889,13 @@ import {
 	encodeUpsertProjectRuleRequest,
 	encodeUpsertProviderCredentialsRequest,
 } from './grpcCatalogUnaryWire.js';
+import {
+	decodeDeleteModelResponse,
+	decodeModelEntryResponse,
+	encodeDeleteModelRequest,
+	encodeSetModelEnabledRequest,
+	encodeUpsertModelRequest,
+} from './grpcModelRegistryWire.js';
 import {
 	decodeClipboardClearResponse,
 	decodeClipboardListResponse,
@@ -3120,6 +3133,36 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeListModelsResponse,
 		);
 		return mapListModelsResponse(await unary(encodeListModelsRequest()));
+	}
+
+	async upsertModel(request: UniverseAgentUpsertModelRequest): Promise<UniverseAgentModelEntry> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.Config.service,
+			UniverseAgentGrpcServices.Config.UpsertModel,
+			decodeModelEntryResponse,
+		);
+		return mapModelEntry(await unary(encodeUpsertModelRequest(request)));
+	}
+
+	async deleteModel(request: UniverseAgentDeleteModelRequest): Promise<UniverseAgentDeleteModelResult> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.Config.service,
+			UniverseAgentGrpcServices.Config.DeleteModel,
+			decodeDeleteModelResponse,
+		);
+		return unary(encodeDeleteModelRequest(request));
+	}
+
+	async setModelEnabled(request: UniverseAgentSetModelEnabledRequest): Promise<UniverseAgentModelEntry> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.Config.service,
+			UniverseAgentGrpcServices.Config.SetModelEnabled,
+			decodeModelEntryResponse,
+		);
+		return mapModelEntry(await unary(encodeSetModelEnabledRequest(request)));
 	}
 
 	async getConfig(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult> {

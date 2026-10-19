@@ -234,6 +234,12 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(host.modelSelectedIndex, 0);
 		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], '');
 		assert.strictEqual(modelSelect.selectedIndex, 0);
+		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), '');
+
+		await loadConnectedComposerCatalogs(host, 1);
+
+		assert.strictEqual(host.modelSelectedIndex, 0);
+		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), '');
 	});
 
 	test('loadConnectedComposerCatalogs prefers the bound session recorded model id over a stale index', async () => {
@@ -274,7 +280,7 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-b');
 	});
 
-	test('loadConnectedComposerCatalogs does not treat index 0 or a placeholder catalog as an applied model', async () => {
+	test('loadConnectedComposerCatalogs defaults to the first enabled model and ignores a stuffed index-0 catalog id', async () => {
 		let listModelsCalls = 0;
 		const { host, modelSelect } = createLoadCatalogHost({
 			listAgentProfiles: async () => ({ profiles: [] }),
@@ -296,16 +302,25 @@ suite('conversationComposerCatalog', () => {
 		host.catalogModelIds = [''];
 		host.modelSelectedIndex = 0;
 		await loadConnectedComposerCatalogs(host, 1);
+		assert.strictEqual(host.modelSelectedIndex, 1);
+		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], 'gpt-test');
+		assert.strictEqual(modelSelect.selectedIndex, 1);
+		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-test');
+
+		host.modelProfileIdBySessionId = new Map([['s1', '']]);
+		await loadConnectedComposerCatalogs(host, 1);
 		assert.strictEqual(host.modelSelectedIndex, 0);
-		assert.strictEqual(modelSelect.selectedIndex, 0);
+		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), '');
 
 		host.catalogModelIds = ['gpt-stuffed'];
 		host.modelSelectedIndex = 0;
 		host.modelProfileIdBySessionId = new Map();
 		await loadConnectedComposerCatalogs(host, 1);
-		assert.strictEqual(host.modelSelectedIndex, 0);
-		assert.strictEqual(modelSelect.selectedIndex, 0);
-		assert.notStrictEqual(host.catalogModelIds[0], 'gpt-stuffed');
+		assert.strictEqual(host.modelSelectedIndex, 1);
+		assert.strictEqual(host.catalogModelIds[0], '');
+		assert.strictEqual(host.catalogModelIds[1], 'gpt-stuffed');
+		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-stuffed');
+		assert.strictEqual(modelSelect.selectedIndex, 1);
 	});
 
 	test('refreshComposerCatalogs pre-clear does not win when SUPPORTED list throws after live catalog', async () => {

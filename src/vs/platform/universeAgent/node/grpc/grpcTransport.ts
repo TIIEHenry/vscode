@@ -341,6 +341,11 @@ import type {
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentUpsertModelRequest,
+	UniverseAgentModelEntry,
+	UniverseAgentDeleteModelRequest,
+	UniverseAgentDeleteModelResult,
+	UniverseAgentSetModelEnabledRequest,
 	UniverseAgentGetConfigRequest,
 	UniverseAgentGetConfigResult,
 	UniverseAgentSwitchModelRequest,
@@ -453,6 +458,11 @@ export interface IUniverseAgentGrpcTransport {
 
 	close(): void;
 
+	/**
+	 * Status-only unary. The default body is empty proto3.
+	 * Pass `request` when an empty message is not a legal call
+	 * (`ProjectRuleService.List` rejects an unspecified scope).
+	 */
 	probeRpc(service: string, method: string, request?: Uint8Array): Promise<number>;
 
 	listSessions(request: UniverseAgentListSessionsRequest): Promise<UniverseAgentListSessionsResult>;
@@ -935,6 +945,15 @@ export interface IUniverseAgentGrpcTransport {
 	/** ConfigService.ListModels — always `include_disabled=true`. */
 	listModels(): Promise<UniverseAgentListModelsResult>;
 
+	/** ConfigService.UpsertModel. */
+	upsertModel(request: UniverseAgentUpsertModelRequest): Promise<UniverseAgentModelEntry>;
+
+	/** ConfigService.DeleteModel. */
+	deleteModel(request: UniverseAgentDeleteModelRequest): Promise<UniverseAgentDeleteModelResult>;
+
+	/** ConfigService.SetModelEnabled. */
+	setModelEnabled(request: UniverseAgentSetModelEnabledRequest): Promise<UniverseAgentModelEntry>;
+
 	/** ConfigService.Get unary (snake_case `key`/`scope`/`session_id`). Empty ids sent as-is. */
 	getConfig(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult>;
 
@@ -1132,6 +1151,9 @@ export const UniverseAgentGrpcServices = {
 		SetPermissionPolicy: 'SetPermissionPolicy',
 		GetModelPreferences: 'GetModelPreferences',
 		ListModels: 'ListModels',
+		UpsertModel: 'UpsertModel',
+		DeleteModel: 'DeleteModel',
+		SetModelEnabled: 'SetModelEnabled',
 		Set: 'Set',
 		SwitchModel: 'SwitchModel',
 		SetModelPreferences: 'SetModelPreferences',

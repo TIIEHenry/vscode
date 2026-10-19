@@ -147,6 +147,7 @@ suite('ConversationProcessFoldToolDetails', () => {
 		const diffStats = row.querySelector('.conversation-process-fold-tool-diff-stats');
 		assert.ok(diffStats);
 		assert.strictEqual(diffStats.textContent, '+3 \u22121');
+		assert.ok(row.classList.contains('conversation-process-fold-tool--file'));
 		assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-add')?.textContent, '+3');
 		assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-del')?.textContent, '\u22121');
 

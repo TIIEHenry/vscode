@@ -17,6 +17,8 @@ import type {
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { EngineSkillsSection } from '../../browser/engineSkillsSection.js';
@@ -2222,6 +2224,32 @@ suite('EngineSkillsSection (E1)', () => {
 		}
 	});
 
+	test('New skill opens an input dialog and does not save without a name', async () => {
+		let saves = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({ skills: [] }),
+			saveSkillContent: async () => {
+				saves++;
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		const button = section.getDomNode().querySelector('[aria-label="New skill"]') as HTMLElement | null;
+		assert.ok(button);
+		assert.strictEqual(button.textContent, '');
+		assert.ok(button.classList.contains('codicon-add'));
+		button.click();
+		await flushMicrotasks();
+		assert.strictEqual(saves, 0);
+		const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+		assert.ok(writeStatus.textContent?.includes('Skill name is required.'));
+		section.getDomNode().parentElement?.remove();
+	});
+
 	test('does not leak unhandled rejection when createSkill catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
 		// createSkill() already catches saveSkillContent throw; a lone inner reject does not leak.
 		// The void New click still needs `.catch` when the catch-path paint throws.
@@ -2249,7 +2277,14 @@ suite('EngineSkillsSection (E1)', () => {
 					throw new Error('saveSkillContent exploded');
 				},
 			});
-			const section = mountSection(connection);
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			instantiationService.stub(IUniverseAgentConnection, connection);
+			const dialog = instantiationService.get(IDialogService) as TestDialogService;
+			dialog.input = async () => ({ confirmed: true, values: ['paint-skill'] });
+			const section = store.add(instantiationService.createInstance(EngineSkillsSection, parent));
+			section.layout(640, 400);
 			section.setSectionActive(true);
 			await flushMicrotasks();
 			assert.strictEqual(section.getMode(), 'ready');
@@ -2266,8 +2301,7 @@ suite('EngineSkillsSection (E1)', () => {
 					}
 				},
 			});
-			const newButton = Array.from(section.getDomNode().querySelectorAll('.monaco-button'))
-				.find(button => (button.textContent ?? '').includes('New')) as HTMLElement | undefined;
+			const newButton = section.getDomNode().querySelector('[aria-label="New skill"]') as HTMLElement | null;
 			assert.ok(newButton, 'New write button must be painted');
 			newButton.click();
 			await flushMicrotasks();

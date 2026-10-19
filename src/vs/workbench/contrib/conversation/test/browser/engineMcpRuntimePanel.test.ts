@@ -193,6 +193,9 @@ suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 		assert.ok(toolbar);
 		const button = getRefreshButton(panel);
 		assert.ok(button);
+		assert.strictEqual(button.getAttribute('aria-label'), 'Refresh');
+		assert.strictEqual(button.textContent, '');
+		assert.ok(button.classList.contains('codicon-refresh'));
 		if (enabled) {
 			assert.notStrictEqual(toolbar.style.display, 'none');
 			assert.strictEqual(button.classList.contains('disabled'), false);

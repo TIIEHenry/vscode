@@ -297,14 +297,16 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
-	test('disconnected pane keeps thirteen-section navigation with zero catalog rows and zero write buttons', async () => {
+	test('disconnected pane keeps fifteen-section navigation with zero catalog rows and zero write buttons', async () => {
 		const pane = mountPane(false);
 		const container = pane.getDomNode();
 		pane.layout(new Dimension(900, 800));
 		await new Promise(resolve => setTimeout(resolve, 0));
 
 		const navLabels = [...container.querySelectorAll('.engine-preferences-nav-label')].map(el => el.textContent);
-		assert.strictEqual(navLabels.length, 13);
+		assert.strictEqual(navLabels.length, 15);
+		assert.ok(navLabels.includes('Token Usage'));
+		assert.ok(navLabels.includes('Memory'));
 		assert.ok(navLabels.includes('Providers'));
 		assert.ok(navLabels.includes('Models'));
 		assert.ok(!navLabels.includes('Provider & Model'));

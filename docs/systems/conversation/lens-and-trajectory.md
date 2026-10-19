@@ -9,7 +9,7 @@ summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨�
 
 # Conversation 透镜、时间线与轨迹
 
-> 导航：[系统索引](INDEX.md)。需求：[PRD-003](../../product/requirements.md#prd-003-时间线与输入) · [PRD-012](../../product/requirements.md#prd-012-conversation-轨迹透镜) · [PRD-013](../../product/requirements.md#prd-013-conversation-过程折) · [PRD-014](../../product/requirements.md#prd-014-conversation-图示卡visualize)。donor 对照与「为什么不用 ChatWidget」见 [conversation-lens-assembly](../../reference/code-oss-b2/conversation-lens-assembly.md)。视觉规则（对话阅读面、轨迹表）见 [UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md) §5.1 / §5.3，本页只写结构与行为。
+> 导航：[系统索引](INDEX.md)。需求：[PRD-003](../../product/requirements.md#prd-003-时间线与输入) · [PRD-012](../../product/requirements.md#prd-012-conversation-轨迹透镜) · [PRD-013](../../product/requirements.md#prd-013-conversation-过程折) · [PRD-014](../../product/requirements.md#prd-014-conversation-图示卡visualize)。donor 对照与「为什么不用 ChatWidget」见 [conversation-lens-assembly](../../reference/code-oss-b2/conversation-lens-assembly.md)。视觉规则（对话阅读面、轨迹表）见 [UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md) §5.1 / §5.3，本页只写结构与行为。外部密度取样见 [外部对话界面密度对照](../../reference/external-chat-ui-density.md)。
 
 ## 1. 页 chrome 在哪
 

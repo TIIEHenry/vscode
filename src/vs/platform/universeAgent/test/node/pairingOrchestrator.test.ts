@@ -911,6 +911,9 @@ class RecordingMockTransport implements IUniverseAgentGrpcTransport {
 	async listProviderStatus() { return { providers: [] }; }
 	async upsertProviderCredentials() { return { providerId: '', brand: '', protocol: '', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false }; }
 	async clearProviderCredentials() { return { providerId: '', brand: '', protocol: '', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false }; }
+	async upsertModel() { return { id: '', type: '', enabled: false, level: 0, provider: '', modelId: '' }; }
+	async deleteModel() { return { deleted: false }; }
+	async setModelEnabled() { return { id: '', type: '', enabled: false, level: 0, provider: '', modelId: '' }; }
 	async listProjectRules() { return { rules: [] }; }
 	async upsertProjectRule() { return { id: '', title: '', enabled: false, priority: 0 as const, body: '', scope: 0 as const, globs: [], appliesTo: [] }; }
 	async deleteProjectRule() { return { deleted: false }; }

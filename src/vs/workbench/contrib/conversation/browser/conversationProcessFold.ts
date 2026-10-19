@@ -623,6 +623,9 @@ function renderToolRow(
 	if (executing) {
 		row.classList.add('conversation-process-fold-tool--executing');
 	}
+	if (isFileEdit) {
+		row.classList.add('conversation-process-fold-tool--file');
+	}
 	if (turn.toolStatus === 'failed') {
 		row.classList.add('conversation-process-fold-tool--failed');
 	} else if (turn.toolStatus === 'cancelled') {

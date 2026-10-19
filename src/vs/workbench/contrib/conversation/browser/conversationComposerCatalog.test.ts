@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { conversationLensDockNoModel } from './conversationLensDockStrings.js';
-import { composerModelIds, composerModelSelectOptions } from './conversationComposerCatalog.js';
+import { composerEnabledModelIds, composerModelIds, composerModelSelectionIndex, composerModelSelectOptions } from './conversationComposerCatalog.js';
 
 suite('conversationComposerCatalog (unit)', () => {
 
@@ -22,5 +22,19 @@ suite('conversationComposerCatalog (unit)', () => {
 			{ text: conversationLensDockNoModel },
 			{ text: recordedProfileId },
 		]);
+	});
+
+	test('composerModelSelectionIndex defaults to the first enabled model and keeps an explicit empty choice', () => {
+		const models = [
+			{ id: '1', type: 'chat', enabled: false, level: 1, provider: 'p', modelId: 'off' },
+			{ id: '2', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'on' },
+		] as const;
+		const ids = composerModelIds(models);
+		assert.deepStrictEqual(composerEnabledModelIds(models), ['on']);
+		assert.strictEqual(composerModelSelectionIndex(ids, models, '', false), 2);
+		assert.strictEqual(composerModelSelectionIndex(ids, models, '', true), 0);
+		assert.strictEqual(composerModelSelectionIndex(ids, models, 'missing', false), 0);
+		assert.strictEqual(composerModelSelectionIndex(ids, models, 'on', false), 2);
+		assert.strictEqual(ids[0], '');
 	});
 });
