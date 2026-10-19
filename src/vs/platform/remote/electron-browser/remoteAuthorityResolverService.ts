@@ -49,9 +49,19 @@ export class RemoteAuthorityResolverService extends Disposable implements IRemot
 			return existing.result.p;
 		}
 
+		// Share one in-flight or fulfilled canonical URI.
+		// Drop a rejection only while the map still points at this attempt, so the next call asks again.
+		// This call still rejects; it does not start another attempt.
 		const result = new DeferredPromise<URI>();
+		const record = { input: uri, result };
 		this._canonicalURIProvider?.(uri).then((uri) => result.complete(uri), (err) => result.error(err));
-		this._canonicalURIRequests.set(key, { input: uri, result });
+		this._canonicalURIRequests.set(key, record);
+		// Not assigned. Callers still observe this rejection; the next getCanonicalURI asks again.
+		void result.p.catch(() => {
+			if (this._canonicalURIRequests.get(key) === record) {
+				this._canonicalURIRequests.delete(key);
+			}
+		});
 		return result.p;
 	}
 
