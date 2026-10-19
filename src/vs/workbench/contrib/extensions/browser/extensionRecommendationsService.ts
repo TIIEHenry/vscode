@@ -19,6 +19,7 @@ import { FileBasedRecommendations } from './fileBasedRecommendations.js';
 import { KeymapRecommendations } from './keymapRecommendations.js';
 import { LanguageRecommendations } from './languageRecommendations.js';
 import { ExtensionRecommendation } from './extensionRecommendations.js';
+import { shareExtensionRecommendationsActivation } from './extensionRecommendationsActivation.js';
 import { ConfigBasedRecommendations } from './configBasedRecommendations.js';
 import { IExtensionRecommendationNotificationService } from '../../../../platform/extensionRecommendations/common/extensionRecommendations.js';
 import { CancelablePromise, timeout } from '../../../../base/common/async.js';
@@ -45,7 +46,8 @@ export class ExtensionRecommendationsService extends Disposable implements IExte
 	private readonly languageRecommendations: LanguageRecommendations;
 	private readonly remoteRecommendations: RemoteRecommendations;
 
-	public readonly activationPromise: Promise<void>;
+	public activationPromise: Promise<void>;
+	private readonly activationSlot: { promise: Promise<void> | undefined } = { promise: undefined };
 	private sessionSeed: number;
 
 	private _onDidChangeRecommendations = this._register(new Emitter<void>());
@@ -83,8 +85,9 @@ export class ExtensionRecommendationsService extends Disposable implements IExte
 
 		this.sessionSeed = +new Date();
 
-		// Activation
+		// Activation. Share this attempt; a rejection clears the slot only while it still points here.
 		this.activationPromise = this.activate();
+		this.activationPromise = shareExtensionRecommendationsActivation(this.activationSlot, () => this.activationPromise);
 
 		this._register(this.extensionManagementService.onDidInstallExtensions(e => this.onDidInstallExtensions(e)));
 	}
@@ -155,6 +158,9 @@ export class ExtensionRecommendationsService extends Disposable implements IExte
 	}
 
 	async getOtherRecommendations(): Promise<string[]> {
+		if (this.isEnabled()) {
+			this.activationPromise = shareExtensionRecommendationsActivation(this.activationSlot, () => this.activate());
+		}
 		await this.activationPromise;
 		await this.activateProactiveRecommendations();
 
