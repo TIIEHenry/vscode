@@ -23,6 +23,31 @@ import { ITextResourceConfigurationService } from '../../../../editor/common/ser
 import { ICustomEditorLabelService } from '../../editor/common/customEditorLabelService.js';
 
 /**
+ * Shares one in-flight or successful untitled model resolve.
+ * A rejection clears the slot only while it still points at that attempt,
+ * so the next resolve starts again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareUntitledModelResolve(
+	slot: { promise: Promise<void> | undefined },
+	load: () => Promise<void>,
+): Promise<void> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next resolve starts again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
+/**
  * An editor input to be used for untitled text buffers.
  */
 export class UntitledTextEditorInput extends AbstractTextResourceEditorInput implements IEncodingSupport, ILanguageSupport {
@@ -37,7 +62,7 @@ export class UntitledTextEditorInput extends AbstractTextResourceEditorInput imp
 		return DEFAULT_EDITOR_ASSOCIATION.id;
 	}
 
-	private modelResolve: Promise<void> | undefined = undefined;
+	private readonly _modelResolveSlot: { promise: Promise<void> | undefined } = { promise: undefined };
 	private readonly modelDisposables = this._register(new DisposableStore());
 	private cachedUntitledTextEditorModelReference: IReference<IUntitledTextEditorModel> | undefined = undefined;
 
@@ -147,15 +172,10 @@ export class UntitledTextEditorInput extends AbstractTextResourceEditorInput imp
 	}
 
 	override async resolve(): Promise<IUntitledTextEditorModel> {
-		if (!this.modelResolve) {
-			this.modelResolve = (async () => {
-
-				// Acquire a model reference
-				this.cachedUntitledTextEditorModelReference = await this.textModelService.createModelReference(this.resource) as IReference<IUntitledTextEditorModel>;
-			})();
-		}
-
-		await this.modelResolve;
+		await shareUntitledModelResolve(this._modelResolveSlot, async () => {
+			// Acquire a model reference
+			this.cachedUntitledTextEditorModelReference = await this.textModelService.createModelReference(this.resource) as IReference<IUntitledTextEditorModel>;
+		});
 
 		// It is possible that this input was disposed before the model
 		// finished resolving. As such, we need to make sure to dispose
@@ -217,7 +237,7 @@ export class UntitledTextEditorInput extends AbstractTextResourceEditorInput imp
 	override dispose(): void {
 
 		// Model
-		this.modelResolve = undefined;
+		this._modelResolveSlot.promise = undefined;
 
 		// Model reference
 		this.disposeModelReference();
