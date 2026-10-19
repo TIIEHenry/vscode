@@ -21,6 +21,7 @@ import { ByteSize } from '../../files/common/files.js';
 import { IProductService } from '../../product/common/productService.js';
 import { ITelemetryService } from '../../telemetry/common/telemetry.js';
 import { IWorkspace } from '../../workspace/common/workspace.js';
+import { shareWorkspaceStatsPromise } from './workspaceStatsCache.js';
 
 interface ConfigFilePatterns {
 	tag: string;
@@ -37,16 +38,16 @@ export async function collectWorkspaceStats(folder: string, filter: string[], op
 	// Include `unbounded` in the cache key so a bounded (20k-cap) result is never
 	// returned for an unbounded request (which would silently truncate counts).
 	const cacheKey = `${folder}::${filter.join(':')}::${options?.unbounded ? 'unbounded' : 'bounded'}`;
-	if (!options?.skipCache) {
-		const cached = workspaceStatsCache.get(cacheKey);
-		if (cached) {
-			return cached;
-		}
-	} else {
+	if (options?.skipCache) {
 		// Drop any in-flight or stale entry so callers can be sure they get fresh data.
+		// The scan started below is stored again; a success stays cached.
 		workspaceStatsCache.delete(cacheKey);
 	}
 
+	return shareWorkspaceStatsPromise(workspaceStatsCache, cacheKey, () => collectWorkspaceStatsUncached(folder, filter, options));
+}
+
+function collectWorkspaceStatsUncached(folder: string, filter: string[], options?: { unbounded?: boolean }): Promise<WorkspaceStats> {
 	const configFilePatterns: ConfigFilePatterns[] = [
 		{ tag: 'grunt.js', filePattern: /^gruntfile\.js$/i },
 		{ tag: 'gulp.js', filePattern: /^gulpfile\.js$/i },
@@ -173,7 +174,7 @@ export async function collectWorkspaceStats(folder: string, filter: string[], op
 		});
 	}
 
-	const statsPromise = Promises.withAsyncBody<WorkspaceStats>(async (resolve) => {
+	return Promises.withAsyncBody<WorkspaceStats>(async (resolve) => {
 		const token: { count: number; maxReached: boolean; readdirCount: number } = { count: 0, maxReached: false, readdirCount: 0 };
 		const sw = new StopWatch(true);
 		await collect(folder, folder, filter, token);
@@ -188,9 +189,6 @@ export async function collectWorkspaceStats(folder: string, filter: string[], op
 			totalReaddirCount: token.readdirCount
 		});
 	});
-
-	workspaceStatsCache.set(cacheKey, statsPromise);
-	return statsPromise;
 }
 
 function asSortedItems(items: Map<string, number>): WorkspaceStatItem[] {
