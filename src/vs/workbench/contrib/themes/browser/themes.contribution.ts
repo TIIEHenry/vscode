@@ -41,6 +41,7 @@ import { mainWindow } from '../../../../base/browser/window.js';
 import { IPreferencesService } from '../../../services/preferences/common/preferences.js';
 import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
+import { IInstalledExtensionsSlot, loadInstalledExtensions } from './installedExtensions.js';
 
 export const manageExtensionIcon = registerIcon('theme-selection-manage-extension', Codicon.gear, localize('manageExtensionIcon', 'Icon for the \'Manage\' action in the theme selection quick pick.'));
 
@@ -53,7 +54,7 @@ enum ConfigureItem {
 }
 
 class MarketplaceThemesPicker implements IDisposable {
-	private readonly _installedExtensions: Promise<Set<string>>;
+	private readonly _installedExtensionsSlot: IInstalledExtensionsSlot<Set<string>> = { promise: undefined };
 	private readonly _marketplaceExtensions: Set<string> = new Set();
 	private readonly _marketplaceThemes: ThemeItem[] = [];
 
@@ -77,13 +78,17 @@ class MarketplaceThemesPicker implements IDisposable {
 		@IDialogService private readonly dialogService: IDialogService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
-		this._installedExtensions = extensionManagementService.getInstalled().then(installed => {
+		this.ensureInstalledExtensions();
+	}
+
+	private ensureInstalledExtensions(): Promise<Set<string>> {
+		return loadInstalledExtensions(this._installedExtensionsSlot, () => this.extensionManagementService.getInstalled().then(installed => {
 			const result = new Set<string>();
 			for (const ext of installed) {
 				result.add(ext.identifier.id);
 			}
 			return result;
-		});
+		}));
 	}
 
 	public get themes(): ThemeItem[] {
@@ -109,7 +114,7 @@ class MarketplaceThemesPicker implements IDisposable {
 		this._searchOngoing = true;
 		this._onDidChange.fire();
 		try {
-			const installedExtensions = await this._installedExtensions;
+			const installedExtensions = await this.ensureInstalledExtensions();
 
 			const options = { text: `${this.marketplaceQuery} ${value}`, pageSize: 20 };
 			const pager = await this.extensionGalleryService.query(options, token);
