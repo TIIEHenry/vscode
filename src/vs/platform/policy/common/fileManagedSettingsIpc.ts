@@ -57,12 +57,31 @@ export class FileManagedSettingsChannelClient extends Disposable implements IFil
 	private readonly _onDidChangeManagedSettings = this._register(new Emitter<ManagedSettingsData>());
 	readonly onDidChangeManagedSettings = this._onDidChangeManagedSettings.event;
 
-	private readonly initialSnapshot: Promise<void>;
+	private initialSnapshot: Promise<void> | undefined;
 
-	constructor(channel: IChannel) {
+	constructor(private readonly channel: IChannel) {
 		super();
 		this._register(channel.listen<RawManagedSettingsData>('onDidChangeRawManagedSettings')(managedSettings => this.updateRawManagedSettings(managedSettings, true)));
 		this._register(channel.listen<ManagedSettingsData>('onDidChangeManagedSettings')(managedSettings => this.updateManagedSettings(managedSettings, true)));
+		this.initialSnapshot = this.readInitialSnapshot(channel);
+	}
+
+	async initialize(): Promise<ManagedSettingsData> {
+		const initialSnapshot = this.initialSnapshot ?? this.readInitialSnapshot(this.channel);
+		this.initialSnapshot = initialSnapshot;
+		try {
+			await initialSnapshot;
+		} catch (error) {
+			// A late rejection must not drop a snapshot that already replaced this attempt.
+			if (this.initialSnapshot === initialSnapshot) {
+				this.initialSnapshot = undefined;
+			}
+			throw error;
+		}
+		return this._managedSettings;
+	}
+
+	private readInitialSnapshot(channel: IChannel): Promise<void> {
 		const rawSnapshot = channel.call<RawManagedSettingsData>('getRawManagedSettings').then(managedSettings => {
 			if (!this.hasReceivedRawManagedSettings) {
 				this.updateRawManagedSettings(managedSettings, true);
@@ -73,12 +92,7 @@ export class FileManagedSettingsChannelClient extends Disposable implements IFil
 				this.updateManagedSettings(managedSettings, true);
 			}
 		});
-		this.initialSnapshot = Promise.all([rawSnapshot, managedSnapshot]).then(() => undefined);
-	}
-
-	async initialize(): Promise<ManagedSettingsData> {
-		await this.initialSnapshot;
-		return this._managedSettings;
+		return Promise.all([rawSnapshot, managedSnapshot]).then(() => undefined);
 	}
 
 	private updateRawManagedSettings(managedSettings: RawManagedSettingsData, fireEvent: boolean): void {

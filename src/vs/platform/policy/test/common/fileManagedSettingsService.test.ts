@@ -621,6 +621,80 @@ suite('FileManagedSettingsChannelClient', () => {
 			normalized: { [COPILOT_DISABLE_BYPASS_PERMISSIONS_MODE_KEY]: 'disable' },
 		});
 	});
+
+	test('reads again after the initial snapshot rejects', async () => {
+		const channel = new ManualFileManagedSettingsChannel();
+		const client = disposables.add(new FileManagedSettingsChannelClient(channel));
+		const error = new Error('initial file managed-settings read failed');
+		const first = client.initialize();
+
+		channel.rejectOldestRaw(error);
+		channel.resolveOldestManaged({});
+		await assert.rejects(first, (reason: unknown) => reason === error);
+		assert.strictEqual(snapshotSlot(client), undefined);
+
+		const second = client.initialize();
+		assert.notStrictEqual(second, first);
+		const managed = { [COPILOT_DISABLE_BYPASS_PERMISSIONS_MODE_KEY]: 'disable' };
+		channel.resolveOldestRaw({ permissions: { disableBypassPermissionsMode: 'disable' } });
+		channel.resolveOldestManaged(managed);
+
+		assert.deepStrictEqual(await second, managed);
+		assert.strictEqual(channel.rawCallCount, 2);
+		assert.strictEqual(channel.managedCallCount, 2);
+	});
+
+	test('shares one in-flight snapshot across initialize calls', async () => {
+		const channel = new ManualFileManagedSettingsChannel();
+		const client = disposables.add(new FileManagedSettingsChannelClient(channel));
+		const first = client.initialize();
+		const second = client.initialize();
+		const managed = { [COPILOT_DISABLE_BYPASS_PERMISSIONS_MODE_KEY]: 'disable' };
+
+		assert.strictEqual(channel.rawCallCount, 1);
+		assert.strictEqual(channel.managedCallCount, 1);
+		channel.resolveOldestRaw({ permissions: { disableBypassPermissionsMode: 'disable' } });
+		channel.resolveOldestManaged(managed);
+
+		assert.deepStrictEqual(await first, managed);
+		assert.deepStrictEqual(await second, managed);
+		assert.strictEqual(channel.rawCallCount, 1);
+		assert.strictEqual(channel.managedCallCount, 1);
+	});
+
+	test('does not read the channel again after the snapshot succeeds', async () => {
+		const channel = new ManualFileManagedSettingsChannel();
+		const client = disposables.add(new FileManagedSettingsChannelClient(channel));
+		const managed = { [COPILOT_DISABLE_BYPASS_PERMISSIONS_MODE_KEY]: 'disable' };
+
+		channel.resolveOldestRaw({ permissions: { disableBypassPermissionsMode: 'disable' } });
+		channel.resolveOldestManaged(managed);
+		assert.deepStrictEqual(await client.initialize(), managed);
+		assert.deepStrictEqual(await client.initialize(), managed);
+		assert.strictEqual(channel.rawCallCount, 1);
+		assert.strictEqual(channel.managedCallCount, 1);
+	});
+
+	test('a late rejection does not clear a newer successful snapshot', async () => {
+		const channel = new ManualFileManagedSettingsChannel();
+		const client = disposables.add(new FileManagedSettingsChannelClient(channel));
+		const error = new Error('late file managed-settings failure');
+		const managed = { [COPILOT_DISABLE_BYPASS_PERMISSIONS_MODE_KEY]: 'disable' };
+		const first = client.initialize();
+		const replacement = Promise.resolve();
+		setSnapshotSlot(client, replacement);
+		(client as unknown as { updateManagedSettings(managedSettings: ManagedSettingsData, fireEvent: boolean): void }).updateManagedSettings(managed, false);
+
+		channel.rejectOldestRaw(error);
+		channel.resolveOldestManaged({});
+		await assert.rejects(first, (reason: unknown) => reason === error);
+
+		assert.strictEqual(snapshotSlot(client), replacement);
+		const again = client.initialize();
+		assert.strictEqual(channel.rawCallCount, 1);
+		assert.strictEqual(channel.managedCallCount, 1);
+		assert.deepStrictEqual(await again, managed);
+	});
 });
 
 class DeferredManagedSettingsChannel extends Disposable implements IChannel {
@@ -663,5 +737,59 @@ class DeferredManagedSettingsChannel extends Disposable implements IChannel {
 
 	resolveInitialRawSnapshot(managedSettings: RawManagedSettingsData): void {
 		this.resolveInitialRawSnapshotPromise(managedSettings);
+	}
+}
+
+function snapshotSlot(client: FileManagedSettingsChannelClient): Promise<void> | undefined {
+	return (client as unknown as { initialSnapshot: Promise<void> | undefined }).initialSnapshot;
+}
+
+function setSnapshotSlot(client: FileManagedSettingsChannelClient, snapshot: Promise<void> | undefined): void {
+	(client as unknown as { initialSnapshot: Promise<void> | undefined }).initialSnapshot = snapshot;
+}
+
+class ManualFileManagedSettingsChannel implements IChannel {
+	rawCallCount = 0;
+	managedCallCount = 0;
+	private readonly pendingRaw: { resolve: (value: RawManagedSettingsData) => void; reject: (error: Error) => void }[] = [];
+	private readonly pendingManaged: { resolve: (value: ManagedSettingsData) => void; reject: (error: Error) => void }[] = [];
+
+	call<T>(command: string): Promise<T> {
+		switch (command) {
+			case 'getRawManagedSettings':
+				this.rawCallCount++;
+				return new Promise<RawManagedSettingsData>((resolve, reject) => {
+					this.pendingRaw.push({ resolve, reject });
+				}) as Promise<T>;
+			case 'getManagedSettings':
+				this.managedCallCount++;
+				return new Promise<ManagedSettingsData>((resolve, reject) => {
+					this.pendingManaged.push({ resolve, reject });
+				}) as Promise<T>;
+		}
+
+		throw new Error(`Call not found: ${command}`);
+	}
+
+	listen<T>(): Event<T> {
+		return Event.None;
+	}
+
+	rejectOldestRaw(error: Error): void {
+		const pending = this.pendingRaw.shift();
+		assert.ok(pending);
+		pending.reject(error);
+	}
+
+	resolveOldestRaw(managedSettings: RawManagedSettingsData): void {
+		const pending = this.pendingRaw.shift();
+		assert.ok(pending);
+		pending.resolve(managedSettings);
+	}
+
+	resolveOldestManaged(managedSettings: ManagedSettingsData): void {
+		const pending = this.pendingManaged.shift();
+		assert.ok(pending);
+		pending.resolve(managedSettings);
 	}
 }
