@@ -161,12 +161,6 @@ export interface GrpcCapabilityProbeInput {
 	readonly transport: IUniverseAgentGrpcTransport;
 }
 
-const PROJECT_RULE_PROBE_SCOPE_GLOBAL = 2;
-
-export function projectRuleListProbeRequest(): Uint8Array {
-	return encodeListProjectRulesRequest({ scope: PROJECT_RULE_PROBE_SCOPE_GLOBAL, sessionId: '' });
-}
-
 /**
  * Handshake may advertise `FooService.*` as a wildcard for every method on that
  * service. Exact `FooService.Bar` still matches only itself.
