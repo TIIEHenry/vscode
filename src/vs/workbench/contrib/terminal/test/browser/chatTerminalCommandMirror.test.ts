@@ -1183,4 +1183,83 @@ suite('Workbench - ChatTerminalCommandMirror', () => {
 			strictEqual(createCount, 1, 'a successful detached terminal should stay cached');
 		});
 	});
+
+	suite('DetachedTerminalSnapshotMirror detached terminal retry', () => {
+		let instantiationService: TestInstantiationService;
+		let createCount: number;
+		let failCreate: boolean;
+		let holdCreate: Promise<void> | undefined;
+		const createError = new Error('detached terminal unavailable');
+
+		function stubDetached(): IDetachedTerminalInstance {
+			const raw = {
+				options: { reflowCursorLine: false },
+				onRender: () => ({ dispose() { } }),
+			};
+			const detached = {
+				xterm: { raw },
+				attachToElement() { },
+				onData: () => ({ dispose() { } }),
+				dispose() { },
+			};
+			// The mirror only needs the raw surface it touches while attaching.
+			// eslint-disable-next-line local/code-no-dangerous-type-assertions
+			return detached as unknown as IDetachedTerminalInstance;
+		}
+
+		setup(() => {
+			instantiationService = workbenchInstantiationService(undefined, store);
+			createCount = 0;
+			failCreate = false;
+			holdCreate = undefined;
+			instantiationService.stub(ITerminalService, {
+				createDetachedTerminal: async () => {
+					createCount++;
+					if (holdCreate) {
+						await holdCreate;
+					}
+					if (failCreate) {
+						throw createError;
+					}
+					return stubDetached();
+				}
+			} as Partial<ITerminalService>);
+		});
+
+		function createMirror(): DetachedTerminalSnapshotMirror {
+			return store.add(instantiationService.createInstance(DetachedTerminalSnapshotMirror, undefined, () => undefined));
+		}
+
+		test('creates the detached terminal again after the first attempt rejects', async () => {
+			failCreate = true;
+			const mirror = createMirror();
+			const container = document.createElement('div');
+			await rejects(mirror.attach(container), (reason: unknown) => reason === createError);
+			strictEqual(createCount, 1);
+
+			await rejects(mirror.attach(container), (reason: unknown) => reason === createError);
+			strictEqual(createCount, 2, 'the next attach should call createDetachedTerminal again');
+
+			failCreate = false;
+			await mirror.attach(container);
+			strictEqual(createCount, 3);
+			await mirror.attach(container);
+			strictEqual(createCount, 3, 'a successful detached terminal should stay cached');
+		});
+
+		test('shares one in-flight create and does not create again after it succeeds', async () => {
+			let releaseCreate!: () => void;
+			holdCreate = new Promise<void>(resolve => { releaseCreate = resolve; });
+			const mirror = createMirror();
+			const container = document.createElement('div');
+			const first = mirror.attach(container);
+			const second = mirror.attach(container);
+			strictEqual(createCount, 1, 'the constructor and concurrent attaches should share one createDetachedTerminal');
+			releaseCreate();
+			await first;
+			await second;
+			await mirror.attach(container);
+			strictEqual(createCount, 1, 'a successful detached terminal should stay cached');
+		});
+	});
 });

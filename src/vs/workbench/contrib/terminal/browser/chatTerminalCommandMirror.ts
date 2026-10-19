@@ -811,6 +811,7 @@ export class DetachedTerminalCommandMirror extends Disposable implements IDetach
 export class DetachedTerminalSnapshotMirror extends Disposable {
 	private _detachedTerminal: Promise<IDetachedTerminalInstance> | undefined;
 	private _resolvedTerminal: IDetachedTerminalInstance | undefined;
+	private readonly _processInfo = this._register(new DetachedProcessInfo({ initialCwd: '' }));
 	private _attachedContainer: HTMLElement | undefined;
 
 	private _output: IChatTerminalToolInvocationData['terminalCommandOutput'] | undefined;
@@ -834,20 +835,27 @@ export class DetachedTerminalSnapshotMirror extends Disposable {
 	) {
 		super();
 		this._output = output;
-		const processInfo = this._register(new DetachedProcessInfo({ initialCwd: '' }));
-		this._detachedTerminal = this._terminalService.createDetachedTerminal({
-			cols: ChatTerminalMirrorMetrics.MirrorColCountFallback,
-			rows: ChatTerminalMirrorMetrics.MirrorRowCount,
-			readonly: true,
-			processInfo,
-			disableOverviewRuler: true,
-			colorProvider: {
-				getBackgroundColor: theme => {
-					const storedBackground = this._getTheme()?.background;
-					return getChatTerminalBackgroundColor(theme, this._contextKeyService, storedBackground);
+		void this._ensureTerminal();
+	}
+
+	private _ensureTerminal(): Promise<IDetachedTerminalInstance> {
+		if (this._detachedTerminal) {
+			return this._detachedTerminal;
+		}
+		const createPromise = (async () => {
+			const terminal = await this._terminalService.createDetachedTerminal({
+				cols: ChatTerminalMirrorMetrics.MirrorColCountFallback,
+				rows: ChatTerminalMirrorMetrics.MirrorRowCount,
+				readonly: true,
+				processInfo: this._processInfo,
+				disableOverviewRuler: true,
+				colorProvider: {
+					getBackgroundColor: theme => {
+						const storedBackground = this._getTheme()?.background;
+						return getChatTerminalBackgroundColor(theme, this._contextKeyService, storedBackground);
+					}
 				}
-			}
-		}).then(terminal => {
+			});
 			// If the store is already disposed, dispose the terminal immediately
 			if (this._store.isDisposed) {
 				terminal.dispose();
@@ -856,7 +864,15 @@ export class DetachedTerminalSnapshotMirror extends Disposable {
 			enableCursorLineReflow(terminal);
 			this._resolvedTerminal = terminal;
 			return this._register(terminal);
+		})();
+		this._detachedTerminal = createPromise;
+		// Drop only this attempt. Callers still see the rejection. The next call creates the detached terminal again; an in-flight or fulfilled promise stays shared.
+		createPromise.catch(() => {
+			if (this._detachedTerminal === createPromise) {
+				this._detachedTerminal = undefined;
+			}
 		});
+		return createPromise;
 	}
 
 	/**
@@ -871,11 +887,8 @@ export class DetachedTerminalSnapshotMirror extends Disposable {
 		return getMirrorRowHeightPx(this._resolvedTerminal);
 	}
 
-	private async _getTerminal(): Promise<IDetachedTerminalInstance> {
-		if (!this._detachedTerminal) {
-			throw new Error('Detached terminal not initialized');
-		}
-		return this._detachedTerminal;
+	private _getTerminal(): Promise<IDetachedTerminalInstance> {
+		return this._ensureTerminal();
 	}
 
 	public setOutput(output: IChatTerminalToolInvocationData['terminalCommandOutput'] | undefined): void {
