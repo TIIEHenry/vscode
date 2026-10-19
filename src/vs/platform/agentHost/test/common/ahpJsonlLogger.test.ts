@@ -8,7 +8,7 @@ import { basename, dirname, joinPath } from '../../../../base/common/resources.j
 import { URI } from '../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { FileService } from '../../../files/common/fileService.js';
-import { IFileWriteOptions } from '../../../files/common/files.js';
+import { IFileStatWithMetadata, IFileWriteOptions } from '../../../files/common/files.js';
 import { InMemoryFileSystemProvider } from '../../../files/common/inMemoryFilesystemProvider.js';
 import { NullLogService } from '../../../log/common/log.js';
 import { AhpJsonlLogger, getAhpLogByteLength, stringifyAhpLogEntry } from '../../common/ahpJsonlLogger.js';
@@ -206,6 +206,93 @@ suite('AhpJsonlLogger', () => {
 		const content = (await fileService.readFile(logger.resource)).value.toString();
 		const ids = content.split('\n').filter(Boolean).map(line => JSON.parse(line).id);
 		assert.deepStrictEqual(ids, [1, 2, 3, 4]);
+	});
+
+	test('a rejected folder creation is not reused; the next drain creates the folder again', async () => {
+		const fileService = store.add(new FileService(new NullLogService()));
+		store.add(fileService.registerProvider('file', store.add(new InMemoryFileSystemProvider())));
+		const error = new Error('create folder failed');
+		let creates = 0;
+		let rejectFirst: ((reason: unknown) => void) | undefined;
+		const createFolder = fileService.createFolder.bind(fileService);
+		fileService.createFolder = resource => {
+			creates++;
+			if (creates === 1) {
+				return new Promise<IFileStatWithMetadata>((_resolve, reject) => {
+					rejectFirst = reject;
+				});
+			}
+			return createFolder(resource);
+		};
+
+		const logger = store.add(new AhpJsonlLogger(
+			{ logsHome: URI.file('/logs'), connectionId: 'folder-retry', transport: 'websocket' },
+			fileService,
+			new NullLogService(),
+		));
+
+		logger.log({ jsonrpc: '2.0', id: 1, result: 'a' }, 's2c');
+		const first = logger.flush();
+		await Promise.resolve();
+		assert.strictEqual(creates, 1);
+
+		rejectFirst!(error);
+		await first;
+		assert.strictEqual(creates, 1, 'a rejected folder creation must not call createFolder again inside the same drain');
+
+		logger.log({ jsonrpc: '2.0', id: 2, result: 'b' }, 's2c');
+		await logger.flush();
+		assert.strictEqual(creates, 2, 'the next drain must create the folder again');
+		const afterRetry = (await fileService.readFile(logger.resource)).value.toString();
+		assert.ok(afterRetry.split('\n').filter(Boolean).map(line => JSON.parse(line).id).includes(2));
+
+		logger.log({ jsonrpc: '2.0', id: 3, result: 'c' }, 's2c');
+		await logger.flush();
+		assert.strictEqual(creates, 2, 'a fulfilled folder creation stays cached');
+		const afterCached = (await fileService.readFile(logger.resource)).value.toString();
+		const ids = afterCached.split('\n').filter(Boolean).map(line => JSON.parse(line).id);
+		assert.ok(ids.includes(2));
+		assert.ok(ids.includes(3));
+	});
+
+	test('a rejection does not clear a replacement folder creation already stored', async () => {
+		const fileService = store.add(new FileService(new NullLogService()));
+		store.add(fileService.registerProvider('file', store.add(new InMemoryFileSystemProvider())));
+		const error = new Error('late folder creation failure');
+		let creates = 0;
+		let rejectFirst: ((reason: unknown) => void) | undefined;
+		const createFolder = fileService.createFolder.bind(fileService);
+		fileService.createFolder = resource => {
+			creates++;
+			if (creates === 1) {
+				return new Promise<IFileStatWithMetadata>((_resolve, reject) => {
+					rejectFirst = reject;
+				});
+			}
+			return createFolder(resource);
+		};
+
+		const logger = store.add(new AhpJsonlLogger(
+			{ logsHome: URI.file('/logs'), connectionId: 'folder-replacement', transport: 'websocket' },
+			fileService,
+			new NullLogService(),
+		));
+
+		logger.log({ jsonrpc: '2.0', id: 1, result: 'a' }, 's2c');
+		const first = logger.flush();
+		await Promise.resolve();
+		assert.strictEqual(creates, 1);
+
+		const replacement = Promise.resolve();
+		(logger as unknown as { _folderCreated: Promise<void> })._folderCreated = replacement;
+
+		rejectFirst!(error);
+		await first;
+		assert.strictEqual(creates, 1, 'a rejected folder creation must not call createFolder again inside the same drain');
+
+		logger.log({ jsonrpc: '2.0', id: 2, result: 'b' }, 's2c');
+		await logger.flush();
+		assert.strictEqual(creates, 1, 'a rejection must not clear a folder creation that replaced this attempt');
 	});
 
 	test('elides oversized string payloads while keeping the line valid JSONL', async () => {

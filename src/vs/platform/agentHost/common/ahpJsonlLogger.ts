@@ -138,9 +138,18 @@ export class AhpJsonlLogger extends Disposable {
 		const buffers = this._pending;
 		this._pending = [];
 
-		// Create folder once and memoize to avoid repeated filesystem calls
+		// Share one in-flight or fulfilled folder creation.
+		// Drop a rejection only while the field still points at this attempt, so the next drain creates the folder again.
+		// This drain still rejects; it does not start another attempt.
 		if (!this._folderCreated) {
-			this._folderCreated = this._fileService.createFolder(this._directory);
+			const attempt = this._fileService.createFolder(this._directory);
+			this._folderCreated = attempt;
+			// Not assigned. This drain still observes the rejection; the next drain creates the folder again.
+			void attempt.catch(() => {
+				if (this._folderCreated === attempt) {
+					this._folderCreated = undefined;
+				}
+			});
 		}
 		await this._folderCreated;
 		if (this._currentSize === 0) {
