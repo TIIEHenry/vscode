@@ -26,6 +26,7 @@ import { ExtensionHostKind, extensionHostKindToString } from './extensionHostKin
 import { IExtensionHostManager } from './extensionHostManagers.js';
 import { IExtensionDescriptionDelta } from './extensionHostProtocol.js';
 import { IExtensionHostProxy, IResolveAuthorityResult } from './extensionHostProxy.js';
+import { shareExtensionHostActivation } from './extensionHostActivationCache.js';
 import { ExtensionRunningLocation } from './extensionRunningLocation.js';
 import { ActivationKind, ExtensionActivationReason, ExtensionHostStartup, IExtensionHost, IExtensionInspectInfo, IInternalExtensionService } from './extensions.js';
 import { Proxied, ProxyIdentifier } from './proxyIdentifier.js';
@@ -327,10 +328,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 	}
 
 	public activateByEvent(activationEvent: string, activationKind: ActivationKind): Promise<void> {
-		if (!this._cachedActivationEvents.has(activationEvent)) {
-			this._cachedActivationEvents.set(activationEvent, this._activateByEvent(activationEvent, activationKind));
-		}
-		return this._cachedActivationEvents.get(activationEvent)!;
+		return shareExtensionHostActivation(this._cachedActivationEvents, activationEvent, () => this._activateByEvent(activationEvent, activationKind));
 	}
 
 	public activationEventIsDone(activationEvent: string): boolean {
