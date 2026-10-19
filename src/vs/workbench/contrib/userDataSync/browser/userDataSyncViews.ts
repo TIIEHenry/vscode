@@ -344,7 +344,7 @@ interface ProfileTreeItem extends ITreeItem {
 
 // Share one in-flight read. After rejection, drop it only when the slot still
 // holds that promise. Keep a fulfilled read until root refresh clears the slot.
-async function awaitCachedFlight<T>(read: () => Promise<T> | undefined, write: (promise: Promise<T> | undefined) => void, create: () => Promise<T>): Promise<T> {
+export async function awaitCachedFlight<T>(read: () => Promise<T> | undefined, write: (promise: Promise<T> | undefined) => void, create: () => Promise<T>): Promise<T> {
 	let promise = read();
 	if (!promise) {
 		promise = create();
@@ -705,10 +705,11 @@ class UserDataSyncMachinesViewDataProvider implements ITreeViewDataProvider {
 	}
 
 	private getMachines(): Promise<IUserDataSyncMachine[]> {
-		if (this.machinesPromise === undefined) {
-			this.machinesPromise = this.userDataSyncMachinesService.getMachines();
-		}
-		return this.machinesPromise;
+		return awaitCachedFlight(
+			() => this.machinesPromise,
+			promise => { this.machinesPromise = promise; },
+			() => this.userDataSyncMachinesService.getMachines(),
+		);
 	}
 
 	async disable(machineIds: string[]): Promise<boolean> {
