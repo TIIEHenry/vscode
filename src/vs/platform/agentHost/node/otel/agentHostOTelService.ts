@@ -216,6 +216,53 @@ export function normalizeAgentHostOtlpBody(body: Buffer): INormalizedAgentHostOt
 	return { body: Buffer.from(JSON.stringify(payload)), filteredSpanCount };
 }
 
+export interface IAgentHostOTelStartSlot {
+	promise: Promise<void> | undefined;
+}
+
+/**
+ * Share one in-flight loopback OTel pipeline start.
+ * A failure is dropped only while the slot still points at that attempt, so
+ * the next caller starts again. A fulfilled start stays cached.
+ * The returned promise never rejects.
+ */
+export function shareAgentHostOTelStart(
+	slot: IAgentHostOTelStartSlot,
+	start: () => Promise<void>,
+	onFailure: (err: unknown) => void,
+): Promise<void> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	let settle!: () => void;
+	const attempt = new Promise<void>(resolve => {
+		settle = resolve;
+	});
+	// Install before start() can fail so a synchronous rejection still sees this attempt.
+	slot.promise = attempt;
+
+	const fail = (err: unknown) => {
+		try {
+			onFailure(err);
+		} catch {
+			// Callers still fall through. The attempt is dropped below.
+		}
+		// Drop only this failed attempt. An in-flight or fulfilled promise stays shared.
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+		settle();
+	};
+
+	try {
+		void start().then(() => settle(), fail);
+	} catch (err) {
+		fail(err);
+	}
+	return attempt;
+}
+
 export class AgentHostOTelService extends Disposable implements IAgentHostOTelService {
 
 	declare readonly _serviceBrand: undefined;
@@ -226,7 +273,7 @@ export class AgentHostOTelService extends Disposable implements IAgentHostOTelSe
 	private _receiver: ILocalOtlpHttpReceiver | undefined;
 	private _spanStore: OTelSqliteStore | undefined;
 	private _forwarder: IOutboundForwarder | undefined;
-	private _startPromise: Promise<void> | undefined;
+	private readonly _startSlot: IAgentHostOTelStartSlot = { promise: undefined };
 	private _metadataExportQueue = Promise.resolve();
 	private readonly _sessionContexts = new Map<string, IAgentHostTraceContext>();
 	private _currentTraceContext: IAgentHostTraceContext | undefined;
@@ -380,7 +427,7 @@ export class AgentHostOTelService extends Disposable implements IAgentHostOTelSe
 	async flush(): Promise<void> {
 		this._filteredSpanLogScheduler.flush();
 		await this._metadataExportQueue;
-		await this._startPromise;
+		await this._startSlot.promise;
 		if (this._forwarder) {
 			await this._forwarder.flush();
 		}
@@ -410,16 +457,13 @@ export class AgentHostOTelService extends Disposable implements IAgentHostOTelSe
 	}
 
 	private _ensureStarted(): Promise<void> {
-		if (!this._startPromise) {
-			this._startPromise = this._start().catch(err => {
-				this._logService.error('[agentHost.otel] failed to start loopback OTel pipeline', err);
-				// Drop the receiver/store/forwarder so getSdkTelemetryConfig falls back
-				// to pass-through (or undefined) on subsequent calls.
-				this._receiver = undefined;
-				this._forwarder = undefined;
-			});
-		}
-		return this._startPromise;
+		return shareAgentHostOTelStart(this._startSlot, () => this._start(), err => {
+			this._logService.error('[agentHost.otel] failed to start loopback OTel pipeline', err);
+			// Drop the receiver/store/forwarder so getSdkTelemetryConfig falls back
+			// to pass-through (or undefined) on subsequent calls.
+			this._receiver = undefined;
+			this._forwarder = undefined;
+		});
 	}
 
 	private async _start(): Promise<void> {
