@@ -324,6 +324,31 @@ export function loadKeyTargets(storage: IStorage): IKeyTargets {
 	return Object.create(null);
 }
 
+/**
+ * Shares one in-flight or successful storage initialization.
+ * A rejection clears `promise` only while it still points at that attempt,
+ * so the next call initializes again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareStorageInitialization<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next call initializes again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 export abstract class AbstractStorageService extends Disposable implements IStorageService {
 
 	declare readonly _serviceBrand: undefined;
@@ -338,7 +363,7 @@ export abstract class AbstractStorageService extends Disposable implements IStor
 	private readonly _onWillSaveState = this._register(new Emitter<IWillSaveStateEvent>());
 	readonly onWillSaveState = this._onWillSaveState.event;
 
-	private initializationPromise: Promise<void> | undefined;
+	private readonly _initialization: { promise: Promise<void> | undefined } = { promise: undefined };
 
 	private readonly flushWhenIdleScheduler: RunOnceScheduler;
 	private readonly runFlushWhenIdle = this._register(new MutableDisposable());
@@ -377,30 +402,26 @@ export abstract class AbstractStorageService extends Disposable implements IStor
 	}
 
 	initialize(): Promise<void> {
-		if (!this.initializationPromise) {
-			this.initializationPromise = (async () => {
+		return shareStorageInitialization(this._initialization, async () => {
 
-				// Init all storage locations
-				mark('code/willInitStorage');
-				try {
-					await this.doInitialize(); // Ask subclasses to initialize storage
-				} finally {
-					mark('code/didInitStorage');
-				}
+			// Init all storage locations
+			mark('code/willInitStorage');
+			try {
+				await this.doInitialize(); // Ask subclasses to initialize storage
+			} finally {
+				mark('code/didInitStorage');
+			}
 
-				// On some OS we do not get enough time to persist state on shutdown (e.g. when
-				// Windows restarts after applying updates). In other cases, VSCode might crash,
-				// so we periodically save state to reduce the chance of loosing any state.
-				// In the browser we do not have support for long running unload sequences. As such,
-				// we cannot ask for saving state in that moment, because that would result in a
-				// long running operation.
-				// Instead, periodically ask customers to save save. The library will be clever enough
-				// to only save state that has actually changed.
-				this.flushWhenIdleScheduler.schedule();
-			})();
-		}
-
-		return this.initializationPromise;
+			// On some OS we do not get enough time to persist state on shutdown (e.g. when
+			// Windows restarts after applying updates). In other cases, VSCode might crash,
+			// so we periodically save state to reduce the chance of loosing any state.
+			// In the browser we do not have support for long running unload sequences. As such,
+			// we cannot ask for saving state in that moment, because that would result in a
+			// long running operation.
+			// Instead, periodically ask customers to save save. The library will be clever enough
+			// to only save state that has actually changed.
+			this.flushWhenIdleScheduler.schedule();
+		});
 	}
 
 	protected emitDidChangeValue(scope: StorageScope, event: IStorageChangeEvent): void {
