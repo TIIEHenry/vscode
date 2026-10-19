@@ -22,6 +22,7 @@ import { IAuxiliaryWindow } from '../../auxiliaryWindow/electron-main/auxiliaryW
 import { SCAN_CODE_STR_TO_EVENT_KEY_CODE } from '../../../base/common/keyCodes.js';
 import { ITelemetryService } from '../../telemetry/common/telemetry.js';
 import { logBrowserOpen } from '../common/browserViewTelemetry.js';
+import { shareFaviconRequest } from './faviconRequestCache.js';
 import { URI } from '../../../base/common/uri.js';
 
 enum NewPageLocation {
@@ -281,8 +282,8 @@ export class BrowserView extends Disposable {
 		webContents.on('page-favicon-updated', async (_event, favicons) => {
 			// try each url in order until one works
 			for (const url of favicons) {
-				if (!this._faviconRequestCache.has(url)) {
-					this._faviconRequestCache.set(url, (async () => {
+				try {
+					this._lastFavicon = await shareFaviconRequest(this._faviconRequestCache, url, async () => {
 						if (url.startsWith('data:image/')) {
 							return url;
 						}
@@ -299,11 +300,7 @@ export class BrowserView extends Disposable {
 						const buffer = await response.arrayBuffer();
 
 						return `data:${type};base64,${Buffer.from(buffer).toString('base64')}`;
-					})());
-				}
-
-				try {
-					this._lastFavicon = await this._faviconRequestCache.get(url)!;
+					});
 					this._onDidChangeFavicon.fire({ favicon: this._lastFavicon });
 					this._currentHistoryHandle?.update({ favicon: this._lastFavicon });
 					// On success, stop searching
