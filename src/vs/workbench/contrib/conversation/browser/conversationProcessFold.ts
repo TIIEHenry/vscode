@@ -535,6 +535,21 @@ export function formatProcessFoldDiffStats(metadata: Record<string, unknown> | u
 	return undefined;
 }
 
+/** Paint `+N −M` so only the counts take color. Parent textContent stays the same string. */
+export function fillProcessFoldDiffStats(el: HTMLElement, text: string): void {
+	const match = /^\+(\d+) \u2212(\d+)$/.exec(text);
+	el.replaceChildren();
+	if (!match) {
+		el.textContent = text;
+		return;
+	}
+	const added = append(el, $('span.conversation-diff-stat-add'));
+	added.textContent = `+${match[1]}`;
+	el.appendChild(document.createTextNode(' '));
+	const removed = append(el, $('span.conversation-diff-stat-del'));
+	removed.textContent = `\u2212${match[2]}`;
+}
+
 export function renderProcessFoldDiffBlock(
 	container: HTMLElement,
 	diffText: string,
@@ -605,6 +620,9 @@ function renderToolRow(
 	if (executing) {
 		row.classList.add('conversation-process-fold-tool--executing');
 	}
+	if (isFileEdit) {
+		row.classList.add('conversation-process-fold-tool--file');
+	}
 	if (turn.toolStatus === 'failed') {
 		row.classList.add('conversation-process-fold-tool--failed');
 	} else if (turn.toolStatus === 'cancelled') {
@@ -635,7 +653,7 @@ function renderToolRow(
 	const diffStatsText = showDetails && isFileEdit ? formatProcessFoldDiffStats(metadata, diffText) : undefined;
 	if (diffStatsText) {
 		const diffStats = append(header, $('span.conversation-process-fold-tool-diff-stats'));
-		diffStats.textContent = diffStatsText;
+		fillProcessFoldDiffStats(diffStats, diffStatsText);
 	}
 
 	const statusIcon = resolveToolStatusIcon(turn, options);

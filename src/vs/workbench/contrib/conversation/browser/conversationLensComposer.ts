@@ -5,12 +5,14 @@
 
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
+import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerEnabledModelIds, composerModelIds, composerModelSelectionIndex, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { rejectKeepLeftoverListFailWrite, rejectPairingHoldWrite } from './conversationLensSessionBinding.js';
 import {
@@ -30,7 +32,7 @@ import {
 import { shouldRestoreComposerDrafts } from '../common/uaClientSettingsHelpers.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
-import { ensureSessionModelProfileIds, sessionModelProfileId, type ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
+import { ensureSessionModelProfileIds, type ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
 import { applyComposerSurfaceText, composerDraftText, composerSubmitText, turnEditLoadedPayload } from './conversationComposerRefs.js';
 
 export interface IConversationLensComposerHost {
@@ -43,6 +45,8 @@ export interface IConversationLensComposerHost {
 	composerCatalogGeneration: number;
 	catalogToolNames: readonly string[];
 	catalogModelIds: readonly string[];
+	/** Enabled registry ids from the last successful model list. */
+	enabledModelIds?: readonly string[];
 	drafts: Map<string, string>;
 	editingTurnId: string | undefined;
 	editingQueueItemId: string | undefined;
@@ -52,6 +56,7 @@ export interface IConversationLensComposerHost {
 	agentSelectBox: SelectBox;
 	modelSelectBox: SelectBox;
 	readonly stubService: IConversationRosterService;
+	readonly instantiationService?: IInstantiationService;
 	readonly configurationService: IConfigurationService;
 	readonly storageService: IStorageService;
 	readonly uaConnection: IUniverseAgentConnection;
@@ -86,6 +91,7 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 			host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
 			host.modelSelectedIndex = 0;
 			host.catalogModelIds = [''];
+			host.enabledModelIds = [];
 			host.catalogToolNames = [];
 			host.updateSendEnabled();
 			host.updateGateRow();
@@ -100,7 +106,7 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 
 type LastGoodComposerCatalog = {
 	agent?: { options: { text: string }[] };
-	model?: { options: { text: string }[]; ids: readonly string[]; selectedIndex: number };
+	model?: { options: { text: string }[]; ids: readonly string[]; selectedIndex: number; enabledIds: readonly string[] };
 	tools?: { names: readonly string[] };
 };
 
@@ -126,10 +132,12 @@ function applyUnknownComposerCatalogHonesty(host: IConversationLensComposerHost,
 			host.modelSelectBox.setOptions(last.model.options, last.model.selectedIndex);
 			host.modelSelectedIndex = last.model.selectedIndex;
 			host.catalogModelIds = last.model.ids;
+			host.enabledModelIds = last.model.enabledIds;
 		} else {
 			host.modelSelectBox.setOptions([{ text: conversationLensDockCatalogProbing }], 0);
 			host.modelSelectedIndex = 0;
 			host.catalogModelIds = [''];
+			host.enabledModelIds = [];
 		}
 	}
 	if (caps.tools.support === 'UNKNOWN') {
@@ -155,11 +163,13 @@ function restoreLastGoodComposerCatalogOnSupportedThrow(host: IConversationLensC
 			host.modelSelectBox.setOptions(last.model.options, last.model.selectedIndex);
 			host.modelSelectedIndex = last.model.selectedIndex;
 			host.catalogModelIds = last.model.ids;
+			host.enabledModelIds = last.model.enabledIds;
 			return;
 		}
 		host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
 		host.modelSelectedIndex = 0;
 		host.catalogModelIds = [''];
+		host.enabledModelIds = [];
 		return;
 	}
 	host.catalogToolNames = last?.tools ? last.tools.names : [];
@@ -192,6 +202,22 @@ function restoreComposerCatalogLeftoverOrKeepPainted(host: IConversationLensComp
 	}
 }
 
+/** Active session work root. Missing API keeps the connection workDir fallback. */
+function activeComposerProjectPath(host: IConversationLensComposerHost): string | undefined {
+	const instantiationService = host.instantiationService;
+	if (!instantiationService) {
+		return undefined;
+	}
+	let session: IAgentSessionContext | undefined;
+	try {
+		session = instantiationService.invokeFunction(accessor => accessor.get(IAgentSessionContext));
+	} catch {
+		return undefined;
+	}
+	const projectPath = session?.getActiveWorkRoot?.().workDir?.trim();
+	return projectPath || undefined;
+}
+
 export async function loadConnectedComposerCatalogs(host: IConversationLensComposerHost, generation: number): Promise<void> {
 
 		const caps = ensureCapabilitySnapshot(host.uaConnection.getCapabilitySnapshot());
@@ -201,7 +227,10 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 		applyUnknownComposerCatalogHonesty(host, caps);
 		if (caps.agentProfiles.support === 'SUPPORTED') {
 			try {
-				const result = await host.uaConnection.listAgentProfiles();
+				const projectPath = activeComposerProjectPath(host);
+				const result = await (projectPath
+					? host.uaConnection.listAgentProfiles({ projectPath })
+					: host.uaConnection.listAgentProfiles());
 				if (generation !== host.composerCatalogGeneration) {
 					return;
 				}
@@ -223,29 +252,38 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 					return;
 				}
 				const sessionId = host.getBoundSessionId();
-				const recordedId = sessionModelProfileId(host, sessionId);
-				// Snapshot before setOptions. Index 0, '' and a placeholder-only [''] catalog are not an applied model.
+				const map = ensureSessionModelProfileIds(host);
+				const hasRecord = map.has(sessionId);
+				const recordedRaw = hasRecord ? (map.get(sessionId) ?? '') : '';
+				const explicitEmpty = hasRecord && recordedRaw.trim() === '';
+				const recordedId = explicitEmpty ? '' : recordedRaw.trim();
+				// Index 0 and a placeholder-only [''] catalog are not an applied model.
+				// A non-empty id stuffed at index 0 is not a recorded choice either.
 				const snapshotIndex = host.modelSelectedIndex;
 				const snapshotIds = host.catalogModelIds;
 				const placeholderOnly = snapshotIds.length === 1 && (snapshotIds[0] ?? '').trim() === '';
-				const snapshotId = !placeholderOnly && snapshotIndex > 0
+				const snapshotId = !hasRecord && !placeholderOnly && snapshotIndex > 0
 					? (snapshotIds[snapshotIndex] ?? '').trim()
 					: '';
 				const previousId = recordedId || snapshotId;
 				const options = composerModelSelectOptions(result.models);
 				const ids = composerModelIds(result.models);
-				const foundIndex = previousId ? ids.indexOf(previousId) : -1;
-				const selectedIndex = foundIndex > 0 ? foundIndex : 0;
+				const enabledIds = composerEnabledModelIds(result.models);
+				const selectedIndex = composerModelSelectionIndex(ids, result.models, previousId, explicitEmpty);
 				host.modelSelectBox.setOptions(options, selectedIndex);
 				host.modelSelectedIndex = selectedIndex;
 				host.catalogModelIds = ids;
-				if (selectedIndex > 0) {
+				host.enabledModelIds = enabledIds;
+				if (explicitEmpty || (previousId && selectedIndex === 0)) {
+					// Explicit No model, or the recorded id left the catalog. Do not retarget.
+					map.set(sessionId, '');
+				} else if (selectedIndex > 0) {
 					const chosen = (ids[selectedIndex] ?? '').trim();
 					if (chosen) {
-						ensureSessionModelProfileIds(host).set(sessionId, chosen);
+						map.set(sessionId, chosen);
 					}
 				}
-				rememberLastGoodComposerCatalog(host, { model: { options, ids, selectedIndex } });
+				rememberLastGoodComposerCatalog(host, { model: { options, ids, selectedIndex, enabledIds } });
 			} catch {
 				if (generation !== host.composerCatalogGeneration) {
 					return;

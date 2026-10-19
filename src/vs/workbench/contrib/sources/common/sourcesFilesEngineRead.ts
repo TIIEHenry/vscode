@@ -5,8 +5,8 @@
 
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { compareFileNamesDefault } from '../../../../base/common/comparers.js';
-import { Schemas } from '../../../../base/common/network.js';
-import { basename, isEqual, normalizePath, removeTrailingPathSeparator } from '../../../../base/common/resources.js';
+import { basename } from '../../../../base/common/resources.js';
+import { agentWorkDirIsFileRoot } from '../../../services/agentSession/common/agentWorkRoot.js';
 import { URI } from '../../../../base/common/uri.js';
 import type { ITextModel } from '../../../../editor/common/model.js';
 import type { IModelService } from '../../../../editor/common/services/model.js';
@@ -49,12 +49,7 @@ export function resolveSourcesFilesListSource(input: {
 
 /** Trailing slash is the same directory. A subdirectory of a root is not that root. */
 export function sourcesFilesWorkDirIsWorkspaceRoot(workDir: string, workspaceFolders: readonly URI[]): boolean {
-	const trimmed = workDir.trim();
-	if (!trimmed) {
-		return false;
-	}
-	const wanted = sourcesFilesNormalizedRoot(URI.file(trimmed));
-	return workspaceFolders.some(folder => folder.scheme === Schemas.file && isEqual(wanted, sourcesFilesNormalizedRoot(folder)));
+	return agentWorkDirIsFileRoot(workDir, workspaceFolders);
 }
 
 /**
@@ -209,8 +204,4 @@ function sourcesEngineFileDescription(workDir: string, enginePath: string, name:
 
 function normalizeEnginePath(path: string): string {
 	return path.replace(/\\/g, '/').replace(/\/+$/, '');
-}
-
-function sourcesFilesNormalizedRoot(uri: URI): URI {
-	return removeTrailingPathSeparator(normalizePath(uri));
 }

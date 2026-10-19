@@ -3,8 +3,8 @@ title: "Engine Preferences UI 完成方案"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-10-01
-summary: "E2-1–E2-7 代码已落；Agents Model 子 tab 写 profile 三字段；GC-6 Overview Model 摘要已落；Overview Provider 行已省略（G-ENG-1 前不显示）；Rules/Hooks 写表单未接；产品验证未做，方案仍 accepted"
+updated: 2026-10-20
+summary: "E2-1–E2-7 代码已落。2026-10-19 桌面 Providers 凭据写与本地导入、Models 注册表写已接，见 engine-catalog；本节 §3.2 的只读句是当时切片。2026-10-20 Rules 桌面写已接，网页不实现；Hooks 定义写仍未接。产品验证未做，方案仍 accepted"
 ---
 
 # Engine Preferences UI 完成方案
@@ -14,6 +14,8 @@ summary: "E2-1–E2-7 代码已落；Agents Model 子 tab 写 profile 三字段�
 > **既有合同：** [设置两套主面](settings-two-surfaces.md) · [Engine catalog](customizations-engine.md) · [M6 引擎波](m6-engine-wave.md)。
 > **引擎面：** [engine-protocol-surface §1 / §1b / §2 / §4](../../docs/reference/universe-agent/engine-protocol-surface.md)（2026-09-02 对照 proto 核对）。
 > **现状（2026-09-03）：** E2-1–E2-7 **代码已落**：`EnginePreferencesPane` 挂九节两栏（Overview / Provider & Model / Skills / Agents / Rules / Hooks / MCP / Plugins / Tools）；MCP Runtime tab 与 Plugins 走 P1a probe；Model 走 `ListModels`。`globalRules` / `projectRules` / `hooksMetadata` / `providerConfig` 仍固定 `UNSUPPORTED`（G-ENG-1/2/3）。产品验证未做，方案保持 `accepted`。
+
+**2026-10-20：** 上段是当时切片。当前左栏 15 节。Rules 桌面写已接，网页不实现，见 §3.5。Hooks 定义写仍未接。方案仍 `accepted`。
 
 ## 1. 目标形态
 
@@ -89,6 +91,8 @@ summary: "E2-1–E2-7 代码已落；Agents Model 子 tab 写 profile 三字段�
 - **不画** endpoint / API key 输入、遮罩框或 Test connection 按钮。`TestModelProfile` 与 `ConfigService.Set` 的接入等 G-ENG-1 给出 config key 合同后另立切片；届时 `api_key` 只经 electron-main gRPC 出站，renderer 不持久化、不回显。
 - 不得转跳 Copilot Models、不读 `github.copilot` provider 配置。
 
+**2026-10-19：** 上面「只读 / 零输入 / 没有写 RPC」是 E2 当时的切片。当前桌面代码可以写凭据、从本地 harness 导入，并写模型注册表。工具栏与行尾是幽灵图标钮。新建和编辑用输入对话框。Skills、Agents、MCP 的新建和编辑同样用输入对话框；Plugins、Clipboard、Context Variables、MCP Runtime 的工具栏动作是幽灵图标。事实见 [engine-catalog](../../docs/systems/workbench/engine-catalog.md)。PRD-025 仍 `accepted`。
+
 ### 3.3 Skills
 
 沿用已落的 list/toggle/body/New：
@@ -109,6 +113,8 @@ summary: "E2-1–E2-7 代码已落；Agents Model 子 tab 写 profile 三字段�
 - 节结构（Global / Project 两组、行含标题、启用态、优先级、范围）作为壳实现，供 G-ENG-2 闭合后接线；**完成线：两组行数恒为 0**。
 - 不读取 `.github/copilot-instructions.md` 冒充 UA rule；不把 `PermissionService.GetSessionRules`（权限规则，定义在 `session_service.proto`）当 Instructions。
 - 旧文档 `customizations-engine.md` §1/§2 与 `engine-catalog.md` §4/§5 的「Local 可读写 AgentHome」说法已于 2026-09-02 回改。
+
+**2026-10-20：** 上面「行数恒为 0 / 无 gRPC 写」是 E2-3 当时的切片。当前桌面 `upsertProjectRule?` / `deleteProjectRule?` 可选，IPC allowlist 与 node 转发已接，网页不实现。添加和编辑是输入对话框：title 必填，priority 为 0–3 的整数（编辑留空保留当前值，新建留空发 0），Enabled 复选框（新建默认勾选；缺结果发 false）。编辑保留 id、globs、appliesTo、scope。Global 为 2，Project 为 1，sessionId 为 `''`。请求不带 `work_dir` / `agent_home`。删除先确认。Hooks 仍只读，无定义写。事实见 [engine-catalog](../../docs/systems/workbench/engine-catalog.md)。PRD-025 仍 `accepted`。
 
 ### 3.6 Hooks（G-ENG-3 前固定 unsupported）
 

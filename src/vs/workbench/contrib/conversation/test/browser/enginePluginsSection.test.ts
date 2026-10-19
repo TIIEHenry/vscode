@@ -23,6 +23,7 @@ import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy,
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import {
+	ENGINE_PLUGINS_DISABLE_SUCCESS_COPY,
 	ENGINE_PLUGINS_ENABLE_SUCCESS_COPY,
 	ENGINE_PLUGINS_RELOAD_SUCCESS_COPY,
 	ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY,
@@ -732,6 +733,109 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		assert.deepStrictEqual(unloadCalls, []);
 		assert.deepStrictEqual(scanCalls, []);
 		assert.strictEqual(listPluginsCalls, 2);
+	});
+
+	function pluginEnableButton(section: EnginePluginsSection): HTMLElement {
+		const button = section.getDomNode().querySelector('.engine-plugins-row-toolbar .monaco-button') as HTMLElement | null;
+		assert.ok(button);
+		return button;
+	}
+
+	function assertEnableButtonChrome(button: HTMLElement, ariaLabel: string, iconClass: string): void {
+		assert.strictEqual(button.getAttribute('aria-label'), ariaLabel);
+		assert.strictEqual(button.textContent, '');
+		assert.ok(button.classList.contains('monaco-button'));
+		assert.ok(button.classList.contains('codicon'));
+		assert.ok(button.classList.contains(iconClass));
+		assert.ok(!button.classList.contains('monaco-text-button'));
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'false');
+	}
+
+	test('active plugin Enable button sends enablePlugin false and shows Disabled.', async () => {
+		const plugin = { ...demoPlugin(), status: 'active' as const };
+		const calls: Array<{ id: string; enabled: boolean | undefined }> = [];
+		const connection = createConnectionStub({
+			listPlugins: async () => ({ plugins: [plugin] }),
+			enablePlugin: async (id, enabled) => {
+				calls.push({ id, enabled });
+				return { plugin };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assert.ok(section.selectPluginForTest(plugin.id));
+		await flushMicrotasks();
+
+		const button = pluginEnableButton(section);
+		assertEnableButtonChrome(button, 'Disable Demo Plugin', 'codicon-debug-pause');
+		assert.ok(!button.classList.contains('codicon-check'));
+		assert.ok(!button.classList.contains('codicon-debug-disconnect'));
+		button.click();
+		await flushMicrotasks();
+
+		assert.deepStrictEqual(calls, [{ id: 'demo-plugin', enabled: false }]);
+		const catalogWrite = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(catalogWrite);
+		assert.notStrictEqual(catalogWrite.style.display, 'none');
+		assert.strictEqual(catalogWrite.textContent, ENGINE_PLUGINS_DISABLE_SUCCESS_COPY);
+		assert.ok(catalogWrite.classList.contains('is-success'));
+	});
+
+	test('disabled plugin Enable button sends enablePlugin true and shows Enabled.', async () => {
+		const plugin = demoPlugin();
+		const calls: Array<{ id: string; enabled: boolean | undefined }> = [];
+		const connection = createConnectionStub({
+			listPlugins: async () => ({ plugins: [plugin] }),
+			enablePlugin: async (id, enabled) => {
+				calls.push({ id, enabled });
+				return { plugin };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assert.ok(section.selectPluginForTest(plugin.id));
+		await flushMicrotasks();
+
+		const button = pluginEnableButton(section);
+		assertEnableButtonChrome(button, 'Enable Demo Plugin', 'codicon-check');
+		assert.ok(!button.classList.contains('codicon-debug-pause'));
+		button.click();
+		await flushMicrotasks();
+
+		assert.deepStrictEqual(calls, [{ id: 'demo-plugin', enabled: true }]);
+		const catalogWrite = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.ok(catalogWrite);
+		assert.notStrictEqual(catalogWrite.style.display, 'none');
+		assert.strictEqual(catalogWrite.textContent, ENGINE_PLUGINS_ENABLE_SUCCESS_COPY);
+		assert.ok(catalogWrite.classList.contains('is-success'));
+	});
+
+	test('enable button aria-label follows the selected plugin', async () => {
+		const active = { ...demoPlugin(), id: 'live', displayName: 'Live Plugin', status: 'active' as const };
+		const disabled = { ...demoPlugin(), id: 'off', displayName: 'Off Plugin', status: 'disabled' as const };
+		const errored = { ...demoPlugin(), id: 'bad', displayName: 'Bad Plugin', status: 'error' as const };
+		const unknown = { ...demoPlugin(), id: 'mystery', displayName: '', status: 'unknown' as const };
+		const connection = createConnectionStub({
+			listPlugins: async () => ({ plugins: [active, disabled, errored, unknown] }),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.ok(section.selectPluginForTest('live'));
+		await flushMicrotasks();
+		assertEnableButtonChrome(pluginEnableButton(section), 'Disable Live Plugin', 'codicon-debug-pause');
+
+		assert.ok(section.selectPluginForTest('off'));
+		await flushMicrotasks();
+		assertEnableButtonChrome(pluginEnableButton(section), 'Enable Off Plugin', 'codicon-check');
+
+		assert.ok(section.selectPluginForTest('bad'));
+		await flushMicrotasks();
+		assertEnableButtonChrome(pluginEnableButton(section), 'Enable Bad Plugin', 'codicon-check');
+
+		assert.ok(section.selectPluginForTest('mystery'));
+		await flushMicrotasks();
+		assertEnableButtonChrome(pluginEnableButton(section), 'Enable mystery', 'codicon-check');
 	});
 
 	test('enablePlugin ok does not keep Enabled. when subsequent listPlugins fails', async () => {
@@ -1804,9 +1908,16 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 				}
 				originalRender(renderOptions);
 			};
-			const button = Array.from(section.getDomNode().querySelectorAll('.monaco-button'))
-				.find(el => (el.textContent ?? '').includes(options.buttonLabel)) as HTMLElement | undefined;
+			const button = section.getDomNode().querySelector(`[aria-label="${options.buttonLabel}"]`) as HTMLElement | null;
 			assert.ok(button, `${options.buttonLabel} write button must be painted`);
+			assert.strictEqual(button.textContent, '');
+			const icon = ({
+				'Scan New': 'codicon-search',
+				'Enable Demo Plugin': 'codicon-check',
+				'Reload': 'codicon-refresh',
+				'Unload': 'codicon-debug-disconnect',
+			} as Record<string, string>)[options.buttonLabel];
+			assert.ok(icon && button.classList.contains(icon), options.buttonLabel);
 			button.click();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
@@ -1832,7 +1943,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 
 	test('does not leak unhandled rejection when enableSelected catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
 		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
-			buttonLabel: 'Enable',
+			buttonLabel: 'Enable Demo Plugin',
 			needsSelection: true,
 			enablePlugin: async () => {
 				throw new Error('enable boom');

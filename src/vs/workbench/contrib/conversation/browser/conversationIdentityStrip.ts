@@ -13,6 +13,8 @@ import { isEqual } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { localize } from '../../../../nls.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
+import type { IAgentWorkRoot } from '../../../services/agentSession/common/agentWorkRoot.js';
 import { ActionListItemKind, IActionListDelegate, IActionListItem, IActionListOptions } from '../../../../platform/actionWidget/browser/actionList.js';
 import { IActionWidgetService } from '../../../../platform/actionWidget/browser/actionWidget.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -80,8 +82,27 @@ function readRepositoryBranchName(repository: ISCMRepository): string | undefine
 	return historyItemRef?.name?.trim() || undefined;
 }
 
+/** Last path segment. A slash-only directory has no folder name. */
+function folderNameFromPath(path: string | undefined): string | undefined {
+	const normalized = path?.trim().replace(/\\/g, '/').replace(/\/+$/, '');
+	if (!normalized) {
+		return undefined;
+	}
+	return normalized.split('/').filter(Boolean).pop() || undefined;
+}
+
+function workRootFolderLabel(root: IAgentWorkRoot): string | undefined {
+	if (root.access === 'local' && root.localRoot) {
+		return folderNameFromPath(root.localRoot.path);
+	}
+	if (root.access === 'engine') {
+		return folderNameFromPath(root.workDir);
+	}
+	return undefined;
+}
+
 /**
- * L1h″ conversation identity strip — engine · workspace folder · git branch.
+ * L1h″ conversation identity strip — engine · session work root · git branch.
  * Mounted at the top of the reading column only (XOR with SessionBar and dock).
  */
 export class ConversationIdentityStrip extends Disposable {
@@ -102,7 +123,14 @@ export class ConversationIdentityStrip extends Disposable {
 
 	private readonly repositoryListeners = this._register(new DisposableStore());
 
+	/** Window folder for the reopen-window menu. Not the session work root. */
 	private folderResource: URI | undefined;
+	/** Local work root checked out by the branch menu. Unset for an engine root. */
+	private branchCheckoutUri: URI | undefined;
+	private branchMenuEnabled = false;
+	private branchRequestId = 0;
+	private engineBranchKey: string | undefined;
+	private readonly branchChevron: HTMLElement;
 
 	constructor(
 		parent: HTMLElement,
@@ -115,6 +143,7 @@ export class ConversationIdentityStrip extends Disposable {
 		@IWorkspacesService private readonly workspacesService: IWorkspacesService,
 		@IHostService private readonly hostService: IHostService,
 		@ILabelService private readonly labelService: ILabelService,
+		@IAgentSessionContext private readonly sessionContext: IAgentSessionContext,
 	) {
 		super();
 
@@ -155,9 +184,9 @@ export class ConversationIdentityStrip extends Disposable {
 		this.branchChip.setAttribute('aria-expanded', 'false');
 		this.branchLabel = this.branchChip.ownerDocument.createTextNode('');
 		this.branchChip.appendChild(this.branchLabel);
-		const branchChevron = append(this.branchChip, $('span.conversation-identity-chip-open'));
-		branchChevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronDown));
-		branchChevron.setAttribute('aria-hidden', 'true');
+		this.branchChevron = append(this.branchChip, $('span.conversation-identity-chip-open'));
+		this.branchChevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronDown));
+		this.branchChevron.setAttribute('aria-hidden', 'true');
 		this._register(addDisposableListener(this.branchChip, 'click', () => this.onBranchChipClick()));
 
 		this._register(this.rosterService.onDidChangeEngineConnection(() => this.render()));
@@ -177,6 +206,11 @@ export class ConversationIdentityStrip extends Disposable {
 
 		for (const repository of this.scmService.repositories) {
 			this.registerRepositoryListeners(repository);
+		}
+
+		const onDidChangeActiveWorkRoot = this.sessionContext?.onDidChangeActiveWorkRoot;
+		if (onDidChangeActiveWorkRoot) {
+			this._register(onDidChangeActiveWorkRoot(() => this.render()));
 		}
 
 		this.render();
@@ -202,28 +236,115 @@ export class ConversationIdentityStrip extends Disposable {
 		this.engineChip.classList.toggle('conversation-identity-chip-engine--failed', tone === 'error');
 		this.engineChip.classList.toggle(conversationIdentityEngineOfflineClass, tone === 'warning');
 
-		const folder = getConversationIdentityFolder(this.contextService);
-		this.folderResource = folder?.resource;
-		if (folder) {
+		const windowFolder = getConversationIdentityFolder(this.contextService);
+		// The folder menu reopens a window. It stays on the window folder.
+		this.folderResource = windowFolder?.resource;
+		const root = this.sessionContext?.getActiveWorkRoot?.();
+		if (!root) {
+			this.leaveEngineBranch();
+			this.branchCheckoutUri = windowFolder?.resource;
+			this.paintFolder(windowFolder?.label);
+			const branchName = getConversationIdentityBranchName(this.scmService, windowFolder?.resource);
+			this.paintBranch(branchName, !!branchName);
+			return;
+		}
+
+		this.paintFolder(workRootFolderLabel(root));
+		if (root.access === 'local' && root.localRoot) {
+			this.leaveEngineBranch();
+			this.branchCheckoutUri = root.localRoot;
+			this.paintBranch(getConversationIdentityBranchName(this.scmService, root.localRoot), true);
+			return;
+		}
+		if (root.access === 'engine' && root.workDir) {
+			this.branchCheckoutUri = undefined;
+			this.beginEngineBranchRead(root);
+			return;
+		}
+		this.leaveEngineBranch();
+		this.branchCheckoutUri = undefined;
+		this.paintBranch(undefined, false);
+	}
+
+	private paintFolder(label: string | undefined): void {
+		if (label) {
 			this.folderChip.hidden = false;
-			this.folderLabel.data = folder.label;
-			this.folderChip.setAttribute('aria-label', localize('conversationIdentityStrip.folderAriaLabel', "Workspace folder: {0}. Open the folder list.", folder.label));
+			this.folderLabel.data = label;
+			this.folderChip.setAttribute('aria-label', localize('conversationIdentityStrip.folderAriaLabel', "Workspace folder: {0}. Open the folder list.", label));
 		} else {
 			this.folderChip.hidden = true;
 			this.folderLabel.data = '';
 			this.folderChip.removeAttribute('aria-label');
 		}
+	}
 
-		const branchName = getConversationIdentityBranchName(this.scmService, folder?.resource);
-		if (branchName) {
-			this.branchChip.hidden = false;
-			this.branchLabel.data = branchName;
-			this.branchChip.setAttribute('aria-label', localize('conversationIdentityStrip.branchAriaLabel', "Git branch: {0}. Open the branch list.", branchName));
-		} else {
+	private paintBranch(name: string | undefined, menu: boolean): void {
+		const menuEnabled = menu && !!name;
+		if (!menuEnabled) {
+			if (this.menuLoad === 'branch') {
+				this.menuLoad = undefined;
+			}
+			if (this.openMenu === 'branch' && this.actionWidgetService.isVisible) {
+				this.actionWidgetService.hide(true);
+			}
+		}
+		this.branchMenuEnabled = menuEnabled;
+		this.branchChevron.hidden = !menuEnabled;
+		if (!name) {
 			this.branchChip.hidden = true;
 			this.branchLabel.data = '';
 			this.branchChip.removeAttribute('aria-label');
+			this.branchChip.removeAttribute('aria-haspopup');
+			this.branchChip.removeAttribute('aria-expanded');
+			return;
 		}
+		this.branchChip.hidden = false;
+		this.branchLabel.data = name;
+		if (menuEnabled) {
+			this.branchChip.setAttribute('aria-haspopup', 'listbox');
+			this.branchChip.setAttribute('aria-label', localize('conversationIdentityStrip.branchAriaLabel', "Git branch: {0}. Open the branch list.", name));
+			this.syncMenuExpanded();
+		} else {
+			this.branchChip.removeAttribute('aria-haspopup');
+			this.branchChip.removeAttribute('aria-expanded');
+			this.branchChip.setAttribute('aria-label', localize('conversationIdentityStrip.branchReadOnlyAriaLabel', "Git branch: {0}", name));
+		}
+	}
+
+	private leaveEngineBranch(): void {
+		this.branchRequestId++;
+		this.engineBranchKey = undefined;
+	}
+
+	private beginEngineBranchRead(root: IAgentWorkRoot): void {
+		const key = `${root.sessionId}\n${root.workDir ?? ''}`;
+		if (key !== this.engineBranchKey) {
+			this.engineBranchKey = key;
+			this.paintBranch(undefined, false);
+		}
+		const requestId = ++this.branchRequestId;
+		const sessionId = root.sessionId;
+		const read = this.uaConnection.readGitSummary?.bind(this.uaConnection);
+		if (!read || !sessionId.trim()) {
+			this.paintBranch(undefined, false);
+			return;
+		}
+		void read({ sessionId }).then(result => {
+			if (requestId !== this.branchRequestId || this._store.isDisposed) {
+				return;
+			}
+			const current = this.sessionContext?.getActiveWorkRoot?.();
+			if (!current || current.access !== 'engine' || current.sessionId !== sessionId) {
+				return;
+			}
+			const branch = result.supported ? result.branch.trim() : '';
+			this.paintBranch(branch || undefined, false);
+		}, () => {
+			if (requestId !== this.branchRequestId || this._store.isDisposed) {
+				return;
+			}
+			this.paintBranch(undefined, false);
+		});
 	}
 
 	private onFolderChipClick(): void {
@@ -237,7 +358,7 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	private onBranchChipClick(): void {
-		if (this.branchChip.hidden || !this.folderResource) {
+		if (!this.branchMenuEnabled || this.branchChip.hidden || !this.branchCheckoutUri) {
 			return;
 		}
 		if (this.consumeToggle('branch')) {
@@ -331,16 +452,16 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	private async showBranchMenu(): Promise<void> {
-		const folder = getConversationIdentityFolder(this.contextService);
-		const current = getConversationIdentityBranchName(this.scmService, folder?.resource);
-		if (!folder || !current) {
+		const folderUri = this.branchCheckoutUri;
+		const current = getConversationIdentityBranchName(this.scmService, folderUri);
+		if (!this.branchMenuEnabled || !folderUri || !current) {
 			return;
 		}
 		this.menuLoad = 'branch';
 		const names = new Map<string, boolean>();
 		names.set(current, true);
 		try {
-			const repository = this.repositoryFor(folder.resource);
+			const repository = this.repositoryFor(folderUri);
 			const historyProvider = repository?.provider.historyProvider.get();
 			const refs = await historyProvider?.provideHistoryItemRefs?.();
 			for (const ref of refs ?? []) {
@@ -373,7 +494,7 @@ export class ConversationIdentityStrip extends Disposable {
 			if (name === current) {
 				return;
 			}
-			void this.commandService.executeCommand(GIT_CHECKOUT_COMMAND_ID, folder.resource, name).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.commandService.executeCommand(GIT_CHECKOUT_COMMAND_ID, folderUri, name).catch(onUnexpectedError).catch(onUnexpectedError);
 		}, {
 			showFilter: true,
 			filterPlaceholder: localize('conversationIdentityStrip.searchBranches', "Search branches..."),
@@ -432,7 +553,11 @@ export class ConversationIdentityStrip extends Disposable {
 
 	private syncMenuExpanded(): void {
 		this.folderChip.setAttribute('aria-expanded', String(this.openMenu === 'folder'));
-		this.branchChip.setAttribute('aria-expanded', String(this.openMenu === 'branch'));
+		if (this.branchMenuEnabled) {
+			this.branchChip.setAttribute('aria-expanded', String(this.openMenu === 'branch'));
+		} else {
+			this.branchChip.removeAttribute('aria-expanded');
+		}
 	}
 }
 

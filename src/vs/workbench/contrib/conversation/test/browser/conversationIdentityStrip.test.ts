@@ -24,6 +24,9 @@ import { ISCMRepository, ISCMService } from '../../../scm/common/scm.js';
 import { TestContextService, TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
+import type { UniverseAgentReadGitSummaryResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
@@ -222,6 +225,7 @@ suite('ConversationIdentityStrip', () => {
 		commandService?: ICommandService;
 		stubService?: ConversationStubService;
 		connectionOverrides?: Partial<IUniverseAgentConnection>;
+		sessionContext?: IAgentSessionContext;
 	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService; lens: ConversationLens; workbench: HTMLElement; actionWidget: RecordingActionWidget; host: TestHostService; workspaces: TestWorkspacesService } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const actionWidget = new RecordingActionWidget();
@@ -269,6 +273,9 @@ suite('ConversationIdentityStrip', () => {
 		instantiationService.stub(ISCMService, options?.scmService ?? createEmptyScmService());
 		if (options?.workspaceContextService) {
 			instantiationService.stub(IWorkspaceContextService, options.workspaceContextService);
+		}
+		if (options?.sessionContext) {
+			instantiationService.stub(IAgentSessionContext, options.sessionContext);
 		}
 
 		const part = store.add(instantiationService.createInstance(ConversationPart));
@@ -839,12 +846,137 @@ suite('ConversationIdentityStrip', () => {
 		assert.ok(source.includes(`void this.commandService.executeCommand(getEngineStatusCommandId(`));
 		assert.ok(source.includes(`)).catch(onUnexpectedError).catch(onUnexpectedError);`));
 		assert.ok(source.includes(`void this.commandService.executeCommand(OPEN_FOLDER_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);`));
-		assert.ok(source.includes(`void this.commandService.executeCommand(GIT_CHECKOUT_COMMAND_ID, folder.resource, name).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(source.includes(`void this.commandService.executeCommand(GIT_CHECKOUT_COMMAND_ID, folderUri, name).catch(onUnexpectedError).catch(onUnexpectedError);`));
 		assert.ok(source.includes('void this.hostService.openWindow([{ folderUri: action.folder.folderUri }], {'));
 		assert.ok(source.includes('remoteAuthority: action.folder.remoteAuthority ?? null,'));
 		assert.ok(!source.includes('revealInExplorer'));
 		assert.ok(!source.includes('this.commandService.executeCommand(getEngineStatusCommandId(\n\t\t\t\tthis.uaConnection.getConnectionPhase(),\n\t\t\t\tthis.uaConnection.getConnectionSnapshot().pairingPending,\n\t\t\t));'));
 		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\([\s\S]*?\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
 		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
+	});
+
+	test('folder and branch follow the active session work root and engine root has no branch menu', async () => {
+		const onDidChangeActiveWorkRoot = store.add(new Emitter<IAgentWorkRoot>());
+		const alpha = URI.file('/repo/alpha');
+		const beta = URI.file('/repo/beta');
+		let current: IAgentWorkRoot = {
+			sessionId: 's-a',
+			engineIdentityId: 'eng',
+			workDir: alpha.path,
+			source: 'session',
+			access: 'local',
+			localRoot: alpha,
+			projectKey: `eng\n${alpha.path}`,
+		};
+		const scm = createScmServiceWithRepositories([
+			createScmRepository('alpha-branch', alpha, 'alpha', async () => [
+				{ id: 'refs/heads/alpha-branch', name: 'alpha-branch' },
+				{ id: 'refs/heads/main', name: 'main' },
+			]),
+			createScmRepository('beta-branch', beta, 'beta'),
+		]);
+		const summaries: { sessionId: string; resolve: (value: UniverseAgentReadGitSummaryResult) => void }[] = [];
+		const sessionContext = {
+			getActiveWorkRoot: () => current,
+			onDidChangeActiveWorkRoot: onDidChangeActiveWorkRoot.event,
+		} as IAgentSessionContext;
+		const { slots, commandService, actionWidget } = mountLens({
+			scmService: scm,
+			sessionContext,
+			connectionOverrides: {
+				readGitSummary: request => new Promise(resolve => {
+					summaries.push({ sessionId: request.sessionId, resolve });
+				}),
+			},
+		});
+		const folderChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+		const branchChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLButtonElement;
+		const branchChevron = () => branchChip.querySelector('.conversation-identity-chip-open') as HTMLElement;
+
+		assert.strictEqual(folderChip.textContent, 'alpha');
+		assert.strictEqual(branchChip.hidden, false);
+		assert.strictEqual(branchChip.textContent, 'alpha-branch');
+		assert.strictEqual(branchChip.getAttribute('aria-haspopup'), 'listbox');
+		assert.strictEqual(branchChevron().hidden, false);
+
+		branchChip.click();
+		await timeout(0);
+		actionWidget.shows.at(-1)!.delegate.onSelect('main');
+		assert.deepStrictEqual((commandService as unknown as { executedArgs: unknown[][] }).executedArgs, [[alpha, 'main']]);
+
+		folderChip.click();
+		await timeout(0);
+		assert.ok(menuActions(actionWidget.shows.at(-1)!).some(item => item.label === 'testWorkspace'));
+		actionWidget.hide(true);
+
+		current = {
+			sessionId: 's-b',
+			engineIdentityId: 'eng',
+			workDir: beta.path,
+			source: 'session',
+			access: 'local',
+			localRoot: beta,
+			projectKey: `eng\n${beta.path}`,
+		};
+		onDidChangeActiveWorkRoot.fire(current);
+		assert.strictEqual(folderChip.textContent, 'beta');
+		assert.strictEqual(branchChip.textContent, 'beta-branch');
+		assert.strictEqual(branchChip.getAttribute('aria-haspopup'), 'listbox');
+
+		current = {
+			sessionId: 's-engine',
+			engineIdentityId: 'eng',
+			workDir: '/remote/gamma',
+			source: 'session',
+			access: 'engine',
+			localRoot: undefined,
+			projectKey: 'eng\n/remote/gamma',
+		};
+		onDidChangeActiveWorkRoot.fire(current);
+		assert.strictEqual(folderChip.textContent, 'gamma');
+		assert.strictEqual(branchChip.hidden, true);
+		assert.strictEqual(summaries.length, 1);
+		assert.strictEqual(summaries[0].sessionId, 's-engine');
+
+		current = {
+			sessionId: 's-b',
+			engineIdentityId: 'eng',
+			workDir: beta.path,
+			source: 'session',
+			access: 'local',
+			localRoot: beta,
+			projectKey: `eng\n${beta.path}`,
+		};
+		onDidChangeActiveWorkRoot.fire(current);
+		assert.strictEqual(folderChip.textContent, 'beta');
+		assert.strictEqual(branchChip.textContent, 'beta-branch');
+		summaries[0].resolve({ supported: true, reason: '', branch: 'stale-engine', changeCount: 0 });
+		await timeout(0);
+		assert.strictEqual(branchChip.textContent, 'beta-branch');
+		assert.strictEqual(branchChip.getAttribute('aria-haspopup'), 'listbox');
+
+		current = {
+			sessionId: 's-engine',
+			engineIdentityId: 'eng',
+			workDir: '/remote/gamma',
+			source: 'session',
+			access: 'engine',
+			localRoot: undefined,
+			projectKey: 'eng\n/remote/gamma',
+		};
+		onDidChangeActiveWorkRoot.fire(current);
+		assert.strictEqual(summaries.length, 2);
+		summaries[1].resolve({ supported: true, reason: '', branch: 'engine-branch', changeCount: 1 });
+		await timeout(0);
+		assert.strictEqual(folderChip.textContent, 'gamma');
+		assert.strictEqual(branchChip.hidden, false);
+		assert.strictEqual(branchChip.textContent, 'engine-branch');
+		assert.strictEqual(branchChip.getAttribute('aria-haspopup'), null);
+		assert.strictEqual(branchChevron().hidden, true);
+		assert.ok(!branchChip.getAttribute('aria-label')?.includes('Open the branch list'));
+		const showsBeforeClick = actionWidget.shows.length;
+		branchChip.click();
+		await timeout(0);
+		assert.strictEqual(actionWidget.shows.length, showsBeforeClick);
 	});
 });

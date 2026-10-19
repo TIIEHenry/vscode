@@ -10,6 +10,8 @@ import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentConnectionSnapshot, UniverseAgentDeleteTriggerRequest, UniverseAgentFireTriggerRequest, UniverseAgentListTriggersRequest, UniverseAgentListTriggersResult, UniverseAgentSetTriggerEnabledRequest, UniverseAgentTrigger, UniverseAgentUpsertTriggerRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { IDialogService, type IInput, type IInputResult } from '../../../../../platform/dialogs/common/dialogs.js';
+import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
 import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL, ENGINE_TRIGGER_LIST_EMPTY_COPY, ENGINE_TRIGGER_LIST_FEATURE, formatEngineTriggerListLabel } from '../../browser/engineTriggerList.js';
@@ -22,14 +24,55 @@ suite('EngineTriggersSection', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	function mountSection(connection: IUniverseAgentConnection): EngineTriggersSection {
+	function mountSection(connection: IUniverseAgentConnection, dialog?: TestDialogService): EngineTriggersSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		if (dialog) {
+			instantiationService.stub(IDialogService, dialog);
+		}
 		const section = store.add(instantiationService.createInstance(EngineTriggersSection, parent));
 		section.setSectionActive(true);
 		return section;
+	}
+
+	function confirmTriggerDialog(options: {
+		readonly name?: string;
+		readonly type?: string;
+		readonly prompt?: string;
+		readonly interval?: string;
+		readonly cron?: string;
+		readonly target?: string;
+		readonly checkboxChecked?: boolean;
+		readonly confirmed?: boolean;
+	} = {}): TestDialogService {
+		const dialog = new TestDialogService();
+		dialog.setInputResult({
+			confirmed: options.confirmed ?? true,
+			values: [
+				options.name ?? '',
+				options.type ?? '',
+				options.prompt ?? '',
+				options.interval ?? '',
+				options.cron ?? '',
+				options.target ?? '',
+			],
+			checkboxChecked: options.checkboxChecked,
+		});
+		return dialog;
+	}
+
+	function scriptedTriggerDialog(results: IInputResult[]): { readonly dialog: TestDialogService; readonly seen: IInput[] } {
+		const pending = [...results];
+		const seen: IInput[] = [];
+		const dialog = new class extends TestDialogService {
+			override async input(input: IInput): Promise<IInputResult> {
+				seen.push(input);
+				return pending.shift() ?? { confirmed: false };
+			}
+		}();
+		return { dialog, seen };
 	}
 
 	async function flushMicrotasks(): Promise<void> {
@@ -522,23 +565,31 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
+	const WRITE_ACTION_BUTTONS = [
+		[ENGINE_TRIGGER_ADD_LABEL, 'codicon-add'],
+		[ENGINE_TRIGGER_EDIT_LABEL, 'codicon-edit'],
+		[ENGINE_TRIGGER_FIRE_LABEL, 'codicon-play'],
+		[ENGINE_TRIGGER_ENABLE_LABEL, 'codicon-check'],
+		[ENGINE_TRIGGER_DISABLE_LABEL, 'codicon-circle-slash'],
+		[ENGINE_TRIGGER_DELETE_LABEL, 'codicon-trash'],
+	] as const;
+
 	function findActionButton(root: HTMLElement, label: string): HTMLButtonElement | undefined {
-		return [...root.querySelectorAll('.engine-triggers-actions .monaco-button')]
-			.find(button => button.textContent === label) as HTMLButtonElement | undefined;
+		const button = [...root.querySelectorAll('.engine-triggers-actions .monaco-button')]
+			.find(candidate => candidate.getAttribute('aria-label') === label) as HTMLButtonElement | undefined;
+		if (button) {
+			const icon = WRITE_ACTION_BUTTONS.find(([actionLabel]) => actionLabel === label)?.[1];
+			assert.ok(icon && button.classList.contains('codicon') && button.classList.contains(icon), label);
+			assert.strictEqual(button.textContent, '', label);
+		}
+		return button;
 	}
 
 	function findFireButton(root: HTMLElement): HTMLButtonElement | undefined {
 		return findActionButton(root, ENGINE_TRIGGER_FIRE_LABEL);
 	}
 
-	const WRITE_BUTTON_LABELS = [
-		ENGINE_TRIGGER_ADD_LABEL,
-		ENGINE_TRIGGER_EDIT_LABEL,
-		ENGINE_TRIGGER_FIRE_LABEL,
-		ENGINE_TRIGGER_ENABLE_LABEL,
-		ENGINE_TRIGGER_DISABLE_LABEL,
-		ENGINE_TRIGGER_DELETE_LABEL,
-	] as const;
+	const WRITE_BUTTON_LABELS = WRITE_ACTION_BUTTONS.map(([label]) => label);
 
 	function forceClick(button: HTMLButtonElement | undefined): void {
 		if (!button) {
@@ -1174,7 +1225,7 @@ suite('EngineTriggersSection', () => {
 		noHook.getDomNode().parentElement?.remove();
 	});
 
-	test('UpsertTrigger Add sends empty trigger as-is when connected with no selection', async () => {
+	test('UpsertTrigger Add does not send when the form has no name or type', async () => {
 		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
 		const pane = mountSection(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -1190,12 +1241,14 @@ suite('EngineTriggersSection', () => {
 		assert.ok(add);
 		add.click();
 		await flushMicrotasks();
-		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: emptyTrigger() }]);
-		assert.ok((pane.getDomNode().textContent ?? '').includes('—  —'));
+		assert.deepStrictEqual(upsertCalls, []);
+		const upsertStatus = pane.getDomNode().querySelector('.engine-triggers-upsert-status') as HTMLElement | null;
+		assert.ok(upsertStatus);
+		assert.strictEqual(upsertStatus.textContent, 'Name is required.');
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('UpsertTrigger Edit sends empty trigger as-is when connected with no selection', async () => {
+	test('UpsertTrigger Add does not send when type is blank', async () => {
 		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
 		const pane = mountSection(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -1205,22 +1258,89 @@ suite('EngineTriggersSection', () => {
 				upsertCalls.push(request);
 				return { trigger: request.trigger };
 			},
-		}));
+		}), confirmTriggerDialog({ name: 'Nightly', type: '   ', checkboxChecked: true }));
+		await flushMicrotasks();
+		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+		assert.ok(add);
+		add.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, []);
+		const upsertStatus = pane.getDomNode().querySelector('.engine-triggers-upsert-status') as HTMLElement | null;
+		assert.ok(upsertStatus);
+		assert.strictEqual(upsertStatus.textContent, 'Type is required.');
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger Add does not send when interval or target is invalid', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const { dialog, seen } = scriptedTriggerDialog([
+			{ confirmed: true, values: ['Nightly', 'cron', '', '1.5', '', 'self'], checkboxChecked: true },
+			{ confirmed: true, values: ['Nightly', 'cron', '', '20', '', 'nope'], checkboxChecked: true },
+			{ confirmed: false, values: ['Nightly', 'cron', '', '20', '', 'self'], checkboxChecked: true },
+		]);
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		}), dialog);
+		await flushMicrotasks();
+		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+		assert.ok(add);
+		add.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, []);
+		const upsertStatus = pane.getDomNode().querySelector('.engine-triggers-upsert-status') as HTMLElement | null;
+		assert.ok(upsertStatus);
+		assert.strictEqual(upsertStatus.textContent, 'Interval must be a whole number, or left blank.');
+		add.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, []);
+		assert.strictEqual(upsertStatus.textContent, 'Target must be self, bound:<sessionId>, or new:<profileId>.');
+		add.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, []);
+		assert.strictEqual(seen.length, 3);
+		assert.strictEqual(seen[0].validate?.(['', 'cron']), 'Name is required.');
+		assert.strictEqual(seen[0].validate?.(['Nightly', '']), 'Type is required.');
+		assert.strictEqual(seen[0].validate?.(['Nightly', 'cron', '', 'nope', '', 'nope']), undefined);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger Edit does not send when nothing is selected', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const { dialog, seen } = scriptedTriggerDialog([
+			{ confirmed: true, values: ['Nightly', 'cron'], checkboxChecked: true },
+		]);
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		}), dialog);
 		await flushMicrotasks();
 		const edit = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_EDIT_LABEL);
 		assert.ok(edit);
 		edit.click();
 		await flushMicrotasks();
-		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: emptyTrigger() }]);
+		assert.deepStrictEqual(upsertCalls, []);
+		assert.deepStrictEqual(seen, []);
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('UpsertTrigger Add still sends empty trigger when a row is selected', async () => {
+	test('UpsertTrigger Edit does not resend the selected trigger when the dialog is empty', async () => {
 		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
 		const selected = emptyTrigger({
-			triggerId: '  trig  ',
-			name: '  Nightly  ',
+			triggerId: 'trig-keep',
+			name: 'Nightly',
 			type: 'cron',
+			enabled: true,
 			target: { kind: 'self' },
 		});
 		const pane = mountSection(createConversationConnectionTestStub({
@@ -1238,21 +1358,28 @@ suite('EngineTriggersSection', () => {
 		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
 		assert.ok(row);
 		row.click();
-		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
-		assert.ok(add);
-		add.click();
+		const edit = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_EDIT_LABEL);
+		assert.ok(edit);
+		edit.click();
 		await flushMicrotasks();
-		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: emptyTrigger() }]);
+		assert.deepStrictEqual(upsertCalls, []);
+		assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-upsert-status')?.textContent, 'Name is required.');
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('UpsertTrigger Edit sends selected trigger as-is without inventing defaults', async () => {
+	test('UpsertTrigger Add sends the dialog draft and does not copy the selected row', async () => {
 		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
 		const selected = emptyTrigger({
 			triggerId: '  trig  ',
 			name: '  Nightly  ',
 			type: 'cron',
+			promptTemplate: 'old prompt',
+			enabled: true,
+			pauseReason: 'held',
 			target: { kind: 'self' },
+			intervalMs: 1500,
+			cronExpression: '0 * * * *',
+			runAtEpochMs: 42,
 		});
 		const pane = mountSection(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -1264,6 +1391,104 @@ suite('EngineTriggersSection', () => {
 				upsertCalls.push(request);
 				return { trigger: request.trigger };
 			},
+		}), confirmTriggerDialog({
+			name: 'Nightly',
+			type: 'cron',
+			prompt: 'run it',
+			interval: '  2500  ',
+			cron: '0 0 * * *',
+			target: '  new:profile-1  ',
+			checkboxChecked: true,
+		}));
+		await flushMicrotasks();
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+		assert.ok(add);
+		add.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, [{
+			scope: '',
+			scopeId: '',
+			trigger: {
+				triggerId: '',
+				name: 'Nightly',
+				type: 'cron',
+				promptTemplate: 'run it',
+				enabled: true,
+				pauseReason: '',
+				target: { kind: 'newSession', engineProfileId: 'profile-1' },
+				intervalMs: 2500,
+				cronExpression: '0 0 * * *',
+				runAtEpochMs: 0,
+			},
+		}]);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger Add sends blanks as empty fields and enabled false when the checkbox is omitted', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const { dialog } = scriptedTriggerDialog([
+			{ confirmed: true, values: ['Nightly', 'cron', '   ', '   ', '   ', '   '] },
+			{ confirmed: true, values: ['Nightly', 'cron', '', '', '', 'self'] },
+			{ confirmed: true, values: ['Nightly', 'cron', '', '', '', 'bound:sess-1'], checkboxChecked: false },
+		]);
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async () => ({ triggers: [] }),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		}), dialog);
+		await flushMicrotasks();
+		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+		assert.ok(add);
+		add.click();
+		await flushMicrotasks();
+		add.click();
+		await flushMicrotasks();
+		add.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls.map(call => call.trigger), [
+			emptyTrigger({ name: 'Nightly', type: 'cron', enabled: false }),
+			emptyTrigger({ name: 'Nightly', type: 'cron', enabled: false, target: { kind: 'self' } }),
+			emptyTrigger({ name: 'Nightly', type: 'cron', enabled: false, target: { kind: 'boundSession', sessionId: 'sess-1' } }),
+		]);
+		assert.ok(upsertCalls.every(call => call.scope === '' && call.scopeId === ''));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger Edit sends dialog values and keeps fields the form left blank', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const selected = emptyTrigger({
+			triggerId: '  trig  ',
+			name: '  Nightly  ',
+			type: 'cron',
+			promptTemplate: 'keep-me',
+			enabled: true,
+			pauseReason: 'held',
+			target: { kind: 'boundSession', sessionId: 'sess-9' },
+			intervalMs: 1500,
+			cronExpression: '0 * * * *',
+			runAtEpochMs: 42,
+		});
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => ({
+				triggers: [selected],
+			}),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		}), confirmTriggerDialog({
+			name: 'Renamed',
+			type: 'interval',
+			checkboxChecked: false,
 		}));
 		await flushMicrotasks();
 		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
@@ -1273,8 +1498,143 @@ suite('EngineTriggersSection', () => {
 		assert.ok(edit);
 		edit.click();
 		await flushMicrotasks();
-		assert.deepStrictEqual(upsertCalls, [{ scope: '', scopeId: '', trigger: selected }]);
-		assert.ok((pane.getDomNode().textContent ?? '').includes('  Nightly   — cron —   trig  '));
+		assert.deepStrictEqual(upsertCalls, [{
+			scope: '',
+			scopeId: '',
+			trigger: {
+				triggerId: '  trig  ',
+				name: 'Renamed',
+				type: 'interval',
+				promptTemplate: 'keep-me',
+				enabled: false,
+				pauseReason: 'held',
+				target: { kind: 'boundSession', sessionId: 'sess-9' },
+				intervalMs: 1500,
+				cronExpression: '0 * * * *',
+				runAtEpochMs: 42,
+			},
+		}]);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger Edit replaces non-blank fields and does not keep enabled from the row', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const selected = emptyTrigger({
+			triggerId: 'trig-keep',
+			name: 'Old',
+			type: 'interval',
+			promptTemplate: 'old prompt',
+			enabled: false,
+			pauseReason: 'held',
+			target: { kind: 'boundSession', sessionId: 'sess-9' },
+			intervalMs: 5,
+			cronExpression: 'old',
+			runAtEpochMs: 77,
+		});
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => ({
+				triggers: [selected],
+			}),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		}), confirmTriggerDialog({
+			name: '  Renamed  ',
+			type: 'cron',
+			prompt: 'new prompt',
+			interval: '0',
+			cron: '*/5 * * * *',
+			target: 'self',
+			checkboxChecked: true,
+		}));
+		await flushMicrotasks();
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const edit = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_EDIT_LABEL);
+		assert.ok(edit);
+		edit.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, [{
+			scope: '',
+			scopeId: '',
+			trigger: {
+				triggerId: 'trig-keep',
+				name: '  Renamed  ',
+				type: 'cron',
+				promptTemplate: 'new prompt',
+				enabled: true,
+				pauseReason: 'held',
+				target: { kind: 'self' },
+				intervalMs: 0,
+				cronExpression: '*/5 * * * *',
+				runAtEpochMs: 77,
+			},
+		}]);
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('UpsertTrigger dialog is prefilled for edit and empty for add', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+		const selected = emptyTrigger({
+			triggerId: 'trig-1',
+			name: 'Nightly',
+			type: 'cron',
+			promptTemplate: 'do the thing',
+			enabled: true,
+			pauseReason: 'manual',
+			target: { kind: 'boundSession', sessionId: 'sess-9' },
+			intervalMs: 1500,
+			cronExpression: '0 0 * * *',
+			runAtEpochMs: 99,
+		});
+		const { dialog, seen } = scriptedTriggerDialog([
+			{ confirmed: false },
+			{ confirmed: false },
+		]);
+		const pane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => ({
+				triggers: [selected],
+			}),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
+				return { trigger: request.trigger };
+			},
+		}), dialog);
+		await flushMicrotasks();
+		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+		assert.ok(row);
+		row.click();
+		const edit = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_EDIT_LABEL);
+		const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+		assert.ok(edit);
+		assert.ok(add);
+		edit.click();
+		await flushMicrotasks();
+		add.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertCalls, []);
+		assert.strictEqual(seen.length, 2);
+		assert.strictEqual(seen[0].message, 'Edit trigger');
+		assert.strictEqual(seen[0].primaryButton, 'Save');
+		assert.deepStrictEqual(seen[0].checkbox, { label: 'Enabled', checked: true });
+		assert.deepStrictEqual(seen[0].inputs, [
+			{ type: 'text', label: 'Name', placeholder: 'Name', value: 'Nightly' },
+			{ type: 'text', label: 'Type', placeholder: 'Type', value: 'cron' },
+			{ type: 'text', label: 'Prompt', placeholder: 'Prompt', value: 'do the thing' },
+			{ type: 'text', label: 'Interval (ms)', placeholder: 'Interval (ms)', value: '1500' },
+			{ type: 'text', label: 'Cron', placeholder: 'Cron', value: '0 0 * * *' },
+			{ type: 'text', label: 'Target', placeholder: 'self, bound:<sessionId>, or new:<profileId>', value: 'bound:sess-9' },
+		]);
+		assert.strictEqual(seen[1].message, 'Add trigger');
+		assert.strictEqual(seen[1].primaryButton, 'Add');
+		assert.deepStrictEqual(seen[1].checkbox, { label: 'Enabled', checked: false });
+		assert.deepStrictEqual(seen[1].inputs?.map(input => input.value), ['', '', '', '', '', '']);
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -1297,11 +1657,16 @@ suite('EngineTriggersSection', () => {
 				}
 				return { triggers: [] };
 			},
-			upsertTrigger: async () => {
+			upsertTrigger: async request => {
+				assert.deepStrictEqual(request, {
+					scope: '',
+					scopeId: '',
+					trigger: emptyTrigger({ name: 'Nightly', type: 'cron', enabled: true }),
+				});
 				upserted = true;
 				return { trigger: created };
 			},
-		}));
+		}), confirmTriggerDialog({ name: 'Nightly', type: 'cron', checkboxChecked: true }));
 		await flushMicrotasks();
 		assert.strictEqual(listTriggersCalls, 1);
 		assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-row'), null);
@@ -1348,10 +1713,15 @@ suite('EngineTriggersSection', () => {
 					}
 					return { triggers: [leftover] };
 				},
-				upsertTrigger: async () => {
+				upsertTrigger: async request => {
+					assert.deepStrictEqual(request, {
+						scope: '',
+						scopeId: '',
+						trigger: emptyTrigger({ name: 'Nightly', type: 'cron', enabled: true }),
+					});
 					return { trigger: created };
 				},
-			}));
+			}), confirmTriggerDialog({ name: 'Nightly', type: 'cron', checkboxChecked: true }));
 			await flushMicrotasks();
 			assert.strictEqual(listTriggersCalls, 1);
 			const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
@@ -1394,10 +1764,15 @@ suite('EngineTriggersSection', () => {
 					})],
 				};
 			},
-			upsertTrigger: async () => {
+			upsertTrigger: async request => {
+				assert.deepStrictEqual(request, {
+					scope: '',
+					scopeId: '',
+					trigger: emptyTrigger({ name: 'Nightly', type: 'cron', enabled: false }),
+				});
 				throw new Error('boom');
 			},
-		}));
+		}), confirmTriggerDialog({ name: 'Nightly', type: 'cron', checkboxChecked: false }));
 		await flushMicrotasks();
 		assert.strictEqual(listTriggersCalls, 1);
 		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
@@ -1472,6 +1847,7 @@ suite('EngineTriggersSection', () => {
 		readonly setTriggerEnabled?: IUniverseAgentConnection['setTriggerEnabled'];
 		readonly deleteTrigger?: IUniverseAgentConnection['deleteTrigger'];
 		readonly upsertTrigger?: IUniverseAgentConnection['upsertTrigger'];
+		readonly dialog?: TestDialogService;
 	}): Promise<void> {
 		// handleUpsert / handleFire / handleSetEnabled / handleDelete already catch RPC throw;
 		// a lone inner reject does not leak. The void click site still needs `.catch` when
@@ -1498,7 +1874,7 @@ suite('EngineTriggersSection', () => {
 				setTriggerEnabled: options.setTriggerEnabled,
 				deleteTrigger: options.deleteTrigger,
 				upsertTrigger: options.upsertTrigger,
-			}));
+			}), options.dialog);
 			await flushMicrotasks();
 			const writeStatusEl = pane.getDomNode().querySelector(options.statusSelector) as HTMLElement | null;
 			assert.ok(writeStatusEl);
@@ -1527,13 +1903,21 @@ suite('EngineTriggersSection', () => {
 	}
 
 	test('does not leak unhandled rejection when handleUpsert catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
 		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
 			buttonLabel: ENGINE_TRIGGER_ADD_LABEL,
 			statusSelector: '.engine-triggers-upsert-status',
-			upsertTrigger: async () => {
+			dialog: confirmTriggerDialog({ name: 'Nightly', type: 'cron', checkboxChecked: true }),
+			upsertTrigger: async request => {
+				upsertCalls.push(request);
 				throw new Error('upsert boom');
 			},
 		});
+		assert.deepStrictEqual(upsertCalls, [{
+			scope: '',
+			scopeId: '',
+			trigger: emptyTrigger({ name: 'Nightly', type: 'cron', enabled: true }),
+		}]);
 	});
 
 	test('does not leak unhandled rejection when handleFire catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {

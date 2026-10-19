@@ -5,15 +5,19 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
+import { equals as arraysEqual } from '../../../../base/common/arrays.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
@@ -26,7 +30,9 @@ import {
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
+import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
+import { appendCatalogScopeNote } from './engineSectionChrome.js';
 import { EngineMcpRuntimePanel } from './engineMcpRuntimePanel.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { writeStatus } from './connectionPreferencesPane.js';
@@ -42,6 +48,111 @@ export const ENGINE_MCP_UPDATE_SUCCESS_COPY = localize('ua.engineMcpUpdateSucces
 export const ENGINE_MCP_REMOVE_SUCCESS_COPY = localize('ua.engineMcpRemoveSuccess', "Removed.");
 export const ENGINE_MCP_TOGGLE_SUCCESS_COPY = localize('ua.engineMcpToggleSuccess', "Toggled.");
 
+const ENGINE_MCP_DIALOG_DETAIL = localize('ua.engineMcpDialogDetail', "stdio uses the command. sse and streamable_http use the URL. Arguments are one per line. Environment is one KEY=VALUE per line.");
+const ENGINE_MCP_ARGS_FIELD = localize('ua.engineMcpArgs', "Arguments — one argument per line");
+const ENGINE_MCP_ENV_FIELD = localize('ua.engineMcpEnv', "Environment — one KEY=VALUE per line");
+const ENGINE_MCP_ENV_INVALID_COPY = localize('ua.engineMcpEnvInvalid', "Environment lines must be KEY=VALUE.");
+
+function mcpTransportFromDialog(value: string): 'stdio' | 'sse' | 'streamable_http' | undefined {
+	if (value === 'stdio' || value === 'sse' || value === 'streamable_http') {
+		return value;
+	}
+	return undefined;
+}
+
+function mcpDialogError(values: readonly string[]): string | undefined {
+	const transport = mcpTransportFromDialog((values[1] ?? '').trim());
+	if (!transport) {
+		return localize('ua.engineMcpTransportRequired', "Transport must be stdio, sse, or streamable_http.");
+	}
+	if (!mcpConfigFromDialog(values)) {
+		return localize('ua.engineMcpAddIncomplete', "Name, transport, and a command or URL are required.");
+	}
+	if (!parseMcpEnvField(values[5]).ok) {
+		return ENGINE_MCP_ENV_INVALID_COPY;
+	}
+	return undefined;
+}
+
+/** Blank args/env are omitted. An update partial includes them only when the parsed value differs. */
+function mcpFieldLines(raw: string | undefined): readonly string[] {
+	if (!raw || !raw.trim()) {
+		return [];
+	}
+	const lines: string[] = [];
+	for (const line of raw.split(/\r?\n/)) {
+		const trimmed = line.trim();
+		if (trimmed) {
+			lines.push(trimmed);
+		}
+	}
+	return lines;
+}
+
+function parseMcpArgsField(raw: string | undefined): readonly string[] | undefined {
+	const lines = mcpFieldLines(raw);
+	return lines.length > 0 ? lines : undefined;
+}
+
+function parseMcpEnvField(raw: string | undefined): { readonly ok: true; readonly env?: Readonly<Record<string, string>> } | { readonly ok: false } {
+	const lines = mcpFieldLines(raw);
+	if (lines.length === 0) {
+		return { ok: true };
+	}
+	const env: Record<string, string> = {};
+	for (const line of lines) {
+		const separator = line.indexOf('=');
+		if (separator <= 0) {
+			return { ok: false };
+		}
+		const key = line.slice(0, separator).trim();
+		if (!key) {
+			return { ok: false };
+		}
+		env[key] = line.slice(separator + 1).trim();
+	}
+	return { ok: true, env };
+}
+
+function envRecordsEqual(left: Readonly<Record<string, string>> | undefined, right: Readonly<Record<string, string>>): boolean {
+	const existing = left ?? {};
+	const rightKeys = Object.keys(right);
+	if (Object.keys(existing).length !== rightKeys.length) {
+		return false;
+	}
+	for (const key of rightKeys) {
+		if (existing[key] !== right[key]) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function formatMcpArgsField(args: readonly string[] | undefined): string {
+	return args && args.length > 0 ? args.join('\n') : '';
+}
+
+function formatMcpEnvField(env: Readonly<Record<string, string>> | undefined): string {
+	if (!env) {
+		return '';
+	}
+	return Object.keys(env).map(key => `${key}=${env[key]}`).join('\n');
+}
+
+function mcpConfigFromDialog(values: readonly string[]): UniverseAgentMcpServerConfig | undefined {
+	const name = (values[0] ?? '').trim();
+	const transport = mcpTransportFromDialog((values[1] ?? '').trim());
+	const command = (values[2] ?? '').trim();
+	const url = (values[3] ?? '').trim();
+	if (!transport) {
+		return undefined;
+	}
+	const config: UniverseAgentMcpServerConfig = transport === 'stdio'
+		? { name, transport, command }
+		: { name, transport, url };
+	return isCompleteMcpAddConfig(config) ? config : undefined;
+}
+
 function isCompleteMcpAddConfig(config: UniverseAgentMcpServerConfig | undefined): config is UniverseAgentMcpServerConfig {
 	if (!config || !config.name.trim()) {
 		return false;
@@ -53,6 +164,29 @@ function isCompleteMcpAddConfig(config: UniverseAgentMcpServerConfig | undefined
 		return typeof config.url === 'string' && config.url.trim().length > 0;
 	}
 	return false;
+}
+
+function mcpDialogInputs(prefill?: {
+	readonly name: string;
+	readonly transport: string;
+	readonly command: string;
+	readonly url: string;
+	readonly args: string;
+	readonly env: string;
+}): { type: 'text'; label: string; placeholder: string; value?: string }[] {
+	const inputs: { type: 'text'; label: string; placeholder: string; value?: string }[] = [
+		{ type: 'text', label: localize('ua.engineMcpName', "Name"), placeholder: localize('ua.engineMcpName', "Name") },
+		{ type: 'text', label: localize('ua.engineMcpTransport', "Transport"), placeholder: localize('ua.engineMcpTransport', "stdio, sse, or streamable_http") },
+		{ type: 'text', label: localize('ua.engineMcpCommand', "Command"), placeholder: localize('ua.engineMcpCommand', "Command") },
+		{ type: 'text', label: localize('ua.engineMcpUrl', "URL"), placeholder: localize('ua.engineMcpUrl', "URL") },
+		{ type: 'text', label: ENGINE_MCP_ARGS_FIELD, placeholder: ENGINE_MCP_ARGS_FIELD },
+		{ type: 'text', label: ENGINE_MCP_ENV_FIELD, placeholder: ENGINE_MCP_ENV_FIELD },
+	];
+	if (!prefill) {
+		return inputs;
+	}
+	const values = [prefill.name, prefill.transport, prefill.command, prefill.url, prefill.args, prefill.env];
+	return inputs.map((input, index) => ({ ...input, value: values[index] }));
 }
 
 type EngineMcpListEntry =
@@ -165,6 +299,12 @@ class EngineMcpListAccessibilityProvider implements IListAccessibilityProvider<E
 	}
 }
 
+/** Session work root, when the optional API is present. Blank stays off the request. */
+function sessionWorkDir(session: IAgentSessionContext | undefined): string | undefined {
+	const workDir = session?.getActiveWorkRoot?.().workDir?.trim();
+	return workDir || undefined;
+}
+
 function getMcpOriginGroupLabel(origin: UniverseAgentMcpServerOrigin): string {
 	switch (origin) {
 		case 'global':
@@ -232,6 +372,8 @@ export class EngineMcpSection extends Disposable {
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
+		@IAgentSessionContext private readonly sessionContext: IAgentSessionContext,
+		@IDialogService private readonly dialogService: IDialogService,
 	) {
 		super();
 		this.instantiationService = instantiationService;
@@ -242,6 +384,10 @@ export class EngineMcpSection extends Disposable {
 		this.heading = DOM.append(this.container, $('h3.engine-section-heading'));
 		this.heading.textContent = localize('ua.engineMcpSectionTitle', "MCP Servers");
 		this.heading.style.display = 'none';
+		const workRoot = sessionWorkDir(this.sessionContext);
+		appendCatalogScopeNote(this.container, workRoot
+			? localize('ua.engineMcpScopeWithRoot', "Project servers follow this work root: {0}. Global servers are engine-wide.", workRoot)
+			: localize('ua.engineMcpScope', "Project servers follow the open work root. Global servers are engine-wide."));
 
 		this.tabBar = DOM.append(this.container, $('.engine-mcp-tab-bar'));
 		this.tabBar.setAttribute('role', 'tablist');
@@ -258,17 +404,14 @@ export class EngineMcpSection extends Disposable {
 
 		this.status = this._register(new EngineCatalogStatusWidget(this.definitionsPanel));
 
-		this.writeToolbar = DOM.append(this.definitionsPanel, $('.engine-catalog-write-toolbar'));
+		this.writeToolbar = DOM.append(this.definitionsPanel, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.writeToolbar.style.display = 'none';
-		const addButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
-		addButton.label = localize('ua.engineMcpAdd', "Add");
-		this._register(addButton.onDidClick(() => void this.addServer().catch(onUnexpectedError).catch(onUnexpectedError)));
-		const updateButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
-		updateButton.label = localize('ua.engineMcpUpdate', "Update");
-		this._register(updateButton.onDidClick(() => void this.updateSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
-		const removeButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
-		removeButton.label = localize('ua.engineMcpRemove', "Remove");
-		this._register(removeButton.onDidClick(() => void this.removeSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		const addButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpAdd', "Add"), Codicon.add));
+		this._register(addButton.onDidClick(() => void this.promptAddServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		const updateButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpUpdate', "Update"), Codicon.edit));
+		this._register(updateButton.onDidClick(() => void this.promptUpdateSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		const removeButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpRemove', "Remove"), Codicon.trash));
+		this._register(removeButton.onDidClick(() => void this.confirmAndRemoveSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.catalogWriteStatus = DOM.append(this.definitionsPanel, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
 		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
@@ -396,6 +539,116 @@ export class EngineMcpSection extends Disposable {
 		}
 	}
 
+	private async promptAddServer(): Promise<void> {
+		if (!this.canWrite()) {
+			return;
+		}
+		const result = await this.dialogService.input({
+			type: 'question',
+			message: localize('ua.engineMcpAddTitle', "Add MCP server"),
+			detail: ENGINE_MCP_DIALOG_DETAIL,
+			primaryButton: localize('ua.engineMcpAdd', "Add"),
+			inputs: mcpDialogInputs(),
+			validate: mcpDialogError,
+		});
+		if (!result.confirmed || !result.values || !this.canWrite()) {
+			return;
+		}
+		const drafted = mcpConfigFromDialog(result.values);
+		if (!drafted) {
+			this.showMcpDialogError(localize('ua.engineMcpAddIncomplete', "Name, transport, and a command or URL are required."));
+			return;
+		}
+		const envField = parseMcpEnvField(result.values[5]);
+		if (!envField.ok) {
+			this.showMcpDialogError(ENGINE_MCP_ENV_INVALID_COPY);
+			return;
+		}
+		const args = parseMcpArgsField(result.values[4]);
+		const config: UniverseAgentMcpServerConfig = {
+			...drafted,
+			...(args ? { args } : {}),
+			...(envField.env ? { env: envField.env } : {}),
+		};
+		await this.addServer(config);
+	}
+
+	private async promptUpdateSelectedServer(): Promise<void> {
+		const selected = this.selectedServer;
+		if (!this.canWrite() || !selected) {
+			return;
+		}
+		const result = await this.dialogService.input({
+			type: 'question',
+			message: localize('ua.engineMcpUpdateTitle', "Edit MCP server"),
+			detail: ENGINE_MCP_DIALOG_DETAIL,
+			primaryButton: localize('ua.engineMcpUpdateSave', "Save"),
+			inputs: mcpDialogInputs({
+				name: selected.name,
+				transport: selected.transport === 'unknown' ? '' : selected.transport,
+				command: selected.command ?? '',
+				url: selected.url ?? '',
+				args: formatMcpArgsField(selected.args),
+				env: formatMcpEnvField(selected.env),
+			}),
+			validate: mcpDialogError,
+		});
+		if (!result.confirmed || !result.values || !this.canWrite() || this.selectedServer?.id !== selected.id) {
+			return;
+		}
+		const name = (result.values[0] ?? '').trim();
+		const transport = mcpTransportFromDialog((result.values[1] ?? '').trim());
+		const command = (result.values[2] ?? '').trim();
+		const url = (result.values[3] ?? '').trim();
+		if (!transport) {
+			this.showMcpDialogError(localize('ua.engineMcpTransportRequired', "Transport must be stdio, sse, or streamable_http."));
+			return;
+		}
+		const envField = parseMcpEnvField(result.values[5]);
+		if (!envField.ok) {
+			this.showMcpDialogError(ENGINE_MCP_ENV_INVALID_COPY);
+			return;
+		}
+		const args = parseMcpArgsField(result.values[4]);
+		const partial: Partial<UniverseAgentMcpServerConfig> = {};
+		if (name !== selected.name) {
+			partial.name = name;
+		}
+		if (transport !== selected.transport) {
+			partial.transport = transport;
+		}
+		if (transport === 'stdio') {
+			if (command !== (selected.command ?? '').trim()) {
+				partial.command = command;
+			}
+		} else if (url !== (selected.url ?? '').trim()) {
+			partial.url = url;
+		}
+		if (args && !arraysEqual(selected.args, args)) {
+			partial.args = args;
+		}
+		if (envField.env && !envRecordsEqual(selected.env, envField.env)) {
+			partial.env = envField.env;
+		}
+		if (Object.keys(partial).length === 0) {
+			return;
+		}
+		const merged: UniverseAgentMcpServerConfig = {
+			name: partial.name ?? selected.name,
+			transport: partial.transport ?? selected.transport,
+			command: partial.command ?? selected.command,
+			args: partial.args ?? selected.args,
+			env: partial.env ?? selected.env,
+			url: partial.url ?? selected.url,
+			enabled: selected.enabled,
+		};
+		if (!isCompleteMcpAddConfig(merged)) {
+			this.showMcpDialogError(localize('ua.engineMcpAddIncomplete', "Name, transport, and a command or URL are required."));
+			return;
+		}
+		await this.updateSelectedServer(partial);
+	}
+
 	async addServer(config?: UniverseAgentMcpServerConfig): Promise<boolean> {
 		if (!this.canWrite() || !isCompleteMcpAddConfig(config)) {
 			return false;
@@ -404,7 +657,8 @@ export class EngineMcpSection extends Disposable {
 		this.hideCatalogWriteStatus();
 		const scope = 'global';
 		try {
-			const result = await this.connection.addMcpServer({ config, scope });
+			const workDir = sessionWorkDir(this.sessionContext);
+			const result = await this.connection.addMcpServer(workDir ? { config, scope, workDir } : { config, scope });
 			if (!result.ok) {
 				this.showWriteFailed(result.reason);
 				return false;
@@ -439,7 +693,13 @@ export class EngineMcpSection extends Disposable {
 			enabled: config?.enabled ?? this.selectedServer.enabled,
 		};
 		try {
-			const result = await this.connection.updateMcpServer({
+			const workDir = sessionWorkDir(this.sessionContext);
+			const result = await this.connection.updateMcpServer(workDir ? {
+				serverId: this.selectedServer.id,
+				config: merged,
+				scope,
+				workDir,
+			} : {
 				serverId: this.selectedServer.id,
 				config: merged,
 				scope,
@@ -460,6 +720,24 @@ export class EngineMcpSection extends Disposable {
 		}
 	}
 
+	private async confirmAndRemoveSelectedServer(): Promise<void> {
+		const selected = this.selectedServer;
+		if (!this.canWrite() || !selected) {
+			return;
+		}
+		const name = selected.name || selected.id;
+		const { confirmed } = await this.dialogService.confirm({
+			type: 'warning',
+			message: localize('ua.engineMcpRemoveConfirm', "Remove MCP server \"{0}\"?", name),
+			detail: localize('ua.engineMcpRemoveDetail', "This removes the server definition from the engine."),
+			primaryButton: localize('ua.engineMcpRemove', "Remove"),
+		});
+		if (!confirmed || this.selectedServer?.id !== selected.id) {
+			return;
+		}
+		await this.removeSelectedServer();
+	}
+
 	async removeSelectedServer(): Promise<boolean> {
 		if (!this.canWrite() || !this.selectedServer) {
 			return false;
@@ -470,7 +748,12 @@ export class EngineMcpSection extends Disposable {
 		const serverId = this.selectedServer.id;
 		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
 		try {
-			const result = await this.connection.removeMcpServer({
+			const workDir = sessionWorkDir(this.sessionContext);
+			const result = await this.connection.removeMcpServer(workDir ? {
+				serverId,
+				scope,
+				workDir,
+			} : {
 				serverId,
 				scope,
 			});
@@ -508,6 +791,11 @@ export class EngineMcpSection extends Disposable {
 	private showCatalogWriteStatus(message: string): void {
 		this.catalogWriteStatus.style.display = '';
 		writeStatus(this.catalogWriteStatus, message, 'success');
+	}
+
+	private showMcpDialogError(message: string): void {
+		this.catalogWriteStatus.style.display = '';
+		writeStatus(this.catalogWriteStatus, message, 'error');
 	}
 
 	private showWriteFailed(error: unknown): void {
@@ -640,7 +928,10 @@ export class EngineMcpSection extends Disposable {
 		this.renderStatus({ loadingKind: 'list' });
 
 		try {
-			const result = await this.connection.listMcpServers();
+			const workDir = sessionWorkDir(this.sessionContext);
+			const result = await (workDir
+				? this.connection.listMcpServers({ workDir })
+				: this.connection.listMcpServers());
 			if (generation !== this.refreshGeneration || this._store.isDisposed) {
 				return false;
 			}
@@ -759,7 +1050,13 @@ export class EngineMcpSection extends Disposable {
 		}
 		const scope = server.origin === 'project' ? 'project' : 'global';
 		try {
-			const result = await this.connection.toggleMcpServer({
+			const workDir = sessionWorkDir(this.sessionContext);
+			const result = await this.connection.toggleMcpServer(workDir ? {
+				id: server.id,
+				enabled,
+				scope,
+				workDir,
+			} : {
 				id: server.id,
 				enabled,
 				scope,

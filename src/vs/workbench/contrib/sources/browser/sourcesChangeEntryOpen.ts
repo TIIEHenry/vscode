@@ -22,8 +22,8 @@ import {
 	isSourcesGitUnrootedResource,
 	needsSourcesGitFileDiff,
 	parseSourcesGitUnifiedDiff,
-	sourcesGitChangeOutsideRootMessage,
 	sourcesGitEmptyFileDiffMessage,
+	sourcesGitReadUnavailableNoHookMessage,
 } from '../common/sourcesChangesGitRead.js';
 import { ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
 import { SOURCES_DIFF_DEFAULT_OWNER_SETTING, SourcesDiffDefaultOwner } from '../common/sourcesDiffConfiguration.js';
@@ -77,9 +77,6 @@ async function dispatchSourcesChangeEntry(
 	deps: ISourcesChangeEntryOpenDeps,
 	options: ISourcesChangeEntryOpenOptions,
 ): Promise<boolean | 'stale'> {
-	if (isSourcesGitUnrootedResource(entry.resource)) {
-		throw new Error(sourcesGitChangeOutsideRootMessage());
-	}
 	let ref = options.changeRef ?? await resolveSourcesChangeRef(entry, deps.quickDiffService);
 	const applied = await applySourcesGitFileDiffIfNeeded(entry, ref, deps);
 	if (applied === 'stale') {
@@ -119,6 +116,10 @@ async function applySourcesGitFileDiffIfNeeded(
 		return 'stale';
 	}
 	if (!result || !result.supported) {
+		if (isSourcesGitUnrootedResource(entry.resource)) {
+			const reason = result && !result.supported ? result.reason.trim() : '';
+			throw new Error(reason || sourcesGitReadUnavailableNoHookMessage());
+		}
 		return ref;
 	}
 	if (result.unifiedDiff === '') {

@@ -3,8 +3,8 @@ title: "进度索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-01
-summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；ELR S1–S4 与 bug-hunt 01 S2 已落，Sources 架构 P7 已落且方案仍 accepted"
+updated: 2026-10-16
+summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；ELR S1–S4 与 bug-hunt 01 S2 已落，Sources 架构 P7 已落且方案仍 accepted；2026-10-16 视觉审查发现稿"
 ---
 
 # 进度
@@ -25,5 +25,6 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 | [钉死引擎调试](../../docs/guides/debug-engine.md) | 仓外 HeadlessServer，不是 Loop 槽 |
 | [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md) | 2026-09-24 十六路只读扫描；方案在 `dev/plans/bug-hunt-2026-09-24/` |
 | [ui-gap-review-2026-10-01.md](ui-gap-review-2026-10-01.md) | 2026-10-01 四路只读 UI 缺口审查（3 Critical、19 Important）；发现稿，不登记 D、不升 PRD |
+| [visual-review-2026-10-16.md](visual-review-2026-10-16.md) | 2026-10-16 对照 UI 设计原则审查工作区未提交的视觉改动（5 条需要改、3 条建议改）；静态审查未截图，发现稿，不登记 D |
 | [sources-architecture-review-2026-09-28.md](sources-architecture-review-2026-09-28.md) | Sources 只读架构审查 8 条（SAR-1…8）。方案 [sources-architecture](../plans/sources-architecture.md) 仍 accepted；P7 已在 loop/merge 落 |
 | [engine-link-architecture-review-2026-09-28.md](engine-link-architecture-review-2026-09-28.md) | 引擎链接只读架构审查 9 条（ELR-1…9）。ELR-1/ELR-2 的 S1–S4 与 bug-hunt 01 S2 已落；试连超时绕过 SAS 仍开 |

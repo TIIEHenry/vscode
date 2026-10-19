@@ -6,6 +6,7 @@
 import { Event } from '../../../../base/common/event.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import type { SessionViewSnapshot } from '../../../../platform/universeAgent/common/sessionView/types.js';
+import type { IAgentWorkRoot } from './agentWorkRoot.js';
 
 /**
  * Lease the Sources read model and attribution can hold without importing
@@ -32,6 +33,10 @@ export interface IAgentSessionContext {
 	isPairingHold(): boolean;
 	/** Roster `workDir` for this session. Absent or blank when the engine omitted it. */
 	getSessionWorkDir?(sessionId: string): string | undefined;
+	/** Session work root. Optional so existing test doubles keep compiling. */
+	getWorkRoot?(sessionId: string): IAgentWorkRoot;
+	getActiveWorkRoot?(): IAgentWorkRoot;
+	readonly onDidChangeActiveWorkRoot?: Event<IAgentWorkRoot>;
 	readonly onDidChangeActiveSession: Event<string>;
 	readonly onDidChangeSession: Event<string>;
 	acquireSessionView(sessionId: string): IAgentSessionViewLease;

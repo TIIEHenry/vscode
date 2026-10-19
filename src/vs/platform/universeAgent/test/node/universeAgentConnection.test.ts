@@ -2466,6 +2466,18 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return { providerId: '', brand: '', protocol: '', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false };
 	}
 
+	async upsertModel() {
+		return { id: '', type: '', enabled: false, level: 0, provider: '', modelId: '' };
+	}
+
+	async deleteModel() {
+		return { deleted: false };
+	}
+
+	async setModelEnabled() {
+		return { id: '', type: '', enabled: false, level: 0, provider: '', modelId: '' };
+	}
+
 	async listProjectRules() {
 		return { rules: [] };
 	}

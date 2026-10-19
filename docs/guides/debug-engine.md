@@ -3,7 +3,7 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-10-05
+updated: 2026-10-19
 summary: "仓外隔离 worktree 编 HeadlessServer。IDE 用同一个 UNIVERSE_AGENT_HOME 发现 UDS 或 pinned TCP，不再扫固定端口。手填 Direct Address 仍走 Device Grant。换钉以仓外 PIN 为准。"
 ---
 
@@ -61,7 +61,7 @@ IDE 已在已提交的 TLS 链路上给之后的调用带 `authorization: Bearer
 
 Logback 仍写 `~/.universe-agent/logs`（硬编码 `user.home`）。身份、会话、Grant 在 `agent-home/`。
 
-占位 `ANTHROPIC_API_KEY` 只够 Connect。Chat 还要 ConfigStore 里的 `provider:state`（或 `provider:providers` + `provider:model_profiles`）以及 `models.json`：进程环境变量不会自动变成 model profile。`start-engine.sh` 会从 `~/.claude/settings.json` 导出 key / base / model，并跑 `seed-model-catalog.sh` 写入隔离 `agent-home/`（不打印 key）。改完须重启引擎。**2026-09-12** 重启后 grpcurl `ListModels` 非空、`AgentService/Chat` 带 `SessionInput.model_profile_id` **PASS**（`turnComplete`/`end_turn`）。本仓 Composer 发送时带同一字段（选中 catalog 的 `id`；诚实空选项不带）。这不是 IDE 接通冒烟，不升 PRD-008。
+占位 `ANTHROPIC_API_KEY` 只够 Connect。Chat 还要 ConfigStore 里的 `provider:state`（或 `provider:providers` + `provider:model_profiles`）以及 `models.json`：进程环境变量不会自动变成 model profile。`start-engine.sh` 会从 `~/.claude/settings.json` 导出 key / base / model，并跑 `seed-model-catalog.sh` 写入隔离 `agent-home/`（不打印 key）。改完须重启引擎。Engine 设置页可以 upsert 凭据、导入本地 harness，并在引擎提供写 RPC 后改模型注册表；seed 脚本仍是这份钉死引擎的启动引导。当前钉上的进程要重新编译并重启后才有 `UpsertModel` / `DeleteModel` / `SetModelEnabled`。在那之前，设置页里的 provider 导入仍可完成，模型写入会记为未实现。**2026-09-12** 重启后 grpcurl `ListModels` 非空、`AgentService/Chat` 带 `SessionInput.model_profile_id` **PASS**（`turnComplete`/`end_turn`）。本仓 Composer 发送时带同一字段（选中 catalog 的 `id`；诚实空选项不带）。这不是 IDE 接通冒烟，不升 PRD-008。
 
 ## 5. 换钉
 

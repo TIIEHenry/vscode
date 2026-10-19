@@ -16,6 +16,7 @@ import type { IFileMutationRecord, UniverseAgentConnectionSnapshot } from '../..
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import {
 	buildAttributionChips,
+	engineReviewPathKey,
 	getWorkspaceFolderRoots,
 	IReviewAttributionChipDisplay,
 	IReviewItemAttribution,
@@ -33,6 +34,16 @@ interface ISessionMutationBucket {
 	/** Oldest first. */
 	readonly order: IFileMutationRecord[];
 	readonly byPath: Map<string, IFileMutationRecord[]>;
+	/** Work-root signature this bucket's path index was built with. */
+	indexSignature: string;
+}
+
+interface IAttributionIndexFacts {
+	readonly mode: 'legacy' | 'root';
+	readonly access: 'local' | 'engine' | 'none';
+	readonly workDir: string;
+	readonly roots: readonly URI[];
+	readonly signature: string;
 }
 
 export class SourcesReviewAttributionService extends Disposable implements ISourcesReviewAttributionService {
@@ -89,20 +100,28 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 			}
 			this._onDidChange.fire();
 		}));
+
+		const workRootEvent = session.onDidChangeActiveWorkRoot;
+		if (workRootEvent) {
+			this._register(workRootEvent(() => this._onDidChange.fire()));
+		}
 	}
 
 	isAttributionEnabled(): boolean {
 		if (!this.everConnected) {
 			return false;
 		}
-		const workDir = this.connectionSnapshot.workDir;
-		if (!isWorkDirCompatible(workDir, this.getWorkspaceRoots())) {
+		if (!this.canAttribute(this.indexFacts(this.activeSessionId))) {
 			return false;
 		}
 		return this.activeRecordCount() > 0;
 	}
 
 	getWorkDirMismatchNote(): string | undefined {
+		// Session work root attributes engine rows; the legacy omission note does not apply.
+		if (this.session.getWorkRoot) {
+			return undefined;
+		}
 		const workDir = this.connectionSnapshot.workDir;
 		if (!workDir || !this.everConnected) {
 			return undefined;
@@ -148,11 +167,10 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 		}
 	}
 
-	buildChipMapForEntries(entries: readonly { readonly resource: URI }[]): ReadonlyMap<string, readonly IReviewAttributionChipDisplay[]> {
+	buildChipMapForEntries(entries: readonly { readonly resource: URI; readonly gitPath?: string }[]): ReadonlyMap<string, readonly IReviewAttributionChipDisplay[]> {
 		const result = new Map<string, readonly IReviewAttributionChipDisplay[]>();
-		const workDir = this.connectionSnapshot.workDir;
-		const workspaceRoots = this.getWorkspaceRoots();
-		if (!isWorkDirCompatible(workDir, workspaceRoots)) {
+		const facts = this.indexFacts(this.activeSessionId);
+		if (!this.canAttribute(facts)) {
 			return result;
 		}
 
@@ -168,7 +186,11 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 			const snapshot = lease.snapshot;
 			const attribution = lease.attribution as ReadonlyMap<string, IReviewItemAttribution>;
 			for (const entry of entries) {
-				const matching = bucket.byPath.get(normalizeReviewPath(entry.resource.fsPath));
+				const key = this.entryPathKey(entry, facts);
+				if (!key) {
+					continue;
+				}
+				const matching = bucket.byPath.get(key);
 				if (!matching || matching.length === 0) {
 					continue;
 				}
@@ -188,45 +210,110 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 	}
 
 	private remember(record: IFileMutationRecord): void {
-		this.ensurePathIndex();
+		if (!this.session.getWorkRoot) {
+			this.ensurePathIndex();
+		}
 		let bucket = this.buckets.get(record.sessionId);
 		if (!bucket) {
-			bucket = { order: [], byPath: new Map() };
+			bucket = { order: [], byPath: new Map(), indexSignature: '' };
 			this.buckets.set(record.sessionId, bucket);
 		}
 		bucket.order.push(record);
-		const workDir = this.connectionSnapshot.workDir ?? '';
-		const workspaceRoots = this.getWorkspaceRoots();
-		this.addToPathIndex(bucket, record, workDir, workspaceRoots);
+		const facts = this.indexFacts(record.sessionId);
+		if (this.session.getWorkRoot && facts.signature !== bucket.indexSignature) {
+			this.rebuildBucket(bucket, facts);
+		} else {
+			this.addToPathIndex(bucket, record, facts);
+		}
 		while (bucket.order.length > SOURCES_REVIEW_SESSION_MUTATION_LIMIT) {
 			const oldest = bucket.order.shift();
 			if (oldest) {
-				this.removeFromPathIndex(bucket, oldest, workDir, workspaceRoots);
+				this.removeFromPathIndex(bucket, oldest, facts);
 			}
 		}
 	}
 
 	private ensurePathIndex(): void {
-		const workDir = this.connectionSnapshot.workDir ?? '';
-		const workspaceRoots = this.getWorkspaceRoots();
-		const signature = `${workDir}\n${workspaceRoots.map(root => root.toString()).join('\n')}`;
-		if (signature === this.pathIndexSignature) {
+		if (this.session.getWorkRoot) {
+			for (const [sessionId, bucket] of this.buckets) {
+				const facts = this.indexFacts(sessionId);
+				if (facts.signature === bucket.indexSignature) {
+					continue;
+				}
+				this.rebuildBucket(bucket, facts);
+			}
+			return;
+		}
+		const facts = this.indexFacts(this.activeSessionId);
+		if (facts.signature === this.pathIndexSignature) {
 			return;
 		}
 		for (const bucket of this.buckets.values()) {
-			bucket.byPath.clear();
-			for (const record of bucket.order) {
-				this.addToPathIndex(bucket, record, workDir, workspaceRoots);
-			}
+			this.rebuildBucket(bucket, facts);
 		}
-		this.pathIndexSignature = signature;
+		this.pathIndexSignature = facts.signature;
 	}
 
-	private addToPathIndex(bucket: ISessionMutationBucket, record: IFileMutationRecord, workDir: string, workspaceRoots: readonly URI[]): void {
-		if (!workDir) {
-			return;
+	private rebuildBucket(bucket: ISessionMutationBucket, facts: IAttributionIndexFacts): void {
+		bucket.byPath.clear();
+		for (const record of bucket.order) {
+			this.addToPathIndex(bucket, record, facts);
 		}
-		const key = reviewMutationPathKey(workDir, record.path, workspaceRoots);
+		bucket.indexSignature = facts.signature;
+	}
+
+	private indexFacts(sessionId: string): IAttributionIndexFacts {
+		const roots = this.getWorkspaceRoots();
+		if (!this.session.getWorkRoot) {
+			const workDir = this.connectionSnapshot.workDir ?? '';
+			return {
+				mode: 'legacy',
+				access: 'local',
+				workDir,
+				roots,
+				signature: `${workDir}\n${roots.map(root => root.toString()).join('\n')}`,
+			};
+		}
+		const root = this.session.getWorkRoot(sessionId);
+		const workDir = root.workDir ?? '';
+		return {
+			mode: 'root',
+			access: root.access,
+			workDir,
+			roots,
+			signature: `${root.access}\n${normalizeReviewPath(workDir)}\n${root.localRoot?.toString() ?? ''}`,
+		};
+	}
+
+	private canAttribute(facts: IAttributionIndexFacts): boolean {
+		if (facts.mode === 'legacy') {
+			return isWorkDirCompatible(facts.workDir, facts.roots);
+		}
+		return facts.access !== 'none' && !!facts.workDir;
+	}
+
+	private mutationPathKey(recordPath: string, facts: IAttributionIndexFacts): string | undefined {
+		if (facts.mode === 'root' && facts.access === 'engine') {
+			return engineReviewPathKey(recordPath, facts.workDir);
+		}
+		if (facts.mode === 'root' && facts.access !== 'local') {
+			return undefined;
+		}
+		if (!facts.workDir) {
+			return undefined;
+		}
+		return reviewMutationPathKey(facts.workDir, recordPath, facts.roots);
+	}
+
+	private entryPathKey(entry: { readonly resource: URI; readonly gitPath?: string }, facts: IAttributionIndexFacts): string | undefined {
+		if (facts.mode === 'root' && facts.access === 'engine') {
+			return entry.gitPath ? engineReviewPathKey(entry.gitPath, facts.workDir) : undefined;
+		}
+		return normalizeReviewPath(entry.resource.fsPath);
+	}
+
+	private addToPathIndex(bucket: ISessionMutationBucket, record: IFileMutationRecord, facts: IAttributionIndexFacts): void {
+		const key = this.mutationPathKey(record.path, facts);
 		if (!key) {
 			return;
 		}
@@ -238,11 +325,8 @@ export class SourcesReviewAttributionService extends Disposable implements ISour
 		}
 	}
 
-	private removeFromPathIndex(bucket: ISessionMutationBucket, record: IFileMutationRecord, workDir: string, workspaceRoots: readonly URI[]): void {
-		if (!workDir) {
-			return;
-		}
-		const key = reviewMutationPathKey(workDir, record.path, workspaceRoots);
+	private removeFromPathIndex(bucket: ISessionMutationBucket, record: IFileMutationRecord, facts: IAttributionIndexFacts): void {
+		const key = this.mutationPathKey(record.path, facts);
 		if (!key) {
 			return;
 		}

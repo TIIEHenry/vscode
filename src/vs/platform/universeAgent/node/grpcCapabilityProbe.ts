@@ -17,7 +17,20 @@ import {
 	UNIVERSE_AGENT_CONVERSATION_ENTRY_KEYS,
 	createEmptyCapabilitySnapshot,
 } from '../common/universeAgentCapabilities.js';
+import { encodeListProjectRulesRequest } from './grpc/grpcCatalogUnaryWire.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices, UniverseAgentSessionListMethodKey } from './grpc/grpcTransport.js';
+
+/**
+ * `ProjectRuleScopeProto.PROJECT_RULE_SCOPE_GLOBAL`.
+ * An empty List body is scope UNSPECIFIED, which the engine rejects as
+ * INVALID_ARGUMENT, so the capability would stay UNKNOWN and Rules would never list.
+ * GLOBAL does not need a session id. WORKDIR does, so it is not a probe body.
+ */
+const PROJECT_RULE_PROBE_SCOPE_GLOBAL = 2;
+
+export function projectRuleListProbeRequest(): Uint8Array {
+	return encodeListProjectRulesRequest({ scope: PROJECT_RULE_PROBE_SCOPE_GLOBAL, sessionId: '' });
+}
 
 /** Maps Connect-advertised methods to probe targets (Singularity GrpcCapabilityProbe equivalent). */
 const PROBE_TARGETS: Partial<Record<UniverseAgentCapabilityKey, { service: string; method: string; methodKey: string }>> = {
@@ -184,7 +197,11 @@ export async function probeEngineCapabilities(input: GrpcCapabilityProbeInput): 
 			};
 			continue;
 		}
-		const status = await input.transport.probeRpc(target.service, target.method);
+		const status = await input.transport.probeRpc(
+			target.service,
+			target.method,
+			key === 'globalRules' || key === 'projectRules' ? projectRuleListProbeRequest() : undefined,
+		);
 		if (status === GrpcStatusCode.UNIMPLEMENTED) {
 			snapshot[key] = { support: 'UNSUPPORTED', reason: 'UNIMPLEMENTED' };
 			continue;

@@ -5,6 +5,7 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -24,8 +25,8 @@ import type {
 	UniverseAgentPluginSummary,
 	UniverseAgentScanNewPluginsResult,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import {
 	type EngineCatalogPaneMode,
 	canPerformCatalogWriteLive,
@@ -43,6 +44,7 @@ const PLUGIN_INFO_FEATURE = localize('ua.enginePluginInfoFeature', "plugin info"
 const EMBEDDED_SOURCE = 'embedded';
 
 export const ENGINE_PLUGINS_ENABLE_SUCCESS_COPY = localize('ua.enginePluginsEnableSuccess', "Enabled.");
+export const ENGINE_PLUGINS_DISABLE_SUCCESS_COPY = localize('ua.enginePluginsDisableSuccess', "Disabled.");
 export const ENGINE_PLUGINS_RELOAD_SUCCESS_COPY = localize('ua.enginePluginsReloadSuccess', "Reloaded.");
 export const ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY = localize('ua.enginePluginsUnloadSuccess', "Unloaded.");
 
@@ -217,10 +219,9 @@ export class EnginePluginsSection extends Disposable {
 
 		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
-		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
+		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.writeToolbar.style.display = 'none';
-		this.scanNewButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
-		this.scanNewButton.label = localize('ua.enginePluginsScanNew', "Scan New");
+		this.scanNewButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.enginePluginsScanNew', "Scan New"), Codicon.search));
 		this._register(this.scanNewButton.onDidClick(() => void this.scanNew().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.scanResult = DOM.append(this.container, $('.engine-catalog-description.engine-plugins-scan-result'));
@@ -236,16 +237,13 @@ export class EnginePluginsSection extends Disposable {
 		this.listContainer = DOM.append(this.container, $('.engine-catalog-list.engine-plugins-list'));
 		this.listContainer.style.display = 'none';
 
-		this.rowToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-plugins-row-toolbar'));
+		this.rowToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-plugins-row-toolbar.engine-catalog-icon-actions'));
 		this.rowToolbar.style.display = 'none';
-		this.enableButton = this._register(new Button(this.rowToolbar, defaultButtonStyles));
-		this.enableButton.label = localize('ua.enginePluginsEnable', "Enable");
+		this.enableButton = this._register(createCatalogIconButton(this.rowToolbar, localize('ua.enginePluginsEnable', "Enable"), Codicon.check));
 		this._register(this.enableButton.onDidClick(() => void this.enableSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this.reloadButton = this._register(new Button(this.rowToolbar, { ...defaultButtonStyles, secondary: true }));
-		this.reloadButton.label = localize('ua.enginePluginsReload', "Reload");
+		this.reloadButton = this._register(createCatalogIconButton(this.rowToolbar, localize('ua.enginePluginsReload', "Reload"), Codicon.refresh));
 		this._register(this.reloadButton.onDidClick(() => void this.reloadSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this.unloadButton = this._register(new Button(this.rowToolbar, { ...defaultButtonStyles, secondary: true }));
-		this.unloadButton.label = localize('ua.enginePluginsUnload', "Unload");
+		this.unloadButton = this._register(createCatalogIconButton(this.rowToolbar, localize('ua.enginePluginsUnload', "Unload"), Codicon.debugDisconnect));
 		this._register(this.unloadButton.onDidClick(() => void this.unloadSelected().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.infoStatus = this._register(new EngineCatalogStatusWidget(this.container));
@@ -680,6 +678,9 @@ export class EnginePluginsSection extends Disposable {
 			this.reloadButton.enabled = false;
 			this.unloadButton.enabled = false;
 			this.rowToolbar.style.display = 'none';
+			if (this.selectedPlugin) {
+				this.syncEnableButton(this.selectedPlugin);
+			}
 			return;
 		}
 		const enable = hasPluginWriteMethod(this.connection, 'enablePlugin');
@@ -693,13 +694,31 @@ export class EnginePluginsSection extends Disposable {
 		this.reloadButton.element.style.display = reload ? '' : 'none';
 		this.unloadButton.element.style.display = unload ? '' : 'none';
 		this.rowToolbar.style.display = (enable || reload || unload) ? '' : 'none';
+		this.syncEnableButton(this.selectedPlugin);
+	}
+
+	// Ghost icon only: Button.label adds monaco-text-button. Icon setter rewrites aria-label, so name it after.
+	private syncEnableButton(plugin: UniverseAgentPluginSummary): void {
+		const name = plugin.displayName || plugin.id;
+		const disabling = plugin.status === 'active';
+		const label = disabling
+			? localize('ua.enginePluginsDisableNamed', "Disable {0}", name)
+			: localize('ua.enginePluginsEnableNamed', "Enable {0}", name);
+		this.enableButton.icon = disabling ? Codicon.debugPause : Codicon.check;
+		this.enableButton.setTitle(label);
+		this.enableButton.setAriaLabel(label);
 	}
 
 	private async enableSelected(): Promise<void> {
 		if (!this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'enablePlugin')) {
 			return;
 		}
-		await this.runWrite(() => this.connection.enablePlugin(this.selectedPlugin!.id, true), ENGINE_PLUGINS_ENABLE_SUCCESS_COPY);
+		const plugin = this.selectedPlugin;
+		const disabling = plugin.status === 'active';
+		await this.runWrite(
+			() => this.connection.enablePlugin(plugin.id, disabling ? false : true),
+			disabling ? ENGINE_PLUGINS_DISABLE_SUCCESS_COPY : ENGINE_PLUGINS_ENABLE_SUCCESS_COPY,
+		);
 	}
 
 	private async reloadSelected(): Promise<void> {

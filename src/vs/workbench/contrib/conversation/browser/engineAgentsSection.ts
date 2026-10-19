@@ -5,6 +5,7 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
@@ -17,6 +18,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
@@ -35,8 +37,9 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
-import { getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { appendCatalogScopeNote, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 import {
 	agentsMarkdownSaveUpdates,
 	formatAgentsMarkdown,
@@ -328,6 +331,7 @@ export class EngineAgentsSection extends Disposable {
 		@ICommandService private readonly commandService: ICommandService,
 		@IContextViewService contextViewService: IContextViewService,
 		@IDialogService private readonly dialogService: IDialogService,
+		@IAgentSessionContext private readonly sessionContext: IAgentSessionContext,
 	) {
 		super();
 
@@ -337,19 +341,20 @@ export class EngineAgentsSection extends Disposable {
 		this.heading = DOM.append(this.container, $('h3.engine-section-heading'));
 		this.heading.textContent = localize('ua.engineAgentsSectionTitle', "Agents");
 		this.heading.style.display = 'none';
+		const workRoot = this.sessionContext?.getActiveWorkRoot?.().workDir?.trim();
+		appendCatalogScopeNote(this.container, workRoot
+			? localize('ua.engineAgentsScopeWithRoot', "Project profiles follow this work root: {0}.", workRoot)
+			: localize('ua.engineAgentsScope', "Project profiles follow the open work root. User and built-in profiles are engine-wide."));
 
 		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
-		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
+		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.writeToolbar.style.display = 'none';
-		const newButton = this._register(new Button(this.writeToolbar, defaultButtonStyles));
-		newButton.label = localize('ua.engineAgentsNew', "New");
-		this._register(newButton.onDidClick(() => void this.createProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this.resetButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
-		this.resetButton.label = localize('ua.engineAgentsReset', "Reset");
+		const newButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineAgentsNew', "New agent"), Codicon.add));
+		this._register(newButton.onDidClick(() => void this.promptNewProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.resetButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineAgentsReset', "Reset"), Codicon.discard));
 		this._register(this.resetButton.onDidClick(() => void this.resetSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this.deleteButton = this._register(new Button(this.writeToolbar, { ...defaultButtonStyles, secondary: true }));
-		this.deleteButton.label = localize('ua.engineAgentsDelete', "Delete");
+		this.deleteButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineAgentsDelete', "Delete"), Codicon.trash));
 		this._register(this.deleteButton.onDidClick(() => void this.confirmAndDeleteSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.catalogWriteStatus = DOM.append(this.container, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
@@ -436,10 +441,11 @@ export class EngineAgentsSection extends Disposable {
 		this.modelStatus = this._register(new EngineCatalogStatusWidget(this.modelPanel));
 		this.modelForm = DOM.append(this.modelPanel, $('.engine-agents-model-form'));
 		this.modelForm.style.display = 'none';
+		appendCatalogScopeNote(this.modelForm, localize('ua.engineAgentsModelScope', "Saved on this agent profile. The open session chooses its model in the composer."));
 		this.modelIdInput = this.createModelField(
 			contextViewService,
-			localize('ua.engineAgentsModelIdLabel', "Model"),
-			localize('ua.engineAgentsModelIdAria', "Model id stored with this agent profile"),
+			localize('ua.engineAgentsModelIdLabel', "Profile default"),
+			localize('ua.engineAgentsModelIdAria', "Default model id stored with this agent profile"),
 		);
 		this.modelTypeInput = this.createModelField(
 			contextViewService,
@@ -819,6 +825,42 @@ export class EngineAgentsSection extends Disposable {
 			return;
 		}
 		this.list.setSelection([index]);
+	}
+
+	private async promptNewProfile(): Promise<void> {
+		if (!this.canWrite()) {
+			return;
+		}
+		const required = localize('ua.engineAgentsNameRequired', "Agent name is required.");
+		const result = await this.dialogService.input({
+			type: 'question',
+			message: localize('ua.engineAgentsNewTitle', "New agent"),
+			detail: localize('ua.engineAgentsNewDetail', "Agent name."),
+			primaryButton: localize('ua.engineAgentsCreate', "Create"),
+			inputs: [
+				{
+					type: 'text',
+					label: localize('ua.engineAgentsNewName', "Agent name"),
+					placeholder: localize('ua.engineAgentsNewName', "Agent name"),
+				},
+			],
+			validate: values => (values[0] ?? '').trim() ? undefined : required,
+		});
+		if (!result.confirmed || !result.values || !this.canWrite()) {
+			return;
+		}
+		const name = (result.values[0] ?? '').trim();
+		if (!name) {
+			this.showCatalogWriteFailed(required);
+			return;
+		}
+		await this.createProfile({
+			id: `agent-${Date.now()}`,
+			name,
+			source: 'user',
+			summary: '',
+			enabled: true,
+		});
 	}
 
 	async createProfile(profile?: UniverseAgentAgentProfileDetail): Promise<boolean> {
@@ -1443,6 +1485,14 @@ export class EngineAgentsSection extends Disposable {
 		return false;
 	}
 
+	private listSessionAgentProfiles(): ReturnType<IUniverseAgentConnection['listAgentProfiles']> {
+		const projectPath = this.sessionContext?.getActiveWorkRoot?.().workDir?.trim();
+		if (!projectPath) {
+			return this.connection.listAgentProfiles();
+		}
+		return this.connection.listAgentProfiles({ projectPath });
+	}
+
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
@@ -1488,7 +1538,7 @@ export class EngineAgentsSection extends Disposable {
 		this.renderStatus({ loadingKind: 'list' });
 
 		try {
-			const result = await this.connection.listAgentProfiles();
+			const result = await this.listSessionAgentProfiles();
 			if (generation !== this.refreshGeneration) {
 				return false;
 			}

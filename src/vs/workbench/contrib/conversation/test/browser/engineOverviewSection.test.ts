@@ -195,24 +195,14 @@ suite('EngineOverviewSection', () => {
 		parent.remove();
 	});
 
-	test('capability SUPPORTED without list evidence is not Supported', () => {
-		assert.strictEqual(formatOverviewCapabilitySupportLabel('skills', 'SUPPORTED'), formatCapabilitySupportLabel('UNKNOWN'));
-		assert.strictEqual(formatOverviewCapabilitySupportLabel('agentProfiles', 'SUPPORTED'), formatCapabilitySupportLabel('UNKNOWN'));
-		assert.strictEqual(formatOverviewCapabilitySupportLabel('tools', 'SUPPORTED'), formatCapabilitySupportLabel('UNKNOWN'));
-		assert.strictEqual(formatOverviewCapabilitySupportLabel('mcp', 'SUPPORTED'), formatCapabilitySupportLabel('UNKNOWN'));
-		assert.strictEqual(formatOverviewCapabilitySupportLabel('plugins', 'SUPPORTED'), formatCapabilitySupportLabel('UNKNOWN'));
-		assert.strictEqual(formatOverviewCapabilitySupportLabel('skills', 'SUPPORTED', true), formatCapabilitySupportLabel('SUPPORTED'));
-		assert.strictEqual(formatOverviewCapabilitySupportLabel('skills', 'UNSUPPORTED'), formatCapabilitySupportLabel('UNSUPPORTED'));
+	test('capability rows print the snapshot support', () => {
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('SUPPORTED'), formatCapabilitySupportLabel('SUPPORTED'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('UNSUPPORTED'), formatCapabilitySupportLabel('UNSUPPORTED'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel('UNKNOWN'), formatCapabilitySupportLabel('UNKNOWN'));
+		assert.strictEqual(formatOverviewCapabilitySupportLabel(undefined), formatCapabilitySupportLabel('UNKNOWN'));
 	});
 
-	test('Rules/Hooks capability SUPPORTED folds to Unsupported without list API', () => {
-		assert.strictEqual(formatOverviewCapabilitySupportLabel('globalRules', 'SUPPORTED'), formatCapabilitySupportLabel('UNSUPPORTED'));
-		assert.strictEqual(formatOverviewCapabilitySupportLabel('projectRules', 'SUPPORTED'), formatCapabilitySupportLabel('UNSUPPORTED'));
-		assert.strictEqual(formatOverviewCapabilitySupportLabel('hooksMetadata', 'SUPPORTED'), formatCapabilitySupportLabel('UNSUPPORTED'));
-		assert.strictEqual(formatOverviewCapabilitySupportLabel('globalRules', 'UNKNOWN'), formatCapabilitySupportLabel('UNKNOWN'));
-	});
-
-	test('Overview does not paint Supported from capability-only SUPPORTED', async () => {
+	test('Overview paints Supported from a SUPPORTED snapshot', async () => {
 		const capabilities = createEmptyTestCapabilitySnapshot();
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -245,8 +235,9 @@ suite('EngineOverviewSection', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		const supports = [...section.getDomNode().querySelectorAll('.engine-overview-capability-support')].map(el => el.textContent);
 		assert.ok(supports.length > 0);
-		assert.ok(!supports.includes(formatCapabilitySupportLabel('SUPPORTED')), supports.join(','));
-		assert.ok(supports.includes(formatCapabilitySupportLabel('UNSUPPORTED')), supports.join(','));
+		assert.ok(supports.includes(formatCapabilitySupportLabel('SUPPORTED')), supports.join(','));
+		assert.ok(!supports.includes(formatCapabilitySupportLabel('UNKNOWN')), supports.join(','));
+		assert.ok(!supports.includes(formatCapabilitySupportLabel('UNSUPPORTED')), supports.join(','));
 		parent.remove();
 	});
 

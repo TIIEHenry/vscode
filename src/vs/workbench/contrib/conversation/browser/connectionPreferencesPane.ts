@@ -72,6 +72,7 @@ import {
 } from './connectionPreferencesPaneLabels.js';
 import { applyConnectionPaneIdentityStripReservation } from './connectionPaneIdentityStripReservation.js';
 import { promptRecoverTrustConfirmInPane, promptSasConfirmInPane } from './connectionPreferencesPaneSas.js';
+import { IConversationRosterService } from './conversationStubService.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import {
 	getEngineSectionApiUnavailableCopy,
@@ -185,6 +186,25 @@ export function findDirectAddressProfilesForEndpoint(
 		profile.targetKind === 'directAddress'
 		&& profile.displayName === canonical
 	);
+}
+
+/** `host:port` with a trimmed, lowercased host. Friendly names are not endpoints. */
+function normalizeDirectAddressEndpoint(host: string, port: number): string {
+	return `${host.trim().toLowerCase()}:${port}`;
+}
+
+function directAddressEndpointFromLabel(label: string): string | undefined {
+	const trimmed = label.trim();
+	const colon = trimmed.lastIndexOf(':');
+	if (colon <= 0) {
+		return undefined;
+	}
+	const port = readDirectAddressPort(trimmed.slice(colon + 1));
+	const host = trimmed.slice(0, colon).trim();
+	if (!host || port === undefined) {
+		return undefined;
+	}
+	return normalizeDirectAddressEndpoint(host, port);
 }
 
 export type ConnectProfileDiagnosticExtras = {
@@ -469,6 +489,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private activeProfileId: string | undefined;
 	/** Profile this pane settled a connect for. Not the list selection and not a snapshot field. */
 	private connectedProfileId: string | undefined;
+	/** True while the engine-switch warning is open, so a second click cannot dial. */
+	private engineSwitchPromptOpen = false;
 	private _forgetProfileGeneration = 0;
 
 	private readonly hubBaseUrlInput: InputBox;
@@ -489,6 +511,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		@IUniverseAgentHubService private readonly hubService: IUniverseAgentHubService,
 		@IUniverseAgentConnection private readonly connectionService: IUniverseAgentConnection,
 		@IDialogService private readonly dialogService: IDialogService,
+		@IConversationRosterService private readonly roster: IConversationRosterService,
 	) {
 		super();
 
@@ -1095,6 +1118,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private isConnectWriteHeld(): boolean {
 		return this.connectInFlight
+			|| this.engineSwitchPromptOpen
 			|| this.isDeviceWritePairingHold()
 			|| this.isPairingConfirmHostLive();
 	}
@@ -1510,6 +1534,64 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 	}
 
+	/**
+	 * Sessions this window's roster lists, that still have a pending attention seat.
+	 * Generating is not counted: there is no per-session read for it.
+	 * Missing in pane unit tests; the workbench always registers the roster.
+	 */
+	private engineSwitchPendingAttentionCount(): number {
+		const roster = this.roster as IConversationRosterService | undefined;
+		if (!roster) {
+			return 0;
+		}
+		let count = 0;
+		for (const session of roster.getSessions()) {
+			if (roster.hasPendingAttentionSeat(session.id)) {
+				count++;
+			}
+		}
+		return count;
+	}
+
+	/** Live direct-address `host:port`. Direct Address mints a new profileId on every connect. */
+	private isSameConnectedDirectAddress(host: string, port: number): boolean {
+		const profileId = this.connectedProfileId;
+		if (!profileId || !isUniverseAgentPhaseConnected(this.connectionService.getConnectionPhase())) {
+			return false;
+		}
+		const profile = asConnectionProfileList(this.hubService.listConnectionProfiles())
+			.find(item => item.profileId === profileId && item.targetKind === 'directAddress');
+		if (!profile) {
+			return false;
+		}
+		const current = directAddressEndpointFromLabel(profile.displayName);
+		return current !== undefined && current === normalizeDirectAddressEndpoint(host, port);
+	}
+
+	/** False means cancel: caller must not forget, disconnect, or dial. */
+	private async confirmEngineSwitchWhilePendingAttention(count: number): Promise<boolean> {
+		this.engineSwitchPromptOpen = true;
+		this.updateConnectGates();
+		try {
+			const message = count === 1
+				? localize('ua.connectionSwitchEnginePendingOne', "This window has 1 open session waiting for confirmation.")
+				: localize('ua.connectionSwitchEnginePendingMany', "This window has {0} open sessions waiting for confirmation.", count);
+			const result = await this.dialogService.confirm({
+				type: 'warning',
+				message,
+				detail: localize(
+					'ua.connectionSwitchEnginePendingDetail',
+					"Switching engines stays in this window and disconnects the current connection. Cancel keeps the current connection.",
+				),
+				primaryButton: localize('ua.connectionSwitchEngineContinue', "Continue"),
+			});
+			return result.confirmed;
+		} finally {
+			this.engineSwitchPromptOpen = false;
+			this.updateConnectGates();
+		}
+	}
+
 	private async handleConnectDirectAddress(): Promise<void> {
 		if (this.isConnectWriteHeld()) {
 			return;
@@ -1519,6 +1601,13 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		const { host, port } = endpoint;
+		// Before forget/disconnect/dial. A new profileId is minted later, so compare host:port.
+		if (!this.isSameConnectedDirectAddress(host, port)) {
+			const pendingAttention = this.engineSwitchPendingAttentionCount();
+			if (pendingAttention > 0 && !(await this.confirmEngineSwitchWhilePendingAttention(pendingAttention))) {
+				return;
+			}
+		}
 
 		const displayName = this.directNameInput.value.trim() || undefined;
 		const allowPrivateNetwork = this.directAllowPrivateCheckbox.checked;
@@ -1534,7 +1623,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 
 		this.activeProfileId = ensured.profileId;
-		await this.connectProfileWithPairing(ensured.profileId);
+		await this.connectProfileWithPairing(ensured.profileId, { skipEngineSwitchConfirm: true });
 		this.renderProfiles();
 	}
 
@@ -1719,9 +1808,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		return { finalResult: confirmResult };
 	}
 
-	private async connectProfileWithPairing(profileId: string): Promise<void> {
+	private async connectProfileWithPairing(profileId: string, options?: { readonly skipEngineSwitchConfirm?: boolean }): Promise<void> {
 		if (this.isConnectWriteHeld()) {
 			return;
+		}
+		// Before dial. Direct Address already gated, and its new profileId must not prompt again.
+		if (!options?.skipEngineSwitchConfirm && profileId !== this.connectedProfileId) {
+			const pendingAttention = this.engineSwitchPendingAttentionCount();
+			if (pendingAttention > 0 && !(await this.confirmEngineSwitchWhilePendingAttention(pendingAttention))) {
+				return;
+			}
 		}
 		this.connectInFlight = true;
 		this.updateConnectGates();

@@ -7,8 +7,10 @@ import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentCapabilitySnapshot, UniverseAgentDeleteProjectRuleRequest, UniverseAgentProjectRule, UniverseAgentUpsertProjectRuleRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
@@ -36,6 +38,8 @@ suite('EngineRulesSection', () => {
 		looksLive?: boolean;
 		capabilities?: UniverseAgentCapabilitySnapshot;
 		listProjectRules?: IUniverseAgentConnection['listProjectRules'];
+		upsertProjectRule?: IUniverseAgentConnection['upsertProjectRule'];
+		deleteProjectRule?: IUniverseAgentConnection['deleteProjectRule'];
 	} = {}): IUniverseAgentConnection {
 		const connected = options.connected ?? false;
 		const pairingPending = options.pairingPending ?? false;
@@ -54,8 +58,40 @@ suite('EngineRulesSection', () => {
 			}),
 			getCapabilitySnapshot: () => capabilities,
 			listProjectRules: options.listProjectRules,
+			upsertProjectRule: options.upsertProjectRule,
+			deleteProjectRule: options.deleteProjectRule,
 		});
 	}
+
+	function supportedRules(): UniverseAgentCapabilitySnapshot {
+		return {
+			...createEmptyTestCapabilitySnapshot(),
+			globalRules: { support: 'SUPPORTED' },
+			projectRules: { support: 'SUPPORTED' },
+		};
+	}
+
+	function mountWritable(connection: IUniverseAgentConnection): { section: EngineRulesSection; dialog: TestDialogService } {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const dialog = instantiationService.get(IDialogService) as TestDialogService;
+		const section = store.add(instantiationService.createInstance(EngineRulesSection, parent));
+		section.setSectionActive(true);
+		return { section, dialog };
+	}
+
+	const savedRule: UniverseAgentProjectRule = {
+		id: 'rule-1',
+		title: 'Ship it',
+		enabled: true,
+		priority: 2,
+		body: 'body text',
+		scope: 2,
+		globs: ['*.ts'],
+		appliesTo: ['agent'],
+	};
 
 	function mountSection(connection: IUniverseAgentConnection): EngineRulesSection {
 		const parent = document.createElement('div');
@@ -172,5 +208,144 @@ suite('EngineRulesSection', () => {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('add global rule sends scope 2 and the dialog fields', async () => {
+		const upserts: UniverseAgentUpsertProjectRuleRequest[] = [];
+		const connection = createRulesConnection({
+			connected: true,
+			capabilities: supportedRules(),
+			listProjectRules: async () => ({ rules: [] }),
+			upsertProjectRule: async request => {
+				upserts.push(request);
+				return request.rule;
+			},
+		});
+		const { section, dialog } = mountWritable(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['Ship it', 'body text', '2'], checkboxChecked: true });
+		(section.getDomNode().querySelector('[aria-label="Add global rule"]') as HTMLButtonElement).click();
+		await timeout(0);
+		assert.strictEqual(upserts.length, 1);
+		assert.deepStrictEqual(upserts[0], {
+			scope: 2,
+			sessionId: '',
+			rule: {
+				id: '',
+				title: 'Ship it',
+				enabled: true,
+				priority: 2,
+				body: 'body text',
+				scope: 2,
+				globs: [],
+				appliesTo: [],
+			},
+		});
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('edit keeps id, globs, and appliesTo', async () => {
+		const upserts: UniverseAgentUpsertProjectRuleRequest[] = [];
+		const connection = createRulesConnection({
+			connected: true,
+			capabilities: supportedRules(),
+			listProjectRules: async request => ({ rules: request.scope === 2 ? [savedRule] : [] }),
+			upsertProjectRule: async request => {
+				upserts.push(request);
+				return request.rule;
+			},
+		});
+		const { section, dialog } = mountWritable(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['Renamed', '', ''], checkboxChecked: false });
+		(section.getDomNode().querySelector('[aria-label="Edit Ship it"]') as HTMLButtonElement).click();
+		await timeout(0);
+		assert.strictEqual(upserts.length, 1);
+		assert.strictEqual(upserts[0].rule.id, 'rule-1');
+		assert.deepStrictEqual(upserts[0].rule.globs, ['*.ts']);
+		assert.deepStrictEqual(upserts[0].rule.appliesTo, ['agent']);
+		assert.strictEqual(upserts[0].rule.priority, 2);
+		assert.strictEqual(upserts[0].rule.enabled, false);
+		assert.strictEqual(upserts[0].rule.body, '');
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('blank title does not upsert', async () => {
+		const upserts: UniverseAgentUpsertProjectRuleRequest[] = [];
+		const connection = createRulesConnection({
+			connected: true,
+			capabilities: supportedRules(),
+			listProjectRules: async () => ({ rules: [] }),
+			upsertProjectRule: async request => {
+				upserts.push(request);
+				return request.rule;
+			},
+		});
+		const { section, dialog } = mountWritable(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['  ', 'body', '1'], checkboxChecked: true });
+		(section.getDomNode().querySelector('[aria-label="Add global rule"]') as HTMLButtonElement).click();
+		await timeout(0);
+		assert.strictEqual(upserts.length, 0);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Title is required.'));
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('delete confirm calls delete and cancel does not', async () => {
+		const deletes: UniverseAgentDeleteProjectRuleRequest[] = [];
+		const connection = createRulesConnection({
+			connected: true,
+			capabilities: supportedRules(),
+			listProjectRules: async request => ({ rules: request.scope === 2 ? [savedRule] : [] }),
+			deleteProjectRule: async request => {
+				deletes.push(request);
+				return { deleted: true };
+			},
+			upsertProjectRule: async request => request.rule,
+		});
+		const { section, dialog } = mountWritable(connection);
+		await timeout(0);
+		const button = section.getDomNode().querySelector('[aria-label="Delete Ship it"]') as HTMLButtonElement;
+		button.click();
+		await timeout(0);
+		assert.strictEqual(deletes.length, 0);
+		dialog.setConfirmResult({ confirmed: true });
+		button.click();
+		await timeout(0);
+		assert.deepStrictEqual(deletes, [{ scope: 2, sessionId: '', id: 'rule-1' }]);
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('missing upsert hides add and pairing-hold does not write', async () => {
+		const upserts: UniverseAgentUpsertProjectRuleRequest[] = [];
+		const readOnly = createRulesConnection({
+			connected: true,
+			capabilities: supportedRules(),
+			listProjectRules: async () => ({ rules: [] }),
+		});
+		const readOnlySection = mountSection(readOnly);
+		await timeout(0);
+		const toolbar = readOnlySection.getDomNode().querySelector('.engine-rules-scope--global .engine-catalog-write-toolbar') as HTMLElement;
+		assert.strictEqual(toolbar.style.display, 'none');
+		readOnlySection.getDomNode().parentElement?.remove();
+
+		const held = createRulesConnection({
+			connected: true,
+			pairingPending: true,
+			looksLive: true,
+			capabilities: supportedRules(),
+			listProjectRules: async () => ({ rules: [] }),
+			upsertProjectRule: async request => {
+				upserts.push(request);
+				return request.rule;
+			},
+		});
+		const { section, dialog } = mountWritable(held);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['Ship it', 'body', '1'], checkboxChecked: true });
+		(section.getDomNode().querySelector('[aria-label="Add global rule"]') as HTMLButtonElement).click();
+		await timeout(0);
+		assert.strictEqual(upserts.length, 0);
+		section.getDomNode().parentElement?.remove();
 	});
 });

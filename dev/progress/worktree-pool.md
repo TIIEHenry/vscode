@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: M7
 created: 2026-08-30
-updated: 2026-10-11
-summary: "仓外 vscode-WorkTrees；基线 agent-ide。2026-10-11 关仓产品尖端 7825da47599。C 仅脏 dev/loop gitlink。未 push origin/main。"
+updated: 2026-10-13
+summary: "2026-10-13：loop/merge 在 a3c079e48c4。干净槽已对齐。C 只脏 dev/loop，H 有未跟踪 attachments。agent-ide 未 ff。未 push。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,18 +23,19 @@ summary: "仓外 vscode-WorkTrees；基线 agent-ide。2026-10-11 关仓产品�
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 产品尖端 | `7825da47599`（2026-10-11，`merge: 合入 loop/B 会话更多菜单打开时 Escape 关掉`） |
-| 关仓快照 | 本文件所在提交。干净槽与人类工位快进到该提交。未 push。 |
-| 工位池 compile | 未在本次对齐时重跑。产品修复是各槽自己编译后合入的；merge 的 `out/` 没有按这次关仓重编。 |
+| 产品尖端（人类工位 `agent-ide`） | `393ccc6e9fd`。未快进。 |
+| 集成尖端（`loop/merge`） | `a3c079e48c4`（父 `73c2b545339` 与 `ee503183235`：缓存键被外部删掉或改写后，flush 不再落盘排队的旧写入或旧删除）。未 push。本轮调度未重编译。 |
+| 工位池 compile | 本轮未重编译。`recover/*` 只作存档，不在本轮合入。 |
 
-## 槽位表（2026-10-11）
+## 槽位表（2026-10-13）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本文件所在提交 | `parked`。产品父 `7825da47599` |
-| A–B、D–J | `vscode-WorkTrees/{A…J}` | `loop/{slot}` | 同上 | `idle` |
-| C | `vscode-WorkTrees/C` | `loop/C` | 同上 | `blocked`；仅脏 `dev/loop` gitlink，勿 add，勿 `checkout -B` |
-| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 同上 | 参加了快进。另有 13 个未提交的 `trajectory-*.png` 删除，未纳入提交 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `a3c079e48c4` | 干净。已含 `ee503183235`。未把 `agent-ide` 拉上来 |
+| A、B、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | `a3c079e48c4` | 干净，已与 `loop/merge` 相同。没有独有提交 |
+| C | `vscode-WorkTrees/C` | `loop/C` | `f939ea194b3` | `blocked`。仅脏 `dev/loop` gitlink。勿 add，勿 `checkout -B` |
+| H | `vscode-WorkTrees/H` | `loop/H` | `f939ea194b3` | 未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
+| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | `393ccc6e9fd` | 会话工作根等未提交改动。13 个 `trajectory-*.png` 删除不进提交。`status.md` 与进站历史重叠，禁止 ff |
 
 并行归属见 [status.md](status.md)。M7 看板已归档：[m7-ui-completion](../parallel/archive/m7-ui-completion.md)。本波无独立 parallel board。
 

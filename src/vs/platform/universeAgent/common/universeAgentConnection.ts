@@ -331,9 +331,25 @@ import type {
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentUpsertModelRequest,
+	UniverseAgentDeleteModelRequest,
+	UniverseAgentDeleteModelResult,
+	UniverseAgentSetModelEnabledRequest,
+	UniverseAgentModelEntry,
 	UniverseAgentListProviderStatusResult,
+	UniverseAgentProviderStatus,
+	UniverseAgentUpsertProviderCredentialsRequest,
+	UniverseAgentClearProviderCredentialsRequest,
+	UniverseAgentHarnessProviderPreviewResult,
+	UniverseAgentImportHarnessProvidersRequest,
+	UniverseAgentImportHarnessProvidersResult,
+	UniverseAgentProviderPresetCatalog,
 	UniverseAgentListProjectRulesRequest,
 	UniverseAgentListProjectRulesResult,
+	UniverseAgentProjectRule,
+	UniverseAgentUpsertProjectRuleRequest,
+	UniverseAgentDeleteProjectRuleRequest,
+	UniverseAgentDeleteProjectRuleResult,
 	UniverseAgentListHookPointsResult,
 	UniverseAgentListTeamsResult,
 	UniverseAgentGetConfigRequest,
@@ -1398,8 +1414,7 @@ export interface IUniverseAgentConnection {
 	 * omit it. Catalog + node transport only this slice; empty request
 	 * `{}`. Empty `currency` mapped as-is. Proto fields only
 	 * (`GetGlobalUsageRequest` / `GetGlobalUsageResponse` +
-	 * `TokenUsageData`). No Conversation roster / UI / Engine Preferences /
-	 * Composer.
+	 * `TokenUsageData`). Engine Preferences Token Usage calls this.
 	 * ≠ GetSessionUsage / Agent.Usage.
 	 */
 	getGlobalUsage?(): Promise<UniverseAgentGetGlobalUsageResult>;
@@ -1408,8 +1423,8 @@ export interface IUniverseAgentConnection {
 	 * MemoryService.Save unary. Optional so Web / tests can omit it.
 	 * Catalog + node transport only this slice; empty `scope` / `content` /
 	 * `category` are sent as-is. Proto fields only (`MemorySaveRequest` /
-	 * `MemorySaveResponse`: `success` / `message` / `file_path`). No
-	 * Conversation roster / UI / Engine Preferences / Composer / Memory pane.
+	 * `MemorySaveResponse`: `success` / `message` / `file_path`). Engine
+	 * Preferences Memory calls this.
 	 * ≠ Search / SearchDeep / Read / List / Delete / Reflect / Rebuild /
 	 * Revert / History.
 	 */
@@ -1421,8 +1436,7 @@ export interface IUniverseAgentConnection {
 	 * `keywords` are sent as-is. `limit` 0 sent as-is. Empty `category` /
 	 * `filename` / `title` / `snippet` / `scope` mapped as-is. Proto
 	 * fields only (`MemorySearchRequest` / `MemorySearchResponse` +
-	 * `MemorySearchResult`). No Conversation roster / UI / Engine
-	 * Preferences / Composer.
+	 * `MemorySearchResult`). Engine Preferences Memory calls this.
 	 * ≠ Save / SearchDeep / Read / List / Delete / Reflect / Rebuild /
 	 * Revert / History.
 	 */
@@ -1461,8 +1475,7 @@ export interface IUniverseAgentConnection {
 	 * are sent as-is. Empty `filename` / `title` / `category` mapped as-is.
 	 * `updated_at` / `file_count` 0 mapped as-is. Proto fields only
 	 * (`MemoryListRequest` / `MemoryListResponse` + `MemoryCategoryInfo` /
-	 * `MemoryFileSummary`). No Conversation roster / UI / Engine
-	 * Preferences / Composer / Memory pane.
+	 * `MemoryFileSummary`). Engine Preferences Memory calls this.
 	 * ≠ Save / Search / SearchDeep / Read / Delete / Reflect / Rebuild /
 	 * Revert / History.
 	 */
@@ -1472,8 +1485,8 @@ export interface IUniverseAgentConnection {
 	 * MemoryService.Delete unary. Optional so Web / tests can omit it.
 	 * Catalog + node transport only this slice; empty `scope` / `category` /
 	 * `filename` are sent as-is. Proto fields only (`MemoryDeleteRequest` /
-	 * `MemoryDeleteResponse`: `success` / `message`). No Conversation roster /
-	 * UI / Engine Preferences / Composer / Memory pane.
+	 * `MemoryDeleteResponse`: `success` / `message`). Engine Preferences
+	 * Memory calls this.
 	 * ≠ Save / Search / SearchDeep / Read / List / Reflect / Rebuild /
 	 * Revert / History.
 	 */
@@ -2133,11 +2146,47 @@ export interface IUniverseAgentConnection {
 	listModels(): Promise<UniverseAgentListModelsResult>;
 
 	/**
-	 * AgentService.ListProviderStatus. Optional so Web / tests can omit it
-	 * until the Provider group consumes it. Status only; never includes
-	 * api_key. No credential form / Test button on this hook.
+	 * AgentService.ListProviderStatus. Optional so Web / tests can omit it.
+	 * Status only; never includes api_key.
 	 */
 	listProviderStatus?(): Promise<UniverseAgentListProviderStatusResult>;
+
+	/**
+	 * AgentService.UpsertProviderCredentials. api_key is outbound only.
+	 * A blank apiKey keeps the stored key. Desktop main process only.
+	 */
+	upsertProviderCredentials?(request: UniverseAgentUpsertProviderCredentialsRequest): Promise<UniverseAgentProviderStatus>;
+
+	/**
+	 * AgentService.ClearProviderCredentials. Does not change host environment variables.
+	 */
+	clearProviderCredentials?(request: UniverseAgentClearProviderCredentialsRequest): Promise<UniverseAgentProviderStatus>;
+
+	/** ConfigService.UpsertModel. Writes the engine model registry. */
+	upsertModel?(request: UniverseAgentUpsertModelRequest): Promise<UniverseAgentModelEntry>;
+
+	/** ConfigService.DeleteModel. */
+	deleteModel?(request: UniverseAgentDeleteModelRequest): Promise<UniverseAgentDeleteModelResult>;
+
+	/** ConfigService.SetModelEnabled. */
+	setModelEnabled?(request: UniverseAgentSetModelEnabledRequest): Promise<UniverseAgentModelEntry>;
+
+	/**
+	 * Local harness catalog preview. Names and sources only; keys stay in the main process.
+	 */
+	previewHarnessProviderImport?(): Promise<UniverseAgentHarnessProviderPreviewResult>;
+
+	/**
+	 * Re-reads the local catalog and upserts the selected providers.
+	 * providerIds selects the preview ids. Keys are not accepted from the renderer.
+	 */
+	importHarnessProviders?(request: UniverseAgentImportHarnessProvidersRequest): Promise<UniverseAgentImportHarnessProvidersResult>;
+
+	/**
+	 * Built-in provider presets plus the models.dev cloud list.
+	 * Desktop main process only. Not an engine RPC and not a credential.
+	 */
+	listProviderPresetCatalog?(request?: { readonly force?: boolean }): Promise<UniverseAgentProviderPresetCatalog>;
 
 	/**
 	 * ProjectRuleService.List. Optional so Web / tests can omit it.
@@ -2145,6 +2194,20 @@ export interface IUniverseAgentConnection {
 	 * sent as-is. Scope is proto `ProjectRuleScopeProto`.
 	 */
 	listProjectRules?(request: UniverseAgentListProjectRulesRequest): Promise<UniverseAgentListProjectRulesResult>;
+
+	/**
+	 * ProjectRuleService.Upsert. Optional so Web / tests can omit it.
+	 * Request must not carry work_dir / agent_home. Empty `sessionId` is
+	 * sent as-is. Scope is proto `ProjectRuleScopeProto`.
+	 */
+	upsertProjectRule?(request: UniverseAgentUpsertProjectRuleRequest): Promise<UniverseAgentProjectRule>;
+
+	/**
+	 * ProjectRuleService.Delete. Optional so Web / tests can omit it.
+	 * Request must not carry work_dir / agent_home. Empty `sessionId` and
+	 * empty `id` are sent as-is.
+	 */
+	deleteProjectRule?(request: UniverseAgentDeleteProjectRuleRequest): Promise<UniverseAgentDeleteProjectRuleResult>;
 
 	/**
 	 * SystemService.ListHookPoints. Optional so Web / tests can omit it.

@@ -12,8 +12,10 @@ import { URI } from '../../../../base/common/uri.js';
 import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISourcesPartService } from '../../../browser/parts/sources/sourcesPart.js';
-import { DEFAULT_SOURCES_TAB, nextSourcesTab, SOURCES_TAB_ORDER, SourcesTabId } from '../common/sourcesTabs.js';
+import { DEFAULT_SOURCES_TAB, isSourcesTabId, nextSourcesTab, SOURCES_TAB_ORDER, SourcesTabId } from '../common/sourcesTabs.js';
 import { ISourcesReviewHostService, ISourcesReviewListHost } from '../common/sourcesReviewHostService.js';
 import { ISourcesReviewEntry } from '../common/sourcesReviewModel.js';
 import { SourcesChangesList } from './sourcesChangesList.js';
@@ -34,9 +36,32 @@ const TAB_DESCRIPTORS: readonly ISourcesTabDescriptor[] = [
 	{ id: SourcesTabId.Review, label: localize('sourcesTab.review', "Review") },
 ];
 
+export function sourcesSelectedTabStorageKey(sessionId: string): string {
+	return `sources.selectedTab.session:${sessionId}`;
+}
+
+/** No window-level seed. A session with no stored tab stays on Files. */
+export function readSourcesSelectedTab(read: (key: string) => string | undefined, sessionId: string): SourcesTabId {
+	const stored = read(sourcesSelectedTabStorageKey(sessionId));
+	return stored !== undefined && isSourcesTabId(stored) ? stored : DEFAULT_SOURCES_TAB;
+}
+
+/** Save the tab being left, then read the tab the next session last had. */
+export function sourcesTabForSessionChange(
+	leaving: { readonly sessionId: string; readonly tab: SourcesTabId },
+	nextSessionId: string,
+	read: (key: string) => string | undefined,
+): { readonly saved: { readonly key: string; readonly tab: SourcesTabId }; readonly restored: SourcesTabId } {
+	return {
+		saved: { key: sourcesSelectedTabStorageKey(leaving.sessionId), tab: leaving.tab },
+		restored: readSourcesSelectedTab(read, nextSessionId),
+	};
+}
+
 export class SourcesTabsHost extends Disposable implements ISourcesReviewListHost {
 
 	private selectedTab: SourcesTabId = DEFAULT_SOURCES_TAB;
+	private selectedTabSessionId: string | undefined;
 	private readonly tabButtons = new Map<SourcesTabId, HTMLElement>();
 	private readonly tabPanels = new Map<SourcesTabId, HTMLElement>();
 	private reviewList: SourcesReviewList | undefined;
@@ -50,6 +75,8 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@ISourcesReviewHostService reviewHostService: ISourcesReviewHostService,
 		@ISourcesPartService private readonly sourcesPartService: ISourcesPartService,
+		@IStorageService private readonly storageService: IStorageService,
+		@IAgentSessionContext private readonly session: IAgentSessionContext | undefined,
 	) {
 		super();
 
@@ -57,7 +84,14 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 
 		this.renderTabStrip();
 		this.renderPanels();
-		this.selectTab(DEFAULT_SOURCES_TAB, false);
+		this.selectedTabSessionId = this.session?.getActiveSessionId();
+		const initialTab = this.selectedTabSessionId
+			? readSourcesSelectedTab(key => this.storageService.get(key, StorageScope.WORKSPACE), this.selectedTabSessionId)
+			: DEFAULT_SOURCES_TAB;
+		this.selectTab(initialTab, false);
+		if (this.session) {
+			this._register(this.session.onDidChangeActiveSession(sessionId => this.restoreTabForSession(sessionId)));
+		}
 		this.sourcesPartService.setFocusDelegate(() => this.focusSelectedPanel());
 		const observer = new ResizeObserver(() => this.syncFilterDock());
 		observer.observe(this.tabHost);
@@ -122,12 +156,40 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 			return;
 		}
 
+		const changed = this.selectedTab !== tabId;
 		this.selectedTab = tabId;
+		if (changed) {
+			this.persistSelectedTab();
+		}
 		this.updateTabPresentation();
 
 		if (focusTab) {
 			this.tabButtons.get(tabId)?.focus();
 		}
+	}
+
+	private persistSelectedTab(): void {
+		const sessionId = this.selectedTabSessionId;
+		if (!sessionId) {
+			return;
+		}
+		this.storageService.store(sourcesSelectedTabStorageKey(sessionId), this.selectedTab, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+	}
+
+	private restoreTabForSession(nextSessionId: string): void {
+		const leavingId = this.selectedTabSessionId;
+		if (!leavingId || leavingId === nextSessionId) {
+			this.selectedTabSessionId = nextSessionId;
+			return;
+		}
+		const change = sourcesTabForSessionChange(
+			{ sessionId: leavingId, tab: this.selectedTab },
+			nextSessionId,
+			key => this.storageService.get(key, StorageScope.WORKSPACE),
+		);
+		this.storageService.store(change.saved.key, change.saved.tab, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		this.selectedTabSessionId = nextSessionId;
+		this.selectTab(change.restored, false);
 	}
 
 	private renderTabStrip(): void {

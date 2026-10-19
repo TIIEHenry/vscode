@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../common/universeAgentCapabilities.js';
-import { isAdvertisedMethod, probeConversationEntryCapability, probeEngineCapabilities, probeGitWriteCapability, probeListFilesCapability } from '../../node/grpcCapabilityProbe.js';
+import { isAdvertisedMethod, probeConversationEntryCapability, probeEngineCapabilities, probeGitWriteCapability, probeListFilesCapability, projectRuleListProbeRequest } from '../../node/grpcCapabilityProbe.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices } from '../../node/grpc/grpcTransport.js';
 
 suite('grpc capability probe advertisement', () => {
@@ -66,6 +66,29 @@ suite('grpc capability probe advertisement', () => {
 		assert.strictEqual(snapshot.globalRules.support, 'SUPPORTED');
 		assert.strictEqual(snapshot.projectRules.support, 'SUPPORTED');
 		assert.strictEqual(snapshot.globalRules.reason, undefined);
+	});
+
+	test('ProjectRule List probe sends GLOBAL scope, other probes stay empty', async () => {
+		const requests: Array<{ method: string; request: Uint8Array | undefined }> = [];
+		const transport = {
+			probeRpc: async (_service: string, method: string, request?: Uint8Array) => {
+				requests.push({ method, request });
+				return GrpcStatusCode.OK;
+			},
+		} as unknown as IUniverseAgentGrpcTransport;
+		await probeEngineCapabilities({
+			methods: ['ProjectRuleService.List', 'ToolService.ListSkills'],
+			transport,
+		});
+		const ruleProbes = requests.filter(call => call.method === UniverseAgentGrpcServices.ProjectRule.List);
+		assert.strictEqual(ruleProbes.length, 2);
+		const expected = Buffer.from(projectRuleListProbeRequest());
+		for (const call of ruleProbes) {
+			assert.ok(call.request);
+			assert.deepStrictEqual(Buffer.from(call.request), expected);
+		}
+		const skills = requests.find(call => call.method === UniverseAgentGrpcServices.Tool.ListSkills);
+		assert.strictEqual(skills?.request, undefined);
 	});
 
 	test('SystemService.* + probe OK => hooksMetadata SUPPORTED', async () => {

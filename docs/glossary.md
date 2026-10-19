@@ -4,7 +4,7 @@ type: concept
 status: accepted
 phase: N/A
 updated: 2026-10-11
-summary: "本仓库核心术语的单一事实源：分层、Parts（含 Preview 类别 / 类别条）、Agent UI 宿主、Conversation 系统术语（SessionBar / 会话 pill / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
+summary: "本仓库核心术语的单一事实源：分层、Parts（含 Preview 类别 / 类别条）、Agent UI 宿主、Conversation 系统术语（SessionBar / 会话 pill / 叶 / Composer / Inbox / MessageQueue / stub / 帧源 / lease / ViewFrame / pendingActions / SyncChrome / attribution sidecar / 会话工作根 / 项目层与会话层）、Connection Hub（Hub / Client / SAS / Grant / DirectAddress）、不变量、能力三态、页面接入与文档约定；对外可读闭集与旧称对照表"
 ---
 
 # 术语表
@@ -97,6 +97,8 @@ summary: "本仓库核心术语的单一事实源：分层、Parts（含 Preview
 | **ViewFrame** | session-core 的幂等增量帧：`{ leaseId, generation, frameId, version, body: baseline \| patches \| effects }`；renderer 只 apply，不做事件 fold。vscode 以 `ConversationViewFrame` 包装（可附 attribution patches）。 | [stream-timeline](../dev/plans/conversation-stream-timeline.md) · [lens-and-trajectory §3](systems/conversation/lens-and-trajectory.md) · [ADR-003](../dev/decisions/003-engine-adapter-boundary.md) |
 | **pendingActions** | `SessionViewSnapshot.pendingActions[]`：L4 事件 fold 出的待处理动作（权限请求、ask-user 问题、client tool 调用）；是**座位**来源而非时间线行来源——处理后从集合移除，对应 timeline 行保留。 | [stream-timeline §3.3](../dev/plans/conversation-stream-timeline.md#33-产品视图模型-projectsnapshottentriessnapshot-attribution) · [PRD-004](product/requirements.md#prd-004-权限座位) |
 | **SyncChrome** | session-core 从 L1 控制事件 fold 出的会话级连接态（`sync.kind`：`idle` / `syncing` / `live` / `degraded` / `closed`）；驱动 SessionBar 徽标与 Inbox 文案，**不**并入连接级 `isEngineConnected()`。 | [stream-timeline §3.8](../dev/plans/conversation-stream-timeline.md#38-断连--重连--诚实) · [PRD-007](product/requirements.md#prd-007-诚实降级) |
+| **会话工作根** | 当前会话用来解析路径的根：会话自己的 `workDir`，缺省时用连接快照的 `workDir`。窗口打开的文件夹只决定这个根能否在本地直接读取，不决定根是哪一个。 | [session-work-root-and-workbench-scope §3](../dev/plans/session-work-root-and-workbench-scope.md) · [PRD-029](product/requirements.md#prd-029-会话工作根与-workbench-状态跟随会话) |
+| **项目层 / 会话层（Workbench 状态）** | 项目层按「引擎身份 + 会话工作根」区分，同项目的会话共用（Preview Code 类别里的编辑器、Files 列表模式）；会话层按会话 id 区分，各会话各记（Code 类别里激活的编辑器、Sources 标签、透镜）。Preview 其他类别、终端与布局尺寸仍按窗口。引擎身份或工作根缺失时项目层退回会话私有。 | [session-work-root-and-workbench-scope §3](../dev/plans/session-work-root-and-workbench-scope.md) |
 | **attribution sidecar** | vscode 自有的 `{ itemId → role, agentId?, agentPath? }` 映射，与 session-core snapshot 并列；弥补上游 `TimelineItemSummary` 无 role（G1）与普通 timeline 行无 agent 归属（G4）。引擎 demux 从 envelope 填，stub 从 fixture `kind` 填；**禁止**按 title 猜测。上游投影后退场。 | [stream-timeline §3.2 / §6](../dev/plans/conversation-stream-timeline.md) · [lens-and-trajectory §3.1](systems/conversation/lens-and-trajectory.md) |
 
 已在主表、且有定义的缩写（PRD-NNN、ADR、INDEX、Part、INV-TOPO、SAS、Hub 等）可继续在对外文档直接用。

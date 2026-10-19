@@ -92,12 +92,21 @@ suite('Engine clipboard list bind', () => {
 		assert.strictEqual(canSendEngineClipboardWrite(true, true), true);
 		assert.strictEqual(canSendEngineClipboardWrite(true, true, true), false);
 		assert.strictEqual(canSendEngineClipboardWrite(true, true, false), true);
-		assert.deepStrictEqual(engineClipboardWriteRequest(), {
+		assert.deepStrictEqual(engineClipboardWriteRequest('', ''), {
 			sessionId: '',
 			agentId: '',
 			label: '',
 			type: 'CLIPBOARD_TEXT',
 			content: '',
+			filePath: '',
+			url: '',
+		});
+		assert.deepStrictEqual(engineClipboardWriteRequest('  Note  ', 'hello'), {
+			sessionId: '',
+			agentId: '',
+			label: '  Note  ',
+			type: 'CLIPBOARD_TEXT',
+			content: 'hello',
 			filePath: '',
 			url: '',
 		});

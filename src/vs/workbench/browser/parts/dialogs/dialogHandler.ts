@@ -69,7 +69,7 @@ export class BrowserDialogHandler extends AbstractDialogHandler {
 
 		const buttons = this.getInputButtons(input);
 
-		const { button, checkboxChecked, values } = await this.doShow(input.type ?? 'question', input.message, buttons, input.detail, buttons.length - 1, input?.checkbox, input.inputs, typeof input.custom === 'object' ? input.custom : undefined, input.token);
+		const { button, checkboxChecked, values } = await this.doShow(input.type ?? 'question', input.message, buttons, input.detail, buttons.length - 1, input?.checkbox, input.inputs, typeof input.custom === 'object' ? input.custom : undefined, input.token, input.validate);
 
 		return { confirmed: button === 0, checkboxChecked, values };
 	}
@@ -97,7 +97,7 @@ export class BrowserDialogHandler extends AbstractDialogHandler {
 		return openLinkFromMarkdown(this.openerService, link, mdStr.isTrusted, true /* skip URL validation to prevent another dialog from showing which is unsupported */);
 	}
 
-	private async doShow(type: Severity | DialogType | undefined, message: string, buttons?: string[], detail?: string | IMarkdownString, cancelId?: number, checkbox?: ICheckbox, inputs?: IInputElement[], customOptions?: ICustomDialogOptions, token?: CancellationToken): Promise<IDialogResult> {
+	private async doShow(type: Severity | DialogType | undefined, message: string, buttons?: string[], detail?: string | IMarkdownString, cancelId?: number, checkbox?: ICheckbox, inputs?: IInputElement[], customOptions?: ICustomDialogOptions, token?: CancellationToken, validateInput?: (values: readonly string[]) => string | undefined): Promise<IDialogResult> {
 		const dialogDisposables = new DisposableStore();
 
 		// A Markdown `detail` is rendered ahead of time into a plain element:
@@ -135,7 +135,8 @@ export class BrowserDialogHandler extends AbstractDialogHandler {
 				buttonOptions: customOptions?.buttonDetails?.map(detail => ({ sublabel: detail })),
 				checkboxLabel: checkbox?.label,
 				checkboxChecked: checkbox?.checked,
-				inputs
+				inputs,
+				validateInput,
 			}, this.keybindingService, this.layoutService, this.hostService, BrowserDialogHandler.ALLOWABLE_COMMANDS)
 		);
 

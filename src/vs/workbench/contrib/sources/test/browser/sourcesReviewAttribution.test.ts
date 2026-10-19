@@ -16,6 +16,7 @@ import type { IFileMutationRecord } from '../../../../../platform/universeAgent/
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
 import type { IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { SourcesReviewAttributionService } from '../../browser/sourcesReviewAttributionService.js';
 import {
@@ -27,6 +28,7 @@ import {
 	isWorkDirCompatible,
 	resolveRevealItemId,
 } from '../../common/sourcesReviewAttribution.js';
+import { sourcesGitUnrootedChangeResource } from '../../common/sourcesChangesGitRead.js';
 
 suite('Sources - review attribution', () => {
 
@@ -60,7 +62,7 @@ suite('Sources - review attribution', () => {
 		};
 	}
 
-	function sessionFromRoster(connection: IUniverseAgentConnection, roster: IConversationRosterService): IAgentSessionContext {
+	function sessionFromRoster(connection: IUniverseAgentConnection, roster: IConversationRosterService, workRoot?: IAgentWorkRoot): IAgentSessionContext {
 		return {
 			_serviceBrand: undefined,
 			getActiveSessionId: () => roster.getActiveSessionId(),
@@ -69,6 +71,7 @@ suite('Sources - review attribution', () => {
 			onDidChangeActiveSession: roster.onDidChangeActiveSession,
 			onDidChangeSession: Event.None,
 			acquireSessionView: sessionId => roster.acquireSessionView(sessionId) as ReturnType<IAgentSessionContext['acquireSessionView']>,
+			getWorkRoot: workRoot ? () => workRoot : undefined,
 		};
 	}
 
@@ -92,6 +95,8 @@ suite('Sources - review attribution', () => {
 		acquireSessionView?: () => IConversationSessionViewLease;
 		notificationErrors?: string[];
 		onDidChangeActiveSession?: Event<string>;
+		workRoot?: IAgentWorkRoot;
+		folders?: readonly URI[];
 	} = {}): SourcesReviewAttributionService {
 		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
 		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
@@ -136,11 +141,14 @@ suite('Sources - review attribution', () => {
 			acquireSessionView: options.acquireSessionView ?? (() => lease),
 		} as unknown as IConversationRosterService;
 
+		const folderUris = options.folders ?? [workspaceRoot];
 		const workspace = {
-			getWorkspace: () => ({ folders: [{ uri: workspaceRoot, name: 'project', index: 0, toResource: () => workspaceRoot }] }),
+			getWorkspace: () => ({
+				folders: folderUris.map((uri, index) => ({ uri, name: `project-${index}`, index, toResource: () => uri })),
+			}),
 		} as unknown as IWorkspaceContextService;
 
-		const service = store.add(new SourcesReviewAttributionService(connection, sessionFromRoster(connection, roster), workspace, stubNotification(options.notificationErrors)));
+		const service = store.add(new SourcesReviewAttributionService(connection, sessionFromRoster(connection, roster, options.workRoot), workspace, stubNotification(options.notificationErrors)));
 
 		for (const record of options.records ?? []) {
 			mutationEmitter.fire(record);
@@ -661,5 +669,51 @@ suite('Sources - review attribution', () => {
 
 	test('reveal command id is stable for chip click integration', () => {
 		assert.strictEqual(CONVERSATION_REVEAL_ITEM_COMMAND, 'conversation.revealItem');
+	});
+
+	test('chip lands under the session root when it differs from the connection workDir', function () {
+		const sessionRoot = workspaceRootFor(this);
+		const connectionRoot = URI.file('/connection-workspace');
+		const sessionFile = URI.joinPath(sessionRoot, 'src/a.ts');
+		const connectionFile = URI.joinPath(connectionRoot, 'src/a.ts');
+		const service = createService(this, {
+			workDir: connectionRoot.fsPath,
+			folders: [sessionRoot, connectionRoot],
+			workRoot: {
+				sessionId: 'session-1',
+				engineIdentityId: 'eng',
+				workDir: sessionRoot.fsPath,
+				source: 'session',
+				access: 'local',
+				localRoot: sessionRoot,
+				projectKey: `eng\n${sessionRoot.fsPath}`,
+			},
+			records: [makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' })],
+		});
+
+		const chipMap = service.buildChipMapForEntries([{ resource: sessionFile }, { resource: connectionFile }]);
+		assert.strictEqual(chipMap.get(sessionFile.toString())?.length, 1);
+		assert.strictEqual(chipMap.has(connectionFile.toString()), false);
+	});
+
+	test('engine-root row still has a chip', function () {
+		const resource = sourcesGitUnrootedChangeResource('src/a.ts');
+		const service = createService(this, {
+			workDir: '/other-workspace',
+			workRoot: {
+				sessionId: 'session-1',
+				engineIdentityId: 'eng',
+				workDir: '/remote/project',
+				source: 'session',
+				access: 'engine',
+				localRoot: undefined,
+				projectKey: 'eng\n/remote/project',
+			},
+			records: [makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'turn-1' })],
+		});
+
+		const chipMap = service.buildChipMapForEntries([{ resource, gitPath: 'src/a.ts' }]);
+		assert.strictEqual(chipMap.get(resource.toString())?.length, 1);
+		assert.strictEqual(service.getWorkDirMismatchNote(), undefined);
 	});
 });

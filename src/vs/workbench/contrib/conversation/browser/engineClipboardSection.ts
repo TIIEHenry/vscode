@@ -6,17 +6,20 @@
 import * as DOM from '../../../../base/browser/dom.js';
 import { hasModifierKeys, StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { conversationEntryHookPresent, isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentClipboardEntrySummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
-import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import {
 	canSendEngineClipboardClear,
 	canSendEngineClipboardListRequest,
@@ -44,9 +47,11 @@ const $ = DOM.$;
 
 /**
  * Engine Preferences Clipboard — honest List + Read + Write + Clear.
- * Connected + hook only. Empty sessionId / agentId / clipId / label /
- * content / filePath / url are sent as-is. Write always sends TEXT +
- * empty fields. Clear always sends empty sessionId. Empty clipId and
+ * Connected + hook only. Read sends empty sessionId and the selected
+ * clipId as-is. Write opens a dialog after the write gate passes and
+ * sends TEXT only: empty sessionId / agentId / filePath / url, the dialog
+ * label (a blank label is ''), and the dialog content. Empty content does
+ * not send. Clear always sends empty sessionId. Empty clipId and
  * removedCount 0 stay as-is. Write/Clear success is restored after
  * refresh only when ListClipboard listed (D212 / D201 sibling).
  * List throw after a live paint keeps leftover rows + failed (D239);
@@ -91,11 +96,13 @@ export class EngineClipboardSection extends Disposable {
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@ICommandService private readonly commandService: ICommandService,
+		@IDialogService private readonly dialogService: IDialogService,
 	) {
 		super();
 
 		this.container = DOM.append(parent, $('.engine-clipboard-section'));
 		this.container.style.display = 'none';
+		appendCatalogScopeNote(this.container, localize('ua.engineClipboardScope', "Clipboard entries are engine-wide. They are not tied to the open session."));
 
 		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
@@ -103,17 +110,14 @@ export class EngineClipboardSection extends Disposable {
 		this.listHost.setAttribute('role', 'list');
 		this.listHost.style.display = 'none';
 
-		const actionsRow = DOM.append(this.container, $('.engine-clipboard-actions'));
-		this.writeButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.writeButton.label = ENGINE_CLIPBOARD_WRITE_LABEL;
+		const actionsRow = DOM.append(this.container, $('.engine-clipboard-actions.engine-catalog-icon-actions'));
+		this.writeButton = this._register(createCatalogIconButton(actionsRow, ENGINE_CLIPBOARD_WRITE_LABEL, Codicon.edit));
 		this._register(this.writeButton.onDidClick(() => void this.handleWrite().catch(onUnexpectedError).catch(onUnexpectedError)));
 
-		this.readButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.readButton.label = ENGINE_CLIPBOARD_READ_LABEL;
+		this.readButton = this._register(createCatalogIconButton(actionsRow, ENGINE_CLIPBOARD_READ_LABEL, Codicon.eye));
 		this._register(this.readButton.onDidClick(() => void this.handleRead().catch(onUnexpectedError).catch(onUnexpectedError)));
 
-		this.clearButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.clearButton.label = ENGINE_CLIPBOARD_CLEAR_LABEL;
+		this.clearButton = this._register(createCatalogIconButton(actionsRow, ENGINE_CLIPBOARD_CLEAR_LABEL, Codicon.clearAll));
 		this._register(this.clearButton.onDidClick(() => void this.handleClear().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.writeStatus = DOM.append(this.container, $('.engine-clipboard-write-status'));
@@ -396,15 +400,60 @@ export class EngineClipboardSection extends Disposable {
 		);
 	}
 
+	private async promptClipboardWrite(): Promise<{ readonly label: string; readonly content: string } | undefined> {
+		const required = localize('ua.engineClipboardContentRequired', "Content is required.");
+		const result = await this.dialogService.input({
+			type: 'question',
+			message: localize('ua.engineClipboardWriteTitle', "Write clipboard"),
+			detail: localize('ua.engineClipboardWriteDetail', "Text clipboard entries only. File path and URL stay empty."),
+			primaryButton: ENGINE_CLIPBOARD_WRITE_LABEL,
+			inputs: [
+				{
+					type: 'text',
+					label: localize('ua.engineClipboardLabel', "Label"),
+					placeholder: localize('ua.engineClipboardLabel', "Label"),
+				},
+				{
+					type: 'text',
+					label: localize('ua.engineClipboardContent', "Content"),
+					placeholder: localize('ua.engineClipboardContent', "Content"),
+				},
+			],
+			validate: values => (values[1] ?? '').trim() ? undefined : required,
+		});
+		if (!result.confirmed) {
+			return undefined;
+		}
+		const labelRaw = result.values?.[0] ?? '';
+		const contentRaw = result.values?.[1] ?? '';
+		if (!contentRaw.trim()) {
+			this.writeStatus.style.display = '';
+			writeStatus(this.writeStatus, required, 'error');
+			return undefined;
+		}
+		return {
+			label: labelRaw.trim() ? labelRaw : '',
+			content: contentRaw,
+		};
+	}
+
 	private async handleWrite(): Promise<void> {
 		const hook = this.connection.writeClipboard;
 		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), this.clipboardAdvertised('writeClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
+		const drafted = await this.promptClipboardWrite();
+		if (!drafted) {
+			return;
+		}
+		const liveHook = this.connection.writeClipboard;
+		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), this.clipboardAdvertised('writeClipboard', liveHook), this.isClipboardWritePairingHold()) || !liveHook) {
+			return;
+		}
 		const generation = ++this._writeGeneration;
-		const request = engineClipboardWriteRequest();
+		const request = engineClipboardWriteRequest(drafted.label, drafted.content);
 		try {
-			const result = await hook.call(this.connection, request);
+			const result = await liveHook.call(this.connection, request);
 			if (generation !== this._writeGeneration || this._store.isDisposed) {
 				return;
 			}

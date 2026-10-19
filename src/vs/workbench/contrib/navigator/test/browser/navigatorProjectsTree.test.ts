@@ -140,7 +140,9 @@ suite('NavigatorProjectsTree (N1)', () => {
 		const groups = tree.filter(child => child.kind === 'workdir');
 		assert.strictEqual(groups.length, 2);
 		assert.strictEqual(groups[0]?.currentWorkspace, true);
-		assert.ok(groups[0]?.label.includes('current workspace'));
+		assert.strictEqual(groups[0]?.label, 'current');
+		assert.ok(!groups[0]?.label.includes('current workspace'));
+		assert.ok(!groups[0]?.label.includes('current session'));
 		assert.deepStrictEqual(groups[0]?.children?.map(child => child.sessionId), ['ua-1']);
 		assert.strictEqual(groups[1]?.currentWorkspace, false);
 		assert.deepStrictEqual(groups[1]?.children?.map(child => child.sessionId), ['ua-2']);
@@ -222,12 +224,56 @@ suite('NavigatorProjectsTree (N1)', () => {
 		assert.strictEqual(navigatorNewSessionInLabel(undefined), 'New session');
 	});
 
+	test('current session mark moves when the active session group changes', () => {
+		const sessions: ConversationStubSession[] = [
+			{ id: 'ua-1', title: 'Here', turns: [], workDir: '/home/me/current' },
+			{ id: 'ua-2', title: 'There', turns: [], workDir: '/other/project' },
+		];
+		const localCurrent = {
+			id: 'current:/home/me/current',
+			resource: URI.file('/home/me/current'),
+			name: 'current',
+			openable: { folderUri: URI.file('/home/me/current') },
+		};
+		const build = (activeSessionId: string) => buildNavigatorProjectsTree({
+			engineConnected: true,
+			wasEverConnected: true,
+			transportFailed: false,
+			sessionListCapability: 'SUPPORTED',
+			workDir: '/engine/work',
+			workspaceRoots: ['/home/me/current'],
+			activeSessionId,
+			sessions,
+			localFolders: [localCurrent],
+		});
+		const groupFor = (tree: ReturnType<typeof buildNavigatorProjectsTree>, sessionId: string) => tree
+			.filter(node => node.kind === 'workdir')
+			.find(node => node.children?.some(child => child.sessionId === sessionId));
+		const localLabel = (tree: ReturnType<typeof buildNavigatorProjectsTree>) => tree
+			.find(node => node.kind === 'local-group')?.children?.[0]?.label;
+
+		const first = build('ua-1');
+		assert.ok(groupFor(first, 'ua-1')?.label.includes('current session'));
+		assert.ok(!groupFor(first, 'ua-1')?.label.includes('current workspace'));
+		assert.ok(!groupFor(first, 'ua-2')?.label.includes('current session'));
+		assert.ok(!groupFor(first, 'ua-2')?.label.includes('current workspace'));
+		assert.ok(localLabel(first)?.includes('current workspace'));
+		assert.ok(!localLabel(first)?.includes('current session'));
+
+		const second = build('ua-2');
+		assert.ok(!groupFor(second, 'ua-1')?.label.includes('current session'));
+		assert.ok(groupFor(second, 'ua-2')?.label.includes('current session'));
+		assert.ok(!groupFor(second, 'ua-2')?.label.includes('current workspace'));
+		assert.strictEqual(localLabel(second), localLabel(first));
+		assert.ok(localLabel(second)?.includes('current workspace'));
+	});
+
 	test('workDirGroupLabel falls back to default label when basename is empty', () => {
 		assert.strictEqual(workDirGroupLabel('/', false), 'Working directory');
-		assert.strictEqual(workDirGroupLabel('/', true), 'Working directory · current workspace');
+		assert.strictEqual(workDirGroupLabel('/', true), 'Working directory · current session');
 		assert.strictEqual(workDirGroupLabel('', false), 'Working directory');
 		assert.strictEqual(workDirGroupLabel(undefined, false), 'Working directory');
 		assert.strictEqual(workDirGroupLabel('/home/project', false), 'project');
-		assert.strictEqual(workDirGroupLabel('/home/project', true), 'project · current workspace');
+		assert.strictEqual(workDirGroupLabel('/home/project', true), 'project · current session');
 	});
 });

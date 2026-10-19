@@ -9,6 +9,7 @@ import { Iterable } from '../../../../base/common/iterator.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { IFileMutationRecord, UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { getWorkspaceFolderRoots } from '../../sources/common/sourcesReviewAttribution.js';
 import { IConversationRosterService } from '../browser/conversationStubService.js';
@@ -41,6 +42,7 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 		@IConversationRosterService private readonly roster: IConversationRosterService,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
 		@ISCMService private readonly scmService: ISCMService,
+		@IAgentSessionContext private readonly session?: IAgentSessionContext,
 	) {
 		super();
 
@@ -109,13 +111,27 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 	private materializeBucket(sessionId: string): readonly IReviewNavRecord[] {
 		const mutations = this.mutationBuckets.get(sessionId) ?? [];
 		const settled = this.settledTurnIds.get(sessionId) ?? new Set<string>();
+		const workspaceRoots = getWorkspaceFolderRoots(this.workspaceContext.getWorkspace().folders);
+		const hasScmProvider = !Iterable.isEmpty(this.scmService.repositories);
+		const root = this.session?.getWorkRoot?.(sessionId);
+		if (root) {
+			return materializeReviewNavRecords({
+				sessionId,
+				mutations,
+				settledTurnIds: settled,
+				workDir: root.workDir,
+				workspaceRoots,
+				hasScmProvider,
+				access: root.access,
+			});
+		}
 		return materializeReviewNavRecords({
 			sessionId,
 			mutations,
 			settledTurnIds: settled,
 			workDir: this.sessionWorkDir(sessionId) ?? this.connectionSnapshot.workDir,
-			workspaceRoots: getWorkspaceFolderRoots(this.workspaceContext.getWorkspace().folders),
-			hasScmProvider: !Iterable.isEmpty(this.scmService.repositories),
+			workspaceRoots,
+			hasScmProvider,
 		});
 	}
 }

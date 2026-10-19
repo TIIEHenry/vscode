@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { join } from '../../../../base/common/path.js';
+import { normalizeAgentWorkDirKey } from '../../../services/agentSession/common/agentWorkRoot.js';
 import { Event } from '../../../../base/common/event.js';
 import { URI } from '../../../../base/common/uri.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
@@ -42,10 +43,13 @@ export interface ISourcesReviewAttributionService {
 
 	readonly onDidChange: Event<void>;
 
-	/** False when never connected, work_dir mismatches, or active bucket is empty. */
+	/** False when never connected, the work root cannot attribute, or the active bucket is empty. */
 	isAttributionEnabled(): boolean;
 
-	/** §2.5 note when engine work_dir ≠ workspace; undefined when compatible or not connected. */
+	/**
+	 * Legacy note when the connection work_dir is not a workspace root.
+	 * Undefined once the session work root is available: engine roots still attribute.
+	 */
 	getWorkDirMismatchNote(): string | undefined;
 
 	/** Header suffix when engine is connected and attribution data exists for the active session. */
@@ -54,11 +58,11 @@ export interface ISourcesReviewAttributionService {
 	/** Lease attribution lookup for chip reveal; undefined when this file cannot find the step. */
 	resolveRevealItemId(toolCallId: string): string | undefined;
 
-	buildChipMapForEntries(entries: readonly { readonly resource: URI }[]): ReadonlyMap<string, readonly IReviewAttributionChipDisplay[]>;
+	buildChipMapForEntries(entries: readonly { readonly resource: URI; readonly gitPath?: string }[]): ReadonlyMap<string, readonly IReviewAttributionChipDisplay[]>;
 }
 
 export function normalizeReviewPath(path: string): string {
-	return path.replace(/\\/g, '/').replace(/\/+$/, '');
+	return normalizeAgentWorkDirKey(path);
 }
 
 export function resolveMutationAbsolutePath(workDir: string, relativePath: string): string {
@@ -95,6 +99,30 @@ export function resolveMutationResource(
 		}
 	}
 	return undefined;
+}
+
+/**
+ * Engine-root key: the git path, not a window file.
+ * A `workDir` prefix is stripped so an absolute mutation path meets a relative row path.
+ */
+export function engineReviewPathKey(path: string, workDir: string | undefined): string | undefined {
+	const normalized = normalizeReviewPath(path);
+	if (!normalized) {
+		return undefined;
+	}
+	const root = workDir ? normalizeReviewPath(workDir) : '';
+	if (!root) {
+		return normalized;
+	}
+	if (normalized === root) {
+		return undefined;
+	}
+	const prefix = root === '/' ? '/' : `${root}/`;
+	if (!normalized.startsWith(prefix)) {
+		return normalized;
+	}
+	const relative = normalized.slice(prefix.length);
+	return relative || undefined;
 }
 
 /** Absolute path key shared by attribution indexing and resource matching. */

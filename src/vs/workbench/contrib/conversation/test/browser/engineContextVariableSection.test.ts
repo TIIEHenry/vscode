@@ -47,8 +47,13 @@ suite('EngineContextVariableSection', () => {
 	}
 
 	function findReadButton(root: HTMLElement): HTMLButtonElement | undefined {
-		return [...root.querySelectorAll('.engine-context-variable-actions .monaco-button')]
-			.find(button => button.textContent === ENGINE_CONTEXT_VARIABLE_READ_LABEL) as HTMLButtonElement | undefined;
+		const button = [...root.querySelectorAll('.engine-context-variable-actions .monaco-button')]
+			.find(candidate => candidate.getAttribute('aria-label') === ENGINE_CONTEXT_VARIABLE_READ_LABEL) as HTMLButtonElement | undefined;
+		if (button) {
+			assert.ok(button.classList.contains('codicon') && button.classList.contains('codicon-eye'));
+			assert.strictEqual(button.textContent, '');
+		}
+		return button;
 	}
 
 	function forceClick(button: HTMLButtonElement | undefined): void {

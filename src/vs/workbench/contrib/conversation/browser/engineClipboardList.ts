@@ -69,17 +69,18 @@ export function engineClipboardReadRequest(
 }
 
 /**
- * Always send empty `sessionId` / `agentId` / `label` / `content` /
- * `filePath` / `url` as-is. Write is TEXT-only; type is CLIPBOARD_TEXT.
- * This action does not invent a session / agent / content default.
+ * Write is TEXT-only; type is CLIPBOARD_TEXT.
+ * `sessionId` / `agentId` / `filePath` / `url` stay empty.
+ * `label` and `content` are the dialog values. A blank label is sent as ''.
+ * This action does not invent a session or agent.
  */
-export function engineClipboardWriteRequest(): UniverseAgentWriteClipboardRequest {
+export function engineClipboardWriteRequest(label: string, content: string): UniverseAgentWriteClipboardRequest {
 	return {
 		sessionId: '',
 		agentId: '',
-		label: '',
+		label,
 		type: 'CLIPBOARD_TEXT',
-		content: '',
+		content,
 		filePath: '',
 		url: '',
 	};

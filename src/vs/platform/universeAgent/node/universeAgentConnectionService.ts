@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { onUnexpectedError } from '../../../base/common/errors.js';
+import { toHarnessProviderPreview, type HarnessProviderDraft } from '../common/harnessProviderImport.js';
+import { readLocalHarnessProviderDrafts } from './harnessProviderImport.js';
+import { loadProviderPresetCatalog } from './providerPresetCatalog.js';
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable, combinedDisposable, type IDisposable } from '../../../base/common/lifecycle.js';
 import { localize } from '../../../nls.js';
@@ -339,9 +342,25 @@ import type {
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
 	UniverseAgentListModelsResult,
+	UniverseAgentUpsertModelRequest,
+	UniverseAgentModelEntry,
+	UniverseAgentDeleteModelRequest,
+	UniverseAgentDeleteModelResult,
+	UniverseAgentSetModelEnabledRequest,
 	UniverseAgentListProviderStatusResult,
+	UniverseAgentProviderStatus,
+	UniverseAgentUpsertProviderCredentialsRequest,
+	UniverseAgentClearProviderCredentialsRequest,
+	UniverseAgentHarnessProviderPreviewResult,
+	UniverseAgentImportHarnessProvidersRequest,
+	UniverseAgentImportHarnessProvidersResult,
+	UniverseAgentProviderPresetCatalog,
 	UniverseAgentListProjectRulesRequest,
 	UniverseAgentListProjectRulesResult,
+	UniverseAgentProjectRule,
+	UniverseAgentUpsertProjectRuleRequest,
+	UniverseAgentDeleteProjectRuleRequest,
+	UniverseAgentDeleteProjectRuleResult,
 	UniverseAgentListHookPointsResult,
 	UniverseAgentListTeamsResult,
 	UniverseAgentGetConfigRequest,
@@ -566,6 +585,12 @@ function confirmPairingRecoverTrustWithMainDialog(
 		defaultId: 0,
 		cancelId: 1,
 	});
+}
+
+function publicImportError(error: unknown, secret: string): string {
+	const raw = error instanceof Error ? error.message : 'request failed';
+	const redacted = secret ? raw.split(secret).join('[redacted]') : raw;
+	return redacted.slice(0, 240);
 }
 
 export class UniverseAgentConnectionService extends Disposable implements IUniverseAgentConnection, IUniverseAgentHostConnection, IUniverseAgentHubService {
@@ -2153,8 +2178,105 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.listProviderStatus());
 	}
 
+	async upsertProviderCredentials(request: UniverseAgentUpsertProviderCredentialsRequest): Promise<UniverseAgentProviderStatus> {
+		return this._withTransport(transport => transport.upsertProviderCredentials(request));
+	}
+
+	async clearProviderCredentials(request: UniverseAgentClearProviderCredentialsRequest): Promise<UniverseAgentProviderStatus> {
+		return this._withTransport(transport => transport.clearProviderCredentials(request));
+	}
+
+	async upsertModel(request: UniverseAgentUpsertModelRequest): Promise<UniverseAgentModelEntry> {
+		return this._withTransport(transport => transport.upsertModel(request));
+	}
+
+	async deleteModel(request: UniverseAgentDeleteModelRequest): Promise<UniverseAgentDeleteModelResult> {
+		return this._withTransport(transport => transport.deleteModel(request));
+	}
+
+	async setModelEnabled(request: UniverseAgentSetModelEnabledRequest): Promise<UniverseAgentModelEntry> {
+		return this._withTransport(transport => transport.setModelEnabled(request));
+	}
+
+	async listProviderPresetCatalog(request?: { readonly force?: boolean }): Promise<UniverseAgentProviderPresetCatalog> {
+		return loadProviderPresetCatalog(request?.force === true);
+	}
+
+	async previewHarnessProviderImport(): Promise<UniverseAgentHarnessProviderPreviewResult> {
+		const drafts = readLocalHarnessProviderDrafts();
+		return { items: drafts.map(toHarnessProviderPreview) };
+	}
+
+	async importHarnessProviders(request: UniverseAgentImportHarnessProvidersRequest): Promise<UniverseAgentImportHarnessProvidersResult> {
+		const wanted = new Set(request.providerIds);
+		const drafts = readLocalHarnessProviderDrafts().filter(draft => wanted.has(draft.providerId));
+		const skipped = request.providerIds.length - drafts.length;
+		let imported = 0;
+		let updated = 0;
+		let modelWrites = 0;
+		const errors: string[] = [];
+		let existing = new Set<string>();
+		try {
+			const status = await this.listProviderStatus();
+			existing = new Set(status.providers.map(provider => provider.providerId));
+		} catch (error) {
+			errors.push(publicImportError(error, ''));
+		}
+		for (const draft of drafts) {
+			try {
+				await this.upsertProviderCredentials({
+					providerId: draft.providerId,
+					apiKey: draft.apiKey,
+					baseUrl: draft.baseUrl,
+					protocol: draft.protocol,
+				});
+				if (existing.has(draft.providerId)) {
+					updated++;
+				} else {
+					imported++;
+				}
+			} catch (error) {
+				errors.push(`${draft.providerId}: ${publicImportError(error, draft.apiKey)}`);
+				continue;
+			}
+			modelWrites += await this.importDraftModels(draft, errors);
+		}
+		return { imported, updated, skipped: Math.max(0, skipped), modelWrites, errors };
+	}
+
+	private async importDraftModels(draft: HarnessProviderDraft, errors: string[]): Promise<number> {
+		let writes = 0;
+		for (const model of draft.models) {
+			try {
+				await this.upsertModel({
+					id: `${draft.providerId}:${model.modelId}`,
+					type: 'general',
+					enabled: true,
+					level: 0,
+					description: '',
+					cost: '',
+					speed: '',
+					provider: draft.providerId,
+					modelId: model.modelId,
+				});
+				writes++;
+			} catch (error) {
+				errors.push(`${draft.providerId}:${model.modelId}: ${publicImportError(error, draft.apiKey)}`);
+			}
+		}
+		return writes;
+	}
+
 	async listProjectRules(request: UniverseAgentListProjectRulesRequest): Promise<UniverseAgentListProjectRulesResult> {
 		return this._withTransport(transport => transport.listProjectRules(request));
+	}
+
+	async upsertProjectRule(request: UniverseAgentUpsertProjectRuleRequest): Promise<UniverseAgentProjectRule> {
+		return this._withTransport(transport => transport.upsertProjectRule(request));
+	}
+
+	async deleteProjectRule(request: UniverseAgentDeleteProjectRuleRequest): Promise<UniverseAgentDeleteProjectRuleResult> {
+		return this._withTransport(transport => transport.deleteProjectRule(request));
 	}
 
 	async listHookPoints(): Promise<UniverseAgentListHookPointsResult> {

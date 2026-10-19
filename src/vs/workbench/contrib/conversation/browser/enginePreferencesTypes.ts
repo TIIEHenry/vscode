@@ -11,9 +11,11 @@ export type EnginePreferencesSectionId =
 	| "overview"
 	| "providers"
 	| "models"
+	| "tokenUsage"
 	| "skills"
 	| "agents"
 	| "rules"
+	| "memory"
 	| "hooks"
 	| "triggers"
 	| "clipboard"
@@ -32,9 +34,11 @@ export const ENGINE_PREFERENCES_NAV_ENTRIES: readonly EnginePreferencesNavEntry[
 	{ id: "overview", label: localize("ua.engineNavOverview", "Overview"), icon: Codicon.home },
 	{ id: "providers", label: localize("ua.engineNavProviders", "Providers"), icon: Codicon.key },
 	{ id: "models", label: localize("ua.engineNavModels", "Models"), icon: Codicon.circuitBoard },
+	{ id: "tokenUsage", label: localize("ua.engineNavTokenUsage", "Token Usage"), icon: Codicon.graph },
 	{ id: "skills", label: localize("ua.engineNavSkills", "Skills"), icon: Codicon.lightbulb },
 	{ id: "agents", label: localize("ua.engineNavAgents", "Agents"), icon: Codicon.robot },
 	{ id: "rules", label: localize("ua.engineNavRules", "Rules"), icon: Codicon.book },
+	{ id: "memory", label: localize("ua.engineNavMemory", "Memory"), icon: Codicon.database },
 	{ id: "hooks", label: localize("ua.engineNavHooks", "Hooks"), icon: Codicon.symbolEvent },
 	{ id: "triggers", label: localize("ua.engineNavTriggers", "Triggers"), icon: Codicon.zap },
 	{ id: "clipboard", label: localize("ua.engineNavClipboard", "Clipboard"), icon: Codicon.clippy },

@@ -122,6 +122,8 @@ export interface IConversationLensComposerChromeHost {
 	catalogToolNames: readonly string[];
 	readonly commandService: ICommandService;
 	catalogModelIds: readonly string[];
+	/** Enabled registry ids from the last successful model list. */
+	enabledModelIds?: readonly string[];
 	modelSelectedIndex: number;
 	/** Session id → model profile id. Not part of ConversationSessionConfigSelection. */
 	modelProfileIdBySessionId?: Map<string, string>;
@@ -928,8 +930,11 @@ function modelIndexForRecordedId(ids: readonly string[] | undefined, recordedId:
 function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, sessionId: string, modelIndex: number, previousId: string): void {
 	const map = ensureSessionModelProfileIds(host);
 	const trimmed = previousId.trim();
+	const explicitEmpty = map.has(sessionId) && (map.get(sessionId) ?? '').trim() === '';
 	if (trimmed) {
 		map.set(sessionId, trimmed);
+	} else if (explicitEmpty) {
+		map.set(sessionId, '');
 	} else {
 		map.delete(sessionId);
 	}
@@ -948,6 +953,16 @@ export async function applySessionModelIndex(host: IConversationLensComposerChro
 			return;
 		}
 		const previousId = (host.catalogModelIds[previous] ?? '').trim();
+		const modelId = (host.catalogModelIds[modelIndex] ?? '').trim();
+		if (!modelId) {
+			ensureSessionModelProfileIds(host).set(sessionId, '');
+			if (host.getBoundSessionId() === sessionId) {
+				host.modelSelectedIndex = modelIndex;
+				host.modelSelectBox.select(modelIndex);
+				updateSendEnabled(host);
+			}
+			return;
+		}
 		if (!isSessionSwitchModelAvailable(host) || !host.uaConnection.switchModel) {
 			restoreSessionModelIndex(host, sessionId, previous, previousId);
 			return;
@@ -956,11 +971,6 @@ export async function applySessionModelIndex(host: IConversationLensComposerChro
 			host.modelSelectedIndex = modelIndex;
 			host.modelSelectBox.select(modelIndex);
 			updateSendEnabled(host);
-		}
-		const modelId = (host.catalogModelIds[modelIndex] ?? '').trim();
-		if (!modelId) {
-			restoreSessionModelIndex(host, sessionId, previous, previousId);
-			return;
 		}
 		try {
 			const result = await host.uaConnection.switchModel({
@@ -997,7 +1007,25 @@ export function syncSessionConfigSelects(host: IConversationLensComposerChromeHo
 		const { agentIndex, permissionIndex } = getSessionConfig(host, sessionId);
 		host.agentSelectBox.select(agentIndex);
 		host.permissionSelectBox.select(permissionIndex);
-		const modelIndex = modelIndexForRecordedId(host.catalogModelIds, sessionModelProfileId(host, sessionId));
+		const map = ensureSessionModelProfileIds(host);
+		const hasRecord = map.has(sessionId);
+		const recorded = hasRecord ? sessionModelProfileId(host, sessionId) : '';
+		const catalogHasModels = host.catalogModelIds.some((id, index) => index > 0 && id.trim().length > 0);
+		let modelIndex = 0;
+		if (hasRecord && recorded === '') {
+			modelIndex = 0;
+		} else if (recorded) {
+			modelIndex = modelIndexForRecordedId(host.catalogModelIds, recorded);
+			if (modelIndex === 0 && catalogHasModels) {
+				map.set(sessionId, '');
+			}
+		} else if (catalogHasModels) {
+			const enabledId = (host.enabledModelIds ?? []).find(id => host.catalogModelIds.indexOf(id) > 0);
+			if (enabledId) {
+				modelIndex = host.catalogModelIds.indexOf(enabledId);
+				map.set(sessionId, enabledId);
+			}
+		}
 		host.modelSelectedIndex = modelIndex;
 		host.modelSelectBox.select(modelIndex);
 	

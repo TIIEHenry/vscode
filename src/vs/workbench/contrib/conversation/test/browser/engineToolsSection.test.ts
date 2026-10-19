@@ -220,6 +220,44 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		}
 	}
 
+	test('tool name stays on the checkbox line', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			listTools: async () => ({
+				tools: [
+					{ name: 'circle_invite', description: 'Invite someone', category: 'social' },
+					{ name: 'sys_tool_search' },
+					{ name: 'blank-desc', description: '  ', category: '  ' },
+				],
+			}),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 400);
+
+		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')] as HTMLElement[];
+		const heights = rows.map(row => row.style.height);
+		assert.ok(heights.includes('44px'));
+		assert.ok(heights.includes('28px'));
+		assert.ok(!heights.includes('48px'));
+		for (const row of rows) {
+			assert.notStrictEqual(row.style.lineHeight, '48px');
+		}
+
+		const described = rows.find(row => row.textContent?.includes('circle_invite'));
+		assert.ok(described);
+		const description = described!.querySelector('.engine-catalog-description') as HTMLElement;
+		assert.strictEqual(description.style.display, '');
+		assert.strictEqual(description.textContent, 'social — Invite someone');
+
+		for (const name of ['sys_tool_search', 'blank-desc']) {
+			const plain = rows.find(row => row.querySelector('.engine-catalog-name')?.textContent === name);
+			assert.ok(plain, name);
+			assert.strictEqual(plain!.style.height, '28px');
+			assert.strictEqual((plain!.querySelector('.engine-catalog-description') as HTMLElement).style.display, 'none');
+		}
+	});
+
 	test('leftover getToolInfo throw keeps detail and paints info-status error', async () => {
 		let getToolInfoCalls = 0;
 		const connection = createConnectionStub({

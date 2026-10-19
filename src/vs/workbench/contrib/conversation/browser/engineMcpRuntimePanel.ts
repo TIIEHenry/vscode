@@ -5,6 +5,7 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -22,8 +23,8 @@ import type {
 	UniverseAgentMcpServerStatus,
 	UniverseAgentMcpToolDefinition,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import {
 	type EngineCatalogPaneMode,
 	canShowCatalogRows,
@@ -165,10 +166,9 @@ export class EngineMcpRuntimePanel extends Disposable {
 		this.container = DOM.append(parent, $('.engine-mcp-runtime-panel.engine-catalog-section'));
 		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
-		this.refreshToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-mcp-runtime-toolbar'));
+		this.refreshToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-mcp-runtime-toolbar.engine-catalog-icon-actions'));
 		this.refreshToolbar.style.display = 'none';
-		this.refreshButton = this._register(new Button(this.refreshToolbar, defaultButtonStyles));
-		this.refreshButton.label = localize('ua.engineMcpRuntimeRefresh', "Refresh");
+		this.refreshButton = this._register(createCatalogIconButton(this.refreshToolbar, localize('ua.engineMcpRuntimeRefresh', "Refresh"), Codicon.refresh));
 		this.refreshButton.enabled = false;
 		this._register(this.refreshButton.onDidClick(() => void this.refresh({ forceTools: true }).catch(onUnexpectedError).catch(onUnexpectedError)));
 

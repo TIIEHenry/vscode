@@ -6,16 +6,18 @@
 import * as DOM from '../../../../base/browser/dom.js';
 import { hasModifierKeys, StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
-import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { conversationEntryHookPresent, isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
-import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import {
 	canSendEngineContextVariableListRequest,
 	canSendEngineContextVariableRead,
@@ -76,6 +78,7 @@ export class EngineContextVariableSection extends Disposable {
 
 		this.container = DOM.append(parent, $('.engine-context-variable-section'));
 		this.container.style.display = 'none';
+		appendCatalogScopeNote(this.container, localize('ua.engineContextVariableScope', "Context variables are engine-wide. They are not tied to the open session."));
 
 		this.status = this._register(new EngineCatalogStatusWidget(this.container));
 
@@ -83,9 +86,8 @@ export class EngineContextVariableSection extends Disposable {
 		this.listHost.setAttribute('role', 'list');
 		this.listHost.style.display = 'none';
 
-		const actionsRow = DOM.append(this.container, $('.engine-context-variable-actions'));
-		this.readButton = this._register(new Button(actionsRow, { ...defaultButtonStyles, secondary: true }));
-		this.readButton.label = ENGINE_CONTEXT_VARIABLE_READ_LABEL;
+		const actionsRow = DOM.append(this.container, $('.engine-context-variable-actions.engine-catalog-icon-actions'));
+		this.readButton = this._register(createCatalogIconButton(actionsRow, ENGINE_CONTEXT_VARIABLE_READ_LABEL, Codicon.eye));
 		this._register(this.readButton.onDidClick(() => void this.handleRead().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.readStatus = DOM.append(this.container, $('.engine-context-variable-read-status'));

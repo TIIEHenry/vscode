@@ -6,7 +6,8 @@
 import { compareFileNamesDefault } from '../../../../base/common/comparers.js';
 import { getErrorMessage } from '../../../../base/common/errors.js';
 import { isAbsolute } from '../../../../base/common/path.js';
-import { basename, isEqual, isEqualOrParent, normalizePath, removeTrailingPathSeparator } from '../../../../base/common/resources.js';
+import { basename, isEqualOrParent, normalizePath } from '../../../../base/common/resources.js';
+import { resolveAgentLocalRoot } from '../../../services/agentSession/common/agentWorkRoot.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import type {
@@ -152,21 +153,7 @@ export function resolveSourcesGitResourceRoot(input: {
 	readonly repositoryRoots: readonly URI[];
 	readonly workspaceFolders: readonly URI[];
 }): URI | undefined {
-	const repositoryRoots = input.repositoryRoots.filter((uri): uri is URI => !!uri);
-	const folders = input.workspaceFolders.filter((uri): uri is URI => !!uri);
-	const candidates = repositoryRoots.length > 0 ? repositoryRoots : folders;
-	const workDir = input.workDir?.trim();
-	if (workDir) {
-		const wanted = sourcesGitNormalizedRoot(URI.file(workDir));
-		const matches = candidates.filter(candidate => isEqual(wanted, sourcesGitNormalizedRoot(candidate)));
-		return matches.length === 1 ? matches[0] : undefined;
-	}
-	return candidates.length === 1 ? candidates[0] : undefined;
-}
-
-/** Trailing slash is the same directory. `normalizePath` alone keeps it. */
-function sourcesGitNormalizedRoot(uri: URI): URI {
-	return removeTrailingPathSeparator(normalizePath(uri));
+	return resolveAgentLocalRoot(input);
 }
 
 /**

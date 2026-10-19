@@ -358,7 +358,13 @@ export function decodeSessionInfoResponse(bytes: Uint8Array): SessionInfoRespons
 	};
 }
 
-function decodeModelEntry(bytes: Uint8Array): NonNullable<ListModelsResponseWire['models']>[number] {
+export type ModelEntryWire = NonNullable<ListModelsResponseWire['models']>[number];
+
+export function decodeModelEntryWire(bytes: Uint8Array): ModelEntryWire {
+	return decodeModelEntry(bytes);
+}
+
+function decodeModelEntry(bytes: Uint8Array): ModelEntryWire {
 	const fields = readProtoFields(bytes);
 	const level = lastVarint(fields, 4);
 	return {

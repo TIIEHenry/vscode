@@ -3,8 +3,8 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-11
-summary: "2026-10-11 十六路审查方案仍 draft，未实施。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果的方案为 draft。聊天流缺失时的权限失败方案为 draft。删除旧明文 connect() 的代码已落，方案仍 draft。已发布链路身份方案为 draft。Sources 文件列表按广告探测的方案为 draft。对话入口按广告探测的方案为 draft。连接 IPC 白名单代码已落，方案仍 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
+updated: 2026-10-19
+summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查方案仍 draft，未实施。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果的方案为 draft。聊天流缺失时的权限失败方案为 draft。删除旧明文 connect() 的代码已落，方案仍 draft。已发布链路身份方案为 draft。Sources 文件列表按广告探测的方案为 draft。对话入口按广告探测的方案为 draft。连接 IPC 白名单代码已落，方案仍 draft。未指定地址并进私网拒绝的代码已落，方案仍 draft。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务的方案为 draft。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
 # 方案
@@ -14,11 +14,22 @@ summary: "2026-10-11 十六路审查方案仍 draft，未实施。2026-10-11 壳
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [架构设计审查 2026-10-16](review-2026-10-16-architecture.md) | `draft` | 六路只读架构审查。根因是派生状态与判断规则没有唯一所有者；另有接口过宽、边界守卫失效、异步原语不用、扫描测试钉实现。具体缺陷 7 条。发现稿，未切实施，未改代码。 |
+| [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) | `draft` | 复查 2026-10-11 引擎联动缺口并补新发现。已签收的停 Enqueue 与生成中禁用 Send 未实施；MCP Add、Triggers Add、Clipboard Write 按钮可点但不发或发空载荷；Files 未改用会话工作根。发现稿，未切实施，未改代码。 |
+| [架构审查 2026-10-16：可单独实施的缺陷](architecture-2026-10-16-concrete.md) | `draft` | 换 profile 复位 agent tree 探测，diff URI 带会话，设置列表跟活动工作根刷新，路径键只统一盘符。扫描测试与 chat 边界按真实路径判定。Q1–Q7 与 B5 不在本稿。未实施。不升 PRD。 |
+| [Composer：不能切换的 Agent 控件改为只读](composer-agent-picker.md) | `draft` | switchAgent 没有握手方法，选择会立刻滚回。不可用时底栏只显示现有不可用文案。底栏的 agentIndex 不进发送载荷。未实施。不升 PRD。 |
+| [对话动作失败、未归因变更与空任务列表](conversation-failure-and-mutation.md) | `draft` | Kill、Retry、delete/edit/fork/队列失败与 AutoDrive 空列表维持现有行为。缺 path 或 operation 的 file_mutation 仍不归因，只加计数。mailbox 的 fail_closed 跳过不改。未实施。不升 PRD。 |
+| [MCP 定义：Add / Update 先有表单](engine-mcp-definition-form.md) | `draft` | 2026-10-19 点击 Add / Update 打开输入对话框，无完整配置不发 addMcpServer，无改动不写回。§2 的内联表单没有按原文做。方案仍 draft。不升 PRD。 |
+| [Triggers 与 Clipboard：空载荷不发，未知能力不拉列表](engine-trigger-clipboard-actions.md) | `draft` | Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 status 为空时画错误。三节列表在能力未知时不调用。未实施。不升 PRD。 |
+| [功能缺口 2026-10-16：已有方案与维持传输层](feature-gaps-2026-10-16-boundary.md) | `draft` | G1、G2、G5、G10、G19、G20 指向已有方案。G7、G11 与协议面已写明只进传输的入口不新开产品面。两处文档偏差在本切片改正。未实施。不升 PRD。 |
+| [视觉审查 2026-10-16：字重、发丝线、只读分支、零值统计](visual-review-2026-10-16-plan.md) | `draft` | 过程折、确认控件与复选框的 500 字重改为 400，发丝线改为 8%，只读分支芯片去掉手型与悬停，零值统计用弱化色。V1 归目录列表切片。V5–V7 未决。未实施。不升 PRD-028。 |
+| [引擎联动缺口：队列读回、生成中发送门禁、附件上传](engine-gap-queue-send-attachments.md) | `accepted` | 2026-10-11 用户签收。本刀只做两件事：接通时停掉 Enqueue RPC 与入口；已有 streaming turn 时禁用 Send，不直发 submitInput，也不改入队。附件不开刀。未实施。不升 PRD。 |
 | [草稿会话提交后保留 Agent 浏览器页归属](browser-owner-draft-graduation.md) | `draft` | 草稿 chat URI 替换后按替换事件映射旧 owner；真实删除按事件原始身份清理。工具访问与存储作用域分开验证，未实施。 |
 | [未开启工具搜索时保留历史搜索结果](r15-5-tool-search-history.md) | `draft` | 谓词缺省时历史工具搜索保留 toolsMap 里命中的工具；这次请求没有工具搜索且组不出工具时，保留原文，不换成空的 tool_search_output。方案保持 draft。不升 PRD。不宣布 r15 完成。 |
 | [聊天流缺失时权限回复不得假装成功](r12-permission-reply-fail-closed.md) | `draft` | 没有聊天流时权限回复返回拒绝并留下可再点的失败；后到的普通补洞继续并进已有重写丢弃范围；纪元前进清掉未写出的权限决定时同样留下可再点的失败。方案保持 draft。不升 PRD。 |
 | [remove-legacy-plaintext-connect.md](remove-legacy-plaintext-connect.md) | `draft` | ELR-14：删掉连接服务和窗口契约上的明文 connect()，以及只为它服务的写死回环打开。命令名 connect 仍拒绝。测试改走无信任的明文 profile 或本机跳过鉴权。代码已落，方案仍 draft。不改身份合同。不升 PRD。 |
 | [published-link-identity.md](published-link-identity.md) | `draft` | ELR-8：快照增加可选 engineIdentityId 与 linkId。换链路先断开再连，roster 按引擎身份分桶。全应用仍是一条连接。不改 ADR-003。不升 PRD。 |
+| [会话工作根与 Workbench 双层状态](session-work-root-and-workbench-scope.md) | `draft` | PRD-029：路径按会话工作根解析；并排会话的 Preview 跟显式切换；换引擎前提示只数本窗口待确认会话。S1–S4 实施中。Preview 换入换出等 PRD-027 P3。不升 PRD。 |
 | [sources-files-list-capability.md](sources-files-list-capability.md) | `draft` | Sources 文件列表的 listFiles 门闩改读快照 listFilesCapability。不进 Engine Overview。不重做 conversationEntryCapability 与 gitWriteCapability。不升 PRD。不宣布 ELR-13 全部完成。 |
 | [conversation-entry-capability.md](conversation-entry-capability.md) | `draft` | 对话里用 typeof 连接方法决定入口的门闩改读快照 conversationEntryCapability。不进 Engine Overview。不重做 gitWriteCapability。不升 PRD。 |
 | [connection-ipc-allowlist.md](connection-ipc-allowlist.md) | `draft` | ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调流不对窗口开放；Hub 使用 universeAgentHub 通道并仍打到同一连接实例；宿主 token 用适配器；桌面 Team 三元调用补上嵌套对象过不了 ProxyChannel 的缺口。代码已落，方案仍 draft。不升 PRD。 |

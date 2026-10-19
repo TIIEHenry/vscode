@@ -8,6 +8,7 @@ import { timeout } from '../../../../base/common/async.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentListToolsResult,
@@ -68,5 +69,58 @@ suite('EngineToolsSection (browser)', () => {
 		assert.strictEqual(section.getListEntryCount(), 0);
 		assert.strictEqual(section.getDomNode().querySelectorAll('.engine-catalog-row').length, 0);
 		assert.ok(!(section.getDomNode().textContent ?? '').includes('late-after-dispose-bash'));
+	});
+
+	test('listAgentProfiles carries the active session work directory', async () => {
+		const projectPath = '/session/work';
+		const profileRequests: { projectPath?: string }[] = [];
+		const capabilities = createTestCapabilitySnapshot({
+			tools: { support: 'SUPPORTED' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			authenticated: true,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities,
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listAgentProfiles: async request => {
+				profileRequests.push(request ?? {});
+				return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }] };
+			},
+			listTools: async () => ({ tools: [] }),
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		instantiationService.stub(IAgentSessionContext, {
+			getActiveWorkRoot: () => ({
+				sessionId: 'sess-1',
+				engineIdentityId: 'eng',
+				workDir: projectPath,
+				source: 'session',
+				access: 'engine',
+				localRoot: undefined,
+				projectKey: 'eng\n/session/work',
+			}),
+		} as IAgentSessionContext);
+		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 160);
+		await timeout(0);
+
+		assert.deepStrictEqual(profileRequests, [{ projectPath }]);
 	});
 });

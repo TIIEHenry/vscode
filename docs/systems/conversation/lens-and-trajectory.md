@@ -3,13 +3,13 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-11
+updated: 2026-10-15
 summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；时间线 content-visibility 只走样式表，焦点行不被 120px 占位夹住；Accessible View；帧源投影与 Q4 live 过程折；换到另一条会话时过程折展开不沿用，pending 或名单未就绪时时间线和轨迹也不留上一条；发起窗乐观发送行标 Sending… 且不可编辑；轨迹表与检查器的用户预览去掉合法引用尾块；不可重试的权限送达失败不再标 Input needed；离开待决且未回答的提问是 undecided，不再当成待确认座位；已提交且快照仍 pending 的 Allow/Skip 与提问不再交第二次；多道必填单选在每道都点过之前不提交，也不把没点过的第一项一起交出去；换到另一条会话时清掉轨迹搜索，同一条重连和 KEEP leftover 仍留着；同一封里的思考在正文或工具出现后仍先画成阅读区思考行，关掉工具详情也留着；已有同样思考行时工具标题下不再重复这段；没有思考行时工具标题下的思考仍在详情开着时留着；关掉工具详情时不画 file_edit 增删统计；live 工具 overlay 仍有正文时阅读区另留助手行，工具摘要只用工具名；同一 turn 只有 tool_call、没有可用正文、且 streaming 正文还在时，阅读行留着这段字，工具行另留在时间线上；工具一开始跑时 `tool_call_lifecycle.started` 的工具名走同一条生成中工具路径，已流出的正文留着；同一封信落盘时工具臂也带着正文；提问座位在选项组前画出与正文不同的题干，问句优先于短 header；用户回合不显示 You，助手默认不显示 Agent，非 default 代理名在首行 11px；用户回合占满阅读列、左对齐，底色 input.background，前景色 8% 细边，高对比仍用 contrastBorder；读屏名仍在文章 aria-label；轨迹工具行显示已承认的 canvas 标题，usage 行显示已承认的 token 与 context 比例，缺则省略"
 ---
 
 # Conversation 透镜、时间线与轨迹
 
-> 导航：[系统索引](INDEX.md)。需求：[PRD-003](../../product/requirements.md#prd-003-时间线与输入) · [PRD-012](../../product/requirements.md#prd-012-conversation-轨迹透镜) · [PRD-013](../../product/requirements.md#prd-013-conversation-过程折) · [PRD-014](../../product/requirements.md#prd-014-conversation-图示卡visualize)。donor 对照与「为什么不用 ChatWidget」见 [conversation-lens-assembly](../../reference/code-oss-b2/conversation-lens-assembly.md)。视觉规则（对话阅读面、轨迹表）见 [UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md) §5.1 / §5.3，本页只写结构与行为。
+> 导航：[系统索引](INDEX.md)。需求：[PRD-003](../../product/requirements.md#prd-003-时间线与输入) · [PRD-012](../../product/requirements.md#prd-012-conversation-轨迹透镜) · [PRD-013](../../product/requirements.md#prd-013-conversation-过程折) · [PRD-014](../../product/requirements.md#prd-014-conversation-图示卡visualize)。donor 对照与「为什么不用 ChatWidget」见 [conversation-lens-assembly](../../reference/code-oss-b2/conversation-lens-assembly.md)。视觉规则（对话阅读面、轨迹表）见 [UI 设计原则与规范](../../architecture/cross-cutting/ui-design-principles.md) §5.1 / §5.3，本页只写结构与行为。外部密度取样见 [外部对话界面密度对照](../../reference/external-chat-ui-density.md)。
 
 ## 1. 页 chrome 在哪
 

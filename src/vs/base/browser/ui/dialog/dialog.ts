@@ -24,6 +24,7 @@ export interface IDialogInputOptions {
 	readonly placeholder?: string;
 	readonly type?: 'text' | 'password';
 	readonly value?: string;
+	readonly label?: string;
 }
 
 export enum DialogContentsAlignment {
@@ -60,6 +61,8 @@ export interface IDialogOptions {
 	/** Classes to add to the full-window modal blocker. */
 	readonly modalBlockExtraClasses?: string[];
 	readonly inputs?: IDialogInputOptions[];
+	/** Return a message to keep the dialog open when the primary action is accepted. */
+	readonly validateInput?: (values: readonly string[]) => string | undefined;
 	readonly keyEventProcessor?: (event: StandardKeyboardEvent) => void;
 	readonly renderBody?: (container: HTMLElement) => void;
 	readonly renderFooter?: (container: HTMLElement) => void;
@@ -122,6 +125,7 @@ export class Dialog extends Disposable {
 	private buttonBar: ButtonBar | undefined;
 	private focusToReturn: HTMLElement | undefined;
 	private readonly inputs: InputBox[];
+	private inputErrorElement: HTMLElement | undefined;
 	private readonly buttons: string[];
 	private readonly buttonStyles: IButtonStyles;
 
@@ -217,10 +221,15 @@ export class Dialog extends Disposable {
 		if (this.options.inputs) {
 			this.inputs = this.options.inputs.map(input => {
 				const inputRowElement = this.messageContainer.appendChild($('.dialog-message-input'));
+				if (input.label) {
+					const label = inputRowElement.appendChild($('.dialog-message-input-label'));
+					label.textContent = input.label;
+				}
 
 				const inputBox = this._register(new InputBox(inputRowElement, undefined, {
 					placeholder: input.placeholder,
 					type: input.type ?? 'text',
+					ariaLabel: input.label ?? input.placeholder,
 					inputBoxStyles: options.inputBoxStyles
 				}));
 
@@ -282,6 +291,25 @@ export class Dialog extends Disposable {
 		this.messageDetailElement.innerText = message;
 	}
 
+	private rejectInvalidInput(values: readonly string[] | undefined): boolean {
+		const validate = this.options.validateInput;
+		if (!validate || !values) {
+			return false;
+		}
+		const message = validate(values);
+		if (!message) {
+			this.inputErrorElement?.remove();
+			this.inputErrorElement = undefined;
+			return false;
+		}
+		if (!this.inputErrorElement) {
+			this.inputErrorElement = this.messageContainer.appendChild($('.dialog-message-input-error'));
+			this.inputErrorElement.setAttribute('role', 'alert');
+		}
+		this.inputErrorElement.textContent = message;
+		return true;
+	}
+
 	async show(): Promise<IDialogResult> {
 		this.focusToReturn = this.container.ownerDocument.activeElement as HTMLElement;
 
@@ -301,10 +329,15 @@ export class Dialog extends Disposable {
 			const buttonMap = this.rearrangeButtons(this.buttons, this.options.cancelId);
 
 			const onButtonClick = (index: number) => {
+				const buttonIndex = buttonMap[index].index;
+				const values = this.inputs.length > 0 ? this.inputs.map(input => input.value) : undefined;
+				if (buttonIndex === 0 && buttonIndex !== this.options.cancelId && this.rejectInvalidInput(values)) {
+					return;
+				}
 				resolve({
-					button: buttonMap[index].index,
+					button: buttonIndex,
 					checkboxChecked: this.checkbox ? this.checkbox.checked : undefined,
-					values: this.inputs.length > 0 ? this.inputs.map(input => input.value) : undefined
+					values
 				});
 			};
 
@@ -373,12 +406,10 @@ export class Dialog extends Disposable {
 					// Enter in input field should OK the dialog
 					if (this.inputs.some(input => input.hasFocus())) {
 						EventHelper.stop(e);
-
-						resolve({
-							button: buttonMap.find(button => button.index !== this.options.cancelId)?.index ?? 0,
-							checkboxChecked: this.checkbox ? this.checkbox.checked : undefined,
-							values: this.inputs.length > 0 ? this.inputs.map(input => input.value) : undefined
-						});
+						const acceptIndex = buttonMap.findIndex(button => button.index !== this.options.cancelId);
+						if (acceptIndex >= 0) {
+							onButtonClick(acceptIndex);
+						}
 					}
 
 					return; // leave default handling

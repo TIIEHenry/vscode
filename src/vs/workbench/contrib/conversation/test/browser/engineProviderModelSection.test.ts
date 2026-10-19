@@ -15,9 +15,13 @@ import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentListModelsResult,
 	UniverseAgentListProviderStatusResult,
+	UniverseAgentUpsertModelRequest,
+	UniverseAgentProviderPresetCatalog,
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { IDialogService, type IInput, type IInputResult } from '../../../../../platform/dialogs/common/dialogs.js';
+import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
@@ -42,6 +46,15 @@ suite('Engine providers and models sections', () => {
 		providerSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
 		listModels?: () => Promise<UniverseAgentListModelsResult>;
 		listProviderStatus?: () => Promise<UniverseAgentListProviderStatusResult>;
+		upsertProviderCredentials?: () => Promise<unknown>;
+		clearProviderCredentials?: () => Promise<unknown>;
+		previewHarnessProviderImport?: () => Promise<{ items: readonly { providerId: string; label: string; source: string }[] }>;
+		importHarnessProviders?: () => Promise<unknown>;
+		listProviderPresetCatalog?: (request?: { readonly force?: boolean }) => Promise<UniverseAgentProviderPresetCatalog>;
+		upsertModel?: () => Promise<unknown>;
+		deleteModel?: () => Promise<unknown>;
+		setModelEnabled?: () => Promise<unknown>;
+		testModelProfile?: () => Promise<unknown>;
 	} = {}): IUniverseAgentConnection & {
 		setModelsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setProviderSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
@@ -139,6 +152,15 @@ suite('Engine providers and models sections', () => {
 			listTools: async () => ({ tools: [] }),
 			listModels: options.listModels ?? (async () => ({ models: [] })),
 			listProviderStatus: options.listProviderStatus,
+			upsertProviderCredentials: options.upsertProviderCredentials as IUniverseAgentConnection['upsertProviderCredentials'],
+			clearProviderCredentials: options.clearProviderCredentials as IUniverseAgentConnection['clearProviderCredentials'],
+			previewHarnessProviderImport: options.previewHarnessProviderImport as IUniverseAgentConnection['previewHarnessProviderImport'],
+			importHarnessProviders: options.importHarnessProviders as IUniverseAgentConnection['importHarnessProviders'],
+			listProviderPresetCatalog: options.listProviderPresetCatalog,
+			upsertModel: options.upsertModel as IUniverseAgentConnection['upsertModel'],
+			deleteModel: options.deleteModel as IUniverseAgentConnection['deleteModel'],
+			setModelEnabled: options.setModelEnabled as IUniverseAgentConnection['setModelEnabled'],
+			testModelProfile: options.testModelProfile as IUniverseAgentConnection['testModelProfile'],
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setModelsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN') {
 				modelsCapability.support = support;
@@ -159,22 +181,28 @@ suite('Engine providers and models sections', () => {
 		};
 	}
 
-	function mountModels(connection: IUniverseAgentConnection): EngineModelsSection {
+	function mountModels(connection: IUniverseAgentConnection, dialog?: IDialogService): EngineModelsSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		if (dialog) {
+			instantiationService.stub(IDialogService, dialog);
+		}
 		const section = store.add(instantiationService.createInstance(EngineModelsSection, parent));
 		section.setSectionActive(true);
 		section.layout(640, 240);
 		return section;
 	}
 
-	function mountProviders(connection: IUniverseAgentConnection): EngineProvidersSection {
+	function mountProviders(connection: IUniverseAgentConnection, dialog?: IDialogService): EngineProvidersSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		if (dialog) {
+			instantiationService.stub(IDialogService, dialog);
+		}
 		const section = store.add(instantiationService.createInstance(EngineProvidersSection, parent));
 		section.setSectionActive(true);
 		section.layout(640, 240);
@@ -584,7 +612,389 @@ suite('Engine providers and models sections', () => {
 		assert.ok(text.includes('Anthropic'), text);
 		assert.ok(text.includes('Configured'), text);
 		assert.ok(!text.includes('api_key'), text);
-		assert.ok(!section.getDomNode().querySelector('input'), 'no credential inputs');
+		assert.strictEqual(section.getDomNode().querySelector('input:not(.engine-provider-catalog-filter)'), null, 'no credential inputs');
+		const toolbar = section.getDomNode().querySelector('.engine-catalog-write-toolbar') as HTMLElement;
+		assert.strictEqual(toolbar.style.display, 'none');
+	});
+
+	test('import control appears only when desktop provider write hooks exist', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			providerSupport: 'SUPPORTED',
+			listProviderStatus: async () => ({ providers: [] }),
+			upsertProviderCredentials: async () => ({ providerId: 'local' }),
+			clearProviderCredentials: async () => ({ providerId: 'local' }),
+			previewHarnessProviderImport: async () => ({ items: [] }),
+			importHarnessProviders: async () => ({ imported: 0, updated: 0, skipped: 0, modelWrites: 0, errors: [] }),
+		});
+		const section = mountProviders(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'empty');
+		const toolbar = section.getDomNode().querySelector('.engine-catalog-write-toolbar') as HTMLElement;
+		assert.notStrictEqual(toolbar.style.display, 'none');
+		const importButton = toolbar.querySelector('[aria-label="Import from local harnesses"]');
+		assert.ok(importButton);
+		assert.ok(importButton.classList.contains('codicon-desktop-download'));
+		assert.strictEqual(importButton.textContent, '');
+		const addProvider = toolbar.querySelector('[aria-label="Add provider"]');
+		assert.ok(addProvider?.classList.contains('codicon-add'));
+		assert.strictEqual(section.getDomNode().querySelector('input:not(.engine-provider-catalog-filter)'), null);
+	});
+
+	test('add provider opens an input dialog and does not paint credential fields', async () => {
+		const seen: { request?: { providerId: string; apiKey: string; baseUrl: string; protocol: string } } = {};
+		const connection = createConnectionStub({
+			connected: true,
+			providerSupport: 'SUPPORTED',
+			listProviderStatus: async () => ({ providers: [] }),
+			upsertProviderCredentials: (async (request: { providerId: string; apiKey: string; baseUrl: string; protocol: string }) => {
+				seen.request = request;
+				return { providerId: request.providerId };
+			}) as unknown as () => Promise<unknown>,
+			clearProviderCredentials: async () => ({ providerId: 'local' }),
+		});
+		const dialog = new class extends TestDialogService {
+			lastInput: IInput | undefined;
+			override async input(input: IInput): Promise<IInputResult> {
+				this.lastInput = input;
+				return {
+					confirmed: true,
+					values: ['local', 'openai', 'https://example.test', 'sk-secret'],
+				};
+			}
+		}();
+		const section = mountProviders(connection, dialog);
+		await flushMicrotasks();
+		const addProvider = section.getDomNode().querySelector('[aria-label="Add provider"]') as HTMLElement;
+		addProvider.click();
+		await flushMicrotasks();
+
+		assert.strictEqual(dialog.lastInput?.message, 'Add provider');
+		assert.strictEqual(dialog.lastInput?.inputs.length, 4);
+		assert.strictEqual(dialog.lastInput?.inputs[3]?.type, 'password');
+		assert.deepStrictEqual(seen.request, {
+			providerId: 'local',
+			protocol: 'openai',
+			baseUrl: 'https://example.test',
+			apiKey: 'sk-secret',
+		});
+		assert.strictEqual(section.getDomNode().querySelector('input:not(.engine-provider-catalog-filter)'), null);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('sk-secret'));
+	});
+
+	test('built-in presets render without a cloud method and the filter hides rows', async () => {
+		const connection = createConnectionStub({ connected: false });
+		const section = mountProviders(connection);
+		await flushMicrotasks();
+
+		const builtin = section.getDomNode().querySelector('.engine-provider-builtin-list');
+		assert.ok(builtin);
+		const names = () => [...builtin.querySelectorAll('.engine-catalog-name')].map(node => node.textContent);
+		assert.ok(names().includes('OpenAI / Compatible API'));
+		assert.ok(names().includes('DeepSeek (Anthropic API)'));
+		assert.ok(!names().includes('Custom'));
+		assert.ok((builtin.querySelector('.engine-catalog-description')?.textContent ?? '').includes('api.openai.com'));
+		assert.strictEqual(section.getDomNode().querySelector('.engine-provider-cloud-status')?.textContent, 'Cloud catalog loads in the desktop app.');
+		assert.strictEqual(section.getDomNode().querySelector('.engine-provider-cloud-list')?.childElementCount, 0);
+		assert.strictEqual(section.getDomNode().querySelector('[aria-label="Refresh cloud catalog"]'), null);
+		assert.strictEqual(builtin.querySelector('.engine-catalog-row-actions'), null);
+		assert.strictEqual(section.getListEntryCount(), 0);
+
+		const filter = section.getDomNode().querySelector('.engine-provider-catalog-filter') as HTMLInputElement;
+		const InputEvent = filter.ownerDocument.defaultView!.Event;
+		filter.value = 'zzz';
+		filter.dispatchEvent(new InputEvent('input', { bubbles: true }));
+		assert.strictEqual(builtin.querySelector('.engine-catalog-name'), null);
+		filter.value = 'openai';
+		filter.dispatchEvent(new InputEvent('input', { bubbles: true }));
+		assert.deepStrictEqual(names(), ['OpenAI / Compatible API']);
+	});
+
+	test('desktop cloud catalog renders a cloud row and refresh asks for a fresh copy', async () => {
+		const calls: Array<boolean | undefined> = [];
+		const connection = createConnectionStub({
+			connected: true,
+			providerSupport: 'SUPPORTED',
+			listProviderStatus: async () => ({ providers: [] }),
+			listProviderPresetCatalog: async request => {
+				calls.push(request?.force);
+				return {
+					builtin: [{
+						id: 'openai',
+						displayName: 'OpenAI / Compatible API',
+						defaultApiBaseUrl: 'https://api.openai.com/v1',
+						defaultProtocol: 'openai',
+						defaultModels: ['gpt-4o'],
+						quickPick: true,
+					}],
+					cloud: [{
+						id: 'groq',
+						displayName: 'Groq',
+						defaultApiBaseUrl: 'https://api.groq.com/openai/v1',
+						defaultProtocol: 'openai',
+						defaultModels: ['llama-3'],
+						quickPick: false,
+					}],
+					cloudStatus: 'loaded',
+				};
+			},
+		});
+		const section = mountProviders(connection);
+		await flushMicrotasks();
+
+		assert.deepStrictEqual(calls, [undefined]);
+		const builtinNames = [...section.getDomNode().querySelectorAll('.engine-provider-builtin-list .engine-catalog-name')].map(node => node.textContent);
+		const cloudNames = [...section.getDomNode().querySelectorAll('.engine-provider-cloud-list .engine-catalog-name')].map(node => node.textContent);
+		assert.deepStrictEqual(builtinNames, ['OpenAI / Compatible API']);
+		assert.deepStrictEqual(cloudNames, ['Groq']);
+		assert.ok((section.getDomNode().querySelector('.engine-provider-cloud-list .engine-catalog-description')?.textContent ?? '').includes('api.groq.com'));
+		const cloudStatus = section.getDomNode().querySelector('.engine-provider-cloud-status') as HTMLElement;
+		assert.strictEqual(cloudStatus.textContent, '');
+		assert.strictEqual(cloudStatus.style.display, 'none');
+		assert.strictEqual(section.getListEntryCount(), 0);
+
+		const refresh = section.getDomNode().querySelector('[aria-label="Refresh cloud catalog"]') as HTMLElement;
+		assert.ok(refresh.classList.contains('codicon-refresh'));
+		refresh.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(calls, [undefined, true]);
+	});
+
+	test('adding a built-in preset opens the credential dialog with id, protocol, and base URL', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			providerSupport: 'SUPPORTED',
+			listProviderStatus: async () => ({ providers: [] }),
+			upsertProviderCredentials: async () => ({ providerId: 'openai' }),
+			clearProviderCredentials: async () => ({ providerId: 'openai' }),
+		});
+		const dialog = new class extends TestDialogService {
+			lastInput: IInput | undefined;
+			override async input(input: IInput): Promise<IInputResult> {
+				this.lastInput = input;
+				return { confirmed: false };
+			}
+		}();
+		const section = mountProviders(connection, dialog);
+		await flushMicrotasks();
+
+		const add = section.getDomNode().querySelector('.engine-provider-builtin-list [aria-label="Add OpenAI / Compatible API"]') as HTMLElement;
+		assert.ok(add.classList.contains('codicon-add'));
+		assert.strictEqual(add.textContent, '');
+		add.click();
+		await flushMicrotasks();
+
+		assert.strictEqual(dialog.lastInput?.message, 'Add provider');
+		assert.strictEqual(dialog.lastInput?.inputs[0]?.value, 'openai');
+		assert.strictEqual(dialog.lastInput?.inputs[1]?.value, 'openai');
+		assert.strictEqual(dialog.lastInput?.inputs[2]?.value, 'https://api.openai.com/v1');
+		assert.strictEqual(dialog.lastInput?.inputs[3]?.type, 'password');
+		assert.strictEqual(section.getDomNode().querySelector('input[type="password"]'), null);
+	});
+
+	test('a cloud catalog failure keeps the built-in list and shows the error', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			providerSupport: 'UNSUPPORTED',
+			listProviderPresetCatalog: async () => {
+				throw new Error('catalog boom');
+			},
+		});
+		const section = mountProviders(connection);
+		await flushMicrotasks();
+
+		const names = [...section.getDomNode().querySelectorAll('.engine-provider-builtin-list .engine-catalog-name')].map(node => node.textContent);
+		assert.ok(names.includes('OpenAI / Compatible API'));
+		const cloudStatus = section.getDomNode().querySelector('.engine-provider-cloud-status')?.textContent ?? '';
+		assert.ok(cloudStatus.includes('Cloud catalog is unavailable'));
+		assert.ok(cloudStatus.includes('catalog boom'));
+		assert.strictEqual(section.getDomNode().querySelector('.engine-provider-builtin-list .engine-catalog-row-actions'), null);
+	});
+
+	test('model add and row actions appear only when registry write hooks exist', async () => {
+		const readOnly = createConnectionStub({
+			connected: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => ({
+				models: [{
+					id: 'demo:m',
+					type: 'general',
+					enabled: true,
+					level: 5,
+					provider: 'demo',
+					modelId: 'm',
+				}],
+			}),
+		});
+		const readOnlySection = mountModels(readOnly);
+		await flushMicrotasks();
+		assert.strictEqual(readOnlySection.getDomNode().querySelector('.engine-catalog-write-toolbar')?.textContent ?? '', '');
+		assert.strictEqual(readOnlySection.getDomNode().querySelector('.engine-catalog-row-actions'), null);
+
+		const writable = createConnectionStub({
+			connected: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => ({
+				models: [{
+					id: 'demo:m',
+					type: 'general',
+					enabled: true,
+					level: 5,
+					provider: 'demo',
+					modelId: 'm',
+				}],
+			}),
+			upsertModel: async () => ({ id: 'demo:m' }),
+			deleteModel: async () => ({ deleted: true }),
+			setModelEnabled: async () => ({ id: 'demo:m' }),
+			testModelProfile: async () => ({ ok: true }),
+		});
+		const section = mountModels(writable);
+		await flushMicrotasks();
+		const toolbar = section.getDomNode().querySelector('.engine-catalog-write-toolbar') as HTMLElement;
+		assert.notStrictEqual(toolbar.style.display, 'none');
+		const addModel = toolbar.querySelector('[aria-label="Add model"]');
+		assert.ok(addModel?.classList.contains('codicon-add'));
+		assert.strictEqual(addModel?.textContent, '');
+		const actions = section.getDomNode().querySelector('.engine-catalog-row-actions');
+		assert.ok(actions);
+		assert.ok(actions.querySelector('[aria-label="Disable m"]')?.classList.contains('codicon-circle-slash'));
+		assert.ok(actions.querySelector('[aria-label="Test m"]')?.classList.contains('codicon-beaker'));
+		assert.ok(actions.querySelector('[aria-label="Edit m"]')?.classList.contains('codicon-edit'));
+		assert.ok(actions.querySelector('[aria-label="Delete m"]')?.classList.contains('codicon-trash'));
+	});
+
+	test('edit model keeps a blank description and sends typed cost and speed', async () => {
+		const seen: { request?: UniverseAgentUpsertModelRequest } = {};
+		let deleted = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => ({
+				models: [{
+					id: 'demo:m',
+					type: 'general',
+					enabled: false,
+					level: 5,
+					description: 'kept summary',
+					speed: 'old-speed',
+					provider: 'demo',
+					modelId: 'm',
+				}],
+			}),
+			upsertModel: (async (request: UniverseAgentUpsertModelRequest) => {
+				seen.request = request;
+				return { id: request.id };
+			}) as unknown as () => Promise<unknown>,
+			deleteModel: (async () => {
+				deleted++;
+				return { deleted: true };
+			}) as unknown as () => Promise<unknown>,
+			setModelEnabled: async () => ({ id: 'demo:m' }),
+		});
+		const dialog = new class extends TestDialogService {
+			lastInput: IInput | undefined;
+			override async input(input: IInput): Promise<IInputResult> {
+				this.lastInput = input;
+				return {
+					confirmed: true,
+					values: ['demo', 'm', 'general', '5', '   ', '  cheap  ', '  fast  '],
+				};
+			}
+		}();
+		const section = mountModels(connection, dialog);
+		await flushMicrotasks();
+		const edit = section.getDomNode().querySelector('[aria-label="Edit m"]') as HTMLElement;
+		edit.click();
+		await flushMicrotasks();
+
+		assert.strictEqual(dialog.lastInput?.message, 'Edit model');
+		assert.strictEqual(dialog.lastInput?.inputs.length, 7);
+		assert.strictEqual(dialog.lastInput?.inputs[3]?.label, 'Level (optional, 1–9)');
+		assert.strictEqual(dialog.lastInput?.inputs[4]?.label, 'Description');
+		assert.strictEqual(dialog.lastInput?.inputs[4]?.placeholder, 'Description');
+		assert.strictEqual(dialog.lastInput?.inputs[4]?.value, 'kept summary');
+		assert.strictEqual(dialog.lastInput?.inputs[5]?.label, 'Cost');
+		assert.strictEqual(dialog.lastInput?.inputs[5]?.placeholder, 'Cost');
+		assert.strictEqual(dialog.lastInput?.inputs[5]?.value, '');
+		assert.strictEqual(dialog.lastInput?.inputs[6]?.label, 'Speed');
+		assert.strictEqual(dialog.lastInput?.inputs[6]?.placeholder, 'Speed');
+		assert.strictEqual(dialog.lastInput?.inputs[6]?.value, 'old-speed');
+		const detail = dialog.lastInput?.detail ?? '';
+		assert.ok(detail.includes('Leave it blank to keep the current level.'));
+		assert.ok(detail.includes('A blank description, cost, or speed keeps the current value.'));
+		assert.ok(detail.includes('On add, a blank description, cost, or speed is saved as empty.'));
+		const validate = dialog.lastInput?.validate;
+		assert.strictEqual(validate?.(['demo', 'm', 'general', '5', '', 'cheap', 'fast']), undefined);
+		assert.strictEqual(validate?.(['', '', 'general', '5', 'note', 'cheap', 'fast']), 'Provider and model id are required.');
+		assert.strictEqual(validate?.(['demo', 'm', 'general', '0', 'note', 'not-a-level', '@@@']), 'Level must be a whole number from 1 to 9, or left blank.');
+		assert.strictEqual(validate?.(['demo', 'm', '', '', 'whatever', 'not-a-level', '@@@']), undefined);
+		assert.deepStrictEqual(seen.request, {
+			id: 'demo:m',
+			type: 'general',
+			enabled: false,
+			level: 5,
+			description: 'kept summary',
+			cost: 'cheap',
+			speed: 'fast',
+			provider: 'demo',
+			modelId: 'm',
+		});
+		assert.strictEqual(deleted, 0);
+		assert.strictEqual(section.getDomNode().querySelector('input:not(.engine-provider-catalog-filter)'), null);
+	});
+
+	test('add model sends empty description, cost, and speed when those fields are blank', async () => {
+		const seen: { request?: UniverseAgentUpsertModelRequest } = {};
+		const connection = createConnectionStub({
+			connected: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => ({ models: [] }),
+			upsertModel: (async (request: UniverseAgentUpsertModelRequest) => {
+				seen.request = request;
+				return { id: request.id };
+			}) as unknown as () => Promise<unknown>,
+			deleteModel: async () => ({ deleted: true }),
+			setModelEnabled: async () => ({ id: 'acme:neo' }),
+		});
+		const dialog = new class extends TestDialogService {
+			lastInput: IInput | undefined;
+			override async input(input: IInput): Promise<IInputResult> {
+				this.lastInput = input;
+				return {
+					confirmed: true,
+					values: [' acme ', ' neo ', '', '', '   ', '', ''],
+				};
+			}
+		}();
+		const section = mountModels(connection, dialog);
+		await flushMicrotasks();
+		const addModel = section.getDomNode().querySelector('[aria-label="Add model"]') as HTMLElement;
+		addModel.click();
+		await flushMicrotasks();
+
+		assert.strictEqual(dialog.lastInput?.message, 'Add model');
+		assert.strictEqual(dialog.lastInput?.inputs.length, 7);
+		assert.strictEqual(dialog.lastInput?.inputs[0]?.value, '');
+		assert.strictEqual(dialog.lastInput?.inputs[1]?.value, '');
+		assert.strictEqual(dialog.lastInput?.inputs[2]?.value, 'general');
+		assert.strictEqual(dialog.lastInput?.inputs[3]?.value, '');
+		assert.strictEqual(dialog.lastInput?.inputs[4]?.value, '');
+		assert.strictEqual(dialog.lastInput?.inputs[5]?.value, '');
+		assert.strictEqual(dialog.lastInput?.inputs[6]?.value, '');
+		assert.deepStrictEqual(seen.request, {
+			id: 'acme:neo',
+			type: 'general',
+			enabled: true,
+			level: 0,
+			description: '',
+			cost: '',
+			speed: '',
+			provider: 'acme',
+			modelId: 'neo',
+		});
+		assert.strictEqual(section.getDomNode().querySelector('input:not(.engine-provider-catalog-filter)'), null);
 	});
 
 	test('listProviderStatus first-pull throw is failed with no leftover rows', async () => {

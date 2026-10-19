@@ -4,20 +4,27 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { Button, type IButtonStyles } from '../../../../base/browser/ui/button/button.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { readCapabilityEntry } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { builtinProviderPresets } from '../../../../platform/universeAgent/common/providerPresetCatalog.js';
 import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentModelEntry,
+	UniverseAgentProviderPreset,
 	UniverseAgentProviderStatus,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import {
+	canPerformCatalogWriteLive,
 	canShowCatalogRows,
 	type EngineCatalogListPhase,
 	type EngineCatalogPaneMode,
@@ -48,6 +55,33 @@ function formatProviderConfiguredLabel(configured: boolean): string {
 	return configured
 		? localize('ua.engineProviderConfigured', "Configured")
 		: localize('ua.engineProviderNotConfigured', "Not configured");
+}
+
+function formatPresetSummary(preset: UniverseAgentProviderPreset): string {
+	const parts: string[] = [];
+	if (preset.defaultProtocol) {
+		parts.push(preset.defaultProtocol);
+	}
+	const host = presetHost(preset.defaultApiBaseUrl);
+	if (host) {
+		parts.push(host);
+	}
+	if (preset.defaultModels.length > 0) {
+		parts.push(localize('ua.engineProviderPresetModels', "{0} models", preset.defaultModels.length));
+	}
+	return parts.join(' · ');
+}
+
+function presetHost(url: string): string {
+	const trimmed = url.trim();
+	if (!trimmed) {
+		return '';
+	}
+	try {
+		return new URL(trimmed).host;
+	} catch {
+		return trimmed;
+	}
 }
 
 function formatProviderRowSummary(provider: UniverseAgentProviderStatus): string {
@@ -94,12 +128,26 @@ function groupModelsByProvider(models: readonly UniverseAgentModelEntry[]): Read
 		.map(provider => ({ provider, models: buckets.get(provider) ?? [] }));
 }
 
-/** Credential status for engine providers. Read-only; no key, base URL, or test form. */
+/** Provider credential status, plus desktop write and local harness import. */
 export class EngineProvidersSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly providerStatus: EngineCatalogStatusWidget;
+	private readonly providerToolbar: HTMLElement;
+	private readonly providerActionMessage: HTMLElement;
 	private readonly providerList: HTMLElement;
+	private readonly providerRowActions = this._register(new DisposableStore());
+	private readonly catalogFilter: HTMLInputElement;
+	private readonly builtinList: HTMLElement;
+	private readonly cloudStatus: HTMLElement;
+	private readonly cloudList: HTMLElement;
+	private readonly presetRowActions = this._register(new DisposableStore());
+	private providerWriteChromeReady = false;
+	private builtinPresets: readonly UniverseAgentProviderPreset[] = builtinProviderPresets();
+	private cloudPresets: readonly UniverseAgentProviderPreset[] = [];
+	private cloudMessage = '';
+	private catalogQuery = '';
+	private catalogGeneration = 0;
 
 	private providerMode: EngineCatalogPaneMode = 'disconnected';
 	private providerCount = 0;
@@ -112,6 +160,7 @@ export class EngineProvidersSection extends Disposable {
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@ICommandService private readonly commandService: ICommandService,
+		@IDialogService private readonly dialogService: IDialogService,
 	) {
 		super();
 
@@ -119,8 +168,37 @@ export class EngineProvidersSection extends Disposable {
 		this.container.style.display = 'none';
 
 		this.providerStatus = this._register(new EngineCatalogStatusWidget(this.container));
+		this.providerToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
+		this.providerToolbar.style.display = 'none';
+		this.providerActionMessage = DOM.append(this.container, $('.engine-catalog-action-message'));
+		this.providerActionMessage.setAttribute('role', 'status');
 		this.providerList = DOM.append(this.container, $('.engine-provider-status-list.engine-catalog-list'));
 		this.providerList.style.display = 'none';
+
+		const catalog = DOM.append(this.container, $('.engine-provider-catalog'));
+		this.catalogFilter = DOM.append(catalog, $('input.engine-provider-catalog-filter')) as HTMLInputElement;
+		this.catalogFilter.type = 'search';
+		this.catalogFilter.placeholder = localize('ua.engineProviderCatalogFilter', "Filter providers");
+		this.catalogFilter.setAttribute('aria-label', localize('ua.engineProviderCatalogFilter', "Filter providers"));
+		this._register(DOM.addDisposableListener(this.catalogFilter, 'input', () => {
+			this.catalogQuery = this.catalogFilter.value;
+			this.renderPresetLists();
+		}));
+		DOM.append(catalog, $('.engine-catalog-group-label')).textContent = localize('ua.engineProviderBuiltin', "Built-in");
+		this.builtinList = DOM.append(catalog, $('.engine-provider-builtin-list'));
+		const cloudHeading = DOM.append(catalog, $('.engine-provider-catalog-heading'));
+		DOM.append(cloudHeading, $('.engine-catalog-group-label')).textContent = localize('ua.engineProviderCloud', "Cloud");
+		if (typeof this.connection.listProviderPresetCatalog === 'function') {
+			const cloudActions = DOM.append(cloudHeading, $('.engine-catalog-icon-actions'));
+			appendIconButton(this._store, cloudActions, localize('ua.engineProviderCloudRefresh', "Refresh cloud catalog"), Codicon.refresh, () => {
+				void this.loadCloudCatalog(true);
+			});
+		}
+		this.cloudStatus = DOM.append(catalog, $('.engine-provider-cloud-status'));
+		this.cloudStatus.setAttribute('role', 'status');
+		this.cloudList = DOM.append(catalog, $('.engine-provider-cloud-list'));
+		this.renderPresetLists();
+		void this.loadCloudCatalog(false);
 
 		this._register(this.connection.onDidChangeConnection(() => void this.refresh()));
 		void this.refresh();
@@ -290,6 +368,14 @@ export class EngineProvidersSection extends Disposable {
 		onRetry?: () => void,
 	): void {
 		this.providerMode = mode;
+		if (this.canWriteProviders()) {
+			this.ensureProviderWriteChrome();
+			this.providerToolbar.style.display = '';
+		} else {
+			this.providerToolbar.style.display = 'none';
+			this.clearProviderRowActions();
+		}
+		this.renderPresetLists();
 		this.providerStatus.render({
 			mode,
 			featureLabel: PROVIDER_FEATURE,
@@ -305,6 +391,7 @@ export class EngineProvidersSection extends Disposable {
 
 	private renderProviderList(providers: readonly UniverseAgentProviderStatus[]): void {
 		this.setProviderCount(providers.length);
+		this.clearProviderRowActions();
 		DOM.clearNode(this.providerList);
 		for (const provider of providers) {
 			const row = DOM.append(this.providerList, $('.engine-catalog-row.engine-provider-status-row'));
@@ -314,8 +401,223 @@ export class EngineProvidersSection extends Disposable {
 			const text = DOM.append(row, $('.engine-catalog-text'));
 			DOM.append(text, $('.engine-catalog-name')).textContent = provider.brand || provider.providerId;
 			DOM.append(text, $('.engine-catalog-description')).textContent = formatProviderRowSummary(provider);
+			if (this.canWriteProviders()) {
+				const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
+				const name = provider.brand || provider.providerId;
+				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderEdit', "Edit {0}", name), Codicon.edit, () => void this.promptProvider(provider.providerId, provider.protocol, '', 'edit'));
+				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderClearRow', "Clear {0}", name), Codicon.clearAll, () => void this.clearProvider(provider.providerId));
+			}
 		}
 		this.providerList.style.display = '';
+	}
+
+	private ensureProviderWriteChrome(): void {
+		if (this.providerWriteChromeReady) {
+			return;
+		}
+		this.providerWriteChromeReady = true;
+		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderImport', "Import from local harnesses"), Codicon.desktopDownload, () => void this.importLocalProviders());
+		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderAdd', "Add provider"), Codicon.add, () => void this.promptProvider('', ''));
+	}
+
+	private clearProviderRowActions(): void {
+		this.providerRowActions.clear();
+		for (const node of this.providerList.querySelectorAll('.engine-catalog-row-actions')) {
+			node.remove();
+		}
+	}
+
+	private canWriteProviders(): boolean {
+		return canPerformCatalogWriteLive(
+			this.providerMode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		) && typeof this.connection.upsertProviderCredentials === 'function'
+			&& typeof this.connection.clearProviderCredentials === 'function';
+	}
+
+	private async loadCloudCatalog(force: boolean): Promise<void> {
+		if (typeof this.connection.listProviderPresetCatalog !== 'function') {
+			this.cloudMessage = localize('ua.engineProviderCloudDesktop', "Cloud catalog loads in the desktop app.");
+			this.renderPresetLists();
+			return;
+		}
+		const generation = ++this.catalogGeneration;
+		this.cloudMessage = localize('ua.engineProviderCloudLoading', "Reading the cloud catalog…");
+		this.renderPresetLists();
+		try {
+			const result = await this.connection.listProviderPresetCatalog(force ? { force: true } : undefined);
+			if (generation !== this.catalogGeneration || this._store.isDisposed) {
+				return;
+			}
+			this.builtinPresets = result.builtin;
+			this.cloudPresets = result.cloud;
+			this.cloudMessage = result.cloudStatus === 'loaded'
+				? ''
+				: (result.cloudError || localize('ua.engineProviderCloudUnavailable', "Cloud catalog is unavailable."));
+		} catch (error) {
+			if (generation !== this.catalogGeneration || this._store.isDisposed) {
+				return;
+			}
+			this.cloudMessage = localize('ua.engineProviderCloudFailed', "Cloud catalog is unavailable: {0}", publicActionError(error));
+		}
+		this.renderPresetLists();
+	}
+
+	private renderPresetLists(): void {
+		this.presetRowActions.clear();
+		this.renderPresetRows(this.builtinList, this.filteredPresets(this.builtinPresets));
+		this.renderPresetRows(this.cloudList, this.filteredPresets(this.cloudPresets));
+		this.cloudStatus.textContent = this.cloudMessage;
+		this.cloudStatus.style.display = this.cloudMessage ? '' : 'none';
+	}
+
+	private filteredPresets(presets: readonly UniverseAgentProviderPreset[]): readonly UniverseAgentProviderPreset[] {
+		const query = this.catalogQuery.trim().toLowerCase();
+		if (!query) {
+			return presets;
+		}
+		return presets.filter(preset =>
+			preset.displayName.toLowerCase().includes(query) || preset.id.toLowerCase().includes(query));
+	}
+
+	private renderPresetRows(host: HTMLElement, presets: readonly UniverseAgentProviderPreset[]): void {
+		DOM.clearNode(host);
+		for (const preset of presets) {
+			const row = DOM.append(host, $('.engine-catalog-row.engine-provider-preset-row'));
+			const text = DOM.append(row, $('.engine-catalog-text'));
+			DOM.append(text, $('.engine-catalog-name')).textContent = preset.displayName;
+			DOM.append(text, $('.engine-catalog-description')).textContent = formatPresetSummary(preset);
+			if (this.canWriteProviders()) {
+				const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
+				appendIconButton(
+					this.presetRowActions,
+					actions,
+					localize('ua.engineProviderAddPreset', "Add {0}", preset.displayName),
+					Codicon.add,
+					() => void this.promptProvider(preset.id, preset.defaultProtocol, preset.defaultApiBaseUrl),
+				);
+			}
+		}
+	}
+
+	private setProviderAction(message: string, tone: 'neutral' | 'error'): void {
+		this.providerActionMessage.textContent = message;
+		this.providerActionMessage.classList.toggle('engine-catalog-action-message--error', tone === 'error');
+	}
+
+	private async promptProvider(providerId: string, protocol: string, baseUrl = '', intent: 'add' | 'edit' = 'add'): Promise<void> {
+		if (!this.canWriteProviders() || !this.connection.upsertProviderCredentials) {
+			return;
+		}
+		const idRequired = localize('ua.engineProviderIdRequired', "Provider id is required.");
+		const result = await this.dialogService.input({
+			type: 'question',
+			message: intent === 'edit'
+				? localize('ua.engineProviderEditTitle', "Edit provider")
+				: localize('ua.engineProviderAddTitle', "Add provider"),
+			detail: localize('ua.engineProviderDialogDetail', "A blank protocol, base URL, or API key keeps the current value. The key is not shown again. Changing the provider id saves the new id and clears the previous one."),
+			primaryButton: localize('ua.engineProviderSave', "Save"),
+			inputs: [
+				{ type: 'text', label: localize('ua.engineProviderId', "Provider id"), value: providerId, placeholder: localize('ua.engineProviderId', "Provider id") },
+				{ type: 'text', label: localize('ua.engineProviderProtocol', "Protocol"), value: protocol, placeholder: localize('ua.engineProviderProtocol', "Protocol") },
+				{ type: 'text', label: localize('ua.engineProviderBaseUrl', "Base URL"), value: baseUrl, placeholder: localize('ua.engineProviderBaseUrl', "Base URL") },
+				{ type: 'password', label: localize('ua.engineProviderApiKey', "API key"), placeholder: localize('ua.engineProviderApiKey', "API key") },
+			],
+			validate: values => (values[0] ?? '').trim() ? undefined : idRequired,
+		});
+		if (!result.confirmed || !result.values) {
+			return;
+		}
+		const [providerIdRaw, protocolRaw, baseUrlRaw, apiKeyRaw] = result.values;
+		const nextProviderId = (providerIdRaw ?? '').trim();
+		if (!nextProviderId) {
+			this.setProviderAction(idRequired, 'error');
+			return;
+		}
+		try {
+			await this.connection.upsertProviderCredentials({
+				providerId: nextProviderId,
+				apiKey: apiKeyRaw ?? '',
+				baseUrl: (baseUrlRaw ?? '').trim(),
+				protocol: (protocolRaw ?? '').trim(),
+			});
+			if (intent === 'edit' && providerId && nextProviderId !== providerId && this.connection.clearProviderCredentials) {
+				await this.connection.clearProviderCredentials({ providerId });
+			}
+			this.setProviderAction(localize('ua.engineProviderSaved', "Provider saved. The key is not shown again."), 'neutral');
+			this.refresh();
+		} catch (error) {
+			this.setProviderAction(localize('ua.engineProviderSaveFailed', "Unable to save provider: {0}", publicActionError(error)), 'error');
+		}
+	}
+
+	private async clearProvider(providerId: string): Promise<void> {
+		if (!this.canWriteProviders() || !this.connection.clearProviderCredentials) {
+			return;
+		}
+		const { confirmed } = await this.dialogService.confirm({
+			type: 'warning',
+			message: localize('ua.engineProviderClearConfirm', "Clear credentials for \"{0}\"?", providerId),
+			detail: localize('ua.engineProviderClearDetail', "This clears the engine credential store. Host environment variables stay as they are."),
+			primaryButton: localize('ua.engineProviderClear', "Clear"),
+		});
+		if (!confirmed) {
+			return;
+		}
+		try {
+			await this.connection.clearProviderCredentials({ providerId });
+			this.setProviderAction(localize('ua.engineProviderCleared', "Credentials cleared."), 'neutral');
+			this.refresh();
+		} catch (error) {
+			this.setProviderAction(localize('ua.engineProviderClearFailed', "Unable to clear credentials: {0}", publicActionError(error)), 'error');
+		}
+	}
+
+	private async importLocalProviders(): Promise<void> {
+		if (!this.canWriteProviders() || !this.connection.previewHarnessProviderImport || !this.connection.importHarnessProviders) {
+			this.setProviderAction(localize('ua.engineProviderImportDesktop', "Import runs in the desktop app."), 'error');
+			return;
+		}
+		let preview;
+		try {
+			preview = await this.connection.previewHarnessProviderImport();
+		} catch (error) {
+			this.setProviderAction(localize('ua.engineProviderImportFailed', "Unable to import: {0}", publicActionError(error)), 'error');
+			return;
+		}
+		if (preview.items.length === 0) {
+			this.setProviderAction(localize('ua.engineProviderImportEmpty', "No local providers found."), 'neutral');
+			return;
+		}
+		const lines = preview.items.map(item => `${item.label} (${item.source})`);
+		const { confirmed } = await this.dialogService.confirm({
+			type: 'question',
+			message: localize('ua.engineProviderImportConfirm', "Import {0} providers into the engine?", preview.items.length),
+			detail: lines.join('\n'),
+			primaryButton: localize('ua.engineProviderImport', "Import from local harnesses"),
+		});
+		if (!confirmed) {
+			return;
+		}
+		try {
+			const result = await this.connection.importHarnessProviders({
+				providerIds: preview.items.map(item => item.providerId),
+			});
+			const errorSuffix = result.errors.length > 0 ? ` ${result.errors[0]}` : '';
+			this.setProviderAction(localize(
+				'ua.engineProviderImportResult',
+				"Imported {0}, updated {1}, skipped {2}, models {3}.{4}",
+				result.imported,
+				result.updated,
+				result.skipped,
+				result.modelWrites,
+				errorSuffix,
+			), result.errors.length > 0 ? 'error' : 'neutral');
+			this.refresh();
+		} catch (error) {
+			this.setProviderAction(localize('ua.engineProviderImportFailed', "Unable to import: {0}", publicActionError(error)), 'error');
+		}
 	}
 
 	private clearProviderPresentation(): void {
@@ -325,13 +627,54 @@ export class EngineProvidersSection extends Disposable {
 	}
 }
 
-/** Read-only model registry. Session selection stays in the Composer Model menu. */
+function validateModelDialog(values: readonly string[], required: string, levelInvalid: string): string | undefined {
+	const parsed = parseModelDialog(values);
+	if (parsed.ok) {
+		return undefined;
+	}
+	return parsed.reason === 'level' ? levelInvalid : required;
+}
+
+function parseModelDialog(values: readonly string[]): { ok: true; provider: string; modelId: string; type: string; level: number } | { ok: false; message: string; reason: 'required' | 'level' } {
+	const provider = (values[0] ?? '').trim();
+	const modelId = (values[1] ?? '').trim();
+	const type = (values[2] ?? '').trim() || 'general';
+	if (!provider || !modelId) {
+		return { ok: false, reason: 'required', message: '' };
+	}
+	const levelText = (values[3] ?? '').trim();
+	let level = 0;
+	if (levelText) {
+		const parsed = Number(levelText);
+		if (!Number.isInteger(parsed) || parsed < 1 || parsed > 9) {
+			return { ok: false, reason: 'level', message: '' };
+		}
+		level = parsed;
+	}
+	// Description, cost, and speed follow level. They are not validated.
+	return { ok: true, provider, modelId, type, level };
+}
+
+/** Edit keeps a blank field's stored text ('' if unset). Add sends ''. Typed text is trimmed. */
+function resolveModelDialogText(raw: string | undefined, previous: string | undefined, editing: boolean): string {
+	const trimmed = (raw ?? '').trim();
+	if (trimmed) {
+		return trimmed;
+	}
+	return editing ? (previous ?? '') : '';
+}
+
+/** Model registry. The open session chooses a model in the composer. */
 export class EngineModelsSection extends Disposable {
 
 	private readonly container: HTMLElement;
 	private readonly modelStatus: EngineCatalogStatusWidget;
+	private readonly modelToolbar: HTMLElement;
+	private readonly modelActionMessage: HTMLElement;
 	private readonly modelList: HTMLElement;
 	private readonly sessionHint: HTMLElement;
+	private readonly modelRowActions = this._register(new DisposableStore());
+	private modelWriteChromeReady = false;
 
 	private modelMode: EngineCatalogPaneMode = 'disconnected';
 	private modelCount = 0;
@@ -344,6 +687,7 @@ export class EngineModelsSection extends Disposable {
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@ICommandService private readonly commandService: ICommandService,
+		@IDialogService private readonly dialogService: IDialogService,
 	) {
 		super();
 
@@ -351,12 +695,16 @@ export class EngineModelsSection extends Disposable {
 		this.container.style.display = 'none';
 
 		this.modelStatus = this._register(new EngineCatalogStatusWidget(this.container));
+		this.modelToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
+		this.modelToolbar.style.display = 'none';
+		this.modelActionMessage = DOM.append(this.container, $('.engine-catalog-action-message'));
+		this.modelActionMessage.setAttribute('role', 'status');
 		this.modelList = DOM.append(this.container, $('.engine-models-list.engine-catalog-list'));
 		this.modelList.style.display = 'none';
 		this.sessionHint = DOM.append(this.container, $('.engine-models-session-hint'));
 		this.sessionHint.textContent = localize(
 			'ua.engineModelSessionHint',
-			"Session model selection and preferences (SwitchModel) belong in the Composer Model dropdown, not on this page.",
+			"This page is the engine model registry. The open session chooses a model in the composer. That choice stays with the session and is sent as its model profile.",
 		);
 		this.sessionHint.style.display = 'none';
 
@@ -511,6 +859,13 @@ export class EngineModelsSection extends Disposable {
 		onRetry?: () => void,
 	): void {
 		this.modelMode = mode;
+		if (this.canWriteModels()) {
+			this.ensureModelWriteChrome();
+			this.modelToolbar.style.display = '';
+		} else {
+			this.modelToolbar.style.display = 'none';
+			this.clearModelRowActions();
+		}
 		this.modelStatus.render({
 			mode,
 			featureLabel: MODEL_FEATURE,
@@ -526,7 +881,10 @@ export class EngineModelsSection extends Disposable {
 
 	private renderModelList(models: readonly UniverseAgentModelEntry[]): void {
 		this.setModelCount(models.length);
+		this.clearModelRowActions();
 		DOM.clearNode(this.modelList);
+		const writable = this.canWriteModels();
+		const testable = writable && typeof this.connection.testModelProfile === 'function';
 		for (const group of groupModelsByProvider(models)) {
 			const groupEl = DOM.append(this.modelList, $('.engine-models-provider-group'));
 			const title = DOM.append(groupEl, $('.engine-catalog-group-label'));
@@ -539,15 +897,216 @@ export class EngineModelsSection extends Disposable {
 				const text = DOM.append(row, $('.engine-catalog-text'));
 				DOM.append(text, $('.engine-catalog-name')).textContent = model.modelId || model.id;
 				DOM.append(text, $('.engine-catalog-description')).textContent = formatModelRowSummary(model);
+				if (writable) {
+					const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
+					const name = model.modelId || model.id;
+					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelEdit', "Edit {0}", name), Codicon.edit, () => void this.promptModel(model));
+					appendIconButton(
+						this.modelRowActions,
+						actions,
+						model.enabled
+							? localize('ua.engineModelDisable', "Disable {0}", name)
+							: localize('ua.engineModelEnable', "Enable {0}", name),
+						model.enabled ? Codicon.circleSlash : Codicon.check,
+						() => void this.setListedModelEnabled(model, !model.enabled),
+					);
+					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelDeleteRow', "Delete {0}", name), Codicon.trash, () => void this.deleteListedModel(model));
+					if (testable) {
+						appendIconButton(this.modelRowActions, actions, localize('ua.engineModelTest', "Test {0}", name), Codicon.beaker, () => void this.testListedModel(model));
+					}
+				}
 			}
 		}
 		this.modelList.style.display = '';
 	}
 
+	private canWriteModels(): boolean {
+		return canPerformCatalogWriteLive(
+			this.modelMode,
+			this.connection.isEngineConnected(),
+			isConversationPairingHold(this.connection),
+		) && typeof this.connection.upsertModel === 'function'
+			&& typeof this.connection.deleteModel === 'function'
+			&& typeof this.connection.setModelEnabled === 'function';
+	}
+
+	private ensureModelWriteChrome(): void {
+		if (this.modelWriteChromeReady) {
+			return;
+		}
+		this.modelWriteChromeReady = true;
+		appendIconButton(this._store, this.modelToolbar, localize('ua.engineModelAdd', "Add model"), Codicon.add, () => void this.promptModel());
+	}
+
+	private setModelAction(message: string, tone: 'neutral' | 'error'): void {
+		this.modelActionMessage.textContent = message;
+		this.modelActionMessage.classList.toggle('engine-catalog-action-message--error', tone === 'error');
+	}
+
+	private async promptModel(model?: UniverseAgentModelEntry): Promise<void> {
+		if (!this.canWriteModels() || !this.connection.upsertModel) {
+			return;
+		}
+		const required = localize('ua.engineModelRequired', "Provider and model id are required.");
+		const levelInvalid = localize('ua.engineModelLevelInvalid', "Level must be a whole number from 1 to 9, or left blank.");
+		const result = await this.dialogService.input({
+			type: 'question',
+			message: model
+				? localize('ua.engineModelEditTitle', "Edit model")
+				: localize('ua.engineModelAddTitle', "Add model"),
+			detail: localize('ua.engineModelDialogDetail', "Level is optional, from 1 to 9. Leave it blank to keep the current level. A blank description, cost, or speed keeps the current value. On add, a blank description, cost, or speed is saved as empty. Changing the provider or model id saves a new registry id and removes the previous row."),
+			primaryButton: localize('ua.engineModelSave', "Save"),
+			inputs: [
+				{ type: 'text', label: localize('ua.engineModelProvider', "Provider"), value: model?.provider ?? '', placeholder: localize('ua.engineModelProvider', "Provider") },
+				{ type: 'text', label: localize('ua.engineModelId', "Model id"), value: model?.modelId ?? '', placeholder: localize('ua.engineModelId', "Model id") },
+				{ type: 'text', label: localize('ua.engineModelType', "Type"), value: model?.type || 'general', placeholder: localize('ua.engineModelType', "Type") },
+				{ type: 'text', label: localize('ua.engineModelLevel', "Level (optional, 1–9)"), value: model && model.level > 0 ? String(model.level) : '', placeholder: localize('ua.engineModelLevel', "Level (optional, 1–9)") },
+				{ type: 'text', label: localize('ua.engineModelDescription', "Description"), value: model?.description ?? '', placeholder: localize('ua.engineModelDescription', "Description") },
+				{ type: 'text', label: localize('ua.engineModelCost', "Cost"), value: model?.cost ?? '', placeholder: localize('ua.engineModelCost', "Cost") },
+				{ type: 'text', label: localize('ua.engineModelSpeed', "Speed"), value: model?.speed ?? '', placeholder: localize('ua.engineModelSpeed', "Speed") },
+			],
+			validate: values => validateModelDialog(values, required, levelInvalid),
+		});
+		if (!result.confirmed || !result.values) {
+			return;
+		}
+		const parsed = parseModelDialog(result.values);
+		if (!parsed.ok) {
+			this.setModelAction(parsed.reason === 'level' ? levelInvalid : required, 'error');
+			return;
+		}
+		const { provider, modelId, type, level } = parsed;
+		const editing = !!model;
+		const description = resolveModelDialogText(result.values[4], model?.description, editing);
+		const cost = resolveModelDialogText(result.values[5], model?.cost, editing);
+		const speed = resolveModelDialogText(result.values[6], model?.speed, editing);
+		const sameIdentity = !!model && model.provider === provider && model.modelId === modelId;
+		const id = sameIdentity && model?.id ? model.id : `${provider}:${modelId}`;
+		try {
+			await this.connection.upsertModel({
+				id,
+				type,
+				enabled: model?.enabled ?? true,
+				level,
+				description,
+				cost,
+				speed,
+				provider,
+				modelId,
+			});
+			if (model?.id && model.id !== id && this.connection.deleteModel) {
+				await this.connection.deleteModel({ id: model.id });
+			}
+			this.setModelAction(localize('ua.engineModelSaved', "Model saved."), 'neutral');
+			this.refresh();
+		} catch (error) {
+			this.setModelAction(localize('ua.engineModelSaveFailed', "Unable to save model: {0}", publicActionError(error)), 'error');
+		}
+	}
+
+	private async setListedModelEnabled(model: UniverseAgentModelEntry, enabled: boolean): Promise<void> {
+		if (!this.canWriteModels() || !this.connection.setModelEnabled) {
+			return;
+		}
+		try {
+			await this.connection.setModelEnabled({ id: model.id, enabled });
+			this.setModelAction(enabled
+				? localize('ua.engineModelEnabledDone', "Model enabled.")
+				: localize('ua.engineModelDisabledDone', "Model disabled."), 'neutral');
+			this.refresh();
+		} catch (error) {
+			this.setModelAction(localize('ua.engineModelEnableFailed', "Unable to update model: {0}", publicActionError(error)), 'error');
+		}
+	}
+
+	private async deleteListedModel(model: UniverseAgentModelEntry): Promise<void> {
+		if (!this.canWriteModels() || !this.connection.deleteModel) {
+			return;
+		}
+		const label = model.modelId || model.id;
+		const { confirmed } = await this.dialogService.confirm({
+			type: 'warning',
+			message: localize('ua.engineModelDeleteConfirm', "Delete model \"{0}\"?", label),
+			detail: localize('ua.engineModelDeleteDetail', "This removes the model from the engine registry."),
+			primaryButton: localize('ua.engineModelDelete', "Delete"),
+		});
+		if (!confirmed) {
+			return;
+		}
+		try {
+			await this.connection.deleteModel({ id: model.id });
+			this.setModelAction(localize('ua.engineModelDeleted', "Model deleted."), 'neutral');
+			this.refresh();
+		} catch (error) {
+			this.setModelAction(localize('ua.engineModelDeleteFailed', "Unable to delete model: {0}", publicActionError(error)), 'error');
+		}
+	}
+
+	private async testListedModel(model: UniverseAgentModelEntry): Promise<void> {
+		if (!this.connection.testModelProfile) {
+			return;
+		}
+		try {
+			const result = await this.connection.testModelProfile({
+				providerId: model.provider,
+				modelId: model.modelId || model.id,
+				apiKey: '',
+				baseUrl: '',
+				protocol: '',
+				params: {},
+			});
+			this.setModelAction(result.ok
+				? localize('ua.engineModelTestPassed', "Model test passed.")
+				: localize('ua.engineModelTestFailed', "Model test failed: {0}", (result.message ?? '').slice(0, 240)), result.ok ? 'neutral' : 'error');
+		} catch (error) {
+			this.setModelAction(localize('ua.engineModelTestFailed', "Model test failed: {0}", publicActionError(error)), 'error');
+		}
+	}
+
+	private clearModelRowActions(): void {
+		this.modelRowActions.clear();
+		for (const node of this.modelList.querySelectorAll('.engine-catalog-row-actions')) {
+			node.remove();
+		}
+	}
+
 	private clearModelPresentation(): void {
 		this.setModelCount(0);
+		this.clearModelRowActions();
 		DOM.clearNode(this.modelList);
 		this.modelList.style.display = 'none';
 		this.sessionHint.style.display = 'none';
 	}
+}
+
+/**
+ * Styles stay unset so `.engine-catalog-icon-actions` paints the ghost icon.
+ * A label here would become visible text on the button.
+ */
+const catalogIconButtonStyles: IButtonStyles = {
+	buttonBackground: undefined,
+	buttonHoverBackground: undefined,
+	buttonSeparator: undefined,
+	buttonForeground: undefined,
+	buttonBorder: undefined,
+	buttonSecondaryBackground: undefined,
+	buttonSecondaryForeground: undefined,
+	buttonSecondaryHoverBackground: undefined,
+	buttonSecondaryBorder: undefined,
+};
+
+function appendIconButton(store: DisposableStore, parent: HTMLElement, label: string, icon: ThemeIcon, onClick: () => void): void {
+	const button = store.add(new Button(parent, {
+		...catalogIconButtonStyles,
+		supportIcons: true,
+		title: label,
+		ariaLabel: label,
+	}));
+	button.icon = icon;
+	store.add(button.onDidClick(onClick));
+}
+
+function publicActionError(error: unknown): string {
+	const raw = error instanceof Error && error.message ? error.message : 'request failed';
+	return raw.replace(/[\r\n]+/g, ' ').slice(0, 240);
 }

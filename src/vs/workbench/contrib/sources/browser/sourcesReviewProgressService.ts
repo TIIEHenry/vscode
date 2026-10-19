@@ -12,6 +12,7 @@ import { IFileService } from '../../../../platform/files/common/files.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IFileMutationRecord } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { normalizeReviewPath, resolveMutationAbsolutePath } from '../common/sourcesReviewAttribution.js';
 import {
@@ -56,8 +57,14 @@ function addProgressForms(forms: Set<string>, value: string | undefined, workDir
 	}
 }
 
-/** Exact path, or the same path joined with the engine work directory. No attribution scan. */
-function mutationMatchesEntry(recordPath: string, gitPath: string | undefined, resource: URI, workDir: string | undefined): boolean {
+/** Exact path, or the same path joined with the work directory. No attribution scan. */
+function mutationMatchesEntry(
+	recordPath: string,
+	gitPath: string | undefined,
+	resource: URI,
+	workDir: string | undefined,
+	gitPathOnly: boolean,
+): boolean {
 	const recordForms = new Set<string>();
 	addProgressForms(recordForms, recordPath, workDir);
 	if (recordForms.size === 0) {
@@ -65,8 +72,11 @@ function mutationMatchesEntry(recordPath: string, gitPath: string | undefined, r
 	}
 	const entryForms = new Set<string>();
 	addProgressForms(entryForms, gitPath, workDir);
-	if (resource.scheme === Schemas.file) {
+	if (!gitPathOnly && resource.scheme === Schemas.file) {
 		addProgressForms(entryForms, resource.fsPath, workDir);
+	}
+	if (entryForms.size === 0) {
+		return false;
 	}
 	for (const form of recordForms) {
 		if (entryForms.has(form)) {
@@ -91,6 +101,7 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 		@IFileService private readonly fileService: IFileService,
 		@ISCMService private readonly scmService: ISCMService,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
+		@IAgentSessionContext private readonly session?: IAgentSessionContext,
 	) {
 		super();
 
@@ -271,9 +282,18 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 		}
 	}
 
-	private workDir(): string | undefined {
+	private connectionWorkDir(): string | undefined {
 		const workDir = this.connection.getConnectionSnapshot()?.workDir;
 		return workDir ? workDir : undefined;
+	}
+
+	/** Session work root when the context provides one. Otherwise the connection snapshot. */
+	private progressRoot(sessionId: string): { readonly workDir: string | undefined; readonly gitPathOnly: boolean } {
+		const root = this.session?.getWorkRoot?.(sessionId);
+		if (!root) {
+			return { workDir: this.connectionWorkDir(), gitPathOnly: false };
+		}
+		return { workDir: root.workDir, gitPathOnly: root.access === 'engine' };
 	}
 
 	private rememberMutation(record: IFileMutationRecord): void {
@@ -283,14 +303,14 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 	}
 
 	private engineContentHash(sessionId: string, target: ISourcesReviewProgressTarget): string {
-		const workDir = this.workDir();
+		const root = this.progressRoot(sessionId);
 		const prefix = `${sessionId}\0`;
 		let best: ILatestMutation | undefined;
 		for (const [key, value] of this.latestMutation) {
 			if (!key.startsWith(prefix)) {
 				continue;
 			}
-			if (!mutationMatchesEntry(value.record.path, target.gitPath, target.resource, workDir)) {
+			if (!mutationMatchesEntry(value.record.path, target.gitPath, target.resource, root.workDir, root.gitPathOnly)) {
 				continue;
 			}
 			if (!best || value.seen > best.seen) {
@@ -307,13 +327,13 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 		if (this.reviewed.size === 0) {
 			return;
 		}
-		const workDir = this.workDir();
+		const root = this.progressRoot(record.sessionId);
 		let changed = false;
 		for (const [key, stored] of [...this.reviewed]) {
 			if (stored.origin !== 'engine' || stored.sessionId !== record.sessionId) {
 				continue;
 			}
-			if (!mutationMatchesEntry(record.path, stored.gitPath, URI.parse(stored.path), workDir)) {
+			if (!mutationMatchesEntry(record.path, stored.gitPath, URI.parse(stored.path), root.workDir, root.gitPathOnly)) {
 				continue;
 			}
 			this.reviewed.delete(key);

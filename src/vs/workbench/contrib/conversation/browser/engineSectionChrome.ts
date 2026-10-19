@@ -74,6 +74,12 @@ export function getEngineSectionApiUnavailableCopy(featureLabel: string): string
 	);
 }
 
+export function appendCatalogScopeNote(parent: HTMLElement, text: string): HTMLElement {
+	const note = DOM.append(parent, $('.engine-catalog-scope-note'));
+	note.textContent = text;
+	return note;
+}
+
 export function formatCapabilitySupportLabel(support: UniverseAgentCapabilitySupport): string {
 	switch (support) {
 		case 'SUPPORTED':

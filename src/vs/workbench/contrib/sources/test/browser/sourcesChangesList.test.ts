@@ -34,10 +34,12 @@ import { IEditorGroupsService, preferredSideBySideGroupDirection } from '../../.
 import { ConversationChatInput, getConversationChatResource, getDefaultConversationChatResource } from '../../../conversation/common/conversationChatInput.js';
 import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { conversationDiffComparisonLoadFailedMessage } from '../../browser/conversationDiffReviewPane.js';
 import { openSourcesChangeEntry, openSourcesChangeInConversation, ISourcesChangeEntryOpenDeps, sourcesConversationLeafMissingMessage } from '../../browser/sourcesChangeEntryOpen.js';
-import { SOURCES_GIT_UNROOTED_SCHEME, sourcesGitChangeOutsideRootMessage, sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
+import { SOURCES_GIT_UNROOTED_SCHEME, sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
+import { sourcesGitDiffContentStore, sourcesGitDiffModelUri } from '../../browser/sourcesGitDiffContent.js';
 import { sourcesGitCommitNotAcceptedMessage, sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
@@ -730,6 +732,79 @@ suite('Sources - Changes list open', () => {
 		});
 		assert.strictEqual(opened, false);
 	});
+
+	test('engine-root row opens a hunk diff and unsupported diff stays unopenable', async function () {
+		const resource = URI.from({ scheme: SOURCES_GIT_UNROOTED_SCHEME, path: '/src/a.ts' });
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'a.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/a.ts',
+			indexState: 'WORKTREE',
+		};
+		const unifiedDiff = '@@ -1 +1 @@\n-old\n+new\n';
+		sourcesGitDiffContentStore.resetForTests();
+		let openedOriginal: string | undefined;
+		let openedModified: string | undefined;
+		let openedFile: string | undefined;
+
+		await openSourcesChangeEntry(entry, createDeps({
+			editorService: {
+				openEditor: async (input: { original?: { resource?: URI }; modified?: { resource?: URI }; resource?: URI }) => {
+					openedOriginal = input.original?.resource?.toString();
+					openedModified = input.modified?.resource?.toString();
+					openedFile = input.resource?.toString();
+					return undefined;
+				},
+			} as unknown as IEditorService,
+			modelService: {
+				getModel: () => null,
+				updateModel: () => { },
+				createModel: () => { assert.fail('must not invent a full file model'); },
+			} as unknown as ISourcesChangeEntryOpenDeps['modelService'],
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/a.ts',
+				unifiedDiff,
+			}),
+		}), { preserveFocus: false });
+
+		assert.strictEqual(openedFile, undefined);
+		assert.ok(openedOriginal?.startsWith('sources-git-diff:'));
+		assert.ok(openedModified?.startsWith('sources-git-diff:'));
+		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('original', 'src/a.ts', 'WORKTREE'))?.text, 'old\n');
+		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('modified', 'src/a.ts', 'WORKTREE'))?.text, 'new\n');
+
+		let openedUnsupported = false;
+		await assert.rejects(async () => {
+			await openSourcesChangeEntry(entry, createDeps({
+				editorService: {
+					openEditor: async () => {
+						openedUnsupported = true;
+						return undefined;
+					},
+				} as unknown as IEditorService,
+				modelService: {
+					getModel: () => null,
+					updateModel: () => { },
+					createModel: () => { assert.fail('unsupported diff must not invent a model'); },
+				} as unknown as ISourcesChangeEntryOpenDeps['modelService'],
+				readGitFileDiff: async () => ({
+					supported: false,
+					reason: 'Git file diff is not supported',
+					path: '',
+					unifiedDiff,
+				}),
+			}), { preserveFocus: false });
+		}, (error: Error) => {
+			assert.strictEqual(error.message, 'Git file diff is not supported');
+			assert.ok(!error.message.includes(SOURCES_GIT_UNROOTED_SCHEME));
+			return true;
+		});
+		assert.strictEqual(openedUnsupported, false);
+	});
 });
 
 suite('Sources - Changes list leftover honesty', () => {
@@ -757,7 +832,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		} as unknown as IConversationRosterService;
 	}
 
-	function createSessionContext(connection: IUniverseAgentConnection, roster: IConversationRosterService, workDir?: string): IAgentSessionContext {
+	function createSessionContext(connection: IUniverseAgentConnection, roster: IConversationRosterService, workDir?: string, workRoot?: IAgentWorkRoot): IAgentSessionContext {
 		return {
 			_serviceBrand: undefined,
 			getActiveSessionId: () => roster.getActiveSessionId(),
@@ -772,6 +847,7 @@ suite('Sources - Changes list leftover honesty', () => {
 			onDidChangeSession: roster.onDidChangeSession,
 			acquireSessionView: () => { throw new Error('not used'); },
 			getSessionWorkDir: () => workDir,
+			...(workRoot ? { getWorkRoot: () => workRoot } : {}),
 		};
 	}
 
@@ -782,6 +858,12 @@ suite('Sources - Changes list leftover honesty', () => {
 			reason: string;
 			branch: string;
 			entries: Array<{ path: string; oldPath: string; kind: string; indexState: string }>;
+		}>;
+		readonly readGitFileDiff?: () => Promise<{
+			supported: boolean;
+			reason: string;
+			path: string;
+			unifiedDiff: string;
 		}>;
 	}): IUniverseAgentConnection {
 		return {
@@ -796,6 +878,7 @@ suite('Sources - Changes list leftover honesty', () => {
 				branch: 'main',
 				changeCount: 1,
 			}),
+			readGitFileDiff: options.readGitFileDiff,
 		} as unknown as IUniverseAgentConnection;
 	}
 
@@ -874,12 +957,13 @@ suite('Sources - Changes list leftover honesty', () => {
 		openEditor?: (input: unknown) => Promise<unknown>,
 		roster: IConversationRosterService = createRoster(),
 		workDir?: string,
+		workRoot?: IAgentWorkRoot,
 	) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(ISCMService, scmService);
 		instantiationService.stub(IConversationRosterService, roster);
-		instantiationService.stub(IAgentSessionContext, createSessionContext(connection, roster, workDir));
+		instantiationService.stub(IAgentSessionContext, createSessionContext(connection, roster, workDir, workRoot));
 		instantiationService.stub(ISourcesChangesModel, store.add(instantiationService.createInstance(SourcesChangesModel)));
 		instantiationService.stub(IQuickDiffService, {
 			getQuickDiffs: async () => [],
@@ -887,6 +971,9 @@ suite('Sources - Changes list leftover honesty', () => {
 		if (openEditor) {
 			instantiationService.stub(IEditorService, {
 				openEditor,
+				replaceEditors: async (replacements: readonly { replacement: unknown }[]) => {
+					await openEditor(replacements[0]?.replacement);
+				},
 			} as unknown as IEditorService);
 		}
 		instantiationService.stub(ISourcesDiffPanelService, {
@@ -3265,9 +3352,99 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual(list.element(0).resource.scheme, SOURCES_GIT_UNROOTED_SCHEME);
 		assert.strictEqual(list.element(0).gitPath, 'src/a.ts');
 		await openFirstListRow(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
-		const status = await waitForStatusText(host, 'not inside');
-		assert.ok(status.includes(sourcesGitChangeOutsideRootMessage()));
+		const status = await waitForStatusText(host, 'unavailable');
+		assert.ok(status.includes(sourcesGitReadUnavailableNoHookMessage()));
+		assert.ok(!status.includes(SOURCES_GIT_UNROOTED_SCHEME));
 		assert.strictEqual(openCalls, 0);
+	});
+
+	test('engine-root row can open a diff; unsupported diff stays unopenable', async function () {
+		const repoA = URI.file('/repo-a');
+		const repoB = URI.file('/repo-b');
+		const workRoot: IAgentWorkRoot = {
+			sessionId: 'session-1',
+			engineIdentityId: 'eng',
+			workDir: '/remote/project',
+			source: 'session',
+			access: 'engine',
+			localRoot: undefined,
+			projectKey: 'eng\n/remote/project',
+		};
+		const scm = createScmService([
+			createRepo({ rootUri: repoA, label: 'repo-a', groups: [{ id: 'workingTree', label: 'Changes' }] }),
+			createRepo({ rootUri: repoB, label: 'repo-b', groups: [{ id: 'workingTree', label: 'Changes' }] }),
+		]);
+		const unifiedDiff = '@@ -1 +1 @@\n-old\n+new\n';
+		sourcesGitDiffContentStore.resetForTests();
+
+		const opened: { original?: string; modified?: string; resource?: string }[] = [];
+		const supported = createGitReadConnection({
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/a.ts',
+				unifiedDiff,
+			}),
+		});
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(supported, scm, undefined, async (input: { original?: { resource?: URI }; modified?: { resource?: URI }; resource?: URI }) => {
+			opened.push({
+				original: input?.original?.resource?.toString(),
+				modified: input?.modified?.resource?.toString(),
+				resource: input?.resource?.toString(),
+			});
+			return undefined;
+		}, createRoster(), repoA.fsPath, workRoot).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		assert.strictEqual(list.element(0).resource.scheme, SOURCES_GIT_UNROOTED_SCHEME);
+		assert.strictEqual(list.element(0).gitPath, 'src/a.ts');
+		await openFirstListRow(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline && opened.length === 0) {
+			await timeout(20);
+		}
+		assert.strictEqual(opened.length, 1);
+		assert.ok(opened[0]?.original?.startsWith('sources-git-diff:'));
+		assert.ok(opened[0]?.modified?.startsWith('sources-git-diff:'));
+		assert.ok(!opened[0]?.original?.startsWith(`${SOURCES_GIT_UNROOTED_SCHEME}:`));
+		assert.ok(!opened[0]?.modified?.startsWith(`${SOURCES_GIT_UNROOTED_SCHEME}:`));
+		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('original', 'src/a.ts', 'WORKTREE'))?.text, 'old\n');
+		assert.strictEqual(sourcesGitDiffContentStore.get(sourcesGitDiffModelUri('modified', 'src/a.ts', 'WORKTREE'))?.text, 'new\n');
+
+		const unsupportedOpened: string[] = [];
+		const unsupported = createGitReadConnection({
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitFileDiff: async () => ({
+				supported: false,
+				reason: 'Git file diff is not supported',
+				path: '',
+				unifiedDiff,
+			}),
+		});
+		const unsupportedHost = mountHost();
+		const unsupportedWidget = store.add(stubChangesListServices(unsupported, scm, undefined, async (input: { resource?: URI; original?: { resource?: URI }; modified?: { resource?: URI } }) => {
+			unsupportedOpened.push(input?.resource?.toString() ?? input?.modified?.resource?.toString() ?? '');
+			return undefined;
+		}, createRoster(), repoA.fsPath, workRoot).createInstance(SourcesChangesList, unsupportedHost));
+		(unsupportedHost.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+		await waitForList(unsupportedWidget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		await openFirstListRow(unsupportedWidget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+		const status = await waitForStatusText(unsupportedHost, 'Git file diff is not supported');
+		assert.ok(status.includes(sourcesGitDiffOpenFailureMessage(new Error('Git file diff is not supported'))));
+		assert.strictEqual(unsupportedOpened.length, 0);
+		assert.ok(!status.includes(`${SOURCES_GIT_UNROOTED_SCHEME}:`));
 	});
 
 	test('settled non-SCM repaint keeps a typed commit message', async function () {

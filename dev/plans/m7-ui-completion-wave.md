@@ -3,7 +3,7 @@ title: "M7 UI 完成波：产品面闭集与非阻塞验证"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-10-01
+updated: 2026-10-19
 summary: "M7 UI 代码完成线已尽（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；W1 冒烟已跑（D15 closed）；I6 发行标识未完；方案仍 accepted，测试债旁路不升 implemented"
 ---
 
@@ -101,7 +101,7 @@ Wave 之间不等待 V 槽全绿；只有 §2 的硬阻塞项会暂停相关冲�
 M7 UI 完成必须同时满足：
 
 1. 五份子方案的切片与 Wave 0 五刀均落地。**按面分别判定：** Engine 九节具备 [engine-preferences §2](engine-preferences-completion.md) 六态；Connection 页以 `ConnectionPhase` 五 kind 为准、Web / `unsupported_environment` 下省略桌面连接控件（不套 catalog 六态）；Conversation 轨迹详情具备 preview / loading / full / partial / unavailable / failed 六态；Client 七组各有真实键与消费点（本地设置，无引擎态）；Navigator / Sources / Diff 只要求诚实省略与不失效，不另造 unsupported。
-2. 不以假数据填补 Engine 能力；缺 RPC 时显示明确的 unsupported，不隐藏成空白页。**Provider 凭据、Rules、Hooks 在 G-ENG-1/2/3 补齐前保持无写表单。** Agent profile 的 `model` / `modelType` / `maxTurns` 已由 Model 子 tab 写入，不另画磁盘 `model.json` 编辑器。
+2. 不以假数据填补 Engine 能力；缺 RPC 时显示明确的 unsupported，不隐藏成空白页。**Provider 凭据、Rules、Hooks 在 G-ENG-1/2/3 补齐前保持无写表单。** Agent profile 的 `model` / `modelType` / `maxTurns` 已由 Model 子 tab 写入，不另画磁盘 `model.json` 编辑器。**2026-10-19：** 桌面 Providers 可以写凭据并导入本地 harness，Models 可以写注册表；这两节的工具栏和行尾是幽灵图标钮，新建和编辑用输入对话框。Skills、Agents、MCP 的新建和编辑也用输入对话框。Plugins、Clipboard、Context Variables、MCP Runtime 的工具栏动作是幽灵图标。Rules/Hooks 仍无写表单。事实见 [engine-catalog](../../docs/systems/workbench/engine-catalog.md)。
 3. 默认窗无 Copilot marketing、ChatEditor 主路径或第二套 Settings 皮肤。
 4. 键盘可达、ARIA 与窄宽度行为有实现；测试是否全绿不改变「代码已落」事实，但决定能否升 `implemented`。
 5. Web 入口能实例化 Conversation / Navigator / Sources / Connection 并显示诚实断连态；Connection / Engine 页在 Web 不画 Hub 登录、Direct Address、SAS、Test Engine（P0 + E2-1）。

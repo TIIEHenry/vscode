@@ -3,8 +3,8 @@ title: "跨仓协议提案：引擎缺口 → 本仓解锁映射"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-10-04
-summary: "2026-10-04：审查确认缺 RPC 后可按 §3 向引擎提需求；本仓不发明字段号、不改引擎 proto。引擎 A–F 已合 @ 748e7698e6。G-ENG-1/2/3 写表单仍不做。"
+updated: 2026-10-19
+summary: "2026-10-19：G-ENG-1 桌面凭据写与本地导入已接；Models 注册表写 RPC 记在 engine-catalog。G-ENG-2/3 写表单仍不做。引擎 A–F 已合 @ 748e7698e6。"
 ---
 
 # 跨仓协议提案：引擎缺口 → 本仓解锁映射
@@ -72,7 +72,7 @@ summary: "2026-10-04：审查确认缺 RPC 后可按 §3 向引擎提需求；�
 
 | 缺口 | 现状（本仓 @ HEAD） | 引擎面（2026-09-12） | 本仓解锁（UI / PRD） | 优先级 |
 |------|---------------------|----------------------|----------------------|--------|
-| **G-ENG-1** | connection `listProviderStatus?` + 只读列表已接；**无**凭据表单。凭据实际来自引擎宿主环境变量，不走 IDE。 | **引擎已合并 @ `748e7698e6`；本仓 node+connection 已绑 / 写表单未接。** `AgentService.ListProviderStatus` / `UpsertProviderCredentials` / `ClearProviderCredentials`。`ProviderStatus{ provider_id, brand, protocol, configured, credential_source, has_base_url, enabled }`；响应无 key / mask。 | [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性) 验收 3 从「空态满足」变为可接线（验收 3/4 今日已被空态满足，**不是**解锁成功条件）；[engine-preferences §3.2](engine-preferences-completion.md) Provider 组。表单未接前 **零输入控件**。 | 高 |
+| **G-ENG-1** | 2026-10-19：桌面 connection 已接 `upsertProviderCredentials?` / `clearProviderCredentials?` 与本地 harness 导入。空白 apiKey 保留已有密钥。网页不实现写方法。`PROVIDER_ENV` 只说明宿主环境仍可能供钥，upsert 不改进程环境。 | **引擎已合并 @ `748e7698e6`。** `AgentService.ListProviderStatus` / `UpsertProviderCredentials` / `ClearProviderCredentials`。`ProviderStatus{ provider_id, brand, protocol, configured, credential_source, has_base_url, enabled }`；响应无 key / mask。 | [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性) 仍 `accepted`（无产品验证）。当前事实见 [engine-catalog](../../docs/systems/workbench/engine-catalog.md)。 | 高 |
 | **G-ENG-2** | connection `listProjectRules?` + 只读列表已接；**无** Upsert/Delete。 | **引擎已合并 @ `748e7698e6`；本仓 node+connection 已绑 / 写表单未接。** `ProjectRuleService.List` / `Upsert` / `Delete`。请求不得带 `work_dir` / `agent_home`；WORKDIR 用 `session_id` → `SessionMeta.workDir`。 | [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性) 验收 4；[engine-preferences §3.5](engine-preferences-completion.md) Rules 节。表单未接前 **不画假行、不扫本机 AgentHome**。 | 高 |
 | **G-ENG-3** | connection `listHookPoints?` + 点位只读列表已接。不从 `points.md` 抄静态点位，不读 `{AgentHome}/hooks.json`。 | **引擎已合并 @ `748e7698e6`；本仓 node+connection 已绑 / Definitions 无 RPC。** `SystemService.ListHookPoints`；目录来自 `HookRegistry` `fire*`（不是 `points.md`）；`installed_count` 取 factory 列表。 | [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性) 验收 4；[engine-preferences §3.6](engine-preferences-completion.md) Hooks 节。Plugins `hook_count` **不得**充当本节省。表单未接前两栏行数恒 0。 | 高 |
 | **G-ENG-4** | Save/List proto3 已读写 `model` / `model_type` / `max_turns`。Agents Model 子 tab 写这三字段（空 max turns = 引擎默认）。不是模型注册表选择器。不升 PRD-025。 | **引擎已合并 @ `748e7698e6`；本仓 node 已绑；Model 子 tab 已写三字段。** `AgentProfileProto.model = 17` / `model_type = 18` / `max_turns = 19`。 | [engine-preferences §3.4](engine-preferences-completion.md) Agents Model 子 tab；[engine-catalog §3](../../docs/systems/workbench/engine-catalog.md)。 | 中高 |

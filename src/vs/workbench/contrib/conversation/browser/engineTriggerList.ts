@@ -116,17 +116,15 @@ export function engineTriggerDeleteRequest(
 
 /**
  * Always send empty `scope` / `scopeId` as-is.
- * Add always sends an empty TriggerDto (empty ids / enabled false / 0).
- * Edit passes the selected trigger as-is, or the empty TriggerDto when none.
+ * The trigger is the dialog draft. This helper does not fill an empty TriggerDto.
  */
 export function engineTriggerUpsertRequest(
-	selected: UniverseAgentTrigger | undefined,
-	mode: 'add' | 'edit',
+	trigger: UniverseAgentTrigger,
 ): UniverseAgentUpsertTriggerRequest {
 	return {
 		scope: '',
 		scopeId: '',
-		trigger: mode === 'add' ? emptyEngineTrigger() : (selected ?? emptyEngineTrigger()),
+		trigger,
 	};
 }
 

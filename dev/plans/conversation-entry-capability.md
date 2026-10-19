@@ -3,7 +3,7 @@ title: "对话入口按广告探测"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-05
+updated: 2026-10-16
 summary: "对话里用 typeof 连接方法决定列表、按钮或选择器是否存在的门闩，改读连接快照 conversationEntryCapability。不进 Engine Overview。不重做 gitWriteCapability。稿仍 draft。不升 PRD。"
 ---
 
@@ -20,7 +20,7 @@ summary: "对话里用 typeof 连接方法决定列表、按钮或选择器是�
 - 四条提交路径（旧 `connect`、明文拨号、设备鉴权拨号、本机跳过鉴权）都在与 `probeGitWriteCapability` 相同的「探测后仍拥有这次拨号」闸之后写入。`disconnect` 与丢掉已发布 transport 时整表回到 `UNKNOWN`。
 - 渲染端 `UniverseAgentConnectionSyncCache.applySnapshot` 显式拷贝该字段。缺字段或非法值当成 `UNKNOWN`。不把 `sessionToken` 带进缓存。
 - Web 桩整表为 `UNSUPPORTED`。
-- 对话入口用 `conversationEntryHookPresent`：`UNSUPPORTED` 没有入口，即使方法是函数；`SUPPORTED` 有入口；`UNKNOWN` 或没有该字段时仍看方法是否安装。调用前若方法不是函数，仍不发出 RPC。
+- 对话入口用 `conversationEntryHookPresent`：`UNSUPPORTED` 没有入口，即使方法是函数；`SUPPORTED` 有入口；`UNKNOWN` 或没有该字段时仍看方法是否安装。调用前若方法不是函数，仍不发出 RPC。Triggers、Clipboard、Context Variables 三节列表的 UNKNOWN 例外写在 [engine-trigger-clipboard-actions](engine-trigger-clipboard-actions.md)，尚未实施。在那之前，这三节列表仍走本段的 UNKNOWN 退路。共享函数不改。
 - 改这些生产门闩：Clipboard / Triggers / Context 的列表、Snapshots 的 `listSnapshots`、Connection 面板的设备列表与批准 / 拒绝 / 轮换 / 吊销、插件 `getPluginInfo`、MCP `getMcpServerTools`、Inbox `setSessionGoal`、作曲栏权限模式与模型切换与 `switchAgent`。
 
 ## 不做什么

@@ -24,6 +24,12 @@ export class TestDialogService implements IDialogService {
 		this.confirmResult = result;
 	}
 
+	private inputResult: IInputResult | undefined = undefined;
+	/** Consumed once. The default input result stays an empty confirmed form. */
+	setInputResult(result: IInputResult) {
+		this.inputResult = result;
+	}
+
 	async confirm(confirmation: IConfirmation): Promise<IConfirmationResult> {
 		if (this.confirmResult) {
 			const confirmResult = this.confirmResult;
@@ -60,6 +66,13 @@ export class TestDialogService implements IDialogService {
 	async error(message: string, detail?: string): Promise<void> {
 		await this.prompt({ type: Severity.Error, message, detail });
 	}
-	async input(): Promise<IInputResult> { { return { confirmed: true, values: [] }; } }
+	async input(): Promise<IInputResult> {
+		if (this.inputResult) {
+			const inputResult = this.inputResult;
+			this.inputResult = undefined;
+			return inputResult;
+		}
+		return { confirmed: true, values: [] };
+	}
 	async about(): Promise<void> { }
 }

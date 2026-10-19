@@ -7,7 +7,8 @@ import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isEqualOrParent } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { sourcesFilterFitsOnBar, sourcesListDirectoryTarget } from '../../common/sourcesFilesListMode.js';
+import { SOURCES_FILES_LIST_MODE_STORAGE_KEY, sourcesFilterFitsOnBar, sourcesListDirectoryTarget } from '../../common/sourcesFilesListMode.js';
+import { readSourcesFilesListMode, sourcesFilesListModeScope, sourcesFilesListModeStorageKey } from '../../browser/sourcesFilesExplorer.js';
 
 suite('Sources - files list mode', () => {
 
@@ -42,5 +43,73 @@ suite('Sources - files list mode', () => {
 		assert.strictEqual(sourcesFilterFitsOnBar(0), false);
 		assert.strictEqual(sourcesFilterFitsOnBar(599), false);
 		assert.strictEqual(sourcesFilterFitsOnBar(600), true);
+	});
+
+	test('same project key shares list mode and different project keys stay independent', function () {
+		const values = new Map<string, string>();
+		const read = (key: string) => values.get(key);
+		const projectA = 'engine-a\n/work/app';
+		const projectB = 'engine-b\n/work/app';
+
+		const first = readSourcesFilesListMode(read, projectA, 'sess-1');
+		assert.strictEqual(first.writeSeed, true);
+		values.set(first.storageKey, 'list');
+
+		const sameProject = readSourcesFilesListMode(read, projectA, 'sess-2');
+		assert.strictEqual(sameProject.storageKey, sourcesFilesListModeStorageKey(projectA, 'sess-1'));
+		assert.strictEqual(sameProject.mode, 'list');
+		assert.strictEqual(sameProject.writeSeed, false);
+
+		const otherProject = readSourcesFilesListMode(read, projectB, 'sess-1');
+		assert.notStrictEqual(otherProject.storageKey, first.storageKey);
+		assert.strictEqual(otherProject.mode, 'tree');
+		assert.strictEqual(otherProject.writeSeed, true);
+		values.set(otherProject.storageKey, 'tree');
+
+		assert.strictEqual(readSourcesFilesListMode(read, projectA, 'sess-2').mode, 'list');
+		assert.strictEqual(readSourcesFilesListMode(read, projectB, 'sess-3').mode, 'tree');
+	});
+
+	test('missing project key is session private and the window key seeds once', function () {
+		const values = new Map<string, string>();
+		values.set(SOURCES_FILES_LIST_MODE_STORAGE_KEY, 'list');
+		const read = (key: string) => values.get(key);
+
+		assert.strictEqual(sourcesFilesListModeScope(undefined, 'sess-1'), 'session:sess-1');
+		assert.notStrictEqual(
+			sourcesFilesListModeStorageKey(undefined, 'sess-1'),
+			sourcesFilesListModeStorageKey(undefined, 'sess-2'),
+		);
+
+		const seeded = readSourcesFilesListMode(read, undefined, 'sess-1');
+		assert.strictEqual(seeded.mode, 'list');
+		assert.strictEqual(seeded.writeSeed, true);
+		values.set(seeded.storageKey, seeded.mode);
+		assert.strictEqual(values.get(SOURCES_FILES_LIST_MODE_STORAGE_KEY), 'list');
+
+		values.set(SOURCES_FILES_LIST_MODE_STORAGE_KEY, 'tree');
+		const again = readSourcesFilesListMode(read, undefined, 'sess-1');
+		assert.strictEqual(again.mode, 'list');
+		assert.strictEqual(again.writeSeed, false);
+		assert.strictEqual(values.get(SOURCES_FILES_LIST_MODE_STORAGE_KEY), 'tree');
+
+		const otherSession = readSourcesFilesListMode(read, undefined, 'sess-2');
+		assert.strictEqual(otherSession.mode, 'tree');
+		assert.strictEqual(otherSession.writeSeed, true);
+		assert.ok(otherSession.storageKey.includes('session:sess-2'));
+	});
+
+	test('switching the active work root reloads that project list mode', function () {
+		const values = new Map<string, string>();
+		const read = (key: string) => values.get(key);
+		const left = 'engine\n/left';
+		const right = 'engine\n/right';
+		values.set(sourcesFilesListModeStorageKey(left, 'sess-left'), 'list');
+		values.set(sourcesFilesListModeStorageKey(right, 'sess-right'), 'tree');
+
+		assert.strictEqual(readSourcesFilesListMode(read, left, 'sess-left').mode, 'list');
+		assert.strictEqual(readSourcesFilesListMode(read, left, 'sess-left').writeSeed, false);
+		assert.strictEqual(readSourcesFilesListMode(read, right, 'sess-right').mode, 'tree');
+		assert.strictEqual(readSourcesFilesListMode(read, left, 'sess-left').mode, 'list');
 	});
 });
