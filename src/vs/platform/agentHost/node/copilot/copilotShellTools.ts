@@ -50,6 +50,31 @@ interface IManagedShell {
 // ---------------------------------------------------------------------------
 
 /**
+ * Shares one in-flight or successful shell executable resolution.
+ * A rejection clears the slot only while it still points at that attempt,
+ * so the next call resolves again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareShellExecutableRequest(
+	slot: { promise: Promise<string> | undefined },
+	load: () => Promise<string>,
+): Promise<string> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next call resolves again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
+/**
  * Per-session manager for persistent shell instances. Each shell is backed by
  * a {@link IAgentHostTerminalManager} terminal and participates in AHP terminal
  * claim semantics.
@@ -60,7 +85,7 @@ interface IManagedShell {
 export class ShellManager extends Disposable {
 	private readonly _shells = new Map<string, IManagedShell>();
 	private readonly _toolCallShells = new Map<string, string>();
-	private _resolvedExecutable: Promise<string> | undefined;
+	private readonly _resolvedExecutableSlot: { promise: Promise<string> | undefined } = { promise: undefined };
 	private _sandboxEngine: TerminalSandboxEngine | undefined;
 	/** Set of shell ids currently executing a command and unsafe to share. */
 	private readonly _busyShellIds = new Set<string>();
@@ -105,10 +130,7 @@ export class ShellManager extends Disposable {
 	 * (keeps `shellType`, sentinel format, and history suppression consistent).
 	 */
 	getResolvedExecutable(): Promise<string> {
-		if (!this._resolvedExecutable) {
-			this._resolvedExecutable = this._terminalManager.getDefaultShell();
-		}
-		return this._resolvedExecutable;
+		return shareShellExecutableRequest(this._resolvedExecutableSlot, () => this._terminalManager.getDefaultShell());
 	}
 
 	/**
