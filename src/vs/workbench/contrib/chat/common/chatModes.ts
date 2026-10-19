@@ -324,11 +324,36 @@ class ChatModes extends Disposable implements IChatModes {
 	}
 }
 
+/**
+ * Shares one in-flight or successful local chat modes resolve.
+ * A rejection clears the slot only while it still points at that attempt,
+ * so the next resolve starts again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareLocalChatModes<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next resolve starts again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 export class ChatModeService extends Disposable implements IChatModeService {
 	declare readonly _serviceBrand: undefined;
 
 	private readonly agentModeDisabledByPolicy: IContextKey<boolean>;
-	private localMode: Promise<IChatModes> | undefined;
+	private readonly _localModesSlot: { promise: Promise<IChatModes> | undefined } = { promise: undefined };
 
 	constructor(
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
@@ -354,15 +379,19 @@ export class ChatModeService extends Disposable implements IChatModeService {
 		return this.instantiationService.createInstance(ChatModes, sessionResource);
 	}
 
-	async getLocalModes(): Promise<IChatModes> {
-		if (!this.localMode) {
-			this.localMode = (async () => {
-				const modes = this._register(this.createModes(LocalChatSessionUri.getNewSessionUri())); // we make up a new session. Local mdes fall back to the promptService and are not actually tied to the session, so it doesn't matter which one we use here.
+	getLocalModes(): Promise<IChatModes> {
+		return shareLocalChatModes(this._localModesSlot, async () => {
+			// we make up a new session. Local modes fall back to the promptService and are not actually tied to the session, so it doesn't matter which one we use here.
+			const modes = this._register(this.createModes(LocalChatSessionUri.getNewSessionUri()));
+			try {
 				await modes.waitForPendingUpdates();
 				return modes;
-			})();
-		}
-		return this.localMode;
+			} catch (error) {
+				// A failed refresh must not leave this instance registered; the next getLocalModes creates another.
+				modes.dispose();
+				throw error;
+			}
+		});
 	}
 
 	private updateAgentModePolicyContextKey(): void {
