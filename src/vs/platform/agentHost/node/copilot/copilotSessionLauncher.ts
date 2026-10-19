@@ -522,17 +522,43 @@ export async function resolveByokSessionConfig(
 	return { providers, models };
 }
 
+/**
+ * Shares one in-flight or successful BYOK proxy start.
+ * A rejection clears the slot only while it still points at that attempt,
+ * so the next start begins again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareByokProxyHandle<T>(
+	slot: { promise: Promise<T> | undefined },
+	load: () => Promise<T>,
+): Promise<T> {
+	if (slot.promise) {
+		return slot.promise;
+	}
+
+	const attempt = load();
+	slot.promise = attempt;
+	// Not assigned. Callers still observe this rejection; the next start begins again.
+	void attempt.catch(() => {
+		if (slot.promise === attempt) {
+			slot.promise = undefined;
+		}
+	});
+	return attempt;
+}
+
 export class CopilotSessionLauncher implements ICopilotSessionLauncher {
 
 	/**
 	 * Memoized handle for the single shared BYOK loopback proxy, started lazily
 	 * on the first session launch that surfaces BYOK models (see
 	 * {@link _resolveByokSessionConfig}). Held as a promise so concurrent
-	 * launches share one bind. Released and cleared by
-	 * {@link disposeByokProxyHandle} when the owning Copilot client/runtime is
-	 * stopped, so the next start mints a fresh nonce.
+	 * launches share one bind. A rejected start is dropped so the next launch
+	 * tries again. Released and cleared by {@link disposeByokProxyHandle} when
+	 * the owning Copilot client/runtime is stopped, so the next start mints a
+	 * fresh nonce.
 	 */
-	private _byokProxyHandle: Promise<IByokLmProxyHandle> | undefined;
+	private readonly _byokProxyHandleSlot: { promise: Promise<IByokLmProxyHandle> | undefined } = { promise: undefined };
 
 	constructor(
 		@IAgentConfigurationService private readonly _configurationService: IAgentConfigurationService,
@@ -718,12 +744,10 @@ export class CopilotSessionLauncher implements ICopilotSessionLauncher {
 		if (!enabled) {
 			return Promise.resolve({});
 		}
-		return resolveByokSessionConfig(sessionId, this._byokLmBridgeRegistry, () => {
-			if (!this._byokProxyHandle) {
-				this._byokProxyHandle = this._byokLmProxyService.start();
-			}
-			return this._byokProxyHandle;
-		}, this._logService);
+		return resolveByokSessionConfig(sessionId, this._byokLmBridgeRegistry, () => shareByokProxyHandle(
+			this._byokProxyHandleSlot,
+			() => this._byokLmProxyService.start(),
+		), this._logService);
 	}
 
 	/**
@@ -738,8 +762,8 @@ export class CopilotSessionLauncher implements ICopilotSessionLauncher {
 	 * client has stopped.
 	 */
 	async disposeByokProxyHandle(): Promise<void> {
-		const handle = this._byokProxyHandle;
-		this._byokProxyHandle = undefined;
+		const handle = this._byokProxyHandleSlot.promise;
+		this._byokProxyHandleSlot.promise = undefined;
 		if (!handle) {
 			return;
 		}
