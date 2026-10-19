@@ -61,19 +61,26 @@ export class MainThreadTestCollection extends AbstractIncrementalTestCollection<
 			return Promise.resolve();
 		}
 
-		// simple cache to avoid duplicate/unnecessary expansion calls
+		// Share one in-flight or fulfilled expand at this depth.
+		// Drop a rejection only while the map still points at this attempt, so the next expand tries again.
+		// The returned promise still rejects; this does not start another attempt.
 		const existing = this.expandPromises.get(test);
 		if (existing && existing.pendingLvl >= levels) {
 			return existing.prom;
 		}
 
 		const prom = this.expandActual(test.item.extId, levels);
-		const record = { doneLvl: existing ? existing.doneLvl : -1, pendingLvl: levels, prom };
-		this.expandPromises.set(test, record);
-
-		return prom.then(() => {
+		const record = { doneLvl: existing ? existing.doneLvl : -1, pendingLvl: levels, prom: undefined as unknown as Promise<void> };
+		record.prom = prom.then(() => {
 			record.doneLvl = levels;
+		}, (err: unknown) => {
+			if (this.expandPromises.get(test) === record) {
+				this.expandPromises.delete(test);
+			}
+			throw err;
 		});
+		this.expandPromises.set(test, record);
+		return record.prom;
 	}
 
 	/**
