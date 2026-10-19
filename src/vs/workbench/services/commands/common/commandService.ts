@@ -12,6 +12,7 @@ import { InstantiationType, registerSingleton } from '../../../../platform/insta
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IExtensionService } from '../../extensions/common/extensions.js';
+import { shareCommandStarActivation } from './commandStarActivation.js';
 
 export class CommandService extends Disposable implements ICommandService {
 
@@ -19,6 +20,7 @@ export class CommandService extends Disposable implements ICommandService {
 
 	private _extensionHostIsReady: boolean = false;
 	private _starActivation: CancelablePromise<void> | null;
+	private readonly _starActivationSlot: { promise: Promise<void> | undefined } = { promise: undefined };
 
 	private readonly _onWillExecuteCommand: Emitter<ICommandEvent> = this._register(new Emitter<ICommandEvent>());
 	public readonly onWillExecuteCommand: Event<ICommandEvent> = this._onWillExecuteCommand.event;
@@ -37,17 +39,21 @@ export class CommandService extends Disposable implements ICommandService {
 	}
 
 	private _activateStar(): Promise<void> {
-		if (!this._starActivation) {
+		// In-flight and successful * activation stay shared. A rejection clears the slot
+		// only while it still points at this attempt, so the next command starts again.
+		const activation = shareCommandStarActivation(this._starActivationSlot, () => {
 			// wait for * activation, limited to at most 30s.
-			this._starActivation = raceCancellablePromises([
+			const attempt = raceCancellablePromises([
 				this._extensionService.activateByEvent(`*`),
 				timeout(30000)
 			]);
-		}
+			this._starActivation = attempt;
+			return attempt;
+		});
 
 		// This is wrapped with notCancellablePromise so it doesn't get cancelled
 		// early because it is shared between consumers.
-		return notCancellablePromise(this._starActivation);
+		return notCancellablePromise(activation as CancelablePromise<void>);
 	}
 
 	async executeCommand<T>(id: string, ...args: unknown[]): Promise<T> {
