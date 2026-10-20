@@ -194,7 +194,7 @@ module.exports = {
 		{
 			id: 'sources-tab-changes',
 			title: 'Sources stops on Changes inside the editor shell',
-			async run({ workbench }) {
+			async run({ workbench, code }) {
 				const panels = {
 					Files: 'sources-panel-files',
 					Changes: 'sources-panel-changes'
@@ -211,6 +211,20 @@ module.exports = {
 				if (!changes.conversation || !changes.sources) {
 					throw new Error(`Changes hid Conversation or Sources. ${summarize(changes)}`);
 				}
+				// Screenshots are taken when run() returns. click() does not match
+				// :focus-visible, so leave Changes focused with a visible ring.
+				await code.driver.evaluateExpression(`(async () => {
+					const root = document.getElementById('workbench.parts.sources');
+					const button = root && [...root.querySelectorAll('button.sources-tab')].find(b => (b.textContent || '').trim() === ${JSON.stringify('Changes')});
+					if (!button) {
+						throw new Error('Sources tab Changes was not found.');
+					}
+					button.focus({ focusVisible: true });
+					await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+					if (document.activeElement !== button) {
+						throw new Error('Changes tab is not the active element.');
+					}
+				})()`);
 				return 'Changes';
 			}
 		},
