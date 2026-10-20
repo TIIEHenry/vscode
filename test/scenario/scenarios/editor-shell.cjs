@@ -192,23 +192,39 @@ module.exports = {
 			}
 		},
 		{
-			id: 'sources-tab-switch',
-			title: 'Each Sources tab stays inside the editor shell',
+			id: 'sources-tab-changes',
+			title: 'Sources stops on Changes inside the editor shell',
 			async run({ workbench }) {
 				const panels = {
 					Files: 'sources-panel-files',
-					Changes: 'sources-panel-changes',
-					Review: 'sources-panel-review'
+					Changes: 'sources-panel-changes'
 				};
-				for (const label of ['Files', 'Changes', 'Review']) {
-					await workbench.editorShell.clickSourcesTab(label);
-					const layout = await workbench.editorShell.waitForLayout(candidate => candidate.sourcesActiveTab === label && candidate.sourcesVisiblePanel === panels[label]);
-					assertQuietEditor(layout, label);
-					if (!layout.conversation || !layout.sources) {
-						throw new Error(`${label} hid Conversation or Sources. ${summarize(layout)}`);
-					}
+				await workbench.editorShell.clickSourcesTab('Files');
+				const files = await workbench.editorShell.waitForLayout(candidate => candidate.sourcesActiveTab === 'Files' && candidate.sourcesVisiblePanel === panels.Files);
+				assertQuietEditor(files, 'Files');
+				if (!files.conversation || !files.sources) {
+					throw new Error(`Files hid Conversation or Sources. ${summarize(files)}`);
 				}
-				return 'Files, Changes, Review';
+				await workbench.editorShell.clickSourcesTab('Changes');
+				const changes = await workbench.editorShell.waitForLayout(candidate => candidate.sourcesActiveTab === 'Changes' && candidate.sourcesVisiblePanel === panels.Changes);
+				assertQuietEditor(changes, 'Changes');
+				if (!changes.conversation || !changes.sources) {
+					throw new Error(`Changes hid Conversation or Sources. ${summarize(changes)}`);
+				}
+				return 'Changes';
+			}
+		},
+		{
+			id: 'sources-tab-review',
+			title: 'Sources Review tab stays inside the editor shell',
+			async run({ workbench }) {
+				await workbench.editorShell.clickSourcesTab('Review');
+				const review = await workbench.editorShell.waitForLayout(candidate => candidate.sourcesActiveTab === 'Review' && candidate.sourcesVisiblePanel === 'sources-panel-review');
+				assertQuietEditor(review, 'Review');
+				if (!review.conversation || !review.sources) {
+					throw new Error(`Review hid Conversation or Sources. ${summarize(review)}`);
+				}
+				return 'Review';
 			}
 		},
 		{
