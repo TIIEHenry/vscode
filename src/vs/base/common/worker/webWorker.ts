@@ -303,12 +303,35 @@ export interface IWebWorkerServer {
 }
 
 /**
+ * Shares one in-flight or successful web worker module initialize.
+ * A rejection clears the slot only while it still points at that attempt,
+ * so the next call sends initialize again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another attempt.
+ */
+export function shareWebWorkerModuleLoad(read: () => Promise<void> | undefined, write: (next: Promise<void> | undefined) => void, initialize: () => Promise<void>): Promise<void> {
+	const existing = read();
+	if (existing) {
+		return existing;
+	}
+
+	const attempt = initialize();
+	write(attempt);
+	// Not assigned. Callers still observe this rejection; the next call sends initialize again.
+	void attempt.catch(() => {
+		if (read() === attempt) {
+			write(undefined);
+		}
+	});
+	return attempt;
+}
+
+/**
  * Main thread side
  */
 export class WebWorkerClient<W extends object> extends Disposable implements IWebWorkerClient<W> {
 
 	private readonly _worker: IWebWorker;
-	private readonly _onModuleLoaded: Promise<void>;
+	private _onModuleLoaded: Promise<void> | undefined;
 	private readonly _protocol: WebWorkerProtocol;
 	public readonly proxy: Proxied<W>;
 	private readonly _localChannels: Map<string, object> = new Map();
@@ -342,14 +365,25 @@ export class WebWorkerClient<W extends object> extends Disposable implements IWe
 		this._protocol.setWorkerId(this._worker.getId());
 
 		// Send initialize message
-		this._onModuleLoaded = this._protocol.sendMessage(DEFAULT_CHANNEL, INITIALIZE, [
-			this._worker.getId(),
-		]).then(() => { });
+		this.proxy = this._protocol.createProxyToRemoteChannel(DEFAULT_CHANNEL, () => this._ensureModuleLoaded());
+		void this._ensureModuleLoaded();
+	}
 
-		this.proxy = this._protocol.createProxyToRemoteChannel(DEFAULT_CHANNEL, async () => { await this._onModuleLoaded; });
-		this._onModuleLoaded.catch((e) => {
-			this._onError('Worker failed to load ', e);
-		});
+	private _ensureModuleLoaded(): Promise<void> {
+		const before = this._onModuleLoaded;
+		const pending = shareWebWorkerModuleLoad(
+			() => this._onModuleLoaded,
+			next => { this._onModuleLoaded = next; },
+			() => this._protocol.sendMessage(DEFAULT_CHANNEL, INITIALIZE, [
+				this._worker.getId(),
+			]).then(() => { }),
+		);
+		if (pending !== before) {
+			void pending.catch((e) => {
+				this._onError('Worker failed to load ', e);
+			});
+		}
+		return pending;
 	}
 
 	private _handleMessage(channelName: string, method: string, args: unknown[]): Promise<unknown> {
@@ -403,7 +437,7 @@ export class WebWorkerClient<W extends object> extends Disposable implements IWe
 	public getChannel<T extends object>(channel: string): Proxied<T> {
 		let inst = this._remoteChannels.get(channel);
 		if (inst === undefined) {
-			inst = this._protocol.createProxyToRemoteChannel(channel, async () => { await this._onModuleLoaded; });
+			inst = this._protocol.createProxyToRemoteChannel(channel, () => this._ensureModuleLoaded());
 			this._remoteChannels.set(channel, inst);
 		}
 		return inst as Proxied<T>;
