@@ -79,6 +79,29 @@ export abstract class AbstractTextResourceEditorInput extends AbstractResourceEd
 }
 
 /**
+ * Shares one in-flight or successful text-resource model reference.
+ * A rejection clears the field only while it still points at that attempt,
+ * so the next resolve calls `load` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another load.
+ */
+export function shareTextResourceModelReference<T>(read: () => Promise<T> | undefined, write: (next: Promise<T> | undefined) => void, load: () => Promise<T>): Promise<T> {
+	const existing = read();
+	if (existing) {
+		return existing;
+	}
+
+	const attempt = load();
+	write(attempt);
+	// Not assigned. Callers still observe this rejection; the next resolve calls load again.
+	void attempt.catch(() => {
+		if (read() === attempt) {
+			write(undefined);
+		}
+	});
+	return attempt;
+}
+
+/**
  * A read-only text editor input whos contents are made of the provided resource that points to an existing
  * code editor model.
  */
@@ -166,11 +189,11 @@ export class TextResourceEditorInput extends AbstractTextResourceEditorInput imp
 		this.preferredLanguageId = undefined;
 
 		const createdModelReference = !this.modelReference;
-		if (!this.modelReference) {
-			this.modelReference = this.textModelService.createModelReference(this.resource);
-		}
-
-		const ref = await this.modelReference;
+		const ref = await shareTextResourceModelReference(
+			() => this.modelReference,
+			promise => { this.modelReference = promise; },
+			() => this.textModelService.createModelReference(this.resource),
+		);
 
 		// Ensure the resolved model is of expected type
 		const model = ref.object;
