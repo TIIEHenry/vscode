@@ -196,6 +196,8 @@ suite('Editor Group Watermark', () => {
 			assert.ok(actionButton);
 			actionButton.click();
 			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
+			actionButton.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 2 }));
+			assert.deepStrictEqual(executedCommands, [previewUniverseAgentPtyEditorCommandId]);
 
 			// Now disconnect: connected = false
 			connected = false;

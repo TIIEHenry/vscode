@@ -126,7 +126,9 @@ suite('Preview Editor Group Header Invariants', () => {
 			content.includes('usesPreviewCategoryEmptyStates()') &&
 			content.includes('shouldPreserveHiddenOnInactiveOpen(this)') &&
 			content.includes('isGroupExcludedFromNavigation(candidate)') &&
-			content.includes('keepsLastRootGroupOnCloseAll(this)'),
+			content.includes('keepsLastRootGroupOnCloseAll(this)') &&
+			content.includes('handleEmptyGroupDoubleClick(this)') &&
+			content.includes('isPreviewEmptyStateTarget'),
 			'editorGroupView must not embed preview category routing',
 		);
 	});

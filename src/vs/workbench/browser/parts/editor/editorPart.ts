@@ -412,6 +412,10 @@ export class EditorPart extends Part<IEditorPartMemento> implements IEditorPart,
 		return false;
 	}
 
+	handleEmptyGroupDoubleClick(_group: IEditorGroupView): boolean {
+		return false;
+	}
+
 	private doFindGroupByDirection(direction: GroupDirection, source: IEditorGroup | GroupIdentifier, wrap?: boolean): IEditorGroupView | undefined {
 		const sourceGroupView = this.assertGroupView(source);
 

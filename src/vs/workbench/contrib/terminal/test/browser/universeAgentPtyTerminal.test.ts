@@ -46,8 +46,50 @@ class MockUniverseAgentPtyBridge implements IUniverseAgentPty {
 	}
 }
 
+class SilentUniverseAgentPtyBridge implements IUniverseAgentPty {
+	declare readonly _serviceBrand: undefined;
+
+	readonly onServerFrame = new Emitter<UniverseAgentPtyServerFrame>();
+
+	isBridgeAvailable(): Promise<boolean> {
+		return Promise.resolve(true);
+	}
+
+	openStream(): Promise<string> {
+		return Promise.resolve('stream-1');
+	}
+
+	sendClientMessage(_streamId: string, _frame: UniverseAgentPtyClientFrame): Promise<void> {
+		return Promise.resolve();
+	}
+
+	onDynamicPtyServerMessage(_streamId: string) {
+		return this.onServerFrame.event;
+	}
+
+	disposeStream(_streamId: string): Promise<void> {
+		return Promise.resolve();
+	}
+
+	dispose(): void {
+		this.onServerFrame.dispose();
+	}
+}
+
 suite('UniverseAgentCustomPty', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('openSession without a response fails the launch', async () => {
+		const bridge = store.add(new SilentUniverseAgentPtyBridge());
+		const pty = store.add(new UniverseAgentCustomPty(1, 80, 24, bridge, 'engine-session', 20));
+
+		const launchResult = await pty.start();
+
+		ok(launchResult);
+		strictEqual(typeof launchResult, 'object');
+		ok('message' in launchResult);
+		ok(launchResult.message.length > 0);
+	});
 
 	test('error frame after launch writes the message and exits with a non-zero code', async () => {
 		const bridge = store.add(new MockUniverseAgentPtyBridge());

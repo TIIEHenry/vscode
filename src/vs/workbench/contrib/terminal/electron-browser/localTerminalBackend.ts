@@ -33,6 +33,7 @@ import { getDelayedChannel, ProxyChannel } from '../../../../base/parts/ipc/comm
 import { mark, PerformanceMark } from '../../../../base/common/performance.js';
 import { ILifecycleService, LifecyclePhase } from '../../../services/lifecycle/common/lifecycle.js';
 import { DeferredPromise } from '../../../../base/common/async.js';
+import { localize } from '../../../../nls.js';
 import { IStatusbarService } from '../../../services/statusbar/browser/statusbar.js';
 import { StopWatch } from '../../../../base/common/stopwatch.js';
 import { IRemoteAgentService } from '../../../services/remote/common/remoteAgentService.js';
@@ -135,8 +136,12 @@ class LocalTerminalBackend extends BaseTerminalBackend implements ITerminalBacke
 
 		mark('code/terminal/willConnectPtyHost');
 		this._logService.trace('Renderer->PtyHost#connect: before acquirePort');
+		const portTimer = setTimeout(() => {
+			this._failDirectProxy(directProxyClientEventually, new Error(localize('ptyHostConnectTimeout', "The terminal process did not start because the pty host did not connect.")));
+		}, 20_000);
 		acquirePort('vscode:createPtyHostMessageChannel', 'vscode:createPtyHostMessageChannelResult').then(port => {
-			if (this._directProxyClientEventually !== directProxyClientEventually) {
+			clearTimeout(portTimer);
+			if (this._directProxyClientEventually !== directProxyClientEventually || directProxyClientEventually.isSettled) {
 				port.close();
 				return;
 			}
@@ -172,7 +177,20 @@ class LocalTerminalBackend extends BaseTerminalBackend implements ITerminalBacke
 
 			// Eagerly fetch the backend's environment. A success stays cached; a failure is read again.
 			this.getEnvironment();
+		}, err => {
+			clearTimeout(portTimer);
+			this._failDirectProxy(directProxyClientEventually, err);
 		});
+	}
+
+	private _failDirectProxy(directProxyClientEventually: DeferredPromise<MessagePortClient>, err: unknown): void {
+		if (this._directProxyClientEventually !== directProxyClientEventually || directProxyClientEventually.isSettled) {
+			return;
+		}
+		this._logService.error('Pty host connection failed', err);
+		void directProxyClientEventually.error(err);
+		this._directProxyClientEventually = undefined;
+		this._directProxy = undefined;
 	}
 
 	async requestDetachInstance(workspaceId: string, instanceId: number): Promise<IProcessDetails | undefined> {

@@ -1663,15 +1663,23 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 			this.xterm?.resize(this._cols || Constants.DefaultCols, this._rows || Constants.DefaultRows);
 		}
 		const originalIcon = this.shellLaunchConfig.icon;
-		await this._processManager.createProcess(this._shellLaunchConfig, this._cols || Constants.DefaultCols, this._rows || Constants.DefaultRows).then(result => {
-			if (result) {
-				if (hasKey(result, { message: true })) {
-					this._onProcessExit(result);
-				} else if (hasKey(result, { injectedArgs: true })) {
-					this._injectedArgs = result.injectedArgs;
+		try {
+			await this._processManager.createProcess(this._shellLaunchConfig, this._cols || Constants.DefaultCols, this._rows || Constants.DefaultRows).then(result => {
+				if (result) {
+					if (hasKey(result, { message: true })) {
+						this._onProcessExit(result);
+					} else if (hasKey(result, { injectedArgs: true })) {
+						this._injectedArgs = result.injectedArgs;
+					}
 				}
+			});
+		} catch (err) {
+			if (!this.isDisposed) {
+				const message = err instanceof Error ? err.message : String(err);
+				this._onProcessExit({ message });
 			}
-		});
+			return;
+		}
 		if (this.isDisposed) {
 			return;
 		}

@@ -14,7 +14,7 @@ import { HiddenItemStrategy, MenuWorkbenchToolBar } from '../../../../platform/a
 import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { ContextKeyExpr, ContextKeyExpression, IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { IStorageService, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../platform/storage/common/storage.js';
 import { defaultKeybindingLabelStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -85,6 +85,25 @@ export function previewTerminalEmptyStateCommand(connected: boolean, bridgeAvail
 		return previewUniverseAgentPtyEditorCommandId;
 	}
 	return previewTerminalLocalCommandId;
+}
+
+/** Same command as the Terminal empty-state button, opened in `viewColumn`. */
+export async function executePreviewTerminalEmptyState(accessor: ServicesAccessor, viewColumn: number): Promise<void> {
+	const commandService = accessor.get(ICommandService);
+	const connection = accessor.get(IUniverseAgentConnection);
+	const pty = accessor.get(IUniverseAgentPty);
+	const connected = connection.isEngineConnected();
+	let bridgeAvailable = false;
+	if (connected) {
+		try {
+			bridgeAvailable = await pty.isBridgeAvailable();
+		} catch {
+			bridgeAvailable = false;
+		}
+	}
+	await commandService.executeCommand(previewTerminalEmptyStateCommand(connected, bridgeAvailable), {
+		location: { viewColumn },
+	});
 }
 
 export class EditorGroupWatermark extends Disposable {
@@ -459,7 +478,12 @@ export class EditorGroupWatermark extends Disposable {
 						}
 					}
 
-					this.transientDisposables.add(addDisposableListener(btn, 'click', () => {
+					this.transientDisposables.add(addDisposableListener(btn, 'click', event => {
+						// The second click of a double-click must not run the action again.
+						// The group listener would otherwise also open an untitled file.
+						if (event instanceof MouseEvent && event.detail > 1) {
+							return;
+						}
 						if (commandId) {
 							void this.commandService.executeCommand(commandId);
 							return;

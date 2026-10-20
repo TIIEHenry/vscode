@@ -400,19 +400,27 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 
 	private registerContainerListeners(): void {
 
-		// Open new file via doubleclick on empty container
+		// Open new file via doubleclick on empty container.
+		// The empty-state card owns its buttons; a second click must not also open a file.
 		this._register(addDisposableListener(this.element, EventType.DBLCLICK, e => {
-			if (this.isEmpty) {
-				EventHelper.stop(e);
-
-				this.editorService.openEditor({
-					resource: undefined,
-					options: {
-						pinned: true,
-						override: DEFAULT_EDITOR_ASSOCIATION.id
-					}
-				}, this.id).catch(onUnexpectedError).catch(onUnexpectedError);
+			if (!this.isEmpty) {
+				return;
 			}
+			EventHelper.stop(e);
+			if (isPreviewEmptyStateTarget(e.target)) {
+				return;
+			}
+			if (this.groupsView.handleEmptyGroupDoubleClick(this)) {
+				return;
+			}
+
+			this.editorService.openEditor({
+				resource: undefined,
+				options: {
+					pinned: true,
+					override: DEFAULT_EDITOR_ASSOCIATION.id
+				}
+			}, this.id).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
 		// Close empty editor group via middle mouse click
@@ -2306,6 +2314,11 @@ export class EditorGroupView extends Themable implements IEditorGroupView {
 
 		super.dispose();
 	}
+}
+
+function isPreviewEmptyStateTarget(target: EventTarget | null): boolean {
+	const element = target instanceof Element ? target : target instanceof Node ? target.parentElement : null;
+	return !!element?.closest('.preview-category-empty-state');
 }
 
 function nextNavigableGroup(groupsView: IEditorGroupsView, current: IEditorGroupView): IEditorGroupView | undefined {

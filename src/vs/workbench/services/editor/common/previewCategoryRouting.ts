@@ -12,6 +12,9 @@ import { PreviewCategory } from './previewCategoryService.js';
 /** True only inside the main Preview part that owns category groups. */
 export const PreviewCategorizedContext = new RawContextKey<boolean>('previewCategorized', false);
 
+/** Active Preview category. The tabs-bar add action reads this. */
+export const PreviewActiveCategoryContext = new RawContextKey<string>('previewActiveCategory', PreviewCategory.Code);
+
 /**
  * Main Preview part that owns editor-group categories. Other parts (Agents
  * window, auxiliary, modal, Conversation) do not implement this.

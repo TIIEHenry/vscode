@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DeferredPromise } from '../../../../base/common/async.js';
+import { DeferredPromise, raceTimeout } from '../../../../base/common/async.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -33,6 +33,7 @@ export class UniverseAgentCustomPty extends BasePty implements ITerminalChildPro
 		rows: number,
 		private readonly bridge: IUniverseAgentPty,
 		private readonly engineSessionId: string,
+		private readonly launchTimeoutMs = 15_000,
 	) {
 		super(id, false);
 		this._lastDimensions.cols = cols;
@@ -53,7 +54,17 @@ export class UniverseAgentCustomPty extends BasePty implements ITerminalChildPro
 			this._register(this.bridge.onDynamicPtyServerMessage(streamId)(frame => this.onServerFrame(frame)));
 			await this.bridge.sendClientMessage(streamId, this.openFrame());
 			this.flushPendingWrites();
-			return await this._launch.p;
+			let timedOut = false;
+			const launched = await raceTimeout(this._launch.p, this.launchTimeoutMs, () => { timedOut = true; });
+			if (timedOut) {
+				const message = localize('universeAgentPty.launchTimeout', "The engine terminal did not start.");
+				if (!this._launch.isSettled) {
+					this._launch.complete({ message });
+				}
+				this.shutdown(true);
+				return { message };
+			}
+			return launched;
 		} catch (err) {
 			return { message: err instanceof Error ? err.message : String(err) };
 		}
@@ -173,7 +184,7 @@ export class UniverseAgentCustomPty extends BasePty implements ITerminalChildPro
 			case 'sessionClosed':
 				if (!this._launch.isSettled) {
 					this._launch.complete({ message: 'Pty session closed' });
-				} else {
+				} else if (!this.closed) {
 					this._onProcessExit.fire(frame[1].exitCode);
 				}
 				break;
@@ -226,11 +237,11 @@ registerAction2(class extends Action2 {
 		});
 	}
 
-	override async run(accessor: ServicesAccessor): Promise<void> {
+	override async run(accessor: ServicesAccessor, args?: unknown): Promise<void> {
 		const terminalService = accessor.get(ITerminalService);
 		const bridge = accessor.get(IUniverseAgentPty);
 		const instance = await terminalService.createTerminal({
-			location: { viewColumn: ACTIVE_GROUP },
+			location: readViewColumnLocation(args),
 			config: {
 				name: localize('universeAgentPty.name', "Terminal"),
 				isFeatureTerminal: false,
@@ -240,3 +251,16 @@ registerAction2(class extends Action2 {
 		await instance.focusWhenReady();
 	}
 });
+
+function readViewColumnLocation(args: unknown): { viewColumn: number } {
+	if (args && typeof args === 'object' && 'location' in args) {
+		const location = (args as { location?: unknown }).location;
+		if (location && typeof location === 'object' && 'viewColumn' in location) {
+			const viewColumn = (location as { viewColumn?: unknown }).viewColumn;
+			if (typeof viewColumn === 'number') {
+				return { viewColumn };
+			}
+		}
+	}
+	return { viewColumn: ACTIVE_GROUP };
+}

@@ -9,8 +9,11 @@ import { mainWindow } from '../../../../base/browser/window.js';
 import { GroupIdentifier, GroupModelChangeKind } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IPreviewCategoryService, isPreviewCategory, PREVIEW_CATEGORIES, PreviewCategory } from '../../../services/editor/common/previewCategoryService.js';
-import { IPreviewCategoryRoutingPart, PreviewCategorizedContext } from '../../../services/editor/common/previewCategoryRouting.js';
-import { EditorGroupLayout, GroupActivationReason, GroupDirection, GroupLayoutArgument, GroupOrientation, GroupsOrder, IEditorGroup, IMergeGroupOptions } from '../../../services/editor/common/editorGroupsService.js';
+import { IPreviewCategoryRoutingPart, PreviewActiveCategoryContext, PreviewCategorizedContext } from '../../../services/editor/common/previewCategoryRouting.js';
+import { EditorGroupLayout, GroupActivationReason, GroupDirection, GroupLayoutArgument, GroupOrientation, GroupsOrder, IEditorGroup, IEditorGroupsService, IMergeGroupOptions } from '../../../services/editor/common/editorGroupsService.js';
+import { editorGroupToColumn } from '../../../services/editor/common/editorGroupColumn.js';
+import { ACTIVE_GROUP } from '../../../services/editor/common/editorService.js';
+import { executePreviewTerminalEmptyState } from './editorGroupWatermark.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -48,11 +51,12 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 	private disposed = false;
 	private applyingVisibility = false;
 	private forcedCategory: PreviewCategory | undefined;
+	private previewActiveCategoryContext!: ReturnType<typeof PreviewActiveCategoryContext.bindTo>;
 	private inheritCategory: PreviewCategory | undefined;
 
 	constructor(
 		editorPartsView: IEditorPartsView,
-		@IInstantiationService instantiationService: IInstantiationService,
+		@IInstantiationService private readonly categoryInstantiationService: IInstantiationService,
 		@IThemeService themeService: IThemeService,
 		@IConfigurationService configurationService: IConfigurationService,
 		@IStorageService storageService: IStorageService,
@@ -61,11 +65,13 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 		@IContextKeyService contextKeyService: IContextKeyService,
 		@IPreviewCategoryService private readonly previewCategoryService: IPreviewCategoryService
 	) {
-		super(editorPartsView, instantiationService, themeService, configurationService, storageService, layoutService, hostService, contextKeyService);
+		super(editorPartsView, categoryInstantiationService, themeService, configurationService, storageService, layoutService, hostService, contextKeyService);
 
 		PreviewCategorizedContext.bindTo(this.scopedContextKeyService).set(true);
+		this.previewActiveCategoryContext = PreviewActiveCategoryContext.bindTo(this.scopedContextKeyService);
+		this.previewActiveCategoryContext.set(this.previewCategoryService.activeCategory);
 
-		this._register(instantiationService.createInstance(PreviewCategorySwitcher, this.bar, this));
+		this._register(categoryInstantiationService.createInstance(PreviewCategorySwitcher, this.bar, this));
 		this._register(this.onDidAddGroup(group => this.onGroupAdded(group)));
 		this._register(this.onDidRemoveGroup(group => this.onGroupRemoved(group)));
 		this._register(this.onDidChangeActiveGroup(() => {
@@ -74,6 +80,7 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 			}
 		}));
 		this._register(this.previewCategoryService.onDidChangeCategory(event => {
+			this.previewActiveCategoryContext.set(event.category);
 			if (!this.ready || this.applyingVisibility) {
 				return;
 			}
@@ -276,6 +283,18 @@ export class CategorizedMainEditorPart extends MainEditorPart implements IPrevie
 	override keepsLastRootGroupOnCloseAll(group: IEditorGroupView): boolean {
 		const category = this.getGroupCategory(group) ?? PreviewCategory.Code;
 		return this.groupsIn(category).length <= 1;
+	}
+
+	override handleEmptyGroupDoubleClick(group: IEditorGroupView): boolean {
+		if (this.getGroupCategory(group) !== PreviewCategory.Terminal) {
+			return false;
+		}
+		void this.categoryInstantiationService.invokeFunction(accessor => {
+			const editorGroupsService = accessor.get(IEditorGroupsService);
+			const column = editorGroupToColumn(editorGroupsService, group);
+			return executePreviewTerminalEmptyState(accessor, column < 0 ? ACTIVE_GROUP : column);
+		});
+		return true;
 	}
 
 	override removeGroup(group: IEditorGroupView | GroupIdentifier, preserveFocus?: boolean): void {

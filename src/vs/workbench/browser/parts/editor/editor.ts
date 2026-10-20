@@ -253,6 +253,12 @@ export interface IEditorGroupsView {
 	 * editor, must not call removeGroup. Close Group still uses removeGroup.
 	 */
 	keepsLastRootGroupOnCloseAll(group: IEditorGroupView): boolean;
+
+	/**
+	 * Double-click on an empty group outside the empty-state card.
+	 * True means this part handled it and the group must not also open an untitled file.
+	 */
+	handleEmptyGroupDoubleClick(group: IEditorGroupView): boolean;
 }
 
 export interface IEditorGroupTitleHeight {
