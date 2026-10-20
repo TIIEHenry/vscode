@@ -23,6 +23,24 @@ import { IResolvedNotebookEditorModel, NotebookSetting } from '../../notebook/co
 import { ICompositeNotebookEditorInput, NotebookEditorInput } from '../../notebook/common/notebookEditorInput.js';
 import { INotebookService } from '../../notebook/common/notebookService.js';
 
+/**
+ * Clears a stored interactive notebook resolve after it rejects, only while the
+ * field still points at that attempt. In-flight and fulfilled promises stay.
+ * The attempt still rejects; this does not start another resolve.
+ */
+export function clearInteractiveInputResolverOnReject<T>(read: () => Promise<T> | null, write: (next: null) => void): void {
+	const attempt = read();
+	if (!attempt) {
+		return;
+	}
+
+	void attempt.catch(() => {
+		if (read() === attempt) {
+			write(null);
+		}
+	});
+}
+
 export class InteractiveEditorInput extends EditorInput implements ICompositeNotebookEditorInput {
 	static create(instantiationService: IInstantiationService, resource: URI, inputResource: URI, title?: string, language?: string) {
 		return instantiationService.createInstance(InteractiveEditorInput, resource, inputResource, title, language);
@@ -166,6 +184,10 @@ export class InteractiveEditorInput extends EditorInput implements ICompositeNot
 		}
 
 		this._inputResolver = this._resolveEditorModel();
+		// Rejection clears this field only while it still points at this attempt.
+		clearInteractiveInputResolverOnReject(() => this._inputResolver, () => {
+			this._inputResolver = null;
+		});
 
 		return this._inputResolver;
 	}
