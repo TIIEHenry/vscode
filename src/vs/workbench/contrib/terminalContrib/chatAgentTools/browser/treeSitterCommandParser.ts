@@ -6,7 +6,6 @@
 import type { Parser, Query, QueryCapture, Tree } from '@vscode/tree-sitter-wasm';
 import { RunOnceScheduler } from '../../../../../base/common/async.js';
 import { BugIndicatingError, ErrorNoTelemetry } from '../../../../../base/common/errors.js';
-import { Lazy } from '../../../../../base/common/lazy.js';
 import { Disposable, MutableDisposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { posix, win32 } from '../../../../../base/common/path.js';
 import { ITreeSitterLibraryService } from '../../../../../editor/common/services/treeSitter/treeSitterLibraryService.js';
@@ -44,8 +43,31 @@ function maskPwshFlagEquals(commandLine: string): string {
 	return commandLine.replace(pwshFlagEqualsRegex, (_, pre, flag) => `${pre}${flag} `);
 }
 
+/**
+ * Shares one in-flight or successful command-parser load.
+ * A rejection clears the field only while it still points at that attempt,
+ * so the next parse calls `load` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another load.
+ */
+export function shareTreeSitterCommandParser<T>(read: () => Promise<T> | undefined, write: (next: Promise<T> | undefined) => void, load: () => Promise<T>): Promise<T> {
+	const existing = read();
+	if (existing) {
+		return existing;
+	}
+
+	const attempt = load();
+	write(attempt);
+	// Not assigned. Callers still observe this rejection; the next parse calls load again.
+	void attempt.catch(() => {
+		if (read() === attempt) {
+			write(undefined);
+		}
+	});
+	return attempt;
+}
+
 export class TreeSitterCommandParser extends Disposable {
-	private readonly _parser: Lazy<Promise<Parser>>;
+	private _parserPromise: Promise<Parser> | undefined;
 	private readonly _treeCache = this._register(new TreeCache());
 	private readonly _commandFileWriteParsers: ICommandFileWriteParser[] = [
 		new SedFileWriteParser(),
@@ -55,7 +77,14 @@ export class TreeSitterCommandParser extends Disposable {
 		@ITreeSitterLibraryService private readonly _treeSitterLibraryService: ITreeSitterLibraryService,
 	) {
 		super();
-		this._parser = new Lazy(() => this._treeSitterLibraryService.getParserClass().then(ParserCtor => new ParserCtor()));
+	}
+
+	private _getParser(): Promise<Parser> {
+		return shareTreeSitterCommandParser(
+			() => this._parserPromise,
+			promise => { this._parserPromise = promise; },
+			() => this._treeSitterLibraryService.getParserClass().then(ParserCtor => new ParserCtor()),
+		);
 	}
 
 	async extractSubCommands(languageId: TreeSitterCommandParserLanguage, commandLine: string): Promise<string[]> {
@@ -341,7 +370,7 @@ export class TreeSitterCommandParser extends Disposable {
 
 		let tree = this._treeCache.get(languageId, commandLine);
 		if (!tree) {
-			const parser = await this._parser.value;
+			const parser = await this._getParser();
 			parser.setLanguage(language);
 			const parsedTree = parser.parse(commandLine);
 			if (!parsedTree) {
