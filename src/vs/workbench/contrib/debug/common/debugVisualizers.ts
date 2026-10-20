@@ -13,6 +13,7 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { CONTEXT_VARIABLE_NAME, CONTEXT_VARIABLE_TYPE, CONTEXT_VARIABLE_VALUE, MainThreadDebugVisualization, IDebugVisualization, IDebugVisualizationContext, IExpression, IExpressionContainer, IDebugVisualizationTreeItem, IDebugSession } from './debug.js';
 import { getContextForVariable } from './debugContext.js';
 import { Scope, Variable, VisualizedExpression } from './debugModel.js';
+import { shareDebugVisualizerActivation } from './debugVisualizerActivation.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
 import { ExtensionsRegistry } from '../../../services/extensions/common/extensionsRegistry.js';
 
@@ -136,13 +137,9 @@ export class DebugVisualizerService implements IDebugVisualizerService {
 				return;
 			}
 
-			let prom = this.didActivate.get(registration.id);
-			if (!prom) {
-				prom = this.extensionService.activateByEvent(`onDebugVisualizer:${registration.id}`);
-				this.didActivate.set(registration.id, prom);
-			}
-
-			await prom;
+			// In-flight and successful activation stay shared. A rejection clears the
+			// entry only while it still points at this attempt, so the next lookup starts again.
+			await shareDebugVisualizerActivation(this.didActivate, registration.id, () => this.extensionService.activateByEvent(`onDebugVisualizer:${registration.id}`));
 			if (token.isCancellationRequested) {
 				return;
 			}
