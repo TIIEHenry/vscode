@@ -16,6 +16,29 @@ import { TextMateWorkerHost } from './textMateWorkerHost.js';
 import { ISerializedAnnotation } from '../../../../../../editor/common/model/tokens/annotations.js';
 import { IFontTokenOption } from '../../../../../../editor/common/textModelEvents.js';
 
+/**
+ * Shares one in-flight or successful TextMate grammar load.
+ * A rejection clears the slot only while it still points at that attempt,
+ * so the next grammar load calls `load` again. A fulfillment stays cached.
+ * The returned promise still rejects; this does not start another load.
+ */
+export function shareTextMateGrammarLoad<T>(read: () => Promise<T> | undefined, write: (next: Promise<T> | undefined) => void, load: () => Promise<T>): Promise<T> {
+	const existing = read();
+	if (existing) {
+		return existing;
+	}
+
+	const attempt = load();
+	write(attempt);
+	// Not assigned. Callers still observe this rejection; the next grammar load calls load again.
+	void attempt.catch(() => {
+		if (read() === attempt) {
+			write(undefined);
+		}
+	});
+	return attempt;
+}
+
 export function create(workerServer: IWebWorkerServer): TextMateTokenizationWorker {
 	return new TextMateTokenizationWorker(workerServer);
 }
@@ -48,7 +71,7 @@ export class TextMateTokenizationWorker implements IWebWorkerServerRequestHandle
 
 	private readonly _host: TextMateWorkerHost;
 	private readonly _models = new Map</* controllerId */ number, TextMateWorkerTokenizer>();
-	private readonly _grammarCache: Promise<ICreateGrammarResult>[] = [];
+	private readonly _grammarCache: (Promise<ICreateGrammarResult> | undefined)[] = [];
 	private _grammarFactory: Promise<TMGrammarFactory | null> = Promise.resolve(null);
 	private _acceptThemeGeneration = 0;
 
@@ -107,10 +130,11 @@ export class TextMateTokenizationWorker implements IWebWorkerServerRequestHandle
 				if (!grammarFactory) {
 					return Promise.resolve(null);
 				}
-				if (!that._grammarCache[encodedLanguageId]) {
-					that._grammarCache[encodedLanguageId] = grammarFactory.createGrammar(languageId, encodedLanguageId);
-				}
-				return that._grammarCache[encodedLanguageId];
+				return shareTextMateGrammarLoad(
+					() => that._grammarCache[encodedLanguageId],
+					next => { that._grammarCache[encodedLanguageId] = next; },
+					() => grammarFactory.createGrammar(languageId, encodedLanguageId),
+				);
 			},
 			setTokensAndStates(versionId: number, tokens: Uint8Array, fontTokens: ISerializedAnnotation<IFontTokenOption>[], stateDeltas: StateDeltas[]): void {
 				that._host.$setTokensAndStates(data.controllerId, versionId, tokens, fontTokens, stateDeltas);
