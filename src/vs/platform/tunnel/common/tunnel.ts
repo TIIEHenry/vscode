@@ -447,10 +447,23 @@ export abstract class AbstractTunnelService extends Disposable implements ITunne
 	}
 
 	protected addTunnelToMap(remoteHost: string, remotePort: number, tunnel: Promise<RemoteTunnel | string | undefined>) {
-		if (!this._tunnels.has(remoteHost)) {
-			this._tunnels.set(remoteHost, new Map());
+		let hostMap = this._tunnels.get(remoteHost);
+		if (!hostMap) {
+			hostMap = new Map();
+			this._tunnels.set(remoteHost, hostMap);
 		}
-		this._tunnels.get(remoteHost)!.set(remotePort, { refcount: 1, value: tunnel });
+		hostMap.set(remotePort, { refcount: 1, value: tunnel });
+		// Drop only this attempt. Callers still see the rejection. The next open creates again; an in-flight or fulfilled tunnel stays shared.
+		void tunnel.catch(() => {
+			const currentHost = this._tunnels.get(remoteHost);
+			const current = currentHost?.get(remotePort);
+			if (current?.value === tunnel) {
+				currentHost!.delete(remotePort);
+				if (currentHost!.size === 0) {
+					this._tunnels.delete(remoteHost);
+				}
+			}
+		});
 	}
 
 	private async removeEmptyOrErrorTunnelFromMap(remoteHost: string, remotePort: number) {
