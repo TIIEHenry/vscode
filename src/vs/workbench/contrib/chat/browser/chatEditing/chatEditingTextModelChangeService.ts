@@ -34,6 +34,7 @@ import { IChatResponseModel } from '../../common/model/chatModel.js';
 import { ChatAgentLocation } from '../../common/constants.js';
 import { IDocumentDiff2 } from './chatEditingCodeEditorIntegration.js';
 import { pendingRewriteMinimap } from './chatEditingModifiedFileEntry.js';
+import { shareChatEditingDiff } from './shareChatEditingDiff.js';
 import { chatSessionResourceToId } from '../../common/model/chatUri.js';
 
 type affectedLines = { linesAdded: number; linesRemoved: number; lineCount: number; hasRemainingEdits: boolean };
@@ -81,7 +82,7 @@ export class ChatEditingTextModelChangeService extends Disposable {
 		return this._allEditsAreFromUs;
 	}
 	private _isExternalEditInProgress: (() => boolean) | undefined;
-	private _diffOperation: Promise<IDocumentDiff | undefined> | undefined;
+	private readonly _diffOperationSlot: { promise: Promise<IDocumentDiff | undefined> | null } = { promise: null };
 	private _diffOperationIds: number = 0;
 
 	private readonly _diffInfo = observableValue<IDocumentDiff>(this, nullDocumentDiff);
@@ -169,7 +170,7 @@ export class ChatEditingTextModelChangeService extends Disposable {
 	}
 
 	public async areOriginalAndModifiedIdentical(): Promise<boolean> {
-		const diff = await this._diffOperation;
+		const diff = await this._diffOperationSlot.promise;
 		return diff ? diff.identical : false;
 	}
 
@@ -450,24 +451,25 @@ export class ChatEditingTextModelChangeService extends Disposable {
 	}
 
 	public async getDiffInfo() {
-		if (!this._diffOperation) {
-			this._updateDiffInfoSeq();
+		if (!this._diffOperationSlot.promise) {
+			await this._updateDiffInfoSeq();
+		} else {
+			await this._diffOperationSlot.promise;
 		}
-
-		await this._diffOperation;
 		return this._diffInfo.get();
 	}
 
 
 	private async _updateDiffInfoSeq(notifyAction: 'accepted' | 'rejected' | undefined = undefined) {
 		const myDiffOperationId = ++this._diffOperationIds;
-		await Promise.resolve(this._diffOperation);
+		await Promise.resolve(this._diffOperationSlot.promise);
 		const previousCount = this.lineChangeCount;
 		const previousAdded = this.linesAdded;
 		const previousRemoved = this.linesRemoved;
 		if (this._diffOperationIds === myDiffOperationId) {
-			const thisDiffOperation = this._updateDiffInfo();
-			this._diffOperation = thisDiffOperation;
+			// A new edit recomputes even after a fulfilled diff. Rejection clears only inside shareChatEditingDiff.
+			this._diffOperationSlot.promise = null;
+			const thisDiffOperation = shareChatEditingDiff(this._diffOperationSlot, () => this._updateDiffInfo());
 			await thisDiffOperation;
 			if (notifyAction) {
 				const affectedLines = {
