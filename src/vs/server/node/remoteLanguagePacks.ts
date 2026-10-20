@@ -9,6 +9,7 @@ import type { INLSConfiguration } from '../../nls.js';
 import { resolveNLSConfiguration } from '../../base/node/nls.js';
 import { Promises } from '../../base/node/pfs.js';
 import product from '../../platform/product/common/product.js';
+import { shareNlsConfiguration } from './nlsConfigurationCache.js';
 
 const nlsMetadataPath = join(FileAccess.asFileUri('').fsPath);
 const defaultMessagesFile = join(nlsMetadataPath, 'nls.messages.json');
@@ -28,12 +29,7 @@ export async function getNLSConfiguration(language: string, userDataPath: string
 		};
 	}
 
+	// In-flight and successful resolutions are shared; a rejection is cleared only while the entry still points at that attempt.
 	const cacheKey = `${language}||${userDataPath}`;
-	let result = nlsConfigurationCache.get(cacheKey);
-	if (!result) {
-		result = resolveNLSConfiguration({ userLocale: language, osLocale: language, commit: product.commit, userDataPath, nlsMetadataPath });
-		nlsConfigurationCache.set(cacheKey, result);
-	}
-
-	return result;
+	return shareNlsConfiguration(nlsConfigurationCache, cacheKey, () => resolveNLSConfiguration({ userLocale: language, osLocale: language, commit: product.commit, userDataPath, nlsMetadataPath }));
 }
