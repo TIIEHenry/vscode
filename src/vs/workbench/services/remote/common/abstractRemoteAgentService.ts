@@ -10,6 +10,7 @@ import { Client } from '../../../../base/parts/ipc/common/ipc.net.js';
 import { IWorkbenchEnvironmentService } from '../../environment/common/environmentService.js';
 import { connectRemoteAgentManagement, IConnectionOptions, ManagementPersistentConnection, PersistentConnectionEvent } from '../../../../platform/remote/common/remoteAgentConnection.js';
 import { IExtensionHostExitInfo, IRemoteAgentConnection, IRemoteAgentService } from './remoteAgentService.js';
+import { shareRemoteAgentConnection } from './shareRemoteAgentConnection.js';
 import { IRemoteAuthorityResolverService } from '../../../../platform/remote/common/remoteAuthorityResolver.js';
 import { RemoteAgentConnectionContext, IRemoteAgentEnvironment } from '../../../../platform/remote/common/remoteAgentEnvironment.js';
 import { RemoteExtensionEnvironmentChannelClient } from './remoteAgentEnvironmentChannel.js';
@@ -166,7 +167,7 @@ class RemoteAgentConnection extends Disposable implements IRemoteAgentConnection
 	public readonly onDidStateChange = this._onDidStateChange.event;
 
 	readonly remoteAuthority: string;
-	private _connection: Promise<Client<RemoteAgentConnectionContext>> | null;
+	private readonly _connection: { promise: Promise<Client<RemoteAgentConnectionContext>> | null } = { promise: null };
 	private _managementConnection: ManagementPersistentConnection | null = null;
 
 	private _initialConnectionMs: number | undefined;
@@ -182,7 +183,6 @@ class RemoteAgentConnection extends Disposable implements IRemoteAgentConnection
 	) {
 		super();
 		this.remoteAuthority = remoteAuthority;
-		this._connection = null;
 	}
 
 	end: () => Promise<void> = () => Promise.resolve();
@@ -222,10 +222,7 @@ class RemoteAgentConnection extends Disposable implements IRemoteAgentConnection
 	}
 
 	private _getOrCreateConnection(): Promise<Client<RemoteAgentConnectionContext>> {
-		if (!this._connection) {
-			this._connection = this._createConnection();
-		}
-		return this._connection;
+		return shareRemoteAgentConnection(this._connection, () => this._createConnection());
 	}
 
 	private async _createConnection(): Promise<Client<RemoteAgentConnectionContext>> {
