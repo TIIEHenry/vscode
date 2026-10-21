@@ -271,7 +271,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				const snapshotIndex = host.modelSelectedIndex;
 				const snapshotIds = host.catalogModelIds;
 				const placeholderOnly = snapshotIds.length === 1 && (snapshotIds[0] ?? '').trim() === '';
-				const snapshotId = !hasRecord && !placeholderOnly && snapshotIndex > 0
+				const snapshotId = !hasRecord && !placeholderOnly && snapshotIndex >= 0
 					? (snapshotIds[snapshotIndex] ?? '').trim()
 					: '';
 				const previousId = recordedId || snapshotId;
@@ -283,14 +283,11 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				host.modelSelectedIndex = selectedIndex;
 				host.catalogModelIds = ids;
 				host.enabledModelIds = enabledIds;
-				if (explicitEmpty || (previousId && selectedIndex === 0)) {
-					// Explicit No model, or the recorded id left the catalog. Do not retarget.
+				const chosen = (ids[selectedIndex] ?? '').trim();
+				if (chosen) {
+					map.set(sessionId, chosen);
+				} else {
 					map.set(sessionId, '');
-				} else if (selectedIndex > 0) {
-					const chosen = (ids[selectedIndex] ?? '').trim();
-					if (chosen) {
-						map.set(sessionId, chosen);
-					}
 				}
 				rememberLastGoodComposerCatalog(host, { model: { options, ids, selectedIndex, enabledIds } });
 			} catch {

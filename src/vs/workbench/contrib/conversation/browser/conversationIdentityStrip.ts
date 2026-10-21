@@ -37,6 +37,7 @@ export const conversationIdentityEngineOfflineClass = 'conversation-identity-chi
 export const conversationIdentityFolderChipClass = 'conversation-identity-chip-folder';
 export const conversationIdentityBranchChipClass = 'conversation-identity-chip-branch';
 export const conversationIdentityBranchReadOnlyClass = 'conversation-identity-chip-branch--readonly';
+export const conversationIdentityFolderReadOnlyClass = 'conversation-identity-chip-folder--readonly';
 
 export interface IConversationIdentityFolder {
 	readonly resource: URI;
@@ -116,6 +117,8 @@ export class ConversationIdentityStrip extends Disposable {
 	private readonly folderLabel: Text;
 	private readonly branchChip: HTMLButtonElement;
 	private readonly branchLabel: Text;
+	private readonly folderChevron: HTMLElement;
+	private folderMenuEnabled = false;
 
 	/** Which chip's menu is open. A second click on that chip closes it. */
 	private openMenu: 'folder' | 'branch' | undefined;
@@ -174,9 +177,9 @@ export class ConversationIdentityStrip extends Disposable {
 		this.folderChip.setAttribute('aria-expanded', 'false');
 		this.folderLabel = this.folderChip.ownerDocument.createTextNode('');
 		this.folderChip.appendChild(this.folderLabel);
-		const folderChevron = append(this.folderChip, $('span.conversation-identity-chip-open'));
-		folderChevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronDown));
-		folderChevron.setAttribute('aria-hidden', 'true');
+		this.folderChevron = append(this.folderChip, $('span.conversation-identity-chip-open'));
+		this.folderChevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronDown));
+		this.folderChevron.setAttribute('aria-hidden', 'true');
 		this._register(addDisposableListener(this.folderChip, 'click', () => this.onFolderChipClick()));
 
 		this.branchChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityBranchChipClass}`)) as HTMLButtonElement;
@@ -244,38 +247,63 @@ export class ConversationIdentityStrip extends Disposable {
 		if (!root) {
 			this.leaveEngineBranch();
 			this.branchCheckoutUri = windowFolder?.resource;
-			this.paintFolder(windowFolder?.label);
+			this.paintFolder(windowFolder?.label, !!windowFolder?.resource);
 			const branchName = getConversationIdentityBranchName(this.scmService, windowFolder?.resource);
 			this.paintBranch(branchName, !!branchName);
 			return;
 		}
 
-		this.paintFolder(workRootFolderLabel(root));
 		if (root.access === 'local' && root.localRoot) {
 			this.leaveEngineBranch();
+			this.paintFolder(workRootFolderLabel(root), !!this.folderResource);
 			this.branchCheckoutUri = root.localRoot;
 			this.paintBranch(getConversationIdentityBranchName(this.scmService, root.localRoot), true);
 			return;
 		}
 		if (root.access === 'engine' && root.workDir) {
+			this.paintFolder(workRootFolderLabel(root), false);
 			this.branchCheckoutUri = undefined;
 			this.beginEngineBranchRead(root);
 			return;
 		}
 		this.leaveEngineBranch();
+		this.paintFolder(workRootFolderLabel(root), false);
 		this.branchCheckoutUri = undefined;
 		this.paintBranch(undefined, false);
 	}
 
-	private paintFolder(label: string | undefined): void {
-		if (label) {
-			this.folderChip.hidden = false;
-			this.folderLabel.data = label;
-			this.folderChip.setAttribute('aria-label', localize('conversationIdentityStrip.folderAriaLabel', "Workspace folder: {0}. Open the folder list.", label));
-		} else {
+	private paintFolder(label: string | undefined, menu: boolean = true): void {
+		const menuEnabled = menu && !!label;
+		if (!menuEnabled) {
+			if (this.menuLoad === 'folder') {
+				this.menuLoad = undefined;
+			}
+			if (this.openMenu === 'folder' && this.actionWidgetService.isVisible) {
+				this.actionWidgetService.hide(true);
+			}
+		}
+		this.folderMenuEnabled = menuEnabled;
+		this.folderChevron.hidden = !menuEnabled;
+		if (!label) {
 			this.folderChip.hidden = true;
 			this.folderLabel.data = '';
 			this.folderChip.removeAttribute('aria-label');
+			this.folderChip.removeAttribute('aria-haspopup');
+			this.folderChip.removeAttribute('aria-expanded');
+			this.folderChip.classList.remove(conversationIdentityFolderReadOnlyClass);
+			return;
+		}
+		this.folderChip.hidden = false;
+		this.folderLabel.data = label;
+		this.folderChip.classList.toggle(conversationIdentityFolderReadOnlyClass, !menuEnabled);
+		if (menuEnabled) {
+			this.folderChip.setAttribute('aria-haspopup', 'listbox');
+			this.folderChip.setAttribute('aria-label', localize('conversationIdentityStrip.folderAriaLabel', "Workspace folder: {0}. Open the folder list.", label));
+			this.syncMenuExpanded();
+		} else {
+			this.folderChip.removeAttribute('aria-haspopup');
+			this.folderChip.removeAttribute('aria-expanded');
+			this.folderChip.setAttribute('aria-label', localize('conversationIdentityStrip.folderReadOnlyAriaLabel', "Workspace folder: {0}", label));
 		}
 	}
 
@@ -351,7 +379,7 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	private onFolderChipClick(): void {
-		if (!this.folderResource) {
+		if (!this.folderMenuEnabled || this.folderChip.hidden || !this.folderResource) {
 			return;
 		}
 		if (this.consumeToggle('folder')) {
@@ -555,7 +583,11 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	private syncMenuExpanded(): void {
-		this.folderChip.setAttribute('aria-expanded', String(this.openMenu === 'folder'));
+		if (this.folderMenuEnabled) {
+			this.folderChip.setAttribute('aria-expanded', String(this.openMenu === 'folder'));
+		} else {
+			this.folderChip.removeAttribute('aria-expanded');
+		}
 		if (this.branchMenuEnabled) {
 			this.branchChip.setAttribute('aria-expanded', String(this.openMenu === 'branch'));
 		} else {

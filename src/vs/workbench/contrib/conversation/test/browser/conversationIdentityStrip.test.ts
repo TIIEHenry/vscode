@@ -37,6 +37,7 @@ import {
 	conversationIdentityEngineChipClass,
 	conversationIdentityEngineOfflineClass,
 	conversationIdentityFolderChipClass,
+	conversationIdentityFolderReadOnlyClass,
 	conversationIdentityStripClass,
 	getConversationIdentityBranchName,
 } from '../../browser/conversationIdentityStrip.js';
@@ -893,6 +894,7 @@ suite('ConversationIdentityStrip', () => {
 		const folderChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
 		const branchChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLButtonElement;
 		const branchChevron = () => branchChip.querySelector('.conversation-identity-chip-open') as HTMLElement;
+		const folderChevron = () => folderChip.querySelector('.conversation-identity-chip-open') as HTMLElement;
 
 		assert.strictEqual(folderChip.textContent, 'alpha');
 		assert.strictEqual(branchChip.hidden, false);
@@ -971,6 +973,11 @@ suite('ConversationIdentityStrip', () => {
 		summaries[1].resolve({ supported: true, reason: '', branch: 'engine-branch', changeCount: 1 });
 		await timeout(0);
 		assert.strictEqual(folderChip.textContent, 'gamma');
+		assert.strictEqual(folderChip.getAttribute('aria-haspopup'), null);
+		assert.strictEqual(folderChevron().hidden, true);
+		assert.strictEqual(folderChip.classList.contains(conversationIdentityFolderReadOnlyClass), true);
+		assert.ok(!folderChip.getAttribute('aria-label')?.includes('Open the folder list'));
+		assert.strictEqual(folderChip.getAttribute('aria-label'), 'Workspace folder: gamma');
 		assert.strictEqual(branchChip.hidden, false);
 		assert.strictEqual(branchChip.textContent, 'engine-branch');
 		assert.strictEqual(branchChip.getAttribute('aria-haspopup'), null);
@@ -979,6 +986,8 @@ suite('ConversationIdentityStrip', () => {
 		assert.ok(!branchChip.getAttribute('aria-label')?.includes('Open the branch list'));
 		const showsBeforeClick = actionWidget.shows.length;
 		branchChip.click();
+		await timeout(0);
+		folderChip.click();
 		await timeout(0);
 		assert.strictEqual(actionWidget.shows.length, showsBeforeClick);
 
@@ -993,5 +1002,8 @@ suite('ConversationIdentityStrip', () => {
 		};
 		onDidChangeActiveWorkRoot.fire(current);
 		assert.strictEqual(branchChip.classList.contains(conversationIdentityBranchReadOnlyClass), false);
+		assert.strictEqual(folderChip.classList.contains(conversationIdentityFolderReadOnlyClass), false);
+		assert.strictEqual(folderChevron().hidden, false);
+		assert.strictEqual(folderChip.getAttribute('aria-haspopup'), 'listbox');
 	});
 });

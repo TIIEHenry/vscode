@@ -106,10 +106,10 @@
 }
 
 .monaco-workbench .engine-preferences-nav {
-	flex: 0 0 200px;
+	flex: 0 0 210px;
 	box-sizing: border-box;
-	padding: 4px 0;
-	border-right: none;
+	padding: 4px 8px 4px 0;
+	border-right: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	min-width: 0;
 	overflow: hidden;
 }
@@ -119,10 +119,15 @@
 	align-items: center;
 	height: 22px;
 	box-sizing: border-box;
-	padding: 0 8px;
+	padding: 0 10px;
 	min-width: 0;
-	gap: 6px;
-	transition: background-color 0.1s ease, color 0.1s ease;
+	gap: 8px;
+	border-radius: 6px;
+	transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.monaco-workbench .engine-preferences-nav-row:hover:not(.selected) {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
 }
 
 .monaco-workbench .engine-preferences-nav-row:active {
@@ -136,7 +141,7 @@
 	flex: 0 0 16px;
 	width: 16px;
 	height: 16px;
-	color: var(--vscode-descriptionForeground);
+	color: color-mix(in srgb, var(--vscode-foreground) 70%, transparent);
 	font-size: 16px;
 	line-height: 16px;
 }
@@ -148,6 +153,7 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	font-size: 13px;
+	font-weight: 500;
 	line-height: 22px;
 }
 
@@ -156,14 +162,14 @@
 	margin-left: auto;
 	align-self: center;
 	font-size: 11px;
-	font-weight: 400;
-	line-height: 16px;
+	font-weight: 500;
+	line-height: 14px;
 	color: var(--vscode-descriptionForeground);
 	background: none;
-	padding: 0;
-	border-radius: 0;
+	padding: 1px 7px;
+	border-radius: 9999px;
 	min-width: 0;
-	text-align: end;
+	text-align: center;
 }
 
 /*
@@ -172,7 +178,11 @@
  */
 .monaco-workbench .engine-preferences-nav-row.selected {
 	background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-inactiveSelectionBackground));
-	border-radius: 4px;
+	border-radius: 6px;
+}
+
+.monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-icon {
+	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-label {
@@ -181,7 +191,7 @@
 }
 
 .monaco-workbench .engine-preferences-nav .monaco-list:focus .engine-preferences-nav-row.selected {
-	background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-activeSelectionBackground));
+	background: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
 }
 
 .monaco-workbench .engine-preferences-nav .monaco-list:focus .engine-preferences-nav-row.selected .engine-preferences-nav-label {
@@ -190,8 +200,8 @@
 }
 
 .monaco-workbench .engine-preferences-nav-row.selected .engine-preferences-nav-badge {
-	color: inherit;
-	background: none;
+	color: var(--vscode-foreground);
+	background: color-mix(in srgb, var(--vscode-foreground) 15%, transparent);
 }
 
 .monaco-workbench .engine-preferences-nav-row.selected::before {
@@ -219,7 +229,9 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	margin-bottom: 12px;
+	margin-bottom: 14px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	min-width: 0;
 }
 
@@ -227,8 +239,10 @@
 .monaco-workbench .engine-preferences-detail-title {
 	margin: 0;
 	min-width: 0;
-	font-size: var(--vscode-fontSize-heading2);
-	font-weight: var(--vscode-fontWeight-semiBold);
+	font-size: 18px;
+	font-weight: 600;
+	letter-spacing: -0.015em;
+	color: var(--vscode-foreground);
 	overflow-wrap: anywhere;
 }
 
@@ -459,6 +473,21 @@
 	margin-top: var(--vscode-spacing-size80, 8px);
 }
 
+.monaco-workbench .engine-triggers-actions .monaco-button:nth-child(4) {
+	margin-inline-start: var(--vscode-spacing-size60, 6px);
+}
+
+.monaco-workbench .engine-triggers-actions .monaco-button:last-child {
+	margin-inline-start: var(--vscode-spacing-size60, 6px);
+	padding-inline-start: var(--vscode-spacing-size40, 4px);
+	border-inline-start: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-radius: 0 var(--vscode-cornerRadius-small, 4px) var(--vscode-cornerRadius-small, 4px) 0;
+}
+
+.monaco-workbench .engine-triggers-actions .monaco-button:last-child:hover:not(.disabled) {
+	color: var(--vscode-errorForeground);
+}
+
 .monaco-workbench .engine-triggers-actions .monaco-button,
 .monaco-workbench .engine-catalog-icon-actions .monaco-button {
 	box-sizing: border-box;
@@ -679,45 +708,287 @@
 	opacity: 0.55;
 }
 
-.monaco-workbench .engine-providers-section .engine-catalog-row,
-.monaco-workbench .engine-models-section .engine-catalog-row {
+.monaco-workbench .engine-providers-section .engine-catalog-write-toolbar {
+	display: flex;
 	align-items: center;
+	gap: 8px;
+	margin-bottom: 14px;
 }
 
-.monaco-workbench .engine-providers-section .engine-catalog-text,
-.monaco-workbench .engine-models-section .engine-catalog-text {
+.monaco-workbench .engine-providers-section .engine-catalog-write-toolbar .monaco-button {
+	width: 30px;
+	height: 30px;
+	min-width: 30px;
+	border-radius: 8px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
+	background: color-mix(in srgb, var(--vscode-foreground) 4%, transparent);
+	color: var(--vscode-foreground);
+	transition: all 0.15s ease;
+}
+
+.monaco-workbench .engine-providers-section .engine-catalog-write-toolbar .monaco-button:hover:not(.disabled) {
+	background: color-mix(in srgb, var(--vscode-foreground) 9%, transparent);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+}
+
+.monaco-workbench .engine-providers-section .engine-provider-status-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 20px;
+}
+
+.monaco-workbench .engine-providers-section .engine-catalog-row.engine-provider-status-row {
+	height: auto;
+	min-height: 52px;
+	padding: 10px 14px;
+	box-sizing: border-box;
+	border-radius: 12px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+	background: color-mix(in srgb, var(--vscode-foreground) 2.5%, transparent);
+	gap: 12px;
+	align-items: center;
+	transition: all 0.15s ease;
+}
+
+.monaco-workbench .engine-providers-section .engine-catalog-row.engine-provider-status-row:hover {
+	background: color-mix(in srgb, var(--vscode-foreground) 4.5%, transparent);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 18%, transparent);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.monaco-workbench .engine-provider-avatar {
+	width: 34px;
+	height: 34px;
+	min-width: 34px;
+	border-radius: 9px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	flex-shrink: 0;
+}
+
+.monaco-workbench .engine-provider-avatar-icon {
+	font-size: 18px;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .engine-providers-section .engine-catalog-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
 	flex: 1 1 auto;
 	min-width: 0;
+	overflow: hidden;
+}
+
+.monaco-workbench .engine-provider-title-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.monaco-workbench .engine-providers-section .engine-catalog-name {
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 20px;
+	color: var(--vscode-foreground);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .engine-providers-section .engine-catalog-description {
+	font-size: 12px;
+	line-height: 18px;
+	color: var(--vscode-descriptionForeground);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .engine-provider-badges {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+	margin-left: auto;
+}
+
+.monaco-workbench .engine-provider-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 2px 8px;
+	border-radius: 9999px;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 16px;
+	white-space: nowrap;
+}
+
+.monaco-workbench .engine-provider-pill--success {
+	background: rgba(16, 163, 127, 0.12);
+	color: #10a37f;
+	border: 1px solid rgba(16, 163, 127, 0.28);
+}
+
+.monaco-workbench .engine-provider-pill--success .engine-provider-pill-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 9999px;
+	background: #10a37f;
+	box-shadow: 0 0 5px rgba(16, 163, 127, 0.6);
+	flex-shrink: 0;
+}
+
+.monaco-workbench .engine-provider-pill--warning {
+	background: rgba(234, 179, 8, 0.12);
+	color: #ca8a04;
+	border: 1px solid rgba(234, 179, 8, 0.28);
+}
+
+.monaco-workbench .engine-provider-pill--warning .engine-provider-pill-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 9999px;
+	background: #ca8a04;
+	flex-shrink: 0;
+}
+
+.monaco-workbench .engine-provider-pill--muted {
+	background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+	color: var(--vscode-descriptionForeground);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+	font-size: 10.5px;
+}
+
+.monaco-workbench .engine-provider-switch-container {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+.monaco-workbench .engine-provider-switch {
+	position: relative;
+	width: 34px;
+	height: 20px;
+	border-radius: 9999px;
+	transition: background-color 0.2s ease;
+	cursor: default;
+}
+
+.monaco-workbench .engine-provider-switch.is-enabled {
+	background-color: #10a37f;
+}
+
+.monaco-workbench .engine-provider-switch.is-disabled {
+	background-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
+}
+
+.monaco-workbench .engine-provider-switch-thumb {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 16px;
+	height: 16px;
+	border-radius: 9999px;
+	background: #ffffff;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+	transition: transform 0.2s ease;
+}
+
+.monaco-workbench .engine-provider-switch.is-enabled .engine-provider-switch-thumb {
+	transform: translateX(14px);
+}
+
+.monaco-workbench .engine-provider-switch-label {
+	font-size: 0;
+	width: 0;
+	height: 0;
+	opacity: 0;
+	overflow: hidden;
+	pointer-events: none;
 }
 
 .monaco-workbench .engine-provider-catalog {
-	margin-top: 12px;
+	margin-top: 16px;
 }
 
 .monaco-workbench .engine-provider-catalog-filter {
 	box-sizing: border-box;
 	width: 100%;
-	margin: 0 0 8px;
-	padding: 4px 8px;
-	color: var(--vscode-input-foreground);
-	background: var(--vscode-input-background);
-	border: 1px solid var(--vscode-input-border, transparent);
+	height: 36px;
+	margin: 10px 0 14px;
+	padding: 6px 14px 6px 36px;
+	border-radius: 8px;
 	font: inherit;
+	font-size: 13px;
+	color: var(--vscode-input-foreground);
+	background-color: color-mix(in srgb, var(--vscode-foreground) 4%, transparent);
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: 10px center;
+	background-size: 15px;
+	transition: all 0.15s ease;
 }
 
 .monaco-workbench .engine-provider-catalog-filter:focus {
-	outline: 1px solid var(--vscode-focusBorder);
-	outline-offset: -1px;
+	outline: none;
+	border-color: #10a37f;
+	box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.2);
+	background-color: var(--vscode-editor-background);
+}
+
+.monaco-workbench .engine-provider-preset-row {
+	height: auto !important;
+	min-height: 40px;
+	padding: 8px 12px !important;
+	box-sizing: border-box;
+	border-radius: 8px;
+	margin-bottom: 3px;
+	border: 1px solid transparent;
+	background: transparent;
+	transition: all 0.12s ease;
+	gap: 10px;
+}
+
+.monaco-workbench .engine-provider-preset-row:hover {
+	background: color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+}
+
+.monaco-workbench .engine-provider-preset-avatar {
+	width: 28px;
+	height: 22px;
+	min-width: 28px;
+	border-radius: 7px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
+	flex-shrink: 0;
+	font-size: 15px;
+	color: color-mix(in srgb, var(--vscode-foreground) 75%, transparent);
 }
 
 .monaco-workbench .engine-provider-catalog-heading {
 	display: flex;
 	align-items: center;
 	gap: 4px;
+	margin-top: 14px;
 }
 
 .monaco-workbench .engine-provider-cloud-status {
-	margin: 0 8px 8px;
+	margin: 8px 0 12px;
+	padding: 10px 14px;
+	border-radius: 8px;
+	border: 1px dashed color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
+	background: color-mix(in srgb, var(--vscode-foreground) 2.5%, transparent);
 	color: var(--vscode-descriptionForeground);
 	font-size: var(--vscode-fontSize-label1);
 	overflow-wrap: anywhere;

@@ -47,7 +47,7 @@
 }
 
 .conversation-timeline-item {
-	margin-bottom: 12px;
+	margin-bottom: 16px;
 	min-width: 0;
 	max-width: 100%;
 	user-select: text;

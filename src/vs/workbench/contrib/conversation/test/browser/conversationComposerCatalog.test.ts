@@ -73,11 +73,12 @@ suite('conversationComposerCatalog', () => {
 		] as const;
 		const options = composerModelSelectOptions(models);
 		assert.deepStrictEqual(options, [
-			{ text: conversationLensDockNoModel },
 			{ text: 'gpt-test' },
 			{ text: 'fallback' },
 		]);
-		assert.deepStrictEqual(composerModelIds(models), ['', 'gpt-test', 'fallback']);
+		assert.deepStrictEqual(composerModelIds(models), ['gpt-test', 'fallback']);
+		assert.deepStrictEqual(composerModelSelectOptions([]), [{ text: conversationLensDockNoModel }]);
+		assert.deepStrictEqual(composerModelIds([]), ['']);
 	});
 
 	test('tool names drop blanks', () => {
@@ -160,15 +161,15 @@ suite('conversationComposerCatalog', () => {
 
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
-		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogModelIds], ['gpt-test']);
 		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
-		host.modelSelectedIndex = 1;
+		host.modelSelectedIndex = 0;
 
 		await loadConnectedComposerCatalogs(host, 1);
 
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
-		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogModelIds], ['gpt-test']);
 		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
 		assert.ok(!agentOptions.every(option => option.text === conversationLensDockNoAgent));
 		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
@@ -199,15 +200,15 @@ suite('conversationComposerCatalog', () => {
 		});
 
 		await loadConnectedComposerCatalogs(host, 1);
-		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test', 'other-model']);
-		host.modelSelectedIndex = 1;
+		assert.deepStrictEqual([...host.catalogModelIds], ['gpt-test', 'other-model']);
+		host.modelSelectedIndex = 0;
 
 		await loadConnectedComposerCatalogs(host, 1);
 
-		assert.deepStrictEqual([...host.catalogModelIds], ['', 'other-model', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogModelIds], ['other-model', 'gpt-test']);
 		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], 'gpt-test');
-		assert.strictEqual(host.modelSelectedIndex, 2);
-		assert.strictEqual(modelSelect.selectedIndex, 2);
+		assert.strictEqual(host.modelSelectedIndex, 1);
+		assert.strictEqual(modelSelect.selectedIndex, 1);
 	});
 
 	test('loadConnectedComposerCatalogs success refresh falls back to empty when previous model id leaves catalog', async () => {
@@ -225,21 +226,21 @@ suite('conversationComposerCatalog', () => {
 		});
 
 		await loadConnectedComposerCatalogs(host, 1);
-		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
-		host.modelSelectedIndex = 1;
+		assert.deepStrictEqual([...host.catalogModelIds], ['gpt-test']);
+		host.modelSelectedIndex = 0;
 
 		await loadConnectedComposerCatalogs(host, 1);
 
-		assert.deepStrictEqual([...host.catalogModelIds], ['', 'other-model']);
+		assert.deepStrictEqual([...host.catalogModelIds], ['other-model']);
 		assert.strictEqual(host.modelSelectedIndex, 0);
-		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], '');
+		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], 'other-model');
 		assert.strictEqual(modelSelect.selectedIndex, 0);
-		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), '');
+		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'other-model');
 
 		await loadConnectedComposerCatalogs(host, 1);
 
 		assert.strictEqual(host.modelSelectedIndex, 0);
-		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), '');
+		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'other-model');
 	});
 
 	test('loadConnectedComposerCatalogs prefers the bound session recorded model id over a stale index', async () => {
@@ -270,13 +271,13 @@ suite('conversationComposerCatalog', () => {
 
 		await loadConnectedComposerCatalogs(host, 1);
 		host.modelProfileIdBySessionId = new Map([['s1', 'gpt-b']]);
-		host.modelSelectedIndex = 1;
+		host.modelSelectedIndex = 0;
 
 		await loadConnectedComposerCatalogs(host, 1);
 
 		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], 'gpt-b');
-		assert.strictEqual(host.modelSelectedIndex, 3);
-		assert.strictEqual(modelSelect.selectedIndex, 3);
+		assert.strictEqual(host.modelSelectedIndex, 2);
+		assert.strictEqual(modelSelect.selectedIndex, 2);
 		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-b');
 	});
 
@@ -302,25 +303,25 @@ suite('conversationComposerCatalog', () => {
 		host.catalogModelIds = [''];
 		host.modelSelectedIndex = 0;
 		await loadConnectedComposerCatalogs(host, 1);
-		assert.strictEqual(host.modelSelectedIndex, 1);
+		assert.strictEqual(host.modelSelectedIndex, 0);
 		assert.strictEqual(host.catalogModelIds[host.modelSelectedIndex], 'gpt-test');
-		assert.strictEqual(modelSelect.selectedIndex, 1);
+		assert.strictEqual(modelSelect.selectedIndex, 0);
 		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-test');
 
 		host.modelProfileIdBySessionId = new Map([['s1', '']]);
 		await loadConnectedComposerCatalogs(host, 1);
 		assert.strictEqual(host.modelSelectedIndex, 0);
-		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), '');
+		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-stuffed');
 
 		host.catalogModelIds = ['gpt-stuffed'];
 		host.modelSelectedIndex = 0;
 		host.modelProfileIdBySessionId = new Map();
 		await loadConnectedComposerCatalogs(host, 1);
-		assert.strictEqual(host.modelSelectedIndex, 1);
-		assert.strictEqual(host.catalogModelIds[0], '');
-		assert.strictEqual(host.catalogModelIds[1], 'gpt-stuffed');
+		assert.strictEqual(host.modelSelectedIndex, 0);
+		assert.strictEqual(host.catalogModelIds[0], 'gpt-stuffed');
+		assert.strictEqual(host.catalogModelIds[1], 'gpt-test');
 		assert.strictEqual(host.modelProfileIdBySessionId?.get('s1'), 'gpt-stuffed');
-		assert.strictEqual(modelSelect.selectedIndex, 1);
+		assert.strictEqual(modelSelect.selectedIndex, 0);
 	});
 
 	test('refreshComposerCatalogs pre-clear does not win when SUPPORTED list throws after live catalog', async () => {
@@ -361,7 +362,7 @@ suite('conversationComposerCatalog', () => {
 
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
-		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogModelIds], ['gpt-test']);
 		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
 		assert.ok(!agentOptions.every(option => option.text === conversationLensDockNoAgent));
 		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
@@ -411,7 +412,7 @@ suite('conversationComposerCatalog', () => {
 
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
-		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogModelIds], ['gpt-test']);
 		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
 		assert.ok(!agentOptions.every(option => option.text === conversationLensDockNoAgent));
 		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
@@ -521,7 +522,7 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(listToolsCalls, 1);
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
-		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogModelIds], ['gpt-test']);
 		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
 		assert.ok(!agentOptions.some(option => option.text === conversationLensDockCatalogProbing));
 		assert.ok(agentOptions.some(option => option.text === conversationLensDockNoAgent));
@@ -752,7 +753,7 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(listToolsCalls, listsAfterLoad.listToolsCalls);
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
-		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogModelIds], ['gpt-test']);
 		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
 		assert.ok(!agentOptions.every(option => option.text === conversationLensDockNoAgent));
 		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));
@@ -823,7 +824,7 @@ suite('conversationComposerCatalog', () => {
 		assert.strictEqual(listToolsCalls, listsAfterLoad.listToolsCalls, 'leftover-looks-live must not extra listTools');
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
-		assert.deepStrictEqual([...host.catalogModelIds], ['', 'gpt-test']);
+		assert.deepStrictEqual([...host.catalogModelIds], ['gpt-test']);
 		assert.deepStrictEqual([...host.catalogToolNames], ['bash']);
 		assert.ok(!agentOptions.every(option => option.text === conversationLensDockNoAgent));
 		assert.ok(!modelOptions.every(option => option.text === conversationLensDockNoModel));

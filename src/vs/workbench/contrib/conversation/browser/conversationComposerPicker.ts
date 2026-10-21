@@ -10,6 +10,7 @@ import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { ResolvedChord, ResolvedKeybinding, SingleModifierChord } from '../../../../base/common/keybindings.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IContextMenuService, IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
+import { conversationLensDockNoModel } from './conversationLensDockStrings.js';
 
 /**
  * Opens the workbench menu for the composer's Ask / Agent / Model controls.
@@ -68,8 +69,12 @@ export function attachComposerPicker(container: HTMLElement, contextViewService:
 		}
 		const labels = Array.from(select.options, option => option.text);
 		const selected = select.selectedIndex;
+		const skipFirstNoModel = labels.length > 1 && labels[0] === conversationLensDockNoModel;
+		const offset = skipFirstNoModel ? 1 : 0;
+		const visibleLabels = labels.slice(offset);
 		const details = new Map<IAction, string>();
-		const actions: IAction[] = labels.map((label, index) => {
+		const actions: IAction[] = visibleLabels.map((label, i) => {
+			const index = i + offset;
 			const action = toAction({
 				id: `conversation.composer.pick.${index}`,
 				label,

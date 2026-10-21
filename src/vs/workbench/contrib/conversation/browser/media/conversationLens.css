@@ -756,6 +756,7 @@
 	min-height: 0;
 	min-width: 0;
 	position: relative;
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 }
 
 .monaco-workbench .part.conversation .conversation-lens-stale-snapshot {
@@ -770,7 +771,7 @@
 	font-size: 12px;
 	line-height: 18px;
 	color: var(--vscode-descriptionForeground);
-	background-color: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 	border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-contrastBorder, transparent));
 }
 
@@ -1788,7 +1789,7 @@
 
 /* Reversible file edits are the only process-fold step that becomes a card. */
 .monaco-workbench .part.conversation .conversation-process-fold-tool--file {
-	margin: 4px 0;
+	margin: 4px -9px;
 	padding: 4px 8px;
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	border-radius: var(--vscode-cornerRadius-large, 8px);
@@ -2034,6 +2035,21 @@
 	position: relative;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="user"] {
+	align-items: flex-end;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="user"] .conversation-lens-turn-header {
+	align-self: flex-end;
+	justify-content: flex-end;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-turn[data-kind="user"] .conversation-lens-turn-body--user-bubble {
+	margin-inline-start: auto;
+	width: fit-content;
+	max-width: 82%;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-turn-header {
 	display: flex;
 	align-items: center;
@@ -2261,19 +2277,22 @@
 	box-sizing: border-box;
 	width: 100%;
 	max-width: 100%;
-	padding-block: 8px;
-	padding-inline: 12px;
-	border-radius: var(--vscode-cornerRadius-large, 8px);
+	padding-block: 10px;
+	padding-inline: 16px;
+	border-radius: var(--vscode-cornerRadius-large, 18px);
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	background-color: var(--vscode-input-background);
 	box-shadow: none;
-	line-height: 1.45;
+	line-height: 1.55;
+	font-size: 13.5px;
 	white-space: pre-wrap;
 	word-break: break-word;
+	transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-turn-body--user-bubble:hover {
 	border-color: color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
+	background-color: color-mix(in srgb, var(--vscode-foreground) 3%, var(--vscode-input-background));
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-body--user-bubble:focus-visible {
@@ -3712,11 +3731,12 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	transition: background-color 0.1s ease, color 0.1s ease, opacity 0.1s ease;
+	transition: background-color 0.1s ease, color 0.1s ease, opacity 0.1s ease, transform 0.12s ease;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:active:not(.disabled) {
 	background-color: color-mix(in srgb, var(--vscode-foreground) 75%, var(--vscode-editor-background));
+	transform: scale(0.94);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:focus-visible {
@@ -3727,6 +3747,7 @@
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:hover:not(.disabled) {
 	background-color: color-mix(in srgb, var(--vscode-foreground) 85%, var(--vscode-editor-background));
 	color: var(--vscode-editor-background);
+	transform: scale(1.06);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button.disabled,
@@ -4218,6 +4239,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn--error {
+	margin-inline: -11px;
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	border-radius: var(--vscode-cornerRadius-large, 8px);
 	padding: 6px 10px;
@@ -4465,6 +4487,8 @@
 	}
 }
 
+.monaco-workbench.hc-black .part.conversation .conversation-process-fold-tool--file,
+.monaco-workbench.hc-light .part.conversation .conversation-process-fold-tool--file,
 .monaco-workbench.hc-black .part.conversation .conversation-lens-turn--error,
 .monaco-workbench.hc-light .part.conversation .conversation-lens-turn--error,
 .monaco-workbench.hc-black .part.conversation .conversation-lens-turn--unknown,

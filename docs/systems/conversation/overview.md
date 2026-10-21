@@ -3,7 +3,7 @@ title: "Conversation 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-10-16
+updated: 2026-10-21
 summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / stub 帧源；关键符号表；与 Chat / Sessions / Agent Host 边界"
 ---
 
@@ -51,7 +51,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 | `conversationEditorRouting.ts`（common） | `isBlockedFromConversationGroup` 等 | ADR-002 围栏：非 `ConversationChatInput` 一律弹回 Preview |
 | `ConversationEditorPane` | `conversationEditorPane.ts` | `workbench.editor.conversationChat`；页 chrome 宿主 |
 | `ConversationLens` | `conversationLens.ts` | SessionBar + 时间线 + Dock 的组装体；持久化当前透镜 id（`StorageScope.WORKSPACE`） |
-| `ConversationIdentityStrip` | `conversationIdentityStrip.ts` | 阅读列顶身份条（PreFirst 居中区 / Active 列顶）；引擎 chip 与 StatusBar `status.conversation.engine` 共用 `getConnectionPhaseStatusBarText`（H4b）与 B10 pane 路由（未连接且非 pairing 落到 Connection profiles）；文件夹 chip 打开最近文件夹列表（当前窗口切换 / Open Folder…）；分支 chip 打开本地分支列表并 `git.checkout` |
+| `ConversationIdentityStrip` | `conversationIdentityStrip.ts` | 阅读列顶身份条（PreFirst 居中区 / Active 列顶）；引擎 chip 与 StatusBar `status.conversation.engine` 共用 `getConnectionPhaseStatusBarText`（H4b）与 B10 pane 路由（未连接且非 pairing 落到 Connection profiles）；本机文件夹 chip 打开最近文件夹列表（当前窗口切换 / Open Folder…），引擎工作根的文件夹 chip 只读；分支 chip 打开本地分支列表并 `git.checkout` |
 | `IConversationRosterService` | `conversationStubService.ts`（契约）· `conversationEngineRosterService.ts`（生产） | 同 token；无引擎 stub 帧源，已连接 `IUniverseAgentSessionView` lease（见 [stub-and-fixtures](stub-and-fixtures.md)） |
 | `ConversationSessionsView` | `conversationSessionsView.ts` | Navigator「Sessions」容器（`workbench.view.sessions`）内的 roster |
 | `UniverseAgentDeepLinkHandler` | `universeAgentDeepLink.contribution.ts` | `universe-agent://` URL handler → Settings 页（[page-access-schemes](../../../dev/plans/page-access-schemes.md)） |

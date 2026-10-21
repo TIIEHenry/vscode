@@ -1339,20 +1339,37 @@ export function syncSessionConfigSelects(host: IConversationLensComposerChromeHo
 		const map = ensureSessionModelProfileIds(host);
 		const hasRecord = map.has(sessionId);
 		const recorded = hasRecord ? sessionModelProfileId(host, sessionId) : '';
-		const catalogHasModels = host.catalogModelIds.some((id, index) => index > 0 && id.trim().length > 0);
+		const catalogHasModels = host.catalogModelIds.some(id => id.trim().length > 0);
 		let modelIndex = 0;
-		if (hasRecord && recorded === '') {
-			modelIndex = 0;
-		} else if (recorded) {
-			modelIndex = modelIndexForRecordedId(host.catalogModelIds, recorded);
-			if (modelIndex === 0 && catalogHasModels) {
-				map.set(sessionId, '');
+		if (catalogHasModels) {
+			if (recorded) {
+				const found = host.catalogModelIds.indexOf(recorded);
+				if (found >= 0) {
+					modelIndex = found;
+				} else {
+					const enabledId = (host.enabledModelIds ?? []).find(id => host.catalogModelIds.indexOf(id) >= 0);
+					if (enabledId) {
+						modelIndex = host.catalogModelIds.indexOf(enabledId);
+						map.set(sessionId, enabledId);
+					} else {
+						modelIndex = 0;
+						map.set(sessionId, host.catalogModelIds[0] ?? '');
+					}
+				}
+			} else {
+				const enabledId = (host.enabledModelIds ?? []).find(id => host.catalogModelIds.indexOf(id) >= 0);
+				if (enabledId) {
+					modelIndex = host.catalogModelIds.indexOf(enabledId);
+					map.set(sessionId, enabledId);
+				} else {
+					modelIndex = 0;
+					map.set(sessionId, host.catalogModelIds[0] ?? '');
+				}
 			}
-		} else if (catalogHasModels) {
-			const enabledId = (host.enabledModelIds ?? []).find(id => host.catalogModelIds.indexOf(id) > 0);
-			if (enabledId) {
-				modelIndex = host.catalogModelIds.indexOf(enabledId);
-				map.set(sessionId, enabledId);
+		} else {
+			modelIndex = 0;
+			if (hasRecord) {
+				map.set(sessionId, '');
 			}
 		}
 		host.modelSelectedIndex = modelIndex;

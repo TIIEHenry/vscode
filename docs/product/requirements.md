@@ -3,7 +3,7 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-10-20
+updated: 2026-10-21
 summary: "PRD-001–029：PRD-029 会话工作根与 Workbench 状态跟随会话（2026-10-11 新增，proposed，方案 draft）；PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案已写、仍 accepted；对话框与引导页遮罩不再模糊，PRD 仍 accepted；2026-10-11 用户选定 Cursor 式用户回合卡与 Composer，向 Cursor 靠齐的方案仍 draft，S1–S4 已落地）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，P2 组归属与显隐 2026-10-05 已落，P3 未做）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
@@ -402,7 +402,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
 
 - **状态**：`accepted`
 - **用户价值**：用户在一屏里看到更多有效信息，界面安静、不抢内容，长时间使用不累；观感接近用户熟悉的 Cursor / ChatGPT，密度接近 IntelliJ IDEA。
-- **用户可观察陈述**：默认是产品自有的浅色主题，另有同一套设计语言的深色主题。底色是中性灰阶，强调色只出现在键盘焦点、选中项、链接和进行中指示上；主按钮是中性近黑的实心按钮（深色主题为近白）。菜单、下拉和各种弹出层是同一套观感。出错时一处说明出了什么事、下一步做什么，不整段红字，也不把原始错误码直接摆给用户。列表、树、表格和标签栏保持 IDE 级紧凑。对话区靠排版区分层级：用户回合是占满阅读列宽、外观像输入框、比画布亮一档的卡片，点它进入编辑，往回读时阅读列顶部的置顶提示与它同一观感；助手回合直接是正文，不加 YOU / AGENT 之类可见标签。键盘操作时焦点始终看得见。面板里的空态是一行说明加可选操作；整块区域为空时列出常用操作与快捷键，不画营销式卡片。
+- **用户可观察陈述**：默认是产品自有的浅色主题，另有同一套设计语言的深色主题。底色是中性灰阶，强调色只出现在键盘焦点、选中项、链接和进行中指示上；主按钮是中性近黑的实心按钮（深色主题为近白）。菜单、下拉和各种弹出层是同一套观感。出错时一处说明出了什么事、下一步做什么，不整段红字，也不把原始错误码直接摆给用户。列表、树、表格和标签栏保持 IDE 级紧凑。对话区靠排版区分层级：用户回合靠阅读列右侧，宽度随正文、不超过列宽的 82%，卡内文字左对齐，外观像输入框、比画布亮一档，点它进入编辑，往回读时阅读列顶部的置顶提示与它同一观感；助手回合直接是正文，不加 YOU / AGENT 之类可见标签。键盘操作时焦点始终看得见。面板里的空态是一行说明加可选操作；整块区域为空时列出常用操作与快捷键，不画营销式卡片。
 - **产品验收标准**：
   1. 默认主题是产品自有浅色主题，另提供同源深色主题；两套主题下，导航、Conversation、配套区之间靠背景明度区分，不靠高对比分割线。
   2. 一个视图内至多一个实心主按钮，主按钮用中性近黑（深色主题近白），不用强调色；状态徽标和标签不用实心强调色填充；用户回合不用强调色底色。
@@ -410,12 +410,12 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   4. 浅色与深色主题下（不只高对比主题），用键盘 Tab / 方向键移动时焦点位置始终可见；鼠标点击不强制出现焦点环。
   5. 产品自有表面（Conversation、Sources、Navigator、Preview 类别条、Engine / Connection 首选项）不用全大写标签；角色与状态靠图标、字重和颜色区分，读屏名称不因此丢失（[PRD-018](#prd-018-键盘可达与辅助功能) 验收 3）。
   6. 列表或面板内的空态是一行说明加至多一个操作；整面空态（Preview 各类别、空会话、空编辑器）不画带边框的卡片；空态与主操作按钮的文字不出现省略号截断，放不下时退化为图标加提示。
-  7. 界面不用背景模糊（毛玻璃）；只有菜单、悬浮提示、快速选择、通知和对话框这类浮层投阴影，Conversation Composer 卡片是唯一例外，可带极淡投影（高对比主题不投影）；按压不产生缩放形变。
+  7. 界面不用背景模糊（毛玻璃）；只有菜单、悬浮提示、快速选择、通知和对话框这类浮层投阴影，Conversation Composer 卡片是唯一例外，可带极淡投影（高对比主题不投影）；发送钮悬停与按压有轻微缩放，其余按压不产生形变。
   8. 无数据的状态芯片不以描边框常驻；已接受需求要求常驻的控件（如 Inbox 的 Stop、Goal）以禁用态弱化显示。Composer 底栏除发送钮外无背景、也无描边（补充 [PRD-015](#prd-015-conversation-空会话与输入面) 验收 2）。
   9. 参考 Cursor / ChatGPT / IDEA 的设计语言，不复制其商标、图标与像素级外观（见下方排除项）。
   10. 菜单、下拉、快速选择与产品自有弹出层观感一致：同一档圆角、细边、淡投影；高亮行是中性灰底，当前值用对勾标出，不用实心强调色整行填充。（2026-10-11 用户增补）
   11. 面板里的错误态只出现一次：一个状态图标，一行用户读得懂的说明和下一步操作；原始错误码、路径等细节放进提示或可展开的详情，说明文字不用整段语义色。会话不可用时用现有连接状态说明原因，原始信息进详情。PRD-015 要求留在输入行的 Permission、Model、Tools 保持禁用和现有诚实空文案，不省略。（2026-10-11 用户增补，同日审查收窄）
-- **依赖或未决**：视觉规格、token 与密度尺寸见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)；产品默认主题的落地方式见 [主题与 token](../architecture/cross-cutting/theming.md)；阅读面这一刀见 [conversation-reading-surface](../../dev/plans/conversation-reading-surface.md)（`accepted`）。**签收（2026-09-28，用户）**：本条 `accepted`，含以下选定——默认浅色；生成中的 Stop 保持在 Inbox 右簇，不与发送钮合并（PRD-015 不变）；验收 3 把 Sessions 列表现有的 44px 双行会话卡改为单行。**2026-10-01**：Sessions roster、轨迹表和 Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写，表头不再全大写、没有底色；来源芯片是淡底。Engine 导航计数是同行弱化数字。**2026-10-05**：验收 5 的对话阅读面不再显示 You / Agent；非 default 助手在首行用 11px 弱化代理名；用户气泡无描边、无投影，焦点是 1px `focusBorder`。轨迹角色列与 Inspector 区段标题不再全大写，状态徽标改为淡底。读屏名仍在文章 `aria-label`。Agents 窗口跟在聊天背景上的追问卡不再毛玻璃、不再投影，输入聚焦只换 `focusBorder`（见 [sessions-chat-composer-glass](../../dev/plans/sessions-chat-composer-glass.md)）。对话框遮罩与引导页遮罩不再 `backdrop-filter`，半透明底色保留（见 [modal-mask-no-glass](../../dev/plans/modal-mask-no-glass.md)，方案仍 `draft`）。图示浮层与子代理浮层不再模糊。Conversation Composer 已参照 Cursor 改成 20px 圆角、淡投影，发送钮是 24px 前景色实心圆；聚焦只加深已有投影、不画蓝色焦点框（2026-10-11 用户选定），底栏左侧设置钮无底（见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)）。**2026-10-11（用户选定）**：用户回合改为 Cursor 式卡片（占满阅读列宽、像输入框；点卡编辑与现有置顶提示的判定、交互不变，只改观感）；Composer 保留 Cursor 式 20px 圆角加极淡投影，进行中会话的空草稿收成一行（空会话仍至少两行）；活动栏保留，只调视觉样式。同日增补：主按钮改中性近黑；弹出层统一观感（验收 10）；错误与会话不可用态的呈现（验收 11）；目录类列表借 Cursor 的分组头、计数、「再显示 N 个」与图标块，但行仍是 24px 单行。实施见 [cursor-visual-alignment](../../dev/plans/cursor-visual-alignment.md)（方案仍 `draft`，S1–S4 已落地）。其余验收未齐，本条不升 `implemented`。**2026-10-19：** 行内与工具栏操作以幽灵图标钮为先（[UI 设计原则 §5.6](../architecture/cross-cutting/ui-design-principles.md)）。Engine Preferences 的 Triggers、Providers、Models、Skills、Agents、MCP、Plugins、Clipboard、Context Variables 已按此绘制。Skills、Agents、MCP 的新建和编辑用输入对话框。本条只约束观感与密度，不改变其他 PRD 的功能验收。
+- **依赖或未决**：视觉规格、token 与密度尺寸见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)；产品默认主题的落地方式见 [主题与 token](../architecture/cross-cutting/theming.md)；阅读面这一刀见 [conversation-reading-surface](../../dev/plans/conversation-reading-surface.md)（`accepted`）。**签收（2026-09-28，用户）**：本条 `accepted`，含以下选定——默认浅色；生成中的 Stop 保持在 Inbox 右簇，不与发送钮合并（PRD-015 不变）；验收 3 把 Sessions 列表现有的 44px 双行会话卡改为单行。**2026-10-01**：Sessions roster、轨迹表和 Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写，表头不再全大写、没有底色；来源芯片是淡底。Engine 导航计数是同行弱化数字。**2026-10-05**：验收 5 的对话阅读面不再显示 You / Agent；非 default 助手在首行用 11px 弱化代理名；用户气泡无描边、无投影，焦点是 1px `focusBorder`。轨迹角色列与 Inspector 区段标题不再全大写，状态徽标改为淡底。读屏名仍在文章 `aria-label`。Agents 窗口跟在聊天背景上的追问卡不再毛玻璃、不再投影，输入聚焦只换 `focusBorder`（见 [sessions-chat-composer-glass](../../dev/plans/sessions-chat-composer-glass.md)）。对话框遮罩与引导页遮罩不再 `backdrop-filter`，半透明底色保留（见 [modal-mask-no-glass](../../dev/plans/modal-mask-no-glass.md)，方案仍 `draft`）。图示浮层与子代理浮层不再模糊。Conversation Composer 已参照 Cursor 改成 20px 圆角、淡投影，发送钮是 24px 前景色实心圆；聚焦只加深已有投影、不画蓝色焦点框（2026-10-11 用户选定），底栏左侧设置钮无底（见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)）。**2026-10-11（用户选定）**：用户回合改为 Cursor 式卡片（占满阅读列宽、像输入框；点卡编辑与现有置顶提示的判定、交互不变，只改观感）；Composer 保留 Cursor 式 20px 圆角加极淡投影，进行中会话的空草稿收成一行（空会话仍至少两行）；活动栏保留，只调视觉样式。同日增补：主按钮改中性近黑；弹出层统一观感（验收 10）；错误与会话不可用态的呈现（验收 11）；目录类列表借 Cursor 的分组头、计数、「再显示 N 个」与图标块，但行仍是 24px 单行。实施见 [cursor-visual-alignment](../../dev/plans/cursor-visual-alignment.md)（方案仍 `draft`，S1–S4 已落地）。其余验收未齐，本条不升 `implemented`。**2026-10-19：** 行内与工具栏操作以幽灵图标钮为先（[UI 设计原则 §5.6](../architecture/cross-cutting/ui-design-principles.md)）。Engine Preferences 的 Triggers、Providers、Models、Skills、Agents、MCP、Plugins、Clipboard、Context Variables 已按此绘制。Skills、Agents、MCP 的新建和编辑用输入对话框。本条只约束观感与密度，不改变其他 PRD 的功能验收。**2026-10-21：** 用户回合改为靠右，宽度随正文且不超过列宽 82%；发送钮悬停与按压有轻微缩放。相邻回合间距的舒适档是 16px。
 
 ## 会话工作根与 Workbench 状态（2026-10-11 新增；`proposed`）
 

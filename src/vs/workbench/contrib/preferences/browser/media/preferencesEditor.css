@@ -34,10 +34,20 @@
 			height: auto;
 			display: flex;
 			flex-wrap: wrap;
+			align-items: center;
 			min-width: 0;
 			border-bottom: none;
 			margin-top: 10px;
 			border-color: transparent;
+
+			.monaco-action-bar .actions-container {
+				display: inline-flex;
+				align-items: center;
+				background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+				padding: 3px;
+				border-radius: 8px;
+				gap: 2px;
+			}
 
 			/*
 			 * Universe Agent: "Back to Client Settings" is navigation, not an action, so it
@@ -94,15 +104,15 @@
 
 				.action-label {
 					font-size: 13px;
-					padding: 7px 8px 6.5px 8px;
+					padding: 4px 12px;
 					opacity: 0.9;
-					border-radius: var(--vscode-cornerRadius-small, 4px);
+					border-radius: 6px;
 					color: var(--vscode-foreground);
 					overflow: hidden;
 					text-overflow: ellipsis;
 					background: none !important;
 					color: var(--vscode-panelTitle-inactiveForeground);
-					transition: background-color 0.12s ease;
+					transition: all 0.12s ease;
 				}
 
 				.action-label:active {
@@ -111,17 +121,19 @@
 
 				.action-label.checked {
 					opacity: 1;
-					color: var(--vscode-settings-headerForeground);
-					background: var(--vscode-toolbar-activeBackground) !important;
-					border-radius: 4px;
+					color: var(--vscode-foreground);
+					background: var(--vscode-editor-background, #ffffff) !important;
+					box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+					font-weight: 500;
+					border-radius: 6px;
 					border-bottom: none;
 					outline: none;
 				}
 
-				.action-label:hover {
-					color: var(--vscode-panelTitle-activeForeground);
-					background: var(--vscode-toolbar-hoverBackground) !important;
-					border-radius: 4px;
+				.action-label:hover:not(.checked) {
+					color: var(--vscode-foreground);
+					background: color-mix(in srgb, var(--vscode-foreground) 4%, transparent) !important;
+					border-radius: 6px;
 					border-bottom: none;
 					outline: none;
 				}

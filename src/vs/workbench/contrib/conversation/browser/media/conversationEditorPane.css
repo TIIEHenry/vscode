@@ -6,6 +6,7 @@
 	height: 100%;
 	min-height: 0;
 	min-width: 0;
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 }
 
 .monaco-workbench .conversation-editor-page:focus {
@@ -25,5 +26,6 @@
 	flex: 1 1 auto;
 	min-height: 0;
 	min-width: 0;
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 }
 

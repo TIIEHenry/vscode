@@ -1865,7 +1865,7 @@ suite('EngineTriggersSection', () => {
 				assert.deepStrictEqual(request, {
 					scope: '',
 					scopeId: '',
-					trigger: emptyTrigger({ name: 'Nightly', type: 'cron', enabled: true }),
+					trigger: emptyTrigger({ triggerId: 'trig-nightly', name: 'Nightly', type: 'cron', enabled: true, target: { kind: 'self' } }),
 				});
 				upserted = true;
 				return { trigger: updated };
@@ -1923,7 +1923,7 @@ suite('EngineTriggersSection', () => {
 					assert.deepStrictEqual(request, {
 						scope: '',
 						scopeId: '',
-						trigger: emptyTrigger({ name: 'Nightly', type: 'cron', enabled: true }),
+						trigger: emptyTrigger({ triggerId: 'leftover-trig', name: 'Nightly', type: 'cron', enabled: true, target: { kind: 'self' } }),
 					});
 					return { trigger: created };
 				},
@@ -1977,7 +1977,7 @@ suite('EngineTriggersSection', () => {
 				assert.deepStrictEqual(request, {
 					scope: '',
 					scopeId: '',
-					trigger: emptyTrigger({ name: 'Nightly', type: 'cron', enabled: false }),
+					trigger: emptyTrigger({ triggerId: '  trig  ', name: 'Nightly', type: 'cron', enabled: false, target: { kind: 'self' } }),
 				});
 				throw new Error('boom');
 			},
@@ -2121,7 +2121,7 @@ suite('EngineTriggersSection', () => {
 	test('does not leak unhandled rejection when handleUpsert catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
 		const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
 		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
-			buttonLabel: ENGINE_TRIGGER_EDIT_LABEL,
+			buttonLabel: ENGINE_TRIGGER_ADD_LABEL,
 			statusSelector: '.engine-triggers-upsert-status',
 			dialog: confirmTriggerDialog({ name: 'Nightly', type: 'cron', checkboxChecked: true }),
 			upsertTrigger: async request => {

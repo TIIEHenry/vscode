@@ -71,11 +71,12 @@
 	box-sizing: border-box;
 	padding: 0 var(--vscode-spacing-size120);
 	margin: 1px var(--vscode-spacing-size40);
-	border-radius: var(--vscode-cornerRadius-small, 2px);
+	border-radius: 6px;
+	height: 28px;
 	min-width: 0;
 	cursor: pointer;
 	width: calc(100% - var(--vscode-spacing-size40) * 2);
-	transition: background-color 0.1s ease, color 0.1s ease;
+	transition: background-color 0.12s ease, color 0.12s ease;
 }
 
 .monaco-workbench .connection-preferences-nav-row:active {
@@ -100,7 +101,7 @@
  * off `.selected` rather than the list's focus styling.
  */
 .monaco-workbench .connection-preferences-nav-row.selected {
-	background: var(--vscode-list-inactiveSelectionBackground);
+	background: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
 }
 
 .monaco-workbench .connection-preferences-nav-row.selected .connection-preferences-nav-label {
@@ -152,9 +153,10 @@
 /* With the pane title retired, the zone name is the first thing the eye lands on. */
 .monaco-workbench .connection-preferences-detail-title {
 	margin: 0;
-	font-size: var(--vscode-fontSize-heading2);
-	font-weight: var(--vscode-fontWeight-semiBold);
-	color: var(--vscode-settings-headerForeground, var(--vscode-foreground));
+	font-size: 18px;
+	font-weight: 600;
+	letter-spacing: -0.015em;
+	color: var(--vscode-foreground);
 	min-width: 0;
 	overflow-wrap: anywhere;
 }
@@ -249,10 +251,11 @@
 	min-width: 64px;
 	height: 26px;
 	padding: 4px 14px;
-	border-radius: var(--vscode-cornerRadius-small, 2px);
+	border-radius: 6px;
 	font-size: var(--vscode-fontSize-label1);
+	font-weight: 500;
 	box-sizing: border-box;
-	transition: background-color 0.1s ease, color 0.1s ease;
+	transition: background-color 0.12s ease, color 0.12s ease;
 }
 
 .monaco-workbench .connection-preferences-pane .monaco-button:active:not(.disabled) {

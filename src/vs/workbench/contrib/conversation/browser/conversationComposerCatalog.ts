@@ -23,39 +23,49 @@ function composerModelIdsFromRegistry(models: readonly UniverseAgentModelEntry[]
 	return models.map(model => (model.modelId.trim() || model.id.trim())).filter(id => id.length > 0);
 }
 
-/** Model labels: honest empty first, then engine registry ids (SwitchModel modelId). */
+/** Model labels: honest empty when empty or disconnected; otherwise engine registry ids (SwitchModel modelId). */
 export function composerModelSelectOptions(models: readonly UniverseAgentModelEntry[]): { text: string }[] {
-	return [
-		{ text: conversationLensDockNoModel },
-		...composerModelIdsFromRegistry(models).map(text => ({ text })),
-	];
+	const ids = composerModelIdsFromRegistry(models);
+	if (ids.length === 0) {
+		return [{ text: conversationLensDockNoModel }];
+	}
+	return ids.map(text => ({ text }));
 }
 
-/** Index-aligned with `composerModelSelectOptions`: empty first, then registry ids. */
+/** Index-aligned with `composerModelSelectOptions`: empty when empty or disconnected; otherwise registry ids. */
 export function composerModelIds(models: readonly UniverseAgentModelEntry[]): readonly string[] {
-	return ['', ...composerModelIdsFromRegistry(models)];
+	const ids = composerModelIdsFromRegistry(models);
+	if (ids.length === 0) {
+		return [''];
+	}
+	return ids;
 }
 
 /**
  * Index into `composerModelIds`.
- * An explicit empty choice stays on No model.
+ * If ids is empty or has only placeholder empty, returns 0.
  * A recorded id that is still listed keeps that row.
- * A recorded id that left the catalog stays on No model.
- * With no recorded choice, the first enabled registry row is the default.
+ * With no recorded choice (or previous id left catalog), the first enabled registry row is the default.
+ * If none enabled, falls back to the first available model (index 0).
  */
 export function composerModelSelectionIndex(
 	ids: readonly string[],
 	models: readonly UniverseAgentModelEntry[],
 	previousId: string,
-	explicitEmpty: boolean,
+	explicitEmpty?: boolean,
 ): number {
-	if (explicitEmpty) {
+	if (ids.length === 0 || (ids.length === 1 && ids[0] === '')) {
 		return 0;
+	}
+	if (explicitEmpty && ids.includes('')) {
+		return ids.indexOf('');
 	}
 	const recorded = previousId.trim();
 	if (recorded) {
 		const found = ids.indexOf(recorded);
-		return found > 0 ? found : 0;
+		if (found >= 0) {
+			return found;
+		}
 	}
 	for (const model of models) {
 		if (!model.enabled) {
@@ -66,7 +76,7 @@ export function composerModelSelectionIndex(
 			continue;
 		}
 		const found = ids.indexOf(id);
-		if (found > 0) {
+		if (found >= 0) {
 			return found;
 		}
 	}

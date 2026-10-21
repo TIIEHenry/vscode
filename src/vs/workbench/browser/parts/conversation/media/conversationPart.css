@@ -207,6 +207,7 @@
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background));
 }
 
 .monaco-workbench .part.conversation .conversation-dock {

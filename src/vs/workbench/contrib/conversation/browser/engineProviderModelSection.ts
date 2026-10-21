@@ -72,6 +72,32 @@ function formatPresetSummary(preset: UniverseAgentProviderPreset): string {
 	return parts.join(' · ');
 }
 
+function getProviderBrandIcon(brandOrId: string): ThemeIcon {
+	const lower = brandOrId.toLowerCase();
+	if (lower.includes('openai')) {
+		return Codicon.sparkle;
+	}
+	if (lower.includes('anthropic') || lower.includes('claude')) {
+		return Codicon.symbolEvent;
+	}
+	if (lower.includes('deepseek')) {
+		return Codicon.hubot;
+	}
+	if (lower.includes('gemini') || lower.includes('google')) {
+		return Codicon.globe;
+	}
+	if (lower.includes('zhipu') || lower.includes('glm')) {
+		return Codicon.zap;
+	}
+	if (lower.includes('qwen') || lower.includes('alibaba') || lower.includes('dashscope')) {
+		return Codicon.cloud;
+	}
+	if (lower.includes('openrouter')) {
+		return Codicon.chip;
+	}
+	return Codicon.serverProcess;
+}
+
 function presetHost(url: string): string {
 	const trimmed = url.trim();
 	if (!trimmed) {
@@ -398,9 +424,46 @@ export class EngineProvidersSection extends Disposable {
 			if (!provider.enabled) {
 				row.classList.add('engine-provider-status-row--disabled');
 			}
+			const brandName = provider.brand || provider.providerId;
+
+			const avatar = DOM.append(row, $('.engine-provider-avatar'));
+			const avatarIcon = DOM.append(avatar, $('span.engine-provider-avatar-icon'));
+			avatarIcon.classList.add(...ThemeIcon.asClassNameArray(getProviderBrandIcon(brandName)));
+
 			const text = DOM.append(row, $('.engine-catalog-text'));
-			DOM.append(text, $('.engine-catalog-name')).textContent = provider.brand || provider.providerId;
-			DOM.append(text, $('.engine-catalog-description')).textContent = formatProviderRowSummary(provider);
+			const titleRow = DOM.append(text, $('.engine-provider-title-row'));
+			DOM.append(titleRow, $('.engine-catalog-name')).textContent = brandName;
+
+			const metaParts: string[] = [];
+			if (provider.protocol && provider.protocol.toLowerCase() !== brandName.toLowerCase()) {
+				metaParts.push(provider.protocol);
+			}
+			metaParts.push(provider.hasBaseUrl
+				? localize('ua.engineProviderHasBaseUrl', "base URL set")
+				: localize('ua.engineProviderNoBaseUrl', "no base URL"));
+			DOM.append(text, $('.engine-catalog-description')).textContent = metaParts.join(' · ');
+
+			const badges = DOM.append(row, $('.engine-provider-badges'));
+			const statusPill = DOM.append(badges, $(provider.configured
+				? '.engine-provider-pill.engine-provider-pill--success'
+				: '.engine-provider-pill.engine-provider-pill--warning'));
+			DOM.append(statusPill, $('.engine-provider-pill-dot'));
+			DOM.append(statusPill, $('span')).textContent = formatProviderConfiguredLabel(provider.configured);
+
+			if (provider.credentialSource && provider.credentialSource !== 'NONE') {
+				const sourcePill = DOM.append(badges, $('.engine-provider-pill.engine-provider-pill--muted'));
+				sourcePill.textContent = provider.credentialSource;
+			}
+
+			const switchContainer = DOM.append(row, $('.engine-provider-switch-container'));
+			const switchEl = DOM.append(switchContainer, $(provider.enabled
+				? '.engine-provider-switch.is-enabled'
+				: '.engine-provider-switch.is-disabled'));
+			switchEl.title = getModelEnabledLabel(provider.enabled);
+			switchEl.setAttribute('aria-label', getModelEnabledLabel(provider.enabled));
+			DOM.append(switchEl, $('.engine-provider-switch-thumb'));
+			DOM.append(switchContainer, $('span.engine-provider-switch-label')).textContent = getModelEnabledLabel(provider.enabled);
+
 			if (this.canWriteProviders()) {
 				const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
 				const name = provider.brand || provider.providerId;
@@ -485,6 +548,10 @@ export class EngineProvidersSection extends Disposable {
 		DOM.clearNode(host);
 		for (const preset of presets) {
 			const row = DOM.append(host, $('.engine-catalog-row.engine-provider-preset-row'));
+			const avatar = DOM.append(row, $('.engine-provider-preset-avatar'));
+			const icon = DOM.append(avatar, $('span'));
+			icon.classList.add(...ThemeIcon.asClassNameArray(getProviderBrandIcon(preset.displayName || preset.id)));
+
 			const text = DOM.append(row, $('.engine-catalog-text'));
 			DOM.append(text, $('.engine-catalog-name')).textContent = preset.displayName;
 			DOM.append(text, $('.engine-catalog-description')).textContent = formatPresetSummary(preset);

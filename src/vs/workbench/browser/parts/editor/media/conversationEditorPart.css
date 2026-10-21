@@ -14,6 +14,12 @@
 	overflow: hidden;
 }
 
+.monaco-workbench .part.conversation .conversation-editor-part-container,
+.monaco-workbench .part.conversation .conversation-editor-part-container .editor-group-container,
+.monaco-workbench .part.conversation .conversation-editor-part-container .editor-container {
+	background-color: var(--vscode-conversation-background, var(--vscode-editor-background)) !important;
+}
+
 .monaco-workbench .part.conversation .conversation-editor-part-container > .drop-block-overlay:not(.visible) {
 	pointer-events: none;
 }

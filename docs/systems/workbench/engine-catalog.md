@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-20
+updated: 2026-10-21
 summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内置预设与 models.dev 云端目录；Models 可增删改与测试，对话框在 level 后有 Description、Cost、Speed；Token Usage 无参读全局用量；Memory 只做 global 的列出、搜索、保存和删除；Rules 桌面可增删改，网页不实现；Hooks 仍只读；产品验证未做"
 ---
 
@@ -82,7 +82,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | **MCP Servers** | `ListMcpServers` · `ToggleMcpServer` · `AddMcpServer` · `UpdateMcpServer` · `RemoveMcpServer` | `EngineMcpSection`：global/project 分组 + 启用 checkbox；`supported` 时 Add、Update、Remove 是幽灵图标。Add 与 Update 打开输入对话框。缺 name、transport，或 stdio 缺 command、sse / streamable_http 缺 url，不发 RPC。与选中项相同的 Update 不发 RPC。Remove 先确认再删除 | list + toggle @ `4833c008`；定义写 @ `7f10e65c` / `f49615a1` |
 | **Tools** | `ListTools` · `SaveAgentProfile`（profile `tools.json`）。`ToolInfo` 已进 catalog；选中行 `getToolInfo` 只读详情 | `EngineToolsSection`：`ListTools` 目录 + profile 下拉（user/project，不含 built_in）+ 启用 checkbox + 只读详情；经 `engineToolProfile.ts` 写 `disabledTools` / `enabledTools` | list @ `4833c008`；profile 启用集 @ `7f10e65c` / `f49615a1` |
 | **Overview** | 读 snapshot；`models=SUPPORTED` 时 `listModels()` 取已启用数（GC-6） | `EngineOverviewSection`：连接路径 / workDir / 能力八行显示快照三态（Supported / Unsupported / Unknown）/ Model 计数。不暴露 token / 地址 / ticket | E2 壳；Provider 行不画 |
-| **Providers** | `listProviderStatus?` · 桌面 `listProviderPresetCatalog?` · `upsertProviderCredentials?` · `clearProviderCredentials?` | `EngineProvidersSection`：状态行，下面是内置预设和云端目录。写方法存在时工具栏、状态行尾和预设行尾是幽灵图标：导入、添加、编辑、清除。添加和编辑打开输入对话框。云端刷新只在桌面出现。密钥只走主进程 gRPC | G-ENG-1 |
+| **Providers** | `listProviderStatus?` · 桌面 `listProviderPresetCatalog?` · `upsertProviderCredentials?` · `clearProviderCredentials?` | `EngineProvidersSection`：状态行显示品牌图标、协议与 base URL 摘要、配置药丸，以及只读启用外观（点击不发启用 RPC），下面是内置预设和云端目录。写方法存在时工具栏、状态行尾和预设行尾是幽灵图标：导入、添加、编辑、清除。添加和编辑打开输入对话框。云端刷新只在桌面出现。密钥只走主进程 gRPC | G-ENG-1 |
 | **Models** | `ListModels` · 桌面 `upsertModel?` · `deleteModel?` · `setModelEnabled?` · 可选 `testModelProfile?` | `EngineModelsSection`：按 provider 分组。写方法存在时工具栏与行尾是幽灵图标：添加、编辑、启用或停用、删除；Test 另要 `testModelProfile`。添加和编辑打开输入对话框，level 之后是 Description、Cost、Speed。Manage Models… 打开此节 | P1b + 注册表写 |
 | **Token Usage** | `getGlobalUsage?` 无参 | `EngineTokenUsageSection`：Input tokens、Output tokens、Thinking tokens、Cache read tokens、Cache write tokens、Request count、Total cost (micros)、Currency。micros 原样显示。无 24h/7d。Refresh 是幽灵图标。缺方法是 unsupported，不是零快照。`getSessionUsage` / `Agent.Usage` 不是这页 | 左栏不另计条数 |
 | **MCP Runtime** | `GetMcpServerStatuses` · `GetMcpServerTools` | `EngineMcpRuntimePanel`（MCP 节 Runtime tab）。Refresh 是幽灵图标 | P1a；能力键 `mcpRuntime` |
@@ -131,7 +131,7 @@ Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240�
 | 节 | HEAD UI | 仍缺 |
 |----|---------|------|
 | Overview | 已有；GC-6 Model 计数；Provider 行已隐藏 | 产品验证 |
-| Providers | 桌面凭据写、本地导入、内置预设与 models.dev 云端目录 | 无启用开关，无连接测试。云端目录不依赖引擎重编译。钉死引擎未重新编译时，模型注册表写仍不在已钉进程上；产品验证未做 |
+| Providers | 桌面凭据写、本地导入、内置预设与 models.dev 云端目录。状态行的启用外观只读 | 点击不发启用 RPC，无连接测试。云端目录不依赖引擎重编译。钉死引擎未重新编译时，模型注册表写仍不在已钉进程上；产品验证未做 |
 | Models | 桌面注册表写与 Test；对话框含 Description、Cost、Speed | 无 discovery、temperature、maxTokens、topP、lanes。`UpsertModel` / `DeleteModel` / `SetModelEnabled` 要引擎重新编译后才在已钉进程上存在。会话选用在 Composer |
 | Token Usage | `getGlobalUsage()` 无参；八项原样显示；Refresh 是幽灵图标 | 无 24h/7d。`getSessionUsage` / `Agent.Usage` 不是这页 |
 | Skills / Agents / Tools | 已有 list/toggle/写；Agents Model 子 tab 写三字段 | Composer 下拉；不是模型注册表选择器。无 skill store |
@@ -147,7 +147,7 @@ Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240�
 | M7 节 | HEAD | 数据姿态 |
 |-------|------|----------|
 | Overview | 壳已挂 | 聚合连接路径、workDir、capability；Model 摘要仅在 `models=SUPPORTED`；不暴露 secret |
-| Providers | 桌面写、导入与预设目录已挂 | `listProviderStatus?` 加 Upsert/Clear；内置预设在本地，云端目录走桌面 `listProviderPresetCatalog?`；不跳 Copilot Models。无启用开关，无连接测试 |
+| Providers | 桌面写、导入与预设目录已挂 | `listProviderStatus?` 加 Upsert/Clear；内置预设在本地，云端目录走桌面 `listProviderPresetCatalog?`；不跳 Copilot Models。启用外观只读，点击不发 RPC；无连接测试 |
 | Models | 桌面注册表写已挂；对话框含 Description、Cost、Speed | `ListModels` 加 Upsert/Delete/SetModelEnabled；不跳 Copilot Models。无 discovery |
 | Token Usage | 无参 `getGlobalUsage?` | 缺方法是 unsupported，不是零快照。不是会话用量 |
 | Skills | 已有 | 两栏宿主，保留 list/toggle/body/New。无 skill store |

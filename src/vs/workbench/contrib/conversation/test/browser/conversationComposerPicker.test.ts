@@ -69,16 +69,38 @@ suite('Conversation composer picker', () => {
 	};
 
 	test('pressing the control opens the workbench menu with the current value checked', () => {
-		const { select, actions, isOpen, disposables } = setup(['No model', 'ark-code-latest'], 1);
+		const { select, actions, isOpen, disposables } = setup(['gpt-4o', 'ark-code-latest'], 1);
 		press(select);
 		assert.strictEqual(isOpen(), true);
 		assert.strictEqual(select.getAttribute('aria-haspopup'), 'menu');
 		assert.strictEqual(select.getAttribute('aria-expanded'), 'true');
 		const items = actions();
-		assert.strictEqual(items[0].label, 'No model');
+		assert.strictEqual(items[0].label, 'gpt-4o');
 		assert.strictEqual(items[0].checked, false);
 		assert.strictEqual(items[1].label, 'ark-code-latest');
 		assert.strictEqual(items[1].checked, true);
+		disposables.dispose();
+	});
+
+	test('picker defensively omits No model when actual models are present', () => {
+		const { select, actions, isOpen, disposables } = setup(['No model', 'ark-code-latest'], 1);
+		press(select);
+		assert.strictEqual(isOpen(), true);
+		const items = actions();
+		assert.strictEqual(items.length, 1);
+		assert.strictEqual(items[0].label, 'ark-code-latest');
+		assert.strictEqual(items[0].checked, true);
+		disposables.dispose();
+	});
+
+	test('picker displays No model when it is the only option', () => {
+		const { select, actions, isOpen, disposables } = setup(['No model'], 0);
+		press(select);
+		assert.strictEqual(isOpen(), true);
+		const items = actions();
+		assert.strictEqual(items.length, 1);
+		assert.strictEqual(items[0].label, 'No model');
+		assert.strictEqual(items[0].checked, true);
 		disposables.dispose();
 	});
 

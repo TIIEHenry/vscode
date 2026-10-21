@@ -743,6 +743,7 @@ suite('Conversation lens keyboard focus ring', () => {
 			'.conversation-lens-trajectory',
 			'.conversation-timeline-pinned',
 			'.conversation-identity-strip',
+			'.conversation-lens-reading-column',
 		];
 		for (const suffix of canvasSelectors) {
 			const matches = rules.filter(candidate => splitSelectorList(candidate.selector).some(selector => selector.trim().endsWith(suffix) && /background/.test(candidate.body)));
