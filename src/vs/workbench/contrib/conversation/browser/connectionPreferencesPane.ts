@@ -7,9 +7,9 @@ import './media/connectionPreferencesPane.css';
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
+import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -107,7 +107,7 @@ const CONNECTION_ZONE_NAV_ENTRIES: ReadonlyArray<{ readonly id: ConnectionZoneId
 
 class ConnectionNavDelegate implements IListVirtualDelegate<typeof CONNECTION_ZONE_NAV_ENTRIES[number]> {
 	getHeight(): number {
-		return 28;
+		return 22;
 	}
 
 	getTemplateId(): string {
@@ -347,7 +347,7 @@ class ConnectionProfilesAccessibilityProvider implements IListAccessibilityProvi
 
 class HubDevicesDelegate implements IListVirtualDelegate<HubDeviceProjection> {
 	getHeight(): number {
-		return 36;
+		return 24;
 	}
 
 	getTemplateId(): string {
@@ -593,6 +593,10 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.hubLoginButton = this._register(new Button(hubActions, defaultButtonStyles));
 		this.hubLoginButton.label = HUB_LOGIN_BUTTON_LABEL;
 		this._register(this.hubLoginButton.onDidClick(() => void this.handleLogin().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.hubBaseUrlInput.onDidChange(() => this.updateHubLoginState()));
+		this._register(this.hubEmailInput.onDidChange(() => this.updateHubLoginState()));
+		this._register(this.hubPasswordInput.onDidChange(() => this.updateHubLoginState()));
+		this._register(this.hubNewPasswordInput.onDidChange(() => this.updateHubLoginState()));
 
 		this.hubLogoutButton = this._register(new Button(hubActions, { ...defaultButtonStyles, secondary: true }));
 		this.hubLogoutButton.label = localize('ua.connectionHubLogout', "Sign out");
@@ -629,6 +633,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.renameDeviceButton.label = localize('ua.connectionDeviceRename', "Rename");
 		this._register(this.renameDeviceButton.onDidClick(() => void this.handleRenameSelectedDevice().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.revokeDeviceButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
+		this.revokeDeviceButton.element.classList.add('is-danger');
 		this.revokeDeviceButton.label = localize('ua.connectionDeviceRevoke', "Revoke");
 		this._register(this.revokeDeviceButton.onDidClick(() => void this.handleRevokeSelectedDevice().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.rotateTokenButton = this._register(new Button(this.deviceActionsRow, { ...defaultButtonStyles, secondary: true }));
@@ -676,6 +681,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.directHostInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectHost', "Host"), {
 			placeholder: '127.0.0.1',
 			description: localize('ua.connectionDirectHostDescription', "Hostname or IP address of the Universe Agent engine."),
+			layout: 'setting-row',
 		}).input;
 		this.directHostInput.value = '127.0.0.1';
 		this.directPortInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectPort', "Port"), {
@@ -693,11 +699,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.directNameInput.value = 'Local Engine';
 
 		const allowPrivateLabelText = localize('ua.connectionAllowPrivateNetwork', "Allow private / loopback networks");
-		const directAllowRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row.connection-toggle-row'));
-		this.directAllowPrivateCheckbox = this._register(new Checkbox(allowPrivateLabelText, true, defaultCheckboxStyles));
-		this.directAllowPrivateCheckbox.domNode.id = 'connection-allow-private-network';
-		DOM.append(directAllowRow, this.directAllowPrivateCheckbox.domNode);
-		const toggleDetails = DOM.append(directAllowRow, DOM.$('.connection-toggle-details'));
+		const directAllowRow = DOM.append(this.directAddressSection, DOM.$('.connection-field-row.connection-toggle-row.ua-setting-row'));
+		const toggleDetails = DOM.append(directAllowRow, DOM.$('.connection-toggle-details.ua-setting-copy'));
 		const allowLabel = DOM.append(toggleDetails, DOM.$('span.connection-toggle-label'));
 		allowLabel.textContent = allowPrivateLabelText;
 		const allowDesc = DOM.append(toggleDetails, DOM.$('span.connection-toggle-description'));
@@ -706,6 +709,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			this.directAllowPrivateCheckbox.checked = !this.directAllowPrivateCheckbox.checked;
 			this.directAllowPrivateCheckbox.focus();
 		};
+		this.directAllowPrivateCheckbox = this._register(new Checkbox(allowPrivateLabelText, true, defaultCheckboxStyles));
+		this.directAllowPrivateCheckbox.domNode.id = 'connection-allow-private-network';
+		DOM.append(directAllowRow, this.directAllowPrivateCheckbox.domNode);
 		this._register(DOM.addDisposableListener(allowLabel, DOM.EventType.CLICK, toggleCheckbox));
 		this._register(DOM.addDisposableListener(allowDesc, DOM.EventType.CLICK, toggleCheckbox));
 
@@ -750,6 +756,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this._register(disconnectButton.onDidClick(() => void this.handleDisconnect().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		const forgetButton = this._register(new Button(this.profileActionsRow, { ...defaultButtonStyles, secondary: true }));
+		forgetButton.element.classList.add('is-danger');
 		forgetButton.label = localize('ua.connectionProfileForget', "Forget this Engine");
 		this._register(forgetButton.onDidClick(() => void this.handleForgetSelectedProfile().catch(onUnexpectedError).catch(onUnexpectedError)));
 
@@ -849,13 +856,17 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private createFieldInput(
 		parent: HTMLElement,
 		labelText: string,
-		options: { readonly type?: string; readonly placeholder?: string; readonly ariaLabel?: string; readonly rowClass?: string; readonly description?: string },
+		options: { readonly type?: string; readonly placeholder?: string; readonly ariaLabel?: string; readonly rowClass?: string; readonly description?: string; readonly layout?: 'setting-row' },
 	): { readonly row: HTMLElement; readonly label: HTMLElement; readonly input: InputBox } {
 		const row = DOM.append(parent, $(options.rowClass ? `.connection-field-row.${options.rowClass}` : '.connection-field-row'));
-		const label = DOM.append(row, $('label'));
+		if (options.layout === 'setting-row') {
+			row.classList.add('ua-setting-row');
+		}
+		const copy = options.layout === 'setting-row' ? DOM.append(row, $('.ua-setting-copy')) : row;
+		const label = DOM.append(copy, $('label'));
 		label.textContent = labelText;
 		if (options.description) {
-			const description = DOM.append(row, $('.connection-field-description'));
+			const description = DOM.append(copy, $('.connection-field-description'));
 			description.textContent = options.description;
 		}
 		const host = DOM.append(row, $('.connection-field-input'));
@@ -947,6 +958,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.detailTitle.textContent = CONNECTION_ZONE_NAV_ENTRIES.find(entry => entry.id === this.activeZoneId)?.label ?? '';
 		this.container.classList.toggle('is-narrow', narrow);
 		this.container.classList.toggle('is-compact', compact);
+		this.container.classList.toggle('is-mid', narrow && !compact);
 		this.container.classList.toggle('is-showing-detail', narrow && this.narrowShowingDetail);
 		this.backButton.hidden = !(narrow && this.narrowShowingDetail);
 		for (const id of ['hub', 'devices', 'direct', 'profiles', 'test'] as const) {
@@ -1067,9 +1079,11 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	private getNavWidth(paneWidth: number): number {
-		return paneWidth < PREFERENCES_PANE_NARROW_WIDTH
-			? Math.max(0, paneWidth - 40)
-			: 200;
+		if (paneWidth >= PREFERENCES_PANE_NARROW_WIDTH) {
+			return 210;
+		}
+		const stacked = Math.max(0, paneWidth - 40);
+		return paneWidth >= PREFERENCES_PANE_COMPACT_WIDTH ? Math.min(280, stacked) : stacked;
 	}
 
 	private getNavHeight(paneHeight: number): number {
@@ -2255,6 +2269,40 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 	}
 
+	private canSubmitHubAccount(): boolean {
+		const status = this.hubService.getAuthStatus();
+		if (status.kind === 'signedIn') {
+			return false;
+		}
+		if (status.kind === 'mustChangePassword') {
+			return this.hubPasswordInput.value.length > 0 && this.hubNewPasswordInput.value.length > 0;
+		}
+		return this.hubBaseUrlInput.value.trim().length > 0
+			&& this.hubEmailInput.value.trim().length > 0
+			&& this.hubPasswordInput.value.length > 0;
+	}
+
+	private updateHubLoginState(): void {
+		const status = this.hubService.getAuthStatus();
+		const enabled = this.canSubmitHubAccount();
+		const label = status.kind === 'mustChangePassword'
+			? HUB_CHANGE_PASSWORD_BUTTON_LABEL
+			: HUB_LOGIN_BUTTON_LABEL;
+		const hint = status.kind === 'mustChangePassword'
+			? localize('ua.connectionHubChangePasswordHint', "Enter your current password and a new password.")
+			: status.kind === 'signedIn'
+				? localize('ua.connectionHubSignInUnavailable', "Sign in is unavailable while signed in.")
+				: localize('ua.connectionHubSignInHint', "Enter the Hub URL, email, and password to sign in.");
+		this.hubLoginButton.enabled = enabled;
+		this.hubLoginButton.secondary = !enabled;
+		this.hubLoginButton.element.setAttribute('aria-label', enabled ? label : `${label}. ${hint}`);
+		if (enabled) {
+			this.hubLoginButton.element.removeAttribute('title');
+		} else {
+			this.hubLoginButton.element.setAttribute('title', hint);
+		}
+	}
+
 	private renderHubAccount(): void {
 		const status = this.hubService.getAuthStatus();
 		writeStatus(this.hubAuthBadge, getHubAuthStatusLabel(status), getHubAuthStatusTone(status));
@@ -2270,7 +2318,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.hubLoginButton.label = mustChangePassword
 			? HUB_CHANGE_PASSWORD_BUTTON_LABEL
 			: HUB_LOGIN_BUTTON_LABEL;
-		this.hubLoginButton.enabled = !signedIn;
+		this.updateHubLoginState();
 		const signedInActions = hubAccountSignedInActions(status.kind);
 		this.hubLogoutButton.element.style.display = signedInActions.showSignOut ? '' : 'none';
 		this.hubRefreshButton.element.style.display = signedInActions.showRefreshDevices ? '' : 'none';

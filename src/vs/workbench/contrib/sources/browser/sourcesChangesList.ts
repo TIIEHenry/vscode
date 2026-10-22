@@ -451,7 +451,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		this.commitRow = dom.append(host, $('.sources-changes-commit'));
 		this.commitInput = dom.append(this.commitRow, $('textarea.sources-changes-commit-input')) as HTMLTextAreaElement;
-		this.commitInput.rows = 2;
+		this.commitInput.rows = 1;
 		this.commitInput.placeholder = localize('sourcesChangesList.commitMessage', "Commit message");
 		this.commitInput.setAttribute('aria-label', localize('sourcesChangesList.commitMessage', "Commit message"));
 		this.commitInput.title = localize('sourcesChangesList.commitHint', "Enter commits. Shift+Enter inserts a new line.");
@@ -478,6 +478,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				repo.input.setValue(this.commitInput.value, true);
 				repo.provider.inputBoxTextModel.setValue(this.commitInput.value);
 			}
+			this.layoutCommitInput();
 			this.updateCommitRow();
 		}));
 		this._register(dom.addDisposableListener(this.commitInput, 'keydown', (e: KeyboardEvent) => {
@@ -1094,7 +1095,20 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		const value = repo.input.value;
 		if (this.commitInput.value !== value) {
 			this.commitInput.value = value;
+			this.layoutCommitInput();
 		}
+	}
+
+	/** Keep the commit field one line with the button, and grow with Shift+Enter. */
+	private layoutCommitInput(): void {
+		const input = this.commitInput;
+		const min = 28;
+		const max = 112;
+		input.style.height = 'auto';
+		const border = Math.max(0, input.offsetHeight - input.clientHeight);
+		const scroll = input.scrollHeight + border;
+		const next = scroll > 0 ? Math.min(Math.max(scroll, min), max) : min;
+		input.style.height = `${next}px`;
 	}
 
 	private setCommitButtonLabel(repositoryName: string): void {

@@ -161,6 +161,7 @@ export class EngineTriggersSection extends Disposable {
 		this._register(this.disableButton.onDidClick(() => void this.handleSetEnabled(false).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.deleteButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_DELETE_LABEL, Codicon.trash));
+		this.deleteButton.element.classList.add('is-danger');
 		this._register(this.deleteButton.onDidClick(() => void this.handleDelete().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.fireStatus = DOM.append(this.container, $('.engine-triggers-fire-status'));

@@ -15,7 +15,7 @@ import { ConversationQuestionSeat } from '../../browser/conversationQuestionSeat
 import { getConversationEntryAriaLabel } from '../../browser/conversationSessionView.js';
 import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
-import { conversationLensErrorRetry, ConversationTimelineDelegate, ConversationTimelineRenderer, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow } from '../../browser/conversationTimelineRenderer.js';
+import { conversationLensErrorRetry, ConversationTimelineDelegate, ConversationTimelineRenderer, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow, summarizeConversationError } from '../../browser/conversationTimelineRenderer.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import type { ConversationTimelineItem } from '../../browser/conversationTimelineTypes.js';
 import { ConversationTurnContentAdapter, type IConversationTurnContentAdapter } from '../../browser/conversationTurnContentAdapter.js';
@@ -53,6 +53,26 @@ suite('renderHonestTimelineRow error retry (PRD-021)', () => {
 		assert.strictEqual(button.textContent, conversationLensErrorRetry);
 		button.click();
 		assert.deepStrictEqual(clicks, ['err-1']);
+	});
+
+	test('provider error collapses to one line and keeps the payload behind details', () => {
+		const raw = 'CLIENT_ERROR: HTTP 400: {"error":{"code":"InvalidSubscription","message":"Your account does not have a valid CodingPlan subscription."}}';
+		assert.deepStrictEqual(summarizeConversationError(raw), {
+			summary: 'Subscription unavailable',
+			detail: raw,
+		});
+		assert.deepStrictEqual(summarizeConversationError('fatal'), { summary: 'fatal', detail: undefined });
+
+		const container = render({ id: 'err-sub', kind: 'error', text: raw, retryable: false });
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-error-summary')?.textContent, 'Subscription unavailable');
+		const details = container.querySelector('.conversation-lens-turn-error-details') as HTMLElement;
+		assert.ok(details);
+		assert.strictEqual(details.hidden, true);
+		const toggle = container.querySelector('.conversation-lens-turn-error-details-toggle') as HTMLButtonElement;
+		toggle.click();
+		assert.strictEqual(details.hidden, false);
+		assert.ok(details.textContent?.includes('InvalidSubscription'));
+		assert.strictEqual(toggle.textContent, 'Hide details');
 	});
 
 	test('retryable false keeps the badge and does not draw a button', () => {
@@ -263,25 +283,26 @@ suite('renderStandaloneThinkingOrToolRow (D36)', () => {
 				},
 			}, undefined, disposables);
 
-			const row = container.querySelector('.conversation-lens-turn') as HTMLElement | null;
+			const row = container.querySelector('.conversation-file-edit-card') as HTMLElement | null;
 			assert.ok(row);
-			const diffStats = container.querySelector('.conversation-lens-turn-diff-stats');
+			assert.strictEqual(row.querySelector('.conversation-file-edit-title')?.textContent, 'Edited 1 file');
+			const diffStats = container.querySelector('.conversation-file-edit-stats');
 			assert.ok(diffStats);
 			assert.strictEqual(diffStats.textContent, '+5 \u22122');
 			assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-add')?.textContent, '+5');
 			assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-del')?.textContent, '\u22122');
 
-			const toggleBtn = container.querySelector('.conversation-lens-turn-diff-toggle') as HTMLButtonElement | null;
-			assert.ok(toggleBtn);
-			assert.strictEqual(toggleBtn.textContent, 'Show diff');
+			const path = container.querySelector('.conversation-file-edit-path') as HTMLButtonElement | null;
+			assert.ok(path);
+			assert.strictEqual(path.textContent, 'src/app.ts');
+			assert.strictEqual(path.title, 'src/app.ts');
 
-			const diffContainer = container.querySelector('.conversation-lens-turn-diff-body') as HTMLElement | null;
+			const diffContainer = container.querySelector('.conversation-file-edit-diff') as HTMLElement | null;
 			assert.ok(diffContainer);
 			assert.strictEqual(diffContainer.hidden, true);
 
-			toggleBtn.click();
+			path.click();
 			assert.strictEqual(diffContainer.hidden, false);
-			assert.strictEqual(toggleBtn.textContent, 'Hide diff');
 			assert.ok(diffContainer.textContent?.includes('-old'));
 			assert.ok(diffContainer.textContent?.includes('+new'));
 		} finally {
@@ -479,6 +500,7 @@ suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
 
 	test('settled user row does not show a You label', () => {
 		const { row, dispose } = renderUserBubble(true, []);
+		assert.ok(row.classList.contains('conversation-lens-turn--user'));
 		assert.strictEqual(row.querySelector('.conversation-lens-turn-header'), null);
 		assert.ok(!row.textContent?.includes('You'));
 		dispose();
@@ -488,6 +510,7 @@ suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
 		const edits: string[] = [];
 		const trajectory: string[] = [];
 		const { bubble, row, dispose } = renderUserBubble(true, edits, { id: 'send:op-1', kind: 'user', text: 'second', pending: true }, turnId => trajectory.push(turnId));
+		assert.ok(row.classList.contains('conversation-lens-turn--user'));
 		assert.strictEqual(row.getAttribute('data-pending'), 'true');
 		assert.strictEqual(row.querySelector('.conversation-lens-turn-honest-status')?.textContent, 'Sending…');
 		assert.ok(!row.querySelector('.conversation-lens-turn-header')?.textContent?.includes('You'));

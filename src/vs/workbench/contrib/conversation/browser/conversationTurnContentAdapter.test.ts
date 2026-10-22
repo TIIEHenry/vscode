@@ -7,6 +7,7 @@ import assert from 'assert';
 import { Emitter } from '../../../../base/common/event.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
+import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
@@ -74,5 +75,47 @@ suite('ConversationTurnContentAdapter (browser)', () => {
 		sessionChat.registerSubAgentChat('untitled', 'c1', 'Agent');
 
 		assert.strictEqual(container.querySelectorAll(`.${conversationSessionPillClass}`).length, 1);
+	});
+
+	test('assistant markdown code block shows the language and copies the source', async () => {
+		const disposables = store.add(new DisposableStore());
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		let copied = '';
+		instantiationService.stub(IClipboardService, { writeText: async (value: string) => { copied = value; } } as unknown as IClipboardService);
+		instantiationService.stub(IConversationRosterService, {
+			getSessions: () => [],
+			getActiveSessionId: () => undefined,
+			onDidChangeSession: new Emitter<void>().event,
+			onDidChangeActiveSession: new Emitter<void>().event,
+			isEngineConnected: () => false,
+		} as unknown as IConversationRosterService);
+		instantiationService.stub(IConversationSessionChatService, createEmptyConversationSessionChatService());
+		instantiationService.stub(IConversationSessionWindowService, createNoopConversationSessionWindowService());
+		instantiationService.stub(IOpenerService, { open: async () => true } as unknown as IOpenerService);
+		instantiationService.stub(IHoverService, {
+			setupManagedHover: () => ({ dispose: () => { }, update: () => { }, show: () => { } }),
+		} as unknown as IHoverService);
+		instantiationService.stub(IEditorGroupsService, {
+			getActiveConversationEditorPart: () => undefined,
+		} as IEditorGroupsService);
+
+		const adapter = instantiationService.createInstance(ConversationTurnContentAdapter);
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		disposables.add({ dispose: () => container.remove() });
+		disposables.add(adapter.renderTurnBody({
+			id: 'a-code',
+			kind: 'assistant',
+			text: '```ts\nconst n = 1;\n```',
+		}, container));
+
+		const lang = container.querySelector('.conversation-code-block-lang');
+		const code = container.querySelector('.conversation-code-block pre code');
+		const copy = container.querySelector('.conversation-code-block-copy') as HTMLButtonElement;
+		assert.strictEqual(lang?.textContent, 'ts');
+		assert.ok(code?.textContent?.includes('const n = 1;'));
+		copy.click();
+		await new Promise(resolve => setTimeout(resolve, 0));
+		assert.ok(copied.includes('const n = 1;'));
 	});
 });

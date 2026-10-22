@@ -3,7 +3,7 @@ title: "外部对话界面密度对照"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-16
+updated: 2026-10-22
 summary: "2026-10-15 对 Cursor、ChatGPT、Claude 的只读对照：可参考的是表面分层、单行元信息、过程折成动作行、长文档走现有 Preview、Composer 用芯片；行高与字号仍以 UI 设计原则为准，不改 PRD-028。2026-10-16 用户签收为只读记录"
 ---
 
@@ -11,7 +11,7 @@ summary: "2026-10-15 对 Cursor、ChatGPT、Claude 的只读对照：可参考�
 
 > 导航：[横切索引](../architecture/cross-cutting/INDEX.md) · 合同：[UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md) · [PRD-028](../product/requirements.md#prd-028-视觉语言与信息密度)。  
 > 本文记录 2026-10-15 的外部对照。密度上限、token、焦点、阴影和空态以 UI 设计原则为准。本文不新增验收，不放宽行高，不复制三家的商标、图标和像素级外观。  
-> **签收（2026-10-16，用户）**：作为只读对照签收。不改 PRD-028，不放宽行高与字号，不把进行中空稿一行的实施（[向 Cursor 靠齐](../../dev/plans/cursor-visual-alignment.md) 的 S5，方案仍 draft）标成完成。
+> **签收（2026-10-16，用户）**：作为只读对照签收。不改 PRD-028，不放宽行高与字号。签收当时，进行中空稿一行的实施（[向 Cursor 靠齐](../../dev/plans/cursor-visual-alignment.md) 的 S5）尚未完成。2026-10-16 之后该方案已 `implemented`，S5 已落地。2026-10-21 把 ChatGPT 定为主参照，是另一次选定，见 [chatgpt-visual-language](../../dev/plans/chatgpt-visual-language.md)，不改写下面 2026-10-15 的实测。
 
 三家值得参考的是**信息怎么排**。Cursor 的 Agent 列表、ChatGPT 的未登录界面、Claude 的产品页，都把一屏留给事实和正文；它们的侧栏行高、空态标题和 Composer 高度比本仓上限松，不照搬。
 
@@ -35,7 +35,7 @@ summary: "2026-10-15 对 Cursor、ChatGPT、Claude 的只读对照：可参考�
 
 [Projects](https://cursor.com/changelog/projects)（2026-09-10）从左侧导航进入。协调者负责计划和把任务交给执行中的 Agent，自己不写代码；做完的结果回到用户面前检查。
 
-2026-10-11 对本仓窗口和 Cursor Agents 窗口的截图对照里，Cursor 侧栏已是 22px 行，时间在行右。表面三档大约是 `#F3F3F3` / `#F8F8F8` / `#FCFCFC`。用户回合是通栏、像输入框的卡片。会话进行中、稿子为空时 Composer 收成一行。身份是 Composer 下方的弱化文字。详见对照方案，不在这里复写整表。
+2026-10-11 对本仓窗口和 Cursor Agents 窗口的截图对照里，Cursor 侧栏已是 22px 行，时间在行右。表面三档大约是 `#F3F3F3` / `#F8F8F8` / `#FCFCFC`。用户回合在那次截图里是通栏、像输入框的卡片。2026-10-21 起本仓改为靠右、不超过列宽 82% 的细边卡片，见 §3。会话进行中、稿子为空时输入仍是一行，工具、权限、模型在下面的底栏（2026-10-22，原则 §5.2）。身份是 Composer 下方的弱化文字。详见对照方案，不在这里复写整表。
 
 ### ChatGPT
 
@@ -57,12 +57,12 @@ claude.com 底色 `rgb(250, 249, 245)`，字色 `rgb(20, 20, 19)`，界面字体
 | 列表一行装完：名称在左，时间、计数、增删行数在右 | [原则三](../architecture/cross-cutting/ui-design-principles.md#原则三ide-级密度) 与 [§4](../architecture/cross-cutting/ui-design-principles.md#4-密度上限)。导航 22px，目录与弹出层 24px。ChatGPT 的 44px 行、Claude 取样的约 33px 行都收到这个上限 |
 | 工具、终端、搜索是「动词 + 对象 + 状态」，输出放进展开 | [过程折](../glossary.md)（[PRD-013](../product/requirements.md#prd-013-conversation-过程折)）。对话默认收起，轨迹默认展开 |
 | 长文档和可编辑成品离开时间线，时间线只留可点的入口 | [Preview](../glossary.md) 与 [PRD-027](../product/requirements.md#prd-027-preview-类别隔离与-surface-宿主)。Planning、Artifacts 尚无内容来源时仍是空态，不为此新开一块面板 |
-| 用户回合是通栏输入卡片，助手回合是左对齐正文 | 已由 2026-10-11 签收，见原则 §5.1 与 [PRD-028](../product/requirements.md#prd-028-视觉语言与信息密度)。不改回右对齐气泡，也不加 YOU / AGENT 标签 |
-| 模式、模型、附件是可关掉的芯片；进行中的空稿收成一行 | [Composer](../glossary.md) 控件集仍按 [PRD-015](../product/requirements.md#prd-015-conversation-空会话与输入面)：Tools、Permission、空会话才有的 Agent、Model、放大输入、发送。PreFirst 草稿至少两行。进行中空稿收成一行已写在 [PRD-028](../product/requirements.md#prd-028-视觉语言与信息密度) 的 2026-10-11 选定和原则 §5.2。条件细则沿用 [向 Cursor 靠齐](../../dev/plans/cursor-visual-alignment.md) 的 S5，方案仍 draft，尚未实施；本文不新增验收，也不提前实施 |
+| 用户回合靠右，宽度随正文且不超过列宽 82%，细边输入卡片；助手回合是左对齐正文 | 2026-10-21 选定，见原则 §5.1 与 [PRD-028](../product/requirements.md#prd-028-视觉语言与信息密度)。不加 YOU / AGENT 标签 |
+| 模式、模型、附件是可关掉的芯片；进行中的空稿收成一行 | [Composer](../glossary.md) 控件集仍按 [PRD-015](../product/requirements.md#prd-015-conversation-空会话与输入面)：Tools、Permission、空会话才有的 Agent、Model、放大输入、发送。PreFirst 草稿至少两行。2026-10-22：进行中空稿的输入仍是一行，工具、权限、模型留在下面的底栏（原则 §5.2）。不再把这些控件和占位符挤进同一行。 |
 | 计划选项下面有一条 “Add follow-up” | 它在 Skip / Continue 下面，不是 Composer 上方、与已发送回合分开的队列。本仓未发跟进仍是 [MessageQueue](../glossary.md) / [Inbox](../glossary.md)，外观仍按原则：无数据的芯片不画框。这次没有打开登录后的线程，不把这条当成队列取样 |
 | 身份用弱化文字，复制和重试在悬停或焦点时出现；接受、拒绝、停止留在明处 | 原则三。SessionBar 上的常驻控件以 [PRD-002](../product/requirements.md#prd-002-会话上下文) 与透镜规格为准，不按 Cursor 收成只剩一个 `…` |
 
-对照里值得继续用现有合同核对的三处：过程折保持动词行，对话默认收起、轨迹默认展开；长文档走 [PRD-027](../product/requirements.md#prd-027-preview-类别隔离与-surface-宿主) 的 Preview，图示卡仍按 [PRD-014](../product/requirements.md#prd-014-conversation-图示卡visualize) 留在时间线；进行中空稿收成一行已写在 PRD-028 的 2026-10-11 选定和原则 §5.2，S5 只是尚未实施的条件细则，方案仍 draft，这篇对照不提前实施。侧栏行高、暖色、大标题和胶囊输入保持现有上限。
+对照里值得继续用现有合同核对的三处：过程折保持动词行，对话默认收起、轨迹默认展开；长文档走 [PRD-027](../product/requirements.md#prd-027-preview-类别隔离与-surface-宿主) 的 Preview，图示卡仍按 [PRD-014](../product/requirements.md#prd-014-conversation-图示卡visualize) 留在时间线；进行中空稿的输入仍是一行，工具、权限、模型在下面的底栏，见原则 §5.2（2026-10-22）。侧栏行高、暖色、大标题和胶囊输入保持现有上限。
 
 ## 4. 量到的尺寸
 
@@ -71,7 +71,7 @@ claude.com 底色 `rgb(250, 249, 245)`，字色 `rgb(20, 20, 19)`，界面字体
 | 表面 | 2026-10-15 量到的 | 本仓上限 |
 |------|-------------------|----------|
 | ChatGPT 侧栏行 | 44px，16px 字，圆角 16px | 导航 22px；目录与弹出层 24px；行悬停圆角 4px |
-| ChatGPT Composer | 高 48px，圆角 28px，输入 16px | 控件 24px，底栏不高于 28px（原则 §4）。草稿字号维持 [Composer 规格](../systems/conversation/composer-and-inbox.md) 的 16px、行高 24px，本表不另写 13px 上限。圆角沿用已定的 20px |
+| ChatGPT Composer | 高 48px，圆角 28px，输入 16px | 控件 24px，底栏不高于 28px（原则 §4）。2026-10-21 草稿改为与正文相同的 13px、行高 20px，见 [Composer 规格](../systems/conversation/composer-and-inbox.md)。圆角沿用已定的 20px。对方的「+」在本仓是加会话上下文的幽灵钮；麦克风不画 |
 | ChatGPT 空态标题 | 24px，字重 400 | 空态一行说明；页面标题少用，18px / 600 |
 | Claude 营销标题 | Serif，约 70–72px；底色暖纸 | 系统字体栈；底色中性灰阶 |
 | Claude 应用侧栏取样 | 约 33px，14–15px 字 | 收到 22–24px |

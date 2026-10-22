@@ -160,7 +160,7 @@ export class ConversationIdentityStrip extends Disposable {
 		this.engineLabel = this.engineChip.ownerDocument.createTextNode('');
 		this.engineChip.appendChild(this.engineLabel);
 		const openAffordance = append(this.engineChip, $('span.conversation-identity-chip-open'));
-		openAffordance.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
+		openAffordance.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronDown));
 		openAffordance.setAttribute('aria-hidden', 'true');
 		this._register(addDisposableListener(this.engineChip, 'click', () => {
 			const phase = this.uaConnection.getConnectionPhase();

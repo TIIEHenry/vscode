@@ -36,6 +36,7 @@ import {
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
+import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -327,7 +328,7 @@ export class EngineAgentsSection extends Disposable {
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
 		@ICommandService private readonly commandService: ICommandService,
-		@IContextViewService contextViewService: IContextViewService,
+		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IDialogService private readonly dialogService: IDialogService,
 		@IAgentSessionContext private readonly sessionContext: IAgentSessionContext,
 	) {
@@ -907,11 +908,12 @@ export class EngineAgentsSection extends Disposable {
 			return;
 		}
 		const name = selected.name || selected.id;
-		const { confirmed } = await this.dialogService.confirm({
-			type: 'warning',
+		const confirmed = await showEngineConfirmPopover({
+			contextViewService: this.contextViewService,
+			anchor: this.deleteButton.element,
 			message: localize('ua.engineAgentsDeleteConfirm', "Delete agent profile \"{0}\"?", name),
 			detail: localize('ua.engineAgentsDeleteConfirmDetail', "This removes the profile from the engine."),
-			primaryButton: localize('ua.engineAgentsDelete', "Delete"),
+			confirmLabel: localize('ua.engineAgentsDelete', "Delete"),
 		});
 		if (!confirmed || this.selectedProfile?.id !== selected.id) {
 			return;

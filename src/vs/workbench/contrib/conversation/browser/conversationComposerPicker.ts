@@ -114,6 +114,8 @@ export function attachComposerPicker(container: HTMLElement, contextViewService:
 				const detail = details.get(action);
 				return detail ? new MenuDetailKeybinding(detail) : undefined;
 			},
+			getMenuClassName: () => 'conversation-composer-picker-menu',
+			skipTelemetry: true,
 			anchorAlignment: options.alignment,
 			autoSelectFirstItem: true,
 			onHide: () => {

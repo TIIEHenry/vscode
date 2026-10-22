@@ -26,7 +26,7 @@
 	padding: 4px 8px;
 	background: transparent;
 	border: none;
-	border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
+	border-bottom: none;
 	box-sizing: border-box;
 }
 
@@ -47,13 +47,13 @@
 .monaco-workbench .conversation-sessions-inline-filter-input {
 	flex: 1;
 	min-width: 0;
-	height: 22px;
+	height: 28px;
 	margin: 0;
-	padding: 0 6px;
-	border: 1px solid var(--vscode-input-border, transparent);
-	border-radius: 4px;
+	padding: 0 8px;
+	border: 1px solid transparent;
+	border-radius: 8px;
 	outline: none;
-	background: var(--vscode-input-background);
+	background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	color: var(--vscode-input-foreground);
 	font-size: 12px;
 	line-height: 20px;
@@ -71,7 +71,8 @@
 
 .monaco-workbench .conversation-sessions-inline-filter-input:focus {
 	outline: none;
-	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
+	border-color: transparent;
+	background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 }
 
 :is(.hc-black, .hc-light) .monaco-workbench .conversation-sessions-inline-filter-input:focus {
@@ -94,7 +95,7 @@
 	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	border-radius: 4px;
-	transition: color 0.15s ease, background-color 0.15s ease;
+	transition: color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .conversation-sessions-inline-filter-clear:active {

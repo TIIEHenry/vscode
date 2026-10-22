@@ -10,6 +10,7 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentMemoryCategoryInfo, UniverseAgentMemorySearchEntry } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -18,6 +19,7 @@ import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 import { canPerformCatalogWriteLive, type EngineCatalogPaneMode } from './engineCatalog.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
+import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 
@@ -61,6 +63,7 @@ export class EngineMemorySection extends Disposable {
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@ICommandService private readonly commandService: ICommandService,
 		@IDialogService private readonly dialogService: IDialogService,
+		@IContextViewService private readonly contextViewService: IContextViewService,
 	) {
 		super();
 
@@ -334,7 +337,7 @@ export class EngineMemorySection extends Disposable {
 		}
 		const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
 		const remove = this.rowActions.add(createCatalogIconButton(actions, localize('ua.engineMemoryDelete', "Delete {0}", title), Codicon.trash));
-		this.rowActions.add(remove.onDidClick(() => void this.deleteEntry(category, filename, title).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.rowActions.add(remove.onDidClick(() => void this.deleteEntry(category, filename, title, remove.element).catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	private clearRows(): void {
@@ -390,15 +393,16 @@ export class EngineMemorySection extends Disposable {
 		}
 	}
 
-	private async deleteEntry(category: string, filename: string, title: string): Promise<void> {
+	private async deleteEntry(category: string, filename: string, title: string, anchor: HTMLElement): Promise<void> {
 		const deleteMemory = this.connection.deleteMemory;
 		if (!this.canMutate() || typeof deleteMemory !== 'function') {
 			return;
 		}
-		const { confirmed } = await this.dialogService.confirm({
-			type: 'warning',
+		const confirmed = await showEngineConfirmPopover({
+			contextViewService: this.contextViewService,
+			anchor,
 			message: localize('ua.engineMemoryDeleteConfirm', "Delete memory \"{0}\"?", title),
-			primaryButton: localize('ua.engineMemoryDeleteButton', "Delete"),
+			confirmLabel: localize('ua.engineMemoryDeleteButton', "Delete"),
 		});
 		if (!confirmed || !this.canMutate() || typeof deleteMemory !== 'function') {
 			return;

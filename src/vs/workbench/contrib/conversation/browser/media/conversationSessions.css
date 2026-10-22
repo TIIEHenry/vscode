@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/* Narrow rows stay 22px. The trailing meta is hidden; the list aria-label
-   still speaks the message count. */
+/* Narrow rows stay 22px and keep the trailing meta on the same line, so
+   same-titled sessions remain distinguishable. */
 .monaco-workbench .is-compact .conversation-sessions-item-subtitle {
-	display: none;
+	flex-shrink: 0;
 }
 
 
@@ -43,7 +43,7 @@
 
 .monaco-workbench .conversation-sessions-list .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
 	box-sizing: border-box;
 }
 
@@ -57,6 +57,23 @@
 	outline: none !important;
 }
 
+.monaco-workbench .conversation-sessions-group {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 22px;
+	padding: 0 8px;
+	box-sizing: border-box;
+	font-size: var(--vscode-fontSize-label2, 11px);
+	line-height: 22px;
+	color: var(--vscode-descriptionForeground);
+	user-select: none;
+}
+
+.monaco-workbench .conversation-sessions-group-count {
+	color: var(--vscode-descriptionForeground);
+}
+
 .monaco-workbench .conversation-sessions-item-row {
 	display: flex;
 	align-items: center;
@@ -67,18 +84,33 @@
 	min-width: 0;
 }
 
-.monaco-workbench .conversation-sessions-item-active .conversation-sessions-item-row {
-	border-left: 2px solid var(--vscode-list-activeSelectionForeground, var(--vscode-focusBorder));
-	padding-left: 6px;
-}
-
 .monaco-workbench .conversation-sessions-item-icon {
 	flex: 0 0 16px;
 	width: 16px;
 	font-size: 16px;
 	line-height: 22px;
 	text-align: center;
-	color: var(--vscode-foreground);
+	color: var(--vscode-descriptionForeground);
+}
+
+.monaco-workbench .conversation-sessions-item-icon--waiting {
+	color: var(--vscode-editorWarning-foreground, var(--vscode-list-warningForeground));
+}
+
+.monaco-workbench .conversation-sessions-item-icon--failed {
+	color: var(--vscode-errorForeground);
+}
+
+.monaco-workbench.monaco-reduce-motion .conversation-sessions-item-icon--running,
+.monaco-workbench.monaco-reduce-motion .conversation-sessions-item-icon--running::before {
+	animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench:not(.monaco-enable-motion) .conversation-sessions-item-icon--running,
+	.monaco-workbench:not(.monaco-enable-motion) .conversation-sessions-item-icon--running::before {
+		animation: none;
+	}
 }
 
 .monaco-workbench .conversation-sessions-item-label {
@@ -114,6 +146,35 @@
 	color: inherit;
 }
 
-.monaco-workbench .conversation-sessions-list .monaco-list-row.selected .conversation-sessions-item-icon {
+.monaco-workbench .conversation-sessions-list .monaco-list-row.selected .conversation-sessions-item-icon--idle {
 	color: var(--vscode-list-activeSelectionForeground);
+}
+
+.monaco-workbench .conversation-sessions-item-more {
+	display: none;
+	flex: 0 0 22px;
+	width: 22px;
+	height: 22px;
+	margin: 0;
+	padding: 0;
+	border: none;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background: transparent;
+	color: inherit;
+	font-size: 16px;
+	line-height: 22px;
+	cursor: pointer;
+}
+
+.monaco-workbench .conversation-sessions-list .monaco-list-row:hover .conversation-sessions-item-more,
+.monaco-workbench .conversation-sessions-list .monaco-list-row.focused .conversation-sessions-item-more,
+.monaco-workbench .conversation-sessions-list .monaco-list-row.selected .conversation-sessions-item-more,
+.monaco-workbench .conversation-sessions-item-more:focus-visible {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.monaco-workbench .conversation-sessions-item-more:hover {
+	background-color: var(--vscode-toolbar-hoverBackground);
 }

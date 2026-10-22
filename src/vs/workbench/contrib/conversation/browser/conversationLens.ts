@@ -245,6 +245,8 @@ export class ConversationLens extends Disposable {
 	composerAtSuggest!: HTMLElement;
 	readonly composerRefResources: string[] = [];
 	sendButton!: Button;
+	addButton!: Button;
+	addContextView: IOpenContextView | undefined;
 	tuneButton!: Button;
 	tuneContextView: IOpenContextView | undefined;
 	permissionSelectBox!: SelectBox;
@@ -406,6 +408,7 @@ export class ConversationLens extends Disposable {
 		this.refreshComposerCatalogs();
 
 		this._register(toDisposable(() => {
+			this.addContextView?.close();
 			this.tuneContextView?.close();
 			this.moreContextView?.close();
 			if (slots.sessionBar) {

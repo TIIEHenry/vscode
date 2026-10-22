@@ -9,7 +9,7 @@
 	flex-direction: column;
 	gap: 0;
 	border: 1px solid var(--vscode-agentsCard-border, color-mix(in srgb, var(--vscode-foreground) 8%, transparent));
-	border-radius: var(--vscode-cornerRadius-medium, 8px);
+	border-radius: 12px;
 	background-color: var(--vscode-editor-background);
 	overflow: hidden;
 	outline: none;
@@ -28,8 +28,8 @@
 	align-items: center;
 	gap: 2px;
 	min-width: 0;
-	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
-	background: color-mix(in srgb, var(--vscode-foreground) 3%, var(--vscode-editor-background));
+	border-bottom: none;
+	background: transparent;
 }
 
 .monaco-workbench .conversation-visualize-card:has(.conversation-visualize-body[hidden]) .conversation-visualize-header-row,
@@ -89,7 +89,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-chevron.ua-motion {
-	transition: transform 0.15s ease;
+	transition: transform 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-chevron--expanded {
@@ -140,7 +140,7 @@
 	background: transparent;
 	color: var(--vscode-icon-foreground);
 	cursor: pointer;
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-expand:active {
@@ -198,7 +198,7 @@
 	max-width: 95vw;
 	max-height: 90vh;
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
-	border-radius: var(--vscode-cornerRadius-large, 12px);
+	border-radius: 12px;
 	background-color: var(--vscode-editor-background);
 	box-shadow: var(--vscode-shadow-xl);
 	overflow: hidden;
@@ -217,13 +217,13 @@
 	justify-content: space-between;
 	gap: 12px;
 	padding: 8px 12px;
-	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
-	background-color: var(--vscode-titleBar-activeBackground, var(--vscode-sideBarSectionHeader-background, var(--vscode-editor-background)));
-	color: var(--vscode-titleBar-activeForeground, var(--vscode-foreground));
+	border-bottom: none;
+	background-color: transparent;
+	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .conversation-visualize-overlay-header .monaco-button {
-	transition: background-color 0.1s ease;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .conversation-visualize-overlay-header .monaco-button:active {
@@ -296,7 +296,7 @@
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 	border-radius: 6px;
 	background-color: color-mix(in srgb, var(--vscode-foreground) 2%, var(--vscode-editor-background));
-	transition: border-color 0.15s ease;
+	transition: border-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option:active {
@@ -326,19 +326,20 @@
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option-badge {
-	padding: 1px 6px;
-	border-radius: 999px;
-	font-size: 9.5px;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-	color: var(--vscode-badge-foreground);
-	background-color: color-mix(in srgb, var(--vscode-badge-background) 85%, transparent);
+	padding: 0 6px;
+	border-radius: 8px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
+	font-size: 11px;
+	font-weight: 400;
+	text-transform: lowercase;
+	letter-spacing: normal;
+	color: var(--vscode-descriptionForeground);
+	background: none;
 }
 
 .monaco-workbench .part.conversation .conversation-visualize-option-description {
 	margin: 0;
-	font-size: 11.5px;
+	font-size: var(--vscode-fontSize-label1, 12px);
 	line-height: 1.4;
 	color: var(--vscode-descriptionForeground);
 }
@@ -357,7 +358,7 @@
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font-size: 11.5px;
+	font-size: var(--vscode-fontSize-label1, 12px);
 	line-height: 16px;
 	color: var(--vscode-foreground);
 }

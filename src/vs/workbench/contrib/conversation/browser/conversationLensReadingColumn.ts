@@ -166,7 +166,7 @@ export function requestReadingColumnDetail(host: IReadingColumnDetailHost, ref: 
 
 /**
  * D304: pairing-hold leftover (D287 cached turns / D289 leftover lease) keeps
- * read live chrome (`· Running` / `· Loading`). First-pull pairing without
+ * read live chrome (spinner and status on the aria-label). First-pull pairing without
  * leftover must not fake it. True disconnect still hides it.
  * D355 leftover-looks-live: pairing-hold first. Do not take the
  * `isEngineConnected()` short-circuit while `isConversationPairingHold`;

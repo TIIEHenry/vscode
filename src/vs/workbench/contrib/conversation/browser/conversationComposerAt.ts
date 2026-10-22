@@ -3,14 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append, reset } from '../../../../base/browser/dom.js';
+import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
-import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
+import { AnchorPosition } from '../../../../base/common/layout.js';
+import { DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
+import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
+import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
+import { conversationLensDockAddEmpty, conversationLensDockAddTitle } from './conversationLensDockStrings.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConversationSessionChatService } from '../common/conversationSessionChat.js';
 import { appendConversationRefAnchor, conversationSessionPillHoverLines } from './conversationSessionPill.js';
@@ -60,6 +65,117 @@ interface IComposerAtBinding {
 }
 
 const bindings = new WeakMap<IComposerAtHost, IComposerAtBinding>();
+
+export interface IComposerAddHost extends IComposerAtHost {
+	addContextView: IOpenContextView | undefined;
+	readonly contextViewService: IContextViewService;
+	addButton: { readonly element: HTMLElement };
+}
+
+/** Plus button. Adds a session the composer already sends as a context chip. Not a file upload. */
+export function toggleComposerAddContext(host: IComposerAddHost, anchor?: HTMLElement): void {
+	if (host.addContextView) {
+		host.addContextView.close();
+		return;
+	}
+	const binding = bindings.get(host);
+	host.addContextView = host.contextViewService.showContextView({
+		getAnchor: () => anchor ?? host.addButton.element,
+		anchorAlignment: anchor ? AnchorAlignment.RIGHT : AnchorAlignment.LEFT,
+		anchorPosition: AnchorPosition.ABOVE,
+		render: container => {
+			const popup = append(container, $('.conversation-lens-dock-add-popup'));
+			popup.setAttribute('role', 'menu');
+			popup.setAttribute('aria-label', conversationLensDockAddTitle);
+			const store = new DisposableStore();
+			store.add(addStandardDisposableListener(container.ownerDocument, 'keydown', event => {
+				if (event.keyCode === KeyCode.Escape) {
+					event.preventDefault();
+					event.stopPropagation();
+					host.addContextView?.close();
+				}
+			}, true));
+			const sessions = host.stubService.getSessions();
+			const catalogFor = (sessionKey: string) => binding ? binding.sessionChatService.getCatalog(sessionKey) : [];
+			const candidates = listComposerAtCandidates(sessions, catalogFor, '');
+			if (candidates.length === 0) {
+				popup.textContent = conversationLensDockAddEmpty;
+			} else {
+				const list = append(popup, $('.conversation-lens-dock-add-list'));
+				const empty = append(popup, $('.conversation-lens-dock-add-empty'));
+				empty.hidden = true;
+				const painted = new DisposableStore();
+				store.add(painted);
+				const paint = (query: string) => {
+					painted.clear();
+					const needle = query.trim().toLowerCase();
+					reset(list);
+					const shown = needle
+						? candidates.filter(candidate => candidate.sessionTitle.toLowerCase().includes(needle))
+						: candidates;
+					empty.hidden = shown.length > 0;
+					empty.textContent = shown.length === 0 ? conversationComposerAtEmpty : '';
+					for (const candidate of shown) {
+						const item = append(list, $('button.conversation-lens-dock-add-option')) as HTMLButtonElement;
+						item.type = 'button';
+						item.setAttribute('role', 'menuitem');
+						item.textContent = candidate.sessionTitle;
+						item.title = candidate.sessionTitle;
+						painted.add(addDisposableListener(item, 'click', event => {
+							event.preventDefault();
+							event.stopPropagation();
+							host.addContextView?.close();
+							addComposerContextRef(host, candidate.resource);
+						}));
+					}
+				};
+				if (candidates.length > 8) {
+					const filter = append(popup, $('input.conversation-lens-dock-add-filter')) as HTMLInputElement;
+					filter.type = 'text';
+					filter.placeholder = localize('conversation.composerAddFilter', "Search sessions");
+					filter.setAttribute('aria-label', filter.placeholder);
+					popup.insertBefore(filter, list);
+					store.add(addDisposableListener(filter, 'input', () => paint(filter.value)));
+					store.add(addDisposableListener(filter, 'keydown', event => {
+						if (event.keyCode !== KeyCode.Escape) {
+							event.stopPropagation();
+						}
+					}));
+				}
+				paint('');
+			}
+			return toDisposable(() => {
+				store.dispose();
+				host.addContextView = undefined;
+			});
+		},
+		onDOMEvent: event => {
+			if (!isContextViewClick(event)) {
+				return;
+			}
+			const target = getContextViewEventTarget(event);
+			const owner = anchor ?? host.addButton.element;
+			if (target && !owner.contains(target) && !target.closest('.conversation-lens-dock-add-popup')) {
+				host.addContextView?.close();
+			}
+		},
+		onHide: () => {
+			host.addContextView = undefined;
+		},
+	});
+}
+
+export function addComposerContextRef(host: IComposerAtHost, resource: string): void {
+	if (!resource || host.composerRefResources.indexOf(resource) >= 0) {
+		return;
+	}
+	host.composerRefResources.push(resource);
+	renderComposerRefChipRow(host);
+	if (host.composerPolicy === 'compose') {
+		host.writeComposerDraft(host.getBoundSessionId(), composerDraftText(host));
+	}
+	host.updateSendEnabled();
+}
 
 export function wireComposerAt(host: IComposerAtHost): void {
 	if (typeof host.instantiationService.invokeFunction !== 'function') {

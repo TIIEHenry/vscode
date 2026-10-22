@@ -7,12 +7,14 @@ import { $, addDisposableListener, addStandardDisposableListener, append } from 
 import { IKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button, IButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { IDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import {
+	conversationLensDockAddTitle,
 	conversationLensDockAgentLabel,
 	conversationLensDockEditExit,
 	conversationLensDockEngineNotConnected,
@@ -30,7 +32,7 @@ import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { getUaClientKeyboardEnterBehavior } from '../common/uaClientSettingsHelpers.js';
-import { noteComposerAtInput, onComposerAtKeyDown, wireComposerAt } from './conversationComposerAt.js';
+import { noteComposerAtInput, onComposerAtKeyDown, toggleComposerAddContext, wireComposerAt } from './conversationComposerAt.js';
 import { composerDraftText, composerSubmitText } from './conversationComposerRefs.js';
 import { createInputHistoryBrowseState, InputHistoryBrowseState } from './conversationInputHistory.js';
 import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
@@ -77,6 +79,7 @@ export interface IConversationLensDockHost {
 	composerAtSuggest: HTMLElement;
 	composerRefResources: string[];
 	dockTextarea: HTMLTextAreaElement;
+	addButton: Button;
 	tuneButton: Button;
 	permissionSelectBox: SelectBox;
 	agentContainer: HTMLElement;
@@ -181,17 +184,31 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		const bottomBar = append(host.composer, $('.conversation-lens-dock-bottom-bar'));
 		const bottomLeading = append(bottomBar, $('.conversation-lens-dock-bottom-leading'));
 
+		const addContainer = append(bottomLeading, $('.conversation-lens-dock-add'));
+		host.addButton = host.register(new Button(addContainer, {
+			...ghostButtonStyles,
+			supportIcons: true,
+			title: conversationLensDockAddTitle,
+		}));
+		host.addButton.icon = Codicon.add;
+		host.addButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
+		host.register(host.addButton.onDidClick(() => toggleComposerAddContext(host)));
+
 		const tuneContainer = append(bottomLeading, $('.conversation-lens-dock-tune'));
 		host.tuneButton = host.register(new Button(tuneContainer, {
 			...ghostButtonStyles,
 			supportIcons: true,
 			title: conversationLensDockTuneTitle,
 		}));
-		host.tuneButton.icon = Codicon.settingsGear;
+		host.tuneButton.icon = Codicon.tools;
 		host.tuneButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
 		host.register(host.tuneButton.onDidClick(() => host.toggleTuneContextView()));
 
 		const permissionContainer = append(bottomLeading, $('.conversation-lens-dock-permission'));
+		const permissionWarn = append(permissionContainer, $('span.conversation-lens-dock-permission-warn'));
+		permissionWarn.classList.add(...ThemeIcon.asClassNameArray(Codicon.warning));
+		permissionWarn.title = conversationLensDockPermissionPermit;
+		permissionWarn.setAttribute('aria-hidden', 'true');
 		host.permissionSelectBox = host.register(host.createComposerSelectBox(
 			[
 				{ text: conversationLensDockPermissionAsk },

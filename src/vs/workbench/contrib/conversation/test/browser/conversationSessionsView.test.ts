@@ -28,6 +28,7 @@ import { CONVERSATION_SESSIONS_CONTAINER_ID } from '../../browser/conversation.c
 import { CONVERSATION_SESSION_COMPACT_ROW_HEIGHT, CONVERSATION_SESSION_ROW_HEIGHT, CONVERSATION_SESSIONS_DELETE_ENABLED_KEY, CONVERSATION_SESSIONS_DELETE_SESSION_COMMAND_ID, CONVERSATION_SESSIONS_VIEW_ID, ConversationSessionsView } from '../../browser/conversationSessionsView.js';
 import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
+import type { SessionRosterEntry } from '../../browser/conversationSessionsViewStrings.js';
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { conversationSessionsViewEmptyMessage } from '../../browser/conversationSessionsViewStrings.js';
@@ -314,6 +315,10 @@ suite('ConversationSessionsView', () => {
 		const listRow = view.element.querySelector('.monaco-list-row') as HTMLElement | null;
 		assert.ok(listRow);
 		assert.strictEqual(listRow.style.height, '22px');
+		const subtitle = listRow.querySelector('.conversation-sessions-item-subtitle');
+		assert.ok(subtitle);
+		assert.ok(subtitle.textContent, 'compact rows keep distinguishing meta');
+		assert.ok(listRow.getAttribute('aria-label')?.includes(subtitle.textContent), 'accessible name keeps the meta');
 	});
 
 	test('roster copy has no engine or Copilot placeholders', () => {
@@ -378,6 +383,7 @@ suite('ConversationSessionsView', () => {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
 			override onDidChangeEngineConnection = Event.None;
+			override onDidChangeSessionRosterDetail = Event.None;
 			override getSessions() { return []; }
 			override getActiveSessionId() { return ''; }
 			override createSession() { return 'new'; }
@@ -526,13 +532,13 @@ suite('ConversationSessionsView', () => {
 	test('stale or empty roster open does not show Conversation', () => {
 		const { view, stubService, layoutService, focusSpy } = mountView({ conversationVisible: false });
 		const openSessionFromRoster = (view as unknown as {
-			openSessionFromRoster(session: ConversationStubSession | undefined, browserEvent?: UIEvent): void;
+			openSessionFromRoster(entry: SessionRosterEntry | undefined, browserEvent?: UIEvent): void;
 		}).openSessionFromRoster.bind(view);
 		const staleSession: ConversationStubSession = { id: 'missing-session', title: 'Stale', turns: [] };
 
 		layoutService.setPartHiddenCalls.length = 0;
 		focusSpy.called = false;
-		openSessionFromRoster(staleSession);
+		openSessionFromRoster({ kind: 'session', session: staleSession });
 
 		assert.strictEqual(layoutService.setPartHiddenCalls.length, 0);
 		assert.strictEqual(focusSpy.called, false);
@@ -551,6 +557,7 @@ suite('ConversationSessionsView', () => {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
 			override onDidChangeEngineConnection = Event.None;
+			override onDidChangeSessionRosterDetail = Event.None;
 			override getSessions() { return []; }
 			override getActiveSessionId() { return ''; }
 			override createSession() { return 'new'; }
@@ -618,8 +625,9 @@ suite('ConversationSessionsView', () => {
 		await setFilterQuery(view, 'alpha');
 
 		const titles = getVisibleSessionTitles(view);
-		assert.strictEqual(titles.length, 1);
-		assert.strictEqual(titles[0], 'Alpha roster item');
+		assert.strictEqual(titles.length, 2);
+		assert.ok(titles.includes('Alpha roster item'));
+		assert.ok(titles.includes('Beta roster item'), 'active session stays visible when it does not match');
 		assert.ok(stubService.getSessions().some(session => session.title === 'Beta roster item'));
 	});
 
@@ -632,7 +640,7 @@ suite('ConversationSessionsView', () => {
 		const fullCount = stubService.getSessions().length;
 
 		await setFilterQuery(view, 'alpha');
-		assert.strictEqual(getVisibleSessionTitles(view).length, 1);
+		assert.strictEqual(getVisibleSessionTitles(view).length, 2);
 
 		await setFilterQuery(view, '');
 		assert.strictEqual(getVisibleSessionTitles(view).length, fullCount);
@@ -695,10 +703,10 @@ suite('ConversationSessionsView', () => {
 
 		await setFilterQuery(view, 'beta');
 
-		const label = view.element.querySelector('.conversation-sessions-item-label') as HTMLElement;
+		const label = [...view.element.querySelectorAll('.conversation-sessions-item-label')]
+			.find(candidate => candidate.textContent === 'Beta roster item') as HTMLElement | undefined;
 		assert.ok(label);
-		assert.strictEqual(label.textContent, 'Beta roster item');
-		label.click();
+		label!.click();
 
 		assert.strictEqual(stubService.getActiveSessionId(), secondId);
 	});

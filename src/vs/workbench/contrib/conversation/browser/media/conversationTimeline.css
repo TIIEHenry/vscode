@@ -42,12 +42,12 @@
 	max-width: 720px;
 	min-width: 0;
 	margin: 0 auto;
-	padding-bottom: 36px;
+	padding-bottom: 48px;
 	interpolate-size: allow-keywords;
 }
 
 .conversation-timeline-item {
-	margin-bottom: 16px;
+	margin-bottom: 32px;
 	min-width: 0;
 	max-width: 100%;
 	user-select: text;
@@ -55,7 +55,12 @@
 	contain-intrinsic-block-size: auto 120px;
 }
 
+.conversation-timeline-item:has(.conversation-lens-turn[data-kind="user"]) {
+	margin-bottom: 24px;
+}
+
 .conversation-timeline-item.conversation-timeline-item--cv-visible,
+.conversation-timeline-item:hover,
 .conversation-timeline-item:focus-within {
 	content-visibility: visible;
 	/* `auto 120px` is only a skipped-content placeholder. Leaving it on a
@@ -85,7 +90,7 @@
 	box-sizing: border-box;
 	min-height: 80px;
 	padding: 24px 16px;
-	font-size: 12.5px;
+	font-size: var(--vscode-fontSize-body1, 13px);
 	line-height: 1.5;
 	text-align: center;
 	opacity: 0.75;

@@ -4,11 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { $, append, reset } from '../../../../base/browser/dom.js';
+import { MarkdownRenderOptions } from '../../../../base/browser/markdownRenderer.js';
+import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { DisposableStore, IDisposable } from '../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../base/common/network.js';
+import { ThemeIcon } from '../../../../base/common/themables.js';
 import { URI } from '../../../../base/common/uri.js';
+import { localize } from '../../../../nls.js';
+import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
@@ -65,6 +70,7 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 		@IConversationSessionChatService private readonly sessionChatService: IConversationSessionChatService,
 		@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
+		@IClipboardService private readonly clipboardService: IClipboardService,
 	) { }
 
 	renderTurnBody(turn: ConversationStubTurn, container: HTMLElement): IDisposable {
@@ -72,14 +78,7 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 		if (shouldRenderTurnAsMarkdown(turn.kind)) {
 			store.add(this.markdownRendererService.render(
 				new MarkdownString(turn.text),
-				{
-					sanitizerConfig: {
-						allowedLinkSchemes: { augment: [ConversationChatInputScheme] },
-					},
-					actionHandler: (href) => {
-						void this.handleTimelineLink(href).catch(onUnexpectedError).catch(onUnexpectedError);
-					},
-				},
+				this.markdownOptions(),
 				container,
 			));
 			this.decorateConversationLinks(container, store);
@@ -126,15 +125,7 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 				block.clear();
 				block.add(this.markdownRendererService.render(
 					new MarkdownString(markdown),
-					{
-						sanitizerConfig: {
-							allowedLinkSchemes: { augment: [ConversationChatInputScheme] },
-						},
-						fillInIncompleteTokens,
-						actionHandler: (href) => {
-							void this.handleTimelineLink(href).catch(onUnexpectedError).catch(onUnexpectedError);
-						},
-					},
+					{ ...this.markdownOptions(), fillInIncompleteTokens },
 					target,
 				));
 			},
@@ -153,6 +144,58 @@ export class ConversationTurnContentAdapter implements IConversationTurnContentA
 				store.dispose();
 			},
 		};
+	}
+
+	private markdownOptions(): MarkdownRenderOptions {
+		return {
+			sanitizerConfig: {
+				allowedLinkSchemes: { augment: [ConversationChatInputScheme] },
+			},
+			actionHandler: (href) => {
+				void this.handleTimelineLink(href).catch(onUnexpectedError).catch(onUnexpectedError);
+			},
+			codeBlockRendererSync: (languageId, value) => this.renderCodeBlock(languageId, value),
+		};
+	}
+
+	private renderCodeBlock(languageId: string, value: string): HTMLElement {
+		const root = $('.conversation-code-block');
+		const bar = append(root, $('.conversation-code-block-bar'));
+		const lang = append(bar, $('span.conversation-code-block-lang'));
+		lang.textContent = languageId;
+		if (!languageId) {
+			lang.hidden = true;
+		}
+		const copyLabel = localize('conversation.codeBlock.copy', "Copy");
+		const copiedLabel = localize('conversation.codeBlock.copied', "Copied");
+		const copy = append(bar, $('button.conversation-code-block-copy')) as HTMLButtonElement;
+		copy.type = 'button';
+		copy.classList.add(...ThemeIcon.asClassNameArray(Codicon.copy));
+		copy.setAttribute('aria-label', copyLabel);
+		copy.title = copyLabel;
+		copy.addEventListener('click', () => {
+			void this.clipboardService.writeText(value).then(() => {
+				copy.classList.add('is-copied');
+				copy.setAttribute('aria-label', copiedLabel);
+				copy.title = copiedLabel;
+				const timer = setTimeout(() => {
+					if (!copy.isConnected) {
+						return;
+					}
+					copy.classList.remove('is-copied');
+					copy.setAttribute('aria-label', copyLabel);
+					copy.title = copyLabel;
+				}, 1600);
+				copy.addEventListener('DOMNodeRemoved', () => clearTimeout(timer), { once: true });
+			}, onUnexpectedError);
+		});
+		const pre = append(root, $('pre'));
+		const code = append(pre, $('code'));
+		code.textContent = value;
+		if (languageId) {
+			code.classList.add(`language-${languageId}`);
+		}
+		return root;
 	}
 
 	decorateLinks(container: HTMLElement): IDisposable {

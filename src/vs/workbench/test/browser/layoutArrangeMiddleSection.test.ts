@@ -6,11 +6,16 @@
 import assert from 'assert';
 import { ISerializedNode } from '../../../base/browser/ui/grid/grid.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/common/utils.js';
+import { Event } from '../../../base/common/event.js';
 import { ServicesAccessor } from '../../../platform/instantiation/common/instantiation.js';
-import { IConversationPartService } from '../../browser/parts/conversation/conversationPart.js';
+import { CONVERSATION_PART_MINIMUM_WIDTH, IConversationPartService } from '../../browser/parts/conversation/conversationPart.js';
 import { ISourcesPartService } from '../../browser/parts/sources/sourcesPart.js';
-import { Layout } from '../../browser/layout.js';
+import { clampConversationEndColumnWidth, Layout } from '../../browser/layout.js';
 import { Parts, Position } from '../../services/layout/browser/layoutService.js';
+import { ITitleService } from '../../services/title/browser/titleService.js';
+import { IAuxiliaryWindowService } from '../../services/auxiliaryWindow/browser/auxiliaryWindowService.js';
+import { IViewDescriptorService } from '../../common/views.js';
+import { IPaneCompositePartService } from '../../services/panecomposite/browser/panecomposite.js';
 import { createEditorParts, workbenchInstantiationService } from './workbenchTestServices.js';
 import { DisposableStore } from '../../../base/common/lifecycle.js';
 import { IEditorGroupsService } from '../../services/editor/common/editorGroupsService.js';
@@ -67,7 +72,16 @@ suite('Layout - arrangeMiddleSectionNodes panel reservation', () => {
 	function stubWorkbenchGrid(target: Layout): void {
 		// eslint-disable-next-line local/code-no-any-casts
 		const internal = target as any;
-		internal.workbenchGrid = { setViewVisible: () => { } };
+		internal.workbenchGrid = {
+			setViewVisible: () => { },
+			getViewSize: () => ({ width: 480, height: 900 }),
+			getViewCachedVisibleSize: () => undefined,
+			moveView: () => { },
+			moveViewTo: () => { },
+			resizeView: () => { },
+			layout: () => { },
+			edgeSnapping: false,
+		};
 		internal.conversationPartView = {};
 		internal.editorPartView = {};
 		internal.sourcesPartView = {};
@@ -76,12 +90,45 @@ suite('Layout - arrangeMiddleSectionNodes panel reservation', () => {
 		internal.auxiliaryBarPartView = {};
 		internal.activityBarPartView = {};
 		internal.statusBarPartView = {};
+
+		for (const id of [Parts.ACTIVITYBAR_PART, Parts.SIDEBAR_PART, Parts.CONVERSATION_PART, Parts.PANEL_PART, Parts.AUXILIARYBAR_PART, Parts.EDITOR_PART, Parts.SOURCES_PART, Parts.STATUSBAR_PART]) {
+			disposables.add(target.registerPart({
+				getId: () => id,
+				getContainer: () => document.createElement('div'),
+				updateStyles: () => { },
+			} as unknown as Parameters<Layout['registerPart']>[0]));
+		}
 	}
 
 	async function createLayout(): Promise<ArrangeMiddleSectionTestLayout> {
 		const instantiationService = workbenchInstantiationService(undefined, disposables);
 		instantiationService.stub(IConversationPartService, { _serviceBrand: undefined } as IConversationPartService);
 		instantiationService.stub(ISourcesPartService, { _serviceBrand: undefined } as ISourcesPartService);
+		instantiationService.stub(ITitleService, {
+			_serviceBrand: undefined,
+			onMenubarVisibilityChange: () => ({ dispose: () => { } }),
+		} as unknown as ITitleService);
+		instantiationService.stub(IAuxiliaryWindowService, {
+			_serviceBrand: undefined,
+			onDidOpenAuxiliaryWindow: Event.None,
+		} as unknown as IAuxiliaryWindowService);
+		instantiationService.stub(IViewDescriptorService, {
+			_serviceBrand: undefined,
+			getDefaultViewContainer: () => undefined,
+			getViewContainersByLocation: () => [],
+			getViewContainerById: () => undefined,
+		} as unknown as IViewDescriptorService);
+		instantiationService.stub(IPaneCompositePartService, {
+			_serviceBrand: undefined,
+			onDidPaneCompositeOpen: Event.None,
+			onDidPaneCompositeClose: Event.None,
+			getActivePaneComposite: () => undefined,
+			getPaneCompositeIds: () => [],
+			getVisiblePaneCompositeIds: () => [],
+			getLastActivePaneCompositeId: () => undefined,
+			openPaneComposite: async () => undefined,
+			hideActivePaneComposite: () => { },
+		} as unknown as IPaneCompositePartService);
 		const parts = await createEditorParts(instantiationService, disposables);
 		disposables.add(parts);
 		instantiationService.stub(IEditorGroupsService, parts);
@@ -108,7 +155,7 @@ suite('Layout - arrangeMiddleSectionNodes panel reservation', () => {
 		const sideNodes = baseNodes(panelSize);
 		layout.setPanelPosition(Position.LEFT);
 		layout.arrange(sideNodes, availableWidth, availableHeight);
-		assert.strictEqual(sideNodes.conversation.size, 172);
+		assert.strictEqual(sideNodes.conversation.size, CONVERSATION_PART_MINIMUM_WIDTH);
 
 		const bottomNodes = baseNodes(panelSize);
 		layout.setPanelPosition(Position.BOTTOM);
@@ -122,7 +169,6 @@ suite('Layout - arrangeMiddleSectionNodes panel reservation', () => {
 		const availableWidth = 1600;
 		const availableHeight = 900;
 
-		await layout.setPartHidden(true, Parts.PANEL_PART);
 		await layout.setPartHidden(false, Parts.ACTIVITYBAR_PART);
 		await layout.setPartHidden(false, Parts.SIDEBAR_PART);
 		await layout.setPartHidden(false, Parts.AUXILIARYBAR_PART);
@@ -131,12 +177,20 @@ suite('Layout - arrangeMiddleSectionNodes panel reservation', () => {
 
 		const sideNodes = baseNodes(panelSize);
 		layout.setPanelPosition(Position.LEFT);
+		await layout.setPartHidden(true, Parts.PANEL_PART);
 		layout.arrange(sideNodes, availableWidth, availableHeight);
 		assert.strictEqual(sideNodes.conversation.size, 472);
 
 		const bottomNodes = baseNodes(panelSize);
 		layout.setPanelPosition(Position.BOTTOM);
+		await layout.setPartHidden(true, Parts.PANEL_PART);
 		const bottomResult = layout.arrange(bottomNodes, availableWidth, availableHeight);
 		assert.strictEqual(centerSectionHeight(bottomResult), availableHeight);
+	});
+
+	test('a persisted end column width does not starve the conversation', () => {
+		assert.strictEqual(CONVERSATION_PART_MINIMUM_WIDTH, 450);
+		assert.strictEqual(clampConversationEndColumnWidth(1443, 48 + 170, 925), 775);
+		assert.strictEqual(clampConversationEndColumnWidth(1600, 48 + 300, 480), 480);
 	});
 });

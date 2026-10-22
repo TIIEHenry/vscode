@@ -15,7 +15,7 @@ import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/
 import { MarkdownDiffBlockPart, parseUnifiedDiff, type IMarkdownDiffBlockData } from '../../chat/browser/widget/chatContentParts/chatDiffBlockPart.js';
 import { conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
-import { ProcessFoldNode, ProcessFoldSpan, summarizeProcessSteps, summarizeThinkingTools } from './conversationProcessFoldModel.js';
+import { ProcessFoldNode, ProcessFoldSpan, countProcessFoldToolStatuses, summarizeProcessSteps, summarizeThinkingTools } from './conversationProcessFoldModel.js';
 
 export const conversationProcessFoldThinkingLabel = localize('conversationProcessFold.thinking', "Thinking");
 export const conversationProcessFoldToolCancel = localize('conversationProcessFold.toolCancel', "Cancel Tool");
@@ -79,6 +79,13 @@ interface ToolRowEntry {
 	readonly store: DisposableStore;
 }
 
+interface FileCardEntry {
+	readonly kind: 'files';
+	turns: readonly ConversationStubTurn[];
+	readonly element: HTMLElement;
+	readonly store: DisposableStore;
+}
+
 interface ThinkingRowEntry {
 	readonly kind: 'thinking';
 	turn: ConversationStubTurn;
@@ -93,7 +100,32 @@ interface ThinkingRowEntry {
 	readonly nested: Map<string, ToolRowEntry>;
 }
 
-type FoldChildEntry = ThinkingRowEntry | ToolRowEntry;
+type FoldChildEntry = ThinkingRowEntry | ToolRowEntry | FileCardEntry;
+
+type FoldRenderBlock =
+	| { readonly kind: 'node'; readonly node: ProcessFoldNode }
+	| { readonly kind: 'files'; readonly turns: readonly ConversationStubTurn[] };
+
+function coalesceFileEditNodes(nodes: readonly ProcessFoldNode[]): FoldRenderBlock[] {
+	const blocks: FoldRenderBlock[] = [];
+	let files: ConversationStubTurn[] = [];
+	const flush = () => {
+		if (files.length > 0) {
+			blocks.push({ kind: 'files', turns: files });
+			files = [];
+		}
+	};
+	for (const node of nodes) {
+		if (node.kind === 'tool' && node.turn.toolName === 'file_edit') {
+			files.push(node.turn);
+		} else {
+			flush();
+			blocks.push({ kind: 'node', node });
+		}
+	}
+	flush();
+	return blocks;
+}
 
 function thinkingBodyText(turn: ConversationStubTurn): string {
 	return turn.payload ?? turn.text;
@@ -111,21 +143,15 @@ function sameTurnRefs(left: readonly ConversationStubTurn[], right: readonly Con
 	return true;
 }
 
-function processFoldHasExecutingTool(span: ProcessFoldSpan): boolean {
-	for (const node of span.nodes) {
-		if (node.kind === 'tool') {
-			if (node.turn.toolStatus === 'running' || node.turn.toolStatus === 'pending') {
-				return true;
-			}
-			continue;
-		}
-		for (const tool of node.tools) {
-			if (tool.toolStatus === 'running' || tool.toolStatus === 'pending') {
-				return true;
-			}
-		}
+function resolveProcessFoldHeaderIcon(span: ProcessFoldSpan, showLiveChrome: boolean): ThemeIcon | undefined {
+	const counts = countProcessFoldToolStatuses(span);
+	if (showLiveChrome && counts.executing > 0) {
+		return Codicon.loading;
 	}
-	return false;
+	if (counts.failed > 0) {
+		return Codicon.error;
+	}
+	return undefined;
 }
 
 function orderElementsAfter(parent: HTMLElement, anchor: Node | null, elements: readonly HTMLElement[]): void {
@@ -162,6 +188,7 @@ export function renderProcessFoldSpan(
 	chevron.setAttribute('aria-hidden', 'true');
 	chevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronRight));
 
+	let statusIcon: HTMLElement | undefined;
 	const summary = append(header, $('span.conversation-process-fold-summary'));
 	const children = append(root, $('div.conversation-process-fold-children'));
 	children.hidden = !options.isOuterExpanded(span.id);
@@ -198,12 +225,38 @@ export function renderProcessFoldSpan(
 		chevron.classList.toggle('conversation-process-fold-chevron--expanded', expanded);
 	}
 
+	function syncFoldStatusIcon(next: ProcessFoldSpan): void {
+		const icon = resolveProcessFoldHeaderIcon(next, options.showLiveChrome);
+		const loading = icon === Codicon.loading;
+		const failed = icon === Codicon.error;
+		if (statusIcon) {
+			const same = (loading && statusIcon.classList.contains('codicon-loading'))
+				|| (failed && statusIcon.classList.contains('codicon-error'));
+			if (same) {
+				return;
+			}
+			statusIcon.remove();
+			statusIcon = undefined;
+		}
+		if (!icon) {
+			return;
+		}
+		const glyph = renderIcon(icon);
+		glyph.classList.add('conversation-process-fold-status', 'ua-motion');
+		glyph.classList.add(loading ? 'conversation-process-fold-status--loading' : 'conversation-process-fold-status--error');
+		glyph.setAttribute('aria-hidden', 'true');
+		chevron.insertAdjacentElement('afterend', glyph);
+		statusIcon = glyph;
+	}
+
 	function syncFoldExecuting(next: ProcessFoldSpan): void {
-		if (options.showLiveChrome && processFoldHasExecutingTool(next)) {
+		const executing = countProcessFoldToolStatuses(next).executing > 0;
+		if (options.showLiveChrome && executing) {
 			children.setAttribute('data-fold-executing', '');
 		} else {
 			children.removeAttribute('data-fold-executing');
 		}
+		syncFoldStatusIcon(next);
 	}
 
 	function mountTool(turn: ConversationStubTurn, nested: boolean, parent: HTMLElement, owner: DisposableStore): ToolRowEntry {
@@ -304,10 +357,35 @@ export function renderProcessFoldSpan(
 		disposables.delete(entry.store);
 	}
 
+	function mountFileCard(turns: readonly ConversationStubTurn[]): FileCardEntry {
+		const store = disposables.add(new DisposableStore());
+		const element = renderFileEditCard(children, turns, childOptions, store);
+		return { kind: 'files', turns, element, store };
+	}
+
 	function reconcileTop(): void {
 		const keep = new Set<string>();
 		const ordered: HTMLElement[] = [];
-		for (const node of current.nodes) {
+		for (const block of coalesceFileEditNodes(current.nodes)) {
+			if (block.kind === 'files') {
+				const id = `files:${block.turns.map(turn => turn.id).join('\n')}`;
+				if (keep.has(id)) {
+					continue;
+				}
+				keep.add(id);
+				let entry = mounted.get(id);
+				if (!entry || entry.kind !== 'files' || !sameTurnRefs(entry.turns, block.turns)) {
+					if (entry) {
+						dropChild(entry);
+						mounted.delete(id);
+					}
+					entry = mountFileCard(block.turns);
+					mounted.set(id, entry);
+				}
+				ordered.push(entry.element);
+				continue;
+			}
+			const node = block.node;
 			const id = node.turn.id;
 			if (keep.has(id)) {
 				continue;
@@ -597,6 +675,135 @@ export function renderProcessFoldDiffBlock(
 	pre.textContent = diffText;
 }
 
+export interface FileEditCardOptions {
+	readonly showToolInvocationDetails?: boolean;
+	readonly isToolExpanded?: (turnId: string) => boolean;
+	readonly setToolExpanded?: (turnId: string, expanded: boolean) => void;
+	readonly onLayoutChange?: () => void;
+	readonly showLiveChrome?: boolean;
+	readonly onCancelToolCall?: (turn: ConversationStubTurn) => void;
+	readonly writesEnabled?: boolean;
+	readonly onViewInTrajectory?: (turnId: string) => void;
+	readonly diffEditorPool?: DiffEditorPool;
+	readonly instantiationService?: IInstantiationService;
+}
+
+const conversationEditedOneFile = localize('conversation.editedOneFile', "Edited 1 file");
+const conversationEditedFileUnnamed = localize('conversation.editedFileUnnamed', "File");
+
+function fileEditFilediff(turn: ConversationStubTurn): Record<string, unknown> | undefined {
+	const filediff = turn.metadata?.filediff;
+	if (typeof filediff === 'object' && filediff !== null) {
+		return filediff as Record<string, unknown>;
+	}
+	return undefined;
+}
+
+function fileEditDisplayPath(turn: ConversationStubTurn): string {
+	const filediff = fileEditFilediff(turn);
+	if (typeof filediff?.file === 'string' && filediff.file.length > 0) {
+		return filediff.file;
+	}
+	const file = turn.metadata?.file;
+	if (typeof file === 'string' && file.length > 0) {
+		return file;
+	}
+	const summary = (turn.summary ?? turn.text).trim();
+	return summary || conversationEditedFileUnnamed;
+}
+
+function fileEditDiffText(turn: ConversationStubTurn): string | undefined {
+	const diff = turn.metadata?.diff;
+	return typeof diff === 'string' && diff.length > 0 ? diff : undefined;
+}
+
+/** One card for a run of file edits: title, summed +N −M, then each path. */
+export function renderFileEditCard(
+	parent: HTMLElement,
+	turns: readonly ConversationStubTurn[],
+	options: FileEditCardOptions,
+	disposables: DisposableStore,
+): HTMLElement {
+	const showDetails = options.showToolInvocationDetails !== false;
+	const card = append(parent, $('div.conversation-file-edit-card'));
+	card.setAttribute('data-kind', 'file-edits');
+	if (turns.length === 1) {
+		card.setAttribute('data-turn-id', turns[0]!.id);
+	}
+
+	const head = append(card, $('div.conversation-file-edit-head'));
+	const icon = append(head, $('span.conversation-file-edit-icon'));
+	icon.setAttribute('aria-hidden', 'true');
+	icon.appendChild(renderIcon(Codicon.file));
+	const title = append(head, $('span.conversation-file-edit-title'));
+	title.textContent = turns.length === 1
+		? conversationEditedOneFile
+		: localize('conversation.editedFilesCount', "Edited {0} files", turns.length);
+
+	let additions = 0;
+	let deletions = 0;
+	let sawStats = false;
+	for (const turn of turns) {
+		const stats = formatProcessFoldDiffStats(turn.metadata, fileEditDiffText(turn));
+		const match = stats ? /^\+(\d+) \u2212(\d+)$/.exec(stats) : undefined;
+		if (match) {
+			sawStats = true;
+			additions += Number(match[1]);
+			deletions += Number(match[2]);
+		}
+	}
+	if (showDetails && sawStats) {
+		const diffStats = append(head, $('span.conversation-file-edit-stats'));
+		fillProcessFoldDiffStats(diffStats, `+${additions} \u2212${deletions}`);
+	}
+	appendProcessFoldTrajectoryJump(head, turns[0]!.id, options, disposables);
+
+	for (const turn of turns) {
+		const diffText = fileEditDiffText(turn);
+		const canOpen = showDetails && !!diffText;
+		const line = append(card, $('div.conversation-file-edit-line'));
+		const path = canOpen
+			? append(line, $('button.conversation-file-edit-path')) as HTMLButtonElement
+			: append(line, $('div.conversation-file-edit-path'));
+		if (canOpen) {
+			(path as HTMLButtonElement).type = 'button';
+		} else {
+			path.classList.add('is-static');
+		}
+		const label = fileEditDisplayPath(turn);
+		path.textContent = label;
+		path.title = label;
+		const executing = isExecutingTurn(turn, { showLiveChrome: options.showLiveChrome === true });
+		appendProcessFoldToolCancel(line, turn, executing, options, disposables);
+
+		if (!canOpen) {
+			continue;
+		}
+		const button = path as HTMLButtonElement;
+		const diffArea = append(card, $('div.conversation-file-edit-diff'));
+		let expanded = options.isToolExpanded?.(turn.id) ?? false;
+		const filediff = fileEditFilediff(turn);
+		const paint = (open: boolean) => {
+			expanded = open;
+			button.setAttribute('aria-expanded', String(open));
+			diffArea.hidden = !open;
+			if (open && !diffArea.hasChildNodes()) {
+				renderProcessFoldDiffBlock(diffArea, diffText!, filediff, options, disposables);
+			}
+		};
+		paint(expanded);
+		disposables.add(addDisposableListener(button, 'click', (e) => {
+			e.stopPropagation();
+			const next = !expanded;
+			options.setToolExpanded?.(turn.id, next);
+			paint(next);
+			options.onLayoutChange?.();
+		}));
+	}
+
+	return card;
+}
+
 function renderToolRow(
 	parent: HTMLElement,
 	turn: ConversationStubTurn,
@@ -738,7 +945,9 @@ function toolAriaDetail(summaryText: string, thinkingText: string): string {
 	if (!thinkingText) {
 		return summaryText;
 	}
-	return summaryText ? `${summaryText}, ${thinkingText}` : thinkingText;
+	return summaryText
+		? localize('conversationProcessFold.toolDetailWithThought', "{0}, {1}", summaryText, thinkingText)
+		: thinkingText;
 }
 
 function formatThinkingSummary(turn: ConversationStubTurn, tools: readonly ConversationStubTurn[], options: ProcessFoldDomOptions): string {
@@ -749,7 +958,7 @@ function formatThinkingSummary(turn: ConversationStubTurn, tools: readonly Conve
 	return localize('conversationProcessFold.thinkingLoading', "{0} · Loading", base);
 }
 
-function isExecutingTurn(turn: ConversationStubTurn, options: ProcessFoldDomOptions): boolean {
+function isExecutingTurn(turn: ConversationStubTurn, options: { readonly showLiveChrome: boolean }): boolean {
 	if (!options.showLiveChrome) {
 		return false;
 	}
@@ -806,7 +1015,7 @@ function appendProcessFoldToolCancel(
 	parent: HTMLElement,
 	turn: ConversationStubTurn,
 	executing: boolean,
-	options: ProcessFoldDomOptions,
+	options: { readonly onCancelToolCall?: (turn: ConversationStubTurn) => void; readonly writesEnabled?: boolean },
 	disposables: DisposableStore,
 ): void {
 	const toolCallId = admittedToolCallId(turn.toolCallId);
@@ -860,7 +1069,7 @@ function appendProcessFoldToolRespond(
 function appendProcessFoldTrajectoryJump(
 	parent: HTMLElement,
 	turnId: string,
-	options: ProcessFoldDomOptions,
+	options: { readonly onViewInTrajectory?: (turnId: string) => void },
 	disposables: DisposableStore,
 ): void {
 	if (!options.onViewInTrajectory) {

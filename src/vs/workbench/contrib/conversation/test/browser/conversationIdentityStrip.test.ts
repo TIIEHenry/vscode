@@ -459,6 +459,7 @@ suite('ConversationIdentityStrip', () => {
 		assert.strictEqual(engineChip.textContent, getConnectionPhaseStatusBarText({ kind: 'connected', path: 'hubRelay' }));
 		assert.strictEqual(engineChip.textContent, 'Engine · Hub relay');
 		assert.strictEqual(engineChip.classList.contains(conversationIdentityEngineOfflineClass), false);
+		assert.ok(engineChip.matches(`.${conversationIdentityEngineChipClass}:not(.${conversationIdentityEngineOfflineClass}):not(.conversation-identity-chip-engine--failed)`));
 
 		engineChip.click();
 		await Promise.resolve();
@@ -629,8 +630,8 @@ suite('ConversationIdentityStrip', () => {
 		assert.strictEqual(folderChip.getAttribute('aria-haspopup'), 'listbox');
 		assert.strictEqual(folderChip.getAttribute('aria-expanded'), 'false');
 		assert.ok(folderChip.querySelector('.codicon-chevron-down'));
-		assert.ok(engineChip.querySelector('.codicon-chevron-right'));
-		assert.strictEqual(engineChip.querySelector('.codicon-chevron-down'), null);
+		assert.ok(engineChip.querySelector('.codicon-chevron-down'));
+		assert.strictEqual(engineChip.querySelector('.codicon-chevron-right'), null);
 		assert.strictEqual(folderChip.textContent, 'testWorkspace');
 
 		folderChip.click();

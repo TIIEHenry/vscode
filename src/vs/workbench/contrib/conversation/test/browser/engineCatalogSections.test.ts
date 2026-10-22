@@ -687,7 +687,6 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
-		const dialog = instantiationService.get(IDialogService) as TestDialogService;
 		const section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
 		section.setSectionActive(true);
 		section.layout(640, 640);
@@ -703,9 +702,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		deleteButton.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(deleteCalls, []);
-
-		dialog.setConfirmResult({ confirmed: true });
-		deleteButton.click();
+		const confirm = document.querySelector('.engine-confirm-popover-confirm') as HTMLButtonElement | null;
+		assert.ok(confirm);
+		confirm.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(deleteCalls, [{ id: 'review' }]);
 		parent.remove();
@@ -5523,9 +5522,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 					throw new Error('remove boom');
 				},
 			});
-			const dialog = new TestDialogService();
-			dialog.setConfirmResult({ confirmed: true });
-			const section = mountMcpSection(connection, dialog);
+			const section = mountMcpSection(connection);
 			await flushMicrotasks();
 			assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
 			const status = (section as unknown as { status: { render(options: { readonly mode: string }): void } }).status;
@@ -5541,6 +5538,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.strictEqual(remove.textContent, '');
 			assert.ok(remove.classList.contains('codicon-trash'));
 			remove.click();
+			const confirm = document.querySelector('.engine-confirm-popover-confirm') as HTMLButtonElement | null;
+			assert.ok(confirm);
+			confirm.click();
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],

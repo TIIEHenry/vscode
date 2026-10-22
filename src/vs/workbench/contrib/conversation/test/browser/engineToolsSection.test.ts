@@ -249,6 +249,8 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			listTools: async () => ({
 				tools: [
 					{ name: 'circle_invite', description: 'Invite someone', category: 'social' },
+					{ name: 'sys_memory_info', description: 'Memory usage', category: 'SYSTEM' },
+					{ name: 'yaml_process', description: 'Process YAML', category: 'DATA_PROCESSING' },
 					{ name: 'sys_tool_search' },
 					{ name: 'blank-desc', description: '  ', category: '  ' },
 				],
@@ -260,9 +262,8 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 
 		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')] as HTMLElement[];
 		const heights = rows.map(row => row.style.height);
-		assert.ok(heights.includes('44px'));
-		assert.ok(heights.includes('28px'));
-		assert.ok(!heights.includes('48px'));
+		assert.ok(heights.length > 0);
+		assert.ok(heights.every(height => height === '24px'));
 		for (const row of rows) {
 			assert.notStrictEqual(row.style.lineHeight, '48px');
 		}
@@ -271,12 +272,20 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.ok(described);
 		const description = described!.querySelector('.engine-catalog-description') as HTMLElement;
 		assert.strictEqual(description.style.display, '');
-		assert.strictEqual(description.textContent, 'social — Invite someone');
+		assert.strictEqual(description.textContent, 'Social — Invite someone');
+
+		const system = rows.find(row => row.textContent?.includes('sys_memory_info'));
+		assert.ok(system);
+		assert.strictEqual(system!.querySelector('.engine-catalog-description')?.textContent, 'System — Memory usage');
+
+		const dataProcessing = rows.find(row => row.textContent?.includes('yaml_process'));
+		assert.ok(dataProcessing);
+		assert.strictEqual(dataProcessing!.querySelector('.engine-catalog-description')?.textContent, 'Data Processing — Process YAML');
 
 		for (const name of ['sys_tool_search', 'blank-desc']) {
 			const plain = rows.find(row => row.querySelector('.engine-catalog-name')?.textContent === name);
 			assert.ok(plain, name);
-			assert.strictEqual(plain!.style.height, '28px');
+			assert.strictEqual(plain!.style.height, '24px');
 			assert.strictEqual((plain!.querySelector('.engine-catalog-description') as HTMLElement).style.display, 'none');
 		}
 	});

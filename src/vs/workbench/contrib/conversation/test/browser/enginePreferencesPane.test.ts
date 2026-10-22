@@ -8,7 +8,7 @@ import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { createEmptyCapabilitySnapshot, readConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { writeStatus } from '../../browser/connectionPreferencesPane.js';
@@ -570,7 +570,7 @@ suite('EnginePreferencesPane', () => {
 					{ providerId: 'anthropic', brand: 'Anthropic', protocol: 'anthropic', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: true },
 					{ providerId: 'google', brand: 'Google', protocol: 'google', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false },
 					{ providerId: 'local', brand: 'Local', protocol: 'openai', configured: true, credentialSource: 'FILE', hasBaseUrl: true, enabled: true },
-					{ providerId: 'other', brand: 'Other', protocol: 'openai', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: true },
+					{ providerId: 'other', brand: 'Other', protocol: 'openai', configured: true, credentialSource: 'BUILTIN_ENV', hasBaseUrl: true, enabled: true },
 				],
 			}),
 		});
@@ -594,6 +594,10 @@ suite('EnginePreferencesPane', () => {
 		const providersLoaded = navBadge('Providers');
 		assert.strictEqual(providersLoaded.textContent, '5', 'Providers count is status rows, including disabled');
 		assert.notStrictEqual(providersLoaded.style.display, 'none');
+		assert.deepStrictEqual(
+			[...container.querySelectorAll('.engine-provider-pill--muted')].map(pill => pill.textContent),
+			['Provider env', 'File', 'Built-in env'],
+		);
 
 		models = [...models, model('sonnet', 'anthropic', false)];
 		onDidChangeConnection.fire(snapshot());
@@ -677,6 +681,13 @@ suite('EnginePreferencesPane', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
+			// These three sections list only when the snapshot advertises SUPPORTED.
+			conversationEntryCapability: {
+				...readConversationEntryCapability(undefined),
+				listTriggers: 'SUPPORTED',
+				listClipboard: 'SUPPORTED',
+				listContextVariable: 'SUPPORTED',
+			},
 		});
 		const connection = createConnectionStub(true, {
 			isEngineConnected: () => connected && !pairingPending,

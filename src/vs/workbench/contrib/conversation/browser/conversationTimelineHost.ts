@@ -439,6 +439,7 @@ export class ConversationTimelineHost extends Disposable {
 		this.updateChrome();
 	}
 
+	/** Rows no longer mount the composer. This only finds a host a row still has. */
 	getTurnEditHost(turnId: string): HTMLElement | undefined {
 		if (this.editingTurnId !== turnId) {
 			return undefined;
@@ -906,6 +907,7 @@ export class ConversationTimelineHost extends Disposable {
 		const total = this.latestRoots.length;
 		const tailFrom = Math.max(0, total - CONVERSATION_TIMELINE_CV_TAIL);
 		const showLive = this.options.showLiveChrome?.() ?? false;
+		const latestAssistantId = this.latestAssistantRootId();
 		for (let index = 0; index < this.latestRoots.length; index++) {
 			const root = this.latestRoots[index]!;
 			const host = this.itemHosts.get(root.id);
@@ -921,8 +923,20 @@ export class ConversationTimelineHost extends Disposable {
 				label: rootAriaLabel(root, showLive),
 				cvVisible: streaming || editing || pending || index >= tailFrom,
 				busy: streaming,
+				latestAssistant: root.id === latestAssistantId,
 			});
 		}
+	}
+
+	/** The newest assistant turn, even when a later fold or user turn follows it. */
+	private latestAssistantRootId(): string | undefined {
+		for (let index = this.latestRoots.length - 1; index >= 0; index--) {
+			const root = this.latestRoots[index]!;
+			if (root.kind === 'item' && root.item.variant === 'turn' && root.item.turn.kind === 'assistant') {
+				return root.id;
+			}
+		}
+		return undefined;
 	}
 
 	private updateRoving(): void {

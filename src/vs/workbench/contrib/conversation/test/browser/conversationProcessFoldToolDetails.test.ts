@@ -141,22 +141,60 @@ suite('ConversationProcessFoldToolDetails', () => {
 			},
 		});
 		const container = renderFold(foldOptions({ showToolInvocationDetails: true }), toolSpan(turn));
-		const row = container.querySelector('.conversation-process-fold-tool') as HTMLElement;
-		assert.ok(row);
+		const card = container.querySelector('.conversation-file-edit-card') as HTMLElement;
+		assert.ok(card);
+		assert.strictEqual(card.querySelector('.conversation-file-edit-title')?.textContent, 'Edited 1 file');
 
-		const diffStats = row.querySelector('.conversation-process-fold-tool-diff-stats');
+		const diffStats = card.querySelector('.conversation-file-edit-stats');
 		assert.ok(diffStats);
 		assert.strictEqual(diffStats.textContent, '+3 \u22121');
-		assert.ok(row.classList.contains('conversation-process-fold-tool--file'));
 		assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-add')?.textContent, '+3');
 		assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-del')?.textContent, '\u22121');
+		assert.strictEqual(card.querySelector('.conversation-file-edit-path')?.textContent, 'file.ts');
 
-		const body = row.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
-		assert.ok(body);
-		const diffArea = body.querySelector('.conversation-process-fold-tool-diff') as HTMLElement;
+		const diffArea = card.querySelector('.conversation-file-edit-diff') as HTMLElement;
 		assert.ok(diffArea);
+		assert.strictEqual(diffArea.hidden, false);
 		assert.ok(diffArea.textContent?.includes('-one'));
 		assert.ok(diffArea.textContent?.includes('+two'));
+	});
+
+	test('consecutive file edits share one card and sum the diff stats', () => {
+		const first = toolTurn({
+			id: 'edit-a',
+			toolName: 'file_edit',
+			metadata: {
+				diff: '--- a\n+++ b\n-one\n+two',
+				filediff: { file: 'docs/a.md', additions: 30, deletions: 10 },
+			},
+		});
+		const second = toolTurn({
+			id: 'edit-b',
+			toolName: 'file_edit',
+			metadata: {
+				diff: '--- a\n+++ b\n-x\n+y',
+				filediff: { file: 'scene/library.html', additions: 4, deletions: 3 },
+			},
+		});
+		const span: ProcessFoldSpan = {
+			id: 'fold:edit-a',
+			startIndex: 0,
+			endIndex: 2,
+			turnIds: [first.id, second.id],
+			nodes: [{ kind: 'tool', turn: first }, { kind: 'tool', turn: second }],
+		};
+		const container = renderFold(foldOptions({ isToolExpanded: () => false }), span);
+		assert.strictEqual(container.querySelectorAll('.conversation-file-edit-card').length, 1);
+		assert.strictEqual(container.querySelector('.conversation-file-edit-title')?.textContent, 'Edited 2 files');
+		assert.strictEqual(container.querySelector('.conversation-file-edit-stats')?.textContent, '+34 \u221213');
+		const paths = [...container.querySelectorAll('.conversation-file-edit-path')].map(item => item.textContent);
+		assert.deepStrictEqual(paths, ['docs/a.md', 'scene/library.html']);
+		const diffs = [...container.querySelectorAll<HTMLElement>('.conversation-file-edit-diff')];
+		assert.strictEqual(diffs.length, 2);
+		assert.ok(diffs.every(item => item.hidden));
+		(container.querySelector('.conversation-file-edit-path') as HTMLButtonElement).click();
+		assert.strictEqual(diffs[0]!.hidden, false);
+		assert.strictEqual(diffs[1]!.hidden, true);
 	});
 
 	test('tool row keeps thinking text visible while the payload body is collapsed', () => {
@@ -247,16 +285,13 @@ suite('ConversationProcessFoldToolDetails', () => {
 			},
 		});
 		const container = renderFold(foldOptions({ showToolInvocationDetails: false }), toolSpan(turn));
-		const row = container.querySelector('.conversation-process-fold-tool') as HTMLElement;
-		assert.ok(row);
-		const header = row.querySelector('.conversation-process-fold-tool-header') as HTMLElement;
-		assert.strictEqual(header.tagName, 'DIV');
-		assert.ok(header.textContent?.includes('file_edit'));
-		assert.ok(header.textContent?.includes('edited file.ts'));
-		assert.strictEqual(row.querySelector('.conversation-process-fold-tool-diff-stats'), null);
-		assert.ok(!header.textContent?.includes('+3'));
-		assert.strictEqual(row.querySelector('.conversation-process-fold-tool-body'), null);
-		assert.strictEqual(row.querySelector('.conversation-process-fold-tool-diff'), null);
+		const card = container.querySelector('.conversation-file-edit-card') as HTMLElement;
+		assert.ok(card);
+		assert.strictEqual(card.querySelector('.conversation-file-edit-title')?.textContent, 'Edited 1 file');
+		assert.strictEqual(card.querySelector('.conversation-file-edit-path')?.textContent, 'file.ts');
+		assert.strictEqual(card.querySelector('.conversation-file-edit-stats'), null);
+		assert.ok(!card.textContent?.includes('+3'));
+		assert.strictEqual(card.querySelector('.conversation-file-edit-diff'), null);
 	});
 
 	test('file_edit tool row without metadata keeps plain tool summary without diff stats', () => {
@@ -265,11 +300,11 @@ suite('ConversationProcessFoldToolDetails', () => {
 			summary: 'edited file.ts',
 		});
 		const container = renderFold(foldOptions({ showToolInvocationDetails: true }), toolSpan(turn));
-		const row = container.querySelector('.conversation-process-fold-tool') as HTMLElement;
-		assert.ok(row);
-
-		const diffStats = row.querySelector('.conversation-process-fold-tool-diff-stats');
-		assert.strictEqual(diffStats, null);
+		const card = container.querySelector('.conversation-file-edit-card') as HTMLElement;
+		assert.ok(card);
+		assert.strictEqual(card.querySelector('.conversation-file-edit-path')?.textContent, 'edited file.ts');
+		assert.strictEqual(card.querySelector('.conversation-file-edit-stats'), null);
+		assert.strictEqual(card.querySelector('.conversation-file-edit-diff'), null);
 	});
 
 	test('fillProcessFoldDiffStats weakens zero counts and retains color classes for non-zero counts (V8)', () => {
@@ -327,7 +362,7 @@ suite('ConversationProcessFoldToolDetails', () => {
 			},
 		});
 		const container = renderFold(foldOptions({ showToolInvocationDetails: true }), toolSpan(turn));
-		const diffStats = container.querySelector('.conversation-process-fold-tool-diff-stats') as HTMLElement;
+		const diffStats = container.querySelector('.conversation-file-edit-stats') as HTMLElement;
 		assert.ok(diffStats);
 		assert.strictEqual(diffStats.textContent, '+0 \u22123');
 		assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-add'), null);

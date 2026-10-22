@@ -32,7 +32,7 @@
 .monaco-workbench .part.conversation .conversation-subagent-overlay-backdrop {
 	position: absolute;
 	inset: 0;
-	background-color: var(--vscode-widget-shadow);
+	background-color: color-mix(in srgb, #000 25%, transparent);
 }
 
 .monaco-workbench.hc-black .part.conversation .conversation-subagent-overlay-backdrop,
@@ -53,11 +53,12 @@
 	max-width: 100%;
 	max-height: 100%;
 	overflow: hidden;
-	border-radius: var(--vscode-cornerRadius-large, 12px);
+	border-radius: var(--vscode-cornerRadius-large, 8px);
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
 	background: var(--vscode-editor-background);
-	box-shadow: var(--vscode-shadow-xl, 0 12px 32px rgba(0, 0, 0, 0.28));
-	transition: width 0.2s cubic-bezier(0.2, 0, 0, 1), height 0.2s cubic-bezier(0.2, 0, 0, 1);
+	box-shadow:
+		0 16px 40px color-mix(in srgb, #000 12%, transparent),
+		0 2px 8px color-mix(in srgb, #000 6%, transparent);
 }
 
 :is(.hc-black, .hc-light) .monaco-workbench .part.conversation .conversation-subagent-overlay-card {
@@ -73,13 +74,13 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	height: 36px;
-	min-height: 36px;
+	height: 28px;
+	min-height: 28px;
 	flex-shrink: 0;
 	padding: 0 10px 0 12px;
-	color: var(--vscode-titleBar-activeForeground);
-	background-color: var(--vscode-titleBar-activeBackground);
-	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+	color: var(--vscode-foreground);
+	background-color: transparent;
+	border-bottom: none;
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-title {
@@ -111,7 +112,7 @@
 	flex: 1 1 auto;
 	min-width: 0;
 	font-size: 12px;
-	color: var(--vscode-titleBar-inactiveForeground, var(--vscode-descriptionForeground));
+	color: var(--vscode-descriptionForeground);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -126,7 +127,7 @@
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-actions .monaco-button {
 	border-radius: 4px;
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-actions .monaco-button:active:not(.disabled) {
@@ -138,7 +139,7 @@
 	min-width: 0;
 	min-height: 24px;
 	padding: 0 8px;
-	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+	border-bottom: none;
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-breadcrumb .conversation-agent-breadcrumb {
@@ -157,7 +158,7 @@
 	display: flex;
 	align-items: center;
 	min-height: 24px;
-	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-subagent-overlay-session-bar .conversation-lens-session-bar {

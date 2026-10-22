@@ -48,6 +48,7 @@ import {
 	conversationLensDockRestoreTimeline,
 	conversationLensDockStop,
 	conversationLensDockStopNotGenerating,
+	conversationLensDockAddTitle,
 	conversationLensDockTuneTitle,
 	conversationLensInputMaximizedClass,
 	conversationLensPhasePreFirstClass,
@@ -870,8 +871,8 @@ suite('ConversationLens', () => {
 
 		const leading = bottomBar.querySelector('.conversation-lens-dock-bottom-leading')!;
 		const trailing = bottomBar.querySelector('.conversation-lens-dock-bottom-trailing')!;
-		assert.strictEqual(leading.querySelector('.conversation-lens-dock-add'), null);
-		assert.ok(leading.querySelector('.conversation-lens-dock-tune .codicon-settings-gear'));
+		assert.ok(leading.querySelector('.conversation-lens-dock-add .codicon-add'));
+		assert.ok(leading.querySelector('.conversation-lens-dock-tune .codicon-tools'));
 		assert.ok(leading.querySelector('.conversation-lens-dock-permission .monaco-select-box'));
 		assert.ok(leading.querySelector('.conversation-lens-dock-more .codicon-ellipsis'));
 		assert.ok(trailing.querySelector('.conversation-lens-dock-model .monaco-select-box'));
@@ -1204,6 +1205,21 @@ suite('ConversationLens', () => {
 			assert.strictEqual(radio.getAttribute('aria-disabled'), 'true');
 			assert.strictEqual(radio.title, conversationLensDockPermissionUnavailable);
 		}
+	});
+
+	test('narrow More menu lists Add context before Tool options', () => {
+		const { part } = mountLens({ layoutWidth: LENS_MIN_WIDTH });
+		const slots = getLensSlots(part);
+		const moreButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-more .monaco-button') as HTMLButtonElement;
+		moreButton.click();
+
+		const popup = document.querySelector('.conversation-lens-dock-more-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const add = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].find(item => item.textContent === conversationLensDockAddTitle);
+		const tune = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].find(item => item.textContent === conversationLensDockTuneTitle);
+		assert.ok(add);
+		assert.ok(tune);
+		assert.ok(add.compareDocumentPosition(tune) & Node.DOCUMENT_POSITION_FOLLOWING);
 	});
 
 	test('narrow More menu shows current agent before Tool options', () => {
@@ -1813,14 +1829,25 @@ suite('ConversationLens', () => {
 		assert.strictEqual(textarea.getAttribute('aria-label'), 'Message');
 	});
 
-	test('dock has no Add control or attachments popup', () => {
-		const { part } = mountLens();
+	test('add context lists the session and tools stays a separate button', () => {
+		const { part, stubService } = mountLens();
 		const slots = getLensSlots(part);
-		assert.strictEqual(slots.dock.querySelector('.conversation-lens-dock-add'), null);
-		assert.strictEqual(slots.dock.querySelector('.conversation-lens-dock-attachment-list'), null);
-		assert.strictEqual(slots.dock.querySelector('.chat-attachments-container'), null);
-		assert.strictEqual(slots.dock.querySelector('.chat-setup'), null);
-		assert.strictEqual(document.querySelector('.conversation-lens-dock-add-popup'), null);
+		const sessionId = stubService.createSession();
+		const session = stubService.getSessions().find(item => item.id === sessionId);
+		assert.ok(session);
+		const bottomBar = getComposerBottomBar(slots);
+		const addButton = bottomBar.querySelector('.conversation-lens-dock-add .monaco-button') as HTMLButtonElement;
+		assert.strictEqual(addButton.getAttribute('aria-label'), conversationLensDockAddTitle);
+		assert.ok(bottomBar.querySelector('.conversation-lens-dock-tune .codicon-tools'));
+		addButton.click();
+		const popup = document.querySelector('.conversation-lens-dock-add-popup') as HTMLElement | null;
+		assert.ok(popup);
+		const option = [...popup.querySelectorAll('.conversation-lens-dock-add-option')].find(item => item.textContent === session.title);
+		assert.ok(option);
+		(option as HTMLButtonElement).click();
+		assert.ok(bottomBar.parentElement!.querySelector('.conversation-composer-ref-chip'));
+		assert.strictEqual(document.querySelector('.conversation-lens-dock-attachment-list'), null);
+		assert.strictEqual(document.querySelector('.chat-attachments-container'), null);
 	});
 
 	test('dock tune popup is honest and Templates chrome is gone', () => {
@@ -3619,6 +3646,7 @@ suite('ConversationLens', () => {
 
 		stubService.appendUserTurn(sessionId, 'Click me user');
 		stubService.appendStubEchoAssistant(sessionId, 'Copy me assistant');
+		stubService.appendStubEchoAssistant(sessionId, 'Later reply');
 		stubService.appendThinkingTurn(sessionId, 'Thinking summary');
 		stubService.appendToolTurn(sessionId, 'Tool summary');
 		stubService.appendConfirmationTurn(sessionId, 'Confirm this?');
@@ -3647,6 +3675,14 @@ suite('ConversationLens', () => {
 		assert.strictEqual(assistantCopy.getAttribute('aria-label'), conversationLensTurnCopy);
 		assert.strictEqual(assistantRegenerate.getAttribute('aria-label'), conversationLensTurnRegenerate);
 		assert.strictEqual(assistantDelete.getAttribute('aria-label'), conversationLensTurnDelete);
+
+		const assistantTurns = [...queryAllTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]')];
+		assert.strictEqual(assistantTurns.length, 2);
+		assert.strictEqual(assistantTurns[0].closest('article')?.classList.contains('conversation-timeline-item--latest-assistant'), false);
+		assert.strictEqual(assistantTurns[1].closest('article')?.classList.contains('conversation-timeline-item--latest-assistant'), true);
+		const laterBody = assistantTurns[1].querySelector('.conversation-lens-turn-body')!;
+		const laterActions = assistantTurns[1].querySelector('.conversation-lens-turn-actions')!;
+		assert.ok(laterBody.compareDocumentPosition(laterActions) & Node.DOCUMENT_POSITION_FOLLOWING);
 
 		assert.strictEqual(queryTimeline(slots, '.conversation-process-fold-thinking .conversation-lens-turn-actions'), null);
 		assert.strictEqual(queryTimeline(slots, '.conversation-process-fold-tool .conversation-lens-turn-actions'), null);
@@ -3729,7 +3765,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn[data-kind="assistant"]'), null);
 	});
 
-	test('T5 Edit XOR: entering turn edit hosts composer before ListView measure (no 0px warn)', async function () {
+	test('T5 Edit XOR: entering turn edit keeps the dock composer (no 0px warn)', async function () {
 		this.timeout(15000);
 		const { part, lens, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
@@ -3753,10 +3789,6 @@ suite('ConversationLens', () => {
 			const userBody = queryTimeline(slots, '.conversation-lens-turn[data-kind="user"] .conversation-lens-turn-body--clickable') as HTMLElement;
 			assert.ok(userBody);
 			userBody.click();
-			const editHost = queryTimeline(slots, '.conversation-lens-turn-edit-host') as HTMLElement | null;
-			assert.ok(editHost);
-			assert.ok(editHost.querySelector('.conversation-lens-composer'));
-			assert.strictEqual(editHost.style.minHeight, '');
 			layoutReadingColumn();
 			await flushTimelineHeightUpdates();
 			await flushAnimationFrames();
@@ -3766,10 +3798,11 @@ suite('ConversationLens', () => {
 
 		assert.deepStrictEqual(listViewZeroPx, []);
 		assert.strictEqual(countComposers(slots), 1);
-		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer'), null);
+		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
+		assert.strictEqual(queryTimeline(slots, '.conversation-lens-composer'), null);
 	});
 
-	test('T5 Edit XOR: user card click mounts composer with Exit; dock has no composer', async function () {
+	test('T5 Edit XOR: user card click edits in the dock composer and keeps the bottom bar', async function () {
 		this.timeout(15000);
 		const { part, stubService, layoutReadingColumn } = mountLens();
 		const slots = getLensSlots(part);
@@ -3791,16 +3824,19 @@ suite('ConversationLens', () => {
 		await flushAnimationFrames();
 
 		assert.strictEqual(countComposers(slots), 1);
-		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer'), null);
-		const inlineComposer = queryTimeline(slots, '.conversation-lens-turn-edit-host .conversation-lens-composer');
-		assert.ok(inlineComposer);
-		assert.ok(inlineComposer?.querySelector('.conversation-lens-composer-edit-header'));
-		assert.strictEqual(inlineComposer?.querySelector('.conversation-lens-composer-edit-title')?.textContent, conversationLensDockEditingMessage);
+		const dockComposer = slots.dock.querySelector('.conversation-lens-composer');
+		assert.ok(dockComposer);
+		assert.ok(dockComposer.classList.contains('conversation-lens-composer--edit'));
+		assert.ok(dockComposer.querySelector('.conversation-lens-composer-edit-header'));
+		assert.strictEqual(dockComposer.querySelector('.conversation-lens-composer-edit-title')?.textContent, conversationLensDockEditingMessage);
+		assert.ok(dockComposer.querySelector('.conversation-lens-dock-bottom-bar'));
+		assert.strictEqual(queryTimeline(slots, '.conversation-lens-composer'), null);
+		assert.ok(queryTimeline(slots, '.conversation-lens-turn--editing'));
 
-		const textarea = inlineComposer!.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
+		const textarea = dockComposer.querySelector('textarea.conversation-lens-dock-input') as HTMLTextAreaElement;
 		assert.strictEqual(textarea.value, userText);
 
-		const exitButton = inlineComposer!.querySelector('.conversation-lens-composer-edit-exit .monaco-button') as HTMLElement;
+		const exitButton = dockComposer.querySelector('.conversation-lens-composer-edit-exit .monaco-button') as HTMLElement;
 		assert.strictEqual(exitButton.getAttribute('title'), null);
 		assert.strictEqual(exitButton.getAttribute('aria-label'), conversationLensDockEditExit);
 		exitButton.click();
@@ -3809,7 +3845,8 @@ suite('ConversationLens', () => {
 
 		assert.strictEqual(countComposers(slots), 1);
 		assert.ok(slots.dock.querySelector('.conversation-lens-composer'));
-		assert.strictEqual(queryTimeline(slots, '.conversation-lens-turn-edit-host .conversation-lens-composer'), null);
+		assert.strictEqual(slots.dock.querySelector('.conversation-lens-composer--edit'), null);
+		assert.strictEqual(queryTimeline(slots, '.conversation-lens-composer'), null);
 	});
 
 	test('T5 Edit XOR: queue row edit mounts composer in dock and XORs compose', async () => {

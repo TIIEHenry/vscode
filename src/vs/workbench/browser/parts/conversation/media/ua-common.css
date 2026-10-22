@@ -19,6 +19,17 @@
 	--ua-status-selected-fg: var(--vscode-list-activeSelectionForeground);
 	--ua-status-error: var(--vscode-errorForeground);
 	--ua-status-pending: var(--vscode-editorWarning-foreground);
+	/* Sizes stay on platform tokens. These aliases are color and motion only. */
+	--ua-ease: cubic-bezier(0.2, 0, 0, 1);
+	--ua-shadow-sm: 0 1px 2px color-mix(in srgb, var(--vscode-widget-shadow, #000) 25%, transparent);
+	--ua-shadow-md: 0 2px 8px color-mix(in srgb, var(--vscode-widget-shadow, #000) 35%, transparent);
+	--ua-shadow-lg: 0 8px 24px color-mix(in srgb, var(--vscode-widget-shadow, #000) 50%, transparent);
+	--ua-border-subtle: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	--ua-surface-hover: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+	--ua-surface-active: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+	--ua-accent: var(--vscode-focusBorder, #0078d4);
+	--ua-status-ok: var(--vscode-testing-iconPassed, #73c991);
+	--ua-status-warn: var(--vscode-editorWarning-foreground, #cca700);
 }
 
 .monaco-workbench.hc-black,
@@ -28,6 +39,16 @@
 	--ua-status-selected-fg: var(--vscode-list-activeSelectionForeground);
 	--ua-status-error: var(--vscode-errorForeground);
 	--ua-status-pending: var(--vscode-editorWarning-foreground);
+	/* Radii, type, and durations stay inherited (sm/md are not flattened to 0). */
+	--ua-shadow-sm: none;
+	--ua-shadow-md: none;
+	--ua-shadow-lg: none;
+	--ua-border-subtle: var(--vscode-contrastBorder);
+	--ua-surface-hover: var(--vscode-list-hoverBackground);
+	--ua-surface-active: var(--vscode-list-activeSelectionBackground);
+	--ua-accent: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder, #0078d4));
+	--ua-status-ok: var(--vscode-testing-iconPassed, #73c991);
+	--ua-status-warn: var(--vscode-editorWarning-foreground, #cca700);
 }
 
 /* High contrast: focus / selected / error / pending must differ by stroke, not hue alone.
@@ -150,4 +171,33 @@
 	max-width: 72px;
 	max-height: 72px;
 	opacity: 0.28;
+}
+
+/* Forced colors: borders carry composer / button / chip state. Focus is Highlight, not shadow or fill. */
+@media (forced-colors: active) {
+	:is(.monaco-workbench) .part.conversation .conversation-lens-composer,
+	.monaco-workbench .part.conversation .conversation-lens-composer :is(button, .monaco-button),
+	.monaco-workbench .part.conversation :is(.conversation-identity-chip, .conversation-lens-inbox-chip) {
+		border: 1px solid ButtonText !important;
+		background-color: Canvas !important;
+		color: ButtonText !important;
+		box-shadow: none !important;
+	}
+	.monaco-workbench .part.conversation .conversation-lens-composer {
+		border-color: CanvasText !important;
+	}
+	.monaco-workbench .part.conversation .conversation-lens-composer :focus-visible,
+	.monaco-workbench .part.conversation button.conversation-identity-chip:focus-visible,
+	.monaco-workbench .part.conversation button.conversation-lens-inbox-chip:focus-visible,
+	.monaco-workbench .part.conversation :is(.conversation-lens-inbox-goal, .conversation-lens-inbox-stop) button.conversation-lens-inbox-chip:focus-visible {
+		outline: 2px solid Highlight !important;
+		outline-offset: 2px;
+		box-shadow: none !important;
+	}
+	.monaco-workbench .part.conversation .conversation-lens-composer :is(button, .monaco-button):active,
+	.monaco-workbench .part.conversation :is(.conversation-identity-chip, .conversation-lens-inbox-chip):active,
+	.monaco-workbench .part.conversation :is(.conversation-identity-chip, .conversation-lens-inbox-chip)[aria-pressed="true"] {
+		background-color: Canvas !important;
+		border-color: Highlight !important;
+	}
 }

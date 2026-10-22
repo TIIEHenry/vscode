@@ -15,6 +15,7 @@ import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
@@ -30,6 +31,7 @@ import {
 	canShowCatalogRows,
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
+import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote } from './engineSectionChrome.js';
@@ -354,6 +356,7 @@ export class EngineMcpSection extends Disposable {
 	private readonly runtimePanel: EngineMcpRuntimePanel;
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly writeToolbar: HTMLElement;
+	private readonly removeButton: Button;
 	private readonly catalogWriteStatus: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly instantiationService: IInstantiationService;
@@ -378,6 +381,7 @@ export class EngineMcpSection extends Disposable {
 		@ICommandService private readonly commandService: ICommandService,
 		@IAgentSessionContext private readonly sessionContext: IAgentSessionContext,
 		@IDialogService private readonly dialogService: IDialogService,
+		@IContextViewService private readonly contextViewService: IContextViewService,
 	) {
 		super();
 		this.instantiationService = instantiationService;
@@ -414,8 +418,8 @@ export class EngineMcpSection extends Disposable {
 		this._register(addButton.onDidClick(() => void this.promptAddServer().catch(onUnexpectedError).catch(onUnexpectedError)));
 		const updateButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpUpdate', "Update"), Codicon.edit));
 		this._register(updateButton.onDidClick(() => void this.promptUpdateSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
-		const removeButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpRemove', "Remove"), Codicon.trash));
-		this._register(removeButton.onDidClick(() => void this.confirmAndRemoveSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.removeButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpRemove', "Remove"), Codicon.trash));
+		this._register(this.removeButton.onDidClick(() => void this.confirmAndRemoveSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.catalogWriteStatus = DOM.append(this.definitionsPanel, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
 		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
@@ -741,11 +745,12 @@ export class EngineMcpSection extends Disposable {
 			return;
 		}
 		const name = selected.name || selected.id;
-		const { confirmed } = await this.dialogService.confirm({
-			type: 'warning',
+		const confirmed = await showEngineConfirmPopover({
+			contextViewService: this.contextViewService,
+			anchor: this.removeButton.element,
 			message: localize('ua.engineMcpRemoveConfirm', "Remove MCP server \"{0}\"?", name),
 			detail: localize('ua.engineMcpRemoveDetail', "This removes the server definition from the engine."),
-			primaryButton: localize('ua.engineMcpRemove', "Remove"),
+			confirmLabel: localize('ua.engineMcpRemove', "Remove"),
 		});
 		if (!confirmed || this.selectedServer?.id !== selected.id) {
 			return;

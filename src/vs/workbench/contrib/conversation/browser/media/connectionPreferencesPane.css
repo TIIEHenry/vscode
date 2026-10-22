@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 /*
- * D19(1) / E2-7: this pane has no transition, animation, or @keyframes.
- * Do not hang empty `.ua-motion` — reduced-motion is a no-op until a node animates.
+ * Color and opacity transitions are 100ms with --ua-ease
+ * (fallback cubic-bezier(0.2, 0, 0, 1)). There is no @keyframes animation.
+ * .monaco-reduce-motion and prefers-reduced-motion set those transitions to none.
  */
 
 /*
@@ -58,38 +59,40 @@
 }
 
 .monaco-workbench .connection-preferences-nav {
-	flex: 0 0 200px;
-	min-width: 180px;
+	flex: 0 0 210px;
 	box-sizing: border-box;
-	padding: var(--vscode-spacing-size40) 0;
+	padding: 4px 8px 4px 0;
 	border-right: none;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .monaco-workbench .connection-preferences-nav-row {
 	display: flex;
 	align-items: center;
 	box-sizing: border-box;
-	padding: 0 var(--vscode-spacing-size120);
-	margin: 1px var(--vscode-spacing-size40);
-	border-radius: 6px;
-	height: 28px;
+	padding: 0 var(--vscode-spacing-size120, 12px);
+	margin: 1px var(--vscode-spacing-size40, 4px);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	height: 22px;
 	min-width: 0;
 	cursor: pointer;
-	width: calc(100% - var(--vscode-spacing-size40) * 2);
-	transition: background-color 0.12s ease, color 0.12s ease;
+	width: calc(100% - var(--vscode-spacing-size40, 4px) * 2);
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .connection-preferences-nav-row:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
-.monaco-workbench .connection-preferences-nav-row:hover {
-	background: var(--vscode-list-hoverBackground);
+.monaco-workbench .connection-preferences-nav-row:hover:not(.selected) {
+	background: color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
 }
 
 .monaco-workbench .connection-preferences-nav-label {
 	min-width: 0;
-	font-size: var(--vscode-fontSize-body1);
+	font-size: 13px;
+	font-weight: 400;
 	color: var(--vscode-foreground);
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -100,21 +103,15 @@
  * "You are here" has to survive the nav losing focus to the detail column, so the marker hangs
  * off `.selected` rather than the list's focus styling.
  */
-.monaco-workbench .connection-preferences-nav-row.selected {
-	background: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
-}
-
-.monaco-workbench .connection-preferences-nav-row.selected .connection-preferences-nav-label {
-	font-weight: var(--vscode-fontWeight-semiBold);
-	color: var(--vscode-list-inactiveSelectionForeground, var(--vscode-foreground));
-}
-
+.monaco-workbench .connection-preferences-nav-row.selected,
 .monaco-workbench .connection-preferences-nav .monaco-list:focus .connection-preferences-nav-row.selected {
-	background: var(--vscode-list-activeSelectionBackground);
+	background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 }
 
+.monaco-workbench .connection-preferences-nav-row.selected .connection-preferences-nav-label,
 .monaco-workbench .connection-preferences-nav .monaco-list:focus .connection-preferences-nav-row.selected .connection-preferences-nav-label {
-	color: var(--vscode-list-activeSelectionForeground);
+	font-weight: 400;
+	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .connection-preferences-nav-row.selected::before {
@@ -129,6 +126,18 @@
 	width: 2px;
 	border-radius: 2px;
 	background: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-nav .monaco-list-row,
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-nav .monaco-list:focus .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-nav .monaco-list:focus .monaco-list-row.selected,
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-nav .monaco-list:focus .monaco-list-row.focused.selected {
+	outline: none !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .connection-preferences-nav .monaco-list:focus-visible .monaco-list-row.focused {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px;
 }
 
 .monaco-workbench .connection-preferences-detail {
@@ -186,16 +195,24 @@
 	border-right: none;
 }
 
+.monaco-workbench .connection-preferences-pane.is-mid:not(.is-showing-detail) .connection-preferences-nav {
+	flex: 0 1 280px;
+	width: min(100%, 280px);
+}
+
 .monaco-workbench .connection-preferences-back {
 	flex: 0 0 auto;
+	height: 26px;
 	border: var(--vscode-strokeThickness) solid var(--vscode-button-border, transparent);
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background: var(--vscode-button-secondaryBackground);
 	color: var(--vscode-button-secondaryForeground);
-	padding: var(--vscode-spacing-size40) var(--vscode-spacing-size80);
+	padding: 4px 10px;
 	font-size: var(--vscode-fontSize-label1);
+	font-weight: 400;
 	cursor: pointer;
-	transition: background-color 0.1s ease, color 0.1s ease;
+	box-sizing: border-box;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .connection-preferences-back:active {
@@ -207,13 +224,14 @@
 }
 
 .monaco-workbench .connection-preferences-back:focus-visible {
-	outline: none;
-	box-shadow: 0 0 0 2px color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
-	background: var(--vscode-button-secondaryHoverBackground);
+	outline: 2px solid var(--vscode-focusBorder);
+	outline-offset: 2px;
+	box-shadow: none;
+	background: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
 }
 
 :is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-back:focus-visible {
-	outline: 1px solid var(--vscode-contrastActiveBorder);
+	outline: 1px solid var(--vscode-contrastBorder);
 	box-shadow: none;
 }
 
@@ -230,7 +248,7 @@
 	margin-top: var(--vscode-spacing-size160);
 	padding: var(--vscode-spacing-size120);
 	border: var(--vscode-strokeThickness) solid var(--vscode-widget-border, var(--vscode-contrastBorder));
-	border-radius: var(--vscode-cornerRadius-small);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background: var(--vscode-editorWidget-background);
 }
 
@@ -251,15 +269,26 @@
 	min-width: 64px;
 	height: 26px;
 	padding: 4px 14px;
-	border-radius: 6px;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
 	font-size: var(--vscode-fontSize-label1);
-	font-weight: 500;
+	font-weight: 400;
 	box-sizing: border-box;
-	transition: background-color 0.12s ease, color 0.12s ease;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .connection-preferences-pane .monaco-button:active:not(.disabled) {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
+.monaco-workbench .connection-preferences-pane .monaco-button.is-danger:not(.disabled) {
+	border-color: transparent !important;
+	background-color: transparent !important;
+	color: var(--vscode-errorForeground) !important;
+}
+
+.monaco-workbench .connection-preferences-pane .monaco-button.is-danger:not(.disabled):hover {
+	background-color: color-mix(in srgb, var(--vscode-errorForeground) 10%, transparent) !important;
+	color: var(--vscode-errorForeground) !important;
 }
 
 /* Setting Item rhythm: vertical stacked title -> description -> control */
@@ -281,17 +310,21 @@
 	margin-top: var(--vscode-spacing-size80);
 }
 
-.monaco-workbench .connection-preferences-pane .connection-field-row > label {
+.monaco-workbench .connection-preferences-pane .connection-field-row > label,
+.monaco-workbench .connection-preferences-pane .ua-setting-copy > label,
+.monaco-workbench .connection-preferences-pane .connection-toggle-label {
 	flex: 0 0 auto;
-	font-size: 13px;
-	font-weight: var(--vscode-fontWeight-semiBold);
-	color: var(--vscode-settings-headerForeground, var(--vscode-foreground));
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--vscode-foreground);
 	line-height: 18px;
 	overflow-wrap: anywhere;
 }
 
-.monaco-workbench .connection-preferences-pane .connection-field-description {
+.monaco-workbench .connection-preferences-pane .connection-field-description,
+.monaco-workbench .connection-preferences-pane .connection-toggle-description {
 	font-size: var(--vscode-fontSize-label1);
+	font-weight: 400;
 	color: var(--vscode-descriptionForeground);
 	line-height: 16px;
 	margin-bottom: 2px;
@@ -317,26 +350,52 @@
 	flex-direction: column;
 	gap: 2px;
 	cursor: pointer;
-	transition: opacity 0.12s ease;
+	transition: opacity 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .connection-preferences-pane .connection-toggle-details:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
-.monaco-workbench .connection-preferences-pane .connection-toggle-label {
-	font-size: 13px;
-	font-weight: var(--vscode-fontWeight-semiBold);
-	color: var(--vscode-settings-headerForeground, var(--vscode-foreground));
-	cursor: pointer;
-	user-select: none;
-}
-
+.monaco-workbench .connection-preferences-pane .connection-toggle-label,
 .monaco-workbench .connection-preferences-pane .connection-toggle-description {
-	font-size: var(--vscode-fontSize-label1);
-	color: var(--vscode-descriptionForeground);
 	cursor: pointer;
 	user-select: none;
+}
+
+.monaco-workbench .connection-preferences-pane .ua-setting-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	column-gap: 16px;
+	padding: 14px 0;
+	margin-bottom: 0;
+	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+}
+
+.monaco-workbench .connection-preferences-pane .ua-setting-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.monaco-workbench .connection-preferences-pane .ua-setting-row > .connection-field-input {
+	width: 240px;
+	max-width: 46%;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox {
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+}
+
+.monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox.synthetic-focus,
+.monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox:focus-within {
+	border-color: var(--vscode-focusBorder) !important;
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox {
+	border-color: var(--vscode-contrastBorder) !important;
 }
 
 .monaco-workbench .connection-preferences-pane.is-narrow .connection-field-row:not(.connection-toggle-row) {
@@ -358,7 +417,8 @@
 .monaco-workbench .connection-preferences-pane .connection-status {
 	margin-top: var(--vscode-spacing-size80);
 	margin-bottom: var(--vscode-spacing-size120);
-	font-size: var(--vscode-fontSize-label1);
+	font-size: 13px;
+	font-weight: 400;
 	line-height: 18px;
 	color: var(--vscode-descriptionForeground);
 	overflow-wrap: anywhere;
@@ -373,80 +433,75 @@
 	flex: 0 0 auto;
 }
 
-.monaco-workbench .connection-preferences-pane .connection-status.is-success {
+.monaco-workbench .connection-preferences-pane .connection-status.is-success,
+.monaco-workbench .connection-preferences-pane .connection-status.is-pending,
+.monaco-workbench .connection-preferences-pane .connection-status.is-warning,
+.monaco-workbench .connection-preferences-pane .connection-status.is-error {
 	display: flex;
 	align-items: flex-start;
 	gap: 6px;
 	padding: 6px 10px;
-	border-radius: var(--vscode-cornerRadius-small, 2px);
-	background: var(--vscode-inputValidation-infoBackground, rgba(0, 128, 0, 0.08));
-	border: var(--vscode-strokeThickness) solid var(--vscode-inputValidation-infoBorder, rgba(0, 128, 0, 0.25));
-	color: var(--vscode-testing-iconPassed);
+	border: none;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+}
+
+.monaco-workbench .connection-preferences-pane .connection-status.is-success {
+	background: color-mix(in srgb, var(--ua-status-ok, var(--vscode-testing-iconPassed)) 12%, transparent);
+	color: var(--ua-status-ok, var(--vscode-testing-iconPassed));
 }
 
 .monaco-workbench .connection-preferences-pane .connection-status.is-success::before {
 	content: '\ea5e';
 	font-family: codicon;
-	font-size: 14px;
+	font-size: 16px;
 	line-height: 18px;
 	flex-shrink: 0;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-status.is-pending {
-	display: flex;
-	align-items: flex-start;
-	gap: 6px;
-	padding: 6px 10px;
-	border-radius: var(--vscode-cornerRadius-small, 2px);
-	background: var(--vscode-inputValidation-infoBackground, rgba(0, 128, 255, 0.08));
-	border: var(--vscode-strokeThickness) solid var(--vscode-inputValidation-infoBorder, rgba(0, 128, 255, 0.25));
+	background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-status.is-pending::before {
 	content: '\ea77';
 	font-family: codicon;
-	font-size: 14px;
+	font-size: 16px;
 	line-height: 18px;
 	flex-shrink: 0;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-status.is-warning {
-	display: flex;
-	align-items: flex-start;
-	gap: 6px;
-	padding: 6px 10px;
-	border-radius: var(--vscode-cornerRadius-small, 2px);
-	background: var(--vscode-inputValidation-warningBackground);
-	border: var(--vscode-strokeThickness) solid var(--vscode-inputValidation-warningBorder);
-	color: var(--vscode-inputValidation-warningForeground, var(--vscode-editorWarning-foreground));
+	background: color-mix(in srgb, var(--ua-status-warn, var(--vscode-editorWarning-foreground)) 12%, transparent);
+	color: var(--ua-status-warn, var(--vscode-editorWarning-foreground));
 }
 
 .monaco-workbench .connection-preferences-pane .connection-status.is-warning::before {
 	content: '\ea6c';
 	font-family: codicon;
-	font-size: 14px;
+	font-size: 16px;
 	line-height: 18px;
 	flex-shrink: 0;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-status.is-error {
-	display: flex;
-	align-items: flex-start;
-	gap: 6px;
-	padding: 6px 10px;
-	border-radius: var(--vscode-cornerRadius-small, 2px);
 	background: color-mix(in srgb, var(--vscode-errorForeground) 12%, transparent);
-	border: none;
-	color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground));
+	color: var(--vscode-errorForeground);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-status.is-error::before {
 	content: '\ea87';
 	font-family: codicon;
-	font-size: 14px;
+	font-size: 16px;
 	line-height: 18px;
 	flex-shrink: 0;
+}
+
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-pane .connection-status.is-success,
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-pane .connection-status.is-pending,
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-pane .connection-status.is-warning,
+:is(.hc-black, .hc-light) .monaco-workbench .connection-preferences-pane .connection-status.is-error {
+	border: var(--vscode-strokeThickness) solid var(--vscode-contrastBorder);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-environment-notice {
@@ -454,8 +509,9 @@
 	padding: var(--vscode-spacing-size100) var(--vscode-spacing-size120);
 	border: none;
 	background: color-mix(in srgb, var(--vscode-editorWarning-foreground, var(--vscode-foreground)) 12%, transparent);
-	border-radius: var(--vscode-cornerRadius-small);
-	font-size: var(--vscode-fontSize-label1);
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	font-size: 13px;
+	font-weight: 400;
 	overflow-wrap: anywhere;
 }
 
@@ -465,7 +521,8 @@
 	border: none;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
-	font-size: var(--vscode-fontSize-label1);
+	font-size: 13px;
+	font-weight: 400;
 	color: var(--vscode-descriptionForeground);
 	overflow-wrap: anywhere;
 }
@@ -482,7 +539,7 @@
 }
 
 .monaco-workbench .connection-preferences-pane .connection-hub-directory-banner.is-success {
-	color: var(--vscode-testing-iconPassed);
+	color: var(--ua-status-ok, var(--vscode-testing-iconPassed));
 }
 
 .monaco-workbench .connection-preferences-pane .connection-direct-address-hint,
@@ -491,7 +548,8 @@
 .monaco-workbench .connection-preferences-pane .connection-hub-encryption-hint,
 .monaco-workbench .connection-preferences-pane .connection-hub-must-change-hint,
 .monaco-workbench .connection-remote-io-hint {
-	font-size: var(--vscode-fontSize-label1);
+	font-size: 13px;
+	font-weight: 400;
 	line-height: 18px;
 	color: var(--vscode-descriptionForeground);
 	max-width: 560px;
@@ -572,14 +630,15 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	font-size: var(--vscode-fontSize-label1);
+	font-size: 13px;
+	font-weight: 400;
 	color: var(--vscode-descriptionForeground);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-heading {
 	margin: var(--vscode-spacing-size160) 0 var(--vscode-spacing-size80) 0;
-	font-size: var(--vscode-fontSize-label1);
-	font-weight: var(--vscode-fontWeight-semiBold);
+	font-size: 14px;
+	font-weight: 600;
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-list {
@@ -590,14 +649,15 @@
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row {
 	padding: var(--vscode-spacing-size40) var(--vscode-spacing-size80);
-	border-radius: var(--vscode-cornerRadius-xSmall);
-	font-size: var(--vscode-fontSize-label1);
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
+	font-size: 13px;
+	font-weight: 400;
 	cursor: pointer;
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:focus-visible {
@@ -637,4 +697,22 @@
 .monaco-workbench .connection-preferences-pane.is-narrow .connection-test-status {
 	flex: 1 1 100%;
 	min-width: 0;
+}
+
+.monaco-workbench.monaco-reduce-motion .connection-preferences-pane .monaco-button,
+.monaco-workbench.monaco-reduce-motion .connection-preferences-pane .connection-preferences-nav-row,
+.monaco-workbench.monaco-reduce-motion .connection-preferences-pane .connection-preferences-back,
+.monaco-workbench.monaco-reduce-motion .connection-preferences-pane .connection-engine-pending-row,
+.monaco-workbench.monaco-reduce-motion .connection-preferences-pane .connection-toggle-details {
+	transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.monaco-workbench .connection-preferences-pane .monaco-button,
+	.monaco-workbench .connection-preferences-pane .connection-preferences-nav-row,
+	.monaco-workbench .connection-preferences-pane .connection-preferences-back,
+	.monaco-workbench .connection-preferences-pane .connection-engine-pending-row,
+	.monaco-workbench .connection-preferences-pane .connection-toggle-details {
+		transition: none;
+	}
 }

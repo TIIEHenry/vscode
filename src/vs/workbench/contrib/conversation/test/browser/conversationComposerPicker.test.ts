@@ -58,7 +58,7 @@ suite('Conversation composer picker', () => {
 			await action.run();
 			contextViewService.hideContextView();
 		};
-		return { select, changes, hidden: () => hidden, actions, run, isOpen: () => !!delegate, disposables };
+		return { select, changes, hidden: () => hidden, actions, run, isOpen: () => !!delegate, menu: () => delegate, disposables };
 	}
 
 	const press = (target: Element) => target.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 }));
@@ -69,9 +69,11 @@ suite('Conversation composer picker', () => {
 	};
 
 	test('pressing the control opens the workbench menu with the current value checked', () => {
-		const { select, actions, isOpen, disposables } = setup(['gpt-4o', 'ark-code-latest'], 1);
+		const { select, actions, isOpen, menu, disposables } = setup(['gpt-4o', 'ark-code-latest'], 1);
 		press(select);
 		assert.strictEqual(isOpen(), true);
+		assert.strictEqual(menu()?.getMenuClassName?.(), 'conversation-composer-picker-menu');
+		assert.strictEqual(menu()?.skipTelemetry, true);
 		assert.strictEqual(select.getAttribute('aria-haspopup'), 'menu');
 		assert.strictEqual(select.getAttribute('aria-expanded'), 'true');
 		const items = actions();

@@ -63,7 +63,7 @@
 	box-sizing: border-box;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	color: var(--vscode-descriptionForeground);
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
 }
 
 .monaco-workbench .part.conversation > .conversation-region-chrome .title-actions .action-label.codicon {
@@ -140,7 +140,7 @@
 	color: var(--vscode-descriptionForeground) !important;
 	line-height: 20px;
 	overflow: hidden;
-	transition: background-color 0.12s ease;
+	transition: background-color 100ms ease;
 }
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:active:not(.disabled),

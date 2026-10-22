@@ -3,14 +3,17 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-21
-summary: "2026-10-21：注册表有模型时 Model 菜单不混入 No model；引擎工作根文件夹芯片只读；用户回合靠右且不超过列宽 82%。Engine 左栏 15 节。PRD-025 仍 accepted。"
+updated: 2026-10-23
+summary: "2026-10-23：UI 视觉收口——Preferences 分段页签、Connection 禁用态、用户回合对齐、会话主列最小宽度、Trajectory 单行高度、工具分类 Title Case；相关单测 513 passing。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **UI 视觉收口（2026-10-23）**：Preferences 的 `Connection | Engine` 分段页签收到 28px 轨道、12px 字号，选中项去投影和加粗并补焦点描边；Connection 空表单时 `Sign in` 禁用为 secondary，带 `aria-disabled` 与原因提示。对话用户回合（含 pending）统一右对齐、`max-width: 82%`，会话主列最小 450px；Trajectory 单行表格按内容收缩；Sessions compact 行保留副标题；Engine Providers 行高收紧，凭据标签与工具分类（`SYSTEM` / `BASE` / `PLANNING` 等）改 Title Case。layout 测试补 `ITitleService` / `IAuxiliaryWindowService` / `IViewDescriptorService` / `IPaneCompositePartService` 桩，并释放 `LayoutStateModel` 与 zen-mode 监听。相关单测 470 passing，`conversationSessionsView` 43 passing；docs health 通过（仅既有断链警告）。
+- **ChatGPT 主参照选定（2026-10-21）**：用户回合保持细边卡片；最新一条助手动作行在正文流里常显，更早的不占行高，悬停或焦点才出现。按钮只有复制、重新生成、删除、在轨迹中查看。草稿 13px，正文 13px / 1.5。代码块有语言名和复制钮，8% 描边。「+」加会话上下文，Tool options 是旁边的 tools 按钮。Connection 允许私网是复选框。状态条和配对框用 `cornerRadius.small`。Provider 启用标记只读，尺寸 34×20。在线点、chevron、思考摘要和完成勾已有扫描或单测。回到底部圆钮有 8% 描边和投影，键盘焦点可见。S0 取样和 S5 深色梯度未做。见 [chatgpt-visual-language](../plans/chatgpt-visual-language.md)。
+- **ChatGPT 主参照（2026-10-21，只改文档）**：视觉以 ChatGPT 为主参照，取内容为主和状态清晰，尺寸按 IDE 换算。PRD-028 增补验收 12、13。规范增加 §1.1 换算表、原则八、原则九。方案 [chatgpt-visual-language](../plans/chatgpt-visual-language.md) 仍 `draft`。Grok 只读审查的 Critical 与 Important 已改入。选定见上一条。
 - **会话模型菜单与阅读面（2026-10-21）**：注册表有模型时 Model 菜单只列真实模型，记下的 id 离开注册表后回到第一个已启用模型；注册表为空时仍只有 No model。引擎工作根的文件夹芯片只显示名称，不打开最近文件夹。用户回合靠右，宽度随正文、不超过阅读列 82%。Providers 状态行有品牌图标、配置药丸和只读启用外观，点击不发启用 RPC。Engine 左栏行高仍是 22px。见 [composer-and-inbox](../../docs/systems/conversation/composer-and-inbox.md)、[lens-and-trajectory](../../docs/systems/conversation/lens-and-trajectory.md)、[engine-catalog](../../docs/systems/workbench/engine-catalog.md)。
 - **Preview Terminal 新建（2026-10-20）**：Terminal 分类的标签栏添加钮与卡片外的空组双击新建终端，和空态按钮同一条命令。空态卡片上的双击不再另开未命名文件。引擎 `openSession` 15 秒无回复、本地 pty host 端口 20 秒未到，则报启动失败并关掉终端。单测 50 passing。未开窗口点按。见 [editor-part-tabs](../../docs/systems/workbench/editor-part-tabs.md)。
 - **Engine Providers / Models 写入（2026-10-19，目录 2026-10-20）**：桌面设置可添加、编辑、清除凭据，并从 CC Switch 与本地 harness 导入；Models 可添加、启用、停用、删除和测试。Providers 同时列出 Singularity 内置预设；桌面再列 models.dev 云端目录，选中一条预填凭据对话框。云端目录不是引擎 RPC。工具栏与行尾是幽灵图标钮。新建和编辑用输入对话框，设置页不放凭据框。密钥不进 `settings.json`。网页不画写控件，也没有云端目录。UniverseAgent 增加 `UpsertModel` / `DeleteModel` / `SetModelEnabled`，本轮未编译该引擎。Models 对话框在 level 之后是 Description、Cost、Speed：编辑留空重发已存值（没有则空串），非空去掉首尾空白，新建留空发空串；level 留空仍发 0。没有 temperature、maxTokens、topP、lanes 或 discovery。Token Usage 在 Models 之后，无参 `getGlobalUsage()`，八项原样显示（含 Total cost micros），无 24h/7d。Refresh 是幽灵图标。缺方法是 unsupported，不是零快照。`getSessionUsage` / `Agent.Usage` 不是这页。左栏 15 节。PRD-025 仍 `accepted`。见 [engine-catalog](../../docs/systems/workbench/engine-catalog.md) 与 [UI 设计原则 §5.6](../../docs/architecture/cross-cutting/ui-design-principles.md)。

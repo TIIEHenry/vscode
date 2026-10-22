@@ -229,6 +229,22 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.strictEqual(clusterFlex, true);
 	});
 
+	test('session unavailable gate row has warning chrome without error-alert styling', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const rules = collectCssRules(css);
+		const warning = rules.find(rule => rule.selector.includes('.conversation-lens-dock-gate-row.is-warning'));
+		assert.ok(warning);
+		assert.match(warning!.body, /inputValidation-warningBackground/);
+		assert.match(warning!.body, /inputValidation-warningBorder/);
+		assert.match(warning!.body, /editorWarning-foreground/);
+		const icon = rules.find(rule => rule.selector.trim().endsWith('.conversation-lens-dock-gate-icon'));
+		assert.ok(icon);
+		assert.match(icon!.body, /font-size\s*:\s*16px/);
+		const hiddenIcon = rules.find(rule => rule.selector.includes('.conversation-lens-dock-gate-icon[hidden]'));
+		assert.ok(hiddenIcon);
+		assert.match(hiddenIcon!.body, /display\s*:\s*none/);
+	});
+
 	test('trajectory table and engine nav rows stay 22px without uppercase kind chrome', () => {
 		const lensCss = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		const engineCss = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css'), 'utf8'));
@@ -239,6 +255,15 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(recordRow, 'trajectory record row must be 22px');
 		const foldHeader = lensRules.find(rule => rule.selector.includes('.conversation-lens-trajectory .conversation-process-fold-header') && /height\s*:\s*22px/.test(rule.body));
 		assert.ok(foldHeader, 'trajectory fold header must be 22px');
+		const table = lensRules.find(rule => rule.selector.trim().endsWith('.conversation-lens-trajectory-table'));
+		assert.ok(table);
+		assert.match(table!.body, /flex\s*:\s*0\s+1\s+auto/);
+		assert.match(table!.body, /max-height\s*:\s*100%/);
+		const tableScroll = lensRules.find(rule => rule.selector.trim().endsWith('.conversation-lens-trajectory-table-scroll'));
+		assert.ok(tableScroll);
+		assert.match(tableScroll!.body, /height\s*:\s*fit-content/);
+		assert.match(tableScroll!.body, /min-height\s*:\s*22px/);
+		assert.match(tableScroll!.body, /max-height\s*:\s*100%/);
 
 		const header = lensRules.find(rule => rule.selector.includes('.conversation-lens-trajectory-table-header'));
 		assert.ok(header);
@@ -270,11 +295,24 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(userBubble);
 		assert.match(userBubble!.body, /color-mix\(in srgb, var\(--vscode-foreground\) 8%, transparent\)/);
 		assert.match(userBubble!.body, /input-background/);
+		assert.match(userBubble!.body, /border-radius:\s*var\(--vscode-cornerRadius-large,\s*8px\)/);
+		assert.ok(!/font-size\s*:/.test(userBubble!.body), 'user bubble inherits the 13px turn body');
 		assert.match(userBubble!.body, /box-shadow:\s*none/);
+		const userBubbleHc = lensRules.find(rule => rule.selector.includes('.hc-black') && rule.selector.includes('.conversation-lens-turn-body--user-bubble') && /border:\s*1px solid var\(--vscode-contrastBorder\)/.test(rule.body));
+		assert.ok(userBubbleHc, 'high contrast user bubble keeps a contrastBorder outline');
 		const userBubbleFocus = lensRules.find(rule => rule.selector.includes('.conversation-lens-turn-body--user-bubble:focus-visible') && !rule.selector.includes('.hc-'));
 		assert.ok(userBubbleFocus);
 		assert.match(userBubbleFocus!.body, /outline:\s*1px solid var\(--vscode-focusBorder\)/);
 		assert.ok(!/box-shadow\s*:\s*0/.test(userBubbleFocus!.body));
+		const userTurn = lensRules.find(rule => rule.selector.trim().endsWith('.conversation-lens-turn--user'));
+		assert.ok(userTurn);
+		assert.match(userTurn!.body, /align-items\s*:\s*flex-end/);
+		const userBubbleLayout = lensRules.find(rule => rule.selector.includes('.conversation-lens-turn--user') && rule.selector.includes('.conversation-lens-turn-body--user-bubble'));
+		assert.ok(userBubbleLayout);
+		assert.match(userBubbleLayout!.body, /align-self\s*:\s*flex-end/);
+		assert.match(userBubbleLayout!.body, /width\s*:\s*fit-content/);
+		assert.match(userBubbleLayout!.body, /max-width\s*:\s*82%/);
+		assert.match(userBubbleLayout!.body, /margin-inline-start\s*:\s*auto/);
 
 		const idleSelection = lensRules.find(rule => rule.selector.includes('.conversation-lens-trajectory-record-row--selected') && !rule.selector.includes(':focus') && rule.body.includes('inactiveSelectionBackground'));
 		assert.ok(idleSelection);
@@ -297,6 +335,23 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(!/badge-background/.test(badge!.body));
 	});
 
+	test('trajectory overview segments keep a distinct color for each kind', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const rules = collectCssRules(css);
+		const kinds = ['user', 'assistant', 'reasoning', 'tool', 'permission', 'compacted', 'error'];
+		const colors: string[] = [];
+		for (const kind of kinds) {
+			const segment = rules.find(candidate => splitSelectorList(candidate.selector).some(selector => selector.replace(/\s+/g, ' ').trim().endsWith(`[data-segment-kind="${kind}"]`))
+				&& /background-color\s*:/.test(candidate.body)
+				&& !candidate.selector.includes('glyph'));
+			assert.ok(segment, `missing segment color for ${kind}`);
+			const color = segment!.body.match(/background-color\s*:\s*([^;]+)/)?.[1]?.trim();
+			assert.ok(color, kind);
+			colors.push(color!);
+		}
+		assert.strictEqual(new Set(colors).size, colors.length, colors.join(' | '));
+	});
+
 	test('S5 composer tokens and single-line layout rules', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		const rules = collectCssRules(css);
@@ -307,71 +362,57 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 			return bodyIncludes === undefined || candidate.body.includes(bodyIncludes);
 		});
 
-		// 1. Composer card uses color-mix 8% border and widget shadow tokens without hardcoded rgba
+		// 1. Composer card: 20px radius, 10% hairline, input fill, faint widget shadow
 		const composer = rules.find(candidate => candidate.selector.trim().endsWith('.conversation-lens-composer') && /border-radius/.test(candidate.body));
 		assert.ok(composer);
-		assert.match(composer!.body, /border:\s*1px solid color-mix\(in srgb, var\(--vscode-foreground\) 8%, transparent\)/);
+		assert.match(composer!.body, /border:\s*1px solid color-mix\(in srgb, var\(--vscode-foreground\) 10%, transparent\)/);
+		assert.match(composer!.body, /input-background/);
+		assert.match(composer!.body, /--conversation-composer-radius:\s*20px/);
+		assert.match(composer!.body, /border-radius:\s*var\(--conversation-composer-radius,\s*20px\)/);
 		assert.match(composer!.body, /var\(--vscode-widget-shadow\)/);
 		assert.ok(!/rgba\(/.test(composer!.body), 'composer card must not use hardcoded rgba in border or shadow');
+		assert.ok(!/#[0-9a-fA-F]{3,8}\b/.test(composer!.body), 'composer card must not hardcode a hex color');
 
-		// 2. Focus state deepens widget shadow without focusBorder or hardcoded rgba
-		const focus = rule('.conversation-lens-composer:focus-within');
+		// 2. Focus deepens the hairline and the existing shadow. No 3px ring, no focusBorder.
+		const focus = rule('.conversation-lens-composer:has(.conversation-lens-dock-input:focus-visible)');
 		assert.ok(focus);
+		assert.ok(focus!.selector.includes('.conversation-lens-composer:focus-within'));
+		assert.match(focus!.body, /border-color:\s*color-mix\(in srgb, var\(--vscode-foreground\) 20%, transparent\)/);
 		assert.match(focus!.body, /var\(--vscode-widget-shadow\)/);
+		assert.ok(!/0\s+0\s+0\s+3px/.test(focus!.body));
 		assert.ok(!/rgba\(/.test(focus!.body), 'composer focus state must not use hardcoded rgba');
 		assert.ok(!/focusBorder/.test(focus!.body));
+		for (const candidate of rules) {
+			if (!candidate.selector.includes('.conversation-lens-composer')) {
+				continue;
+			}
+			if (!/:focus|:focus-within|:focus-visible/.test(candidate.selector)) {
+				continue;
+			}
+			assert.ok(!/0\s+0\s+0\s+3px/.test(candidate.body), candidate.selector);
+		}
 
 		// 3. No dark-theme override with hardcoded rgba
 		const darkComposer = rules.find(candidate => candidate.selector.includes('.vs-dark') && candidate.selector.includes('.conversation-lens-composer'));
 		assert.strictEqual(darkComposer, undefined, 'no vs-dark hardcoded rgba override for composer');
 
-		// 4. Single-line row layout and display: contents
-		const singleLine = rule('.conversation-lens-composer.is-single-line', 'flex-direction: row');
+		// 4. Empty draft keeps a one-line field. Controls stay on the bar under it.
+		const singleLine = rule('.conversation-lens-composer.is-single-line', 'flex-direction: column');
 		assert.ok(singleLine, 'missing .conversation-lens-composer.is-single-line rule');
-		assert.match(singleLine!.body, /align-items:\s*center/);
-
-		const singleLineWrappers = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-input-row');
-		assert.ok(singleLineWrappers);
-		assert.match(singleLineWrappers!.body, /display:\s*contents/);
-
-		// 5. Flex order 1 through 6
-		const tune = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-tune');
-		assert.ok(tune);
-		assert.match(tune!.body, /order:\s*1/);
+		assert.match(singleLine!.body, /align-items:\s*stretch/);
+		assert.match(singleLine!.body, /border-radius:\s*var\(--conversation-composer-radius,\s*20px\)/);
+		assert.ok(!/display:\s*contents/.test(singleLine!.body));
 
 		const input = rules.find(candidate => candidate.selector.includes('.conversation-lens-composer.is-single-line .conversation-lens-dock-input') && !candidate.selector.includes('.conversation-lens-dock-input-row'));
 		assert.ok(input);
-		assert.match(input!.body, /order:\s*2/);
-		assert.match(input!.body, /flex:\s*1 1 0%/);
-
-		const permission = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-permission');
-		assert.ok(permission);
-		assert.match(permission!.body, /order:\s*3/);
-
-		const model = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-model');
-		assert.ok(model);
-		assert.match(model!.body, /order:\s*4/);
-
-		const maximize = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-maximize-input');
-		assert.ok(maximize);
-		assert.match(maximize!.body, /order:\s*5/);
-		assert.match(maximize!.body, /position:\s*static/);
-
-		const send = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-send');
-		assert.ok(send);
-		assert.match(send!.body, /order:\s*6/);
-
-		// 6. Hidden controls in single line
-		const hiddenAgent = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-agent');
-		assert.ok(hiddenAgent);
-		assert.match(hiddenAgent!.body, /display:\s*none\s*!important/);
-
-		const hiddenMore = rule('.conversation-lens-composer.is-single-line .conversation-lens-dock-more');
-		assert.ok(hiddenMore);
-		assert.match(hiddenMore!.body, /display:\s*none\s*!important/);
+		assert.match(input!.body, /min-height:\s*32px/);
+		assert.match(input!.body, /max-height:\s*32px/);
+		assert.match(input!.body, /line-height:\s*32px/);
+		assert.ok(!/height:\s*24px/.test(input!.body));
+		assert.ok(!/display:\s*contents/.test(css), 'single-line no longer flattens the toolbar onto the field');
 	});
 
-	test('composer card uses the Cursor-style capsule input and a 24px neutral send control', () => {
+	test('composer card uses a 20px shell and a 24px neutral send control', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		const dock = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts'), 'utf8');
 		const rule = (selectorIncludes: string, bodyIncludes?: string) => collectCssRules(css).find(candidate => {
@@ -388,13 +429,22 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 
 		const composer = collectCssRules(css).find(candidate => candidate.selector.trim().endsWith('.conversation-lens-composer') && /border-radius/.test(candidate.body));
 		assert.ok(composer);
-		assert.match(composer!.body, /border-radius:\s*20px/);
-		assert.ok(/box-shadow/.test(composer!.body));
+		assert.match(composer!.body, /border-radius:\s*var\(--conversation-composer-radius,\s*20px\)/);
+		assert.match(composer!.body, /box-shadow:\s*0 1px 2px/);
+		assert.match(composer!.body, /input-background/);
 
-		const focus = rule('.conversation-lens-composer:focus-within');
+		const field = rule('.conversation-lens-dock-input', 'padding: 4px 32px 0 16px');
+		assert.ok(field);
+
+		const focus = rule('.conversation-lens-composer:has(.conversation-lens-dock-input:focus-visible)');
 		assert.ok(focus);
 		assert.match(focus!.body, /box-shadow/);
+		assert.ok(!/0\s+0\s+0\s+3px/.test(focus!.body));
 		assert.ok(!/focusBorder/.test(focus!.body));
+
+		const badge = rule('.conversation-lens-dock-maximize-input', 'top: 4px');
+		assert.ok(badge);
+		assert.match(badge!.body, /right:\s*8px/);
 
 		const bar = rule('.conversation-lens-dock-bottom-bar', 'min-height: 28px');
 		assert.ok(bar);
@@ -791,13 +841,18 @@ suite('Conversation lens keyboard focus ring', () => {
 		assert.match(sourcesCss, /\.sources-tab\.selected\s*\{[^}]*background-color:\s*var\(--vscode-toolbar-hoverBackground\)/s);
 		assert.match(sourcesCss, /\.sources-tab\.selected\s*\{[^}]*font-weight:\s*400/s);
 
-		// 3. Engine navigation: 22px, selected toolbar-hoverBackground, font-weight 400
-		assert.match(enginePaneCss, /\.engine-preferences-nav-row\.selected\s*\{[^}]*background:\s*var\(--vscode-toolbar-hoverBackground/s);
+		// 3. Engine navigation: 22px, selected foreground mix, font-weight 400
+		assert.match(enginePaneCss, /\.engine-preferences-nav-row\s*\{[^}]*height:\s*22px/s);
+		assert.match(enginePaneCss, /\.engine-preferences-nav-row\.selected\s*\{[^}]*color-mix\(in srgb, var\(--vscode-foreground\) 8%, transparent\)/s);
 		assert.match(enginePaneCss, /\.engine-preferences-nav-row\.selected \.engine-preferences-nav-label\s*\{[^}]*font-weight:\s*400/s);
+		assert.match(enginePaneCss, /\.engine-preferences-nav \.monaco-list:focus \.monaco-list-row\.focused\.selected\s*\{[^}]*outline:\s*none !important/s);
+		assert.match(enginePaneCss, /\.engine-preferences-nav \.monaco-list:focus-visible \.monaco-list-row\.focused\s*\{[^}]*outline:\s*1px solid var\(--vscode-focusBorder\) !important/s);
+		assert.match(enginePaneCss, /\.engine-preferences-pane input\[type="search"\][\s\S]*?\{[^}]*background-color:\s*color-mix\(in srgb, var\(--vscode-foreground\) 6%, transparent\)/);
+		assert.match(enginePaneCss, /\.engine-preferences-pane input\[type="search"\][\s\S]*?\{[^}]*background-image:/);
 
-		// 4. Engine MCP tabs: 24px height, active toolbar-hoverBackground, font-weight 400
+		// 4. Engine MCP tabs: 24px height, active foreground mix, font-weight 400
 		assert.match(enginePaneCss, /\.engine-mcp-tab\s*\{[^}]*height:\s*24px/s);
-		assert.match(enginePaneCss, /\.engine-mcp-tab--active\s*\{[^}]*background:\s*var\(--vscode-toolbar-hoverBackground\)/s);
+		assert.match(enginePaneCss, /\.engine-mcp-tab--active\s*\{[^}]*color-mix\(in srgb, var\(--vscode-foreground\) 8%, transparent\)/s);
 
 		// 5. Engine catalog group headers and counts
 		assert.match(enginePaneCss, /\.engine-catalog-group\s*\{[^}]*height:\s*24px/s);
@@ -809,10 +864,128 @@ suite('Conversation lens keyboard focus ring', () => {
 		assert.match(enginePaneCss, /\.engine-catalog-row\s*\{[^}]*height:\s*24px/s);
 		assert.match(enginePaneCss, /\.engine-skill-row\s*\{[^}]*height:\s*24px/s);
 
-		// 7. Engine preferences search input: full-width rounded pill
+		// 7. Engine preferences search input: 24px rounded pill
+		assert.match(enginePaneCss, /\.engine-preferences-search-input[^}]*height:\s*24px/s);
 		assert.match(enginePaneCss, /\.engine-preferences-search-input[^}]*border-radius:\s*var\(--vscode-cornerRadius-circle,\s*9999px\)/s);
 
 		// 8. Connection device list isolated row height: 24px
 		assert.match(devListCss, /\.connection-hub-devices-list \.connection-hub-device-row\s*\{[^}]*height:\s*24px/s);
+	});
+
+	test('reading body stays 13px and the latest assistant action row is in document flow', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const rules = collectCssRules(css);
+		const reading = rules.find(rule => rule.selector.trim().endsWith('.conversation-lens-turn-body--reading-text') && /font-size\s*:/.test(rule.body));
+		assert.ok(reading);
+		assert.match(reading!.body, /font-size:\s*13px/);
+		assert.match(reading!.body, /line-height:\s*1\.5/);
+		assert.ok(!/16px/.test(reading!.body));
+
+		const codeBlock = rules.find(rule => rule.selector.trim().endsWith('.conversation-code-block') && /border\s*:/.test(rule.body));
+		assert.ok(codeBlock);
+		assert.match(codeBlock!.body, /color-mix\(in srgb, var\(--vscode-foreground\) 8%, transparent\)/);
+		assert.match(codeBlock!.body, /cornerRadius-medium/);
+		assert.ok(!/border:\s*none/.test(codeBlock!.body));
+
+		const actions = rules.find(rule => rule.selector.trim().endsWith('.conversation-lens-turn-actions') && /position\s*:/.test(rule.body));
+		assert.ok(actions);
+		assert.match(actions!.body, /position:\s*absolute/);
+		assert.ok(!/position:\s*static/.test(actions!.body), 'hidden action rows stay out of flow');
+		const latest = rules.find(rule => rule.selector.includes('.conversation-timeline-item--latest-assistant') && rule.selector.includes('.conversation-lens-turn-actions') && /position\s*:/.test(rule.body));
+		assert.ok(latest);
+		assert.match(latest!.body, /position:\s*static/);
+		assert.match(latest!.body, /opacity:\s*1/);
+		const narrow = rules.find(rule => rule.selector.includes('299px') && rule.selector.includes('.conversation-lens-turn-actions'));
+		assert.strictEqual(narrow, undefined, 'narrow reading column must not force every action row visible');
+	});
+
+	test('status marks stay visible and lens transitions stay within 100ms', () => {
+		const lens = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		assert.ok(!/0\.1[2-9]s/.test(lens), 'conversationLens.css transitions stay at 100ms');
+		const rules = collectCssRules(lens);
+		const hiddenChevron = rules.find(rule => rule.selector.includes('.conversation-process-fold-chevron') && /opacity\s*:\s*0\b/.test(rule.body));
+		assert.strictEqual(hiddenChevron, undefined, 'process-fold chevron stays opaque');
+		const hiddenSummary = rules.find(rule => rule.selector.includes('.conversation-process-fold-thinking-summary') && /display\s*:\s*none/.test(rule.body));
+		assert.strictEqual(hiddenSummary, undefined, 'thinking summary stays in the row');
+
+		const identity = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css'), 'utf8'));
+		const online = collectCssRules(identity).find(rule => rule.selector.trim().endsWith('.conversation-identity-chip-engine::before'));
+		assert.ok(online);
+		assert.match(online!.body, /display:\s*inline-block/);
+		assert.ok(!/display\s*:\s*none/.test(online!.body), 'engine status dot stays visible');
+	});
+
+	test('connection and provider chrome stay on small radii', () => {
+		const connection = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css'), 'utf8'));
+		const connectionRules = collectCssRules(connection);
+		const status = connectionRules.find(rule => rule.selector.includes('.connection-status.is-success') && /border-radius\s*:/.test(rule.body));
+		assert.ok(status);
+		assert.match(status!.body, /cornerRadius-small/);
+		assert.ok(!/border-radius:\s*8px/.test(status!.body));
+		const pairing = connectionRules.find(rule => rule.selector.trim().endsWith('.connection-pairing-confirm') && /border-radius\s*:/.test(rule.body));
+		assert.ok(pairing);
+		assert.match(pairing!.body, /cornerRadius-small/);
+		assert.ok(!/12px/.test(pairing!.body));
+
+		const engine = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css'), 'utf8'));
+		const provider = collectCssRules(engine).find(rule => rule.selector.trim().endsWith('.engine-provider-switch') && /width\s*:/.test(rule.body));
+		assert.ok(provider);
+		assert.match(provider!.body, /width:\s*34px/);
+		assert.match(provider!.body, /height:\s*20px/);
+		assert.ok(!/38px/.test(provider!.body));
+	});
+
+	test('scroll-to-bottom keeps a hairline and user prose uses the reading line-height', () => {
+		const lens = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const rules = collectCssRules(lens);
+		const scrollDown = rules.find(rule => rule.selector.trim().endsWith('.conversation-timeline-scroll-down') && /border\s*:/.test(rule.body));
+		assert.ok(scrollDown);
+		assert.match(scrollDown!.body, /color-mix\(in srgb, var\(--vscode-foreground\) 8%, transparent\)/);
+		assert.match(scrollDown!.body, /var\(--vscode-widget-shadow\)/);
+		assert.ok(!/rgba\(/.test(scrollDown!.body));
+		const keyboard = rules.find(rule => rule.selector.includes('.conversation-timeline-scroll-down:focus-visible'));
+		assert.ok(keyboard);
+		assert.match(keyboard!.body, /focusBorder/);
+		const hc = rules.find(rule => rule.selector.includes('.hc-black') && rule.selector.includes('.conversation-timeline-scroll-down') && /box-shadow\s*:/.test(rule.body));
+		assert.ok(hc);
+		assert.match(hc!.body, /contrastBorder/);
+		assert.match(hc!.body, /box-shadow:\s*none/);
+
+		const bubble = rules.find(rule => rule.selector.trim().endsWith('.conversation-lens-turn-body--user-bubble') && /line-height\s*:/.test(rule.body));
+		assert.ok(bubble);
+		assert.match(bubble!.body, /line-height:\s*1\.5/);
+		assert.ok(!/1\.55/.test(bubble!.body));
+
+		const part = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/browser/parts/conversation/media/conversationPart.css'), 'utf8');
+		const sessions = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationSessions.css'), 'utf8');
+		assert.ok(!/0\.12s/.test(part));
+		assert.ok(!/0\.12s/.test(sessions));
+	});
+
+	test('conversation styles use only whole-pixel font sizes and the 400 / 600 weights', () => {
+		const dirs = ['src/vs/workbench/contrib/conversation/browser/media', 'src/vs/workbench/browser/parts/conversation/media'];
+		for (const dir of dirs) {
+			for (const file of fs.readdirSync(path.join(repoRoot, dir)).filter(name => name.endsWith('.css'))) {
+				const css = stripCssComments(fs.readFileSync(path.join(repoRoot, dir, file), 'utf8'));
+				assert.ok(!/font-size\s*:\s*\d+\.\d+px/.test(css), `${file}: half-pixel font-size`);
+				assert.ok(!/font-weight\s*:\s*(500|700|bold)\b/.test(css), `${file}: font-weight outside 400 / 600`);
+			}
+		}
+	});
+
+	test('session roster selection is a background, not a left bar', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationSessions.css'), 'utf8'));
+		assert.ok(!/\.conversation-sessions-item-active[^{]*\{[^}]*border-left/.test(css));
+		assert.match(css, /\.conversation-sessions-item-icon--failed[\s\S]*errorForeground/);
+		assert.match(css, /\.conversation-sessions-item-more/);
+	});
+
+	test('markdown headings use heading tokens instead of em multipliers', () => {
+		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
+		const headings = collectCssRules(css).filter(rule => rule.selector.includes('.rendered-markdown') && /\bh[1-6]\b/.test(rule.selector) && /font-size\s*:/.test(rule.body));
+		assert.ok(headings.length > 0);
+		for (const heading of headings) {
+			assert.match(heading.body, /font-size:\s*var\(--vscode-fontSize-heading[23]/, heading.selector);
+		}
 	});
 });

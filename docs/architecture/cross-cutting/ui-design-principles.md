@@ -3,8 +3,8 @@ title: "UI 设计原则与规范"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-21
-summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA（PRD-028）：中性底色与强调色约束、排版分层、平台 token 为唯一尺寸来源、密度上限、焦点可见、以面代线、阴影只给浮层（Composer 极淡投影例外）且不用毛玻璃、2026-10-11 用户回合改 Cursor 式卡、主按钮中性近黑、弹出层 / 按钮层级 / 筛选条 / 文档预览 / 目录列表分组规范、行内与工具栏操作以幽灵图标钮为先、错误与会话不可用态（方案仍 draft，S1–S4 已落地）、PC 按压零形变、两级空态；对话阅读面与工程表格组件规范；Agents 窗口追问卡、对话框遮罩和引导页遮罩已去掉毛玻璃，§10 其余差距仍在；2026-10-15 外部密度对照不改本节"
+updated: 2026-10-22
+summary: "视觉语言以 ChatGPT 为主参照、Cursor 作 IDE 布局参照、信息密度参考 IntelliJ IDEA（PRD-028；2026-10-21 用户选定 ChatGPT 主参照、§1.1 桌面换算表、原则八状态清晰、原则九容器有边界）：中性底色与强调色约束、排版分层、平台 token 为唯一尺寸来源、密度上限、焦点可见、以面代线、阴影只给浮层（Composer 极淡投影例外）且不用毛玻璃、2026-10-11 用户回合改 Cursor 式卡、主按钮中性近黑、弹出层 / 按钮层级 / 筛选条 / 文档预览 / 目录列表分组规范、行内与工具栏操作以幽灵图标钮为先、错误与会话不可用态（向 Cursor 靠齐方案已 implemented）、PC 按压零形变、两级空态；对话阅读面与工程表格组件规范；Agents 窗口追问卡、对话框遮罩和引导页遮罩已去掉毛玻璃，§10 其余差距仍在；2026-10-16 那次对照签收不因对照本身改本节，2026-10-21 的选定另计"
 ---
 
 # UI 设计原则与规范
@@ -19,12 +19,37 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 | 参照 | 取什么 | 不取什么 |
 |------|--------|----------|
-| Cursor / ChatGPT | 中性灰阶、克制用色、靠排版分层、chrome 退后、对话正文好读、次要操作悬停才出现 | 商标、图标、像素级外观 |
+| ChatGPT（主参照，2026-10-21 用户选定） | 内容为主：助手正文直接起排，chrome 退后，近白画布、近黑文字、近黑主操作。状态清晰：思考、工具、连接都有一眼可辨的状态。对话结构：用户回合靠右、消息下方一行动作、思考收成一行、代码块带语言与复制头、胶囊 Composer 加实心圆发送 | 16px 正文、44px 侧栏行、48px 胶囊、16px 以上的浮层圆角、移动端触控尺寸；商标、图标、像素级外观 |
+| Cursor | IDE 布局：侧栏 22px 行、元信息同行在右、目录列表分组 | 双行目录行；商标、图标。2026-10-22 起进行中空稿不再把控件和占位符收成同一行 |
 | IntelliJ IDEA | 紧凑行高、元信息常显、表格化的工程视图、键盘优先、焦点清晰、空态一行字 | 竖排工具窗文字、专有图标 |
 
 - **两轨密度**：对话区像 ChatGPT 一样好读，但更紧凑（正文 13px、行高 1.5）；工程区（树、表格、Diff、编辑器、轨迹、Sources）按 IDEA 密度。
+- **极简的意思**：极简是让内容在前、状态清楚，不是把边框、状态灯和层级拿掉。去掉一个状态元素，要在 PRD 或本规范写明（原则八）。
 - **明确不用**：毛玻璃、营销式卡片栅格、大面积强调色、全大写标签、装饰性大插图、按压缩放。
-- **外部对照**：2026-10-15 对 Cursor、ChatGPT、Claude 的取样见 [外部对话界面密度对照](../../reference/external-chat-ui-density.md)。那一页只记录哪些结构收得进本节的密度上限，2026-10-16 用户签收为只读记录，不改本节，也不改 PRD-028。
+- **外部对照**：2026-10-15 对 Cursor、ChatGPT、Claude 的取样见 [外部对话界面密度对照](../../reference/external-chat-ui-density.md)。那一页只记录哪些结构收得进本节的密度上限。2026-10-16 的签收是只读记录，那次签收本身不改本节、也不改 PRD-028；2026-10-21 把 ChatGPT 定为主参照，是另一次选定。
+
+### 1.1 ChatGPT 到桌面的换算
+
+规则：结构、层级和比例照取，尺寸换成本仓 token。对照文里量到的 16px 正文对应 `fontSize.body1` 13px。次级字和元信息用本仓自己的 12px、11px，不从对方未取样的字号换算。行与控件高度按 §4，圆角按 §3.1 分档，只有 Composer 用 20px。不因为「像 ChatGPT」放宽 §4。
+
+ChatGPT 一列里，画布、字色、Composer 与侧栏尺寸是 2026-10-15 在 500px 视口量到的（[外部对照 §2](../../reference/external-chat-ui-density.md#chatgpt)）；其余是公开界面观察，桌面宽度的实测由 [chatgpt-visual-language](../../../dev/plans/chatgpt-visual-language.md) S0 补。
+
+| 表面 | ChatGPT | 本仓 |
+|------|---------|------|
+| 整体色调 | 近白画布 `rgb(252,252,252)`、近黑字 `rgb(13,13,13)`，几乎没有彩色，主操作近黑 | 浅色两种表面（chrome `#F6F6F6`、画布与浮层白，2026-10-22 用户选定），输入卡靠细边分层；主按钮近黑；强调色只给焦点、选中、链接、进度（原则一） |
+| 正文 | 系统无衬线 16px（2026-10-15 在 500px 视口量到字号；行高和阅读列宽没有量到，由方案 S0 再记） | 13px / 1.5（`compact` 1.35），阅读列 720px；标题只用 heading token |
+| 助手回合 | 无头像、无角色标签，正文直接起排 | 相同（§5.1） |
+| 用户回合 | 靠右，宽度随正文，浅灰填充，大圆角 | 靠右、不超过列宽 82%；`cornerRadius.large`，输入框底色加 8% 细边，可点进编辑，有悬停反馈（2026-10-21 用户选定） |
+| 消息动作 | 正文下方一行小图标。对方还有赞、踩、朗读、分享 | 只放本仓已有的命令：复制、重新生成、删除、在轨迹中查看。不画对方多出来的按钮。最新一条常显，其余悬停（§5.2 控件表） |
+| 思考 | 一行灰字加 chevron，点开看过程 | 过程折一行摘要，chevron 常驻；回合没有耗时字段，不写时长 |
+| 工具 / 搜索 | 动词加对象一行，进行中有指示 | 过程折工具行；进行中、完成、失败、取消各有图标（原则八） |
+| 代码块 | 圆角容器，顶部语言名与复制钮 | `cornerRadius.medium`，头部 11–12px，复制是幽灵图标钮（§5.1） |
+| Composer | 白底胶囊，高 48px、圆角 28px、0.5px 发丝边、淡投影，左 `+`，右实心圆发送 | 20px 圆角、前景色 10% 发丝边、极淡投影；控件 24px，底栏不高于 28px；发送是唯一实心圆钮（§5.2） |
+| 回到底部 | 上滚后在 Composer 上方浮一颗圆钮 | 现有 Scroll to Bottom 钮，属于浮层，可投影 |
+| 侧栏 | 44px 行、16px 字、16px 圆角的悬停底 | 只取「标题一行、整行淡底悬停、当前项中性底」；22px 行、13px 字、`cornerRadius.small` |
+| 弹出层 | 大圆角、宽内衬、高行 | 取观感，不取尺寸：§5.5 的 8px 圆角、24px 行 |
+| 设置页 | 大按钮、开关 | 不取：§5.6 幽灵图标钮，导航 22px、目录 24px |
+| 动效 | 流式文字淡入、思考微光 | 不取循环动画（原则七）；进行中用现有转圈图标加文字后缀 |
 
 ---
 
@@ -32,7 +57,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 ### 原则一：中性底色，强调色克制
 
-- 底色是中性灰阶，不带明显冷暖色偏。区域之间靠 2%–4% 的明度差分层：侧栏与配套区一档，中心 Conversation 主画布一档，画布上的输入类卡片（Composer、用户回合卡）比画布再亮一档，浮层再一档。色值写在产品主题里（[theming §3](theming.md)），组件 CSS 只引用 `--vscode-*`。
+- 底色是中性灰阶，不带明显冷暖色偏。区域之间靠 2%–4% 的明度差分层：侧栏与配套区一档，中心 Conversation 主画布一档。浅色里画布已是白，画布上的输入类卡片（Composer、用户回合卡）和浮层同为白，靠细边与浮层投影分层，不再加第三种底色。色值写在产品主题里（[theming §3](theming.md)），组件 CSS 只引用 `--vscode-*`。
 - 强调色（`focusBorder`、`textLink.foreground`、`progressBar.background`）只用于：键盘焦点、选中态、链接、进行中指示。
 - 主按钮（`button.background`）是中性近黑实心，深色主题近白，一个视图内至多一个（2026-10-11 用户选定，与发送钮同一观感）。按钮层级见 §5.6。
 - 语义色（错误 / 警告 / 成功）只落在状态本身：图标、文字或细描边，不做大面积底色。
@@ -54,7 +79,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 - 密度上限见 §4。上限的意思是"不得更松"，不是"必须等于"。
 - 密在组件内，留白在组群间：行内 2–6px，组与组之间 8–12px；列表行之间不加卡片间距。
-- 元信息常显但降噪：时间、计数、增删行数、状态等数据常显，用 11–12px 弱化色；复制、重试、删除等操作在悬停或焦点时出现。
+- 元信息常显但降噪：时间、计数、增删行数、状态等数据常显，用 11–12px 弱化色；复制、重试、删除等操作在悬停或焦点时出现。最新一条助手回合的动作行常显，更早的回合仍是悬停或焦点（2026-10-21）。
 - 需要第二行信息时，优先放在同一行右侧作弱化元信息，而不是把行加高。
 - 截断：标题与路径可以省略并配 tooltip；主操作按钮文字不截断，放不下时退化为图标加 tooltip。
 - 状态芯片：无数据时优先省略；已接受需求要求常驻的控件（如 Inbox 的 Stop、Goal）以禁用态弱化显示，不画描边框。
@@ -62,8 +87,8 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 ### 原则四：焦点始终可见
 
-- 键盘焦点：`:focus-visible` 显示 1px `--vscode-focusBorder` 焦点环（`outline-offset` 按控件取 -1px 或 1px）。鼠标点击可以不显示。
-- 输入框：聚焦时描边换成 `--vscode-focusBorder`（可降到 60% 透明度），不用大阴影表达聚焦。Composer 卡片是例外：发丝线不动，只把已有投影略加深；高对比主题仍用对比描边。
+- 键盘焦点：`:focus-visible` 显示 1px `--vscode-focusBorder` 焦点环（`outline-offset` 按控件取 -1px 或 1px）。鼠标点击可以不显示。Composer 卡片除外，它的键盘焦点就是下一句的加深描边和投影。
+- 输入框：聚焦时描边换成 `--vscode-focusBorder`（可降到 60% 透明度），不用大阴影表达聚焦。Composer 卡片是例外：不用 `focusBorder`，发丝描边加深到前景色约 20%，投影深一档，不画外圈光环；高对比主题仍用对比描边（2026-10-21 用户选定）。
 - 列表、树、表格：选中态分两种，有焦点用 `list.activeSelectionBackground`，无焦点用 `list.inactiveSelectionBackground`；键盘焦点行沿用上游 `list.focusOutline`。
 - 非高对比主题下，禁止写 `outline: none` 而不给替代焦点样式。高对比主题保留 `contrastActiveBorder` / `contrastBorder`；浮层（菜单、对话框、通知、下拉、重命名框）补齐 `:is(.hc-black, .hc-light)` 边框。
 
@@ -85,6 +110,23 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 - 反馈只换颜色：图标按钮用 `toolbar.hoverBackground` / `toolbar.activeBackground`；实体按钮用 `button.hoverBackground` 或由它派生的更深一档。不用 `filter`，它会让元素单独合成图层，可能引起文字发虚。
 - 过渡只作用于 `background-color`、`color`、`border-color`、`opacity`，时长不超过 100ms；`.monaco-reduce-motion` 下去掉过渡。
 - 原因：桌面端的缩放会造成亚像素发虚、相邻元素错位、点击热区缩到光标内侧、依赖锚点的浮层漂移。截至 2026-09-28，`:active` 缩放已在全仓清零（[status](../../../dev/progress/status.md) 第 67–87 项）。
+
+### 原则八：状态清晰（2026-10-21 用户选定，PRD-028 验收 12）
+
+- 异步对象常态下就有可见状态，不靠悬停、不只靠读屏：
+  - 引擎连接：身份条引擎芯片前的圆点，在线绿（`testing.iconPassed`）、离线警告色、失败错误色。圆点是静态的，不呼吸、不闪烁。
+  - 工具步骤：进行中转圈、完成对勾、失败错误图标、取消斜杠圆；接通时摘要后跟 `· Running` 这类文字。等待权限的写操作不画完成勾。
+  - 思考与过程折：chevron 常驻可见，摘要不隐藏；流式时摘要后跟 `· Loading`。
+  - 等待确认：权限座位在时间线上，Inbox 待确认用链接色。
+- 状态不只靠颜色：颜色总与图标、形状或文字同时出现。轨迹 Overview 每种类型一色加一种形状。
+- 功能色保留：轨迹类型、语义状态、增删行数各有颜色，不为了「干净」统一抹成灰。
+- 交互线索要诚实：能点的卡片和行才有悬停反馈；静态记录不做悬停变色。可展开的东西要有常驻的展开线索。
+- 行尾的次要操作可以悬停才出现（原则三）。状态不属于次要操作。
+
+### 原则九：容器有边界
+
+- 内容容器（Composer、用户回合卡、代码块、表格、工具结果、权限座位、文件编辑卡）在浅色与深色主题下都要看得出轮廓：低对比描边（§3.2）或一档明度差，二者至少有一个。透明边框加不到 8% 的淡底不算轮廓。
+- 原则五去掉的是装饰性分隔线和框套框，不是内容容器的边界。
 
 ---
 
@@ -121,11 +163,11 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 | 低对比描边、分隔线 | `color-mix(in srgb, var(--vscode-foreground) 8%, transparent)`（分隔线 6%） | 实色高对比灰线；非高对比主题下用 `contrastBorder` |
 | 次级文字 | `--vscode-descriptionForeground` | 用 `opacity` 叠出次级色（对比度不可控） |
 | 徽标 / 标签 | 语义色文字，加 `color-mix(in srgb, <语义色> 12%, transparent)` 淡底 | 实心强调色徽标 |
-| 用户回合卡 | `--vscode-input-background` 底，加 8% 低对比描边，与 Composer 同一观感 | 强调色底；投影 |
+| 用户回合卡 | `--vscode-input-background` 底，加 8% 低对比描边，无投影。悬停时描边与底色略加深。Composer 是另一张卡：10% 发丝描边加极淡投影 | 强调色底；用户卡投影 |
 | 主按钮 | `button.background`（产品主题给中性近黑，深色近白）/ `button.foreground` | 强调色实心主按钮 |
 | 弹出层高亮行 | `quickInputList.focusBackground`、`menu.selectionBackground`（产品主题给中性灰） | 实心强调色整行填充 |
 | 悬停 / 按压 | `toolbar.hoverBackground` / `toolbar.activeBackground` | `transform`、`filter` |
-| 焦点 | `--vscode-focusBorder` | 非高对比主题下 `outline: none` 且无替代 |
+| 焦点 | `--vscode-focusBorder`。Composer 卡片除外：发丝描边从前景色 10% 加深到约 20%，投影深一档 | 非高对比主题下 `outline: none` 且无替代；Composer 不用 `focusBorder`，不画外圈光环 |
 | 阴影 | `--vscode-widget-shadow`，仅浮层 | 文档流卡片投影、`backdrop-filter` |
 
 ---
@@ -153,18 +195,35 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 ### 5.1 对话阅读面（Conversation 时间线）
 
-- **用户回合**：靠阅读列右侧的卡片，宽度随正文、不超过列宽 82%，卡内文字左对齐，外观像输入框（`cornerRadius.large`、输入框底色、低对比描边、无阴影）；长文按现有规则折叠。点卡进入现有回合编辑（[composer-and-inbox](../../systems/conversation/composer-and-inbox.md) `turnEdit`），发送中的乐观行不可点。阅读列顶部的置顶提示（[lens-and-trajectory](../../systems/conversation/lens-and-trajectory.md)，时间线重构 D3）与卡片同一观感，判定与交互不变。不显示 "YOU" 标签。
+- **用户回合**：靠阅读列右侧的卡片，宽度随正文、不超过列宽 82%，卡内文字左对齐，外观像输入框（`cornerRadius.large`、输入框底色、8% 低对比描边、无阴影），悬停时描边与底色略加深；长文按现有规则折叠。点卡进入现有回合编辑（[composer-and-inbox](../../systems/conversation/composer-and-inbox.md) `turnEdit`）：输入留在列底，底栏不收走，用户卡只标出正在编辑。发送中的乐观行不可点。阅读列顶部的置顶提示（[lens-and-trajectory](../../systems/conversation/lens-and-trajectory.md)，时间线重构 D3）与卡片同一观感，判定与交互不变。不显示 "YOU" 标签。
 - **助手回合**：不放头像，不显示 "AGENT" 标签，正文直接起排。多代理会话需要区分来源时，在回合首行用 11px 弱化字显示代理名。
 - **读屏**：回合角色的读屏名称由 `getConversationTurnAriaLabel` 提供（[lens-and-trajectory §1](../../systems/conversation/lens-and-trajectory.md)），去掉可见标签不影响 PRD-018。
-- **过程折**（PRD-013）：摘要是一行弱化文字（chevron 加摘要）；展开后每个思考 / 工具步骤占一行：图标、动作、目标，有数据时再加元信息（增删行数、耗时）。普通步骤不画卡片框，字重与说明文字同级。只有 `file_edit` 升级成无投影的发丝线圆角卡（`cornerRadius.large`）。增删数字是这一行里唯一的彩色，分别用 `chat.linesAddedForeground` / `chat.linesRemovedForeground`。阻塞或错误用发丝线描边，不用红色铺底；红色只留在错误标题上。
+- **过程折**（PRD-013）：摘要是一行弱化文字（chevron 加摘要），chevron 常驻可见（原则八）；没有引擎时折叠头以 `Stub ·` 开头，接通后不带（PRD-007 诚实降级）；展开后每个思考 / 工具步骤占一行：图标、动作、目标，有数据时再加元信息（增删行数、耗时）。普通步骤不画卡片框，字重与说明文字同级。连续的 `file_edit` 收成一张无投影的发丝线圆角卡（`cornerRadius.large`）：标题是 Edited N files，增删数是合计，下面逐条路径。点路径展开这一份 diff。工具细节关掉时只留标题和路径。增删数字是这一行里唯一的彩色，分别用 `chat.linesAddedForeground` / `chat.linesRemovedForeground`。阻塞或错误用发丝线描边，不用红色铺底；红色只留在错误标题上。
+- **错误回合**：标题和是否可重试仍在头上。正文是一行摘要；原文更长时用 Show details 展开，不把 JSON 铺满阅读列。短用户回合仍是靠右的输入卡片，最短约 11em，避免缩成一颗按钮。
 - **权限 / 提问座位**（PRD-004）：`cornerRadius.medium` 淡底卡片，无阴影；标题一行、按钮一行，主按钮唯一；有键位时在按钮旁显示快捷键提示。
-- **代码块与 Diff 块**：`cornerRadius.medium`，紧凑头部（语言或文件名加操作，11–12px）。
-- **回合操作**：复制、重试等在悬停或焦点时出现，不常驻。
+- **代码块**（对话正文里的 Markdown）：`cornerRadius.medium`，8% 低对比描边（原则九）；头部左侧语言名（11–12px 弱化字），右侧复制幽灵图标钮；头部与代码区之间不画分隔线，靠一档明度差区分。
+- **Diff 块**：过程折里的 `file_edit` 已有文件名头，保持现有头部，不另加语言名和复制钮。
+- **回合操作**：助手回合正文下方一行幽灵图标钮，只放已有命令：复制、重新生成、删除、在轨迹中查看。最新一条在正文流里常显。更早的回合默认不占行高，悬停或焦点时才叠在该回合下方的间距里。不画赞、踩、朗读、分享。用户回合没有这行；长文的展开仍是卡内的文字按钮。
 
 ### 5.2 Composer 与 Inbox
 
-- **Composer**：20px 圆角、低对比描边加极淡投影（高对比主题不投影）；聚焦只加深已有投影，不改成蓝色描边（2026-10-11 用户选定）。会话进行中且草稿为空时，输入框和底栏收成一行，控件集不变；有内容、有引用芯片、叶宽小于 450px（`.is-narrow`）或空会话（PreFirst）时两行。
-- **底栏**：发送是唯一的实心圆钮（`cornerRadius.circle`），悬停略放大、按压略缩小；Tools、Permission、Agent、Model 与其他开关都是幽灵样式，无底无框，悬停出底色（与 PRD-015 验收 2 一致；PRD-028 验收 8 补充"无描边"）。
+- **Composer**：20px 圆角、前景色 10% 发丝描边加极淡投影（高对比主题不投影）；聚焦时描边加深到前景色约 20%，投影深一档，不改成蓝色描边，也不画外圈光环（2026-10-11 用户选定，2026-10-21 用户补选描边加深）。会话进行中且草稿为空时，输入仍是一行（32px）；工具、权限、模型留在输入下方的底栏，不跟占位符挤在同一行（2026-10-22）。有内容、有引用芯片、叶宽小于 450px（`.is-narrow`）或空会话（PreFirst）时输入变高，底栏仍在下面。Permit 带警告图标和警告色。加上下文超过 8 条会话时出现搜索，名称截断并配 tooltip。
+- **底栏**：发送是唯一的实心圆钮（`cornerRadius.circle`），悬停略放大、按压略缩小；其余都是幽灵样式，无底无框，悬停出底色（PRD-028 验收 8）。草稿字号与正文相同，`fontSize.body1`（13px），行高 20px（2026-10-21）。图标跟功能走，不跟 ChatGPT 或 Cursor 的按钮外形走。对方有、本仓没有的不画；本仓有、对方没有的保留，并使用能读出功能的图标和 tooltip。
+
+| 控件 | 功能 | 不做成 |
+|------|------|--------|
+| 加上下文 | 底栏最左的「+」。打开会话列表，选中后成为输入框上方的引用芯片，跟正文一起发送。窄叶收进 `…` | 文件上传。消息格式只收会话引用，不画一个选了文件却发不出去的附件项 |
+| Tool options | 跟 Permission、Model 排在一起。图标是 `tools`，tooltip 是 Tool options | 占住「+」的位置 |
+| Permission | Ask / Agent / Permit | 一个没有名字的模式胶囊 |
+| Agent | 只在空会话选择代理 | 进行中会话的常驻控件 |
+| Model | 选择模型，点开工作台菜单 | 收到「…」里，或画成对方的模型商标 |
+| 放大输入 | 输入框右上角，悬停或聚焦时出现 | 底栏上的又一颗主按钮 |
+| 发送 | 提交草稿。唯一实心圆 | 和 Stop 合成一颗会变身的按钮 |
+| Stop | 留在 Inbox 右簇，只在生成中可点 | 输入框里的方块停止钮 |
+| `…` | 只在叶宽小于 450px 时收纳放不下的底栏项 | 宽屏上的唯一入口 |
+| 助手动作行 | 复制、重新生成、删除、在轨迹中查看 | 赞、踩、朗读、分享、导出 |
+
+Cursor 取的是布局：用户回合像输入卡片、模型留在输入栏、侧栏 22px、过程折是动词加对象。进行中空稿的输入仍是一行，工具、权限、模型在下面的底栏。ChatGPT 取的是阅读：助手正文直接起排、发丝边输入框、最新一条动作行常显、状态不悬停也看得见。两边的按钮清单都不照搬。
 - **Inbox**：生成中的 Stop 留在右簇，不与发送钮合并（2026-09-28 用户确认）；芯片为幽灵或淡底样式，无数据的芯片按原则三处理。行为合同见 [composer-and-inbox](../../systems/conversation/composer-and-inbox.md)。
 
 ### 5.3 工程表格与列表（轨迹表、Sources、Navigator、首选项列表）
@@ -196,7 +255,7 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 - 主按钮：中性近黑实心（`button.background`），一个视图内至多一个。
 - 次按钮：小号描边按钮（低对比描边、无底），如 `+ New`。
 - 文本按钮：无底无框，如「再显示 N 个」「+ 添加属性」。
-- 行内与工具栏操作：优先幽灵图标钮（原则一）。图标 16px，命中区 22–24px 方形；常态无底无框，悬停与按压只用 `toolbar.hoverBackground` / `toolbar.activeBackground`。每个钮有 tooltip 和 aria 名称。行尾操作在悬停或焦点时出现，未出现时不接收点击。输入对话框的字段有可见名称，校验留在对话框里。动作能排开时一动作一图标；一行放不下时才收成行尾 `…`。确认框和输入对话框的按钮保留文字。Engine Preferences 的 Triggers、Providers、Models、Skills、Agents、MCP、Plugins、Clipboard、Context Variables 工具栏按此绘制。Providers、Models、Skills、Agents、MCP 的新建和编辑用输入对话框。正文保存、页签和状态按钮保留文字。图标见 [engine-catalog](../../systems/workbench/engine-catalog.md)。
+- 行内与工具栏操作：优先幽灵图标钮（原则一）。图标 16px，命中区 22–24px 方形；常态无底无框，悬停与按压只用 `toolbar.hoverBackground` / `toolbar.activeBackground`。每个钮有 tooltip 和 aria 名称。行尾操作在悬停或焦点时出现，未出现时不接收点击。输入对话框的字段有可见名称，校验留在对话框里。动作能排开时一动作一图标；一行放不下时才收成行尾 `…`。确认框和输入对话框的按钮保留文字。Engine Preferences 里删除、清除凭据、移除和导入确认锚在那个按钮的弹出层上，不用系统原生对话框。Triggers、Providers、Models、Skills、Agents、MCP、Plugins、Clipboard、Context Variables 工具栏按此绘制。Providers、Models、Skills、Agents、MCP 的新建和编辑用输入对话框。正文保存、页签和状态按钮保留文字。图标见 [engine-catalog](../../systems/workbench/engine-catalog.md)。
 
 ### 5.7 搜索与筛选条
 
@@ -235,12 +294,16 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 8. 按钮或空态文字被截断。
 9. 无数据仍以描边框常驻的状态芯片。
 10. 整段语义色的错误文字；同一错误在一个面板里出现两次；把原始错误码当说明；会话不可用时整排置灰。
+11. 以极简为名藏状态：隐藏在线点、完成勾、展开 chevron 或思考摘要；把轨迹与状态的功能色统一成灰（原则八）。
+12. 照搬移动端尺寸：16px 对话正文、超过 §4 上限的列表行（如 34px 导航行、36px 设备行）、36px 按钮与输入框、Composer 以外超过 8px 的非浮层圆角、用 `!important` 铺反色大按钮。
+13. 静态内容伪装成可点：不可点的记录做悬停变色。
+14. 内容容器没有轮廓：透明边框加极淡底色（原则九）；聚焦用暗色外圈光环代替描边变化。
 
 ---
 
 ## 8. 审查与验证
 
-改 UI 样式时按 §7 自检，另做三件事：浅色与深色主题各截一张图；只用键盘 Tab / 方向键走一遍，确认焦点始终可见；叶宽小于 450px（`.is-narrow`）时检查截断。文档结构变更后跑 `python3 scripts/check-docs-health.py`。
+改 UI 样式时按 §7 自检，另做四件事：浅色与深色主题各截一张图；只用键盘 Tab / 方向键走一遍，确认焦点始终可见；叶宽小于 450px（`.is-narrow`）时检查截断；不悬停时走一遍原则八的状态清单（引擎圆点、工具状态图标、chevron、轨迹 Overview 颜色），确认都看得见。文档结构变更后跑 `python3 scripts/check-docs-health.py`。
 
 ---
 
@@ -252,22 +315,26 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 ## 10. HEAD 与本规范的差距（2026-09-28）
 
-按 PRD-028 验收顺序列出，收敛由实施方案承接。
+按 PRD-028 验收顺序列出，收敛由实施方案承接。2026-10-21 及以后新增的行写工作区，不是已提交的 HEAD。
 
 | 项 | HEAD |
 |----|------|
-| 默认主题 | 产品自有 `UniverseAgentStudio Light` / `Dark` 已是默认。chrome 浅色 `#F3F3F3`，会话画布 `conversation.background` 浅色 `#F8F8F8`、深色 `#191A1B`，输入卡保持白；主按钮浅色近黑、深色近白。其余切片仍由 [cursor-visual-alignment](../../../dev/plans/cursor-visual-alignment.md) 承接。上游基线：`Light 2026` 的 `chat.requestBubbleBackground` 是蓝调 `#EEF4FB`，`badge.background` 是实心蓝 `#0069CC` |
+| 默认主题 | 产品自有 `UniverseAgentStudio Light` / `Dark` 已是默认。chrome 浅色 `#F6F6F6`，会话画布 `conversation.background` 浅色 `#FFFFFF`（2026-10-22 从 `#F3F3F3` / `#F8F8F8` 改为 ChatGPT 两种表面）、深色 `#191A1B`，输入卡与浮层白；主按钮浅色近黑、深色近白。其余切片仍由 [cursor-visual-alignment](../../../dev/plans/cursor-visual-alignment.md) 承接。上游基线：`Light 2026` 的 `chat.requestBubbleBackground` 是蓝调 `#EEF4FB`，`badge.background` 是实心蓝 `#0069CC` |
 | 强调色 | 实心蓝徽标（如 "Input needed"、"UNAVAILABLE"）。轨迹来源芯片已改为 `textLink` 12% 淡底。Files 视图欢迎页有两颗满宽主按钮（上游） |
-| 字号 | Conversation 样式目录共 12 种写死字号（含 9.5 / 11.5 / 12.5px）；`conversationLens.css` 84 处写死，字号 / 间距 / 圆角 token 合计只用 11 处 |
+| 字号 | 2026-10-22 起 Conversation 样式目录不再有半像素字号和 500 / 700 字重，Markdown 标题改用 `fontSize.heading2` / `heading3`，由 `conversationLensCssScan.test.ts` 锁住。整数 px 的写死字号仍多，`conversationLens.css` 里写死圆角 59 处、token 29 处 |
 | 圆角 | 12 / 14 / 16px 残留 13 处（10 个文件）；Conversation 样式目录另有 3px、10px |
 | 行高 | 见 §4 HEAD 列 |
 | 焦点 | 全仓 78 处 `outline: none !important`（39 个文件，含编辑器隐藏 textarea 等合法用例），需逐处确认有替代焦点样式 |
 | 全大写 | 对话阅读面不再显示 YOU / AGENT。轨迹角色列、Inspector 区段标题与状态徽标不再 `text-transform: uppercase`。轨迹表头、类型列与 Overview 标题已是正常大小写。图示选项徽标仍全大写；Engine 技能与目录分组标签已在 S9 去除全大写并收敛为正常字重与弱化计数 |
 | 空态 | Preview 类别空态无边框，标题与说明用字号 token，按钮可换行并有键盘焦点。其他表面的大图标居中卡片仍在 |
-| 阴影与毛玻璃 | Agents 窗口跟在聊天背景上的追问卡已是不透明 `--session-view-background`，不再 `backdrop-filter`，也不再投影；会话里和新建里的输入聚焦只把描边换成 `focusBorder`（高对比仍用对比描边）。对话框遮罩与引导页遮罩不再 `backdrop-filter`，半透明底色仍在，对话框与引导卡的浮层投影保留（[modal-mask-no-glass](../../../dev/plans/modal-mask-no-glass.md)，方案仍 `draft`）。图示浮层与子代理浮层不再 `backdrop-filter`，半透明底色仍在；图示推荐项不再投影。用户回合靠右、宽度随正文且不超过列宽 82%，卡内文字左对齐，底色 `input.background`，前景色 8% 细边，不投影；置顶提示用独立类，底色是画布 token。阅读列身份条的引擎芯片去描边，离线 / 失败保留状态色。Conversation Composer 卡片参照 Cursor：圆角 20px、带很淡的投影（高对比仍无投影），聚焦只加深已有投影，不改成蓝色描边；宽于阅读列 32px。发送钮 24px，实心前景色圆加反色图标，悬停略放大、按压略缩小，颜色由前景色派生（原则七的例外），禁用时 0.25 透明度；底栏其余控件是无底的圆形幽灵钮。工具行选择器用 `fontSize.label1`。Permission / Agent / Model、Tools 与 More 浮层用 `cornerRadius.large`、行用 `cornerRadius.small`，阴影走 `widget-shadow`。首屏（PreFirst）上方的身份条靠左对齐卡片，芯片去描边，引擎离线 / 失败芯片保留状态色。输入框光标跟 `input.foreground`。轨迹搜索聚焦仍用 `box-shadow`。其余验收未齐 |
+| 阴影与毛玻璃 | Agents 窗口跟在聊天背景上的追问卡已是不透明 `--session-view-background`，不再 `backdrop-filter`，也不再投影；会话里和新建里的输入聚焦只把描边换成 `focusBorder`（高对比仍用对比描边）。对话框遮罩与引导页遮罩不再 `backdrop-filter`，半透明底色仍在，对话框与引导卡的浮层投影保留（[modal-mask-no-glass](../../../dev/plans/modal-mask-no-glass.md)，方案已 `implemented`）。图示浮层与子代理浮层不再 `backdrop-filter`，半透明底色仍在；图示推荐项不再投影。用户回合靠右、宽度随正文且不超过列宽 82%，卡内文字左对齐，底色 `input.background`，前景色 8% 细边，不投影；置顶提示用独立类，底色是画布 token。阅读列身份条的引擎芯片去描边，在线是静态绿点，离线 / 失败保留状态色。Conversation Composer 卡片参照 Cursor：圆角 20px、前景色 10% 发丝描边、带很淡的投影（高对比仍无投影），聚焦加深描边与投影，不改成蓝色描边；宽于阅读列 32px。发送钮 24px，实心前景色圆加反色图标，悬停略放大、按压略缩小，颜色由前景色派生（原则七的例外），禁用时 0.25 透明度；底栏其余控件是无底的圆形幽灵钮。工具行选择器用 `fontSize.label1`。Permission / Agent / Model、Tools 与 More 浮层用 `cornerRadius.large`、行用 `cornerRadius.small`，阴影走 `widget-shadow`。首屏（PreFirst）上方的身份条靠左对齐卡片，芯片去描边，引擎离线 / 失败芯片保留状态色。输入框光标跟 `input.foreground`。轨迹搜索聚焦仍用 `box-shadow`。其余验收未齐 |
 | Inbox | 空队列 / 空 Goal / 未生成的 Stop 为幽灵芯片（无描边）。队列名是 `list-ordered` 图标，状态文案在旁；空 Goal 是 `target` 图标，文字在 tooltip。待确认用链接色。队列列表在 context-view 里，空态一行 |
 | 轨迹 Overview | 高 12px 分段条；形状加颜色，文字在 tooltip 与 aria。时间刻度瀑布条仍未做 |
 | 死 CSS | `uaClientConversationChrome.css` 中的 `body.ua-client-*` 与 `.conversation-lens-density--compact` 已无代码设置，与 `.density-compact` 重复 |
+| 状态清晰（2026-10-21） | 工作区：在线点、完成勾、思考摘要、chevron 和轨迹 Overview 分色可见。扫描锁住正文 13px、Composer 聚焦无 `0 0 0 3px`、Overview 七类分色、在线点 `::before` 不是 `display: none`、chevron 规则不含 `opacity: 0`、思考摘要规则不含 `display: none`。完成态工具行由单测断言 `.codicon-check` |
+| 移动端尺寸（2026-10-21） | 工作区：Connection 导航 22px（HEAD 委托与 CSS 是 28px），输入框 `cornerRadius.small`，Engine 测试钮同。设备行 CSS 一直是 24px，`HubDevicesDelegate` 从 36px 收到 24px。HEAD 的 Connection CSS 没有 `!important` 反色主按钮。草稿 13px。设置编辑器页签是上游 CSS，按 §9 不改。Connection 状态条、配对框回到 `cornerRadius.small`，Provider 启用标记回到 34×20。见 [chatgpt-visual-language](../../../dev/plans/chatgpt-visual-language.md) |
+| 代码块头 | 工作区：对话正文里的 Markdown 代码块已有语言名和复制钮，8% 描边、`cornerRadius.medium`。过程折里的 Diff 块仍只用文件名头 |
+| 回合动作行 | 工作区：最新一条助手回合的动作行在正文流里常显。更早的绝对定位，不占行高，悬停或焦点才出现 |
 
 ---
 
@@ -275,5 +342,6 @@ summary: "视觉语言参考 Cursor / ChatGPT、信息密度参考 IntelliJ IDEA
 
 - 需求：[PRD-028](../../product/requirements.md#prd-028-视觉语言与信息密度) · [产品愿景](../../product/vision.md)
 - 外部对照：[对话界面密度](../../reference/external-chat-ui-density.md)（2026-10-15 取样，2026-10-16 用户签收；不改本节）
+- 方案：[chatgpt-visual-language](../../../dev/plans/chatgpt-visual-language.md)（ChatGPT 主参照，O1–O4 已选定，`draft`）
 - [主题与 token](theming.md)
 - [Conversation 透镜与轨迹](../../systems/conversation/lens-and-trajectory.md) · [Composer 与 Inbox](../../systems/conversation/composer-and-inbox.md) · [EditorPart 与 Preview 类别](../../systems/workbench/editor-part-tabs.md)

@@ -3,7 +3,7 @@ title: "主题与 token"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-11
+updated: 2026-10-22
 summary: "本仓颜色/尺寸 token 经 IThemeService 落成 --vscode-* CSS 变量；尺寸以 baseSizes.ts 为唯一来源；产品默认主题是自有 UniverseAgentStudio Light / Dark（include 上游 2026 两套，只覆盖少量 id，默认浅色，PRD-028）；Modern UI 是实验 chrome，B2 spike 不迁 Desktop ADR-003"
 ---
 
@@ -47,7 +47,7 @@ B2 壳几何走 ADR-052 / IA 映射（[desktop-shell-mapping](../../reference/co
 
 **目标**（[PRD-028](../../product/requirements.md#prd-028-视觉语言与信息密度) 验收 1，`accepted`）：产品自带一对浅色 / 深色 color theme，**默认浅色**。配色要求见 [UI 设计原则](ui-design-principles.md) 原则一与 §3.2。
 
-**HEAD**（2026-10-11）：`ThemeSettingDefaults.COLOR_THEME_LIGHT` / `COLOR_THEME_DARK` 是产品自有的 `UniverseAgentStudio Light` / `UniverseAgentStudio Dark`（`workbenchThemeService.ts`；主题文件 `extensions/theme-defaults/themes/universe-agent-studio-{light,dark}.json`，分别 `include` 上游 `2026-light.json` / `2026-dark.json`）。浅色 chrome（标题栏、面板、侧栏、活动栏、标签未选中底）是 `#F3F3F3`，浮层底仍是 `#FAFAFA`，会话画布 `conversation.background` 浅色是 `#F8F8F8`、深色是 `#191A1B`（比编辑器 `#121314` 亮一档），编辑器与输入仍是白。主按钮浅色近黑 `#1F1F1F`、深色近白 `#F3F3F3`；强调色留给焦点、选中、链接和进度。活动栏选中底浅色 `#E6E6E6`、深色 `#242526`。菜单按下与 Quick Pick 焦点是中性浅底，前景保持正文色。`widget.shadow` 浅色 `#0000001A`、深色 `#00000059`。其余观感切片仍由 [cursor-visual-alignment](../../../dev/plans/cursor-visual-alignment.md) 承接。
+**HEAD**（2026-10-11）：`ThemeSettingDefaults.COLOR_THEME_LIGHT` / `COLOR_THEME_DARK` 是产品自有的 `UniverseAgentStudio Light` / `UniverseAgentStudio Dark`（`workbenchThemeService.ts`；主题文件 `extensions/theme-defaults/themes/universe-agent-studio-{light,dark}.json`，分别 `include` 上游 `2026-light.json` / `2026-dark.json`）。浅色 chrome（标题栏、面板、侧栏、活动栏、标签未选中底）是 `#F6F6F6`，浮层底（菜单、编辑器浮件、Quick Input、通知）与会话画布 `conversation.background` 浅色都是 `#FFFFFF`（2026-10-22 起，ChatGPT 的两种表面；Peek 仍 `#FAFAFA`），深色画布是 `#191A1B`（比编辑器 `#121314` 亮一档），编辑器与输入仍是白。主按钮浅色近黑 `#1F1F1F`、深色近白 `#F3F3F3`；强调色留给焦点、选中、链接和进度。活动栏选中底浅色 `#E6E6E6`、深色 `#242526`。菜单按下与 Quick Pick 焦点是中性浅底，前景保持正文色。`widget.shadow` 浅色 `#0000001A`、深色 `#00000059`。其余观感切片仍由 [cursor-visual-alignment](../../../dev/plans/cursor-visual-alignment.md) 承接。
 
 **落地约束**（具体做法由 PRD-028 的实施方案决定）：
 

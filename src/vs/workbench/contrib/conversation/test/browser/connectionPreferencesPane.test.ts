@@ -217,6 +217,26 @@ suite('ConnectionPreferencesPane', () => {
 		return pane;
 	}
 
+	function fillHubLoginFields(pane: ConnectionPreferencesPane): void {
+		const fields = pane as unknown as {
+			hubBaseUrlInput: { value: string };
+			hubEmailInput: { value: string };
+			hubPasswordInput: { value: string };
+		};
+		fields.hubBaseUrlInput.value = 'https://hub.example.com';
+		fields.hubEmailInput.value = 'a@example.com';
+		fields.hubPasswordInput.value = 'secret';
+	}
+
+	function fillHubChangePasswordFields(pane: ConnectionPreferencesPane): void {
+		const fields = pane as unknown as {
+			hubPasswordInput: { value: string };
+			hubNewPasswordInput: { value: string };
+		};
+		fields.hubPasswordInput.value = 'old-secret';
+		fields.hubNewPasswordInput.value = 'new-secret';
+	}
+
 	function getPairingConfirmButtons(container: ParentNode): readonly HTMLButtonElement[] {
 		return Array.from(container.querySelectorAll('.connection-pairing-confirm .dialog-buttons .monaco-button')) as HTMLButtonElement[];
 	}
@@ -3435,6 +3455,36 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('hub sign in stays disabled until the signed-out form is complete', async () => {
+		const pane = mountPane();
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+
+		const signIn = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
+			.find(button => button.textContent === HUB_LOGIN_BUTTON_LABEL) as HTMLButtonElement | undefined;
+		assert.ok(signIn);
+		assert.strictEqual(signIn.getAttribute('aria-disabled'), 'true');
+		assert.ok(signIn.classList.contains('disabled'));
+		assert.ok((signIn.getAttribute('aria-label') ?? '').includes('Enter the Hub URL, email, and password'));
+
+		const fields = pane as unknown as {
+			hubBaseUrlInput: { value: string };
+			hubEmailInput: { value: string };
+			hubPasswordInput: { value: string };
+		};
+		fields.hubBaseUrlInput.value = 'https://hub.example.com';
+		fields.hubEmailInput.value = 'a@example.com';
+		assert.strictEqual(signIn.getAttribute('aria-disabled'), 'true');
+
+		fields.hubPasswordInput.value = 'secret';
+		assert.strictEqual(signIn.getAttribute('aria-disabled'), 'false');
+		assert.ok(!signIn.classList.contains('disabled'));
+
+		fields.hubPasswordInput.value = '';
+		assert.strictEqual(signIn.getAttribute('aria-disabled'), 'true');
+		container.remove();
+	});
+
 	test('hub login throw paints hub auth badge', async () => {
 		const pane = mountPane({
 			login: async () => {
@@ -3448,6 +3498,7 @@ suite('ConnectionPreferencesPane', () => {
 		const signIn = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
 			.find(button => button.textContent === HUB_LOGIN_BUTTON_LABEL) as HTMLButtonElement | undefined;
 		assert.ok(signIn);
+		fillHubLoginFields(pane);
 		signIn.click();
 		await Promise.resolve();
 		await Promise.resolve();
@@ -3555,6 +3606,7 @@ suite('ConnectionPreferencesPane', () => {
 		const changePassword = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
 			.find(button => button.textContent === HUB_CHANGE_PASSWORD_BUTTON_LABEL) as HTMLButtonElement | undefined;
 		assert.ok(changePassword);
+		fillHubChangePasswordFields(pane);
 		changePassword.click();
 		await Promise.resolve();
 		await Promise.resolve();
@@ -6415,6 +6467,7 @@ suite('ConnectionPreferencesPane', () => {
 			const signIn = [...container.querySelectorAll('.connection-hub-actions .monaco-button')]
 				.find(button => button.textContent === HUB_LOGIN_BUTTON_LABEL) as HTMLButtonElement | undefined;
 			assert.ok(signIn);
+			fillHubLoginFields(pane);
 			poisonTextContent(badge, paintBoom, value => value === 'boom');
 			await assertWarnThenRethrowDoesNotLeak(paintBoom, () => signIn.click());
 		} finally {

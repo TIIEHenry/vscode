@@ -243,8 +243,8 @@ suite('WorkbenchThemeService', () => {
 		assert.ok(themes.some((theme: IThemeExtensionPoint) => theme.id === 'Default High Contrast Light' && theme.path === './themes/hc_light.json'));
 
 		assert.strictEqual(productLightTheme.include, './2026-light.json');
-		assert.strictEqual(productLightTheme.colors['sideBar.background'], '#F3F3F3');
-		assert.strictEqual(productLightTheme.colors['panel.background'], '#F3F3F3');
+		assert.strictEqual(productLightTheme.colors['sideBar.background'], '#F6F6F6');
+		assert.strictEqual(productLightTheme.colors['panel.background'], '#F6F6F6');
 		assert.strictEqual(productLightTheme.colors['widget.border'], '#E2E2E2');
 		assert.strictEqual(productLightTheme.colors['chat.requestBubbleBackground'], '#F4F4F4');
 		assert.strictEqual(productLightTheme.colors['badge.background'], '#6A6A6A');
@@ -297,16 +297,16 @@ suite('WorkbenchThemeService', () => {
 		}
 
 		// Verify key colors align with Universe defaults and depart from old Modern values
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.background'], '#F3F3F3');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.background'], '#F6F6F6');
 		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.background'], '#F8F8F8');
 		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.activeBorder'], '#000000');
 		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['activityBar.activeBorder'], '#005FB8');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#F3F3F3');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#F6F6F6');
 		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['sideBar.background'], '#F8F8F8');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['statusBar.background'], '#F3F3F3');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['statusBar.background'], '#F6F6F6');
 		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['button.background'], '#1F1F1F');
 		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['button.background'], '#0069CC');
-		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['panel.background'], '#F3F3F3');
+		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['panel.background'], '#F6F6F6');
 		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['quickInputList.focusBackground'], '#00000014');
 		assert.strictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['quickInputList.focusForeground'], '#202020');
 		assert.notStrictEqual(COLOR_THEME_LIGHT_INITIAL_COLORS['quickInputList.focusForeground'], '#FFFFFF');

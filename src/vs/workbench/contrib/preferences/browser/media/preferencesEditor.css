@@ -30,7 +30,7 @@
 		}
 
 		.preferences-tabs-container {
-			min-height: 32px;
+			min-height: 28px;
 			height: auto;
 			display: flex;
 			flex-wrap: wrap;
@@ -44,7 +44,7 @@
 				display: inline-flex;
 				align-items: center;
 				background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
-				padding: 3px;
+				padding: 2px;
 				border-radius: 8px;
 				gap: 2px;
 			}
@@ -103,15 +103,14 @@
 				}
 
 				.action-label {
-					font-size: 13px;
-					padding: 4px 12px;
-					opacity: 0.9;
+					font-size: 12px;
+					line-height: 16px;
+					padding: 4px 10px;
 					border-radius: 6px;
-					color: var(--vscode-foreground);
 					overflow: hidden;
 					text-overflow: ellipsis;
 					background: none !important;
-					color: var(--vscode-panelTitle-inactiveForeground);
+					color: var(--vscode-descriptionForeground);
 					transition: all 0.12s ease;
 				}
 
@@ -120,11 +119,10 @@
 				}
 
 				.action-label.checked {
-					opacity: 1;
 					color: var(--vscode-foreground);
 					background: var(--vscode-editor-background, #ffffff) !important;
-					box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-					font-weight: 500;
+					box-shadow: none;
+					font-weight: 400;
 					border-radius: 6px;
 					border-bottom: none;
 					outline: none;
@@ -140,16 +138,11 @@
 
 				.action-label:focus {
 					border-bottom: none;
-					outline: none;
 				}
 
-				.action-label.checked:not(:focus) {
-					border-bottom-color: transparent;
-				}
-
-				.action-label:not(.checked):not(:focus) {
-					/* Still maintain a border for alignment, but keep it transparent */
-					border-bottom: 1px solid transparent;
+				.action-label:focus-visible {
+					outline: 1px solid var(--vscode-focusBorder);
+					outline-offset: -1px;
 				}
 
 				.action-label:not(.checked):hover {

@@ -102,10 +102,12 @@ export class ConversationTimelineItemHost {
 		readonly label: string;
 		readonly cvVisible: boolean;
 		readonly busy: boolean;
+		readonly latestAssistant: boolean;
 	}): void {
 		this.article.setAttribute('aria-posinset', String(chrome.posinset));
 		this.article.setAttribute('aria-setsize', String(chrome.setsize));
 		this.article.setAttribute('aria-label', chrome.label);
+		this.article.classList.toggle('conversation-timeline-item--latest-assistant', chrome.latestAssistant);
 		// Class only. Inline content-visibility / contain-intrinsic-block-size
 		// beat the stylesheet :focus-within rule and clamp a focused older row
 		// to the 120px placeholder.

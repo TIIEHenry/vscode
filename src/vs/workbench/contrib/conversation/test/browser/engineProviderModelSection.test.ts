@@ -617,6 +617,35 @@ suite('Engine providers and models sections', () => {
 		assert.strictEqual(toolbar.style.display, 'none');
 	});
 
+	test('provider enabled mark is read-only and does not call a missing provider API', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			providerSupport: 'SUPPORTED',
+			listProviderStatus: async () => ({
+				providers: [{
+					providerId: 'anthropic',
+					brand: 'Anthropic',
+					protocol: 'anthropic',
+					configured: true,
+					credentialSource: 'PROVIDER_ENV',
+					hasBaseUrl: true,
+					enabled: true,
+				}],
+			}),
+		});
+		const section = mountProviders(connection);
+		await flushMicrotasks();
+		const switchEl = section.getDomNode().querySelector('.engine-provider-switch') as HTMLElement;
+		assert.ok(switchEl);
+		assert.strictEqual(switchEl.getAttribute('role'), null);
+		assert.strictEqual(switchEl.getAttribute('aria-hidden'), 'true');
+		assert.ok(switchEl.classList.contains('is-enabled'));
+		switchEl.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+		switchEl.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', keyCode: 32, bubbles: true, cancelable: true }));
+		assert.ok(switchEl.classList.contains('is-enabled'));
+		assert.strictEqual(section.getDomNode().textContent?.includes('Enabled'), true);
+	});
+
 	test('import control appears only when desktop provider write hooks exist', async () => {
 		const connection = createConnectionStub({
 			connected: true,
@@ -863,6 +892,53 @@ suite('Engine providers and models sections', () => {
 		assert.ok(actions.querySelector('[aria-label="Test m"]')?.classList.contains('codicon-beaker'));
 		assert.ok(actions.querySelector('[aria-label="Edit m"]')?.classList.contains('codicon-edit'));
 		assert.ok(actions.querySelector('[aria-label="Delete m"]')?.classList.contains('codicon-trash'));
+	});
+
+	test('delete model confirms in a popover and does not open a native dialog', async () => {
+		let deleted = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => ({
+				models: [{
+					id: 'demo:m',
+					type: 'general',
+					enabled: true,
+					level: 5,
+					provider: 'demo',
+					modelId: 'm',
+				}],
+			}),
+			deleteModel: (async () => {
+				deleted++;
+				return { deleted: true };
+			}) as unknown as () => Promise<unknown>,
+			upsertModel: async () => ({ id: 'demo:m' }),
+			setModelEnabled: async () => ({ id: 'demo:m' }),
+		});
+		const dialog = new class extends TestDialogService {
+			override async confirm(): Promise<never> {
+				throw new Error('native confirm');
+			}
+		}();
+		const section = mountModels(connection, dialog);
+		await flushMicrotasks();
+		const button = section.getDomNode().querySelector('[aria-label="Delete m"]') as HTMLElement;
+		button.click();
+		await flushMicrotasks();
+		assert.strictEqual(deleted, 0);
+		const popup = document.querySelector('.engine-confirm-popover');
+		assert.ok(popup?.textContent?.includes('Delete model "m"?'));
+		assert.ok(popup?.textContent?.includes('This removes the model from the engine registry.'));
+		(document.querySelector('.engine-confirm-popover-cancel') as HTMLButtonElement).click();
+		await flushMicrotasks();
+		assert.strictEqual(deleted, 0);
+
+		button.click();
+		await flushMicrotasks();
+		(document.querySelector('.engine-confirm-popover-confirm') as HTMLButtonElement).click();
+		await flushMicrotasks();
+		assert.strictEqual(deleted, 1);
 	});
 
 	test('edit model keeps a blank description and sends typed cost and speed', async () => {

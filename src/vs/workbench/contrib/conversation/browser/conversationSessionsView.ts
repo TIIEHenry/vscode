@@ -5,10 +5,12 @@
 
 import './media/conversationSessions.css';
 import * as dom from '../../../../base/browser/dom.js';
-import { IListContextMenuEvent, IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
+import { IListContextMenuEvent, IListRenderer, IListVirtualDelegate, NotSelectableGroupId } from '../../../../base/browser/ui/list/list.js';
 import { Action } from '../../../../base/common/actions.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { MarkdownString } from '../../../../base/common/htmlContent.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize, localize2 } from '../../../../nls.js';
@@ -30,8 +32,8 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { matchesConversationSessionsInlineFilter } from '../common/conversationSessionsInlineFilter.js';
 import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
-import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches, formatSessionRosterSubtitle } from './conversationSessionsViewStrings.js';
-import { ConversationStubSession } from './conversationStubModel.js';
+import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches, formatSessionAccessedLabel, formatSessionMessageCount, formatSessionPendingConfirmations, formatSessionRosterAriaLabel, formatSessionRosterGroupLabel, formatSessionRosterStatus, formatSessionRosterSubtitle, groupSessionsForRoster, resolveSessionRosterTone, type SessionRosterEntry, type SessionRosterTone } from './conversationSessionsViewStrings.js';
+import { ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { IConversationRosterService } from './conversationStubService.js';
@@ -44,30 +46,78 @@ export const CONVERSATION_SESSIONS_DELETE_ENABLED_KEY = new RawContextKey<boolea
 
 /** Single-line roster row. Message count sits on the right, not a second line. */
 export const CONVERSATION_SESSION_ROW_HEIGHT = 22;
-/** Narrow sidebar keeps the same 22px row and hides the trailing meta. */
+/** Narrow sidebar keeps the same 22px row and the trailing meta so same-titled sessions stay distinguishable. */
 export const CONVERSATION_SESSION_COMPACT_ROW_HEIGHT = 22;
 
 const $ = dom.$;
 
-class SessionsDelegate implements IListVirtualDelegate<ConversationStubSession> {
+class SessionsDelegate implements IListVirtualDelegate<SessionRosterEntry> {
 	constructor(private readonly isCompact: () => boolean) { }
 
 	getHeight(): number {
 		return this.isCompact() ? CONVERSATION_SESSION_COMPACT_ROW_HEIGHT : CONVERSATION_SESSION_ROW_HEIGHT;
 	}
 
-	getTemplateId(): string {
-		return 'conversationSession';
+	getTemplateId(element: SessionRosterEntry): string {
+		return element.kind === 'header' ? SessionGroupRenderer.TEMPLATE_ID : SessionsRenderer.TEMPLATE_ID;
+	}
+}
+
+class SessionGroupRenderer implements IListRenderer<SessionRosterEntry, { readonly label: HTMLElement; readonly count: HTMLElement }> {
+	static readonly TEMPLATE_ID = 'conversationSessionGroup';
+
+	readonly templateId = SessionGroupRenderer.TEMPLATE_ID;
+
+	renderTemplate(container: HTMLElement): { readonly label: HTMLElement; readonly count: HTMLElement } {
+		const row = dom.append(container, $('.conversation-sessions-group'));
+		const label = dom.append(row, $('span.conversation-sessions-group-label'));
+		const count = dom.append(row, $('span.conversation-sessions-group-count'));
+		return { label, count };
+	}
+
+	renderElement(entry: SessionRosterEntry, _index: number, templateData: { readonly label: HTMLElement; readonly count: HTMLElement }): void {
+		if (entry.kind !== 'header') {
+			return;
+		}
+		templateData.label.textContent = formatSessionRosterGroupLabel(entry.group);
+		templateData.count.textContent = String(entry.count);
+	}
+
+	disposeTemplate(): void {
+		// noop
 	}
 }
 
 interface ISessionTemplateData {
 	readonly container: HTMLElement;
+	readonly icon: HTMLElement;
 	readonly label: HTMLElement;
 	readonly subtitle: HTMLElement;
+	readonly more: HTMLButtonElement;
+	readonly disposables: DisposableStore;
+	session: ConversationStubSession | undefined;
 }
 
-class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessionTemplateData> {
+function sessionRosterGlyph(tone: SessionRosterTone): ThemeIcon {
+	switch (tone) {
+		case 'waiting':
+			return Codicon.bell;
+		case 'running':
+			return Codicon.loading;
+		case 'failed':
+			return Codicon.error;
+		default:
+			return Codicon.commentDiscussion;
+	}
+}
+
+function applySessionRosterIcon(icon: HTMLElement, tone: SessionRosterTone): void {
+	icon.className = `conversation-sessions-item-icon conversation-sessions-item-icon--${tone}`;
+	icon.classList.add(...ThemeIcon.asClassNameArray(sessionRosterGlyph(tone)));
+	icon.classList.toggle('ua-motion', tone === 'running');
+}
+
+class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemplateData> {
 	static readonly TEMPLATE_ID = 'conversationSession';
 
 	readonly templateId = SessionsRenderer.TEMPLATE_ID;
@@ -76,54 +126,120 @@ class SessionsRenderer implements IListRenderer<ConversationStubSession, ISessio
 		private readonly getActiveSessionId: () => string,
 		private readonly countPendingConfirmations: (sessionId: string) => number,
 		private readonly countRosterTurns: (sessionId: string) => number,
+		private readonly getTurns: (sessionId: string) => readonly ConversationStubTurn[],
+		private readonly hoverService: IHoverService,
+		private readonly showMenu: (session: ConversationStubSession, anchor: HTMLElement) => void,
 	) { }
 
 	renderTemplate(container: HTMLElement): ISessionTemplateData {
+		const disposables = new DisposableStore();
 		container.classList.add('conversation-sessions-item');
 		const row = dom.append(container, $('.conversation-sessions-item-row'));
 		const icon = dom.append(row, $('span.conversation-sessions-item-icon'));
-		icon.classList.add(...ThemeIcon.asClassNameArray(Codicon.commentDiscussion));
 		const label = dom.append(row, $('.conversation-sessions-item-label'));
 		const subtitle = dom.append(row, $('.conversation-sessions-item-subtitle'));
-		return { container, label, subtitle };
+		const more = dom.append(row, $('button.conversation-sessions-item-more')) as HTMLButtonElement;
+		more.type = 'button';
+		more.classList.add(...ThemeIcon.asClassNameArray(Codicon.ellipsis));
+		more.setAttribute('aria-label', localize('conversationSessionsView.moreActions', "More actions"));
+		const templateData: ISessionTemplateData = { container, icon, label, subtitle, more, disposables, session: undefined };
+		disposables.add(dom.addDisposableListener(more, dom.EventType.MOUSE_DOWN, event => {
+			event.preventDefault();
+			event.stopPropagation();
+		}));
+		disposables.add(dom.addDisposableListener(more, dom.EventType.CLICK, event => {
+			event.preventDefault();
+			event.stopPropagation();
+			if (templateData.session) {
+				this.showMenu(templateData.session, more);
+			}
+		}));
+		disposables.add(this.hoverService.setupDelayedHover(row, () => ({
+			content: this.sessionHover(templateData.session),
+		})));
+		return templateData;
 	}
 
-	renderElement(session: ConversationStubSession, _index: number, templateData: ISessionTemplateData): void {
+	renderElement(entry: SessionRosterEntry, _index: number, templateData: ISessionTemplateData): void {
+		if (entry.kind !== 'session') {
+			return;
+		}
+		const session = entry.session;
+		templateData.session = session;
 		templateData.label.textContent = session.title;
-		templateData.label.title = session.title;
-		const subtitle = formatSessionRosterSubtitle(
-			session,
-			this.countPendingConfirmations(session.id),
-			this.countRosterTurns(session.id),
-		);
-		templateData.subtitle.textContent = subtitle;
-		templateData.subtitle.title = subtitle;
-		const active = session.id === this.getActiveSessionId();
-		templateData.container.classList.toggle('conversation-sessions-item-active', active);
+		const pending = this.countPendingConfirmations(session.id);
+		const turnCount = this.countRosterTurns(session.id);
+		const tone = resolveSessionRosterTone(this.getTurns(session.id), pending);
+		applySessionRosterIcon(templateData.icon, tone);
+		templateData.subtitle.textContent = formatSessionRosterSubtitle(session, pending, turnCount);
+		templateData.container.classList.toggle('conversation-sessions-item-active', session.id === this.getActiveSessionId());
 	}
 
-	disposeTemplate(): void {
-		// noop
+	disposeTemplate(templateData: ISessionTemplateData): void {
+		templateData.disposables.dispose();
+	}
+
+	private sessionHover(session: ConversationStubSession | undefined): MarkdownString {
+		const markdown = new MarkdownString('', { supportThemeIcons: true });
+		if (!session) {
+			return markdown;
+		}
+		const pending = this.countPendingConfirmations(session.id);
+		const turnCount = this.countRosterTurns(session.id);
+		const tone = resolveSessionRosterTone(this.getTurns(session.id), pending);
+		markdown.appendText(session.title);
+		const lines: { icon: string; text: string }[] = [];
+		if (session.workDir) {
+			lines.push({ icon: 'folder', text: session.workDir });
+		}
+		if (typeof session.lastAccessedAt === 'number') {
+			lines.push({ icon: 'history', text: formatSessionAccessedLabel(session.lastAccessedAt) });
+		}
+		lines.push({ icon: 'comment', text: formatSessionMessageCount(turnCount) });
+		const pendingLabel = formatSessionPendingConfirmations(pending);
+		if (pendingLabel) {
+			lines.push({ icon: 'bell', text: pendingLabel });
+		}
+		const status = formatSessionRosterStatus(tone);
+		if (status) {
+			const icon = tone === 'failed' ? 'error' : tone === 'running' ? 'loading' : 'bell';
+			lines.push({ icon, text: status });
+		}
+		for (const line of lines) {
+			markdown.appendText('\n');
+			markdown.appendMarkdown(`$(${line.icon}) `);
+			markdown.appendText(line.text);
+		}
+		return markdown;
 	}
 }
 
-class SessionsAccessibilityProvider implements IListAccessibilityProvider<ConversationStubSession> {
+class SessionsAccessibilityProvider implements IListAccessibilityProvider<SessionRosterEntry> {
 	constructor(
 		private readonly getActiveSessionId: () => string,
 		private readonly countPendingConfirmations: (sessionId: string) => number,
 		private readonly countRosterTurns: (sessionId: string) => number,
+		private readonly getTurns: (sessionId: string) => readonly ConversationStubTurn[],
 	) { }
 
 	getWidgetAriaLabel(): string {
 		return localize('conversationSessionsView.ariaLabel', "Conversation Sessions");
 	}
 
-	getAriaLabel(session: ConversationStubSession): string {
-		const subtitle = formatSessionRosterSubtitle(session, this.countPendingConfirmations(session.id), this.countRosterTurns(session.id));
-		const active = session.id === this.getActiveSessionId();
-		return active
-			? localize('conversationSessionsView.activeSessionWithSubtitle', "{0}, {1}, active session", session.title, subtitle)
-			: localize('conversationSessionsView.sessionWithSubtitle', "{0}, {1}", session.title, subtitle);
+	getAriaLabel(entry: SessionRosterEntry): string {
+		if (entry.kind === 'header') {
+			return localize('conversationSessionsView.groupAria', "{0}, {1}", formatSessionRosterGroupLabel(entry.group), entry.count);
+		}
+		const session = entry.session;
+		const pending = this.countPendingConfirmations(session.id);
+		const turnCount = this.countRosterTurns(session.id);
+		return formatSessionRosterAriaLabel(
+			session,
+			pending,
+			turnCount,
+			resolveSessionRosterTone(this.getTurns(session.id), pending),
+			session.id === this.getActiveSessionId(),
+		);
 	}
 }
 
@@ -131,7 +247,7 @@ export class ConversationSessionsView extends ViewPane {
 
 	static readonly ID = CONVERSATION_SESSIONS_VIEW_ID;
 
-	private list: WorkbenchList<ConversationStubSession> | undefined;
+	private list: WorkbenchList<SessionRosterEntry> | undefined;
 	private listContainer: HTMLElement | undefined;
 	private emptyMessage: HTMLElement | undefined;
 	private filterBox: ConversationSessionsInlineFilterBox | undefined;
@@ -269,29 +385,40 @@ export class ConversationSessionsView extends ViewPane {
 		}
 	}
 
-	private ensureList(): WorkbenchList<ConversationStubSession> {
+	private ensureList(): WorkbenchList<SessionRosterEntry> {
 		if (this.list) {
 			return this.list;
 		}
 
 		const getActiveSessionId = () => this.stubService.getActiveSessionId();
 		const countPendingConfirmations = (sessionId: string) => this.stubService.countPendingConfirmations(sessionId);
-		const countRosterTurns = (sessionId: string) => this.stubService.getTurns(sessionId).length;
+		const getTurns = (sessionId: string) => this.stubService.getTurns(sessionId);
+		const countRosterTurns = (sessionId: string) => getTurns(sessionId).length;
 		const delegate = new SessionsDelegate(() => this.element.classList.contains('is-compact'));
-		const renderer = new SessionsRenderer(getActiveSessionId, countPendingConfirmations, countRosterTurns);
+		const renderer = new SessionsRenderer(
+			getActiveSessionId,
+			countPendingConfirmations,
+			countRosterTurns,
+			getTurns,
+			this.hoverService,
+			(session, anchor) => this.showSessionContextMenu(session, anchor),
+		);
 
 		this.list = this._register(this.instantiationService.createInstance(
 			WorkbenchList,
 			'ConversationSessions',
 			this.listContainer!,
 			delegate,
-			[renderer],
+			[new SessionGroupRenderer(), renderer],
 			{
-				identityProvider: { getId: (session: ConversationStubSession) => session.id },
-				accessibilityProvider: new SessionsAccessibilityProvider(getActiveSessionId, countPendingConfirmations, countRosterTurns),
+				identityProvider: {
+					getId: (entry: SessionRosterEntry) => entry.kind === 'header' ? `header:${entry.group}` : entry.session.id,
+					getGroupId: (entry: SessionRosterEntry) => entry.kind === 'header' ? NotSelectableGroupId : 0,
+				},
+				accessibilityProvider: new SessionsAccessibilityProvider(getActiveSessionId, countPendingConfirmations, countRosterTurns, getTurns),
 				openOnSingleClick: true,
 			}
-		)) as WorkbenchList<ConversationStubSession>;
+		)) as WorkbenchList<SessionRosterEntry>;
 
 		this._register(this.list.onDidOpen(e => this.openSessionFromRoster(e.element, e.browserEvent)));
 		this._register(this.list.onContextMenu(e => this.onContextMenu(e)));
@@ -299,29 +426,34 @@ export class ConversationSessionsView extends ViewPane {
 		return this.list;
 	}
 
-	private onContextMenu(e: IListContextMenuEvent<ConversationStubSession>): void {
-		if (!e.element) {
+	private onContextMenu(e: IListContextMenuEvent<SessionRosterEntry>): void {
+		if (!e.element || e.element.kind !== 'session') {
 			return;
 		}
 
+		this.showSessionContextMenu(e.element.session, e.anchor);
+	}
+
+	private showSessionContextMenu(session: ConversationStubSession, anchor: HTMLElement | IListContextMenuEvent<SessionRosterEntry>['anchor']): void {
 		this.contextMenuService.showContextMenu({
-			getAnchor: () => e.anchor,
+			getAnchor: () => anchor,
 			getActions: () => [
 				new Action(
 					'workbench.action.conversationSessions.openBeside',
 					localize('conversationSessionsView.openBeside', "Open beside"),
 					undefined,
 					true,
-					() => this.openSessionBeside(e.element!.id),
+					() => this.openSessionBeside(session.id),
 				),
 			],
 		});
 	}
 
-	private openSessionFromRoster(session: ConversationStubSession | undefined, browserEvent?: UIEvent): void {
-		if (!session) {
+	private openSessionFromRoster(entry: SessionRosterEntry | undefined, browserEvent?: UIEvent): void {
+		if (!entry || entry.kind !== 'session') {
 			return;
 		}
+		const session = entry.session;
 		if (!this.stubService.getSessions().some(s => s.id === session.id)) {
 			return;
 		}
@@ -380,8 +512,9 @@ export class ConversationSessionsView extends ViewPane {
 			return;
 		}
 
-		this.list.splice(0, this.list.length, filtered);
-		this.layoutList(filtered.length);
+		const entries = groupSessionsForRoster(filtered);
+		this.list.splice(0, this.list.length, entries);
+		this.layoutList(entries.length);
 		this.updateActiveSession();
 	}
 
@@ -411,7 +544,7 @@ export class ConversationSessionsView extends ViewPane {
 		}
 
 		const activeId = this.stubService.getActiveSessionId();
-		const index = this.getFilteredSessions().findIndex(session => session.id === activeId);
+		const index = groupSessionsForRoster(this.getFilteredSessions()).findIndex(entry => entry.kind === 'session' && entry.session.id === activeId);
 		if (index >= 0 && index < this.list.length) {
 			this.list.setSelection([index]);
 			this.list.setFocus([index]);

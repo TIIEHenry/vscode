@@ -12,6 +12,7 @@ import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.j
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { readCapabilityEntry } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
@@ -23,6 +24,7 @@ import type {
 	UniverseAgentProviderStatus,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
+import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import {
 	canPerformCatalogWriteLive,
 	canShowCatalogRows,
@@ -55,6 +57,21 @@ function formatProviderConfiguredLabel(configured: boolean): string {
 	return configured
 		? localize('ua.engineProviderConfigured', "Configured")
 		: localize('ua.engineProviderNotConfigured', "Not configured");
+}
+
+function formatProviderCredentialSource(source: string): string {
+	switch (source) {
+		case 'FILE':
+			return localize('ua.engineProviderCredentialFile', "File");
+		case 'PROVIDER_ENV':
+			return localize('ua.engineProviderCredentialProviderEnv', "Provider env");
+		case 'BUILTIN_ENV':
+			return localize('ua.engineProviderCredentialBuiltinEnv', "Built-in env");
+		default: {
+			const words = source.toLowerCase().split('_').filter(word => word.length > 0);
+			return words.map((word, index) => index === 0 ? `${word.charAt(0).toUpperCase()}${word.slice(1)}` : word).join(' ');
+		}
+	}
 }
 
 function formatPresetSummary(preset: UniverseAgentProviderPreset): string {
@@ -115,7 +132,7 @@ function formatProviderRowSummary(provider: UniverseAgentProviderStatus): string
 		provider.providerId,
 		provider.protocol,
 		formatProviderConfiguredLabel(provider.configured),
-		provider.credentialSource,
+		formatProviderCredentialSource(provider.credentialSource),
 		provider.hasBaseUrl
 			? localize('ua.engineProviderHasBaseUrl', "base URL set")
 			: localize('ua.engineProviderNoBaseUrl', "no base URL"),
@@ -187,6 +204,7 @@ export class EngineProvidersSection extends Disposable {
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@ICommandService private readonly commandService: ICommandService,
 		@IDialogService private readonly dialogService: IDialogService,
+		@IContextViewService private readonly contextViewService: IContextViewService,
 	) {
 		super();
 
@@ -452,23 +470,25 @@ export class EngineProvidersSection extends Disposable {
 
 			if (provider.credentialSource && provider.credentialSource !== 'NONE') {
 				const sourcePill = DOM.append(badges, $('.engine-provider-pill.engine-provider-pill--muted'));
-				sourcePill.textContent = provider.credentialSource;
+				sourcePill.textContent = formatProviderCredentialSource(provider.credentialSource);
 			}
 
 			const switchContainer = DOM.append(row, $('.engine-provider-switch-container'));
-			const switchEl = DOM.append(switchContainer, $(provider.enabled
-				? '.engine-provider-switch.is-enabled'
-				: '.engine-provider-switch.is-disabled'));
-			switchEl.title = getModelEnabledLabel(provider.enabled);
-			switchEl.setAttribute('aria-label', getModelEnabledLabel(provider.enabled));
+			const switchEl = DOM.append(switchContainer, $('.engine-provider-switch'));
+			const switchLabel = DOM.append(switchContainer, $('span.engine-provider-switch-label'));
 			DOM.append(switchEl, $('.engine-provider-switch-thumb'));
-			DOM.append(switchContainer, $('span.engine-provider-switch-label')).textContent = getModelEnabledLabel(provider.enabled);
+			switchEl.setAttribute('aria-hidden', 'true');
+			const label = getModelEnabledLabel(provider.enabled);
+			switchEl.classList.toggle('is-enabled', provider.enabled);
+			switchEl.classList.toggle('is-disabled', !provider.enabled);
+			switchLabel.textContent = label;
+			row.classList.toggle('engine-provider-status-row--disabled', !provider.enabled);
 
 			if (this.canWriteProviders()) {
 				const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
 				const name = provider.brand || provider.providerId;
 				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderEdit', "Edit {0}", name), Codicon.edit, () => void this.promptProvider(provider.providerId, provider.protocol, '', 'edit'));
-				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderClearRow', "Clear {0}", name), Codicon.clearAll, () => void this.clearProvider(provider.providerId));
+				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderClearRow', "Clear {0}", name), Codicon.clearAll, anchor => void this.clearProvider(provider.providerId, anchor), true);
 			}
 		}
 		this.providerList.style.display = '';
@@ -479,7 +499,7 @@ export class EngineProvidersSection extends Disposable {
 			return;
 		}
 		this.providerWriteChromeReady = true;
-		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderImport', "Import from local harnesses"), Codicon.desktopDownload, () => void this.importLocalProviders());
+		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderImport', "Import from local harnesses"), Codicon.desktopDownload, anchor => void this.importLocalProviders(anchor));
 		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderAdd', "Add provider"), Codicon.add, () => void this.promptProvider('', ''));
 	}
 
@@ -619,15 +639,16 @@ export class EngineProvidersSection extends Disposable {
 		}
 	}
 
-	private async clearProvider(providerId: string): Promise<void> {
+	private async clearProvider(providerId: string, anchor: HTMLElement): Promise<void> {
 		if (!this.canWriteProviders() || !this.connection.clearProviderCredentials) {
 			return;
 		}
-		const { confirmed } = await this.dialogService.confirm({
-			type: 'warning',
+		const confirmed = await showEngineConfirmPopover({
+			contextViewService: this.contextViewService,
+			anchor,
 			message: localize('ua.engineProviderClearConfirm', "Clear credentials for \"{0}\"?", providerId),
 			detail: localize('ua.engineProviderClearDetail', "This clears the engine credential store. Host environment variables stay as they are."),
-			primaryButton: localize('ua.engineProviderClear', "Clear"),
+			confirmLabel: localize('ua.engineProviderClear', "Clear"),
 		});
 		if (!confirmed) {
 			return;
@@ -641,7 +662,7 @@ export class EngineProvidersSection extends Disposable {
 		}
 	}
 
-	private async importLocalProviders(): Promise<void> {
+	private async importLocalProviders(anchor: HTMLElement): Promise<void> {
 		if (!this.canWriteProviders() || !this.connection.previewHarnessProviderImport || !this.connection.importHarnessProviders) {
 			this.setProviderAction(localize('ua.engineProviderImportDesktop', "Import runs in the desktop app."), 'error');
 			return;
@@ -658,11 +679,13 @@ export class EngineProvidersSection extends Disposable {
 			return;
 		}
 		const lines = preview.items.map(item => `${item.label} (${item.source})`);
-		const { confirmed } = await this.dialogService.confirm({
-			type: 'question',
+		const confirmed = await showEngineConfirmPopover({
+			contextViewService: this.contextViewService,
+			anchor,
 			message: localize('ua.engineProviderImportConfirm', "Import {0} providers into the engine?", preview.items.length),
 			detail: lines.join('\n'),
-			primaryButton: localize('ua.engineProviderImport', "Import from local harnesses"),
+			confirmLabel: localize('ua.engineProviderImport', "Import from local harnesses"),
+			danger: false,
 		});
 		if (!confirmed) {
 			return;
@@ -755,6 +778,7 @@ export class EngineModelsSection extends Disposable {
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@ICommandService private readonly commandService: ICommandService,
 		@IDialogService private readonly dialogService: IDialogService,
+		@IContextViewService private readonly contextViewService: IContextViewService,
 	) {
 		super();
 
@@ -977,7 +1001,7 @@ export class EngineModelsSection extends Disposable {
 						model.enabled ? Codicon.circleSlash : Codicon.check,
 						() => void this.setListedModelEnabled(model, !model.enabled),
 					);
-					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelDeleteRow', "Delete {0}", name), Codicon.trash, () => void this.deleteListedModel(model));
+					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelDeleteRow', "Delete {0}", name), Codicon.trash, anchor => void this.deleteListedModel(model, anchor), true);
 					if (testable) {
 						appendIconButton(this.modelRowActions, actions, localize('ua.engineModelTest', "Test {0}", name), Codicon.beaker, () => void this.testListedModel(model));
 					}
@@ -1086,16 +1110,17 @@ export class EngineModelsSection extends Disposable {
 		}
 	}
 
-	private async deleteListedModel(model: UniverseAgentModelEntry): Promise<void> {
+	private async deleteListedModel(model: UniverseAgentModelEntry, anchor: HTMLElement): Promise<void> {
 		if (!this.canWriteModels() || !this.connection.deleteModel) {
 			return;
 		}
 		const label = model.modelId || model.id;
-		const { confirmed } = await this.dialogService.confirm({
-			type: 'warning',
+		const confirmed = await showEngineConfirmPopover({
+			contextViewService: this.contextViewService,
+			anchor,
 			message: localize('ua.engineModelDeleteConfirm', "Delete model \"{0}\"?", label),
 			detail: localize('ua.engineModelDeleteDetail', "This removes the model from the engine registry."),
-			primaryButton: localize('ua.engineModelDelete', "Delete"),
+			confirmLabel: localize('ua.engineModelDelete', "Delete"),
 		});
 		if (!confirmed) {
 			return;
@@ -1162,7 +1187,7 @@ const catalogIconButtonStyles: IButtonStyles = {
 	buttonSecondaryBorder: undefined,
 };
 
-function appendIconButton(store: DisposableStore, parent: HTMLElement, label: string, icon: ThemeIcon, onClick: () => void): void {
+function appendIconButton(store: DisposableStore, parent: HTMLElement, label: string, icon: ThemeIcon, onClick: (anchor: HTMLElement) => void, danger = false): void {
 	const button = store.add(new Button(parent, {
 		...catalogIconButtonStyles,
 		supportIcons: true,
@@ -1170,7 +1195,10 @@ function appendIconButton(store: DisposableStore, parent: HTMLElement, label: st
 		ariaLabel: label,
 	}));
 	button.icon = icon;
-	store.add(button.onDidClick(onClick));
+	if (danger) {
+		button.element.classList.add('is-danger');
+	}
+	store.add(button.onDidClick(() => onClick(button.element)));
 }
 
 function publicActionError(error: unknown): string {

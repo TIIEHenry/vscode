@@ -303,14 +303,15 @@ suite('EngineRulesSection', () => {
 			},
 			upsertProjectRule: async request => request.rule,
 		});
-		const { section, dialog } = mountWritable(connection);
+		const { section } = mountWritable(connection);
 		await timeout(0);
 		const button = section.getDomNode().querySelector('[aria-label="Delete Ship it"]') as HTMLButtonElement;
 		button.click();
 		await timeout(0);
 		assert.strictEqual(deletes.length, 0);
-		dialog.setConfirmResult({ confirmed: true });
-		button.click();
+		const confirm = document.querySelector('.engine-confirm-popover-confirm') as HTMLButtonElement | null;
+		assert.ok(confirm);
+		confirm.click();
 		await timeout(0);
 		assert.deepStrictEqual(deletes, [{ scope: 2, sessionId: '', id: 'rule-1' }]);
 		section.getDomNode().parentElement?.remove();

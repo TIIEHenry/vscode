@@ -18,7 +18,7 @@ import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensT
 import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './conversationMermaidHost.js';
 import type { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/chatContentCodePools.js';
-import { fillProcessFoldDiffStats, formatProcessFoldDiffStats, renderProcessFoldDiffBlock, renderProcessFoldSpan } from './conversationProcessFold.js';
+import { renderFileEditCard, renderProcessFoldSpan } from './conversationProcessFold.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import {
 	getConversationEntryAriaLabel,
@@ -48,14 +48,10 @@ const conversationLensTurnNeutral = localize('conversationLens.turnNeutral', "Te
 const conversationLensTurnSending = localize('conversationLens.turnSending', "Sending…");
 
 /**
- * Composer to mount into the next edit-host during `renderElement`, before ListView
- * measures the row. Chrome must call this before `setEditingTurnId` so the host is
- * never measured empty (D27). Cleared when leaving turn-edit.
+ * Turn edit stays on the docked composer. Callers still pass the node on enter
+ * and clear it on exit; the timeline does not mount it.
  */
-let pendingTurnEditComposer: HTMLElement | undefined;
-
-export function provideTurnEditComposer(composer: HTMLElement | undefined): void {
-	pendingTurnEditComposer = composer;
+export function provideTurnEditComposer(_composer: HTMLElement | undefined): void {
 }
 
 export class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationTimelineItem> {
@@ -350,20 +346,13 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			}
 			const sending = turn.kind === 'user' && turn.pending === true;
 			if (turn.kind === 'user') {
+				el.classList.add('conversation-lens-turn--user');
 				if (sending) {
 					el.setAttribute('data-pending', 'true');
 				}
 				const editing = !sending && this.getEditingTurnId() === turn.id;
 				if (editing) {
 					el.classList.add('conversation-lens-turn--editing');
-					const host = append(el, $('.conversation-lens-turn-edit-host'));
-					host.setAttribute('data-turn-id', turn.id);
-					if (pendingTurnEditComposer) {
-						host.appendChild(pendingTurnEditComposer);
-					}
-					templateData.container.appendChild(el);
-					this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
-					return;
 				}
 			}
 
@@ -695,6 +684,63 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 }
 
 const UNKNOWN_RAW_CONTENT_PREVIEW_MAX_CHARS = 240;
+const ERROR_SUMMARY_MAX_CHARS = 120;
+
+const conversationErrorShowDetails = localize('conversationLens.errorShowDetails', "Show details");
+const conversationErrorHideDetails = localize('conversationLens.errorHideDetails', "Hide details");
+const conversationErrorSubscriptionUnavailable = localize('conversationLens.errorSubscriptionUnavailable', "Subscription unavailable");
+
+export interface ConversationErrorSummary {
+	readonly summary: string;
+	readonly detail: string | undefined;
+}
+
+function firstErrorSentence(text: string): string {
+	const line = (text.split('\n')[0] ?? text).trim();
+	const sentence = /^(.{1,160}?[.!?])(?:\s|$)/.exec(line);
+	return (sentence?.[1] ?? line).trim();
+}
+
+function parseClientErrorPayload(text: string): { code?: string; message?: string } | undefined {
+	const start = text.indexOf('{');
+	if (start < 0) {
+		return undefined;
+	}
+	try {
+		const parsed: unknown = JSON.parse(text.slice(start));
+		if (typeof parsed !== 'object' || parsed === null) {
+			return undefined;
+		}
+		const record = parsed as Record<string, unknown>;
+		const error = typeof record.error === 'object' && record.error !== null
+			? record.error as Record<string, unknown>
+			: record;
+		const code = typeof error.code === 'string' ? error.code : undefined;
+		const message = typeof error.message === 'string' ? error.message : undefined;
+		if (!code && !message) {
+			return undefined;
+		}
+		return { code, message };
+	} catch {
+		return undefined;
+	}
+}
+
+/** One visible line. The raw payload stays behind Show details when it is longer. */
+export function summarizeConversationError(text: string): ConversationErrorSummary {
+	const trimmed = text.trim();
+	if (!trimmed) {
+		return { summary: trimmed, detail: undefined };
+	}
+	const parsed = parseClientErrorPayload(trimmed);
+	let summary = parsed?.code === 'InvalidSubscription'
+		? conversationErrorSubscriptionUnavailable
+		: firstErrorSentence(parsed?.message ?? trimmed);
+	if (summary.length > ERROR_SUMMARY_MAX_CHARS) {
+		summary = `${summary.slice(0, ERROR_SUMMARY_MAX_CHARS - 1)}…`;
+	}
+	return { summary, detail: summary === trimmed ? undefined : trimmed };
+}
 
 export interface StandaloneToolRowOptions {
 	readonly diffEditorPool?: DiffEditorPool;
@@ -718,60 +764,25 @@ export function renderStandaloneThinkingOrToolRow(
 	el.setAttribute('data-kind', turn.kind);
 	el.setAttribute('data-honest-kind', turn.kind);
 	el.setAttribute('data-turn-id', turn.id);
+
+	if (turn.toolName === 'file_edit') {
+		const store = disposables ?? new DisposableStore();
+		renderFileEditCard(el, [turn], {
+			showToolInvocationDetails: true,
+			isToolExpanded: options?.isToolExpanded,
+			setToolExpanded: options?.setToolExpanded,
+			onLayoutChange: options?.onLayoutChange,
+			diffEditorPool: options?.diffEditorPool,
+			instantiationService: options?.instantiationService,
+		}, store);
+		return;
+	}
+
 	const header = append(el, $('.conversation-lens-turn-header'));
 	header.textContent = getConversationTurnRoleLabel(turn.kind);
 
-	const metadata = turn.metadata;
-	const diffText = typeof metadata?.diff === 'string' && metadata.diff.length > 0 ? metadata.diff : undefined;
-	const isFileEdit = turn.toolName === 'file_edit';
-	const hasDiff = isFileEdit && !!diffText;
-
-	if (hasDiff) {
-		const diffStatsText = formatProcessFoldDiffStats(metadata, diffText);
-		if (diffStatsText) {
-			const diffStats = append(header, $('span.conversation-lens-turn-diff-stats'));
-			fillProcessFoldDiffStats(diffStats, diffStatsText);
-		}
-
-		const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
-		body.textContent = turn.summary ?? turn.text;
-
-		const isExpanded = options?.isToolExpanded?.(turn.id) ?? false;
-		const toggleBtn = append(header, $('button.conversation-lens-turn-diff-toggle')) as HTMLButtonElement;
-		toggleBtn.type = 'button';
-		toggleBtn.textContent = isExpanded
-			? localize('conversationLens.hideDiff', "Hide diff")
-			: localize('conversationLens.showDiff', "Show diff");
-
-		const diffContainer = append(el, $('div.conversation-lens-turn-diff-body'));
-		diffContainer.hidden = !isExpanded;
-
-		const filediff = typeof metadata?.filediff === 'object' && metadata?.filediff !== null
-			? (metadata.filediff as Record<string, unknown>)
-			: undefined;
-
-		const store = disposables ?? new DisposableStore();
-		if (isExpanded) {
-			renderProcessFoldDiffBlock(diffContainer, diffText!, filediff, options ?? {}, store);
-		}
-
-		store.add(addDisposableListener(toggleBtn, 'click', (e) => {
-			e.stopPropagation();
-			const next = !(options?.isToolExpanded?.(turn.id) ?? !diffContainer.hidden);
-			options?.setToolExpanded?.(turn.id, next);
-			diffContainer.hidden = !next;
-			toggleBtn.textContent = next
-				? localize('conversationLens.hideDiff', "Hide diff")
-				: localize('conversationLens.showDiff', "Show diff");
-			if (next && !diffContainer.hasChildNodes()) {
-				renderProcessFoldDiffBlock(diffContainer, diffText!, filediff, options ?? {}, store);
-			}
-			options?.onLayoutChange?.();
-		}));
-	} else {
-		const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
-		body.textContent = turn.summary ?? turn.text;
-	}
+	const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
+	body.textContent = turn.summary ?? turn.text;
 }
 
 function renderReadOnlyTextRow(container: HTMLElement, turn: ConversationStubTurn, role: 'context' | 'neutral'): void {
@@ -833,7 +844,27 @@ export function renderHonestTimelineRow(
 	}
 
 	const body = append(el, $('.conversation-lens-turn-body.conversation-lens-turn-body--honest'));
-	if (kind === 'unknown') {
+	if (kind === 'error') {
+		const { summary, detail } = summarizeConversationError(turn.text);
+		const summaryEl = append(body, $('div.conversation-lens-turn-error-summary'));
+		summaryEl.textContent = summary;
+		summaryEl.title = summary;
+		if (detail) {
+			const toggle = append(body, $('button.conversation-lens-turn-error-details-toggle')) as HTMLButtonElement;
+			toggle.type = 'button';
+			toggle.textContent = conversationErrorShowDetails;
+			const details = append(body, $('div.conversation-lens-turn-error-details'));
+			details.hidden = true;
+			details.textContent = detail;
+			disposables.add(addDisposableListener(toggle, 'click', (e) => {
+				e.stopPropagation();
+				const open = details.hidden;
+				details.hidden = !open;
+				toggle.textContent = open ? conversationErrorHideDetails : conversationErrorShowDetails;
+				toggle.setAttribute('aria-expanded', String(open));
+			}));
+		}
+	} else if (kind === 'unknown') {
 		const raw = fields.rawContent ?? turn.text;
 		if (raw.length > UNKNOWN_RAW_CONTENT_PREVIEW_MAX_CHARS) {
 			body.textContent = raw.slice(0, UNKNOWN_RAW_CONTENT_PREVIEW_MAX_CHARS);

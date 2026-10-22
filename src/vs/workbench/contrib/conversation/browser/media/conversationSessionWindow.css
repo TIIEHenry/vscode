@@ -25,7 +25,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf.conversation-session-leaf-secondary {
-	border-inline-start: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-inline-start: 1px solid color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf-chrome {
@@ -35,7 +35,7 @@
 	justify-content: space-between;
 	min-height: 22px;
 	padding: 0 4px;
-	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-bottom: none;
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf-title {
@@ -58,7 +58,7 @@
 	min-height: 22px;
 	width: 100%;
 	background-color: var(--vscode-sideBar-background);
-	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
 	/* The part hide control is pinned on the region corner, outside this row.
 	   Reserve its slot here so window-nav (a sibling after the lens bar) is not covered. */
 	padding-inline-end: 30px;
@@ -85,7 +85,7 @@
 	margin-inline-start: -4px;
 	padding: 0;
 	border-radius: 5px;
-	transition: background-color 0.12s ease, color 0.12s ease;
+	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .part.conversation .conversation-session-leaf-hide:hover {

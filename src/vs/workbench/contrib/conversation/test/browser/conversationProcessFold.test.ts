@@ -711,7 +711,171 @@ suite('ConversationProcessFold', () => {
 		}, disposables);
 		assert.strictEqual(host.querySelector('.codicon-check'), null);
 		assert.ok(host.querySelector('.codicon-loading'));
-		assert.strictEqual(summarizeProcessSteps(span, { showLiveChrome: true }), '1 steps · read_file');
+		assert.strictEqual(summarizeProcessSteps(span, { showLiveChrome: true }), '1 step · read_file');
+		disposables.dispose();
+	});
+
+	test('a completed tool row shows a check', () => {
+		const turns: ConversationStubTurn[] = [{
+			id: 'tool-done',
+			kind: 'tool',
+			text: 'read_file',
+			toolName: 'read_file',
+			toolStatus: 'completed',
+		}];
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+		}, disposables);
+		assert.ok(host.querySelector('.conversation-process-fold-tool-icon .codicon-check'));
+		assert.strictEqual(host.querySelector('.codicon-loading'), null);
+		disposables.dispose();
+	});
+
+	function renderHeaderFold(turns: readonly ConversationStubTurn[], showLiveChrome: boolean, expanded: boolean) {
+		const span = projectProcessFoldSpans(turns)[0];
+		assert.ok(span);
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		const handle = renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: expanded,
+			isOuterExpanded: () => expanded,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome,
+		}, disposables);
+		return { host, disposables, handle };
+	}
+
+	function headerOf(host: HTMLElement): HTMLElement {
+		const header = host.querySelector('.conversation-process-fold-header');
+		assert.ok(header instanceof HTMLElement);
+		return header;
+	}
+
+	test('collapsed and expanded headers show an error icon when a step failed', () => {
+		const turns: ConversationStubTurn[] = [{
+			id: 'tool-failed',
+			kind: 'tool',
+			text: 'read',
+			toolName: 'read',
+			toolStatus: 'failed',
+		}];
+		for (const expanded of [false, true]) {
+			const { host, disposables } = renderHeaderFold(turns, false, expanded);
+			const header = headerOf(host);
+			const icon = header.querySelector('.conversation-process-fold-status');
+			assert.ok(icon?.classList.contains('codicon-error'));
+			assert.ok(icon?.classList.contains('conversation-process-fold-status--error'));
+			assert.strictEqual(header.querySelector('.conversation-process-fold-chevron')?.nextElementSibling, icon);
+			assert.strictEqual(icon?.nextElementSibling?.classList.contains('conversation-process-fold-summary'), true);
+			assert.strictEqual(header.querySelector('.codicon-loading'), null);
+			assert.strictEqual(header.querySelector('.codicon-check'), null);
+			assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, 'Stub · 1 step · read · 1 failed');
+			const aria = header.getAttribute('aria-label') ?? '';
+			assert.ok(aria.includes('1 failed'));
+			assert.ok(aria.includes(expanded ? 'expanded' : 'collapsed'));
+			disposables.dispose();
+		}
+	});
+
+	test('header shows a loading icon while a tool is running with live chrome and none without it', () => {
+		const running: ConversationStubTurn = {
+			id: 'tool-running',
+			kind: 'tool',
+			text: 'read_file',
+			toolName: 'read_file',
+			toolStatus: 'running',
+		};
+		const pending: ConversationStubTurn = {
+			id: 'tool-pending',
+			kind: 'tool',
+			text: 'write',
+			toolName: 'write',
+			toolStatus: 'pending',
+		};
+		for (const expanded of [false, true]) {
+			const live = renderHeaderFold([running], true, expanded);
+			const liveHeader = headerOf(live.host);
+			const loading = liveHeader.querySelector('.conversation-process-fold-status');
+			assert.ok(loading?.classList.contains('codicon-loading'));
+			assert.ok(loading?.classList.contains('ua-motion'));
+			assert.ok(loading?.classList.contains('conversation-process-fold-status--loading'));
+			assert.strictEqual(liveHeader.querySelector('.codicon-error'), null);
+			assert.strictEqual(liveHeader.querySelector('.codicon-check'), null);
+			assert.strictEqual(liveHeader.querySelector('.conversation-process-fold-chevron')?.nextElementSibling, loading);
+			live.disposables.dispose();
+		}
+		const quiet = renderHeaderFold([running], false, false);
+		assert.strictEqual(headerOf(quiet.host).querySelector('.conversation-process-fold-status'), null);
+		assert.strictEqual(quiet.host.querySelector('.codicon-loading'), null);
+		quiet.disposables.dispose();
+
+		const waiting = renderHeaderFold([pending], true, false);
+		const waitingHeader = headerOf(waiting.host);
+		assert.ok(waitingHeader.querySelector('.conversation-process-fold-status.codicon-loading'));
+		assert.strictEqual(waitingHeader.querySelector('.conversation-process-fold-summary')?.textContent, '1 step · write · 1 waiting');
+		assert.ok(waitingHeader.getAttribute('aria-label')?.includes('1 waiting'));
+		waiting.disposables.dispose();
+	});
+
+	test('header has no status icon when every tool completed', () => {
+		const { host, disposables } = renderHeaderFold([{
+			id: 'tool-done',
+			kind: 'tool',
+			text: 'read_file',
+			toolName: 'read_file',
+			toolStatus: 'completed',
+		}], true, true);
+		const header = headerOf(host);
+		assert.strictEqual(header.querySelector('.conversation-process-fold-status'), null);
+		assert.strictEqual(header.querySelector('.codicon-check'), null);
+		assert.strictEqual(header.querySelector('.codicon-error'), null);
+		assert.strictEqual(header.querySelector('.codicon-loading'), null);
+		assert.ok(host.querySelector('.conversation-process-fold-tool-icon .codicon-check'));
+		assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, '1 step · read_file');
+		disposables.dispose();
+	});
+
+	test('header icon follows span updates and prefers loading over error while a tool is still running', () => {
+		const running: ConversationStubTurn = { id: 'run', kind: 'tool', text: 'read', toolName: 'read', toolStatus: 'running' };
+		const failed: ConversationStubTurn = { id: 'bad', kind: 'tool', text: 'write', toolName: 'write', toolStatus: 'failed' };
+		const { host, disposables, handle } = renderHeaderFold([running, failed], true, false);
+		const header = headerOf(host);
+		assert.ok(header.querySelector('.conversation-process-fold-status.codicon-loading'));
+		assert.strictEqual(header.querySelector('.codicon-error'), null);
+		assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, '2 steps · read, write · 1 failed');
+
+		const failedOnly = projectProcessFoldSpans([failed])[0];
+		assert.ok(failedOnly);
+		handle.update(failedOnly);
+		assert.ok(header.querySelector('.conversation-process-fold-status.codicon-error'));
+		assert.strictEqual(header.querySelector('.codicon-loading'), null);
+		assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, '1 step · write · 1 failed');
+		assert.ok(header.getAttribute('aria-label')?.includes('1 failed'));
+		assert.ok(header.getAttribute('aria-label')?.includes('collapsed'));
+
+		const done = projectProcessFoldSpans([{ ...failed, toolStatus: 'completed' }])[0];
+		assert.ok(done);
+		handle.update(done);
+		assert.strictEqual(header.querySelector('.conversation-process-fold-status'), null);
+		assert.strictEqual(header.querySelector('.codicon-check'), null);
+		assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, '1 step · write');
 		disposables.dispose();
 	});
 });

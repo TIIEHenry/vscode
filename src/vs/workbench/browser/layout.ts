@@ -27,7 +27,7 @@ import { EditorGroupLayout, GroupActivationReason, GroupOrientation, GroupsOrder
 import { isPreviewCategoryRoutingPart } from '../services/editor/common/previewCategoryRouting.js';
 import { SerializableGrid, ISerializableView, ISerializedGrid, Orientation, ISerializedNode, ISerializedLeafNode, Direction, IViewSize, Sizing } from '../../base/browser/ui/grid/grid.js';
 import { Part } from './part.js';
-import { IConversationPartService } from './parts/conversation/conversationPart.js';
+import { CONVERSATION_PART_MINIMUM_WIDTH, IConversationPartService } from './parts/conversation/conversationPart.js';
 import { ISourcesPartService } from './parts/sources/sourcesPart.js';
 import { IStatusbarService } from '../services/statusbar/browser/statusbar.js';
 import { IFileService } from '../../platform/files/common/files.js';
@@ -56,6 +56,11 @@ import { CodeWindow, mainWindow } from '../../base/browser/window.js';
 import { localize } from '../../nls.js';
 
 //#region Layout Implementation
+
+/** Cap a persisted end-column width only when it would take space from the conversation minimum. */
+export function clampConversationEndColumnWidth(availableWidth: number, reservedWidth: number, endColumnWidth: number): number {
+	return Math.max(0, Math.min(endColumnWidth, availableWidth - reservedWidth - CONVERSATION_PART_MINIMUM_WIDTH));
+}
 
 interface ILayoutRuntimeState {
 	activeContainerId: number;
@@ -755,6 +760,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		this._mainContainerDimension = getClientArea(this.parent, this.contextService.getWorkbenchState() === WorkbenchState.EMPTY ? DEFAULT_EMPTY_WINDOW_DIMENSIONS : DEFAULT_WORKSPACE_WINDOW_DIMENSIONS); // running with fallback to ensure no error is thrown (https://github.com/microsoft/vscode/issues/240242)
 
 		this.stateModel = new LayoutStateModel(this.storageService, this.configurationService, this.contextService, this.environmentService);
+		this._register(this.stateModel);
 		this.stateModel.load({
 			mainContainerDimension: this._mainContainerDimension,
 			resetLayout: Boolean(this.layoutOptions?.resetLayout)
@@ -2981,11 +2987,21 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		const activityBarSize = this.stateModel.getRuntimeValue(LayoutStateKeys.ACTIVITYBAR_HIDDEN) ? 0 : nodes.activityBar.size;
 		const sideBarSize = this.stateModel.getRuntimeValue(LayoutStateKeys.SIDEBAR_HIDDEN) ? 0 : nodes.sideBar.size;
 		const auxiliaryBarSize = this.stateModel.getRuntimeValue(LayoutStateKeys.AUXILIARYBAR_HIDDEN) ? 0 : nodes.auxiliaryBar.size;
-		const editorSize = this.isEndColumnHidden() ? 0 : nodes.editor.size;
 		const panelSize = this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_HIDDEN) ? 0 : nodes.panel.size;
 
 		const panelPostion = this.stateModel.getRuntimeValue(LayoutStateKeys.PANEL_POSITION);
 		const sideBarPosition = this.stateModel.getRuntimeValue(LayoutStateKeys.SIDEBAR_POSITON);
+
+		// The conversation is the leftover column. A persisted end-column width can
+		// be wider than this window, so cap it only when it would starve the
+		// conversation; otherwise user-resized widths stay untouched.
+		if (nodes.conversation.visible && !this.isEndColumnHidden()) {
+			const panelWidth = isHorizontal(panelPostion) ? 0 : panelSize;
+			const reservedWidth = activityBarSize + sideBarSize + auxiliaryBarSize + panelWidth;
+			nodes.editor.size = clampConversationEndColumnWidth(availableWidth, reservedWidth, nodes.editor.size);
+		}
+
+		const editorSize = this.isEndColumnHidden() ? 0 : nodes.editor.size;
 
 		const result = [] as ISerializedNode[];
 		if (!isHorizontal(panelPostion)) {
@@ -3222,6 +3238,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		super.dispose();
 
 		this.disposed = true;
+		this.state?.runtime.zenMode.transitionDisposables.dispose();
 	}
 }
 

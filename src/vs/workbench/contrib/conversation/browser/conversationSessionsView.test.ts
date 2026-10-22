@@ -118,5 +118,7 @@ suite('ConversationSessionsView (browser co-located)', () => {
 		assert.ok(titles.includes('Alpha roster item'));
 		assert.strictEqual(titles.length, 2);
 		assert.ok(view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-label')?.textContent === 'Beta roster item');
+		assert.ok(view.element.querySelector('.conversation-sessions-item-active .conversation-sessions-item-more'));
+		assert.ok(view.element.querySelector('.conversation-sessions-item-icon--waiting, .conversation-sessions-item-icon--idle, .conversation-sessions-item-icon--running, .conversation-sessions-item-icon--failed'));
 	});
 });

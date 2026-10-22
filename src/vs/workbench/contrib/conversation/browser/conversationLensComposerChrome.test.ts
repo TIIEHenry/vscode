@@ -8,9 +8,10 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import {
 	syncComposerPlacement,
 	updateComposerEditChrome,
+	updateGateRow,
 	type IConversationLensComposerChromeHost,
 } from './conversationLensComposerChrome.js';
-import { conversationLensDockEditingMessage } from './conversationLensDockStrings.js';
+import { conversationLensDockEditingMessage, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason } from './conversationLensDockStrings.js';
 
 suite('ConversationLensComposerChrome', () => {
 
@@ -57,6 +58,47 @@ suite('ConversationLensComposerChrome', () => {
 		}
 	});
 
+	test('session unavailable gate row is a warning status with an icon', () => {
+		const gateRow = document.createElement('div');
+		gateRow.className = 'conversation-lens-dock-gate-row';
+		const gateLabel = document.createElement('span');
+		gateLabel.className = 'conversation-lens-dock-gate-label';
+		gateRow.append(gateLabel);
+		let sessionReady = false;
+		const host = {
+			postFailureVisible: false,
+			gateRow,
+			gateLabel,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => sessionReady,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+		} as unknown as IConversationLensComposerChromeHost;
+
+		updateGateRow(host);
+		const message = `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`;
+		assert.strictEqual(gateRow.hidden, false);
+		assert.strictEqual(gateRow.getAttribute('role'), 'status');
+		assert.strictEqual(gateRow.getAttribute('aria-label'), message);
+		assert.ok(gateRow.classList.contains('is-warning'));
+		assert.ok(!gateRow.classList.contains('is-error'));
+		const icon = gateRow.querySelector('.conversation-lens-dock-gate-icon') as HTMLElement | null;
+		assert.ok(icon);
+		assert.strictEqual(icon.hidden, false);
+		assert.ok(icon.classList.contains('codicon-warning'));
+		assert.strictEqual(icon.getAttribute('aria-hidden'), 'true');
+
+		sessionReady = true;
+		updateGateRow(host);
+		assert.strictEqual(gateRow.hidden, true);
+		assert.ok(!gateRow.classList.contains('is-warning'));
+		assert.strictEqual(icon.hidden, true);
+	});
+
 	test('turnEdit while the edit surface is live puts a disconnected composer back in the cluster', () => {
 		const composerCluster = document.createElement('div');
 		const composer = document.createElement('div');
@@ -88,8 +130,9 @@ suite('ConversationLensComposerChrome', () => {
 			assert.strictEqual(editHost.contains(composer), false);
 
 			syncComposerPlacement(host);
-			assert.strictEqual(editHost.contains(composer), true);
-			assert.strictEqual(composer.parentElement, editHost);
+			assert.strictEqual(composerCluster.contains(composer), true);
+			assert.strictEqual(dockRoot.contains(composerCluster), true);
+			assert.strictEqual(editHost.contains(composer), false);
 		} finally {
 			composerCluster.remove();
 			dockRoot.remove();
@@ -154,7 +197,7 @@ suite('ConversationLensComposerChrome', () => {
 		}
 	});
 
-	test('turnEdit when composer is disconnected restores into cluster and later mounts into editHost when reconnected', () => {
+	test('turnEdit when composer is disconnected restores into the dock cluster and stays there', () => {
 		const composerCluster = document.createElement('div');
 		const composer = document.createElement('div');
 		composerCluster.appendChild(composer);
@@ -187,9 +230,11 @@ suite('ConversationLensComposerChrome', () => {
 			assert.strictEqual(composer.isConnected, true);
 			assert.strictEqual(editHost.contains(composer), false);
 
-			// Calling syncComposerPlacement again now that composer is connected moves it into editHost
+			// A later placement keeps the composer in the dock cluster.
 			syncComposerPlacement(host);
-			assert.strictEqual(editHost.contains(composer), true);
+			assert.strictEqual(composerCluster.contains(composer), true);
+			assert.strictEqual(dockRoot.contains(composerCluster), true);
+			assert.strictEqual(editHost.contains(composer), false);
 		} finally {
 			composerCluster.remove();
 			dockRoot.remove();

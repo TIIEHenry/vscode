@@ -67,13 +67,62 @@
 	border-left-color: var(--vscode-contrastBorder);
 }
 
-/* Reduced motion: disable non-essential workbench transitions */
+/*
+ * Reduced motion. `workbench.reduceMotion` toggles `.monaco-reduce-motion` /
+ * `.monaco-enable-motion` on the workbench root (accessibilityService). Transition
+ * and animation are not inherited, so a container-only `none` never reached
+ * descendants. Near-zero durations still emit transitionend / animationend.
+ * `.monaco-enable-motion` is an explicit opt-in, so the media query must not
+ * override it. Loading spins stay visible (codicon-modifier-spin / codicon-loading).
+ */
+.monaco-workbench.monaco-reduce-motion,
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor),
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor)::before,
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor)::after,
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *,
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *::before,
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *::after {
+	transition-duration: 0.01ms !important;
+	animation-duration: 0.01ms !important;
+	animation-iteration-count: 1 !important;
+}
+
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) :is(.codicon-modifier-spin, .codicon-loading),
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) .codicon-tree-item-loading::before {
+	animation-name: codicon-spin !important;
+	animation-duration: 1.5s !important;
+	animation-timing-function: steps(30) !important;
+	animation-iteration-count: infinite !important;
+}
+
+.monaco-workbench.monaco-reduce-motion :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) :is(.codicon-modifier-spin, .codicon-loading)::before {
+	animation-duration: 1.5s !important;
+	animation-iteration-count: infinite !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
-	.monaco-workbench,
-	.monaco-workbench .part.statusbar,
-	.monaco-workbench .part.conversation,
-	.monaco-workbench .part.sources {
-		animation: none !important;
-		transition: none !important;
+	.monaco-workbench:not(.monaco-enable-motion),
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor),
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor)::before,
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor)::after,
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *,
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *::before,
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) *::after {
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+	}
+
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) :is(.codicon-modifier-spin, .codicon-loading),
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) .codicon-tree-item-loading::before {
+		animation-name: codicon-spin !important;
+		animation-duration: 1.5s !important;
+		animation-timing-function: steps(30) !important;
+		animation-iteration-count: infinite !important;
+	}
+
+	.monaco-workbench:not(.monaco-enable-motion) :where(.part.statusbar, .part.conversation, .part.sources, .preferences-editor) :is(.codicon-modifier-spin, .codicon-loading)::before {
+		animation-duration: 1.5s !important;
+		animation-iteration-count: infinite !important;
 	}
 }

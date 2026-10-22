@@ -23,6 +23,9 @@ export const conversationSessionLeafHiddenClass = 'conversation-session-leaf-hid
 export const conversationSessionLeafPrimaryClass = 'conversation-session-leaf-primary';
 export const conversationSessionLeafSecondaryClass = 'conversation-session-leaf-secondary';
 
+/** Keep the primary conversation column readable before the end column takes its persisted width. */
+export const CONVERSATION_PART_MINIMUM_WIDTH = 450;
+
 export const IConversationPartService = createDecorator<IConversationPartService>('conversationPartService');
 
 /**
@@ -76,7 +79,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 
 	//#region IView
 
-	readonly minimumWidth: number = 300;
+	readonly minimumWidth: number = CONVERSATION_PART_MINIMUM_WIDTH;
 	readonly maximumWidth: number = Number.POSITIVE_INFINITY;
 	readonly minimumHeight: number = 160;
 	readonly maximumHeight: number = Number.POSITIVE_INFINITY;

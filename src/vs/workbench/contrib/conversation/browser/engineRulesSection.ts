@@ -10,6 +10,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
@@ -27,6 +28,7 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
+import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
@@ -86,6 +88,7 @@ export class EngineRulesSection extends Disposable {
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@ICommandService private readonly commandService: ICommandService,
 		@IDialogService private readonly dialogService: IDialogService,
+		@IContextViewService private readonly contextViewService: IContextViewService,
 	) {
 		super();
 
@@ -409,16 +412,17 @@ export class EngineRulesSection extends Disposable {
 		}
 	}
 
-	private async deleteRule(scope: UniverseAgentProjectRuleScope, rule: UniverseAgentProjectRule): Promise<void> {
+	private async deleteRule(scope: UniverseAgentProjectRuleScope, rule: UniverseAgentProjectRule, anchor: HTMLElement): Promise<void> {
 		const remove = this.connection.deleteProjectRule;
 		if (!this.canMutateRules() || typeof remove !== 'function') {
 			return;
 		}
 		const label = rule.title || rule.id;
-		const { confirmed } = await this.dialogService.confirm({
-			type: 'warning',
+		const confirmed = await showEngineConfirmPopover({
+			contextViewService: this.contextViewService,
+			anchor,
 			message: localize('ua.engineRuleDeleteConfirm', "Delete rule \"{0}\"?", label),
-			primaryButton: localize('ua.engineRuleDelete', "Delete"),
+			confirmLabel: localize('ua.engineRuleDelete', "Delete"),
 		});
 		if (!confirmed || !this.canMutateRules() || typeof remove !== 'function') {
 			return;
@@ -480,7 +484,7 @@ export class EngineRulesSection extends Disposable {
 			if (canDelete) {
 				const remove = this.rowActions.add(createCatalogIconButton(actions, localize('ua.engineRuleDeleteAria', "Delete {0}", label), Codicon.trash));
 				remove.element.dataset.ruleAction = 'delete';
-				this.rowActions.add(remove.onDidClick(() => void this.deleteRule(scope, rule).catch(onUnexpectedError).catch(onUnexpectedError)));
+				this.rowActions.add(remove.onDidClick(() => void this.deleteRule(scope, rule, remove.element).catch(onUnexpectedError).catch(onUnexpectedError)));
 			}
 		}
 	}

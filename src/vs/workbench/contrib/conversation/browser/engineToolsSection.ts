@@ -73,13 +73,36 @@ type EngineToolListEntry =
 const TOOL_GROUP_ROW_HEIGHT = 24;
 const TOOL_ROW_HEIGHT = 24;
 
+const TOOL_CATEGORY_ACRONYMS = new Set([
+	'AI', 'API', 'CLI', 'CPU', 'CSS', 'DB', 'GPU', 'HTML', 'HTTP', 'HTTPS',
+	'ID', 'IO', 'JSON', 'LLM', 'MCP', 'OS', 'SQL', 'SSH', 'UI', 'URL', 'YAML',
+]);
+
+/** Engine categories arrive as all-caps tokens such as SYSTEM or DATA_PROCESSING. */
+function formatToolCategory(category: string): string {
+	return category
+		.split(/[_\s]+/)
+		.filter(Boolean)
+		.map(word => {
+			const upper = word.toUpperCase();
+			if (TOOL_CATEGORY_ACRONYMS.has(upper)) {
+				return upper;
+			}
+			if (word !== upper && word !== word.toLowerCase()) {
+				return word;
+			}
+			return upper.charAt(0) + upper.slice(1).toLowerCase();
+		})
+		.join(' ');
+}
+
 /** Category and description share the second line. Blank parts are not a line. */
 function toolSubtitle(tool: UniverseAgentToolSummary): string {
 	const parts: string[] = [];
 	const category = tool.category?.trim();
 	const description = tool.description?.trim();
 	if (category) {
-		parts.push(category);
+		parts.push(formatToolCategory(category));
 	}
 	if (description) {
 		parts.push(description);
@@ -888,7 +911,7 @@ export class EngineToolsSection extends Disposable {
 		}
 		const meta: string[] = [];
 		if (info.category) {
-			meta.push(info.category);
+			meta.push(formatToolCategory(info.category.trim()));
 		}
 		if (info.aliases.length) {
 			meta.push(localize('ua.engineToolsInfoAliases', "Aliases: {0}", info.aliases.join(', ')));

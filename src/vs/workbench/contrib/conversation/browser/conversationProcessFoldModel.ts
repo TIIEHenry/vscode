@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { localize } from '../../../../nls.js';
 import { ConversationTrajectoryKind, ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import { ConversationStubTurn, ConversationTurnKind } from './conversationStubModel.js';
 
@@ -161,7 +162,9 @@ const MAX_SUMMARY_STEP_NAMES = 4;
 const THINKING_STEP_SUMMARY_MAX = 120;
 /** Engine reasoning title when no usable preview was admitted. Not a sentence. */
 const THINKING_TITLE_LITERAL = 'THINKING';
-const THINKING_STEP_FALLBACK = 'thinking';
+const THINKING_STEP_FALLBACK = localize('conversationProcessFold.thinkingStepFallback', "thinking");
+const TOOL_STEP_FALLBACK = localize('conversationProcessFold.toolStepFallback', "tool");
+const SUBTOOL_STEP_FALLBACK = localize('conversationProcessFold.subtoolStepFallback', "subtool");
 
 /**
  * One line of thinking prose for a collapsed process-fold title.
@@ -203,7 +206,7 @@ function thinkingRecordStepName(text: string): string {
  * Conversation rows do not: each tool is its own process-fold row.
  */
 export function summarizeThinkingTools(thinkingText: string, tools: readonly { readonly toolName?: string }[]): string {
-	const names = tools.map(tool => tool.toolName?.trim() || 'tool');
+	const names = tools.map(tool => tool.toolName?.trim() || TOOL_STEP_FALLBACK);
 	const summary = formatStepNameCounts(names);
 	return summary.length > 0 ? `${thinkingText} · ${summary}` : thinkingText;
 }
@@ -232,27 +235,66 @@ function collectTurnStepNames(span: ProcessFoldSpan): string[] {
 		if (node.kind === 'thinking') {
 			names.push(thinkingTurnStepName(node.turn));
 			for (const tool of node.tools) {
-				names.push(tool.toolName ?? 'tool');
+				names.push(tool.toolName ?? TOOL_STEP_FALLBACK);
 			}
 		} else {
-			names.push(node.turn.toolName ?? 'tool');
+			names.push(node.turn.toolName ?? TOOL_STEP_FALLBACK);
 		}
 	}
 	return names;
 }
 
+export function countProcessFoldToolStatuses(span: ProcessFoldSpan): { readonly failed: number; readonly waiting: number; readonly executing: number } {
+	let failed = 0;
+	let waiting = 0;
+	let executing = 0;
+	for (const node of span.nodes) {
+		const tools = node.kind === 'tool' ? [node.turn] : node.tools;
+		for (const tool of tools) {
+			if (tool.toolStatus === 'failed') {
+				failed++;
+			} else if (tool.toolStatus === 'pending') {
+				waiting++;
+				executing++;
+			} else if (tool.toolStatus === 'running') {
+				executing++;
+			}
+		}
+	}
+	return { failed, waiting, executing };
+}
+
+function appendFoldStatusCounts(body: string, failed: number, waiting: number): string {
+	let text = body;
+	if (failed === 1) {
+		text = localize('conversationProcessFold.summaryOneFailed', "{0} · 1 failed", text);
+	} else if (failed > 1) {
+		text = localize('conversationProcessFold.summaryManyFailed', "{0} · {1} failed", text, failed);
+	}
+	if (waiting === 1) {
+		text = localize('conversationProcessFold.summaryOneWaiting', "{0} · 1 waiting", text);
+	} else if (waiting > 1) {
+		text = localize('conversationProcessFold.summaryManyWaiting', "{0} · {1} waiting", text, waiting);
+	}
+	return text;
+}
+
 /** Outer process-fold header summary for conversation turns (must include Stub per PRD-013). */
 export function summarizeProcessSteps(span: ProcessFoldSpan, options?: { readonly showLiveChrome?: boolean }): string {
-	const stepCount = span.turnIds.length;
-	const stepSummary = formatStepNameCounts(collectTurnStepNames(span));
-	if (options?.showLiveChrome) {
-		return stepSummary.length > 0
-			? `${stepCount} steps · ${stepSummary}`
-			: `${stepCount} steps`;
-	}
-	return stepSummary.length > 0
-		? `Stub · ${stepCount} steps · ${stepSummary}`
-		: `Stub · ${stepCount} steps`;
+	const counts = countProcessFoldToolStatuses(span);
+	return formatFoldStepSummary(span.turnIds.length, formatStepNameCounts(collectTurnStepNames(span)), options?.showLiveChrome === true, counts.failed, counts.waiting);
+}
+
+function formatFoldStepSummary(stepCount: number, stepSummary: string, showLiveChrome: boolean, failed = 0, waiting = 0): string {
+	const body = stepSummary.length > 0
+		? (stepCount === 1
+			? localize('conversationProcessFold.oneStepWithNames', "1 step · {0}", stepSummary)
+			: localize('conversationProcessFold.manyStepsWithNames', "{0} steps · {1}", stepCount, stepSummary))
+		: (stepCount === 1
+			? localize('conversationProcessFold.oneStep', "1 step")
+			: localize('conversationProcessFold.manySteps', "{0} steps", stepCount));
+	const withStatus = appendFoldStatusCounts(body, failed, waiting);
+	return showLiveChrome ? withStatus : `Stub · ${withStatus}`;
 }
 
 function collectTrajectoryStepNames(span: TrajectoryProcessFoldSpan): string[] {
@@ -261,9 +303,9 @@ function collectTrajectoryStepNames(span: TrajectoryProcessFoldSpan): string[] {
 			case 'thinking':
 				return thinkingRecordStepName(record.text);
 			case 'subtool':
-				return 'subtool';
+				return SUBTOOL_STEP_FALLBACK;
 			case 'tool':
-				return 'tool';
+				return TOOL_STEP_FALLBACK;
 			default:
 				return record.kind;
 		}
@@ -272,14 +314,5 @@ function collectTrajectoryStepNames(span: TrajectoryProcessFoldSpan): string[] {
 
 /** Outer process-fold header summary for trajectory records. Stub prefix only when no engine live chrome. */
 export function summarizeTrajectoryProcessSteps(span: TrajectoryProcessFoldSpan, options?: { readonly showLiveChrome?: boolean }): string {
-	const stepCount = span.records.length;
-	const stepSummary = formatStepNameCounts(collectTrajectoryStepNames(span));
-	if (options?.showLiveChrome) {
-		return stepSummary.length > 0
-			? `${stepCount} steps · ${stepSummary}`
-			: `${stepCount} steps`;
-	}
-	return stepSummary.length > 0
-		? `Stub · ${stepCount} steps · ${stepSummary}`
-		: `Stub · ${stepCount} steps`;
+	return formatFoldStepSummary(span.records.length, formatStepNameCounts(collectTrajectoryStepNames(span)), options?.showLiveChrome === true);
 }

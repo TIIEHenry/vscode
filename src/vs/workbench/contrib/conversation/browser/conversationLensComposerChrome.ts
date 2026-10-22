@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, addStandardDisposableListener, append, clearNode, getWindow } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append, clearNode } from '../../../../base/browser/dom.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { ISelectBoxOptions, SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -18,6 +18,7 @@ import { IContextMenuService, IContextViewService, IOpenContextView } from '../.
 import { defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { hasNativeContextMenu } from '../../../../platform/window/common/window.js';
 import {
+	conversationLensDockAddTitle,
 	conversationLensDockEditingMessage,
 	conversationLensDockEditingQueued,
 	conversationLensDockAgentLabel,
@@ -73,6 +74,7 @@ import { conversationEntryHookPresent } from '../../../../platform/universeAgent
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentSessionToolPermissionMode } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { IComposerAddHost, toggleComposerAddContext } from './conversationComposerAt.js';
 import { applyComposerSurfaceText, composerDraftText, composerSubmitText, conversationUserBodyText, turnEditLoadedPayload } from './conversationComposerRefs.js';
 
 const COMPOSER_PERMISSION_OPTIONS = [
@@ -111,7 +113,7 @@ export interface ConversationSessionConfigSelection {
 	permissionIndex: number;
 }
 
-export interface IConversationLensComposerChromeHost {
+export interface IConversationLensComposerChromeHost extends IComposerAddHost {
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	submitInFlight?: boolean;
 	lastAttachedEntries?: readonly { readonly streaming?: boolean }[];
@@ -134,6 +136,8 @@ export interface IConversationLensComposerChromeHost {
 	modelSelectBox: SelectBox;
 	inputHistoryBrowse: InputHistoryBrowseState;
 	sessionConfigBySessionId: Map<string, ConversationSessionConfigSelection>;
+	addButton: Button;
+	addContextView: IOpenContextView | undefined;
 	tuneContextView: IOpenContextView | undefined;
 	moreContextView: IOpenContextView | undefined;
 	dockTextarea: HTMLTextAreaElement;
@@ -194,7 +198,7 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 		}
 		host.tuneContextView = host.contextViewService.showContextView({
 			getAnchor: () => anchor ?? host.tuneButton.element,
-			// The gear is the left-most composer control: open rightwards so the popup does not spill over the sidebar.
+			// Open rightwards so the popup does not spill over the sidebar.
 			// The More button sits at the right edge, so that path keeps right alignment.
 			anchorAlignment: anchor ? AnchorAlignment.RIGHT : AnchorAlignment.LEFT,
 			anchorPosition: AnchorPosition.ABOVE,
@@ -348,6 +352,7 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 					}));
 				};
 				appendMoreMenuCurrentAgent(popup, host);
+				addAction(conversationLensDockAddTitle, () => toggleComposerAddContext(host, host.moreButton.element));
 				addAction(conversationLensDockTuneTitle, () => toggleTuneContextView(host, host.moreButton.element));
 				const sessionId = host.getBoundSessionId();
 				const selectedPermission = getSessionConfig(host, sessionId).permissionIndex;
@@ -417,7 +422,7 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 		host.editingTurnId = turnId;
 		host.editingQueueItemId = undefined;
 		applyComposerSurfaceText(host, turn.text);
-		provideTurnEditComposer(host.composer);
+		provideTurnEditComposer(undefined);
 		host.timelineTree.setEditingTurnId(turnId);
 		syncComposerPlacement(host);
 		updateComposerEditChrome(host);
@@ -598,24 +603,8 @@ export function updateComposerSingleLineLayout(host: IConversationLensComposerSi
 
 export function syncComposerPlacement(host: IConversationLensComposerChromeHost): void {
 
-		if (host.composerPolicy === 'turnEdit' && host.editingTurnId && isComposerEditSurfaceLive(host)) {
-			if (!host.composer.isConnected) {
-				// Same call must not mount into the edit host or schedule another frame.
-				ensureComposerInCluster(host);
-				return;
-			}
-			const editHost = host.timelineTree.getTurnEditHost(host.editingTurnId);
-			if (editHost) {
-				if (host.composer.parentElement !== editHost) {
-					editHost.appendChild(host.composer);
-				}
-				return;
-			}
-			ensureComposerInCluster(host);
-			getWindow(host.composer).requestAnimationFrame(() => syncComposerPlacement(host));
-			return;
-		}
-
+		// Turn edit stays on the docked composer. Moving it into the user row
+		// took the bottom controls with it.
 		ensureComposerInCluster(host);
 
 		if (host.isPreFirst()) {
@@ -723,6 +712,7 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 			return;
 		}
 		if (host.postFailureVisible) {
+			setGateWarning(host, false);
 			host.gateRow.hidden = false;
 			return;
 		}
@@ -733,7 +723,7 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 		}
 		// KEEP leftover list-fail: Loopback/Direct can still be up. Do not call that "Engine not connected".
 		if (isComposerKeepLeftoverListFailed(host)) {
-			showGateStatus(host, `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`);
+			showGateStatus(host, `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`, true);
 			return;
 		}
 		// Idle engine/session status lives on the identity strip (PreFirst) or SessionBar badge
@@ -741,6 +731,7 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 		host.gateRow.hidden = true;
 		host.gateLabel.textContent = '';
 		host.gateRow.classList.remove('is-error');
+		setGateWarning(host, false);
 		host.gateRow.removeAttribute('role');
 		host.gateRow.removeAttribute('aria-label');
 		host.gateRow.removeAttribute('title');
@@ -748,11 +739,26 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 	
 }
 
+function setGateWarning(host: IConversationLensComposerChromeHost, warning: boolean): void {
+	host.gateRow.classList.toggle('is-warning', warning);
+	let icon = host.gateRow.querySelector<HTMLElement>('.conversation-lens-dock-gate-icon');
+	if (!icon && warning) {
+		icon = $('span.conversation-lens-dock-gate-icon');
+		icon.classList.add('codicon', `codicon-${Codicon.warning.id}`);
+		icon.setAttribute('aria-hidden', 'true');
+		host.gateRow.insertBefore(icon, host.gateLabel);
+	}
+	if (icon) {
+		icon.hidden = !warning;
+	}
+}
+
 /** Status gate after idle has stripped role. Not the sticky post-failure alert. */
-function showGateStatus(host: IConversationLensComposerChromeHost, message: string): void {
+function showGateStatus(host: IConversationLensComposerChromeHost, message: string, warning = false): void {
 
 		host.gateRow.hidden = false;
 		host.gateRow.classList.remove('is-error');
+		setGateWarning(host, warning);
 		host.gateRow.removeAttribute('title');
 		host.gateLabel.removeAttribute('title');
 		host.gateRow.setAttribute('role', 'status');
@@ -765,6 +771,7 @@ function showGateNotice(host: IConversationLensComposerChromeHost, message: stri
 
 		host.postFailureVisible = true;
 		host.gateRow.hidden = false;
+		setGateWarning(host, false);
 		host.gateLabel.textContent = message;
 		host.gateRow.classList.add('is-error');
 		host.gateRow.setAttribute('role', 'alert');
@@ -913,8 +920,21 @@ export function updatePermissionSelectEnabled(host: IConversationLensComposerChr
 			available,
 			conversationLensDockPermissionLabel,
 			conversationLensDockPermissionUnavailable);
-
+		syncComposerPermissionWarning(host);
 	
+}
+
+/** Ask is 0, Agent is 1, Permit is 2. Permit is the open mode. */
+const conversationPermissionPermitIndex = 2;
+
+export function syncComposerPermissionWarning(host: IConversationLensComposerChromeHost): void {
+	// eslint-disable-next-line no-restricted-syntax -- the permission host is built by the dock, not by this chrome
+	const container = host.dockRoot?.querySelector('.conversation-lens-dock-permission') as HTMLElement | null;
+	if (!container) {
+		return;
+	}
+	const index = getSessionConfig(host, host.getBoundSessionId()).permissionIndex;
+	container.classList.toggle('is-permit', index === conversationPermissionPermitIndex);
 }
 
 export function isSessionSwitchAgentAvailable(host: {
@@ -1183,6 +1203,7 @@ function restoreSessionPermissionIndex(host: IConversationLensComposerChromeHost
 	setSessionConfig(host, sessionId, { permissionIndex });
 	if (host.getBoundSessionId() === sessionId) {
 		host.permissionSelectBox.select(permissionIndex);
+		syncComposerPermissionWarning(host);
 	}
 }
 
@@ -1206,6 +1227,7 @@ export async function applySessionPermissionIndex(host: IConversationLensCompose
 	setSessionConfig(host, sessionId, { permissionIndex });
 	if (host.getBoundSessionId() === sessionId) {
 		host.permissionSelectBox.select(permissionIndex);
+		syncComposerPermissionWarning(host);
 	}
 	if (epoch.inFlight) {
 		return waitForSessionEpochIdle(epoch);
@@ -1336,6 +1358,7 @@ export function syncSessionConfigSelects(host: IConversationLensComposerChromeHo
 			host.agentSelectBox.select(agentIndex);
 		}
 		host.permissionSelectBox.select(permissionIndex);
+		syncComposerPermissionWarning(host);
 		const map = ensureSessionModelProfileIds(host);
 		const hasRecord = map.has(sessionId);
 		const recorded = hasRecord ? sessionModelProfileId(host, sessionId) : '';
