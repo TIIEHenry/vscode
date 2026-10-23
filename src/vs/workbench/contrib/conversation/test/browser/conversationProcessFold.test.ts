@@ -471,6 +471,8 @@ suite('ConversationProcessFold', () => {
 		assert.ok(button);
 		assert.strictEqual(button.disabled, true);
 		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(button.title, 'This session cannot be edited right now.');
+		assert.strictEqual(button.getAttribute('aria-label'), 'Cancel Tool. This session cannot be edited right now.');
 		assert.ok((host.textContent ?? '').includes('· Running'));
 		button.click();
 		assert.deepStrictEqual(calls, []);
@@ -621,6 +623,8 @@ suite('ConversationProcessFold', () => {
 		assert.ok(button);
 		assert.strictEqual(button.disabled, true);
 		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(button.title, 'This session cannot be edited right now.');
+		assert.strictEqual(button.getAttribute('aria-label'), 'Respond. This session cannot be edited right now.');
 		button.click();
 		assert.deepStrictEqual(calls, []);
 		disposables.dispose();
@@ -655,7 +659,8 @@ suite('ConversationProcessFold', () => {
 		assert.strictEqual(outerExpanded, true);
 		const body = container.querySelector('.conversation-process-fold-thinking-body') as HTMLElement;
 		assert.ok(body);
-		assert.strictEqual(body.hidden, true);
+		assert.strictEqual(body.hidden, false);
+		assert.strictEqual(body.classList.contains('conversation-process-fold--collapsed'), true);
 		disposables.dispose();
 	});
 
@@ -876,6 +881,200 @@ suite('ConversationProcessFold', () => {
 		assert.strictEqual(header.querySelector('.conversation-process-fold-status'), null);
 		assert.strictEqual(header.querySelector('.codicon-check'), null);
 		assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, '1 step · write');
+		disposables.dispose();
+	});
+
+	test('live streaming thinking stays open and does not store the forced expansion', () => {
+		const thinking = { id: 't1', kind: 'thinking' as const, text: 'draft', streaming: true };
+		const span = projectProcessFoldSpans([thinking])[0];
+		assert.ok(span);
+		const container = document.createElement('div');
+		const disposables = new DisposableStore();
+		let outerExpanded = false;
+		const outerSets: boolean[] = [];
+		const thinkingExpanded = new Map<string, boolean>();
+		const thinkingSets: boolean[] = [];
+		const handle = renderProcessFoldSpan(container, span, {
+			defaultOuterExpanded: false,
+			isOuterExpanded: () => outerExpanded,
+			setOuterExpanded: (_spanId, expanded) => { outerExpanded = expanded; outerSets.push(expanded); },
+			isThinkingExpanded: (turnId) => thinkingExpanded.get(turnId) ?? false,
+			setThinkingExpanded: (turnId, expanded) => { thinkingExpanded.set(turnId, expanded); thinkingSets.push(expanded); },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+		}, disposables);
+
+		const outerHeader = container.querySelector('.conversation-process-fold-header') as HTMLButtonElement;
+		const children = container.querySelector('.conversation-process-fold-children') as HTMLElement;
+		const thinkingHeader = container.querySelector('.conversation-process-fold-thinking-header') as HTMLButtonElement;
+		const body = container.querySelector('.conversation-process-fold-thinking-body') as HTMLElement;
+		const tools = container.querySelector('.conversation-process-fold-thinking-tools') as HTMLElement;
+		assert.ok(outerHeader);
+		assert.ok(children);
+		assert.ok(thinkingHeader);
+		assert.ok(body);
+		assert.ok(tools);
+		assert.strictEqual(outerHeader.getAttribute('aria-expanded'), 'true');
+		assert.strictEqual(children.hidden, false);
+		assert.strictEqual(children.classList.contains('conversation-process-fold--collapsed'), false);
+		assert.strictEqual(body.hidden, false);
+		assert.strictEqual(body.classList.contains('conversation-process-fold--collapsed'), false);
+		assert.strictEqual(tools.hidden, false);
+		assert.strictEqual(thinkingHeader.getAttribute('aria-expanded'), 'true');
+		assert.strictEqual(thinkingHeader.getAttribute('aria-disabled'), 'true');
+
+		outerHeader.click();
+		thinkingHeader.click();
+		assert.deepStrictEqual(outerSets, []);
+		assert.strictEqual(outerExpanded, false);
+		assert.deepStrictEqual(thinkingSets, []);
+		assert.strictEqual(thinkingExpanded.has('t1'), false);
+		assert.strictEqual(children.classList.contains('conversation-process-fold--collapsed'), false);
+		assert.strictEqual(body.classList.contains('conversation-process-fold--collapsed'), false);
+		assert.strictEqual(tools.hidden, false);
+
+		thinking.streaming = false;
+		handle.update(span);
+		assert.deepStrictEqual(thinkingSets, []);
+		assert.strictEqual(thinkingExpanded.has('t1'), false);
+		assert.strictEqual(outerExpanded, false);
+		assert.strictEqual(outerHeader.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(children.classList.contains('conversation-process-fold--collapsed'), true);
+		assert.strictEqual(children.hidden, false);
+		assert.strictEqual(thinkingHeader.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(thinkingHeader.getAttribute('aria-disabled'), null);
+		assert.strictEqual(body.classList.contains('conversation-process-fold--collapsed'), true);
+		assert.strictEqual(body.hidden, false);
+		assert.strictEqual(tools.hidden, true);
+		disposables.dispose();
+	});
+
+	test('streaming thinking without live chrome still toggles', () => {
+		const thinking = { id: 't1', kind: 'thinking' as const, text: 'draft', streaming: true };
+		const span = projectProcessFoldSpans([thinking])[0];
+		assert.ok(span);
+		const container = document.createElement('div');
+		const disposables = new DisposableStore();
+		const thinkingExpanded = new Map<string, boolean>();
+		renderProcessFoldSpan(container, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: (turnId) => thinkingExpanded.get(turnId) ?? false,
+			setThinkingExpanded: (turnId, expanded) => { thinkingExpanded.set(turnId, expanded); },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: false,
+		}, disposables);
+
+		const header = container.querySelector('.conversation-process-fold-thinking-header') as HTMLButtonElement;
+		const body = container.querySelector('.conversation-process-fold-thinking-body') as HTMLElement;
+		assert.ok(header);
+		assert.ok(body);
+		assert.strictEqual(header.getAttribute('aria-disabled'), null);
+		assert.strictEqual(body.classList.contains('conversation-process-fold--collapsed'), true);
+
+		header.click();
+		assert.strictEqual(thinkingExpanded.get('t1'), true);
+		assert.strictEqual(body.classList.contains('conversation-process-fold--collapsed'), false);
+		assert.strictEqual(header.getAttribute('aria-expanded'), 'true');
+
+		header.click();
+		assert.strictEqual(thinkingExpanded.get('t1'), false);
+		assert.strictEqual(body.classList.contains('conversation-process-fold--collapsed'), true);
+		assert.strictEqual(header.getAttribute('aria-expanded'), 'false');
+		disposables.dispose();
+	});
+
+	test('executing tool row stays open on header click and a settled tool row still toggles', () => {
+		const running = {
+			id: 'run',
+			kind: 'tool' as const,
+			text: 'read',
+			toolName: 'read',
+			payload: '{ "path": "a.ts" }',
+			toolStatus: 'running' as 'running' | 'completed',
+			streaming: true,
+			toolCallId: 'tc-run',
+			respondable: true as const,
+		};
+		const settled: ConversationStubTurn = {
+			id: 'done',
+			kind: 'tool',
+			text: 'write',
+			toolName: 'write',
+			payload: '{ "path": "b.ts" }',
+			toolStatus: 'completed',
+		};
+		const span = projectProcessFoldSpans([running, settled])[0];
+		assert.ok(span);
+		const container = document.createElement('div');
+		const disposables = new DisposableStore();
+		const toolExpanded = new Map<string, boolean>();
+		const outerSets: boolean[] = [];
+		const cancelled: string[] = [];
+		const responded: string[] = [];
+		const handle = renderProcessFoldSpan(container, span, {
+			defaultOuterExpanded: false,
+			isOuterExpanded: () => false,
+			setOuterExpanded: (_spanId, expanded) => { outerSets.push(expanded); },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: (turnId) => toolExpanded.get(turnId) ?? false,
+			setToolExpanded: (turnId, expanded) => { toolExpanded.set(turnId, expanded); },
+			onCancelToolCall: turn => { cancelled.push(turn.id); },
+			onRespondClientTool: turn => { responded.push(turn.id); },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+		}, disposables);
+
+		const children = container.querySelector('.conversation-process-fold-children') as HTMLElement;
+		assert.ok(children);
+		assert.strictEqual(children.classList.contains('conversation-process-fold--collapsed'), false);
+		(container.querySelector('.conversation-process-fold-header') as HTMLButtonElement).click();
+		assert.deepStrictEqual(outerSets, []);
+		assert.strictEqual(children.classList.contains('conversation-process-fold--collapsed'), false);
+
+		const runRow = container.querySelector('.conversation-process-fold-tool[data-turn-id="run"]') as HTMLElement;
+		const runHeader = runRow.querySelector('.conversation-process-fold-tool-header') as HTMLButtonElement;
+		const runBody = runRow.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
+		assert.ok(runHeader);
+		assert.ok(runBody);
+		assert.strictEqual(runBody.hidden, false);
+		assert.strictEqual(runBody.classList.contains('conversation-process-fold--collapsed'), false);
+		assert.strictEqual(runHeader.getAttribute('aria-expanded'), 'true');
+		runHeader.click();
+		assert.strictEqual(toolExpanded.has('run'), false);
+		assert.strictEqual(runBody.classList.contains('conversation-process-fold--collapsed'), false);
+
+		(runRow.querySelector('.conversation-process-fold-tool-cancel') as HTMLButtonElement).click();
+		(runRow.querySelector('.conversation-process-fold-tool-respond') as HTMLButtonElement).click();
+		assert.deepStrictEqual(cancelled, ['run']);
+		assert.deepStrictEqual(responded, ['run']);
+		assert.strictEqual(runBody.classList.contains('conversation-process-fold--collapsed'), false);
+
+		const doneRow = container.querySelector('.conversation-process-fold-tool[data-turn-id="done"]') as HTMLElement;
+		const doneHeader = doneRow.querySelector('.conversation-process-fold-tool-header') as HTMLButtonElement;
+		const doneBody = doneRow.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
+		assert.ok(doneHeader);
+		assert.ok(doneBody);
+		assert.strictEqual(doneBody.classList.contains('conversation-process-fold--collapsed'), true);
+		doneHeader.click();
+		assert.strictEqual(toolExpanded.get('done'), true);
+		assert.strictEqual(doneBody.classList.contains('conversation-process-fold--collapsed'), false);
+		doneHeader.click();
+		assert.strictEqual(toolExpanded.get('done'), false);
+		assert.strictEqual(doneBody.classList.contains('conversation-process-fold--collapsed'), true);
+
+		running.toolStatus = 'completed';
+		running.streaming = false;
+		handle.update(span);
+		assert.strictEqual(toolExpanded.has('run'), false);
+		assert.strictEqual(runBody.classList.contains('conversation-process-fold--collapsed'), true);
+		assert.strictEqual(runBody.hidden, false);
 		disposables.dispose();
 	});
 });

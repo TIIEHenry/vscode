@@ -124,12 +124,12 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 20px;
-	min-width: 20px;
-	max-width: 20px;
-	height: 20px;
-	min-height: 20px;
-	max-height: 20px;
+	width: 22px;
+	min-width: 22px;
+	max-width: 22px;
+	height: 22px;
+	min-height: 22px;
+	max-height: 22px;
 	padding: 0 !important;
 	margin: 0;
 	border: none !important;
@@ -138,7 +138,7 @@
 	background: transparent !important;
 	background-color: transparent !important;
 	color: var(--vscode-descriptionForeground) !important;
-	line-height: 20px;
+	line-height: 22px;
 	overflow: hidden;
 	transition: background-color 100ms ease;
 }
@@ -146,7 +146,7 @@
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:active:not(.disabled),
 .monaco-workbench .part.conversation .conversation-lens-session-bar .monaco-button:active:not(.disabled),
 .monaco-workbench .part.conversation .conversation-window-nav .monaco-button:active:not(.disabled) {
-	filter: brightness(0.92);
+	background-color: var(--vscode-toolbar-activeBackground) !important;
 }
 
 .monaco-workbench .part.conversation .conversation-session-bar .monaco-button:hover:not(.disabled),

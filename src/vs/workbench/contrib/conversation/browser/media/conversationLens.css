@@ -401,17 +401,17 @@
 .monaco-workbench .part.conversation .conversation-lens-session-more .monaco-button:active:not(.disabled),
 .monaco-workbench .part.conversation .conversation-lens-session-snapshots .monaco-button:active:not(.disabled),
 .monaco-workbench .part.conversation .conversation-lens-session-history .monaco-button:active:not(.disabled) {
-	filter: brightness(0.92);
+	background-color: var(--vscode-toolbar-activeBackground);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-delete .monaco-button:hover:not(.disabled) {
-	background-color: color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 16%, transparent) !important;
-	color: var(--vscode-errorForeground, #f14c4c) !important;
+	background-color: color-mix(in srgb, var(--vscode-errorForeground) 16%, transparent) !important;
+	color: var(--vscode-errorForeground) !important;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-session-delete .monaco-button:active:not(.disabled) {
-	background-color: color-mix(in srgb, var(--vscode-errorForeground, #f14c4c) 28%, transparent) !important;
-	color: var(--vscode-errorForeground, #f14c4c) !important;
+	background-color: color-mix(in srgb, var(--vscode-errorForeground) 28%, transparent) !important;
+	color: var(--vscode-errorForeground) !important;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-history-overlay {
@@ -1300,7 +1300,6 @@
 	border-radius: var(--vscode-cornerRadius-medium, 8px);
 	padding: 10px 12px;
 	background-color: var(--vscode-editor-background);
-	box-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.08));
 	max-height: 40%;
 	overflow: auto;
 }
@@ -1330,6 +1329,11 @@
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-close:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+}
+
+.monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-close:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-inspector-section + .conversation-lens-trajectory-inspector-section {
@@ -1681,12 +1685,17 @@
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-header:hover,
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-header:hover {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
 .monaco-workbench .part.conversation .conversation-process-fold-header:focus-visible,
-.monaco-workbench .part.conversation .conversation-process-fold-thinking-header:hover,
 .monaco-workbench .part.conversation .conversation-process-fold-thinking-header:focus-visible {
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-toolbar-hoverBackground);
-	outline: none !important;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-header:active,
@@ -1855,11 +1864,16 @@
 	transition: background-color 100ms ease, color 100ms ease;
 }
 
-.monaco-workbench .part.conversation button.conversation-process-fold-tool-header:hover,
+.monaco-workbench .part.conversation button.conversation-process-fold-tool-header:hover {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
 .monaco-workbench .part.conversation button.conversation-process-fold-tool-header:focus-visible {
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-toolbar-hoverBackground);
-	outline: none !important;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation button.conversation-process-fold-tool-header:active {
@@ -1893,6 +1907,49 @@
 /* Result card shares the tool-name column (same inset as the thinking prose). */
 .monaco-workbench .part.conversation .conversation-process-fold-tool--nested .conversation-process-fold-tool-body {
 	padding-inline-start: 4px;
+}
+
+/* Open and close process-fold bodies in 100ms. The panel is the grid item; `hidden` would cancel the track transition. */
+.monaco-workbench .part.conversation .conversation-process-fold-motion {
+	display: grid;
+	grid-template-rows: 1fr;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+	transition: grid-template-rows 100ms cubic-bezier(.19, 1, .22, 1);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-motion.conversation-process-fold--collapsed {
+	grid-template-rows: 0fr;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-motion > .conversation-process-fold-thinking-body,
+.monaco-workbench .part.conversation .conversation-process-fold-motion > .conversation-process-fold-tool-body {
+	min-height: 0;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-motion > .conversation-process-fold-children {
+	min-height: 0;
+	overflow: hidden;
+	/* Block axis keeps the 320px scroller. overflow-y:auto still clips a 0fr track. */
+	overflow-y: auto;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-motion > .conversation-process-fold-body--executing {
+	max-height: 160px;
+	overflow-y: auto;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-children.conversation-process-fold--collapsed {
+	margin-inline-start: 0;
+	padding-inline-start: 0;
+	padding-bottom: 0;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-thinking-body.conversation-process-fold--collapsed,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-body.conversation-process-fold--collapsed {
+	padding: 0;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-trajectory-row {
@@ -2115,12 +2172,14 @@
 	flex-shrink: 0;
 	margin-left: auto;
 	opacity: 0;
+	pointer-events: none;
 	transition: opacity 100ms ease;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn:hover .conversation-lens-turn-header-trajectory,
 .monaco-workbench .part.conversation .conversation-lens-turn:focus-within .conversation-lens-turn-header-trajectory {
 	opacity: 1;
+	pointer-events: auto;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-agent-identity {
@@ -2136,9 +2195,9 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-turn-header-trajectory .monaco-button {
-	width: 20px;
-	min-width: 20px;
-	height: 20px;
+	width: 22px;
+	min-width: 22px;
+	height: 22px;
 	padding: 0;
 	border: none;
 	background: transparent;
@@ -2161,6 +2220,11 @@
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-turn-header-trajectory .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
 .monaco-workbench.hc-black .part.conversation .conversation-lens-turn-header-trajectory .monaco-button:focus-visible,
 .monaco-workbench.hc-light .part.conversation .conversation-lens-turn-header-trajectory .monaco-button:focus-visible {
 	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder)) !important;
@@ -2179,11 +2243,16 @@
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool-cancel:hover,
-.monaco-workbench .part.conversation .conversation-process-fold-tool-cancel:focus,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-cancel:focus {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
 .monaco-workbench .part.conversation .conversation-process-fold-tool-cancel:focus-visible {
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-toolbar-hoverBackground);
-	outline: none !important;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool-cancel:active {
@@ -2200,6 +2269,7 @@
 	padding: 2px;
 	border-radius: 4px;
 	opacity: 0;
+	pointer-events: none;
 	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
@@ -2213,14 +2283,20 @@
 .monaco-workbench .part.conversation .conversation-process-fold-tool-line:focus-within > .conversation-process-fold-trajectory-jump,
 .monaco-workbench .part.conversation .conversation-process-fold-trajectory-jump:focus-visible {
 	opacity: 1;
+	pointer-events: auto;
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-trajectory-jump:hover,
-.monaco-workbench .part.conversation .conversation-process-fold-trajectory-jump:focus,
+.monaco-workbench .part.conversation .conversation-process-fold-trajectory-jump:focus {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
 .monaco-workbench .part.conversation .conversation-process-fold-trajectory-jump:focus-visible {
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-toolbar-hoverBackground);
-	outline: none !important;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-thinking,
@@ -2278,11 +2354,16 @@
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool-respond:hover,
-.monaco-workbench .part.conversation .conversation-process-fold-tool-respond:focus,
+.monaco-workbench .part.conversation .conversation-process-fold-tool-respond:focus {
+	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
 .monaco-workbench .part.conversation .conversation-process-fold-tool-respond:focus-visible {
 	color: var(--vscode-foreground);
 	background-color: var(--vscode-toolbar-hoverBackground);
-	outline: none !important;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-tool-respond:active {
@@ -2468,7 +2549,7 @@
 	font-family: var(--monaco-monospace-font, monospace);
 	font-size: 0.875em;
 	padding: 0.15em 0.4em;
-	border-radius: 6px;
+	border-radius: var(--vscode-cornerRadius-xSmall, 2px);
 	background-color: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	color: inherit;
 }
@@ -2697,6 +2778,11 @@
 	pointer-events: none;
 }
 
+.monaco-workbench .part.conversation .conversation-lens-turn-actions .monaco-button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
 .monaco-workbench.hc-black .part.conversation .conversation-lens-turn-actions .monaco-button:focus-visible,
 .monaco-workbench.hc-light .part.conversation .conversation-lens-turn-actions .monaco-button:focus-visible {
 	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-contrastBorder)) !important;
@@ -2751,6 +2837,28 @@
 	color: var(--vscode-foreground);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-confirmation-args {
+	margin: 0;
+	padding: 0;
+	border: none;
+	border-radius: 0;
+	background: none;
+	box-shadow: none;
+	min-width: 0;
+	max-width: 100%;
+	max-height: calc(1.45em * 8);
+	overflow: auto;
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.45;
+	color: var(--vscode-descriptionForeground);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	user-select: text;
+	-webkit-user-select: text;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-confirmation-actions {
 	display: flex;
 	flex-wrap: wrap;
@@ -2787,7 +2895,7 @@
 	gap: 6px;
 	padding: 8px;
 	border: 1px solid var(--vscode-widget-border, color-mix(in srgb, var(--vscode-foreground) 8%, transparent));
-	border-radius: 12px;
+	border-radius: var(--vscode-cornerRadius-large, 8px);
 	background-color: var(--vscode-input-background);
 }
 
@@ -3577,6 +3685,7 @@
 	right: 8px;
 	z-index: 1;
 	opacity: 0;
+	pointer-events: none;
 	transition: opacity 0.1s ease;
 }
 
@@ -3588,12 +3697,13 @@
 .monaco-workbench .part.conversation .conversation-lens-dock-input-row:focus-within .conversation-lens-dock-maximize-input,
 .monaco-workbench .part.conversation .conversation-lens-input-maximized .conversation-lens-dock-maximize-input {
 	opacity: 1;
+	pointer-events: auto;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-maximize-input .conversation-lens-dock-maximize-input-button.monaco-button {
-	width: 20px;
-	min-width: 20px;
-	height: 20px;
+	width: 22px;
+	min-width: 22px;
+	height: 22px;
 	padding: 0;
 	border-radius: 6px;
 	background-color: transparent;
@@ -3682,7 +3792,10 @@
 	/* A 1px vertical overflow must not paint a GTK scrollbar with arrow buttons
 	 * over the model select; tools scroll horizontally only. */
 	overflow-y: hidden;
+	box-sizing: content-box;
 	height: 24px;
+	padding-block: 4px;
+	margin-block: -4px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-bottom-trailing {
@@ -3693,6 +3806,7 @@
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-control.monaco-button {
+	position: relative;
 	width: 24px;
 	height: 24px;
 	min-width: 24px;
@@ -3704,6 +3818,12 @@
 	justify-content: center;
 	flex-shrink: 0;
 	transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-control.monaco-button::after {
+	content: '';
+	position: absolute;
+	inset: -4px 0;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-control.monaco-button:active:not(.disabled) { background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
@@ -3779,12 +3899,11 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	transition: background-color 0.1s ease, color 0.1s ease, opacity 0.1s ease, transform 100ms ease;
+	transition: background-color 0.1s ease, color 0.1s ease, opacity 0.1s ease;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:active:not(.disabled) {
 	background-color: color-mix(in srgb, var(--vscode-foreground) 75%, var(--vscode-editor-background));
-	transform: scale(0.94);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:focus-visible {
@@ -3795,7 +3914,6 @@
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button:hover:not(.disabled) {
 	background-color: color-mix(in srgb, var(--vscode-foreground) 85%, var(--vscode-editor-background));
 	color: var(--vscode-editor-background);
-	transform: scale(1.06);
 }
 
 .monaco-workbench .part.conversation .conversation-lens-dock-send-button.monaco-button.disabled,
@@ -4777,10 +4895,14 @@
 	cursor: default;
 }
 
-.monaco-workbench .part.conversation .conversation-file-edit-path:hover:not(.is-static),
+.monaco-workbench .part.conversation .conversation-file-edit-path:hover:not(.is-static) {
+	background: var(--vscode-toolbar-hoverBackground);
+}
+
 .monaco-workbench .part.conversation .conversation-file-edit-path:focus-visible {
 	background: var(--vscode-toolbar-hoverBackground);
-	outline: none;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation .conversation-file-edit-diff {
@@ -4865,7 +4987,7 @@
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background: color-mix(in srgb, var(--vscode-foreground) 3%, transparent);
 	color: var(--vscode-descriptionForeground);
-	font-size: var(--vscode-fontSize-label1, 11.5px);
+	font-size: var(--vscode-fontSize-label1, 12px);
 	user-select: none;
 	flex-shrink: 0;
 	transition: background-color 100ms ease, border-color 100ms ease, color 100ms ease;
@@ -4914,7 +5036,7 @@
 .monaco-workbench .part.conversation .conversation-lens-checkbox-chip.checked .monaco-custom-toggle.monaco-checkbox {
 	background-color: var(--vscode-focusBorder) !important;
 	border-color: var(--vscode-focusBorder) !important;
-	color: var(--vscode-button-foreground, #fff) !important;
+	color: var(--vscode-button-foreground) !important;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-checkbox-chip .conversation-lens-checkbox-label {

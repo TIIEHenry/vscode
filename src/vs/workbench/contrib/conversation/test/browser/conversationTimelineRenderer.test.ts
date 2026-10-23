@@ -209,6 +209,38 @@ suite('ConversationConfirmationSeat pairing-hold writes', () => {
 		assert.strictEqual(buttons[0].getAttribute('aria-disabled'), 'true');
 		assert.strictEqual(buttons[1].getAttribute('aria-disabled'), 'true');
 	});
+
+	test('detail renders under the message for pending and settled seats and is omitted when absent', () => {
+		const preview = '{"path":"a.ts"}';
+		const pending = store.add(new ConversationConfirmationSeat({
+			message: 'Allow this tool?',
+			status: 'pending',
+			detail: preview,
+			onAllow: () => { },
+			onSkip: () => { },
+		}));
+		const pendingArgs = pending.element.querySelector('.conversation-lens-confirmation-args');
+		assert.ok(pendingArgs);
+		assert.strictEqual(pendingArgs.textContent, preview);
+		assert.strictEqual(pending.element.querySelector('.conversation-lens-confirmation-message')?.nextElementSibling, pendingArgs);
+		assert.strictEqual(pending.element.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button').length, 2);
+
+		const allowed = store.add(new ConversationConfirmationSeat({
+			message: 'Allow this tool?',
+			status: 'allowed',
+			detail: preview,
+		}));
+		assert.strictEqual(allowed.element.querySelector('.conversation-lens-confirmation-args')?.textContent, preview);
+		assert.strictEqual(allowed.element.querySelector('.conversation-lens-confirmation-actions'), null);
+
+		const without = store.add(new ConversationConfirmationSeat({
+			message: 'Allow this tool?',
+			status: 'pending',
+			onAllow: () => { },
+			onSkip: () => { },
+		}));
+		assert.strictEqual(without.element.querySelector('.conversation-lens-confirmation-args'), null);
+	});
 });
 
 suite('ConversationQuestionSeat pairing-hold writes', () => {
@@ -487,6 +519,10 @@ suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
 		const { bubble, dispose } = renderUserBubble(false, edits);
 		bubble.click();
 		assert.deepStrictEqual(edits, []);
+		assert.strictEqual(bubble.getAttribute('role'), null);
+		assert.strictEqual(bubble.getAttribute('tabindex'), null);
+		assert.ok(!bubble.classList.contains('conversation-lens-turn-body--clickable'));
+		assert.strictEqual(bubble.title, 'This session cannot be edited right now.');
 		dispose();
 	});
 

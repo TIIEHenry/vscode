@@ -356,6 +356,7 @@ export class EngineMcpSection extends Disposable {
 	private readonly runtimePanel: EngineMcpRuntimePanel;
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly writeToolbar: HTMLElement;
+	private readonly updateButton: Button;
 	private readonly removeButton: Button;
 	private readonly catalogWriteStatus: HTMLElement;
 	private readonly listContainer: HTMLElement;
@@ -416,10 +417,15 @@ export class EngineMcpSection extends Disposable {
 		this.writeToolbar.style.display = 'none';
 		const addButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpAdd', "Add"), Codicon.add));
 		this._register(addButton.onDidClick(() => void this.promptAddServer().catch(onUnexpectedError).catch(onUnexpectedError)));
-		const updateButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpUpdate', "Update"), Codicon.edit));
-		this._register(updateButton.onDidClick(() => void this.promptUpdateSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
-		this.removeButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpRemove', "Remove"), Codicon.trash));
+		const updateLabel = localize('ua.engineMcpUpdate', "Update");
+		this.updateButton = this._register(createCatalogIconButton(this.writeToolbar, updateLabel, Codicon.edit));
+		this.updateButton.element.dataset.mcpLabel = updateLabel;
+		this._register(this.updateButton.onDidClick(() => void this.promptUpdateSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		const removeLabel = localize('ua.engineMcpRemove', "Remove");
+		this.removeButton = this._register(createCatalogIconButton(this.writeToolbar, removeLabel, Codicon.trash));
+		this.removeButton.element.dataset.mcpLabel = removeLabel;
 		this._register(this.removeButton.onDidClick(() => void this.confirmAndRemoveSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.syncMcpSelectionActions();
 		this.catalogWriteStatus = DOM.append(this.definitionsPanel, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
 		this.catalogWriteStatus.setAttribute('aria-live', 'polite');
@@ -530,6 +536,21 @@ export class EngineMcpSection extends Disposable {
 			this._removeServerGeneration++;
 		}
 		this.selectedServer = server;
+		this.syncMcpSelectionActions();
+	}
+
+	private syncMcpSelectionActions(): void {
+		const selected = this.selectedServer !== undefined;
+		const reason = localize('ua.engineMcpSelectServer', "Select a server first.");
+		this.presentMcpSelection(this.updateButton, selected, reason);
+		this.presentMcpSelection(this.removeButton, selected, reason);
+	}
+
+	private presentMcpSelection(button: Button, enabled: boolean, disabledReason: string): void {
+		const label = button.element.dataset.mcpLabel ?? '';
+		button.enabled = enabled;
+		button.setTitle(enabled ? label : disabledReason);
+		button.setAriaLabel(enabled ? label : (label ? `${label}. ${disabledReason}` : disabledReason));
 	}
 
 	isWriteToolbarVisible(): boolean {

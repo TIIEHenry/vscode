@@ -17,17 +17,8 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
-
-/** Solid foreground disc. Monaco writes these onto the element, so hover stays in the same pair. */
-const enginePrimaryButtonStyles = {
-	...defaultButtonStyles,
-	buttonBackground: 'var(--vscode-foreground)',
-	buttonForeground: 'var(--vscode-editor-background)',
-	buttonHoverBackground: 'color-mix(in srgb, var(--vscode-foreground) 84%, var(--vscode-editor-background))',
-	buttonBorder: undefined,
-};
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
+import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { onDidRevealEngineModels, onDidRevealEngineTools, OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { EngineAgentsSection } from './engineAgentsSection.js';
@@ -265,7 +256,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		// Quiet at rest: the engine probe lives in a footer utility row under the content,
 		// not above the title where it competes with whatever the user came here to read.
 		this.testRow = DOM.append(this.container, $('.engine-test-row'));
-		const testButton = this._register(new Button(this.testRow, enginePrimaryButtonStyles));
+		const testButton = this._register(new Button(this.testRow, { ...defaultButtonStyles, secondary: true }));
 		testButton.label = localize('ua.engineTest', "Test Engine");
 		this._register(testButton.onDidClick(() => void this.runEngineTest().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.testStatus = DOM.append(this.testRow, $('.engine-test-status'));

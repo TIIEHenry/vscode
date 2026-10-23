@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-02
+updated: 2026-10-23
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -41,7 +41,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | 子代理对话框：popout / maximize / close | overlay 按钮；Esc | trap 根 = `overlay.element`（自备透镜 tab / 标题行，不写 Part 级 sessionBar）。Esc 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；**不**关根会话 | Esc（组件内） |
 | 「对话 \| 轨迹」 | pane 内透镜 tablist | 左右键 / Home / End 切换；持久化到 workspace storage | 组件内键处理（`conversationLens.ts`） |
 | Accessible View 朗读回合 | `Alt+F2`（上游 Accessible View） | `ConversationAccessibleView` 经 `IAccessibleViewService` 读完整回合；不新造 live 区 | 上游 Accessible View |
-| Composer | Enter 发送；Shift+Enter 换行；Esc 退出 turnEdit / queueEdit；↑ / ↓ 浏览输入历史 | 见 [composer-and-inbox](composer-and-inbox.md) | 组件内键处理 |
+| Composer | Enter 发送；Shift+Enter 换行；输入法组合中不发送；`compositionend` 后 500ms 内只吞第一下无修饰 Enter；Esc 退出 turnEdit / queueEdit；↑ / ↓ 浏览输入历史 | 见 [composer-and-inbox](composer-and-inbox.md) | 组件内键处理 |
 | 图示卡全屏 | Expand diagram；Esc 关闭 | overlay Close + Reset | 组件内键处理 |
 
 ## 3. Navigator「Sessions」roster（`workbench.view.sessions` 容器）

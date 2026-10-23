@@ -17,6 +17,7 @@ import { IContextViewService, IOpenContextView } from '../../../../platform/cont
 import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
+	conversationLensDockEngineNotConnected,
 	conversationLensDockGoal,
 	conversationLensDockGoalPlaceholder,
 	conversationLensDockGoalPrompt,
@@ -25,6 +26,8 @@ import {
 	conversationLensDockInboxQueueNotListed,
 	conversationLensDockInboxQueueLabel,
 	conversationLensDockNoGoal,
+	conversationLensDockSessionUnavailable,
+	conversationLensDockSessionUnavailableReason,
 	conversationLensDockStop,
 	conversationLensDockStopGenerating,
 	conversationLensDockStopNotGenerating,
@@ -279,9 +282,11 @@ export class ConversationInboxOverlay extends Disposable {
 			this.queueChip.removeAttribute('data-queue-empty');
 		}
 		const accessible = `${conversationLensDockInboxQueueLabel}, ${label}`;
-		this.queueChip.setAttribute('aria-label', accessible);
-		this.queueChip.title = accessible;
 		const canOpen = this.queueListCanOpen(queueState) || this.openPanel === 'queue';
+		const blocked = !canOpen && (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite());
+		const announced = blocked ? `${accessible}. ${this.leftoverQueueWriteHoldReason()}` : accessible;
+		this.queueChip.setAttribute('aria-label', announced);
+		this.queueChip.title = announced;
 		this.queueChip.setAttribute('aria-disabled', String(!canOpen));
 		this.queueChip.setAttribute('aria-pressed', canOpen ? String(this.openPanel === 'queue') : 'false');
 	}
@@ -597,10 +602,19 @@ export class ConversationInboxOverlay extends Disposable {
 			&& !this.isKeepLeftoverListFailWrite();
 	}
 
+	private leftoverQueueWriteHoldReason(): string {
+		return this.isKeepLeftoverListFailWrite()
+			? `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`
+			: conversationLensDockEngineNotConnected;
+	}
+
 	private bindLeftoverQueueWrite(button: HTMLButtonElement, run: () => void): void {
 		const enabled = this.isLeftoverQueueWriteLive();
+		const label = button.textContent ?? '';
 		button.disabled = !enabled;
 		button.setAttribute('aria-disabled', String(!enabled));
+		button.title = enabled ? label : this.leftoverQueueWriteHoldReason();
+		button.setAttribute('aria-label', enabled ? label : `${label}. ${this.leftoverQueueWriteHoldReason()}`);
 		addDisposableListener(button, 'click', () => {
 			if (!this.isLeftoverQueueWriteLive()) {
 				return;

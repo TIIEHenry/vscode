@@ -32,7 +32,8 @@
 .monaco-workbench .part.conversation a.conversation-session-pill:focus-visible {
 	color: var(--vscode-foreground);
 	background: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
-	outline: none;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	box-shadow: none;
 }
 

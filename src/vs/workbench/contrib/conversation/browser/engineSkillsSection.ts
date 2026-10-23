@@ -260,7 +260,7 @@ export class EngineSkillsSection extends Disposable {
 
 		this.bodyToolbar = DOM.append(this.bodyEditor, $('.engine-skill-body-toolbar'));
 		this.bodyToolbar.style.display = 'none';
-		this.saveButton = this._register(new Button(this.bodyToolbar, defaultButtonStyles));
+		this.saveButton = this._register(new Button(this.bodyToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.saveButton.label = localize('ua.engineSkillBodySave', "Save");
 		this._register(this.saveButton.onDidClick(() => void this.saveSelectedSkillBody().catch(onUnexpectedError).catch(onUnexpectedError)));
 

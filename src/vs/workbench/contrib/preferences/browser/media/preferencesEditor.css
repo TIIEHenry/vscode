@@ -67,7 +67,7 @@
 				border: none;
 				border-right: var(--vscode-strokeThickness) solid var(--vscode-settings-headerBorder, var(--vscode-panel-border));
 				border-radius: var(--vscode-cornerRadius-small, 4px);
-				transition: background-color 0.12s ease;
+				transition: background-color 100ms ease, color 100ms ease;
 			}
 
 			.back-to-client-settings.monaco-button:active {
@@ -111,7 +111,7 @@
 					text-overflow: ellipsis;
 					background: none !important;
 					color: var(--vscode-descriptionForeground);
-					transition: all 0.12s ease;
+					transition: background-color 100ms ease, color 100ms ease;
 				}
 
 				.action-label:active {
@@ -120,7 +120,7 @@
 
 				.action-label.checked {
 					color: var(--vscode-foreground);
-					background: var(--vscode-editor-background, #ffffff) !important;
+					background: var(--vscode-editor-background) !important;
 					box-shadow: none;
 					font-weight: 400;
 					border-radius: 6px;

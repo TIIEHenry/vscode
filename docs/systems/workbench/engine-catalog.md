@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-21
+updated: 2026-10-23
 summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内置预设与 models.dev 云端目录；Models 可增删改与测试，对话框在 level 后有 Description、Cost、Speed；Token Usage 无参读全局用量；Memory 只做 global 的列出、搜索、保存和删除；Rules 桌面可增删改，网页不实现；Hooks 仍只读；产品验证未做"
 ---
 
@@ -70,6 +70,8 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 | `ready` | RPC 成功且有条目 | 列表 / 详情 / 写控件 |
 
 写入口仅 `canPerformCatalogWrite`（`empty` \| `ready`）。`canShowCatalogRows` 仅 `ready`。`shouldHideCatalogRows` 已 deprecated，不得再当 hide-on-disconnect。MCP / Skills / Agents 写成功后 `refresh()` 仅在 list listed 时回刷 Added/Created/Saved 等成功文案（D201 同胞）。Agents markdown Save 二次回刷同样闸 `listed`，不用 mode（D223）。Plugins Enable / Disable / Reload / Unload / scanNew 同样仅 `listed === true` 才回刷 Enabled./Disabled./Reloaded./Unloaded. / lastScan（D216 / D222）；不得用 `canPerformCatalogWrite(this.mode)` 代理。
+
+写按钮的主次：页脚 / 页级 Test Engine、节内 Save（Skills 正文、Agents 的 `AGENTS.md` / Tools / Model、Tools profile）、catalog `failed` 的 Retry 都是 **secondary**，只有真正的主 CTA（页级 Open Connection 一类）保持 primary。MCP Update / Remove、Rules Edit / Delete、Memory Delete 在禁用时把原因写进 `title` 与 `aria-label`：未连或 pairing-hold 写 `Engine not connected`，已连但写入口未开写 `… cannot be changed right now.`，MCP 未选中服务器写 `Select a server first.`。可点时 title 回到动作名。只改提示与视觉层级，不改 `canPerformCatalogWrite` 门。
 
 `catch → emptyList()` **禁止**。断连后 catalog 清 RPC 缓存并回 disconnected；不得标「已同步」。Navigator「断开前快照」不适用于本页。MCP Definitions leftover（pairing-hold KEEP / capability UNKNOWN / list-fail）保行并关行 toggle chrome（`canWrite()` disable + splice），无需重选。
 

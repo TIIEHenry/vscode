@@ -4,37 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 .monaco-workbench .navigator-stub-empty {
-	display: flex;
 	flex: 1;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
 	min-height: 0;
 	width: 100%;
-	padding: 24px 16px;
 	box-sizing: border-box;
+	padding: 8px 12px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
-	line-height: 1.5;
+	line-height: 16px;
 	user-select: none;
 	overflow-wrap: anywhere;
 	white-space: normal;
-	text-align: center;
-	gap: 8px;
-}
-
-.monaco-workbench .navigator-stub-empty::before {
-	display: inline-block;
-	font-family: codicon;
-	font-size: 24px;
-	line-height: 1;
-	content: "\ea86";
-	color: var(--vscode-descriptionForeground);
-	opacity: 0.65;
-}
-
-.monaco-workbench .navigator-stub-empty.is-loading::before {
-	display: none;
 }
 
 .monaco-workbench .navigator-stub-note {
@@ -51,6 +31,23 @@
 .monaco-workbench .navigator-agents-activity-list .monaco-list-row {
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	transition: background-color 0.12s ease;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list-row,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list:focus .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list:focus .monaco-list-row.selected,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list:focus .monaco-list-row.focused.selected,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list-row,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list:focus .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list:focus .monaco-list-row.selected,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list:focus .monaco-list-row.focused.selected {
+	outline: none !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-hierarchy-tree .monaco-list:focus-visible .monaco-list-row.focused,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-agents-activity-list .monaco-list:focus-visible .monaco-list-row.focused {
+	outline: 1px solid var(--vscode-list-focusOutline, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
 }
 
 .monaco-workbench .navigator-agents-hierarchy-tree .monaco-list-row:active:not(:has(.navigator-agents-row-actions:active)),

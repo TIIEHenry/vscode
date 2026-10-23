@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { ConversationTimelineFollowController } from '../../browser/conversationTimelineFollow.js';
+import { CONVERSATION_TIMELINE_STICK_COOLDOWN_MS, ConversationTimelineFollowController } from '../../browser/conversationTimelineFollow.js';
 
 suite('ConversationTimelineFollowController', () => {
 
@@ -126,5 +126,77 @@ suite('ConversationTimelineFollowController', () => {
 
 		controller.setScrollLock(true);
 		assert.strictEqual(controller.shouldStickOnResize(), true);
+	});
+
+	test('user scroll off the bottom unlocks following and suppresses stick for 150ms', () => {
+		const controller = new ConversationTimelineFollowController();
+		const now = 10_000;
+		assert.strictEqual(CONVERSATION_TIMELINE_STICK_COOLDOWN_MS, 150);
+
+		controller.handleScroll(90, 100, 500, now);
+		assert.strictEqual(controller.following, false);
+		assert.strictEqual(controller.shouldStickOnFrame(true, now), false);
+		assert.strictEqual(controller.shouldStickOnFrame(true, now + 149), false);
+		// Follow stays unlocked, so the cooldown ending does not resume stick.
+		assert.strictEqual(controller.shouldStickOnFrame(true, now + 150), false);
+		assert.strictEqual(controller.shouldStickOnResize(now), false);
+		assert.strictEqual(controller.shouldStickOnResize(now + 149), false);
+		assert.strictEqual(controller.shouldStickOnResize(now + 150), false);
+	});
+
+	test('own write within 1px does not arm the stick cooldown', () => {
+		const controller = new ConversationTimelineFollowController();
+		const now = 20_000;
+
+		controller.recordWrite(100);
+		// Off the bottom, but within 1px of the recorded write.
+		controller.handleScroll(101, 100, 500, now);
+		assert.strictEqual(controller.following, true);
+		assert.strictEqual(controller.shouldStickOnFrame(true, now), true);
+		assert.strictEqual(controller.shouldStickOnFrame(true, now + 149), true);
+		assert.strictEqual(controller.shouldStickOnResize(now), true);
+	});
+
+	test('user scroll on the bottom keeps following and suppresses stick for 150ms', () => {
+		const controller = new ConversationTimelineFollowController();
+		const now = 30_000;
+
+		// scrollTop + clientHeight >= scrollHeight - 2.
+		controller.handleScroll(400, 100, 500, now);
+		assert.strictEqual(controller.following, true);
+		assert.strictEqual(controller.shouldStickOnFrame(true, now), false);
+		assert.strictEqual(controller.shouldStickOnFrame(true, now + 149), false);
+		assert.strictEqual(controller.shouldStickOnFrame(true, now + 150), true);
+		assert.strictEqual(controller.shouldStickOnResize(now), false);
+		assert.strictEqual(controller.shouldStickOnResize(now + 149), false);
+		assert.strictEqual(controller.shouldStickOnResize(now + 150), true);
+	});
+
+	test('onSendAccepted clears an armed stick cooldown', () => {
+		const controller = new ConversationTimelineFollowController();
+		const now = 40_000;
+
+		controller.handleScroll(90, 100, 500, now);
+		assert.strictEqual(controller.following, false);
+		assert.strictEqual(controller.shouldStickOnFrame(true, now), false);
+
+		assert.strictEqual(controller.onSendAccepted(), true);
+		assert.strictEqual(controller.following, true);
+		assert.strictEqual(controller.shouldStickOnFrame(true, now), true);
+		assert.strictEqual(controller.shouldStickOnResize(now), true);
+	});
+
+	test('setScrollLock(true) clears an armed stick cooldown', () => {
+		const controller = new ConversationTimelineFollowController();
+		const now = 50_000;
+
+		controller.handleScroll(90, 100, 500, now);
+		assert.strictEqual(controller.shouldStickOnFrame(true, now), false);
+		assert.strictEqual(controller.shouldStickOnResize(now), false);
+
+		controller.setScrollLock(true);
+		assert.strictEqual(controller.following, true);
+		assert.strictEqual(controller.shouldStickOnFrame(true, now), true);
+		assert.strictEqual(controller.shouldStickOnResize(now), true);
 	});
 });

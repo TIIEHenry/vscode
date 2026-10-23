@@ -87,7 +87,7 @@ export class EngineCatalogStatusWidget extends Disposable {
 		this.messageEl.textContent = getEngineCatalogStatusMessage(options);
 
 		if (options.mode === 'failed') {
-			const retry = this.actionDisposables.add(new Button(this.actionsEl, defaultButtonStyles));
+			const retry = this.actionDisposables.add(new Button(this.actionsEl, { ...defaultButtonStyles, secondary: true }));
 			retry.label = getCatalogRetryLabel();
 			retry.enabled = !!options.onRetry;
 			this.actionDisposables.add(retry.onDidClick(() => {

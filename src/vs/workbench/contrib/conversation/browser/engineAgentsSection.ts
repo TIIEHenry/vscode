@@ -416,7 +416,7 @@ export class EngineAgentsSection extends Disposable {
 			this.agentsMarkdownDirty = isAgentsMarkdownDirty(this.agentsEditorInput.value, this.loadedAgentsMarkdown);
 		}));
 		this.agentsEditorToolbar = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-toolbar'));
-		this.agentsEditorSaveButton = this._register(new Button(this.agentsEditorToolbar, defaultButtonStyles));
+		this.agentsEditorSaveButton = this._register(new Button(this.agentsEditorToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.agentsEditorSaveButton.label = localize('ua.engineAgentsMdSave', "Save AGENTS.md");
 		this._register(this.agentsEditorSaveButton.onDidClick(() => void this.saveAgentsMarkdown().catch(onUnexpectedError).catch(onUnexpectedError)));
 		this.agentsEditorStatus = DOM.append(this.agentsEditorContainer, $('.engine-agents-editor-status'));
@@ -431,7 +431,7 @@ export class EngineAgentsSection extends Disposable {
 		this.toolsListHost.setAttribute('role', 'list');
 		this.toolsListHost.setAttribute('aria-label', localize('ua.engineAgentsToolsList', "Tools enabled for this agent profile"));
 		this.toolsToolbar = DOM.append(this.toolsPanel, $('.engine-catalog-write-toolbar'));
-		this.toolsSaveButton = this._register(new Button(this.toolsToolbar, defaultButtonStyles));
+		this.toolsSaveButton = this._register(new Button(this.toolsToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.toolsSaveButton.label = localize('ua.engineAgentsToolsSave', "Save");
 		this._register(this.toolsSaveButton.onDidClick(() => void this.saveAgentToolEnablement().catch(onUnexpectedError).catch(onUnexpectedError)));
 
@@ -457,7 +457,7 @@ export class EngineAgentsSection extends Disposable {
 			localize('ua.engineAgentsModelMaxTurnsAria', "Maximum turns for this agent profile. Leave empty for the engine default."),
 		);
 		const modelToolbar = DOM.append(this.modelForm, $('.engine-agents-editor-toolbar'));
-		this.modelSaveButton = this._register(new Button(modelToolbar, defaultButtonStyles));
+		this.modelSaveButton = this._register(new Button(modelToolbar, { ...defaultButtonStyles, secondary: true }));
 		this.modelSaveButton.label = localize('ua.engineAgentsModelSave', "Save model");
 		this.modelSaveButton.enabled = false;
 		this.modelSaveButton.element.style.display = 'none';

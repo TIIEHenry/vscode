@@ -171,7 +171,7 @@ class SessionsRenderer implements IListRenderer<SessionRosterEntry, ISessionTemp
 		const turnCount = this.countRosterTurns(session.id);
 		const tone = resolveSessionRosterTone(this.getTurns(session.id), pending);
 		applySessionRosterIcon(templateData.icon, tone);
-		templateData.subtitle.textContent = formatSessionRosterSubtitle(session, pending, turnCount);
+		templateData.subtitle.textContent = formatSessionRosterSubtitle(session, pending, turnCount, tone);
 		templateData.container.classList.toggle('conversation-sessions-item-active', session.id === this.getActiveSessionId());
 	}
 

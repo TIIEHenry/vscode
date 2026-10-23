@@ -4,13 +4,15 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-23
-summary: "2026-10-23：审查方案 r10/r11/r13/r14/r15 部分子项落地：沙箱自动批准、笔记本执行收尾、Run to Line、输出消费、元数据损坏、JSONL 队列、gitfile 配置。"
+summary: "2026-10-23：对话面补输入法误发守卫、贴底 150ms 冷却、生成中过程折不收起、权限座参数预览、底栏命中区；会话行在生成中显示 running；审查方案 r10/r11/r13/r14/r15 部分子项落地。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **会话行生成中（2026-10-23）**：Sessions 与 Projects 的会话副标题把 `streaming` 或 `toolStatus: running` 记成 running，并在同一 22px 行写出 running / failed。只有 `toolStatus: pending` 的 stub 工具仍是 idle。待确认仍只写 confirmation pending，读屏再补 waiting for confirmation。
+- **对话交互物理（2026-10-23）**：Composer 在输入法组合中不发送。`compositionend` 后 500ms 内只吞第一下无修饰 Enter，下一回仍发送。时间线用户滚动后 150ms 内不程序贴底，2px 贴底判定不变，发送和回到底部清掉冷却。`showLiveChrome` 时生成中的过程折、思考和工具行保持展开，不写入展开表，结束后回到原选择。权限座画出非空 `argPreview`，Skip 仍是 `granted: false`。底栏控件点按区上下各加 4px，画出来仍是 24px，底栏最小高度仍是 28px。
 - **审查方案部分落地（2026-10-23）**：r10-2 沙箱分析器不再返回 `forceAutoApproval`，RunInTerminal 的最终自动批准只看沙箱设置或规则；r10-3 笔记本执行抛错时先收尾已创建的 execution 再抛出；r10-4 删除未执行单元格后补完成 execution（无 kernel 时全部完成）；r11-2 冷启动 Run to Line 不再被第一个全局 Stopped 丢掉临时断点，复用目标线程、已在该行则不再 continue，throw / false / inactive 都清理；r11-3 输出通道 `consume()` 返回布尔，只有接受时才追加并重试读取；r13-5 加密测试改成直接 import 加子进程非 Linux 探测；r14-2 元数据读取区分 not-found 与损坏 / 读失败，损坏不覆盖、写入走临时文件；r14-5 JSONL flush 成功前保留队列，`flushSync` 在异步锁被占时返回而不抛；r15-1 git config 解析支持 `.git` gitfile 与 `commondir`，已知根但 config 不可读时返回空远程列表。对应 r10 / r11 / r13 / r14 / r15 方案仍 `draft`，其余子项（r10-1/5、r11-1/4/5、r13-1–4、r14-1/3/4、r15-2/3）未动。针对性单测 75 + 84 + 260 + 90 passing；`runTo` 10 passing。`compile-client` 仍报 123 个 TS 错误，按改动 hunk 逐行比对为 0 个落在本次改动行，其余是既有基线（含未改的 `engineMcpSection` 只读赋值、未用常量与测试桩类型）。`conversationLens.test.ts` 14 失败与 `sourcesReviewList.test.ts` 2 失败在 HEAD 临时 worktree 同样复现，属既有基线，不归因本刀。
 - **UI 视觉收口（2026-10-23）**：Preferences 的 `Connection | Engine` 分段页签收到 28px 轨道、12px 字号，选中项去投影和加粗并补焦点描边；Connection 空表单时 `Sign in` 禁用为 secondary，带 `aria-disabled` 与原因提示。对话用户回合（含 pending）统一右对齐、`max-width: 82%`，会话主列最小 450px；Trajectory 单行表格按内容收缩；Sessions compact 行保留副标题；Engine Providers 行高收紧，凭据标签与工具分类（`SYSTEM` / `BASE` / `PLANNING` 等）改 Title Case。layout 测试补 `ITitleService` / `IAuxiliaryWindowService` / `IViewDescriptorService` / `IPaneCompositePartService` 桩，并释放 `LayoutStateModel` 与 zen-mode 监听。相关单测 470 passing，`conversationSessionsView` 43 passing；docs health 通过（仅既有断链警告）。
 - **ChatGPT 主参照选定（2026-10-21）**：用户回合保持细边卡片；最新一条助手动作行在正文流里常显，更早的不占行高，悬停或焦点才出现。按钮只有复制、重新生成、删除、在轨迹中查看。草稿 13px，正文 13px / 1.5。代码块有语言名和复制钮，8% 描边。「+」加会话上下文，Tool options 是旁边的 tools 按钮。Connection 允许私网是复选框。状态条和配对框用 `cornerRadius.small`。Provider 启用标记只读，尺寸 34×20。在线点、chevron、思考摘要和完成勾已有扫描或单测。回到底部圆钮有 8% 描边和投影，键盘焦点可见。S0 取样和 S5 深色梯度未做。见 [chatgpt-visual-language](../plans/chatgpt-visual-language.md)。

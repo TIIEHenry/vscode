@@ -20,6 +20,7 @@ import { ProcessFoldNode, ProcessFoldSpan, countProcessFoldToolStatuses, summari
 export const conversationProcessFoldThinkingLabel = localize('conversationProcessFold.thinking', "Thinking");
 export const conversationProcessFoldToolCancel = localize('conversationProcessFold.toolCancel', "Cancel Tool");
 export const conversationProcessFoldToolRespond = localize('conversationProcessFold.toolRespond', "Respond");
+const conversationProcessFoldWritesUnavailable = localize('conversationLens.turnWritesUnavailable', "This session cannot be edited right now.");
 
 function syncProcessFoldOuterAria(header: HTMLElement, summaryText: string, expanded: boolean): void {
 	header.setAttribute('aria-label', expanded
@@ -37,6 +38,23 @@ function syncProcessFoldToolAria(header: HTMLElement, toolName: string, summaryT
 	header.setAttribute('aria-label', expanded
 		? localize('conversationProcessFold.toolHeaderExpanded', "Tool {0}, {1}, expanded", toolName, summaryText)
 		: localize('conversationProcessFold.toolHeaderCollapsed', "Tool {0}, {1}, collapsed", toolName, summaryText));
+}
+
+const conversationProcessFoldCollapsedClass = 'conversation-process-fold--collapsed';
+const conversationProcessFoldMotionClass = 'conversation-process-fold-motion';
+
+/** Collapsed class on the panel and its grid wrapper. `hidden` would cancel the grid-row transition. */
+function setProcessFoldCollapsed(panel: HTMLElement, collapsed: boolean): void {
+	panel.classList.toggle(conversationProcessFoldCollapsedClass, collapsed);
+	const motion = panel.parentElement;
+	if (motion?.classList.contains(conversationProcessFoldMotionClass)) {
+		motion.classList.toggle(conversationProcessFoldCollapsedClass, collapsed);
+	}
+}
+
+function appendProcessFoldPanel(parent: HTMLElement, panelSelector: string): HTMLElement {
+	const motion = append(parent, $('div.conversation-process-fold-motion'));
+	return append(motion, $(panelSelector));
 }
 
 export interface ProcessFoldDomOptions {
@@ -77,6 +95,7 @@ interface ToolRowEntry {
 	turn: ConversationStubTurn;
 	readonly element: HTMLElement;
 	readonly store: DisposableStore;
+	readonly paint: (turn: ConversationStubTurn) => void;
 }
 
 interface FileCardEntry {
@@ -98,6 +117,7 @@ interface ThinkingRowEntry {
 	readonly textNode: Text;
 	readonly toolsHost: HTMLElement;
 	readonly nested: Map<string, ToolRowEntry>;
+	readonly paint: (turn: ConversationStubTurn) => void;
 }
 
 type FoldChildEntry = ThinkingRowEntry | ToolRowEntry | FileCardEntry;
@@ -167,7 +187,8 @@ function orderElementsAfter(parent: HTMLElement, anchor: Node | null, elements: 
 
 /**
  * Renders ADR-046 process-fold chrome for one span overlay (conversation default collapsed).
- * Child rows are created on first expand. `update` keeps the header, scroll container, and sticky breadcrumb.
+ * Child rows are created when the fold is painted open. Live execution paints open without writing the stored maps.
+ * `update` keeps the header, scroll container, and sticky breadcrumb.
  */
 export function renderProcessFoldSpan(
 	container: HTMLElement,
@@ -190,15 +211,18 @@ export function renderProcessFoldSpan(
 
 	let statusIcon: HTMLElement | undefined;
 	const summary = append(header, $('span.conversation-process-fold-summary'));
-	const children = append(root, $('div.conversation-process-fold-children'));
-	children.hidden = !options.isOuterExpanded(span.id);
+	const children = appendProcessFoldPanel(root, 'div.conversation-process-fold-children');
 	const stickyBreadcrumb = append(children, $('div.conversation-process-fold-sticky-breadcrumb'));
 	stickyBreadcrumb.hidden = true;
 	const stickySummary = append(stickyBreadcrumb, $('span.conversation-process-fold-sticky-summary'));
 	const mounted = new Map<string, FoldChildEntry>();
 
+	function outerPaintedOpen(): boolean {
+		return processFoldSpanHasExecutingTurn(current, options) || options.isOuterExpanded(current.id);
+	}
+
 	function syncSticky(): void {
-		if (!options.isOuterExpanded(current.id)) {
+		if (!outerPaintedOpen()) {
 			stickyBreadcrumb.hidden = true;
 			return;
 		}
@@ -220,8 +244,13 @@ export function renderProcessFoldSpan(
 
 	function applyOuterExpanded(expanded: boolean): void {
 		header.setAttribute('aria-expanded', String(expanded));
+		if (processFoldSpanHasExecutingTurn(current, options)) {
+			header.setAttribute('aria-disabled', 'true');
+		} else {
+			header.removeAttribute('aria-disabled');
+		}
 		syncProcessFoldOuterAria(header, summary.textContent ?? '', expanded);
-		children.hidden = !expanded;
+		setProcessFoldCollapsed(children, !expanded);
 		chevron.classList.toggle('conversation-process-fold-chevron--expanded', expanded);
 	}
 
@@ -261,8 +290,8 @@ export function renderProcessFoldSpan(
 
 	function mountTool(turn: ConversationStubTurn, nested: boolean, parent: HTMLElement, owner: DisposableStore): ToolRowEntry {
 		const store = owner.add(new DisposableStore());
-		const element = renderToolRow(parent, turn, nested, childOptions, store);
-		return { kind: 'tool', turn, element, store };
+		const rendered = renderToolRow(parent, turn, nested, childOptions, store);
+		return { kind: 'tool', turn, element: rendered.element, store, paint: rendered.paint };
 	}
 
 	function reconcileToolRows(parent: HTMLElement, turns: readonly ConversationStubTurn[], nested: boolean, owner: DisposableStore, mountedTools: Map<string, ToolRowEntry>): void {
@@ -284,6 +313,8 @@ export function renderProcessFoldSpan(
 				owner.delete(entry.store);
 				entry = fresh;
 				mountedTools.set(id, entry);
+			} else {
+				entry.paint(turn);
 			}
 			ordered.push(entry.element);
 		}
@@ -298,16 +329,11 @@ export function renderProcessFoldSpan(
 	}
 
 	function syncThinkingRowChrome(entry: ThinkingRowEntry, node: Extract<ProcessFoldNode, { kind: 'thinking' }>): void {
-		entry.body.classList.toggle('conversation-process-fold-body--executing', isExecutingTurn(node.turn, options));
 		const summaryText = formatThinkingSummary(node.turn, node.tools, options);
 		if (entry.summary.textContent !== summaryText) {
 			entry.summary.textContent = summaryText;
 		}
-		const expanded = options.isThinkingExpanded(node.turn.id);
-		entry.header.setAttribute('aria-expanded', String(expanded));
-		syncProcessFoldThinkingAria(entry.header, summaryText, expanded);
-		entry.body.hidden = !expanded;
-		entry.toolsHost.hidden = !expanded;
+		entry.paint(node.turn);
 	}
 
 	function patchThinking(entry: ThinkingRowEntry, node: Extract<ProcessFoldNode, { kind: 'thinking' }>): boolean {
@@ -320,14 +346,12 @@ export function renderProcessFoldSpan(
 			if (nextText.length > previousText.length) {
 				entry.textNode.appendData(nextText.slice(previousText.length));
 			}
-			entry.body.classList.toggle('conversation-process-fold-body--executing', isExecutingTurn(node.turn, options));
 		}
 		const summaryText = formatThinkingSummary(node.turn, node.tools, options);
 		if (entry.summary.textContent !== summaryText) {
 			entry.summary.textContent = summaryText;
-			const expanded = entry.header.getAttribute('aria-expanded') === 'true';
-			syncProcessFoldThinkingAria(entry.header, summaryText, expanded);
 		}
+		entry.paint(node.turn);
 		reconcileToolRows(entry.toolsHost, node.tools, true, entry.store, entry.nested);
 		return true;
 	}
@@ -347,6 +371,7 @@ export function renderProcessFoldSpan(
 			textNode: chrome.textNode,
 			toolsHost: chrome.toolsHost,
 			nested: new Map(),
+			paint: chrome.paint,
 		};
 		reconcileToolRows(entry.toolsHost, node.tools, true, entry.store, entry.nested);
 		return entry;
@@ -414,12 +439,16 @@ export function renderProcessFoldSpan(
 				} else {
 					syncThinkingRowChrome(entry, node);
 				}
-			} else if (entry.kind === 'tool' && entry.turn !== node.turn) {
-				const fresh = mountTool(node.turn, false, children, disposables);
-				entry.element.replaceWith(fresh.element);
-				disposables.delete(entry.store);
-				entry = fresh;
-				mounted.set(id, entry);
+			} else if (entry.kind === 'tool' && node.kind === 'tool') {
+				if (entry.turn !== node.turn) {
+					const fresh = mountTool(node.turn, false, children, disposables);
+					entry.element.replaceWith(fresh.element);
+					disposables.delete(entry.store);
+					entry = fresh;
+					mounted.set(id, entry);
+				} else {
+					entry.paint(node.turn);
+				}
 			}
 			ordered.push(entry.element);
 		}
@@ -439,11 +468,14 @@ export function renderProcessFoldSpan(
 		current = next;
 		root.dataset.foldId = next.id;
 		summary.textContent = summarizeProcessSteps(next, { showLiveChrome: options.showLiveChrome });
-		const expanded = options.isOuterExpanded(next.id);
-		applyOuterExpanded(expanded);
+		const open = outerPaintedOpen();
+		applyOuterExpanded(open);
 		syncFoldExecuting(next);
-		if (!expanded) {
+		if (!open) {
 			stickyBreadcrumb.hidden = true;
+			if (mounted.size > 0) {
+				reconcileTop();
+			}
 			return;
 		}
 		reconcileTop();
@@ -451,15 +483,18 @@ export function renderProcessFoldSpan(
 	}
 
 	summary.textContent = summarizeProcessSteps(current, { showLiveChrome: options.showLiveChrome });
-	applyOuterExpanded(options.isOuterExpanded(current.id));
+	applyOuterExpanded(outerPaintedOpen());
 	syncFoldExecuting(current);
-	if (options.isOuterExpanded(current.id)) {
+	if (outerPaintedOpen()) {
 		reconcileTop();
 	}
 
 	disposables.add(addDisposableListener(children, 'scroll', () => syncSticky()));
 	disposables.add(addDisposableListener(header, 'click', (e) => {
 		e.stopPropagation();
+		if (processFoldSpanHasExecutingTurn(current, options)) {
+			return;
+		}
 		const next = !options.isOuterExpanded(current.id);
 		options.setOuterExpanded(current.id, next);
 		applyOuterExpanded(next);
@@ -487,6 +522,7 @@ interface ThinkingNodeChrome {
 	readonly body: HTMLElement;
 	readonly textNode: Text;
 	readonly toolsHost: HTMLElement;
+	readonly paint: (turn: ConversationStubTurn) => void;
 }
 
 function renderThinkingNode(
@@ -496,7 +532,7 @@ function renderThinkingNode(
 	disposables: DisposableStore,
 ): ThinkingNodeChrome {
 	const turn = node.turn;
-	const thinkingExpanded = options.isThinkingExpanded(turn.id);
+	let liveTurn = turn;
 
 	const thinking = append(parent, $('div.conversation-process-fold-thinking'));
 	thinking.setAttribute('data-turn-id', turn.id);
@@ -506,40 +542,50 @@ function renderThinkingNode(
 	const header = append(line, $('button.conversation-process-fold-thinking-header')) as HTMLButtonElement;
 	header.type = 'button';
 	header.setAttribute('role', 'button');
-	header.setAttribute('aria-expanded', String(thinkingExpanded));
 
 	const label = append(header, $('span.conversation-process-fold-thinking-label'));
 	label.textContent = conversationProcessFoldThinkingLabel;
 
 	const summary = append(header, $('span.conversation-process-fold-thinking-summary'));
 	summary.textContent = formatThinkingSummary(turn, node.tools, options);
-	syncProcessFoldThinkingAria(header, summary.textContent ?? '', thinkingExpanded);
 
 	appendProcessFoldTrajectoryJump(line, turn.id, options, disposables);
 
-	const body = append(thinking, $('div.conversation-process-fold-thinking-body'));
-	body.hidden = !thinkingExpanded;
+	const body = appendProcessFoldPanel(thinking, 'div.conversation-process-fold-thinking-body');
 	const textNode = body.ownerDocument.createTextNode(thinkingBodyText(turn));
 	body.appendChild(textNode);
-	if (isExecutingTurn(turn, options)) {
-		body.classList.add('conversation-process-fold-body--executing');
-	}
 
 	const tools = append(thinking, $('div.conversation-process-fold-thinking-tools'));
-	tools.hidden = !thinkingExpanded;
+
+	const paint = (next: ConversationStubTurn) => {
+		liveTurn = next;
+		const locked = isExecutingTurn(next, options);
+		const open = locked || options.isThinkingExpanded(next.id);
+		header.setAttribute('aria-expanded', String(open));
+		if (locked) {
+			header.setAttribute('aria-disabled', 'true');
+		} else {
+			header.removeAttribute('aria-disabled');
+		}
+		syncProcessFoldThinkingAria(header, summary.textContent ?? '', open);
+		setProcessFoldCollapsed(body, !open);
+		tools.hidden = !open;
+		body.classList.toggle('conversation-process-fold-body--executing', locked);
+	};
+	paint(turn);
 
 	disposables.add(addDisposableListener(header, 'click', (e) => {
 		e.stopPropagation();
-		const next = !options.isThinkingExpanded(turn.id);
-		options.setThinkingExpanded(turn.id, next);
-		header.setAttribute('aria-expanded', String(next));
-		syncProcessFoldThinkingAria(header, summary.textContent ?? '', next);
-		body.hidden = !next;
-		tools.hidden = !next;
+		if (isExecutingTurn(liveTurn, options)) {
+			return;
+		}
+		const next = !options.isThinkingExpanded(liveTurn.id);
+		options.setThinkingExpanded(liveTurn.id, next);
+		paint(liveTurn);
 		options.onLayoutChange();
 	}));
 
-	return { element: thinking, header, summary, body, textNode, toolsHost: tools };
+	return { element: thinking, header, summary, body, textNode, toolsHost: tools, paint };
 }
 
 function getLanguageIdFromFilepath(filepath: string): string {
@@ -810,7 +856,7 @@ function renderToolRow(
 	nested: boolean,
 	options: ProcessFoldDomOptions,
 	disposables: DisposableStore,
-): HTMLElement {
+): { readonly element: HTMLElement; readonly paint: (turn: ConversationStubTurn) => void } {
 	const payload = turn.payload?.trim();
 	const metadata = turn.metadata;
 	const diffText = typeof metadata?.diff === 'string' && metadata.diff.length > 0 ? metadata.diff : undefined;
@@ -848,11 +894,6 @@ function renderToolRow(
 		header.setAttribute('role', 'button');
 	}
 
-	const toolExpanded = hasContent && options.isToolExpanded(turn.id);
-	if (hasContent) {
-		header.setAttribute('aria-expanded', String(toolExpanded));
-	}
-
 	const name = append(header, $('span.conversation-process-fold-tool-name'));
 	name.textContent = turn.toolName ?? turn.kind;
 
@@ -878,9 +919,7 @@ function renderToolRow(
 	// is detail, not a status, so it stays hidden with the payload.
 	const thinkingText = showDetails ? visibleToolThinkingText(turn) : '';
 	const spokenDetail = toolAriaDetail(summary.textContent ?? '', thinkingText);
-	if (hasContent) {
-		syncProcessFoldToolAria(header, toolName, spokenDetail, toolExpanded);
-	} else {
+	if (!hasContent) {
 		header.setAttribute('aria-label', localize('conversationProcessFold.toolHeaderStatic', "Tool {0}, {1}", toolName, spokenDetail));
 	}
 
@@ -895,13 +934,10 @@ function renderToolRow(
 		thought.textContent = thinkingText;
 	}
 
+	let liveTurn = turn;
+	let paint: (next: ConversationStubTurn) => void;
 	if (hasContent) {
-		const body = append(row, $('div.conversation-process-fold-tool-body'));
-		body.hidden = !toolExpanded;
-		if (executing) {
-			body.classList.add('conversation-process-fold-body--executing');
-		}
-
+		const body = appendProcessFoldPanel(row, 'div.conversation-process-fold-tool-body');
 		const filediff = typeof metadata?.filediff === 'object' && metadata?.filediff !== null
 			? (metadata.filediff as Record<string, unknown>)
 			: undefined;
@@ -914,26 +950,46 @@ function renderToolRow(
 		let diffArea: HTMLElement | undefined;
 		if (hasDiff) {
 			diffArea = append(body, $('div.conversation-process-fold-tool-diff'));
-			if (toolExpanded) {
+		}
+
+		paint = (next: ConversationStubTurn) => {
+			liveTurn = next;
+			const locked = isExecutingTurn(next, options);
+			const open = locked || options.isToolExpanded(next.id);
+			row.classList.toggle('conversation-process-fold-tool--executing', locked);
+			header.setAttribute('aria-expanded', String(open));
+			if (locked) {
+				header.setAttribute('aria-disabled', 'true');
+			} else {
+				header.removeAttribute('aria-disabled');
+			}
+			syncProcessFoldToolAria(header, toolName, toolAriaDetail(summary.textContent ?? '', thinkingText), open);
+			setProcessFoldCollapsed(body, !open);
+			body.classList.toggle('conversation-process-fold-body--executing', locked);
+			if (open && hasDiff && diffArea && !diffArea.hasChildNodes()) {
 				renderProcessFoldDiffBlock(diffArea, diffText!, filediff, options, disposables);
 			}
-		}
+		};
 
 		disposables.add(addDisposableListener(header, 'click', (e) => {
 			e.stopPropagation();
-			const next = !options.isToolExpanded(turn.id);
-			options.setToolExpanded(turn.id, next);
-			header.setAttribute('aria-expanded', String(next));
-			syncProcessFoldToolAria(header, toolName, toolAriaDetail(summary.textContent ?? '', thinkingText), next);
-			body.hidden = !next;
-			if (next && hasDiff && diffArea && !diffArea.hasChildNodes()) {
-				renderProcessFoldDiffBlock(diffArea, diffText!, filediff, options, disposables);
+			if (isExecutingTurn(liveTurn, options)) {
+				return;
 			}
+			const next = !options.isToolExpanded(liveTurn.id);
+			options.setToolExpanded(liveTurn.id, next);
+			paint(liveTurn);
 			options.onLayoutChange();
 		}));
+	} else {
+		paint = (next: ConversationStubTurn) => {
+			liveTurn = next;
+			row.classList.toggle('conversation-process-fold-tool--executing', isExecutingTurn(next, options));
+		};
 	}
+	paint(turn);
 
-	return row;
+	return { element: row, paint };
 }
 
 /** Non-empty `:think:` text carried beside a tool row. Whitespace-only is absent. */
@@ -963,6 +1019,22 @@ function isExecutingTurn(turn: ConversationStubTurn, options: { readonly showLiv
 		return false;
 	}
 	return turn.toolStatus === 'pending' || turn.toolStatus === 'running' || !!turn.streaming;
+}
+
+function processFoldSpanHasExecutingTurn(span: ProcessFoldSpan, options: { readonly showLiveChrome: boolean }): boolean {
+	for (const node of span.nodes) {
+		if (isExecutingTurn(node.turn, options)) {
+			return true;
+		}
+		if (node.kind === 'thinking') {
+			for (const tool of node.tools) {
+				if (isExecutingTurn(tool, options)) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 function resolveToolStatusIcon(turn: ConversationStubTurn, options: ProcessFoldDomOptions): ThemeIcon | undefined {
@@ -1026,8 +1098,8 @@ function appendProcessFoldToolCancel(
 	const cancel = append(parent, $('button.conversation-process-fold-tool-cancel')) as HTMLButtonElement;
 	cancel.type = 'button';
 	cancel.classList.add(...ThemeIcon.asClassNameArray(Codicon.debugStop));
-	cancel.title = conversationProcessFoldToolCancel;
-	cancel.setAttribute('aria-label', conversationProcessFoldToolCancel);
+	cancel.title = writesEnabled ? conversationProcessFoldToolCancel : conversationProcessFoldWritesUnavailable;
+	cancel.setAttribute('aria-label', writesEnabled ? conversationProcessFoldToolCancel : `${conversationProcessFoldToolCancel}. ${conversationProcessFoldWritesUnavailable}`);
 	cancel.setAttribute('data-tool-call-id', toolCallId);
 	cancel.disabled = !writesEnabled;
 	cancel.setAttribute('aria-disabled', String(!writesEnabled));
@@ -1053,8 +1125,8 @@ function appendProcessFoldToolRespond(
 	const respond = append(parent, $('button.conversation-process-fold-tool-respond')) as HTMLButtonElement;
 	respond.type = 'button';
 	respond.classList.add(...ThemeIcon.asClassNameArray(Codicon.reply));
-	respond.title = conversationProcessFoldToolRespond;
-	respond.setAttribute('aria-label', conversationProcessFoldToolRespond);
+	respond.title = writesEnabled ? conversationProcessFoldToolRespond : conversationProcessFoldWritesUnavailable;
+	respond.setAttribute('aria-label', writesEnabled ? conversationProcessFoldToolRespond : `${conversationProcessFoldToolRespond}. ${conversationProcessFoldWritesUnavailable}`);
 	respond.disabled = !writesEnabled;
 	respond.setAttribute('aria-disabled', String(!writesEnabled));
 	disposables.add(addDisposableListener(respond, 'click', (e) => {

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
@@ -50,6 +51,7 @@ export class EngineMemorySection extends Disposable {
 	private readonly writeStatus: HTMLElement;
 	private readonly listHost: HTMLElement;
 	private readonly rowActions = this._register(new DisposableStore());
+	private readonly memoryDeleteButtons: { button: Button; label: string }[] = [];
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private fileCount = 0;
@@ -157,6 +159,24 @@ export class EngineMemorySection extends Disposable {
 			refreshButton.style.display = canList ? '' : 'none';
 		}
 		this.filter.disabled = !canList;
+		this.syncMemoryDeleteActions();
+	}
+
+	private memoryWriteHoldReason(): string {
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+			return localize('ua.engineMemoryNotConnected', "Engine not connected");
+		}
+		return localize('ua.engineMemoryCannotChange', "Memory cannot be changed right now.");
+	}
+
+	private syncMemoryDeleteActions(): void {
+		const canDelete = this.canMutate();
+		const reason = this.memoryWriteHoldReason();
+		for (const entry of this.memoryDeleteButtons) {
+			entry.button.enabled = canDelete;
+			entry.button.setTitle(canDelete ? entry.label : reason);
+			entry.button.setAriaLabel(canDelete ? entry.label : `${entry.label}. ${reason}`);
+		}
 	}
 
 	private showWriteMessage(message: string, tone: 'success' | 'error'): void {
@@ -295,6 +315,7 @@ export class EngineMemorySection extends Disposable {
 
 	private paintList(categories: readonly UniverseAgentMemoryCategoryInfo[]): void {
 		this.rowActions.clear();
+		this.memoryDeleteButtons.length = 0;
 		DOM.clearNode(this.listHost);
 		let count = 0;
 		for (const category of categories) {
@@ -310,6 +331,7 @@ export class EngineMemorySection extends Disposable {
 
 	private paintSearch(results: readonly UniverseAgentMemorySearchEntry[]): void {
 		this.rowActions.clear();
+		this.memoryDeleteButtons.length = 0;
 		DOM.clearNode(this.listHost);
 		for (const entry of results) {
 			this.paintRow(entry.title || entry.filename, entry.category, entry.filename, entry.snippet);
@@ -336,12 +358,15 @@ export class EngineMemorySection extends Disposable {
 			return;
 		}
 		const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
-		const remove = this.rowActions.add(createCatalogIconButton(actions, localize('ua.engineMemoryDelete', "Delete {0}", title), Codicon.trash));
+		const deleteLabel = localize('ua.engineMemoryDelete', "Delete {0}", title);
+		const remove = this.rowActions.add(createCatalogIconButton(actions, deleteLabel, Codicon.trash));
+		this.memoryDeleteButtons.push({ button: remove, label: deleteLabel });
 		this.rowActions.add(remove.onDidClick(() => void this.deleteEntry(category, filename, title, remove.element).catch(onUnexpectedError).catch(onUnexpectedError)));
 	}
 
 	private clearRows(): void {
 		this.rowActions.clear();
+		this.memoryDeleteButtons.length = 0;
 		this.hasRows = false;
 		DOM.clearNode(this.listHost);
 		this.listHost.style.display = 'none';

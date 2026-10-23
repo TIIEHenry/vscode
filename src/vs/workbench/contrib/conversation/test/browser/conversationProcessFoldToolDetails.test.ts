@@ -84,6 +84,7 @@ suite('ConversationProcessFoldToolDetails', () => {
 		const body = row.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
 		assert.ok(body);
 		assert.strictEqual(body.hidden, false);
+		assert.strictEqual(body.classList.contains('conversation-process-fold--collapsed'), false);
 		assert.ok(body.textContent?.includes('README.md'));
 	});
 
@@ -197,7 +198,7 @@ suite('ConversationProcessFoldToolDetails', () => {
 		assert.strictEqual(diffs[1]!.hidden, true);
 	});
 
-	test('tool row keeps thinking text visible while the payload body is collapsed', () => {
+	test('tool row keeps thinking text outside the payload while a live executing row stays open', () => {
 		const turn = toolTurn({
 			thinkingText: 'hmm before the tool',
 			summary: 'running',
@@ -216,7 +217,8 @@ suite('ConversationProcessFoldToolDetails', () => {
 		assert.strictEqual(thought.closest('.conversation-process-fold-tool-body'), null);
 		const body = row.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
 		assert.ok(body);
-		assert.strictEqual(body.hidden, true);
+		assert.strictEqual(body.hidden, false);
+		assert.strictEqual(body.classList.contains('conversation-process-fold--collapsed'), false);
 		assert.ok(!body.textContent?.includes('hmm before the tool'));
 		const header = row.querySelector('.conversation-process-fold-tool-header') as HTMLElement;
 		assert.ok(header.getAttribute('aria-label')?.includes('hmm before the tool'));
@@ -271,7 +273,8 @@ suite('ConversationProcessFoldToolDetails', () => {
 		assert.ok(thought);
 		assert.strictEqual(thought.textContent, 'hmm');
 		const body = container.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
-		assert.strictEqual(body.hidden, true);
+		assert.strictEqual(body.hidden, false);
+		assert.strictEqual(body.classList.contains('conversation-process-fold--collapsed'), true);
 		assert.ok(!body.textContent?.includes('hmm'));
 	});
 

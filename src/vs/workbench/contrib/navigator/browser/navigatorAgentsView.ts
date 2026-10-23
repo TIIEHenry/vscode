@@ -201,6 +201,11 @@ class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchy
 		const live = this.areRowActionsLive();
 		templateData.inspectAction.enabled = live;
 		templateData.revealAction.enabled = live;
+		const inspectLabel = localize('navigatorAgents.rowInspect', "Inspect");
+		const revealLabel = localize('navigatorAgents.rowReveal', "Reveal in Conversation");
+		const holdReason = localize('navigatorAgents.rowActionsUnavailable', "This session cannot be changed right now.");
+		templateData.inspectAction.tooltip = live ? inspectLabel : `${inspectLabel}. ${holdReason}`;
+		templateData.revealAction.tooltip = live ? revealLabel : `${revealLabel}. ${holdReason}`;
 	}
 
 	disposeTemplate(templateData: IAgentsHierarchyTemplateData): void {

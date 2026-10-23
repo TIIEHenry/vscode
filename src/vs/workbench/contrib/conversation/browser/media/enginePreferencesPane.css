@@ -812,23 +812,21 @@
 }
 
 .monaco-workbench .engine-providers-section .engine-catalog-row.engine-provider-status-row {
-	height: auto;
-	min-height: 40px;
-	padding: 2px 0;
+	height: 24px;
+	min-height: 24px;
+	padding: 0 8px;
 	box-sizing: border-box;
 	border-radius: 0;
 	border: none;
-	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	background: transparent;
 	box-shadow: none;
-	gap: 10px;
+	gap: 6px;
 	align-items: center;
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .monaco-workbench .engine-providers-section .engine-catalog-row.engine-provider-status-row:hover {
-	background: color-mix(in srgb, var(--vscode-foreground) 4%, transparent);
-	border-bottom-color: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+	background: var(--vscode-toolbar-hoverBackground);
 	box-shadow: none;
 }
 
@@ -852,9 +850,9 @@
 
 .monaco-workbench .engine-providers-section .engine-catalog-text {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 0;
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
 	flex: 1 1 auto;
 	min-width: 0;
 	overflow: hidden;
@@ -868,8 +866,8 @@
 
 .monaco-workbench .engine-providers-section .engine-catalog-name {
 	font-size: var(--vscode-fontSize-body1, 13px);
-	font-weight: 600;
-	line-height: 18px;
+	font-weight: 400;
+	line-height: 24px;
 	color: var(--vscode-foreground);
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -878,7 +876,7 @@
 
 .monaco-workbench .engine-providers-section .engine-catalog-description {
 	font-size: 12px;
-	line-height: 16px;
+	line-height: 24px;
 	color: var(--vscode-descriptionForeground);
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1028,17 +1026,16 @@
 }
 
 .monaco-workbench .engine-providers-section .engine-provider-preset-row {
-	height: auto;
-	min-height: 40px;
-	padding: 8px 0;
+	height: 24px;
+	min-height: 24px;
+	padding: 0 8px;
 	box-sizing: border-box;
 	border-radius: 0;
 	margin-bottom: 0;
 	border: none;
-	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	background: transparent;
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
-	gap: 10px;
+	gap: 6px;
 }
 
 .monaco-workbench .engine-providers-section .engine-provider-preset-row:hover {

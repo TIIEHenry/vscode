@@ -11,6 +11,7 @@ import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultS
 import type { ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { getConversationQuestionRespondBlockedLabel, getConversationQuestionSeatAriaLabel } from './conversationAccessibility.js';
 import { wireConversationSeatOptionKeys } from './conversationConfirmationSeat.js';
+import { conversationLensDockSendBusy } from './conversationLensDockStrings.js';
 import { ConfirmationStatus, ConversationQuestionOptionItem } from './conversationStubModel.js';
 import { getConversationTurnRoleLabel } from './conversationTrajectoryList.js';
 
@@ -136,6 +137,19 @@ export class ConversationQuestionSeat extends Disposable {
 			return answers;
 		};
 		const writesEnabled = options.writesEnabled !== false && options.responseInFlight !== true;
+		const holdReason = options.responseInFlight
+			? conversationLensDockSendBusy
+			: (options.writesEnabled === false
+				? localize('conversationLens.turnWritesUnavailable', "This session cannot be edited right now.")
+				: undefined);
+		const holdOption = (option: HTMLElement, label: string): void => {
+			if (!holdReason) {
+				return;
+			}
+			option.setAttribute('aria-disabled', 'true');
+			option.title = `${label}. ${holdReason}`;
+			option.setAttribute('aria-label', `${label}. ${holdReason}`);
+		};
 		if (options.responseInFlight) {
 			this.element.setAttribute('aria-busy', 'true');
 		}
@@ -208,11 +222,7 @@ export class ConversationQuestionSeat extends Disposable {
 					box.setAttribute('aria-checked', 'false');
 					box.textContent = option;
 					boxes.push(box);
-				}
-				if (options.responseInFlight) {
-					for (const box of boxes) {
-						box.setAttribute('aria-disabled', 'true');
-					}
+					holdOption(box, option);
 				}
 				const sync = (): void => {
 					selections.set(item.id, [...chosen]);
@@ -226,7 +236,7 @@ export class ConversationQuestionSeat extends Disposable {
 				};
 				wireConversationSeatOptionKeys(boxes, disposables, {
 					onActivate: index => {
-						if (submitted) {
+						if (submitted || !writesEnabled) {
 							return;
 						}
 						const label = item.options[index];
@@ -254,17 +264,13 @@ export class ConversationQuestionSeat extends Disposable {
 					radio.setAttribute('role', 'radio');
 					radio.textContent = option;
 					radios.push(radio);
-				}
-				if (options.responseInFlight) {
-					for (const radio of radios) {
-						radio.setAttribute('aria-disabled', 'true');
-					}
+					holdOption(radio, option);
 				}
 				let seeded = false;
 				wireConversationSeatOptionKeys(radios, disposables, {
 					role: 'radio',
 					onSelect: index => {
-						if (submitted) {
+						if (submitted || !writesEnabled) {
 							const chosen = selections.get(item.id) ?? [];
 							radios.forEach((radio, radioIndex) => {
 								const label = item.options[radioIndex];
@@ -296,7 +302,7 @@ export class ConversationQuestionSeat extends Disposable {
 						}
 					},
 					onActivate: index => {
-						if (submitted) {
+						if (submitted || !writesEnabled) {
 							return;
 						}
 						const label = item.options[index];
@@ -319,10 +325,14 @@ export class ConversationQuestionSeat extends Disposable {
 			// Stems were painted in the loop, including custom-only questions.
 			const input = append(this.element, $('input.conversation-lens-question-custom')) as HTMLInputElement;
 			input.type = 'text';
-			input.setAttribute('aria-label', localize('conversationLens.questionCustomAnswer', "Custom answer"));
-			if (options.responseInFlight) {
+			const customLabel = localize('conversationLens.questionCustomAnswer', "Custom answer");
+			input.setAttribute('aria-label', holdReason ? `${customLabel}. ${holdReason}` : customLabel);
+			if (!writesEnabled) {
 				input.disabled = true;
 				input.setAttribute('aria-disabled', 'true');
+				if (holdReason) {
+					input.title = `${customLabel}. ${holdReason}`;
+				}
 			}
 			disposables.add(addDisposableListener(input, 'input', () => {
 				customText = input.value;
@@ -342,6 +352,9 @@ export class ConversationQuestionSeat extends Disposable {
 			const submitButton = this._register(new Button(actions, { ...defaultButtonStyles, ariaLabel: submitLabel }));
 			submitButton.label = submitLabel;
 			submitButton.enabled = writesEnabled;
+			const submitPresented = holdReason ? `${submitLabel}. ${holdReason}` : submitLabel;
+			submitButton.setTitle(submitPresented);
+			submitButton.setAriaLabel(submitPresented);
 			this._register(submitButton.onDidClick(() => {
 				submit();
 			}));

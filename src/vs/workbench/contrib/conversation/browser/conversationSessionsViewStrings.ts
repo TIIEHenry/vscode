@@ -43,7 +43,8 @@ export function resolveSessionRosterTone(turns: readonly ConversationStubTurn[],
 	if (pendingConfirmations > 0) {
 		return 'waiting';
 	}
-	if (turns.some(turn => turn.toolStatus === 'running')) {
+	// `streaming` is the live overlay. A stub tool can be `pending` without it, and that is not running.
+	if (turns.some(turn => turn.streaming === true || turn.toolStatus === 'running')) {
 		return 'running';
 	}
 	if (turns.some(turn => turn.toolStatus === 'failed')) {
@@ -93,13 +94,22 @@ export function formatSessionRosterStatus(tone: SessionRosterTone): string | und
  * Same-row session subtitle shared by Sessions and Projects.
  * A known last-access time replaces the message count; the pending count stays.
  * Pass `turnCount` from getTurns when the roster object leaves turns empty.
+ * `running` and `failed` are appended on the same line. Waiting stays in the pending phrase.
  */
-export function formatSessionRosterSubtitle(session: ConversationStubSession, pendingConfirmations: number, turnCount = session.turns.length): string {
+export function formatSessionRosterSubtitle(session: ConversationStubSession, pendingConfirmations: number, turnCount = session.turns.length, tone?: SessionRosterTone): string {
 	const leading = typeof session.lastAccessedAt === 'number'
 		? formatSessionAccessedLabel(session.lastAccessedAt)
 		: formatSessionMessageCount(turnCount);
 	const pending = formatSessionPendingConfirmations(pendingConfirmations);
-	return pending ? `${leading} · ${pending}` : leading;
+	const base = pending ? `${leading} · ${pending}` : leading;
+	// Waiting already says "confirmation pending". Running and failed are otherwise only an icon.
+	if (tone === 'running' || tone === 'failed') {
+		const status = formatSessionRosterStatus(tone);
+		if (status) {
+			return `${base} · ${status}`;
+		}
+	}
+	return base;
 }
 
 function sessionAccessedAtMs(lastAccessedAt: number | undefined): number | undefined {
@@ -159,10 +169,12 @@ export function groupSessionsForRoster(sessions: readonly ConversationStubSessio
 }
 
 export function formatSessionRosterAriaLabel(session: ConversationStubSession, pendingConfirmations: number, turnCount: number, tone: SessionRosterTone, active: boolean): string {
-	const parts = [session.title, formatSessionRosterSubtitle(session, pendingConfirmations, turnCount)];
-	const status = formatSessionRosterStatus(tone);
-	if (status) {
-		parts.push(status);
+	const parts = [session.title, formatSessionRosterSubtitle(session, pendingConfirmations, turnCount, tone)];
+	if (tone === 'waiting') {
+		const status = formatSessionRosterStatus(tone);
+		if (status) {
+			parts.push(status);
+		}
 	}
 	if (active) {
 		parts.push(localize('conversationSessionsView.activeSession', "active session"));

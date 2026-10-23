@@ -122,7 +122,7 @@
 	bottom: 12px;
 }
 
-.monaco-workbench.monaco-enable-motion .conversation-timeline-item[data-streaming] .conversation-timeline-caret::after {
+.monaco-workbench .conversation-timeline-item[data-streaming] .conversation-timeline-caret::after {
 	content: '';
 	display: inline-block;
 	width: 2px;
@@ -130,21 +130,4 @@
 	margin-left: 1px;
 	vertical-align: text-bottom;
 	background: var(--vscode-editorCursor-foreground, var(--vscode-foreground));
-	animation: conversation-timeline-caret 1s steps(1) infinite;
-}
-
-@keyframes conversation-timeline-caret {
-	50% {
-		opacity: 0;
-	}
-}
-
-.monaco-workbench.monaco-enable-motion .conversation-timeline-stream .conversation-process-fold-children:not([data-fold-executing]) {
-	transition: height 160ms, display 160ms allow-discrete;
-}
-
-.monaco-workbench.monaco-enable-motion .conversation-timeline-stream .conversation-process-fold-children:not([data-fold-executing]) {
-	@starting-style {
-		height: 0;
-	}
 }

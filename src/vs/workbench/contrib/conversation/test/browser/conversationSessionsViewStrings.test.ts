@@ -45,6 +45,9 @@ suite('ConversationSessionsView strings', () => {
 		const quiet = session({ id: 'quiet', title: 'Quiet' });
 		assert.strictEqual(formatSessionRosterSubtitle(quiet, 0, 2), '2 messages');
 		assert.strictEqual(formatSessionRosterSubtitle(quiet, 2, 0), 'No messages · 2 confirmations pending');
+		assert.strictEqual(formatSessionRosterSubtitle(quiet, 0, 2, 'running'), '2 messages · running');
+		assert.strictEqual(formatSessionRosterSubtitle(quiet, 0, 2, 'failed'), '2 messages · failed');
+		assert.strictEqual(formatSessionRosterSubtitle(quiet, 1, 2, 'waiting'), '2 messages · 1 confirmation pending');
 	});
 
 	test('roster tone prefers a pending confirmation, then a running tool, then a failure', () => {
@@ -52,6 +55,12 @@ suite('ConversationSessionsView strings', () => {
 		assert.strictEqual(resolveSessionRosterTone([tool('a', 'failed'), tool('b', 'running')], 0), 'running');
 		assert.strictEqual(resolveSessionRosterTone([tool('a', 'failed')], 0), 'failed');
 		assert.strictEqual(resolveSessionRosterTone([tool('a', 'completed')], 0), 'idle');
+		assert.strictEqual(resolveSessionRosterTone([
+			{ id: 'a1', kind: 'assistant', text: 'still writing', streaming: true },
+		], 0), 'running');
+		assert.strictEqual(resolveSessionRosterTone([
+			{ id: 't1', kind: 'tool', text: 'write', toolStatus: 'pending' },
+		], 0), 'idle');
 	});
 
 	test('roster groups by access time and stays flat when no session has one', () => {
@@ -73,11 +82,15 @@ suite('ConversationSessionsView strings', () => {
 		const quiet = session({ id: 'quiet', title: 'Quiet' });
 		assert.strictEqual(
 			formatSessionRosterAriaLabel(quiet, 0, 1, 'failed', true),
-			'Quiet, 1 message, failed, active session',
+			'Quiet, 1 message · failed, active session',
 		);
 		assert.strictEqual(
 			formatSessionRosterAriaLabel(quiet, 0, 1, 'idle', false),
 			'Quiet, 1 message',
+		);
+		assert.strictEqual(
+			formatSessionRosterAriaLabel(quiet, 1, 1, 'waiting', false),
+			'Quiet, 1 message · 1 confirmation pending, waiting for confirmation',
 		);
 	});
 });

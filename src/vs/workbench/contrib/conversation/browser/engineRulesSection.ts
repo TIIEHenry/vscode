@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
+import { Button } from '../../../../base/browser/ui/button/button.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -75,6 +76,7 @@ export class EngineRulesSection extends Disposable {
 	private readonly globalList: HTMLElement;
 	private readonly projectList: HTMLElement;
 	private readonly rowActions = this._register(new DisposableStore());
+	private readonly ruleActionButtons: Button[] = [];
 
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private ruleCount = 0;
@@ -320,14 +322,25 @@ export class EngineRulesSection extends Disposable {
 		);
 	}
 
+	private ruleWriteHoldReason(): string {
+		if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+			return localize('ua.engineRulesNotConnected', "Engine not connected");
+		}
+		return localize('ua.engineRulesCannotChange', "Rules cannot be changed right now.");
+	}
+
 	private updateWriteChrome(): void {
 		const add = this.canMutateRules() && typeof this.connection.upsertProjectRule === 'function';
 		this.globalToolbar.style.display = add ? '' : 'none';
 		this.projectToolbar.style.display = add ? '' : 'none';
 		const remove = this.canMutateRules() && typeof this.connection.deleteProjectRule === 'function';
-		for (const button of this.scopePanels.querySelectorAll<HTMLButtonElement>('.engine-catalog-row-actions .monaco-button')) {
-			const action = button.dataset.ruleAction;
-			button.disabled = action === 'delete' ? !remove : !add;
+		const reason = this.ruleWriteHoldReason();
+		for (const button of this.ruleActionButtons) {
+			const enabled = button.element.dataset.ruleAction === 'delete' ? remove : add;
+			const label = button.element.dataset.ruleLabel ?? '';
+			button.enabled = enabled;
+			button.setTitle(enabled ? label : reason);
+			button.setAriaLabel(enabled ? label : (label ? `${label}. ${reason}` : reason));
 		}
 	}
 
@@ -445,8 +458,10 @@ export class EngineRulesSection extends Disposable {
 	private renderLists(globalRules: readonly UniverseAgentProjectRule[], projectRules: readonly UniverseAgentProjectRule[]): void {
 		this.setRuleCount(globalRules.length + projectRules.length);
 		this.rowActions.clear();
+		this.ruleActionButtons.length = 0;
 		this.paintRuleList(this.globalList, globalRules, RULE_SCOPE_GLOBAL);
 		this.paintRuleList(this.projectList, projectRules, RULE_SCOPE_WORKDIR);
+		this.updateWriteChrome();
 	}
 
 	private paintRuleList(host: HTMLElement, rules: readonly UniverseAgentProjectRule[], scope: UniverseAgentProjectRuleScope): void {
@@ -477,13 +492,19 @@ export class EngineRulesSection extends Disposable {
 			}
 			const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
 			if (canUpsert) {
-				const edit = this.rowActions.add(createCatalogIconButton(actions, localize('ua.engineRuleEdit', "Edit {0}", label), Codicon.edit));
+				const editLabel = localize('ua.engineRuleEdit', "Edit {0}", label);
+				const edit = this.rowActions.add(createCatalogIconButton(actions, editLabel, Codicon.edit));
 				edit.element.dataset.ruleAction = 'edit';
+				edit.element.dataset.ruleLabel = editLabel;
+				this.ruleActionButtons.push(edit);
 				this.rowActions.add(edit.onDidClick(() => void this.promptRule(scope, rule).catch(onUnexpectedError).catch(onUnexpectedError)));
 			}
 			if (canDelete) {
-				const remove = this.rowActions.add(createCatalogIconButton(actions, localize('ua.engineRuleDeleteAria', "Delete {0}", label), Codicon.trash));
+				const deleteLabel = localize('ua.engineRuleDeleteAria', "Delete {0}", label);
+				const remove = this.rowActions.add(createCatalogIconButton(actions, deleteLabel, Codicon.trash));
 				remove.element.dataset.ruleAction = 'delete';
+				remove.element.dataset.ruleLabel = deleteLabel;
+				this.ruleActionButtons.push(remove);
 				this.rowActions.add(remove.onDidClick(() => void this.deleteRule(scope, rule, remove.element).catch(onUnexpectedError).catch(onUnexpectedError)));
 			}
 		}
@@ -492,6 +513,7 @@ export class EngineRulesSection extends Disposable {
 	private clearPresentation(): void {
 		this.setRuleCount(0);
 		this.rowActions.clear();
+		this.ruleActionButtons.length = 0;
 		DOM.clearNode(this.globalList);
 		DOM.clearNode(this.projectList);
 		this.scopePanels.style.display = 'none';

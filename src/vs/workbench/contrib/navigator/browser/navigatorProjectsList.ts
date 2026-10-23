@@ -35,7 +35,7 @@ import { IViewDescriptorService } from '../../../common/views.js';
 import { IHostService } from '../../../services/host/browser/host.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
-import { formatSessionRosterSubtitle } from '../../conversation/browser/conversationSessionsViewStrings.js';
+import { formatSessionRosterSubtitle, resolveSessionRosterTone } from '../../conversation/browser/conversationSessionsViewStrings.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../common/navigatorAgentTreeEmptyState.js';
@@ -274,6 +274,11 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 		templateData.openAction.enabled = live;
 		templateData.deleteAction.enabled = live;
 		templateData.newSessionAction.enabled = workdir;
+		const openLabel = localize('navigatorProjects.openSession', "Open");
+		const deleteLabel = localize('navigatorProjects.deleteSession', "Delete");
+		const holdReason = localize('navigatorProjects.sessionActionsUnavailable', "This session cannot be changed right now.");
+		templateData.openAction.tooltip = session && !live ? `${openLabel}. ${holdReason}` : openLabel;
+		templateData.deleteAction.tooltip = session && !live ? `${deleteLabel}. ${holdReason}` : deleteLabel;
 		if (workdir && element) {
 			const label = navigatorNewSessionInLabel(element.description);
 			templateData.newSessionAction.label = label;
@@ -610,7 +615,11 @@ export class NavigatorProjectsView extends ViewPane {
 				sessions: this.rosterService.getSessions(),
 				localFolders: this.localFolderEntries,
 				activeSessionId: this.rosterService.getActiveSessionId(),
-				sessionDetail: session => formatSessionRosterSubtitle(session, this.rosterService.countPendingConfirmations(session.id), this.rosterService.getTurns(session.id).length),
+				sessionDetail: session => {
+					const turns = this.rosterService.getTurns(session.id);
+					const pending = this.rosterService.countPendingConfirmations(session.id);
+					return formatSessionRosterSubtitle(session, pending, turns.length, resolveSessionRosterTone(turns, pending));
+				},
 			}), suppressRecentsFailureNote ? undefined : recentsFailureCopy);
 			this.leftoverSessionSwitchClosed = !engineConnected
 				|| sessionListCapability === 'UNKNOWN'

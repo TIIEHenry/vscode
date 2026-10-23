@@ -618,6 +618,40 @@ suite('conversationSessionView (S1)', () => {
 		assert.deepStrictEqual(roundTrip('s', turns).map(t => t.status), ['pending', 'allowed', 'skipped']);
 	});
 
+	test('pending permission argPreview is the confirmation payload and a blank preview is omitted', () => {
+		const permission = (title: string, argPreview?: string): SessionViewSnapshot['pendingActions'][number]['summary'] => ({
+			kind: 'permission',
+			title,
+			permissionKind: 'tool',
+			...(argPreview !== undefined ? { argPreview } : {}),
+		});
+		const withPreview = permission('Allow read', '{"path":"a.ts"}');
+		const blank = permission('Allow blank', '   ');
+		const missing = permission('Allow missing');
+		const snapshot: SessionViewSnapshot = {
+			sessionId: 's' as SessionViewSnapshot['sessionId'],
+			sync: { kind: 'live' },
+			timeline: [
+				{ id: 'perm-preview' as TimelineItemId, orderKey: '1', summary: withPreview },
+				{ id: 'perm-blank' as TimelineItemId, orderKey: '2', summary: blank },
+				{ id: 'perm-missing' as TimelineItemId, orderKey: '3', summary: missing },
+			],
+			overlay: { blocks: [] },
+			pendingActions: [
+				{ requestId: 'perm-preview' as SessionViewSnapshot['pendingActions'][number]['requestId'], summary: withPreview },
+				{ requestId: 'perm-blank' as SessionViewSnapshot['pendingActions'][number]['requestId'], summary: blank },
+				{ requestId: 'perm-missing' as SessionViewSnapshot['pendingActions'][number]['requestId'], summary: missing },
+			],
+			localPendingSends: [],
+		};
+		const entries = projectSnapshotToEntries(snapshot, new Map(), new Map());
+		const byId = new Map(entries.map(entry => [entry.id, entry]));
+		assert.strictEqual(byId.get('perm-preview')?.status, 'pending');
+		assert.strictEqual(byId.get('perm-preview')?.payload, '{"path":"a.ts"}');
+		assert.strictEqual(byId.get('perm-blank')?.payload, undefined);
+		assert.strictEqual(byId.get('perm-missing')?.payload, undefined);
+	});
+
 	test('localPendingSends project as pending user rows and are dropped from legacy turns', () => {
 		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'first' }]);
 		const snapshot: SessionViewSnapshot = {

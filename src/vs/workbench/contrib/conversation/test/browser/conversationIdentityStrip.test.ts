@@ -975,6 +975,7 @@ suite('ConversationIdentityStrip', () => {
 		await timeout(0);
 		assert.strictEqual(folderChip.textContent, 'gamma');
 		assert.strictEqual(folderChip.getAttribute('aria-haspopup'), null);
+		assert.strictEqual(folderChip.tabIndex, -1);
 		assert.strictEqual(folderChevron().hidden, true);
 		assert.strictEqual(folderChip.classList.contains(conversationIdentityFolderReadOnlyClass), true);
 		assert.ok(!folderChip.getAttribute('aria-label')?.includes('Open the folder list'));
@@ -982,6 +983,7 @@ suite('ConversationIdentityStrip', () => {
 		assert.strictEqual(branchChip.hidden, false);
 		assert.strictEqual(branchChip.textContent, 'engine-branch');
 		assert.strictEqual(branchChip.getAttribute('aria-haspopup'), null);
+		assert.strictEqual(branchChip.tabIndex, -1);
 		assert.strictEqual(branchChevron().hidden, true);
 		assert.strictEqual(branchChip.classList.contains(conversationIdentityBranchReadOnlyClass), true);
 		assert.ok(!branchChip.getAttribute('aria-label')?.includes('Open the branch list'));

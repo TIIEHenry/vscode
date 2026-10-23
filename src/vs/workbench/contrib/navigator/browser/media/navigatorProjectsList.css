@@ -5,8 +5,14 @@
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list-row,
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list:focus .monaco-list-row.focused,
-.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list:focus .monaco-list-row.selected {
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list:focus .monaco-list-row.selected,
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list:focus .monaco-list-row.focused.selected {
 	outline: none !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .navigator-projects-list .monaco-list:focus-visible .monaco-list-row.focused {
+	outline: 1px solid var(--vscode-list-focusOutline, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
 }
 
 .monaco-workbench .navigator-projects-list {

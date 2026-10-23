@@ -23,6 +23,13 @@ import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser
 import { IEditorGroupsService, IConversationEditorPart } from '../../../services/editor/common/editorGroupsService.js';
 import { registerConversationNavigationConfiguration } from '../common/conversationNavigation.js';
 import { conversationLensSessionBarDownAgent, conversationLensSessionBarUpAgent } from './conversationLensSessionBarStrings.js';
+
+function presentLevelAction(button: Button, label: string, enabled: boolean, idleReason: string): void {
+	button.enabled = enabled;
+	const presented = enabled ? label : `${label}. ${idleReason}`;
+	button.setTitle(presented);
+	button.setAriaLabel(presented);
+}
 import { ConversationNavigationService, IConversationNavigationService } from './conversationNavigationService.js';
 import { IConversationSessionChatService } from './conversationSessionChatService.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
@@ -161,8 +168,18 @@ export class ConversationNavigationContribution extends Disposable implements IW
 
 		let listedChildren = '';
 		const updateLevelButtons = () => {
-			upButton.enabled = this.sessionChatService.canGoUpOneAgent(sessionKey);
-			downButton.enabled = this.sessionChatService.canGoDownOneAgent(sessionKey);
+			presentLevelAction(
+				upButton,
+				conversationLensSessionBarUpAgent,
+				this.sessionChatService.canGoUpOneAgent(sessionKey),
+				localize('conversationLens.sessionBarUpAgentUnavailable', "This session has no parent agent."),
+			);
+			presentLevelAction(
+				downButton,
+				conversationLensSessionBarDownAgent,
+				this.sessionChatService.canGoDownOneAgent(sessionKey),
+				localize('conversationLens.sessionBarDownAgentUnavailable', "This session has no child agent."),
+			);
 			const nextChildren = this.sessionChatService.listDirectChildAgents(sessionKey)
 				.map(entry => `${entry.chatId}\t${entry.originKind}\t${entry.title}`)
 				.join('\n');

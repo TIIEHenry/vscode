@@ -1284,8 +1284,10 @@ function timelineItemToEntry(
 						? 'pending'
 						: 'undecided';
 			const failure = status === 'pending' ? respondFailures?.get(id) : undefined;
+			const argPreview = typeof summary.argPreview === 'string' ? summary.argPreview.trim() : '';
 			return {
 				id, kind: 'confirmation', text: summary.title, status,
+				...(argPreview.length > 0 ? { payload: argPreview } : {}),
 				...(failure ? { respondFailure: failure } : {}),
 				...agent, ...turn,
 			};

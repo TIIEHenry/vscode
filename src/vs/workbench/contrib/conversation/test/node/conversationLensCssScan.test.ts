@@ -473,6 +473,7 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(!/foreground\)\s*18%/.test(sendDisabled!.body));
 		const sendSection = css.slice(css.indexOf('.conversation-lens-dock-send-button'), css.indexOf('.conversation-lens-dock-permission'));
 		assert.ok(!/filter\s*:/.test(sendSection));
+		assert.ok(!/transform\s*:/.test(sendSection));
 
 		const select = rule('.conversation-lens-dock-model .monaco-select-box', 'border:');
 		assert.ok(select);

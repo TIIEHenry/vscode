@@ -44,6 +44,7 @@ export const conversationLensUserBubbleShowMore = localize('conversationLens.use
 export const conversationLensUserBubbleShowLess = localize('conversationLens.userBubbleShowLess', "Show less");
 export const conversationLensErrorRetry = localize('conversationLens.errorRetry', "Retry");
 export const conversationLensTurnRegenerate = localize('conversationLens.regenerateTurn', "Regenerate");
+export const conversationLensTurnWritesUnavailable = localize('conversationLens.turnWritesUnavailable', "This session cannot be edited right now.");
 const conversationLensTurnNeutral = localize('conversationLens.turnNeutral', "Text");
 const conversationLensTurnSending = localize('conversationLens.turnSending', "Sending…");
 
@@ -297,9 +298,11 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 
 		if (turn.kind === 'confirmation') {
 			const responseInFlight = this.decisionHeld(turn);
+			const permissionArgs = turn.payload?.trim();
 			const seat = templateData.disposables.add(new ConversationConfirmationSeat({
 				message: turn.text,
 				status: turn.status ?? 'pending',
+				...(permissionArgs ? { detail: permissionArgs } : {}),
 				onAllow: (turn.status ?? 'pending') === 'pending' && this.onResolveConfirmation
 					? () => {
 						this.noteFreshDecision(turn);
@@ -376,14 +379,11 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			const body = append(el, $('.conversation-lens-turn-body'));
 			if (turn.kind === 'user') {
 				body.classList.add('conversation-lens-turn-body--user-bubble');
-				if (!sending) {
+				if (!sending && this.writesEnabled()) {
 					body.classList.add('conversation-lens-turn-body--clickable');
 					body.setAttribute('role', 'button');
 					body.tabIndex = 0;
 					const triggerEdit = () => {
-						if (!this.writesEnabled()) {
-							return;
-						}
 						this.onEditUserTurn?.(turn.id);
 					};
 					templateData.disposables.add(addDisposableListener(body, 'click', (e) => {
@@ -407,6 +407,8 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 							triggerEdit();
 						}
 					}));
+				} else if (!sending) {
+					body.title = conversationLensTurnWritesUnavailable;
 				}
 			} else if (turn.kind === 'assistant') {
 				body.classList.add('conversation-lens-turn-body--reading-text');
@@ -439,9 +441,6 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 
 			if (turn.kind === 'assistant') {
 				const actions = append(el, $('.conversation-lens-turn-actions'));
-				if (this.onViewInTrajectory) {
-					appendTurnTrajectoryButton(actions, turn.id, this.onViewInTrajectory, templateData.disposables);
-				}
 				const copyContainer = append(actions, $('span.conversation-lens-turn-action-copy'));
 				const copyButton = templateData.disposables.add(new Button(copyContainer, {
 					...defaultButtonStyles,
@@ -467,6 +466,10 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				}));
 				regenerateButton.icon = Codicon.refresh;
 				regenerateButton.enabled = this.writesEnabled();
+				if (!this.writesEnabled()) {
+					regenerateButton.setTitle(conversationLensTurnWritesUnavailable);
+					regenerateButton.setAriaLabel(`${conversationLensTurnRegenerate}. ${conversationLensTurnWritesUnavailable}`);
+				}
 				if (this.onRegenerateTurn) {
 					templateData.disposables.add(regenerateButton.onDidClick(() => this.onRegenerateTurn!(turn)));
 				}
@@ -482,8 +485,15 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				}));
 				deleteButton.icon = Codicon.trash;
 				deleteButton.enabled = this.writesEnabled();
+				if (!this.writesEnabled()) {
+					deleteButton.setTitle(conversationLensTurnWritesUnavailable);
+					deleteButton.setAriaLabel(`${conversationLensTurnDelete}. ${conversationLensTurnWritesUnavailable}`);
+				}
 				if (this.onDeleteTurn) {
 					templateData.disposables.add(deleteButton.onDidClick(() => this.onDeleteTurn!(turn)));
+				}
+				if (this.onViewInTrajectory) {
+					appendTurnTrajectoryButton(actions, turn.id, this.onViewInTrajectory, templateData.disposables);
 				}
 			}
 

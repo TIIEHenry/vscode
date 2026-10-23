@@ -1092,14 +1092,23 @@ function populateTrajectoryRecordRow(
 		const readable = record.kind === 'user' ? conversationUserBodyText(record.text) : record.text;
 		const trimmed = readable.trim();
 		previewCell.textContent = trimmed.length > 120 ? `${trimmed.slice(0, 119)}…` : trimmed;
+		if (trimmed.length > 120) {
+			previewCell.title = trimmed;
+		}
 	} else {
-		previewCell.textContent = getTrajectoryRecordPreview(record);
+		const preview = getTrajectoryRecordPreview(record);
+		previewCell.textContent = preview;
+		if (preview.length > 120) {
+			previewCell.title = preview;
+		}
 	}
 
 	if (record.sourceBlocks?.length) {
 		for (const block of record.sourceBlocks) {
 			const chip = append(previewCell, $('span.conversation-lens-trajectory-source-block'));
-			chip.textContent = block.toolName ?? block.content;
+			const chipText = block.toolName ?? block.content;
+			chip.textContent = chipText;
+			chip.title = chipText;
 		}
 	}
 

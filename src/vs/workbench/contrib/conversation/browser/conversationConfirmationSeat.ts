@@ -11,11 +11,14 @@ import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.j
 import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { getConversationPermissionRespondBlockedLabel, getConversationPermissionSeatAriaLabel } from './conversationAccessibility.js';
+import { conversationLensDockSendBusy } from './conversationLensDockStrings.js';
 import { ConfirmationStatus } from './conversationStubModel.js';
 
 export interface IConversationConfirmationSeatOptions {
 	readonly message: string;
 	readonly status: ConfirmationStatus;
+	/** Bounded argument preview. Omitted from the seat when absent or blank. */
+	readonly detail?: string;
 	readonly onAllow?: () => void;
 	readonly onSkip?: () => void;
 	/** When false, Allow/Skip stay visible but aria-disabled (D297 pairing-hold). */
@@ -194,6 +197,10 @@ export class ConversationConfirmationSeat extends Disposable {
 		}
 
 		append(this.element, $('p.conversation-lens-confirmation-message')).textContent = options.message;
+		const detail = options.detail?.trim();
+		if (detail) {
+			append(this.element, $('pre.conversation-lens-confirmation-args')).textContent = detail;
+		}
 		if (isPending && options.respondFailure) {
 			append(this.element, $('p.conversation-lens-confirmation-failure')).textContent = localize(
 				'conversationLens.confirmationRespondFailed',
@@ -208,15 +215,20 @@ export class ConversationConfirmationSeat extends Disposable {
 			actions.setAttribute('role', 'toolbar');
 			actions.setAttribute('aria-label', localize('conversationLens.permissionDecision', "Permission decision"));
 			const writesEnabled = options.writesEnabled !== false && options.responseInFlight !== true;
+			const holdReason = options.responseInFlight
+				? conversationLensDockSendBusy
+				: (options.writesEnabled === false
+					? localize('conversationLens.turnWritesUnavailable', "This session cannot be edited right now.")
+					: undefined);
 			const allowLabel = localize('conversationLens.allow', "Allow");
 			const allow = this._register(new Button(actions, { ...defaultButtonStyles, ariaLabel: allowLabel }));
 			allow.label = allowLabel;
-			allow.enabled = writesEnabled;
+			presentDecision(allow, allowLabel, writesEnabled, holdReason);
 
 			const skipLabel = localize('conversationLens.skip', "Skip");
 			const skip = this._register(new Button(actions, { ...defaultButtonStyles, secondary: true, ariaLabel: skipLabel }));
 			skip.label = skipLabel;
-			skip.enabled = writesEnabled;
+			presentDecision(skip, skipLabel, writesEnabled, holdReason);
 
 			// One activation posts once. A second click, or Enter plus the
 			// synthesized click, must not send the same decision again while
@@ -227,8 +239,8 @@ export class ConversationConfirmationSeat extends Disposable {
 					return;
 				}
 				sent = true;
-				allow.enabled = false;
-				skip.enabled = false;
+				presentDecision(allow, allowLabel, false, conversationLensDockSendBusy);
+				presentDecision(skip, skipLabel, false, conversationLensDockSendBusy);
 				this.element.setAttribute('aria-busy', 'true');
 				run();
 			};
@@ -239,4 +251,11 @@ export class ConversationConfirmationSeat extends Disposable {
 			wireConversationSeatOptionKeys([allow.element, skip.element], keys);
 		}
 	}
+}
+
+function presentDecision(button: Button, label: string, enabled: boolean, holdReason: string | undefined): void {
+	button.enabled = enabled;
+	const presented = !enabled && holdReason ? `${label}. ${holdReason}` : label;
+	button.setTitle(presented);
+	button.setAriaLabel(presented);
 }

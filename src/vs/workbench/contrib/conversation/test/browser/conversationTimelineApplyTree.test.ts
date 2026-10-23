@@ -183,7 +183,10 @@ suite('ConversationTimelineHost applyEntries (plan §3.4)', () => {
 		const cleared = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-header');
 		assert.ok(cleared);
 		assert.strictEqual(cleared.getAttribute('aria-expanded'), 'false');
-		assert.strictEqual(tree.domNode.querySelector<HTMLElement>('.conversation-process-fold-children')?.hidden, true);
+		const clearedChildren = tree.domNode.querySelector<HTMLElement>('.conversation-process-fold-children');
+		assert.ok(clearedChildren);
+		assert.strictEqual(clearedChildren.hidden, false);
+		assert.strictEqual(clearedChildren.classList.contains('conversation-process-fold--collapsed'), true);
 		assert.deepStrictEqual([...expandedState(tree).processFoldOuterExpanded], []);
 
 		tree.setTurns(turns);
@@ -222,7 +225,10 @@ suite('ConversationTimelineHost applyEntries (plan §3.4)', () => {
 		const cleared = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-header');
 		assert.ok(cleared);
 		assert.strictEqual(cleared.getAttribute('aria-expanded'), 'false');
-		assert.strictEqual(tree.domNode.querySelector<HTMLElement>('.conversation-process-fold-children')?.hidden, true);
+		const clearedChildren = tree.domNode.querySelector<HTMLElement>('.conversation-process-fold-children');
+		assert.ok(clearedChildren);
+		assert.strictEqual(clearedChildren.hidden, false);
+		assert.strictEqual(clearedChildren.classList.contains('conversation-process-fold--collapsed'), true);
 		cleared.click();
 		assert.strictEqual(tree.domNode.querySelector('button.conversation-process-fold-thinking-header')?.getAttribute('aria-expanded'), 'false');
 		assert.strictEqual(tree.domNode.querySelector('button.conversation-process-fold-tool-header')?.getAttribute('aria-expanded'), 'false');
@@ -259,7 +265,10 @@ suite('ConversationTimelineHost applyEntries (plan §3.4)', () => {
 		const again = tree.domNode.querySelector<HTMLButtonElement>('button.conversation-process-fold-header');
 		assert.ok(again);
 		assert.strictEqual(again.getAttribute('aria-expanded'), 'false');
-		assert.strictEqual(tree.domNode.querySelector<HTMLElement>('.conversation-process-fold-children')?.hidden, true);
+		const clearedChildren = tree.domNode.querySelector<HTMLElement>('.conversation-process-fold-children');
+		assert.ok(clearedChildren);
+		assert.strictEqual(clearedChildren.hidden, false);
+		assert.strictEqual(clearedChildren.classList.contains('conversation-process-fold--collapsed'), true);
 		again.click();
 		assert.strictEqual(tree.domNode.textContent?.includes('hits from A'), true);
 		assert.strictEqual(tree.domNode.querySelector('button.conversation-process-fold-thinking-header')?.getAttribute('aria-expanded'), 'false');

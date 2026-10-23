@@ -32,7 +32,7 @@
 .monaco-workbench .part.conversation .conversation-subagent-overlay-backdrop {
 	position: absolute;
 	inset: 0;
-	background-color: color-mix(in srgb, #000 25%, transparent);
+	background-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
 }
 
 .monaco-workbench.hc-black .part.conversation .conversation-subagent-overlay-backdrop,

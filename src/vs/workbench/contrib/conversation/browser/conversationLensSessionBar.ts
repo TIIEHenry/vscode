@@ -5,6 +5,7 @@
 
 import { $, addDisposableListener, addStandardDisposableListener, append } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
+import { IManagedHover } from '../../../../base/browser/ui/hover/hover.js';
 import { getBaseLayerHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegate2.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { ISelectBoxOptions, SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
@@ -32,12 +33,13 @@ import type { ConversationStubSession } from './conversationStubModel.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
-import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
+import { conversationLensDockEngineNotConnected, conversationLensDockSessionUnavailableReason, type ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import { isConversationPairingHold, showConversationPart } from './conversationSessionStatus.js';
 import { applyComposerSurfaceText, composerDraftText } from './conversationComposerRefs.js';
 
 export interface IConversationLensSessionBarHost {
 	sessionTitleButton: HTMLButtonElement;
+	sessionTitleHover?: IManagedHover;
 	sessionTitleLive: HTMLElement;
 	sessionTitleInput: HTMLInputElement;
 	sessionTitleEditing: boolean;
@@ -109,7 +111,7 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		const titleWrap = append(leading, $('.conversation-lens-session-title-wrap'));
 		host.sessionTitleButton = append(titleWrap, $('button.conversation-lens-session-title')) as HTMLButtonElement;
 		host.sessionTitleButton.type = 'button';
-		host.register(getBaseLayerHoverDelegate().setupManagedHover(getDefaultHoverDelegate('element'), host.sessionTitleButton, conversationLensSessionBarRenameTitle));
+		host.sessionTitleHover = host.register(getBaseLayerHoverDelegate().setupManagedHover(getDefaultHoverDelegate('element'), host.sessionTitleButton, conversationLensSessionBarRenameTitle));
 		host.sessionTitleInput = append(titleWrap, $('input.conversation-lens-session-title-input')) as HTMLInputElement;
 		host.sessionTitleInput.type = 'text';
 		host.sessionTitleInput.hidden = true;
@@ -236,13 +238,16 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 			// A shadow-root popup does not surface its own keys to that capture.
 			store.add(registerSessionMoreEscape(host, popup.ownerDocument, true));
 			store.add(registerSessionMoreEscape(host, popup));
-			const addAction = (label: string, run: () => void, enabled = true) => {
+			const addAction = (label: string, run: () => void, enabled = true, holdReason?: string) => {
 				const item = append(popup, $('button.conversation-lens-dock-more-item')) as HTMLButtonElement;
 				item.type = 'button';
 				item.setAttribute('role', 'menuitem');
 				item.textContent = label;
 				item.disabled = !enabled;
 				item.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+				const presented = !enabled && holdReason ? `${label}. ${holdReason}` : label;
+				item.title = presented;
+				item.setAttribute('aria-label', presented);
 				store.add(addDisposableListener(item, 'click', e => {
 					e.preventDefault();
 					e.stopPropagation();
@@ -254,10 +259,11 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 				}));
 			};
 			const writesEnabled = sessionBarWritesEnabled(host);
+			const holdReason = sessionBarWriteHoldReason(host);
 			addAction(conversationLensSessionBarHistory, () => host.engineHistoryList?.show());
 			addAction(conversationLensSessionBarSnapshots, () => host.engineSnapshotsList?.show());
-			addAction(conversationLensSessionBarNewSession, () => createNewSession(host), writesEnabled);
-			addAction(conversationLensSessionBarDeleteSession, () => deleteActiveSession(host), writesEnabled);
+			addAction(conversationLensSessionBarNewSession, () => createNewSession(host), writesEnabled, holdReason);
+			addAction(conversationLensSessionBarDeleteSession, () => deleteActiveSession(host), writesEnabled, holdReason);
 			for (const session of host.stubService.getSessions()) {
 				addAction(session.title, () => switchToSession(host, session.id));
 			}
@@ -398,7 +404,7 @@ export function updateSessionTitle(host: IConversationLensSessionBarHost): void 
 		}
 		const title = session.title;
 		host.sessionTitleButton.textContent = title;
-		host.sessionTitleButton.setAttribute('aria-label', localize('conversationLens.sessionTitleAria', "Session title: {0}", title));
+		applySessionTitleHold(host);
 		host.sessionTitleLive.textContent = title;
 	
 }
@@ -417,16 +423,45 @@ function sessionBarWritesEnabled(host: IConversationLensSessionBarHost): boolean
 
 export function updateSessionBarWriteChrome(host: IConversationLensSessionBarHost): void {
 	const writesEnabled = sessionBarWritesEnabled(host);
-	if (host.sessionTitleButton) {
-		host.sessionTitleButton.disabled = !writesEnabled;
-		host.sessionTitleButton.setAttribute('aria-disabled', String(!writesEnabled));
+	const holdReason = sessionBarWriteHoldReason(host);
+	applySessionTitleHold(host);
+	presentSessionBarButton(host.newSessionButton, conversationLensSessionBarNewSession, writesEnabled, holdReason);
+	presentSessionBarButton(host.deleteSessionButton, conversationLensSessionBarDeleteSession, writesEnabled, holdReason);
+}
+
+function sessionBarWriteHoldReason(host: IConversationLensSessionBarHost): string | undefined {
+	if (sessionBarWritesEnabled(host)) {
+		return undefined;
 	}
-	if (host.newSessionButton) {
-		host.newSessionButton.enabled = writesEnabled;
+	if (isConversationPairingHold(host.uaConnection)) {
+		return conversationLensDockEngineNotConnected;
 	}
-	if (host.deleteSessionButton) {
-		host.deleteSessionButton.enabled = writesEnabled;
+	return conversationLensDockSessionUnavailableReason;
+}
+
+function applySessionTitleHold(host: IConversationLensSessionBarHost): void {
+	const button = host.sessionTitleButton;
+	if (!button) {
+		return;
 	}
+	const writesEnabled = sessionBarWritesEnabled(host);
+	const holdReason = sessionBarWriteHoldReason(host);
+	button.disabled = !writesEnabled;
+	button.setAttribute('aria-disabled', String(!writesEnabled));
+	const idle = localize('conversationLens.sessionTitleAria', "Session title: {0}", button.textContent ?? '');
+	const presented = holdReason ? `${idle}. ${holdReason}` : idle;
+	button.setAttribute('aria-label', presented);
+	host.sessionTitleHover?.update(holdReason ? `${conversationLensSessionBarRenameTitle}. ${holdReason}` : conversationLensSessionBarRenameTitle);
+}
+
+function presentSessionBarButton(button: Button | undefined, label: string, enabled: boolean, holdReason: string | undefined): void {
+	if (!button) {
+		return;
+	}
+	button.enabled = enabled;
+	const presented = !enabled && holdReason ? `${label}. ${holdReason}` : label;
+	button.setTitle?.(presented);
+	button.setAriaLabel?.(presented);
 }
 
 export function beginSessionTitleEdit(host: IConversationLensSessionBarHost): void {

@@ -36,6 +36,7 @@ import {
 	conversationLensDockPermissionPermit,
 	conversationLensDockRestoreTimeline,
 	conversationLensDockSaveQueued,
+	conversationLensDockSendBusy,
 	conversationLensDockToolsEngineHint,
 	conversationLensDockTuneNoMatch,
 	conversationLensDockTuneOpenEngine,
@@ -675,16 +676,37 @@ export function isComposerStreaming(host: {
 	return false;
 }
 
+function setSendButtonCopy(button: { setTitle?(title: string): void; setAriaLabel?(label: string): void }, title: string): void {
+	button.setTitle?.(title);
+	button.setAriaLabel?.(title);
+}
+
+function restoreSendButtonCopy(host: IConversationLensComposerChromeHost): void {
+	if (host.composerPolicy === 'queueEdit') {
+		setSendButtonCopy(host.sendButton, conversationLensDockSaveQueued);
+		return;
+	}
+	setSendButtonCopy(host.sendButton, localize('conversationLens.send', "Send"));
+}
+
 export function updateSendEnabled(host: IConversationLensComposerChromeHost): void {
 
-		if (isConversationPairingHold(host.uaConnection) || isComposerKeepLeftoverListFailed(host)) {
+		if (isConversationPairingHold(host.uaConnection)) {
 			host.sendButton.enabled = false;
+			setSendButtonCopy(host.sendButton, conversationLensDockEngineNotConnected);
+			return;
+		}
+		if (isComposerKeepLeftoverListFailed(host)) {
+			host.sendButton.enabled = false;
+			setSendButtonCopy(host.sendButton, `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`);
 			return;
 		}
 		if (host.submitInFlight || isComposerStreaming(host)) {
 			host.sendButton.enabled = false;
+			setSendButtonCopy(host.sendButton, conversationLensDockSendBusy);
 			return;
 		}
+		restoreSendButtonCopy(host);
 		const payload = composerSubmitText(host);
 		const hasDraft = payload !== undefined;
 		if (host.composerPolicy === 'queueEdit') {
@@ -703,7 +725,7 @@ export function updateSendEnabled(host: IConversationLensComposerChromeHost): vo
 		}
 		host.sendButton.enabled = hasDraft;
 		updateComposerSingleLineLayout(host);
-	
+
 }
 
 export function updateGateRow(host: IConversationLensComposerChromeHost): void {
@@ -987,7 +1009,12 @@ export function updateComposerSessionSelectsEnabled(host: IConversationLensCompo
 		updateAgentSelectEnabled(host);
 		updateModelSelectEnabled(host);
 		if (host.tuneButton) {
-			host.tuneButton.enabled = !isComposerKeepLeftoverListFailed(host);
+			const blocked = isComposerKeepLeftoverListFailed(host);
+			host.tuneButton.enabled = !blocked;
+			const tune = host.tuneButton as { setTitle?(title: string): void; setAriaLabel?(label: string): void };
+			const reason = `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`;
+			tune.setTitle?.(blocked ? reason : conversationLensDockTuneTitle);
+			tune.setAriaLabel?.(blocked ? `${conversationLensDockTuneTitle}. ${reason}` : conversationLensDockTuneTitle);
 		}
 	
 }

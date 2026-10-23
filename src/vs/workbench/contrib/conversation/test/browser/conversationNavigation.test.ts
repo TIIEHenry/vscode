@@ -678,7 +678,7 @@ suite('Conversation navigation (S2)', () => {
 		assert.ok(downHost);
 		assert.strictEqual(controls?.firstElementChild, up);
 		assert.strictEqual(up?.nextElementSibling, downHost);
-		assert.strictEqual(harness.down.getAttribute('aria-label'), conversationLensSessionBarDownAgent);
+		assert.strictEqual(harness.down.getAttribute('aria-label'), `${conversationLensSessionBarDownAgent}. This session has no child agent.`);
 		assert.strictEqual(harness.down.getAttribute('aria-disabled'), 'true');
 		assert.strictEqual(controls?.querySelector('.conversation-window-nav'), null);
 		assert.strictEqual(harness.sessionBar.querySelector('.conversation-window-nav'), null);

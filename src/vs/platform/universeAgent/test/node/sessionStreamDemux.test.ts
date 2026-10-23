@@ -1004,7 +1004,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			assert.strictEqual(runningTurn?.toolCallId, 'tc-run');
 			const runningSpan = projectProcessFoldSpans(entriesToRenderableTurns(runningEntries))[0];
 			assert.ok(runningSpan);
-			assert.strictEqual(summarizeProcessSteps(runningSpan, { showLiveChrome: true }), '1 steps · read_file');
+			assert.strictEqual(summarizeProcessSteps(runningSpan, { showLiveChrome: true }), '1 step · read_file');
 			assert.strictEqual(projectSnapshotToTrajectory(running, new Map(), new Map()).filter(record => record.kind === 'tool').length, 1);
 
 			const done = toolEnvelope('e-done', 5, [{
@@ -1039,7 +1039,7 @@ suite('sessionStreamDemux overlay + seats + L2/L3/L4', () => {
 			assert.strictEqual(finishedEntries[0]?.payload, 'file body');
 			const finishedSpan = projectProcessFoldSpans(entriesToRenderableTurns(finishedEntries))[0];
 			assert.ok(finishedSpan);
-			assert.strictEqual(summarizeProcessSteps(finishedSpan, { showLiveChrome: true }), '1 steps · read_file');
+			assert.strictEqual(summarizeProcessSteps(finishedSpan, { showLiveChrome: true }), '1 step · read_file');
 			const finishedTools = projectSnapshotToTrajectory(finished, new Map(), new Map()).filter(record => record.kind === 'tool');
 			assert.strictEqual(finishedTools.length, 1);
 			assert.strictEqual(finishedTools[0]?.outputDetail, 'file body');

@@ -33,6 +33,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IConversationRosterService } from './conversationStubService.js';
 import { getUaClientKeyboardEnterBehavior } from '../common/uaClientSettingsHelpers.js';
 import { noteComposerAtInput, onComposerAtKeyDown, toggleComposerAddContext, wireComposerAt } from './conversationComposerAt.js';
+import { COMPOSER_IME_COMMIT_GUARD_MS, isComposerImeBlockedEnter, isComposerImeCommitGuardEnter } from './conversationComposerIme.js';
 import { composerDraftText, composerSubmitText } from './conversationComposerRefs.js';
 import { createInputHistoryBrowseState, InputHistoryBrowseState } from './conversationInputHistory.js';
 import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
@@ -120,6 +121,25 @@ export interface IConversationLensDockHost {
 
 function isPlainHistoryArrow(event: IKeyboardEvent): boolean {
 	return !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey;
+}
+
+/**
+ * `insertParagraph` is Enter. `insertLineBreak` is Shift+Enter and stays a newline.
+ * beforeinput has no modifier flags, so a paragraph inside the commit window is the
+ * unmodified Enter. An in-flight composition blocks `insertParagraph` as well.
+ */
+function shouldBlockComposerInsertParagraph(event: InputEvent, compositionEndedAt: number | undefined): boolean {
+	if (event.inputType !== 'insertParagraph') {
+		return false;
+	}
+	if (event.isComposing) {
+		return true;
+	}
+	if (compositionEndedAt === undefined) {
+		return false;
+	}
+	const elapsed = event.timeStamp - compositionEndedAt;
+	return elapsed >= 0 && elapsed < COMPOSER_IME_COMMIT_GUARD_MS;
 }
 
 export function mountDock(host: IConversationLensDockHost & IConversationLensComposerChromeHost, dockHost: HTMLElement): void {
@@ -290,6 +310,31 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.sendButton.element.setAttribute('data-testid', 'conversation-composer-send');
 		host.sendButton.enabled = false;
 
+		// Last compositionend on this textarea. The confirming Enter follows it
+		// with isComposing already false. Kept here, not on a persisted service.
+		let compositionEndedAt: number | undefined;
+		// One gesture is keydown plus beforeinput. Clear after that turn so the
+		// next Enter still sends, without letting the same Enter through.
+		const clearCommitGuardAfterEvent = () => {
+			const consumedAt = compositionEndedAt;
+			queueMicrotask(() => {
+				if (compositionEndedAt === consumedAt) {
+					compositionEndedAt = undefined;
+				}
+			});
+		};
+		host.register(addDisposableListener(host.dockTextarea, 'compositionend', event => {
+			compositionEndedAt = event.timeStamp;
+		}));
+		host.register(addDisposableListener(host.dockTextarea, 'beforeinput', event => {
+			if (shouldBlockComposerInsertParagraph(event, compositionEndedAt)) {
+				if (!event.isComposing) {
+					clearCommitGuardAfterEvent();
+				}
+				event.preventDefault();
+			}
+		}, true));
+
 		host.register(addStandardDisposableListener(host.dockTextarea, 'keydown', e => {
 			if (onComposerAtKeyDown(host, e)) {
 				return;
@@ -319,6 +364,24 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 				return;
 			}
 			if (e.keyCode === KeyCode.Enter) {
+				const browserEvent = e.browserEvent;
+				const imeEnter = {
+					isComposing: browserEvent.isComposing,
+					keyCode: browserEvent.keyCode,
+					shiftKey: browserEvent.shiftKey,
+					metaKey: browserEvent.metaKey,
+					ctrlKey: browserEvent.ctrlKey,
+					altKey: browserEvent.altKey,
+					compositionEndedAt,
+					now: browserEvent.timeStamp,
+				};
+				if (isComposerImeBlockedEnter(imeEnter)) {
+					if (isComposerImeCommitGuardEnter(imeEnter)) {
+						clearCommitGuardAfterEvent();
+					}
+					e.preventDefault();
+					return;
+				}
 				const sendOnEnter = getUaClientKeyboardEnterBehavior(host.configurationService) !== 'newline';
 				if (sendOnEnter ? !e.shiftKey : e.shiftKey) {
 					e.preventDefault();

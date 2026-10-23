@@ -3,7 +3,7 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-21
+updated: 2026-10-23
 summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；时间线 content-visibility 只走样式表，焦点行不被 120px 占位夹住；Accessible View；帧源投影与 Q4 live 过程折；换到另一条会话时过程折展开不沿用，pending 或名单未就绪时时间线和轨迹也不留上一条；发起窗乐观发送行标 Sending… 且不可编辑；轨迹表与检查器的用户预览去掉合法引用尾块；不可重试的权限送达失败不再标 Input needed；离开待决且未回答的提问是 undecided，不再当成待确认座位；已提交且快照仍 pending 的 Allow/Skip 与提问不再交第二次；多道必填单选在每道都点过之前不提交，也不把没点过的第一项一起交出去；换到另一条会话时清掉轨迹搜索，同一条重连和 KEEP leftover 仍留着；同一封里的思考在正文或工具出现后仍先画成阅读区思考行，关掉工具详情也留着；已有同样思考行时工具标题下不再重复这段；没有思考行时工具标题下的思考仍在详情开着时留着；关掉工具详情时不画 file_edit 增删统计；live 工具 overlay 仍有正文时阅读区另留助手行，工具摘要只用工具名；同一 turn 只有 tool_call、没有可用正文、且 streaming 正文还在时，阅读行留着这段字，工具行另留在时间线上；工具一开始跑时 `tool_call_lifecycle.started` 的工具名走同一条生成中工具路径，已流出的正文留着；同一封信落盘时工具臂也带着正文；提问座位在选项组前画出与正文不同的题干，问句优先于短 header；用户回合不显示 You，助手默认不显示 Agent，非 default 代理名在首行 11px；用户回合靠右、宽度随正文且不超过列宽 82%，卡内文字左对齐，底色 input.background，前景色 8% 细边，高对比仍用 contrastBorder；读屏名仍在文章 aria-label；轨迹工具行显示已承认的 canvas 标题，usage 行显示已承认的 token 与 context 比例，缺则省略"
 ---
 
@@ -30,7 +30,7 @@ SessionBar 标题 Enter 或失焦即提交，Escape 取消且不提示。去掉�
 | 零件 | 文件 | 说明 |
 |------|------|------|
 | `ConversationTimelineHost` | `conversationTimelineHost.ts` | 原生文档流宿主（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)），推翻 `WorkbenchObjectTree` 与测高逻辑；配合 `content-visibility`、历史窗口化（未决座位强制在窗）与重资源预算；按根增量键控协调；流容器 `role=feed`，每根 `article`。屏外根用样式表 `content-visibility: auto` 与 `contain-intrinsic-block-size: auto 120px`。`--cv-visible`（流式、编辑、待确认座位、最近三根）和 `:focus-within` 改为 `visible` / `none`。宿主不把这两项写成内联样式，否则键盘焦点停在更早的行时仍被 120px 占位夹住 |
-| 跟随控制器 | `conversationTimelineFollow.ts` | `ConversationTimelineFollowController`：沿用 HEAD 解锁语义，写入台账排除控制器自身写入；用户滚离底部解锁、滚回底部恢复跟随；发送上锁；帧末尾同步贴底 + ResizeObserver 异步变高贴底；D12 展开收起位置补偿。Inbox 待确认、回到会话和通知 Show 走 `revealPendingTurn`：立刻滚到该根（含窗口外的可应答工具），不用平滑 `scrollIntoView`。座位不是最后一根时解开贴底，下一帧和尺寸变化不会把视口拽回底部；座位就是最后一根时跟随保持 |
+| 跟随控制器 | `conversationTimelineFollow.ts` | `ConversationTimelineFollowController`：沿用 HEAD 解锁语义，写入台账排除控制器自身写入；用户滚离底部解锁、滚回底部恢复跟随；用户滚动（不是控制器自己写入的那一下）之后 150ms 内不程序贴底，发送和「回到底部」清掉这段冷却；发送上锁；帧末尾同步贴底 + ResizeObserver 异步变高贴底；D12 展开收起位置补偿。Inbox 待确认、回到会话和通知 Show 走 `revealPendingTurn`：立刻滚到该根（含窗口外的可应答工具），不用平滑 `scrollIntoView`。座位不是最后一根时解开贴底，下一帧和尺寸变化不会把视口拽回底部；座位就是最后一根时跟随保持 |
 | 调度器 | `conversationTimelineScheduler.ts` | 动画帧调度（16ms 兜底），合并同帧 patch 与 effects；不可见时只停宿主 DOM 更新，投影与 Inbox 照旧 |
 | 流式渲染 | `conversationStreamingMarkdown.ts` · `conversationTurnContentAdapter.ts` | 按 marked 词法块冻结，尾部用 `fillInIncompleteTokens` 渲染；L2 落盘完整渲染一次定稿 |
 | 交接排序 | `platform/universeAgent/node/overlayDeltaJoin.ts` | 宿主侧按 turn 关联排序（D5）：带可用正文或空 blocks 的助手信封到达后紧随清除 overlay。同一 turn 只有可用 tool_call、没有可用正文、且 streaming 正文还在时，清掉 `generatingToolName` 并留下这段正文；宿主先投下的工具行留在时间线上。`turn_completed` 先到仍挂起，直到这种会清除的助手信封、下一轮 `turn_started` 或 2s。活路径不发 `generating_tool` 时，`tool_call_lifecycle.started` 的非空 `tool_name` 走同一条：写上 `generatingToolName`，留下已累积的正文、思考和 agentId。`args_complete`、`completed`、`failed` 不清这段正文 |
@@ -38,9 +38,11 @@ SessionBar 标题 Enter 或失焦即提交，Escape 取消且不提示。去掉�
 | 用户卡 | `conversationUserBubbleCollapse.ts` · `conversationTimelineRenderer.ts` | 已落盘的用户回合是纯文本卡，靠阅读列右侧，宽度随正文、不超过列宽的 82%，卡内文字左对齐，底色 `input.background`，前景色 8% 细边，不投影。不显示 You。点卡进入编辑（PRD-015 验收 6）。助手默认不显示 Agent；`agentId` 不是 `default` 时首行只显示该代理名。读屏名仍在文章 `aria-label`。`localPendingSends` 的乐观行带 `pending`，标题写 Sending…，不是按钮、不能进编辑；L2 接住后换成可点的用户卡 |
 | 置顶提示 | `conversationPinnedUserPrompt.ts` | 覆盖式置顶（D3）用独立类 `conversation-timeline-pinned-card`，底色是 `conversation.background`，不复用用户卡。判定、复制、点击只 `revealTurn` 不变。`scroll-padding-top` 按置顶层实测高度设置 |
 | 过程折 | `conversationProcessFold.ts` | 增量更新句柄，子项按 turn id 键控，懒渲染，保留内滚与粘性面包屑（D7/D11） |
-| 权限座位 | `conversationConfirmationSeat.ts` | Allow / Skip；处理后按钮消失、记录留在列表（PRD-004）。点过 Allow 或 Skip 后，快照仍是 pending 且还没有新的送达失败时，两个按钮保持可见并禁用，同一次座位不再交第二次；出现可重试失败后可以再点。不可重试时藏起 Allow / Skip，不再标 Input needed，改写不能再次送出；记录仍 pending，不写成 Allowed / Skipped。不是可回收 virt 行 |
-| 提问座位 | `conversationQuestionSeat.ts` | 独立 ask-user 座位（选项 / Submit）；**禁止复用 Allow/Skip**（PRD-004.4）；不标 Stub。仍在 `pendingActions` 里才是 pending，可提交。已回答是 Answered。离开待决且未回答是 undecided：不标 Input needed，不写 Can't answer，不提供 Submit，时间线也不把它当成待确认座位。选项预览仍只读。已经提交且快照仍 pending、还没有新的送达失败时，选项和 Submit 保持可见并禁用，不再交第二次；可重试失败后可以再提交。同一张座位有多道必填单选且没有 Submit 时，只点一道不会提交，也不会把没点过的那道的第一项当作答案；每道都点过才交一次。每道题的题干画在该题选项组前面；和座位正文是同一句时不画第二遍。问句优先于短 header 写入 title，整单 override 仍在问句之前 |
+| 权限座位 | `conversationConfirmationSeat.ts` | Allow / Skip；权限快照有非空 `argPreview` 时，座位在说明下画出这段参数，待决和已决都留着，没有预览就不画。Skip 仍是 `granted: false`，不另附拒绝说明。处理后按钮消失、记录留在列表（PRD-004）。点过 Allow 或 Skip 后，快照仍是 pending 且还没有新的送达失败时，两个按钮保持可见并禁用，同一次座位不再交第二次；出现可重试失败后可以再点。不可重试时藏起 Allow / Skip，不再标 Input needed，改写不能再次送出；记录仍 pending，不写成 Allowed / Skipped。不是可回收 virt 行 |
+| 提问座位 | `conversationQuestionSeat.ts` | 独立 ask-user 座位（选项 / Submit）；**禁止复用 Allow/Skip**（PRD-004.4）；不标 Stub。仍在 `pendingActions` 里才是 pending，可提交。已回答是 Answered。离开待决且未回答是 undecided：不标 Input needed，不写 Can't answer，不提供 Submit，时间线也不把它当成待确认座位。选项预览仍只读。已经提交且快照仍 pending、还没有新的送达失败时，选项和 Submit 保持可见并禁用，不再交第二次；可重试失败后可以再提交。同一张座位有多道必填单选且没有 Submit 时，只点一道不会提交，也不会把没点过的那道的第一项当作答案；每道都点过才交一次。每道题的题干画在该题选项组前面；和座位正文是同一句时不画第二遍。问句优先于短 header 写入 title，整单 override 仍在问句之前  会话不可写时选项、自定义输入与 Submit 都禁用，并把 `This session cannot be edited right now.` 写进 `title` 与 `aria-label`；响应在途时同一位置写发送中原因。 |
 | 图示卡 | `conversationVisualizeCard.ts` | §5 |
+
+助手回合的动作行（`conversationTimelineRenderer.ts`）从左到右是复制、重新生成、删除、在轨迹中查看。可写时用户卡整张可点进编辑；不可写时卡片不再是按钮，也不留 `tabIndex`，只把 `This session cannot be edited right now.` 写进 `title`。重新生成和删除同样在不可写时禁用，并把这句原因写进 `title` 与 `aria-label`；复制与轨迹跳转不受写闸影响。轨迹跳转排在删除之后，不再排在复制前面。
 
 对话透镜**不含**：context 注入卡、环境 / SYSTEM 全文、工具 schema 目录；用户回合只显示正文（PRD-012 验收 2）。这些都在轨迹页。
 
@@ -90,7 +92,7 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 | Engine snapshots | `conversationEngineSnapshotsList.ts` | SessionBar extra control + overlay；接通后 `listSnapshots?`；行 Restore 直呼 `restoreSnapshot?`，成功后 overlay 保持打开并再拉 `listSnapshots`，失败 / 未发不刷新；行 Delete 确认成功后 overlay 保持打开并再拉 `listSnapshots`；取消 / 失败 / 未发不刷新；空 id / 断连 / 无 hook 不发。overlay 不铺满阅读列；`aria-modal` 且 trap Tab |
 
 - **搜索（T5）：** 工具栏 `input[type=search]`，debounce；`filterTrajectoryRecordsBySearch` 匹配 kind / text / blocks / 检查器字段。haystack 仍是记录原文，含合法引用尾块。换到另一条会话时 `clearSessionState` 清掉搜索框和过滤，下一条轨迹不再被上一条的词滤掉。同一条会话重连和 KEEP leftover 不走这条清理，搜索留着。
-- **用户预览：** 表一行预览（`getTrajectoryRecordPreview`）和检查器 Summary（`buildPreviewText`）对 `user` 行去掉合法 `<<<conversation-refs>>>` 尾块，与遗留 `getConversationTurnSummary` 相同。源块芯片仍来自 `sourceBlocks`，不从尾块另造。只有尾块时表预览是 `(empty)`；检查器拼接去掉尾块后的正文（可以为空）以及 input / output。助手和其它 kind 保留原文，非法多标记不剥。工具行再附上已承认的 canvas 标题；usage 的 context 行再附上已承认的 input / output / context 数字。没承认的不写。
+- **用户预览：** 表一行预览（`getTrajectoryRecordPreview`）和检查器 Summary（`buildPreviewText`）对 `user` 行去掉合法 `<<<conversation-refs>>>` 尾块，与遗留 `getConversationTurnSummary` 相同。源块芯片仍来自 `sourceBlocks`，不从尾块另造。只有尾块时表预览是 `(empty)`；检查器拼接去掉尾块后的正文（可以为空）以及 input / output。助手和其它 kind 保留原文，非法多标记不剥。工具行再附上已承认的 canvas 标题；usage 的 context 行再附上已承认的 input / output / context 数字。没承认的不写。表里被截断的预览（超过 120 字符）把完整文本放进单元格 `title`；Overview 段的工具 chip 也把 chip 文字放进 `title`。
 - **虚拟化（T5）：** `buildTrajectoryTableDisplayItems` 产出 record / fold 行 → `WorkbenchList<TrajectoryTableDisplayItem>`。
 - **规模上限（PRD-020）：** `CONVERSATION_TRAJECTORY_RECORD_LIMIT = 5000`；超出保留最近段并显示诚实 `limitNotice`（`applyTrajectoryRecordLimit`）。
 - **Overview（[M7 closeout](../../../dev/plans/conversation-ui-closeout.md) Q1）：** `conversationTrajectoryOverview.ts` 把记录投影成分段：user、assistant（`message`）、reasoning（`thinking`）、tool（含 `subtool`）、permission、error、compacted；system / context / question / unknown 不进 Overview。投影用与轨迹表相同的最近窗口（`applyTrajectoryRecordLimit`），上限通知已经丢掉的更早记录不再画成可点的段。段数超过 `TRAJECTORY_OVERVIEW_MAX_SEGMENTS`（200）时按 turn 聚合为「T{n} · 类型 · 条数」。轨道高 12px；每段是一个按钮，用颜色加形状区分（错误是叉，不是思考的菱形），文字只在 tooltip 与 `aria-label`，点击定位到该段首条记录，选中行同步高亮对应段。工具栏搜索若正把该条滤掉，点击会清掉搜索再定位；搜索已经能看见它时不动搜索框。整条可折叠，默认展开。带时间刻度的瀑布条仍 **Deferred**（[conversation-trajectory-lens §3.5](../../../dev/plans/conversation-trajectory-lens.md)）。见 [UI 设计原则 §5.3](../../architecture/cross-cutting/ui-design-principles.md)。
@@ -105,12 +107,14 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 - 轨迹页：`projectTrajectoryProcessFoldSpans(records)` — thinking / tool / subtool 成 span；user、context、system、message、compacted、permission、question、error、unknown 打断，**始终在折外**。
 - live 信号：`ConversationTimelineEntry.streaming` 与 tool `toolStatus` 经 `entryToRenderableTurn` 传到渲染层。执行中详情限高内滚；折叠后只稳定摘要；sticky breadcrumb 仅展开且内容超出可视区时出现。完成后换成完成/失败状态。
 - 外层摘要 `summarizeProcessSteps` / `summarizeTrajectoryProcessSteps`：无引擎时必含 `Stub`（PRD-013 验收 4），无假耗时 / loading / live 字样。引擎 live chrome（`showLiveChrome`）才显示 Loading / Running。stub 源永不置 `streaming`。
+- 步数按单复数写：一步是 `1 step`，多步是 `{0} steps`，带工具名时是 `1 step · read_file` / `2 steps · …`。
 - 思考行摘要就是这条思考自己的文字，不把后面的工具名拼进去。外层摘要仍按步骤列出 thinking 和工具名。披露箭头只画在外层摘要；Thinking 与工具行不画 chevron，有正文时仍可展开。
 - 同一封里的可用思考先画成阅读区思考行，再画正文，再按原顺序画工具名。空白思考不新增空行。思考行在 `showToolInvocationDetails` 关掉后仍在。工具条目上仍可留着 `thinkingText`，但整组交给渲染、且已有同样文字的思考行时，工具 turn 不再带这段，过程折就不会在工具标题下再画一遍。没有思考行时，工具行上的 `thinkingText` 仍画在标题下，工具正文收起时也留着，不拼进工具名或摘要；详情关掉时标题下不留这段，也不留 `file_edit` 的增删统计，工具名和摘要还在。
 - 同一块 live overlay 的 summary 已是正文或 tool、chunks 里仍有思考时，先交思考行。summary 已是 tool 且 chunks 里仍有正文时，投影仍是这一块：再交一行助手正文（沿用这块 attribution，过滤页留得住），工具行只用工具名，正文不写进工具摘要。没有正文、没有思考的工具块仍是一行。投影缓存命中时这一组一起交。同一封信落盘时正文臂和工具臂都带着这段思考，正文仍只留可用 text。根对话页和子代理页走同一条投影。
 - 轨迹跳转按钮在该行标题行内，只在这一行 hover 或键盘焦点时出现，不随父级思考块一起亮。工具结果 payload 用预览块，和思考正文分开。
 - 阅读列身份条、过期快照条与时间线流宽 `min(100%, 720px)` 居中（`min-width: 0`）。用户回合靠右，宽度随正文、不超过这一列的 82%，卡内文字左对齐。
 - 默认态：对话页收起，轨迹页展开（验收 2）。视图 `conversationProcessFold.ts`；两页共用 overlay 辅助函数，宿主 DOM 各自一套。
+- 生成中不许收起：`showLiveChrome` 且该折里仍有 streaming，或工具 `pending` / `running` 时，外层、这条思考、这条工具都保持展开。点标题不写入展开表。标题带 `aria-disabled`。生成结束后回到表里的选择，对话页默认仍是收起。断连不画 live chrome 时不锁。展开收起用 100ms 的网格行高，不用 `hidden` 取消过渡。
 - 换会话：对话页过程折的外层、思考和工具展开只属于当前这条。绑到另一条会话时先清掉这些展开再画；相同的 `fold:` / `fold:overlay:` id 不再沿用上一条的展开，对话页回到默认收起。人在轨迹页、对话时间线藏着时也收起：结构相同的下一帧不会把上一条的展开留在 DOM 上。新会话的引擎副本还是 `pending`、名单未就绪，或配对保持挡住另一条会话时，时间线和已经打开的轨迹表不再留着上一条的步骤，轨迹上一条的 turn 关联也清掉。同一条会话重连和 KEEP leftover 不收起、不清表。
 - 折壳不是 Copilot Chat 列表行，也不是 `groupIdentity`；分组按 Desktop ADR-046「平行 span overlay」。
 

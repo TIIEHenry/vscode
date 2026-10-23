@@ -111,7 +111,8 @@
 }
 
 .monaco-workbench .conversation-sessions-inline-filter-clear:focus-visible {
-	outline: none;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	background-color: var(--vscode-toolbar-hoverBackground);
 	border-radius: 4px;
 }

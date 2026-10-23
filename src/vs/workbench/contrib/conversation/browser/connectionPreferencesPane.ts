@@ -778,7 +778,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.testSection = DOM.append(this.scrollBody, DOM.$('.connection-zone.connection-test-section'));
 		const testSection = this.testSection;
 		const testRow = DOM.append(testSection, DOM.$('.connection-test-row'));
-		const testButton = this._register(new Button(testRow, defaultButtonStyles));
+		const testButton = this._register(new Button(testRow, { ...defaultButtonStyles, secondary: true }));
 		testButton.label = localize('ua.connectionTestActiveProfile', "Test active profile");
 		this.testStatus = DOM.append(testRow, DOM.$('.connection-status.connection-test-status'));
 		this.testStatus.setAttribute('role', 'status');
@@ -1139,8 +1139,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 
 	private updateConnectGates(): void {
 		const held = this.isConnectWriteHeld();
-		this.connectDirectButton.enabled = !held;
-		this.connectProfileButton.enabled = !held && !!this.activeProfileId;
+		this.presentAction(this.connectDirectButton, !held, this.writeHoldReason());
+		this.presentAction(
+			this.connectProfileButton,
+			!held && !!this.activeProfileId,
+			held
+				? this.writeHoldReason()
+				: localize('ua.connectionProfileSelectFirst', "Select a profile first."),
+		);
 		if (this.hubDevices.length > 0) {
 			this.hubDevicesList.splice(0, this.hubDevicesList.length, this.hubDevices);
 		}
@@ -1995,18 +2001,56 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		return conversationEntryHookPresent(this.connectionService.getConnectionSnapshot(), key, method);
 	}
 
+	private actionTitle(button: Button): string {
+		return typeof button.label === 'string' ? button.label : '';
+	}
+
+	private presentAction(button: Button, enabled: boolean, disabledReason: string): void {
+		button.enabled = enabled;
+		const enabledTitle = this.actionTitle(button);
+		button.setTitle(enabled ? enabledTitle : disabledReason);
+		button.setAriaLabel(enabled ? enabledTitle : `${enabledTitle}. ${disabledReason}`);
+	}
+
+	private writeHoldReason(): string {
+		if (this.isDeviceWritePairingHold()) {
+			return localize('ua.connectionActionPairingHold', "Engine not connected");
+		}
+		if (this.connectInFlight) {
+			return localize('ua.connectionActionInFlight', "A connection is already in progress.");
+		}
+		if (this.engineSwitchPromptOpen) {
+			return localize('ua.connectionActionEngineSwitch', "Confirm the engine switch before connecting.");
+		}
+		if (this.isPairingConfirmHostLive()) {
+			return localize('ua.connectionActionPairingConfirm', "Finish pairing before this action.");
+		}
+		if (this.isDeviceWriteListFailed() || this.isPendingWriteListFailed()) {
+			return localize('ua.connectionActionListFailed', "The list is not ready.");
+		}
+		return localize('ua.connectionActionUnavailable', "This action is unavailable right now.");
+	}
+
 	private updateDeviceActions(): void {
 		const device = this.getSelectedDevice();
 		const hasDevice = !!device && !device.revoked;
 		const pairingHold = this.isDeviceWritePairingHold();
 		const listFailed = this.isDeviceWriteListFailed();
-		this.renameDeviceButton.enabled = hasDevice && !pairingHold && !listFailed;
-		this.revokeDeviceButton.enabled = hasDevice && !pairingHold && !listFailed;
-		this.rotateTokenButton.enabled = !listFailed && canSendConnectionDeviceRotateToken(
+		const deviceReason = pairingHold || listFailed
+			? this.writeHoldReason()
+			: localize('ua.connectionDeviceSelectFirst', "Select a device first.");
+		const deviceEnabled = hasDevice && !pairingHold && !listFailed;
+		this.presentAction(this.renameDeviceButton, deviceEnabled, deviceReason);
+		this.presentAction(this.revokeDeviceButton, deviceEnabled, deviceReason);
+		const rotateEnabled = !listFailed && canSendConnectionDeviceRotateToken(
 			this.connectionService.isEngineConnected(),
 			this.conversationEntryPresent('rotateToken', this.connectionService.rotateToken),
 			pairingHold,
 		);
+		const rotateReason = !rotateEnabled && !listFailed && !pairingHold
+			? localize('ua.connectionRotateUnavailable', "This engine cannot rotate a device token.")
+			: this.writeHoldReason();
+		this.presentAction(this.rotateTokenButton, rotateEnabled, rotateReason);
 	}
 
 	private async handleTestConnection(): Promise<void> {
@@ -2327,12 +2371,20 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const deviceCodeEnabled = !pairingHold && !pendingListFailed && (signedIn
 			|| canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('pairApprove', this.connectionService.pairApprove), pairingHold));
 		this.confirmDeviceCodeInput.setEnabled(deviceCodeEnabled);
-		this.confirmDeviceCodeButton.enabled = deviceCodeEnabled;
-		this.rejectDevicePairButton.enabled = !pendingListFailed && canSendConnectionDevicePairRequest(
+		const deviceCodeReason = !deviceCodeEnabled && !pairingHold && !pendingListFailed
+			? localize('ua.connectionDeviceCodeNeedsSignIn', "Sign in before confirming a device code.")
+			: this.writeHoldReason();
+		this.presentAction(this.confirmDeviceCodeButton, deviceCodeEnabled, deviceCodeReason);
+		this.confirmDeviceCodeInput.inputElement.title = deviceCodeEnabled ? '' : deviceCodeReason;
+		const rejectEnabled = !pendingListFailed && canSendConnectionDevicePairRequest(
 			this.connectionService.isEngineConnected(),
 			this.conversationEntryPresent('pairReject', this.connectionService.pairReject),
 			pairingHold,
 		);
+		const rejectReason = pairingHold || pendingListFailed
+			? this.writeHoldReason()
+			: localize('ua.connectionDevicePairCannotReject', "This device request cannot be rejected right now.");
+		this.presentAction(this.rejectDevicePairButton, rejectEnabled, rejectReason);
 	}
 
 	private renderHubDirectory(): void {

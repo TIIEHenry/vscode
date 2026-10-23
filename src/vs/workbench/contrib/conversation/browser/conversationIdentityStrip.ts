@@ -284,6 +284,7 @@ export class ConversationIdentityStrip extends Disposable {
 		}
 		this.folderMenuEnabled = menuEnabled;
 		this.folderChevron.hidden = !menuEnabled;
+		this.folderChip.tabIndex = menuEnabled ? 0 : -1;
 		if (!label) {
 			this.folderChip.hidden = true;
 			this.folderLabel.data = '';
@@ -319,6 +320,7 @@ export class ConversationIdentityStrip extends Disposable {
 		}
 		this.branchMenuEnabled = menuEnabled;
 		this.branchChevron.hidden = !menuEnabled;
+		this.branchChip.tabIndex = menuEnabled ? 0 : -1;
 		if (!name) {
 			this.branchChip.hidden = true;
 			this.branchLabel.data = '';

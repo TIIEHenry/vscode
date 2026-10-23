@@ -2628,13 +2628,15 @@ suite('ConversationLens', () => {
 		const header = fold!.querySelector('.conversation-process-fold-header') as HTMLElement;
 		assert.strictEqual(header.getAttribute('aria-expanded'), 'false');
 		const children = fold!.querySelector('.conversation-process-fold-children') as HTMLElement;
-		assert.strictEqual(children.hidden, true);
+		assert.strictEqual(children.hidden, false);
+		assert.strictEqual(children.classList.contains('conversation-process-fold--collapsed'), true);
 		assert.ok(header.textContent?.includes('Stub'));
 
 		header.click();
 
 		assert.strictEqual(header.getAttribute('aria-expanded'), 'true');
 		assert.strictEqual(children.hidden, false);
+		assert.strictEqual(children.classList.contains('conversation-process-fold--collapsed'), false);
 		const thinking = fold!.querySelector('.conversation-process-fold-thinking[data-kind="thinking"]');
 		const tool = fold!.querySelector('.conversation-process-fold-tool[data-kind="tool"]');
 		assert.ok(thinking?.textContent?.includes('Weighing options'));
@@ -4281,7 +4283,8 @@ suite('ConversationLens', () => {
 		assert.ok(header.textContent?.includes('Stub'));
 		assert.ok(header.textContent?.includes('4 steps'));
 		const children = fold!.querySelector('.conversation-process-fold-children') as HTMLElement;
-		assert.strictEqual(children.hidden, true);
+		assert.strictEqual(children.hidden, false);
+		assert.strictEqual(children.classList.contains('conversation-process-fold--collapsed'), true);
 	});
 
 	test('expanding untitled process fold reveals nested thinking and tool indent layers', async () => {
@@ -4294,6 +4297,7 @@ suite('ConversationLens', () => {
 
 		const children = fold.querySelector('.conversation-process-fold-children') as HTMLElement;
 		assert.strictEqual(children.hidden, false);
+		assert.strictEqual(children.classList.contains('conversation-process-fold--collapsed'), false);
 
 		const thinkingBlocks = fold.querySelectorAll('.conversation-process-fold-thinking');
 		assert.strictEqual(thinkingBlocks.length, 2);
@@ -4350,6 +4354,7 @@ suite('ConversationLens', () => {
 
 		const body = firstThinking.querySelector('.conversation-process-fold-thinking-body') as HTMLElement;
 		assert.strictEqual(body.hidden, false);
+		assert.strictEqual(body.classList.contains('conversation-process-fold--collapsed'), false);
 		assert.ok(body.textContent?.includes('Stub: Consider intro'));
 		assert.notStrictEqual(body.textContent, thinkingHeader.textContent);
 	});
@@ -4371,6 +4376,7 @@ suite('ConversationLens', () => {
 
 		const payload = readTool.querySelector('.conversation-process-fold-tool-body') as HTMLElement;
 		assert.strictEqual(payload.hidden, false);
+		assert.strictEqual(payload.classList.contains('conversation-process-fold--collapsed'), false);
 		assert.ok(payload.textContent?.includes('Stub: # Project'));
 	});
 

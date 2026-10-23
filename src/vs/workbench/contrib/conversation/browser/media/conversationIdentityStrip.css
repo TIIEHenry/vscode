@@ -61,7 +61,6 @@
 	margin-right: 6px;
 	border-radius: 50%;
 	background-color: var(--vscode-testing-iconPassed, var(--vscode-charts-green));
-	box-shadow: 0 0 4px color-mix(in srgb, var(--vscode-testing-iconPassed, var(--vscode-charts-green)) 35%, transparent);
 	flex-shrink: 0;
 }
 
@@ -107,13 +106,14 @@
 }
 
 .monaco-workbench .part.conversation button.conversation-identity-chip:focus-visible {
-	outline: none;
-	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-focusBorder) 40%, transparent);
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: 1px;
 }
 
 .monaco-workbench .part.conversation button.conversation-identity-chip.conversation-identity-chip-branch--readonly,
 .monaco-workbench .part.conversation button.conversation-identity-chip.conversation-identity-chip-folder--readonly {
 	cursor: default;
+	pointer-events: none;
 }
 
 .monaco-workbench .part.conversation button.conversation-identity-chip.conversation-identity-chip-branch--readonly:hover,
