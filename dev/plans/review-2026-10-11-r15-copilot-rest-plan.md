@@ -3,11 +3,13 @@ title: "方案 r15：copilot-rest"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-11
-summary: "hold 2，drop 0，weaken 1。未打开仓库读 .git/config 失败仍会当成无仓库；回合索引与非对象 tool input 仍成立。"
+updated: 2026-10-23
+summary: "hold 2，drop 0，weaken 1。r15-1 gitfile / commondir 解析已落；回合索引与非对象 tool input 仍开。"
 ---
 
 hold 2，drop 0，weaken 1。
+
+> **落地记录（2026-10-23，部分）：** 本方案仍 `draft`。r15-1 已落；r15-2 / r15-3 仍开。已落子项只改到各自点名的位置，未动其余子项，也不把整份方案升 `implemented`。
 
 ## r15-1（weaken，降为中）
 

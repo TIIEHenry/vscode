@@ -33,6 +33,50 @@ const execFileAsync = promisify(execFile);
  */
 const INITIAL_DISCOVERY_TIMEOUT_MS = 30_000;
 
+/** Path stored in a `.git` gitfile (`gitdir: ...`). */
+function parseGitdirFile(contents: string): string | undefined {
+	const line = contents.split(/\r?\n/, 1)[0]?.trim() ?? '';
+	if (!line.startsWith('gitdir:')) {
+		return undefined;
+	}
+	const gitdir = line.slice('gitdir:'.length).trim();
+	return gitdir.length > 0 ? gitdir : undefined;
+}
+
+/**
+ * Config for a work tree the Git extension has not opened.
+ * A `.git` gitfile points at the git dir; when that dir has `commondir`, remotes live there.
+ */
+async function readUnopenedRepositoryConfig(repositoryRoot: URI): Promise<Uint8Array> {
+	const dotGitPath = path.join(repositoryRoot.fsPath, '.git');
+	const dotGitStat = await vscode.workspace.fs.stat(URI.file(dotGitPath));
+	if ((dotGitStat.type & vscode.FileType.Directory) !== 0) {
+		return vscode.workspace.fs.readFile(URI.file(path.join(repositoryRoot.fsPath, '.git', 'config')));
+	}
+
+	const gitdir = parseGitdirFile(new TextDecoder().decode(await vscode.workspace.fs.readFile(URI.file(dotGitPath))));
+	if (!gitdir) {
+		throw new Error(`Invalid gitdir file at ${dotGitPath}`);
+	}
+	// Absolute gitdir paths stay put; relative ones are resolved from the work tree.
+	const gitdirPath = path.resolve(repositoryRoot.fsPath, gitdir);
+	const configDirectory = await resolveGitCommonDirectory(gitdirPath);
+	return vscode.workspace.fs.readFile(URI.file(path.join(configDirectory, 'config')));
+}
+
+/** `commondir`, when present, is resolved from the git dir. A missing file means the git dir is the common dir. */
+async function resolveGitCommonDirectory(gitdirPath: string): Promise<string> {
+	try {
+		const raw = new TextDecoder().decode(await vscode.workspace.fs.readFile(URI.file(path.join(gitdirPath, 'commondir')))).trim();
+		if (!raw) {
+			return gitdirPath;
+		}
+		return path.resolve(gitdirPath, raw);
+	} catch {
+		return gitdirPath;
+	}
+}
+
 export class GitServiceImpl extends Disposable implements IGitService {
 
 	declare readonly _serviceBrand: undefined;
@@ -225,6 +269,7 @@ export class GitServiceImpl extends Disposable implements IGitService {
 			return undefined;
 		}
 
+		let repositoryRoot: URI | undefined;
 		try {
 			const uriStat = await vscode.workspace.fs.stat(uri);
 			if (uriStat.type !== vscode.FileType.Directory) {
@@ -232,24 +277,29 @@ export class GitServiceImpl extends Disposable implements IGitService {
 			}
 
 			// Get repository root
-			const repositoryRoot = await gitAPI.getRepositoryRoot(uri);
+			repositoryRoot = await gitAPI.getRepositoryRoot(uri) ?? undefined;
 			if (!repositoryRoot) {
 				this.logService.trace(`[GitServiceImpl][getRepositoryFetchUrls] No repository root found`);
 				return undefined;
 			}
 
 			this.logService.trace(`[GitServiceImpl][getRepositoryFetchUrls] Repository root: ${repositoryRoot.toString()}`);
-			const buffer = await vscode.workspace.fs.readFile(URI.file(path.join(repositoryRoot.fsPath, '.git', 'config')));
+			const buffer = await readUnopenedRepositoryConfig(repositoryRoot);
 
 			const remotes = {
 				rootUri: repositoryRoot,
-				remoteFetchUrls: parseGitRemotes(buffer.toString()).map(remote => remote.fetchUrl)
+				remoteFetchUrls: parseGitRemotes(new TextDecoder().decode(buffer)).map(remote => remote.fetchUrl)
 			};
 
 			this.logService.trace(`[GitServiceImpl][getRepositoryFetchUrls] Remotes (.git/config): ${JSON.stringify(remotes)}`);
 			return remotes;
 		} catch (error) {
-			this.logService.error(`[GitServiceImpl][getRepositoryFetchUrls] Failed to read remotes from .git/config: ${error.message}`);
+			const message = error instanceof Error ? error.message : String(error);
+			this.logService.error(`[GitServiceImpl][getRepositoryFetchUrls] Failed to read remotes from .git/config: ${message}`);
+			// A known root whose config cannot be read stays unsettled, so content exclusion does not memoize the file as allowed.
+			if (repositoryRoot) {
+				return { rootUri: repositoryRoot, remoteFetchUrls: [] };
+			}
 			return undefined;
 		}
 	}

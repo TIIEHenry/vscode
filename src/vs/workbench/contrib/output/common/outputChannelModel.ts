@@ -109,7 +109,7 @@ interface IContentProvider {
 	reset(): void;
 	watch(): void;
 	unwatch(): void;
-	getContent(): Promise<{ readonly content: string; readonly consume: () => void }>;
+	getContent(): Promise<{ readonly content: string; readonly consume: () => boolean }>;
 	getLogEntries(): ReadonlyArray<ILogEntry>;
 }
 
@@ -198,7 +198,7 @@ class FileContentProvider extends Disposable implements IContentProvider {
 			}
 			if (stat.etag !== this.etag) {
 				++this.contentGeneration;
-				this.etag = stat.etag;
+				// Leave `etag` for a successful consume. Updating it here would hide a read that lost the race, and the new bytes would never be polled again.
 				if (isNumber(stat.size) && this.endOffset > stat.size) {
 					this.reset(0);
 					this._onDidReset.fire();
@@ -217,13 +217,13 @@ class FileContentProvider extends Disposable implements IContentProvider {
 		return this.logEntries;
 	}
 
-	async getContent(donotConsumeLogEntries?: boolean): Promise<{ readonly name: string; readonly content: string; readonly consume: () => void }> {
+	async getContent(donotConsumeLogEntries?: boolean): Promise<{ readonly name: string; readonly content: string; readonly consume: () => boolean }> {
 		try {
 			if (!this.fileService.hasProvider(this.resource)) {
 				return {
 					name: this.name,
 					content: '',
-					consume: () => { /* No Op */ }
+					consume: () => true
 				};
 			}
 			const generation = ++this.contentGeneration;
@@ -236,15 +236,17 @@ class FileContentProvider extends Disposable implements IContentProvider {
 				name: this.name,
 				content,
 				consume: () => {
-					if (!consumed) {
-						consumed = true;
-						if (generation !== this.contentGeneration || this._store.isDisposed || this.endOffset !== readOffset) {
-							return;
-						}
-						this.endOffset += fileContent.value.byteLength;
-						this.etag = fileContent.etag;
-						this.logEntries.push(...logEntries);
+					if (consumed) {
+						return false;
 					}
+					consumed = true;
+					if (generation !== this.contentGeneration || this._store.isDisposed || this.endOffset !== readOffset) {
+						return false;
+					}
+					this.endOffset += fileContent.value.byteLength;
+					this.etag = fileContent.etag;
+					this.logEntries.push(...logEntries);
+					return true;
 				}
 			};
 		} catch (error) {
@@ -254,7 +256,7 @@ class FileContentProvider extends Disposable implements IContentProvider {
 			return {
 				name: this.name,
 				content: '',
-				consume: () => { /* No Op */ }
+				consume: () => true
 			};
 		}
 	}
@@ -369,18 +371,22 @@ class MultiFileContentProvider extends Disposable implements IContentProvider {
 		return this.logEntries;
 	}
 
-	async getContent(): Promise<{ readonly content: string; readonly consume: () => void }> {
+	async getContent(): Promise<{ readonly content: string; readonly consume: () => boolean }> {
 		const outputs = await Promise.all(this.fileContentProviderItems.map(([output]) => output.getContent(true)));
 		const { content, logEntries } = this.combineLogEntries(outputs, this.logEntries[this.logEntries.length - 1]);
 		let consumed = false;
 		return {
 			content,
 			consume: () => {
-				if (!consumed) {
-					consumed = true;
-					outputs.forEach(({ consume }) => consume());
+				if (consumed) {
+					return false;
+				}
+				consumed = true;
+				const accepted = outputs.map(({ consume }) => consume()).every(ok => ok);
+				if (accepted) {
 					this.logEntries.push(...logEntries);
 				}
+				return accepted;
 			}
 		};
 	}
@@ -510,15 +516,20 @@ export abstract class AbstractFileOutputChannelModel extends Disposable implemen
 				this.modelDisposable.value = new DisposableStore();
 				this.model = this.modelService.createModel('', this.language, this.modelUri);
 				const model = this.model;
-				const { content, consume } = await this.outputContentProvider.getContent();
-				if (this._store.isDisposed || this.model !== model || model?.isDisposed()) {
-					if (this._store.isDisposed && model && !model.isDisposed()) {
-						model.dispose();
+				let placed = false;
+				while (!placed) {
+					const { content, consume } = await this.outputContentProvider.getContent();
+					if (this._store.isDisposed || this.model !== model || model?.isDisposed()) {
+						if (this._store.isDisposed && model && !model.isDisposed()) {
+							model.dispose();
+						}
+						throw new CancellationError();
 					}
-					throw new CancellationError();
+					if (consume()) {
+						this.doAppendContent(model, content);
+						placed = true;
+					}
 				}
-				consume();
-				this.doAppendContent(model, content);
 				this.modelDisposable.value.add(this.outputContentProvider.onDidReset(() => this.onDidContentChange(true, true)));
 				this.modelDisposable.value.add(this.outputContentProvider.onDidAppend(() => this.onDidContentChange(false, false)));
 				this.outputContentProvider.watch();
@@ -609,9 +620,10 @@ export abstract class AbstractFileOutputChannelModel extends Disposable implemen
 				return;
 			}
 
-			/* Appned Content */
-			consume();
-			this.doAppendContent(model, content);
+			/* Append only when this read still owns the offset. A rejected consume leaves endOffset put. */
+			if (consume()) {
+				this.doAppendContent(model, content);
+			}
 			this.modelUpdateInProgress = false;
 		}, immediate ? 0 : undefined).catch(error => {
 			if (!isCancellationError(error)) {
@@ -641,8 +653,7 @@ export abstract class AbstractFileOutputChannelModel extends Disposable implemen
 			return;
 		}
 
-		consume();
-		if (edits.length) {
+		if (consume() && edits.length) {
 			/* Apply Edits */
 			model.applyEdits(edits);
 		}

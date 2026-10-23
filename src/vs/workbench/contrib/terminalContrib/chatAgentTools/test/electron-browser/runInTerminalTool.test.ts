@@ -1115,8 +1115,10 @@ suite('RunInTerminalTool', () => {
 			);
 		});
 
-		test('should show retry elicitation when sandbox force-approved command would otherwise require confirmation', async () => {
+		test('should show retry elicitation when a sandboxed command is auto-approved only by the sandbox setting', async () => {
 			setAutoApprove({});
+			setConfig(AgentSandboxSettingId.AgentSandboxAllowAutoApprove, true);
+			setConfig(TerminalChatAgentToolsSettingId.EnableAutoApprove, false);
 			sandboxEnabled = true;
 			sandboxPrereqResult = {
 				enabled: true,
@@ -1130,7 +1132,7 @@ suite('RunInTerminalTool', () => {
 			const terminalData = preparedInvocation!.toolSpecificData as IChatTerminalToolInvocationData;
 			strictEqual(terminalData.commandLine.isSandboxWrapped, true);
 
-			await assertAutomaticUnsandboxRetryElicitation(runInTerminalTool, LocalChatSessionUri.forSession('auto-retry-sandbox-force-approved-session'), 'rm dangerous-file.txt', 'bash', undefined);
+			await assertAutomaticUnsandboxRetryElicitation(runInTerminalTool, LocalChatSessionUri.forSession('auto-retry-sandbox-auto-approved-session'), 'rm dangerous-file.txt', 'bash', undefined);
 		});
 
 	});
@@ -1648,6 +1650,24 @@ suite('RunInTerminalTool', () => {
 		test('should use existing approval flow for sandboxed commands when sandbox auto approve is disabled', async () => {
 			setConfig(AgentSandboxSettingId.AgentSandboxAllowAutoApprove, false);
 			setConfig(TerminalChatAgentToolsSettingId.EnableAutoApprove, false);
+			sandboxEnabled = true;
+			sandboxPrereqResult = {
+				enabled: true,
+				sandboxConfigPath: '/tmp/sandbox.json',
+				failedCheck: undefined,
+			};
+			runInTerminalTool.setBackendOs(OperatingSystem.Linux);
+
+			const result = await executeToolTest({ command: 'rm dangerous-file.txt' });
+
+			assertConfirmationRequired(result);
+			const terminalData = result!.toolSpecificData as IChatTerminalToolInvocationData;
+			strictEqual(terminalData.commandLine.isSandboxWrapped, true);
+		});
+
+		test('should require confirmation for sandboxed commands when sandbox auto approve is disabled and auto approve is enabled', async () => {
+			setConfig(AgentSandboxSettingId.AgentSandboxAllowAutoApprove, false);
+			setConfig(TerminalChatAgentToolsSettingId.EnableAutoApprove, true);
 			sandboxEnabled = true;
 			sandboxPrereqResult = {
 				enabled: true,

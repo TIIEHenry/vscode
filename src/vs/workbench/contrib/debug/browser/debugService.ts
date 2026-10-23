@@ -1370,26 +1370,27 @@ export class DebugService implements IDebugService {
 
 	async runTo(uri: uri, lineNumber: number, column?: number): Promise<void> {
 		let breakpointToRemove: IBreakpoint | undefined;
-		let threadToContinue = this.getViewModel().focusedThread;
+		let pendingThread = this.getViewModel().focusedThread;
 		const addTempBreakPoint = async () => {
 			const bpExists = !!(this.getModel().getBreakpoints({ column, lineNumber, uri }).length);
 
 			if (!bpExists) {
 				const addResult = await this.addAndValidateBreakpoints(uri, lineNumber, column);
 				if (addResult.thread) {
-					threadToContinue = addResult.thread;
+					pendingThread = addResult.thread;
 				}
 
 				if (addResult.breakpoint) {
 					breakpointToRemove = addResult.breakpoint;
 				}
 			}
-			return { threadToContinue, breakpointToRemove };
+			return { threadToContinue: pendingThread, breakpointToRemove };
 		};
 		const removeTempBreakPoint = (state: State): boolean => {
 			if (state === State.Stopped || state === State.Inactive) {
 				if (breakpointToRemove) {
 					this.removeBreakpoints(breakpointToRemove.getId());
+					breakpointToRemove = undefined;
 				}
 				return true;
 			}
@@ -1397,23 +1398,46 @@ export class DebugService implements IDebugService {
 		};
 
 		await addTempBreakPoint();
-		if (this.state === State.Inactive) {
-			// If no session exists start the debugger
+		const startedInactive = this.state === State.Inactive;
+		if (startedInactive) {
+			// If no session exists start the debugger. Do not drop the temporary
+			// breakpoint on the first global Stopped: that pause may be elsewhere.
 			const { launch, name, getConfig } = this.getConfigurationManager().selectedConfiguration;
 			const config = await getConfig();
 			const configOrName = config ? Object.assign(deepClone(config), {}) : name;
-			const listener = this.onDidChangeState(state => {
-				if (removeTempBreakPoint(state)) {
-					listener.dispose();
+			const dropIfInactive = this.onDidChangeState(state => {
+				if (state === State.Inactive) {
+					removeTempBreakPoint(State.Inactive);
+					dropIfInactive.dispose();
 				}
 			});
-			await this.startDebugging(launch, configOrName, undefined, true);
+			let started = false;
+			try {
+				started = await this.startDebugging(launch, configOrName, undefined, true);
+			} catch (error) {
+				dropIfInactive.dispose();
+				removeTempBreakPoint(State.Inactive);
+				throw error;
+			}
+			dropIfInactive.dispose();
+			if (!started || this.state === State.Inactive) {
+				removeTempBreakPoint(State.Inactive);
+				return;
+			}
 		}
 		if (this.state === State.Stopped) {
-			const focusedSession = this.getViewModel().focusedSession;
-			const thread = threadToContinue;
-			if (!focusedSession || !thread) {
+			const threadToContinue = pendingThread
+				?? this.getViewModel().focusedSession?.getAllThreads().find(candidate => candidate.stopped);
+			if (!threadToContinue) {
 				return;
+			}
+
+			if (startedInactive) {
+				const top = threadToContinue.getTopStackFrame();
+				if (top && top.range.startLineNumber === lineNumber && this.uriIdentityService.extUri.isEqual(top.source.uri, uri)) {
+					removeTempBreakPoint(State.Stopped);
+					return;
+				}
 			}
 
 			let sawTargetRunning = false;
@@ -1424,12 +1448,12 @@ export class DebugService implements IDebugService {
 				}
 				listener.dispose();
 			};
-			const listener = thread.session.onDidChangeState(() => {
-				if (thread.session.state === State.Inactive) {
+			const listener = threadToContinue.session.onDidChangeState(() => {
+				if (threadToContinue.session.state === State.Inactive) {
 					disposeTempBreakpointListener();
 					return;
 				}
-				if (!thread.stopped) {
+				if (!threadToContinue.stopped) {
 					sawTargetRunning = true;
 					return;
 				}
@@ -1437,8 +1461,8 @@ export class DebugService implements IDebugService {
 					disposeTempBreakpointListener();
 				}
 			});
-			await thread.continue();
-			if (thread.stopped && !sawTargetRunning) {
+			await threadToContinue.continue();
+			if (threadToContinue.stopped && !sawTargetRunning) {
 				disposeTempBreakpointListener();
 			}
 		}

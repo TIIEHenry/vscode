@@ -4,54 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { registerHooks } from 'node:module';
+import { execFile } from 'child_process';
+import { existsSync } from 'fs';
+import { join } from 'path';
+import { pathToFileURL } from 'url';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IFileService } from '../../../../../platform/files/common/files.js';
-import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
+import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { IEnvironmentService } from '../../../../../platform/environment/common/environment.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { IJSONEditingService } from '../../../../services/configuration/common/jsonEditing.js';
-import type { EncryptionContribution as EncryptionContributionType } from '../../electron-browser/encryption.contribution.js';
+import { EncryptionContribution } from '../../electron-browser/encryption.contribution.js';
 
 const migratedKey = 'encryption.migratedToGnomeLibsecret';
-const fakePlatformUrl = 'data:text/javascript,' + encodeURIComponent([
-	'export let isLinux = true;',
-	'export function setEncryptionContributionTestIsLinux(value) { isLinux = value; }',
-].join('\n'));
-
-registerHooks({
-	resolve(specifier, context, nextResolve) {
-		const parent = context.parentURL ?? '';
-		if (specifier.endsWith('/base/common/platform.js') && parent.includes('/encryption.contribution.js')) {
-			return { url: fakePlatformUrl, shortCircuit: true };
-		}
-		return nextResolve(specifier, context);
-	},
-});
-
-type EncryptionContributionCtor = new (
-	jsonEditingService: IJSONEditingService,
-	environmentService: IEnvironmentService,
-	fileService: IFileService,
-	storageService: IStorageService,
-) => EncryptionContributionType;
 
 suite('EncryptionContribution', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
-
-	let setLinux!: (value: boolean) => void;
-	let EncryptionContribution!: EncryptionContributionCtor;
-
-	suiteSetup(async () => {
-		const platform = await import(fakePlatformUrl) as {
-			setEncryptionContributionTestIsLinux(value: boolean): void;
-		};
-		setLinux = platform.setEncryptionContributionTestIsLinux;
-		({ EncryptionContribution } = await import('../../electron-browser/encryption.contribution.js') as { EncryptionContribution: EncryptionContributionCtor });
-	});
-
-	setup(() => setLinux(true));
 
 	test('does not store the marker when write fails and writes argv again on retry', async () => {
 		await silenceConsoleError(async () => {
@@ -90,14 +59,12 @@ suite('EncryptionContribution', () => {
 	});
 
 	test('does not read argv when not on Linux or when the marker is already set', async () => {
-		setLinux(false);
-		const nonLinux = createServices('gnome', false);
-		await runConstructed(nonLinux, async () => {
-			assert.strictEqual(nonLinux.readCount(), 0);
-			assert.strictEqual(nonLinux.writeCount(), 0);
-		});
+		// The electron unit runner loads this file with Chromium's ESM loader, which does not
+		// apply Node module hooks. Stub isLinux in a Node child instead.
+		const nonLinux = await runNonLinuxProbe();
+		assert.strictEqual(nonLinux.reads, 0);
+		assert.strictEqual(nonLinux.writes, 0);
 
-		setLinux(true);
 		const alreadyMigrated = createServices('gnome-keyring', true);
 		await runConstructed(alreadyMigrated, async () => {
 			assert.strictEqual(alreadyMigrated.readCount(), 0);
@@ -151,13 +118,13 @@ suite('EncryptionContribution', () => {
 		};
 	}
 
-	async function runConstructed(services: IHarness, afterFirst: (contribution: EncryptionContributionType) => Promise<void>): Promise<void> {
+	async function runConstructed(services: IHarness, afterFirst: (contribution: EncryptionContribution) => Promise<void>): Promise<void> {
 		const proto = EncryptionContribution.prototype as unknown as {
-			migrateToGnomeLibsecret(this: EncryptionContributionType): Promise<void>;
+			migrateToGnomeLibsecret(this: EncryptionContribution): Promise<void>;
 		};
 		const original = proto.migrateToGnomeLibsecret;
 		let pending: Promise<void> | undefined;
-		proto.migrateToGnomeLibsecret = function (this: EncryptionContributionType) {
+		proto.migrateToGnomeLibsecret = function (this: EncryptionContribution) {
 			const result = original.call(this);
 			pending = result;
 			return result;
@@ -173,7 +140,7 @@ suite('EncryptionContribution', () => {
 		}
 	}
 
-	function migrateAgain(contribution: EncryptionContributionType): Promise<void> {
+	function migrateAgain(contribution: EncryptionContribution): Promise<void> {
 		return (contribution as unknown as { migrateToGnomeLibsecret(): Promise<void> }).migrateToGnomeLibsecret();
 	}
 });
@@ -186,4 +153,68 @@ async function silenceConsoleError(run: () => Promise<void>): Promise<void> {
 	} finally {
 		console.error = original;
 	}
+}
+
+function runNonLinuxProbe(): Promise<{ reads: number; writes: number }> {
+	const contributionPath = join(process.cwd(), 'out/vs/workbench/contrib/encryption/electron-browser/encryption.contribution.js');
+	if (!existsSync(contributionPath)) {
+		return Promise.reject(new Error(`Missing compiled encryption contribution: ${contributionPath}`));
+	}
+	const script = nonLinuxProbeSource(pathToFileURL(contributionPath).href);
+	return new Promise((resolve, reject) => {
+		execFile(process.execPath, ['--input-type=module', '-e', script], {
+			cwd: process.cwd(),
+			env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
+			encoding: 'utf8',
+		}, (error, stdout, stderr) => {
+			if (error) {
+				reject(new Error(`non-Linux migration probe failed: ${error.message}\n${stdout}\n${stderr}`));
+				return;
+			}
+			resolve(JSON.parse(stdout) as { reads: number; writes: number });
+		});
+	});
+}
+
+function nonLinuxProbeSource(moduleUrl: string): string {
+	return [
+		"import { registerHooks } from 'node:module';",
+		`const moduleUrl = ${JSON.stringify(moduleUrl)};`,
+		"const fakeUrl = 'data:text/javascript,' + encodeURIComponent([",
+		"\t'export const isLinux = false;',",
+		"].join('\\n'));",
+		'registerHooks({',
+		'\tresolve(specifier, context, nextResolve) {',
+		'\t\tconst parent = context.parentURL ?? \'\';',
+		'\t\tif (specifier.endsWith(\'/base/common/platform.js\') && parent.includes(\'/encryption.contribution.js\')) {',
+		'\t\t\treturn { url: fakeUrl, shortCircuit: true };',
+		'\t\t}',
+		'\t\treturn nextResolve(specifier, context);',
+		'\t},',
+		'});',
+		'const { EncryptionContribution } = await import(moduleUrl);',
+		'const proto = EncryptionContribution.prototype;',
+		'const original = proto.migrateToGnomeLibsecret;',
+		'let pending;',
+		'proto.migrateToGnomeLibsecret = function () {',
+		'\tconst result = original.call(this);',
+		'\tpending = result;',
+		'\treturn result;',
+		'};',
+		'let reads = 0;',
+		'let writes = 0;',
+		'const argv = { id: \'argv\' };',
+		'try {',
+		'\tnew EncryptionContribution(',
+		'\t\t{ async write() { writes++; } },',
+		'\t\t{ argvResource: argv },',
+		'\t\t{ async readFile(resource) { if (resource !== argv) { throw new Error(\'unexpected argv\'); } reads++; return { value: { toString: () => \'{"password-store":"gnome"}\' } }; } },',
+		'\t\t{ getBoolean() { return false; }, store() { } },',
+		'\t);',
+		'\tawait pending;',
+		'} finally {',
+		'\tproto.migrateToGnomeLibsecret = original;',
+		'}',
+		'process.stdout.write(JSON.stringify({ reads, writes }));',
+	].join('\n');
 }

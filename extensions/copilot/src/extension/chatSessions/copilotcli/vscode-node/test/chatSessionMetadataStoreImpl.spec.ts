@@ -528,6 +528,61 @@ describe('ChatSessionMetadataStore', () => {
 			expect(written).toEqual(expect.objectContaining({ origin: 'other' }));
 			store.dispose();
 		});
+
+		it('should leave corrupt per-session metadata bytes unchanged', async () => {
+			mockFs.mockFile(BULK_METADATA_FILE, JSON.stringify({}));
+			const raw = '{ "worktreeProperties": { "worktreePath": "/wt", "lastCheckpointRef": "abc" ';
+			const fileUri = sessionMetadataFileUri('session-corrupt');
+			mockFs.mockFile(fileUri, raw);
+
+			const store = await createStore();
+			const writeSpy = vi.spyOn(mockFs, 'writeFile');
+			writeSpy.mockClear();
+
+			const props = await store.getWorktreeProperties('session-corrupt');
+			expect(props).toBeUndefined();
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(new TextDecoder().decode(await mockFs.readFile(fileUri))).toBe(raw);
+			const sessionWrites = writeSpy.mock.calls.filter(call => call[0].toString().includes('session-corrupt'));
+			expect(sessionWrites).toHaveLength(0);
+			store.dispose();
+		});
+
+		it('should not create a stub when per-session metadata read fails for a reason other than not found', async () => {
+			mockFs.mockFile(BULK_METADATA_FILE, JSON.stringify({}));
+			const fileUri = sessionMetadataFileUri('session-eio');
+			mockFs.mockError(fileUri, Object.assign(new Error('read failed'), { code: 'EIO' }));
+
+			const store = await createStore();
+			const writeSpy = vi.spyOn(mockFs, 'writeFile');
+			writeSpy.mockClear();
+
+			await store.getWorktreeProperties('session-eio');
+			await vi.advanceTimersByTimeAsync(0);
+
+			const sessionWrites = writeSpy.mock.calls.filter(call => call[0].toString().includes('session-eio'));
+			expect(sessionWrites).toHaveLength(0);
+			store.dispose();
+		});
+
+		it('should repair corrupt per-session metadata from cache when the session is updated', async () => {
+			const folder = { folderPath: Uri.file('/workspace/a').fsPath, timestamp: 100 };
+			mockFs.mockFile(BULK_METADATA_FILE, JSON.stringify({
+				'session-heal': { workspaceFolder: folder, modified: 5 },
+			}));
+			const raw = '{ "worktreeProperties": { "worktreePath": "/wt", "lastCheckpointRef": "abc" ';
+			mockFs.mockFile(sessionMetadataFileUri('session-heal'), raw);
+
+			const store = await createStore();
+			await store.storeWorktreeInfo('session-heal', makeWorktreeV2Props({ lastCheckpointRef: 'def' }));
+
+			const written = JSON.parse(new TextDecoder().decode(await mockFs.readFile(sessionMetadataFileUri('session-heal'))));
+			expect(written.workspaceFolder).toEqual(folder);
+			expect(written.worktreeProperties.worktreePath).toBe(Uri.file('/repo/.worktrees/wt2').fsPath);
+			expect(written.worktreeProperties.lastCheckpointRef).toBe('def');
+			store.dispose();
+		});
 	});
 
 	// ──────────────────────────────────────────────────────────────────────────

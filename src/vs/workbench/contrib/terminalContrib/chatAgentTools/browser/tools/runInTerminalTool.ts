@@ -1208,7 +1208,7 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 			wouldBeAutoApproved
 		);
 		const isSandboxAutoApproved = isSandboxEnabled && toolSpecificData.commandLine.isSandboxWrapped === true && !requiresAllowNetworkConfirmation && this._allowSandboxAutoApprove;
-		const isFinalAutoApproved = isSandboxAutoApproved || isAutoApprovedByRules || commandLineAnalyzerResults.some(e => e.forceAutoApproval);
+		const isFinalAutoApproved = isSandboxAutoApproved || isAutoApprovedByRules;
 
 		// Pass auto approve info if the command:
 		// - Was auto approved

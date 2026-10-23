@@ -364,16 +364,23 @@ class NotebookExecutionListeners extends Disposable {
 
 		const executingDeletedHandles = new Set<number>();
 		const pendingDeletedHandles = new Set<number>();
+		const pendingDeletedExecutions: INotebookCellExecution[] = [];
+		const deletedExecutions: INotebookCellExecution[] = [];
 		if (notebookExes) {
 			e.rawEvent.changes.forEach(([start, deleteCount]) => {
 				if (deleteCount) {
 					const deletedHandles = this._notebookModel.cells.slice(start, start + deleteCount).map(c => c.handle);
 					deletedHandles.forEach(h => {
 						const exe = notebookExes.get(h);
-						if (exe?.state === NotebookCellExecutionState.Executing) {
+						if (!exe) {
+							return;
+						}
+						deletedExecutions.push(exe);
+						if (exe.state === NotebookCellExecutionState.Executing) {
 							executingDeletedHandles.add(h);
-						} else if (exe) {
+						} else {
 							pendingDeletedHandles.add(h);
+							pendingDeletedExecutions.push(exe);
 						}
 					});
 				}
@@ -389,8 +396,25 @@ class NotebookExecutionListeners extends Disposable {
 				if (handlesToCancel.length) {
 					kernel.cancelNotebookCellExecution(this._notebookModel.uri, handlesToCancel);
 				}
+				// `onWillAddRemoveCells` runs before the cell splice. Completing here would
+				// re-enter `applyEdits`. Non-executing records are closed after the splice.
+				this._completeExecutionsAfterCellRemoval(pendingDeletedExecutions);
+			} else {
+				this._completeExecutionsAfterCellRemoval(deletedExecutions);
 			}
 		}
+	}
+
+	private _completeExecutionsAfterCellRemoval(executions: readonly INotebookCellExecution[]): void {
+		if (!executions.length) {
+			return;
+		}
+		const pending = executions.slice();
+		queueMicrotask(() => {
+			for (const exe of pending) {
+				exe.complete({});
+			}
+		});
 	}
 }
 

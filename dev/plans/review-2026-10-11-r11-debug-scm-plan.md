@@ -3,11 +3,13 @@ title: "方案 r11：debug-scm"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-11
-summary: "hold 5，drop 0，weaken 0。评论合并拼出 [object Object]，冷启动 Run to Line 提前删断点并 continue，输出消费失败仍追加，保存失败仍启动调试，数据断点转换错误进不了视图。"
+updated: 2026-10-23
+summary: "hold 5，drop 0，weaken 0。r11-2 冷启动 Run to Line、r11-3 输出消费失败已落；评论合并、保存失败启动调试、数据断点转换仍开。"
 ---
 
 hold 5，drop 0，weaken 0。
+
+> **落地记录（2026-10-23，部分）：** 本方案仍 `draft`。r11-2 / r11-3 已落；r11-1 / r11-4 / r11-5 仍开。已落子项只改到各自点名的位置，未动其余子项，也不把整份方案升 `implemented`。
 
 ## r11-1（hold，高）
 ### 问题类

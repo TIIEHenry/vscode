@@ -3,11 +3,13 @@ title: "方案 r10：notebook-terminal"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-11
-summary: "hold 4，drop 0，weaken 1。借来的笔记本模型仍会被 dispose 但没有调用方；沙箱自动批准关闭后仍会跳过确认；执行失败、删除未执行单元格、引擎终端 error 帧仍不收尾。"
+updated: 2026-10-23
+summary: "hold 4，drop 0，weaken 1。r10-2 沙箱自动批准、r10-3 执行失败收尾、r10-4 删除未执行单元格已落；r10-1 借来的笔记本模型与 r10-5 终端 error 帧仍开。"
 ---
 
 hold 4，drop 0，weaken 1。
+
+> **落地记录（2026-10-23，部分）：** 本方案仍 `draft`。r10-2 / r10-3 / r10-4 已落；r10-1 / r10-5 仍开。已落子项只改到各自点名的位置，未动其余子项，也不把整份方案升 `implemented`。
 
 ## r10-1（weaken，降为低）
 ### 问题类

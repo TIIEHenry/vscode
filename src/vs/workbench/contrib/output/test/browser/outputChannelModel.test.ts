@@ -4,11 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
-import { parseLogEntryAt } from '../../common/outputChannelModel.js';
+import * as sinon from 'sinon';
+import { VSBuffer } from '../../../../../base/common/buffer.js';
+import { Event } from '../../../../../base/common/event.js';
+import { URI } from '../../../../../base/common/uri.js';
+import { parseLogEntryAt, FileOutputChannelModel } from '../../common/outputChannelModel.js';
 import { TextModel } from '../../../../../editor/common/model/textModel.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IFileService } from '../../../../../platform/files/common/files.js';
 import { LogLevel } from '../../../../../platform/log/common/log.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { createFileStat, TestFileService } from '../../../../test/common/workbenchTestServices.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 
 suite('Logs Parsing', () => {
@@ -136,6 +142,63 @@ suite('Logs Parsing', () => {
 		assert.strictEqual(entry?.category, undefined);
 		assert.strictEqual(model.getValueInRange(entry?.range), text);
 
+	});
+
+	test('skips appending a file read that lost its content generation', async function () {
+		this.timeout(8000);
+		const fileService = instantiationService.get(IFileService);
+		assert.ok(fileService instanceof TestFileService);
+		const resource = URI.file('/output-race.log');
+		let etag = 'e1';
+		let hold: Promise<void> | undefined;
+		fileService.setContent('alpha\n');
+		const originalReadFile = fileService.readFile.bind(fileService);
+		const statStub = sinon.stub(fileService, 'stat').callsFake(async candidate => ({
+			...createFileStat(candidate),
+			etag,
+			size: VSBuffer.fromString(fileService.getContent()).byteLength,
+		}));
+		const readStub = sinon.stub(fileService, 'readFile').callsFake(async (candidate, options) => {
+			const pending = hold;
+			if (pending) {
+				await pending;
+			}
+			const result = await originalReadFile(candidate, options);
+			return { ...result, etag, value: VSBuffer.fromString(fileService.getContent()) };
+		});
+		const channel = disposables.add(instantiationService.createInstance(
+			FileOutputChannelModel,
+			URI.parse('output:race.log'),
+			{ languageId: 'log', onDidChange: Event.None },
+			{ resource, name: 'race' },
+		));
+		let textModel: Awaited<ReturnType<FileOutputChannelModel['loadModel']>> | undefined;
+		try {
+			textModel = await channel.loadModel();
+			assert.strictEqual(textModel.getValue(), 'alpha\n');
+
+			let releaseRead: () => void = () => { };
+			hold = new Promise<void>(resolve => { releaseRead = resolve; });
+			etag = 'e2';
+			fileService.setContent('alpha\nbeta\n');
+			await new Promise(resolve => setTimeout(resolve, 700));
+			etag = 'e3';
+			fileService.setContent('alpha\nbeta\ngamma\n');
+			await new Promise(resolve => setTimeout(resolve, 700));
+			hold = undefined;
+			releaseRead();
+			await new Promise(resolve => setTimeout(resolve, 900));
+
+			const value = textModel.getValue();
+			assert.strictEqual(value.split('beta\n').length, 2, value);
+			assert.strictEqual(value.split('gamma\n').length, 2, value);
+		} finally {
+			hold = undefined;
+			readStub.restore();
+			statStub.restore();
+			channel.dispose();
+			textModel?.dispose();
+		}
 	});
 
 	function createModel(content: string): TextModel {

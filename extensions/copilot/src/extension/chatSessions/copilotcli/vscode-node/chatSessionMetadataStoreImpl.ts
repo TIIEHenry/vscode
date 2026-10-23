@@ -26,6 +26,26 @@ const LEGACY_BULK_MIGRATED_KEY = 'github.copilot.cli.legacyBulkMigrated';
 const REQUEST_MAPPING_FILENAME = 'vscode.requests.metadata.json';
 
 /**
+ * Missing per-session metadata may be created. A read or parse failure is not
+ * "missing": `MockFileSystemService` throws `new Error('ENOENT')`, while
+ * `vscode.FileSystemError.FileNotFound` uses `code === 'FileNotFound'`.
+ */
+function isMetadataFileNotFound(error: unknown): boolean {
+	if (!error || typeof error !== 'object') {
+		return false;
+	}
+	const code = (error as { code?: unknown }).code;
+	if (code === 'ENOENT' || code === 'FileNotFound') {
+		return true;
+	}
+	return error instanceof Error && error.message === 'ENOENT';
+}
+
+function isPlainMetadataObject(value: unknown): value is ChatSessionMetadataFile {
+	return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
  * Maximum number of sessions kept in the shared bulk metadata cache file
  * (`~/.copilot/vscode.session.metadata.cache.json`). Older entries (by `modified`)
  * are evicted from the file but remain available via the per-session metadata files
@@ -458,8 +478,13 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 		if (metadata) {
 			return metadata;
 		}
+		if (metadata === null) {
+			// Bytes were unreadable or not an object. Do not cache an empty record
+			// and do not create `{ origin: 'other' }` over the existing file.
+			return undefined;
+		}
 
-		// So we don't try again.
+		// File is absent. Cache the empty result so a missing file is not read again.
 		this._cache[sessionId] = {};
 		if (createMetadataFileIfNotFound) {
 			await this.updateSessionMetadata(sessionId, { origin: 'other' });
@@ -468,26 +493,36 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 		return undefined;
 	}
 
-	/** Reads a per-session metadata file directly. Returns `undefined` if it doesn't exist or is invalid. */
-	private async readSessionMetadataFile(sessionId: string): Promise<ChatSessionMetadataFile | undefined> {
+	/**
+	 * Reads a per-session metadata file.
+	 * `undefined` means the file is absent. `null` means the file was present
+	 * but could not be parsed, or the read failed for a reason other than not found.
+	 */
+	private async readSessionMetadataFile(sessionId: string): Promise<ChatSessionMetadataFile | undefined | null> {
 		return this._metadataReadSequencer.queue(sessionId, async () => {
+			const fileUri = this.getMetadataFileUri(sessionId);
+			let content: Uint8Array;
 			try {
-				const fileUri = this.getMetadataFileUri(sessionId);
-				const content = await this.fileSystemService.readFile(fileUri);
-				const metadata = JSON.parse(new TextDecoder().decode(content)) as ChatSessionMetadataFile;
-				if (metadata) {
-					this._cache[sessionId] = metadata;
-					this._updateFolderIndex(sessionId, metadata);
-					return metadata;
+				content = await this.fileSystemService.readFile(fileUri);
+			} catch (error) {
+				if (isMetadataFileNotFound(error)) {
+					return undefined;
 				}
-
-				// So we don't try again.
-				this._cache[sessionId] = {};
-				return undefined;
-			} catch {
-				// So we don't try again.
-				this._cache[sessionId] = {};
-				return undefined;
+				this.logService.error(`[ChatSessionMetadataStore] Failed to read metadata for ${sessionId}: `, error);
+				return null;
+			}
+			try {
+				const metadata: unknown = JSON.parse(new TextDecoder().decode(content));
+				if (!isPlainMetadataObject(metadata)) {
+					this.logService.error(`[ChatSessionMetadataStore] Metadata for ${sessionId} is not a JSON object`);
+					return null;
+				}
+				this._cache[sessionId] = metadata;
+				this._updateFolderIndex(sessionId, metadata);
+				return metadata;
+			} catch (error) {
+				this.logService.error(`[ChatSessionMetadataStore] Failed to parse metadata for ${sessionId}: `, error);
+				return null;
 			}
 		});
 	}
@@ -506,10 +541,24 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 			// This preserves data written by other processes when merging.
 			let existing: ChatSessionMetadataFile = {};
 			let diskFileExisted = true;
+			let corrupt = false;
 			try {
 				const rawContent = await this.fileSystemService.readFile(fileUri);
-				existing = JSON.parse(new TextDecoder().decode(rawContent));
-			} catch {
+				try {
+					const parsed: unknown = JSON.parse(new TextDecoder().decode(rawContent));
+					if (!isPlainMetadataObject(parsed)) {
+						corrupt = true;
+					} else {
+						existing = parsed;
+					}
+				} catch {
+					corrupt = true;
+				}
+			} catch (error) {
+				if (!isMetadataFileNotFound(error)) {
+					this.logService.error(`[ChatSessionMetadataStore] Failed to read metadata for ${sessionId} before update: `, error);
+					return;
+				}
 				diskFileExisted = false;
 				// File doesn't exist yet — check if the directory exists.
 				try {
@@ -524,6 +573,20 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 					}
 					await this.fileSystemService.createDirectory(dirUri);
 				}
+			}
+
+			if (corrupt) {
+				// A session already in `_cache` (bulk file) can repair the per-session
+				// file. Otherwise leave the bytes alone so worktree checkpoints survive.
+				const cached = this._cache[sessionId];
+				if (!cached || !Object.keys(cached).some(key => key !== 'writtenToDisc')) {
+					this.logService.error(`[ChatSessionMetadataStore] Not overwriting corrupt metadata for ${sessionId}`);
+					return;
+				}
+				const rest: ChatSessionMetadataFile = { ...cached };
+				delete rest.writtenToDisc;
+				existing = rest;
+				diskFileExisted = true;
 			}
 
 			// Merge order: cache (locally-known fields not yet flushed to disk)
@@ -549,12 +612,24 @@ export class ChatSessionMetadataStore extends Disposable implements IChatSession
 			}
 
 			const content = new TextEncoder().encode(JSON.stringify(merged, null, 2));
-			await this.fileSystemService.writeFile(fileUri, content);
+			await this.replaceMetadataFile(fileUri, content);
 
 			this._cache[sessionId] = { ...merged, writtenToDisc: true };
 			this._updateFolderIndex(sessionId, this._cache[sessionId]);
 			this.updateGlobalStorage();
 		});
+	}
+
+	/** Writes metadata to a temp file and replaces the target only after that write succeeds. */
+	private async replaceMetadataFile(fileUri: vscode.Uri, content: Uint8Array): Promise<void> {
+		const tempUri = fileUri.with({ path: `${fileUri.path}.tmp` });
+		await this.fileSystemService.writeFile(tempUri, content);
+		try {
+			await this.fileSystemService.rename(tempUri, fileUri, { overwrite: true });
+		} catch (error) {
+			await this.fileSystemService.delete(tempUri).catch(() => { /* best effort */ });
+			throw error;
+		}
 	}
 
 	private async getGlobalStorageData() {

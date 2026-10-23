@@ -63,13 +63,13 @@ suite('CommandLineSandboxAnalyzer', () => {
 		};
 	}
 
-	test('should force auto approval for sandboxed commands when auto approve is enabled', async () => {
+	test('should not force auto approval for sandboxed commands when auto approve is enabled', async () => {
 		setConfig(TerminalChatAgentToolsSettingId.EnableAutoApprove, true);
 
 		const result = await analyzer.analyze(createOptions());
 
 		strictEqual(result.isAutoApproveAllowed, true);
-		strictEqual(result.forceAutoApproval, true);
+		strictEqual(result.forceAutoApproval, undefined);
 	});
 
 	test('should not force auto approval for sandboxed commands when auto approve is disabled', async () => {
@@ -78,7 +78,7 @@ suite('CommandLineSandboxAnalyzer', () => {
 		const result = await analyzer.analyze(createOptions());
 
 		strictEqual(result.isAutoApproveAllowed, false);
-		strictEqual(result.forceAutoApproval, false);
+		strictEqual(result.forceAutoApproval, undefined);
 	});
 
 	test('should not force auto approval when unsandbox confirmation is required', async () => {
@@ -87,7 +87,7 @@ suite('CommandLineSandboxAnalyzer', () => {
 		const result = await analyzer.analyze(createOptions({ requiresUnsandboxConfirmation: true }));
 
 		strictEqual(result.isAutoApproveAllowed, true);
-		strictEqual(result.forceAutoApproval, false);
+		strictEqual(result.forceAutoApproval, undefined);
 	});
 
 	test('should not force auto approval when unrestricted sandbox network confirmation is required', async () => {
@@ -96,7 +96,7 @@ suite('CommandLineSandboxAnalyzer', () => {
 		const result = await analyzer.analyze(createOptions({ requiresAllowNetworkConfirmation: true }));
 
 		strictEqual(result.isAutoApproveAllowed, true);
-		strictEqual(result.forceAutoApproval, false);
+		strictEqual(result.forceAutoApproval, undefined);
 	});
 
 	test('should set auto approval allowed from setting when sandbox is disabled', async () => {

@@ -24,6 +24,17 @@ function debugServiceSourcePath(): string {
 	return found;
 }
 
+/** Cold start: the first global Stopped does not delete. Delete without continue only when that stop is the target line. */
+function coldStartStopAction(input: { stoppedAtTarget: boolean; hasThread: boolean }): 'continue' | 'remove-without-continue' | 'return' {
+	if (!input.hasThread) {
+		return 'return';
+	}
+	if (input.stoppedAtTarget) {
+		return 'remove-without-continue';
+	}
+	return 'continue';
+}
+
 /** Mirrors runTo temp-breakpoint removal after continue (r08-1). */
 function shouldRemoveTempBreakpoint(input: {
 	sessionState: State;
@@ -58,6 +69,15 @@ suite('Debug - runTo temp breakpoint removal', () => {
 		assert.ok(runToBlock.includes('threadToContinue.session.state === State.Inactive'));
 		assert.ok(!runToBlock.includes('removeTempBreakPoint(focusedSession.state)'));
 		assert.ok(!runToBlock.includes('removeTempBreakPoint(threadToContinue.session.state)'));
+		assert.ok(!runToBlock.includes('removeTempBreakPoint(state)'));
+		assert.ok(runToBlock.includes('getTopStackFrame'));
+		assert.ok(runToBlock.includes('startLineNumber === lineNumber'));
+	});
+
+	test('cold start keeps the temp breakpoint until the stop is the target line', () => {
+		assert.strictEqual(coldStartStopAction({ stoppedAtTarget: false, hasThread: true }), 'continue');
+		assert.strictEqual(coldStartStopAction({ stoppedAtTarget: true, hasThread: true }), 'remove-without-continue');
+		assert.strictEqual(coldStartStopAction({ stoppedAtTarget: true, hasThread: false }), 'return');
 	});
 
 	test('runTo does not delete when target is running even if session would read Stopped', () => {

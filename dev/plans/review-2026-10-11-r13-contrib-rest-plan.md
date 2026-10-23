@@ -3,11 +3,13 @@ title: "方案 r13：contrib-rest"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-11
-summary: "hold 5，drop 0，weaken 0。五条引用的行为仍在原位置。"
+updated: 2026-10-23
+summary: "hold 5，drop 0，weaken 0。r13-5 加密测试已落；其余四条引用行为仍在原位置。"
 ---
 
 hold 5，drop 0，weaken 0。
+
+> **落地记录（2026-10-23，部分）：** 本方案仍 `draft`。r13-5 已落；r13-1 到 r13-4 仍开。已落子项只改到各自点名的位置，未动其余子项，也不把整份方案升 `implemented`。
 
 ## r13-1（hold，高）
 

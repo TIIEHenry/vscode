@@ -169,6 +169,30 @@ suite('NotebookExecutionService', () => {
 			assert.strictEqual(exeStateService.getCellExecution(cell.uri), undefined);
 		});
 	});
+
+	test('Completes executions when executeNotebookCellsRequest rejects', async function () {
+		return withTestNotebook([], async (viewModel, textModel) => {
+			const kernel = new class extends TestNotebookKernel {
+				constructor() {
+					super({ languages: ['javascript'] });
+					this.id = 'rejectingKernel';
+				}
+
+				override async executeNotebookCellsRequest(): Promise<void> {
+					throw new Error('kernel failed');
+				}
+			};
+
+			disposables.add(kernelService.registerKernel(kernel));
+			kernelService.selectKernelForNotebook(kernel, textModel);
+			const executionService = disposables.add(instantiationService.createInstance(NotebookExecutionService));
+			const exeStateService = instantiationService.get(INotebookExecutionStateService);
+
+			const cell = disposables.add(insertCellAtIndex(viewModel, 0, 'var c = 3', 'javascript', CellKind.Code, {}, [], true, true));
+			await assertThrowsAsync(() => executionService.executeNotebookCells(textModel, [cell.model], contextKeyService));
+			assert.strictEqual(exeStateService.getCellExecution(cell.uri), undefined);
+		});
+	});
 });
 
 class TestNotebookKernel implements INotebookKernel {

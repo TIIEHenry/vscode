@@ -3,11 +3,13 @@ title: "方案 r14：copilot-extension"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-11
-summary: "hold 5，drop 0，weaken 0。云端删除、元数据覆盖、事件缓冲、会话映射回写和日志队列五处失败后丢数据的行为都还在。"
+updated: 2026-10-23
+summary: "hold 5，drop 0，weaken 0。r14-2 元数据覆盖、r14-5 日志队列已落；云端删除、事件缓冲、会话映射回写仍开。"
 ---
 
 hold 5，drop 0，weaken 0。
+
+> **落地记录（2026-10-23，部分）：** 本方案仍 `draft`。r14-2 / r14-5 已落；r14-1 / r14-3 / r14-4 仍开。已落子项只改到各自点名的位置，未动其余子项，也不把整份方案升 `implemented`。
 
 ## r14-1（hold，高）
 ### 问题类

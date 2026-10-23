@@ -121,6 +121,10 @@ suite('NotebookExecutionStateService', () => {
 				editType: CellEditType.Replace, index: 0, count: 3, cells: []
 			}], true, undefined, () => undefined, undefined, false);
 			assert.strictEqual(cancels, expectedCancels);
+			await Promise.resolve();
+			assert.strictEqual(executionStateService.getCellExecution(cell2.uri), undefined);
+			assert.strictEqual(executionStateService.getCellExecution(cell3.uri), undefined);
+			assert.ok(executionStateService.getCellExecution(cell.uri));
 		});
 
 	}
@@ -132,6 +136,23 @@ suite('NotebookExecutionStateService', () => {
 
 	test('cancel execution when cell is deleted in interrupt-type kernel', async function () {
 		return testCancelOnDelete(1, true);
+	});
+
+	test('completes executions locally when a deleted cell has no kernel', async function () {
+		return withTestNotebook([], async (viewModel, _document, disposables) => {
+			testNotebookModel = viewModel.notebookDocument;
+			const executionStateService: INotebookExecutionStateService = instantiationService.get(INotebookExecutionStateService);
+			const cell = disposables.add(insertCellAtIndex(viewModel, 0, 'var c = 3', 'javascript', CellKind.Code, {}, [], true, true));
+			const exe = executionStateService.createCellExecution(viewModel.uri, cell.handle);
+			exe.confirm();
+			exe.update([{ editType: CellExecutionUpdateType.ExecutionState, executionOrder: 1 }]);
+
+			viewModel.notebookDocument.applyEdits([{
+				editType: CellEditType.Replace, index: 0, count: 1, cells: []
+			}], true, undefined, () => undefined, undefined, false);
+			await Promise.resolve();
+			assert.strictEqual(executionStateService.getCellExecution(cell.uri), undefined);
+		});
 	});
 
 	test('fires onDidChangeCellExecution when cell is completed while deleted', async function () {

@@ -90,10 +90,8 @@ export class FlushableSafeJSONLFile<T> {
 		this._newEntries.push(JSON.stringify(data));
 	}
 
-	private _getTextAndClear(): string {
-		const text = this._newEntries.map(l => '\n' + l).join('');
-		this._newEntries.length = 0;
-		return text;
+	private _pendingText(count: number): string {
+		return this._newEntries.slice(0, count).map(l => '\n' + l).join('');
 	}
 
 	async flushAsync(): Promise<void> {
@@ -101,11 +99,14 @@ export class FlushableSafeJSONLFile<T> {
 
 		if (this._lock) { throw new BugIndicatingError('Locked!'); }
 		this._lock = true;
+		const batchCount = this._newEntries.length;
+		const text = this._pendingText(batchCount);
 		try {
-			const text = this._getTextAndClear();
 			if (text === '') { return; }
 
 			await appendFile(this.filePath, text, { encoding: 'utf8' });
+			// Entries appended while the write was in flight stay after this batch.
+			this._newEntries.splice(0, batchCount);
 		} finally {
 			this._lock = false;
 		}
@@ -114,11 +115,14 @@ export class FlushableSafeJSONLFile<T> {
 	flushSync(): void {
 		if (this._newEntries.length === 0) { return; }
 
-		if (this._lock) { throw new BugIndicatingError('Locked!'); }
+		// An async flush already owns this batch. Leave the queue for that flush.
+		if (this._lock) { return; }
 
-		const text = this._getTextAndClear();
+		const batchCount = this._newEntries.length;
+		const text = this._pendingText(batchCount);
 		if (text === '') { return; }
 		appendFileSync(this.filePath, text, { encoding: 'utf8' });
+		this._newEntries.splice(0, batchCount);
 	}
 }
 
