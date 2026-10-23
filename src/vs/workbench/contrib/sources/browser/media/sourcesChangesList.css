@@ -61,41 +61,18 @@
 }
 
 .monaco-workbench .part.sources .sources-changes-empty {
-	display: flex;
-	flex-direction: column;
 	flex: 1;
-	align-items: center;
-	justify-content: center;
 	min-width: 0;
-	min-height: 100px;
-	padding: 24px 16px;
-	text-align: center;
+	padding: 8px 12px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
-	line-height: 1.5;
+	line-height: 16px;
 	overflow-wrap: anywhere;
-	gap: 8px;
 	user-select: none;
-}
-
-.monaco-workbench .part.sources .sources-changes-empty::before {
-	display: inline-block;
-	font-family: codicon;
-	font-size: 24px;
-	line-height: 1;
-	content: "\eb84";
-	color: var(--vscode-descriptionForeground);
-	opacity: 0.65;
 }
 
 .monaco-workbench .part.sources .sources-changes-empty.is-error {
 	color: var(--vscode-errorForeground);
-}
-
-.monaco-workbench .part.sources .sources-changes-empty.is-error::before {
-	content: "\ea87";
-	color: var(--vscode-errorForeground);
-	opacity: 0.9;
 }
 
 
@@ -250,6 +227,7 @@
 	padding: 0;
 	border-radius: 4px;
 	opacity: 0;
+	pointer-events: none;
 	color: var(--vscode-icon-foreground, var(--vscode-descriptionForeground));
 	transition: background-color 0.1s ease, color 0.1s ease;
 }
@@ -266,6 +244,7 @@
 .monaco-workbench .part.sources .sources-change-action:focus-visible,
 .monaco-workbench .part.sources .sources-change-group-action:focus-visible {
 	opacity: 1;
+	pointer-events: auto;
 }
 
 .monaco-workbench .part.sources .sources-change-action:hover:not(.disabled),
@@ -304,13 +283,16 @@
 	height: 28px;
 	max-height: 112px;
 	overflow-y: auto;
-	box-shadow: 0 1px 2px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.05));
 }
 
 .monaco-workbench .part.sources .sources-changes-commit-input:focus {
 	outline: none;
-	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
-	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-foreground) 15%, transparent);
+	border-color: var(--vscode-focusBorder);
+}
+
+.monaco-workbench .part.sources .sources-changes-commit-input:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.sources .sources-changes-commit .monaco-button {
@@ -322,12 +304,11 @@
 	padding: 0 12px;
 	border-radius: 6px;
 	align-self: center;
-	transition: background-color 0.1s ease, filter 0.08s ease;
+	transition: background-color 0.1s ease;
 }
 
 .monaco-workbench .part.sources .sources-changes-commit .monaco-button:active:not(.disabled) {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-	filter: brightness(0.92);
+	background-color: var(--vscode-toolbar-activeBackground);
 }
 
 .monaco-workbench .part.sources .sources-changes-provenance {

@@ -159,6 +159,9 @@ interface ISourcesChangesRendererDelegate {
 	groupHasScmResource(groupId: string): boolean;
 	isEngineStageButtonBlocked(entry: ISourcesChangeEntry): boolean;
 	isGroupStageBlocked(groupId: string): boolean;
+	writeHoldReason(): string | undefined;
+	stageBlockReason(entry: ISourcesChangeEntry): string | undefined;
+	groupStageBlockReason(groupId: string): string | undefined;
 	getResourceRoot(): URI | undefined;
 	onRowAction(entry: ISourcesChangeEntry, action: SourcesChangeRowAction): void;
 	onGroupAction(groupId: string, action: SourcesChangeRowAction): void;
@@ -312,10 +315,17 @@ class SourcesChangesRenderer implements IListRenderer<ISourcesChangeEntry, ISour
 					: localize('sourcesChangesList.unstage', "Unstage"));
 			button.element.style.display = pairingHold ? 'none' : '';
 			button.icon = rowAction === 'stage' ? Codicon.add : Codicon.remove;
-			button.enabled = !writeHold && !stageBlocked;
-			button.setAriaLabel(label);
-			button.setTitle(label);
-			if (writeHold) {
+			const reason = writeHold
+				? this.delegate.writeHoldReason()
+				: (stageBlocked
+					? (group && typeof target === 'string'
+						? this.delegate.groupStageBlockReason(target)
+						: (!group && typeof target !== 'string' ? this.delegate.stageBlockReason(target) : undefined))
+					: undefined);
+			button.enabled = !reason;
+			button.setTitle(reason ?? label);
+			button.setAriaLabel(reason ? `${label}. ${reason}` : label);
+			if (reason) {
 				return;
 			}
 			templateData.elementDisposables.add(button.onDidClick(e => {
@@ -573,6 +583,38 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		);
 	}
 
+	writeHoldReason(): string | undefined {
+		if (this.isSourcesGitWritePairingHold()) {
+			return sourcesGitReadPairingHoldMessage();
+		}
+		if (this.isSourcesGitWriteListFailed() || this.isSourcesKeepLeftoverWrite() || this.isSourcesGitWriteClosed()) {
+			return localize('sourcesChangesList.sessionNotReady', "The engine is connected, but the active session is not ready.");
+		}
+		return undefined;
+	}
+
+	stageBlockReason(entry: ISourcesChangeEntry): string | undefined {
+		if (!this.isEngineStageButtonBlocked(entry)) {
+			return undefined;
+		}
+		if (isSourcesEngineWriteSessionBlocked(entry.origin, entry.sessionId, this.session.getActiveSessionId())) {
+			return sourcesGitSessionChangedMessage();
+		}
+		return sourcesGitEmptyStagePathMessage();
+	}
+
+	groupStageBlockReason(groupId: string): string | undefined {
+		if (!this.isGroupStageBlocked(groupId)) {
+			return undefined;
+		}
+		const activeSessionId = this.session.getActiveSessionId();
+		const stageable = this.entriesInGroup(groupId).filter(entry => isSourcesChangeStageable(entry.groupId));
+		if (stageable.some(entry => isSourcesEngineWriteSessionBlocked(entry.origin, entry.sessionId, activeSessionId))) {
+			return sourcesGitSessionChangedMessage();
+		}
+		return sourcesGitEmptyStagePathMessage();
+	}
+
 	isGroupStageBlocked(groupId: string): boolean {
 		const snapshot = this.changesModel.getSnapshot();
 		const listed = this.entriesInGroup(groupId);
@@ -780,8 +822,10 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.filterBox.setAvailable(hasAnyEntries);
 		this.commitRow.style.display = hasRepository && !(gitReadError && !hasAnyEntries) ? 'flex' : 'none';
 
-		if (gitReadError) {
+		if (gitReadError && hasAnyEntries) {
 			this.presentStatus(gitReadError, undefined);
+		} else if (gitReadError) {
+			this.presentStatus(undefined, undefined);
 		} else if (this.writeStatusMessage) {
 			this.presentStatus(this.writeStatusMessage, undefined);
 		} else if (gitReadPairingHold) {
@@ -925,8 +969,18 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			&& !!entry.scmResource
 			&& this.isGitCommandAvailable(SOURCES_GIT_UNSTAGE_COMMAND));
 
-		this.stageSelectedButton.enabled = canStage && !this.isSourcesGitWriteClosed();
-		this.unstageSelectedButton.enabled = canUnstage && !this.isSourcesGitWriteClosed();
+		this.presentToolbarAction(
+			this.stageSelectedButton,
+			localize('sourcesChangesList.stageSelected', "Stage Selected"),
+			canStage && !this.isSourcesGitWriteClosed(),
+			canStage ? undefined : localize('sourcesChangesList.selectChangeToStage', "Select a change to stage."),
+		);
+		this.presentToolbarAction(
+			this.unstageSelectedButton,
+			localize('sourcesChangesList.unstageSelected', "Unstage Selected"),
+			canUnstage && !this.isSourcesGitWriteClosed(),
+			canUnstage ? undefined : localize('sourcesChangesList.selectChangeToUnstage', "Select a staged change to unstage."),
+		);
 		const show = (this.list?.length ?? 0) > 0 && (this.stageSelectedButton.enabled || this.unstageSelectedButton.enabled);
 		const next = show ? 'flex' : 'none';
 		if (this.toolbar.style.display !== next) {
@@ -1111,12 +1165,19 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		input.style.height = `${next}px`;
 	}
 
-	private setCommitButtonLabel(repositoryName: string): void {
+	private setCommitButtonLabel(repositoryName: string): string {
 		const label = repositoryName
 			? localize('sourcesChangesList.commitRepo', "Commit ({0})", repositoryName)
 			: localize('sourcesChangesList.commit', "Commit");
 		this.commitButton.label = label;
-		this.commitButton.element.title = label;
+		return label;
+	}
+
+	private presentToolbarAction(button: Button, label: string, enabled: boolean, idleReason: string | undefined): void {
+		const reason = this.writeHoldReason() ?? (enabled ? undefined : idleReason);
+		button.enabled = enabled && !this.writeHoldReason();
+		button.setTitle(reason ?? label);
+		button.setAriaLabel(reason ? `${label}. ${reason}` : label);
 	}
 
 	private updateCommitRow(): void {
@@ -1125,19 +1186,23 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		if (snapshot.state.kind === 'scm') {
 			const staged = uniqueSourcesStagedRepository(this.scmService.repositories);
 			const repo = this.activeRepository === staged ? staged : undefined;
-			this.setCommitButtonLabel(repo ? sourcesRepositoryCommitName(repo) : '');
+			const commitLabel = this.setCommitButtonLabel(repo ? sourcesRepositoryCommitName(repo) : '');
 			const acceptCommand = repo?.provider.acceptInputCommand;
 			const localCommit = (!!acceptCommand?.id && this.isGitCommandAvailable(acceptCommand.id))
 				|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
 			this.commitInput.disabled = !repo;
-			this.commitButton.enabled = !this.isSourcesGitWriteClosed()
-				&& !!repo
-				&& hasMessage
-				&& localCommit;
+			this.presentToolbarAction(
+				this.commitButton,
+				commitLabel,
+				!!repo && hasMessage && localCommit && !this.isSourcesGitWriteClosed(),
+				!hasMessage
+					? localize('sourcesChangesList.commitNeedsMessage', "Enter a commit message.")
+					: localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."),
+			);
 			return;
 		}
 
-		this.setCommitButtonLabel('');
+		const commitLabel = this.setCommitButtonLabel('');
 		const repo = this.activeRepository;
 		const acceptCommand = repo?.provider.acceptInputCommand;
 		const commitAvailable = this.canWriteCommit()
@@ -1145,10 +1210,17 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			|| this.isGitCommandAvailable(SOURCES_GIT_COMMIT_COMMAND);
 
 		this.commitInput.disabled = !repo && !this.canWriteCommit();
-		this.commitButton.enabled = !this.isSourcesGitWriteClosed()
-			&& (!!repo || this.canWriteCommit())
-			&& hasMessage
-			&& commitAvailable;
+		this.presentToolbarAction(
+			this.commitButton,
+			commitLabel,
+			(!this.isSourcesGitWriteClosed())
+				&& (!!repo || this.canWriteCommit())
+				&& hasMessage
+				&& commitAvailable,
+			!hasMessage
+				? localize('sourcesChangesList.commitNeedsMessage', "Enter a commit message.")
+				: localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."),
+		);
 	}
 
 	/** Snapshot or leftover-row session. Never the active session. */

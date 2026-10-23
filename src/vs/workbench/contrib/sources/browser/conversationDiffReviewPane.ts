@@ -411,9 +411,12 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return;
 		}
 		const emptyStage = resolveSourcesDiffEmptyStageChrome(facts);
+		const stageLabel = localize('conversationDiffReviewPane.stage', "Stage");
 		this.stageButton.disabled = emptyStage.disableStage;
 		this.stageButton.setAttribute('aria-disabled', emptyStage.disableStage ? 'true' : 'false');
 		const emptyMessage = sourcesGitEmptyStagePathMessage();
+		this.stageButton.title = emptyStage.disableStage ? emptyMessage : stageLabel;
+		this.stageButton.setAttribute('aria-label', emptyStage.disableStage ? `${stageLabel}. ${emptyMessage}` : stageLabel);
 		if (emptyStage.status) {
 			this.showNotice(emptyStage.status);
 			return;

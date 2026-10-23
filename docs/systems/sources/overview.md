@@ -3,8 +3,8 @@ title: "Sources 系统概览：Files | Changes | Review"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-10-16
-summary: "SOURCES_PART 槽 + SourcesTabsHost；Files 挂资源管理器同一棵工作区树，列表模式只把树换成当前目录的一级列表，面包屑和标题操作仍在。Part 宽至少 600px 时三个 tab 的筛选收到标题栏。不注册活动栏图标，打开不带动侧栏。Changes/Review 接通走 readGit* 否则 SCM；Accept 定为暂存光标 hunk（方案未实施前无载荷不显示）；Diff 默认 Preview。Sources 变更读收成 ISourcesChangesModel；Changes 与 Review 投影同一快照，会话事实走 IAgentSessionContext。Accept 仍无载荷不显示。P3 身份跟着条目走已落。P6 与 P7 已落；方案 sources-architecture 仍 accepted。"
+updated: 2026-10-23
+summary: "SOURCES_PART 槽 + SourcesTabsHost；Files 挂资源管理器同一棵工作区树，列表模式只把树换成当前目录的一级列表，面包屑和标题操作仍在。Part 宽至少 600px 时三个 tab 的筛选收到标题栏。不注册活动栏图标，打开不带动侧栏。Changes/Review 接通走 readGit* 否则 SCM；Accept 定为暂存光标 hunk（方案未实施前无载荷不显示）；Diff 默认 Preview。Sources 变更读收成 ISourcesChangesModel；Changes 与 Review 投影同一快照，会话事实走 IAgentSessionContext。Accept 仍无载荷不显示。P3 身份跟着条目走已落。P6 与 P7 已落；方案 sources-architecture 仍 accepted。禁用钮带原因 title / aria-label；首拉失败且无旧条目时错误只进空区，不重复写底栏。"
 ---
 
 # Sources 系统概览
@@ -40,7 +40,7 @@ Files 用资源管理器的 “Filter files”。Changes / Review 用紧凑 filt
 |------|------|
 | Files 没打开文件夹 | `You have not yet opened a folder.`（不挂树） |
 | 筛选无匹配 | `No matching files.` / `No matching changes.` |
-| Changes/Review 首拉 `readGit*` throw | 空区写 `Unable to read git changes: …`，**不**写 `No changes.` / `No changes to review.`；底栏失败色 + `role=status` |
+| Changes/Review 首拉 `readGit*` throw | 没有旧条目时空区写 `Unable to read git changes: …`，**不**写 `No changes.` / `No changes to review.`，底栏状态行不重复同一句、Commit 行也收起；已有旧条目时错误留在底栏失败色 + `role=status`，列表照旧 |
 | 无 SCM 提供者 | Changes / Review 空列表；不造假变更 |
 | Review | 有变更时 hint `Review progress stays in this window.`；无仓库时只留空态、不画 hint；**无假 review comment** |
 
@@ -52,6 +52,7 @@ Files 用资源管理器的 “Filter files”。Changes / Review 用紧凑 filt
 - **Diff 模型内容提供者**：`ReadGitFileDiff` 写出的 `sources-git-diff:` 模型已由 `sourcesDiff.contribution.ts` 注册文本模型内容提供者（`registerTextModelContentProvider(SOURCES_GIT_DIFF_SCHEME, ...)`），支持打开 Diff（[sources-architecture](../../../dev/plans/sources-architecture.md) P1 已落）。原 2026-09-28 审查记录（SAR-1）中未注册提供者与打不开 Diff 的已知偏差已消除（P1 无与提供者无关的未做项）。
 - **不自动撑开**：打开 Diff / 文件不得把已收起的 Sources 下格撑开（companion-contribs §5）。
 - **Review**：只导航面（Desktop ADR-043 / UI-INV-09 口径；本仓审阅进度在 Review 不在 Changes）；审阅进度窗口内存（R1 @ HEAD）；归因 chip 与 Conversation「查看更改」行依赖引擎 `onDidFileMutation` join（R3 / R4 @ HEAD；历史会话经 G-REV-1 `file_mutation` 走同一事件）。**无** review comment、approve、写回引擎或 git。
+- **禁用钮写原因**：Changes 行内 / 组头 stage / unstage、Stage Selected / Unstage Selected、Commit，Review 行内 Mark reviewed 与 Mark all，以及 Panel / Conversation Diff 的 Stage，禁用时都把原因写进 `title` 与 `aria-label`（写闸用 pairing-hold / 会话未就绪文案，stage 用会话已切或空路径文案，Commit 用缺消息或 git 命令不可用文案，Review 用没有可标条目或已全部审阅文案）。可点时 title 回到动作名。只改提示，不改这些按钮的启用条件。
 
 ## 5. 与 PRD-005 验收的对应
 

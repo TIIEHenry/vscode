@@ -48,7 +48,8 @@
 }
 
 .monaco-workbench .sources-diff-panel .sources-diff-panel-actions button:focus-visible {
-	outline: none;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	background: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-secondaryBackground));
 }
 

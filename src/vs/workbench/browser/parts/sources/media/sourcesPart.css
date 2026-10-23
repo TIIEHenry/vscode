@@ -30,15 +30,21 @@
 
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .monaco-list-row,
 .monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .monaco-list:focus .monaco-list-row.focused,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .monaco-list:focus .monaco-list-row.selected {
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .monaco-list:focus .monaco-list-row.selected,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .monaco-list:focus .monaco-list-row.focused.selected {
 	outline: none !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.sources .monaco-list:focus-visible .monaco-list-row.focused {
+	outline: 1px solid var(--vscode-list-focusOutline, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.sources > .title {
 	display: flex;
 	flex-direction: row;
 	align-items: stretch;
-	height: 35px;
+	height: 28px;
 	padding: 0;
 	box-sizing: border-box;
 	background-color: var(--vscode-sideBarTitle-background);

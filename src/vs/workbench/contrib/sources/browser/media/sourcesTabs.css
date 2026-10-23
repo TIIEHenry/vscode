@@ -155,8 +155,8 @@
 
 .monaco-workbench .part.sources > .title .sources-title-filter > .explorer-inline-filter:focus-within,
 .monaco-workbench .part.sources > .title .sources-title-filter > .sources-list-filter:focus-within {
-	border-color: color-mix(in srgb, var(--vscode-foreground) 25%, transparent);
-	box-shadow: 0 0 0 1px color-mix(in srgb, var(--vscode-foreground) 15%, transparent);
+	border-color: var(--vscode-focusBorder);
+	box-shadow: none;
 }
 
 .monaco-workbench .part.sources > .title .sources-title-filter .explorer-inline-filter-clear,
@@ -200,7 +200,7 @@
 	font-weight: 400;
 	line-height: 24px;
 	height: 24px;
-	margin: 4px 2px;
+	margin: 2px;
 	padding: 0 10px;
 	display: inline-flex;
 	align-items: center;
@@ -250,7 +250,7 @@
 	position: absolute;
 	left: 4px;
 	right: 4px;
-	bottom: -4px;
+	bottom: -2px;
 	height: 2px;
 	border-radius: 1px;
 	background-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));

@@ -68,7 +68,8 @@
 }
 
 .monaco-workbench .conversation-diff-review-pane .conversation-diff-review-toolbar button:focus-visible {
-	outline: none;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	background-color: var(--vscode-button-secondaryHoverBackground);
 }
 

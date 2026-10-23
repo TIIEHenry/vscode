@@ -1704,11 +1704,12 @@ suite('Sources - review list model', () => {
 		const instantiationService = stubSourcesGitListServices();
 		const widget = store.add(instantiationService.createInstance(SourcesReviewList, host));
 
-		const status = await waitForStatusText(host, '.sources-review-status');
-		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
-		assert.ok(status.includes('Unable to read git changes:'));
-		assert.ok(status.includes('boom'));
-		assert.ok(statusIsError(host));
+		const empty = await waitForStatusText(host, '.sources-review-empty', 'Unable to read git changes');
+		assert.strictEqual(empty, sourcesGitReadFailureMessage('boom'));
+		assert.ok(empty.includes('Unable to read git changes:'));
+		assert.ok(empty.includes('boom'));
+		assert.strictEqual((host.querySelector('.sources-review-status') as HTMLElement).style.display, 'none');
+		assert.ok(!statusIsError(host));
 		assert.strictEqual((widget as unknown as { list?: WorkbenchList<unknown> }).list?.length ?? 0, 0);
 		assert.ok(!host.querySelector('.sources-review-list .monaco-list-row'));
 		assert.ok(!(host.querySelector('.sources-review-empty')?.textContent ?? '').includes(localize('sourcesReviewList.noChanges', "No changes to review.")));
@@ -2556,10 +2557,11 @@ suite('Sources - review list model', () => {
 		const instantiationService = stubSourcesGitListServices();
 		store.add(instantiationService.createInstance(SourcesChangesList, host));
 
-		const status = await waitForStatusText(host, '.sources-changes-status');
-		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
-		assert.ok(status.includes('Unable to read git changes:'));
-		assert.ok(status.includes('boom'));
+		const empty = await waitForStatusText(host, '.sources-changes-empty', 'Unable to read git changes');
+		assert.strictEqual(empty, sourcesGitReadFailureMessage('boom'));
+		assert.ok(empty.includes('Unable to read git changes:'));
+		assert.ok(empty.includes('boom'));
+		assert.strictEqual((host.querySelector('.sources-changes-status') as HTMLElement).style.display, 'none');
 	});
 
 	test('empty roster session does not call git-read; Changes stay on SCM empty copy', async function () {
@@ -2847,8 +2849,9 @@ suite('Sources - review list model', () => {
 			scmService: createIndexScmService(leftover),
 		}).createInstance(SourcesReviewList, host));
 
-		const status = await waitForStatusText(host, '.sources-review-status');
-		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+		const empty = await waitForStatusText(host, '.sources-review-empty', 'Unable to read git changes');
+		assert.strictEqual(empty, sourcesGitReadFailureMessage('boom'));
+		assert.strictEqual((host.querySelector('.sources-review-status') as HTMLElement).style.display, 'none');
 		assert.strictEqual((widget as unknown as { list?: WorkbenchList<unknown> }).list?.length ?? 0, 0);
 		assert.strictEqual((host.querySelector('.sources-review-progress-header') as HTMLElement | null)?.style.display, 'none');
 		assert.strictEqual((host.querySelector('.sources-review-header-hint') as HTMLElement | null)?.style.display, 'none');
@@ -2863,8 +2866,9 @@ suite('Sources - review list model', () => {
 			scmService: createIndexScmService(leftover),
 		}).createInstance(SourcesChangesList, host));
 
-		const status = await waitForStatusText(host, '.sources-changes-status');
-		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+		const empty = await waitForStatusText(host, '.sources-changes-empty', 'Unable to read git changes');
+		assert.strictEqual(empty, sourcesGitReadFailureMessage('boom'));
+		assert.strictEqual((host.querySelector('.sources-changes-status') as HTMLElement).style.display, 'none');
 		assert.strictEqual((widget as unknown as { list?: WorkbenchList<unknown> }).list?.length ?? 0, 0);
 		assert.strictEqual((host.querySelector('.sources-changes-toolbar') as HTMLElement | null)?.style.display, 'none');
 		assert.ok(!host.querySelector('.sources-changes-list .monaco-list-row'));
@@ -3004,10 +3008,8 @@ suite('Sources - review list model', () => {
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 			const host = mountListHost();
 			const widget = store.add(stubSourcesGitListServices().createInstance(SourcesReviewList, host));
-			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = message => {
-				if (message) {
-					throw paintBoom;
-				}
+			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = () => {
+				throw paintBoom;
 			};
 			(widget as unknown as { scheduleRefresh(): void }).scheduleRefresh();
 			(widget as unknown as { refreshScheduler: { flush(): void } }).refreshScheduler.flush();
@@ -3044,10 +3046,8 @@ suite('Sources - review list model', () => {
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 			const host = mountListHost();
 			const widget = store.add(stubSourcesGitListServices().createInstance(SourcesChangesList, host));
-			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = message => {
-				if (message) {
-					throw paintBoom;
-				}
+			(widget as unknown as { setStatusMessage(message: string | undefined): void }).setStatusMessage = () => {
+				throw paintBoom;
 			};
 			(widget as unknown as { scheduleRefresh(): void }).scheduleRefresh();
 			(widget as unknown as { refreshScheduler: { flush(): void } }).refreshScheduler.flush();

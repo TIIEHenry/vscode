@@ -237,7 +237,8 @@
 }
 
 .monaco-workbench .part.sources .sources-review-state:focus-visible {
-	outline: none;
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 	background-color: var(--vscode-toolbar-hoverBackground);
 	border-radius: 4px;
 }
@@ -286,31 +287,14 @@
 }
 
 .monaco-workbench .part.sources .sources-review-empty {
-	display: flex;
-	flex-direction: column;
 	flex: 1;
-	align-items: center;
-	justify-content: center;
 	min-width: 0;
-	min-height: 100px;
-	padding: 24px 16px;
-	text-align: center;
+	padding: 8px 12px;
 	color: var(--vscode-descriptionForeground);
 	font-size: 12px;
-	line-height: 1.5;
+	line-height: 16px;
 	overflow-wrap: anywhere;
-	gap: 8px;
 	user-select: none;
-}
-
-.monaco-workbench .part.sources .sources-review-empty::before {
-	display: inline-block;
-	font-family: codicon;
-	font-size: 24px;
-	line-height: 1;
-	content: "\ea71";
-	color: var(--vscode-descriptionForeground);
-	opacity: 0.65;
 }
 
 .monaco-workbench .part.sources .sources-review-empty.is-error {

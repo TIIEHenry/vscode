@@ -1037,6 +1037,25 @@ suite('Sources - Changes list leftover honesty', () => {
 		throw new Error(`status stayed empty${contains ? ` (wanted ${contains})` : ''}`);
 	}
 
+	async function waitForEmptyText(host: HTMLElement, contains: string): Promise<string> {
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline) {
+			const text = host.querySelector('.sources-changes-empty')?.textContent ?? '';
+			if (text.includes(contains)) {
+				return text;
+			}
+			await timeout(20);
+		}
+		throw new Error(`empty stayed without ${contains}`);
+	}
+
+	function assertChangesFailureOnlyInEmpty(host: HTMLElement): void {
+		const status = host.querySelector('.sources-changes-status') as HTMLElement | null;
+		assert.strictEqual(status?.textContent ?? '', '');
+		assert.strictEqual(status?.style.display ?? 'none', 'none');
+		assert.ok(!status?.classList.contains('is-error'));
+	}
+
 	async function waitForList(owner: { list?: WorkbenchList<ISourcesChangeEntry> }): Promise<WorkbenchList<ISourcesChangeEntry>> {
 		const deadline = Date.now() + 2000;
 		while (Date.now() < deadline) {
@@ -1124,13 +1143,12 @@ suite('Sources - Changes list leftover honesty', () => {
 			},
 		})).createInstance(SourcesChangesList, host));
 
-		const status = await waitForStatusText(host, 'Unable to read git changes');
-		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
+		const empty = await waitForEmptyText(host, 'Unable to read git changes');
+		assert.strictEqual(empty, sourcesGitReadFailureMessage('boom'));
 		assert.strictEqual((widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> }).list?.length ?? 0, 0);
 		assert.ok(!host.querySelector('.sources-changes-list .monaco-list-row'));
-		assert.ok(!(host.querySelector('.sources-changes-empty')?.textContent ?? '').includes('No changes.'));
-		assert.ok((host.querySelector('.sources-changes-empty')?.textContent ?? '').includes('Unable to read git changes'));
-		assert.ok(host.querySelector('.sources-changes-status')?.classList.contains('is-error'));
+		assert.ok(!empty.includes('No changes.'));
+		assertChangesFailureOnlyInEmpty(host);
 		assert.strictEqual((host.querySelector('.sources-changes-commit') as HTMLElement | null)?.style.display, 'none');
 	});
 
@@ -1144,9 +1162,9 @@ suite('Sources - Changes list leftover honesty', () => {
 			},
 		}), scm).createInstance(SourcesChangesList, host));
 
-		const status = await waitForStatusText(host, 'Unable to read git changes');
-		assert.strictEqual(status, sourcesGitReadFailureMessage('boom'));
-		assert.ok(host.querySelector('.sources-changes-status')?.classList.contains('is-error'));
+		const empty = await waitForEmptyText(host, 'Unable to read git changes');
+		assert.strictEqual(empty, sourcesGitReadFailureMessage('boom'));
+		assertChangesFailureOnlyInEmpty(host);
 		assert.strictEqual((host.querySelector('.sources-changes-commit') as HTMLElement | null)?.style.display, 'none');
 	});
 
@@ -1704,7 +1722,8 @@ suite('Sources - Changes list leftover honesty', () => {
 			assert.strictEqual(emptyReadCalls, 0);
 			emptyConnected = true;
 			emptyConnectionEmitter.fire(emptySnapshot());
-			await waitForStatusText(emptyScmHost, 'Unable to read git changes');
+			await waitForEmptyText(emptyScmHost, 'Unable to read git changes');
+			assertChangesFailureOnlyInEmpty(emptyScmHost);
 			assert.strictEqual(emptyReadCalls, 1);
 			const emptySnap = modelSnapshot(emptyInstantiation);
 			assert.strictEqual(emptySnap.state.kind, 'scm');

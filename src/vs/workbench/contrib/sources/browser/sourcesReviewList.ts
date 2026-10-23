@@ -92,6 +92,7 @@ interface ISourcesReviewRendererDelegate {
 	isReviewed(entry: ISourcesReviewEntry): boolean;
 	isSourcesGitWriteListFailed(): boolean;
 	isSourcesKeepLeftoverWrite(): boolean;
+	reviewStateHoldReason(): string | undefined;
 	getChips(entry: ISourcesReviewEntry): readonly IReviewAttributionChipDisplay[];
 	getChipTitle(chip: IReviewAttributionChipDisplay): string;
 	onChipClick(toolCallId: string): void;
@@ -137,11 +138,12 @@ class SourcesReviewRenderer implements IListRenderer<ISourcesReviewEntry, ISourc
 			? localize('sourcesReviewList.markUnreviewed', "Mark as unreviewed")
 			: localize('sourcesReviewList.markReviewed', "Mark as reviewed");
 		const writeHold = this.delegate.isSourcesGitWriteListFailed() || this.delegate.isSourcesKeepLeftoverWrite();
+		const holdReason = writeHold ? this.delegate.reviewStateHoldReason() : undefined;
 		templateData.reviewState.disabled = writeHold;
 		templateData.reviewState.setAttribute('aria-pressed', String(reviewed));
-		templateData.reviewState.setAttribute('aria-label', reviewLabel);
+		templateData.reviewState.setAttribute('aria-label', holdReason ? `${reviewLabel}. ${holdReason}` : reviewLabel);
 		templateData.reviewState.setAttribute('aria-disabled', String(writeHold));
-		templateData.reviewState.title = reviewLabel;
+		templateData.reviewState.title = holdReason ?? reviewLabel;
 		if (!writeHold) {
 			templateData.elementDisposables.add(dom.addDisposableListener(templateData.reviewState, 'click', event => {
 				event.preventDefault();
@@ -246,6 +248,7 @@ export class SourcesReviewList extends Disposable {
 		isReviewed: (entry) => this.isEntryReviewed(entry),
 		isSourcesGitWriteListFailed: () => this.isSourcesGitWriteClosed(),
 		isSourcesKeepLeftoverWrite: () => this.isSourcesKeepLeftoverWrite(),
+		reviewStateHoldReason: () => this.reviewStateHoldReason(),
 		getChips: (entry) => this.chipMap.get(entry.resource.toString()) ?? [],
 		getChipTitle: (chip) => !chip.overflow && this.lastRevealMissToolCallId === chip.toolCallId
 			? sourcesReviewRevealMissHint
@@ -370,6 +373,16 @@ export class SourcesReviewList extends Disposable {
 	isSourcesGitWriteClosed(): boolean {
 		// Pairing-hold includes `connecting`; the changes write door only checks `connected`.
 		return this.changesModel.isWriteClosed() || this.session.isPairingHold();
+	}
+
+	private reviewStateHoldReason(): string | undefined {
+		if (!this.isSourcesGitWriteClosed() && !this.isSourcesKeepLeftoverWrite()) {
+			return undefined;
+		}
+		if (this.session.isPairingHold()) {
+			return sourcesGitReadPairingHoldMessage();
+		}
+		return localize('sourcesReviewList.sessionNotReady', "The engine is connected, but the active session is not ready.");
 	}
 
 	toggleReviewedSelected(): void {
@@ -623,7 +636,18 @@ export class SourcesReviewList extends Disposable {
 	private updateProgressHeader(entries: readonly ISourcesReviewEntry[]): void {
 		const { reviewed, total } = countReviewProgress(entries, entry => this.isEntryReviewed(entry));
 		this.progressCount.textContent = localize('sourcesReviewList.reviewProgress', "Reviewed {0} / {1}", reviewed, total);
-		this.markAllButton.enabled = total > 0 && reviewed < total && !this.isSourcesGitWriteClosed();
+		const canMark = total > 0 && reviewed < total && !this.isSourcesGitWriteClosed();
+		const markLabel = localize('sourcesReviewList.markAllReviewed', "Mark all as reviewed");
+		const markReason = this.isSourcesGitWriteClosed()
+			? (this.session.isPairingHold()
+				? sourcesGitReadPairingHoldMessage()
+				: localize('sourcesReviewList.sessionNotReady', "The engine is connected, but the active session is not ready."))
+			: (total === 0
+				? localize('sourcesReviewList.nothingToReview', "There is nothing to mark as reviewed.")
+				: localize('sourcesReviewList.alreadyReviewed', "Everything listed is already reviewed."));
+		this.markAllButton.enabled = canMark;
+		this.markAllButton.setTitle(canMark ? markLabel : markReason);
+		this.markAllButton.setAriaLabel(canMark ? markLabel : `${markLabel}. ${markReason}`);
 	}
 
 	private async openReviewEntryMarkingReviewed(
@@ -825,8 +849,10 @@ export class SourcesReviewList extends Disposable {
 		this.filterRow.style.display = hasAnyEntries ? 'flex' : 'none';
 		this.progressHeader.style.display = hasAnyEntries ? 'flex' : 'none';
 		this.headerHint.style.display = hasAnyEntries ? '' : 'none';
-		if (gitReadError) {
+		if (gitReadError && hasAnyEntries) {
 			this.setStatusMessage(gitReadError, true);
+		} else if (gitReadError) {
+			this.setStatusMessage(undefined);
 		} else if (gitReadPairingHold) {
 			this.setStatusMessage(sourcesGitReadPairingHoldMessage());
 		} else if (gitReadNoHook) {

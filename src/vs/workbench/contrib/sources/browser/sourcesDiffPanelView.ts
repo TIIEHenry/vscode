@@ -446,9 +446,12 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 		const emptyStage = resolveSourcesDiffEmptyStageChrome(facts);
+		const stageLabel = localize('sourcesDiffPanel.stage', "Stage");
 		this.stageButton.disabled = emptyStage.disableStage;
 		this.stageButton.setAttribute('aria-disabled', emptyStage.disableStage ? 'true' : 'false');
 		const emptyMessage = sourcesGitEmptyStagePathMessage();
+		this.stageButton.title = emptyStage.disableStage ? emptyMessage : stageLabel;
+		this.stageButton.setAttribute('aria-label', emptyStage.disableStage ? `${stageLabel}. ${emptyMessage}` : stageLabel);
 		if (emptyStage.status) {
 			this.showActionNotice(emptyStage.status);
 			return;
