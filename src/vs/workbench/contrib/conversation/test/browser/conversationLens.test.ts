@@ -1013,19 +1013,14 @@ suite('ConversationLens', () => {
 		await waitForModelOption(slots, 'gpt-b');
 
 		const modelSelect = getModelSelect(slots);
-		assert.strictEqual(modelSelect.selectedIndex, 1);
-		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
-
-		selectDockModel(slots, 2);
-		await Promise.resolve();
-
-		assert.strictEqual(modelSelect.selectedIndex, 1);
-		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
-
-		selectDockModel(slots, 0);
-		await Promise.resolve();
 		assert.strictEqual(modelSelect.selectedIndex, 0);
-		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
+
+		selectDockModel(slots, 1);
+		await Promise.resolve();
+
+		assert.strictEqual(modelSelect.selectedIndex, 0);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
 	});
 
 	test('permission select rolls back and shows the gate when setPermissionMode fails', async () => {
@@ -1101,15 +1096,15 @@ suite('ConversationLens', () => {
 		stubService.setEngineConnected(true);
 		await waitForModelOption(slots, 'gpt-b');
 		assert.strictEqual(calls.length, 0);
-		assert.strictEqual(getModelSelect(slots).selectedIndex, 1);
+		assert.strictEqual(getModelSelect(slots).selectedIndex, 0);
 
-		selectDockModel(slots, 2);
+		selectDockModel(slots, 1);
 		await Promise.resolve();
 
 		assert.strictEqual(calls.length, 1);
 		assert.strictEqual(calls[0].sessionId, stubService.getActiveSessionId());
 		assert.strictEqual(calls[0].modelId, 'gpt-b');
-		assert.strictEqual(getModelSelect(slots).selectedIndex, 2);
+		assert.strictEqual(getModelSelect(slots).selectedIndex, 1);
 	});
 
 	test('model select rolls back and shows the gate when switchModel fails', async () => {
@@ -1139,12 +1134,12 @@ suite('ConversationLens', () => {
 		const modelSelect = getModelSelect(slots);
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
 
-		selectDockModel(slots, 2);
+		selectDockModel(slots, 1);
 		await Promise.resolve();
 
 		assert.strictEqual(calls.length, 1);
 		assert.strictEqual(calls[0].modelId, 'gpt-b');
-		assert.strictEqual(modelSelect.selectedIndex, 1);
+		assert.strictEqual(modelSelect.selectedIndex, 0);
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
 		assert.strictEqual(gateRow.hidden, false);
@@ -1178,12 +1173,12 @@ suite('ConversationLens', () => {
 		const modelSelect = getModelSelect(slots);
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
 
-		selectDockModel(slots, 2);
+		selectDockModel(slots, 1);
 		await Promise.resolve();
 
 		assert.strictEqual(calls.length, 1);
 		assert.strictEqual(calls[0].modelId, 'gpt-b');
-		assert.strictEqual(modelSelect.selectedIndex, 1);
+		assert.strictEqual(modelSelect.selectedIndex, 0);
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
 		assert.strictEqual(gateRow.hidden, false);

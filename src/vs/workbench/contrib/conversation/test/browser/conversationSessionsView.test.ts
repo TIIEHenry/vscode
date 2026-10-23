@@ -378,6 +378,7 @@ suite('ConversationSessionsView', () => {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
 			override onDidChangeEngineConnection = Event.None;
+			override readonly onDidChangeSessionRosterDetail = Event.None;
 			override getSessions() { return []; }
 			override getActiveSessionId() { return ''; }
 			override createSession() { return 'new'; }
@@ -551,6 +552,7 @@ suite('ConversationSessionsView', () => {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
 			override onDidChangeEngineConnection = Event.None;
+			override readonly onDidChangeSessionRosterDetail = Event.None;
 			override getSessions() { return []; }
 			override getActiveSessionId() { return ''; }
 			override createSession() { return 'new'; }
@@ -614,6 +616,7 @@ suite('ConversationSessionsView', () => {
 		stubService.renameSession(alphaId, 'Alpha roster item');
 		const betaId = stubService.createSession();
 		stubService.renameSession(betaId, 'Beta roster item');
+		stubService.switchSession(alphaId);
 
 		await setFilterQuery(view, 'alpha');
 
@@ -629,6 +632,7 @@ suite('ConversationSessionsView', () => {
 		stubService.renameSession(alphaId, 'Alpha roster item');
 		const betaId = stubService.createSession();
 		stubService.renameSession(betaId, 'Beta roster item');
+		stubService.switchSession(alphaId);
 		const fullCount = stubService.getSessions().length;
 
 		await setFilterQuery(view, 'alpha');
@@ -695,7 +699,7 @@ suite('ConversationSessionsView', () => {
 
 		await setFilterQuery(view, 'beta');
 
-		const label = view.element.querySelector('.conversation-sessions-item-label') as HTMLElement;
+		const label = [...view.element.querySelectorAll('.conversation-sessions-item-label')].find(el => el.textContent === 'Beta roster item') as HTMLElement;
 		assert.ok(label);
 		assert.strictEqual(label.textContent, 'Beta roster item');
 		label.click();

@@ -39,7 +39,7 @@ export interface IConversationLensComposerHost {
 	filterAgentId: string | undefined;
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	submitInFlight: boolean;
-	lastAttachedEntries?: readonly { readonly streaming?: boolean }[];
+	lastAttachedEntries?: readonly { readonly streaming?: boolean; readonly toolStatus?: string }[];
 	hasStreamingEntry?: () => boolean;
 	modelSelectedIndex: number;
 	/** Session id → model profile id. Not part of ConversationSessionConfigSelection. */
