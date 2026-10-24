@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-23
+updated: 2026-10-24
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -50,9 +50,11 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 |---------|------|
 | `workbench.view.sessions.focus` | 视图容器自动生成的 focus 命令；D4 V5 用它 |
 | `workbench.action.conversationSessions.newSession` | 视图标题 `+` |
-| `workbench.action.conversationSessions.deleteSession` | 视图标题垃圾桶 |
+| `workbench.action.conversationSessions.deleteSession` | 视图标题垃圾桶；删的是当前活动会话，先确认，与 SessionBar 删除同一个确认（[session-windows](session-windows.md)） |
 | `workbench.action.conversationSessions.openBeside` | 行右键「Open beside」；Alt+点击等价 |
 | 行单击 / `onDidOpen` | `switchSession` → 显示 Part → focus |
+
+行按 `groupSessionsForRoster` 分 Today / Yesterday / Earlier 三组，组内按 `lastAccessedAt` 从新到旧；没有访问时间的排在 Earlier 末尾，彼此保持引擎顺序；全无访问时间时不分组、保持引擎顺序（PRD-002 验收 5）。
 
 ## 4. UA Preferences 与深链
 

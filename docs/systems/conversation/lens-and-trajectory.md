@@ -3,7 +3,7 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-23
+updated: 2026-10-24
 summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；时间线 content-visibility 只走样式表，焦点行不被 120px 占位夹住；Accessible View；帧源投影与 Q4 live 过程折；换到另一条会话时过程折展开不沿用，pending 或名单未就绪时时间线和轨迹也不留上一条；发起窗乐观发送行标 Sending… 且不可编辑；轨迹表与检查器的用户预览去掉合法引用尾块；不可重试的权限送达失败不再标 Input needed；离开待决且未回答的提问是 undecided，不再当成待确认座位；已提交且快照仍 pending 的 Allow/Skip 与提问不再交第二次；多道必填单选在每道都点过之前不提交，也不把没点过的第一项一起交出去；换到另一条会话时清掉轨迹搜索，同一条重连和 KEEP leftover 仍留着；同一封里的思考在正文或工具出现后仍先画成阅读区思考行，关掉工具详情也留着；已有同样思考行时工具标题下不再重复这段；没有思考行时工具标题下的思考仍在详情开着时留着；关掉工具详情时不画 file_edit 增删统计；live 工具 overlay 仍有正文时阅读区另留助手行，工具摘要只用工具名；同一 turn 只有 tool_call、没有可用正文、且 streaming 正文还在时，阅读行留着这段字，工具行另留在时间线上；工具一开始跑时 `tool_call_lifecycle.started` 的工具名走同一条生成中工具路径，已流出的正文留着；同一封信落盘时工具臂也带着正文；提问座位在选项组前画出与正文不同的题干，问句优先于短 header；用户回合不显示 You，助手默认不显示 Agent，非 default 代理名在首行 11px；用户回合靠右、宽度随正文且不超过列宽 82%，卡内文字左对齐，底色 input.background，前景色 8% 细边，高对比仍用 contrastBorder；读屏名仍在文章 aria-label；轨迹工具行显示已承认的 canvas 标题，usage 行显示已承认的 token 与 context 比例，缺则省略"
 ---
 
@@ -17,7 +17,9 @@ summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨�
 
 子代理对话框（`ConversationSubAgentOverlay`）给透镜只传自己的 `lensTablist`（可见形态仍是「对话 | 轨迹」），不再传完整 SessionBar。focus trap 根 = `overlay.element`，Tab wrap 与 Escape 才能包住透镜 / 改名。Escape 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；不关根会话。
 
-SessionBar 标题 Enter 或失焦即提交，Escape 取消且不提示。去掉首尾空白后与当前标题相同，只收起输入，不调用 `renameSession`，也不把输入条画成发送失败。空白标题收起，标题不变，并说明不能为空。配对等待或 KEEP leftover 时，即使输入框已经打开也不提交，说明引擎未连接。真正改名失败仍走既有失败提示。
+SessionBar 标题 Enter 或失焦即提交，Escape 取消且不提示。去掉首尾空白后与当前标题相同，只收起输入，不调用 `renameSession`，也不把输入条画成发送失败。空白标题收起，标题不变，并说明不能为空。配对等待或 KEEP leftover 时，即使输入框已经打开也不提交：配对等待说明引擎未连接，KEEP leftover 说明会话未就绪（`session_not_ready`，2026-10-24）。真正改名失败仍走既有失败提示。
+
+时间线没有可画回合时，空态按会话就绪度写（2026-10-24，PRD-007 验收 6；判定见 [composer-and-inbox](composer-and-inbox.md) §1 的会话就绪度）：原因只由门闩写一次，空态不重复：加载中留白；不可用写一行弱化字 `Messages not loaded`，不带图标；会话就绪且确实没有回合时才写 `No messages yet`。未就绪且 roster 没有缓存回合时仍进 PreFirst，时间线隐藏，原因由居中区里的门闩给出。KEEP leftover 保住的同一会话旧回合照常显示，不换成空态。
 
 时间线行名由 `getConversationTurnAriaLabel` 给出（含 `system` / error 可否重试 / unknown 原始类型 / 乐观发送的 sending）。流式行只在进入 / 离开 `streaming` 时改「进行中」后缀，不按 token 更新 `aria-label`。完整回合经 `ConversationAccessibleView` 接入既有 `IAccessibleViewService`（`AccessibleViewProviderId.Conversation`），不新造 live 区。
 

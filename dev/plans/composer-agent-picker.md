@@ -3,13 +3,15 @@ title: "Composer：不能切换的 Agent 控件改为只读"
 type: plan
 status: implemented
 phase: M7
-updated: 2026-10-16
+updated: 2026-10-24
 summary: "switchAgent 没有握手方法，选择会立刻滚回。不可用时底栏只显示现有不可用文案。底栏的 agentIndex 不进发送载荷。已于 2e785907611 落地。不升 PRD。"
 ---
 
 # Composer：不能切换的 Agent 控件改为只读
 
 > **触发：** [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) G6。
+>
+> **2026-10-24 覆盖：** §2「不另写已连接但不能切换」由 [session-availability-and-delete-confirm](session-availability-and-delete-confirm.md) 覆盖：只读座按原因写，未连接是 Needs an engine connection，会话未就绪是 Loading session… / Session unavailable，会话就绪但没有 `switchAgent` 是 Not supported by this engine。其余不变。
 > **不推翻：** [对话入口按广告探测](conversation-entry-capability.md) 对 `switchAgent` 的合同：没有握手方法，探测不发 `probeRpc`，提交后为 `UNSUPPORTED`。不升 PRD。
 > **落地：** `status: implemented`。已于 `2e785907611`（Slot A）落地合入。
 

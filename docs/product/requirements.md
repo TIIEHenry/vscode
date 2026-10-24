@@ -3,8 +3,8 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-10-21
-summary: "PRD-001–029：PRD-029 会话工作根与 Workbench 状态跟随会话（2026-10-11 新增，proposed，方案 draft）；PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案仍 accepted；对话框与引导页遮罩、向 Cursor 靠齐均已 implemented；2026-10-21 用户选定 ChatGPT 为主参照，方案 draft）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，P2 组归属与显隐 2026-10-05 已落，P3 未做）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
+updated: 2026-10-24
+summary: "PRD-001–029：2026-10-24 PRD-002 增补会话列表组内排序与删除确认，PRD-007 增补加载中 / 不可用 / 空三分；PRD-029 会话工作根与 Workbench 状态跟随会话（2026-10-11 新增，proposed，方案 draft）；PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案仍 accepted；对话框与引导页遮罩、向 Cursor 靠齐均已 implemented；2026-10-21 用户选定 ChatGPT 为主参照，方案 draft）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，P2 组归属与显隐 2026-10-05 已落，P3 未做）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
 # Agent IDE 产品需求
@@ -36,7 +36,9 @@ summary: "PRD-001–029：PRD-029 会话工作根与 Workbench 状态跟随会�
   2. 没有云端或引擎会话权威时，不出现「已同步远程会话」之类文案。
   3. 导航区里可以有配套会话列表，但它不是中心工作区。
   4. History / Snapshots 在无能力时整槽省略；Route 同样无能力时省略，不与 History 混用同一条规则。
-- **依赖或未决**：真实会话权威依赖引擎（PRD-008），本条只约束无引擎时的本地上下文。会话跨重启是否保留见 [PRD-017](#prd-017-本地会话持久化)。2026-09-10 修订：无 Route RPC 时省略控件（D194），不再以 PRD-015「Active 态 Route 在 SessionBar」为假下拉开脱。
+  5. 导航区会话列表在 Today / Yesterday / Earlier 每组内按最近访问时间从新到旧排列；没有访问时间的会话排在 Earlier 末尾，彼此保持引擎给出的顺序。所有会话都没有访问时间时，列表不分组，保持引擎顺序。（2026-10-24 用户增补）
+  6. 删除会话前先确认。确认框写出要删的会话标题，说明删除不能撤销；取消时不删除，也不提示失败。会话标题条的删除、窄宽度 More 里的删除和导航区会话列表标题上的删除都走同一个确认。（2026-10-24 用户增补）
+- **依赖或未决**：真实会话权威依赖引擎（PRD-008），本条只约束无引擎时的本地上下文。验收 5–6 见 [session-availability-and-delete-confirm](../../dev/plans/session-availability-and-delete-confirm.md)。会话标题回退为首条用户消息不在本条：引擎会话摘要没有这个字段。会话跨重启是否保留见 [PRD-017](#prd-017-本地会话持久化)。2026-09-10 修订：无 Route RPC 时省略控件（D194），不再以 PRD-015「Active 态 Route 在 SessionBar」为假下拉开脱。
 
 ### PRD-003 时间线与输入
 
@@ -99,7 +101,8 @@ summary: "PRD-001–029：PRD-029 会话工作根与 Workbench 状态跟随会�
   3. 文档与 UI 都不把未完成的引擎或 Diff 写成已齐。
   4. 连接态分两层、各说各的：**连接级**（是否接到引擎）显示在状态栏 / Engine 页；**会话级**（当前会话的订阅是否同步）显示在会话标题条，取值为「未连接 / 同步中 / 已连接 / 降级（附原因）/ 已断开（附原因）」五者之一。只有会话级「已连接」可以使用「已连接」措辞；不得用任一层的状态冒充另一层。
   5. 会话订阅断开后，时间线保留断开前的内容只读可见，并在列顶明示「显示为断开前快照」；不得显示「已同步」，也不得把断开后的内容换回本地占位会话。
-- **依赖或未决**：无。验收 4–5 见 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)（2026-09-02 增补）。
+  6. 引擎已连接时，当前会话的三种情况分开说：会话还在加载；会话加载失败或不在引擎会话目录里；会话确实没有消息。原因只在输入区上方的说明里写一次（「正在加载会话」或「会话不可用」）。这时时间线空态只写中性短语或留白，不写「还没有消息」，也不再带错误图标。写操作因此被拒时，失败提示说会话未就绪，不写成「引擎断开」。输入行里写出原因的控件（含提示文字）：确实未连接时说「需要连接引擎」；会话未就绪时说会话未就绪；会话可用而引擎没有对应接口时说「引擎不支持」。（2026-10-24 用户增补）
+- **依赖或未决**：无。验收 4–5 见 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)（2026-09-02 增补）。验收 6 见 [session-availability-and-delete-confirm](../../dev/plans/session-availability-and-delete-confirm.md)。
 
 ## 待验证说明
 
