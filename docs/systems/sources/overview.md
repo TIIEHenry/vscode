@@ -3,7 +3,7 @@ title: "Sources 系统概览：Files | Changes | Review"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-10-23
+updated: 2026-10-24
 summary: "SOURCES_PART 槽 + SourcesTabsHost；Files 挂资源管理器同一棵工作区树，列表模式只把树换成当前目录的一级列表，面包屑和标题操作仍在。Part 宽至少 600px 时三个 tab 的筛选收到标题栏。不注册活动栏图标，打开不带动侧栏。Changes/Review 接通走 readGit* 否则 SCM；Accept 定为暂存光标 hunk（方案未实施前无载荷不显示）；Diff 默认 Preview。Sources 变更读收成 ISourcesChangesModel；Changes 与 Review 投影同一快照，会话事实走 IAgentSessionContext。Accept 仍无载荷不显示。P3 身份跟着条目走已落。P6 与 P7 已落；方案 sources-architecture 仍 accepted。禁用钮带原因 title / aria-label；首拉失败且无旧条目时错误只进空区，不重复写底栏。"
 ---
 
@@ -41,7 +41,7 @@ Files 用资源管理器的 “Filter files”。Changes / Review 用紧凑 filt
 | Files 没打开文件夹 | `You have not yet opened a folder.`（不挂树） |
 | 筛选无匹配 | `No matching files.` / `No matching changes.` |
 | Changes/Review 首拉 `readGit*` throw | 没有旧条目时空区写 `Unable to read git changes: …`，**不**写 `No changes.` / `No changes to review.`，底栏状态行不重复同一句、Commit 行也收起；已有旧条目时错误留在底栏失败色 + `role=status`，列表照旧 |
-| 无 SCM 提供者 | Changes / Review 空列表；不造假变更 |
+| 无 SCM 提供者 | Changes / Review 空列表；不造假变更。Commit 在引擎回 `supported:false` 或没有可用写 hook 时写 `Git stage/commit commands are not available.`，不写「Unable to commit」 |
 | Review | 有变更时 hint `Review progress stays in this window.`；无仓库时只留空态、不画 hint；**无假 review comment** |
 
 ## 4. 边界

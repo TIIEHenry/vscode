@@ -1129,9 +1129,9 @@ suite('Sources - review list model', () => {
 			openEditor: async input => openFailedConversationPane(instantiationService, input),
 		});
 		instantiationService.stub(IEditorService, {
-			openEditor: async () => {
+			openEditor: async (input: unknown, _options: unknown, group: unknown) => {
 				editorOpens++;
-				return undefined;
+				return (group as { openEditor(editor: unknown): Promise<unknown> }).openEditor(input);
 			},
 		} as unknown as IEditorService);
 		instantiationService.stub(IEditorGroupsService, harness.editorGroupsService);
@@ -1144,7 +1144,7 @@ suite('Sources - review list model', () => {
 		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())));
 		assert.ok(statusIsError(host));
 		assert.strictEqual(marked, 0);
-		assert.strictEqual(editorOpens, 0);
+		assert.strictEqual(editorOpens, 1);
 		assert.ok(harness.opened[0] instanceof ConversationDiffReviewInput);
 	});
 

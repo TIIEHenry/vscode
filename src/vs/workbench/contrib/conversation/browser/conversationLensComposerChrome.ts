@@ -1302,14 +1302,6 @@ export function sessionModelProfileId(host: { modelProfileIdBySessionId?: Map<st
 	return host.modelProfileIdBySessionId?.get(sessionId)?.trim() ?? '';
 }
 
-function modelIndexForRecordedId(ids: readonly string[] | undefined, recordedId: string): number {
-	if (!recordedId || !ids || ids.length === 0) {
-		return 0;
-	}
-	const found = ids.indexOf(recordedId);
-	return found >= 0 ? found : 0;
-}
-
 function restoreSessionModelIndex(host: IConversationLensComposerChromeHost, sessionId: string, modelIndex: number, previousId: string): void {
 	const map = ensureSessionModelProfileIds(host);
 	const trimmed = previousId.trim();

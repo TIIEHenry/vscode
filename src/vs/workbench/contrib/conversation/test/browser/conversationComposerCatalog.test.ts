@@ -119,7 +119,7 @@ suite('conversationComposerCatalog', () => {
 			listAgentProfiles: async () => ({ profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] }),
 			listModels: async () => ({ models: [] }),
 			listTools: async () => ({ tools: [] }),
-		});
+		}, 'SUPPORTED', { switchAgent: true });
 		(host.uaConnection as { switchAgent?: unknown }).switchAgent = async () => {
 			switchCalls.push('switchAgent');
 		};
@@ -127,6 +127,24 @@ suite('conversationComposerCatalog', () => {
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
 		assert.deepStrictEqual(switchCalls, []);
 		assert.strictEqual(host.getSessionConfig('s1').agentIndex, 0);
+	});
+
+	test('without SwitchAgent the composer does not load agent profiles', async () => {
+		let listAgentProfilesCalls = 0;
+		const { host, agentOptions } = createLoadCatalogHost({
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] };
+			},
+			listModels: async () => ({ models: [] }),
+			listTools: async () => ({ tools: [] }),
+		});
+
+		await loadConnectedComposerCatalogs(host, 1);
+
+		assert.strictEqual(listAgentProfilesCalls, 0);
+		assert.deepStrictEqual(agentOptions, [{ text: conversationLensDockNoAgent }]);
+		assert.ok(!agentOptions.some(option => option.text === 'Coder'));
 	});
 
 	test('loadConnectedComposerCatalogs success then SUPPORTED throw keeps last-good catalogs', async () => {
@@ -155,7 +173,7 @@ suite('conversationComposerCatalog', () => {
 				}
 				throw new Error('listTools retry exploded');
 			},
-		});
+		}, 'SUPPORTED', { switchAgent: true });
 
 		await loadConnectedComposerCatalogs(host, 1);
 
@@ -350,7 +368,7 @@ suite('conversationComposerCatalog', () => {
 				}
 				throw new Error('listTools retry exploded');
 			},
-		});
+		}, 'SUPPORTED', { switchAgent: true });
 
 		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
@@ -401,7 +419,7 @@ suite('conversationComposerCatalog', () => {
 				await secondLoadHeld;
 				throw new Error('listTools hung then exploded');
 			},
-		});
+		}, 'SUPPORTED', { switchAgent: true });
 
 		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
@@ -439,7 +457,7 @@ suite('conversationComposerCatalog', () => {
 				await firstLoadHeld;
 				return { tools: [{ name: 'bash' }] };
 			},
-		});
+		}, 'SUPPORTED', { switchAgent: true });
 
 		refreshComposerCatalogs(host);
 
@@ -477,10 +495,10 @@ suite('conversationComposerCatalog', () => {
 		await loadConnectedComposerCatalogs(host, 1);
 
 		assert.strictEqual(listCalls, 0);
-		assert.deepStrictEqual(agentOptions, [{ text: conversationLensDockCatalogProbing }]);
+		assert.deepStrictEqual(agentOptions, [{ text: conversationLensDockNoAgent }]);
 		assert.deepStrictEqual(modelOptions, [{ text: conversationLensDockCatalogProbing }]);
 		assert.deepStrictEqual([...host.catalogToolNames], []);
-		assert.ok(!agentOptions.some(option => option.text === conversationLensDockNoAgent));
+		assert.ok(!agentOptions.some(option => option.text === conversationLensDockCatalogProbing));
 		assert.ok(!modelOptions.some(option => option.text === conversationLensDockNoModel));
 	});
 
@@ -502,7 +520,7 @@ suite('conversationComposerCatalog', () => {
 				listToolsCalls++;
 				return { tools: [{ name: 'bash' }] };
 			},
-		}, () => support);
+		}, () => support, { switchAgent: true });
 		await loadConnectedComposerCatalogs(host, 1);
 		assert.ok(agentOptions.some(option => option.text === 'Coder'));
 		assert.ok(modelOptions.some(option => option.text === 'gpt-test'));
@@ -732,6 +750,7 @@ suite('conversationComposerCatalog', () => {
 			isEngineConnected: () => connected && !pairingPending,
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getConnectionSnapshot: snapshot,
+			switchAgent: true,
 		});
 
 		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
@@ -801,6 +820,7 @@ suite('conversationComposerCatalog', () => {
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			getConnectionSnapshot: snapshot,
+			switchAgent: true,
 		});
 
 		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
@@ -878,6 +898,7 @@ suite('conversationComposerCatalog', () => {
 			isEngineSessionReady: () => engineSessionReady,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			getConnectionSnapshot: snapshot,
+			switchAgent: true,
 		});
 
 		await loadConnectedComposerCatalogs(host, host.composerCatalogGeneration);
@@ -1105,6 +1126,8 @@ suite('conversationComposerCatalog', () => {
 			},
 			listModels: async () => ({ models: [] }),
 			listTools: async () => ({ tools: [] }),
+		}, 'SUPPORTED', {
+			switchAgent: true,
 		});
 
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
@@ -1367,6 +1390,7 @@ function createLoadCatalogHost(
 		isEngineSessionReady?: () => boolean;
 		getConnectionPhase?: IUniverseAgentConnection['getConnectionPhase'];
 		getConnectionSnapshot?: IUniverseAgentConnection['getConnectionSnapshot'];
+		switchAgent?: boolean;
 	},
 ): {
 	host: IConversationLensComposerHost;
@@ -1383,8 +1407,13 @@ function createLoadCatalogHost(
 	const modelSelect = { selectedIndex: 0 };
 	const gateRow = {
 		hidden: true,
+		querySelector() {
+			return null;
+		},
+		insertBefore() { },
 		classList: {
 			remove() { },
+			toggle() { },
 		},
 		setAttribute() { },
 		removeAttribute() { },
@@ -1441,6 +1470,7 @@ function createLoadCatalogHost(
 			listAgentProfiles: hooks.listAgentProfiles,
 			listModels: hooks.listModels,
 			listTools: hooks.listTools,
+			...(engine?.switchAgent ? { switchAgent: async () => ({ ok: true }) } : {}),
 			...(engine?.getConnectionPhase ? { getConnectionPhase: engine.getConnectionPhase } : {}),
 			...(engine?.getConnectionSnapshot ? { getConnectionSnapshot: engine.getConnectionSnapshot } : {}),
 		}),

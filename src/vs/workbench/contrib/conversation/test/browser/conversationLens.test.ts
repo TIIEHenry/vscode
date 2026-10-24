@@ -24,7 +24,6 @@ import { ConversationTimelineHost } from '../../browser/conversationTimelineHost
 import { conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore, conversationLensTurnRegenerate } from '../../browser/conversationTimelineRenderer.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import {
-	conversationLensDockAgentLabel,
 	conversationLensDockControlHeightPx,
 	conversationLensDockEditExit,
 	conversationLensDockEditingMessage,
@@ -38,7 +37,6 @@ import {
 	conversationLensDockNoModel,
 	conversationLensDockNoTools,
 	conversationLensDockNoEngineTools,
-	conversationLensDockNoAgent,
 	conversationLensDockPermissionAsk,
 	conversationLensDockPermissionLabel,
 	conversationLensDockPermissionPermit,
@@ -83,7 +81,7 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 import { entriesToLegacyTurns, projectSnapshotToEntries } from '../../browser/conversationSessionView.js';
 import type { SessionViewSnapshot, TimelineItemId } from '../../../../../platform/universeAgent/common/sessionView/index.js';
-import { CONVERSATION_LENS_ID_STORAGE_KEY } from '../../browser/conversationLensProjection.js';
+import { CONVERSATION_LENS_ID_STORAGE_KEY, conversationLensIdStorageKey } from '../../browser/conversationLensProjection.js';
 import { TestConversationFrameSource } from './testConversationFrameSource.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
@@ -456,12 +454,19 @@ suite('ConversationLens', () => {
 		return select;
 	}
 
+	function getAgentReadonlyLabel(slots: IConversationLensSlots): HTMLElement {
+		const label = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent .conversation-lens-dock-agent-readonly') as HTMLElement | null;
+		assert.ok(label);
+		return label;
+	}
+
 	function assertDisconnectedComposerCatalogsHonest(slots: IConversationLensSlots): void {
-		const agentSelect = getAgentSelect(slots);
+		const agentContainer = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent') as HTMLElement;
 		const modelSelect = getModelSelect(slots);
-		assert.strictEqual(agentSelect.options.length, 1);
-		assert.strictEqual(agentSelect.options[0]?.text, conversationLensDockNoAgent);
-		assert.ok(![...agentSelect.options].some(option => option.text === 'Stub agent'));
+		assert.strictEqual(agentContainer.querySelector('select'), null);
+		const agentLabel = getAgentReadonlyLabel(slots);
+		assert.strictEqual(agentLabel.textContent, conversationLensDockAgentUnavailable);
+		assert.strictEqual(agentLabel.getAttribute('aria-label'), conversationLensDockAgentUnavailable);
 		assert.strictEqual(modelSelect.options.length, 1);
 		assert.strictEqual(modelSelect.options[0]?.text, conversationLensDockNoModel);
 		assert.ok(![...modelSelect.options].some(option => option.text === 'Stub model'));
@@ -940,7 +945,43 @@ suite('ConversationLens', () => {
 		assert.strictEqual(permissionContainer.title, conversationLensDockPermissionLabel);
 	});
 
-	test('agent select is disabled without SwitchAgent and does not write agentIndex', async () => {
+	test('agent slot is read-only without SwitchAgent and does not load profiles', async () => {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		let listAgentProfilesCalls = 0;
+		const connection = createConversationConnectionTestStub({
+			getCapabilitySnapshot: () => ({
+				...capabilities,
+				agentProfiles: { support: 'SUPPORTED' },
+			}),
+			listAgentProfiles: async () => {
+				listAgentProfilesCalls++;
+				return { profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] };
+			},
+		});
+		const { part, stubService, lens } = mountLens({ connection });
+		const slots = getLensSlots(part);
+		const sessionId = stubService.getActiveSessionId();
+		const agentContainer = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent') as HTMLElement;
+
+		assert.strictEqual(agentContainer.querySelector('select'), null);
+		const label = getAgentReadonlyLabel(slots);
+		assert.strictEqual(label.textContent, conversationLensDockAgentUnavailable);
+		assert.strictEqual(label.getAttribute('aria-label'), conversationLensDockAgentUnavailable);
+		assert.strictEqual(label.title, conversationLensDockAgentUnavailable);
+		assert.strictEqual(lens.getSessionConfig(sessionId).agentIndex, 0);
+		assert.strictEqual(listAgentProfilesCalls, 0);
+
+		stubService.setEngineConnected(true);
+		for (let i = 0; i < 8; i++) {
+			await Promise.resolve();
+		}
+		assert.strictEqual(agentContainer.querySelector('select'), null);
+		assert.strictEqual(getAgentReadonlyLabel(slots).textContent, conversationLensDockAgentUnavailable);
+		assert.strictEqual(lens.getSessionConfig(sessionId).agentIndex, 0);
+		assert.strictEqual(listAgentProfilesCalls, 0);
+	});
+
+	test('agent select rolls back to agentIndex when SwitchAgent is available', async () => {
 		const capabilities = createEmptyTestCapabilitySnapshot();
 		const connection = createConversationConnectionTestStub({
 			getCapabilitySnapshot: () => ({
@@ -949,23 +990,16 @@ suite('ConversationLens', () => {
 			}),
 			listAgentProfiles: async () => ({ profiles: [{ id: 'coder', name: 'Coder', source: 'user' }] }),
 		});
+		(connection as { switchAgent?: unknown }).switchAgent = async () => ({ ok: true });
 		const { part, stubService, lens } = mountLens({ connection });
 		const slots = getLensSlots(part);
 		const sessionId = stubService.getActiveSessionId();
-		const agentSelect = getAgentSelect(slots);
-		const agentContainer = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent') as HTMLElement;
-
-		assert.strictEqual(agentSelect.disabled, true);
-		assert.strictEqual(agentSelect.getAttribute('aria-label'), `${conversationLensDockAgentLabel} — ${conversationLensDockAgentUnavailable}`);
-		assert.strictEqual(agentContainer.title, conversationLensDockAgentUnavailable);
-		assert.strictEqual(lens.getSessionConfig(sessionId).agentIndex, 0);
-
 		stubService.setEngineConnected(true);
 		for (let i = 0; i < 8; i++) {
 			await Promise.resolve();
 		}
-		assert.ok([...agentSelect.options].some(option => option.text === 'Coder'));
-		assert.strictEqual(agentSelect.disabled, true);
+
+		const agentSelect = getAgentSelect(slots);
 		const coderIndex = [...agentSelect.options].findIndex(option => option.text === 'Coder');
 		assert.ok(coderIndex >= 0);
 		agentSelect.selectedIndex = coderIndex;
@@ -1014,19 +1048,14 @@ suite('ConversationLens', () => {
 		await waitForModelOption(slots, 'gpt-b');
 
 		const modelSelect = getModelSelect(slots);
-		assert.strictEqual(modelSelect.selectedIndex, 1);
-		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
-
-		selectDockModel(slots, 2);
-		await Promise.resolve();
-
-		assert.strictEqual(modelSelect.selectedIndex, 1);
-		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
-
-		selectDockModel(slots, 0);
-		await Promise.resolve();
 		assert.strictEqual(modelSelect.selectedIndex, 0);
-		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, conversationLensDockNoModel);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
+
+		selectDockModel(slots, 1);
+		await Promise.resolve();
+
+		assert.strictEqual(modelSelect.selectedIndex, 0);
+		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
 	});
 
 	test('permission select rolls back and shows the gate when setPermissionMode fails', async () => {
@@ -1102,15 +1131,15 @@ suite('ConversationLens', () => {
 		stubService.setEngineConnected(true);
 		await waitForModelOption(slots, 'gpt-b');
 		assert.strictEqual(calls.length, 0);
-		assert.strictEqual(getModelSelect(slots).selectedIndex, 1);
+		assert.strictEqual(getModelSelect(slots).selectedIndex, 0);
 
-		selectDockModel(slots, 2);
+		selectDockModel(slots, 1);
 		await Promise.resolve();
 
 		assert.strictEqual(calls.length, 1);
 		assert.strictEqual(calls[0].sessionId, stubService.getActiveSessionId());
 		assert.strictEqual(calls[0].modelId, 'gpt-b');
-		assert.strictEqual(getModelSelect(slots).selectedIndex, 2);
+		assert.strictEqual(getModelSelect(slots).selectedIndex, 1);
 	});
 
 	test('model select rolls back and shows the gate when switchModel fails', async () => {
@@ -1140,12 +1169,12 @@ suite('ConversationLens', () => {
 		const modelSelect = getModelSelect(slots);
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
 
-		selectDockModel(slots, 2);
+		selectDockModel(slots, 1);
 		await Promise.resolve();
 
 		assert.strictEqual(calls.length, 1);
 		assert.strictEqual(calls[0].modelId, 'gpt-b');
-		assert.strictEqual(modelSelect.selectedIndex, 1);
+		assert.strictEqual(modelSelect.selectedIndex, 0);
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
 		assert.strictEqual(gateRow.hidden, false);
@@ -1179,12 +1208,12 @@ suite('ConversationLens', () => {
 		const modelSelect = getModelSelect(slots);
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
 
-		selectDockModel(slots, 2);
+		selectDockModel(slots, 1);
 		await Promise.resolve();
 
 		assert.strictEqual(calls.length, 1);
 		assert.strictEqual(calls[0].modelId, 'gpt-b');
-		assert.strictEqual(modelSelect.selectedIndex, 1);
+		assert.strictEqual(modelSelect.selectedIndex, 0);
 		assert.strictEqual(modelSelect.options[modelSelect.selectedIndex]?.text, 'gpt-a');
 		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
 		assert.strictEqual(gateRow.hidden, false);
@@ -1233,7 +1262,7 @@ suite('ConversationLens', () => {
 		const agentNote = popup.querySelector('.conversation-lens-dock-more-agent') as HTMLElement | null;
 		assert.ok(agentNote);
 		assert.strictEqual(agentNote.getAttribute('role'), 'note');
-		assert.strictEqual(agentNote.textContent, conversationLensDockNoAgent);
+		assert.strictEqual(agentNote.textContent, conversationLensDockAgentUnavailable);
 		const tune = [...popup.querySelectorAll('.conversation-lens-dock-more-item')].find(item => item.textContent === conversationLensDockTuneTitle);
 		assert.ok(tune);
 		assert.ok(agentNote.compareDocumentPosition(tune) & Node.DOCUMENT_POSITION_FOLLOWING);
@@ -1388,10 +1417,10 @@ suite('ConversationLens', () => {
 		assert.strictEqual(queryRoute(slots.sessionBar!), null);
 		assert.deepStrictEqual(Object.keys(lens.getSessionConfig(sessionId)).sort(), ['agentIndex', 'permissionIndex']);
 
-		const agentSelect = agentSlot().querySelector('select.monaco-select-box') as HTMLSelectElement;
-		assert.strictEqual(agentSelect.options[agentSelect.selectedIndex]?.text, conversationLensDockNoAgent);
-		assert.strictEqual(agentSelect.disabled, true);
-		assert.strictEqual(agentSelect.getAttribute('aria-label'), `${conversationLensDockAgentLabel} — ${conversationLensDockAgentUnavailable}`);
+		assert.strictEqual(agentSlot().querySelector('select'), null);
+		const agentLabel = agentSlot().querySelector('.conversation-lens-dock-agent-readonly') as HTMLElement;
+		assert.ok(agentLabel);
+		assert.strictEqual(agentLabel.textContent, conversationLensDockAgentUnavailable);
 		assertDisconnectedComposerCatalogsHonest(slots);
 
 		await sendDockDraft(slots, 'Hello Active');
@@ -1723,13 +1752,17 @@ suite('ConversationLens', () => {
 			listModels: async () => ({ models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] }),
 		});
 		const { part, stubService } = mountLens({ connection });
+		// The untitled seed keeps a pending tool, which is an in-flight turn. This
+		// case is about the model requirement, so use the idle seed session.
+		stubService.switchSession('visualize');
 		const slots = getLensSlots(part);
 		stubService.setEngineConnected(true);
 		for (let i = 0; i < 8; i++) {
 			await Promise.resolve();
 		}
 
-		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
+		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
+			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement;
 		assert.strictEqual(gateRow.hidden, true);
 		assert.strictEqual(gateRow.textContent, '');
 		assert.strictEqual(gateRow.getAttribute('aria-label'), null);
@@ -1741,9 +1774,9 @@ suite('ConversationLens', () => {
 		const sendButton = getDockSendButton(slots);
 		assert.ok(!sendButton.classList.contains('disabled'), 'connected send must not require Stub model');
 
-		const agentSelect = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent select.monaco-select-box') as HTMLSelectElement;
-		assert.ok([...agentSelect.options].some(option => option.text === 'Coder'));
-		assert.ok(![...agentSelect.options].some(option => option.text === 'Stub agent'));
+		const agentContainer = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent') as HTMLElement;
+		assert.strictEqual(agentContainer.querySelector('select'), null);
+		assert.strictEqual(getAgentReadonlyLabel(slots).textContent, conversationLensDockAgentUnavailable);
 
 		const tuneButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
 		tuneButton.click();
@@ -1778,10 +1811,9 @@ suite('ConversationLens', () => {
 			await Promise.resolve();
 		}
 
-		const agentSelect = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent select.monaco-select-box') as HTMLSelectElement;
-		assert.strictEqual(agentSelect.options[agentSelect.selectedIndex]?.text, conversationLensDockNoAgent);
-		assert.ok(![...agentSelect.options].some(option => option.text === 'Coder'));
-		assert.ok(![...agentSelect.options].some(option => option.text === 'Stub agent'));
+		const agentContainer = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent') as HTMLElement;
+		assert.strictEqual(agentContainer.querySelector('select'), null);
+		assert.strictEqual(getAgentReadonlyLabel(slots).textContent, conversationLensDockAgentUnavailable);
 
 		assert.strictEqual(getModelSelect(slots).options[getModelSelect(slots).selectedIndex]?.text, conversationLensDockNoModel);
 		assert.ok(![...getModelSelect(slots).options].some(option => option.text === 'gpt-test'));
@@ -2542,12 +2574,13 @@ suite('ConversationLens', () => {
 		const storageService = store.add(new TestStorageService());
 		const first = mountLens({ storageService });
 		const slots = getLensSlots(first.part);
+		const sessionId = first.stubService.getActiveSessionId();
 
 		clickLensTab(slots, 'trajectory');
-		assert.strictEqual(storageService.get('conversation.lensId', StorageScope.WORKSPACE), 'trajectory');
+		assert.strictEqual(storageService.get(conversationLensIdStorageKey(sessionId), StorageScope.WORKSPACE), 'trajectory');
 
 		first.lens.dispose();
-		const second = mountLens({ storageService });
+		const second = mountLens({ storageService, stubService: first.stubService });
 		const remountedSlots = getLensSlots(second.part);
 
 		assert.strictEqual(getLensTab(remountedSlots, 'trajectory').getAttribute('aria-selected'), 'true');

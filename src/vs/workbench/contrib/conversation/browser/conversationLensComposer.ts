@@ -32,7 +32,7 @@ import {
 import { shouldRestoreComposerDrafts } from '../common/uaClientSettingsHelpers.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
-import { ensureSessionModelProfileIds, isComposerStreaming, sessionModelProfileId, type ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
+import { ensureSessionModelProfileIds, isComposerStreaming, isSessionSwitchAgentAvailable, type ConversationSessionConfigSelection } from './conversationLensComposerChrome.js';
 import { applyComposerSurfaceText, composerDraftText, composerSubmitText, turnEditLoadedPayload } from './conversationComposerRefs.js';
 
 export interface IConversationLensComposerHost {
@@ -88,8 +88,14 @@ export function refreshComposerCatalogs(host: IConversationLensComposerHost): vo
 			}
 			const sessionId = host.getBoundSessionId();
 			const { agentIndex } = host.getSessionConfig(sessionId);
-			const clampedAgentIndex = Math.min(agentIndex, COMPOSER_AGENT_OPTIONS.length - 1);
-			host.agentSelectBox.setOptions(COMPOSER_AGENT_OPTIONS.map(text => ({ text })), clampedAgentIndex);
+			if (isSessionSwitchAgentAvailable(host)) {
+				const clampedAgentIndex = Math.min(agentIndex, COMPOSER_AGENT_OPTIONS.length - 1);
+				host.agentSelectBox.setOptions(COMPOSER_AGENT_OPTIONS.map(text => ({ text })), clampedAgentIndex);
+			} else {
+				// The control is read-only while SwitchAgent is unavailable, but the
+				// backing options must not keep a stale profile list from the last connection.
+				host.agentSelectBox.setOptions([{ text: conversationLensDockNoAgent }], 0);
+			}
 			host.modelSelectBox.setOptions([{ text: conversationLensDockNoModel }], 0);
 			host.modelSelectedIndex = 0;
 			host.catalogModelIds = [''];
@@ -121,7 +127,7 @@ function rememberLastGoodComposerCatalog(host: IConversationLensComposerHost, pa
 
 function applyUnknownComposerCatalogHonesty(host: IConversationLensComposerHost, caps: UniverseAgentCapabilitySnapshot): void {
 	const last = lastGoodComposerCatalogs.get(host);
-	if (caps.agentProfiles.support === 'UNKNOWN') {
+	if (caps.agentProfiles.support === 'UNKNOWN' && isSessionSwitchAgentAvailable(host)) {
 		if (last?.agent) {
 			const { agentIndex } = host.getSessionConfig(host.getBoundSessionId());
 			host.agentSelectBox.setOptions(last.agent.options, Math.min(agentIndex, last.agent.options.length - 1));
@@ -152,6 +158,9 @@ function applyUnknownComposerCatalogHonesty(host: IConversationLensComposerHost,
 function restoreLastGoodComposerCatalogOnSupportedThrow(host: IConversationLensComposerHost, facet: 'agent' | 'model' | 'tools'): void {
 	const last = lastGoodComposerCatalogs.get(host);
 	if (facet === 'agent') {
+		if (!isSessionSwitchAgentAvailable(host)) {
+			return;
+		}
 		if (last?.agent) {
 			const { agentIndex } = host.getSessionConfig(host.getBoundSessionId());
 			host.agentSelectBox.setOptions(last.agent.options, Math.min(agentIndex, last.agent.options.length - 1));
@@ -234,7 +243,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 			return;
 		}
 		applyUnknownComposerCatalogHonesty(host, caps);
-		if (caps.agentProfiles.support === 'SUPPORTED') {
+		if (caps.agentProfiles.support === 'SUPPORTED' && isSessionSwitchAgentAvailable(host)) {
 			try {
 				const projectPath = activeComposerProjectPath(host);
 				const result = await (projectPath

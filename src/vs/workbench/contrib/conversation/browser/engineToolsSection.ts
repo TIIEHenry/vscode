@@ -70,7 +70,6 @@ type EngineToolListEntry =
 	| { readonly kind: 'group'; readonly group: EngineToolCatalogGroup; readonly label: string; readonly count?: number }
 	| { readonly kind: 'tool'; readonly tool: UniverseAgentToolSummary };
 
-const TOOL_GROUP_ROW_HEIGHT = 24;
 const TOOL_ROW_HEIGHT = 24;
 
 const TOOL_CATEGORY_ACRONYMS = new Set([

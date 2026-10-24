@@ -53,10 +53,6 @@ type EngineSkillListEntry =
 	| { readonly kind: 'group'; readonly source: UniverseAgentSkillSummary['source']; readonly label: string; readonly count?: number }
 	| { readonly kind: 'skill'; readonly skill: UniverseAgentSkillSummary };
 
-const SKILL_GROUP_ROW_HEIGHT = 24;
-const SKILL_NAME_ROW_HEIGHT = 24;
-const SKILL_SUMMARY_ROW_HEIGHT = 24;
-
 function skillEntryHeight(_entry: EngineSkillListEntry): number {
 	return 24;
 }

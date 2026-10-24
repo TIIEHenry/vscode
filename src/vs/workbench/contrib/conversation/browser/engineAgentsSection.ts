@@ -81,9 +81,6 @@ type EngineAgentListEntry =
 	| { readonly kind: 'group'; readonly source: UniverseAgentAgentProfileSource; readonly label: string; readonly count?: number }
 	| { readonly kind: 'profile'; readonly profile: UniverseAgentAgentProfileSummary };
 
-const AGENT_GROUP_ROW_HEIGHT = 24;
-const AGENT_NAME_ROW_HEIGHT = 24;
-const AGENT_SUMMARY_ROW_HEIGHT = 24;
 const AGENT_LIST_MIN_HEIGHT = 80;
 /**
  * Room kept under the list when the column is too narrow to sit the editor beside it.

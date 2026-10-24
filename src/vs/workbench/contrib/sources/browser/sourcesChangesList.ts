@@ -1289,9 +1289,11 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				this.scheduleRefresh();
 				return;
 			}
-			const detail = written && !isSourcesGitWriteUnsupported(written)
-				? (sourcesGitWriteFailureDetail(written) || sourcesGitCommitNotAcceptedMessage())
-				: sourcesGitCommitNotAcceptedMessage();
+			if (!written || isSourcesGitWriteUnsupported(written)) {
+				this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
+				return;
+			}
+			const detail = sourcesGitWriteFailureDetail(written) || sourcesGitCommitNotAcceptedMessage();
 			this.setWriteStatusMessage(localize('sourcesChangesList.commitFailed', "Unable to commit: {0}", detail));
 		} catch (error) {
 			if (this._store.isDisposed || this.activeRepository !== repository) {
@@ -1324,6 +1326,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		const repo = this.activeRepository;
 		if (!repo && !this.canWriteCommit()) {
+			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 			return;
 		}
 		await this.runEngineCommit(this.commitSessionId(snapshot), message, this.activeRepository);

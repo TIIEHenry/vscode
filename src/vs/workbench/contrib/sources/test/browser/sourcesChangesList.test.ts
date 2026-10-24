@@ -10,6 +10,7 @@ import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/com
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
+import { localize } from '../../../../../nls.js';
 import { EditorOpenSource, IResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
@@ -41,7 +42,7 @@ import { conversationDiffComparisonLoadFailedMessage } from '../../browser/conve
 import { openSourcesChangeEntry, openSourcesChangeInConversation, ISourcesChangeEntryOpenDeps, sourcesConversationLeafMissingMessage } from '../../browser/sourcesChangeEntryOpen.js';
 import { SOURCES_GIT_UNROOTED_SCHEME, sourcesGitDiffOpenFailureMessage, sourcesGitEmptyFileDiffMessage, sourcesGitLocalOnlyMessage, sourcesGitReadFailureMessage, sourcesGitReadPairingHoldMessage, sourcesGitReadUnavailableNoHookMessage } from '../../common/sourcesChangesGitRead.js';
 import { sourcesGitDiffContentStore, sourcesGitDiffModelUri } from '../../browser/sourcesGitDiffContent.js';
-import { sourcesGitCommitNotAcceptedMessage, sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
+import { sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
@@ -969,11 +970,11 @@ suite('Sources - Changes list leftover honesty', () => {
 			engineIdentityId: undefined,
 			workDir,
 			source: 'session' as const,
-			access: (resolveAgentLocalRoot({
+			access: resolveAgentLocalRoot({
 				workDir,
 				repositoryRoots: sourcesRepositoryRootUris(scmService.repositories ?? []),
 				workspaceFolders: [],
-			}) ? 'local' : 'engine') as const,
+			}) ? 'local' : 'engine',
 			localRoot: resolveAgentLocalRoot({
 				workDir,
 				repositoryRoots: sourcesRepositoryRootUris(scmService.repositories ?? []),
@@ -3051,9 +3052,11 @@ suite('Sources - Changes list leftover honesty', () => {
 				assert.strictEqual(commitCalls[0]?.sessionId, 'session-1');
 				assert.deepStrictEqual(gitCommands, []);
 				const status = readChangesNotice(host);
-				assert.ok(status.includes('Unable to commit'));
-				if (!written.supported) {
-					assert.ok(status.includes(sourcesGitCommitNotAcceptedMessage()));
+				if (written.supported) {
+					assert.ok(status.includes('Unable to commit'));
+					assert.ok(status.includes('rejected'));
+				} else {
+					assert.strictEqual(status, localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 				}
 			} finally {
 				acceptCommand.dispose();
@@ -3463,7 +3466,8 @@ suite('Sources - Changes list leftover honesty', () => {
 			}),
 		});
 		const host = mountHost();
-		const widget = store.add(stubChangesListServices(supported, scm, undefined, async (input: { original?: { resource?: URI }; modified?: { resource?: URI }; resource?: URI }) => {
+		const widget = store.add(stubChangesListServices(supported, scm, undefined, async (raw: unknown) => {
+			const input = raw as { original?: { resource?: URI }; modified?: { resource?: URI }; resource?: URI };
 			opened.push({
 				original: input?.original?.resource?.toString(),
 				modified: input?.modified?.resource?.toString(),
@@ -3504,7 +3508,8 @@ suite('Sources - Changes list leftover honesty', () => {
 			}),
 		});
 		const unsupportedHost = mountHost();
-		const unsupportedWidget = store.add(stubChangesListServices(unsupported, scm, undefined, async (input: { resource?: URI; original?: { resource?: URI }; modified?: { resource?: URI } }) => {
+		const unsupportedWidget = store.add(stubChangesListServices(unsupported, scm, undefined, async (raw: unknown) => {
+			const input = raw as { resource?: URI; original?: { resource?: URI }; modified?: { resource?: URI } };
 			unsupportedOpened.push(input?.resource?.toString() ?? input?.modified?.resource?.toString() ?? '');
 			return undefined;
 		}, createRoster(), repoA.fsPath, workRoot).createInstance(SourcesChangesList, unsupportedHost));

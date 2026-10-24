@@ -650,7 +650,7 @@ export class EngineMcpSection extends Disposable {
 			return;
 		}
 		const args = parseMcpArgsField(result.values[4]);
-		const partial: Partial<UniverseAgentMcpServerConfig> = {};
+		const partial: { -readonly [K in keyof UniverseAgentMcpServerConfig]?: UniverseAgentMcpServerConfig[K] } = {};
 		if (name !== selected.name) {
 			partial.name = name;
 		}
