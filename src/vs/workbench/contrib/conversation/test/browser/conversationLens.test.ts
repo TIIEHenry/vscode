@@ -1752,17 +1752,13 @@ suite('ConversationLens', () => {
 			listModels: async () => ({ models: [{ id: '1', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'gpt-test' }] }),
 		});
 		const { part, stubService } = mountLens({ connection });
-		// The untitled seed keeps a pending tool, which is an in-flight turn. This
-		// case is about the model requirement, so use the idle seed session.
-		stubService.switchSession('visualize');
 		const slots = getLensSlots(part);
 		stubService.setEngineConnected(true);
 		for (let i = 0; i < 8; i++) {
 			await Promise.resolve();
 		}
 
-		const gateRow = (getReadingColumn(slots).querySelector('.conversation-lens-dock-gate-row')
-			?? slots.dock.querySelector('.conversation-lens-dock-gate-row')) as HTMLElement;
+		const gateRow = slots.dock.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
 		assert.strictEqual(gateRow.hidden, true);
 		assert.strictEqual(gateRow.textContent, '');
 		assert.strictEqual(gateRow.getAttribute('aria-label'), null);

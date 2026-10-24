@@ -95,7 +95,7 @@ export interface IConversationLensDockHost {
 	readonly stubService: IConversationRosterService;
 	readonly configurationService: IConfigurationService;
 	readonly instantiationService: IInstantiationService;
-	lastAttachedEntries: readonly { readonly streaming?: boolean }[];
+	lastAttachedEntries: readonly { readonly streaming?: boolean; readonly toolStatus?: string }[];
 	getBoundSessionId(): string;
 	listSessionId(): string;
 	register<T extends IDisposable>(disposable: T): T;
@@ -156,7 +156,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			onQueueItemHold: itemId => host.beginQueueEdit(itemId),
 			onScrollToPendingConfirmation: () => host.scrollToInboxPendingConfirmation(),
 			showPostFailure: reason => showPostFailure(host, reason),
-			hasStreamingEntry: () => host.lastAttachedEntries.some(entry => entry.streaming === true),
+			hasStreamingEntry: () => host.lastAttachedEntries.some(entry => entry.streaming === true && entry.toolStatus !== 'pending'),
 		}, () => host.listSessionId()));
 
 		host.composerCluster = append(host.dockRoot, $('.conversation-lens-composer-cluster'));

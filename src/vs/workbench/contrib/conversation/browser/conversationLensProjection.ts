@@ -346,6 +346,7 @@ export function storeLensId(host: IConversationLensProjectionHost, lensId: Conve
 	if (host.pinConversationLens) {
 		return;
 	}
+	host.storageService.store(CONVERSATION_LENS_ID_STORAGE_KEY, lensId, StorageScope.WORKSPACE, StorageTarget.MACHINE);
 	host.storageService.store(conversationLensIdStorageKey(host.getBoundSessionId()), lensId, StorageScope.WORKSPACE, StorageTarget.MACHINE);
 }
 

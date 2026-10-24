@@ -117,7 +117,7 @@ export interface ConversationSessionConfigSelection {
 export interface IConversationLensComposerChromeHost extends IComposerAddHost {
 	composerPolicy: 'compose' | 'turnEdit' | 'queueEdit';
 	submitInFlight?: boolean;
-	lastAttachedEntries?: readonly { readonly streaming?: boolean }[];
+	lastAttachedEntries?: readonly { readonly streaming?: boolean; readonly toolStatus?: string }[];
 	hasStreamingEntry?: () => boolean;
 	editingTurnId: string | undefined;
 	editingQueueItemId: string | undefined;
@@ -651,7 +651,7 @@ export function isComposerStreaming(host: {
 	uaConnection: IUniverseAgentConnection;
 	stubService: IConversationRosterService;
 	hasStreamingEntry?: () => boolean;
-	lastAttachedEntries?: readonly { readonly streaming?: boolean }[];
+	lastAttachedEntries?: readonly { readonly streaming?: boolean; readonly toolStatus?: string }[];
 	getBoundSessionId?: () => string;
 }): boolean {
 	if (isConversationPairingHold(host.uaConnection)) {
@@ -666,11 +666,11 @@ export function isComposerStreaming(host: {
 	if (host.hasStreamingEntry?.()) {
 		return true;
 	}
-	if (host.lastAttachedEntries?.some(entry => entry.streaming === true)) {
+	if (host.lastAttachedEntries?.some(entry => entry.streaming === true && entry.toolStatus !== 'pending')) {
 		return true;
 	}
 	const sessionId = host.getBoundSessionId?.();
-	if (sessionId && host.stubService.getTurns?.(sessionId).some(turn => turn.streaming)) {
+	if (sessionId && host.stubService.getTurns?.(sessionId).some(turn => turn.streaming && turn.toolStatus !== 'pending')) {
 		return true;
 	}
 	return false;
@@ -969,38 +969,34 @@ export function isSessionSwitchAgentAvailable(host: {
 }
 
 export function updateAgentSelectEnabled(host: IConversationLensComposerChromeHost): void {
-
-		const available = isSessionSwitchAgentAvailable(host);
-		if (host.agentContainer) {
-			if (!available) {
-				host.agentSelectBox?.setEnabled(false);
-				clearNode(host.agentContainer);
-				const label = append(host.agentContainer, $('span.conversation-lens-dock-agent-readonly'));
-				label.textContent = conversationLensDockAgentUnavailable;
-				label.setAttribute('aria-label', conversationLensDockAgentUnavailable);
-				label.title = conversationLensDockAgentUnavailable;
-				return;
-			} else {
-				// eslint-disable-next-line no-restricted-syntax -- DOM element inspection for selectBox restoration
-				if (!host.agentContainer.querySelector('select')) {
-					clearNode(host.agentContainer);
-					if (host.agentSelectBox) {
-						host.agentSelectBox.render(host.agentContainer);
-					}
-				}
-			}
-		}
-		if (!host.agentSelectBox) {
+	const available = isSessionSwitchAgentAvailable(host);
+	if (host.agentContainer) {
+		if (!available) {
+			host.agentSelectBox?.setEnabled(false);
+			clearNode(host.agentContainer);
+			const label = append(host.agentContainer, $('span.conversation-lens-dock-agent-readonly'));
+			label.textContent = conversationLensDockAgentUnavailable;
+			label.setAttribute('aria-label', conversationLensDockAgentUnavailable);
+			label.title = conversationLensDockAgentUnavailable;
 			return;
 		}
-		syncComposerSelectEnabledChrome(
-			host.agentSelectBox,
-			host.agentContainer,
-			available,
-			conversationLensDockAgentLabel,
-			conversationLensDockAgentUnavailable);
-
-	
+		// eslint-disable-next-line no-restricted-syntax -- DOM element inspection for selectBox restoration
+		if (!host.agentContainer.querySelector('select')) {
+			clearNode(host.agentContainer);
+			if (host.agentSelectBox) {
+				host.agentSelectBox.render(host.agentContainer);
+			}
+		}
+	}
+	if (!host.agentSelectBox) {
+		return;
+	}
+	syncComposerSelectEnabledChrome(
+		host.agentSelectBox,
+		host.agentContainer,
+		available,
+		conversationLensDockAgentLabel,
+		conversationLensDockAgentUnavailable);
 }
 
 export function updateComposerSessionSelectsEnabled(host: IConversationLensComposerChromeHost): void {

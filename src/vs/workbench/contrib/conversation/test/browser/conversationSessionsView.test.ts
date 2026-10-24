@@ -383,7 +383,7 @@ suite('ConversationSessionsView', () => {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
 			override onDidChangeEngineConnection = Event.None;
-			override onDidChangeSessionRosterDetail = Event.None;
+			override readonly onDidChangeSessionRosterDetail = Event.None;
 			override getSessions() { return []; }
 			override getActiveSessionId() { return ''; }
 			override createSession() { return 'new'; }
@@ -557,7 +557,7 @@ suite('ConversationSessionsView', () => {
 			override onDidChangeActiveSession = Event.None;
 			override onDidChangeSession = Event.None;
 			override onDidChangeEngineConnection = Event.None;
-			override onDidChangeSessionRosterDetail = Event.None;
+			override readonly onDidChangeSessionRosterDetail = Event.None;
 			override getSessions() { return []; }
 			override getActiveSessionId() { return ''; }
 			override createSession() { return 'new'; }
