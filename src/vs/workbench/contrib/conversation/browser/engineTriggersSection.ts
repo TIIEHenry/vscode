@@ -483,6 +483,7 @@ export class EngineTriggersSection extends Disposable {
 			supported,
 			this.isTriggerWritePairingHold(),
 		);
+		this.setEnabledButton.element.setAttribute('aria-label', actionLabel);
 		this.updateButtonCapabilityHover(this.setEnabledButton, 'setTriggerEnabled', actionLabel);
 	}
 
