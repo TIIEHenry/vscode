@@ -117,6 +117,110 @@ suite('EngineMemorySection', () => {
 		root.parentElement?.remove();
 	});
 
+	test('typed query without searchMemory does not keep the list as hits', async () => {
+		const lists: UniverseAgentMemoryListRequest[] = [];
+		const connection = createMemoryConnection({
+			connected: true,
+			listMemory: async request => {
+				lists.push(request);
+				return {
+					categories: [{
+						category: 'notes',
+						fileCount: 1,
+						files: [{ filename: 'a.md', title: 'Alpha', updatedAt: 1 }],
+					}],
+				};
+			},
+			saveMemory: async request => ({ success: true, message: '', filePath: request.category }),
+		});
+		const { section } = mountSection(connection);
+		await timeout(0);
+		const root = section.getDomNode();
+		assert.ok(root.textContent?.includes('Alpha'));
+		assert.strictEqual(lists.length, 1);
+
+		const filter = root.querySelector('input.engine-provider-catalog-filter') as HTMLInputElement;
+		filter.value = 'alpha';
+		filter.dispatchEvent(new (filter.ownerDocument.defaultView!.Event)('input', { bubbles: true }));
+		await timeout(0);
+		const text = root.textContent ?? '';
+		assert.strictEqual(lists.length, 1);
+		assert.ok(text.includes('Search is unavailable.'));
+		assert.ok(!text.includes('No memory.'));
+		assert.ok(!text.includes('Alpha'));
+		assert.strictEqual(section.getItemCount(), undefined);
+		assert.strictEqual(filter.disabled, false);
+		const writeStatus = root.querySelector('.engine-memory-write-status') as HTMLElement;
+		assert.strictEqual(writeStatus.style.display, 'none');
+		const add = root.querySelector('[aria-label="Add memory"]') as HTMLElement;
+		assert.notStrictEqual(add.style.display, 'none');
+
+		filter.value = '';
+		filter.dispatchEvent(new (filter.ownerDocument.defaultView!.Event)('input', { bubbles: true }));
+		await timeout(0);
+		assert.strictEqual(lists.length, 2);
+		assert.ok((root.textContent ?? '').includes('Alpha'));
+		assert.ok(!(root.textContent ?? '').includes('Search is unavailable.'));
+		root.parentElement?.remove();
+	});
+
+	test('search with no hits says no matching memory', async () => {
+		const lists: UniverseAgentMemoryListRequest[] = [];
+		let files: { filename: string; title: string; updatedAt: number }[] = [{ filename: 'a.md', title: 'Alpha', updatedAt: 1 }];
+		const connection = createMemoryConnection({
+			connected: true,
+			listMemory: async request => {
+				lists.push(request);
+				return {
+					categories: files.length === 0 ? [] : [{
+						category: 'notes',
+						fileCount: files.length,
+						files,
+					}],
+				};
+			},
+			searchMemory: async () => ({ results: [] }),
+		});
+		const { section } = mountSection(connection);
+		await timeout(0);
+		const root = section.getDomNode();
+		assert.ok(root.textContent?.includes('Alpha'));
+
+		const filter = root.querySelector('input.engine-provider-catalog-filter') as HTMLInputElement;
+		const setQuery = async (value: string) => {
+			filter.value = value;
+			filter.dispatchEvent(new (filter.ownerDocument.defaultView!.Event)('input', { bubbles: true }));
+			await timeout(0);
+		};
+		await setQuery('missing');
+		let text = root.textContent ?? '';
+		assert.strictEqual(lists.length, 1);
+		assert.ok(text.includes('No matching memory.'));
+		assert.ok(!text.includes('No memory.'));
+		assert.ok(!text.includes('Alpha'));
+		assert.strictEqual(section.getItemCount(), undefined);
+		assert.strictEqual(root.querySelectorAll('.engine-memory-row').length, 0);
+
+		await setQuery('');
+		text = root.textContent ?? '';
+		assert.strictEqual(lists.length, 2);
+		assert.ok(text.includes('Alpha'));
+		assert.ok(!text.includes('No matching memory.'));
+
+		files = [];
+		await setQuery('missing');
+		text = root.textContent ?? '';
+		assert.ok(text.includes('No matching memory.'));
+		assert.ok(!text.includes('No memory.'));
+		await setQuery('');
+		text = root.textContent ?? '';
+		assert.strictEqual(lists.length, 3);
+		assert.ok(text.includes('No memory.'));
+		assert.ok(!text.includes('No matching memory.'));
+		assert.ok(!text.includes('Alpha'));
+		root.parentElement?.remove();
+	});
+
 	test('add sends global scope and empty content does not save', async () => {
 		const saves: UniverseAgentSaveMemoryRequest[] = [];
 		const connection = createMemoryConnection({

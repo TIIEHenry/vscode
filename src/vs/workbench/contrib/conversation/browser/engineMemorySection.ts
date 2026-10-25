@@ -40,7 +40,8 @@ function getTransportErrorMessage(error: unknown): string | undefined {
 /**
  * Engine Preferences Memory. Scope is always `global`. List uses an empty
  * category (all categories). There is no enable toggle. Search replaces the
- * list while the query is non-empty.
+ * list while the query is non-empty. A typed query with no `searchMemory`
+ * clears that list. Zero hits are not an empty store.
  */
 export class EngineMemorySection extends Disposable {
 
@@ -220,13 +221,17 @@ export class EngineMemorySection extends Disposable {
 					if (!this.isCurrent(generation)) {
 						return;
 					}
-					this.showWriteMessage(localize('ua.engineMemorySearchUnavailable', "Search is unavailable."), 'error');
-					this.mode = this.hasRows ? 'ready' : 'empty';
+					if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+						this.applyDisconnected();
+						return;
+					}
+					this.clearRows();
+					this.mode = 'empty';
 					this.updateChrome();
 					this.status.render({
-						mode: this.mode,
+						mode: 'empty',
 						featureLabel: MEMORY_FEATURE,
-						emptyCopy: localize('ua.engineMemoryEmpty', "No memory."),
+						emptyCopy: localize('ua.engineMemorySearchUnavailable', "Search is unavailable."),
 					});
 					return;
 				}
@@ -244,17 +249,24 @@ export class EngineMemorySection extends Disposable {
 					return;
 				}
 				this.paintSearch(result.results);
-			} else {
-				const result = await listMemory({ scope: MEMORY_SCOPE, category: '' });
-				if (!this.isCurrent(generation)) {
-					return;
-				}
-				if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
-					this.applyDisconnected();
-					return;
-				}
-				this.paintList(result.categories);
+				this.mode = this.fileCount > 0 ? 'ready' : 'empty';
+				this.status.render({
+					mode: this.mode,
+					featureLabel: MEMORY_FEATURE,
+					emptyCopy: localize('ua.engineMemoryNoMatch', "No matching memory."),
+				});
+				this.updateChrome();
+				return;
 			}
+			const result = await listMemory({ scope: MEMORY_SCOPE, category: '' });
+			if (!this.isCurrent(generation)) {
+				return;
+			}
+			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
+				this.applyDisconnected();
+				return;
+			}
+			this.paintList(result.categories);
 			this.mode = this.fileCount > 0 ? 'ready' : 'empty';
 			this.status.render({
 				mode: this.mode,
