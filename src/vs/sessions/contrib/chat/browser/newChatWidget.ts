@@ -8,6 +8,7 @@ import * as dom from '../../../../base/browser/dom.js';
 import { StandardMouseEvent } from '../../../../base/browser/mouseEvent.js';
 import { Action } from '../../../../base/common/actions.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableMap, DisposableStore, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { constObservable, derived, derivedObservableWithCache, autorun, IObservable, observableFromEvent, observableSignalFromEvent } from '../../../../base/common/observable.js';
@@ -357,7 +358,7 @@ export class NewChatWidget extends Disposable {
 			return;
 		}
 		if (folderUri) {
-			void this._refreshPromptOptions();
+			void this._refreshPromptOptions().catch(onUnexpectedError).catch(onUnexpectedError);
 		} else {
 			this._newChatInput.clearPromptOptions();
 		}
@@ -526,7 +527,7 @@ export class NewChatWidget extends Disposable {
 	private _seedWorkspaceDraft(): void {
 		const restoredFolderUri = this._workspacePicker.selectedFolderUri;
 		if (!this._syncWorkspacePickerFromActiveSession() && restoredFolderUri) {
-			void this._createNewSession(restoredFolderUri);
+			void this._createNewSession(restoredFolderUri).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 
@@ -572,7 +573,7 @@ export class NewChatWidget extends Disposable {
 		if (this.sessionsManagementService.getSessionTypesForFolder(folderUri).length === 0 || this._isPreferredServable(folderUri, pick)) {
 			return;
 		}
-		void this._createNewSession(folderUri);
+		void this._createNewSession(folderUri).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private _isPreferredServable(folderUri: URI, pick: IPreferredSessionType): boolean {
@@ -686,7 +687,7 @@ export class NewChatWidget extends Disposable {
 				}
 			}
 		}
-		void this._createNewSession(folderUri);
+		void this._createNewSession(folderUri).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	/**
