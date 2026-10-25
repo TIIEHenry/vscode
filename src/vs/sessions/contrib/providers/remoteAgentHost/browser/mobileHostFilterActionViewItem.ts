@@ -87,6 +87,7 @@ export class MobileHostFilterActionViewItem extends HostFilterActionViewItem {
 		const overlay = dom.append(workbenchContainer, $('div.host-picker-sheet-overlay'));
 		const backdrop = dom.append(overlay, $('div.host-picker-sheet-backdrop'));
 		const sheet = dom.append(overlay, $('div.host-picker-sheet'));
+		const opener = this.element;
 		sheet.setAttribute('role', 'dialog');
 		sheet.setAttribute('aria-modal', 'true');
 		sheet.setAttribute('aria-label', localize('agentHostFilter.sheet.aria', "Hosts"));
@@ -102,6 +103,9 @@ export class MobileHostFilterActionViewItem extends HostFilterActionViewItem {
 			const close = () => {
 				if (this._sheet.value === disposables) {
 					this._sheet.clear();
+					if (opener?.isConnected) {
+						opener.focus();
+					}
 				}
 			};
 			sheet.addEventListener('animationend', close, { once: true });
@@ -140,13 +144,18 @@ export class MobileHostFilterActionViewItem extends HostFilterActionViewItem {
 		// Mutable focus targets: populated as rows are rendered so that the
 		// initial focus pass can pick the most relevant element without
 		// querying the DOM by selector.
-		const focusRefs: { firstHost?: HTMLButtonElement; firstCheckedHost?: HTMLButtonElement; rediscover?: HTMLButtonElement } = {};
+		const focusRefs: { firstHost?: HTMLButtonElement; firstCheckedHost?: HTMLButtonElement; hostItems: HTMLButtonElement[]; rediscover?: HTMLButtonElement } = { hostItems: [] };
 		const renderBody = () => {
+			const focusWasInSheet = sheet.contains(targetDocument.activeElement);
 			bodyDisposables.clear();
 			dom.clearNode(body);
 			focusRefs.firstHost = undefined;
 			focusRefs.firstCheckedHost = undefined;
+			focusRefs.hostItems = [];
 			this._renderHostList(bodyDisposables, body, finish, focusRefs);
+			if (focusWasInSheet && !sheet.contains(targetDocument.activeElement)) {
+				(focusRefs.firstCheckedHost ?? focusRefs.firstHost ?? focusRefs.rediscover ?? closeBtn).focus();
+			}
 		};
 		renderBody();
 		disposables.add(this._filterService.onDidChange(renderBody));
@@ -158,6 +167,28 @@ export class MobileHostFilterActionViewItem extends HostFilterActionViewItem {
 		// --- Footer (always-visible re-discover action) ---------------------
 		const footer = dom.append(sheet, $('div.host-picker-sheet-footer'));
 		focusRefs.rediscover = this._renderRediscoverAction(disposables, footer);
+
+		// Keep keyboard focus inside the modal sheet while it is open. The
+		// overlay is intentionally appended inside the workbench, so relying on
+		// the browser's document order would otherwise let Tab escape into the
+		// titlebar and sessions list behind the modal.
+		disposables.add(dom.addDisposableListener(sheet, dom.EventType.KEY_DOWN, event => {
+			if (event.key !== 'Tab') {
+				return;
+			}
+			const focusable = [closeBtn, ...focusRefs.hostItems, focusRefs.rediscover].filter((element): element is HTMLButtonElement => !!element && !element.disabled);
+			if (focusable.length === 0) {
+				event.preventDefault();
+				return;
+			}
+			const current = targetDocument.activeElement as HTMLElement | null;
+			const currentIndex = current ? focusable.indexOf(current) : -1;
+			const nextIndex = event.shiftKey
+				? (currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1)
+				: (currentIndex === focusable.length - 1 ? 0 : currentIndex + 1);
+			event.preventDefault();
+			focusable[nextIndex]?.focus();
+		}));
 
 		// Block taps on the sheet body itself from dismissing.
 		disposables.add(dom.addDisposableListener(sheet, dom.EventType.CLICK, e => e.stopPropagation()));
@@ -179,11 +210,12 @@ export class MobileHostFilterActionViewItem extends HostFilterActionViewItem {
 			}
 		}));
 
-		// Focus the currently selected host when the sheet opens.
-		focusRefs.firstCheckedHost?.focus();
+		// Focus the selected host when available; otherwise keep the initial
+		// focus inside the sheet even for the empty/discovering state.
+		(focusRefs.firstCheckedHost ?? focusRefs.firstHost ?? focusRefs.rediscover ?? closeBtn).focus();
 	}
 
-	private _renderHostList(disposables: DisposableStore, body: HTMLElement, finish: () => void, focusRefs: { firstHost?: HTMLButtonElement; firstCheckedHost?: HTMLButtonElement }): void {
+	private _renderHostList(disposables: DisposableStore, body: HTMLElement, finish: () => void, focusRefs: { firstHost?: HTMLButtonElement; firstCheckedHost?: HTMLButtonElement; hostItems: HTMLButtonElement[] }): void {
 		const hosts = this._filterService.hosts;
 		const selectedId = this._filterService.selectedHostId;
 
@@ -200,6 +232,7 @@ export class MobileHostFilterActionViewItem extends HostFilterActionViewItem {
 
 		for (const host of hosts) {
 			const row = this._renderHostItem(disposables, body, host, selectedId === host.id, finish);
+			focusRefs.hostItems.push(row);
 			focusRefs.firstHost ??= row;
 			if (selectedId === host.id) {
 				focusRefs.firstCheckedHost ??= row;

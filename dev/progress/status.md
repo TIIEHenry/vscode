@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1330 automation dialog Promise 收口已改，待合入；D1328–D1329 已合入，D467 回收证据已闭合。"
+summary: "2026-10-26：D1328–D1331 已合入，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
@@ -12,6 +12,7 @@ summary: "2026-10-26：D1330 automation dialog Promise 收口已改，待合入�
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
 - **Automation dialog Promise 收口（2026-10-26，D1330）**：分支 retry、工作区变化刷新与移动工作区选择器 dispatch 原直接 fire-and-forget；现接入 `onUnexpectedError` 双 catch，并新增源码扫描测试。定向 Electron 测试与本波集成编译待 merge 槽复验。
+- **移动端 Host 选择层焦点边界（2026-10-26，D1331，本波 UI 审查）**：Remote Agent Hosts 底部选择层声明为 modal，但无已选主机时打开后焦点仍留在底层标题栏，Tab 也能离开浮层；主机行的 `:focus-visible` 还只复用悬停底色。现为已选主机优先、首个主机/重发现/关闭按钮回退的初始焦点，Tab/Shift+Tab 在选择层内循环，关闭动画结束后恢复触发控件焦点，并为主机行补 `--vscode-focusBorder` token 化焦点环。空主机、发现中和正常列表状态共用同一边界；新增源码扫描测试锁定焦点陷阱与恢复。未改主机选择、连接或发现语义。
 - **Manage Remote Agent Hosts Promise 收口（2026-10-26，D1328）**：远端主机选项对话框的 fire-and-forget Promise 原无 rejection handler；现补 `onUnexpectedError` 双 catch，并新增源码扫描测试。定向 Electron 测试仍受 sandbox 133 限制；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。
 - **Agents Voice 键盘 PTT 与焦点线索（2026-10-26，D1329，本波 UI 审查）**：Voice header 的麦克风图标原本虽有 `tabindex`，却只绑定鼠标按下/抬起，键盘用户无法按住 Enter/Space 进行 push-to-talk；同时图标按钮没有统一的 `:focus-visible` 环。现为键盘按下/抬起/失焦建立成对的 PTT 状态，忽略重复 keydown，断连时释放在途按键，并为连接、静音、弹出、反馈、最小化等 header 控件统一加 token 化焦点环。新增源码扫描测试锁定键盘状态边界与焦点规则；不改变鼠标右键上下文菜单或连接状态语义。定向 Electron 测试因本机 `sandbox_host_linux` 受限退出 133，ESLint（`--no-cache`）退出 0（仅既有字符串字面量 warning），`git diff --check` 通过。
 - **引擎目录断连状态就地连接（2026-10-26，D1327）**：`EngineCatalogStatusWidget` 原已接收 `onOpenConnection`，但断连状态只显示“从 Connection preferences 连接”文案，没有可点入口；现为 disconnected 状态渲染 token 化次要按钮 “Open Connection”，复用各目录已有回调，失败/加载/空/不支持状态不新增操作。新增状态组件回归测锁定按钮仅在回调存在时显示、点击调用一次，切换到 failed 只保留 Retry。目标 Electron 测试因本机 `sandbox_host_linux` 受限退出 133；`git diff --check` 通过；ESLint 受工位 `.eslintcache` 只读（EROFS）阻塞，待可写环境复验。
