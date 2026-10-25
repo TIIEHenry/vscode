@@ -186,4 +186,33 @@ suite('ConnectionPreferencesPane (browser)', () => {
 		assert.strictEqual(document.activeElement, backButton);
 		assert.strictEqual(pane.getDomNode().classList.contains('is-showing-detail'), true);
 	});
+
+	test('resizing from wide navigation returns focus to Back', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		});
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const pane = instantiationService.createInstance(ConnectionPreferencesPane);
+		container.appendChild(pane.getDomNode());
+		pane.layout(new Dimension(800, 800));
+
+		const navHost = pane.getDomNode().querySelector('.connection-preferences-nav') as HTMLElement;
+		const navFocusProbe = document.createElement('button');
+		navFocusProbe.type = 'button';
+		navHost.appendChild(navFocusProbe);
+		navFocusProbe.focus();
+
+		pane.layout(new Dimension(480, 800));
+		await timeout(0);
+
+		const backButton = pane.getDomNode().querySelector('.connection-preferences-back') as HTMLButtonElement;
+		assert.strictEqual(backButton.hidden, false);
+		assert.strictEqual(document.activeElement, backButton);
+	});
 });

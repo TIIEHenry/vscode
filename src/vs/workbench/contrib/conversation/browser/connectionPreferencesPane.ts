@@ -1042,12 +1042,22 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	layout(dimension: DOM.Dimension): void {
 		this.container.style.height = `${dimension.height}px`;
 		const wasWide = this.lastLayoutWidth >= PREFERENCES_PANE_NARROW_WIDTH;
+		const focusNarrowDetailBackButton = wasWide && this.navHost.contains(this.navHost.ownerDocument.activeElement);
 		this.lastLayoutWidth = dimension.width;
 		this.lastLayoutHeight = dimension.height;
 		if (dimension.width >= PREFERENCES_PANE_NARROW_WIDTH) {
 			this.narrowShowingDetail = false;
 		} else if (wasWide) {
 			this.narrowShowingDetail = true;
+			if (focusNarrowDetailBackButton) {
+				// The nav is hidden by CSS when a wide pane collapses. Move focus after
+				// the layout settles so keyboard users do not remain on a hidden row.
+				queueMicrotask(() => {
+					if (this.narrowShowingDetail && !this.backButton.hidden) {
+						this.backButton.focus();
+					}
+				});
+			}
 		}
 		this.applyNarrowChrome();
 		this.navList.layout(this.getNavHeight(dimension.height), this.getNavWidth(dimension.width));

@@ -70,6 +70,9 @@ export class SessionsView extends ViewPane {
 	private headerRow: HTMLElement | undefined;
 	private headerLabel: HTMLElement | undefined;
 	private headerActions: HTMLElement | undefined;
+	private filterChipsContainer: HTMLElement | undefined;
+	private readonly responsiveControls = this._register(new DisposableStore());
+	private responsiveControlsPhone: boolean | undefined;
 	private isFindWidgetOpen = false;
 	sessionsControl: SessionsList | undefined;
 	private _customizationsWidget: AICustomizationShortcutsWidget | undefined;
@@ -131,6 +134,11 @@ export class SessionsView extends ViewPane {
 		this.viewPaneContainer.classList.add('agent-sessions-viewpane');
 
 		this.createControls(parent);
+		this._register(this.scopedContextKeyService.onDidChangeContext(e => {
+			if (e.affectsSome(new Set([IsPhoneLayoutContext.key]))) {
+				this.updateResponsiveControls();
+			}
+		}));
 	}
 
 	protected override getLocationBasedColors(): IViewPaneLocationColors {
@@ -162,36 +170,14 @@ export class SessionsView extends ViewPane {
 
 		const headerActions = this.headerActions = DOM.append(headerRow, $('.agent-sessions-header-actions'));
 
-		// On phone, the desktop header content (label + new button + filter/find toolbar)
-		// is hidden in favor of the mobile filter chip row + the (+) button in the
-		// MobileTitlebarPart. We still create the row container because the find
-		// widget mounts inside it.
-		const phoneLayout = isPhoneLayout(this.layoutService);
-		if (!phoneLayout) {
-			headerLabel.textContent = localize('sessionsHeader', "Sessions");
-
-			// Header actions (visual order: New, Filter, Search). The "New" button is
-			// contributed to Menus.SidebarSessionsHeader and rendered as a compact pill
-			// by NewSessionActionViewItem.
-			const scopedInstantiationService = this._register(this.instantiationService.createChild(new ServiceCollection([IContextKeyService, this.scopedContextKeyService])));
-			this._register(scopedInstantiationService.createInstance(MenuWorkbenchToolBar, headerActions, Menus.SidebarSessionsHeader, {
-				hiddenItemStrategy: HiddenItemStrategy.NoHide,
-				telemetrySource: 'sessionsView.header',
-				toolbarOptions: { primaryGroup: () => true },
-			}));
-		} else {
-			headerRow.classList.add('phone-layout-empty');
-		}
-
 		// Container for the tree's find widget (toggled by the toolbar's Find action)
 		const findWidgetContainer = this.findWidgetContainer = DOM.append(headerRow, $('.agent-sessions-find-widget-container'));
 		findWidgetContainer.style.display = 'none';
 
-		// Reserve DOM slot for mobile filter chips (phone layout only).
-		// The actual widget is created after sessionsControl is available.
-		const filterChipsContainer = isPhoneLayout(this.layoutService)
-			? DOM.append(sessionsContent, $('.mobile-session-filter-chips-slot'))
-			: undefined;
+		// Reserve the mobile filter-chip slot in every layout. The widget itself is
+		// created and disposed by updateResponsiveControls so a runtime phone
+		// breakpoint change (for example device rotation) can switch controls.
+		this.filterChipsContainer = DOM.append(sessionsContent, $('.mobile-session-filter-chips-slot'));
 
 		// Sessions List Control
 		this.sessionsControlContainer = DOM.append(sessionsContent, $('.agent-sessions-control-container'));
@@ -276,17 +262,7 @@ export class SessionsView extends ViewPane {
 			}
 		}));
 
-		// Mobile filter chips (phone layout only) — created after sessionsControl
-		// so we can wire it as the filter host.
-		if (filterChipsContainer) {
-			const chips = this._register(new MobileSessionFilterChips(filterChipsContainer, sessionsControl));
-			this._register(chips.onDidRequestSortGroup(() => {
-				this.openSortGroupSheet();
-			}));
-			this._register(chips.onDidRequestFind(() => {
-				this.openFind();
-			}));
-		}
+		this.updateResponsiveControls();
 
 		// When the active session changes, reveal it in the sessions list.
 		this._register(autorun(reader => {
@@ -383,6 +359,54 @@ export class SessionsView extends ViewPane {
 		}
 
 		this._register(DOM.scheduleAtNextAnimationFrame(DOM.getWindow(parent), () => this.layoutSidebarSplitView()));
+	}
+
+	/**
+	 * Rebuild the Sessions header controls when the shared phone-layout context
+	 * changes. The workbench can cross the phone breakpoint without recreating
+	 * this view (for example on device rotation), so controls cannot be decided
+	 * only during createControls().
+	 */
+	private updateResponsiveControls(): void {
+		if (!this.headerRow || !this.headerLabel || !this.headerActions || !this.filterChipsContainer || !this.sessionsControl) {
+			return;
+		}
+
+		const phoneLayout = isPhoneLayout(this.layoutService);
+		if (this.responsiveControlsPhone === phoneLayout) {
+			this.updateHeaderLayout();
+			return;
+		}
+
+		this.responsiveControlsPhone = phoneLayout;
+		this.responsiveControls.clear();
+		DOM.clearNode(this.headerActions);
+		DOM.clearNode(this.filterChipsContainer);
+
+		if (phoneLayout) {
+			this.headerLabel.textContent = '';
+			this.headerRow.classList.add('phone-layout-empty');
+			const chips = this.responsiveControls.add(new MobileSessionFilterChips(this.filterChipsContainer, this.sessionsControl));
+			this.responsiveControls.add(chips.onDidRequestSortGroup(() => this.openSortGroupSheet()));
+			this.responsiveControls.add(chips.onDidRequestFind(() => this.openFind()));
+		} else {
+			this.headerLabel.textContent = localize('sessionsHeader', "Sessions");
+			this.headerRow.classList.remove('phone-layout-empty');
+
+			// Header actions (visual order: New, Filter, Search). The "New" button is
+			// contributed to Menus.SidebarSessionsHeader and rendered as a compact pill
+			// by NewSessionActionViewItem.
+			const scopedInstantiationService = this.instantiationService.createChild(new ServiceCollection([IContextKeyService, this.scopedContextKeyService]));
+			const toolbar = scopedInstantiationService.createInstance(MenuWorkbenchToolBar, this.headerActions, Menus.SidebarSessionsHeader, {
+				hiddenItemStrategy: HiddenItemStrategy.NoHide,
+				telemetrySource: 'sessionsView.header',
+				toolbarOptions: { primaryGroup: () => true },
+			});
+			this.responsiveControls.add(toolbar);
+			this.responsiveControls.add(scopedInstantiationService);
+		}
+
+		this.updateHeaderLayout();
 	}
 
 	focusCustomizations(): void {

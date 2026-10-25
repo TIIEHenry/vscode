@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1365 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1367 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
 
 
 
@@ -1315,3 +1315,5 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1363 | P3 | **open** 移动端会话状态筛选 chips 原为 `tabindex=0` 的自定义按钮，但没有 `:focus-visible` 焦点环；键盘或外接键盘用户无法看到当前焦点。现补普通与高对比主题的 token 化焦点环，并以 CSS 扫描回归锁定先清除默认 outline、再提供 `focus-visible` ring；不改变筛选状态、点击/键盘激活或布局。 | 只补移动端会话筛选 chips 的键盘焦点可见性；不改变状态筛选、Sort/Find 激活、触摸手势或布局 | 普通主题使用 `--vscode-focusBorder`，高对比主题使用 `--vscode-contrastActiveBorder` 回退；鼠标焦点不显示额外 ring；三枚状态 chips、Sort、Find 均沿同一规则 | sessions / mobile-session-filter-chips | open |
 | D1364 | P3 | **open** provider 重绑连接后，旧连接已排队的通知、action、rootState 与 session-state/draft 回调原仍可能改写新连接的缓存、能力或会话配置，造成跨窗口状态串写。现所有连接回调先核对当前连接与缓存身份，再应用状态；旧回调直接丢弃。新增远程 provider 重绑后旧通知/action 回归。 | 只收口连接替换后的迟到回调边界，不改变正常连接、重连、session list 或协议事件语义 | 旧连接的迟到通知、action、rootState、session-state 与 draft 回调不再改变新连接投影；当前连接事件仍照常更新；定向浏览器测试在可监听环境复验 | sessions / agent-host / connection-rebind | open |
 | D1365 | P3 | **open** SessionHeader 标题可编辑性原在标题 autorun 中调用未追踪的 `capabilities.get()`；提供方 hydration 后动态开放或收回 `supportsRename` 时，标题的键盘/ARIA 重命名入口不会更新。现使用 reader 订阅能力 observable，并补能力切换回归。 | 只修标题重命名能力的动态状态传播，不改变 rename RPC、标题文案、输入提交或不可编辑时的行为 | `supportsRename` 从 false→true 时标题获得 button/Tab/aria-label；从 true→false 时同步移除；静态能力与现有 Enter/Space/提交行为保持 | sessions / session-header | open |
+| D1366 | P3 | **open** Engine 与 Connection Preferences 从宽布局缩到窄布局时，原逻辑把导航隐藏却保留导航行焦点；键盘用户会停在 `display:none` 节点，无法沿 Back/详情继续操作。现仅当缩窄前焦点确在导航宿主内时，在窄详情布局完成后的微任务中把焦点移到可见 Back 按钮；程序化缩窄或焦点在导航外时不抢焦点。两份 browser 回归覆盖 Engine/Connection。 | 只修设置页宽→窄响应式切换的焦点迁移，不改导航选择、窄宽阈值、Back 返回、详情内容或宽布局焦点语义 | 从导航行获焦后缩到窄宽，焦点落在 Back 且隐藏导航不保留活动焦点；焦点在其他区域时保持原归属；Engine 与 Connection 两页行为一致 | conversation / preferences-focus | open |
+| D1367 | P3 | **closed** SessionsView 原只在首次布局创建桌面 header toolbar 或移动端 filter chips；运行时跨 phone breakpoint 后，工作台虽更新 `.phone-layout` 与 `IsPhoneLayoutContext`，控件却不切换。现保留可切换的 chips slot，监听 phone-layout context，在桌面与手机控件间安全 dispose/recreate；新增源码回归锁定初始与运行时共用重建路径。 | 只收口 Sessions 列表在运行时 phone/desktop 布局切换后的控件生命周期；不改变会话排序、筛选匹配、打开、创建、关闭或移动标题栏语义 | 桌面→手机后出现状态筛选 chips；手机→桌面后恢复 Sessions/New/Filter/Search toolbar；旧控件不会重复或残留；初始两种布局行为保持 | sessions / responsive-controls | closed |

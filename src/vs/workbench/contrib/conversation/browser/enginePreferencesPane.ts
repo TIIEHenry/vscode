@@ -545,12 +545,22 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	layout(dimension: DOM.Dimension): void {
 		this.container.style.height = `${dimension.height}px`;
 		const wasWide = !this.isNarrow();
+		const focusNarrowDetailBackButton = wasWide && this.navHost.contains(this.navHost.ownerDocument.activeElement);
 		this.lastLayoutWidth = dimension.width;
 		this.lastLayoutHeight = dimension.height;
 		if (!this.isNarrow()) {
 			this.narrowShowingDetail = false;
 		} else if (wasWide) {
 			this.narrowShowingDetail = true;
+			if (focusNarrowDetailBackButton) {
+				// The nav is hidden by CSS when a wide pane collapses. Move focus after
+				// the layout settles so keyboard users do not remain on a hidden row.
+				queueMicrotask(() => {
+					if (this.narrowShowingDetail && !this.backButton.hidden) {
+						this.backButton.focus();
+					}
+				});
+			}
 		}
 		this.applyNarrowChrome();
 		this.layoutParts();
