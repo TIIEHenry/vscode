@@ -158,8 +158,9 @@
 }
 
 .host-picker-sheet-item:focus-visible {
-	outline: none;
 	background-color: var(--vscode-list-hoverBackground);
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .host-picker-sheet-item:active {
