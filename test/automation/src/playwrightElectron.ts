@@ -7,8 +7,14 @@ import * as playwright from '@playwright/test';
 import type { LaunchOptions } from './code';
 import { PlaywrightDriver } from './playwrightDriver';
 import { IElectronConfiguration, resolveElectronConfiguration } from './electron';
-import { measureAndLog } from './logger';
-import { ChildProcess } from 'child_process';
+import { Logger, measureAndLog } from './logger';
+import { ChildProcess, execFileSync } from 'child_process';
+import { existsSync, readdirSync } from 'fs';
+import { createRequire } from 'module';
+import { homedir } from 'os';
+import * as path from 'path';
+
+const nodeRequire = createRequire(__filename);
 
 /**
  * Upper bound for how long we wait for the Electron process to launch and for
@@ -44,6 +50,12 @@ async function launchElectron(configuration: IElectronConfiguration, options: La
 	const videoSize = { width: 1920, height: 1080 };
 
 	const playwrightImpl = options.playwright ?? playwright;
+	if (options.videosPath) {
+		// Video recording runs inside FrameSession init, before
+		// Runtime.runIfWaitingForDebugger. A missing Playwright ffmpeg throws
+		// there and leaves the Electron renderer paused on a white window.
+		ensurePlaywrightFfmpeg(logger);
+	}
 	let electron;
 	try {
 		electron = await measureAndLog(() => playwrightImpl._electron.launch({
@@ -140,4 +152,66 @@ function enrichLaunchError(error: unknown, options: LaunchOptions): Error {
 	}
 	options.logger.log(`Playwright (Electron) ERROR: ${enriched.message}`);
 	return enriched;
+}
+
+function playwrightRegistryDirectory(): string {
+	const envDefined = process.env.PLAYWRIGHT_BROWSERS_PATH;
+	if (envDefined === '0') {
+		return path.join(path.dirname(nodeRequire.resolve('playwright-core/package.json')), '.local-browsers');
+	}
+	if (envDefined) {
+		return path.isAbsolute(envDefined) ? envDefined : path.resolve(process.env.INIT_CWD || process.cwd(), envDefined);
+	}
+	const cacheHome = process.platform === 'darwin'
+		? path.join(homedir(), 'Library', 'Caches')
+		: process.platform === 'win32'
+			? (process.env.LOCALAPPDATA || path.join(homedir(), 'AppData', 'Local'))
+			: (process.env.XDG_CACHE_HOME || path.join(homedir(), '.cache'));
+	return path.join(cacheHome, 'ms-playwright');
+}
+
+function playwrightFfmpegExecutableName(): string {
+	if (process.platform === 'win32') {
+		return 'ffmpeg-win64.exe';
+	}
+	if (process.platform === 'darwin') {
+		return 'ffmpeg-mac';
+	}
+	return 'ffmpeg-linux';
+}
+
+function findInstalledPlaywrightFfmpeg(): string | undefined {
+	const registry = playwrightRegistryDirectory();
+	if (!existsSync(registry)) {
+		return undefined;
+	}
+	const executable = playwrightFfmpegExecutableName();
+	for (const entry of readdirSync(registry)) {
+		if (!entry.startsWith('ffmpeg')) {
+			continue;
+		}
+		const candidate = path.join(registry, entry, executable);
+		if (existsSync(candidate)) {
+			return candidate;
+		}
+	}
+	return undefined;
+}
+
+function ensurePlaywrightFfmpeg(logger: Logger): void {
+	const existing = findInstalledPlaywrightFfmpeg();
+	if (existing) {
+		return;
+	}
+	const cli = path.join(path.dirname(nodeRequire.resolve('playwright-core/package.json')), 'cli.js');
+	logger.log(`Playwright (Electron): ffmpeg missing under ${playwrightRegistryDirectory()}; installing before launch`);
+	execFileSync(process.execPath, [cli, 'install', 'ffmpeg'], {
+		stdio: 'inherit',
+		timeout: 180_000,
+		env: process.env,
+	});
+	const installed = findInstalledPlaywrightFfmpeg();
+	if (!installed) {
+		throw new Error(`Playwright ffmpeg is still missing under ${playwrightRegistryDirectory()}. Electron recordVideo would pause the renderer before the workbench loads.`);
+	}
 }

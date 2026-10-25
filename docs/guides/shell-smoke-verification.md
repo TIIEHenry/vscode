@@ -3,7 +3,7 @@ title: "壳冒烟验证指南：隔离 profile 启动 + Playwright over CDP"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-10-05
+updated: 2026-10-25
 summary: "编辑器窗口壳冒烟：剧本 editor-shell.cjs 覆盖首屏、Sources 面板切换、底栏最大化再收回、聊天与 Run Prompt 命令，以及 Preview 里的未命名文件。Agents 窗口不作为产品壳。sessions e2e 不是这条剧本。"
 ---
 
@@ -108,6 +108,7 @@ node test/scenario/out/runScenario.js test/scenario/scenarios/editor-shell.cjs -
 
 ## 9. 已知坑
 
+- 剧本录像走 Playwright 自带的 ffmpeg（`~/.cache/ms-playwright/ffmpeg-*`），不是系统 `/usr/bin/ffmpeg`。缺这份二进制时，`FrameSession` 在 `Runtime.runIfWaitingForDebugger` 之前抛错，Electron 渲染进程停在调试器上：窗口标题还在，整帧白屏，没有 `.monaco-workbench`，主进程随后报 `Event.buffer` 泄漏。系统 ffmpeg 只给章节字幕用。Electron 启动（`test/automation/src/playwrightElectron.ts`）会在 `recordVideo` 之前执行 `playwright-core install ffmpeg`。装不上就不要开录像窗口。
 - `c7ed501d` 首轮 boot 崩溃（`IPreferencesEditorPane` 运行时 re-export 缺失、`workbench.action.chat.forkConversation` 重复注册）——workbench 起不来时先看 renderer console，不是 layout 问题。
 - Command Palette 自动化不可靠；四钮用 titlebar 元素点击或直接执行命令 id。
 - INV-052 `beforeHide` 必须在 `setRuntimeValue` 之前采集，否则 V3 会把 Panel 弹出（rerun-2230 修复）。

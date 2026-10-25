@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-25
-summary: "2026-10-25：D1303 白屏记录（c7c5cbc0a35）已快进合入。未跑 npm run compile，未 push。槽 I 查编辑器壳白屏。H 的 attachments/ 仍未跟踪。"
+summary: "2026-10-25：槽 I 本提交修好编辑器壳白屏并关闭 D1303。未合并进 merge，未跑 npm run compile，未 push。其余槽与人类工位仍在 009c359b7cc。H 的 attachments/ 仍未跟踪。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,18 +23,18 @@ summary: "2026-10-25：D1303 白屏记录（c7c5cbc0a35）已快进合入。未�
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 集成尖端（`agent-ide`） | D1303 白屏记录在 `c7c5cbc0a35`。本账本提交只记合入；写完后 merge 与字母槽 `merge --ff-only` 到本提交。 |
-| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`c7c5cbc0a35` ahead 1815、behind 0。未跑 `npm run compile`，未 push。`1117f5f95f2` 上 compile-client 退出码 1（505 条 `error TS`）未复跑。 |
+| 集成尖端（`agent-ide`） | 人类工位、merge 与除 I 以外的字母槽仍在 `009c359b7cc`。槽 I 本提交修白屏，未合并。 |
+| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`009c359b7cc` ahead 1816、behind 0。槽 I 再超前 1。未跑 `npm run compile`，未 push。`1117f5f95f2` 上 compile-client 退出码 1（505 条 `error TS`）未复跑。 |
 
-## 槽位表（2026-10-25 合入 D1303 白屏记录后）
+## 槽位表（2026-10-25 槽 I 修编辑器壳白屏）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `c7c5cbc0a35`，随后快进到本账 | 干净，不是 `parked`。快进合入，没有二父 merge commit，没有 `npm run compile` |
-| A、B、C、D、E、F、G、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 同上 | `idle`。工作区干净 |
-| I | `vscode-WorkTrees/I` | `loop/I` | 同上 | `occupied`。查编辑器壳白屏：没有 `.monaco-workbench`，主进程 60s `Event.buffer` 泄漏 |
-| H | `vscode-WorkTrees/H` | `loop/H` | 同上 | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
-| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 本账本提交 | 只记合入。禁止 reset / stash / restore / clean / `checkout -B` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `009c359b7cc` | 干净，不是 `parked`。本轮没有把 `loop/I` 合并进来，没有 `npm run compile` |
+| A、B、C、D、E、F、G、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | `009c359b7cc` | `idle`。工作区干净 |
+| I | `vscode-WorkTrees/I` | `loop/I` | 本提交 | 编辑器壳白屏已修。隔离窗口有 `.monaco-workbench`。D1303 已关。未合并 |
+| H | `vscode-WorkTrees/H` | `loop/H` | `009c359b7cc` | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
+| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | `009c359b7cc` | 未改。禁止 reset / stash / restore / clean / `checkout -B` |
 
 P0 旧账：字母槽与 merge 曾停在 `59120887458`，人类工位曾在 `10e04195bf0` 上带着审查改动。那些改动已在 `279f2c18f08`。本轮核对时 stash 未再查；不把文档里的进度当成已完成。
 
