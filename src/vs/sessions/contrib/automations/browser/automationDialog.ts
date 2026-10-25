@@ -13,6 +13,7 @@ import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IAction } from '../../../../base/common/actions.js';
 import { CancellationTokenSource } from '../../../../base/common/cancellation.js';
 import { Codicon } from '../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../../base/common/lifecycle.js';
@@ -397,7 +398,7 @@ export class AutomationIsolationGroupActionViewItem extends BaseActionViewItem {
 				this.renderBranchControl();
 			},
 			onRetry: () => {
-				void this.reloadRepository(this.isolationModel.folderUri);
+					void this.reloadRepository(this.isolationModel.folderUri).catch(onUnexpectedError).catch(onUnexpectedError);
 			},
 			isolation: {
 				label: localize('automation.form.isolation.worktree', "New Worktree"),
@@ -431,7 +432,7 @@ export class AutomationIsolationGroupActionViewItem extends BaseActionViewItem {
 		this.renderDisposables.add(autorun(reader => {
 			const folderUri = this.workspaceFolder.read(reader);
 			this.refreshTargetAndRender();
-			void this.reloadRepository(folderUri);
+				void this.reloadRepository(folderUri).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this.renderDisposables.add(this.onDidChangeTarget(() => {
 			this.refreshTargetAndRender();
@@ -1444,7 +1445,7 @@ export class MobileAutomationsWorkspacePicker extends AutomationsWorkspacePicker
 			this.layoutService,
 			triggerElement,
 			this._buildItems(),
-			item => { void this._dispatchPickerItem(item); },
+			item => { void this._dispatchPickerItem(item).catch(onUnexpectedError).catch(onUnexpectedError); },
 			this._getAllBrowseActions(),
 		);
 	}
