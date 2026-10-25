@@ -132,11 +132,11 @@ export class ConversationVisualizeOverlay extends Disposable {
 		closeButton.focus();
 	}
 
-	close(): void {
+	close(options?: { readonly restoreFocus?: boolean }): void {
 		const trigger = this.overlayTrigger;
 		this.overlayTrigger = undefined;
 		const overlay = this.overlayElement;
-		if (overlay) {
+		if (overlay && options?.restoreFocus !== false) {
 			restoreConversationOverlayFocus(overlay, trigger);
 		}
 		this.sessionDisposables?.dispose();
@@ -146,7 +146,7 @@ export class ConversationVisualizeOverlay extends Disposable {
 	}
 
 	override dispose(): void {
-		this.close();
+		this.close({ restoreFocus: false });
 		super.dispose();
 	}
 }

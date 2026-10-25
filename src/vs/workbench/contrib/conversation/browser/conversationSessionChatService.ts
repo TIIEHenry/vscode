@@ -72,7 +72,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		this._register(this.rosterService.onDidChangeEngineConnection(() => this.bindLiveTreeLease()));
 		if (this.rosterService.onDidDeleteSession) {
 			this._register(this.rosterService.onDidDeleteSession(sessionId => {
-				this.closeSubAgentDialog(sessionId);
+				this.closeSubAgentDialog(sessionId, { restoreFocus: false });
 			}));
 		}
 		this.rosterService.stubTurnSessionLinkCatalog = sessionKey => this.getCatalog(sessionKey);
@@ -169,6 +169,7 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		this.subAgentOverlays.delete(sessionKey);
 		const store = this.subAgentOverlayStores.get(sessionKey);
 		this.subAgentOverlayStores.delete(sessionKey);
+		overlay?.close({ restoreFocus: false });
 		if (store) {
 			store.dispose();
 		} else {
@@ -675,11 +676,11 @@ export class ConversationSessionChatService extends Disposable implements IConve
 		};
 	}
 
-	closeSubAgentDialog(sessionKey?: string): void {
+	closeSubAgentDialog(sessionKey?: string, options?: { readonly restoreFocus?: boolean }): void {
 		const key = this.resolveSessionKey(sessionKey);
 		const overlay = this.subAgentOverlays.get(key);
 		if (overlay?.isOpen()) {
-			overlay.close();
+			overlay.close(options);
 			this.fireCloseNonRootStateChange();
 		}
 	}

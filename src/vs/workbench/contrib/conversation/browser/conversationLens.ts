@@ -458,9 +458,9 @@ export class ConversationLens extends Disposable {
 
 	private closeBoundInnerOverlays(): void {
 		this.inboxOverlay.closeListPanel();
-		this.engineHistoryList?.close();
-		this.engineSnapshotsList?.close();
-		this.visualizeOverlay.close();
+		this.engineHistoryList?.close({ restoreFocus: false });
+		this.engineSnapshotsList?.close({ restoreFocus: false });
+		this.visualizeOverlay.close({ restoreFocus: false });
 	}
 
 	setFilterAgentId(agentId: string | undefined): void {

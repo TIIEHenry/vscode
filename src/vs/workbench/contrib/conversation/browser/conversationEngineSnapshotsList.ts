@@ -241,7 +241,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 				return;
 			}
 			if (this.boundSessionLeft(sessionId)) {
-				this.close();
+				this.close({ restoreFocus: false });
 				return;
 			}
 			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
@@ -285,18 +285,20 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
-	close(): void {
+	close(options?: { readonly restoreFocus?: boolean }): void {
 		const trigger = this.overlayTrigger;
 		this.overlayTrigger = undefined;
 		this.open = false;
 		this.renderGeneration++;
 		this.overlayElement.hidden = true;
 		this.button.element.setAttribute('aria-expanded', 'false');
-		restoreConversationOverlayFocus(this.overlayElement, trigger);
+		if (options?.restoreFocus !== false) {
+			restoreConversationOverlayFocus(this.overlayElement, trigger);
+		}
 	}
 
 	override dispose(): void {
-		this.close();
+		this.close({ restoreFocus: false });
 		this.overlayElement.remove();
 		super.dispose();
 	}
