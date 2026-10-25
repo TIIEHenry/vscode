@@ -218,6 +218,7 @@ export class EngineProvidersSection extends Disposable {
 		this.providerToolbar.style.display = 'none';
 		this.providerActionMessage = DOM.append(this.container, $('.engine-catalog-action-message'));
 		this.providerActionMessage.setAttribute('role', 'status');
+		this.clearProviderActionMessage();
 		this.providerList = DOM.append(this.container, $('.engine-provider-status-list.engine-catalog-list'));
 		this.providerList.style.display = 'none';
 
@@ -321,6 +322,7 @@ export class EngineProvidersSection extends Disposable {
 	}
 
 	private applyDisconnectedProvidersRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
+		this.clearProviderActionMessage();
 		// D359 leftover-looks-live: pairing-hold first. KEEP-chrome is not only `isEngineConnected()`.
 		if (hadLiveCatalog && isConversationPairingHold(this.connection)) {
 			this.providerList.style.display = '';
@@ -344,6 +346,7 @@ export class EngineProvidersSection extends Disposable {
 		}
 
 		if (entry.support === 'UNSUPPORTED') {
+			this.clearProviderActionMessage();
 			this.clearProviderPresentation();
 			this.providerListPhase = { kind: 'none' };
 			this.renderProviderStatus(this.resolveProviderMode(true, entry.support), entry.reason);
@@ -351,6 +354,7 @@ export class EngineProvidersSection extends Disposable {
 		}
 
 		if (!this.hasProviderListHook()) {
+			this.clearProviderActionMessage();
 			this.clearProviderPresentation();
 			this.providerListPhase = { kind: 'none' };
 			this.renderProviderStatus(this.resolveProviderMode(true, entry.support), entry.reason);
@@ -358,6 +362,7 @@ export class EngineProvidersSection extends Disposable {
 		}
 
 		if (entry.support === 'UNKNOWN') {
+			this.clearProviderActionMessage();
 			const hadLivePaint = this.providerCount > 0;
 			if (!hadLivePaint) {
 				this.clearProviderPresentation();
@@ -400,6 +405,7 @@ export class EngineProvidersSection extends Disposable {
 				this.providerList.style.display = '';
 			}
 			const reason = getTransportErrorMessage(error);
+			this.clearProviderActionMessage();
 			this.providerListPhase = { kind: 'failed', error: reason };
 			this.renderProviderStatus(
 				this.resolveProviderMode(true, entry.support, this.providerListPhase),
@@ -608,7 +614,14 @@ export class EngineProvidersSection extends Disposable {
 
 	private setProviderAction(message: string, tone: 'neutral' | 'error'): void {
 		this.providerActionMessage.textContent = message;
+		this.providerActionMessage.style.display = message ? '' : 'none';
 		this.providerActionMessage.classList.toggle('engine-catalog-action-message--error', tone === 'error');
+	}
+
+	private clearProviderActionMessage(): void {
+		this.providerActionMessage.textContent = '';
+		this.providerActionMessage.style.display = 'none';
+		this.providerActionMessage.classList.remove('engine-catalog-action-message--error');
 	}
 
 	private async promptProvider(providerId: string, protocol: string, baseUrl = '', intent: 'add' | 'edit' = 'add'): Promise<void> {
