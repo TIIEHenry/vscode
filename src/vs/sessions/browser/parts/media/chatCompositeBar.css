@@ -103,6 +103,15 @@
 	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
+.chat-composite-bar-session-title.editable:focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+:is(.hc-black, .hc-light) .chat-composite-bar-session-title.editable:focus-visible {
+	outline-color: var(--vscode-contrastActiveBorder);
+}
+
 .chat-composite-bar-session-title.editing {
 	flex: 1 1 auto;
 	cursor: default;
