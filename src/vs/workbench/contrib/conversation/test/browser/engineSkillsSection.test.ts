@@ -952,6 +952,41 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(writeStatus.textContent?.includes(saveFailed));
 	});
 
+	test('runtime SaveSkillContent UNIMPLEMENTED closes write chrome after binding disappears', async () => {
+		let saveCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({ skills: [{ name: 'user-skill', source: 'user', enabled: true }] }),
+			getSkillInfo: async (request) => ({
+				name: request.skillName,
+				content: '# Original',
+				source: 'user',
+				enabled: true,
+			}),
+			saveSkillContent: async () => {
+				saveCalls++;
+				connection.saveSkillContent = undefined;
+				return { ok: false, reason: 'UNIMPLEMENTED' };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		section.selectSkillForTest('user-skill');
+		await flushMicrotasks();
+
+		assert.strictEqual(section.isWriteToolbarVisible(), true);
+		assert.strictEqual(section.isSaveToolbarVisible(), true);
+		assert.strictEqual(await section.saveSelectedSkillBody('# should-not-persist'), false);
+		assert.strictEqual(section.isWriteToolbarVisible(), false);
+		assert.strictEqual(section.isSaveToolbarVisible(), false);
+		assert.strictEqual(await section.saveSelectedSkillBody('# second-attempt'), false);
+		assert.strictEqual(saveCalls, 1);
+		const bodyStatus = section.getDomNode().querySelector('.engine-skill-body-status') as HTMLElement;
+		assert.ok(bodyStatus.textContent?.includes('skill content write'));
+	});
+
 	test('saveSelectedSkillBody throw paints write-status and keeps catalog', async () => {
 		let listSkillsCalls = 0;
 		const connection = createConnectionStub({

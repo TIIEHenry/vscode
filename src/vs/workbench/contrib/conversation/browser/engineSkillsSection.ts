@@ -427,6 +427,7 @@ export class EngineSkillsSection extends Disposable {
 			const result = await this.connection.saveSkillContent({ skillName, content });
 			if (!result.ok) {
 				this.paintSkillCreateFailed();
+				this.closeWriteChromeWhenApiDisappears();
 				return false;
 			}
 			await this.restoreWriteSuccessAfterRefresh(() => this.paintSkillCreateSucceeded());
@@ -462,6 +463,7 @@ export class EngineSkillsSection extends Disposable {
 			});
 			if (!result.ok) {
 				this.paintSkillSaveFailed();
+				this.closeWriteChromeWhenApiDisappears();
 				return false;
 			}
 			if (this._store.isDisposed || generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skillName) {
@@ -810,6 +812,15 @@ export class EngineSkillsSection extends Disposable {
 		} else if (source && !canEditSkillBody(source)) {
 			this.showBodyStatus(localize('ua.engineSkillBodyReadOnly', "This skill is read-only because the engine reports it as {0}.", getSkillSourceGroupLabel(source)));
 		}
+	}
+
+	/** A runtime UNIMPLEMENTED response removes the dynamic write binding. */
+	private closeWriteChromeWhenApiDisappears(): void {
+		if (this.connection.saveSkillContent) {
+			return;
+		}
+		this.writeToolbar.style.display = 'none';
+		this.updateBodyEditorChrome(this.loadedBodySource ?? this.selectedSkill?.source);
 	}
 
 	private setSkills(skills: readonly UniverseAgentSkillSummary[]): void {
