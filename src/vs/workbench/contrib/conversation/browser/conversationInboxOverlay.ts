@@ -783,7 +783,24 @@ export class ConversationInboxOverlay extends Disposable {
 			meta.appendChild(document.createTextNode(`✗ ${item.lastError ?? conversationLensInboxQueueFailedTag}`));
 			row.appendChild(this.renderQueueRetryAction(item));
 		}
-		row.setAttribute('aria-label', preview.trim() || localize('conversationLens.inboxQueueEmptyItem', "Empty queued message"));
+		const accessibleState: string[] = [];
+		if (item.status === 'PENDING' && item.hold !== 'EDITING') {
+			accessibleState.push(conversationLensInboxQueueQueuedTag);
+		} else if (item.status === 'SENDING') {
+			accessibleState.push(localize('conversationLens.inboxQueueSending', "Sending…"));
+		}
+		if (item.hold === 'EDITING') {
+			accessibleState.push(conversationLensInboxQueueEditingTag);
+		}
+		if (item.status === 'UPLOADING') {
+			const pct = item.uploadProgress !== undefined ? Math.round(item.uploadProgress * 100) : 0;
+			accessibleState.push(format(conversationLensInboxQueueUploadingTag, pct));
+		}
+		if (item.status === 'FAILED' || item.status === 'UPLOAD_FAILED') {
+			accessibleState.push(`${conversationLensInboxQueueFailedTag}: ${item.lastError ?? conversationLensInboxQueueFailedTag}`);
+		}
+		const accessibleName = preview.trim() || localize('conversationLens.inboxQueueEmptyItem', "Empty queued message");
+		row.setAttribute('aria-label', [accessibleName, ...accessibleState].join(', '));
 
 		const holdItem = () => {
 			if (isConversationPairingHold(this.uaConnection) || item.hold === 'EDITING') {
