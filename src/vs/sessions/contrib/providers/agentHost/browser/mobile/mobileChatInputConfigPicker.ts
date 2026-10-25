@@ -8,6 +8,7 @@ import { renderIcon } from '../../../../../../base/browser/ui/iconLabel/iconLabe
 import { Gesture, EventType as TouchEventType } from '../../../../../../base/browser/touch.js';
 import { BaseActionViewItem } from '../../../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { Disposable, DisposableMap, DisposableStore } from '../../../../../../base/common/lifecycle.js';
+import { onUnexpectedError } from '../../../../../../base/common/errors.js';
 import { autorun, IObservable } from '../../../../../../base/common/observable.js';
 import { localize, localize2 } from '../../../../../../nls.js';
 import { IActionViewItemService } from '../../../../../../platform/actions/browser/actionViewItemService.js';
@@ -87,7 +88,7 @@ class MobileChatInputConfigPicker extends Disposable {
 	) {
 		super();
 		this._register(this._newChatModelPickerService.registerModelPicker({
-			open: () => { void this._showSheet(); },
+			open: () => { void this._showSheet().catch(onUnexpectedError).catch(onUnexpectedError); },
 			switchToModel: modelIdentifier => this._switchToModel(modelIdentifier),
 		}));
 
@@ -146,13 +147,13 @@ class MobileChatInputConfigPicker extends Disposable {
 		for (const eventType of [dom.EventType.CLICK, TouchEventType.Tap]) {
 			this._renderDisposables.add(dom.addDisposableListener(trigger, eventType, e => {
 				dom.EventHelper.stop(e, true);
-				this._showSheet();
+				void this._showSheet().catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 		this._renderDisposables.add(dom.addDisposableListener(trigger, dom.EventType.KEY_DOWN, e => {
 			if (e.key === 'Enter' || e.key === ' ') {
 				dom.EventHelper.stop(e, true);
-				this._showSheet();
+				void this._showSheet().catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		}));
 
