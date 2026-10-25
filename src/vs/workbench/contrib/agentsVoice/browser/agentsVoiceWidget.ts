@@ -890,7 +890,7 @@ export class AgentsVoiceWidget extends Disposable {
 				hideDisconnect: this.callbacks.hideDisconnect,
 				centerConnectButton: opts.centerConnectButton,
 				isMuted: this._isMuted.read(reader),
-				onMicDown: (e: MouseEvent) => { e.preventDefault(); this.callbacks.pttDown(); },
+				onMicDown: (e: Event) => { e.preventDefault(); this.callbacks.pttDown(); },
 				onMicUp: () => { this.callbacks.pttUp(); },
 				onConnectClick: (e: MouseEvent) => {
 					e.preventDefault();
