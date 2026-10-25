@@ -155,4 +155,35 @@ suite('ConnectionPreferencesPane (browser)', () => {
 
 		assert.ok(!(testStatus.textContent ?? '').includes('Reachable'));
 	});
+
+	test('narrow navigation returns focus to Back when opening a detail section', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		});
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const pane = instantiationService.createInstance(ConnectionPreferencesPane);
+		container.appendChild(pane.getDomNode());
+		pane.layout(new Dimension(480, 600));
+
+		const backButton = pane.getDomNode().querySelector('.connection-preferences-back') as HTMLButtonElement;
+		backButton.click();
+		const navHost = pane.getDomNode().querySelector('.connection-preferences-nav') as HTMLElement;
+		const navFocusProbe = document.createElement('button');
+		navFocusProbe.type = 'button';
+		navHost.appendChild(navFocusProbe);
+		navFocusProbe.focus();
+
+		// The Back button is the first reachable control after the nav is hidden.
+		pane.selectZone('direct');
+		await timeout(0);
+		assert.strictEqual(backButton.hidden, false);
+		assert.strictEqual(document.activeElement, backButton);
+		assert.strictEqual(pane.getDomNode().classList.contains('is-showing-detail'), true);
+	});
 });

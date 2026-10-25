@@ -921,12 +921,24 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	}
 
 	selectZone(id: ConnectionZoneId): void {
+		const focusNarrowDetailBackButton = this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH
+			&& !this.narrowShowingDetail
+			&& this.navHost.contains(this.navHost.ownerDocument.activeElement);
 		this.activeZoneId = id;
 		this.detailTitle.textContent = CONNECTION_ZONE_NAV_ENTRIES.find(entry => entry.id === id)?.label ?? '';
 		if (this.lastLayoutWidth < PREFERENCES_PANE_NARROW_WIDTH) {
 			this.narrowShowingDetail = true;
 			this.container.classList.add('is-showing-detail');
 			this.backButton.hidden = false;
+			if (focusNarrowDetailBackButton) {
+				// The nav is hidden by CSS as soon as the detail opens. Move focus after
+				// the list selection settles so keyboard users do not remain on a hidden row.
+				queueMicrotask(() => {
+					if (this.narrowShowingDetail && !this.backButton.hidden) {
+						this.backButton.focus();
+					}
+				});
+			}
 		}
 		for (const zoneId of ['hub', 'devices', 'direct', 'profiles', 'test'] as const) {
 			this.getZoneElement(zoneId).classList.toggle('is-active-zone', zoneId === id);

@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1350 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332–D1353 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Connection Preferences 窄宽详情焦点迁移（2026-10-26，D1353，本波窄宽/焦点反向审计）**：Connection Preferences 在窄宽从导航选中 zone 后会隐藏导航，原焦点仍停在被 `display:none` 的导航行，键盘用户无法继续沿详情操作。现仅在焦点来自导航时，在窄详情切换完成后的微任务中把焦点移到可见 Back 按钮；Back 返回导航仍复用 `navList.domFocus()`，宽布局和程序化切换不抢焦点。新增 browser 回归锁定窄宽详情状态与 Back 焦点；目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，未跑 full compile。见 [D1353](deferred-gaps.md)。
 - **Engine Preferences 窄宽详情焦点迁移（2026-10-26，D1350，本波全局 UI 键盘/ARIA 审计）**：Engine Preferences 在窄宽选中导航分节后会隐藏导航，原焦点仍停在被 `display:none` 的导航行，键盘用户无法继续沿详情操作。现仅当焦点来自导航时，在窄详情切换完成后的微任务中把焦点移到可见 Back 按钮；Back 返回导航仍复用 `navList.domFocus()`，宽布局和程序化切换不抢焦点。新增 browser 回归锁定窄宽详情状态与 Back 焦点；目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，目标文件 ESLint 0 errors（仅既有 warning），未跑 full compile。见 [D1350](deferred-gaps.md)。
 - **Skills 行内开关动作名称（2026-10-26，D1347，本波 Providers/Skills 反向审计）**：Skills 行 checkbox 原无论当前 enabled 状态都把 tooltip/ARIA 名称写成 “Enable {skill}”，读屏用户无法得到下一步动作。现按当前状态动态写 “Disable {skill}” 或 “Enable {skill}”，与 Providers/Plugins 的同类动作一致；新增浏览器 DOM 回归断言。不改变 setSkillEnabled 请求、六态能力闸、写入或窄宽布局；未跑 full compile。见 [D1347](deferred-gaps.md)。
 - **Clipboard Write 晚到结果边界（2026-10-26，D1348，D1346 反向审计）**：Clipboard Write 原只看动作代际，RPC resolve 后在断连、pairing-hold 或列表失败窗口可能先画旧 live 成功；自身 refresh 又会推进代际，正常 live 写入的成功反馈可能被误清。现把 prompt、RPC resolve、失败和 refresh 返回后的 render/action generation、连接相位与 list-fail 复核统一收口，并补 disconnect、pairing-hold、list-fail 以及正常 live refresh 后保留成功的 browser 回归；未跑 full compile。见 [D1348](deferred-gaps.md)。
