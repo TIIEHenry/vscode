@@ -125,6 +125,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 			small: true,
 			secondary: true,
 			title: localize('conversationSubAgentOverlayPromote', "Open as tab"),
+			ariaLabel: localize('conversationSubAgentOverlayPromote', "Open as tab"),
 		}));
 		popoutButton.icon = Codicon.openInProduct;
 		popoutButton.element.classList.add(conversationSubAgentOverlayPopoutClass);
@@ -140,6 +141,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 			small: true,
 			secondary: true,
 			title: localize('conversationSubAgentOverlayMaximize', "Maximize"),
+			ariaLabel: localize('conversationSubAgentOverlayMaximize', "Maximize"),
 		}));
 		this.maximizeButton.icon = Codicon.screenFull;
 		this.maximizeButton.element.classList.add(conversationSubAgentOverlayMaximizeClass);
@@ -252,6 +254,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 			? localize('conversationSubAgentOverlayRestore', "Restore")
 			: localize('conversationSubAgentOverlayMaximize', "Maximize");
 		this.maximizeButton.setTitle(title);
+		this.maximizeButton.setAriaLabel(title);
 		this.maximizeButton.element.setAttribute('aria-pressed', String(maximized));
 		this.layoutBreadcrumb();
 		this.scheduleLensLayout();
@@ -295,6 +298,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 		this.element.setAttribute(conversationSubAgentOverlayMaximizedAttribute, 'false');
 		this.maximizeButton.icon = Codicon.screenFull;
 		this.maximizeButton.setTitle(localize('conversationSubAgentOverlayMaximize', "Maximize"));
+		this.maximizeButton.setAriaLabel(localize('conversationSubAgentOverlayMaximize', "Maximize"));
 		this.maximizeButton.element.setAttribute('aria-pressed', 'false');
 		this.lensDisposables.clear();
 		this.lens = undefined;
