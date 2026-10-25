@@ -60,6 +60,16 @@ class OptimisticDeleteRoster extends QuietRosterService {
 	}
 }
 
+/** List refresh dropped ids. Distinct from an in-flight delete, which must not reveal yet. */
+class CatalogPruneRoster extends OptimisticDeleteRoster {
+	private readonly _onDidPruneEngineSessions = this._register(new Emitter<readonly string[]>());
+	override readonly onDidPruneEngineSessions = this._onDidPruneEngineSessions.event;
+
+	prune(sessionIds: readonly string[]): void {
+		this._onDidPruneEngineSessions.fire(sessionIds);
+	}
+}
+
 suite('ConversationSessionWindowService', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
@@ -406,6 +416,28 @@ suite('ConversationSessionWindowService', () => {
 		assert.strictEqual(sessionWindowService.getLeafSlots(primaryId), primaryLeaf);
 		assert.deepStrictEqual(sessionWindowService.getVisibleSessionKeys(), [primaryId]);
 		assert.strictEqual(sessionWindowService.getAllLeafSessionKeys().length, 1);
+	});
+
+	test('catalog prune drops the focused leaf and reveals the surviving active session', async () => {
+		const rosterService = store.add(new CatalogPruneRoster());
+		const { sessionWindowService, conversationParts, primaryId, neighborId } = await openFocusedPrimary(rosterService);
+
+		rosterService.omit(primaryId);
+		rosterService.projectActive(neighborId);
+		await timeout(0);
+		assert.strictEqual(sessionWindowService.getLeafSlots(neighborId), undefined);
+		assert.strictEqual(sessionWindowService.getLeafSlots(primaryId) !== undefined, true);
+
+		rosterService.prune([primaryId]);
+		await timeout(0);
+
+		assert.strictEqual(sessionWindowService.getLeafSlots(primaryId), undefined);
+		assert.ok(!sessionWindowService.getAllLeafSessionKeys().includes(primaryId));
+		assert.ok(!conversationParts.some(part => part.sessionKey === primaryId));
+		assert.strictEqual(sessionWindowService.getPrimarySessionKey(), neighborId);
+		assert.strictEqual(sessionWindowService.isSessionWindowVisible(neighborId), true);
+		assert.deepStrictEqual([...sessionWindowService.getVisibleSessionKeys()], [neighborId]);
+		assert.deepStrictEqual(conversationParts.map(part => part.sessionKey), [neighborId]);
 	});
 
 	test('onDidDeleteSession after an optimistic primary removal still shows the surviving active session', async () => {

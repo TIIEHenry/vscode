@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-10-24
-summary: "D1304 新开（会话就绪度归一剩余项）。D1301 已关。D1299 仍开。D1297 仍开。D24 仍开。D8 / D16 / D147 / D405 仍开。loop/merge a2cfd3d2d2dd1eeca44ae940236859c61094d92d 壳冒烟截图 PASS，证据 /home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/vscode-playwright-mcp/evidence/editor-shell-2026-10-14T19-18-00-347Z；externalDiffModule.test.ts exit 0，3 passing。"
+updated: 2026-10-25
+summary: "D1297 已关（目录刷新卸掉被刷掉的叶，并为仍在名册里的活动会话开窗）。D1304 仍开。D1299 仍开。D24 仍开。D8 / D16 / D147 / D405 仍开。"
 ---
 
 # Deferred Gaps
@@ -1243,7 +1243,7 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1294 | P3 | **closed** leftover Promise 双链 leftover remaining unused remaining remaining unused issue 八处：renderBlocks×6；updateIssueReporterUri(extension)；closeReporter。D883 close 仍 leftover。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 F；`issueLeftoverPromiseCatchScanD1294.test.ts`。勿 add `out`。 | 八处双链。未关 D24。leftover 程序未全局完成。 | workbench / issue leftover remaining unused remaining remaining unused | closed |
 | D1295 | P3 | **closed** leftover Promise 双链 tasks 新增 49 处：abstractTaskService +36（合计 38）；runAutomaticTasks +6；task.contribution +1；terminalTaskSystem +2；jsonSchema v1 +1、v2 +2；problemMatcher +1。`_runWithPermission` 仅 void、未双链。不得宣称 leftover/pills 完成。D24 **仍开**。 | 工位 D；`tasksLeftoverPromiseCatchScanD1295.test.ts`。勿 add `out`。勿 add D752。 | 49 处新双链。未关 D24。leftover 程序未全局完成。 | workbench / tasks | closed |
 | D1296 | P3 | **open** 编辑器页 `ConversationLens` 构造不传 `sessionBar`（`conversationEditorPane.ts` `ensureLens`），`engineHistoryList` / `engineSnapshotsList` 留在透镜上为 undefined。`setInputMaximized(true)` 只 `close()` 这两个透镜字段。叶栏经 `mountSessionBar` 另建的 History / Snapshots 在最大化时不会被关掉。打开它们会 `setInputMaximized(false)`，该调用已转发到透镜。未改透镜方法。 | 本刀只做转发，委派单禁止复制第二套最大化策略、禁止改 `ConversationLens.setInputMaximized` 自己的规则 | 编辑器叶在输入已最大化、且叶栏 History 或 Snapshots 正打开时，走现有透镜最大化会把这两份叶列表关掉（`isOpen()===false`）；补测锁住。不在叶上再写一套最大化规则 | conversation | open |
-| D1297 | P3 | **open** 目录刷新拿掉焦点会话时不补窗口。`doRefreshEngineCatalog` 替换 `engineSessions` 后，若活动 id 不在新名单里，只 `activateEngineSession` 发出 `onDidChangeActiveSession`，不发 `onDidDeleteSession`。窗口服务在焦点会话已不在 `getSessions()` 时跳过 reveal；继任窗口只在删除成功且没有可见叶时才打开。别的客户端删掉当前焦点会话、本端只收到 List 时，旧叶留着，新活动会话没有窗。 | 本刀只修远程删除在途时的乐观活动切换。禁止改 roster 活动 id 时序，也禁止在 `rollbackEngineSessionDelete` 里重建叶 | 焦点会话被 List 刷新移除且没有 `onDidDeleteSession` 时，仍在名册里的新活动会话得到可见窗口，被刷掉的 id 不再占着可见叶；补测锁住 | conversation | open |
+| D1297 | P3 | **closed** 目录刷新拿掉焦点会话时补窗口。`doRefreshEngineCatalog` 替换 `engineSessions` 后，若活动 id 不在新名单里，只 `activateEngineSession` 发出 `onDidChangeActiveSession`，不发 `onDidDeleteSession`。窗口服务在焦点会话已不在 `getSessions()` 时跳过 reveal；继任窗口只在删除成功且没有可见叶时才打开。别的客户端删掉当前焦点会话、本端只收到 List 时，旧叶留着，新活动会话没有窗。 | 本刀只修远程删除在途时的乐观活动切换。禁止改 roster 活动 id 时序，也禁止在 `rollbackEngineSessionDelete` 里重建叶 | 焦点会话被 List 刷新移除且没有 `onDidDeleteSession` 时，仍在名册里的新活动会话得到可见窗口，被刷掉的 id 不再占着可见叶；补测锁住 | conversation | closed |
 | G-TL-1 | P3 | **overlay 追加式 chunk**（F8 全文 IPC 在超长回答时每帧仍为 O(L)） | 上游协议由 Actor 决定，渲染端已按前缀增量处理 | 上游 overlay 支持追加式 chunk 传输 | conversation | open |
 | G-TL-2 | P3 | **overlay chunk 分类应由上游提供**（D10 临时由前端按 chunkId 识别） | 上游尚未输出 chunk 类别，前端借 `:think:` 钉住 | 上游 SessionViewFrame 显式标注 chunk 类别 | conversation | open |
 | D1298 | P2 | **closed** 已修。`extensionEnablementService.ts` 的 `loopCheckForMaliciousExtensions` 递归链恢复为 `.then(() => this.loopCheckForMaliciousExtensions());`，分号紧跟递归 then，不接双链。`whenInitialized` 双链未动，扫描未放宽。Node 24.18.0：`./scripts/test.sh --run src/vs/workbench/services/extensions/test/node/extensionsServicesLeftoverPromiseCatchScan.test.ts` **exit 0**（11 passing）。工位 F 提交 `fix(extensionManagement): 恶意扩展循环的递归 then 恢复为扫描要求的跳过形态`。原红：验证泳道 `a30f971680a` 该测 exit 1（10 passing / 1 failing），源码曾是双链（`4f0e88133e0`）。 | 验证泳道不改产品代码；本工位只恢复这条递归跳过形态 | 上述 `--run` exit 0 | extensions / verify | closed |

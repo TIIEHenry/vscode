@@ -80,6 +80,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private readonly rosterDetailKeys = new Map<string, string>();
 	private readonly _onDidFailEngineAction = this._register(new Emitter<IConversationEngineActionFailure>());
 	override readonly onDidFailEngineAction = this._onDidFailEngineAction.event;
+	private readonly _onDidPruneEngineSessions = this._register(new Emitter<readonly string[]>());
+	override readonly onDidPruneEngineSessions = this._onDidPruneEngineSessions.event;
 	private lastDispatchedEngineAction: Promise<boolean> | undefined;
 	private engineSessions: ConversationStubSession[] = [];
 	private activeEngineSessionId: string | undefined;
@@ -1915,6 +1917,18 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this._onDidChangeSessionRosterDetail.fire(sessionId);
 	}
 
+	/**
+	 * Catalog list no longer contains these ids. Local delete does not call this:
+	 * that path fires {@link onDidDeleteSession} only after the unary succeeds.
+	 */
+	private firePrunedEngineSessions(previousIds: readonly string[]): void {
+		const dropped = previousIds.filter(id => !this.engineSessions.some(session => session.id === id));
+		if (dropped.length === 0) {
+			return;
+		}
+		this._onDidPruneEngineSessions.fire(dropped);
+	}
+
 	/** @internal Await the in-flight engine catalog refresh (tests). */
 	async whenEngineCatalogRefreshComplete(): Promise<void> {
 		while (this.refreshEngineCatalogInflight) {
@@ -1958,6 +1972,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return;
 			}
 			const previousRowTurns = new Map<string, ConversationStubTurn[]>();
+			const previousEngineSessionIds = this.engineSessions.map(session => session.id);
 			for (const session of this.engineSessions) {
 				if (session.turns.length > 0) {
 					previousRowTurns.set(session.id, session.turns.map(turn => ({ ...turn })));
@@ -1998,6 +2013,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			}
 			this._onDidChangeSession.fire(this.getActiveSessionId());
 			this.persistEngineAwareRoster();
+			this.firePrunedEngineSessions(previousEngineSessionIds);
 		} catch {
 			if (capturedConnection !== this.uaConnection || generation !== this.connectionGeneration || capturedIdentity !== this.boundEngineIdentityId) {
 				return;

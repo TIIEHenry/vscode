@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-25
-summary: "2026-10-25：人类工位、merge 与 A–J 同在 279f2c18f08。无字母槽独有提交。H 仍有未跟踪 attachments/。本轮不编译、不 push。槽 A 被派去重选下一刀。"
+summary: "2026-10-25：槽 A 的 loop/A 提交 D1297（目录刷新补窗）。agent-ide、merge、B–J 与人类工位仍在 1699d66e2a2。不合并、不 push。compile 未跑。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,18 +23,18 @@ summary: "2026-10-25：人类工位、merge 与 A–J 同在 279f2c18f08。无�
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 集成尖端（`agent-ide`） | 本账本提交。父提交 `79fda2279e4` 只记了「各槽曾在 `279f2c18f08`」。审查收尾是 `279f2c18f08`。写完后 merge 与 A–J `merge --ff-only` 到本提交。 |
-| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。本地 ahead 1800、behind 0。本轮未编译。上次编译是父提交 `10e04195bf0` 上 merge 槽 `npm run compile` 退出码 1（`compile-src` 105 个既有 TS 错误），不能当成当前尖端的结果。不 push。 |
+| 集成尖端（`agent-ide`） | 仍是 `1699d66e2a2`。槽 A 的 D1297 只在 `loop/A`，本轮不合并进 merge，也不推进 `agent-ide`。 |
+| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。对齐时 `1699d66e2a2` 相对 origin ahead 1802、behind 0。本轮未编译、未 push。更早的 `10e04195bf0` 上 merge 槽 `npm run compile` 退出码 1（`compile-src` 约 105 个既有 TS 错误），不能当成 `1699d66e2a2` 或本刀的结果。 |
 
-## 槽位表（2026-10-25 对齐后派工）
+## 槽位表（2026-10-25 槽 A 提交 D1297 后）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | 本账本提交 | 干净，不是 `parked`。HEAD 仍不等于已 push 的 `origin/agent-ide`。本轮无字母槽提交可合并，也没有 `npm run compile` |
-| A | `vscode-WorkTrees/A` | `loop/A` | 本账本提交 | `occupied`。对照代码重选下一刀并自行实施。开工前工作区干净 |
-| B、C、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 本账本提交 | `idle`。工作区干净 |
-| H | `vscode-WorkTrees/H` | `loop/H` | 本账本提交 | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
-| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 账本提交 | 只记本轮事实。禁止 reset / stash / restore / clean / `checkout -B` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `1699d66e2a2` | 干净，不是 `parked`。本轮没有把字母槽合并进来，也没有 `npm run compile` |
+| A | `vscode-WorkTrees/A` | `loop/A` | 本文件所在提交 | `occupied`，直到调度者合并。提交后工作区干净。内容是 D1297 目录刷新补窗 |
+| B、C、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | `1699d66e2a2` | `idle`。本轮未改这些工位；核对时工作区干净 |
+| H | `vscode-WorkTrees/H` | `loop/H` | `1699d66e2a2` | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
+| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | `1699d66e2a2` | 只记本轮事实。禁止 reset / stash / restore / clean / `checkout -B` |
 
 P0 旧账：字母槽与 merge 曾停在 `59120887458`，人类工位曾在 `10e04195bf0` 上带着审查改动。那些改动已在 `279f2c18f08`。本轮核对时 stash 未再查；不把文档里的进度当成已完成。
 

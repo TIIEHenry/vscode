@@ -4608,6 +4608,38 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.ok(detailIds.includes('ua-cache'), `roster detail listeners: ${detailIds.join(',')}`);
 	});
 
+	test('catalog refresh prunes sessions the list dropped without firing onDidDeleteSession', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([
+			{ sessionId: 'ua-a', title: 'A' },
+			{ sessionId: 'ua-b', title: 'B' },
+		]);
+		const service = store.add(createService(connection));
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-a', 'ua-b']);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-a');
+
+		const deleted: string[] = [];
+		const pruned: string[][] = [];
+		store.add(service.onDidDeleteSession(id => deleted.push(id)));
+		store.add(service.onDidPruneEngineSessions(ids => pruned.push([...ids])));
+
+		connection.setListSessions([{ sessionId: 'ua-b', title: 'B' }]);
+		await (service as unknown as { refreshEngineCatalog(): Promise<void> }).refreshEngineCatalog();
+		await awaitEngineCatalogRefresh(service);
+
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), ['ua-b']);
+		assert.strictEqual(service.getActiveSessionId(), 'ua-b');
+		assert.deepStrictEqual(pruned, [['ua-a']]);
+		assert.deepStrictEqual(deleted, []);
+
+		await (service as unknown as { refreshEngineCatalog(): Promise<void> }).refreshEngineCatalog();
+		await awaitEngineCatalogRefresh(service);
+		assert.deepStrictEqual(pruned, [['ua-a']]);
+		assert.deepStrictEqual(deleted, []);
+	});
+
 	test('listSessions refresh keeps remembered turns on sessions without a live lease', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());

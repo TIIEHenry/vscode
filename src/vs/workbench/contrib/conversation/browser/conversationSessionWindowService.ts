@@ -143,6 +143,14 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 				this.disposeLeafForDeletedSession(sessionKey);
 			}));
 		}
+		// List refresh is not an in-flight delete. The active-session listener above
+		// still skips reveal while the focused id is already gone; this event is what
+		// drops those leaves and opens the session the list left active.
+		this._register(this.rosterService.onDidPruneEngineSessions(sessionIds => {
+			for (const sessionKey of sessionIds) {
+				this.disposeLeafForDeletedSession(sessionKey);
+			}
+		}));
 	}
 
 	getVisibleSessionKeys(): readonly string[] {

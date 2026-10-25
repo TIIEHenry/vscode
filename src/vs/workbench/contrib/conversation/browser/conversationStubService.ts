@@ -88,6 +88,12 @@ export interface IConversationRosterService {
 	 * Pairing-hold, leftover list-fail, and a missing id do not fire.
 	 */
 	readonly onDidDeleteSession?: Event<string>;
+	/**
+	 * Ids a connected catalog list dropped. Not a successful delete:
+	 * {@link onDidDeleteSession} stays quiet, and an in-flight local delete
+	 * does not appear here.
+	 */
+	readonly onDidPruneEngineSessions: Event<readonly string[]>;
 	readonly onDidChangeEngineConnection: Event<boolean>;
 	readonly onDidChangeLiveAgentTree: Event<ILiveAgentTreeChangeEvent>;
 	/**
@@ -317,6 +323,9 @@ export class ConversationStubService extends Disposable implements IConversation
 
 	protected readonly _onDidDeleteSession = this._register(new Emitter<string>());
 	readonly onDidDeleteSession = this._onDidDeleteSession.event;
+
+	/** Stub catalogs are local. Engine list refresh is the only producer. */
+	readonly onDidPruneEngineSessions: Event<readonly string[]> = Event.None;
 
 	protected readonly _onDidChangeEngineConnection = this._register(new Emitter<boolean>());
 	readonly onDidChangeEngineConnection = this._onDidChangeEngineConnection.event;
