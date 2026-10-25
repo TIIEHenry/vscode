@@ -14,6 +14,7 @@ import type { IInstantiationService } from '../../../../platform/instantiation/c
 import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/chatContentCodePools.js';
 import { MarkdownDiffBlockPart, parseUnifiedDiff, type IMarkdownDiffBlockData } from '../../chat/browser/widget/chatContentParts/chatDiffBlockPart.js';
 import { conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
+import { conversationLensDockSendBusy } from './conversationLensDockStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
 import { ProcessFoldNode, ProcessFoldSpan, countProcessFoldToolStatuses, summarizeProcessSteps, summarizeThinkingTools } from './conversationProcessFoldModel.js';
 
@@ -70,6 +71,8 @@ export interface ProcessFoldDomOptions {
 	readonly onCancelToolCall?: (turn: ConversationStubTurn) => void;
 	/** Respondable client-tool row → roster `respondClientTool`. */
 	readonly onRespondClientTool?: (turn: ConversationStubTurn) => void;
+	/** Whether a client-tool response is waiting for the next snapshot. */
+	readonly isRespondInFlight?: (turn: ConversationStubTurn) => boolean;
 	readonly onLayoutChange: () => void;
 	/** When false (stub fixture), omit loading / live / duration chrome (Q4). */
 	readonly showLiveChrome: boolean;
@@ -1118,20 +1121,40 @@ function appendProcessFoldToolRespond(
 	options: ProcessFoldDomOptions,
 	disposables: DisposableStore,
 ): void {
-	if (turn.respondable !== true || !options.onRespondClientTool || !turn.id.trim()) {
+	if (turn.respondable !== true || !turn.id.trim()) {
 		return;
 	}
 	const writesEnabled = options.writesEnabled !== false;
+	const responseInFlight = options.isRespondInFlight?.(turn) === true && turn.respondFailure === undefined;
+	const respondFailure = turn.respondFailure;
+	if (respondFailure) {
+		const failure = append(parent, $('span.conversation-process-fold-tool-respond-failure'));
+		failure.textContent = localize('conversationProcessFold.toolRespondFailed', "Couldn't send this response: {0}", respondFailure.error);
+		failure.setAttribute('role', 'alert');
+	}
+	if (!options.onRespondClientTool || respondFailure?.retryable === false) {
+		return;
+	}
 	const respond = append(parent, $('button.conversation-process-fold-tool-respond')) as HTMLButtonElement;
 	respond.type = 'button';
 	respond.classList.add(...ThemeIcon.asClassNameArray(Codicon.reply));
-	respond.title = writesEnabled ? conversationProcessFoldToolRespond : conversationProcessFoldWritesUnavailable;
-	respond.setAttribute('aria-label', writesEnabled ? conversationProcessFoldToolRespond : `${conversationProcessFoldToolRespond}. ${conversationProcessFoldWritesUnavailable}`);
-	respond.disabled = !writesEnabled;
-	respond.setAttribute('aria-disabled', String(!writesEnabled));
+	const holdReason = responseInFlight ? conversationLensDockSendBusy : undefined;
+	const presented = !writesEnabled
+		? `${conversationProcessFoldToolRespond}. ${conversationProcessFoldWritesUnavailable}`
+		: holdReason
+			? `${conversationProcessFoldToolRespond}. ${holdReason}`
+			: conversationProcessFoldToolRespond;
+	respond.title = presented;
+	respond.setAttribute('aria-label', presented);
+	respond.disabled = !writesEnabled || responseInFlight;
+	respond.setAttribute('aria-disabled', String(!writesEnabled || responseInFlight));
+	if (responseInFlight) {
+		respond.setAttribute('aria-busy', 'true');
+		parent.setAttribute('aria-busy', 'true');
+	}
 	disposables.add(addDisposableListener(respond, 'click', (e) => {
 		e.stopPropagation();
-		if (!writesEnabled) {
+		if (!writesEnabled || responseInFlight) {
 			return;
 		}
 		options.onRespondClientTool!(turn);

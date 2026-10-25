@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1357 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1359 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
 
 
 ---
@@ -1307,4 +1307,5 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1357 | P3 | **open** D1356 的 accepted cleanup 对未知或跨语义 callId 仍无条件移除 pending，且可把同 id 的 server tool 行改成 client-tool 结果；异常 unary 返回 `undefined` 或非布尔 `ok` 也会被通用 wrapper 当作 accepted。现仅在已知 `respondable` client-tool timeline/pending 行上生成 cleanup，client-tool unary 专用要求显式 `ok:true`；未知 id、同 id permission/question/server-tool、`ok:false`、malformed 或 throw 均保留原状态。新增 collision、pending-only 与 malformed 回归。定向 Electron 测试受本机 `sandbox_host_linux` 退出 133；目标工作台测试文件 ESLint 0 errors；未跑 full compile。 | 只收口 D1356 的身份/accepted 边界，不改 RPC payload、合法 client-tool 的 bounded result 或晚到帧幂等合同 | unknown/collision 不产生 cleanup；已知 client-tool pending 可收口；仅 `ok:true` 收口；拒绝/异常/格式错误保留 pending 与 timeline | conversation / client-tool-response |
 | D1355 | P3 | **open** D1351 的连接态写闸对缺失 connectionStatus 的远程 agenthost-* provider 原会 fail-open，导致连接事实未知时仍可写。现仅 local-agent-host 允许无状态本地路径；远程缺状态、无 provider 与非 Agent Host 均 fail-closed；补 reconnecting、cached accepted 值保留及 remote unknown/local unknown/non-Agent Host 回归。 | 只收口 Agent Host Permission picker 对 connectionStatus 缺失的 fail-closed 边界；不改变 connected 写入、local provider 无远端状态、accepted 值或其他 picker 行为 | remote 缺 status 不可写；local 缺 status 可写；reconnecting 及其他非 connected 不可写且恢复 connected 后可写；非 Agent Host 仍不适用 | sessions / permission-picker | open |
 | D1358 | P3 | **open** 会话栏“下一级 Agent”自定义 menu 打开后将焦点放进首个 menuitem，但 Escape、外部点击或选择关闭时未把焦点还给下拉按钮；menuitem 被移除后键盘上下文落到 body。现记录 popup 内最近焦点，并在关闭时仅当活动焦点仍属于该 popup 且 anchor 可见时恢复到下拉按钮；补 Escape、外部点击与选择关闭回归。 | 只修自定义 Agent child menu 的焦点回收与键盘上下文，不改子会话打开、上下箭头导航、关闭触发或写闸 | 菜单三种关闭路径均把焦点回到下拉按钮；anchor 隐藏/销毁或焦点已在菜单外时不抢焦点；既有 role/menuitem 与操作行为保持 | conversation / navigation-menu | open |
+| D1359 | P3 | **open** client-tool Respond CTA 原在 unary 已发送后仍保持可操作，晚到或拒绝帧时可重复发送，且没有就地失败文案；permission/question 已有的 in-flight disabled、`aria-busy` 与 retryable failure 语义未复用。现按工具行 id+文本记录 in-flight hold，pending 重绘禁用并呈现忙碌语义；`respondFailure` 映射到 client-tool 行，retryable failure 保留 Respond，non-retryable failure 隐藏 CTA 并保留错误。补 process-fold / renderer 回归。 | 只收口 client-tool UI 状态与重复响应闸，不改 unary payload、cleanup 身份或引擎协议 | accepted 后下一帧前按钮 disabled+`aria-busy`；retryable 失败可重试且错误就地可见；non-retryable / terminal / remove 不留可操作 CTA | conversation / client-tool-response |
 

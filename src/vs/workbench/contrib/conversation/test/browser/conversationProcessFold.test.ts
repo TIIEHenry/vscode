@@ -630,6 +630,56 @@ suite('ConversationProcessFold', () => {
 		disposables.dispose();
 	});
 
+	test('respondable tool shows an inline retryable failure and honors in-flight hold', () => {
+		const turn: ConversationStubTurn = {
+			id: 'call-failure', kind: 'tool', text: 'client', toolName: 'clientTool', respondable: true,
+			respondFailure: { retryable: true, error: 'ipc closed' },
+		};
+		const span = projectProcessFoldSpans([turn])[0];
+		assert.ok(span);
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+			isRespondInFlight: () => false,
+			onRespondClientTool: () => { },
+		}, disposables);
+		const button = host.querySelector('.conversation-process-fold-tool-respond') as HTMLButtonElement | null;
+		assert.ok(button);
+		assert.strictEqual(button.disabled, false);
+		assert.ok(host.textContent?.includes("Couldn't send this response: ipc closed"));
+		disposables.dispose();
+
+		const heldHost = document.createElement('div');
+		const heldDisposables = new DisposableStore();
+		renderProcessFoldSpan(heldHost, projectProcessFoldSpans([{ ...turn, respondFailure: undefined }])[0]!, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+			isRespondInFlight: () => true,
+			onRespondClientTool: () => { },
+		}, heldDisposables);
+		const heldButton = heldHost.querySelector('.conversation-process-fold-tool-respond') as HTMLButtonElement | null;
+		assert.ok(heldButton);
+		assert.strictEqual(heldButton.disabled, true);
+		assert.strictEqual(heldButton.getAttribute('aria-busy'), 'true');
+		heldDisposables.dispose();
+	});
+
 	test('reconcile resyncs thinking row when outer fold reopens after collapse state changed', () => {
 		const thinking: ConversationStubTurn = { id: 't1', kind: 'thinking', text: 'draft' };
 		const span = projectProcessFoldSpans([thinking])[0];

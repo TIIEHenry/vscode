@@ -120,6 +120,8 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 	private readonly questionSeats = new Map<string, ConversationQuestionSeat>();
 	/** Pending seat id → message text for a decision posted before a failure or a closed status. */
 	private readonly openDecisionHold = new Map<string, string>();
+	/** Respondable client-tool id → text for a response posted before the next snapshot. */
+	private readonly openClientToolResponseHold = new Map<string, string>();
 	private readonly userBubbleExpanded = new Map<string, boolean>();
 	private readonly processFoldOuterExpanded = new Map<string, boolean>();
 	private readonly processFoldThinkingExpanded = new Map<string, boolean>();
@@ -203,7 +205,13 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				},
 				onViewInTrajectory: this.onViewInTrajectory,
 				onCancelToolCall: this.onCancelToolCall,
-				onRespondClientTool: this.onRespondClientTool,
+				onRespondClientTool: this.onRespondClientTool
+					? toolTurn => {
+						this.noteClientToolResponse(toolTurn);
+						this.onRespondClientTool!(toolTurn);
+					}
+					: undefined,
+				isRespondInFlight: turnToCheck => this.clientToolResponseHeld(turnToCheck),
 				onLayoutChange: () => this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen),
 			}, templateData.disposables);
 			this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
@@ -593,6 +601,11 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				this.openDecisionHold.delete(id);
 			}
 		}
+		for (const id of this.openClientToolResponseHold.keys()) {
+			if (!knownIds.has(id)) {
+				this.openClientToolResponseHold.delete(id);
+			}
+		}
 	}
 
 	/**
@@ -622,6 +635,28 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			return;
 		}
 		this.openDecisionHold.set(turn.id, turn.text);
+	}
+
+	private clientToolResponseHeld(turn: ConversationStubTurn): boolean {
+		const heldText = this.openClientToolResponseHold.get(turn.id);
+		if (turn.respondable !== true || heldText === undefined || turn.respondFailure !== undefined || (turn.toolStatus !== undefined && turn.toolStatus !== 'pending' && turn.toolStatus !== 'running')) {
+			if (turn.respondable !== true || turn.respondFailure !== undefined || (turn.toolStatus !== undefined && turn.toolStatus !== 'pending' && turn.toolStatus !== 'running')) {
+				this.openClientToolResponseHold.delete(turn.id);
+			}
+			return false;
+		}
+		if (heldText !== turn.text) {
+			this.openClientToolResponseHold.delete(turn.id);
+			return false;
+		}
+		return true;
+	}
+
+	private noteClientToolResponse(turn: ConversationStubTurn): void {
+		if (turn.respondable !== true || turn.respondFailure !== undefined || (turn.toolStatus !== undefined && turn.toolStatus !== 'pending' && turn.toolStatus !== 'running')) {
+			return;
+		}
+		this.openClientToolResponseHold.set(turn.id, turn.text);
 	}
 
 	/** D11: reveal into a collapsed process fold expands that fold before scroll. */
