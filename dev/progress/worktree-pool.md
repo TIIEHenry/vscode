@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-25
-summary: "2026-10-25：槽 B 落地 D1296，尚未快进合入。compile-client 退出码 1，未 push。H 的 attachments/ 仍未跟踪。"
+summary: "2026-10-25：D1296（2c7145ba210）已快进合入。compile-client 退出码 1，未 push。槽 C 做 D1304。H 的 attachments/ 仍未跟踪。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,17 +23,18 @@ summary: "2026-10-25：槽 B 落地 D1296，尚未快进合入。compile-client 
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 集成尖端（`agent-ide`） | D1297 在 `b955f10fd71`。本账本提交只记合入；写完后 merge 与字母槽 `merge --ff-only` 到本提交。 |
-| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`b955f10fd71` ahead 1803、behind 0。本轮未跑 `npm run compile`，未 push。`10e04195bf0` 上的编译退出码 1 不能当成当前尖端的结果。 |
+| 集成尖端（`agent-ide`） | D1296 在 `2c7145ba210`。本账本提交只记合入；写完后 merge 与字母槽 `merge --ff-only` 到本提交。 |
+| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`2c7145ba210` ahead 1805、behind 0。槽 B 自述 `compile-client` 退出码 1（147 条既有 TS 错误，未落在该改动上）。本轮未再编译，未 push。 |
 
-## 槽位表（2026-10-25 合入 D1297 后）
+## 槽位表（2026-10-25 合入 D1296 后）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `b955f10fd71`，随后快进到本账 | 干净，不是 `parked`。快进合入，没有二父 merge commit，没有 `npm run compile` |
-| A | `vscode-WorkTrees/A` | `loop/A` | 同上 | `idle`。D1297 已合入，工作区干净 |
-| B | `vscode-WorkTrees/B` | `loop/B` | 本提交 | `occupied`。D1296 已落（叶栏 History / Snapshots 走透镜 `setInputMaximized(true)` 关闭）。尚未快进合入 |
-| C、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 同上 | `idle`。工作区干净 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `2c7145ba210`，随后快进到本账 | 干净，不是 `parked`。快进合入，没有二父 merge commit，没有 `npm run compile` |
+| A | `vscode-WorkTrees/A` | `loop/A` | 同上 | `idle`。工作区干净 |
+| B | `vscode-WorkTrees/B` | `loop/B` | 同上 | `idle`。D1296 已合入，工作区干净 |
+| C | `vscode-WorkTrees/C` | `loop/C` | 同上 | `occupied`。做仍开的 D1304（加载细进度条；Navigator / Sources 未就绪改走同一判定） |
+| D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 同上 | `idle`。工作区干净 |
 | H | `vscode-WorkTrees/H` | `loop/H` | 同上 | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
 | 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 本账本提交 | 只记合入。禁止 reset / stash / restore / clean / `checkout -B` |
 
