@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1349 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1350 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
 ---
 
 # Deferred Gaps
@@ -1297,3 +1297,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1347 | P3 | **open** Skills 行内 checkbox 原无论当前 enabled 状态都把 tooltip/ARIA 名称写成 “Enable {skill}”，读屏用户无法得到下一步动作；现按状态写 “Disable {skill}” 或 “Enable {skill}”，与 Providers/Plugins 的同类动作一致，并补浏览器 DOM 回归断言。 | 只调整 Skills 行内 toggle 的动作名称与辅助技术语义，不改变 `setSkillEnabled` 请求、能力三态、写入闸、断连处理或窄宽布局 | enabled 技能读为 Disable，disabled 技能读为 Enable；鼠标、键盘切换和现有状态反馈保持；定向 Electron 测试待可运行环境复验，未跑 full compile | conversation / engine-skills | open |
 | D1348 | P3 | **open** D1346 余留 Clipboard Write 的晚到结果仅依赖动作代际，RPC resolve 后在连接已进入 pairing-hold、断连或列表失败的窗口仍可能先画旧 live 成功；自身 refresh 还会推进代际，正常 live 写入的成功反馈可能被误清。现为 Write 在 prompt、RPC resolve、失败和 refresh 返回后统一复核 render/action generation、连接相位与 list-fail，并补 disconnect / pairing-hold / list-fail 以及正常 live refresh 后保留成功的 browser 回归。未跑 full compile。 | 只收口 Clipboard Write 的过期结果与自身刷新边界；不改变 payload、正常 live 写入或列表失败文案 | Write 在断连、pairing-hold 或 list-fail 后不再画晚到 success/error；同一 live 代际的成功反馈在 refresh 后仍保留 | conversation / engine-catalog | open |
 | D1349 | P3 | **open** `createNewSession` 原在 pairing-hold、KEEP leftover 或引擎缓存断连等写闸拒绝前就写回 Composer 草稿，导致新建动作虽被拒绝仍产生草稿写入副作用。现将草稿捕获移到全部写闸通过后，并补 SessionBar 门控回归（含三类拒绝路径）。 | 只收口新建会话失败路径的草稿副作用；不改变写闸、会话创建或正常草稿保留语义 | 所有拒绝路径不写草稿；写闸通过且创建调用时仍捕获一次当前 Composer 草稿；目标 Electron 测试因本机 sandbox_host_linux 退出 133，待可运行环境复验 | conversation / session-bar | open |
+| D1350 | P3 | **open** Engine Preferences 窄宽导航选中分节后，`selectSection()` 隐藏导航而未迁移焦点；焦点仍落在 `display:none` 的导航行，键盘用户无法沿 Back/详情继续 Tab。现进入窄详情时将焦点移到可见 Back 按钮，并补 browser 回归覆盖导航焦点与窄宽详情状态。目标 Electron 测试因本机 `sandbox_host_linux` 退出 133；目标文件 ESLint 0 errors（仅既有 warning）；未跑 full compile。 | 只修窄宽 Engine Preferences 的焦点迁移，不改分节选择、Back 返回导航、布局阈值或详情内容 | 从导航行选中分节后焦点落在 Back；隐藏导航不保留活动焦点；Back 仍可回到导航并恢复列表焦点；宽布局不抢焦点 | conversation / engine-preferences | open |
