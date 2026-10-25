@@ -84,7 +84,6 @@ const d766Calls: Array<[string, string, number]> = [
 	[OUTLINE_REL, createOutlineCall, 3],
 	[OUTLINE_REL, createOutlineEvent, 1],
 	[OUTLINE_REL, createOutlineFinally, 1],
-	[LANG_REL, loadModeCall, 1],
 	[SAVE_REL, triggerCall, 2],
 	[HINT_REL, hintUpdate, 1],
 	[HINT_REL, hintLanguage, 1],
@@ -105,7 +104,7 @@ suite('codeEditor leftover remaining Promise fire-and-forget catch scan (D766)',
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers fifteen leftover Promise double-chain sites', () => {
+	test('this knife covers fourteen leftover Promise double-chain sites; onDidChange load stays skipped', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d766Calls) {
@@ -116,11 +115,16 @@ suite('codeEditor leftover remaining Promise fire-and-forget catch scan (D766)',
 			assertWrapped(source, call);
 			sites += count;
 		}
-		assert.strictEqual(sites, 15);
+		assert.strictEqual(sites, 14);
 		assert.ok(sites >= 4);
+		const lang = fs.readFileSync(resolveSource(LANG_REL), 'utf8');
+		assert.strictEqual(countWrapped(lang, loadModeCall), 0);
+		assert.strictEqual((lang.match(/this\._loadConfigurationsForMode\(languageId\);/g) ?? []).length, 1);
+		assert.ok(lang.includes('\t\t\t\tthis._loadConfigurationsForMode(languageId);'));
+		assert.ok(!lang.includes('this._loadConfigurationsForMode(languageId).catch'));
 	});
 
-	test('leftover _createOutline / _loadConfigurationsForMode / triggerCodeActionsCommand fire-and-forgets are Promise double-chain', () => {
+	test('leftover _createOutline / triggerCodeActionsCommand fire-and-forgets are Promise double-chain; onDidChange load stays skipped', () => {
 		const outline = fs.readFileSync(resolveSource(OUTLINE_REL), 'utf8');
 		const lang = fs.readFileSync(resolveSource(LANG_REL), 'utf8');
 		const save = fs.readFileSync(resolveSource(SAVE_REL), 'utf8');
@@ -134,7 +138,9 @@ suite('codeEditor leftover remaining Promise fire-and-forget catch scan (D766)',
 		assert.strictEqual(countWrapped(outline, createOutlineEvent), 1);
 		assert.strictEqual(countWrapped(outline, createOutlineFinally), 1);
 		assert.strictEqual(countDoubleChains(outline), 5);
-		assert.ok(lang.includes(`${loadModeCall}${doubleCatch};`));
+		assert.strictEqual(countWrapped(lang, loadModeCall), 0);
+		assert.ok(lang.includes('\t\t\t\tthis._loadConfigurationsForMode(languageId);'));
+		assert.ok(!lang.includes('this._loadConfigurationsForMode(languageId).catch'));
 		assert.ok(lang.includes('this._loadConfigurationsForMode(languageIdentifier);'));
 		assert.ok(!lang.includes(`this._loadConfigurationsForMode(languageIdentifier)${doubleCatch}`));
 		assert.strictEqual(countWrapped(save, triggerCall), 2);
