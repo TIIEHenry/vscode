@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1346 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1349 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
 ---
 
 # Deferred Gaps
@@ -1295,3 +1295,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1344 | P3 | **open** D1341 增加 overlay 关闭焦点恢复后，会话切换与绑定叶销毁路径仍调用默认 `close()`，导致焦点从浮层跳回已离开的旧 session trigger；四类 overlay 需要区分用户主动关闭与 session-switch/销毁关闭。现为 History、Snapshots、Visualize、SubAgent close 支持 `restoreFocus:false`，切换会话、绑定叶收口与 bound session 离开均关闭且不抢旧焦点；补四类 overlay 回归断言。 | 只修 session-switch / 关闭旧叶时的焦点归属；保留 Close / Escape 主动关闭的焦点恢复；不改 overlay ARIA、Tab 陷阱或数据刷新 | session switch / bound-session leave 后 overlay 关闭不恢复旧 trigger；用户 Close / Escape 仍恢复 trigger；四类 overlay 测试覆盖 | conversation / overlay-focus | open |
 | D1346 | P3 | **open** Engine catalog 在动作 RPC 已发出后若连接进入 pairing-hold、list-fail 或断连，晚到的 Read/Write/Clear/Fire/Delete/Upsert 结果原可把旧 live 成功或错误状态画回当前页；Clipboard / Triggers / Context 现用刷新代际和连接状态双闸抑制过期结果，并补三份 browser 竞态回归。定向 Electron 测试受本机 `sandbox_host_linux` 退出 133 阻断；`git diff --check` 通过；未跑 full compile。 | 只抑制已失效动作的晚到状态，不改变 RPC payload、成功状态或正常 live 写入语义 | 列表刷新、pairing-hold、断连后，过期动作不再画回旧成功/错误；仍在同一 live 代际的结果保持原行为 | conversation / engine-catalog | open |
 | D1347 | P3 | **open** Skills 行内 checkbox 原无论当前 enabled 状态都把 tooltip/ARIA 名称写成 “Enable {skill}”，读屏用户无法得到下一步动作；现按状态写 “Disable {skill}” 或 “Enable {skill}”，与 Providers/Plugins 的同类动作一致，并补浏览器 DOM 回归断言。 | 只调整 Skills 行内 toggle 的动作名称与辅助技术语义，不改变 `setSkillEnabled` 请求、能力三态、写入闸、断连处理或窄宽布局 | enabled 技能读为 Disable，disabled 技能读为 Enable；鼠标、键盘切换和现有状态反馈保持；定向 Electron 测试待可运行环境复验，未跑 full compile | conversation / engine-skills | open |
+| D1349 | P3 | **open** `createNewSession` 原在 pairing-hold、KEEP leftover 或引擎缓存断连等写闸拒绝前就写回 Composer 草稿，导致新建动作虽被拒绝仍产生草稿写入副作用。现将草稿捕获移到全部写闸通过后，并补 SessionBar 门控回归。 | 只收口新建会话失败路径的草稿副作用；不改变写闸、会话创建或正常草稿保留语义 | 所有拒绝路径不写草稿；写闸通过且创建调用时仍捕获一次当前 Composer 草稿；定向测试通过 | conversation / session-bar | open |
