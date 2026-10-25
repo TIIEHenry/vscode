@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { isConversationInboxQueueItemActivationKey } from './conversationInboxKeyboard.js';
+import { isConversationInboxQueueItemActivationKey, shouldActivateConversationInboxQueueItem } from './conversationInboxKeyboard.js';
 
 suite('Conversation Inbox keyboard', () => {
 
@@ -17,5 +17,14 @@ suite('Conversation Inbox keyboard', () => {
 		assert.strictEqual(isConversationInboxQueueItemActivationKey('Spacebar'), false);
 		assert.strictEqual(isConversationInboxQueueItemActivationKey('Tab'), false);
 		assert.strictEqual(isConversationInboxQueueItemActivationKey('Escape'), false);
+	});
+
+	test('nested controls do not activate the containing row', () => {
+		const row = {};
+		const retry = {};
+		assert.strictEqual(shouldActivateConversationInboxQueueItem('Enter', row, row), true);
+		assert.strictEqual(shouldActivateConversationInboxQueueItem(' ', row, row), true);
+		assert.strictEqual(shouldActivateConversationInboxQueueItem('Enter', retry, row), false);
+		assert.strictEqual(shouldActivateConversationInboxQueueItem('Tab', row, row), false);
 	});
 });

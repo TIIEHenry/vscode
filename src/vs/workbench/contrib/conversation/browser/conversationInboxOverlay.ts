@@ -64,7 +64,7 @@ import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.j
 import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { conversationUserBodyText } from './conversationComposerRefs.js';
-import { isConversationInboxQueueItemActivationKey } from './conversationInboxKeyboard.js';
+import { shouldActivateConversationInboxQueueItem } from './conversationInboxKeyboard.js';
 
 export const conversationLensInboxOverlayClass = 'conversation-lens-inbox-overlay';
 
@@ -814,7 +814,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 		addDisposableListener(row, 'click', holdItem);
 		addDisposableListener(row, 'keydown', event => {
-			if (event.target !== row || !isConversationInboxQueueItemActivationKey(event.key)) {
+			if (!shouldActivateConversationInboxQueueItem(event.key, event.target, row)) {
 				return;
 			}
 			event.preventDefault();

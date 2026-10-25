@@ -7,3 +7,8 @@
 export function isConversationInboxQueueItemActivationKey(key: string): boolean {
 	return key === 'Enter' || key === ' ';
 }
+
+/** Nested controls (for example Retry) must not activate their containing row. */
+export function shouldActivateConversationInboxQueueItem(key: string, target: unknown, row: unknown): boolean {
+	return target === row && isConversationInboxQueueItemActivationKey(key);
+}
