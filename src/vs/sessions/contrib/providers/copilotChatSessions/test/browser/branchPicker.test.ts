@@ -5,11 +5,14 @@
 
 import assert from 'assert';
 import { Event } from '../../../../../../base/common/event.js';
+import { StandardMouseEvent } from '../../../../../../base/browser/mouseEvent.js';
 import { observableValue } from '../../../../../../base/common/observable.js';
 import { mock, upcastPartial } from '../../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { IActionWidgetService } from '../../../../../../platform/actionWidget/browser/actionWidget.js';
-import { IActionListDelegate, IActionListItem } from '../../../../../../platform/actionWidget/browser/actionList.js';
+import { IActionListDelegate, IActionListItem, IActionListOptions, IListAccessibilityProvider } from '../../../../../../platform/actionWidget/browser/actionList.js';
+import { IAction } from '../../../../../../base/common/actions.js';
+import { IAnchor } from '../../../../../../base/browser/ui/contextview/contextview.js';
 import { IConfigurationChangeEvent, IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../../../platform/contextkey/common/contextkey.js';
 import { MockContextKeyService } from '../../../../../../platform/keybinding/test/common/mockKeybindingService.js';
@@ -27,12 +30,14 @@ import { COPILOT_CLI_ISOLATION_OPTION_SETTING, CopilotChatSessionsProvider, ICop
 class RecordingActionWidgetService extends mock<IActionWidgetService>() {
 	override isVisible = false;
 	labels: readonly string[] = [];
+	options: IActionListOptions | undefined;
 	private selectItem: ((label: string) => void) | undefined;
 	private hideWidget: (() => void) | undefined;
 
-	override show<T>(_user: string, _supportsPreview: boolean, items: readonly IActionListItem<T>[], delegate: IActionListDelegate<T>): void {
+	override show<T>(_user: string, _supportsPreview: boolean, items: readonly IActionListItem<T>[], delegate: IActionListDelegate<T>, _anchor: HTMLElement | StandardMouseEvent | IAnchor, _container: HTMLElement | undefined, _actionBarActions?: readonly IAction[], _accessibilityProvider?: Partial<IListAccessibilityProvider<IActionListItem<T>>>, options?: IActionListOptions): void {
 		this.isVisible = true;
 		this.labels = items.map(item => item.label ?? '');
+		this.options = options;
 		this.selectItem = label => {
 			const item = items.find(candidate => candidate.label === label)?.item;
 			if (item) {
@@ -151,6 +156,26 @@ suite('Copilot BranchPicker', () => {
 			selectedBranch: 'feature/shared',
 			triggerLabel: 'feature/shared',
 			expanded: 'false',
+		});
+	});
+
+	test('explains when branch filtering has no matches', () => {
+		const { container, actionWidgetService } = createPicker({
+			branches: Array.from({ length: 11 }, (_value, index) => `feature/${index}`),
+		});
+		const trigger = container.querySelector<HTMLElement>('a.action-label');
+		assert.ok(trigger);
+
+		trigger.click();
+
+		assert.deepStrictEqual({
+			showFilter: actionWidgetService.options?.showFilter,
+			filterPlaceholder: actionWidgetService.options?.filterPlaceholder,
+			filterEmptyMessage: actionWidgetService.options?.filterEmptyMessage,
+		}, {
+			showFilter: true,
+			filterPlaceholder: 'Filter branches…',
+			filterEmptyMessage: 'No matching branches.',
 		});
 	});
 
