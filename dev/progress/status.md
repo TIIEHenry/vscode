@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1328–D1331 已合入，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1330–D1331 已合入，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **Automation dialog Promise 收口（2026-10-26，D1330）**：分支 retry、工作区变化刷新与移动工作区选择器 dispatch 原直接 fire-and-forget；现接入 `onUnexpectedError` 双 catch，并新增源码扫描测试。定向 Electron 测试与本波集成编译待 merge 槽复验。
+- **Automation dialog Promise 收口（2026-10-26，D1330）**：分支 retry、工作区变化刷新与移动工作区选择器 dispatch 原直接 fire-and-forget；现接入 `onUnexpectedError` 双 catch，并新增源码扫描测试。定向 Electron 测试仍受 sandbox 133 限制；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。
 - **移动端 Host 选择层焦点边界（2026-10-26，D1331，本波 UI 审查）**：Remote Agent Hosts 底部选择层声明为 modal，但无已选主机时打开后焦点仍留在底层标题栏，Tab 也能离开浮层；主机行的 `:focus-visible` 还只复用悬停底色。现为已选主机优先、首个主机/重发现/关闭按钮回退的初始焦点，Tab/Shift+Tab 在选择层内循环，关闭动画结束后恢复触发控件焦点，并为主机行补 `--vscode-focusBorder` token 化焦点环。空主机、发现中和正常列表状态共用同一边界；新增源码扫描测试锁定焦点陷阱与恢复。未改主机选择、连接或发现语义。
 - **Manage Remote Agent Hosts Promise 收口（2026-10-26，D1328）**：远端主机选项对话框的 fire-and-forget Promise 原无 rejection handler；现补 `onUnexpectedError` 双 catch，并新增源码扫描测试。定向 Electron 测试仍受 sandbox 133 限制；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。
 - **Agents Voice 键盘 PTT 与焦点线索（2026-10-26，D1329，本波 UI 审查）**：Voice header 的麦克风图标原本虽有 `tabindex`，却只绑定鼠标按下/抬起，键盘用户无法按住 Enter/Space 进行 push-to-talk；同时图标按钮没有统一的 `:focus-visible` 环。现为键盘按下/抬起/失焦建立成对的 PTT 状态，忽略重复 keydown，断连时释放在途按键，并为连接、静音、弹出、反馈、最小化等 header 控件统一加 token 化焦点环。新增源码扫描测试锁定键盘状态边界与焦点规则；不改变鼠标右键上下文菜单或连接状态语义。定向 Electron 测试因本机 `sandbox_host_linux` 受限退出 133，ESLint（`--no-cache`）退出 0（仅既有字符串字面量 warning），`git diff --check` 通过。
@@ -21,8 +21,8 @@ summary: "2026-10-26：D1328–D1331 已合入，D467 回收证据已闭合；�
 - **分支选择器筛选落空提示（2026-10-26，D1323）**：共享 BranchPicker 在分支数超过筛选阈值时会显示搜索框，但过滤后零匹配只留下空白列表，用户无法区分“没有匹配分支”和加载/状态问题。现为 ActionList 复用 `filterEmptyMessage`，写入 “No matching branches.”；仅影响分支筛选，不改分支来源、选择语义或 Workspace picker。新增 Copilot BranchPicker 选项合同测试。目标 Electron 测试因本机 `sandbox_host_linux` 受限退出 133；临时缓存路径 ESLint 退出 0，默认 `.eslintcache` 仍为只读。
 - **Sessions 列表过滤零匹配提示（2026-10-26，D1325）**：状态、类型、已读、归档或 Agent Host 过滤后原只留下空白树，用户无法判断过滤是否生效；现复用 `SessionPlaceholderRenderer` 写入 “No sessions match the current filters.”。搜索零匹配仍由 Find widget 提示；空目录、自动化会话和仍有可见行不显示该句。新增边界与 DOM 回归断言；定向 `sessionsList.test.ts` 因本机 `sandbox_host_linux` 受限退出 133，目标文件 ESLint（`--no-cache`）退出 0，`git diff --check` 退出 0。见 [D1325](deferred-gaps.md)。
 - **PermissionPicker 沙盒设置收口（2026-10-26，D1326）**：独立 Sandbox toggle 写配置时原直接 `void configurationService.updateValue(...)`；现补 `onUnexpectedError` 双 catch，并新增源码扫描测试，避免设置写入拒绝产生未处理 rejection。定向 Electron 测试仍受 sandbox 133 限制；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。
-- **本波集成验证（2026-10-26）**：E/F 两槽已在 merge 槽串行合入（D1328/D1329）。唯一一次 `npm run compile` 在 `compile-copilot` 写入只读输出目录时 exit 1，未进入源码类型检查，暂不归因本波。未 push，待可写构建输出环境复验。
-- **本波槽位同步（2026-10-26）**：主工作区 `agent-ide`、固定 `merge` 槽及 E/F 将在本条提交后统一 `merge --ff-only` 到最终 SHA。
+- **本波集成验证（2026-10-26）**：C/D 两槽已在 merge 槽串行合入（D1330/D1331）。唯一一次 `npm run compile` 在 `compile-copilot` 写入只读输出目录时 exit 1，未进入源码类型检查，暂不归因本波。未 push，待可写构建输出环境复验。
+- **本波槽位同步（2026-10-26）**：主工作区 `agent-ide`、固定 `merge` 槽及 C/D 将在本条提交后统一 `merge --ff-only` 到最终 SHA。
 - **Provider/Model 设置操作收口（2026-10-26，D1319）**：`engineProviderModelSection.ts` 的 Provider/Model 新增、编辑、清除、导入、启停、删除和测试按钮统一接入 `onUnexpectedError` 双 catch；新增 `engineProviderModelSectionCatchScanD1319.test.ts` 锁定 fire-and-forget 调用。定向 Electron 测试因 `sandbox_host_linux` 受限退出 133，已登记到 [deferred-gaps](deferred-gaps.md)，待可运行环境复验。
 - **隐藏会话叶回收证据（2026-10-26，D1321）**：当前 `ConversationSessionWindowService.disposeLeafForDeletedSession` 已同时清理被删除会话的可见与隐藏叶、editor part、store、DOM 与索引；新增回归测覆盖“第二叶可见、主叶隐藏后删除”的路径，确认删除后只保留存活叶。D467 已具备代码与测试证据并随本波合入；定向 Electron 测试仍受 sandbox 133 限制。
 - **本波集成验证（2026-10-26）**：F/G/I 三槽已在 merge 槽串行合入（D1319/D1320/D1321）。唯一一次 `npm run compile` 在 `compile-copilot` 写入只读输出目录时 exit 1，未进入源码类型检查，暂不归因本波。未 push，待可写构建输出环境复验。
