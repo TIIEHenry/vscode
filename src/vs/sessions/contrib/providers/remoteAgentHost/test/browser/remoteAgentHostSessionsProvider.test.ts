@@ -1269,6 +1269,31 @@ suite('RemoteAgentHostSessionsProvider', () => {
 		assert.strictEqual(connection.sessionUnsubscribeCounts.get(sessionUriStr), 1);
 	}));
 
+	test('late notifications and actions from a replaced connection are ignored', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		connection.addSession(createSession('rebind-sess', { summary: 'Current' }));
+		const provider = createProvider(disposables, connection);
+		provider.getSessions();
+		await timeout(0);
+
+		const replacement = new MockAgentConnection();
+		disposables.add(toDisposable(() => replacement.dispose()));
+		replacement.addSession(createSession('rebind-sess', { summary: 'Replacement' }));
+		provider.setConnection(replacement);
+		await timeout(0);
+
+		fireSessionAdded(connection, 'stale-added', { title: 'Stale Added' });
+		connection.fireAction({
+			channel: AgentSession.uri('copilotcli', 'rebind-sess').toString(),
+			action: { type: ActionType.SessionTitleChanged, title: 'Stale Title' },
+			serverSeq: 1,
+			origin: undefined,
+		} as ActionEnvelope);
+
+		assert.deepStrictEqual(provider.getSessions().map(session => ({ id: AgentSession.id(session.resource), title: session.title.get() })), [
+			{ id: 'rebind-sess', title: 'Replacement' },
+		]);
+	}));
+
 	// ---- Non-web label formatting (native desktop) -------
 	//
 	// In the browser test runner `isWeb` is always `true`, so by default

@@ -466,10 +466,16 @@ export class RemoteAgentHostSessionsProvider extends BaseAgentHostSessionsProvid
 
 		this._syncRootState(connection.rootState.value);
 		this._connectionListeners.add(connection.rootState.onDidChange(() => {
+			if (this._connection !== connection) {
+				return;
+			}
 			this._syncRootState(connection.rootState.value);
 		}));
 		if (connection.rootState.onDidError) {
 			this._connectionListeners.add(connection.rootState.onDidError(error => {
+				if (this._connection !== connection) {
+					return;
+				}
 				this._syncRootState(error);
 			}));
 		}

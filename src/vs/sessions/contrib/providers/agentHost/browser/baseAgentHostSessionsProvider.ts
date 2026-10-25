@@ -5059,13 +5059,16 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		const store = new DisposableStore();
 		store.add(ref);
 		store.add(ref.object.onDidChange(state => {
+			if (this.connection !== connection || this._sessionCache.get(rawId) !== cached) {
+				return;
+			}
 			this._applySessionStateUpdate(sessionId, state);
 		}));
 		// A subscribe that fails after this point settles via `onDidError`, never `onDidChange`.
 		const onDidError = ref.object.onDidError;
 		if (onDidError) {
 			store.add(onDidError(() => {
-				if (this._sessionStateSubscriptions.get(sessionId) === store) {
+				if (this.connection === connection && this._sessionStateSubscriptions.get(sessionId) === store) {
 					this._sessionStateSubscriptions.deleteAndDispose(sessionId);
 				}
 			}));
@@ -5107,6 +5110,9 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		store.add(chatRef);
 		const listener = store.add(new MutableDisposable());
 		const tryHydrate = () => {
+			if (this.connection !== connection || this._sessionCache.get(this._rawIdFromChatId(sessionId) ?? '') !== cached) {
+				return;
+			}
 			if (cached.mode.get() === undefined) {
 				const chatState = chatRef.object.value;
 				const agentUri = chatState && !(chatState instanceof Error) ? chatState.draft?.agent?.uri : undefined;
@@ -5144,6 +5150,9 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		store.add(chatRef);
 		const listener = store.add(new MutableDisposable());
 		const tryHydrate = () => {
+			if (this.connection !== connection || this._sessionCache.get(this._rawIdFromChatId(sessionId) ?? '') !== cached) {
+				return;
+			}
 			if (cached.modelId.get() === undefined) {
 				const chatState = chatRef.object.value;
 				const model = chatState && !(chatState instanceof Error) ? chatState.draft?.model : undefined;
@@ -5701,6 +5710,12 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 	 */
 	protected _attachConnectionListeners(connection: IAgentConnection, store: DisposableStore): void {
 		store.add(connection.onDidNotification(n => {
+			// A transport may deliver a callback that was already queued when the
+			// provider was rebound. Such a frame belongs to the old host and must
+			// never mutate the cache owned by the new connection.
+			if (this.connection !== connection) {
+				return;
+			}
 			if (n.type === NotificationType.SessionAdded) {
 				this._handleSessionAdded(n.summary);
 			} else if (n.type === NotificationType.SessionRemoved) {
@@ -5713,6 +5728,12 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 		}));
 
 		store.add(connection.onDidAction(e => {
+			// Ignore late action envelopes from a connection that has since been
+			// replaced. Disposal normally removes the listener, but a queued
+			// callback can still run after the rebind.
+			if (this.connection !== connection) {
+				return;
+			}
 			// A rejected action never reached host state, so it must not be applied
 			// here. This does not roll back the dispatcher's own optimistic write:
 			// the echo carries the value it already set.

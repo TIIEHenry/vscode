@@ -130,6 +130,19 @@ suite('Sessions keyboard focus ring', () => {
 			'.sessions-chat-send-button .monaco-button:focus',
 			'.sessions-chat-send-button:has(.monaco-button:not(.disabled):focus-visible)'
 		);
+
+		const mobileFilterChips = stripCssComments(readRepoFile('src/vs/sessions/browser/parts/mobile/media/mobileSessionFilterChips.css'));
+		assertFocusVisibleRingFollowsNone(
+			mobileFilterChips,
+			'.mobile-session-filter-chip:focus',
+			'.mobile-session-filter-chip:focus-visible'
+		);
+		const mobileFilterChipRules = collectCssRules(mobileFilterChips);
+		const mobileFilterChipHighContrastRing = mobileFilterChipRules.find(rule =>
+			splitSelectorList(rule.selector).some(selector => flatSelector(selector).includes('.monaco-workbench.hc-black') && flatSelector(selector).includes('.mobile-session-filter-chip:focus-visible'))
+		);
+		assert.ok(mobileFilterChipHighContrastRing, 'mobile filter chips need a high contrast focus ring');
+		assert.match(mobileFilterChipHighContrastRing.body, /var\(--vscode-contrastActiveBorder, var\(--vscode-focusBorder\)\)/);
 	});
 
 	test('sessions chat composer has no glass or drop shadow', () => {

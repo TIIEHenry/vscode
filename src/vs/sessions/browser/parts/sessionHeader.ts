@@ -279,12 +279,12 @@ export class SessionHeader extends Disposable {
 		// Session title — quick chats use "New Chat" as the untitled fallback.
 		const isQuickChat = session.isQuickChat?.read(reader) ?? false;
 		this._titleTextEl.textContent = session.title.read(reader) || getUntitledSessionTitle(isQuickChat);
-		this._updateTitleAccessibility();
+		this._updateTitleAccessibility(reader);
 		this._onDidChangeHeight.fire();
 	}
 
-	private _updateTitleAccessibility(): void {
-		const isEditable = this._isTitleEditable();
+	private _updateTitleAccessibility(reader?: IReader): void {
+		const isEditable = this._isTitleEditable(reader);
 		this._titleEl.classList.toggle('editable', isEditable);
 		if (isEditable && !this._renameInput) {
 			this._titleEl.tabIndex = 0;
@@ -315,8 +315,12 @@ export class SessionHeader extends Disposable {
 	 * renaming the session (`capabilities.supportsRename`). This is the same
 	 * signal that gates the `Rename...` context menu action in the sessions list.
 	 */
-	private _isTitleEditable(): boolean {
-		return !!this._session && (this._session.capabilities.get().supportsRename ?? false);
+	private _isTitleEditable(reader?: IReader): boolean {
+		if (!this._session) {
+			return false;
+		}
+		const capabilities = reader ? this._session.capabilities.read(reader) : this._session.capabilities.get();
+		return capabilities.supportsRename ?? false;
 	}
 
 	/**

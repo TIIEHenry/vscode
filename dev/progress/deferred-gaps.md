@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1362 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1365 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
 
 
 
@@ -1312,4 +1312,6 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1360 | P3 | **open** 移动端标题栏的侧栏、New session、Account 三个按钮原未声明 `type=button`，宿主若将标题栏放进表单，点击会触发隐式 submit。现为三者显式声明普通按钮类型，并补源码扫描回归。 | 只收口标题栏按钮的 HTML 提交语义，不改变可见文案、点击事件、显示门控或移动端布局 | 三个顶部控件均为 `type=button`；现有打开 Sessions、新建会话、Account 面板行为保持 | sessions / mobile-titlebar | open |
 | D1361 | P3 | **open** 轨迹总览折叠按钮原只更新 `title`，`aria-expanded` 只表达展开状态；展开/收起后读屏用户无法得知当前可执行动作。现初始与每次状态同步本地化 Collapse/Expand `aria-label`，并补 browser UI 回归锁定 `aria-expanded`、`aria-label`、`title` 一致。 | 只补轨迹总览切换按钮的可访问动作名称，不改变展开逻辑、布局、焦点或图标 | 展开态读为 Collapse，收起态读为 Expand；`aria-expanded`、`aria-label` 和 `title` 同步；现有点击与轨迹内容保持 | conversation / trajectory-overview | open |
 | D1362 | P3 | **open** `root/sessionAdded` 重复公告同一会话且工作目录已移出当前窗口时，原缓存投影仍留在会话列表；本地新建但尚未入列表的会话收到这种公告后也会保留 pending 标记。现对非工作区公告清除 pending，并移除已有缓存行；补重复公告移除与 pending 清理回归。 | 只收口会话列表对重复 `sessionAdded` 的工作区过滤和本地 pending 生命周期，不改变 sessionAdded 合同、工作区匹配规则或后端会话状态 | 同一会话从工作区内重公告为工作区外时列表移除并发出单条 removal；工作区外的 pending 会话公告后不再被视为新草稿；工作区内公告与正常 sessionRemoved 行为保持 | sessions / session-list | open |
-
+| D1363 | P3 | **open** 移动端会话状态筛选 chips 原为 `tabindex=0` 的自定义按钮，但没有 `:focus-visible` 焦点环；键盘或外接键盘用户无法看到当前焦点。现补普通与高对比主题的 token 化焦点环，并以 CSS 扫描回归锁定先清除默认 outline、再提供 `focus-visible` ring；不改变筛选状态、点击/键盘激活或布局。 | 只补移动端会话筛选 chips 的键盘焦点可见性；不改变状态筛选、Sort/Find 激活、触摸手势或布局 | 普通主题使用 `--vscode-focusBorder`，高对比主题使用 `--vscode-contrastActiveBorder` 回退；鼠标焦点不显示额外 ring；三枚状态 chips、Sort、Find 均沿同一规则 | sessions / mobile-session-filter-chips | open |
+| D1364 | P3 | **open** provider 重绑连接后，旧连接已排队的通知、action、rootState 与 session-state/draft 回调原仍可能改写新连接的缓存、能力或会话配置，造成跨窗口状态串写。现所有连接回调先核对当前连接与缓存身份，再应用状态；旧回调直接丢弃。新增远程 provider 重绑后旧通知/action 回归。 | 只收口连接替换后的迟到回调边界，不改变正常连接、重连、session list 或协议事件语义 | 旧连接的迟到通知、action、rootState、session-state 与 draft 回调不再改变新连接投影；当前连接事件仍照常更新；定向浏览器测试在可监听环境复验 | sessions / agent-host / connection-rebind | open |
+| D1365 | P3 | **open** SessionHeader 标题可编辑性原在标题 autorun 中调用未追踪的 `capabilities.get()`；提供方 hydration 后动态开放或收回 `supportsRename` 时，标题的键盘/ARIA 重命名入口不会更新。现使用 reader 订阅能力 observable，并补能力切换回归。 | 只修标题重命名能力的动态状态传播，不改变 rename RPC、标题文案、输入提交或不可编辑时的行为 | `supportsRename` 从 false→true 时标题获得 button/Tab/aria-label；从 true→false 时同步移除；静态能力与现有 Enter/Space/提交行为保持 | sessions / session-header | open |

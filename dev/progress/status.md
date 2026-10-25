@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1362 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332–D1365 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 
 
 ---
@@ -13,6 +13,9 @@ summary: "2026-10-26：D1332–D1362 已落盘，D467 回收证据已闭合；�
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **SessionHeader 标题重命名能力 hydration（2026-10-26，D1365，会话生命周期审计）**：标题可编辑性原在标题 autorun 中用未追踪的 `capabilities.get()`，提供方动态开放/收回 `supportsRename` 时键盘/ARIA 重命名入口不更新。现通过 reader 订阅能力 observable，并补能力切换回归；目标文件 ESLint 通过，浏览器测试受本机 `listen EPERM` 限制，未跑 full compile。见 [D1365](deferred-gaps.md)。
+- **Agent Host 重绑晚到回调收口（2026-10-26，D1364，协议/会话状态审计）**：provider 重绑连接后，旧连接已排队的通知、action、rootState 与 session-state/draft 回调原仍可能改写新连接的缓存、能力或会话配置。现所有连接回调先核对当前连接与缓存身份，再应用状态；旧回调直接丢弃。新增远程 provider 重绑后旧通知/action 回归；目标文件 ESLint `--no-cache` 0 errors，浏览器测试受本机 `listen EPERM` 限制，未跑 full compile。见 [D1364](deferred-gaps.md)。
+- **Mobile session filter chips 焦点可见性（2026-10-26，D1363，本波 UI/键盘焦点审计）**：移动端会话状态筛选 chips 原为 `tabindex=0` 的自定义按钮，但没有 `:focus-visible` 焦点环；键盘或外接键盘用户无法看到当前焦点。现补普通与高对比主题的 token 化焦点环，并以 CSS 扫描回归锁定先清除默认 outline、再提供 `focus-visible` ring；不改变筛选状态、点击/键盘激活或布局。目标文件 ESLint 使用 `/tmp` cache 通过，Node 定向扫描 3 passing，未跑 full compile。见 [D1363](deferred-gaps.md)。
 - **Mobile titlebar 按钮提交语义收口（2026-10-26，D1360，本波移动端 UI 语义审计）**：移动端标题栏的侧栏、New session、Account 三个控件原创建为默认 submit button；若宿主落在表单内，点击会触发隐式提交。现显式声明 `type=button`，不改变可见文案、点击事件或显示门控；新增源码扫描回归。目标文件 ESLint 待跑，未跑 full compile。见 [D1360](deferred-gaps.md)。
 - **Trajectory overview 折叠按钮可访问名称（2026-10-26，D1361，本波 UI/ARIA 审计）**：轨迹总览切换按钮原只更新 `title`，`aria-expanded` 只表达状态，读屏用户无法得知当前可执行动作。现初始与每次展开/收起同步本地化 Collapse/Expand `aria-label`，并补 browser UI 回归锁定 `aria-expanded`、`aria-label`、`title` 一致；不改变布局、焦点或切换行为。目标文件 ESLint 临时缓存通过，Electron/浏览器测试受本机环境限制，未跑 full compile。见 [D1361](deferred-gaps.md)。
 - **Session list 重复 Added 的工作区收口（2026-10-26，D1362，协议/会话状态审计）**：`root/sessionAdded` 重复公告同一会话且工作目录已移出当前窗口时，原缓存投影仍留在列表；本地新建但尚未入列表的会话也会保留 pending 标记。现对非工作区公告清除 pending，并移除已有缓存行；补重复公告与 pending 清理回归。目标文件 ESLint `--no-cache` 0 errors；浏览器测试需在可写 `out/` 且可启动环境复验，未跑 full compile。见 [D1362](deferred-gaps.md)。

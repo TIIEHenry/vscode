@@ -8,7 +8,7 @@ import { EventType } from '../../../base/browser/dom.js';
 import { mainWindow } from '../../../base/browser/window.js';
 import { Event } from '../../../base/common/event.js';
 import { DisposableStore } from '../../../base/common/lifecycle.js';
-import { constObservable, IObservable } from '../../../base/common/observable.js';
+import { constObservable, IObservable, observableValue } from '../../../base/common/observable.js';
 import { URI } from '../../../base/common/uri.js';
 import { mock } from '../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/common/utils.js';
@@ -21,7 +21,11 @@ import { ISessionsService } from '../../services/sessions/browser/sessionsServic
 import { IChat, ISessionCapabilities, SessionStatus } from '../../services/sessions/common/session.js';
 import { IActiveSession, ISessionsManagementService } from '../../services/sessions/common/sessionsManagement.js';
 
-function createHarness(disposables: Pick<DisposableStore, 'add'>, capabilities: ISessionCapabilities = { supportsMultipleChats: false }) {
+function createHarness(
+	disposables: Pick<DisposableStore, 'add'>,
+	capabilities: ISessionCapabilities = { supportsMultipleChats: false },
+	capabilitiesObservable: IObservable<ISessionCapabilities> = constObservable(capabilities),
+) {
 	const store = disposables.add(new DisposableStore());
 	const instantiationService = workbenchInstantiationService(undefined, store);
 
@@ -60,7 +64,7 @@ function createHarness(disposables: Pick<DisposableStore, 'add'>, capabilities: 
 		override readonly closedChats: IObservable<readonly IChat[]> = constObservable([]);
 		override readonly visibleChatTabs: IObservable<readonly IChat[]> = constObservable([mainChat]);
 		override readonly shouldShowChatTabs: IObservable<boolean> = constObservable(false);
-		override readonly capabilities: IObservable<ISessionCapabilities> = constObservable(capabilities);
+		override readonly capabilities: IObservable<ISessionCapabilities> = capabilitiesObservable;
 	}();
 
 	const header = store.add(instantiationService.createInstance(SessionHeader));
@@ -176,5 +180,28 @@ suite('Sessions - SessionHeader', () => {
 		assert.deepStrictEqual({ role: title.getAttribute('role'), tabIndex: title.getAttribute('tabindex') }, { role: null, tabIndex: null });
 		title.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Enter', bubbles: true, cancelable: true }));
 		assert.strictEqual(header.element.querySelector('.chat-composite-bar-session-title-input'), null);
+	});
+
+	test('updates title rename affordance when capabilities hydrate', () => {
+		const capabilities = observableValue<ISessionCapabilities>('session-capabilities', { supportsMultipleChats: false });
+		const { header } = createHarness(disposables, { supportsMultipleChats: false }, capabilities);
+		const title = header.element.querySelector<HTMLElement>('.chat-composite-bar-session-title');
+		assert.ok(title);
+
+		assert.strictEqual(title.getAttribute('role'), null);
+		capabilities.set({ supportsMultipleChats: false, supportsRename: true }, undefined);
+
+		assert.deepStrictEqual({ role: title.getAttribute('role'), tabIndex: title.tabIndex, ariaLabel: title.getAttribute('aria-label') }, {
+			role: 'button',
+			tabIndex: 0,
+			ariaLabel: 'Rename session: My Session',
+		});
+
+		capabilities.set({ supportsMultipleChats: false }, undefined);
+		assert.deepStrictEqual({ role: title.getAttribute('role'), tabIndex: title.getAttribute('tabindex'), ariaLabel: title.getAttribute('aria-label') }, {
+			role: null,
+			tabIndex: null,
+			ariaLabel: null,
+		});
 	});
 });

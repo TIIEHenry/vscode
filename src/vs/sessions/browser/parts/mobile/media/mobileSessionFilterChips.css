@@ -61,6 +61,26 @@
 	opacity: 0.7;
 }
 
+.monaco-workbench:not(.hc-black):not(.hc-light) .mobile-session-filter-chip:focus {
+	outline: none !important;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .mobile-session-filter-chip:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder) !important;
+	outline-offset: -1px;
+}
+
+.monaco-workbench.hc-black .mobile-session-filter-chip:focus,
+.monaco-workbench.hc-light .mobile-session-filter-chip:focus {
+	outline: none !important;
+}
+
+.monaco-workbench.hc-black .mobile-session-filter-chip:focus-visible,
+.monaco-workbench.hc-light .mobile-session-filter-chip:focus-visible {
+	outline: 1px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder)) !important;
+	outline-offset: -1px;
+}
+
 .mobile-session-filter-chip.active {
 	background-color: var(--vscode-badge-background);
 	color: var(--vscode-badge-foreground);
