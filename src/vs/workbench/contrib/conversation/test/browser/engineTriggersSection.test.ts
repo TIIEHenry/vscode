@@ -727,12 +727,19 @@ suite('EngineTriggersSection', () => {
 	}
 
 	function assertWriteButtonsDisabled(root: HTMLElement): void {
-		for (const label of WRITE_BUTTON_LABELS) {
+		for (const label of [ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_FIRE_LABEL, ENGINE_TRIGGER_DELETE_LABEL]) {
 			const button = findActionButton(root, label);
 			assert.ok(button, label);
 			assert.strictEqual(button.classList.contains('disabled'), true, label);
 			assert.strictEqual(button.getAttribute('aria-disabled'), 'true', label);
 		}
+		const stateButtons = [
+			findActionButton(root, ENGINE_TRIGGER_ENABLE_LABEL),
+			findActionButton(root, ENGINE_TRIGGER_DISABLE_LABEL),
+		].filter((button): button is HTMLButtonElement => !!button);
+		assert.strictEqual(stateButtons.length, 1, 'exactly one state action is painted');
+		assert.strictEqual(stateButtons[0].classList.contains('disabled'), true, 'state action');
+		assert.strictEqual(stateButtons[0].getAttribute('aria-disabled'), 'true', 'state action');
 	}
 
 	async function assertForcedWriteClicksStayUnary(
@@ -1081,7 +1088,7 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('SetTriggerEnabled does not send when disconnected or hook missing', async () => {
+	test('SetTriggerEnabled stays disabled when disconnected or hook missing', async () => {
 		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
 		const disconnected = mountSection(createConversationConnectionTestStub({
 			isEngineConnected: () => false,
@@ -1091,9 +1098,10 @@ suite('EngineTriggersSection', () => {
 			},
 		}));
 		await flushMicrotasks();
-		const disconnectedDisable = findActionButton(disconnected.getDomNode(), ENGINE_TRIGGER_DISABLE_LABEL);
-		assert.ok(disconnectedDisable);
-		disconnectedDisable.click();
+		const disconnectedEnable = findActionButton(disconnected.getDomNode(), ENGINE_TRIGGER_ENABLE_LABEL);
+		assert.ok(disconnectedEnable);
+		assert.strictEqual(disconnectedEnable.classList.contains('disabled'), true);
+		disconnectedEnable.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(setCalls, []);
 		disconnected.getDomNode().parentElement?.remove();
@@ -1103,15 +1111,16 @@ suite('EngineTriggersSection', () => {
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 		}));
 		await flushMicrotasks();
-		const noHookDisable = findActionButton(noHook.getDomNode(), ENGINE_TRIGGER_DISABLE_LABEL);
-		assert.ok(noHookDisable);
-		noHookDisable.click();
+		const noHookEnable = findActionButton(noHook.getDomNode(), ENGINE_TRIGGER_ENABLE_LABEL);
+		assert.ok(noHookEnable);
+		assert.strictEqual(noHookEnable.classList.contains('disabled'), true);
+		noHookEnable.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(setCalls, []);
 		noHook.getDomNode().parentElement?.remove();
 	});
 
-	test('SetTriggerEnabled sends empty ids and enabled false as-is when connected with no selection', async () => {
+	test('SetTriggerEnabled stays disabled when connected with no selection', async () => {
 		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
 		const pane = mountSection(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -1123,16 +1132,13 @@ suite('EngineTriggersSection', () => {
 			},
 		}));
 		await flushMicrotasks();
-		const disable = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DISABLE_LABEL);
-		assert.ok(disable);
-		disable.click();
+		const enable = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ENABLE_LABEL);
+		assert.ok(enable);
+		assert.strictEqual(enable.classList.contains('disabled'), true);
+		enable.click();
 		await flushMicrotasks();
-		assert.deepStrictEqual(setCalls, [{ scope: '', scopeId: '', triggerId: '', enabled: false }]);
-		assert.ok((pane.getDomNode().textContent ?? '').includes('—  —  — false'));
-		const enabledStatus = pane.getDomNode().querySelector('.engine-triggers-enabled-status') as HTMLElement | null;
-		assert.ok(enabledStatus);
-		assert.ok(enabledStatus.classList.contains('is-success'));
-		assert.ok(!enabledStatus.classList.contains('is-error'));
+		assert.deepStrictEqual(setCalls, []);
+		assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-enabled-status'), null);
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -1162,9 +1168,9 @@ suite('EngineTriggersSection', () => {
 		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
 		assert.ok(row);
 		row.click();
-		const enable = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ENABLE_LABEL);
-		assert.ok(enable);
-		enable.click();
+		const disable = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DISABLE_LABEL);
+		assert.ok(disable);
+		disable.click();
 		await flushMicrotasks();
 		const status = pane.getDomNode().querySelector('.engine-triggers-enabled-status') as HTMLElement | null;
 		assert.ok(status);
