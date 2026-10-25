@@ -558,16 +558,18 @@ export class ConversationLens extends Disposable {
 	}
 
 	setInputMaximized(maximized: boolean): void {
-		if (this.inputMaximized === maximized) {
-			return;
+		const unchanged = this.inputMaximized === maximized;
+		if (!unchanged) {
+			this.inputMaximized = maximized;
+			for (const host of [this.slotHosts.timeline, this.slotHosts.dock]) {
+				host.classList.toggle(conversationLensInputMaximizedClass, maximized);
+			}
+			this.readingColumn.classList.toggle(conversationLensInputMaximizedClass, maximized);
+			this.updateMaximizeInputButton();
+			this.updateComposerSingleLineLayout();
 		}
-		this.inputMaximized = maximized;
-		for (const host of [this.slotHosts.timeline, this.slotHosts.dock]) {
-			host.classList.toggle(conversationLensInputMaximizedClass, maximized);
-		}
-		this.readingColumn.classList.toggle(conversationLensInputMaximizedClass, maximized);
-		this.updateMaximizeInputButton();
-		this.updateComposerSingleLineLayout();
+		// Repeat maximize still closes these overlays. An editor leaf can already
+		// be maximized while its published History / Snapshots lists are open.
 		if (maximized) {
 			this.inboxOverlay.closeListPanel();
 			this.engineHistoryList?.close();

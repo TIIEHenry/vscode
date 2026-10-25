@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-25
-summary: "2026-10-25：D1297（b955f10fd71）已快进合入 merge 与 agent-ide。未跑 npm run compile，未 push。槽 B 做 D1296。H 的 attachments/ 仍未跟踪。"
+summary: "2026-10-25：槽 B 落地 D1296，尚未快进合入。compile-client 退出码 1，未 push。H 的 attachments/ 仍未跟踪。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -32,7 +32,7 @@ summary: "2026-10-25：D1297（b955f10fd71）已快进合入 merge 与 agent-ide
 |:---|:-----|:-----|:-----|:-----|
 | merge | `vscode-WorkTrees/merge` | `loop/merge` | `b955f10fd71`，随后快进到本账 | 干净，不是 `parked`。快进合入，没有二父 merge commit，没有 `npm run compile` |
 | A | `vscode-WorkTrees/A` | `loop/A` | 同上 | `idle`。D1297 已合入，工作区干净 |
-| B | `vscode-WorkTrees/B` | `loop/B` | 同上 | `occupied`。做仍开的 D1296（最大化时关掉叶栏 History / Snapshots） |
+| B | `vscode-WorkTrees/B` | `loop/B` | 本提交 | `occupied`。D1296 已落（叶栏 History / Snapshots 走透镜 `setInputMaximized(true)` 关闭）。尚未快进合入 |
 | C、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 同上 | `idle`。工作区干净 |
 | H | `vscode-WorkTrees/H` | `loop/H` | 同上 | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
 | 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 本账本提交 | 只记合入。禁止 reset / stash / restore / clean / `checkout -B` |

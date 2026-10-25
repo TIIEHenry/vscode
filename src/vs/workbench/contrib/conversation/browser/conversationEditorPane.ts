@@ -159,6 +159,9 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 			leaf.sessionBar,
 			this,
 		));
+		// The lens is built without a sessionBar, so its maximize close would miss
+		// these lists. Publish them onto the fields that close already uses.
+		this.publishLeafSessionLists();
 		this.syncLensTablistPlacement();
 		if (this.lastWidth > 0) {
 			this.leafSessionBar.layout(this.lastWidth);
@@ -256,6 +259,20 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 
 	setInputMaximized(maximized: boolean): void {
 		this.lens?.setInputMaximized(maximized);
+	}
+
+	private publishLeafSessionLists(): void {
+		const lens = this.lens;
+		const bar = this.leafSessionBar;
+		if (!lens || !bar) {
+			return;
+		}
+		if (!lens.engineHistoryList) {
+			lens.engineHistoryList = bar.engineHistoryList;
+		}
+		if (!lens.engineSnapshotsList) {
+			lens.engineSnapshotsList = bar.engineSnapshotsList;
+		}
 	}
 
 	private updateBreadcrumb(): void {

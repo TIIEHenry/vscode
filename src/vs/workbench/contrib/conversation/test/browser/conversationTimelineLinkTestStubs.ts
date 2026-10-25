@@ -10,6 +10,7 @@ import { ISCMService } from '../../../scm/common/scm.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
+import { IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
 import { IConversationSessionChatService } from '../../common/conversationSessionChat.js';
 
 export function createNoopConversationSessionWindowService(): IConversationSessionWindowService {
@@ -116,4 +117,11 @@ export function stubConversationLensRuntimeServices(instantiationService: TestIn
 		registerSCMProvider: () => { throw new Error('not implemented'); },
 		getRepository: () => undefined,
 	} as unknown as ISCMService);
+	instantiationService.stub(IConversationWorkRootMount, {
+		_serviceBrand: undefined,
+		onDidChangeOffer: Event.None,
+		getOffer: () => undefined,
+		setOffer: () => { },
+		acceptOffer: async () => { },
+	});
 }
