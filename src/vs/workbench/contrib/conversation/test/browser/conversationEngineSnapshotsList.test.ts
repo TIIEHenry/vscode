@@ -261,6 +261,17 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.notStrictEqual(document.activeElement, trigger);
 	});
 
+	test('disposing an open snapshots list does not restore a disposed session trigger', () => {
+		const { list, buttonParent } = mountList(createConversationConnectionTestStub());
+		const trigger = buttonParent.querySelector(`.${conversationLensSnapshotsButtonClass} .monaco-button`) as HTMLElement;
+		trigger.focus();
+		list.show();
+
+		list.dispose();
+
+		assert.notStrictEqual(document.activeElement, trigger);
+	});
+
 	test('closing an open snapshots list restores focus to its trigger', () => {
 		const { list, buttonParent, overlayParent } = mountList(createConversationConnectionTestStub());
 		const trigger = buttonParent.querySelector(`.${conversationLensSnapshotsButtonClass} .monaco-button`) as HTMLElement;

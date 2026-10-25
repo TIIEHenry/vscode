@@ -194,6 +194,17 @@ suite('ConversationEngineHistoryList', () => {
 		assert.notStrictEqual(document.activeElement, trigger);
 	});
 
+	test('disposing an open history list does not restore a disposed session trigger', () => {
+		const { list, buttonParent } = mountList(createConversationConnectionTestStub());
+		const trigger = buttonParent.querySelector(`.${conversationLensHistoryButtonClass} .monaco-button`) as HTMLElement;
+		trigger.focus();
+		list.show();
+
+		list.dispose();
+
+		assert.notStrictEqual(document.activeElement, trigger);
+	});
+
 	test('disconnected open does not send and shows unavailable', async () => {
 		const calls: UniverseAgentGetHistoryRequest[] = [];
 		const { list, overlayParent } = mountList(createConversationConnectionTestStub({

@@ -217,4 +217,24 @@ suite('ConversationSubAgentOverlay', () => {
 		assert.strictEqual(document.activeElement, nextSessionControl);
 		assert.notStrictEqual(document.activeElement, trigger);
 	});
+
+	test('disposing an open sub-agent overlay does not restore a disposed session trigger', () => {
+		const host = append(document.body, $('.conversation-subagent-overlay-focus-dispose-host'));
+		store.add({ dispose: () => host.remove() });
+		const trigger = append(document.body, $('button.conversation-subagent-trigger-dispose')) as HTMLButtonElement;
+		store.add({ dispose: () => trigger.remove() });
+		trigger.focus();
+		const overlay = mountOverlay(host);
+		overlay.open({
+			sessionKey: 'session-focus-dispose',
+			chatId: 'sub-focus-dispose',
+			title: 'Agent focus dispose',
+			sessionTitle: 'Session focus dispose',
+			breadcrumb: [],
+		});
+
+		overlay.dispose();
+
+		assert.notStrictEqual(document.activeElement, trigger);
+	});
 });

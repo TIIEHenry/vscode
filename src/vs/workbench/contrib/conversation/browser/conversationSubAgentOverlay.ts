@@ -344,4 +344,9 @@ export class ConversationSubAgentOverlay extends Disposable {
 	getState(): IConversationSubAgentOverlayState | undefined {
 		return this.state;
 	}
+
+	override dispose(): void {
+		this.close({ restoreFocus: false });
+		super.dispose();
+	}
 }

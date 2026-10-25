@@ -298,7 +298,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	override dispose(): void {
-		this.close();
+		this.close({ restoreFocus: false });
 		this.overlayElement.remove();
 		super.dispose();
 	}

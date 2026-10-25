@@ -202,6 +202,17 @@ suite('ConversationVisualizeOverlay', () => {
 		assert.notStrictEqual(document.activeElement, trigger);
 	});
 
+	test('disposing an open visualize overlay does not restore a disposed session trigger', () => {
+		const trigger = append(document.body, $('button.conversation-visualize-trigger-dispose')) as HTMLButtonElement;
+		store.add({ dispose: () => trigger.remove() });
+		trigger.focus();
+		const { overlay } = mountOverlay();
+
+		overlay.dispose();
+
+		assert.notStrictEqual(document.activeElement, trigger);
+	});
+
 	test('Reset button is present when webview host mounts', () => {
 		const { container } = mountOverlay();
 		const resetButton = container.querySelector('.conversation-visualize-overlay-reset .monaco-button') as HTMLButtonElement | null;

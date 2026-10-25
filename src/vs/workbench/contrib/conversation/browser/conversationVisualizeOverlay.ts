@@ -146,7 +146,7 @@ export class ConversationVisualizeOverlay extends Disposable {
 	}
 
 	override dispose(): void {
-		this.close();
+		this.close({ restoreFocus: false });
 		super.dispose();
 	}
 }
