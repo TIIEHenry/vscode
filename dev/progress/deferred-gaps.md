@@ -6,7 +6,6 @@ phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
 summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1356 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
-| D1355 | P3 | **open** D1351 的连接态写闸对缺失 connectionStatus 的远程 agenthost-* provider 原会 fail-open，导致连接事实未知时仍可写。现仅 local-agent-host 允许无状态本地路径；远程缺状态、无 provider 与非 Agent Host 均 fail-closed；补 reconnecting、cached accepted 值保留及 remote unknown/local unknown/non-Agent Host 回归。 | 只收口 Agent Host Permission picker 对 connectionStatus 缺失的 fail-closed 边界；不改变 connected 写入、local provider 无远端状态、accepted 值或其他 picker 行为 | remote 缺 status 不可写；local 缺 status 可写；reconnecting 及其他非 connected 不可写且恢复 connected 后可写；非 Agent Host 仍不适用 | sessions / permission-picker | open |
 ---
 
 # Deferred Gaps
