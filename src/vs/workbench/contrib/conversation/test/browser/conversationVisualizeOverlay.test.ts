@@ -17,7 +17,11 @@ import { ILayoutService } from '../../../../../platform/layout/browser/layoutSer
 import { IExtensionService } from '../../../../services/extensions/common/extensions.js';
 import { IWebviewElement, IWebviewService } from '../../../webview/browser/webview.js';
 import { resolveConversationMermaidExtension } from '../../browser/conversationMermaidHost.js';
-import { ConversationVisualizeOverlay } from '../../browser/conversationVisualizeOverlay.js';
+import {
+	ConversationVisualizeOverlay,
+	conversationVisualizeOverlayClose,
+	conversationVisualizeOverlayReset,
+} from '../../browser/conversationVisualizeOverlay.js';
 
 declare function __readFileInTests(path: string): Promise<string>;
 
@@ -137,6 +141,8 @@ suite('ConversationVisualizeOverlay', () => {
 		assert.strictEqual(dialog.getAttribute('aria-labelledby'), title.id);
 		assert.strictEqual(container.querySelector(`#${title.id}`), title);
 		assert.ok(container.querySelector('[data-mermaid-host="stub"]'));
+		assert.strictEqual(container.querySelector('.conversation-visualize-overlay-reset .monaco-button')?.getAttribute('aria-label'), conversationVisualizeOverlayReset);
+		assert.strictEqual(container.querySelector('.conversation-visualize-overlay-close .monaco-button')?.getAttribute('aria-label'), conversationVisualizeOverlayClose);
 	});
 
 	test('Escape closes overlay', () => {

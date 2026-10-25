@@ -22,6 +22,7 @@ import {
 } from '../../browser/conversationEngineHistoryList.js';
 import {
 	conversationLensSessionBarHistory,
+	conversationLensSessionBarHistoryClose,
 	conversationLensSessionBarHistoryEmpty,
 	conversationLensSessionBarHistoryLoading,
 	conversationLensSessionBarHistoryUnavailableDisconnected,
@@ -112,6 +113,8 @@ suite('ConversationEngineHistoryList', () => {
 		const button = buttonParent.querySelector(`.${conversationLensHistoryButtonClass} .monaco-button`) as HTMLElement | null;
 		assert.ok(button);
 		assert.strictEqual(button.getAttribute('aria-label'), conversationLensSessionBarHistory);
+		const closeButton = overlayParent.querySelector('.conversation-lens-history-close .monaco-button');
+		assert.strictEqual(closeButton?.getAttribute('aria-label'), conversationLensSessionBarHistoryClose);
 		assert.ok(button.classList.contains('codicon-history'));
 		assert.ok(!button.textContent?.includes(conversationLensSessionBarHistory));
 		assert.ok(!button.textContent?.includes('Snapshots'));
