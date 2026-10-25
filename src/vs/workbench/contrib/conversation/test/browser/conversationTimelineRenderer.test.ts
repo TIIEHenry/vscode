@@ -363,6 +363,7 @@ suite('ConversationTimelineRenderer seat decision hold', () => {
 	function renderSeat(
 		onResolveConfirmation: (turnId: string, status: 'allowed' | 'skipped') => void,
 		onQuestionRespond?: (turnId: string) => void,
+		onRespondClientTool?: (turn: ConversationStubTurn) => void,
 	): ConversationTimelineRenderer {
 		return new ConversationTimelineRenderer(
 			{ renderTurnBody: () => Disposable.None },
@@ -386,6 +387,10 @@ suite('ConversationTimelineRenderer seat decision hold', () => {
 			{} as IWebviewService,
 			() => undefined,
 			() => { },
+			undefined,
+			undefined,
+			undefined,
+			onRespondClientTool,
 		);
 	}
 
@@ -461,6 +466,38 @@ suite('ConversationTimelineRenderer seat decision hold', () => {
 		assert.notStrictEqual(container.querySelector('.conversation-lens-question-seat')?.getAttribute('aria-busy'), 'true');
 		retry.click();
 		assert.deepStrictEqual(responded, ['q1', 'q1']);
+		template.disposables.dispose();
+	});
+
+	test('repainting a respondable client tool stays disabled until a retryable failure', () => {
+		const responded: string[] = [];
+		const renderer = renderSeat(() => { }, undefined, turn => responded.push(turn.id));
+		const container = document.createElement('div');
+		const pending: ConversationStubTurn = {
+			id: 'client-call', kind: 'tool', text: 'Pick a file', toolName: 'clientPick', toolStatus: 'pending', respondable: true,
+		};
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(node(pending), 0, template);
+		(container.querySelector('.conversation-process-fold-tool-respond') as HTMLElement).click();
+		assert.deepStrictEqual(responded, ['client-call']);
+
+		renderer.renderElement(node({ ...pending }), 0, template);
+		const held = container.querySelector('.conversation-process-fold-tool-respond') as HTMLButtonElement;
+		assert.strictEqual(held.disabled, true);
+		assert.strictEqual(held.getAttribute('aria-busy'), 'true');
+		held.click();
+		assert.deepStrictEqual(responded, ['client-call']);
+
+		renderer.renderElement(node({ ...pending, respondFailure: { retryable: true, error: 'ipc closed' } }), 0, template);
+		const retry = container.querySelector('.conversation-process-fold-tool-respond') as HTMLButtonElement;
+		assert.strictEqual(retry.disabled, false);
+		assert.ok(container.textContent?.includes("Couldn't send this response: ipc closed"));
+		retry.click();
+		assert.deepStrictEqual(responded, ['client-call', 'client-call']);
+
+		renderer.renderElement(node({ ...pending, respondFailure: { retryable: false, error: 'gone' } }), 0, template);
+		assert.strictEqual(container.querySelector('.conversation-process-fold-tool-respond'), null);
+		assert.ok(container.textContent?.includes("Couldn't send this response: gone"));
 		template.disposables.dispose();
 	});
 });

@@ -1261,6 +1261,7 @@ function timelineItemToEntry(
 			const metadata = attr?.metadata ?? (item as { metadata?: Record<string, unknown> }).metadata;
 			const carried = carriedThinkingText(summary);
 			const thought = carried !== undefined ? { thinkingText: carried } : {};
+			const respondFailure = summary.respondable === true ? respondFailures?.get(id) : undefined;
 			return {
 				id, kind: 'tool', text: summary.title, toolName: summary.toolName,
 				...thought,
@@ -1268,6 +1269,7 @@ function timelineItemToEntry(
 				...(summary.resultPreview !== undefined ? { payload: summary.resultPreview } : {}),
 				...(summary.status === 'running' || summary.status === 'pending' ? { streaming: true, toolStatus: summary.status } : { toolStatus: summary.status }),
 				...(summary.respondable === true ? { respondable: true as const } : {}),
+				...(respondFailure ? { respondFailure } : {}),
 				...(metadata !== undefined ? { metadata } : {}),
 				...agent,
 				...turn,
