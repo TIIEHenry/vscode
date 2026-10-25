@@ -467,39 +467,48 @@ export class EngineClipboardSection extends Disposable {
 		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), this.clipboardAdvertised('writeClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
+		const renderGeneration = this.renderGeneration;
 		const drafted = await this.promptClipboardWrite();
 		if (!drafted) {
 			return;
 		}
 		const liveHook = this.connection.writeClipboard;
-		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), this.clipboardAdvertised('writeClipboard', liveHook), this.isClipboardWritePairingHold()) || !liveHook) {
+		if (renderGeneration !== this.renderGeneration || this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), this.clipboardAdvertised('writeClipboard', liveHook), this.isClipboardWritePairingHold()) || !liveHook) {
 			return;
 		}
 		const generation = ++this._writeGeneration;
 		const request = engineClipboardWriteRequest(drafted.label, drafted.content);
 		try {
 			const result = await liveHook.call(this.connection, request);
-			if (generation !== this._writeGeneration || this._store.isDisposed) {
+			if (!this.isCurrentClipboardWriteResult(renderGeneration, generation)) {
 				return;
 			}
 			this.writeStatus.style.display = '';
 			writeStatus(this.writeStatus, formatEngineClipboardWriteLabel(result.clipId), 'success');
 			const listed = await this.refresh();
-			if (generation !== this._writeGeneration || this._store.isDisposed) {
-				return;
-			}
-			if (listed) {
+			// `refresh()` intentionally advances the render/action generations. Keep
+			// the success only when this was its one refresh and the list came back
+			// live; a newer refresh or a failed/disconnected one must clear it.
+			if (listed && this._writeGeneration === generation + 1 && this.isCurrentClipboardWriteConnection()) {
 				this.writeStatus.style.display = '';
 				writeStatus(this.writeStatus, formatEngineClipboardWriteLabel(result.clipId), 'success');
 			}
 		} catch (error) {
-			if (generation !== this._writeGeneration || this._store.isDisposed) {
+			if (!this.isCurrentClipboardWriteResult(renderGeneration, generation)) {
 				return;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.writeStatus.style.display = '';
 			writeStatus(this.writeStatus, reason, 'error');
 		}
+	}
+
+	private isCurrentClipboardWriteConnection(): boolean {
+		return this.connection.isEngineConnected() && !isConversationPairingHold(this.connection) && !this.isClipboardWriteListFailed();
+	}
+
+	private isCurrentClipboardWriteResult(renderGeneration: number, writeGeneration: number): boolean {
+		return renderGeneration === this.renderGeneration && writeGeneration === this._writeGeneration && this.isCurrentClipboardWriteConnection() && !this._store.isDisposed;
 	}
 
 	private async handleRead(): Promise<void> {

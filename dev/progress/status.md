@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1346 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332–D1348 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Clipboard Write 晚到结果边界（2026-10-26，D1348，D1346 反向审计）**：Clipboard Write 原只看动作代际，RPC resolve 后在断连、pairing-hold 或列表失败窗口可能先画旧 live 成功；自身 refresh 又会推进代际，正常 live 写入的成功反馈可能被误清。现把 prompt、RPC resolve、失败和 refresh 返回后的 render/action generation、连接相位与 list-fail 复核统一收口，并补 disconnect、pairing-hold、list-fail browser 回归；未跑 full compile。见 [D1348](deferred-gaps.md)。
 - **Providers 操作结果状态收口（2026-10-26，D1345，本波 Engine UI 审计）**：Providers 的 Save/Clear/Import 结果行原本初始就占布局，且断链、能力 UNKNOWN/UNSUPPORTED、缺少列表 hook 或列表失败后仍可能残留旧操作文案。现初始隐藏，并在这些状态切换时清理旧反馈；当前操作成功/失败仍在可用状态内保留。新增浏览器 DOM 回归锁定 UNKNOWN 后文案清空；目标 Electron 测试因本机 Playwright 浏览器未安装待复验，未跑 full compile。见 [D1345](deferred-gaps.md)。
 - **子代理叶内 overlay 的 modal 语义（2026-10-26，D1342，会话动作审计）**：`ConversationSubAgentOverlay` 原在打开时把叶内 overlay 改成 `aria-modal="true"`，与 session-windows §3.3c 的非全窗 overlay 合同冲突；父 Conversation 仍保持 mounted 且四周可见，因此现固定为 `aria-modal="false"`，并在 session chat 与 overlay browser 测试锁定。未改打开、关闭、Esc、焦点或 tab 提升行为；定向测试结果见 D1342。
 - **Conversation overlay 关闭焦点回收（2026-10-26，D1341，本波 UI 审查）**：History、Snapshots、Visualize 与 SubAgent overlay 打开时会把焦点移入浮层，原先通过 Close / Escape 关闭后焦点落到底层或 body，键盘上下文丢失。现复用共享触发元素捕获/恢复辅助函数：仅在浮层仍拥有焦点、触发控件仍连接且未隐藏时恢复；会话切换、控件隐藏或销毁时不抢焦点。新增四类 overlay 的 close 与 hidden-trigger 回归断言；目标 Electron 测试待在可启动环境复验，目标文件 ESLint 0 errors（4 条既有 warning），`git diff --check` 通过。见 [D1341](deferred-gaps.md)。
