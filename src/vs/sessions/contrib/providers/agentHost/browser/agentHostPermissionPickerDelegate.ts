@@ -165,6 +165,7 @@ export class AgentHostPermissionPickerDelegate extends Disposable implements IPe
 			return provider?.isSessionConfigResolving(session.sessionId).read(reader) ?? false;
 		});
 		this.isWritable = derived(this, reader => {
+			this._configChangedSignal.read(reader);
 			const session = this._session.read(reader);
 			if (!session) {
 				return false;

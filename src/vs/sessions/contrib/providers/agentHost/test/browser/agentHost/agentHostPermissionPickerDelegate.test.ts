@@ -235,7 +235,7 @@ suite('AgentHostPermissionPickerDelegate', () => {
 	});
 
 	test('disables writes while a remote host is connecting, disconnected, or incompatible', () => {
-		const { delegate, provider } = setup(store, makeActiveSession(), 'default');
+		const { delegate, provider } = setup(store, makeActiveSession(), 'autoApprove');
 		for (const status of [
 			RemoteAgentHostConnectionStatus.connecting,
 			RemoteAgentHostConnectionStatus.reconnecting,
@@ -245,7 +245,7 @@ suite('AgentHostPermissionPickerDelegate', () => {
 			provider.setConnectionStatus(status);
 			assert.strictEqual(delegate.isWritable.get(), false);
 			assert.ok(delegate.unavailableReason.get()?.includes('reconnect'));
-			assert.strictEqual(delegate.currentPermissionLevel.get(), ChatPermissionLevel.Default);
+			assert.strictEqual(delegate.currentPermissionLevel.get(), ChatPermissionLevel.AutoApprove);
 			delegate.setPermissionLevel(ChatPermissionLevel.AutoApprove);
 		}
 		assert.deepStrictEqual(provider.setCalls, []);
