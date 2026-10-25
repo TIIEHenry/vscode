@@ -361,6 +361,9 @@ suite('NavigatorProjectsView', () => {
 		const input = getFilterInput(view);
 		assert.ok(input);
 		assert.strictEqual(input.placeholder, 'Filter projects');
+		const clearButton = view.element.querySelector('.navigator-projects-inline-filter-clear') as HTMLButtonElement | null;
+		assert.ok(clearButton);
+		assert.strictEqual(clearButton.type, 'button');
 	});
 
 	test('welcome path does not require filter input', async () => {
