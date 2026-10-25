@@ -77,7 +77,7 @@ function createTriggerIconButton(parent: HTMLElement, label: string, icon: Theme
 
 /**
  * Engine Preferences Triggers — honest ListTriggers list + FireTrigger +
- * SetTriggerEnabled + DeleteTrigger + UpsertTrigger add/edit. Connected +
+ * SetTriggerEnabled toggle + DeleteTrigger + UpsertTrigger add/edit. Connected +
  * hook only. List, fire, enable, and delete still send empty scope /
  * scopeId / typeFilter / triggerId as-is. Add and Edit open a dialog after
  * the upsert gate passes. Edit with nothing selected returns before the
@@ -108,8 +108,7 @@ export class EngineTriggersSection extends Disposable {
 	private readonly addButton: Button;
 	private readonly editButton: Button;
 	private readonly fireButton: Button;
-	private readonly enableButton: Button;
-	private readonly disableButton: Button;
+	private readonly setEnabledButton: Button;
 	private readonly deleteButton: Button;
 	private readonly fireStatus: HTMLElement;
 	private readonly enabledStatus: HTMLElement;
@@ -154,11 +153,8 @@ export class EngineTriggersSection extends Disposable {
 		this.fireButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_FIRE_LABEL, Codicon.play));
 		this._register(this.fireButton.onDidClick(() => void this.handleFire().catch(onUnexpectedError).catch(onUnexpectedError)));
 
-		this.enableButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_ENABLE_LABEL, Codicon.check));
-		this._register(this.enableButton.onDidClick(() => void this.handleSetEnabled(true).catch(onUnexpectedError).catch(onUnexpectedError)));
-
-		this.disableButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_DISABLE_LABEL, Codicon.circleSlash));
-		this._register(this.disableButton.onDidClick(() => void this.handleSetEnabled(false).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.setEnabledButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_ENABLE_LABEL, Codicon.check));
+		this._register(this.setEnabledButton.onDidClick(() => void this.handleSetEnabled().catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.deleteButton = this._register(createTriggerIconButton(actionsRow, ENGINE_TRIGGER_DELETE_LABEL, Codicon.trash));
 		this.deleteButton.element.classList.add('is-danger');
@@ -403,6 +399,7 @@ export class EngineTriggersSection extends Disposable {
 		++this._setEnabledGeneration;
 		this.selectedTrigger = trigger;
 		this.paintSelection();
+		this.updateSetEnabledAction();
 	}
 
 	private onTriggerRowKeyDown(event: KeyboardEvent, trigger: UniverseAgentTrigger): void {
@@ -477,15 +474,16 @@ export class EngineTriggersSection extends Disposable {
 
 	private updateSetEnabledAction(): void {
 		const supported = this.triggerSupported('setTriggerEnabled', this.connection.setTriggerEnabled);
-		const enabled = !this.isTriggerWriteListFailed() && canSendEngineTriggerSetEnabled(
+		const selected = this.selectedTrigger;
+		const nextEnabled = selected ? !selected.enabled : true;
+		const actionLabel = nextEnabled ? ENGINE_TRIGGER_ENABLE_LABEL : ENGINE_TRIGGER_DISABLE_LABEL;
+		this.setEnabledButton.icon = nextEnabled ? Codicon.check : Codicon.circleSlash;
+		this.setEnabledButton.enabled = !!selected && !this.isTriggerWriteListFailed() && canSendEngineTriggerSetEnabled(
 			this.connection.isEngineConnected(),
 			supported,
 			this.isTriggerWritePairingHold(),
 		);
-		this.enableButton.enabled = enabled;
-		this.disableButton.enabled = enabled;
-		this.updateButtonCapabilityHover(this.enableButton, 'setTriggerEnabled', ENGINE_TRIGGER_ENABLE_LABEL);
-		this.updateButtonCapabilityHover(this.disableButton, 'setTriggerEnabled', ENGINE_TRIGGER_DISABLE_LABEL);
+		this.updateButtonCapabilityHover(this.setEnabledButton, 'setTriggerEnabled', actionLabel);
 	}
 
 	private updateDeleteAction(): void {
@@ -511,13 +509,17 @@ export class EngineTriggersSection extends Disposable {
 		this.updateButtonCapabilityHover(this.editButton, 'upsertTrigger', ENGINE_TRIGGER_EDIT_LABEL);
 	}
 
-	private async handleSetEnabled(enabled: boolean): Promise<void> {
+	private async handleSetEnabled(): Promise<void> {
 		const hook = this.connection.setTriggerEnabled;
 		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerSetEnabled(this.connection.isEngineConnected(), this.triggerSupported('setTriggerEnabled', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
 		const generation = ++this._setEnabledGeneration;
 		const trigger = this.selectedTrigger;
+		if (!trigger) {
+			return;
+		}
+		const enabled = !trigger.enabled;
 		const request = engineTriggerSetEnabledRequest(trigger, enabled);
 		try {
 			const result = await hook.call(this.connection, request);
@@ -527,6 +529,8 @@ export class EngineTriggersSection extends Disposable {
 			this.enabledStatus.style.display = '';
 			const enabledCopy = `${formatEngineTriggerListLabel(result.trigger)} — ${result.trigger.enabled}`;
 			writeStatus(this.enabledStatus, enabledCopy, result.trigger.enabled === enabled ? 'success' : 'error');
+			this.selectedTrigger = result.trigger;
+			this.updateSetEnabledAction();
 		} catch (error) {
 			if (generation !== this._setEnabledGeneration || this.selectedTrigger !== trigger || this._store.isDisposed) {
 				return;

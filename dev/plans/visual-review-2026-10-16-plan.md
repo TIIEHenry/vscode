@@ -4,7 +4,7 @@ type: plan
 status: implemented
 phase: M7
 updated: 2026-10-16
-summary: "过程折、确认控件与复选框的 500 字重改为 400，发丝线改为 8%，只读分支芯片去掉手型与悬停，零值统计用弱化色。V2–V4 已于 68308db93b5 落地；V8 已于 ad333e998fa 落地。V1 归目录列表切片。V5–V7 未决。不升 PRD-028。"
+summary: "过程折、确认控件与复选框的 500 字重改为 400，发丝线改为 8%，只读分支芯片去掉手型与悬停，零值统计用弱化色；Triggers 的 Enable / Disable 已收为单一随选中状态切换的动作。V2–V4 已于 68308db93b5 落地；V8 已于 ad333e998fa 落地；V6 的状态切换部分已于 D1334 落地。V1 归目录列表切片。V5、V6 的 Add / Delete 排列、V7 未决。不升 PRD-028。"
 ---
 
 # 视觉审查 2026-10-16：字重、发丝线、只读分支、零值统计
@@ -60,9 +60,15 @@ summary: "过程折、确认控件与复选框的 500 字重改为 400，发丝�
 
 **验证：** `+0 −3` 时加号一段没有 add 类，减号一段有 del 类。`+2 −0` 相反。`+1 −2` 两段都有色类。过程折容器与时间线 `.conversation-lens-turn-diff-stats` 都走这一函数。
 
-## 5. 不在本切片
+## 5. Triggers 状态动作（V6，部分落地）
+
+Triggers 列表原同时展示 Enable 与 Disable 两个动作，即使当前只可能执行其中一个；未选中行时两个动作还都可用，容易把动作当成无条件能力。现保留一个状态动作：选中已启用触发器时显示 Disable（斜线圆图标），选中已停用触发器时显示 Enable（对勾图标），没有选中项时禁用；状态写回成功后同步更新图标、标签和可用性。该按钮仍复用原 SetTriggerEnabled 写闸，不改变请求契约。
+
+新增浏览器回归断言确保 action row 只有一个 Enable / Disable 动作。Add 仍是幽灵图标，Delete 的位置与分隔线未改；这两项留待后续独立视觉切片。
+
+## 6. 不在本切片
 
 - V1 Tools 双行归 [cursor-visual-alignment](cursor-visual-alignment.md) S9。
-- V5 文件夹芯片的菜单与读屏名、V6 Triggers 按钮组合、V7 错误卡与 file_edit 卡的左缘对齐，都未决。本稿不选。
+- V5 文件夹芯片的菜单与读屏名、V7 错误卡与 file_edit 卡的左缘对齐仍未决。本稿不选。
 - 不改 `ui-design-principles.md`。本切片落在已写明的 400/600 与 8% 上。
 - 不新增 `transform` 或 `filter`。

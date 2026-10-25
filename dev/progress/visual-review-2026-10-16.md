@@ -4,7 +4,7 @@ type: progress
 status: draft
 phase: M7
 updated: 2026-10-16
-summary: "对照 UI 设计原则审查 agent-ide 工作区未提交的视觉改动：5 条需要改（Tools 双行、500 字重、发丝线三档、只读分支芯片假可点、文件夹芯片名实不符），3 条建议改，1 条可接受。静态审查，未截图。不登记 D、不改 PRD。"
+summary: "对照 UI 设计原则审查 agent-ide 工作区未提交的视觉改动：5 条需要改（Tools 双行、500 字重、发丝线三档、只读分支芯片假可点、文件夹芯片名实不符），3 条建议改，1 条可接受。V6 的 Enable / Disable 重复动作已收为单一随选中状态切换的按钮。静态审查，未截图。不登记 D、不改 PRD。"
 ---
 
 # 视觉设计只读审查 2026-10-16
@@ -35,7 +35,7 @@ summary: "对照 UI 设计原则审查 agent-ide 工作区未提交的视觉改�
 
 | # | 问题 | 锚点 | 规范 | 建议 |
 |:--|:-----|:-----|:-----|:-----|
-| V6 | Triggers 动作改成 6 个纯图标钮：Add 是幽灵图标；Enable（对勾）与 Disable（斜线圆）同时常驻，难以分辨；Delete 紧挨 Fire，中间没有分隔 | `engineTriggersSection.ts:141-156` | §5.6 次按钮如 `+ New` 用小号描边钮；§5.3 分组头右端至多一个次按钮 | Add 改 `+ New` 次按钮；Enable / Disable 合成随状态切换的一个按钮；Delete 前加分隔或移进 `…` |
+| V6 | Triggers 动作改成 6 个纯图标钮：Add 是幽灵图标；Enable（对勾）与 Disable（斜线圆）同时常驻，难以分辨；Delete 紧挨 Fire，中间没有分隔 | `engineTriggersSection.ts:141-156` | §5.6 次按钮如 `+ New` 用小号描边钮；§5.3 分组头右端至多一个次按钮 | 已将 Enable / Disable 合成一个随选中触发器状态切换的按钮，并在未选中时禁用；Add 的 `+ New` 文字按钮与 Delete 分组仍待后续切片 |
 | V7 | 错误回合内衬 `6px 10px`、`file_edit` 卡内衬 `4px 8px`，再加 1px 描边，图标和文字比相邻回合或步骤右移约 9–11px，阅读列左缘断开 | `conversationLens.css:1788` 起、`:4130` 起 | 原则三对齐 | 用负 `margin-inline` 抵消；若是有意为之，写进 §5.1 |
 | V8 | 统计格式固定为 `+N −M`，新增文件也会出现红色的 `−0` | `conversationProcessFold.ts:533`、`:539` 起 | §5.1 增删数字是这一行唯一的彩色，零值没有信息 | 零值保持弱化色，只给非零数字上色 |
 
@@ -50,5 +50,5 @@ summary: "对照 UI 设计原则审查 agent-ide 工作区未提交的视觉改�
 ## 下一步
 
 1. 本文只是发现稿，不登记 D 编号，不改任何 PRD 或方案状态，待用户拍板。
-2. V1 随 [cursor-visual-alignment](../plans/cursor-visual-alignment.md) S9。V2–V4、V8 见 [visual-review-2026-10-16-plan](../plans/visual-review-2026-10-16-plan.md)，`draft`，未实施。V5、V6、V7 仍须用户先定。
+2. V1 随 [cursor-visual-alignment](../plans/cursor-visual-alignment.md) S9。V2–V4、V8 见 [visual-review-2026-10-16-plan](../plans/visual-review-2026-10-16-plan.md)，`draft`，未实施。V6 的 Enable / Disable 状态动作已在 D1334 落地；Add、Delete 分组与 V5、V7 仍须用户先定。
 3. 修完按 §8 补截图、键盘走查和窄宽检查。验证只用本地 `npm run compile`、eslint、`scripts/test.sh`（点名相关测试）。
