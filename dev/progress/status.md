@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1343 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332–D1344 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
@@ -14,6 +14,7 @@ summary: "2026-10-26：D1332–D1343 已落盘，D467 回收证据已闭合；�
 - **子代理叶内 overlay 的 modal 语义（2026-10-26，D1342，会话动作审计）**：`ConversationSubAgentOverlay` 原在打开时把叶内 overlay 改成 `aria-modal="true"`，与 session-windows §3.3c 的非全窗 overlay 合同冲突；父 Conversation 仍保持 mounted 且四周可见，因此现固定为 `aria-modal="false"`，并在 session chat 与 overlay browser 测试锁定。未改打开、关闭、Esc、焦点或 tab 提升行为；定向测试结果见 D1342。
 - **Conversation overlay 关闭焦点回收（2026-10-26，D1341，本波 UI 审查）**：History、Snapshots、Visualize 与 SubAgent overlay 打开时会把焦点移入浮层，原先通过 Close / Escape 关闭后焦点落到底层或 body，键盘上下文丢失。现复用共享触发元素捕获/恢复辅助函数：仅在浮层仍拥有焦点、触发控件仍连接且未隐藏时恢复；会话切换、控件隐藏或销毁时不抢焦点。新增四类 overlay 的 close 与 hidden-trigger 回归断言；目标 Electron 测试待在可启动环境复验，目标文件 ESLint 0 errors（4 条既有 warning），`git diff --check` 通过。见 [D1341](deferred-gaps.md)。
 - **SaveSkillContent 运行时能力闸（2026-10-26，D1343，协议表面审计）**：Skills 正文/新建写入收到 `UNIMPLEMENTED` 后，连接层会动态移除 `saveSkillContent`；原 UI 仍留下 Save/New 与可编辑正文。现检测 binding 消失并立即收起写工具栏、正文 Save chrome，复用既有 API 不可用文案；普通 `{ok:false}` 拒绝仍保留原失败状态。新增浏览器回归断言，目标 Electron 测试受本机 `sandbox_host_linux` 限制退出 133，目标文件 ESLint `--no-cache` 退出 0；未跑 full compile。见 [D1343](deferred-gaps.md)。
+- **Overlay 切换关闭不抢旧焦点（2026-10-26，D1344，D1341 反向审计）**：D1341 的焦点恢复默认路径会在会话切换、绑定叶切换或销毁时把焦点回收至已离开的旧 trigger。History、Snapshots、Visualize 与 SubAgent 的 `close` 现支持 `restoreFocus:false`；切换会话、bound session 离开与关闭旧叶走该路径，用户 Close / Escape 仍恢复触发控件。补四类 overlay 的切换关闭回归断言；目标文件 ESLint 0 errors（4 条既有 warning），未跑 full compile。见 [D1344](deferred-gaps.md)。
 - **Navigator Projects/Team/Agents 筛选清除按钮类型（2026-10-26，D1340，本波 UI 审查）**：三处内联筛选清除控件原都是未声明类型的 `<button>`；现统一补 `type=button`，避免宿主表单语义下触发隐式提交。新增 Projects、Team、Agents 浏览器 DOM 回归断言；不改筛选匹配、清除、焦点或布局行为。目标 Electron 测试受本机 `sandbox_host_linux` 限制待复验；`git diff --check` 通过。见 [D1340](deferred-gaps.md)。
 - **Inbox 队列行键盘入口（2026-10-26，D1338，本波 UI 审查）**：MessageQueue 浮层里的队列行原只有鼠标 click，行是无 `tabIndex` 的 `role=listitem`，键盘用户无法把待发送项置为 Editing。现为每行提供 `tabIndex=0`、内容 `aria-label`、Enter/Space 激活与 token 化 `:focus-visible`；Retry 子按钮的键盘事件不会冒泡为行操作，pairing-hold 与已 Editing 行仍拒绝写入。不改队列状态机或 RPC。新增键盘键判定单测；目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，目标文件 ESLint 0 errors（2 条既有 import-pattern warning），`git diff --check` 通过。见 [D1338](deferred-gaps.md)。
 - **Sessions/Sources 筛选清除按钮语义（2026-10-26，D1339，本波 UI 审查）**：Sessions 内联筛选和 Sources Files/Changes/Review 共用的清除图标按钮原把筛选框名称作为自身 `aria-label`，读屏用户无法得到清除动作名；Sessions 按钮还未显式声明 `type=button`。现统一使用本地化 “Clear filter”，并为 Sessions 补普通按钮类型；新增 Sessions 与 Sources DOM 回归断言。不改过滤逻辑、清除行为或布局。见 [D1339](deferred-gaps.md)。

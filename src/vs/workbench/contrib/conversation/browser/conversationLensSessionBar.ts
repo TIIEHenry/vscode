@@ -698,9 +698,9 @@ export function switchToSession(host: IConversationLensSessionBarHost, sessionId
 
 		const previousId = host.getBoundSessionId();
 		if (previousId !== sessionId) {
-			host.visualizeOverlay.close();
-			host.engineHistoryList?.close();
-			host.engineSnapshotsList?.close();
+			host.visualizeOverlay.close({ restoreFocus: false });
+			host.engineHistoryList?.close({ restoreFocus: false });
+			host.engineSnapshotsList?.close({ restoreFocus: false });
 			host.writeComposerDraft(previousId, outgoingComposerDraftText(host));
 		}
 		if (host.switchLeafSession) {

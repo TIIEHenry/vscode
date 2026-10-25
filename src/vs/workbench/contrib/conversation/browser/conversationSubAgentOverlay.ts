@@ -290,13 +290,15 @@ export class ConversationSubAgentOverlay extends Disposable {
 		return this.maximized && this.isOpen();
 	}
 
-	close(): void {
+	close(options?: { readonly restoreFocus?: boolean }): void {
 		if (this.element.hidden) {
 			return;
 		}
 		const trigger = this.overlayTrigger;
 		this.overlayTrigger = undefined;
-		restoreConversationOverlayFocus(this.element, trigger);
+		if (options?.restoreFocus !== false) {
+			restoreConversationOverlayFocus(this.element, trigger);
+		}
 		this.element.hidden = true;
 		this.element.setAttribute('aria-modal', 'false');
 		this.element.removeAttribute('aria-labelledby');
