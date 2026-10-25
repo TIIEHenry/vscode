@@ -76,4 +76,11 @@ export class CompactDesktopNavigationHost extends Disposable {
 			this._navButton.hidden = customViewActive;
 		}));
 	}
+
+	/** Move focus back to the navigation trigger after the drawer is dismissed. */
+	focusNavigationButton(): void {
+		if (!this._navButton.hidden && this._navButton.isConnected) {
+			this._navButton.focus();
+		}
+	}
 }

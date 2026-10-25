@@ -1183,6 +1183,13 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		if (!this._compactDesktopNavDrawerOpen) {
 			return;
 		}
+		// Closing the overlay hides the sidebar. If keyboard focus is currently
+		// inside that sidebar, restore it to the visible navigation trigger so it
+		// never remains on a display:none node. Programmatic closes that happen
+		// while focus is elsewhere preserve the caller's focus context.
+		const sidebarContainer = this.getContainer(mainWindow, Parts.SIDEBAR_PART);
+		const activeElement = getActiveElement();
+		const restoreNavigationFocus = !!sidebarContainer && !!activeElement && isAncestorUsingFlowTo(activeElement, sidebarContainer);
 		this._compactDesktopNavDrawerOpen = false;
 		this._hideCompactDesktopDrawerBackdrop();
 		if (this.workbenchGrid) {
@@ -1202,6 +1209,9 @@ export class Workbench extends Disposable implements IAgentWorkbenchLayoutServic
 		}
 		this.layoutCompactDesktopSidebar();
 		this.layout();
+		if (restoreNavigationFocus) {
+			this.compactDesktopNavHost?.focusNavigationButton();
+		}
 	}
 
 	private toggleMobileSidebarDrawer(): void {
