@@ -712,6 +712,39 @@ suite('Engine providers and models sections', () => {
 		assert.ok(!(section.getDomNode().textContent ?? '').includes('sk-secret'));
 	});
 
+	test('provider action feedback clears when capability becomes UNKNOWN', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			providerSupport: 'SUPPORTED',
+			listProviderStatus: async () => ({ providers: [] }),
+			upsertProviderCredentials: async () => ({ providerId: 'local' }),
+			clearProviderCredentials: async () => ({ providerId: 'local' }),
+		});
+		const dialog = new class extends TestDialogService {
+			override async input(_input: IInput): Promise<IInputResult> {
+				return { confirmed: true, values: ['local', 'openai', '', 'sk-secret'] };
+			}
+		}();
+		const section = mountProviders(connection, dialog);
+		await flushMicrotasks();
+
+		const actionMessage = section.getDomNode().querySelector('.engine-catalog-action-message') as HTMLElement;
+		assert.strictEqual(actionMessage.textContent, '');
+		assert.strictEqual(actionMessage.style.display, 'none');
+		const addProvider = section.getDomNode().querySelector('[aria-label="Add provider"]') as HTMLElement;
+		assert.ok(addProvider);
+		addProvider.click();
+		await flushMicrotasks();
+		assert.ok(actionMessage.textContent?.includes('Provider saved.'), actionMessage.textContent);
+		assert.notStrictEqual(actionMessage.style.display, 'none');
+
+		connection.setProviderSupport('UNKNOWN');
+		await flushMicrotasks();
+
+		assert.strictEqual(actionMessage.textContent, '');
+		assert.strictEqual(actionMessage.style.display, 'none');
+	});
+
 	test('built-in presets render without a cloud method and the filter hides rows', async () => {
 		const connection = createConnectionStub({ connected: false });
 		const section = mountProviders(connection);
