@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-25
-summary: "2026-10-25：loop/F 的 D766 期望对齐（e9a53532f6e）已快进合入。未跑 npm run compile，未 push。派槽 G 做仍开的 D1303。"
+summary: "2026-10-25：槽 G 复跑 D1303 壳冒烟，窗口白屏，没有 Changes 帧。D1303 仍开。未跑 npm run compile，未 push。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **D1303 壳冒烟未关（2026-10-25）**：剧本 `sources-tab-changes` 已单独点 Changes，并等到 `sourcesActiveTab === 'Changes'` 且面板是 `sources-panel-changes` 才返回。当前 `selectTab` 只选被点的标签，空态是 Changes 自己的 “No source control repository.” / “No changes.”。没有改剧本，也没有改产品。Node 24.18.0：`node test/scenario/out/runScenario.js test/scenario/scenarios/editor-shell.cjs --dev`（不加 `--agents`）。隔离 user-data `/tmp/vscsmoke/d-tcajz3rd`，不用 `~/.universe-agent-studio-test`，不写 `~/.universe-agent-studio`，不开人类工位。工作台没起来：标题是 UniverseAgentStudio Dev，整帧白屏，没有 `.monaco-workbench`，看不见 Changes。主进程到 phase 4 后，60s 出现 `Event.buffer` 泄漏（`onDidChangeProfiles`、`onDidOpenMainWindow` 等无人消费）。渲染进程 0% CPU，停在 futex；CDP `Runtime.evaluate` 无响应。证据 `.build/d1303-evidence/window-now.png` 与同目录 `smoke-test-runner.log`（不进 git）。`npm run compile --prefix test/scenario` exit 0。未跑 `npm run compile`、`transpile-client`、`compile-client`。`out/` 仍是 2026-10-14 的产物。D1303 仍开。未 push，未合入 merge。
 - **合入 D766 期望对齐（2026-10-25）**：`loop/F` 的 `e9a53532f6e` 是 merge 槽 `e9a7b6fdd4e` 的快进子提交。merge 槽 `git merge --ff-only`。没有冲突，没有二父 merge commit。人类工位与 A–J 已快进到该 SHA。相对 `origin/agent-ide`（`9128b870dbe`）ahead 1813、behind 0。未跑 `npm run compile`，不 push。D1303 仍开。槽 D 说过 `selectTab` 能停在 Changes，但没有新截图，壳冒烟曾起不来。本轮不把那句当成 D1303 已完成。已派槽 G 取证或修产品。本条所在提交写完后各槽再快进。
 - **D766 与 D692 跳过形态对齐（2026-10-25）**：先复跑。Node v26.7.0、`VSCODE_SKIP_PRELAUNCH=1`：`codeEditorLeftoverPromiseCatchScanD766.test.ts` exit 1（5 passing / 2 failing），只因 `loadModeCall`（`this._loadConfigurationsForMode(languageId)`）期望 1 处双链、得到 0，以及同文件断言该双链存在。两份 D1299 扫描 exit 0（tasks 4 passing；language/merge/remote/webview 6 passing）。`onDidChange` 仍是无 catch 的 `this._loadConfigurationsForMode(languageId);`，没有改回 `.catch(onUnexpectedError).catch(onUnexpectedError)`。D766 只改这一处期望：其余 leftover 计数不动，双链合计 14；另数到 1 处跳过调用，并断言没有 `.catch`。D817 的 `p.then` 未动。改后同一命令 D766 exit 0（7 passing），两份 D1299 扫描仍 exit 0。未跑 `npm run compile`。`flock /tmp/vscode-compile.lock` 只转译这一份测试到 `out/`（不进 git），不写成全量编译。`1117f5f95f2` 的 compile-client 505 条 error TS 未复跑。D1303 仍开。未 push，未合入 merge。其余槽与人类工位仍在 `e9a7b6fdd4e`。见 [D766](deferred-gaps.md)。
 - **合入 D1299（2026-10-25）**：`loop/E` 的 `62b28405341` 是 merge 槽 `c20599a98f3` 的快进子提交。merge 槽 `git merge --ff-only`。没有冲突，没有二父 merge commit。人类工位与 A–J 已快进到该 SHA。相对 `origin/agent-ide`（`9128b870dbe`）ahead 1811、behind 0。未跑 `npm run compile`，不 push。该提交自述两份 D1299 扫描 exit 0，但 `codeEditorLeftoverPromiseCatchScanD766.test.ts` 因此 exit 1（`loadModeCall` 期望 1 处双链，得到 0），与 D692 跳过形态互斥，未改 D766。已派槽 F 只修这一处，不得把 D1299 两份扫描打回失败。D1303 仍开，本轮不当作已完成。本条所在提交写完后各槽再快进。

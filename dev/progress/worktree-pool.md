@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-25
-summary: "2026-10-25：D766 期望对齐（e9a53532f6e）已快进合入。未跑 npm run compile，未 push。槽 G 做 D1303。H 的 attachments/ 仍未跟踪。"
+summary: "2026-10-25：槽 G 复跑 D1303，壳冒烟白屏，仍开。未跑 npm run compile，未 push，未合入 merge。H 的 attachments/ 仍未跟踪。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,18 +23,18 @@ summary: "2026-10-25：D766 期望对齐（e9a53532f6e）已快进合入。未�
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 集成尖端（`agent-ide`） | D766 期望对齐在 `e9a53532f6e`。本账本提交只记合入；写完后 merge 与字母槽 `merge --ff-only` 到本提交。 |
-| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`e9a53532f6e` ahead 1813、behind 0。未跑 `npm run compile`，未 push。`1117f5f95f2` 上 compile-client 退出码 1（505 条 `error TS`）未复跑。 |
+| 集成尖端（`agent-ide`） | 仍是 `e522ae722a8`。槽 G 这次只记 D1303 复跑，不合并进 merge。 |
+| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`e522ae722a8` ahead 1814、behind 0。未跑 `npm run compile`，未 push。`1117f5f95f2` 上 compile-client 退出码 1（505 条 `error TS`）未复跑。 |
 
-## 槽位表（2026-10-25 合入 D766 期望后）
+## 槽位表（2026-10-25 D1303 复跑后）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `e9a53532f6e`，随后快进到本账 | 干净，不是 `parked`。快进合入，没有二父 merge commit，没有 `npm run compile` |
-| A、B、C、D、E、F、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 同上 | `idle`。工作区干净 |
-| G | `vscode-WorkTrees/G` | `loop/G` | 同上 | `occupied`。做仍开的 D1303（Changes 标签要在壳冒烟里被选中） |
-| H | `vscode-WorkTrees/H` | `loop/H` | 同上 | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
-| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 本账本提交 | 只记合入。禁止 reset / stash / restore / clean / `checkout -B` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `e522ae722a8` | 干净，不是 `parked`。本轮没有合入，没有 `npm run compile` |
+| A、B、C、D、E、F、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | `e522ae722a8` | `idle`。工作区干净 |
+| G | `vscode-WorkTrees/G` | `loop/G` | 本提交 | `occupied`。D1303 仍开：壳冒烟白屏，没有 Changes 帧 |
+| H | `vscode-WorkTrees/H` | `loop/H` | `e522ae722a8` | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
+| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | `e522ae722a8` | 本轮未动。禁止 reset / stash / restore / clean / `checkout -B` |
 
 P0 旧账：字母槽与 merge 曾停在 `59120887458`，人类工位曾在 `10e04195bf0` 上带着审查改动。那些改动已在 `279f2c18f08`。本轮核对时 stash 未再查；不把文档里的进度当成已完成。
 
