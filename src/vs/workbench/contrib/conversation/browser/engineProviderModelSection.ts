@@ -492,8 +492,8 @@ export class EngineProvidersSection extends Disposable {
 			if (this.canWriteProviders()) {
 				const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
 				const name = provider.brand || provider.providerId;
-				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderEdit', "Edit {0}", name), Codicon.edit, () => void this.promptProvider(provider.providerId, provider.protocol, '', 'edit'));
-				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderClearRow', "Clear {0}", name), Codicon.clearAll, anchor => void this.clearProvider(provider.providerId, anchor), true);
+				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderEdit', "Edit {0}", name), Codicon.edit, () => void this.promptProvider(provider.providerId, provider.protocol, '', 'edit').catch(onUnexpectedError).catch(onUnexpectedError));
+				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderClearRow', "Clear {0}", name), Codicon.clearAll, anchor => void this.clearProvider(provider.providerId, anchor).catch(onUnexpectedError).catch(onUnexpectedError), true);
 			}
 		}
 		this.providerList.style.display = '';
@@ -504,8 +504,8 @@ export class EngineProvidersSection extends Disposable {
 			return;
 		}
 		this.providerWriteChromeReady = true;
-		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderImport', "Import from local harnesses"), Codicon.desktopDownload, anchor => void this.importLocalProviders(anchor));
-		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderAdd', "Add provider"), Codicon.add, () => void this.promptProvider('', ''));
+		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderImport', "Import from local harnesses"), Codicon.desktopDownload, anchor => void this.importLocalProviders(anchor).catch(onUnexpectedError).catch(onUnexpectedError));
+		appendIconButton(this._store, this.providerToolbar, localize('ua.engineProviderAdd', "Add provider"), Codicon.add, () => void this.promptProvider('', '').catch(onUnexpectedError).catch(onUnexpectedError));
 	}
 
 	private clearProviderRowActions(): void {
@@ -600,7 +600,7 @@ export class EngineProvidersSection extends Disposable {
 					actions,
 					localize('ua.engineProviderAddPreset', "Add {0}", preset.displayName),
 					Codicon.add,
-					() => void this.promptProvider(preset.id, preset.defaultProtocol, preset.defaultApiBaseUrl),
+					() => void this.promptProvider(preset.id, preset.defaultProtocol, preset.defaultApiBaseUrl).catch(onUnexpectedError).catch(onUnexpectedError),
 				);
 			}
 		}
@@ -1009,7 +1009,7 @@ export class EngineModelsSection extends Disposable {
 				if (writable) {
 					const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
 					const name = model.modelId || model.id;
-					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelEdit', "Edit {0}", name), Codicon.edit, () => void this.promptModel(model));
+					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelEdit', "Edit {0}", name), Codicon.edit, () => void this.promptModel(model).catch(onUnexpectedError).catch(onUnexpectedError));
 					appendIconButton(
 						this.modelRowActions,
 						actions,
@@ -1017,11 +1017,11 @@ export class EngineModelsSection extends Disposable {
 							? localize('ua.engineModelDisable', "Disable {0}", name)
 							: localize('ua.engineModelEnable', "Enable {0}", name),
 						model.enabled ? Codicon.circleSlash : Codicon.check,
-						() => void this.setListedModelEnabled(model, !model.enabled),
+						() => void this.setListedModelEnabled(model, !model.enabled).catch(onUnexpectedError).catch(onUnexpectedError),
 					);
-					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelDeleteRow', "Delete {0}", name), Codicon.trash, anchor => void this.deleteListedModel(model, anchor), true);
+					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelDeleteRow', "Delete {0}", name), Codicon.trash, anchor => void this.deleteListedModel(model, anchor).catch(onUnexpectedError).catch(onUnexpectedError), true);
 					if (testable) {
-						appendIconButton(this.modelRowActions, actions, localize('ua.engineModelTest', "Test {0}", name), Codicon.beaker, () => void this.testListedModel(model));
+						appendIconButton(this.modelRowActions, actions, localize('ua.engineModelTest', "Test {0}", name), Codicon.beaker, () => void this.testListedModel(model).catch(onUnexpectedError).catch(onUnexpectedError));
 					}
 				}
 			}
@@ -1044,7 +1044,7 @@ export class EngineModelsSection extends Disposable {
 			return;
 		}
 		this.modelWriteChromeReady = true;
-		appendIconButton(this._store, this.modelToolbar, localize('ua.engineModelAdd', "Add model"), Codicon.add, () => void this.promptModel());
+		appendIconButton(this._store, this.modelToolbar, localize('ua.engineModelAdd', "Add model"), Codicon.add, () => void this.promptModel().catch(onUnexpectedError).catch(onUnexpectedError));
 	}
 
 	private setModelAction(message: string, tone: 'neutral' | 'error'): void {
