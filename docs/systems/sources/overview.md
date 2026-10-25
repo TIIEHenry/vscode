@@ -3,8 +3,8 @@ title: "Sources 系统概览：Files | Changes | Review"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-10-24
-summary: "SOURCES_PART 槽 + SourcesTabsHost；Files 挂资源管理器同一棵工作区树，列表模式只把树换成当前目录的一级列表，面包屑和标题操作仍在。Part 宽至少 600px 时三个 tab 的筛选收到标题栏。不注册活动栏图标，打开不带动侧栏。Changes/Review 接通走 readGit* 否则 SCM；Accept 定为暂存光标 hunk（方案未实施前无载荷不显示）；Diff 默认 Preview。Sources 变更读收成 ISourcesChangesModel；Changes 与 Review 投影同一快照，会话事实走 IAgentSessionContext。Accept 仍无载荷不显示。P3 身份跟着条目走已落。P6 与 P7 已落；方案 sources-architecture 仍 accepted。禁用钮带原因 title / aria-label；首拉失败且无旧条目时错误只进空区，不重复写底栏。"
+updated: 2026-10-25
+summary: "SOURCES_PART 槽 + SourcesTabsHost；Files 挂资源管理器同一棵工作区树，列表模式只把树换成当前目录的一级列表，面包屑和标题操作仍在。列表模式在当前目录解析完成后，没有子项写 This folder is empty.，有子项但筛选后没有可见行写 No matching files.，解析未完成不写。Part 宽至少 600px 时三个 tab 的筛选收到标题栏。不注册活动栏图标，打开不带动侧栏。Changes/Review 接通走 readGit* 否则 SCM；Accept 定为暂存光标 hunk（方案未实施前无载荷不显示）；Diff 默认 Preview。Sources 变更读收成 ISourcesChangesModel；Changes 与 Review 投影同一快照，会话事实走 IAgentSessionContext。Accept 仍无载荷不显示。P3 身份跟着条目走已落。P6 与 P7 已落；方案 sources-architecture 仍 accepted。禁用钮带原因 title / aria-label；首拉失败且无旧条目时错误只进空区，不重复写底栏。"
 ---
 
 # Sources 系统概览
@@ -39,14 +39,16 @@ Files 用资源管理器的 “Filter files”。Changes / Review 用紧凑 filt
 | 情形 | 文案（`*Strings.ts`） |
 |------|------|
 | Files 没打开文件夹 | `You have not yet opened a folder.`（不挂树） |
-| 筛选无匹配 | `No matching files.` / `No matching changes.` |
+| Files 列表模式，当前目录已解析且没有子项 | `This folder is empty.`（查询非空也写这句，不写成筛选落空）。侧栏树模式不写。目录还在解析时不写 |
+| Files 列表模式，目录里仍有子项，查询去掉空白后非空，可见行是 0 | `No matching files.`。有可见行（含筛选仍显示的文件夹）不写。侧栏树模式不写 |
+| Changes 筛选无匹配 | `No matching changes.`。引擎 `sourcesFilesList`（Files 面板不再构造）自己的空目录 / 筛选句仍是 `This folder is empty.` / `No matching files.` |
 | Changes/Review 首拉 `readGit*` throw | 没有旧条目时空区写 `Unable to read git changes: …`，**不**写 `No changes.` / `No changes to review.`，底栏状态行不重复同一句、Commit 行也收起；已有旧条目时错误留在底栏失败色 + `role=status`，列表照旧 |
 | 无 SCM 提供者 | Changes / Review 空列表；不造假变更。Commit 在引擎回 `supported:false` 或没有可用写 hook 时写 `Git stage/commit commands are not available.`，不写「Unable to commit」 |
 | Review | 有变更时 hint `Review progress stays in this window.`；无仓库时只留空态、不画 hint；**无假 review comment** |
 
 ## 4. 边界
 
-- **同一棵资源管理器，两个视图**：Files 用 `SourcesFilesExplorer` 挂 `ExplorerView`，模型和侧栏共用 `IExplorerService`。侧栏仍是先注册的主视图，活动栏不新增图标。新建、重命名、删除、拖放、刷新和折叠在这一页可用。列表模式只换这一页的树，不换侧栏。从 Sources 打开或新建文件压住侧栏的自动定位，导航树不跟着跳。`sourcesFilesModel.ts` 不增加 `fetchChildren`。Changes / Review 仍是列表投影。
+- **同一棵资源管理器，两个视图**：Files 用 `SourcesFilesExplorer` 挂 `ExplorerView`，模型和侧栏共用 `IExplorerService`。侧栏仍是先注册的主视图，活动栏不新增图标。新建、重命名、删除、拖放、刷新和折叠在这一页可用。列表模式只换这一页的树，不换侧栏。当前目录解析完成且没有可见行时，空目录写 `This folder is empty.`，有子项但筛选后没有可见行写 `No matching files.`；解析未完成、侧栏树模式、或仍有可见行时不写。从 Sources 打开或新建文件压住侧栏的自动定位，导航树不跟着跳。`sourcesFilesModel.ts` 不增加 `fetchChildren`。Changes / Review 仍是列表投影。
 - **不是** SCM 视图：接通后列表权威是引擎 `ReadGit*`（须非空 `IAgentSessionContext.getActiveSessionId()` **且** 非空 `entries`）；空 session / 断连 / 首拉无 hook / `supported:false` / 空引擎列表才投影本地 SCM。已活画引擎行后再失 `readGitChanges`（仍 connected）保 leftover，不把 SCM 装成权威（[D273](../../../dev/progress/deferred-gaps.md)）。`ReadGitChanges` / `ReadGitSummary` throw 与读失败同级（`sourcesGitReadFailureMessage`），不把 Summary 失败画成「无摘要」仍用引擎 entries。stage / commit 写出同样要非空 session；unstage 仍走 git 扩展命令。桌面 IPC 上 `writeGitStagePaths` / `writeGitCommit` / `writeGitApplyHunks` 恒为函数，Stage、Commit、Accept 改看连接快照 `gitWriteCapability`：未广告或探测为 UNIMPLEMENTED 时不发这三条写，能力未知时仍看方法是否安装。这三项不进 Engine Overview 的能力键。Review / Panel **Accept** 的产品语义（2026-09-25）是暂存光标所在 hunk：点击时现拉 `ReadGitFileDiff`，客户端切出单个 hunk，`argv` 为 `git apply --cached --whitespace=nowarn`。两侧 diff 会同步移动光标；Accept 只认仍聚焦的那一侧。点 Accept 时焦点已离开编辑器，沿用最后一次仍聚焦的那一侧记下的行。对侧同步过来的光标不改 hunk。从未聚焦过才退回修改侧当前位置。见 [sources-accept-stage-hunk](../../../dev/plans/sources-accept-stage-hunk.md)。该方案落地前，无真实载荷不得显示 Accept，不得把整段 `unified_diff` 或 monaco 两侧当 `patches`，不得把 `git.stage` 当 Accept 成功。空 `patches` 仍由宿主拒送。
 - **Diff 归属**（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) / [sources-changes-diff](../../../dev/plans/sources-changes-diff.md) **F1–F3 已落**）：Changes / Review 行点击经 `openSourcesChangeEntry` 解析 `ISourcesChangeRef`，按 `sources.diff.defaultOwner`（默认 `preview`）分派。**默认**有 SCM 资源时走 `ISCMResource.open()`（git = `vscode.diff` → Preview 里的 `DiffEditorInput`）；无 SCM 资源时 `openEditor` 打开文件本体。用户显式动作（`sources.diff.moveToConversation` / `moveToPanel` / `moveToPreview`）或 `defaultOwner=conversation|panel` 可把同一 change 移入 Conversation 只读审阅 tab（`ConversationDiffReviewInput` 开 `CONVERSATION_SIDE_GROUP`，`matches()` 含 original + `groupId`）或底部 Panel 产品 Diff 视图（`SourcesDiffPanelView`，重宿主；`renderRef` 用代数闸丢弃过期 await）。git-read 首拉失败空列表藏 Commit 行，不画「No changes.」。Sources 自身不做 inline diff（选项 C 已否决）。F4 隔离 profile 冒烟待验。
 - **Diff 模型内容提供者**：`ReadGitFileDiff` 写出的 `sources-git-diff:` 模型已由 `sourcesDiff.contribution.ts` 注册文本模型内容提供者（`registerTextModelContentProvider(SOURCES_GIT_DIFF_SCHEME, ...)`），支持打开 Diff（[sources-architecture](../../../dev/plans/sources-architecture.md) P1 已落）。原 2026-09-28 审查记录（SAR-1）中未注册提供者与打不开 Diff 的已知偏差已消除（P1 无与提供者无关的未做项）。

@@ -61,6 +61,8 @@ import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { IAccessibilityService } from '../../../../../platform/accessibility/common/accessibility.js';
 import { IEnvironmentService } from '../../../../../platform/environment/common/environment.js';
 import { ExplorerInlineFilterBox } from '../explorerInlineFilterBox.js';
+import { applyExplorerFlatListEmpty } from '../explorerFlatListEmpty.js';
+import { explorerFlatListEmptyReason } from '../../common/explorerFlatListEmpty.js';
 import { EXPLORER_LOCATION_ROOT_ID, getExplorerLocationBreadcrumbItems } from '../../common/explorerLocationBreadcrumb.js';
 import { ExplorerLocationBreadcrumbBox } from '../explorerLocationBreadcrumbBox.js';
 
@@ -202,6 +204,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 	private renderer!: FilesRenderer;
 
 	private treeContainer!: HTMLElement;
+	private flatListEmpty: HTMLElement | undefined;
 	private container!: HTMLElement;
 	private inlineFilterBox!: ExplorerInlineFilterBox;
 	private locationBreadcrumbBox!: ExplorerLocationBreadcrumbBox;
@@ -489,6 +492,9 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		this._register(this.contextService.onDidChangeWorkbenchState(() => this.updateLocationBreadcrumb()));
 
 		this.treeContainer = DOM.append(container, DOM.$('.explorer-folders-view'));
+		this.flatListEmpty = DOM.append(container, DOM.$('.explorer-flat-list-empty'));
+		this.flatListEmpty.setAttribute('role', 'status');
+		this.flatListEmpty.style.display = 'none';
 
 		this.createTree(this.treeContainer);
 
@@ -707,6 +713,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 			findProvider: this.findProvider,
 		});
 		this._register(this.tree);
+		this._register(this.tree.onDidChangeModel(() => this.updateFlatListEmpty()));
 		this._register(this.themeService.onDidColorThemeChange(() => this.tree.rerender()));
 
 		// Bind configuration
@@ -1007,6 +1014,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 	refresh(recursive: boolean, item?: ExplorerItem, cancelEditing: boolean = true): Promise<void> {
 		if (!this.tree || !this.isBodyVisible() || (item && !this.tree.hasNode(item)) || (this.findProvider?.isShowingFilterResults() && recursive)) {
 			// Tree node doesn't exist yet, when it becomes visible we will refresh
+			this.updateFlatListEmpty();
 			return Promise.resolve(undefined);
 		}
 
@@ -1015,7 +1023,7 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		}
 
 		const toRefresh = item || this.tree.getInput();
-		return this.tree.updateChildren(toRefresh, recursive, !!item);
+		return this.tree.updateChildren(toRefresh, recursive, !!item).finally(() => this.updateFlatListEmpty());
 	}
 
 	override getOptimalWidth(): number {
@@ -1063,7 +1071,11 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 		if (!roots.length) {
 			const emptyInputPromise = this.setTreeInputPromise = this.tree.setInput([]);
 			this.forgetSetTreeInputPromiseOnReject(emptyInputPromise);
-			await emptyInputPromise;
+			try {
+				await emptyInputPromise;
+			} finally {
+				this.updateFlatListEmpty();
+			}
 			return;
 		}
 		let input: ExplorerItem | ExplorerItem[] = roots[0];
@@ -1129,7 +1141,47 @@ export class ExplorerView extends ViewPane implements IExplorerView {
 			delay: this.layoutService.isRestored() ? 800 : 1500 // reduce progress visibility when still restoring
 		}, _progress => promise);
 
-		await promise;
+		try {
+			await promise;
+		} finally {
+			this.updateFlatListEmpty();
+		}
+	}
+
+	/** List mode only. An unresolved directory and the sidebar tree stay blank. */
+	private updateFlatListEmpty(): void {
+		if (!this.flatListEmpty || !this.treeContainer) {
+			return;
+		}
+		const treeHidden = this.treeContainer.style.display === 'none';
+		applyExplorerFlatListEmpty(this.flatListEmpty, this.treeContainer, explorerFlatListEmptyReason(this.readFlatListEmptyInput()));
+		if (treeHidden !== (this.treeContainer.style.display === 'none')) {
+			this.layoutExplorerBody();
+		}
+	}
+
+	private readFlatListEmptyInput(): { flat: boolean; query: string; directoryResolved: boolean; childCount: number; visibleCount: number } {
+		const query = this.inlineFilterBox?.value ?? '';
+		if (!this.isFlatFileList() || !this.tree) {
+			return { flat: false, query, directoryResolved: false, childCount: 0, visibleCount: 0 };
+		}
+		const input = this.tree.getInput();
+		if (!(input instanceof ExplorerItem)) {
+			return { flat: true, query, directoryResolved: false, childCount: 0, visibleCount: 0 };
+		}
+		let visibleCount = 0;
+		try {
+			visibleCount = this.tree.getNode().visibleChildrenCount;
+		} catch {
+			return { flat: true, query, directoryResolved: false, childCount: 0, visibleCount: 0 };
+		}
+		return {
+			flat: true,
+			query,
+			directoryResolved: input.isDirectoryResolved,
+			childCount: input.children.size,
+			visibleCount,
+		};
 	}
 
 	public async selectResource(resource: URI | undefined, reveal = this._autoReveal, retry = 0): Promise<void> {
