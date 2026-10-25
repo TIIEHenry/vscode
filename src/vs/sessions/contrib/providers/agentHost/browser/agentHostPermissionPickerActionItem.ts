@@ -100,23 +100,39 @@ export class AgentHostPermissionPickerActionItem extends PermissionPickerActionI
 		// provider boundary.
 		this._register(autorun(reader => {
 			const isResolving = this._delegate.isResolving.read(reader);
+			const isWritable = this._delegate.isWritable.read(reader);
+			const unavailableReason = this._delegate.unavailableReason.read(reader);
 			const element = this.element;
 			if (!element) {
 				return;
 			}
-			element.classList.toggle('sessions-chat-config-resolving', isResolving);
-			this.setDropdownEnabled(!isResolving);
-			if (isResolving) {
+			element.classList.toggle('sessions-chat-config-resolving', isResolving || !isWritable);
+			this.setDropdownEnabled(!isResolving && isWritable);
+			if (isResolving || !isWritable) {
 				element.setAttribute('aria-disabled', 'true');
 			} else {
 				element.removeAttribute('aria-disabled');
 			}
+			if (unavailableReason) {
+				element.setAttribute('title', unavailableReason);
+			} else {
+				element.removeAttribute('title');
+			}
+			// Refresh the accessible name so the disabled state explains why a
+			// cached permission value cannot be changed while disconnected.
+			this.renderLabel(element);
 		}));
 	}
 
 	protected override updateEnabled(): void {
 		super.updateEnabled();
-		this.setDropdownEnabled(!this._delegate.isResolving.get());
+		this.setDropdownEnabled(!this._delegate.isResolving.get() && this._delegate.isWritable.get());
+	}
+
+	protected override getTooltip(): string {
+		const tooltip = super.getTooltip();
+		const unavailableReason = this._delegate.unavailableReason.get();
+		return unavailableReason ? `${tooltip}. ${unavailableReason}` : tooltip;
 	}
 
 	protected override renderLabel(element: HTMLElement): IDisposable | null {

@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1350 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1353 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
 ---
 
 # Deferred Gaps
@@ -1299,3 +1299,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1349 | P3 | **open** `createNewSession` 原在 pairing-hold、KEEP leftover 或引擎缓存断连等写闸拒绝前就写回 Composer 草稿，导致新建动作虽被拒绝仍产生草稿写入副作用。现将草稿捕获移到全部写闸通过后，并补 SessionBar 门控回归（含三类拒绝路径）。 | 只收口新建会话失败路径的草稿副作用；不改变写闸、会话创建或正常草稿保留语义 | 所有拒绝路径不写草稿；写闸通过且创建调用时仍捕获一次当前 Composer 草稿；目标 Electron 测试因本机 sandbox_host_linux 退出 133，待可运行环境复验 | conversation / session-bar | open |
 | D1350 | P3 | **open** Engine Preferences 窄宽导航选中分节后，`selectSection()` 隐藏导航而未迁移焦点；焦点仍落在 `display:none` 的导航行，键盘用户无法沿 Back/详情继续 Tab。现进入窄详情时将焦点移到可见 Back 按钮，并补 browser 回归覆盖导航焦点与窄宽详情状态。目标 Electron 测试因本机 `sandbox_host_linux` 退出 133；目标文件 ESLint 0 errors（仅既有 warning）；未跑 full compile。 | 只修窄宽 Engine Preferences 的焦点迁移，不改分节选择、Back 返回导航、布局阈值或详情内容 | 从导航行选中分节后焦点落在 Back；隐藏导航不保留活动焦点；Back 仍可回到导航并恢复列表焦点；宽布局不抢焦点 | conversation / engine-preferences | open |
 | D1353 | P3 | **open** Connection Preferences 窄宽导航选中 zone 后，`selectZone()` 隐藏导航而未迁移焦点；焦点仍停在 `display:none` 的导航行，键盘用户无法继续沿 Back/详情操作。现仅在窄宽且焦点来自导航时，在详情切换后的微任务中把焦点移到可见 Back 按钮，并补 browser 回归。目标 Electron 测试因本机 `sandbox_host_linux` 退出 133；未跑 full compile。 | 只修窄宽 Connection Preferences 的焦点迁移，不改 zone 选择、Back 返回导航、布局阈值或详情内容 | 从导航行选中 zone 后焦点落在 Back；隐藏导航不保留活动焦点；Back 仍可回到导航并恢复列表焦点；宽布局与程序化选择不抢焦点 | conversation / connection-preferences | open |
+| D1351 | P3 | **open** Agent Host 权限 picker 原只在 session-config resolving 时门控；remote provider 断连、连接中或协议不兼容时仍把缓存权限值画成可写，选择会静默落到 provider 无连接的 no-op。现按 `connectionStatus` 仅在 connected 时开放写入，禁用下拉并同步 `aria-disabled` 与会话未就绪提示，写入口再做 fail-closed；补三种远程连接非 live 状态回归。目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，未跑 full compile。 | 只收口 Agent Host Composer Permission picker 的连接态门控，不改 accepted 权限值、schema resolving 合同或其他 Composer 控件 | connecting / disconnected / incompatible 均不可写且说明重连；connected 恢复可写；非 Agent Host / 本地 provider 仍沿原路径 | sessions / permission-picker | open |
