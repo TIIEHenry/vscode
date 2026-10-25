@@ -16,6 +16,7 @@ import { getAgentHostCopilotSandboxSettingId } from '../../../../../../../platfo
 import { IAgentHostEnablementService } from '../../../../../../../platform/agentHost/common/agentHostEnablementService.js';
 import { AgentHostCustomTerminalToolEnabledSettingId } from '../../../../../../../platform/agentHost/common/copilotCliConfig.js';
 import type { RootConfigState } from '../../../../../../../platform/agentHost/common/state/protocol/state.js';
+import { RemoteAgentHostConnectionStatus } from '../../../../../../../platform/agentHost/common/remoteAgentHostService.js';
 import { ChatConfiguration, ChatPermissionLevel } from '../../../../../../../workbench/contrib/chat/common/constants.js';
 import { AgentHostPermissionPickerDelegate, isWellKnownAutoApproveSchema, isWellKnownClaudePermissionModeSchema, isWellKnownModeSchema, isWellKnownModeValue } from '../../../browser/agentHostPermissionPickerDelegate.js';
 import { getPermissionLevelMeta } from '../../../../copilotChatSessions/browser/permissionPicker.js';
@@ -46,7 +47,7 @@ function makeWellKnownConfig(value: string | undefined, levels: readonly string[
 	} as ResolveSessionConfigResult;
 }
 
-class FakeProvider implements Pick<IAgentHostSessionsProvider, 'id' | 'onDidChangeSessionConfig' | 'onDidChangeRootConfig' | 'getSessionConfig' | 'getRootConfig' | 'setSessionConfigValue' | 'isSessionConfigResolving'> {
+class FakeProvider implements Pick<IAgentHostSessionsProvider, 'id' | 'onDidChangeSessionConfig' | 'onDidChangeRootConfig' | 'getSessionConfig' | 'getRootConfig' | 'setSessionConfigValue' | 'isSessionConfigResolving' | 'connectionStatus'> {
 	readonly id: string = PROVIDER_ID;
 	private readonly _onDidChange = new Emitter<string>();
 	readonly onDidChangeSessionConfig: Event<string> = this._onDidChange.event;
@@ -57,6 +58,7 @@ class FakeProvider implements Pick<IAgentHostSessionsProvider, 'id' | 'onDidChan
 	rootConfig: RootConfigState | undefined;
 	readonly setCalls: Array<[string, string, string]> = [];
 	readonly resolving = observableValue<boolean>('resolving', false);
+	readonly connectionStatus = observableValue<RemoteAgentHostConnectionStatus>('connectionStatus', RemoteAgentHostConnectionStatus.connected);
 
 	getSessionConfig(_sessionId: string): ResolveSessionConfigResult | undefined {
 		return this.config;
@@ -75,6 +77,9 @@ class FakeProvider implements Pick<IAgentHostSessionsProvider, 'id' | 'onDidChan
 	}
 	fireRootChange(): void {
 		this._onDidChangeRoot.fire();
+	}
+	setConnectionStatus(status: RemoteAgentHostConnectionStatus): void {
+		this.connectionStatus.set(status, undefined);
 	}
 	dispose(): void {
 		this._onDidChange.dispose();
@@ -218,6 +223,27 @@ suite('AgentHostPermissionPickerDelegate', () => {
 		provider.resolving.set(true, undefined);
 
 		assert.strictEqual(delegate.isResolving.get(), true);
+	});
+
+	test('disables writes while a remote host is connecting, disconnected, or incompatible', () => {
+		const { delegate, provider } = setup(store, makeActiveSession(), 'default');
+		for (const status of [
+			RemoteAgentHostConnectionStatus.connecting,
+			RemoteAgentHostConnectionStatus.disconnected,
+			RemoteAgentHostConnectionStatus.incompatible('protocol mismatch', ['v1']),
+		]) {
+			provider.setConnectionStatus(status);
+			assert.strictEqual(delegate.isWritable.get(), false);
+			assert.ok(delegate.unavailableReason.get()?.includes('reconnect'));
+			delegate.setPermissionLevel(ChatPermissionLevel.AutoApprove);
+		}
+		assert.deepStrictEqual(provider.setCalls, []);
+
+		provider.setConnectionStatus(RemoteAgentHostConnectionStatus.connected);
+		assert.strictEqual(delegate.isWritable.get(), true);
+		assert.strictEqual(delegate.unavailableReason.get(), undefined);
+		delegate.setPermissionLevel(ChatPermissionLevel.AutoApprove);
+		assert.deepStrictEqual(provider.setCalls, [[SESSION_ID, 'autoApprove', 'autoApprove']]);
 	});
 
 	test('maps a legacy autoApprove=autopilot value to Default (Autopilot moved onto the mode axis)', () => {

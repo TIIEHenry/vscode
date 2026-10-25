@@ -23,6 +23,7 @@ import { IConfigurationService } from '../../../../../platform/configuration/com
 import { isAssistedPermissionsEnabled, isPermissionLevelVisible } from '../../../../../workbench/contrib/chat/common/agentHostConfigPolicy.js';
 import { AgentSandboxSettingId } from '../../../../../platform/sandbox/common/settings.js';
 import { CopilotCLISessionType } from './baseAgentHostSessionsProvider.js';
+import { RemoteAgentHostConnectionStatus } from '../../../../../platform/agentHost/common/remoteAgentHostService.js';
 
 const REQUIRED_AUTO_APPROVE_VALUE = 'default';
 const REQUIRED_MODE_VALUE = 'interactive';
@@ -74,6 +75,10 @@ export class AgentHostPermissionPickerDelegate extends Disposable implements IPe
 	readonly currentPermissionLevel: IObservable<ChatPermissionLevel>;
 	readonly isApplicable: IObservable<boolean>;
 	readonly isResolving: IObservable<boolean>;
+	/** Whether the active provider can accept a session-config write right now. */
+	readonly isWritable: IObservable<boolean>;
+	/** User-facing reason shown when a cached config is visible but the host is unavailable. */
+	readonly unavailableReason: IObservable<string | undefined>;
 	readonly sandboxTogglePresentation = 'standalone' as const;
 	readonly managedSandboxEnforced: IObservable<boolean>;
 	readonly sandboxToggleConfigurationKeys = [
@@ -159,6 +164,23 @@ export class AgentHostPermissionPickerDelegate extends Disposable implements IPe
 			const provider = this._getProvider(session.providerId);
 			return provider?.isSessionConfigResolving(session.sessionId).read(reader) ?? false;
 		});
+		this.isWritable = derived(this, reader => {
+			const session = this._session.read(reader);
+			if (!session) {
+				return false;
+			}
+			const provider = this._getProvider(session.providerId);
+			const status = provider?.connectionStatus?.read(reader);
+			// Local providers have no remote connection status; their provider
+			// boundary remains the source of truth for write availability.
+			return status === undefined || RemoteAgentHostConnectionStatus.isConnected(status);
+		});
+		this.unavailableReason = derived(this, reader => {
+			if (this.isWritable.read(reader)) {
+				return undefined;
+			}
+			return localize('agentHostPermissionPicker.sessionUnavailable', "Session is not ready; reconnect the engine to change permissions.");
+		});
 	}
 
 	setPermissionLevel(level: ChatPermissionLevel): void {
@@ -167,6 +189,9 @@ export class AgentHostPermissionPickerDelegate extends Disposable implements IPe
 		}
 		const session = this._session.get();
 		if (!session) {
+			return;
+		}
+		if (!this.isWritable.get()) {
 			return;
 		}
 		const provider = this._getProvider(session.providerId);
