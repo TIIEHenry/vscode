@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: N/A
 updated: 2026-10-25
-summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内置预设与 models.dev 云端目录；Models 可增删改与测试，对话框在 level 后有 Description、Cost、Speed；Token Usage 无参读全局用量；Memory 只做 global 的列出、搜索、保存和删除，无 searchMemory 的查询不把旧列表当命中，零条搜索不是空库；Rules 桌面可增删改，网页不实现；Hooks 仍只读；产品验证未做"
+summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内置预设与 models.dev 云端目录；筛选两边都空时写 No matching providers.，云目录还在读时不写；Models 可增删改与测试，对话框在 level 后有 Description、Cost、Speed；Token Usage 无参读全局用量；Memory 只做 global 的列出、搜索、保存和删除，无 searchMemory 的查询不把旧列表当命中，零条搜索不是空库；Rules 桌面可增删改，网页不实现；Hooks 仍只读；产品验证未做"
 ---
 
 # Engine 页 Customizations catalog（`ua.engine`）
@@ -99,7 +99,7 @@ Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240�
 
 Providers 保存调用 `UpsertProviderCredentials`（`providerId`、`apiKey`、`baseUrl`、`protocol`）。`apiKey` 空白表示保留已有密钥。编辑把 provider id 改成新值时，先写入新 id，再对旧 id 调用 `ClearProviderCredentials`。协议、base URL、API key 留空仍表示保留当前值。密钥只出现在输入对话框里，不回写到设置页。`ProviderStatus` 不包含密钥。清除调用 `ClearProviderCredentials`；宿主环境变量保持原样。`PROVIDER_ENV` / `BUILTIN_ENV` 只说明宿主环境仍可能供钥，upsert 写入引擎凭据库，不改进程环境。成功写入后，引擎把该 provider 视为已配置来源。
 
-状态行下面还有两份目录，不计入左栏 Providers 计数。内置预设与 Singularity `PROVIDER_PRESET_OVERLAYS` 同一批 id 和端点：openai、anthropic、gemini、openrouter、deepseek、zhipu、qwen、deepseek-anthropic，按这份声明顺序，不含空白 Custom 行。自定义仍走工具栏 Add。桌面 `listProviderPresetCatalog?` 在主进程拉取 `https://models.dev/api.json`，内存缓存约一天，不是引擎 RPC，也不带密钥。与内置 id 相同的条目用目录里的名称、URL 和最多五个未弃用模型覆盖预设，协议仍用内置值。其余有 API URL 或 env 的条目按名称排成云端列表。选一条打开添加对话框，预填 id、protocol 和 base URL，不自动写入模型注册表。已配置状态行的编辑仍是「Edit provider」，base URL 留空，因为状态里没有 URL。拉取失败时内置列表仍在，云端状态写明不可用；已有缓存则继续用这份缓存。Refresh 先清缓存再拉。网页没有这个方法，云端行写明目录在桌面加载。筛选框只过滤这两份列表。
+状态行下面还有两份目录，不计入左栏 Providers 计数。内置预设与 Singularity `PROVIDER_PRESET_OVERLAYS` 同一批 id 和端点：openai、anthropic、gemini、openrouter、deepseek、zhipu、qwen、deepseek-anthropic，按这份声明顺序，不含空白 Custom 行。自定义仍走工具栏 Add。桌面 `listProviderPresetCatalog?` 在主进程拉取 `https://models.dev/api.json`，内存缓存约一天，不是引擎 RPC，也不带密钥。与内置 id 相同的条目用目录里的名称、URL 和最多五个未弃用模型覆盖预设，协议仍用内置值。其余有 API URL 或 env 的条目按名称排成云端列表。选一条打开添加对话框，预填 id、protocol 和 base URL，不自动写入模型注册表。已配置状态行的编辑仍是「Edit provider」，base URL 留空，因为状态里没有 URL。拉取失败时内置列表仍在，云端状态写明不可用；已有缓存则继续用这份缓存。Refresh 先清缓存再拉。网页没有这个方法，云端行写明目录在桌面加载。筛选框只过滤这两份列表。查询去掉首尾空白后仍非空，且内置与云端过滤后都是零行时，筛选框下写 “No matching providers.”。任一侧还有行、查询为空白，或云端仍在 “Reading the cloud catalog…” 时不写这句。云端状态（桌面才加载、不可用、正在读取）仍留在云端状态行，不换成这句。不另发 RPC。
 
 Import from local harnesses 在主进程读取本机配置。确认框只列名称和来源。用户确认的 `providerId` 会再读一次再 upsert；空的 `providerIds` 表示什么都不导入。`~/.cc-switch/cc-switch.db` 的 `providers`（`id`、`app_type`、`name`、`settings_config`）在库存在时是全量目录，只读打开。库里已经出现的 app 不再读该 app 的现行文件。没有库记录的 app 才回退：`~/.claude/settings.json`、`~/.codex/config.toml` 与 `auth.json`、`~/.gemini/.env`、`~/.grok/config.toml`、`~/.config/opencode/opencode.json`、`~/.openclaw/openclaw.json`、`~/.hermes/config.yaml`、`~/.pi/agent/models.json`。跳过 `codex_oauth_auth.json`、`copilot_auth.json`、`xai_oauth_auth.json`，以及既无密钥也无 base URL 的行。稳定 id 重复导入算更新。结果报告 imported / updated / skipped / modelWrites，错误文本去掉本次发送的密钥。模型写在已钉引擎尚未提供 `UpsertModel` 时记入错误，provider 导入仍算成功。
 

@@ -1025,6 +1025,13 @@
 	box-shadow: none;
 }
 
+.monaco-workbench .engine-provider-catalog-filter-empty {
+	margin: 0 0 12px;
+	color: var(--vscode-descriptionForeground);
+	font-size: var(--vscode-fontSize-label1);
+	overflow-wrap: anywhere;
+}
+
 .monaco-workbench .engine-providers-section .engine-provider-preset-row {
 	height: 24px;
 	min-height: 24px;

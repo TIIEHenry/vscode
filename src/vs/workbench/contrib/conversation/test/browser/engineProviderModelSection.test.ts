@@ -731,13 +731,117 @@ suite('Engine providers and models sections', () => {
 		assert.strictEqual(section.getListEntryCount(), 0);
 
 		const filter = section.getDomNode().querySelector('.engine-provider-catalog-filter') as HTMLInputElement;
+		const noMatch = section.getDomNode().querySelector('.engine-provider-catalog-filter-empty') as HTMLElement;
+		assert.strictEqual(noMatch.textContent, '');
+		assert.strictEqual(noMatch.style.display, 'none');
 		const InputEvent = filter.ownerDocument.defaultView!.Event;
 		filter.value = 'zzz';
 		filter.dispatchEvent(new InputEvent('input', { bubbles: true }));
 		assert.strictEqual(builtin.querySelector('.engine-catalog-name'), null);
+		assert.strictEqual(noMatch.textContent, 'No matching providers.');
+		assert.notStrictEqual(noMatch.style.display, 'none');
+		assert.strictEqual(section.getDomNode().querySelector('.engine-provider-cloud-status')?.textContent, 'Cloud catalog loads in the desktop app.');
 		filter.value = 'openai';
 		filter.dispatchEvent(new InputEvent('input', { bubbles: true }));
 		assert.deepStrictEqual(names(), ['OpenAI / Compatible API']);
+		assert.strictEqual(noMatch.textContent, '');
+		assert.strictEqual(noMatch.style.display, 'none');
+		filter.value = '   ';
+		filter.dispatchEvent(new InputEvent('input', { bubbles: true }));
+		assert.ok(names().includes('OpenAI / Compatible API'));
+		assert.strictEqual(noMatch.textContent, '');
+		assert.strictEqual(noMatch.style.display, 'none');
+	});
+
+	test('a filter with no preset hits says so only after the cloud catalog settles', async () => {
+		let releaseCatalog!: (catalog: UniverseAgentProviderPresetCatalog) => void;
+		const pending = new Promise<UniverseAgentProviderPresetCatalog>(resolve => {
+			releaseCatalog = resolve;
+		});
+		const openai = {
+			id: 'openai',
+			displayName: 'OpenAI / Compatible API',
+			defaultApiBaseUrl: 'https://api.openai.com/v1',
+			defaultProtocol: 'openai',
+			defaultModels: ['gpt-4o'],
+			quickPick: true,
+		};
+		const groq = {
+			id: 'groq',
+			displayName: 'Groq',
+			defaultApiBaseUrl: 'https://api.groq.com/openai/v1',
+			defaultProtocol: 'openai',
+			defaultModels: ['llama-3'],
+			quickPick: false,
+		};
+		const connection = createConnectionStub({
+			connected: true,
+			listProviderPresetCatalog: () => pending,
+		});
+		const section = mountProviders(connection);
+		await flushMicrotasks();
+
+		const filter = section.getDomNode().querySelector('.engine-provider-catalog-filter') as HTMLInputElement;
+		const noMatch = section.getDomNode().querySelector('.engine-provider-catalog-filter-empty') as HTMLElement;
+		const cloudStatus = section.getDomNode().querySelector('.engine-provider-cloud-status') as HTMLElement;
+		const InputEvent = filter.ownerDocument.defaultView!.Event;
+		filter.value = 'zzz';
+		filter.dispatchEvent(new InputEvent('input', { bubbles: true }));
+		assert.strictEqual(section.getDomNode().querySelector('.engine-provider-builtin-list .engine-catalog-name'), null);
+		assert.strictEqual(cloudStatus.textContent, 'Reading the cloud catalog…');
+		assert.strictEqual(noMatch.textContent, '');
+		assert.strictEqual(noMatch.style.display, 'none');
+
+		releaseCatalog({
+			builtin: [openai],
+			cloud: [groq],
+			cloudStatus: 'loaded',
+		});
+		await flushMicrotasks();
+		assert.strictEqual(noMatch.textContent, 'No matching providers.');
+		assert.notStrictEqual(noMatch.style.display, 'none');
+		assert.strictEqual(cloudStatus.textContent, '');
+		assert.strictEqual(cloudStatus.style.display, 'none');
+
+		filter.value = 'groq';
+		filter.dispatchEvent(new InputEvent('input', { bubbles: true }));
+		assert.deepStrictEqual(
+			[...section.getDomNode().querySelectorAll('.engine-provider-cloud-list .engine-catalog-name')].map(node => node.textContent),
+			['Groq'],
+		);
+		assert.strictEqual(noMatch.textContent, '');
+		assert.strictEqual(noMatch.style.display, 'none');
+	});
+
+	test('an unavailable cloud catalog keeps its status beside a filter miss', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			listProviderPresetCatalog: async () => ({
+				builtin: [{
+					id: 'openai',
+					displayName: 'OpenAI / Compatible API',
+					defaultApiBaseUrl: 'https://api.openai.com/v1',
+					defaultProtocol: 'openai',
+					defaultModels: ['gpt-4o'],
+					quickPick: true,
+				}],
+				cloud: [],
+				cloudStatus: 'unavailable',
+				cloudError: 'offline',
+			}),
+		});
+		const section = mountProviders(connection);
+		await flushMicrotasks();
+
+		const filter = section.getDomNode().querySelector('.engine-provider-catalog-filter') as HTMLInputElement;
+		const noMatch = section.getDomNode().querySelector('.engine-provider-catalog-filter-empty') as HTMLElement;
+		const cloudStatus = section.getDomNode().querySelector('.engine-provider-cloud-status') as HTMLElement;
+		const InputEvent = filter.ownerDocument.defaultView!.Event;
+		filter.value = 'zzz';
+		filter.dispatchEvent(new InputEvent('input', { bubbles: true }));
+		assert.strictEqual(noMatch.textContent, 'No matching providers.');
+		assert.strictEqual(cloudStatus.textContent, 'offline');
+		assert.notStrictEqual(cloudStatus.style.display, 'none');
 	});
 
 	test('desktop cloud catalog renders a cloud row and refresh asks for a fresh copy', async () => {

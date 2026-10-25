@@ -184,11 +184,13 @@ export class EngineProvidersSection extends Disposable {
 	private readonly builtinList: HTMLElement;
 	private readonly cloudStatus: HTMLElement;
 	private readonly cloudList: HTMLElement;
+	private readonly catalogFilterEmpty: HTMLElement;
 	private readonly presetRowActions = this._register(new DisposableStore());
 	private providerWriteChromeReady = false;
 	private builtinPresets: readonly UniverseAgentProviderPreset[] = builtinProviderPresets();
 	private cloudPresets: readonly UniverseAgentProviderPreset[] = [];
 	private cloudMessage = '';
+	private cloudCatalogPending = false;
 	private catalogQuery = '';
 	private catalogGeneration = 0;
 
@@ -228,6 +230,9 @@ export class EngineProvidersSection extends Disposable {
 			this.catalogQuery = this.catalogFilter.value;
 			this.renderPresetLists();
 		}));
+		this.catalogFilterEmpty = DOM.append(catalog, $('.engine-provider-catalog-filter-empty'));
+		this.catalogFilterEmpty.setAttribute('role', 'status');
+		this.catalogFilterEmpty.style.display = 'none';
 		DOM.append(catalog, $('.engine-catalog-group-label')).textContent = localize('ua.engineProviderBuiltin', "Built-in");
 		this.builtinList = DOM.append(catalog, $('.engine-provider-builtin-list'));
 		const cloudHeading = DOM.append(catalog, $('.engine-provider-catalog-heading'));
@@ -521,11 +526,13 @@ export class EngineProvidersSection extends Disposable {
 
 	private async loadCloudCatalog(force: boolean): Promise<void> {
 		if (typeof this.connection.listProviderPresetCatalog !== 'function') {
+			this.cloudCatalogPending = false;
 			this.cloudMessage = localize('ua.engineProviderCloudDesktop', "Cloud catalog loads in the desktop app.");
 			this.renderPresetLists();
 			return;
 		}
 		const generation = ++this.catalogGeneration;
+		this.cloudCatalogPending = true;
 		this.cloudMessage = localize('ua.engineProviderCloudLoading', "Reading the cloud catalog…");
 		this.renderPresetLists();
 		try {
@@ -544,15 +551,26 @@ export class EngineProvidersSection extends Disposable {
 			}
 			this.cloudMessage = localize('ua.engineProviderCloudFailed', "Cloud catalog is unavailable: {0}", publicActionError(error));
 		}
+		this.cloudCatalogPending = false;
 		this.renderPresetLists();
 	}
 
 	private renderPresetLists(): void {
 		this.presetRowActions.clear();
-		this.renderPresetRows(this.builtinList, this.filteredPresets(this.builtinPresets));
-		this.renderPresetRows(this.cloudList, this.filteredPresets(this.cloudPresets));
+		const builtin = this.filteredPresets(this.builtinPresets);
+		const cloud = this.filteredPresets(this.cloudPresets);
+		this.renderPresetRows(this.builtinList, builtin);
+		this.renderPresetRows(this.cloudList, cloud);
 		this.cloudStatus.textContent = this.cloudMessage;
 		this.cloudStatus.style.display = this.cloudMessage ? '' : 'none';
+		const showNoMatch = this.catalogQuery.trim().length > 0
+			&& builtin.length === 0
+			&& cloud.length === 0
+			&& !this.cloudCatalogPending;
+		this.catalogFilterEmpty.textContent = showNoMatch
+			? localize('ua.engineProviderCatalogNoMatch', "No matching providers.")
+			: '';
+		this.catalogFilterEmpty.style.display = showNoMatch ? '' : 'none';
 	}
 
 	private filteredPresets(presets: readonly UniverseAgentProviderPreset[]): readonly UniverseAgentProviderPreset[] {
