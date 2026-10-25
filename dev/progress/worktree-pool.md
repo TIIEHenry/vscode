@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-25
-summary: "2026-10-25：槽 C 完成 D1304。compile-client 退出码 1（505 条 error TS），未 push。其余槽与人类工位仍在 dc35c1f7b3d。H 的 attachments/ 仍未跟踪。"
+summary: "2026-10-25：D1304（1117f5f95f2）已快进合入。compile-client 退出码 1，未 push。槽 D 做 D1302。H 的 attachments/ 仍未跟踪。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,18 +23,18 @@ summary: "2026-10-25：槽 C 完成 D1304。compile-client 退出码 1（505 条
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 集成尖端（`agent-ide`） | 槽 C 本提交完成 D1304，父提交 `dc35c1f7b3d`。merge、人类工位与 A、B、D–J 仍在 `dc35c1f7b3d`。本刀不快进。 |
-| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`dc35c1f7b3d` ahead 1806、behind 0。本提交在其上加 1。`compile-client` 退出码 1（505 条 `error TS`，114 个文件；本刀改动文件 0 条）。未跑 `npm run compile`，未 push。 |
+| 集成尖端（`agent-ide`） | D1304 在 `1117f5f95f2`。本账本提交只记合入；写完后 merge 与字母槽 `merge --ff-only` 到本提交。 |
+| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`1117f5f95f2` ahead 1807、behind 0。槽 C 自述 `compile-client` 退出码 1（505 条 `error TS`，本刀改动文件 0 条）。本轮未再编译，未 push。 |
 
-## 槽位表（2026-10-25 槽 C 完成 D1304）
+## 槽位表（2026-10-25 合入 D1304 后）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `dc35c1f7b3d` | 干净，不是 `parked`。本刀不快进，没有二父 merge commit，没有 `npm run compile` |
-| A、B、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | `dc35c1f7b3d` | `idle`。工作区干净 |
-| C | `vscode-WorkTrees/C` | `loop/C` | 本提交（D1304） | `idle`。提交后工作区干净。独有提交尚未快进到 merge |
-| H | `vscode-WorkTrees/H` | `loop/H` | `dc35c1f7b3d` | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
-| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | `dc35c1f7b3d` | 禁止 reset / stash / restore / clean / `checkout -B` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `1117f5f95f2`，随后快进到本账 | 干净，不是 `parked`。快进合入，没有二父 merge commit，没有 `npm run compile` |
+| A、B、C、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 同上 | `idle`。工作区干净 |
+| D | `vscode-WorkTrees/D` | `loop/D` | 同上 | `occupied`。做仍开的 D1302（初次快照拒绝后重读丢掉 managed 载荷） |
+| H | `vscode-WorkTrees/H` | `loop/H` | 同上 | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
+| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 本账本提交 | 只记合入。禁止 reset / stash / restore / clean / `checkout -B` |
 
 P0 旧账：字母槽与 merge 曾停在 `59120887458`，人类工位曾在 `10e04195bf0` 上带着审查改动。那些改动已在 `279f2c18f08`。本轮核对时 stash 未再查；不把文档里的进度当成已完成。
 
