@@ -129,7 +129,7 @@ export class MobileTitlebarPart extends Disposable {
 		// Sidebar toggle button. Uses the same icon as the desktop/web
 		// agents-app sidebar toggle and reflects open/closed state via the
 		// SideBarVisibleContext key.
-		const hamburger = append(this.element, $('button.mobile-top-bar-button'));
+		const hamburger = append(this.element, $('button.mobile-top-bar-button', { type: 'button' }));
 		hamburger.setAttribute('aria-label', localize('mobileTopBar.openSessions', "Open sessions"));
 		const hamburgerIcon = append(hamburger, $('span'));
 		const closedIconClasses = ThemeIcon.asClassNameArray(Codicon.layoutSidebarLeftOff);
@@ -176,14 +176,14 @@ export class MobileTitlebarPart extends Disposable {
 
 		// New session button (+) — shown when in a chat, hidden on welcome.
 		// Always rightmost when in a chat.
-		const newSessionButton = append(this.element, $('button.mobile-top-bar-button.mobile-new-session-button'));
+		const newSessionButton = append(this.element, $('button.mobile-top-bar-button.mobile-new-session-button', { type: 'button' }));
 		newSessionButton.setAttribute('aria-label', localize('mobileTopBar.newSessionAria', "New session"));
 		const newSessionIcon = append(newSessionButton, $('span'));
 		newSessionIcon.classList.add(...ThemeIcon.asClassNameArray(Codicon.plus));
 		this._register(addDisposableListener(newSessionButton, EventType.CLICK, () => this._onDidClickNewSession.fire()));
 
 		// Account indicator — shown on welcome/new session, hidden in a chat
-		this.accountButton = append(this.element, $('button.mobile-top-bar-button.mobile-account-indicator'));
+		this.accountButton = append(this.element, $('button.mobile-top-bar-button.mobile-account-indicator', { type: 'button' }));
 		this.accountButton.setAttribute('aria-label', localize('mobileTopBar.account', "Account"));
 		this.accountAvatarElement = append(this.accountButton, $('img.mobile-account-avatar', { alt: '', draggable: 'false' })) as HTMLImageElement;
 		this.accountAvatarElement.decoding = 'async';

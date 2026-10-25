@@ -5,7 +5,8 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1359 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1362 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+
 
 
 ---
@@ -1308,4 +1309,7 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1355 | P3 | **open** D1351 的连接态写闸对缺失 connectionStatus 的远程 agenthost-* provider 原会 fail-open，导致连接事实未知时仍可写。现仅 local-agent-host 允许无状态本地路径；远程缺状态、无 provider 与非 Agent Host 均 fail-closed；补 reconnecting、cached accepted 值保留及 remote unknown/local unknown/non-Agent Host 回归。 | 只收口 Agent Host Permission picker 对 connectionStatus 缺失的 fail-closed 边界；不改变 connected 写入、local provider 无远端状态、accepted 值或其他 picker 行为 | remote 缺 status 不可写；local 缺 status 可写；reconnecting 及其他非 connected 不可写且恢复 connected 后可写；非 Agent Host 仍不适用 | sessions / permission-picker | open |
 | D1358 | P3 | **open** 会话栏“下一级 Agent”自定义 menu 打开后将焦点放进首个 menuitem，但 Escape、外部点击或选择关闭时未把焦点还给下拉按钮；menuitem 被移除后键盘上下文落到 body。现记录 popup 内最近焦点，并在关闭时仅当活动焦点仍属于该 popup 且 anchor 可见时恢复到下拉按钮；补 Escape、外部点击与选择关闭回归。 | 只修自定义 Agent child menu 的焦点回收与键盘上下文，不改子会话打开、上下箭头导航、关闭触发或写闸 | 菜单三种关闭路径均把焦点回到下拉按钮；anchor 隐藏/销毁或焦点已在菜单外时不抢焦点；既有 role/menuitem 与操作行为保持 | conversation / navigation-menu | open |
 | D1359 | P3 | **open** client-tool Respond CTA 原在 unary 已发送后仍保持可操作，晚到或拒绝帧时可重复发送，且没有就地失败文案；permission/question 已有的 in-flight disabled、`aria-busy` 与 retryable failure 语义未复用。现按工具行 id+文本记录 in-flight hold，pending 重绘禁用并呈现忙碌语义；`respondFailure` 映射到 client-tool 行，retryable failure 保留 Respond，non-retryable failure 隐藏 CTA 并保留错误。补 process-fold / renderer 回归。 | 只收口 client-tool UI 状态与重复响应闸，不改 unary payload、cleanup 身份或引擎协议 | accepted 后下一帧前按钮 disabled+`aria-busy`；retryable 失败可重试且错误就地可见；non-retryable / terminal / remove 不留可操作 CTA | conversation / client-tool-response |
+| D1360 | P3 | **open** 移动端标题栏的侧栏、New session、Account 三个按钮原未声明 `type=button`，宿主若将标题栏放进表单，点击会触发隐式 submit。现为三者显式声明普通按钮类型，并补源码扫描回归。 | 只收口标题栏按钮的 HTML 提交语义，不改变可见文案、点击事件、显示门控或移动端布局 | 三个顶部控件均为 `type=button`；现有打开 Sessions、新建会话、Account 面板行为保持 | sessions / mobile-titlebar | open |
+| D1361 | P3 | **open** 轨迹总览折叠按钮原只更新 `title`，`aria-expanded` 只表达展开状态；展开/收起后读屏用户无法得知当前可执行动作。现初始与每次状态同步本地化 Collapse/Expand `aria-label`，并补 browser UI 回归锁定 `aria-expanded`、`aria-label`、`title` 一致。 | 只补轨迹总览切换按钮的可访问动作名称，不改变展开逻辑、布局、焦点或图标 | 展开态读为 Collapse，收起态读为 Expand；`aria-expanded`、`aria-label` 和 `title` 同步；现有点击与轨迹内容保持 | conversation / trajectory-overview | open |
+| D1362 | P3 | **open** `root/sessionAdded` 重复公告同一会话且工作目录已移出当前窗口时，原缓存投影仍留在会话列表；本地新建但尚未入列表的会话收到这种公告后也会保留 pending 标记。现对非工作区公告清除 pending，并移除已有缓存行；补重复公告移除与 pending 清理回归。 | 只收口会话列表对重复 `sessionAdded` 的工作区过滤和本地 pending 生命周期，不改变 sessionAdded 合同、工作区匹配规则或后端会话状态 | 同一会话从工作区内重公告为工作区外时列表移除并发出单条 removal；工作区外的 pending 会话公告后不再被视为新草稿；工作区内公告与正常 sessionRemoved 行为保持 | sessions / session-list | open |
 

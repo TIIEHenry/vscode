@@ -3693,6 +3693,83 @@ suite('AgentHostChatContribution', () => {
 			assert.deepStrictEqual(listController.items.map(item => item.label), ['Tail matches workspace', 'Local session']);
 		});
 
+		test('sessionAdded outside the workspace removes stale cached and pending entries', async () => {
+			const { instantiationService, agentHostService } = createTestServices(disposables);
+
+			const workspaceFolder = URI.file('/workspace/root');
+			instantiationService.stub(IWorkspaceContextService, {
+				getWorkbenchState: () => WorkbenchState.FOLDER,
+				getWorkspace: () => ({ id: '', folders: [{ uri: workspaceFolder, name: 'root', index: 0, toResource: () => workspaceFolder }] }),
+				getWorkspaceFolder: () => null,
+				onDidChangeWorkspaceFolders: Event.None,
+			});
+
+			const listController = createSessionListController(disposables, instantiationService, agentHostService);
+			await listController.refresh(CancellationToken.None);
+
+			const removed: string[] = [];
+			disposables.add(listController.onDidChangeChatSessionItems(delta => {
+				removed.push(...(delta.removed ?? []).map(resource => resource.toString()));
+			}));
+
+			const cachedResource = AgentSession.uri('copilot', 'moved-out');
+			agentHostService.fireNotification({
+				type: 'root/sessionAdded',
+				channel: ROOT_STATE_URI,
+				summary: {
+					resource: cachedResource.toString(),
+					provider: 'copilot',
+					title: 'Initially local',
+					status: SessionStatus.Idle,
+					createdAt: new Date(1000).toISOString(),
+					modifiedAt: new Date(2000).toISOString(),
+					workingDirectories: [URI.file('/workspace/root/sub').toString()],
+				},
+			} as INotification);
+			assert.strictEqual(listController.items.length, 1);
+
+			// A reconnect or re-announcement can carry new workspace metadata for
+			// the same session. The old projection must not remain visible.
+			agentHostService.fireNotification({
+				type: 'root/sessionAdded',
+				channel: ROOT_STATE_URI,
+				summary: {
+					resource: cachedResource.toString(),
+					provider: 'copilot',
+					title: 'Moved away',
+					status: SessionStatus.Idle,
+					createdAt: new Date(1000).toISOString(),
+					modifiedAt: new Date(3000).toISOString(),
+					workingDirectories: [URI.file('/other/workspace').toString()],
+				},
+			} as INotification);
+			assert.deepStrictEqual({ labels: listController.items.map(item => item.label), removed }, {
+				labels: [],
+				removed: [cachedResource.toString()],
+			});
+
+			// A locally-created item has no cached row yet. Once the backend
+			// announces it, even an out-of-workspace announcement clears the
+			// provisional marker so it is not treated as a new draft forever.
+			const pending = await listController.newChatSessionItem({ prompt: 'Pending' }, CancellationToken.None);
+			assert.ok(pending);
+			assert.strictEqual(listController.isNewSession(pending.resource), true);
+			agentHostService.fireNotification({
+				type: 'root/sessionAdded',
+				channel: ROOT_STATE_URI,
+				summary: {
+					resource: pending.resource.toString(),
+					provider: 'copilot',
+					title: 'Pending elsewhere',
+					status: SessionStatus.Idle,
+					createdAt: new Date(1000).toISOString(),
+					modifiedAt: new Date(3000).toISOString(),
+					workingDirectories: [URI.file('/other/workspace').toString()],
+				},
+			} as INotification);
+			assert.strictEqual(listController.isNewSession(pending.resource), false);
+		});
+
 		test('deleteChatSessionItem disposes the corresponding backend session and removes it from the cached items', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
 			const { listController, agentHostService } = createContribution(disposables);
 

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1359 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332–D1362 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 
 
 ---
@@ -13,6 +13,9 @@ summary: "2026-10-26：D1332–D1359 已落盘，D467 回收证据已闭合；�
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Mobile titlebar 按钮提交语义收口（2026-10-26，D1360，本波移动端 UI 语义审计）**：移动端标题栏的侧栏、New session、Account 三个控件原创建为默认 submit button；若宿主落在表单内，点击会触发隐式提交。现显式声明 `type=button`，不改变可见文案、点击事件或显示门控；新增源码扫描回归。目标文件 ESLint 待跑，未跑 full compile。见 [D1360](deferred-gaps.md)。
+- **Trajectory overview 折叠按钮可访问名称（2026-10-26，D1361，本波 UI/ARIA 审计）**：轨迹总览切换按钮原只更新 `title`，`aria-expanded` 只表达状态，读屏用户无法得知当前可执行动作。现初始与每次展开/收起同步本地化 Collapse/Expand `aria-label`，并补 browser UI 回归锁定 `aria-expanded`、`aria-label`、`title` 一致；不改变布局、焦点或切换行为。目标文件 ESLint 临时缓存通过，Electron/浏览器测试受本机环境限制，未跑 full compile。见 [D1361](deferred-gaps.md)。
+- **Session list 重复 Added 的工作区收口（2026-10-26，D1362，协议/会话状态审计）**：`root/sessionAdded` 重复公告同一会话且工作目录已移出当前窗口时，原缓存投影仍留在列表；本地新建但尚未入列表的会话也会保留 pending 标记。现对非工作区公告清除 pending，并移除已有缓存行；补重复公告与 pending 清理回归。目标文件 ESLint `--no-cache` 0 errors；浏览器测试需在可写 `out/` 且可启动环境复验，未跑 full compile。见 [D1362](deferred-gaps.md)。
 - **Client-tool Respond CTA 状态收口（2026-10-26，D1359，本波 Permission/Question/client-tool UI 状态审计）**：client-tool Respond 原在 unary 已发送后仍可重复点击，晚到或拒绝帧也没有就地失败文案；现按工具行 id+文本复用 permission/question 的 in-flight hold，pending 重绘禁用并设置 `aria-busy`，retryable `respondFailure` 恢复可重试并显示错误，non-retryable 隐藏 CTA 但保留错误。新增 process-fold / renderer 回归；目标文件 ESLint 临时缓存通过，浏览器测试受本机 listen EPERM 限制，未跑 full compile。见 [D1359](deferred-gaps.md)。
 - **Agent child menu 关闭焦点回收（2026-10-26，D1358，本波菜单键盘/ARIA 审计）**：会话栏“下一级 Agent”自定义 menu 打开后将焦点放进首个 menuitem，Escape、外部点击或选择关闭时原未把焦点还给下拉按钮，菜单项移除后键盘上下文会落到 body。现记录 popup 内最近焦点，关闭时仅当活动焦点仍属于 popup 且 anchor 可见才恢复下拉按钮；补三种关闭路径浏览器回归。不改子会话打开、上下箭头导航、关闭触发或写闸；目标 ESLint 临时缓存通过，定向 Electron 测试待在可启动环境复验，未跑 full compile。见 [D1358](deferred-gaps.md)。
 - **窄桌面导航抽屉关闭焦点回收（2026-10-26，D1354，本波窄宽/焦点反向审计）**：Compact desktop 导航抽屉关闭时若焦点已进入 sidebar，原逻辑隐藏 sidebar 后会把 activeElement 留在 `display:none` 节点；现仅在关闭前确认焦点位于 sidebar 时，关闭后恢复到可见的导航打开按钮，Esc/backdrop 与程序化关闭共用门控，不抢其他焦点。新增导航宿主焦点回归；未跑 full compile。见 [D1354](deferred-gaps.md)。

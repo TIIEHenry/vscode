@@ -13,6 +13,8 @@ import { stubConversationTimelineLinkServices } from './conversationTimelineLink
 import { getTrajectoryOverviewSegmentLabel } from '../../browser/conversationTrajectoryOverview.js';
 import {
 	ConversationTrajectory,
+	conversationTrajectoryOverviewCollapse,
+	conversationTrajectoryOverviewExpand,
 	conversationTrajectorySearchPlaceholder,
 	formatConversationTrajectoryLimitNotice,
 	conversationTrajectoryInspectorPayload,
@@ -194,6 +196,27 @@ suite('ConversationTrajectoryUi', () => {
 		const userRow = trajectory.querySelector('.conversation-lens-trajectory-record-row[data-kind="user"]') as HTMLElement;
 		assert.ok(userRow);
 		assert.strictEqual(userRow.getAttribute('aria-selected'), 'true');
+	});
+
+	test('trajectory overview toggle exposes the current action to assistive technology', async () => {
+		const { stubService, layoutReadingColumn, slots } = mountLens();
+		seedUntitledTrajectory(stubService);
+		await flushTimelineHeightUpdates();
+
+		clickLensTab(slots, 'trajectory');
+		layoutReadingColumn();
+		await flushTimelineHeightUpdates();
+
+		const toggle = slots.timeline.querySelector('.conversation-lens-trajectory-overview-toggle') as HTMLButtonElement;
+		assert.ok(toggle);
+		assert.strictEqual(toggle.getAttribute('aria-expanded'), 'true');
+		assert.strictEqual(toggle.getAttribute('aria-label'), conversationTrajectoryOverviewCollapse);
+		assert.strictEqual(toggle.title, conversationTrajectoryOverviewCollapse);
+
+		toggle.click();
+		assert.strictEqual(toggle.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(toggle.getAttribute('aria-label'), conversationTrajectoryOverviewExpand);
+		assert.strictEqual(toggle.title, conversationTrajectoryOverviewExpand);
 	});
 
 	test('trajectory user row paints source block chips without duplicating them in preview text', async () => {

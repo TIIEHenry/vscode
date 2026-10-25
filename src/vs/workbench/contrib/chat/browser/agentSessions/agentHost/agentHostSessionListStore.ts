@@ -285,6 +285,14 @@ export class AgentHostSessionListStore extends Disposable {
 			}
 			const key = this._key(entry.provider, entry.rawId);
 			if (!this._isSessionInWorkspace(entry)) {
+				// The backend can re-announce a session after its working-directory
+				// metadata changes (for example when a connection is restored). If it
+				// no longer belongs to this window, evict a stale cached projection and
+				// clear any local "new session" marker: the backend has now surfaced it.
+				this._pendingNewSessions.delete(key);
+				if (this._entries.has(key)) {
+					this.removeSession(entry.provider, entry.rawId);
+				}
 				return;
 			}
 			this._mutationGeneration++;

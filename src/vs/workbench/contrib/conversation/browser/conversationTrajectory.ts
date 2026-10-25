@@ -420,6 +420,7 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 		this.overviewToggle.type = 'button';
 		this.overviewToggle.setAttribute('aria-expanded', 'true');
 		this.overviewToggle.title = conversationTrajectoryOverviewCollapse;
+		this.overviewToggle.setAttribute('aria-label', conversationTrajectoryOverviewCollapse);
 		this.overviewToggle.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronDown));
 		this._register(addDisposableListener(this.overviewToggle, 'click', () => {
 			this.overviewExpanded = !this.overviewExpanded;
@@ -700,7 +701,9 @@ export class ConversationTrajectory extends Disposable implements ITrajectoryTab
 
 	private syncOverviewChrome(): void {
 		this.overviewToggle.setAttribute('aria-expanded', String(this.overviewExpanded));
-		this.overviewToggle.title = this.overviewExpanded ? conversationTrajectoryOverviewCollapse : conversationTrajectoryOverviewExpand;
+		const label = this.overviewExpanded ? conversationTrajectoryOverviewCollapse : conversationTrajectoryOverviewExpand;
+		this.overviewToggle.title = label;
+		this.overviewToggle.setAttribute('aria-label', label);
 		this.overviewToggle.classList.toggle('conversation-lens-trajectory-overview-toggle--collapsed', !this.overviewExpanded);
 		this.overviewTrack.hidden = !this.overviewExpanded;
 	}
