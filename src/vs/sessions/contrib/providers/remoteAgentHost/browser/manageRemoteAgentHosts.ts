@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
 import { autorun } from '../../../../../base/common/observable.js';
@@ -162,7 +163,7 @@ registerAction2(class extends Action2 {
 						if (result === 'back') {
 							showManagePicker();
 						}
-					});
+					}).catch(onUnexpectedError).catch(onUnexpectedError);
 				} else if (selected.kind === 'menu-action') {
 					commandService.executeCommand(selected.action.id, () => showManagePicker());
 				}
