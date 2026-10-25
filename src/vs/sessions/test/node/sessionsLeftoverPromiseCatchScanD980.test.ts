@@ -68,7 +68,7 @@ function countIncludes(source: string, needle: string): number {
 }
 
 function countDoubleChains(source: string): number {
-	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+	return (source.match(/\.catch\(onUnexpectedError\)\s*\.catch\(onUnexpectedError\)/g) ?? []).length;
 }
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -87,9 +87,7 @@ const showAIDisabledCall = 'this._showAIDisabledDialog()';
 const proceedCall = 'this._proceedWithoutGitHub()';
 const pickAndAddCall = 'this.pickAndAddFolder()';
 const leftoverApplySelectedCall = 'this.applySelectedFolder()';
-const leftoverWatchFinallyCall = 'void this._watchSignInState().finally(() => this._initialSetupFlow = false);';
 const leftoverWatchStmtCall = '\t\t\t\t\tthis._watchSignInState();\n';
-const leftoverFirstLaunchFinallyCall = 'void this._showWelcome(true).finally(() => this._initialSetupFlow = false);';
 const leftoverDoOpenHostCall = 'this.doOpen(undefined, { payload: Array.from(environment.entries()) })';
 const leftoverReloadCall = '\t\tthis.reload();\n';
 const leftoverApplyThemeCall = 'this.applyTheme(themeData, undefined, true)';
@@ -155,7 +153,7 @@ suite('leftover remaining unused sessions leftover remaining unused this.foo() l
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(SETUP_REL) ?? ''), 6);
+		assert.strictEqual(countDoubleChains(seen.get(SETUP_REL) ?? ''), 10);
 		assert.strictEqual(countDoubleChains(seen.get(PROJECT_BAR_REL) ?? ''), 2);
 	});
 
@@ -212,10 +210,16 @@ suite('leftover remaining unused sessions leftover remaining unused this.foo() l
 		assert.ok(!projectBar.includes('.then(undefined,'));
 		assert.ok(setup.includes('await this._proceedWithoutGitHub();'));
 		assert.ok(!setup.includes(`await this._proceedWithoutGitHub()${doubleCatch}`));
-		assert.ok(setup.includes(leftoverWatchFinallyCall));
+		assert.ok(setup.includes('this.defaultAccountService.getDefaultAccount().then(() => {'));
+		assert.ok(setup.includes('\t\t}).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(!setup.includes('void this._checkWebAuth().finally(() => this._initialSetupFlow = false);'));
+		assert.ok(setup.includes('void this._checkWebAuth()\n\t\t\t\t.finally(() => this._initialSetupFlow = false)\n\t\t\t\t.catch(onUnexpectedError)\n\t\t\t\t.catch(onUnexpectedError);'));
+		assert.ok(!setup.includes('void this._watchSignInState().finally(() => this._initialSetupFlow = false);'));
+		assert.ok(setup.includes('void this._watchSignInState()\n\t\t\t\t.finally(() => this._initialSetupFlow = false)\n\t\t\t\t.catch(onUnexpectedError)\n\t\t\t\t.catch(onUnexpectedError);'));
 		assert.ok(!setup.includes(`this._watchSignInState()${doubleCatch}`));
 		assert.ok(setup.includes(leftoverWatchStmtCall));
-		assert.ok(setup.includes(leftoverFirstLaunchFinallyCall));
+		assert.ok(!setup.includes('void this._showWelcome(true).finally(() => this._initialSetupFlow = false);'));
+		assert.ok(setup.includes('void this._showWelcome(true)\n\t\t\t\t.finally(() => this._initialSetupFlow = false)\n\t\t\t\t.catch(onUnexpectedError)\n\t\t\t\t.catch(onUnexpectedError);'));
 		assert.ok(!setup.includes(`this._showWelcome(true)${doubleCatch}`));
 		assert.ok(projectBar.includes(`${leftoverApplySelectedCall};`));
 		assert.ok(!projectBar.includes(`${leftoverApplySelectedCall}${doubleCatch}`));
