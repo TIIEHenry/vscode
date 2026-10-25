@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1325 已合入，D467 回收证据已闭合；定向 Electron 测试受 sandbox 限制，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。D24、D8、D16、D147、D405 仍开。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1325 已合入，D1326 待收口；D467 回收证据已闭合；定向 Electron 测试受 sandbox 限制，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。D24、D8、D16、D147、D405 仍开。"
 ---
 
 # Deferred Gaps
@@ -1273,3 +1273,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1323 | P3 | **分支选择器筛选落空没有结果提示**：分支数超过筛选阈值时搜索框可见，但零匹配时 ActionList 只留下空白结果区，用户无法判断筛选是否生效。现复用已有 `filterEmptyMessage`，写 “No matching branches.”；空目录、加载中、错误态和分支选择语义不变。Copilot BranchPicker 合同测试已补；目标 Electron 测试因本机 `sandbox_host_linux` 受限退出 **133**；`git diff --check` 退出 **0**；ESLint 因 `.eslintcache` 只读（EROFS）未取得结果。 | 只改共享 BranchPicker 的筛选零匹配提示，不改 Workspace picker 或分支来源 | 查询非空且零可见分支时显示 No matching branches.；空白查询、仍有匹配、分支数未达阈值、加载/错误/空目录时不显示 | sessions / branch-picker | open |
 | D1324 | P3 | **Changes 视图普通打开的 Diff Promise 未收口**：Changes 树单击打开单文件 / 多文件 Diff 原直接 `void` 调用 async 打开方法，打开失败时可能留下未处理 rejection；现补 `onUnexpectedError` 双 catch，并新增源码扫描测试。 | 只改普通树打开入口的错误收口，不改 D1311 已处理的右键打开失败状态、打开模式或 Diff 内容 | 单文件与多文件普通打开的 rejection 均被捕获；扫描测试在可启动 Electron 环境通过，已有失败状态语义保持不变 | sessions / changes | open |
 | D1325 | P3 | **open** Sessions list filters (status/type/read/archive/Agent Host) used to leave a blank tree when no sessions matched, so users could not distinguish an applied filter from loading or no data; reuse `SessionPlaceholderRenderer` to show “No sessions match the current filters.” Search no-match remains owned by the Find widget; empty catalogs, automation-only sessions, and non-empty results keep existing behavior. Target `sessionsList.test.ts` is blocked by local `sandbox_host_linux` exit 133; added boundary and DOM regression assertions; target ESLint (`--no-cache`) exit 0; `git diff --check` exit 0. | Only changes list-filter empty-state presentation; does not change search matching, session sources, filter rules, or empty-catalog placeholders | With sessions present and an active list filter removing every row, show No sessions match the current filters.; search input, no base sessions, automation-only sessions, or any visible row keep current behavior | sessions / session-list | open |
+| D1326 | P3 | **PermissionPicker 沙盒设置写入 Promise 未收口**：独立 Sandbox toggle 直接 `void configurationService.updateValue(settingId, target)`，配置写入拒绝可能留下未处理 rejection；现接入 `onUnexpectedError` 双 catch，并新增源码扫描测试。 | 只改设置写入的错误收口，不改变沙盒开关的可用性、受管状态或设置值语义 | 开关写入拒绝不再泄漏 rejection；扫描测试在可启动 Electron 环境通过 | sessions / permission-picker | open |

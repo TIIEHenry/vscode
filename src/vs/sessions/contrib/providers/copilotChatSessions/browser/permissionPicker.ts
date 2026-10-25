@@ -7,6 +7,7 @@ import * as dom from '../../../../../base/browser/dom.js';
 import { Gesture, EventType as TouchEventType } from '../../../../../base/browser/touch.js';
 import { renderIcon } from '../../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
+import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { autorun, derived, IObservable } from '../../../../../base/common/observable.js';
 import { ThemeIcon } from '../../../../../base/common/themables.js';
@@ -440,7 +441,7 @@ export class PermissionPicker extends Disposable {
 				const settingId = this._delegate.getSandboxToggleSettingId?.();
 				if (settingId) {
 					const target = checked ? AgentSandboxEnabledValue.On : AgentSandboxEnabledValue.Off;
-					void this.configurationService.updateValue(settingId, target);
+					void this.configurationService.updateValue(settingId, target).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 			},
 		};
