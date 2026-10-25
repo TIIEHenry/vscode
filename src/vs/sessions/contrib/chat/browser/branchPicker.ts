@@ -247,7 +247,11 @@ export class BranchPicker extends Disposable {
 				getWidgetAriaLabel: () => localize('branchPicker.ariaLabel', "Branch Picker"),
 			},
 			branchCount > FILTER_THRESHOLD
-				? { showFilter: true, filterPlaceholder: localize('branchPicker.filter', "Filter branches…") }
+				? {
+					showFilter: true,
+					filterPlaceholder: localize('branchPicker.filter', "Filter branches…"),
+					filterEmptyMessage: localize('branchPicker.filterEmpty', "No matching branches."),
+				}
 				: undefined,
 		);
 	}
