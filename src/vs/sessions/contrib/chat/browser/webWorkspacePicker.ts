@@ -160,13 +160,14 @@ export class WebWorkspacePicker extends WorkspacePicker {
 			}
 			const row = buildSessionWorkspacePickerRow(workspace, folderUri, currentUri);
 			const checked = row.checked || this._isSelectedFolder(folderUri);
+			const unavailableReason = this._getProviderUnavailableReason(providerId);
 			items.push({
 				kind: ActionListItemKind.Action,
 				label: row.label,
-				description: workspace.description,
-				tooltip: row.tooltip,
+				description: unavailableReason ?? workspace.description,
+				tooltip: unavailableReason ?? row.tooltip,
 				group: { title: '', icon: row.icon ?? workspace.icon },
-				disabled: this._isProviderUnavailable(providerId),
+				disabled: unavailableReason !== undefined,
 				item: { folderUri, providerId, checked: checked || undefined },
 				onRemove: () => this._removeRecentWorkspace(folderUri),
 			});
@@ -186,13 +187,14 @@ export class WebWorkspacePicker extends WorkspacePicker {
 			const openFolderRow = sessionOpenFolderPickerRow();
 			for (const { action, index } of browseActions) {
 				const isOpenFolder = action === this._localBrowseAction;
+				const unavailableReason = this._getProviderUnavailableReason(action.providerId);
 				items.push({
 					kind: ActionListItemKind.Action,
 					label: isOpenFolder ? openFolderRow.label : action.label,
-					description: action.description,
-					tooltip: isOpenFolder ? openFolderRow.tooltip : undefined,
+					description: unavailableReason ?? action.description,
+					tooltip: unavailableReason ?? (isOpenFolder ? openFolderRow.tooltip : undefined),
 					group: { title: '', icon: action.icon },
-					disabled: this._isProviderUnavailable(action.providerId),
+					disabled: unavailableReason !== undefined,
 					item: { browseActionIndex: index },
 				});
 			}

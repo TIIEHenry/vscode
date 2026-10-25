@@ -1273,13 +1273,14 @@ export class WorkspacePicker extends Disposable {
 				|| this._isSelectedFolder(folderUri)
 				|| (repositoryId !== undefined && repositoryId === this._getCurrentRepositoryId())
 				|| attached;
+			const unavailableReason = this._getProviderUnavailableReason(providerId);
 			items.push({
 				kind: ActionListItemKind.Action,
 				label: row.label,
-				description: workspace.description,
-				tooltip: row.tooltip,
+				description: unavailableReason ?? workspace.description,
+				tooltip: unavailableReason ?? row.tooltip,
 				group: { title: '', icon: row.icon ?? workspace.icon },
-				disabled: this._isProviderUnavailable(providerId),
+				disabled: unavailableReason !== undefined,
 				item: { folderUri, providerId, checked: checked || undefined },
 				onRemove: () => this._removeRecentWorkspace(folderUri),
 			});
@@ -1310,27 +1311,18 @@ export class WorkspacePicker extends Disposable {
 		// merging is no longer meaningful.
 		const openFolderRow = sessionOpenFolderPickerRow();
 		allBrowseActions.forEach((action, index) => {
-			const provider = allProviders.find(p => p.id === action.providerId);
-			const agentHostProvider = provider && isAgentHostProvider(provider) ? provider : undefined;
-			const connectionStatus = agentHostProvider?.connectionStatus?.get();
-			// `incompatible` always disables the action — the user can't fix
-			// a protocol mismatch by clicking. Otherwise, if the provider
-			// supports connect-on-demand (e.g. WSL boots the distro on first
-			// browse), keep the action live even while disconnected.
-			const isIncompatible = RemoteAgentHostConnectionStatus.isIncompatible(connectionStatus);
-			const isUnavailable = isIncompatible
-				|| (!!connectionStatus
-					&& !RemoteAgentHostConnectionStatus.isConnected(connectionStatus)
-					&& !agentHostProvider?.canConnectOnDemand);
+			// Keep the same availability contract as recent-workspace rows, while
+			// surfacing the reason so a disabled browse action is self-explanatory.
+			const unavailableReason = this._getProviderUnavailableReason(action.providerId);
 			const isRepositoryAction = action.group === SESSION_WORKSPACE_GROUP_GITHUB && action.attachesContext !== true;
 			const isOpenFolder = action === this._localBrowseAction;
 			items.push({
 				kind: ActionListItemKind.Action,
 				label: isOpenFolder ? openFolderRow.label : action.label,
-				description: action.description,
-				tooltip: isOpenFolder ? openFolderRow.tooltip : undefined,
+				description: unavailableReason ?? action.description,
+				tooltip: unavailableReason ?? (isOpenFolder ? openFolderRow.tooltip : undefined),
 				group: { title: '', icon: action.icon },
-				disabled: isUnavailable,
+				disabled: unavailableReason !== undefined,
 				item: { browseActionIndex: index },
 			});
 			const canAttachFolder = action === this._localBrowseAction
@@ -1345,9 +1337,9 @@ export class WorkspacePicker extends Disposable {
 					label: canAttachFolder
 						? localize('workspacePicker.attachFolder', "Attach Folder...")
 						: localize('workspacePicker.attachRepository', "Attach Repository..."),
-					description: action.description,
+					description: unavailableReason ?? action.description,
 					group: { title: '', icon: action.icon },
-					disabled: isUnavailable,
+					disabled: unavailableReason !== undefined,
 					item: { browseActionIndex: index, attachAsContext: true },
 				});
 			}
@@ -1532,14 +1524,23 @@ export class WorkspacePicker extends Disposable {
 	 * (incompatible, or disconnected/still connecting without on-demand connect).
 	 * Returns false for providers without connection status (e.g. local providers).
 	 */
-	protected _isProviderUnavailable(providerId: string): boolean {
+	protected _getProviderUnavailableReason(providerId: string): string | undefined {
 		const provider = this.sessionsProvidersService.getProvider(providerId);
 		if (!provider || !isAgentHostProvider(provider) || !provider.connectionStatus) {
-			return false;
+			return undefined;
 		}
 		const connectionStatus = provider.connectionStatus.get();
-		return RemoteAgentHostConnectionStatus.isIncompatible(connectionStatus)
-			|| (!RemoteAgentHostConnectionStatus.isConnected(connectionStatus) && !provider.canConnectOnDemand);
+		if (RemoteAgentHostConnectionStatus.isIncompatible(connectionStatus)) {
+			return localize('workspacePicker.incompatibleProvider', "Unavailable: this agent host is incompatible.");
+		}
+		if (!RemoteAgentHostConnectionStatus.isConnected(connectionStatus) && !provider.canConnectOnDemand) {
+			return localize('workspacePicker.disconnectedProvider', "Unavailable: the agent host is disconnected.");
+		}
+		return undefined;
+	}
+
+	protected _isProviderUnavailable(providerId: string): boolean {
+		return this._getProviderUnavailableReason(providerId) !== undefined;
 	}
 
 	private async _connectProviderOnDemand(providerId: string): Promise<boolean> {

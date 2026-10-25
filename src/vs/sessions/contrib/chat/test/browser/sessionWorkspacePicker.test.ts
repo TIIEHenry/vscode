@@ -1115,6 +1115,27 @@ suite('WorkspacePicker - Connection Status', () => {
 		assertSelectedProvider(picker, 'local-1', 'Local provider workspace should always be selectable');
 	});
 
+	test('disabled remote workspaces explain why they are unavailable', () => {
+		const storage = disposables.add(new TestStorageService());
+		seedStorage(storage, [{ uri: URI.file('/remote/project'), providerId: 'agenthost-remote-1', checked: true }]);
+		const remoteStatus = observableValue<RemoteAgentHostConnectionStatus>('status', RemoteAgentHostConnectionStatus.disconnected);
+		const remoteProvider = createMockProvider('agenthost-remote-1', {
+			connectionStatus: remoteStatus,
+			canConnectOnDemand: false,
+			browseActions: [makeBrowseAction('agenthost-remote-1', SESSION_WORKSPACE_GROUP_REMOTE, 'Browse remote folders')],
+		});
+		providersService.setProviders([remoteProvider]);
+		const picker = createTestablePicker(disposables, providersService, true, {}, { executeCommand: async () => { } }, storage);
+		picker.selectWorkspaceGroup(SESSION_WORKSPACE_GROUP_REMOTE);
+
+		const disabledItems = picker.getItems().filter(item => item.kind === ActionListItemKind.Action && item.disabled);
+		assert.strictEqual(disabledItems.length, 2);
+		for (const item of disabledItems) {
+			assert.strictEqual(item.description, 'Unavailable: the agent host is disconnected.');
+			assert.strictEqual(item.tooltip, 'Unavailable: the agent host is disconnected.');
+		}
+	});
+
 	test('restore picks the stored workspace when its provider registers after another provider', () => {
 		// Regression: previously the picker filtered restore through `activeProviderId`,
 		// which auto-locked to whichever provider registered first. If the stored
