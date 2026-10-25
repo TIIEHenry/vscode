@@ -174,14 +174,24 @@ export function clientToolRespondCleanupPatches(
 	snapshot: SessionViewSnapshot,
 	fact: ClientToolRespondCleanupInput,
 ): readonly ViewPatch[] {
+	if (!isExactRespondTimelineIdentity(fact.callId)) {
+		return [];
+	}
+	const existing = snapshot.timeline.find(item => String(item.id) === fact.callId);
+	const pending = snapshot.pendingActions.find(action => String(action.requestId) === fact.callId);
+	const existingIsClientTool = existing?.summary.kind === 'tool' && existing.summary.respondable === true;
+	const pendingIsClientTool = pending?.summary.kind === 'tool' && pending.summary.respondable === true;
+	// Unknown ids and same-id permission/question actions must be a no-op. The
+	// unary is session-scoped, but call ids are untrusted input and must not be
+	// allowed to remove another pending action by collision.
+	if (!existingIsClientTool && !pendingIsClientTool) {
+		return [];
+	}
 	const patches: ViewPatch[] = [];
-	if (isExactRespondTimelineIdentity(fact.callId)) {
-		const existing = snapshot.timeline.find(item => String(item.id) === fact.callId);
-		if (existing !== undefined) {
-			const item = timelineItemFromClientToolRespond(fact, existing);
-			if (item !== undefined) {
-				patches.push({ op: 'upsertTimelineItem', item });
-			}
+	if (existing !== undefined) {
+		const item = timelineItemFromClientToolRespond(fact, existing);
+		if (item !== undefined) {
+			patches.push({ op: 'upsertTimelineItem', item });
 		}
 	}
 	patches.push({

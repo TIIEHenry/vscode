@@ -318,6 +318,10 @@ export function timelineItemFromClientToolRespond(
 	}
 	if (String(existing.id) !== callIdRaw) return undefined
 	if (existing.summary.kind !== 'tool') return undefined
+	// A client-tool response may only settle a client-tool chrome row. Server
+	// tool rows share the same summary arm and must not be rewritten by an
+	// unknown or cross-family call id.
+	if (existing.summary.respondable !== true) return undefined
 
 	const status = clientToolRespondStatusFromOwnData(input)
 	if (status === undefined) return undefined
