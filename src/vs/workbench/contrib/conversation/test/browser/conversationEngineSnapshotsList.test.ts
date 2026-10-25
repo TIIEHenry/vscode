@@ -247,6 +247,30 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.strictEqual(afterClose.defaultPrevented, false);
 	});
 
+	test('closing an open snapshots list restores focus to its trigger', () => {
+		const { list, buttonParent, overlayParent } = mountList(createConversationConnectionTestStub());
+		const trigger = buttonParent.querySelector(`.${conversationLensSnapshotsButtonClass} .monaco-button`) as HTMLElement;
+		trigger.focus();
+		list.show();
+		assert.ok(overlayParent.querySelector(`.${conversationLensSnapshotsOverlayClass}`)?.contains(document.activeElement));
+
+		list.close();
+
+		assert.strictEqual(document.activeElement, trigger);
+	});
+
+	test('closing does not focus a snapshots trigger that became hidden', () => {
+		const { list, buttonParent } = mountList(createConversationConnectionTestStub());
+		const trigger = buttonParent.querySelector(`.${conversationLensSnapshotsButtonClass} .monaco-button`) as HTMLElement;
+		trigger.focus();
+		list.show();
+		trigger.hidden = true;
+
+		list.close();
+
+		assert.notStrictEqual(document.activeElement, trigger);
+	});
+
 	test('disconnected open does not send and shows unavailable', async () => {
 		const calls: UniverseAgentListSnapshotsRequest[] = [];
 		const { list, overlayParent } = mountList(createConversationConnectionTestStub({

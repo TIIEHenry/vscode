@@ -5,7 +5,7 @@
 
 import './media/conversationSubAgentOverlay.css';
 import { $, addDisposableListener, append, EventHelper, EventType, getWindow, isHTMLElement, scheduleAtNextAnimationFrame } from '../../../../base/browser/dom.js';
-import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
+import { captureConversationOverlayTrigger, handleConversationOverlayTab, restoreConversationOverlayFocus } from './conversationConfirmationSeat.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter } from '../../../../base/common/event.js';
@@ -69,6 +69,7 @@ export class ConversationSubAgentOverlay extends Disposable {
 	private state: IConversationSubAgentOverlayState | undefined;
 	private maximized = false;
 	private lensLayoutCancelled = false;
+	private overlayTrigger: HTMLElement | undefined;
 
 	constructor(
 		parent: HTMLElement,
@@ -198,6 +199,9 @@ export class ConversationSubAgentOverlay extends Disposable {
 	}
 
 	open(state: IConversationSubAgentOverlayState): void {
+		if (!this.isOpen()) {
+			this.overlayTrigger = captureConversationOverlayTrigger(this.element);
+		}
 		this.state = state;
 
 		this.lensDisposables.clear();
@@ -290,6 +294,9 @@ export class ConversationSubAgentOverlay extends Disposable {
 		if (this.element.hidden) {
 			return;
 		}
+		const trigger = this.overlayTrigger;
+		this.overlayTrigger = undefined;
+		restoreConversationOverlayFocus(this.element, trigger);
 		this.element.hidden = true;
 		this.element.setAttribute('aria-modal', 'false');
 		this.element.removeAttribute('aria-labelledby');

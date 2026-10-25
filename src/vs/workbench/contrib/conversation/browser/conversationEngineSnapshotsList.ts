@@ -10,7 +10,7 @@ import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
-import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
+import { captureConversationOverlayTrigger, handleConversationOverlayTab, restoreConversationOverlayFocus } from './conversationConfirmationSeat.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { conversationEntryHookPresent, isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -155,6 +155,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	private paintedSnapshotSessionId: string | undefined;
 	private onWillShow: (() => void) | undefined;
 	private readonly getSessionId?: () => string | undefined;
+	private overlayTrigger: HTMLElement | undefined;
 
 	constructor(
 		buttonParent: HTMLElement,
@@ -275,6 +276,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	show(): void {
 		this.onWillShow?.();
+		this.overlayTrigger = captureConversationOverlayTrigger(this.overlayElement);
 		this.paintedLiveSnapshots = false;
 		this.open = true;
 		this.overlayElement.hidden = false;
@@ -284,10 +286,13 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	close(): void {
+		const trigger = this.overlayTrigger;
+		this.overlayTrigger = undefined;
 		this.open = false;
 		this.renderGeneration++;
 		this.overlayElement.hidden = true;
 		this.button.element.setAttribute('aria-expanded', 'false');
+		restoreConversationOverlayFocus(this.overlayElement, trigger);
 	}
 
 	override dispose(): void {

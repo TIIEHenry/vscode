@@ -22,7 +22,7 @@ import {
 	conversationLensSessionBarHistoryUnavailableDisconnected,
 } from './conversationLensSessionBarStrings.js';
 import { IConversationRosterService } from './conversationStubService.js';
-import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
+import { captureConversationOverlayTrigger, handleConversationOverlayTab, restoreConversationOverlayFocus } from './conversationConfirmationSeat.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 
 export const conversationLensHistoryButtonClass = 'conversation-lens-session-history';
@@ -99,6 +99,7 @@ export class ConversationEngineHistoryList extends Disposable {
 	private paintedHistorySessionId: string | undefined;
 	private onWillShow: (() => void) | undefined;
 	private readonly getSessionId?: () => string | undefined;
+	private overlayTrigger: HTMLElement | undefined;
 
 	constructor(
 		buttonParent: HTMLElement,
@@ -210,6 +211,7 @@ export class ConversationEngineHistoryList extends Disposable {
 
 	show(): void {
 		this.onWillShow?.();
+		this.overlayTrigger = captureConversationOverlayTrigger(this.overlayElement);
 		this.paintedLiveHistory = false;
 		this.open = true;
 		this.overlayElement.hidden = false;
@@ -219,10 +221,13 @@ export class ConversationEngineHistoryList extends Disposable {
 	}
 
 	close(): void {
+		const trigger = this.overlayTrigger;
+		this.overlayTrigger = undefined;
 		this.open = false;
 		this.renderGeneration++;
 		this.overlayElement.hidden = true;
 		this.button.element.setAttribute('aria-expanded', 'false');
+		restoreConversationOverlayFocus(this.overlayElement, trigger);
 	}
 
 	override dispose(): void {
