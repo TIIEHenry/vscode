@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-25
-summary: "2026-10-25：D1305（81948ae6388）已快进合入。未跑 npm run compile，未 push。槽 B 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。"
+summary: "2026-10-25：D1306（e22a804405f）已快进合入。未跑 npm run compile，未 push。槽 C 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,16 +23,16 @@ summary: "2026-10-25：D1305（81948ae6388）已快进合入。未跑 npm run co
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 集成尖端（`agent-ide`） | D1305 在 `81948ae6388`。本账本提交只记合入；写完后 merge 与字母槽、人类工位 `merge --ff-only` 到本提交。 |
-| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。本提交 ahead 1822、behind 0。未跑 `npm run compile`，未 push。`81948ae6388` 上 compile-client 退出码 1（147 条 `error TS`，56 个文件）未复跑。 |
+| 集成尖端（`agent-ide`） | D1306 在 `e22a804405f`。本账本提交只记合入；写完后 merge 与字母槽、人类工位 `merge --ff-only` 到本提交。 |
+| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。本提交 ahead 1824、behind 0。未跑 `npm run compile`，未 push。`e22a804405f` 上 compile-client 仍是既有退出码 1（147 条 `error TS`，56 个文件）未复跑。 |
 
-## 槽位表（2026-10-25 合入 D1305 后）
+## 槽位表（2026-10-25 合入 D1306 后）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `81948ae6388`，随后快进到本账 | 干净，不是 `parked`。快进合入，没有二父 merge commit，没有 `npm run compile` |
-| B | `vscode-WorkTrees/B` | `loop/B` | 同上 | `occupied`。对照代码重选下一刀并自行实施。不重做 D1305，不把 compile-client 的 147 / 505 条 error TS 当成这一刀 |
-| A、C、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 同上 | `idle`。工作区干净 |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `e22a804405f`，随后快进到本账 | 干净，不是 `parked`。快进合入，没有二父 merge commit，没有 `npm run compile` |
+| C | `vscode-WorkTrees/C` | `loop/C` | 同上 | `occupied`。对照代码重选下一刀并自行实施。不重做 D1305 / D1306，不把 compile-client 的 147 / 505 条 error TS 当成这一刀 |
+| A、B、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 同上 | `idle`。工作区干净 |
 | H | `vscode-WorkTrees/H` | `loop/H` | 同上 | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
 | 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 本账本提交 | 只记合入。禁止 reset / stash / restore / clean / `checkout -B` |
 
