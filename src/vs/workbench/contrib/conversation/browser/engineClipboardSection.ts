@@ -180,7 +180,8 @@ export class EngineClipboardSection extends Disposable {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listClipboard;
 		const pairingHold = isConversationPairingHold(this.connection);
-		const advertised = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listClipboard === 'SUPPORTED';
+		const listSupport = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listClipboard;
+		const advertised = listSupport === 'SUPPORTED';
 		const canSend = canSendEngineClipboardListRequest(
 			this.connection.isEngineConnected(),
 			advertised && typeof hook === 'function',
@@ -200,6 +201,18 @@ export class EngineClipboardSection extends Disposable {
 		// D347 leftover-looks-live: pairing-hold first. KEEP is not only leftover + pairingHold.
 		if (pairingHold || !this.connection.isEngineConnected()) {
 			return this.applyDisconnectedRefresh(this.entries.length > 0);
+		}
+
+		if (listSupport === 'UNKNOWN') {
+			if (this.entries.length === 0) {
+				this.clearListPresentation();
+			}
+			this.status.render({
+				mode: 'loading',
+				loadingKind: 'capability',
+				featureLabel: ENGINE_CLIPBOARD_LIST_FEATURE,
+			});
+			return false;
 		}
 
 		if (!canSend || !hook) {

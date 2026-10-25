@@ -3,7 +3,7 @@ title: "Triggers 与 Clipboard：空载荷不发，未知能力不拉列表"
 type: plan
 status: implemented
 phase: M7
-updated: 2026-10-16
+updated: 2026-10-25
 summary: "Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 status 为空时画错误。三节列表在能力未知时不调用。已于 05a17c38879 与 1a4c4295b45 落地。不升 PRD。"
 ---
 
@@ -54,7 +54,7 @@ summary: "Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 sta
 
 不改 `conversationEntryHookPresent`。写动作继续用现有 `triggerAdvertised` / `clipboardAdvertised` / `contextReadAdvertised`（`engineContextVariableSection.ts:325-326`），本切片不改它们的 UNKNOWN 退路。
 
-接通且键为 `UNKNOWN` 或缺字段时，不发 List，也不把列表换成刚拉到的空数组。Triggers 的状态字段是 `triggers`，Clipboard 是 `entries`，Context Variables 是 `rows`。pairing-hold 与断连共用现有提前返回（Triggers `:238-240`，Clipboard `:196-198`，Context Variables `:157-159`），在这次判断之后才落到 `unsupported`。mode 用这三节已有的 `'unsupported'` 与 `getEngineSectionApiUnavailableCopy`（Triggers `:246-250`，Clipboard `:204-208`，Context Variables `:166-170`）。不新造 mode。这只覆盖三节列表，不把其余入口的 `UNKNOWN` 画成「引擎没有这个 RPC」。
+接通且键为 `UNKNOWN` 或缺字段时，不发 List，也不把列表换成刚拉到的空数组。Triggers 的状态字段是 `triggers`，Clipboard 是 `entries`，Context Variables 是 `rows`。pairing-hold 与断连共用现有提前返回，先于这次判断。`UNSUPPORTED`，或 `SUPPORTED` 但 hook 不是函数，仍用 `'unsupported'` 与 `getEngineSectionApiUnavailableCopy`。2026-10-25 起，`UNKNOWN` 改画 `loading` / `loadingKind: 'capability'`（Confirming engine capability…）：无行则清展示，已有行留下。不新造 mode。这只覆盖三节列表，不把其余入口的 `UNKNOWN` 画成「引擎没有这个 RPC」。
 
 ## 3. 文档
 
@@ -86,7 +86,7 @@ frontmatter `summary` 第 7 行里，Triggers、Clipboard、Context Variables �
 
 `createConversationConnectionTestStub` 的 `getConnectionSnapshot()`（`conversationConnectionTestStub.ts:62-68`）没有 `conversationEntryCapability`。缺字段就是 `UNKNOWN`。今天「接通就 List」的用例靠这条退路才会发出。实施时，凡是要断言 List、以及先拉出一行再点 Edit、Read、Fire、Delete、Enable、Clear 的用例，都把对应键设成 `SUPPORTED`。`browser/` 下接通后才进入 list hook 的 late-list 用例同样要设。不要给目录替身留着缺字段还期待 List。
 
-- Triggers：Add 点击不调用 `upsertTrigger`，按钮仍可被 `findActionButton` 找到。无选中项的 Edit 不调用。有选中项的 Edit 仍送该 trigger，且 Add 的提前返回没有把它的 `enabled` 一起关掉。`FireTrigger resolve stays neutral` 的第一次全空返回改为带 `is-error`，可见文案仍是现有 trim 结果。第二次 `FIRED` / `queued` 仍无 error class。另加 `status: ''` 且 reason 非空时带 error class。快照 `listTriggers: 'UNKNOWN'` 且方法为函数时不调用 List，mode 为 `unsupported`。
-- Clipboard：Write 点击不调用 `writeClipboard`，按钮仍可被找到。`listClipboard: 'UNKNOWN'` 时不调用 List。把键设成 `SUPPORTED` 之后，Read / Clear 的现有发送测试保持。
-- Context Variables：`listContextVariable: 'UNKNOWN'` 时不调用 List，也不把 `rows` 换成空数组。`SUPPORTED` 时仍调用。
+- Triggers：Add 点击不调用 `upsertTrigger`，按钮仍可被 `findActionButton` 找到。无选中项的 Edit 不调用。有选中项的 Edit 仍送该 trigger，且 Add 的提前返回没有把它的 `enabled` 一起关掉。`FireTrigger resolve stays neutral` 的第一次全空返回改为带 `is-error`，可见文案仍是现有 trim 结果。第二次 `FIRED` / `queued` 仍无 error class。另加 `status: ''` 且 reason 非空时带 error class。快照 `listTriggers: 'UNKNOWN'` 且方法为函数时不调用 List，mode 为 `loading`，文案是能力确认，不是 `does not expose`。
+- Clipboard：Write 点击不调用 `writeClipboard`，按钮仍可被找到。`listClipboard: 'UNKNOWN'` 时不调用 List，mode 为 `loading`。把键设成 `SUPPORTED` 之后，Read / Clear 的现有发送测试保持。
+- Context Variables：`listContextVariable: 'UNKNOWN'` 时不调用 List，也不把 `rows` 换成空数组，mode 为 `loading`。`SUPPORTED` 时仍调用。
 - `universeAgentRendererSync.test.ts` 里 `conversationEntryHookPresent` 对 UNKNOWN 仍看方法是否安装的断言保持不变。

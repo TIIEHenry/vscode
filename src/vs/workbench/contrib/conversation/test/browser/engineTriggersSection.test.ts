@@ -13,12 +13,12 @@ import type { UniverseAgentConnectionSnapshot, UniverseAgentDeleteTriggerRequest
 import { IDialogService, type IInput, type IInputResult } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
+import { getCatalogFailedCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
 import { ENGINE_TRIGGER_ADD_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, ENGINE_TRIGGER_DISABLE_LABEL, ENGINE_TRIGGER_EDIT_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_FIRE_LABEL, ENGINE_TRIGGER_LIST_EMPTY_COPY, ENGINE_TRIGGER_LIST_FEATURE, formatEngineTriggerListLabel } from '../../browser/engineTriggerList.js';
 import { EngineTriggersSection } from '../../browser/engineTriggersSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import { readConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { createUnknownConversationEntryCapability, readConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { createConversationConnectionTestStub as baseCreateConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 function createConversationConnectionTestStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
@@ -126,7 +126,62 @@ suite('EngineTriggersSection', () => {
 		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 0);
 		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);
-		assert.strictEqual(status.dataset['catalogMode'], 'unsupported');
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		const text = pane.getDomNode().textContent ?? '';
+		assert.ok(text.includes(getCatalogUnknownCopy()));
+		assert.ok(!text.includes('does not expose'));
+		assert.ok(!text.includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('ListTriggers success then capability becomes UNKNOWN keeps leftover rows and does not call list', async () => {
+		let listCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const leftover = emptyTrigger({
+			triggerId: 'leftover-trig',
+			name: 'leftover-nightly',
+		});
+		let capability: 'SUPPORTED' | 'UNKNOWN' = 'SUPPORTED';
+		const connection = baseCreateConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+				conversationEntryCapability: {
+					...createUnknownConversationEntryCapability(),
+					listTriggers: capability,
+				},
+			}),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listTriggers: async () => {
+				listCalls++;
+				return { triggers: [leftover] };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(listCalls, 1);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+
+		capability = 'UNKNOWN';
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+		assert.strictEqual(listCalls, 1);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-triggers-row').length, 1);
+		const listHost = pane.getDomNode().querySelector('.engine-triggers-list') as HTMLElement;
+		assert.ok(listHost);
+		assert.notStrictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		const text = pane.getDomNode().textContent ?? '';
+		assert.ok(text.includes(getCatalogUnknownCopy()));
+		assert.ok(!text.includes('does not expose'));
+		assert.ok(!text.includes(ENGINE_TRIGGER_LIST_EMPTY_COPY));
 		pane.getDomNode().parentElement?.remove();
 	});
 

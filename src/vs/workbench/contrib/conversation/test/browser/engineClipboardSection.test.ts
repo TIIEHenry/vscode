@@ -22,7 +22,7 @@ import { IDialogService, type IInput, type IInputResult } from '../../../../../p
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
+import { getCatalogFailedCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
 import { ENGINE_CLIPBOARD_CLEAR_LABEL, ENGINE_CLIPBOARD_LIST_EMPTY_COPY, ENGINE_CLIPBOARD_LIST_FEATURE, ENGINE_CLIPBOARD_READ_LABEL, ENGINE_CLIPBOARD_WRITE_LABEL, engineClipboardWriteRequest, formatEngineClipboardClearLabel, formatEngineClipboardListLabel, formatEngineClipboardWriteLabel } from '../../browser/engineClipboardList.js';
 import { EngineClipboardSection } from '../../browser/engineClipboardSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
@@ -183,9 +183,68 @@ suite('EngineClipboardSection', () => {
 		}));
 		await flushMicrotasks();
 		assert.strictEqual(listClipboardCalls, 0);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-clipboard-row').length, 0);
 		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);
-		assert.strictEqual(status.dataset['catalogMode'], 'unsupported');
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		const text = pane.getDomNode().textContent ?? '';
+		assert.ok(text.includes(getCatalogUnknownCopy()));
+		assert.ok(!text.includes('does not expose'));
+		assert.ok(!text.includes(ENGINE_CLIPBOARD_LIST_EMPTY_COPY));
+		pane.getDomNode().parentElement?.remove();
+	});
+
+	test('ListClipboard success then capability becomes UNKNOWN keeps leftover rows and does not call list', async () => {
+		let listCalls = 0;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const leftover = {
+			clipId: 'leftover-clip',
+			label: 'leftover',
+			type: 'CLIPBOARD_TEXT' as const,
+			createdBy: 'agent',
+			createdAt: 1,
+		};
+		let capability: 'SUPPORTED' | 'UNKNOWN' = 'SUPPORTED';
+		const connection = baseCreateConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+				conversationEntryCapability: {
+					...createUnknownConversationEntryCapability(),
+					listClipboard: capability,
+				},
+			}),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listClipboard: async () => {
+				listCalls++;
+				return { entries: [leftover] };
+			},
+		});
+		const pane = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(listCalls, 1);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-clipboard-row').length, 1);
+
+		capability = 'UNKNOWN';
+		onDidChangeConnection.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+		assert.strictEqual(listCalls, 1);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-clipboard-row').length, 1);
+		const listHost = pane.getDomNode().querySelector('.engine-clipboard-list') as HTMLElement;
+		assert.ok(listHost);
+		assert.notStrictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		const text = pane.getDomNode().textContent ?? '';
+		assert.ok(text.includes(getCatalogUnknownCopy()));
+		assert.ok(!text.includes('does not expose'));
+		assert.ok(!text.includes(ENGINE_CLIPBOARD_LIST_EMPTY_COPY));
 		pane.getDomNode().parentElement?.remove();
 	});
 

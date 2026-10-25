@@ -17,7 +17,7 @@ import type {
 	UniverseAgentContextVariableReadRequest,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { getCatalogFailedCopy } from '../../browser/engineCatalog.js';
+import { getCatalogFailedCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
 import {
 	ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY,
 	ENGINE_CONTEXT_VARIABLE_LIST_FEATURE,
@@ -113,9 +113,14 @@ suite('EngineContextVariableSection', () => {
 		}));
 		await flushMicrotasks();
 		assert.strictEqual(listContextVariableCalls, 0);
+		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 0);
 		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
 		assert.ok(status);
-		assert.strictEqual(status.dataset['catalogMode'], 'unsupported');
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		const text = pane.getDomNode().textContent ?? '';
+		assert.ok(text.includes(getCatalogUnknownCopy()));
+		assert.ok(!text.includes('does not expose'));
+		assert.ok(!text.includes(ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY));
 		pane.getDomNode().parentElement?.remove();
 	});
 
@@ -160,6 +165,16 @@ suite('EngineContextVariableSection', () => {
 		await flushMicrotasks();
 		assert.strictEqual(listCalls, 1);
 		assert.strictEqual(pane.getDomNode().querySelectorAll('.engine-context-variable-row').length, 1);
+		const listHost = pane.getDomNode().querySelector('.engine-context-variable-list') as HTMLElement;
+		assert.ok(listHost);
+		assert.notStrictEqual(listHost.style.display, 'none');
+		const status = pane.getDomNode().querySelector('.engine-catalog-status-widget') as HTMLElement;
+		assert.ok(status);
+		assert.strictEqual(status.dataset['catalogMode'], 'loading');
+		const text = pane.getDomNode().textContent ?? '';
+		assert.ok(text.includes(getCatalogUnknownCopy()));
+		assert.ok(!text.includes('does not expose'));
+		assert.ok(!text.includes(ENGINE_CONTEXT_VARIABLE_LIST_EMPTY_COPY));
 		pane.getDomNode().parentElement?.remove();
 	});
 

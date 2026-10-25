@@ -233,7 +233,8 @@ export class EngineTriggersSection extends Disposable {
 		++this._setEnabledGeneration;
 		const hook = this.connection.listTriggers;
 		const pairingHold = isConversationPairingHold(this.connection);
-		const advertised = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listTriggers === 'SUPPORTED';
+		const listSupport = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listTriggers;
+		const advertised = listSupport === 'SUPPORTED';
 		const canSend = canSendEngineTriggerListRequest(
 			this.connection.isEngineConnected(),
 			advertised && typeof hook === 'function',
@@ -246,6 +247,18 @@ export class EngineTriggersSection extends Disposable {
 		// D350 leftover-looks-live: pairing-hold first. KEEP is not only leftover + pairingHold.
 		if (pairingHold || !this.connection.isEngineConnected()) {
 			return this.applyDisconnectedRefresh(this.triggers.length > 0);
+		}
+
+		if (listSupport === 'UNKNOWN') {
+			if (this.triggers.length === 0) {
+				this.clearListPresentation();
+			}
+			this.status.render({
+				mode: 'loading',
+				loadingKind: 'capability',
+				featureLabel: ENGINE_TRIGGER_LIST_FEATURE,
+			});
+			return false;
 		}
 
 		if (!canSend || !hook) {

@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-23
+updated: 2026-10-25
 summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内置预设与 models.dev 云端目录；Models 可增删改与测试，对话框在 level 后有 Description、Cost、Speed；Token Usage 无参读全局用量；Memory 只做 global 的列出、搜索、保存和删除；Rules 桌面可增删改，网页不实现；Hooks 仍只读；产品验证未做"
 ---
 
@@ -37,7 +37,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 
 禁止用 Copilot 盘或 `{AgentHome}` 扫盘顶替任何一节。
 
-代码里左栏实为 15 节（`ENGINE_PREFERENCES_NAV_ENTRIES`）：overview、providers、models、tokenUsage、skills、agents、rules、memory、hooks、triggers、clipboard、contextVariables、mcpServers、plugins、tools。Token Usage（“Token Usage”）在 Models 之后，Memory（“Memory”）在 Rules 之后。Triggers、Clipboard、Context Variables 在能力 `UNKNOWN` 且 hook 存在时仍直接发 list，没有 Skills 那种 `capability` loading，与 §2 六态不一致，属已知缺口。Token Usage 与 Memory 没有能力键，方法缺失即为 unsupported。FireTrigger 返回 `status`/`reason` 表示被拒时仍画 neutral，也未接错误态。
+代码里左栏实为 15 节（`ENGINE_PREFERENCES_NAV_ENTRIES`）：overview、providers、models、tokenUsage、skills、agents、rules、memory、hooks、triggers、clipboard、contextVariables、mcpServers、plugins、tools。Token Usage（“Token Usage”）在 Models 之后，Memory（“Memory”）在 Rules 之后。Triggers、Clipboard、Context Variables 在已连接且非 pairing-hold、列表能力为 `UNKNOWN`（缺字段归一成 `UNKNOWN`）时不发 list，画 `loading` / `loadingKind: 'capability'`（Confirming engine capability…）。无上次成功行则清展示，不画空成功；已有行留下且不再发 list。`UNSUPPORTED`，或 `SUPPORTED` 但 hook 不是函数，仍画 unsupported，不发。pairing-hold 与断连仍先走原路径。Token Usage 与 Memory 没有能力键，方法缺失即为 unsupported。FireTrigger 返回 `status`/`reason` 表示被拒时仍画 neutral，也未接错误态。
 
 | Engine 页节 | 能力键 | 数据 |
 |-------------|--------|------|

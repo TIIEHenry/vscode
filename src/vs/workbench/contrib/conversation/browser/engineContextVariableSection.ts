@@ -146,7 +146,8 @@ export class EngineContextVariableSection extends Disposable {
 		const generation = ++this.renderGeneration;
 		const hook = this.connection.listContextVariable;
 		const pairingHold = isConversationPairingHold(this.connection);
-		const advertised = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listContextVariable === 'SUPPORTED';
+		const listSupport = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listContextVariable;
+		const advertised = listSupport === 'SUPPORTED';
 		const canSend = canSendEngineContextVariableListRequest(
 			this.connection.isEngineConnected(),
 			advertised && typeof hook === 'function',
@@ -160,6 +161,18 @@ export class EngineContextVariableSection extends Disposable {
 		// D351 leftover-looks-live: pairing-hold first. KEEP is not only leftover + pairingHold.
 		if (pairingHold || !this.connection.isEngineConnected()) {
 			this.applyDisconnectedRefresh(this.rows.length > 0);
+			return;
+		}
+
+		if (listSupport === 'UNKNOWN') {
+			if (this.rows.length === 0) {
+				this.clearListPresentation();
+			}
+			this.status.render({
+				mode: 'loading',
+				loadingKind: 'capability',
+				featureLabel: ENGINE_CONTEXT_VARIABLE_LIST_FEATURE,
+			});
 			return;
 		}
 
