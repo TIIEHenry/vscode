@@ -86,6 +86,23 @@ suite('clientToolRespondCleanupPatches', () => {
 		assert.deepStrictEqual(clientToolRespondCleanupPatches(snapshot, { callId: 'same-id', isError: true, content: 'wrong family' }), []);
 	});
 
+	test('does not remove a colliding non-client pending action beside a client row', () => {
+		const snapshot: SessionViewSnapshot = {
+			...emptySessionViewSnapshot('session' as SessionViewSnapshot['sessionId']),
+			timeline: [{
+				id: 'same-id' as SessionViewSnapshot['timeline'][number]['id'],
+				orderKey: 'same-id',
+				summary: { kind: 'tool', title: 'Client tool', toolName: 'client_tool', status: 'pending', respondable: true },
+			}],
+			pendingActions: [{
+				requestId: 'same-id' as SessionViewSnapshot['pendingActions'][number]['requestId'],
+				summary: { kind: 'question', title: 'Question', items: [], answerKeysValid: true },
+			}],
+		};
+
+		assert.deepStrictEqual(clientToolRespondCleanupPatches(snapshot, { callId: 'same-id', isError: false, content: 'collision' }), []);
+	});
+
 	test('settles a pending client tool when its timeline row is not yet present', () => {
 		const snapshot: SessionViewSnapshot = {
 			...emptySessionViewSnapshot('session' as SessionViewSnapshot['sessionId']),

@@ -187,6 +187,9 @@ export function clientToolRespondCleanupPatches(
 	if (!existingIsClientTool && !pendingIsClientTool) {
 		return [];
 	}
+	if ((existing !== undefined && !existingIsClientTool) || (pending !== undefined && !pendingIsClientTool)) {
+		return [];
+	}
 	const patches: ViewPatch[] = [];
 	if (existing !== undefined) {
 		const item = timelineItemFromClientToolRespond(fact, existing);
