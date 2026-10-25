@@ -1132,7 +1132,8 @@ function appendProcessFoldToolRespond(
 		failure.textContent = localize('conversationProcessFold.toolRespondFailed', "Couldn't send this response: {0}", respondFailure.error);
 		failure.setAttribute('role', 'alert');
 	}
-	if (!options.onRespondClientTool || respondFailure?.retryable === false) {
+	const toolStillOpen = turn.toolStatus === undefined || turn.toolStatus === 'pending' || turn.toolStatus === 'running';
+	if (!toolStillOpen || !options.onRespondClientTool || respondFailure?.retryable === false) {
 		return;
 	}
 	const respond = append(parent, $('button.conversation-process-fold-tool-respond')) as HTMLButtonElement;
@@ -1151,6 +1152,7 @@ function appendProcessFoldToolRespond(
 	if (responseInFlight) {
 		respond.setAttribute('aria-busy', 'true');
 		parent.setAttribute('aria-busy', 'true');
+		parent.closest('.conversation-process-fold-tool')?.setAttribute('aria-busy', 'true');
 	}
 	disposables.add(addDisposableListener(respond, 'click', (e) => {
 		e.stopPropagation();

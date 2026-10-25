@@ -677,7 +677,32 @@ suite('ConversationProcessFold', () => {
 		assert.ok(heldButton);
 		assert.strictEqual(heldButton.disabled, true);
 		assert.strictEqual(heldButton.getAttribute('aria-busy'), 'true');
+		assert.strictEqual(heldHost.querySelector('.conversation-process-fold-tool')?.getAttribute('aria-busy'), 'true');
 		heldDisposables.dispose();
+	});
+
+	test('terminal client-tool rows do not keep a Respond CTA', () => {
+		const turn: ConversationStubTurn = {
+			id: 'call-done', kind: 'tool', text: 'client', toolName: 'clientTool', toolStatus: 'completed', respondable: true,
+		};
+		const span = projectProcessFoldSpans([turn])[0];
+		assert.ok(span);
+		const disposables = new DisposableStore();
+		const host = document.createElement('div');
+		renderProcessFoldSpan(host, span, {
+			defaultOuterExpanded: true,
+			isOuterExpanded: () => true,
+			setOuterExpanded: () => { },
+			isThinkingExpanded: () => false,
+			setThinkingExpanded: () => { },
+			isToolExpanded: () => false,
+			setToolExpanded: () => { },
+			onLayoutChange: () => { },
+			showLiveChrome: true,
+			onRespondClientTool: () => { },
+		}, disposables);
+		assert.strictEqual(host.querySelector('.conversation-process-fold-tool-respond'), null);
+		disposables.dispose();
 	});
 
 	test('reconcile resyncs thinking row when outer fold reopens after collapse state changed', () => {
