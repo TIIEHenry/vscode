@@ -3,11 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { deepStrictEqual } from 'assert';
+import { deepStrictEqual, strictEqual } from 'assert';
+import { ICodeEditorService } from '../../../../../editor/browser/services/codeEditorService.js';
+import type { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IWorkspaceFolder } from '../../../../../platform/workspace/common/workspace.js';
-import { WorkspaceFolderCwdPair, shrinkWorkspaceFolderCwdPairs } from '../../browser/terminalActions.js';
+import { runSelectedTextInActiveTerminal, WorkspaceFolderCwdPair, shrinkWorkspaceFolderCwdPairs } from '../../browser/terminalActions.js';
 
 function makeFakeFolder(name: string, uri: URI): IWorkspaceFolder {
 	return {
@@ -82,5 +85,40 @@ suite('terminalActions', () => {
 				deepStrictEqual(shrinkWorkspaceFolderCwdPairs([pairA, pairB, pairC, pairD]), [pairA, pairC]);
 			});
 		});
+	});
+
+	test('runSelectedText reports an error when the terminal rejects input', async () => {
+		let sendTextCalls = 0;
+		const errors: unknown[] = [];
+		const editor = {
+			hasModel: () => true,
+			getSelection: () => ({ isEmpty: () => true, selectionStartLineNumber: 1 }),
+			getModel: () => ({ getLineContent: () => 'echo hello' }),
+		};
+		const accessor = {
+			get(id: unknown) {
+				if (id === ICodeEditorService) {
+					return { getActiveCodeEditor: () => editor };
+				}
+				if (id === INotificationService) {
+					return { error: (error: unknown) => errors.push(error) };
+				}
+				return {};
+			}
+		} as ServicesAccessor;
+
+		await runSelectedTextInActiveTerminal({
+			service: {
+				getActiveOrCreateInstance: async () => ({
+					sendText: async () => {
+						sendTextCalls++;
+						return false;
+					}
+				}),
+			},
+		} as never, accessor);
+
+		strictEqual(sendTextCalls, 1);
+		strictEqual(errors.length, 1);
 	});
 });

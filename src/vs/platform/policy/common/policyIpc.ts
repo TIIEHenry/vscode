@@ -56,7 +56,7 @@ export class PolicyChannelClient extends AbstractPolicyService implements IPolic
 				this.policies.set(name, value);
 			}
 		}
-		this.channel.listen<object>('onDidChange')(policies => {
+		this._register(this.channel.listen<object>('onDidChange')(policies => {
 			for (const name in policies) {
 				const value = policies[name as keyof typeof policies];
 
@@ -68,13 +68,25 @@ export class PolicyChannelClient extends AbstractPolicyService implements IPolic
 			}
 
 			this._onDidChange.fire(Object.keys(policies));
-		});
+		}));
 	}
 
 	protected async _updatePolicyDefinitions(policyDefinitions: IStringDictionary<PolicyDefinition>): Promise<void> {
 		const result = await this.channel.call<{ [name: PolicyName]: PolicyValue }>('updatePolicyDefinitions', policyDefinitions);
-		for (const name in result) {
-			this.policies.set(name, result[name]);
+		// The server returns the complete set of policies that currently have a
+		// value. Treat it as a replacement, not a patch: a key that disappeared
+		// must be removed and reported, otherwise a startup snapshot keeps
+		// shadowing the server's unset state.
+		const before = new Map(this.policies);
+		this.policies = new Map(Object.entries(result));
+		const changed: PolicyName[] = [];
+		for (const name of new Set([...before.keys(), ...this.policies.keys()])) {
+			if (before.get(name) !== this.policies.get(name)) {
+				changed.push(name);
+			}
+		}
+		if (changed.length > 0) {
+			this._onDidChange.fire(changed);
 		}
 	}
 }

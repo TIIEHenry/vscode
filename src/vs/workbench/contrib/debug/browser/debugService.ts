@@ -563,6 +563,13 @@ export class DebugService implements IDebugService {
 				}
 				resolvedConfig = cfg;
 
+				// The user may have stopped the launch while the configuration provider was
+				// resolving. A provider returning the configuration unchanged is not a new
+				// authorization to create a session.
+				if (initCancellationToken.token.isCancellationRequested) {
+					return false;
+				}
+
 				const dbg = this.adapterManager.getDebugger(resolvedConfig.type);
 				if (!dbg || (configByProviders.request !== 'attach' && configByProviders.request !== 'launch')) {
 					let message: string;
@@ -869,13 +876,19 @@ export class DebugService implements IDebugService {
 			const initCancellationToken = new CancellationTokenSource();
 			this.sessionCancellationTokens.set(session.getId(), initCancellationToken);
 			const resolvedByProviders = await this.configurationManager.resolveConfigurationByProviders(launch.workspace ? launch.workspace.uri : undefined, unresolved.type, unresolved, initCancellationToken.token);
-			if (resolvedByProviders) {
-				resolved = await this.substituteVariables(launch, resolvedByProviders);
-				if (resolved && !initCancellationToken.token.isCancellationRequested) {
-					resolved = await this.configurationManager.resolveDebugConfigurationWithSubstitutedVariables(launch && launch.workspace ? launch.workspace.uri : undefined, resolved.type, resolved, initCancellationToken.token);
-				}
-			} else {
-				resolved = resolvedByProviders;
+			if (!resolvedByProviders) {
+				return;
+			}
+			resolved = await this.substituteVariables(launch, resolvedByProviders);
+			if (!resolved || initCancellationToken.token.isCancellationRequested) {
+				return;
+			}
+			resolved = await this.configurationManager.resolveDebugConfigurationWithSubstitutedVariables(launch && launch.workspace ? launch.workspace.uri : undefined, resolved.type, resolved, initCancellationToken.token);
+			// The configuration was recomputed because launch.json changed. If the provider or
+			// the user cancelled while that happened, this half-resolved result is not a new
+			// configuration and must not be written back or used to restart the session.
+			if (!resolved || initCancellationToken.token.isCancellationRequested) {
+				return;
 			}
 		}
 		if (resolved) {
@@ -1386,15 +1399,36 @@ export class DebugService implements IDebugService {
 			}
 			return { threadToContinue: pendingThread, breakpointToRemove };
 		};
-		const removeTempBreakPoint = (state: State): boolean => {
-			if (state === State.Stopped || state === State.Inactive) {
-				if (breakpointToRemove) {
-					this.removeBreakpoints(breakpointToRemove.getId());
-					breakpointToRemove = undefined;
-				}
-				return true;
+		const removeTempBreakPoint = (): void => {
+			if (breakpointToRemove) {
+				this.removeBreakpoints(breakpointToRemove.getId());
+				breakpointToRemove = undefined;
 			}
-			return false;
+		};
+
+		const isAtTargetLine = (thread: IThread): boolean => {
+			const top = thread.getTopStackFrame();
+			return !!top && top.range.startLineNumber === lineNumber && this.uriIdentityService.extUri.isEqual(top.source.uri, uri);
+		};
+
+		// A session that is already running has no thread to continue, so the temporary
+		// breakpoint has to be cleaned up when the session later stops at the target line
+		// or ends. The listener owns that lifetime and disposes itself on either event.
+		const removeWhenTargetOrInactive = (session: IDebugSession): void => {
+			const listener = session.onDidChangeState(() => {
+				if (session.state === State.Inactive) {
+					removeTempBreakPoint();
+					listener.dispose();
+					return;
+				}
+				if (session.state === State.Stopped) {
+					const stoppedThread = session.getAllThreads().find(candidate => candidate.stopped);
+					if (stoppedThread && isAtTargetLine(stoppedThread)) {
+						removeTempBreakPoint();
+						listener.dispose();
+					}
+				}
+			});
 		};
 
 		await addTempBreakPoint();
@@ -1407,7 +1441,7 @@ export class DebugService implements IDebugService {
 			const configOrName = config ? Object.assign(deepClone(config), {}) : name;
 			const dropIfInactive = this.onDidChangeState(state => {
 				if (state === State.Inactive) {
-					removeTempBreakPoint(State.Inactive);
+					removeTempBreakPoint();
 					dropIfInactive.dispose();
 				}
 			});
@@ -1416,12 +1450,12 @@ export class DebugService implements IDebugService {
 				started = await this.startDebugging(launch, configOrName, undefined, true);
 			} catch (error) {
 				dropIfInactive.dispose();
-				removeTempBreakPoint(State.Inactive);
+				removeTempBreakPoint();
 				throw error;
 			}
 			dropIfInactive.dispose();
 			if (!started || this.state === State.Inactive) {
-				removeTempBreakPoint(State.Inactive);
+				removeTempBreakPoint();
 				return;
 			}
 		}
@@ -1429,13 +1463,13 @@ export class DebugService implements IDebugService {
 			const threadToContinue = pendingThread
 				?? this.getViewModel().focusedSession?.getAllThreads().find(candidate => candidate.stopped);
 			if (!threadToContinue) {
+				removeTempBreakPoint();
 				return;
 			}
 
 			if (startedInactive) {
-				const top = threadToContinue.getTopStackFrame();
-				if (top && top.range.startLineNumber === lineNumber && this.uriIdentityService.extUri.isEqual(top.source.uri, uri)) {
-					removeTempBreakPoint(State.Stopped);
+				if (isAtTargetLine(threadToContinue)) {
+					removeTempBreakPoint();
 					return;
 				}
 			}
@@ -1464,6 +1498,11 @@ export class DebugService implements IDebugService {
 			await threadToContinue.continue();
 			if (threadToContinue.stopped && !sawTargetRunning) {
 				disposeTempBreakpointListener();
+			}
+		} else if (this.state === State.Running) {
+			const session = this.getViewModel().focusedSession;
+			if (session && breakpointToRemove) {
+				removeWhenTargetOrInactive(session);
 			}
 		}
 	}

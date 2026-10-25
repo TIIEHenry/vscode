@@ -10,10 +10,12 @@ import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextke
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { IEditorService } from '../../../../workbench/services/editor/common/editorService.js';
 import { IChangesViewService } from '../common/changesViewService.js';
+import { ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
 import { findSessionFileChange, getSessionChangeReviewResource } from './changesEditorLabels.js';
 import { SessionChangesFileResourceContext } from './changesMultiDiffSourceResolver.js';
 import { ChangesetReviewedFilesContext, ChangesetReviewSupportContext } from './changesViewService.js';
 import { CHANGESET_REVIEW_ACTION_ID, SessionChangesEditor } from './sessionChangesEditor.js';
+import { ISessionChangesService } from './sessionChangesService.js';
 
 export class ChangesetReviewAction extends Action2 {
 	constructor() {
@@ -45,18 +47,29 @@ export class ChangesetReviewAction extends Action2 {
 		}
 
 		const changesViewService = accessor.get(IChangesViewService);
-		if (changesViewService.activeSessionChangesetObs.get()?.capabilities?.review !== true) {
-			return;
-		}
+		const activeEditorPane = accessor.get(IEditorService).activeEditorPane;
+		const editorSession = activeEditorPane?.input
+			? accessor.get(ISessionChangesService).getSessionResource(activeEditorPane.input.resource)
+			: undefined;
+		const editorChanges = editorSession
+			? accessor.get(ISessionsManagementService).getSession(editorSession)?.changes.get()
+			: changesViewService.activeSessionChangesObs.get();
 
-		// Guard against a resource forwarded by a stale editor row (e.g. mid session switch).
-		// Match the workspace file, not only the diff side: a deletion's original URI is a snapshot.
-		const change = findSessionFileChange(resource, changesViewService.activeSessionChangesObs.get());
+		// The editor owns the session whose rows are on screen. When it is not
+		// the globally active session, the active session's changeset is not a
+		// valid write target even if both sessions share the same workspace file.
+		const change = findSessionFileChange(resource, editorChanges ?? []);
 		if (!change) {
 			return;
 		}
 
-		const activeEditorPane = accessor.get(IEditorService).activeEditorPane;
+		const changeset = editorSession
+			? accessor.get(ISessionsManagementService).getSession(editorSession)?.changesets.get()?.find(candidate => findSessionFileChange(resource, candidate.changes.get()) !== undefined)
+			: changesViewService.activeSessionChangesetObs.get();
+		if (changeset?.capabilities?.review !== true) {
+			return;
+		}
+
 		const review = change.reviewed !== true;
 		const reviewResource = getSessionChangeReviewResource(change) ?? resource;
 
@@ -70,7 +83,11 @@ export class ChangesetReviewAction extends Action2 {
 		}
 
 		// Set the review state
-		changesViewService.setChangesetFilesReviewState([reviewResource], review);
+		if (editorSession) {
+			changesViewService.setSessionChangesetFilesReviewState(editorSession, [reviewResource], review);
+		} else {
+			changesViewService.setChangesetFilesReviewState([reviewResource], review);
+		}
 	}
 }
 

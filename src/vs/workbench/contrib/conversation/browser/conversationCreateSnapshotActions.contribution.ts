@@ -11,6 +11,7 @@ import { IQuickInputService } from '../../../../platform/quickinput/common/quick
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { isDefaultCodeWindow } from '../../chat/browser/chatShellRouting.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
+import { isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
 export const CONVERSATION_CREATE_SNAPSHOT_COMMAND_ID = 'workbench.action.conversation.createSnapshot';
@@ -36,9 +37,7 @@ export function canCreateEngineSnapshot(
 
 /** KEEP leftover list-fail (D449/D456/D458): connected but roster not ready is not a live write surface. */
 function isKeepLeftoverCreateSnapshotWrite(roster: IConversationRosterService | undefined): boolean {
-	return !!roster
-		&& roster.isEngineConnected()
-		&& roster.isEngineSessionReady?.() === false;
+	return isConversationSessionNotReady(roster);
 }
 
 /**

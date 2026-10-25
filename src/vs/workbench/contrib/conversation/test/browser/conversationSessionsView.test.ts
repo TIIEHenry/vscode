@@ -13,6 +13,8 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { isIMenuItem, MenuId, MenuItemAction, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import type { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
+import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -136,6 +138,7 @@ suite('ConversationSessionsView', () => {
 		conversationPart: ConversationPart;
 		focusSpy: { called: boolean };
 		errors: string[];
+		dialog: TestDialogService;
 	} {
 		const service = options?.stubService ?? store.add(new ConversationStubService());
 		const layoutService = new RosterNavigationLayoutService(options?.conversationVisible ?? true);
@@ -177,7 +180,8 @@ suite('ConversationSessionsView', () => {
 		container.appendChild(view.element);
 		view.setExpanded(true);
 		view.setVisible(true);
-		return { view, stubService: service, layoutService, conversationPart, focusSpy, errors };
+		const dialog = instantiationService.get(IDialogService) as TestDialogService;
+		return { view, stubService: service, layoutService, conversationPart, focusSpy, errors, dialog };
 	}
 
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
@@ -895,7 +899,7 @@ suite('ConversationSessionsView', () => {
 		assert.strictEqual(stubService.deleteSessionCalls, 0);
 	});
 
-	test('deleteActiveSession when engine connected still calls deleteSession', () => {
+	test('deleteActiveSession when engine connected still calls deleteSession', async () => {
 		class ConnectedDeleteRoster extends ConversationStubService {
 			deleteSessionCalls = 0;
 			override isEngineConnected(): boolean {
@@ -910,7 +914,7 @@ suite('ConversationSessionsView', () => {
 			}
 		}
 		const stubService = store.add(new ConnectedDeleteRoster());
-		const { view, errors } = mountView({ stubService });
+		const { view, errors, dialog } = mountView({ stubService });
 		assert.strictEqual(stubService.isEngineConnected(), true);
 		assert.strictEqual(stubService.isEngineSessionReady(), true);
 		assert.strictEqual(isConversationPairingHold(createConversationConnectionTestStub()), false);
@@ -921,8 +925,9 @@ suite('ConversationSessionsView', () => {
 			'connected ready Delete precondition must be true',
 		);
 		const activeId = stubService.getActiveSessionId();
+		dialog.setConfirmResult({ confirmed: true });
 
-		view.deleteActiveSession();
+		await view.deleteActiveSession();
 
 		assert.deepStrictEqual(errors, []);
 		assert.strictEqual(stubService.deleteSessionCalls, 1);
@@ -977,7 +982,7 @@ suite('ConversationSessionsView', () => {
 		assert.strictEqual(isConversationPairingHold(connection), false);
 	}
 
-	test('createNewSession KEEP leftover list-fail shows disconnected notice and does not create', () => {
+	test('createNewSession KEEP leftover list-fail shows unavailable notice and does not create', () => {
 		const stubService = createKeepLeftoverListFailRoster();
 		const connection = createKeepLeftoverListFailConnection();
 		const { view, errors } = mountView({ stubService, connection });
@@ -987,7 +992,7 @@ suite('ConversationSessionsView', () => {
 
 		view.createNewSession();
 
-		assert.deepStrictEqual(errors, ['Could not create session — engine disconnected.']);
+		assert.deepStrictEqual(errors, ['Session unavailable — The engine is connected, but the active session is not ready.']);
 		assert.strictEqual(stubService.createSessionCalls, 0);
 		assert.strictEqual(stubService.deleteSessionCalls, 0);
 		assert.strictEqual(stubService.getActiveSessionId(), activeId);
@@ -995,7 +1000,7 @@ suite('ConversationSessionsView', () => {
 		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
 	});
 
-	test('deleteActiveSession KEEP leftover list-fail shows disconnected notice and does not delete', () => {
+	test('deleteActiveSession KEEP leftover list-fail shows unavailable notice and does not delete', () => {
 		const stubService = createKeepLeftoverListFailRoster();
 		const connection = createKeepLeftoverListFailConnection();
 		const { view, errors } = mountView({ stubService, connection });
@@ -1005,7 +1010,7 @@ suite('ConversationSessionsView', () => {
 
 		view.deleteActiveSession();
 
-		assert.deepStrictEqual(errors, ['Could not delete session — engine disconnected.']);
+		assert.deepStrictEqual(errors, ['Session unavailable — The engine is connected, but the active session is not ready.']);
 		assert.strictEqual(stubService.createSessionCalls, 0);
 		assert.strictEqual(stubService.deleteSessionCalls, 0);
 		assert.strictEqual(stubService.getActiveSessionId(), activeId);
@@ -1057,18 +1062,19 @@ suite('ConversationSessionsView', () => {
 		assert.strictEqual(stubService.createSessionCalls, 0);
 	});
 
-	test('deleteActiveSession false shows failed notice and keeps the session', () => {
+	test('deleteActiveSession false shows failed notice and keeps the session', async () => {
 		class RejectingDeleteRoster extends ConversationStubService {
 			override deleteSession(_sessionId: string): boolean {
 				return false;
 			}
 		}
 		const stubService = store.add(new RejectingDeleteRoster());
-		const { view, errors } = mountView({ stubService });
+		const { view, errors, dialog } = mountView({ stubService });
 		const activeId = stubService.getActiveSessionId();
 		const titlesBefore = stubService.getSessions().map(session => session.title);
+		dialog.setConfirmResult({ confirmed: true });
 
-		view.deleteActiveSession();
+		await view.deleteActiveSession();
 
 		assert.deepStrictEqual(errors, ['Could not delete session.']);
 		assert.ok(stubService.getSessions().some(session => session.id === activeId));
@@ -1096,14 +1102,56 @@ suite('ConversationSessionsView', () => {
 		assert.ok(getVisibleSessionTitles(view).includes(stubService.getActiveSession().title));
 	});
 
-	test('deleteActiveSession true stays silent and removes the session', () => {
-		const { view, stubService, errors } = mountView();
+	test('deleteActiveSession true stays silent and removes the session', async () => {
+		const { view, stubService, errors, dialog } = mountView();
 		const activeId = stubService.getActiveSessionId();
+		dialog.setConfirmResult({ confirmed: true });
 
-		view.deleteActiveSession();
+		await view.deleteActiveSession();
 
 		assert.deepStrictEqual(errors, []);
 		assert.ok(!stubService.getSessions().some(session => session.id === activeId));
+	});
+
+	test('deleteActiveSession cancel leaves the session and writes no notice', async () => {
+		const { view, stubService, errors, dialog } = mountView();
+		const activeId = stubService.getActiveSessionId();
+		dialog.setConfirmResult({ confirmed: false });
+
+		await view.deleteActiveSession();
+
+		assert.deepStrictEqual(errors, []);
+		assert.ok(stubService.getSessions().some(session => session.id === activeId));
+	});
+
+	test('deleteActiveSession confirmed after the session is gone does not delete', async () => {
+		class VanishingRoster extends ConversationStubService {
+			deleteSessionCalls = 0;
+			private hiddenId: string | undefined;
+			override getSessions() {
+				const sessions = super.getSessions();
+				return this.hiddenId ? sessions.filter(session => session.id !== this.hiddenId) : sessions;
+			}
+			override deleteSession(sessionId: string): boolean {
+				this.deleteSessionCalls++;
+				return super.deleteSession(sessionId);
+			}
+			drop(sessionId: string): void {
+				this.hiddenId = sessionId;
+			}
+		}
+		const stubService = store.add(new VanishingRoster());
+		const { view, errors, dialog } = mountView({ stubService });
+		const activeId = stubService.getActiveSessionId();
+		dialog.confirm = async () => {
+			stubService.drop(activeId);
+			return { confirmed: true };
+		};
+
+		await view.deleteActiveSession();
+
+		assert.deepStrictEqual(errors, []);
+		assert.strictEqual(stubService.deleteSessionCalls, 0);
 	});
 
 	test('does not leak unhandled rejection when openSessionBeside warn throws', async () => {

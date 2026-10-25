@@ -968,6 +968,36 @@ suite('RemoteAgentHostSessionsProvider', () => {
 		);
 	}));
 
+	test('marking a cached session read without a connection keeps it unread and rejects', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
+		const storageService = disposables.add(new InMemoryStorageService());
+		connection.addSession(createSession('unread-me', { summary: 'Unread' }));
+		const provider = createProvider(disposables, connection, { storageService });
+		await timeout(0);
+		const session = provider.getSessions()[0];
+		await provider.setSessionReadState(session.sessionId, false);
+
+		const events: ISessionChangeEvent[] = [];
+		disposables.add(provider.onDidChangeSessions(e => events.push(e)));
+
+		provider.unpublishCachedSessions();
+		await storageService.flush();
+		const restoredProvider = createProvider(disposables, new MockAgentConnection(), { storageService, noConnection: true });
+		const restored = restoredProvider.getSessions()[0];
+		events.length = 0;
+
+		const error = await restoredProvider.setSessionReadState(restored.sessionId, true).then(() => undefined, (reason: Error) => reason);
+
+		assert.deepStrictEqual({
+			failed: error !== undefined,
+			stillUnread: restored.isRead.get() === false,
+			events: events.length,
+		}, {
+			failed: true,
+			stillUnread: true,
+			events: 0,
+		});
+	}));
+
 	test('authoritative session update persists materialized workspace metadata', () => runWithFakedTimers<void>({ useFakeTimers: true }, async () => {
 		const storageService = disposables.add(new InMemoryStorageService());
 		const provider = createProvider(disposables, connection, { storageService });

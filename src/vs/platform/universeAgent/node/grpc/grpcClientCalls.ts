@@ -318,7 +318,15 @@ export function makeResidentBidiBytesHandleClient<TResponse>(
 			(buffer: Buffer) => decode(buffer),
 		);
 		const gate = createStreamCloseGate(onClosed);
-		call.on('data', (data: TResponse) => onResponse(data));
+		call.on('data', (data: TResponse) => {
+			// A locally closed stream must not feed late frames back into the
+			// session. `end()` is a half-close and intentionally keeps this gate
+			// open, so server frames after a half-close still arrive.
+			if (gate.closed) {
+				return;
+			}
+			onResponse(data);
+		});
 		call.on('error', (error: grpc.ServiceError) => {
 			if (gate.closed) {
 				return;

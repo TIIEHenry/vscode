@@ -1355,13 +1355,7 @@ suite('NotebookTextModel', () => {
 			const edits = NotebookTextModel.computeEdits(model, cells);
 
 			assert.deepStrictEqual(edits, [
-				{ editType: CellEditType.Metadata, index: 0, metadata: {} },
-				{
-					editType: CellEditType.Output, index: 0, outputs: [{
-						outputId: 'someId',
-						outputs: [{ mime: Mimes.markdown, data: valueBytesFromString('_World_') }]
-					}], append: false
-				},
+				{ editType: CellEditType.Replace, index: 0, count: 1, cells: cells.slice(0, 1) },
 				{ editType: CellEditType.Metadata, index: 1, metadata: { foo: 'bar' } },
 			]);
 
@@ -1370,6 +1364,39 @@ suite('NotebookTextModel', () => {
 			assert.strictEqual(model.cells[0].outputs.length, 1);
 			assert.equal(model.cells[0].outputs[0].outputId, 'someId');
 			assert.equal(model.cells[0].outputs[0].outputs[0].data.toString(), '_World_');
+		});
+	});
+
+	test('computeEdits does not move output onto a cell with a different output id', async function () {
+		await withTestNotebook([
+			['var a = 1;', 'javascript', CellKind.Code, [{
+				outputId: 'idA',
+				outputs: [{ mime: Mimes.markdown, data: valueBytesFromString('_A_') }]
+			}], {}],
+			['var b = 1;', 'javascript', CellKind.Code, [], {}]
+		], (editor) => {
+			const model = editor.textModel;
+			const cells = [
+				{
+					source: 'var a = 1;', language: 'javascript', cellKind: CellKind.Code, mime: undefined, outputs: [{
+						outputId: 'idB',
+						outputs: [{ mime: Mimes.markdown, data: valueBytesFromString('_B_') }]
+					}], metadata: undefined,
+				},
+				{ source: 'var a = 1;', language: 'javascript', cellKind: CellKind.Code, mime: undefined, outputs: [{
+					outputId: 'idA',
+					outputs: [{ mime: Mimes.markdown, data: valueBytesFromString('_A_') }]
+				}], metadata: undefined },
+				{ source: 'var b = 1;', language: 'javascript', cellKind: CellKind.Code, mime: undefined, outputs: [], metadata: undefined },
+			];
+			const edits = NotebookTextModel.computeEdits(model, cells);
+
+			model.applyEdits(edits, true, undefined, () => undefined, undefined, true);
+			assert.equal(model.cells.length, 3);
+			assert.equal(model.cells[0].outputs[0].outputId, 'idB');
+			assert.equal(model.cells[0].outputs[0].outputs[0].data.toString(), '_B_');
+			assert.equal(model.cells[1].outputs[0].outputId, 'idA');
+			assert.equal(model.cells[1].outputs[0].outputs[0].data.toString(), '_A_');
 		});
 	});
 

@@ -105,16 +105,13 @@ export function mcpServerToSourceData(server: IMcpServer, reader?: IReader): Too
  * @returns True if the resource request is valid for the server, false otherwise.
  */
 export function canLoadMcpNetworkResourceDirectly(resource: URL, server: IMcpServer | undefined) {
-	let isResourceRequestValid = false;
-	if (resource.protocol === 'http:') {
-		const launch = server?.connection.get()?.launchDefinition;
-		if (launch && launch.type === McpServerTransportType.HTTP && launch.uri.authority.toLowerCase() === resource.host.toLowerCase()) {
-			isResourceRequestValid = true;
-		}
-	} else if (resource.protocol === 'https:') {
-		isResourceRequestValid = true;
+	if (resource.protocol !== 'http:' && resource.protocol !== 'https:') {
+		return false;
 	}
-	return isResourceRequestValid;
+	const launch = server?.connection.get()?.launchDefinition;
+	return !!launch
+		&& launch.type === McpServerTransportType.HTTP
+		&& launch.uri.authority.toLowerCase() === resource.host.toLowerCase();
 }
 
 export function isTaskResult(obj: MCP.Result | MCP.CreateTaskResult): obj is MCP.CreateTaskResult {

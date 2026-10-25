@@ -3,7 +3,7 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-24
+updated: 2026-10-25
 summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查中 r02 agent-host-node、r04 platform 与 r05 editor 方案共 11 项缺陷均已全绿落地合入（其余方案仍 draft 未实施）。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。本机链路经拨号提交闸（4406489a595）与本机引擎信任锚（98a8b10550f）单测已全绿落地。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
@@ -30,7 +30,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [聊天流缺失时权限回复不得假装成功](r12-permission-reply-fail-closed.md) | `implemented` | 没有聊天流时权限回复返回拒绝并留下可再点的失败；后到的普通补洞继续并进已有重写丢弃范围；纪元前进清掉未写出的权限决定时同样留下可再点的失败。已于 2e8bd69c453 落地合入，单测（25 passing）全绿。不升 PRD。 |
 | [remove-legacy-plaintext-connect.md](remove-legacy-plaintext-connect.md) | `implemented` | ELR-14：从连接服务和窗口契约去掉明文 connect()，并删掉只为它服务的 127.0.0.1:50051 回环打开路径。命令名 connect 仍拒绝。测试改走无信任的明文 profile 拨号，或本机跳过鉴权。代码已落地。不改身份合同。不升 PRD。 |
 | [published-link-identity.md](published-link-identity.md) | `implemented` | ELR-8：连接快照增加可选 engineIdentityId 与 linkId。换链路时 SessionViewHost 先断开再连，roster 按引擎身份分桶。全应用仍是一条连接。代码与单测（sessionViewHostEngineBind 26 passing）均已全面落地合入。不升 PRD。不改 ADR-003 正文。 |
-| [会话工作根与 Workbench 双层状态](session-work-root-and-workbench-scope.md) | `draft` | PRD-029：路径按会话工作根解析（会话 workDir，缺省连接 workDir），本地根沿用 SCM 根优先；项目层按引擎身份 + 工作根，v1 只装 Preview 的 Code 类别；会话层按会话 id。并排会话的 Preview 跟显式切换。换引擎留在原窗口，断旧连接前只提示本窗口等待确认的会话。S1–S4 已全面落地合入（提交 4615d3aa990 与 b6bccf8ff2c）。Preview 换入换出等 PRD-027 P3。不升 PRD。 |
+| [会话工作根与 Workbench 双层状态](session-work-root-and-workbench-scope.md) | `draft` | PRD-029：路径按会话工作根解析（会话 workDir，缺省连接 workDir），本地根沿用 SCM 根优先；项目层按引擎身份 + 工作根，v1 只装 Preview 的 Code 类别；会话层按会话 id。并排会话的 Preview 跟显式切换。换引擎留在原窗口，断旧连接前只提示本窗口等待确认的会话。S1–S4 已全面落地合入（提交 4615d3aa990 与 b6bccf8ff2c）。2026-10-24 用户改为多根工作区随时扩展：身份条与 Navigator 选文件夹改为加入工作区，Loopback 引擎的本机工作目录切会话时自动加入；未受信任目录和已保存的工作区文件不自动改写（S6）。Preview 换入换出等 PRD-027 P3。不升 PRD。 |
 | [sources-files-list-capability.md](sources-files-list-capability.md) | `implemented` | Sources 文件列表的 listFiles 门闩改读快照 listFilesCapability。已于 b6bccf8ff2c 落地。不进 Engine Overview。不重做 conversationEntryCapability 与 gitWriteCapability。不升 PRD。不宣布 ELR-13 全部完成。 |
 | [conversation-entry-capability.md](conversation-entry-capability.md) | `implemented` | 对话里用 typeof 连接方法决定入口的门闩改读快照 conversationEntryCapability。已于 3cb1f1055bb 全面落地（连接快照 conversationEntryCapability、平台与渲染端缓存同步及各对话入口门闩生效）。不进 Engine Overview。不重做 gitWriteCapability。不升 PRD。 |
 | [connection-ipc-allowlist.md](connection-ipc-allowlist.md) | `implemented` | ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调流不对窗口开放；Hub 使用 universeAgentHub 通道并仍打到同一连接实例；宿主 token 用适配器；桌面 Team 三元调用补上嵌套对象过不了 ProxyChannel 的缺口。代码已落地。不升 PRD。 |
@@ -254,7 +254,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [审查 r12：editor-features](review-2026-10-11-r12-editor-features.md) | `draft` | 5 条；网页下载取消或读失败时仍 close 可写流，同名目标会被空文件盖掉。 |
 | [方案 r12：editor-features](review-2026-10-11-r12-editor-features-plan.md) | `draft` | hold 3，drop 1，weaken 1。下载取消仍会 close 同名目标。未实施。 |
 | [审查 r13：contrib-rest](review-2026-10-11-r13-contrib-rest.md) | `draft` | 5 条；后启动的 MCP 沙箱会带上此前各服务器的工作目录写权限。 |
-| [方案 r13：contrib-rest](review-2026-10-11-r13-contrib-rest-plan.md) | `draft` | hold 5。五条引用的行为仍在原位置。未实施。 |
+| [方案 r13：contrib-rest](review-2026-10-11-r13-contrib-rest-plan.md) | `draft` | hold 5。临时断点、取消后重启 / 建会话、合并确认与 preserveFocus 保存已修。46 passing。 |
 | [审查 r14：copilot-extension](review-2026-10-11-r14-copilot-extension.md) | `draft` | 5 条；云端删除失败仍会删掉本地会话并丢掉云端任务映射。 |
 | [方案 r14：copilot-extension](review-2026-10-11-r14-copilot-extension-plan.md) | `draft` | hold 5。云端删除、元数据覆盖、事件缓冲失败后仍丢数据。未实施。 |
 | [审查 r15：copilot-rest](review-2026-10-11-r15-copilot-rest.md) | `draft` | 3 条；仓库远程地址读失败时，内容排除会把文件记成允许。 |
@@ -262,5 +262,38 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [审查 r16：extensions-entry](review-2026-10-11-r16-extensions-entry.md) | `draft` | 4 条；屏幕采集回调不核对请求方就把整屏交给调用者。 |
 | [方案 r16：extensions-entry](review-2026-10-11-r16-extensions-entry-plan.md) | `draft` | hold 1，drop 1，weaken 2。静默换票是已写明的设计。未实施。 |
 | [十六路审查 2026-10-11](review-2026-10-11.md) | `draft` | 发现 70 条。核查后 hold 55，weaken 13，drop 2。方案 draft，未实施。 |
+| [十六路审查 2026-10-24](review-2026-10-24.md) | `implemented` | 发现 73 条。核查后 hold 60，weaken 12，drop 1。按主题抽样 16 路，非整棵源码互斥切分。方案已实施并逐路验证。 |
+| [审查 r01：base](review-2026-10-24-r01-base.md) | `draft` | 5 条；取消后的树刷新、可取消迭代和分页游标仍会发布过期结果。 |
+| [方案 r01：base](review-2026-10-24-r01-base-plan.md) | `implemented` | hold 3，weaken 2。树刷新、可取消迭代与分页按调用方取消；查找标志归当前轮；fdatasync 失败维持降级。173 + 32 passing。 |
+| [审查 r02：editor](review-2026-10-24-r02-editor.md) | `draft` | 5 条；共享撤销栈、重命名、补全光标和更换粘贴类型仍会写错。 |
+| [方案 r02：editor](review-2026-10-24-r02-editor-plan.md) | `implemented` | hold 4，weaken 1。共享撤销栈、重命名版本、补全光标与粘贴撤销元素已修；取消粘贴维持现状。43 passing。 |
+| [审查 r03：agent-host-codex](review-2026-10-24-r03-agent-host-codex.md) | `draft` | 5 条；过期 turn、结束后的批准、未展示权限、非末尾片段和未结束回合仍会被写成成功。 |
+| [方案 r03：agent-host-codex](review-2026-10-24-r03-agent-host-codex-plan.md) | `implemented` | hold 5。过期 turn、迟到批准、未展示权限、非末尾片段与未结束回合已修。146 passing。 |
+| [审查 r04：agent-host-rest](review-2026-10-24-r04-agent-host-rest.md) | `draft` | 5 条；取消后的 Copilot 发送、Claude 旧流换绑和缺完成事件的工具成功态仍成立。 |
+| [方案 r04：agent-host-rest](review-2026-10-24-r04-agent-host-rest-plan.md) | `implemented` | hold 4，weaken 1。取消后的发送与迟到批准、Claude 旧流、缺完成事件已修；非取消回合自动批准维持现状。649 passing。 |
+| [审查 r05：universe-agent](review-2026-10-24-r05-universe-agent.md) | `draft` | 4 条；换链后的旧探测结果和旧 Chat 错误帧仍会写入当前连接。 |
+| [方案 r05：universe-agent](review-2026-10-24-r05-universe-agent-plan.md) | `implemented` | hold 3，drop 1。换链后的旧探测与旧 Chat 帧已作废，服务级通配广告已放行；r05-1 维持 drop。466 + 5 passing。 |
+| [审查 r06：platform](review-2026-10-24-r06-platform.md) | `draft` | 5 条；读失败会清空策略，通配符与 URL 主机不一致，网关记录参数和正文。 |
+| [方案 r06：platform](review-2026-10-24-r06-platform-plan.md) | `implemented` | hold 3，weaken 2。策略读失败保留旧表、MCP 主机规范化、卸载补删目录、网关不记正文。85 passing。 |
+| [审查 r07：conversation](review-2026-10-24-r07-conversation.md) | `draft` | 2 条；配对挂起或列表失败时，权限与模型下拉在引擎已接受写入后仍退回旧选择。 |
+| [方案 r07：conversation](review-2026-10-24-r07-conversation-plan.md) | `implemented` | hold 2 已实施。2026-10-24 签收 ADR-012：leftover 保留引擎已接受的权限 / 模型值，控件保持不可写；未接受的新目标仍回退。九条 leftover 用例通过。 |
+| [审查 r08：sources-navigator](review-2026-10-24-r08-sources-navigator.md) | `draft` | 5 条；切会话后的提交、Accept 行号、预览组、检查器会话和引擎文件身份仍会写错。 |
+| [方案 r08：sources-navigator](review-2026-10-24-r08-sources-navigator-plan.md) | `implemented` | hold 4，weaken 1。提交会话校验、Accept 行号、预览组、检查器与引擎文件身份已修。256 passing，1 条既有失败。 |
+| [审查 r09：chat](review-2026-10-24-r09-chat.md) | `draft` | 5 条；重命名折成普通编辑、取消或失败的工具被标成已完成、编辑工具写错请求、外部组吞普通编辑。 |
+| [方案 r09：chat](review-2026-10-24-r09-chat-plan.md) | `implemented` | hold 3，weaken 2。重命名后编辑、工具失败态、请求身份与外部编辑分组已修。276 passing。 |
+| [审查 r10：terminal-notebook](review-2026-10-24-r10-terminal-notebook.md) | `draft` | 5 条；退出后的发送、活动分栏下标、单元格输出和后台结束通知仍会对错对象。 |
+| [方案 r10：terminal-notebook](review-2026-10-24-r10-terminal-notebook-plan.md) | `implemented` | hold 4，weaken 1。送达返回值、分栏活动下标、输出 id 与后台通知已修。423 passing，2 条既有失败。 |
+| [审查 r11：debug-scm](review-2026-10-24-r11-debug-scm.md) | `draft` | 5 条；临时断点、取消后的重启、停止后的建会话、合并完成信号和 preserveFocus 跳过保存仍成立。 |
+| [方案 r11：debug-scm](review-2026-10-24-r11-debug-scm-plan.md) | `implemented` | hold 5。资源抓取、沙箱合并、未就绪工具列表、任务依赖与下载失败已修。78 passing。 |
+| [审查 r12：contrib-rest](review-2026-10-24-r12-contrib-rest.md) | `draft` | 5 条；MCP 任意 HTTPS 抓取、沙箱建议删拒绝规则、工具列表、任务依赖和网页下载把失败当完成。 |
+| [方案 r12：contrib-rest](review-2026-10-24-r12-contrib-rest-plan.md) | `implemented` | hold 5。Cloud 仓库与基线、未知文件权限、补丁 requestId 与笔记本取消已修。105 passing。 |
+| [审查 r13：workbench-shell](review-2026-10-24-r13-workbench-shell.md) | `draft` | 5 条；会话网格按序号恢复、藏列接住新打开、大小写另存为失败仍返回目标路径。 |
+| [方案 r13：workbench-shell](review-2026-10-24-r13-workbench-shell-plan.md) | `implemented` | hold 3，weaken 2。会话键 memento、隐藏组 / 叶、失败另存为与移动中断已修；旧序号不迁移。54 + 17 + 12 + 14 passing。 |
+| [审查 r14：sessions](review-2026-10-24-r14-sessions.md) | `draft` | 4 条；追问框、已读、分组成员和变更审阅仍会把别的会话的状态写成已发生。 |
+| [方案 r14：sessions](review-2026-10-24-r14-sessions-plan.md) | `implemented` | hold 4。追问框绑定、断连已读、分组替换与变更审阅会话已修。125 passing。 |
+| [审查 r15：copilot](review-2026-10-24-r15-copilot.md) | `draft` | 5 条；提交仓库、写权限、补丁上下文、云端基线和笔记本取消仍按发现稿成立。 |
+| [方案 r15：copilot](review-2026-10-24-r15-copilot-plan.md) | `implemented` | hold 5。Cloud 仓库与基线、未知文件权限、补丁 requestId 与笔记本取消已修。105 passing。 |
+| [审查 r16：extensions-entry](review-2026-10-24-r16-extensions-entry.md) | `draft` | 3 条；回环登录 nonce 失败、无账户会话核对失败、Git IPC 注销删错键。 |
+| [方案 r16：extensions-entry](review-2026-10-24-r16-extensions-entry-plan.md) | `implemented` | hold 3 已实施。nonce 失败拒绝登录 Promise；身份核对失败不交出会话且只删明确 401，网络失败保留钥匙串；IPC 注销删除注册键。`github-authentication` 67 passing，`git` 76 passing。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

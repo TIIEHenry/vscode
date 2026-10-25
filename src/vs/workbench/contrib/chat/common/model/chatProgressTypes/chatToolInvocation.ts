@@ -344,12 +344,34 @@ export class ChatToolInvocation implements IChatToolInvocation {
 			return;
 		}
 
+		// A failed invocation must not keep the preparing phase's success sentence. Prefer
+		// the result's own message; otherwise surface the error text itself.
+		if (result?.toolResultError) {
+			this.pastTenseMessage = result.toolResultMessage
+				?? (typeof result.toolResultError === 'string' ? result.toolResultError : localize('toolExecutionFailed', "Tool execution failed"));
+		}
+
 		this._state.set({
 			type: IChatToolInvocation.StateKind.Completed,
 			confirmed: IChatToolInvocation.executionConfirmedOrDenied(this) || { type: ToolConfirmKind.ConfirmationNotNeeded },
 			resultDetails: result?.toolResultDetails,
 			postConfirmed,
 			contentForModel: result?.content || [],
+			toolResultError: result?.toolResultError,
+			parameters: this.parameters,
+			confirmationMessages: this.confirmationMessages,
+		}, undefined);
+	}
+
+	/** Finalize a cancelled invocation that never reached the user confirmation path. */
+	public didCancel(): void {
+		const currentState = this._state.get();
+		if (currentState.type === IChatToolInvocation.StateKind.Completed || currentState.type === IChatToolInvocation.StateKind.Cancelled) {
+			return;
+		}
+		this._state.set({
+			type: IChatToolInvocation.StateKind.Cancelled,
+			reason: ToolConfirmKind.Denied,
 			parameters: this.parameters,
 			confirmationMessages: this.confirmationMessages,
 		}, undefined);

@@ -19,6 +19,7 @@ import { IDisposable, DisposableStore, toDisposable } from '../../../../base/com
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IContextMenuService, IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { defaultButtonStyles, defaultSelectBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -33,7 +34,9 @@ import type { ConversationStubSession } from './conversationStubModel.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
-import { conversationLensDockEngineNotConnected, conversationLensDockSessionUnavailableReason, type ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
+import { confirmDeleteConversationSession } from './conversationDeleteSessionConfirm.js';
+import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
+import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold, showConversationPart } from './conversationSessionStatus.js';
 import { applyComposerSurfaceText, composerDraftText } from './conversationComposerRefs.js';
 
@@ -63,6 +66,7 @@ export interface IConversationLensSessionBarHost {
 	composeDraftSnapshot: string;
 	readonly stubService: IConversationRosterService;
 	readonly uaConnection: IUniverseAgentConnection;
+	readonly dialogService: IDialogService;
 	readonly contextViewService: IContextViewService;
 	readonly contextMenuService: IContextMenuService;
 	readonly configurationService: IConfigurationService;
@@ -80,7 +84,7 @@ export interface IConversationLensSessionBarHost {
 	commitSessionTitleEdit(): void;
 	cancelSessionTitleEdit(): void;
 	createNewSession(): void;
-	deleteActiveSession(): void;
+	deleteActiveSession(): Promise<void>;
 	switchToSession(sessionId: string): void;
 	writeComposerDraft(sessionId: string, text: string): void;
 	deleteComposerDraftsForSession(sessionId: string): void;
@@ -178,7 +182,9 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 			title: conversationLensSessionBarDeleteSession,
 		}));
 		host.deleteSessionButton.icon = Codicon.trash;
-		host.register(host.deleteSessionButton.onDidClick(() => deleteActiveSession(host)));
+		host.register(host.deleteSessionButton.onDidClick(() => {
+			void deleteActiveSession(host).catch(onUnexpectedError);
+		}));
 		bindDeleteDraftRollback(host);
 		updateSessionBarWriteChrome(host);
 
@@ -263,7 +269,9 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 			addAction(conversationLensSessionBarHistory, () => host.engineHistoryList?.show());
 			addAction(conversationLensSessionBarSnapshots, () => host.engineSnapshotsList?.show());
 			addAction(conversationLensSessionBarNewSession, () => createNewSession(host), writesEnabled, holdReason);
-			addAction(conversationLensSessionBarDeleteSession, () => deleteActiveSession(host), writesEnabled, holdReason);
+			addAction(conversationLensSessionBarDeleteSession, () => {
+				void deleteActiveSession(host).catch(onUnexpectedError);
+			}, writesEnabled, holdReason);
 			for (const session of host.stubService.getSessions()) {
 				addAction(session.title, () => switchToSession(host, session.id));
 			}
@@ -411,9 +419,7 @@ export function updateSessionTitle(host: IConversationLensSessionBarHost): void 
 
 /** KEEP leftover (D449 chrome / D454 handlers): list-fail leftover is not a live write surface. */
 function isKeepLeftoverListFailWrite(host: IConversationLensSessionBarHost): boolean {
-	return !!host.stubService
-		&& host.stubService.isEngineConnected()
-		&& host.stubService.isEngineSessionReady?.() === false;
+	return isConversationSessionNotReady(host.stubService);
 }
 
 /** Same gate as the bar buttons. Narrow width hides those buttons inside More. */
@@ -433,10 +439,10 @@ function sessionBarWriteHoldReason(host: IConversationLensSessionBarHost): strin
 	if (sessionBarWritesEnabled(host)) {
 		return undefined;
 	}
-	if (isConversationPairingHold(host.uaConnection)) {
-		return conversationLensDockEngineNotConnected;
-	}
-	return conversationLensDockSessionUnavailableReason;
+	return conversationSessionHoldReason(
+		isConversationPairingHold(host.uaConnection),
+		getConversationSessionReadiness(host.stubService),
+	);
 }
 
 function applySessionTitleHold(host: IConversationLensSessionBarHost): void {
@@ -518,10 +524,16 @@ export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): v
 			return;
 		}
 		// Pairing-hold and KEEP leftover are not a live rename, even if the editor was already open.
-		if (isConversationPairingHold(host.uaConnection) || isKeepLeftoverListFailWrite(host)) {
+		if (isConversationPairingHold(host.uaConnection)) {
 			closeSessionTitleEditor(host);
 			updateSessionTitle(host);
 			host.showPostFailure('engine_disconnected');
+			return;
+		}
+		if (isKeepLeftoverListFailWrite(host)) {
+			closeSessionTitleEditor(host);
+			updateSessionTitle(host);
+			host.showPostFailure('session_not_ready');
 			return;
 		}
 		const sessionId = host.getBoundSessionId();
@@ -568,8 +580,12 @@ function outgoingComposerDraftText(host: IConversationLensSessionBarHost): strin
 export function createNewSession(host: IConversationLensSessionBarHost): void {
 
 		host.writeComposerDraft(host.getBoundSessionId(), outgoingComposerDraftText(host));
-		if (isConversationPairingHold(host.uaConnection) || isKeepLeftoverListFailWrite(host)) {
+		if (isConversationPairingHold(host.uaConnection)) {
 			host.showPostFailure('engine_disconnected');
+			return;
+		}
+		if (isKeepLeftoverListFailWrite(host)) {
+			host.showPostFailure('session_not_ready');
 			return;
 		}
 		if (!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()) {
@@ -624,13 +640,39 @@ function bindDeleteDraftRollback(host: IConversationLensSessionBarHost): void {
 	}));
 }
 
-export function deleteActiveSession(host: IConversationLensSessionBarHost): void {
+function rejectDeleteBeforeConfirm(host: IConversationLensSessionBarHost): boolean {
+	if (isConversationPairingHold(host.uaConnection)) {
+		host.showPostFailure('engine_disconnected');
+		return true;
+	}
+	if (isKeepLeftoverListFailWrite(host)) {
+		host.showPostFailure('session_not_ready');
+		return true;
+	}
+	if (!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()) {
+		host.showPostFailure('engine_disconnected');
+		return true;
+	}
+	return false;
+}
 
-		if (isConversationPairingHold(host.uaConnection) || isKeepLeftoverListFailWrite(host)) {
-			host.showPostFailure('engine_disconnected');
+export async function deleteActiveSession(host: IConversationLensSessionBarHost): Promise<void> {
+
+		if (rejectDeleteBeforeConfirm(host)) {
 			return;
 		}
 		const sessionId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
+		const title = displayedSessionTitle(host, sessionId);
+		const confirmed = await confirmDeleteConversationSession(host.dialogService, title);
+		if (!confirmed) {
+			return;
+		}
+		if (rejectDeleteBeforeConfirm(host)) {
+			return;
+		}
+		if (!host.stubService.getSessions().some(session => session.id === sessionId)) {
+			return;
+		}
 		const draftText = outgoingComposerDraftText(host);
 		host.writeComposerDraft(sessionId, draftText);
 		pendingDeleteDraftMap(host).set(sessionId, draftText);

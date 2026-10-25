@@ -21,6 +21,7 @@ import { IContextKey, IContextKeyService, RawContextKey } from '../../../../plat
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
+import { IUndoRedoElement, IUndoRedoService } from '../../../../platform/undoRedo/common/undoRedo.js';
 import { ContentWidgetPositionPreference, ICodeEditor, IContentWidget, IContentWidgetPosition } from '../../../browser/editorBrowser.js';
 import { IBulkEditResult, IBulkEditService } from '../../../browser/services/bulkEditService.js';
 import { Range } from '../../../common/core/range.js';
@@ -160,6 +161,7 @@ export class PostEditWidgetManager<T extends DocumentPasteEdit | DocumentDropEdi
 		@IInstantiationService private readonly _instantiationService: IInstantiationService,
 		@IBulkEditService private readonly _bulkEditService: IBulkEditService,
 		@INotificationService private readonly _notificationService: INotificationService,
+		@IUndoRedoService private readonly _undoRedoService: IUndoRedoService,
 	) {
 		super();
 
@@ -180,13 +182,33 @@ export class PostEditWidgetManager<T extends DocumentPasteEdit | DocumentDropEdi
 			return;
 		}
 
+		// Remember what the paste is about to change, so switching to another edit later can tell
+		// whether it is still undoing this paste and nothing else.
+		const alternativeVersionIdBeforePaste = model.getAlternativeVersionId();
+		let pasteElement: IUndoRedoElement | undefined;
+
 		const onDidSelectEdit = async (newEditIndex: number) => {
-			const model = this._editor.getModel();
-			if (!model) {
+			const currentModel = this._editor.getModel();
+			if (!currentModel) {
 				return;
 			}
 
-			await model.undo();
+			// The selection and the undo element describe the buffer the paste was applied to. If
+			// either the model or the top of its undo stack has moved on, this callback must not undo
+			// somebody else's edit or write the old range into the current buffer.
+			const elements = this._undoRedoService.getElements(model.uri);
+			const top = elements.past.at(-1);
+			if (currentModel !== model || !top || top !== pasteElement) {
+				return;
+			}
+
+			await currentModel.undo();
+
+			const afterUndo = this._undoRedoService.getElements(model.uri);
+			if (this._editor.getModel() !== model || afterUndo.past.at(-1) === pasteElement || model.getAlternativeVersionId() !== alternativeVersionIdBeforePaste) {
+				return;
+			}
+
 			this.applyEditAndShowIfNeeded(ranges, { activeEditIndex: newEditIndex, allEdits: edits.allEdits }, canShowWidget, resolve, token);
 		};
 
@@ -241,6 +263,7 @@ export class PostEditWidgetManager<T extends DocumentPasteEdit | DocumentDropEdi
 		}
 
 		if (canShowWidget && editResult.isApplied && edits.allEdits.length > 1) {
+			pasteElement = this._undoRedoService.getElements(model.uri).past.at(-1);
 			this.show(editRange ?? primaryRange, edits, onDidSelectEdit);
 		}
 	}

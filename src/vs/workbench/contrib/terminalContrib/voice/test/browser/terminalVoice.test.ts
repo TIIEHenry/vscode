@@ -65,7 +65,7 @@ suite('TerminalVoiceSession', () => {
 		});
 		instantiationService.stub(IHoverService, new class extends mock<IHoverService>() { });
 		const activeInstance = new class extends mock<ITerminalInstance>() {
-			override async sendText(text: string): Promise<void> { sentTexts.push(text); }
+			override async sendText(text: string): Promise<boolean> { sentTexts.push(text); return true; }
 			override xterm = undefined;
 			override registerMarker() { return undefined; }
 			override getContribution<T extends ITerminalContribution>(): T | null { return null; }

@@ -18,12 +18,14 @@ import { IInstantiationService } from '../../../instantiation/common/instantiati
 import { InstantiationService } from '../../../instantiation/common/instantiationService.js';
 import { ServiceCollection } from '../../../instantiation/common/serviceCollection.js';
 import { ILogService, NullLogService } from '../../../log/common/log.js';
+import { AgentSignal } from '../../common/agent.js';
 import { IDiffComputeService } from '../../common/diffComputeService.js';
 import { ISessionDatabase } from '../../common/sessionDataService.js';
 import { buildDefaultChatUri } from '../../common/state/sessionState.js';
 import { ClaudeSdkPipeline, IRematerializer } from '../../node/claude/claudeSdkPipeline.js';
 import { SubagentRegistry } from '../../node/claude/claudeSubagentRegistry.js';
 import { createZeroDiffComputeService, TestSessionDatabase } from '../common/sessionTestHelpers.js';
+import { makeContentBlockStartText, makeMessageStart, makeMessageStop, makeStreamEvent, makeTextDelta } from './claudeMapSessionEventsTestUtils.js';
 
 // ===== Test doubles =====
 
@@ -137,6 +139,8 @@ class RecordingWarmQuery extends FakeWarmQuery {
 type IControllableQuery = Query & {
 	/** Ends the stream (models a dispose-driven close of the underlying query). */
 	end(): void;
+	/** Delivers one SDK message to the consumer loop. */
+	push(message: SDKMessage): void;
 	/** How many times the consumer loop has pulled from this query's iterator. */
 	readonly nextCallCount: number;
 };
@@ -149,15 +153,20 @@ type IControllableQuery = Query & {
  */
 function makeControllableQuery(): IControllableQuery {
 	let ended = false;
+	const queued: SDKMessage[] = [];
 	let wake: (() => void) | undefined;
 	const q = Object.assign(new ImmediatelyDoneQuery(), {
 		nextCallCount: 0,
 		end(): void { ended = true; wake?.(); wake = undefined; },
+		push(message: SDKMessage): void { queued.push(message); wake?.(); wake = undefined; },
 		[Symbol.asyncIterator]() { return this; },
 		async next(this: { nextCallCount: number }): Promise<IteratorResult<SDKMessage, void>> {
 			this.nextCallCount++;
-			while (!ended) {
+			while (queued.length === 0 && !ended) {
 				await new Promise<void>(resolve => { wake = resolve; });
+			}
+			if (queued.length > 0) {
+				return { done: false, value: queued.shift()! };
 			}
 			return { done: true, value: undefined };
 		},
@@ -452,6 +461,50 @@ suite('ClaudeSdkPipeline', () => {
 			assert.ok(q2.nextCallCount > 0, 'consumer loop handed off to the new query after the old one ended');
 
 			// Clean teardown: let the re-armed loop unwind before dispose.
+			q2.end();
+			await flushMicrotasks();
+		});
+
+		test('an old query message that arrives after the rebind is not dispatched under the new turnId', async () => {
+			const warm1 = new ControllableWarmQuery();
+			const { pipeline } = createPipeline(disposables, warm1);
+			const signals: AgentSignal[] = [];
+			disposables.add(pipeline.onDidProduceSignal(signal => signals.push(signal)));
+
+			pipeline.send(makePrompt('p1'), 'turn-1').catch(() => { /* unwound on teardown */ });
+			await flushMicrotasks();
+			const q1 = warm1.queries[0];
+
+			const warm2 = new ControllableWarmQuery();
+			pipeline.attachRematerializer(async () => ({ warm: warm2, abortController: new AbortController() }));
+			await pipeline.rebindForRestart();
+			const q2 = warm2.queries[0];
+
+			// The new turn is already the queue head when the old stream emits.
+			pipeline.send(makePrompt('p2'), 'turn-2').catch(() => { /* unwound on teardown */ });
+			await flushMicrotasks();
+			signals.length = 0;
+
+			q1.push(makeStreamEvent('sess-1', makeMessageStart()));
+			q1.push(makeStreamEvent('sess-1', makeContentBlockStartText(0)));
+			q1.push(makeStreamEvent('sess-1', makeTextDelta(0, 'stale')));
+			q1.push(makeStreamEvent('sess-1', makeMessageStop()));
+			await flushMicrotasks();
+
+			const actionTurnIds = (items: AgentSignal[]) => items
+				.filter(s => s.kind === 'action')
+				.map(s => (s.action as { turnId?: string }).turnId);
+			assert.deepStrictEqual(actionTurnIds(signals), []);
+
+			q2.push(makeStreamEvent('sess-1', makeMessageStart()));
+			q2.push(makeStreamEvent('sess-1', makeContentBlockStartText(0)));
+			q2.push(makeStreamEvent('sess-1', makeTextDelta(0, 'fresh')));
+			q2.push(makeStreamEvent('sess-1', makeMessageStop()));
+			await flushMicrotasks();
+
+			const fresh = actionTurnIds(signals).filter(turnId => turnId === 'turn-2');
+			assert.ok(fresh.length > 0, 'new query messages are dispatched under the new turnId');
+
 			q2.end();
 			await flushMicrotasks();
 		});

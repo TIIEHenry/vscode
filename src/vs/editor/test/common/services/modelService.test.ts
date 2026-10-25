@@ -18,6 +18,7 @@ import { TestConfigurationService } from '../../../../platform/configuration/tes
 import { createModelServices, createTextModel } from '../testTextModel.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { IModelService } from '../../../common/services/model.js';
+import { IUndoRedoService } from '../../../../platform/undoRedo/common/undoRedo.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { TestInstantiationService } from '../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -384,6 +385,34 @@ suite('ModelService', () => {
 		assert.strictEqual(model2.getValue(), 'text2');
 		// dispose it
 		modelService.destroyModel(resource);
+	});
+
+	test('a changed buffer skips its own elements without touching the shared stack', () => {
+		const resourceA = URI.parse('shared://test-a.txt');
+		const resourceB = URI.parse('shared://test-b.txt');
+		const undoRedoService = instantiationService.get(IUndoRedoService);
+		disposables.add(undoRedoService.registerUriComparisonKeyComputer('shared', { getComparisonKey: () => 'shared-key' }));
+
+		const modelB = modelService.createModel('b', null, resourceB);
+		modelB.pushEditOperations(null, [{ range: new Range(1, 2, 1, 2), text: '2' }], () => null);
+		const modelA = modelService.createModel('a', null, resourceA);
+		modelA.pushEditOperations(null, [{ range: new Range(1, 2, 1, 2), text: '1' }], () => null);
+
+		modelService.destroyModel(resourceA);
+		const recreatedA = modelService.createModel('a-changed', null, resourceA);
+
+		// A's element is on top of the shared stack. Its old offsets describe the disposed buffer,
+		// so undoing it must be a no-op rather than writing them into the new one.
+		recreatedA.undo();
+		assert.strictEqual(recreatedA.getValue(), 'a-changed');
+		assert.strictEqual(modelB.getValue(), 'b2');
+
+		// The other resource sharing the comparison key still has its undo.
+		modelB.undo();
+		assert.strictEqual(modelB.getValue(), 'b');
+
+		modelService.destroyModel(resourceA);
+		modelService.destroyModel(resourceB);
 	});
 
 	test('setValue should clear undo stack', () => {

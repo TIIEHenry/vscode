@@ -6,6 +6,7 @@
 import { localize } from '../../../../nls.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
+import { isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { IConversationRosterService, settleDispatchedEngineWrite } from './conversationStubService.js';
 
 /**
@@ -34,8 +35,7 @@ export const conversationForkEngineDisconnectedCopy = localize(
 
 /** KEEP leftover list-fail (D449/D454/D456): connected but roster not ready is not a live write surface. */
 function isKeepLeftoverListFailWrite(roster: IConversationRosterService): boolean {
-	return roster.isEngineConnected()
-		&& roster.isEngineSessionReady?.() === false;
+	return isConversationSessionNotReady(roster);
 }
 
 export async function tryConnectedEngineFork(

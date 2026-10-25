@@ -5,6 +5,7 @@
 
 import { range } from './arrays.js';
 import { CancellationToken, CancellationTokenSource } from './cancellation.js';
+import { DeferredPromise } from './async.js';
 import { CancellationError } from './errors.js';
 import { Event, Emitter } from './event.js';
 
@@ -205,7 +206,14 @@ export class PageIteratorPager<T> implements IPager<T> {
 	private cachedPages: T[][] = [];
 	private currentIterator: IPageIterator<T>;
 	private isComplete: boolean = false;
-	private pendingRequests = new Map<number, Promise<void>>();
+	/**
+	 * Callers waiting for a page. They share one sequential load, because only that load may move
+	 * `currentIterator` and append to `cachedPages`.
+	 */
+	private readonly waiters = new Set<{ targetPageIndex: number; deferred: DeferredPromise<void> }>();
+	private loadPromise: Promise<void> | undefined;
+	/** Cancelled only when this pager goes away, never by an individual caller. */
+	private readonly loadCancellation = new CancellationTokenSource();
 
 	public readonly firstPage: T[];
 	public readonly pageSize: number;
@@ -235,44 +243,81 @@ export class PageIteratorPager<T> implements IPager<T> {
 			throw new Error(`Page ${pageIndex} is out of bounds. Total pages: ${this.cachedPages.length}`);
 		}
 
-
-		// Check if there's already a pending request that will load this index
-		// (any pending request for an index >= our requested index)
-		let promise: Promise<void> | undefined;
-		for (const [pendingPageIndex, pendingPromise] of this.pendingRequests) {
-			if (pendingPageIndex >= pageIndex) {
-				promise = pendingPromise;
-				break;
+		const waiter = { targetPageIndex: pageIndex, deferred: new DeferredPromise<void>() };
+		this.waiters.add(waiter);
+		// A caller's token governs only its own wait. Cancelling it must not abort a load another
+		// caller is still waiting on.
+		const cancellationListener = cancellationToken.onCancellationRequested(() => {
+			if (this.waiters.delete(waiter)) {
+				waiter.deferred.error(new CancellationError());
 			}
-		}
-
-		if (!promise) {
-			promise = this.loadPagesUntil(pageIndex, cancellationToken);
-			this.pendingRequests.set(pageIndex, promise);
-		}
+		});
+		this.ensureLoading();
 
 		try {
-			await promise;
+			await waiter.deferred.p;
 			if (pageIndex >= this.cachedPages.length) {
 				throw new Error(`Page ${pageIndex} is out of bounds. Total pages: ${this.cachedPages.length}`);
 			}
 			return this.cachedPages[pageIndex];
 		} finally {
-			this.pendingRequests.delete(pageIndex);
+			cancellationListener.dispose();
+			this.waiters.delete(waiter);
 		}
 	}
 
-	private async loadPagesUntil(targetPageIndex: number, cancellationToken: CancellationToken): Promise<void> {
-		while (targetPageIndex >= this.cachedPages.length && this.currentIterator.hasNextPage) {
-			if (cancellationToken.isCancellationRequested) {
-				throw new CancellationError();
-			}
-
-			this.currentIterator = await this.currentIterator.getNextPage(cancellationToken);
-			this.cachedPages.push([...this.currentIterator.elements]);
+	private ensureLoading(): void {
+		if (this.loadPromise) {
+			return;
 		}
-		if (!this.currentIterator.hasNextPage) {
-			this.isComplete = true;
+		this.loadPromise = this.loadPages().finally(() => {
+			this.loadPromise = undefined;
+		});
+	}
+
+	private async loadPages(): Promise<void> {
+		try {
+			while (true) {
+				for (const waiter of [...this.waiters]) {
+					if (waiter.targetPageIndex < this.cachedPages.length) {
+						this.waiters.delete(waiter);
+						waiter.deferred.complete();
+					}
+				}
+
+				if (this.waiters.size === 0) {
+					return;
+				}
+
+				if (!this.currentIterator.hasNextPage) {
+					this.isComplete = true;
+					for (const waiter of [...this.waiters]) {
+						this.waiters.delete(waiter);
+						waiter.deferred.error(new Error(`Page ${waiter.targetPageIndex} is out of bounds. Total pages: ${this.cachedPages.length}`));
+					}
+					return;
+				}
+
+				const nextIterator = await this.currentIterator.getNextPage(this.loadCancellation.token);
+				// Keep the page even when every waiter cancelled while it was in flight: dropping it
+				// would advance the cursor without filling the cache, shifting every later page.
+				this.currentIterator = nextIterator;
+				this.cachedPages.push([...nextIterator.elements]);
+			}
+		} catch (error) {
+			for (const waiter of [...this.waiters]) {
+				this.waiters.delete(waiter);
+				waiter.deferred.error(error);
+			}
+		}
+	}
+
+	dispose(): void {
+		this.loadCancellation.cancel();
+		this.loadCancellation.dispose();
+		for (const waiter of [...this.waiters]) {
+			this.waiters.delete(waiter);
+			waiter.deferred.error(new CancellationError());
 		}
 	}
 }

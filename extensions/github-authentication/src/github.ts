@@ -12,7 +12,7 @@ import { PromiseAdapter, arrayEquals, promiseFromEvent } from './common/utils';
 import { ExperimentationTelemetry } from './common/experimentationService';
 import { Log } from './common/logger';
 import { AccountLinks, IAccountLink } from './common/accountLinks';
-import { IGitHubUserInfo } from './common/gitHubAccount';
+import { GitHubUserInfoError, IGitHubUserInfo } from './common/gitHubAccount';
 import { MICROSOFT_PROVIDER_ID, MicrosoftAuthentication } from './common/microsoftAuthentication';
 import { crypto } from './node/crypto';
 import { TIMED_OUT_ERROR, USER_CANCELLATION_ERROR } from './common/errors';
@@ -163,6 +163,11 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 
 	/** The sessions backed by the Keychain, and therefore shared with other windows. */
 	private _persistedSessionsPromise: Promise<vscode.AuthenticationSession[]>;
+	/**
+	 * Keychain records this window could not verify, kept verbatim so that a later write does not
+	 * drop a token a network failure merely hid. They are never returned to callers.
+	 */
+	private _unverifiedSessionData: SessionData[] = [];
 	/**
 	 * The sessions that only exist in this process, by id, each with the time its token runs out.
 	 *
@@ -611,6 +616,7 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 			this._logger.info('Reading sessions from keychain...');
 			const storedSessions = await this._keychain.getToken();
 			if (!storedSessions) {
+				this._unverifiedSessionData = [];
 				return [];
 			}
 			this._logger.info('Got stored sessions!');
@@ -618,6 +624,7 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 			try {
 				sessionData = JSON.parse(storedSessions);
 			} catch (e) {
+				this._unverifiedSessionData = [];
 				await this._keychain.deleteToken();
 				throw e;
 			}
@@ -631,6 +638,12 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 		// the sessions to migrate away from the bad number usage.
 		// TODO@TylerLeonhardt: Remove this after we are confident that all users have migrated to the new id.
 		let seenNumberAccountId: boolean = false;
+		// A session without an account has no identity until `GET /user` answers for it. Keep the
+		// two kinds of failure apart: an explicit rejection may be removed from the keychain, while
+		// anything else leaves the record alone for a later read.
+		let sawRejectedSession = false;
+		let sawUnverifiedSession = false;
+		const unverifiedSessionData: SessionData[] = [];
 		// TODO: eventually remove this Set because we should only have one session per set of scopes.
 		const scopesSeen = new Set<string>();
 		const sessionPromises = sessionData.map(async (session: SessionData): Promise<vscode.AuthenticationSession | undefined> => {
@@ -642,9 +655,15 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 					userInfo = await this._githubServer.getUserInfo(session.accessToken);
 					this._logger.info(`Verified session with the following scopes: ${scopesStr}`);
 				} catch (e) {
-					if (e.message === 'Unauthorized') {
-						return undefined;
+					if (e instanceof GitHubUserInfoError && e.status === 401) {
+						sawRejectedSession = true;
+						this._logger.info(`Session was rejected by the server: ${e.message}`);
+					} else {
+						sawUnverifiedSession = true;
+						unverifiedSessionData.push(session);
+						this._logger.error(`Could not verify session: ${e.message ?? e}`);
 					}
+					return undefined;
 				}
 			}
 
@@ -685,8 +704,12 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 			.filter(<T>(p?: T): p is T => Boolean(p));
 
 		this._logger.info(`Got ${verifiedSessions.length} verified sessions.`);
+		this._unverifiedSessionData = unverifiedSessionData;
 		// Account data discovered during reads must not trigger a secret write because web embedders can re-expose accountless sessions.
-		if (seenNumberAccountId || verifiedSessions.length !== sessionData.length) {
+		// A rewrite also drops whatever this read could not verify, so it is only safe once every
+		// accountless record either resolved or was explicitly rejected by the server. A network
+		// failure, timeout, 5xx or unreadable response leaves the keychain untouched.
+		if (!sawUnverifiedSession && (seenNumberAccountId || sawRejectedSession || verifiedSessions.length !== sessionData.length)) {
 			try {
 				await this.storeSessions(verifiedSessions);
 			} catch (e) {
@@ -700,12 +723,16 @@ export class GitHubAuthenticationProvider implements vscode.AuthenticationProvid
 	}
 
 	private async storeSessions(sessions: vscode.AuthenticationSession[]): Promise<void> {
-		this._logger.info(`Storing ${sessions.length} sessions...`);
+		// Records this read could not verify are carried through unchanged, so signing in or out of
+		// one account does not drop another account's token while the network is unreachable.
+		const unverified = this._unverifiedSessionData ?? [];
+		const records = unverified.length ? [...sessions, ...unverified] : sessions;
+		this._logger.info(`Storing ${records.length} sessions...`);
 		// getSessions trusts this list. Swap it in only after the keychain accepts the write,
 		// so a login that did not persist is not published.
-		await this._keychain.setToken(JSON.stringify(sessions));
+		await this._keychain.setToken(JSON.stringify(records));
 		this._persistedSessionsPromise = Promise.resolve(sessions);
-		this._logger.info(`Stored ${sessions.length} sessions!`);
+		this._logger.info(`Stored ${records.length} sessions!`);
 	}
 
 	/**

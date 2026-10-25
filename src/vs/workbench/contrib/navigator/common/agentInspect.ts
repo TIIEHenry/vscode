@@ -12,7 +12,7 @@ import type { INavigatorTeamMemberInfo, INavigatorTeamTaskInfo } from './navigat
 export const IAgentInspectService = createDecorator<IAgentInspectService>('agentInspectService');
 
 export type AgentInspectTarget =
-	| { readonly kind: 'agent'; readonly node: LiveAgentTreeNodeView }
+	| { readonly kind: 'agent'; readonly node: LiveAgentTreeNodeView; readonly sessionId: string }
 	| { readonly kind: 'member'; readonly info: INavigatorTeamMemberInfo }
 	| { readonly kind: 'task'; readonly task: INavigatorTeamTaskInfo }
 	| { readonly kind: 'activity'; readonly item: INavigatorAgentsActivityItem };
@@ -25,9 +25,10 @@ export interface IAgentInspectService {
 	readonly onDidChangeLiveAgentIds: Event<void>;
 	getTarget(): AgentInspectTarget | undefined;
 	setTarget(target: AgentInspectTarget | undefined): void;
-	setLiveAgentIds(source: AgentInspectLiveAgentIdSource, ids: ReadonlySet<string> | undefined): void;
+	setLiveAgentIds(source: AgentInspectLiveAgentIdSource, ids: ReadonlySet<string> | undefined, sessionId?: string): void;
 	getLiveAgentIds(): ReadonlySet<string> | undefined;
 	getLiveAgentIdsFor(source: AgentInspectLiveAgentIdSource): ReadonlySet<string> | undefined;
+	getLiveAgentIdsSession(source: AgentInspectLiveAgentIdSource): string | undefined;
 	setLiveActivityIds(ids: ReadonlySet<string> | undefined): void;
 	getLiveActivityIds(): ReadonlySet<string> | undefined;
 	setLiveTaskIds(ids: ReadonlySet<string> | undefined): void;

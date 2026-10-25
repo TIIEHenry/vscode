@@ -600,6 +600,35 @@ suite('AsyncDataTree', function () {
 		assert.strictEqual(container.innerHTML, '');
 	});
 
+	test('a refresh cancelled by setInput does not publish the previous input', async () => {
+		const container = document.createElement('div');
+		const calls: Function[] = [];
+		const dataSource = new class implements IAsyncDataSource<Element, Element> {
+			hasChildren(element: Element): boolean {
+				return !!element.children && element.children.length > 0;
+			}
+			getChildren(element: Element): Promise<Element[]> {
+				return new Promise(c => calls.push(() => c(element.children || [])));
+			}
+		};
+
+		const tree = store.add(new AsyncDataTree<Element, Element>('test', container, new VirtualDelegate(), [new Renderer()], dataSource, { identityProvider: new IdentityProvider() }));
+		tree.layout(200);
+
+		const first = tree.setInput({ id: 'first', children: [{ id: 'old-child' }] });
+		const second = tree.setInput({ id: 'second', children: [{ id: 'new-child' }] });
+
+		// Resolve the first input's `getChildren` after the second input replaced it.
+		calls.shift()!();
+		await new Promise(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(Array.from(container.querySelectorAll('.monaco-list-row')).map(row => row.textContent), [], 'the cancelled input must not render');
+
+		calls.shift()!();
+		await Promise.all([first, second]);
+
+		assert.deepStrictEqual(Array.from(container.querySelectorAll('.monaco-list-row')).map(row => row.textContent), ['new-child']);
+	});
+
 	test('issue #121567', async () => {
 		const container = document.createElement('div');
 

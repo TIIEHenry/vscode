@@ -8,7 +8,7 @@ import './media/newChatInSession.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable, DisposableStore, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
-import { constObservable, derived, IObservable } from '../../../../base/common/observable.js';
+import { constObservable, derived, IObservable, observableValue } from '../../../../base/common/observable.js';
 import { URI } from '../../../../base/common/uri.js';
 import { localize } from '../../../../nls.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -39,10 +39,10 @@ export class NewChatInSessionWidget extends Disposable {
 
 	private readonly _newChatInput: NewChatInputWidget;
 	private readonly _tipDisposable = this._register(new MutableDisposable());
-	private readonly _session: IObservable<IActiveSession | undefined>;
+	private readonly _session = observableValue<IActiveSession | undefined>(this, undefined);
 
 	constructor(
-		_options: IChatViewOptions & { readonly petHostPreferred?: IObservable<boolean> },
+		_options: IChatViewOptions & { readonly petHostPreferred?: IObservable<boolean>; readonly session?: IActiveSession },
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 		@ILogService private readonly logService: ILogService,
 		@ISessionsManagementService private readonly sessionsManagementService: ISessionsManagementService,
@@ -52,10 +52,7 @@ export class NewChatInSessionWidget extends Disposable {
 	) {
 		super();
 
-		this._session = derived(reader => {
-			const activeSession = this.sessionsService.activeSession.read(reader);
-			return activeSession;
-		});
+		this._session.set(_options.session, undefined);
 
 		const canSendRequest = derived(reader => {
 			const session = this._session.read(reader);
@@ -81,12 +78,21 @@ export class NewChatInSessionWidget extends Disposable {
 			voiceRoutesWhileSessionActive: true,
 			// The welcome composer persists its draft when that view is torn down.
 			// Sharing its key would pour that pitch into this follow-up box.
-			draftStorageKey: inSessionDraftStorageKey(this.sessionsService.activeSession.get()?.sessionId),
+			draftStorageKey: inSessionDraftStorageKey(_options.session?.sessionId),
 		}));
 		// Shutdown flushes storage before the workbench disposes, so the flush
 		// hook is what keeps the draft across reload. Teardown covers a chat switch.
 		this._register(toDisposable(() => this._newChatInput.saveState()));
 		this._register(this.storageService.onWillSaveState(() => this._newChatInput.saveState()));
+	}
+
+	/** Binds the composer to the session of the pane that hosts it. */
+	setSession(session: IActiveSession | undefined): void {
+		if (this._session.get() === session) {
+			return;
+		}
+		this._session.set(session, undefined);
+		this._newChatInput.setDraftStorageKey(inSessionDraftStorageKey(session?.sessionId));
 	}
 
 	// --- Rendering ---

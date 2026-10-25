@@ -4,7 +4,7 @@ type: index
 status: accepted
 phase: N/A
 updated: 2026-09-28
-summary: "本仓库本地 ADR 索引；ADR-011 Preview 两级标签 2026-09-28 签收 accepted；ADR-010 对话时间线原生文档流 accepted；ADR-009 Preview 类别隔离 accepted"
+summary: "本仓库本地 ADR 索引；ADR-012 leftover 显示已接受值但不得显示可写 2026-10-24 签收 accepted；ADR-011 Preview 两级标签 2026-09-28 签收 accepted；ADR-010 对话时间线原生文档流 accepted；ADR-009 Preview 类别隔离 accepted"
 ---
 
 # 架构决策记录
@@ -26,5 +26,6 @@ summary: "本仓库本地 ADR 索引；ADR-011 Preview 两级标签 2026-09-28 �
 | [009-preview-category-isolation.md](009-preview-category-isolation.md) | `accepted` | PRD-027 类别隔离。三类、类别条位置和「或专属的逻辑分组」由 [ADR-011](011-preview-two-level-tabs.md) 取代；Decision 4 仍有效 |
 | [010-conversation-timeline-document-flow.md](010-conversation-timeline-document-flow.md) | `accepted` | 推翻 lens-assembly :47 虚拟化，时间线全面转向原生文档流宿主，消除测高与贴底滞后，配合 D8 组合拳兜底性能 |
 | [011-preview-two-level-tabs.md](011-preview-two-level-tabs.md) | `accepted` | 2026-09-28 签收。Preview 两级标签：类别条独占一行，七个类别，每个编辑器组属于一个类别；否决 HEAD 的单组过滤 |
+| [012-leftover-accepted-value-vs-write-affordance.md](012-leftover-accepted-value-vs-write-affordance.md) | `accepted` | 2026-10-24 签收。收窄 D383/D450：leftover 不显示未接受的乐观值；引擎已接受的值可以显示，但控件必须保持不可写并说明原因 |
 
 编号说明：本仓 ADR 编号与外仓 UniverseAgentDesktop 互不相关（文中「Desktop ADR-003 token」「ADR-046 / 047 / 052 / 061」指外仓）。阶段日志落 [`status.md`](../progress/status.md) 与 `dev/progress/*-evidence/`，本仓不设 `dev/iterations/`（[DOCUMENTATION.md](../../docs/DOCUMENTATION.md) 规则 4）。

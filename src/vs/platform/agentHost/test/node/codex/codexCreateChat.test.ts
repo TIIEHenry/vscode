@@ -1873,7 +1873,7 @@ suite('CodexAgent exact chat routing', () => {
 					},
 				},
 			});
-			await assert.rejects(truncating, /not the last user message/);
+			await assert.rejects(truncating, /not the last text segment/);
 			assert.strictEqual(read.method, 'thread/read');
 			await assert.rejects(readNextRequest(peer.outbound), /Timed out waiting for Codex request/);
 		} finally {
@@ -1960,7 +1960,13 @@ suite('CodexAgent exact chat routing', () => {
 					thread: {
 						id: 'fork-split-source',
 						cwd: folder.fsPath,
-						turns: [{ id: codexTurnId }, { id: 'c1' }],
+						turns: [{
+							id: codexTurnId,
+							items: [
+								{ type: 'userMessage', id: 'u-first', content: [{ type: 'text', text: 'first' }] },
+								{ type: 'userMessage', id: 'u-second', content: [{ type: 'text', text: 'second' }] },
+							],
+						}, { id: 'c1' }],
 					},
 				},
 			});
@@ -2887,6 +2893,183 @@ suite('CodexAgent chat backing durability', () => {
 		}
 	});
 
+	test('a late app-server turn notification does not take over the current turn', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const session = AgentSession.uri('codex', 'stale-turn-notification');
+		const chat = URI.parse(buildDefaultChatUri(session));
+		const folder = URI.file('/repo/stale-turn-notification');
+
+		try {
+			await materializeSession(agent, peer, session, chat, folder, 'stale-turn-thread');
+			const entry = agent['_sessions'].get(AgentSession.id(session))!;
+			entry.currentTurnId = 'host-current';
+			entry.currentAppTurnId = 'app-current';
+			entry.hostTurnIdByAppTurnId.set('app-current', 'host-current');
+			entry.hostTurnIdByAppTurnId.set('app-old', 'host-old');
+			entry.mapState.itemToToolCall.set('item-live', { toolCallId: 'tc-live', turnId: 'host-current', toolName: 'shell', output: '' });
+
+			const completed = agent['_handleTurnCompletedNotification'](entry, {
+				threadId: 'stale-turn-thread',
+				turn: { id: 'app-old', status: 'completed', items: [] },
+			} as never);
+			const started = agent['_handleTurnStartedNotification'](entry, {
+				threadId: 'stale-turn-thread',
+				turn: { id: 'app-old', status: 'inProgress', items: [] },
+			} as never);
+
+			assert.deepStrictEqual({
+				completed,
+				started,
+				currentTurnId: entry.currentTurnId,
+				currentAppTurnId: entry.currentAppTurnId,
+				currentMapping: entry.hostTurnIdByAppTurnId.get('app-current'),
+				liveItem: entry.mapState.itemToToolCall.has('item-live'),
+			}, {
+				completed: [],
+				started: [],
+				currentTurnId: 'host-current',
+				currentAppTurnId: 'app-current',
+				currentMapping: 'host-current',
+				liveItem: true,
+			});
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('turn completion, abort and steering cancel parked approvals', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const session = AgentSession.uri('codex', 'approval-settlement');
+		const chat = URI.parse(buildDefaultChatUri(session));
+		const folder = URI.file('/repo/approval-settlement');
+
+		try {
+			await materializeSession(agent, peer, session, chat, folder, 'approval-settlement-thread');
+			const entry = agent['_sessions'].get(AgentSession.id(session))!;
+
+			entry.currentTurnId = 'host-a';
+			entry.currentAppTurnId = 'app-a';
+			entry.hostTurnIdByAppTurnId.set('app-a', 'host-a');
+			const command = entry.pendingCommandApprovals.register('approval-command');
+			const file = entry.pendingCommandApprovals.register('approval-file');
+			const permission = entry.pendingCommandApprovals.register('approval-permission');
+			agent['_handleTurnCompletedNotification'](entry, {
+				threadId: 'approval-settlement-thread',
+				turn: { id: 'app-a', status: 'completed', items: [] },
+			} as never);
+			assert.deepStrictEqual(await Promise.all([command, file, permission]), ['cancel', 'cancel', 'cancel']);
+			agent.respondToPermissionRequest('approval-command', true);
+			assert.strictEqual(entry.pendingCommandApprovals.has('approval-command'), false);
+
+			entry.currentTurnId = 'host-b';
+			entry.currentAppTurnId = 'app-b';
+			entry.hostTurnIdByAppTurnId.set('app-b', 'host-b');
+			const aborted = entry.pendingCommandApprovals.register('approval-abort');
+			const aborting = agent.chats.abort(chat, { configurationResource: session, resource: chat });
+			const interrupt = await readNextRequest(peer.outbound);
+			peer.push({ id: interrupt.id, result: {} });
+			await aborting;
+			assert.strictEqual(await aborted, 'cancel');
+			assert.strictEqual(interrupt.method, 'turn/interrupt');
+
+			entry.currentTurnId = 'host-c';
+			entry.currentAppTurnId = 'app-c';
+			entry.hostTurnIdByAppTurnId.set('app-c', 'host-c');
+			const steered = entry.pendingCommandApprovals.register('approval-steer');
+			agent['_beginSteeringTurn'](entry, {
+				id: 'steer-1',
+				message: { text: 'next', origin: { kind: MessageKind.User } },
+			} as never);
+			assert.strictEqual(await steered, 'cancel');
+		} finally {
+			peer.dispose();
+		}
+	});
+
+	test('approval cards show the scope that the decision grants', async () => {
+		const agent = await createAgent(disposables, { sdkResolvableWithoutDownload: true });
+		const peer = disposables.add(createTestPeer());
+		connect(agent, peer);
+		const session = AgentSession.uri('codex', 'approval-scope');
+		const chat = URI.parse(buildDefaultChatUri(session));
+		const folder = URI.file('/repo/approval-scope');
+
+		try {
+			await materializeSession(agent, peer, session, chat, folder, 'approval-scope-thread');
+			const entry = agent['_sessions'].get(AgentSession.id(session))!;
+			entry.currentTurnId = 'host-scope';
+			entry.currentAppTurnId = 'app-scope';
+			entry.mapState.itemToToolCall.set('item-command', { toolCallId: 'tc-command', turnId: 'host-scope', toolName: 'shell', output: '' });
+			entry.mapState.itemToToolCall.set('item-permission', { toolCallId: 'tc-permission', turnId: 'host-scope', toolName: 'shell', output: '' });
+			const signals: AgentSignal[] = [];
+			const listener = agent.onDidChatProgress(signal => signals.push(signal));
+			const cardFor = (toolCallId: string): string | undefined => signals.flatMap(signal => signal.kind === 'action' && signal.action.type === ActionType.ChatToolCallReady && signal.action.toolCallId === toolCallId
+				? [typeof signal.action.toolInput === 'string' ? signal.action.toolInput : undefined]
+				: []).at(-1);
+
+			try {
+				const command = agent['_handleCommandApprovalRequest']({
+					threadId: 'approval-scope-thread',
+					turnId: 'app-scope',
+					itemId: 'item-command',
+					command: '/bin/zsh -lc "rm -rf /tmp/x"',
+					reason: 'needs write access',
+					cwd: '/repo/project',
+					additionalPermissions: { network: { enabled: true }, fileSystem: { read: ['/secret'], write: null } },
+				});
+				await new Promise(resolve => setImmediate(resolve));
+				const commandCard = cardFor('tc-command');
+				assert.ok(commandCard?.includes('rm -rf /tmp/x'));
+				assert.ok(commandCard?.includes('/repo/project'));
+				assert.ok(commandCard?.includes('/secret'));
+				assert.ok(commandCard?.includes('Network: enabled'));
+				agent.respondToPermissionRequest('tc-command', true);
+				assert.strictEqual(await command, 'accept');
+
+				// The same command with a different cwd must prompt again rather
+				// than hit the accept-for-session memo.
+				const second = agent['_handleCommandApprovalRequest']({
+					threadId: 'approval-scope-thread',
+					turnId: 'app-scope',
+					itemId: 'item-command',
+					command: '/bin/zsh -lc "rm -rf /tmp/x"',
+					cwd: '/repo/other',
+				});
+				await new Promise(resolve => setImmediate(resolve));
+				assert.ok(entry.pendingCommandApprovals.has('tc-command'));
+				agent.respondToPermissionRequest('tc-command', false);
+				assert.strictEqual(await second, 'decline');
+
+				const permissions = { network: { enabled: true }, fileSystem: { read: ['/shown'], write: null } };
+				const permissionDecision = agent['_handlePermissionsApprovalRequestRpc']({
+					threadId: 'approval-scope-thread',
+					turnId: 'app-scope',
+					itemId: 'item-permission',
+					environmentId: null,
+					startedAtMs: 0,
+					cwd: '/repo/project',
+					reason: 'grant network',
+					permissions,
+				});
+				await new Promise(resolve => setImmediate(resolve));
+				const permissionCard = cardFor('tc-permission');
+				assert.ok(permissionCard?.includes('/repo/project'));
+				assert.ok(permissionCard?.includes('/shown'));
+				assert.ok(permissionCard?.includes('Network: enabled'));
+				agent.respondToPermissionRequest('tc-permission', true);
+				assert.deepStrictEqual((await permissionDecision).result.permissions, permissions);
+			} finally {
+				listener.dispose();
+			}
+		} finally {
+			peer.dispose();
+		}
+	});
+
 	test('materializeChat rolls back a newly restored runtime when server-tool advertisement fails', async () => {
 		const agent = await createAgent(disposables);
 		const session = AgentSession.uri('codex', 'restore-fail-advertise');
@@ -3325,7 +3508,23 @@ suite('CodexAgent chat backing durability', () => {
 			assert.strictEqual(entry.codexTurnIdByHostTurnId.get(previousHostTurnId), appTurnId);
 			assert.strictEqual(entry.codexTurnIdByHostTurnId.get(newHostTurnId), appTurnId);
 
-			const truncating = agent.truncateChat(chat, previousHostTurnId, { configurationResource: sessionUri, resource: chat });
+			// The earlier steering segment is not the last host turn for this
+			// codex turn, so rolling it back would leave the later segment behind.
+			const rejecting = agent.truncateChat(chat, previousHostTurnId, { configurationResource: sessionUri, resource: chat });
+			const rejectedRead = await readNextRequest(peer.outbound);
+			peer.push({
+				id: rejectedRead.id,
+				result: {
+					thread: {
+						id: 'truncate-steer-thread',
+						cwd: folder.fsPath,
+						turns: [{ id: appTurnId }, { id: 'codex-turn-after' }],
+					},
+				},
+			});
+			await assert.rejects(rejecting, /not the last segment/);
+
+			const truncating = agent.truncateChat(chat, newHostTurnId, { configurationResource: sessionUri, resource: chat });
 			const read = await readNextRequest(peer.outbound);
 			peer.push({
 				id: read.id,

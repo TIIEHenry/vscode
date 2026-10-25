@@ -23,6 +23,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { ILogService } from '../../../../platform/log/common/log.js';
 import { IProgressService, ProgressLocation } from '../../../../platform/progress/common/progress.js';
 import { IQuickInputService, IQuickPickItem, IQuickPickSeparator } from '../../../../platform/quickinput/common/quickInput.js';
+import { IUndoRedoElement, IUndoRedoService } from '../../../../platform/undoRedo/common/undoRedo.js';
 import { IClipboardCopyEvent, IClipboardPasteEvent, IWritableClipboardData } from '../../../browser/controller/editContext/clipboardUtils.js';
 import { ICodeEditor, PastePayload } from '../../../browser/editorBrowser.js';
 import { IBulkEditService } from '../../../browser/services/bulkEditService.js';
@@ -121,6 +122,7 @@ export class CopyPasteController extends Disposable implements IEditorContributi
 		@ILanguageFeaturesService private readonly _languageFeaturesService: ILanguageFeaturesService,
 		@IQuickInputService private readonly _quickInputService: IQuickInputService,
 		@IProgressService private readonly _progressService: IProgressService,
+		@IUndoRedoService private readonly _undoRedoService: IUndoRedoService,
 	) {
 		super();
 
@@ -331,6 +333,8 @@ export class CopyPasteController extends Disposable implements IEditorContributi
 		}
 
 		const editorStateCts = new EditorStateCancellationTokenSource(editor, CodeEditorStateFlag.Value | CodeEditorStateFlag.Selection, undefined);
+		let alternativeVersionIdBeforePaste: number | undefined;
+		let topBeforePaste: IUndoRedoElement | undefined;
 
 		const p = createCancelablePromise(async (pToken) => {
 			const editor = this._editor;
@@ -338,6 +342,8 @@ export class CopyPasteController extends Disposable implements IEditorContributi
 				return;
 			}
 			const model = editor.getModel();
+			alternativeVersionIdBeforePaste = model.getAlternativeVersionId();
+			topBeforePaste = this._undoRedoService.getElements(model.uri).past.at(-1);
 
 			const disposables = new DisposableStore();
 			const cts = disposables.add(new CancellationTokenSource(pToken));
@@ -405,11 +411,29 @@ export class CopyPasteController extends Disposable implements IEditorContributi
 		this._pasteProgressManager.showWhile(selections[0].getEndPosition(), localize('pasteIntoEditorProgress', "Running paste handlers. Click to cancel and do basic paste"), p, {
 			cancel: async () => {
 				p.cancel();
-				if (editorStateCts.token.isCancellationRequested) {
+				// A provider edit may already have landed. Undo exactly that element, then decide about
+				// the default paste against the restored buffer rather than the stale editor-state
+				// token, which its own write has already cancelled.
+				const model = editor.getModel();
+				if (!model) {
 					return;
 				}
 
-				await this.applyDefaultPasteHandler(dataTransfer, metadata, editorStateCts.token, clipboardEvent);
+				const top = this._undoRedoService.getElements(model.uri).past.at(-1);
+				if (alternativeVersionIdBeforePaste === undefined) {
+					return;
+				}
+
+				// Only undo an element this paste pushed. Anything else would be somebody else's edit.
+				if (top && top !== topBeforePaste && model.getAlternativeVersionId() !== alternativeVersionIdBeforePaste) {
+					await model.undo();
+				}
+
+				if (this._editor.getModel() !== model || model.getAlternativeVersionId() !== alternativeVersionIdBeforePaste) {
+					return;
+				}
+
+				await this.applyDefaultPasteHandler(dataTransfer, metadata, CancellationToken.None, clipboardEvent);
 			}
 		}).finally(() => {
 			editorStateCts.dispose();

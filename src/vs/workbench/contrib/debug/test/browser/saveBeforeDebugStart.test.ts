@@ -6,6 +6,8 @@
 import assert from 'assert';
 import { URI } from '../../../../../base/common/uri.js';
 import { Schemas } from '../../../../../base/common/network.js';
+import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
@@ -14,7 +16,7 @@ import { IEditorService } from '../../../../services/editor/common/editorService
 import { DEBUG_START_COMMAND_ID } from '../../browser/debugCommands.js';
 import { DebugService } from '../../browser/debugService.js';
 import { DebugTaskRunner, TaskRunResult } from '../../browser/debugTaskRunner.js';
-import { IDebugService, IDebugSession, State } from '../../common/debug.js';
+import { IConfig, IDebugService, IDebugSession, ILaunch, State } from '../../common/debug.js';
 import { saveAllBeforeDebugStart } from '../../common/debugUtils.js';
 
 function editorService(options: {
@@ -246,5 +248,219 @@ suite('Debug - saveAllBeforeDebugStart', () => {
 		await service.restartSession(session as unknown as IDebugSession);
 		assert.strictEqual(tasks, 0);
 		assert.strictEqual(configuration.reloads(), 0);
+	});
+});
+
+type RestartHarness = {
+	service: DebugService;
+	config: IConfig;
+	restarts: number;
+	tasks: number;
+	tests: number;
+	cancelledTests: number;
+	setConfigurationCalls: number;
+	configurationManager: {
+		getLaunch(): ILaunch | undefined;
+		resolveConfigurationByProviders(): Promise<IConfig | undefined>;
+		resolveDebugConfigurationWithSubstitutedVariables(): Promise<IConfig | undefined>;
+	};
+};
+
+function createRestartHarness(options: {
+	launchConfig: IConfig;
+	providerConfig?: IConfig | undefined;
+	substitutedConfig?: IConfig | undefined;
+	cancelledBySubstitute?: boolean;
+	correlatedTestRun?: boolean;
+}): RestartHarness {
+	const config: IConfig = { type: 'node', name: 'app', request: 'launch' };
+	let restarts = 0;
+	let tasks = 0;
+	let tests = 0;
+	let cancelledTests = 0;
+	let setConfigurationCalls = 0;
+	const onComplete = new Emitter<void>();
+
+	const launch = {
+		workspace: { uri: URI.file('/workspace') },
+		getConfiguration: () => options.launchConfig,
+	} as unknown as ILaunch;
+
+	const configurationManager = {
+		getLaunch: () => launch,
+		resolveConfigurationByProviders: async () => 'providerConfig' in options ? options.providerConfig : options.launchConfig,
+		resolveDebugConfigurationWithSubstitutedVariables: async () => options.substitutedConfig ?? options.launchConfig,
+	};
+
+	const service = createDebugServiceTestStub() as unknown as RestartHarness['service'] & DebugServiceTestStub;
+	const internals = service as unknown as Record<string, unknown>;
+	internals.configurationService = configurationService('none').service;
+	internals.editorService = editorService({ saveAllSuccess: true });
+	internals.configurationManager = configurationManager;
+	internals.contextService = { getWorkspace: () => ({ folders: [] }) };
+	internals.taskRunner = {
+		runTask: async () => { tasks++; return null; },
+		runTaskAndCheckErrors: async () => { tasks++; return TaskRunResult.Success; },
+	};
+	internals.model = { getBreakpoints: () => [] };
+	internals.testService = {
+		runResolvedTests: () => { tests++; },
+	};
+	internals.viewModel = { focusedSession: undefined };
+	internals.restartingSessions = new Set();
+	internals._onDidEndSession = { fire: () => { } };
+	internals.sessionCancellationTokens = new Map();
+	internals.substituteVariables = async (_launch: ILaunch | undefined, configToSubstitute: IConfig) => {
+		if (options.cancelledBySubstitute) {
+			const cts = internals.sessionCancellationTokens as Map<string, CancellationTokenSource>;
+			cts.get('session-1')?.cancel();
+		}
+		return options.substitutedConfig === null ? undefined : (options.substitutedConfig ?? configToSubstitute);
+	};
+
+	const session = {
+		saveBeforeRestart: false,
+		configuration: config,
+		unresolvedConfiguration: { type: 'node', name: 'app', request: 'launch' },
+		root: { uri: URI.file('/workspace') },
+		capabilities: { supportsRestartRequest: true },
+		getId: () => 'session-1',
+		setConfiguration: () => { setConfigurationCalls++; },
+		restart: async () => { restarts++; },
+		correlatedTestRun: options.correlatedTestRun ? {
+			completedAt: undefined,
+			request: {},
+			onComplete: onComplete.event,
+			cancelCorrelatedTestRun: () => { cancelledTests++; },
+		} : undefined,
+	} as unknown as IDebugSession;
+
+	return {
+		service,
+		config,
+		get restarts() { return restarts; },
+		get tasks() { return tasks; },
+		get tests() { return tests; },
+		get cancelledTests() { return cancelledTests; },
+		get setConfigurationCalls() { return setConfigurationCalls; },
+		configurationManager,
+		session,
+	} as RestartHarness & { session: IDebugSession };
+}
+
+suite('Debug - restart and create cancellation', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('restart does not write a half-resolved configuration when substitution is cancelled', async () => {
+		const harness = createRestartHarness({
+			launchConfig: { type: 'node', name: 'app', request: 'launch', program: '${workspaceFolder}/a.js' },
+			cancelledBySubstitute: true,
+		});
+
+		await harness.service.restartSession((harness as unknown as { session: IDebugSession }).session);
+
+		assert.strictEqual(harness.setConfigurationCalls, 0);
+		assert.strictEqual(harness.restarts, 0);
+		assert.strictEqual(harness.tests, 0);
+		assert.strictEqual(harness.tasks, 0);
+	});
+
+	test('restart does not restart when the provider resolves to nothing', async () => {
+		const harness = createRestartHarness({
+			launchConfig: { type: 'node', name: 'app', request: 'launch', program: '${workspaceFolder}/a.js' },
+			providerConfig: undefined,
+		});
+
+		await harness.service.restartSession((harness as unknown as { session: IDebugSession }).session);
+
+		assert.strictEqual(harness.setConfigurationCalls, 0);
+		assert.strictEqual(harness.restarts, 0);
+		assert.strictEqual(harness.tests, 0);
+		assert.strictEqual(harness.tasks, 0);
+	});
+
+	test('restart does not restart correlated tests when substitution is cancelled', async () => {
+		const harness = createRestartHarness({
+			launchConfig: { type: 'node', name: 'app', request: 'launch', program: '${workspaceFolder}/a.js' },
+			cancelledBySubstitute: true,
+			correlatedTestRun: true,
+		});
+
+		await harness.service.restartSession((harness as unknown as { session: IDebugSession }).session);
+
+		assert.strictEqual(harness.cancelledTests, 0);
+		assert.strictEqual(harness.tests, 0);
+		assert.strictEqual(harness.restarts, 0);
+	});
+
+	test('restart still restarts when no substitution is needed', async () => {
+		const harness = createRestartHarness({
+			launchConfig: { type: 'node', name: 'app', request: 'launch' },
+		});
+
+		await harness.service.restartSession((harness as unknown as { session: IDebugSession }).session);
+
+		assert.strictEqual(harness.restarts, 1);
+		assert.strictEqual(harness.setConfigurationCalls, 1);
+	});
+
+	test('createSession returns false when cancelled after the configuration resolved', async () => {
+		let doCreateSessionCalls = 0;
+		let sessions = 0;
+		const service = createDebugServiceTestStub() as unknown as DebugService & DebugServiceTestStub;
+		const internals = service as unknown as Record<string, unknown>;
+		internals.sessionCancellationTokens = new Map();
+		internals.configurationManager = {
+			resolveConfigurationByProviders: async () => ({ type: 'node', name: 'app', request: 'launch' }),
+			resolveDebugConfigurationWithSubstitutedVariables: async (_uri: unknown, _type: unknown, config: IConfig) => config,
+		};
+		internals.substituteVariables = async (_launch: ILaunch | undefined, config: IConfig) => {
+			// Cancel after the provider returned but before the post-substitution check.
+			(internals.sessionCancellationTokens as Map<string, CancellationTokenSource>).forEach(token => token.cancel());
+			return config;
+		};
+		internals.taskRunner = {
+			runTaskAndCheckErrors: async () => TaskRunResult.Success,
+		};
+		internals.contextService = { getWorkspace: () => ({ folders: [] }) };
+		internals.model = { getSessions: () => { sessions++; return []; } };
+		internals.adapterManager = { getDebugger: () => ({ enabled: true, type: 'node' }) };
+		internals.doCreateSession = async () => { doCreateSessionCalls++; return true; };
+		internals.debugStorage = { storeChosenEnvironments: () => { } };
+		internals.chosenEnvironments = {};
+		internals.editorService = { activeEditor: undefined };
+
+		const createSession = (service as unknown as { createSession(launch: ILaunch | undefined, config: IConfig): Promise<boolean> }).createSession.bind(service);
+		const result = await createSession(undefined, { type: 'node', name: 'app', request: 'launch' });
+
+		assert.strictEqual(result, false);
+		assert.strictEqual(doCreateSessionCalls, 0);
+		assert.strictEqual(sessions, 0);
+	});
+
+	test('createSession still creates when the token is not cancelled', async () => {
+		let doCreateSessionCalls = 0;
+		const service = createDebugServiceTestStub() as unknown as DebugService & DebugServiceTestStub;
+		const internals = service as unknown as Record<string, unknown>;
+		internals.sessionCancellationTokens = new Map();
+		internals.configurationManager = {
+			resolveConfigurationByProviders: async () => ({ type: 'node', name: 'app', request: 'launch' }),
+			resolveDebugConfigurationWithSubstitutedVariables: async (_uri: unknown, _type: unknown, config: IConfig) => config,
+		};
+		internals.substituteVariables = async (_launch: ILaunch | undefined, config: IConfig) => config;
+		internals.taskRunner = { runTaskAndCheckErrors: async () => TaskRunResult.Success };
+		internals.contextService = { getWorkspace: () => ({ folders: [] }) };
+		internals.model = { getSessions: () => [] };
+		internals.adapterManager = { getDebugger: () => ({ enabled: true, type: 'node' }) };
+		internals.doCreateSession = async () => { doCreateSessionCalls++; return true; };
+		internals.debugStorage = { storeChosenEnvironments: () => { } };
+		internals.chosenEnvironments = {};
+		internals.editorService = { activeEditor: undefined };
+
+		const createSession = (service as unknown as { createSession(launch: ILaunch | undefined, config: IConfig): Promise<boolean> }).createSession.bind(service);
+		const result = await createSession(undefined, { type: 'node', name: 'app', request: 'launch' });
+
+		assert.strictEqual(result, true);
+		assert.strictEqual(doCreateSessionCalls, 1);
 	});
 });

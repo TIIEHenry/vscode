@@ -44,6 +44,7 @@ import {
 import { isPendingAttentionAction } from './conversationPendingSeat.js';
 import { projectSnapshotToEntries } from './conversationSessionView.js';
 import { allocateConversationStubSessionId, ConversationStubSession, ConversationStubTurn, getConversationStubNextTurnId } from './conversationStubModel.js';
+import type { ConversationSessionReadiness } from './conversationSessionAvailability.js';
 
 const STUB_SEED_IDS = new Set(['untitled', 'visualize']);
 /** Placeholder roster row when connected but no engine session could be bound. */
@@ -154,21 +155,28 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return this.isEngineConnected() && !isConversationPairingHold(this.uaConnection);
 	}
 
-	override isEngineSessionReady(): boolean {
+	getEngineSessionReadiness(): ConversationSessionReadiness {
 		if (!this.isEngineConnected()) {
-			return true;
+			return 'ready';
 		}
 		if (this.engineSessionBindFailed) {
-			return false;
+			return 'unavailable';
 		}
 		if (!this.listCompleted || this.pendingEngineBindSessionId) {
-			return false;
+			return 'loading';
 		}
 		const sessionId = this.getActiveSessionId();
 		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId)) {
-			return false;
+			return 'unavailable';
 		}
-		return this.engineSessions.some(session => session.id === sessionId);
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return 'unavailable';
+		}
+		return 'ready';
+	}
+
+	override isEngineSessionReady(): boolean {
+		return this.getEngineSessionReadiness() === 'ready';
 	}
 
 	private isEngineSessionBindFailed(): boolean {

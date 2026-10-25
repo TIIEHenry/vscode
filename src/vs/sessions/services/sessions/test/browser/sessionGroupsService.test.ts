@@ -610,6 +610,16 @@ suite('SessionGroupsService', () => {
 		assert.strictEqual(service.getGroupOfSession('draft'), undefined);
 	});
 
+	test('an already-grouped session keeps its membership when its id is replaced', () => {
+		const a = service.createGroup('A');
+		service.addToGroup('draft', a.id);
+
+		sessionReplacedEmitter.fire({ from: createSession('draft'), to: createSession('committed') });
+
+		assert.strictEqual(service.getGroupOfSession('committed'), a.id);
+		assert.strictEqual(service.getGroupOfSession('draft'), undefined);
+	});
+
 	test('pending new session group is consumed once', () => {
 		const a = service.createGroup('A');
 		service.setPendingNewSessionGroup(a.id);

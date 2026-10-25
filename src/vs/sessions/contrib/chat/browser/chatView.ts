@@ -40,6 +40,7 @@ import { getChatSessionType } from '../../../../workbench/contrib/chat/common/mo
 import { IChatSessionsService, localChatSessionType } from '../../../../workbench/contrib/chat/common/chatSessionsService.js';
 import { AbstractChatView, ChatViewKind, IChatViewOptions } from '../../../browser/parts/chatView.js';
 import { ChatInteractivity, getSessionStatusMessage, IChat, isActiveSessionStatus, ISession, SessionStatus } from '../../../services/sessions/common/session.js';
+import { IActiveSession } from '../../../services/sessions/common/sessionsManagement.js';
 import { IChatViewFactory } from '../../../services/chatView/browser/chatViewFactory.js';
 import { chatViewLoadFailureMessage, isChatViewLoadFailure } from '../../../services/chatView/browser/chatViewLoad.js';
 import { NewChatWidget } from './newChatWidget.js';
@@ -97,6 +98,12 @@ export class NewChatView extends AbstractChatView {
 
 	override toJSON(): object {
 		return { type: NewChatView.TYPE };
+	}
+
+	override setChat(chat: IChat, historyKey?: string, session?: ISession): void {
+		if (this.kind === 'newChatInSession' && this._widget instanceof NewChatInSessionWidget) {
+			this._widget.setSession(session as IActiveSession | undefined);
+		}
 	}
 
 	protected override doLayout(width: number, height: number, _top: number, _left: number): void {

@@ -348,18 +348,46 @@ suite('Workbench - Test Service', () => {
 			assert.strictEqual(runTestsCalls(), 0);
 		});
 
-		test('preserveFocus skips saveAll and still runTests', async () => {
+		test('preserveFocus still saves before running tests', async () => {
 			const { testService, runTestsCalls, saveAllCalls } = createHarness({});
 
 			await testService.runResolvedTests({ ...defaultReq(), preserveFocus: true }, CancellationToken.None);
-			assert.strictEqual(saveAllCalls(), 0);
+			assert.strictEqual(saveAllCalls(), 1);
 			assert.strictEqual(runTestsCalls(), 1);
+		});
+
+		test('preserveFocus does not runTests when saveAll resolves success false', async () => {
+			const { testService, runTestsCalls, saveAllCalls } = createHarness({
+				saveAll: () => Promise.resolve({ success: false, editors: [] }),
+			});
+
+			await testService.runResolvedTests({ ...defaultReq(), preserveFocus: true }, CancellationToken.None);
+			assert.strictEqual(saveAllCalls(), 1);
+			assert.strictEqual(runTestsCalls(), 0);
+		});
+
+		test('preserveFocus does not runTests when saveAll rejects', async () => {
+			const { testService, runTestsCalls, saveAllCalls } = createHarness({
+				saveAll: () => Promise.reject(new Error('save failed')),
+			});
+
+			await testService.runResolvedTests({ ...defaultReq(), preserveFocus: true }, CancellationToken.None);
+			assert.strictEqual(saveAllCalls(), 1);
+			assert.strictEqual(runTestsCalls(), 0);
 		});
 
 		test('saveBeforeTest false skips saveAll and still runTests', async () => {
 			const { testService, runTestsCalls, saveAllCalls } = createHarness({ saveBeforeTest: false });
 
 			await testService.runResolvedTests(defaultReq(), CancellationToken.None);
+			assert.strictEqual(saveAllCalls(), 0);
+			assert.strictEqual(runTestsCalls(), 1);
+		});
+
+		test('saveBeforeTest false skips saveAll even with preserveFocus', async () => {
+			const { testService, runTestsCalls, saveAllCalls } = createHarness({ saveBeforeTest: false });
+
+			await testService.runResolvedTests({ ...defaultReq(), preserveFocus: true }, CancellationToken.None);
 			assert.strictEqual(saveAllCalls(), 0);
 			assert.strictEqual(runTestsCalls(), 1);
 		});

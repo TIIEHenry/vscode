@@ -438,7 +438,13 @@ function mergeFileEdit(prev: IToolCallFileEdit, next: IToolCallFileEdit): IToolC
 	} else if (endsAbsent) {
 		kind = FileEditKind.Delete;
 	} else {
-		kind = FileEditKind.Edit;
+		// A rename followed by an edit to the new path is still a path move. The
+		// `Rename` branch restores the original path before writing the earlier
+		// content, which a plain `Edit` cannot do.
+		const originalResource = next.originalResource ?? prev.originalResource;
+		kind = originalResource && originalResource.toString() !== next.resource.toString()
+			? FileEditKind.Rename
+			: FileEditKind.Edit;
 	}
 
 	return {

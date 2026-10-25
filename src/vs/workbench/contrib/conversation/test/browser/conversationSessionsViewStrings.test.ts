@@ -78,6 +78,27 @@ suite('ConversationSessionsView strings', () => {
 		assert.strictEqual(groupSessionsForRoster([undated, session({ id: 'other', title: 'Other' })], now).every(entry => entry.kind === 'session'), true);
 	});
 
+	test('roster groups sort newer access first and keep undated input order', () => {
+		const nowDate = new Date();
+		nowDate.setHours(15, 0, 0, 0);
+		const now = nowDate.getTime();
+		const older = session({ id: 'older', title: 'Older', lastAccessedAt: now - 60_000 });
+		const newer = session({ id: 'newer', title: 'Newer', lastAccessedAt: now - 1_000 });
+		const sameFirst = session({ id: 'same-a', title: 'Same A', lastAccessedAt: now - 2_000 });
+		const sameSecond = session({ id: 'same-b', title: 'Same B', lastAccessedAt: now - 2_000 });
+		const undatedFirst = session({ id: 'plain-a', title: 'Plain A' });
+		const undatedSecond = session({ id: 'plain-b', title: 'Plain B' });
+		const grouped = groupSessionsForRoster([older, undatedFirst, newer, sameSecond, undatedSecond, sameFirst], now);
+		assert.deepStrictEqual(grouped.map(entry => entry.kind === 'header' ? entry.group : entry.session.id), [
+			'today', 'newer', 'same-b', 'same-a', 'older',
+			'earlier', 'plain-a', 'plain-b',
+		]);
+		assert.deepStrictEqual(
+			groupSessionsForRoster([undatedSecond, undatedFirst], now).map(entry => entry.kind === 'session' ? entry.session.id : entry.group),
+			['plain-b', 'plain-a'],
+		);
+	});
+
 	test('roster aria label names the status and the active session', () => {
 		const quiet = session({ id: 'quiet', title: 'Quiet' });
 		assert.strictEqual(

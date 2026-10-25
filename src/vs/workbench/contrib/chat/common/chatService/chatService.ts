@@ -916,6 +916,8 @@ export namespace IChatToolInvocation {
 		type: StateKind.Completed;
 		postConfirmed: ConfirmedReason | undefined;
 		contentForModel: IToolResult['content'];
+		/** Set when the tool failed; the card must not present this as a successful completion. */
+		toolResultError?: string | boolean;
 	}
 
 	interface IChatToolInvocationCancelledState extends IChatToolInvocationStateBase, IChatToolInvocationPostStreamState {

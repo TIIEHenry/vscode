@@ -25,8 +25,6 @@ import {
 	conversationLensDockNoAgent,
 	conversationLensDockMaximizeInput,
 	conversationLensDockEngineNotConnected,
-	conversationLensDockSessionUnavailable,
-	conversationLensDockSessionUnavailableReason,
 	conversationLensDockNoEngineTools,
 	conversationLensDockNoTools,
 	conversationLensDockMoreTitle,
@@ -45,6 +43,7 @@ import {
 	conversationLensPostFailed,
 	conversationLensPostFailedChatStreamClosed,
 	conversationLensPostFailedDisconnected,
+	conversationLensPostFailedSessionNotReady,
 	conversationLensPostFailedMailboxFull,
 	conversationLensPostFailedNoSession,
 	conversationLensPostFailedNotAuthenticated,
@@ -69,6 +68,7 @@ import { isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { ConversationTimelineHost } from './conversationTimelineHost.js';
 import { provideTurnEditComposer } from './conversationTimelineRenderer.js';
 import { IConversationRosterService } from './conversationStubService.js';
+import { conversationSessionHoldReason, conversationSessionShortStatus, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -99,6 +99,9 @@ const conversationLensDockPermissionFailed = localize(
 export const conversationLensDockAgentUnavailable = localize(
 	'conversationLens.dockAgentUnavailable',
 	"Needs an engine connection");
+export const conversationLensDockEngineCapabilityUnsupported = localize(
+	'conversationLens.dockEngineCapabilityUnsupported',
+	"Not supported by this engine");
 export const conversationLensDockModelUnavailable = localize(
 	'conversationLens.dockModelUnavailable',
 	"Needs an engine connection");
@@ -313,7 +316,22 @@ function getSelectedAgentName(host: IConversationLensComposerChromeHost): string
 			return text;
 		}
 	}
-	return isSessionSwitchAgentAvailable(host) ? conversationLensDockNoAgent : conversationLensDockAgentUnavailable;
+	return isSessionSwitchAgentAvailable(host) ? conversationLensDockNoAgent : composerSeatUnavailableCopy(host, conversationLensDockAgentUnavailable);
+}
+
+/** Unavailable Agent / Permission / Model copy. Pairing-hold stays with the disconnected phrase. */
+function composerSeatUnavailableCopy(host: {
+	stubService: IConversationRosterService;
+	uaConnection: IUniverseAgentConnection;
+}, disconnectedCopy: string): string {
+	if (!host.stubService.isEngineConnected() || isConversationPairingHold(host.uaConnection)) {
+		return disconnectedCopy;
+	}
+	const short = conversationSessionShortStatus(getConversationSessionReadiness(host.stubService));
+	if (short) {
+		return short;
+	}
+	return conversationLensDockEngineCapabilityUnsupported;
 }
 
 function appendMoreMenuCurrentAgent(popup: HTMLElement, host: IConversationLensComposerChromeHost): void {
@@ -368,8 +386,9 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 					if (!permissionAvailable) {
 						item.disabled = true;
 						item.setAttribute('aria-disabled', 'true');
-						item.title = conversationLensDockPermissionUnavailable;
-						item.setAttribute('aria-label', `${COMPOSER_PERMISSION_OPTIONS[index]} — ${conversationLensDockPermissionUnavailable}`);
+						const unavailable = composerSeatUnavailableCopy(host, conversationLensDockPermissionUnavailable);
+						item.title = unavailable;
+						item.setAttribute('aria-label', `${COMPOSER_PERMISSION_OPTIONS[index]} — ${unavailable}`);
 					}
 					store.add(addDisposableListener(item, 'click', e => {
 						e.preventDefault();
@@ -660,7 +679,7 @@ export function isComposerStreaming(host: {
 	if (!host.stubService.isEngineConnected()) {
 		return false;
 	}
-	if (host.stubService.isEngineSessionReady?.() === false) {
+	if (isConversationSessionNotReady(host.stubService)) {
 		return false;
 	}
 	if (host.hasStreamingEntry?.()) {
@@ -698,7 +717,7 @@ export function updateSendEnabled(host: IConversationLensComposerChromeHost): vo
 		}
 		if (isComposerKeepLeftoverListFailed(host)) {
 			host.sendButton.enabled = false;
-			setSendButtonCopy(host.sendButton, `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`);
+			setSendButtonCopy(host.sendButton, conversationSessionHoldReason(false, getConversationSessionReadiness(host.stubService)) ?? '');
 			return;
 		}
 		if (host.submitInFlight || isComposerStreaming(host)) {
@@ -745,7 +764,8 @@ export function updateGateRow(host: IConversationLensComposerChromeHost): void {
 		}
 		// KEEP leftover list-fail: Loopback/Direct can still be up. Do not call that "Engine not connected".
 		if (isComposerKeepLeftoverListFailed(host)) {
-			showGateStatus(host, `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`, true);
+			const readiness = getConversationSessionReadiness(host.stubService);
+			showGateStatus(host, conversationSessionHoldReason(false, readiness) ?? '', readiness === 'unavailable');
 			return;
 		}
 		// Idle engine/session status lives on the identity strip (PreFirst) or SessionBar badge
@@ -817,11 +837,13 @@ export function showPostFailure(host: IConversationLensComposerChromeHost, reaso
 					? conversationLensPostFailedChatStreamClosed
 					: reason === 'engine_disconnected'
 						? conversationLensPostFailedDisconnected
-						: reason === 'empty_session_title'
-							? conversationLensSessionBarTitleEmpty
-							: reason === 'failed'
-								? conversationLensPostFailed
-								: conversationLensPostFailedNoSession;
+						: reason === 'session_not_ready'
+							? conversationLensPostFailedSessionNotReady
+							: reason === 'empty_session_title'
+								? conversationLensSessionBarTitleEmpty
+								: reason === 'failed'
+									? conversationLensPostFailed
+									: conversationLensPostFailedNoSession;
 		showGateNotice(host, message);
 	
 }
@@ -891,8 +913,7 @@ export function setSessionConfig(host: IConversationLensComposerChromeHost, sess
 
 /** KEEP leftover (D450): same predicate as SessionBar D449. List-fail leftover is not a live write surface. */
 export function isComposerKeepLeftoverListFailed(host: IConversationLensComposerChromeHost): boolean {
-	return host.stubService.isEngineConnected()
-		&& host.stubService.isEngineSessionReady?.() === false;
+	return isConversationSessionNotReady(host.stubService);
 }
 
 function isComposerSessionWriteLive(host: IConversationLensComposerChromeHost): boolean {
@@ -941,7 +962,7 @@ export function updatePermissionSelectEnabled(host: IConversationLensComposerChr
 			container,
 			available,
 			conversationLensDockPermissionLabel,
-			conversationLensDockPermissionUnavailable);
+			composerSeatUnavailableCopy(host, conversationLensDockPermissionUnavailable));
 		syncComposerPermissionWarning(host);
 	
 }
@@ -970,14 +991,15 @@ export function isSessionSwitchAgentAvailable(host: {
 
 export function updateAgentSelectEnabled(host: IConversationLensComposerChromeHost): void {
 	const available = isSessionSwitchAgentAvailable(host);
+	const unavailable = composerSeatUnavailableCopy(host, conversationLensDockAgentUnavailable);
 	if (host.agentContainer) {
 		if (!available) {
 			host.agentSelectBox?.setEnabled(false);
 			clearNode(host.agentContainer);
 			const label = append(host.agentContainer, $('span.conversation-lens-dock-agent-readonly'));
-			label.textContent = conversationLensDockAgentUnavailable;
-			label.setAttribute('aria-label', conversationLensDockAgentUnavailable);
-			label.title = conversationLensDockAgentUnavailable;
+			label.textContent = unavailable;
+			label.setAttribute('aria-label', unavailable);
+			label.title = unavailable;
 			return;
 		}
 		// eslint-disable-next-line no-restricted-syntax -- DOM element inspection for selectBox restoration
@@ -996,7 +1018,7 @@ export function updateAgentSelectEnabled(host: IConversationLensComposerChromeHo
 		host.agentContainer,
 		available,
 		conversationLensDockAgentLabel,
-		conversationLensDockAgentUnavailable);
+		unavailable);
 }
 
 export function updateComposerSessionSelectsEnabled(host: IConversationLensComposerChromeHost): void {
@@ -1008,9 +1030,9 @@ export function updateComposerSessionSelectsEnabled(host: IConversationLensCompo
 			const blocked = isComposerKeepLeftoverListFailed(host);
 			host.tuneButton.enabled = !blocked;
 			const tune = host.tuneButton as { setTitle?(title: string): void; setAriaLabel?(label: string): void };
-			const reason = `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`;
-			tune.setTitle?.(blocked ? reason : conversationLensDockTuneTitle);
-			tune.setAriaLabel?.(blocked ? `${conversationLensDockTuneTitle}. ${reason}` : conversationLensDockTuneTitle);
+			const reason = conversationSessionHoldReason(false, getConversationSessionReadiness(host.stubService));
+			tune.setTitle?.(blocked && reason ? reason : conversationLensDockTuneTitle);
+			tune.setAriaLabel?.(blocked && reason ? `${conversationLensDockTuneTitle}. ${reason}` : conversationLensDockTuneTitle);
 		}
 	
 }
@@ -1034,6 +1056,9 @@ interface SessionModelEpoch extends SessionChoiceEpochWait {
 	/** Index and id captured when the current target was accepted. */
 	rollbackIndex: number;
 	rollbackId: string;
+	/** Last model the engine accepted. Not the optimistic index of an in-flight choice. */
+	confirmedIndex: number;
+	confirmedId: string;
 }
 
 const sessionPermissionEpochs = new WeakMap<IConversationLensComposerChromeHost, Map<string, SessionPermissionEpoch>>();
@@ -1084,12 +1109,16 @@ function sessionModelEpoch(host: IConversationLensComposerChromeHost, sessionId:
 	}
 	let epoch = sessions.get(sessionId);
 	if (!epoch) {
+		const confirmedIndex = host.modelSelectedIndex;
+		const confirmedId = (host.catalogModelIds[confirmedIndex] ?? '').trim();
 		epoch = {
 			generation: 0,
-			targetIndex: host.modelSelectedIndex,
-			targetModelId: (host.catalogModelIds[host.modelSelectedIndex] ?? '').trim(),
-			rollbackIndex: host.modelSelectedIndex,
-			rollbackId: (host.catalogModelIds[host.modelSelectedIndex] ?? '').trim(),
+			targetIndex: confirmedIndex,
+			targetModelId: confirmedId,
+			rollbackIndex: confirmedIndex,
+			rollbackId: confirmedId,
+			confirmedIndex,
+			confirmedId,
 			inFlight: false,
 			waiters: [],
 		};
@@ -1115,8 +1144,13 @@ async function drainSessionPermission(host: IConversationLensComposerChromeHost,
 		try {
 			const result = await setPermissionMode.call(host.uaConnection, { sessionId, mode });
 			if (epoch.generation !== sentGeneration) {
-				// Pairing-hold cannot take a correcting write. Leave the newer choice.
+				// Pairing-hold cannot take a correcting write. Keep the accepted value,
+				// not the newer target that was never sent.
 				if (!isComposerSessionWriteLive(host)) {
+					if (result.ok) {
+						epoch.confirmedIndex = sentIndex;
+					}
+					restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
 					return;
 				}
 				// The engine accepted this mode. A later still-latest failure rolls
@@ -1126,8 +1160,12 @@ async function drainSessionPermission(host: IConversationLensComposerChromeHost,
 				}
 				continue;
 			}
-			// D383 leftover-looks-live: pairing-hold first. D450 KEEP leftover index; do not keep live apply.
+			// ADR-012: leftover keeps the accepted value; only the write affordance is held.
+			// D383/D450 stay closed: do not paint an unsent optimistic value as current.
 			if (!isComposerSessionWriteLive(host)) {
+				if (result.ok) {
+					epoch.confirmedIndex = sentIndex;
+				}
 				restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
 				return;
 			}
@@ -1143,6 +1181,7 @@ async function drainSessionPermission(host: IConversationLensComposerChromeHost,
 		} catch (error) {
 			if (epoch.generation !== sentGeneration) {
 				if (!isComposerSessionWriteLive(host)) {
+					restoreSessionPermissionIndex(host, sessionId, epoch.confirmedIndex);
 					return;
 				}
 				continue;
@@ -1184,14 +1223,35 @@ async function drainSessionModel(host: IConversationLensComposerChromeHost, sess
 				modelId: sentModelId,
 			});
 			if (epoch.generation !== sentGeneration) {
-				if (!epoch.targetModelId || !isComposerSessionWriteLive(host)) {
+				if (!epoch.targetModelId) {
+					return;
+				}
+				// Pairing-hold cannot take a correcting write. Keep the accepted model,
+				// not the newer target that was never sent.
+				if (!isComposerSessionWriteLive(host)) {
+					if (result.resolvedModelId.trim()) {
+						epoch.rollbackIndex = sentIndex;
+						epoch.rollbackId = sentModelId;
+						epoch.confirmedIndex = sentIndex;
+						epoch.confirmedId = sentModelId;
+						ensureSessionModelProfileIds(host).set(sessionId, sentModelId);
+					}
+					restoreSessionModelIndex(host, sessionId, epoch.confirmedIndex, epoch.confirmedId);
 					return;
 				}
 				continue;
 			}
-			// D383 leftover-looks-live: pairing-hold first. D450 KEEP leftover index; do not keep live model.
+			// ADR-012: leftover keeps the accepted model; only the write affordance is held.
+			// D383/D450 stay closed: do not paint an unsent optimistic model as current.
 			if (!isComposerSessionWriteLive(host)) {
-				restoreSessionModelIndex(host, sessionId, epoch.rollbackIndex, epoch.rollbackId);
+				if (result.resolvedModelId.trim()) {
+					epoch.rollbackIndex = sentIndex;
+					epoch.rollbackId = sentModelId;
+					epoch.confirmedIndex = sentIndex;
+					epoch.confirmedId = sentModelId;
+					ensureSessionModelProfileIds(host).set(sessionId, sentModelId);
+				}
+				restoreSessionModelIndex(host, sessionId, epoch.confirmedIndex, epoch.confirmedId);
 				return;
 			}
 			if (!result.resolvedModelId.trim()) {
@@ -1203,11 +1263,17 @@ async function drainSessionModel(host: IConversationLensComposerChromeHost, sess
 			}
 			epoch.rollbackIndex = sentIndex;
 			epoch.rollbackId = sentModelId;
+			epoch.confirmedIndex = sentIndex;
+			epoch.confirmedId = sentModelId;
 			ensureSessionModelProfileIds(host).set(sessionId, sentModelId);
 			return;
 		} catch (error) {
 			if (epoch.generation !== sentGeneration) {
-				if (!epoch.targetModelId || !isComposerSessionWriteLive(host)) {
+				if (!epoch.targetModelId) {
+					return;
+				}
+				if (!isComposerSessionWriteLive(host)) {
+					restoreSessionModelIndex(host, sessionId, epoch.confirmedIndex, epoch.confirmedId);
 					return;
 				}
 				continue;
@@ -1283,7 +1349,7 @@ export function updateModelSelectEnabled(host: IConversationLensComposerChromeHo
 			container,
 			available,
 			conversationLensDockModelLabel,
-			conversationLensDockModelUnavailable);
+			composerSeatUnavailableCopy(host, conversationLensDockModelUnavailable));
 	
 }
 

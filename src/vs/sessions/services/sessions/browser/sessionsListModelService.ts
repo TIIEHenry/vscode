@@ -159,7 +159,9 @@ export class SessionsListModelService extends Disposable implements ISessionsLis
 		if (!wasRead) {
 			return;
 		}
-		this.sessionsManagementService.markRead(session);
+		// A disconnected host keeps the session unread; migration is not a
+		// user action, so it must not surface an unhandled rejection.
+		this.sessionsManagementService.markRead(session).catch(() => { });
 		this._migratedReadSessionIds.add(sessionId);
 		this.saveSet(SessionsListModelService.READ_MIGRATION_DONE_KEY, this._migratedReadSessionIds);
 	}

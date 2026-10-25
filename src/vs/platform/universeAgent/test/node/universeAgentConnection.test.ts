@@ -313,6 +313,8 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentSaveSkillContentRequest,
 	UniverseAgentSaveSkillContentResult,
+	UniverseAgentFetchToolDetailRequest,
+	UniverseAgentFetchToolDetailWireResult,
 } from '../../common/universeAgentTypes.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentSessionListMethodKey, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
@@ -350,6 +352,7 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 			listSessions?: (request: UniverseAgentListSessionsRequest) => Promise<UniverseAgentListSessionsResult>;
 			saveSkillContent?: (request: UniverseAgentSaveSkillContentRequest) => Promise<UniverseAgentSaveSkillContentResult>;
 			fetchAgentTree?: (sessionId: string) => Promise<import('../../common/universeAgentTypes.js').UniverseAgentAgentTreeNode | undefined>;
+			fetchToolDetail?: (request: UniverseAgentFetchToolDetailRequest) => Promise<UniverseAgentFetchToolDetailWireResult>;
 		} = {},
 	) { }
 
@@ -2438,7 +2441,10 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return undefined;
 	}
 
-	async fetchToolDetail() {
+	async fetchToolDetail(request: UniverseAgentFetchToolDetailRequest) {
+		if (this.handlers.fetchToolDetail) {
+			return this.handlers.fetchToolDetail(request);
+		}
 		return { success: false, content: '', truncated: false };
 	}
 
@@ -2599,6 +2605,79 @@ suite('UniverseAgentConnectionService', () => {
 		assert.strictEqual((service as unknown as { _sessionToken?: string })._sessionToken, 'token-1');
 		assert.strictEqual(service.getConnectionSnapshot().authenticated, true);
 		assert.strictEqual(Object.hasOwn(service.getConnectionSnapshot(), 'sessionToken'), false);
+		service.dispose();
+	});
+
+	test('a stale AgentService.Tree result does not write the new transport\'s probe state', async () => {
+		const treeNodeA = {
+			agentId: 'a-root',
+			name: 'Root A',
+			type: 'AGENT_TYPE_ROOT',
+			status: 'AGENT_STATUS_IDLE',
+			model: '',
+			turnCount: 0,
+			createdAt: 0,
+			children: [],
+		};
+		let releaseA!: () => void;
+		const treeOnA = new Promise<typeof treeNodeA>(resolve => { releaseA = () => resolve(treeNodeA); });
+		const transportA = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-a',
+				methods: ['AgentService.Tree'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+			fetchAgentTree: async () => treeOnA,
+		});
+		const transportB = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-b',
+				methods: ['AgentService.Tree'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+			fetchAgentTree: async () => undefined,
+		});
+
+		let transportIndex = 0;
+		const transports = [transportA, transportB];
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: {
+				resolve: async (profileId: string) => ({
+					ok: true as const,
+					allowRelayFallback: false as const,
+					endpoint: {
+						attemptId: `endpoint-${profileId}`,
+						authority: '127.0.0.1:9',
+						port: 9,
+						resolvedIp: '127.0.0.1',
+						servername: '127.0.0.1',
+						relayTicketId: null,
+						tls: null,
+						expiresAtMs: Date.now() + 60_000,
+						path: 'direct' as const,
+					},
+				}),
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transports[transportIndex++],
+		});
+
+		assert.strictEqual((await service.connectProfile('profile-a')).ok, true);
+		const pendingA = service.fetchAgentTree('s1');
+		// Let A's call reach the transport before switching links.
+		await Promise.resolve();
+		assert.strictEqual((await service.connectProfile('profile-b')).ok, true);
+		const capabilityOnB = service.getCapabilitySnapshot().agentTree.support;
+
+		releaseA();
+		assert.strictEqual(await pendingA, undefined, 'a stale tree must not be returned to the caller');
+		assert.strictEqual(service.isAgentTreeUnsupported(), false);
+		assert.strictEqual(service.isAgentTreeFetchFailed(), false);
+		assert.strictEqual(service.getCapabilitySnapshot().agentTree.support, capabilityOnB);
+
 		service.dispose();
 	});
 
@@ -11270,6 +11349,105 @@ suite('UniverseAgentConnectionService', () => {
 
 		const connection: IUniverseAgentConnection = service;
 		assert.strictEqual(connection.saveSkillContent, undefined);
+		service.dispose();
+	});
+
+	test('ToolService.* wildcard advertises SaveSkillContent and still requires a probe', async () => {
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['ToolService.*'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+			saveSkillContent: async () => ({ ok: true }),
+		});
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport,
+		});
+
+		await connectPlainFixture(service);
+
+		assert.strictEqual(typeof (service as IUniverseAgentConnection).saveSkillContent, 'function');
+		service.dispose();
+	});
+
+	test('ToolService.ListSkills alone does not bind saveSkillContent', async () => {
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['ToolService.ListSkills'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+		});
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport,
+		});
+
+		await connectPlainFixture(service);
+
+		assert.strictEqual((service as IUniverseAgentConnection).saveSkillContent, undefined);
+		service.dispose();
+	});
+
+	test('AgentService.* wildcard advertises FetchToolDetail', async () => {
+		let calls = 0;
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['AgentService.*'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+			fetchToolDetail: async () => {
+				calls++;
+				return { success: true, content: 'detail', truncated: false };
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport,
+		});
+
+		await connectPlainFixture(service);
+		const result = await service.fetchToolDetail({ sessionId: 's1', toolCallId: 'tc-1', detailKind: 0, refId: 'r1' });
+
+		assert.deepStrictEqual(result, { ok: true, content: 'detail', truncated: false });
+		assert.strictEqual(calls, 1);
+		service.dispose();
+	});
+
+	test('fetchToolDetail without an AgentService advertisement is unavailable and does not call the transport', async () => {
+		let calls = 0;
+		const transport = new MockUniverseAgentGrpcTransport({
+			connect: async () => ({
+				sessionToken: 'token-1',
+				methods: ['AgentService.Tree'],
+				events: [],
+			}),
+			probeRpc: async () => GrpcStatusCode.OK,
+			fetchToolDetail: async () => {
+				calls++;
+				return { success: true, content: 'detail', truncated: false };
+			},
+		});
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport,
+		});
+
+		await connectPlainFixture(service);
+		const result = await service.fetchToolDetail({ sessionId: 's1', toolCallId: 'tc-1', detailKind: 0, refId: 'r1' });
+
+		assert.deepStrictEqual(result, { ok: false, reason: 'unavailable' });
+		assert.strictEqual(calls, 0);
 		service.dispose();
 	});
 

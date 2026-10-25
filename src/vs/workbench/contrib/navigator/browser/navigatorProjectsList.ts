@@ -15,6 +15,8 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { splitRecentLabel } from '../../../../base/common/labels.js';
 import { localize } from '../../../../nls.js';
+import { isEqual } from '../../../../base/common/resources.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
@@ -33,6 +35,9 @@ import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IHostService } from '../../../services/host/browser/host.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
+import { IWorkspaceEditingService } from '../../../services/workspaces/common/workspaceEditing.js';
+import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { formatSessionRosterSubtitle, resolveSessionRosterTone } from '../../conversation/browser/conversationSessionsViewStrings.js';
@@ -325,6 +330,9 @@ export class NavigatorProjectsView extends ViewPane {
 		@IThemeService themeService: IThemeService,
 		@IHoverService hoverService: IHoverService,
 		@INotificationService private readonly notificationService: INotificationService,
+		@IWorkspaceEditingService private readonly workspaceEditingService: IWorkspaceEditingService,
+		@ICommandService private readonly commandService: ICommandService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
@@ -482,9 +490,23 @@ export class NavigatorProjectsView extends ViewPane {
 		}
 		if (node.kind === 'local-folder' && node.openable) {
 			const mouseEvent = dom.isMouseEvent(browserEvent) ? browserEvent : undefined;
+			const forceNewWindow = !!(mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey));
+			const forceReuseWindow = !!(mouseEvent && mouseEvent.altKey);
+			const resource = node.resource;
+			// Without a modifier the window grows: a folder joins the workspace, it does not replace it.
+			if (!forceNewWindow && !forceReuseWindow && resource) {
+				if (this.contextService.getWorkspace().folders.some(folder => isEqual(folder.uri, resource))) {
+					void this.commandService.executeCommand(REVEAL_IN_EXPLORER_COMMAND_ID, resource).catch(onUnexpectedError).catch(onUnexpectedError);
+					return;
+				}
+				if ((node.remoteAuthority || undefined) === (this.environmentService.remoteAuthority || undefined)) {
+					void this.workspaceEditingService.addFolders([{ uri: resource }]).catch(onUnexpectedError).catch(onUnexpectedError);
+					return;
+				}
+			}
 			void this.hostService.openWindow([node.openable], {
-				forceNewWindow: !!(mouseEvent && (mouseEvent.ctrlKey || mouseEvent.metaKey)),
-				forceReuseWindow: !!(mouseEvent && mouseEvent.altKey),
+				forceNewWindow: forceNewWindow || (!forceReuseWindow && !!resource),
+				forceReuseWindow,
 				remoteAuthority: node.remoteAuthority ?? null,
 			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}

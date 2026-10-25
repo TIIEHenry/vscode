@@ -178,7 +178,7 @@ function doFindGroup(input: EditorInputWithOptions | IUntypedEditorInput, prefer
 		if (!conversationPart) {
 			throw new Error('No conversation editor part is available');
 		}
-		group = conversationPart.activeGroup;
+		group = conversationPart.groups.find(candidate => !conversationPart.isGroupHidden(candidate)) ?? conversationPart.activeGroup;
 	}
 
 	// Group: Conversation side group
@@ -189,6 +189,9 @@ function doFindGroup(input: EditorInputWithOptions | IUntypedEditorInput, prefer
 		}
 		const direction = preferredSideBySideGroupDirection(configurationService);
 		let candidateGroup = conversationPart.findGroup({ direction }, conversationPart.activeGroup, false);
+		if (candidateGroup && conversationPart.isGroupHidden(candidateGroup)) {
+			conversationPart.setGroupHidden(candidateGroup, false);
+		}
 		if (!candidateGroup) {
 			candidateGroup = conversationPart.addGroup(conversationPart.activeGroup, direction);
 		}

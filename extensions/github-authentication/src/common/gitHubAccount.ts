@@ -19,6 +19,17 @@ export interface IGitHubUserInfo {
 }
 
 /**
+ * A non-success answer to `GET /user`, with the status kept so callers can tell an explicit
+ * rejection from a failure that says nothing about the token.
+ */
+export class GitHubUserInfoError extends Error {
+	constructor(message: string, readonly status: number) {
+		super(message);
+		this.name = 'GitHubUserInfoError';
+	}
+}
+
+/**
  * Asks a GitHub host who an access token belongs to.
  *
  * Takes the endpoint rather than deriving it, because the answer is only meaningful for the host
@@ -64,5 +75,5 @@ export async function fetchUserInfo(http: IHttpClient, url: string, token: strin
 		// noop
 	}
 	logger.error(`Getting account info failed: ${errorMessage}`);
-	throw new Error(errorMessage);
+	throw new GitHubUserInfoError(errorMessage, result.status);
 }

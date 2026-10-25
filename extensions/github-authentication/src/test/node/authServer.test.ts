@@ -42,6 +42,18 @@ suite('LoopbackAuthServer', () => {
 		assert.strictEqual(stateLocation.searchParams.get('nonce'), server.nonce);
 	});
 
+	test('should reject the OAuth response when /signin has a mismatched nonce', async () => {
+		const response = await fetch(`http://localhost:${port}/signin?nonce=not-${server.nonce}`, {
+			redirect: 'manual'
+		});
+
+		assert.strictEqual(response.status, 302);
+		const location = response.headers.get('location');
+		assert.ok(location);
+		assert.strictEqual(new URL(location, `http://localhost:${port}`).searchParams.get('error'), 'Nonce does not match.');
+		await assert.rejects(server.waitForOAuthResponse(), /Nonce does not match\./);
+	});
+
 	test('should return 400 on /callback with missing parameters', async () => {
 		const response = await fetch(`http://localhost:${port}/callback`);
 		assert.strictEqual(response.status, 400);

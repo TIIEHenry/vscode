@@ -2803,13 +2803,13 @@ suite('RunInTerminalTool', () => {
 	async function sendBackgroundCompletionNotification(previousAgentId: string): Promise<IChatSendRequestOptions | undefined> {
 		const termId = `test-completion-model-term-${previousAgentId}`;
 		const sessionResource = LocalChatSessionUri.forSession(`test-completion-model-session-${previousAgentId}`);
-		const commandFinishedEmitter = new Emitter<{ exitCode: number | undefined }>();
+		const commandFinishedEmitter = new Emitter<{ exitCode: number | undefined; command?: string; id?: string }>();
 		const terminalDisposedEmitter = new Emitter<void>();
 		const inputDataEmitter = new Emitter<string>();
 
 		const terminalInstance = {
 			capabilities: {
-				get: (cap: TerminalCapability) => cap === TerminalCapability.CommandDetection ? { onCommandFinished: commandFinishedEmitter.event } : undefined,
+				get: (cap: TerminalCapability) => cap === TerminalCapability.CommandDetection ? { commands: [], onCommandFinished: commandFinishedEmitter.event } : undefined,
 			},
 			dispose: () => { },
 			onDisposed: terminalDisposedEmitter.event,
@@ -2850,11 +2850,48 @@ suite('RunInTerminalTool', () => {
 			._registerCompletionNotification(terminalInstance, termId, sessionResource, 'npm test', toolSpecificData);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
-		commandFinishedEmitter.fire({ exitCode: 0 });
+		commandFinishedEmitter.fire({ exitCode: 0, command: 'npm test' });
 
 		strictEqual(capturedSteeringRequests.length, 1, 'Expected a completion steering notification');
 		return capturedSteeringRequests[0].options;
 	}
+
+	test('ignores background completion events for a different command', async () => {
+		const termId = 'test-completion-mismatch-term';
+		const sessionResource = LocalChatSessionUri.forSession('test-completion-mismatch-session');
+		const commandFinishedEmitter = new Emitter<{ exitCode: number | undefined; command?: string; id?: string }>();
+		const terminalDisposedEmitter = new Emitter<void>();
+		const inputDataEmitter = new Emitter<string>();
+		let disposeCount = 0;
+
+		const terminalInstance = {
+			capabilities: {
+				get: (cap: TerminalCapability) => cap === TerminalCapability.CommandDetection ? { commands: [], onCommandFinished: commandFinishedEmitter.event } : undefined,
+			},
+			dispose: () => { disposeCount++; },
+			onDisposed: terminalDisposedEmitter.event,
+			onDidInputData: inputDataEmitter.event,
+		} as unknown as ITerminalInstance;
+
+		const toolSpecificData = { kind: 'terminal', commandLine: { original: 'npm test' }, language: 'bash', terminalCommandId: 'tool-command-id' } as IChatTerminalToolInvocationData;
+		(runInTerminalTool.constructor as unknown as { _activeExecutions: Map<string, { getOutput(): string; dispose(): void; instance: ITerminalInstance }> })._activeExecutions.set(termId, {
+			getOutput: () => 'done',
+			dispose: () => { },
+			instance: terminalInstance,
+		});
+
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		(runInTerminalTool as unknown as { _registerCompletionNotification: (terminal: ITerminalInstance, termId: string, session: URI, commandName: string, toolSpecificData: IChatTerminalToolInvocationData) => void })
+			._registerCompletionNotification(terminalInstance, termId, sessionResource, 'npm test', toolSpecificData);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		commandFinishedEmitter.fire({ exitCode: 0, command: 'npm run build', id: 'other-command-id' });
+		strictEqual(capturedSteeringRequests.length, 0, 'A different command must not complete this execution');
+		strictEqual(disposeCount, 0, 'A different command must not dispose the terminal');
+
+		commandFinishedEmitter.fire({ exitCode: 0, command: 'npm run build', id: 'tool-command-id' });
+		strictEqual(capturedSteeringRequests.length, 1, 'The matching command id should complete the execution');
+	});
 
 	test('should preserve conversation context for background completion notifications', async () => {
 		const options = await sendBackgroundCompletionNotification('local-agent');
@@ -2877,7 +2914,7 @@ suite('RunInTerminalTool', () => {
 		const sessionResource = LocalChatSessionUri.forSession('test-input-needed-session');
 		let output = 'Enter value:';
 
-		const commandFinishedEmitter = new Emitter<{ exitCode: number | undefined }>();
+		const commandFinishedEmitter = new Emitter<{ exitCode: number | undefined; command?: string; id?: string }>();
 		const terminalDisposedEmitter = new Emitter<void>();
 		const inputNeededEmitter = new Emitter<void>();
 		const inputDataEmitter = new Emitter<string>();
@@ -2921,7 +2958,7 @@ suite('RunInTerminalTool', () => {
 		const sessionResource = LocalChatSessionUri.forSession('test-input-needed-disposed-session');
 		const output = 'Press ENTER or type command to continue';
 
-		const commandFinishedEmitter = new Emitter<{ exitCode: number | undefined }>();
+		const commandFinishedEmitter = new Emitter<{ exitCode: number | undefined; command?: string; id?: string }>();
 		const terminalDisposedEmitter = new Emitter<void>();
 		const inputNeededEmitter = new Emitter<void>();
 		const inputDataEmitter = new Emitter<string>();
@@ -3021,7 +3058,7 @@ suite('RunInTerminalTool', () => {
 		const termId = 'test-input-cleanup-term';
 		const sessionResource = LocalChatSessionUri.forSession('test-input-cleanup-session');
 
-		const commandFinishedEmitter = new Emitter<{ exitCode: number | undefined }>();
+		const commandFinishedEmitter = new Emitter<{ exitCode: number | undefined; command?: string; id?: string }>();
 		const terminalDisposedEmitter = new Emitter<void>();
 		const inputNeededEmitter = new Emitter<void>();
 		const inputDataEmitter = new Emitter<string>();
@@ -3072,7 +3109,7 @@ suite('RunInTerminalTool', () => {
 		strictEqual(runInTerminalTool.sessionTerminalAssociations.get(sessionResource)!.isBackground, false, 'Terminal should remain foreground');
 
 		// After command finishes, the fg association still persists
-		commandFinishedEmitter.fire({ exitCode: 0 });
+		commandFinishedEmitter.fire({ exitCode: 0, command: 'ssh host' });
 		strictEqual(capturedSteeringRequests.length, 2, 'Should send a completion steering request');
 		ok(capturedSteeringRequests[1].message.includes('command completed.'), 'Successful completion should be reported without qualification');
 		ok(!capturedSteeringRequests[1].message.includes('exit code 0'), 'Successful completion should not print exit code 0 to chat');

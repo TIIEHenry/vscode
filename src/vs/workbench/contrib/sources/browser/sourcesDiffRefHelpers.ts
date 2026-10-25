@@ -8,11 +8,12 @@ import { basename } from '../../../../base/common/resources.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { EditorResourceAccessor, isDiffEditorInput, SideBySideEditor } from '../../../common/editor.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
-import { ISourcesChangeRef, resolveSourcesDiffWriteGate, sourcesChangeIdentity } from '../common/sourcesChangeRef.js';
+import { findScmResourceForUri, ISourcesChangeRef, resolveSourcesDiffWriteGate, sourcesChangeIdentity } from '../common/sourcesChangeRef.js';
 import { ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
 import { SourcesDiffDefaultOwner } from '../common/sourcesDiffConfiguration.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry, sourcesConversationLeafMissingMessage } from './sourcesChangeEntryOpen.js';
+import { sourcesDiffOpenIdentity } from './sourcesDiffOpenIdentity.js';
 
 export function resolveSourcesChangeRefFromEditor(
 	editor: EditorInput,
@@ -40,6 +41,16 @@ export function resolveSourcesChangeRefFromEditor(
 			return undefined;
 		}
 		const original = EditorResourceAccessor.getOriginalUri(editor, { supportSideBySide: SideBySideEditor.SECONDARY });
+		const remembered = sourcesDiffOpenIdentity(editor);
+		if (remembered) {
+			const match = findScmResourceForUri(scmService, modified, remembered.groupId);
+			return {
+				modified,
+				original,
+				groupId: remembered.groupId,
+				scmResource: match?.resource ?? remembered.scmResource,
+			};
+		}
 		const match = findFirstScmResourceForUri(scmService, modified);
 		return {
 			modified,
@@ -52,19 +63,23 @@ export function resolveSourcesChangeRefFromEditor(
 	return undefined;
 }
 
-/** Preview `DiffEditorInput` does not carry the opened row's groupId. */
+/** A URI in more than one group is ambiguous without the opened row's group. */
 function findFirstScmResourceForUri(scmService: ISCMService, uri: { toString(): string }): { resource: ISCMResource; groupId: string } | undefined {
 	const key = uri.toString();
+	let match: { resource: ISCMResource; groupId: string } | undefined;
 	for (const repo of scmService.repositories) {
 		for (const group of repo.provider.groups) {
 			for (const resource of group.resources) {
 				if (resource.sourceUri.toString() === key) {
-					return { resource, groupId: group.id };
+					if (match && match.groupId !== group.id) {
+						return undefined;
+					}
+					match ??= { resource, groupId: group.id };
 				}
 			}
 		}
 	}
-	return undefined;
+	return match;
 }
 
 function sourcesChangeEntryFromRef(ref: ISourcesChangeRef): ISourcesChangeEntry {

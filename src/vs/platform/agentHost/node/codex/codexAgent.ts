@@ -82,7 +82,7 @@ import { planAllForkedTurnIdMapEntries, resolveForkBoundary } from './codexForkP
 import { resolveCodexInput } from './codexPromptResolver.js';
 import { buildUserInputRequest, emptyUserInputResponse, userInputResponseFromAnswers } from './codexUserInputMapper.js';
 import { replayThreadToTurns } from './codexReplayMapper.js';
-import { isLastUserMessageWithTextInCodexTurn, resolveCodexTurnIdFromHostTurnId, resolveUserMessageItemIdFromReplaySplitHostTurnId } from './codexReplayTurnIds.js';
+import { isLastHostTurnForCodexTurn, isLastTextSegmentOfCodexTurn, resolveCodexTurnIdFromHostTurnId, resolveUserMessageItemIdFromReplaySplitHostTurnId } from './codexReplayTurnIds.js';
 import { CodexSessionMetadataStore } from './codexSessionMetadataStore.js';
 import { buildCodexLaunchConfig, buildCodexResumeParams } from './codexLaunchConfig.js';
 import { codexDelegationDisplayText } from './codexDelegation.js';
@@ -100,6 +100,11 @@ import type { SandboxPolicy } from './protocol/generated/v2/SandboxPolicy.js';
 import type { SelectedCapabilityRoot } from './protocol/generated/v2/SelectedCapabilityRoot.js';
 import type { CommandExecutionApprovalDecision } from './protocol/generated/v2/CommandExecutionApprovalDecision.js';
 import type { CommandExecutionRequestApprovalParams } from './protocol/generated/v2/CommandExecutionRequestApprovalParams.js';
+import type { AdditionalPermissionProfile } from './protocol/generated/v2/AdditionalPermissionProfile.js';
+import type { AdditionalFileSystemPermissions } from './protocol/generated/v2/AdditionalFileSystemPermissions.js';
+import type { AdditionalNetworkPermissions } from './protocol/generated/v2/AdditionalNetworkPermissions.js';
+import type { FileSystemPath } from './protocol/generated/v2/FileSystemPath.js';
+import type { NetworkApprovalContext } from './protocol/generated/v2/NetworkApprovalContext.js';
 import type { CommandExecutionRequestApprovalResponse } from './protocol/generated/v2/CommandExecutionRequestApprovalResponse.js';
 import type { FileChangeApprovalDecision } from './protocol/generated/v2/FileChangeApprovalDecision.js';
 import type { FileChangeRequestApprovalParams } from './protocol/generated/v2/FileChangeRequestApprovalParams.js';
@@ -986,6 +991,83 @@ function narrowFileChangeDecision(decision: CommandExecutionApprovalDecision): F
 			return decision;
 		default:
 			return 'decline';
+	}
+}
+
+/** Render the approval card text: command plus every scope field the user is granting. */
+function formatApprovalCard(title: string, scope: {
+	readonly reason?: string | null;
+	readonly cwd?: string | null;
+	readonly fileSystem?: AdditionalFileSystemPermissions | null;
+	readonly network?: AdditionalNetworkPermissions | null;
+	readonly additionalPermissions?: AdditionalPermissionProfile | null;
+	readonly networkApprovalContext?: NetworkApprovalContext | null;
+}): string {
+	const lines = [title];
+	if (scope.reason && scope.reason !== title) {
+		lines.push(`Reason: ${scope.reason}`);
+	}
+	if (scope.cwd) {
+		lines.push(`Working directory: ${scope.cwd}`);
+	}
+	if (scope.fileSystem) {
+		const paths = [
+			...(scope.fileSystem.read ?? []).map(path => `read ${path}`),
+			...(scope.fileSystem.write ?? []).map(path => `write ${path}`),
+			...(scope.fileSystem.entries ?? []).map(entry => `entry ${formatFileSystemPath(entry.path)}`),
+		];
+		if (paths.length > 0) {
+			lines.push(`File system: ${paths.join(', ')}`);
+		}
+	}
+	if (scope.network?.enabled) {
+		lines.push('Network: enabled');
+	}
+	if (scope.additionalPermissions) {
+		const nested = formatApprovalCard('Additional permissions', scope.additionalPermissions);
+		lines.push(nested);
+	}
+	if (scope.networkApprovalContext) {
+		lines.push(`Network approval: ${JSON.stringify(scope.networkApprovalContext)}`);
+	}
+	return lines.join('\n');
+}
+
+/** Whether every non-empty scope field made it onto the rendered card. */
+function approvalScopeIsVisible(card: string, params: {
+	readonly cwd?: string | null;
+	readonly additionalPermissions?: AdditionalPermissionProfile | null;
+	readonly networkApprovalContext?: NetworkApprovalContext | null;
+}): boolean {
+	if (params.cwd && !card.includes(params.cwd)) {
+		return false;
+	}
+	if (params.networkApprovalContext && !card.includes(JSON.stringify(params.networkApprovalContext))) {
+		return false;
+	}
+	const permissions = params.additionalPermissions;
+	if (permissions?.network?.enabled && !card.includes('Network: enabled')) {
+		return false;
+	}
+	for (const path of [...(permissions?.fileSystem?.read ?? []), ...(permissions?.fileSystem?.write ?? [])]) {
+		if (!card.includes(path)) {
+			return false;
+		}
+	}
+	for (const entry of permissions?.fileSystem?.entries ?? []) {
+		const visible = formatFileSystemPath(entry.path);
+		if (!card.includes(visible)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function formatFileSystemPath(path: FileSystemPath): string {
+	switch (path.type) {
+		case 'path': return path.path;
+		case 'glob_pattern': return path.pattern;
+		case 'special': return path.value.kind;
 	}
 }
 
@@ -2845,7 +2927,17 @@ export class CodexAgent extends Disposable implements IAgent {
 
 	private _withHostTurn<T extends { readonly turn: { readonly id: string } }>(session: ICodexSession, params: T): T {
 		const appTurnId = params.turn.id;
-		const hostTurnId = session.currentTurnId ?? this._hostTurnId(session, appTurnId);
+		const mapped = session.hostTurnIdByAppTurnId.get(appTurnId);
+		if (mapped !== undefined) {
+			return mapped === appTurnId ? params : { ...params, turn: { ...params.turn, id: mapped } };
+		}
+		// Only this turn's own `turn/started` may claim the current host turn. A
+		// late notification for an older app turn must not rewrite the mapping or
+		// the current binding, or its completion would end the new turn.
+		if (session.currentTurnId === undefined || session.currentAppTurnId !== undefined) {
+			return params;
+		}
+		const hostTurnId = session.currentTurnId;
 		session.hostTurnIdByAppTurnId.set(appTurnId, hostTurnId);
 		session.currentAppTurnId = appTurnId;
 		return hostTurnId === appTurnId ? params : { ...params, turn: { ...params.turn, id: hostTurnId } };
@@ -2855,7 +2947,14 @@ export class CodexAgent extends Disposable implements IAgent {
 		// The workbench already dispatched the canonical turn start before sendMessage.
 		// Codex's event only establishes app-server turn id correlation for later items.
 		const appTurnId = params.turn.id;
+		const alreadyMapped = session.hostTurnIdByAppTurnId.has(appTurnId);
 		const mapped = this._withHostTurn(session, params);
+		if (alreadyMapped || session.hostTurnIdByAppTurnId.get(appTurnId) !== mapped.turn.id) {
+			// A late `turn/started` for an app turn that was already mapped (or
+			// that arrived while another app turn owns the current host turn).
+			// `mapTurnStarted` resets the per-turn map state, so it must not run.
+			return [];
+		}
 		this._persistTurnEventId(session, mapped.turn.id, appTurnId);
 		mapTurnStarted(session.mapState, mapped, session.lastPromptText);
 		return [];
@@ -2876,18 +2975,30 @@ export class CodexAgent extends Disposable implements IAgent {
 	private _handleTurnCompletedNotification(session: ICodexSession, params: TurnCompletedNotification): (SessionAction | ChatAction)[] {
 		const appTurnId = params.turn.id;
 		const hostTurnId = this._hostTurnId(session, appTurnId);
-		const out = mapTurnCompleted(session.mapState, this._withHostTurn(session, params), this._clearTurnStopWatch(session));
+		const isCurrent = hostTurnId === session.currentTurnId && appTurnId === session.currentAppTurnId;
+		if (!isCurrent) {
+			// A late completion for an older app turn. Record the host→app
+			// correlation for truncation, but leave the current turn's map state,
+			// approvals and stopwatch alone.
+			if (session.hostTurnIdByAppTurnId.has(appTurnId)) {
+				session.codexTurnIdByHostTurnId.set(hostTurnId, appTurnId);
+			}
+			return [];
+		}
+		const completed = hostTurnId === appTurnId ? params : { ...params, turn: { ...params.turn, id: hostTurnId } };
+		const out = mapTurnCompleted(session.mapState, completed, this._clearTurnStopWatch(session));
 		// Remember which codex (app-server) turn each workbench turn maps to so
 		// truncateChat can translate a host turn id to a thread rollback even
 		// after the live correlation below is cleared.
 		session.codexTurnIdByHostTurnId.set(hostTurnId, appTurnId);
 		// Codex reports app-server turn ids, while the workbench owns host turn ids.
 		// Clear the correlation after completion so later turns cannot reuse stale ids.
-		if (session.currentAppTurnId === appTurnId || session.currentTurnId === hostTurnId) {
-			session.currentTurnId = undefined;
-			session.currentAppTurnId = undefined;
-		}
+		session.currentTurnId = undefined;
+		session.currentAppTurnId = undefined;
 		session.hostTurnIdByAppTurnId.delete(appTurnId);
+		// Every approval parked for this turn is now moot: the turn will not
+		// consume an accept. Resolve them as cancel so waiters unwind.
+		this._cancelPendingApprovals(session);
 		// Any steering still buffered was never echoed as a `userMessage`
 		// item; clear the pending bubble now that the turn is over.
 		this._drainPendingSteering(session);
@@ -2897,12 +3008,14 @@ export class CodexAgent extends Disposable implements IAgent {
 		// {@link _handleGuardianReviewCompleted} frame unwinds instead of leaking
 		// until session dispose. The durable denial notification already emitted
 		// remains in the transcript.
-		if (session.pendingGuardianReviewCards.size > 0) {
-			for (const guardianToolCallId of [...session.pendingGuardianReviewCards]) {
-				session.pendingCommandApprovals.respond(guardianToolCallId, 'cancel');
-			}
-		}
 		return out;
+	}
+
+	/** Resolve every still-parked command, file, permission or guardian approval as `cancel`. */
+	private _cancelPendingApprovals(session: ICodexSession): void {
+		for (const [toolCallId] of [...session.pendingCommandApprovals.entries()]) {
+			session.pendingCommandApprovals.respond(toolCallId, 'cancel');
+		}
 	}
 
 	/**
@@ -2963,6 +3076,9 @@ export class CodexAgent extends Disposable implements IAgent {
 		const actions: (SessionAction | ChatAction)[] = [];
 		const appTurnId = session.currentAppTurnId;
 		const previousHostTurnId = session.currentTurnId ?? (appTurnId ? this._hostTurnId(session, appTurnId) : undefined);
+		// The previous segment is closed here; approvals parked for it can no
+		// longer be consumed by that segment.
+		this._cancelPendingApprovals(session);
 		actions.push(...finalizeCodexTurnMapState(session.mapState, 'Turn was superseded by a steering message before the tool reported completion'));
 		if (previousHostTurnId) {
 			actions.push({ type: ActionType.ChatTurnComplete, turnId: previousHostTurnId, duration: this._clearTurnStopWatch(session) });
@@ -3521,6 +3637,9 @@ export class CodexAgent extends Disposable implements IAgent {
 		readonly itemId: string;
 		readonly command?: string | null;
 		readonly reason?: string | null;
+		readonly cwd?: string | null;
+		readonly additionalPermissions?: AdditionalPermissionProfile | null;
+		readonly networkApprovalContext?: NetworkApprovalContext | null;
 	}): Promise<CommandExecutionApprovalDecision> {
 		const target = this._resolveApprovalTarget(params.threadId);
 		if (!target) {
@@ -3539,12 +3658,26 @@ export class CodexAgent extends Disposable implements IAgent {
 		// the accept-for-session memo key so it stays byte-identical to what
 		// Codex re-sends on the next request for the same command.
 		const displayCommand = unwrapShellInvocation(command);
+		const memoKey = JSON.stringify([command, params.cwd ?? null, params.additionalPermissions ?? null]);
 		// Accept-for-session memo: if the user previously accepted this
-		// exact command for the session, auto-accept without prompting.
-		if (command && session.acceptedForSession.has(command)) {
+		// exact command, working directory and extra permissions for the
+		// session, auto-accept without prompting.
+		if (command && session.acceptedForSession.has(memoKey)) {
 			return 'acceptForSession';
 		}
 		const confirmationTitle = params.reason ?? 'Run shell command';
+		const card = formatApprovalCard(displayCommand, {
+			reason: params.reason,
+			cwd: params.cwd,
+			additionalPermissions: params.additionalPermissions,
+			networkApprovalContext: params.networkApprovalContext,
+		});
+		// The card is the only place the user can see the scope they are
+		// approving. If a non-empty request field could not be rendered, do not
+		// accept on the user's behalf.
+		if (!card.includes(displayCommand) || !approvalScopeIsVisible(card, params)) {
+			return 'decline';
+		}
 		// Atomically register the deferred and fire the
 		// PendingConfirmation signal so a synchronous responder can't
 		// miss the registration.
@@ -3554,13 +3687,13 @@ export class CodexAgent extends Disposable implements IAgent {
 				turnId: entry.turnId,
 				toolCallId: entry.toolCallId,
 				invocationMessage: displayCommand,
-				toolInput: displayCommand,
+				toolInput: card,
 				confirmationTitle,
 			});
 		});
 		// Track accept-for-session decisions for the next request.
 		if (decision === 'acceptForSession' && command) {
-			session.acceptedForSession.add(command);
+			session.acceptedForSession.add(memoKey);
 		}
 		return decision;
 	}
@@ -3571,11 +3704,16 @@ export class CodexAgent extends Disposable implements IAgent {
 	}
 
 	private async _handlePermissionsApprovalRequestRpc(params: PermissionsRequestApprovalParams): Promise<{ readonly result: PermissionsRequestApprovalResponse }> {
-		const decision = await this._requestItemApproval(params.threadId, params.itemId, params.reason ?? 'Grant elevated permissions');
+		const card = formatApprovalCard(params.reason ?? 'Grant elevated permissions', {
+			cwd: params.cwd,
+			fileSystem: params.permissions.fileSystem,
+			network: params.permissions.network,
+		});
+		const decision = await this._requestItemApproval(params.threadId, params.itemId, params.reason ?? 'Grant elevated permissions', card);
 		const granted = decision === 'accept' || decision === 'acceptForSession';
 		return {
 			result: {
-				// Grant exactly what was requested on accept; nothing on decline.
+				// Grant exactly what the card showed on accept; nothing on decline.
 				permissions: granted
 					? { network: params.permissions.network ?? undefined, fileSystem: params.permissions.fileSystem ?? undefined }
 					: {},
@@ -3591,7 +3729,7 @@ export class CodexAgent extends Disposable implements IAgent {
 	 * when the user (via {@link respondToPermissionRequest}) decides. Declines
 	 * if the session or item is unknown.
 	 */
-	private async _requestItemApproval(threadId: string, itemId: string, confirmationTitle: string): Promise<CommandExecutionApprovalDecision> {
+	private async _requestItemApproval(threadId: string, itemId: string, confirmationTitle: string, card = confirmationTitle): Promise<CommandExecutionApprovalDecision> {
 		const target = this._resolveApprovalTarget(threadId);
 		if (!target) {
 			this._logService.warn(`[Codex] approval request for unknown threadId=${threadId}; declining`);
@@ -3609,7 +3747,7 @@ export class CodexAgent extends Disposable implements IAgent {
 				turnId: entry.turnId,
 				toolCallId: entry.toolCallId,
 				invocationMessage: confirmationTitle,
-				toolInput: confirmationTitle,
+				toolInput: card,
 				confirmationTitle,
 			});
 		});
@@ -4856,6 +4994,14 @@ export class CodexAgent extends Disposable implements IAgent {
 			throw new Error(`Cannot fork codex session ${sourceThreadId}: unable to resolve fork boundary for turn ${fork.turnId} (turnIndex=${fallbackTurnIndex}, turns=${sourceTurns.length})`);
 		}
 		const { keepThroughIndex, numTurnsToDrop } = boundary;
+		const sourceTurnItems = sourceTurns[keepThroughIndex]?.items ?? [];
+		const splitUserMessageItemId = resolveUserMessageItemIdFromReplaySplitHostTurnId(fork.turnId);
+		if (!isLastHostTurnForCodexTurn(fork.turnId, codexTurnId, sourceSession?.codexTurnIdByHostTurnId)) {
+			throw new Error(`Cannot fork codex session ${sourceThreadId}: host turn ${fork.turnId} is not the last segment of codex turn ${codexTurnId}`);
+		}
+		if (!isLastTextSegmentOfCodexTurn(sourceTurnItems, splitUserMessageItemId)) {
+			throw new Error(`Cannot fork codex session ${sourceThreadId}: host turn ${fork.turnId} is not the last text segment of codex turn ${codexTurnId}`);
+		}
 
 		const inheritedModel = sourceSession?.model
 			?? (sourceRead.persistedModelId ? { id: sourceRead.persistedModelId } : undefined)
@@ -5742,6 +5888,10 @@ export class CodexAgent extends Disposable implements IAgent {
 		// Clear any steering buffered for the turn we're aborting so its
 		// pending bubble doesn't outlive the turn.
 		this._drainPendingSteering(session);
+		// An interrupt ends the turn from the workbench's point of view even
+		// before codex echoes `turn/completed`. Resolve parked approvals now so
+		// a late Allow cannot be applied to a turn that is already over.
+		this._cancelPendingApprovals(session);
 		if (!session.currentAppTurnId || session.threadId === undefined) {
 			return;
 		}
@@ -6007,12 +6157,13 @@ export class CodexAgent extends Disposable implements IAgent {
 				return;
 			}
 			const splitUserMessageItemId = resolveUserMessageItemIdFromReplaySplitHostTurnId(turnId);
-			if (splitUserMessageItemId !== undefined) {
-				const parentTurn = turns[index];
-				const items = parentTurn.items ?? [];
-				if (!isLastUserMessageWithTextInCodexTurn(items, splitUserMessageItemId)) {
-					throw new Error(`[Codex] truncateChat: host turn ${turnId} is not the last user message in codex turn ${codexTurnId}; rollback would leave later segments in the thread`);
-				}
+			const parentTurn = turns[index];
+			const items = parentTurn.items ?? [];
+			if (!isLastHostTurnForCodexTurn(turnId, codexTurnId, targetSession?.codexTurnIdByHostTurnId)) {
+				throw new Error(`[Codex] truncateChat: host turn ${turnId} is not the last segment of codex turn ${codexTurnId}; rollback would leave later segments in the thread`);
+			}
+			if (!isLastTextSegmentOfCodexTurn(items, splitUserMessageItemId)) {
+				throw new Error(`[Codex] truncateChat: host turn ${turnId} is not the last text segment of codex turn ${codexTurnId}; rollback would leave later segments in the thread`);
 			}
 			numTurns = turns.length - (index + 1);
 		}

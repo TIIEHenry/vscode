@@ -422,12 +422,13 @@ export abstract class AbstractTextFileService extends Disposable implements ITex
 			// At this point we don't know whether we have a
 			// model for the source or the target URI so we
 			// simply try to save with both resources.
-			const success = await this.save(source, options);
-			if (!success) {
-				await this.save(target, options);
+			const sourceSaved = await this.save(source, options);
+			if (sourceSaved) {
+				return target;
 			}
 
-			return target;
+			const targetSaved = await this.save(target, options);
+			return targetSaved ? target : undefined;
 		}
 
 		// Do it

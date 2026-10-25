@@ -55,7 +55,7 @@ import {
 	conversationLensInboxQueueEditingTag,
 	conversationLensInboxQueuePause,
 } from '../../browser/conversationLensDockStrings.js';
-import { conversationLensDockAgentUnavailable, conversationLensDockModelFailed, conversationLensDockModelUnavailable, conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
+import { conversationLensDockAgentUnavailable, conversationLensDockEngineCapabilityUnsupported, conversationLensDockModelFailed, conversationLensDockModelUnavailable, conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
 import {
 	conversationLensSessionBarConversationTab,
 	conversationLensSessionBarCloseExtensionTabs,
@@ -84,6 +84,7 @@ import type { SessionViewSnapshot, TimelineItemId } from '../../../../../platfor
 import { CONVERSATION_LENS_ID_STORAGE_KEY, conversationLensIdStorageKey } from '../../browser/conversationLensProjection.js';
 import { TestConversationFrameSource } from './testConversationFrameSource.js';
 import { conversationIdentityStripClass } from '../../browser/conversationIdentityStrip.js';
+import { ConversationWorkRootMountModel, IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 import { shouldRenderTurnAsMarkdown } from '../../browser/conversationTurnMarkdown.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
@@ -556,6 +557,7 @@ suite('ConversationLens', () => {
 		instantiationService.stub(IConversationRosterService, stubService);
 		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.stub(IUniverseAgentConnection, options?.connection ?? createConversationConnectionTestStub());
+		instantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()));
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
@@ -976,7 +978,7 @@ suite('ConversationLens', () => {
 			await Promise.resolve();
 		}
 		assert.strictEqual(agentContainer.querySelector('select'), null);
-		assert.strictEqual(getAgentReadonlyLabel(slots).textContent, conversationLensDockAgentUnavailable);
+		assert.strictEqual(getAgentReadonlyLabel(slots).textContent, conversationLensDockEngineCapabilityUnsupported);
 		assert.strictEqual(lens.getSessionConfig(sessionId).agentIndex, 0);
 		assert.strictEqual(listAgentProfilesCalls, 0);
 	});
@@ -1772,7 +1774,7 @@ suite('ConversationLens', () => {
 
 		const agentContainer = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent') as HTMLElement;
 		assert.strictEqual(agentContainer.querySelector('select'), null);
-		assert.strictEqual(getAgentReadonlyLabel(slots).textContent, conversationLensDockAgentUnavailable);
+		assert.strictEqual(getAgentReadonlyLabel(slots).textContent, conversationLensDockEngineCapabilityUnsupported);
 
 		const tuneButton = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-tune .monaco-button') as HTMLButtonElement;
 		tuneButton.click();
@@ -1809,7 +1811,7 @@ suite('ConversationLens', () => {
 
 		const agentContainer = getComposerBottomBar(slots).querySelector('.conversation-lens-dock-agent') as HTMLElement;
 		assert.strictEqual(agentContainer.querySelector('select'), null);
-		assert.strictEqual(getAgentReadonlyLabel(slots).textContent, conversationLensDockAgentUnavailable);
+		assert.strictEqual(getAgentReadonlyLabel(slots).textContent, conversationLensDockEngineCapabilityUnsupported);
 
 		assert.strictEqual(getModelSelect(slots).options[getModelSelect(slots).selectedIndex]?.text, conversationLensDockNoModel);
 		assert.ok(![...getModelSelect(slots).options].some(option => option.text === 'gpt-test'));
@@ -2333,17 +2335,20 @@ suite('ConversationLens', () => {
 	});
 
 	test('SessionBar delete button removes active stub session', async () => {
-		const { part, stubService } = mountLens();
+		const { part, stubService, lens } = mountLens();
 		const slots = getLensSlots(part);
 		const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
 		const initialCount = stubService.getSessions().length;
 		const deletedId = stubService.getActiveSessionId();
+		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
 
 		assert.ok(deleteButton);
 		assert.strictEqual(deleteButton.getAttribute('aria-label'), conversationLensSessionBarDeleteSession);
 		assert.strictEqual(deleteButton.getAttribute('aria-label'), 'Delete session');
 
 		deleteButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
 		await flushTimelineHeightUpdates();
 
 		// Seed is untitled + visualize; deleting the active one leaves the other.
@@ -2352,20 +2357,23 @@ suite('ConversationLens', () => {
 		assert.strictEqual(stubService.getSessions().some(s => s.id === deletedId), false);
 	});
 
-	test('SessionBar delete on last session creates fresh untitled stub', () => {
-		const { part, stubService } = mountLens();
+	test('SessionBar delete on last session creates fresh untitled stub', async () => {
+		const { part, stubService, lens } = mountLens();
 		const slots = getLensSlots(part);
-		const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
-		const title = slots.sessionBar!.querySelector('.conversation-lens-session-title')!;
 		const sessions = [...stubService.getSessions()];
+		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
 
 		for (const session of sessions) {
 			if (stubService.getActiveSessionId() !== session.id) {
 				stubService.switchSession(session.id);
 			}
+			const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
 			deleteButton.click();
+			await Promise.resolve();
+			await Promise.resolve();
 		}
 
+		const title = slots.sessionBar!.querySelector('.conversation-lens-session-title')!;
 		assert.strictEqual(stubService.getSessions().length, 1);
 		assert.ok(title.textContent?.includes('Untitled'));
 		assert.ok(getTimelineEmpty(slots));
@@ -3083,21 +3091,24 @@ suite('ConversationLens', () => {
 		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
 	});
 
-	test('SessionBar deleteSession false shows failed notice and keeps the session', () => {
+	test('SessionBar deleteSession false shows failed notice and keeps the session', async () => {
 		class RejectingDeleteRoster extends ConversationStubService {
 			override deleteSession(_sessionId: string): boolean {
 				return false;
 			}
 		}
 		const roster = store.add(new RejectingDeleteRoster());
-		const { part } = mountLens({ stubService: roster });
+		const { part, lens } = mountLens({ stubService: roster });
 		const slots = getLensSlots(part);
 		const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
 		const sessionId = roster.getActiveSessionId();
 		const initialCount = roster.getSessions().length;
+		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
 
 		assert.ok(deleteButton);
 		deleteButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
 
 		assert.strictEqual(roster.getSessions().length, initialCount);
 		assert.strictEqual(roster.getActiveSessionId(), sessionId);
@@ -3138,7 +3149,7 @@ suite('ConversationLens', () => {
 		assert.ok(gateRow.textContent?.includes(conversationLensPostFailedDisconnected));
 	});
 
-	test('SessionBar deleteSession false keeps composer draft on the original session', () => {
+	test('SessionBar deleteSession false keeps composer draft on the original session', async () => {
 		class RejectingDeleteRoster extends ConversationStubService {
 			override deleteSession(_sessionId: string): boolean {
 				return false;
@@ -3153,9 +3164,12 @@ suite('ConversationLens', () => {
 		const draft = 'keep this draft after rejected delete';
 		textarea.value = draft;
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
 
 		assert.ok(deleteButton);
 		deleteButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
 
 		assert.strictEqual(roster.getActiveSessionId(), sessionId);
 		assert.strictEqual(roster.getSessions().some(s => s.id === sessionId), true);
@@ -3281,7 +3295,10 @@ suite('ConversationLens', () => {
 		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 
 		assert.ok(deleteButton);
+		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
 		deleteButton.click();
+		await Promise.resolve();
+		await Promise.resolve();
 		assert.strictEqual(roster.getSessions().some(s => s.id === sessionId), false);
 		await new Promise<void>(resolve => queueMicrotask(resolve));
 
@@ -3457,7 +3474,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.readComposerDraft(sessionA), 'A');
 	});
 
-	test('turnEdit deleteSession false keeps compose draft snapshot not bubble text', () => {
+	test('turnEdit deleteSession false keeps compose draft snapshot not bubble text', async () => {
 		class RejectingDeleteRoster extends ConversationStubService {
 			override deleteSession(_sessionId: string): boolean {
 				return false;
@@ -3479,7 +3496,8 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.composerPolicy, 'turnEdit');
 		assert.strictEqual(lens.dockTextarea.value, 'B');
 
-		lens.deleteActiveSession();
+		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
+		await lens.deleteActiveSession();
 
 		assert.strictEqual(roster.getActiveSessionId(), sessionId);
 		assert.strictEqual(lens.readComposerDraft(sessionId), 'A');
@@ -3542,7 +3560,8 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.composerPolicy, 'turnEdit');
 		assert.strictEqual(lens.dockTextarea.value, 'B');
 
-		lens.deleteActiveSession();
+		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
+		await lens.deleteActiveSession();
 		await new Promise<void>(resolve => queueMicrotask(resolve));
 
 		assert.strictEqual(roster.getActiveSessionId(), sessionId);
@@ -3550,7 +3569,7 @@ suite('ConversationLens', () => {
 		assert.strictEqual(getDockTextarea(slots).value, 'A');
 	});
 
-	test('compose deleteSession false still writes textarea into drafts', () => {
+	test('compose deleteSession false still writes textarea into drafts', async () => {
 		class RejectingDeleteRoster extends ConversationStubService {
 			override deleteSession(_sessionId: string): boolean {
 				return false;
@@ -3563,7 +3582,8 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.composerPolicy, 'compose');
 		getDockTextarea(slots).value = 'live compose';
 
-		lens.deleteActiveSession();
+		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
+		await lens.deleteActiveSession();
 
 		assert.strictEqual(lens.readComposerDraft(sessionId), 'live compose');
 		assert.strictEqual(getDockTextarea(slots).value, 'live compose');
@@ -3647,19 +3667,22 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.readComposerDraft(sessionA), '');
 	});
 
-	test('SessionBar select refreshes after deleting the last stub session', () => {
-		const { part, stubService } = mountLens();
+	test('SessionBar select refreshes after deleting the last stub session', async () => {
+		const { part, stubService, lens } = mountLens();
 		const slots = getLensSlots(part);
-		const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
-		const titleLive = slots.sessionBar!.querySelector('.conversation-lens-session-title-live') as HTMLElement;
 		const sessions = [...stubService.getSessions()];
+		lens.dialogService.confirm = () => Promise.resolve({ confirmed: true });
 
 		for (const session of sessions) {
 			if (stubService.getActiveSessionId() !== session.id) {
 				stubService.switchSession(session.id);
 			}
+			const deleteButton = slots.sessionBar!.querySelector('.conversation-lens-session-delete .monaco-button') as HTMLButtonElement;
 			deleteButton.click();
+			await Promise.resolve();
+			await Promise.resolve();
 		}
+		const titleLive = slots.sessionBar!.querySelector('.conversation-lens-session-title-live') as HTMLElement;
 
 		assert.strictEqual(stubService.getSessions().length, 1);
 		assert.ok(stubService.getActiveSession().title.includes('Untitled'));

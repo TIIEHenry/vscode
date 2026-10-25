@@ -1131,7 +1131,7 @@ suite('Response', () => {
 		assert.ok(responseString.endsWith('Made changes.'), 'Should end with "Made changes."');
 	});
 
-	test('textEdit merges edits for same URI when not done', () => {
+	test('textEdit keeps external and ordinary batches separate for the same URI', () => {
 		const response = store.add(new Response([]));
 		const uri = URI.parse('file:///file1.ts');
 
@@ -1151,10 +1151,30 @@ suite('Response', () => {
 		});
 
 		const textEditGroups = response.value.filter(p => p.kind === 'textEditGroup');
-		assert.strictEqual(textEditGroups.length, 1, 'Should have exactly one textEditGroup');
-		assert.strictEqual(textEditGroups[0].edits.length, 2, 'Should have two edit batches merged');
-		assert.strictEqual(textEditGroups[0].done, true, 'Should be marked as done after final edit');
-		assert.strictEqual(textEditGroups[0].isExternalEdit, true, 'Should preserve isExternalEdit flag from first edit');
+		assert.strictEqual(textEditGroups.length, 2, 'External and ordinary edits must not share a group');
+		const external = textEditGroups.find(g => g.isExternalEdit);
+		const ordinary = textEditGroups.find(g => !g.isExternalEdit);
+		assert.ok(external);
+		assert.ok(ordinary);
+		assert.strictEqual(external.edits.length, 1);
+		assert.strictEqual(external.edits[0][0].text, 'edit1');
+		assert.strictEqual(external.done, false, 'The external batch is still open');
+		assert.strictEqual(ordinary.edits.length, 1);
+		assert.strictEqual(ordinary.edits[0][0].text, 'edit2');
+		assert.strictEqual(ordinary.done, true);
+	});
+
+	test('textEdit still merges batches with the same external flag', () => {
+		const response = store.add(new Response([]));
+		const uri = URI.parse('file:///file1.ts');
+
+		response.updateContent({ kind: 'textEdit', uri, edits: [{ range: new Range(1, 1, 1, 1), text: 'edit1' }], done: false });
+		response.updateContent({ kind: 'textEdit', uri, edits: [{ range: new Range(2, 1, 2, 1), text: 'edit2' }], done: true });
+
+		const textEditGroups = response.value.filter(p => p.kind === 'textEditGroup');
+		assert.strictEqual(textEditGroups.length, 1);
+		assert.strictEqual(textEditGroups[0].edits.length, 2);
+		assert.strictEqual(textEditGroups[0].done, true);
 	});
 
 	test('textEdit does not merge edits when previous is done', () => {
@@ -1200,7 +1220,7 @@ suite('Response', () => {
 		assert.strictEqual(textEditGroups.length, 2, 'Should have two separate textEditGroups for different URIs');
 	});
 
-	test('notebookEdit merges edits for same notebook URI when not done', () => {
+	test('notebookEdit keeps external and ordinary batches separate for the same notebook URI', () => {
 		const response = store.add(new Response([]));
 		const notebookUri = URI.parse('file:///notebook.ipynb');
 
@@ -1220,10 +1240,28 @@ suite('Response', () => {
 		});
 
 		const notebookEditGroups = response.value.filter(p => p.kind === 'notebookEditGroup');
-		assert.strictEqual(notebookEditGroups.length, 1, 'Should have exactly one notebookEditGroup');
-		assert.strictEqual(notebookEditGroups[0].edits.length, 2, 'Should have two edit batches merged');
-		assert.strictEqual(notebookEditGroups[0].done, true, 'Should be marked as done after final edit');
-		assert.strictEqual(notebookEditGroups[0].isExternalEdit, true, 'Should preserve isExternalEdit flag from first edit');
+		assert.strictEqual(notebookEditGroups.length, 2, 'External and ordinary edits must not share a group');
+		const external = notebookEditGroups.find(g => g.isExternalEdit);
+		const ordinary = notebookEditGroups.find(g => !g.isExternalEdit);
+		assert.ok(external);
+		assert.ok(ordinary);
+		assert.strictEqual(external.edits.length, 1);
+		assert.strictEqual(external.done, false);
+		assert.strictEqual(ordinary.edits.length, 1);
+		assert.strictEqual(ordinary.done, true);
+	});
+
+	test('notebookEdit still merges batches with the same external flag', () => {
+		const response = store.add(new Response([]));
+		const notebookUri = URI.parse('file:///notebook.ipynb');
+
+		response.updateContent({ kind: 'notebookEdit', uri: notebookUri, edits: [{ editType: 1, index: 0, count: 0, cells: [] }], done: false });
+		response.updateContent({ kind: 'notebookEdit', uri: notebookUri, edits: [{ editType: 1, index: 1, count: 0, cells: [] }], done: true });
+
+		const notebookEditGroups = response.value.filter(p => p.kind === 'notebookEditGroup');
+		assert.strictEqual(notebookEditGroups.length, 1);
+		assert.strictEqual(notebookEditGroups[0].edits.length, 2);
+		assert.strictEqual(notebookEditGroups[0].done, true);
 	});
 
 	test('notebookEdit does not merge edits when previous is done', () => {

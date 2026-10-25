@@ -359,15 +359,24 @@ export class SendToTerminalTool extends Disposable implements IToolImpl {
 		// Register a marker before sending so we can scope output to just the response
 		const startMarker = execution.instance.registerMarker?.();
 
+		let sent: boolean;
 		if (isMultilineCommand(args.command)) {
 			// Multiline commands (e.g. heredocs) must preserve newlines and use
 			// bracketed paste mode so the shell treats the input as a single paste
 			// rather than executing each line independently. Intentionally skip
 			// normalizeCommandForExecution here so neither newlines nor the
 			// trailing/leading whitespace `.trim()` it performs are stripped.
-			await execution.instance.sendText(args.command, true, true);
+			sent = await execution.instance.sendText(args.command, true, true);
 		} else {
-			await execution.instance.sendText(normalizeCommandForExecution(args.command), true);
+			sent = await execution.instance.sendText(normalizeCommandForExecution(args.command), true);
+		}
+		if (!sent) {
+			return {
+				content: [{
+					kind: 'text',
+					value: `Error: The terminal process is no longer accepting input, so the command was not sent to terminal ${args.id}.`
+				}]
+			};
 		}
 
 		let recentOutput: string;

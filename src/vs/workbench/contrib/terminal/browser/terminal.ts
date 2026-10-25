@@ -1228,7 +1228,7 @@ export interface ITerminalInstance extends IBaseTerminalInstance {
 	 * this may for example select the text and it will also ensure that the text will not be
 	 * interpreted as a shell keybinding.
 	 */
-	sendText(text: string, shouldExecute: boolean, bracketedPasteMode?: boolean): Promise<void>;
+	sendText(text: string, shouldExecute: boolean, bracketedPasteMode?: boolean): Promise<boolean>;
 
 	/**
 	 * Sends a signal to the terminal instance's process.

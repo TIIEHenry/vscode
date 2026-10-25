@@ -194,32 +194,36 @@ export class McpSandboxService extends Disposable implements IMcpSandboxService 
 			const suggestedAllowWrite = suggestedSandboxConfig?.filesystem?.allowWrite ?? [];
 
 			const currentAllowedDomains = new Set(existingSandbox?.network?.allowedDomains ?? []);
+			let addedAllowedDomain = false;
 			for (const domain of suggestedAllowedDomains) {
 				if (domain && !currentAllowedDomains.has(domain)) {
 					currentAllowedDomains.add(domain);
+					addedAllowedDomain = true;
 				}
 			}
 
 			const currentAllowWrite = new Set(existingSandbox?.filesystem?.allowWrite ?? []);
+			let addedAllowWrite = false;
 			for (const path of suggestedAllowWrite) {
 				if (path && !currentAllowWrite.has(path)) {
 					currentAllowWrite.add(path);
+					addedAllowWrite = true;
 				}
 			}
 
-			if (suggestedAllowedDomains.length === 0 && suggestedAllowWrite.length === 0) {
+			if (!addedAllowedDomain && !addedAllowWrite) {
 				return data;
 			}
 
 			didChange = true;
-			const nextSandboxConfig: IMcpSandboxConfiguration = {};
-			if (currentAllowedDomains.size > 0) {
+			const nextSandboxConfig: IMcpSandboxConfiguration = { ...existingSandbox };
+			if (addedAllowedDomain) {
 				nextSandboxConfig.network = {
 					...existingSandbox?.network,
 					allowedDomains: [...currentAllowedDomains]
 				};
 			}
-			if (currentAllowWrite.size > 0) {
+			if (addedAllowWrite) {
 				nextSandboxConfig.filesystem = {
 					...existingSandbox?.filesystem,
 					allowWrite: [...currentAllowWrite],

@@ -40,8 +40,10 @@ export class ChatToolProgressSubPart extends BaseChatToolInvocationSubPart {
 
 	private createProgressPart(): HTMLElement {
 		const isComplete = IChatToolInvocation.isComplete(this.toolInvocation);
+		const state = this.toolInvocation.kind === 'toolInvocation' ? this.toolInvocation.state.get() : undefined;
+		const toolResultError = state?.type === IChatToolInvocation.StateKind.Completed ? state.toolResultError : undefined;
 
-		if (isComplete && this.toolIsConfirmed && (this.toolInvocation.pastTenseMessage || this.toolInvocation.invocationMessage)) {
+		if (isComplete && !toolResultError && this.toolIsConfirmed && (this.toolInvocation.pastTenseMessage || this.toolInvocation.invocationMessage)) {
 			const key = this.getAnnouncementKey('complete');
 			const completionContent = this.toolInvocation.pastTenseMessage ?? this.toolInvocation.invocationMessage;
 			// Don't render anything if there's no meaningful content

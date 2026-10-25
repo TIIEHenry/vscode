@@ -136,11 +136,69 @@ function toNetworkDestinationUrl(url: string): string | undefined {
 	try {
 		const parsed = new URL(url);
 		if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-			return parsed.origin + parsed.pathname + parsed.search;
+			const host = normalizeHostname(parsed.hostname);
+			const port = parsed.port ? `:${parsed.port}` : '';
+			return `${parsed.protocol}//${host}${port}${parsed.pathname}${parsed.search}`;
 		}
 		return url;
 	} catch {
 		return undefined;
+	}
+}
+
+/**
+ * Reduces a host to the identity `fetch` connects to: IPv4-mapped IPv6 becomes
+ * the embedded IPv4 address, a single trailing root dot is dropped, and case is
+ * folded. Callers pass either a WHATWG `hostname` or a literal pattern segment.
+ */
+function normalizeHostname(host: string): string {
+	if (host.startsWith('[') && host.endsWith(']')) {
+		const inner = host.slice(1, -1).toLowerCase();
+		const dotted = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/.exec(inner);
+		if (dotted) {
+			return dotted[1];
+		}
+		const hex = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(inner);
+		if (hex) {
+			const high = parseInt(hex[1], 16);
+			const low = parseInt(hex[2], 16);
+			return `${high >> 8}.${high & 0xff}.${low >> 8}.${low & 0xff}`;
+		}
+		return `[${inner}]`;
+	}
+	return host.toLowerCase().replace(/\.$/, '');
+}
+
+/** Normalizes a literal (possibly partial) host segment from a wildcard pattern. */
+function normalizePatternHost(host: string, scheme: string): string {
+	if (!host.includes('*')) {
+		return normalizeHostname(host);
+	}
+	const segments = host.split('*').map(segment => normalizeHostLiteral(segment, scheme));
+	const last = segments.length - 1;
+	if (segments[last].endsWith('.')) {
+		// A trailing dot at the end of the host is the root dot, not a wildcard
+		// boundary. Dots before a `*` are boundaries and stay untouched.
+		segments[last] = segments[last].slice(0, -1);
+	}
+	return segments.join('*');
+}
+
+function normalizeHostLiteral(segment: string, scheme: string): string {
+	if (!segment) {
+		return segment;
+	}
+	if (segment.startsWith('[') || segment.endsWith(']')) {
+		return normalizeHostname(segment);
+	}
+	// A leading or trailing dot is a wildcard boundary, not a root dot.
+	if (segment.startsWith('.') || segment.endsWith('.')) {
+		return segment.toLowerCase();
+	}
+	try {
+		return normalizeHostname(new URL(`${scheme}://${segment}/`).hostname);
+	} catch {
+		return segment.toLowerCase();
 	}
 }
 
@@ -180,7 +238,7 @@ function toNetworkDestinationPattern(pattern: string): string | undefined {
 		afterAuthority = `/${afterAuthority}`;
 	}
 
-	return `${scheme}://${hostAndPort.host}${port !== undefined ? `:${port}` : ''}${afterAuthority}`;
+	return `${scheme}://${normalizePatternHost(hostAndPort.host, scheme)}${port !== undefined ? `:${port}` : ''}${afterAuthority}`;
 }
 
 function splitHostAndPort(authority: string): { host: string; port: string | undefined } | undefined {

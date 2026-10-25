@@ -4321,15 +4321,16 @@ export abstract class BaseAgentHostSessionsProvider extends Disposable implement
 	async setSessionReadState(sessionId: string, isRead: boolean): Promise<void> {
 		const rawId = this._rawIdFromChatId(sessionId);
 		const cached = rawId ? this._sessionCache.get(rawId) : undefined;
-		if (cached && rawId && cached.isRead.get() !== isRead) {
+		const connection = this.connection;
+		if (!cached || !rawId || !connection) {
+			throw new Error(localize('agentHost.setSessionReadState.notConnected', "Failed to update the session read state: the agent host is not connected."));
+		}
+		if (cached.isRead.get() !== isRead) {
 			cached.isRead.set(isRead, undefined);
 			this._onDidChangeSessions.fire({ added: [], removed: [], changed: [cached] });
-			const connection = this.connection;
-			if (connection) {
-				const sessionUri = cached.backendUri;
-				const action = { type: ActionType.SessionIsReadChanged as const, isRead };
-				connection.dispatch(sessionUri.toString(), action);
-			}
+			const sessionUri = cached.backendUri;
+			const action = { type: ActionType.SessionIsReadChanged as const, isRead };
+			connection.dispatch(sessionUri.toString(), action);
 		}
 	}
 

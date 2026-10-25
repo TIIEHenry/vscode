@@ -102,7 +102,8 @@ export class McpGatewaySession extends Disposable {
 
 	private _handleOutgoingMessage(message: JsonRpcMessage): void {
 		if (isJsonRpcResponse(message)) {
-			this._logService.debug(`[McpGateway][session ${this.id}] --> response: ${JSON.stringify(message)}`);
+			// Response bodies can carry tool results. Log only their shape.
+			this._logService.debug(`[McpGateway][session ${this.id}] --> response id=${String(message.id)}${'error' in message && message.error ? ' (error)' : ''}`);
 			return;
 		}
 
@@ -229,7 +230,7 @@ export class McpGatewaySession extends Disposable {
 			? params.arguments as Record<string, unknown>
 			: {};
 
-		this._logService.debug(`[McpGateway][session ${this.id}] Calling tool '${params.name}' with args: ${JSON.stringify(argumentsValue)}`);
+		this._logService.debug(`[McpGateway][session ${this.id}] Calling tool '${params.name}'`);
 
 		try {
 			const result = await this._serverInvoker.callTool(params.name, argumentsValue);

@@ -15,7 +15,7 @@ import { stripRedundantCdPrefix } from '../../common/commandLineHelpers.js';
 import { toToolCallMeta, type IToolCallUiMeta, type ToolKind } from '../../common/meta/agentToolCallMeta.js';
 import { IFileEditRecord, ISessionDatabase } from '../../common/sessionDataService.js';
 import { MessageAttachmentKind, type MessageAttachment } from '../../common/state/protocol/state.js';
-import { createErrorResponsePart, MessageKind, ResponsePartKind, ToolCallConfirmationReason, ToolCallContributorKind, ToolCallStatus, ToolResultContentType, TurnState, buildSubagentSessionUri, parseChatUri, type AgentSelection, type ErrorInfo, type Message, type ModelSelection, type ResponsePart, type StringOrMarkdown, type TerminalCommandResult, type ToolCallCompletedState, type ToolResultContent, type ToolResultTerminalContent, type Turn, type UsageInfo } from '../../common/state/sessionState.js';
+import { createErrorResponsePart, MessageKind, ResponsePartKind, ToolCallCancellationReason, ToolCallConfirmationReason, ToolCallContributorKind, ToolCallStatus, ToolResultContentType, TurnState, buildSubagentSessionUri, parseChatUri, type AgentSelection, type ErrorInfo, type Message, type ModelSelection, type ResponsePart, type StringOrMarkdown, type TerminalCommandResult, type ToolCallCancelledState, type ToolCallCompletedState, type ToolResultContent, type ToolResultTerminalContent, type Turn, type UsageInfo } from '../../common/state/sessionState.js';
 import { buildNonPtyShellTerminalUri } from './copilotNonPtyShellTerminals.js';
 import { getInvocationMessage, getPastTenseMessage, getShellIntention, getShellLanguage, getSubagentMetadata, getTaskCompleteMarkdown, getToolDisplayName, getToolInputString, getToolKind, isEditTool, isHiddenTool, isTaskCompleteTool, synthesizeSkillToolCall } from './copilotToolDisplay.js';
 import { buildSessionDbUri } from '../../common/sessionDbUri.js';
@@ -820,19 +820,48 @@ export async function mapSessionEvents(
 				}
 				continue;
 			}
-			builder.responseParts.push(makeCompletedToolCallPart(
-				completion ?? { toolCallId: request.toolCallId, success: true },
-				info,
-				sessionUriStr,
-				providerId,
-				rawSessionId,
-				routingChatUri,
-				storedEdits,
-				subagentInfoByToolCallId.get(request.toolCallId),
-				workingDirectory,
-			));
+			// A tool request without `tool.execution_complete` has no recorded
+			// outcome. Replaying it as a successful completion invents a fact the
+			// session never recorded; keep it visibly unfinished instead.
+			builder.responseParts.push(completion
+				? makeCompletedToolCallPart(
+					completion,
+					info,
+					sessionUriStr,
+					providerId,
+					rawSessionId,
+					routingChatUri,
+					storedEdits,
+					subagentInfoByToolCallId.get(request.toolCallId),
+					workingDirectory,
+				)
+				: makeUnfinishedToolCallPart(request.toolCallId, info));
 		}
 	}
+}
+
+/** Builds the response part for a tool request whose completion was never recorded. */
+function makeUnfinishedToolCallPart(toolCallId: string, info: IToolStartInfo): ResponsePart {
+	const toolCall: ToolCallCancelledState = {
+		status: ToolCallStatus.Cancelled,
+		toolCallId,
+		toolName: info.toolName,
+		displayName: info.displayName,
+		intention: info.intention,
+		invocationMessage: info.invocationMessage,
+		toolInput: info.toolInput,
+		reason: ToolCallCancellationReason.Skipped,
+		_meta: toToolCallMeta({
+			toolKind: info.toolKind,
+			language: info.language,
+			subagentDescription: info.subagentDescription,
+			subagentAgentName: info.subagentAgentName,
+			mcpServerName: info.mcpServerName,
+			mcpToolName: info.mcpToolName,
+			ui: info.mcpUiResourceUri ? { resourceUri: info.mcpUiResourceUri } : undefined,
+		}),
+	};
+	return { kind: ResponsePartKind.ToolCall, toolCall };
 }
 
 /**

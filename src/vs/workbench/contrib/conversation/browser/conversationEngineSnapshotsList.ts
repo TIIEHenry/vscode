@@ -28,6 +28,7 @@ import {
 	conversationLensSessionBarSnapshotsUnavailableNoHook,
 	conversationLensSessionBarSnapshotsUnavailableNoSession,
 } from './conversationLensSessionBarStrings.js';
+import { isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 import { IConversationRosterService } from './conversationStubService.js';
@@ -300,8 +301,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 
 	/** KEEP leftover list-fail (D449/D456/D458): connected but roster not ready is not a live write surface. */
 	private isKeepLeftoverListFailWrite(): boolean {
-		return this.roster.isEngineConnected()
-			&& this.roster.isEngineSessionReady?.() === false;
+		return isConversationSessionNotReady(this.roster);
 	}
 
 	/** Catalog leftover contract: list-fail leftover / KEEP leftover is not a live write surface. */

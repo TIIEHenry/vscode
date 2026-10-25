@@ -10,6 +10,8 @@ import { Emitter } from '../../../../base/common/event.js';
 import { IJsonRpcErrorResponse, IJsonRpcSuccessResponse } from '../../../../base/common/jsonRpcProtocol.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { NullLogService } from '../../../log/common/log.js';
+import { Event } from '../../../../base/common/event.js';
+import { ILogger, LogLevel } from '../../../log/common/log.js';
 import { MCP } from '../../common/modelContextProtocol.js';
 import { McpGatewaySession } from '../../node/mcpGatewaySession.js';
 
@@ -41,6 +43,24 @@ class TestServerResponse extends EventEmitter {
 		this.emit('close');
 		return this;
 	}
+}
+
+class RecordingLogger implements ILogger {
+	readonly debugMessages: string[] = [];
+	readonly onDidChangeLogLevel = Event.None;
+
+	debug(message: string, ..._args: unknown[]): void {
+		this.debugMessages.push(message);
+	}
+
+	getLevel(): LogLevel { return LogLevel.Debug; }
+	setLevel(_level: LogLevel): void { }
+	trace(_message: string, ..._args: unknown[]): void { }
+	info(_message: string, ..._args: unknown[]): void { }
+	warn(_message: string, ..._args: unknown[]): void { }
+	error(_message: string | Error, ..._args: unknown[]): void { }
+	flush(): void { }
+	dispose(): void { }
 }
 
 suite('McpGatewaySession', () => {
@@ -297,6 +317,29 @@ suite('McpGatewaySession', () => {
 		const callResponse = callResponses[0] as IJsonRpcSuccessResponse;
 		const text = ((callResponse.result as { content: Array<{ text: string }> }).content[0].text);
 		assert.strictEqual(text, 'Hello, VS Code!');
+		session.dispose();
+		onDidChangeTools.dispose();
+		onDidChangeResources.dispose();
+	});
+
+	test('tools/call debug logs the tool name but not argument or result bodies', async () => {
+		const { invoker, onDidChangeTools, onDidChangeResources } = createInvoker();
+		const logger = new RecordingLogger();
+		const session = new McpGatewaySession('session-log', logger as unknown as ILogger, () => { }, invoker);
+
+		await session.handleIncoming({ jsonrpc: '2.0', id: 1, method: 'initialize' });
+		await session.handleIncoming({ jsonrpc: '2.0', method: 'notifications/initialized' });
+		await session.handleIncoming({
+			jsonrpc: '2.0',
+			id: 2,
+			method: 'tools/call',
+			params: { name: 'test_tool', arguments: { name: 'SECRET_ARGUMENT_VALUE' } },
+		});
+
+		const joined = logger.debugMessages.join('\n');
+		assert.ok(joined.includes('test_tool'), 'debug log should name the tool');
+		assert.ok(!joined.includes('SECRET_ARGUMENT_VALUE'), 'debug log must not contain argument values');
+		assert.ok(!joined.includes('Hello, SECRET_ARGUMENT_VALUE!'), 'debug log must not contain result text');
 		session.dispose();
 		onDidChangeTools.dispose();
 		onDidChangeResources.dispose();

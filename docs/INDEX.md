@@ -3,8 +3,8 @@ title: "VS Code 文档索引"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-15
-summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 壳分析、UniverseAgent 引擎参考、外部对话界面密度对照、测试配置、钉死引擎调试、行动层"
+updated: 2026-10-24
+summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 壳分析、UniverseAgent 引擎参考、外部对话界面密度对照、外部多 Agent 设计对照、测试配置、钉死引擎调试、行动层"
 ---
 
 # 文档索引
@@ -61,7 +61,7 @@ summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 �
 | 指南 | [指南索引](guides/INDEX.md) · [快速开始](guides/getting-started.md) · [文体](guides/doc-style-guide.md) · [壳冒烟验证](guides/shell-smoke-verification.md) · [Agents 测试配置](guides/test-profile.md) · [钉死引擎调试](guides/debug-engine.md) |
 | 产品壳系统 | [Conversation](systems/conversation/INDEX.md) · [Sources](systems/sources/INDEX.md) · [命令与快捷键](systems/conversation/commands.md) · [会话数据契约](systems/conversation/stub-and-fixtures.md) |
 | B2 / 壳分析 | [索引](reference/code-oss-b2/INDEX.md) · [缺口](reference/code-oss-b2/gap-vs-desktop-shell.md) · [Parts/Grid](systems/workbench/parts-and-grid.md) · [Agent UI](systems/chat/agent-ui.md) · [Settings 接入](reference/code-oss-b2/settings-ua-access.md) · [会话列表](reference/code-oss-b2/session-roster-reuse.md) · [透镜组装](reference/code-oss-b2/conversation-lens-assembly.md) · [Navigator tab](reference/code-oss-b2/navigator-tabs-access.md) |
-| 引擎参考 | [UniverseAgent 索引](reference/universe-agent/INDEX.md) · [协议面](reference/universe-agent/engine-protocol-surface.md) · [Engine catalog](systems/workbench/engine-catalog.md) · [钉死引擎调试](guides/debug-engine.md) |
+| 引擎参考 | [UniverseAgent 索引](reference/universe-agent/INDEX.md) · [协议面](reference/universe-agent/engine-protocol-surface.md) · [Engine catalog](systems/workbench/engine-catalog.md) · [钉死引擎调试](guides/debug-engine.md) · [外部多 Agent 设计对照](reference/external-multi-agent-design.md) |
 | 术语 | [glossary](glossary.md) |
 | 行动层 | [dev/](../dev/README.md) · [progress](../dev/progress/INDEX.md) · [plans](../dev/plans/INDEX.md) · [roadmap](../dev/roadmap/INDEX.md) · [ADR](../dev/decisions/INDEX.md) |
 | 上游约定 | [Copilot Instructions](../.github/copilot-instructions.md) · [Source organization](../.github/instructions/source-code-organization.instructions.md) |

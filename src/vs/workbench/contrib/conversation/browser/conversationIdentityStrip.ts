@@ -9,12 +9,13 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
-import { isEqual } from '../../../../base/common/resources.js';
+import { isEqual, isEqualOrParent } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { localize } from '../../../../nls.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
-import type { IAgentWorkRoot } from '../../../services/agentSession/common/agentWorkRoot.js';
+import { normalizeAgentWorkDirUri, type IAgentWorkRoot } from '../../../services/agentSession/common/agentWorkRoot.js';
+import { IConversationWorkRootMount } from './conversationWorkRootMount.js';
 import { ActionListItemKind, IActionListDelegate, IActionListItem, IActionListOptions } from '../../../../platform/actionWidget/browser/actionList.js';
 import { IActionWidgetService } from '../../../../platform/actionWidget/browser/actionWidget.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -24,11 +25,13 @@ import { isRecentFolder, IRecentFolder, IWorkspacesService } from '../../../../p
 import { ISCMHistoryItemRef } from '../../scm/common/history.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
 import { IHostService } from '../../../services/host/browser/host.js';
+import { IWorkbenchEnvironmentService } from '../../../services/environment/common/environmentService.js';
+import { IWorkspaceEditingService } from '../../../services/workspaces/common/workspaceEditing.js';
+import { ADD_ROOT_FOLDER_COMMAND_ID } from '../../../browser/actions/workspaceCommands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { getConnectionPhaseStatusBarText, getConversationEngineChipTone, getEngineStatusCommandArguments, getEngineStatusCommandId } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
-const OPEN_FOLDER_COMMAND_ID = 'workbench.action.files.openFolder';
 const GIT_CHECKOUT_COMMAND_ID = 'git.checkout';
 
 export const conversationIdentityStripClass = 'conversation-identity-strip';
@@ -38,6 +41,7 @@ export const conversationIdentityFolderChipClass = 'conversation-identity-chip-f
 export const conversationIdentityBranchChipClass = 'conversation-identity-chip-branch';
 export const conversationIdentityBranchReadOnlyClass = 'conversation-identity-chip-branch--readonly';
 export const conversationIdentityFolderReadOnlyClass = 'conversation-identity-chip-folder--readonly';
+export const conversationIdentityAddFolderClass = 'conversation-identity-add-folder';
 
 export interface IConversationIdentityFolder {
 	readonly resource: URI;
@@ -118,6 +122,7 @@ export class ConversationIdentityStrip extends Disposable {
 	private readonly branchChip: HTMLButtonElement;
 	private readonly branchLabel: Text;
 	private readonly folderChevron: HTMLElement;
+	private readonly addFolderButton: HTMLButtonElement;
 	private folderMenuEnabled = false;
 
 	/** Which chip's menu is open. A second click on that chip closes it. */
@@ -148,6 +153,9 @@ export class ConversationIdentityStrip extends Disposable {
 		@IHostService private readonly hostService: IHostService,
 		@ILabelService private readonly labelService: ILabelService,
 		@IAgentSessionContext private readonly sessionContext: IAgentSessionContext,
+		@IWorkspaceEditingService private readonly workspaceEditingService: IWorkspaceEditingService,
+		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
+		@IConversationWorkRootMount private readonly workRootMount: IConversationWorkRootMount,
 	) {
 		super();
 
@@ -181,6 +189,11 @@ export class ConversationIdentityStrip extends Disposable {
 		this.folderChevron.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronDown));
 		this.folderChevron.setAttribute('aria-hidden', 'true');
 		this._register(addDisposableListener(this.folderChip, 'click', () => this.onFolderChipClick()));
+
+		this.addFolderButton = append(this.element, $(`button.${conversationIdentityAddFolderClass}`)) as HTMLButtonElement;
+		this.addFolderButton.type = 'button';
+		this.addFolderButton.hidden = true;
+		this._register(addDisposableListener(this.addFolderButton, 'click', () => this.onAddFolderClick()));
 
 		this.branchChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityBranchChipClass}`)) as HTMLButtonElement;
 		this.branchChip.type = 'button';
@@ -216,6 +229,7 @@ export class ConversationIdentityStrip extends Disposable {
 		if (onDidChangeActiveWorkRoot) {
 			this._register(onDidChangeActiveWorkRoot(() => this.render()));
 		}
+		this._register(this.workRootMount.onDidChangeOffer(() => this.render()));
 
 		this.render();
 	}
@@ -241,7 +255,7 @@ export class ConversationIdentityStrip extends Disposable {
 		this.engineChip.classList.toggle(conversationIdentityEngineOfflineClass, tone === 'warning');
 
 		const windowFolder = getConversationIdentityFolder(this.contextService);
-		// The folder menu reopens a window. It stays on the window folder.
+		// The folder menu adds to this window's workspace. It needs a workspace folder to start from.
 		this.folderResource = windowFolder?.resource;
 		const root = this.sessionContext?.getActiveWorkRoot?.();
 		if (!root) {
@@ -250,6 +264,7 @@ export class ConversationIdentityStrip extends Disposable {
 			this.paintFolder(windowFolder?.label, !!windowFolder?.resource);
 			const branchName = getConversationIdentityBranchName(this.scmService, windowFolder?.resource);
 			this.paintBranch(branchName, !!branchName);
+			this.paintAddOffer();
 			return;
 		}
 
@@ -258,18 +273,21 @@ export class ConversationIdentityStrip extends Disposable {
 			this.paintFolder(workRootFolderLabel(root), !!this.folderResource);
 			this.branchCheckoutUri = root.localRoot;
 			this.paintBranch(getConversationIdentityBranchName(this.scmService, root.localRoot), true);
+			this.paintAddOffer();
 			return;
 		}
 		if (root.access === 'engine' && root.workDir) {
 			this.paintFolder(workRootFolderLabel(root), false);
 			this.branchCheckoutUri = undefined;
 			this.beginEngineBranchRead(root);
+			this.paintAddOffer();
 			return;
 		}
 		this.leaveEngineBranch();
 		this.paintFolder(workRootFolderLabel(root), false);
 		this.branchCheckoutUri = undefined;
 		this.paintBranch(undefined, false);
+		this.paintAddOffer();
 	}
 
 	private paintFolder(label: string | undefined, menu: boolean = true): void {
@@ -299,12 +317,12 @@ export class ConversationIdentityStrip extends Disposable {
 		this.folderChip.classList.toggle(conversationIdentityFolderReadOnlyClass, !menuEnabled);
 		if (menuEnabled) {
 			this.folderChip.setAttribute('aria-haspopup', 'listbox');
-			this.folderChip.setAttribute('aria-label', localize('conversationIdentityStrip.folderAriaLabel', "Workspace folder: {0}. Open the folder list.", label));
+			this.folderChip.setAttribute('aria-label', localize('conversationIdentityStrip.folderAriaLabel', "Session folder: {0}. Add a folder to the workspace.", label));
 			this.syncMenuExpanded();
 		} else {
 			this.folderChip.removeAttribute('aria-haspopup');
 			this.folderChip.removeAttribute('aria-expanded');
-			this.folderChip.setAttribute('aria-label', localize('conversationIdentityStrip.folderReadOnlyAriaLabel', "Workspace folder: {0}", label));
+			this.folderChip.setAttribute('aria-label', localize('conversationIdentityStrip.folderReadOnlyAriaLabel', "Session folder: {0}", label));
 		}
 	}
 
@@ -380,6 +398,35 @@ export class ConversationIdentityStrip extends Disposable {
 		});
 	}
 
+	private paintAddOffer(): void {
+		const offer = this.workRootMount.getOffer();
+		const root = this.sessionContext?.getActiveWorkRoot?.();
+		const label = root ? workRootFolderLabel(root) : undefined;
+		const matches = !!offer && !!root && root.access === 'engine' && !!root.workDir && !!label
+			&& isEqual(offer.uri, normalizeAgentWorkDirUri(URI.file(root.workDir)));
+		if (!matches || !offer || !label) {
+			this.addFolderButton.hidden = true;
+			this.addFolderButton.textContent = '';
+			this.addFolderButton.removeAttribute('aria-label');
+			return;
+		}
+		const text = offer.reason === 'trust'
+			? localize('conversationIdentityStrip.addAndTrust', "Add and trust")
+			: localize('conversationIdentityStrip.addToWorkspace', "Add to workspace");
+		this.addFolderButton.hidden = false;
+		this.addFolderButton.textContent = text;
+		this.addFolderButton.setAttribute('aria-label', offer.reason === 'trust'
+			? localize('conversationIdentityStrip.addAndTrustAria', "Session folder: {0}. Add and trust it.", label)
+			: localize('conversationIdentityStrip.addToWorkspaceAria', "Session folder: {0}. Add it to the workspace.", label));
+	}
+
+	private onAddFolderClick(): void {
+		if (this.addFolderButton.hidden) {
+			return;
+		}
+		void this.workRootMount.acceptOffer().catch(onUnexpectedError).catch(onUnexpectedError);
+	}
+
 	private onFolderChipClick(): void {
 		if (!this.folderMenuEnabled || this.folderChip.hidden || !this.folderResource) {
 			return;
@@ -415,8 +462,12 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	private async showFolderMenu(): Promise<void> {
-		const current = getConversationIdentityFolder(this.contextService);
-		if (!current) {
+		const workspaceFolders = this.contextService.getWorkspace().folders;
+		const root = this.sessionContext?.getActiveWorkRoot?.();
+		const current = root?.access === 'local' && root.localRoot
+			? root.localRoot
+			: getConversationIdentityFolder(this.contextService)?.resource;
+		if (!current || workspaceFolders.length === 0) {
 			return;
 		}
 		this.menuLoad = 'folder';
@@ -432,22 +483,31 @@ export class ConversationIdentityStrip extends Disposable {
 		}
 		this.menuLoad = undefined;
 
-		type FolderAction = { readonly kind: 'recent'; readonly folder: IRecentFolder } | { readonly kind: 'browse' };
+		// A nested SCM root is not itself a workspace folder; check the folder that contains it.
+		const currentFolder = workspaceFolders.find(folder => isEqual(folder.uri, current))
+			?? workspaceFolders.find(folder => isEqualOrParent(current, folder.uri));
+		type FolderAction = { readonly kind: 'workspace' } | { readonly kind: 'recent'; readonly folder: IRecentFolder } | { readonly kind: 'browse' };
 		const items: IActionListItem<FolderAction>[] = [{
 			kind: ActionListItemKind.Header,
-			label: localize('conversationIdentityStrip.recents', "Recents"),
+			label: localize('conversationIdentityStrip.workspaceFolders', "Workspace"),
 		}];
-		items.push({
-			kind: ActionListItemKind.Action,
-			label: current.label,
-			description: this.labelService.getUriLabel(current.resource, { relative: false }),
-			group: { title: '', icon: Codicon.check },
-			item: { kind: 'recent', folder: { folderUri: current.resource, label: current.label } },
-		});
-		for (const folder of recents) {
-			if (isEqual(folder.folderUri, current.resource)) {
-				continue;
-			}
+		for (const folder of workspaceFolders) {
+			items.push({
+				kind: ActionListItemKind.Action,
+				label: folder.name,
+				description: this.labelService.getUriLabel(folder.uri, { relative: false }),
+				group: { title: '', icon: folder === currentFolder ? Codicon.check : Codicon.folder },
+				item: { kind: 'workspace' },
+			});
+		}
+		const addable = recents.filter(recent => !workspaceFolders.some(folder => isEqual(folder.uri, recent.folderUri)));
+		if (addable.length > 0) {
+			items.push({
+				kind: ActionListItemKind.Header,
+				label: localize('conversationIdentityStrip.recents', "Recents"),
+			});
+		}
+		for (const folder of addable) {
 			const label = folder.label?.trim()
 				|| this.labelService.getUriLabel(folder.folderUri, { relative: true }).trim()
 				|| this.labelService.getUriLabel(folder.folderUri, { relative: false });
@@ -461,27 +521,37 @@ export class ConversationIdentityStrip extends Disposable {
 		items.push({ kind: ActionListItemKind.Separator });
 		items.push({
 			kind: ActionListItemKind.Action,
-			label: localize('conversationIdentityStrip.openFolder', "Open Folder…"),
+			label: localize('conversationIdentityStrip.addFolder', "Add Folder to Workspace…"),
 			group: { title: '', icon: Codicon.folderOpened },
 			item: { kind: 'browse' },
 		});
 		this.presentMenu('folder', this.folderChip, items, action => {
 			if (action.kind === 'browse') {
-				void this.commandService.executeCommand(OPEN_FOLDER_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.commandService.executeCommand(ADD_ROOT_FOLDER_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
 				return;
 			}
-			if (isEqual(action.folder.folderUri, current.resource)) {
-				return;
+			if (action.kind === 'recent') {
+				this.addRecentFolder(action.folder);
 			}
-			void this.hostService.openWindow([{ folderUri: action.folder.folderUri }], {
-				forceReuseWindow: true,
-				remoteAuthority: action.folder.remoteAuthority ?? null,
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}, {
 			showFilter: true,
 			filterPlaceholder: localize('conversationIdentityStrip.searchFolders', "Search folders..."),
 			minWidth: 280,
 		});
+	}
+
+	/** Adds to this window's workspace. A folder on another remote cannot join it, so that one opens a new window. */
+	private addRecentFolder(folder: IRecentFolder): void {
+		const windowAuthority = this.environmentService.remoteAuthority || undefined;
+		const folderAuthority = folder.remoteAuthority || undefined;
+		if (folderAuthority !== windowAuthority) {
+			void this.hostService.openWindow([{ folderUri: folder.folderUri }], {
+				forceNewWindow: true,
+				remoteAuthority: folder.remoteAuthority ?? null,
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			return;
+		}
+		void this.workspaceEditingService.addFolders([{ uri: folder.folderUri }]).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async showBranchMenu(): Promise<void> {

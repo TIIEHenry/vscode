@@ -118,6 +118,7 @@ export function isInspectTargetStale(
 		readonly team?: ReadonlySet<string>;
 		readonly activity?: ReadonlySet<string>;
 		readonly task?: ReadonlySet<string>;
+		readonly agentsSession?: string;
 	},
 ): boolean {
 	if (!target) {
@@ -126,7 +127,8 @@ export function isInspectTargetStale(
 	if (sourceIds) {
 		switch (target.kind) {
 			case 'agent':
-				return sourceIds.agents !== undefined && !sourceIds.agents.has(target.node.agentId);
+				return (sourceIds.agentsSession !== undefined && target.sessionId !== sourceIds.agentsSession)
+					|| (sourceIds.agents !== undefined && !sourceIds.agents.has(target.node.agentId));
 			case 'member':
 				return sourceIds.team !== undefined && !sourceIds.team.has(target.info.memberAgentId);
 			case 'task':
@@ -294,6 +296,7 @@ export class AgentInspectView extends ViewPane {
 		this.updateTitle(inspectTitleFromTarget(target));
 		const stale = isInspectTargetStale(target, this.inspectService.getLiveAgentIds(), {
 			agents: this.inspectService.getLiveAgentIdsFor('agents'),
+		agentsSession: this.inspectService.getLiveAgentIdsSession('agents'),
 			team: this.inspectService.getLiveAgentIdsFor('team'),
 			activity: this.inspectService.getLiveActivityIds(),
 			task: this.inspectService.getLiveTaskIds(),

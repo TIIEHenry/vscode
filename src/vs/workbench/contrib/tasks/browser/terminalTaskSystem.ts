@@ -581,6 +581,11 @@ export class TerminalTaskSystem extends Disposable implements ITaskSystem {
 							dependency.uri.toString()
 						));
 						this._showOutput();
+						const failedDependency = Promise.resolve<ITaskSummary>({ exitCode: 1 });
+						promises.push(failedDependency);
+						if (task.configurationProperties.dependsOrder === DependsOrder.sequence) {
+							break;
+						}
 					}
 				}
 			}

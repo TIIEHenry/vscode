@@ -972,10 +972,16 @@ export class InlineCompletionsModel extends Disposable {
 					if (state.kind === 'ghostText') {
 						minimalEdits = removeTextReplacementCommonSuffixPrefix(edits, this.textModel);
 					}
-					const selections = getEndPositionsAfterApplying(minimalEdits).map(p => Selection.fromPositions(p));
-
 					const additionalEdits = completion.additionalTextEdits.map(e => new TextReplacement(Range.lift(e.range), e.text ?? ''));
 					const edit = TextEdit.fromParallelReplacementsUnsorted([...edits, ...additionalEdits]);
+
+					// The cursor belongs to the edit that is actually submitted. Compute the new ends
+					// over the same replacements that `editor.edit` receives, so additional edits that
+					// insert lines above the completion shift the cursor with it. Only the main edits'
+					// ends are used; the additional edits exist to move them, not to place a cursor.
+					const selections = getEndPositionsAfterApplying([...minimalEdits, ...additionalEdits])
+						.slice(0, minimalEdits.length)
+						.map(p => Selection.fromPositions(p));
 
 					editor.edit(edit, this._getMetadata(completion, this.textModel.getLanguageId()));
 

@@ -150,16 +150,29 @@ suite('Sources - Files engine read', () => {
 	test('content provider creates the decoded text on the engine resource', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const modelService = instantiationService.get(IModelService);
-		const resource = URI.from({ scheme: SOURCES_ENGINE_FILE_SCHEME, path: '/engine/proj/a.ts' });
+		const resource = projectSourcesEngineFileEntries(
+			{ kind: 'engine', sessionId: 'session-a', path: '/engine/proj' },
+			{ entries: [{ name: 'a.ts', path: '/engine/proj/a.ts', isDirectory: false, size: 1, lastModified: 0, mimeType: 'text/plain' }], total: 1 },
+			10,
+		).entries[0].resource;
 		putSourcesEngineFileText(resource, 'hello engine');
 		const model = provideSourcesEngineFileText(resource, modelService);
+		const otherSession = projectSourcesEngineFileEntries(
+			{ kind: 'engine', sessionId: 'session-b', path: '/engine/proj' },
+			{ entries: [{ name: 'a.ts', path: '/engine/proj/a.ts', isDirectory: false, size: 1, lastModified: 0, mimeType: 'text/plain' }], total: 1 },
+			10,
+		).entries[0].resource;
+		const otherModel = provideSourcesEngineFileText(otherSession, modelService);
 		try {
 			assert.ok(model);
 			assert.strictEqual(model?.getValue(), 'hello engine');
 			assert.strictEqual(model?.uri.scheme, SOURCES_ENGINE_FILE_SCHEME);
+			assert.notStrictEqual(resource.toString(), otherSession.toString());
+			assert.strictEqual(otherModel, null);
 			assert.strictEqual(provideSourcesEngineFileText(URI.file('/engine/proj/a.ts'), modelService), null);
 		} finally {
 			model?.dispose();
+			otherModel?.dispose();
 		}
 	});
 });

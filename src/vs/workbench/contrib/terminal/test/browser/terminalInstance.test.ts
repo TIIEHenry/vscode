@@ -404,6 +404,36 @@ suite('Workbench - TerminalInstance', () => {
 			deepStrictEqual(sentText, [['echo test', true, undefined]]);
 		});
 
+		test('sendText returns false and fires no send events when the process manager drops input', async () => {
+			const instance = await createTerminalInstance();
+			const processManager = (instance as unknown as { _processManager: { write(data: string): Promise<boolean> } })._processManager;
+			processManager.write = async () => false;
+
+			let inputEvents = 0;
+			let sendEvents = 0;
+			let executeEvents = 0;
+			store.add(instance.onDidInputData(() => inputEvents++));
+			store.add(instance.onDidSendText(() => sendEvents++));
+			store.add(instance.onDidExecuteText(() => executeEvents++));
+
+			strictEqual(await instance.sendText('echo test', true), false);
+			strictEqual(inputEvents, 0);
+			strictEqual(sendEvents, 0);
+			strictEqual(executeEvents, 0);
+		});
+
+		test('_handleOnData does not fire input data when the process manager drops input', async () => {
+			const instance = await createTerminalInstance();
+			const processManager = (instance as unknown as { _processManager: { write(data: string): Promise<boolean> } })._processManager;
+			processManager.write = async () => false;
+
+			let inputEvents = 0;
+			store.add(instance.onDidInputData(() => inputEvents++));
+
+			await (instance as unknown as { _handleOnData(data: string): Promise<void> })._handleOnData('a');
+			strictEqual(inputEvents, 0);
+		});
+
 		test('should fire onWillDispose before xterm disposal and onDisposed after xterm disposal', async () => {
 			const instance = await createTerminalInstance();
 			const xterm = await instance.xtermReadyPromise;

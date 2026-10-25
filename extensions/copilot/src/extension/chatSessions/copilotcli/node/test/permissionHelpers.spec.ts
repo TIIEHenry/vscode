@@ -508,17 +508,19 @@ describe('CopilotCLI permissionHelpers', () => {
 			expect(result.kind).toBe('denied-interactively-by-user');
 		});
 
-		it('auto-approves when no file can be determined (no fileName, no toolCall)', async () => {
+		it('asks the user when no file can be determined (no fileName, no toolCall)', async () => {
 			const req = { kind: 'write', intention: 'some write' } as any;
+			const toolsService = makeToolsService('no');
 			const result = await handleWritePermission(
 				'session-1', req, undefined, undefined, undefined, editTracker,
 				makeWorkspaceInfo({ folder: URI.file('/workspace') }),
 				makeWorkspaceService([URI.file('/workspace')]),
-				instaService, makeToolsService('no'),
+				instaService, toolsService,
 				undefined as unknown as ChatParticipantToolToken, logService, token,
 			);
-			// No file => getFileEditConfirmationToolParams returns undefined => auto-approve
-			expect(result.kind).toBe('approve-once');
+			// No file is not an approval: ask, and honor the user's answer.
+			expect(toolsService.invokeTool).toHaveBeenCalled();
+			expect(result.kind).toBe('denied-interactively-by-user');
 		});
 	});
 

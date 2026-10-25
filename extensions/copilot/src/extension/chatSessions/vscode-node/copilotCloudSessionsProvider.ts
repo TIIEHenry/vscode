@@ -14,7 +14,7 @@ import { IVSCodeExtensionContext } from '../../../platform/extContext/common/ext
 import { IFileSystemService } from '../../../platform/filesystem/common/fileSystemService';
 import { FileType } from '../../../platform/filesystem/common/fileTypes';
 import { IGitExtensionService } from '../../../platform/git/common/gitExtensionService';
-import { GithubRepoId, IGitService } from '../../../platform/git/common/gitService';
+import { getGithubRepoIdFromFetchUrl, GithubRepoId, IGitService } from '../../../platform/git/common/gitService';
 import { derivePullRequestState, PullRequestSearchItem } from '../../../platform/github/common/githubAPI';
 import { CCAEnabledResult, IGithubRepositoryService, IOctoKitService } from '../../../platform/github/common/githubService';
 import { getModelCapabilitiesDescription, normalizeTokenPrices } from '../../conversation/common/languageModelAccess';
@@ -48,6 +48,8 @@ interface ConfirmationMetadata {
 	prompt: string;
 	references?: readonly vscode.ChatPromptReference[];
 	chatContext: vscode.ChatContext;
+	/** Baseline computed while building the confirmation, reused when no dialog is shown. */
+	baseRef?: string;
 }
 
 const GITHUB_CONTEXT_ID_PREFIX = 'github-context:';
@@ -220,6 +222,50 @@ const DEFAULT_CUSTOM_AGENT_ID = '___vscode_default___';
 const DEFAULT_MODEL_ID = 'auto';
 const DEFAULT_PARTNER_AGENT_ID = '___vscode_partner_agent_default___';
 const DEFAULT_REPOSITORY_ID = '___vscode_repository_default___';
+
+/**
+ * The repository a cloud delegation targets. An explicit `org/repo` selection
+ * wins; otherwise the active repository is the only source of truth, never the
+ * first entry of a multi-root repository list.
+ */
+export function resolveCloudRepositoryTarget(
+	activeRepoId: GithubRepoId | undefined,
+	selectedRepository: string | undefined,
+	knownRepoIds: readonly GithubRepoId[] | undefined,
+	host: string = 'github.com',
+): GithubRepoId | undefined {
+	if (selectedRepository && selectedRepository !== DEFAULT_REPOSITORY_ID) {
+		const [owner, repo] = selectedRepository.split('/');
+		if (!owner || !repo) {
+			return undefined;
+		}
+		return knownRepoIds?.find(id => id.org.toLowerCase() === owner.toLowerCase() && id.repo.toLowerCase() === repo.toLowerCase())
+			?? new GithubRepoId(owner, repo, host);
+	}
+	return activeRepoId;
+}
+
+/**
+ * A baseline belongs to the repository it was computed for. Keep it only when
+ * that is still the target; otherwise the target's default branch applies.
+ */
+export function resolveCloudBaseRef(
+	baseRef: string | undefined,
+	baseRefRepository: GithubRepoId | undefined,
+	target: GithubRepoId | undefined,
+	hasExplicitSelection: boolean,
+): string | undefined {
+	if (!baseRef) {
+		return undefined;
+	}
+	if (baseRefRepository) {
+		const sameRepository = !!target
+			&& baseRefRepository.org.toLowerCase() === target.org.toLowerCase()
+			&& baseRefRepository.repo.toLowerCase() === target.repo.toLowerCase();
+		return sameRepository ? baseRef : undefined;
+	}
+	return hasExplicitSelection ? undefined : baseRef;
+}
 
 const SEEN_DELEGATION_PROMPT_KEY = 'seenDelegationPromptBefore';
 const OPEN_REPOSITORY_COMMAND_ID = 'github.copilot.chat.cloudSessions.openRepository';
@@ -1630,7 +1676,8 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		token: vscode.CancellationToken,
 		metadata: ConfirmationMetadata,
 		base_ref?: string,
-		head_ref?: string
+		head_ref?: string,
+		baseRefRepository?: GithubRepoId
 	): Promise<vscode.ChatResponsePullRequestPart> {
 
 		let history: string | undefined;
@@ -1662,24 +1709,23 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 
 		const { result, processedReferences } = await this.extractReferences(metadata.references, !!head_ref);
 
-		const repoIds = await getRepoId(this._gitService);
-		const repoId = repoIds?.[0];
-		let repoOwner = repoId?.org;
-		let repoName = repoId?.repo;
-		const [selectedRepoOwner, selectedRepoName] = (selectedRepository && selectedRepository !== DEFAULT_REPOSITORY_ID) ? selectedRepository.split('/') : [];
-		if (!base_ref || repoOwner !== selectedRepoOwner || repoName !== selectedRepoName) {
-			if (selectedRepoOwner && selectedRepoName) {
-				repoOwner = selectedRepoOwner;
-				repoName = selectedRepoName;
-			} else {
-				if (!repoId) {
-					throw new Error(vscode.l10n.t('Open a GitHub repository to use the cloud agent.'));
-				}
-				repoOwner = repoId.org;
-				repoName = repoId.repo;
-			}
+		const activeRepository = this._gitService.activeRepository?.get();
+		const activeRepoId = activeRepository
+			? (activeRepository.remoteFetchUrls ?? []).map(url => url ? getGithubRepoIdFromFetchUrl(url) : undefined).find((id): id is GithubRepoId => !!id)
+			: undefined;
+		const targetRepoId = resolveCloudRepositoryTarget(activeRepoId, selectedRepository, await getRepoId(this._gitService));
+		if (!targetRepoId) {
+			throw new Error(vscode.l10n.t('Open a GitHub repository to use the cloud agent.'));
+		}
+		const repoOwner = targetRepoId.org;
+		const repoName = targetRepoId.repo;
+
+		const resolvedBaseRef = resolveCloudBaseRef(base_ref, baseRefRepository, targetRepoId, !!selectedRepository && selectedRepository !== DEFAULT_REPOSITORY_ID);
+		if (!resolvedBaseRef) {
 			const { default_branch } = await this._githubRepositoryService.getRepositoryInfo(repoOwner, repoName);
 			base_ref = default_branch;
+		} else {
+			base_ref = resolvedBaseRef;
 		}
 
 		const invokeResult = await this.invokeRemoteAgent(
@@ -1745,6 +1791,10 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		// Parse out the button selected by the user (delegation flow)
 		const selection = (request.prompt?.split(':')[0] || '').trim().toUpperCase();
 
+		// Get the selected repository from the chat context for multiroot workspace support
+		const chatResource = metadata.chatContext.chatSessionContext?.chatSessionItem?.resource;
+		const selectedRepository = chatResource ? this.sessionRepositoryMap.get(chatResource) : undefined;
+
 		// -- Process each button press in order of precedence
 
 		if (!selection || selection === this.CANCEL.toUpperCase() || token.isCancellationRequested) {
@@ -1781,7 +1831,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		if (selection.includes(this.COMMIT.toUpperCase())) {
 			try {
 				stream.progress(vscode.l10n.t('Committing and pushing local changes'));
-				head_ref = await this.gitOperationsManager.commitAndPushChanges();
+				head_ref = await this.gitOperationsManager.commitAndPushChanges(selectedRepository);
 				stream.markdown(vscode.l10n.t('Local changes pushed to remote branch `{0}`.', head_ref));
 			} catch (error) {
 				this.logService.error(`Commit and push failed: ${error}`);
@@ -1790,7 +1840,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		} else if (selection.includes(this.PUSH_BRANCH.toUpperCase())) {
 			try {
 				stream.progress(vscode.l10n.t('Pushing base branch to remote'));
-				const baseBranch = await this.gitOperationsManager.pushBaseRefToRemote();
+				const baseBranch = await this.gitOperationsManager.pushBaseRefToRemote(selectedRepository);
 				stream.markdown(vscode.l10n.t('Base branch `{0}` pushed to remote.', baseBranch));
 			} catch (error) {
 				this.logService.error(`Push branch failed: ${error}`);
@@ -1798,23 +1848,17 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 			}
 		}
 
-		// Get the selected repository from the chat context for multiroot workspace support
-		const chatResource = metadata.chatContext.chatSessionContext?.chatSessionItem?.resource;
-		const selectedRepository = chatResource ? this.sessionRepositoryMap.get(chatResource) : undefined;
-
-		const base_ref: string = await (async () => {
-			const res = await this.checkBaseBranchPresentOnRemote(selectedRepository);
-			if (!res) {
-				// Unexpected
-				throw new Error(vscode.l10n.t('Repo base branch is not detected on remote. Push your branch and try again.'));
-			}
-			return (res?.missingOnRemote || !res?.baseRef) ? res.repoDefaultBranch : res?.baseRef;
-		})();
+		const baseBranchInfo = await this.checkBaseBranchPresentOnRemote(selectedRepository);
+		if (!baseBranchInfo) {
+			// Unexpected
+			throw new Error(vscode.l10n.t('Repo base branch is not detected on remote. Push your branch and try again.'));
+		}
+		const base_ref = (baseBranchInfo.missingOnRemote || !baseBranchInfo.baseRef) ? baseBranchInfo.repoDefaultBranch : baseBranchInfo.baseRef;
 		stream.progress(vscode.l10n.t('Validating branch base branch exists on remote'));
 
 		// Now trigger delegation
 		try {
-			await this.delegate(request, stream, context, token, metadata, base_ref, head_ref);
+			await this.delegate(request, stream, context, token, metadata, base_ref, head_ref, baseBranchInfo.repoId);
 		} catch (error) {
 			this.logService.error(`Failure in delegation: ${error}`);
 			throw new Error(vscode.l10n.t('{0}', (error instanceof Error ? error.message : String(error))));
@@ -2057,8 +2101,16 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		return validRepos;
 	}
 
-	private async detectedUncommittedChanges(): Promise<boolean> {
-		const currentRepository = this._gitService.activeRepository?.get();
+	private async detectedUncommittedChanges(selectedRepository?: string): Promise<boolean> {
+		const currentRepository = selectedRepository && selectedRepository !== DEFAULT_REPOSITORY_ID
+			? this._gitService.repositories.find(repository => {
+				const [owner, repo] = selectedRepository.split('/');
+				return (repository.remoteFetchUrls ?? []).some(url => {
+					const id = url ? getGithubRepoIdFromFetchUrl(url) : undefined;
+					return !!id && id.org.toLowerCase() === owner?.toLowerCase() && id.repo.toLowerCase() === repo?.toLowerCase();
+				});
+			})
+			: this._gitService.activeRepository?.get();
 		if (!currentRepository) {
 			return false;
 		}
@@ -2076,30 +2128,22 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 	 * @param selectedRepository - Optional repository in `org/repo` format. If provided, uses this specific repository
 	 *                             instead of defaulting to the first one. This enables multiroot workspace support.
 	 */
-	private async checkBaseBranchPresentOnRemote(selectedRepository?: string): Promise<{ missingOnRemote: boolean; baseRef: string; repoDefaultBranch: string } | undefined> {
+	private async checkBaseBranchPresentOnRemote(selectedRepository?: string): Promise<{ missingOnRemote: boolean; baseRef: string; repoDefaultBranch: string; repoId: GithubRepoId } | undefined> {
 		try {
-			const repoIds = await getRepoId(this._gitService);
-			if (!repoIds || repoIds.length === 0) {
+			// Resolve the local repository and its GitHub identity together so the
+			// remote check and the subsequent commit/push target the same repo.
+			const { baseRef, repository, remoteName, repoId } = await this.gitOperationsManager.repoInfoFor(selectedRepository);
+			if (!repoId) {
 				return undefined;
 			}
-
-			// In multiroot workspaces, use the selected repository if provided
-			let repoId = repoIds[0];
-			if (selectedRepository && selectedRepository !== DEFAULT_REPOSITORY_ID) {
-				const [selectedOrg, selectedRepo] = selectedRepository.split('/');
-				const matchingRepoId = repoIds.find(id => id.org === selectedOrg && id.repo === selectedRepo);
-				repoId = matchingRepoId ?? new GithubRepoId(selectedOrg, selectedRepo);
-			}
-
-			const { baseRef, repository, remoteName } = await this.gitOperationsManager.repoInfo();
 			const remoteRepoInfo = await this._githubRepositoryService.getRepositoryInfo(repoId.org, repoId.repo);
 			const remoteHasRef = await this.gitOperationsManager.checkIfRemoteHasRef(repository, remoteName, baseRef);
 			if (remoteHasRef) {
 				// Remote HAS the base branch, no action needed.
-				return { missingOnRemote: false, baseRef, repoDefaultBranch: remoteRepoInfo.default_branch };
+				return { missingOnRemote: false, baseRef, repoDefaultBranch: remoteRepoInfo.default_branch, repoId };
 			}
 			// Remote is MISSING the base branch
-			return { missingOnRemote: true, baseRef, repoDefaultBranch: remoteRepoInfo.default_branch };
+			return { missingOnRemote: true, baseRef, repoDefaultBranch: remoteRepoInfo.default_branch, repoId };
 		} catch (error) {
 			this.logService.debug(`Failed to check default branch: ${error}`);
 			return undefined;
@@ -2119,7 +2163,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		const selectedRepository = chatResource ? this.sessionRepositoryMap.get(chatResource) : undefined;
 
 		const needsPermissiveAuth = !this._authenticationService.permissiveGitHubSession;
-		const hasUncommittedChanges = await this.detectedUncommittedChanges();
+		const hasUncommittedChanges = await this.detectedUncommittedChanges(selectedRepository);
 		const baseBranchInfo = await this.checkBaseBranchPresentOnRemote(selectedRepository);
 
 		if (needsPermissiveAuth && hasUncommittedChanges) {
@@ -2177,6 +2221,20 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		}
 
 		return { title, message, buttons };
+	}
+
+	/** The baseline the confirmation already computed, for callers that skip the dialog. */
+	private async resolveBaseRefForDelegation(context: vscode.ChatContext): Promise<{ baseRef: string; repository: GithubRepoId } | undefined> {
+		const chatResource = context.chatSessionContext?.chatSessionItem?.resource;
+		const selectedRepository = chatResource ? this.sessionRepositoryMap.get(chatResource) : undefined;
+		const info = await this.checkBaseBranchPresentOnRemote(selectedRepository);
+		if (!info) {
+			return undefined;
+		}
+		return {
+			baseRef: info.missingOnRemote || !info.baseRef ? info.repoDefaultBranch : info.baseRef,
+			repository: info.repoId,
+		};
 	}
 
 	private async chatParticipantImpl(request: vscode.ChatRequest, context: vscode.ChatContext, stream: vscode.ChatResponseStream, token: vscode.CancellationToken) {
@@ -2262,6 +2320,7 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 			);
 		} else {
 			// No confirmation
+			const baseRef = await this.resolveBaseRefForDelegation(context);
 			await this.delegate(
 				request,
 				stream,
@@ -2270,8 +2329,12 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 				{
 					prompt: request.prompt,
 					references: request.references,
-					chatContext: context
+					chatContext: context,
+					baseRef: baseRef?.baseRef,
 				} satisfies ConfirmationMetadata,
+				baseRef?.baseRef,
+				undefined,
+				baseRef?.repository,
 			);
 		}
 	}
@@ -2449,26 +2512,17 @@ export class CopilotCloudSessionsProvider extends Disposable implements vscode.C
 		const { problemStatement, isTruncated } = truncatePrompt(this.logService, prompt, problemContext);
 		const repoIds = await getRepoId(this._gitService);
 
-		let repoOwner: string;
-		let repoName: string;
-		let repoHost: string = 'github.com';
-		if (selectedRepository && selectedRepository !== DEFAULT_REPOSITORY_ID) {
-			const [owner, repo] = selectedRepository.split('/');
-			repoOwner = owner;
-			repoName = repo;
-			const matchingRepoId = repoIds?.find(id => id.org === owner && id.repo === repo);
-			if (matchingRepoId) {
-				repoHost = matchingRepoId.host;
-			}
-		} else {
-			const repoId = repoIds?.[0];
-			if (!repoId) {
-				throw new Error(vscode.l10n.t('Unable to determine repository information. Please ensure you are working within a Git repository.'));
-			}
-			repoOwner = repoId.org;
-			repoName = repoId.repo;
-			repoHost = repoId.host;
+		const activeRepository = this._gitService.activeRepository?.get();
+		const activeRepoId = activeRepository
+			? (activeRepository.remoteFetchUrls ?? []).map(url => url ? getGithubRepoIdFromFetchUrl(url) : undefined).find((id): id is GithubRepoId => !!id)
+			: undefined;
+		const repoId = resolveCloudRepositoryTarget(activeRepoId, selectedRepository, repoIds);
+		if (!repoId) {
+			throw new Error(vscode.l10n.t('Unable to determine repository information. Please ensure you are working within a Git repository.'));
 		}
+		const repoOwner = repoId.org;
+		const repoName = repoId.repo;
+		const repoHost = repoId.host;
 
 		// Check if CCA is enabled before creating the task.
 		const ccaEnabled = await this.checkCCAEnabled(repoOwner, repoName);

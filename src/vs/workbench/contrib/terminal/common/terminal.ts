@@ -302,7 +302,8 @@ export interface ITerminalProcessManager extends IDisposable, ITerminalProcessIn
 	detachFromProcess(forcePersist?: boolean): Promise<void>;
 	createProcess(shellLaunchConfig: IShellLaunchConfig, cols: number, rows: number): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined>;
 	relaunch(shellLaunchConfig: IShellLaunchConfig, cols: number, rows: number, reset: boolean): Promise<ITerminalLaunchError | ITerminalLaunchResult | undefined>;
-	write(data: string): Promise<void>;
+	/** Resolves false when there is no process to receive the input. */
+	write(data: string): Promise<boolean>;
 	sendSignal(signal: string): Promise<void>;
 	setDimensions(cols: number, rows: number, sync?: undefined, pixelWidth?: number, pixelHeight?: number): Promise<void>;
 	setDimensions(cols: number, rows: number, sync: false, pixelWidth?: number, pixelHeight?: number): Promise<void>;

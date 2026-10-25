@@ -163,5 +163,32 @@ suite('AllowedMcpServers', () => {
 			assert.strictEqual(checkMcpServerAllowed(undefined, deny, { name: 's', url: 'https://api.untrusted.example.com/mcp' }), McpServerAllowResult.Denied);
 			assert.strictEqual(checkMcpServerAllowed(undefined, deny, { name: 's', url: 'https://api.trusted.example.com/mcp' }), McpServerAllowResult.Allowed);
 		});
+
+		test('IPv4-mapped IPv6, percent-encoded dots, and root dots compare as one destination', () => {
+			const mappedDeny: IMcpServerMatcher[] = [{ serverUrl: 'http://[::ffff:127.0.0.1]/*' }];
+			const ipv4Deny: IMcpServerMatcher[] = [{ serverUrl: 'http://127.0.0.1/*' }];
+			const encodedDotDeny: IMcpServerMatcher[] = [{ serverUrl: 'https://evil.com/*' }];
+			const rootDotDeny: IMcpServerMatcher[] = [{ serverUrl: 'https://example.com./*' }];
+
+			assert.deepStrictEqual([
+				checkMcpServerAllowed(undefined, mappedDeny, { name: 's', url: 'http://[::ffff:127.0.0.1]/mcp' }),
+				checkMcpServerAllowed(undefined, ipv4Deny, { name: 's', url: 'http://[::ffff:127.0.0.1]/mcp' }),
+				checkMcpServerAllowed(undefined, encodedDotDeny, { name: 's', url: 'https://evil.com%2e/mcp' }),
+				checkMcpServerAllowed(undefined, rootDotDeny, { name: 's', url: 'https://example.com/mcp' }),
+			], [
+				McpServerAllowResult.Denied,
+				McpServerAllowResult.Denied,
+				McpServerAllowResult.Denied,
+				McpServerAllowResult.Denied,
+			]);
+		});
+
+		test('host-prefix wildcards keep their existing matching semantics', () => {
+			const matchers: IMcpServerMatcher[] = [{ serverUrl: 'http://*127.0.0.2:*/*' }];
+			assert.deepStrictEqual([
+				isMcpServerMatched(matchers, { name: 's', url: 'http://127.0.0.2:63366/mcp' }),
+				isMcpServerMatched(matchers, { name: 's', url: 'http://127.0.0.1:63365/mcp' }),
+			], [true, false]);
+		});
 	});
 });

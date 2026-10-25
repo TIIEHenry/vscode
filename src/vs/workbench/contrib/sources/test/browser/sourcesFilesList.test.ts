@@ -27,7 +27,7 @@ import { IFileQuery, ISearchComplete, ISearchService } from '../../../../service
 import { SourcesFilesExplorer, SourcesFilesExplorerHost } from '../../browser/sourcesFilesExplorer.js';
 import { SourcesFilesList } from '../../browser/sourcesFilesList.js';
 import { buildSourcesFileTree, ISourcesFilesTreeNode } from '../../browser/sourcesFilesTree.js';
-import { SOURCES_ENGINE_FILE_SCHEME } from '../../common/sourcesFilesEngineRead.js';
+import { provideSourcesEngineFileText, SOURCES_ENGINE_FILE_SCHEME } from '../../common/sourcesFilesEngineRead.js';
 import { SOURCES_GIT_DIFF_SCHEME } from '../../browser/sourcesGitDiffContent.js';
 import { sourcesFilesListEmptyMessage, sourcesFilesListNoOpenFileMessage, sourcesFilesListReadFailureDetail, sourcesFilesListReadFailureRetryLabel, sourcesFilesListReadFailureSummaryFor, sourcesFilesListTruncatedMessage } from '../../browser/sourcesFilesListStrings.js';
 import { buildSourcesEngineLevel, filterSourcesLevelNodes, sourcesDirectoryLabel, sourcesEngineParentKey } from '../../browser/sourcesFilesLevel.js';
@@ -49,6 +49,7 @@ suite('Sources - Files list search', () => {
 		readonly workDir?: string;
 		readonly workRoot?: IAgentWorkRoot;
 		readonly sessionId?: string;
+		readonly sessionState?: { id: string };
 		readonly emptyWorkspace?: boolean;
 		readonly listFiles?: (request: UniverseAgentListFilesRequest) => Promise<UniverseAgentListFilesResult>;
 		readonly readFile?: (request: UniverseAgentReadFileRequest) => Promise<UniverseAgentReadFileResult>;
@@ -117,7 +118,7 @@ suite('Sources - Files list search', () => {
 			connection.getConnectionSnapshot = () => ({ listFilesCapability } as UniverseAgentConnectionSnapshot);
 		}
 		instantiationService.stub(IAgentSessionContext, {
-			getActiveSessionId: () => options?.sessionId ?? '',
+			getActiveSessionId: () => options?.sessionState?.id ?? options?.sessionId ?? '',
 			isEngineSessionReady: () => false,
 			isPairingHold: () => false,
 			getSessionWorkDir: () => options?.workDir,
@@ -647,6 +648,51 @@ suite('Sources - Files list search', () => {
 		assert.strictEqual(opened[0].resource?.scheme, SOURCES_ENGINE_FILE_SCHEME);
 		assert.ok(opened.every(input => input.resource?.scheme !== 'file'));
 		assert.strictEqual(opened[0].contents, 'hello engine');
+	});
+
+	test('a slow engine read from the previous session neither writes nor opens', async function () {
+		const sessionState = { id: 'sess-old' };
+		const opened: unknown[] = [];
+		let releaseRead: (() => void) | undefined;
+		const mounted = mountList.call(this, {
+			workDir: '/engine/proj',
+			sessionId: 'sess-old',
+			sessionState,
+			listFiles: async () => ({
+				entries: [engineFile('a.ts', '/engine/proj/src/a.ts')],
+				total: 1,
+			}),
+			readFile: async () => new Promise(resolve => {
+				releaseRead = () => resolve({
+					content: VSBuffer.fromString('stale engine text').buffer,
+					totalSize: 17,
+					mimeType: 'text/plain',
+					lineCount: 1,
+					contentHash: 'stale',
+				});
+			}),
+		});
+		(mounted.host.querySelector('.sources-files-list') as HTMLElement).style.height = '120px';
+		await flush(mounted.widget);
+		const list = await waitForTree(mounted.widget as unknown as { list?: SourcesFilesTree });
+		const file = firstFile(list);
+		(mounted.widget as unknown as { editorService: { openEditor: (input: unknown) => Promise<unknown> } }).editorService.openEditor = async input => {
+			opened.push(input);
+			return undefined;
+		};
+		list.setFocus([file]);
+		list.setSelection([file], getSelectionKeyboardEvent('keydown', false, false));
+		const deadline = Date.now() + 2000;
+		while (Date.now() < deadline && mounted.readFileCalls.length === 0) {
+			await timeout(20);
+		}
+		assert.strictEqual(mounted.readFileCalls.length, 1);
+		sessionState.id = 'sess-new';
+		releaseRead?.();
+		await timeout(20);
+		assert.strictEqual(opened.length, 0);
+		const modelService = (mounted.widget as unknown as { modelService: Parameters<typeof provideSourcesEngineFileText>[1] }).modelService;
+		assert.strictEqual(provideSourcesEngineFileText(file.file!.resource, modelService), null);
 	});
 
 	test('empty workspace with an engine workDir lists files instead of returning nothing', async function () {

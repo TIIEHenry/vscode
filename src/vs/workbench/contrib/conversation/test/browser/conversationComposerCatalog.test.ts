@@ -569,7 +569,7 @@ suite('conversationComposerCatalog', () => {
 		assert.deepStrictEqual(posted, [{ kind: 'submitInput', text: 'hello' }]);
 	});
 
-	test('KEEP leftover list-fail submitDraft skips postBound and shows engine_disconnected', async () => {
+	test('KEEP leftover list-fail submitDraft skips postBound and shows session_not_ready', async () => {
 		const posted: ConversationWriteMessage[] = [];
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const host = createSubmitDraftHost(posted, 1, {
@@ -587,7 +587,7 @@ suite('conversationComposerCatalog', () => {
 
 		assert.deepStrictEqual(posted, []);
 		assert.strictEqual(host.submitInFlight, false);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(failures, ['session_not_ready']);
 		assert.strictEqual(host.dockTextarea.value, 'hello');
 	});
 

@@ -4828,6 +4828,46 @@ suite('AgentSideEffects', () => {
 				{ requestId: 'tc-orphan', approved: true },
 			], 'pending_confirmation without active turn should still be processed and auto-approved');
 		});
+
+		test('late confirmation for a cancelled turn is denied', async () => {
+			setupSession(URI.file('/workspace').toString());
+			startTurn('turn-1');
+			disposables.add(sideEffects.registerProgressListener(agent));
+
+			agent.fireProgress({
+				kind: 'action', resource: URI.parse(defaultChatUri),
+				action: {
+					type: ActionType.ChatToolCallStart, turnId: 'turn-1',
+					toolCallId: 'tc-cancelled', toolName: 'view', displayName: 'Read',
+					contributor: undefined,
+					_meta: { toolKind: undefined, language: undefined },
+				},
+			});
+
+			stateManager.dispatchServerAction(defaultChatUri, {
+				type: ActionType.ChatTurnCancelled, turnId: 'turn-1', duration: 1000,
+			});
+			assert.strictEqual(stateManager.getActiveTurnId(sessionUri.toString()), undefined);
+
+			// The tool call belonged to the cancelled turn. Even though the session
+			// has no active turn and the read is inside the working directory, a
+			// confirmation arriving now must not execute it.
+			agent.fireProgress({
+				kind: 'pending_confirmation', chat: URI.parse(defaultChatUri),
+				state: {
+					status: ToolCallStatus.PendingConfirmation,
+					toolCallId: 'tc-cancelled', toolName: 'view', displayName: 'Read',
+					invocationMessage: 'Reading file.ts', toolInput: '{"path":"file.ts"}',
+					confirmationTitle: undefined, edits: undefined,
+				},
+				permissionKind: 'read', permissionPath: '/workspace/file.ts',
+			});
+
+			await waitForState(stateManager, () => agent.respondToPermissionCalls.length > 0 || undefined);
+			assert.deepStrictEqual(agent.respondToPermissionCalls, [
+				{ requestId: 'tc-cancelled', approved: false },
+			]);
+		});
 	});
 
 	// ---- ChatToolCallComplete routing -----------------------------------

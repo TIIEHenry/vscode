@@ -33,6 +33,7 @@ import './conversationNavigation.contribution.js';
 import './conversationSplitActions.contribution.js';
 import './conversationSessionChat.contribution.js';
 import './conversationSessionWindow.contribution.js';
+import './conversationWorkRootMount.contribution.js';
 import './conversationRevealItem.contribution.js';
 import './conversationReviewNav.contribution.js';
 import './conversationTimelineRevealService.js';

@@ -19,6 +19,7 @@ import { AgentHostSnapshotController } from '../../../browser/agentSessions/agen
 function makeToolCall(opts: {
 	toolCallId: string;
 	filePath: string;
+	beforeFilePath?: string;
 	beforeURI: string;
 	afterURI: string;
 	added?: number;
@@ -37,7 +38,7 @@ function makeToolCall(opts: {
 		content: [{
 			type: ToolResultContentType.FileEdit,
 			before: {
-				uri: URI.file(opts.filePath).toString(),
+				uri: URI.file(opts.beforeFilePath ?? opts.filePath).toString(),
 				content: { uri: opts.beforeURI },
 			},
 			after: {
@@ -290,6 +291,38 @@ suite('AgentHostSnapshotController', () => {
 		}));
 		await controller.restoreSnapshot('req-1', undefined);
 		assert.strictEqual(contentMap.get(file), 'v0');
+	});
+
+	test('a rename followed by an edit still restores the original path', async () => {
+		const before = URI.file('/snap/before').toString();
+		const afterRename = URI.file('/snap/after-rename').toString();
+		const afterEdit = URI.file('/snap/after-edit').toString();
+		const original = URI.file('/original.ts').toString();
+		const renamed = URI.file('/renamed.ts').toString();
+		const contentMap = new Map([
+			[before, 'v0'],
+			[afterRename, 'v1'],
+			[afterEdit, 'v2'],
+			[renamed, 'v2'],
+		]);
+		const controller = createController(store, contentMap);
+
+		controller.addToolCallEdits('req-1', makeToolCall({
+			toolCallId: 'tc-rename', filePath: '/renamed.ts', beforeFilePath: '/original.ts',
+			beforeURI: before, afterURI: afterRename,
+		}));
+		controller.addToolCallEdits('req-1', makeToolCall({
+			toolCallId: 'tc-edit', filePath: '/renamed.ts',
+			beforeURI: afterRename, afterURI: afterEdit,
+		}));
+
+		await controller.restoreSnapshot('req-1', undefined);
+		assert.strictEqual(contentMap.get(original), 'v0');
+		assert.strictEqual(contentMap.has(renamed), false);
+
+		await controller.redoInteraction();
+		assert.strictEqual(contentMap.get(renamed), 'v2');
+		assert.strictEqual(contentMap.has(original), false);
 	});
 
 	test('hasEditsInRequest reflects added tool call edits', () => {

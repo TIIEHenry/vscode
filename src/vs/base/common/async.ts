@@ -2280,10 +2280,22 @@ export function createCancelableAsyncIterableProducer<T>(callback: (token: Cance
 			source.dispose();
 			emitter.reject(new CancellationError());
 		});
+		if (source.token.isCancellationRequested) {
+			// Cancelled before the producer started iterating: this must end as a cancellation, not
+			// as a normal, empty iteration. The listener above only runs on the next timer tick.
+			subscription.dispose();
+			source.dispose();
+			emitter.reject(new CancellationError());
+			return;
+		}
 		try {
 			for await (const item of innerIterable) {
 				if (source.token.isCancellationRequested) {
-					// canceled in the meantime
+					// Canceled in the meantime. Reject rather than return so the consumer cannot read
+					// this as a completed iteration.
+					subscription.dispose();
+					source.dispose();
+					emitter.reject(new CancellationError());
 					return;
 				}
 				emitter.emitOne(item);

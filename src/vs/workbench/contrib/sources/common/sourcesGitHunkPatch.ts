@@ -107,7 +107,9 @@ export function canOfferSourcesGitAcceptHunk(kind: string | undefined, indexStat
 
 /**
  * File header (every line before the first `@@`, including rename / mode)
- * plus the single hunk whose new-side or old-side range contains `cursorLine`.
+ * plus the single hunk whose new-side or old-side body contains `cursorLine`.
+ * `cursorLine` is a line in the diff model built by
+ * `parseSourcesGitUnifiedDiff`, not a file line from the `@@` header.
  * Binary diffs and a cursor outside every hunk return undefined (0 Apply).
  */
 export function sourcesGitHunkPatchAtCursor(unifiedDiff: string, cursorLine: number, side: SourcesGitAcceptCursorSide = 'new'): string | undefined {
@@ -139,6 +141,7 @@ export function sourcesGitHunkPatchAtCursor(unifiedDiff: string, cursorLine: num
 		}
 	}
 
+	let modelLine = 0;
 	let selected: string | undefined;
 	for (let hunkIndex = 0; hunkIndex < starts.length; hunkIndex++) {
 		const start = starts[hunkIndex];
@@ -147,18 +150,33 @@ export function sourcesGitHunkPatchAtCursor(unifiedDiff: string, cursorLine: num
 		if (!parsed) {
 			return undefined;
 		}
-		if (selected !== undefined) {
-			continue;
+		const counts = countHunkBodyLines(lines.slice(start + 1, end));
+		const count = side === 'new' ? counts.newLines : counts.oldLines;
+		const rangeStart = modelLine + 1;
+		modelLine += count;
+		if (selected === undefined && lineInHunk(rangeStart, count, cursorLine)) {
+			const body = lines.slice(start, end).join('\n').replace(/\n+$/, '');
+			selected = `${rawHeaders}\n${body}\n`;
 		}
-		const count = side === 'new' ? parsed.newCount : parsed.oldCount;
-		const rangeStart = side === 'new' ? parsed.newStart : parsed.oldStart;
-		if (!lineInHunk(rangeStart, count, cursorLine)) {
-			continue;
-		}
-		const body = lines.slice(start, end).join('\n').replace(/\n+$/, '');
-		selected = `${rawHeaders}\n${body}\n`;
 	}
 	return selected;
+}
+
+/** Body line counts as `parseSourcesGitUnifiedDiff` emits them for each side. */
+function countHunkBodyLines(body: readonly string[]): { newLines: number; oldLines: number } {
+	let newLines = 0;
+	let oldLines = 0;
+	for (const line of body) {
+		if (line.startsWith('+')) {
+			newLines++;
+		} else if (line.startsWith('-')) {
+			oldLines++;
+		} else if (!line.startsWith('\\')) {
+			newLines++;
+			oldLines++;
+		}
+	}
+	return { newLines, oldLines };
 }
 
 function sourcesGitAcceptToken(value: string | undefined): string {

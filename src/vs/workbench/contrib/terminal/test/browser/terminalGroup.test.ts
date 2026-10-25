@@ -254,6 +254,21 @@ suite('TerminalGroupService focus restore', () => {
 		disposeGroups(service);
 	});
 
+	test('same-group moveInstance keeps the active instance when an unfocused instance moves before it', () => {
+		const service = createService();
+		const active = createFocusInstance(1, false);
+		const moved = createFocusInstance(2, false);
+		const group = service.createGroup(active.raw);
+		group.addInstance(moved.raw);
+		group.setActiveInstanceByIndex(0);
+
+		group.moveInstance(moved.raw, active.raw, 'before');
+
+		strictEqual(group.activeInstance, active.raw);
+		strictEqual(moved.focusCount, 0);
+		disposeGroups(service);
+	});
+
 	test('joinInstances focuses only the moved instance that had focus', () => {
 		const service = createService();
 		const moved = createFocusInstance(1, true);

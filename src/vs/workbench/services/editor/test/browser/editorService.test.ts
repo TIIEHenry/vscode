@@ -2372,6 +2372,41 @@ suite('EditorService', () => {
 		assert.strictEqual(part.activeGroup.activeEditor, movedInput);
 	});
 
+	test('file move keeps renaming later editors when one input refuses the move', async function () {
+		const [part, service, accessor] = await createEditorService();
+		const source = URI.file('/folder');
+		const target = URI.file('/moved');
+
+		const refusing = createTestFileEditorInput(URI.file('/folder/refusing.txt'), TEST_EDITOR_INPUT_ID);
+		const moved = createTestFileEditorInput(URI.file('/folder/moved.txt'), TEST_EDITOR_INPUT_ID);
+		const replacement = createTestFileEditorInput(URI.file('/moved/moved.txt'), TEST_EDITOR_INPUT_ID);
+		moved.movedEditor = { editor: replacement };
+
+		const rootGroup = part.activeGroup;
+		const rightGroup = part.addGroup(rootGroup, GroupDirection.RIGHT);
+		await service.openEditor(refusing, { pinned: true });
+		await rightGroup.openEditor(moved, { pinned: true });
+
+		accessor.fileService.fireAfterOperation(new FileOperationEvent(source, FileOperation.MOVE, {
+			resource: target,
+			ctime: 0,
+			etag: '',
+			isDirectory: true,
+			isFile: false,
+			mtime: 0,
+			name: 'moved',
+			size: 0,
+			isSymbolicLink: false,
+			readonly: false,
+			locked: false,
+			executable: false,
+			children: undefined
+		}));
+		await timeout(0);
+
+		assert.strictEqual(rightGroup.activeEditor, replacement);
+	});
+
 	test('file move is only handled by the global editor service', async function () {
 		const [part, service, accessor] = await createEditorService();
 		const resource = URI.parse('my://resource1');

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import * as sinon from 'sinon';
 import { workbenchInstantiationService, TestServiceAccessor, ITestTextFileEditorModelManager } from '../../../../test/browser/workbenchTestServices.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
@@ -11,10 +12,13 @@ import { TextFileEditorModel } from '../../common/textFileEditorModel.js';
 import { FileOperation } from '../../../../../platform/files/common/files.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { EncodingMode } from '../../common/textfiles.js';
+import { URI } from '../../../../../base/common/uri.js';
+import { ExtUri } from '../../../../../base/common/resources.js';
 
 suite('Files - TextFileService', () => {
 
 	const disposables = new DisposableStore();
+	const sandbox = sinon.createSandbox();
 	let instantiationService: IInstantiationService;
 	let accessor: TestServiceAccessor;
 
@@ -25,6 +29,7 @@ suite('Files - TextFileService', () => {
 	});
 
 	teardown(() => {
+		sandbox.restore();
 		disposables.clear();
 	});
 
@@ -85,6 +90,33 @@ suite('Files - TextFileService', () => {
 		const res = await accessor.textFileService.saveAs(model.resource);
 		assert.strictEqual(res!.toString(), model.resource.toString());
 		assert.ok(!accessor.textFileService.isDirty(model.resource));
+	});
+
+	test('saveAs - same identity move reports undefined when neither save writes', async function () {
+		const source = URI.file('/path/FILE.txt');
+		const target = URI.file('/path/file.txt');
+		const uriIdentity = accessor.uriIdentityService;
+		sandbox.stub(uriIdentity, 'extUri').value(new ExtUri(() => true));
+		sandbox.stub(accessor.workingCopyFileService, 'move').resolves([]);
+		const save = sandbox.stub(accessor.textFileService, 'save').resolves(undefined);
+
+		const result = await accessor.textFileService.saveAs(source, target);
+
+		assert.strictEqual(result, undefined);
+		assert.strictEqual(save.callCount, 2);
+	});
+
+	test('saveAs - same identity move returns target when a later save writes', async function () {
+		const source = URI.file('/path/FILE.txt');
+		const target = URI.file('/path/file.txt');
+		const uriIdentity = accessor.uriIdentityService;
+		sandbox.stub(uriIdentity, 'extUri').value(new ExtUri(() => true));
+		sandbox.stub(accessor.workingCopyFileService, 'move').resolves([]);
+		sandbox.stub(accessor.textFileService, 'save').onFirstCall().resolves(undefined).onSecondCall().resolves(target);
+
+		const result = await accessor.textFileService.saveAs(source, target);
+
+		assert.strictEqual(result?.toString(), target.toString());
 	});
 
 	test('revert - file', async function () {

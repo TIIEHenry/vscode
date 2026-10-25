@@ -37,6 +37,7 @@ import {
 	conversationIdentityEngineChipClass,
 	conversationIdentityEngineOfflineClass,
 	conversationIdentityFolderChipClass,
+	conversationIdentityAddFolderClass,
 	conversationIdentityFolderReadOnlyClass,
 	conversationIdentityStripClass,
 	getConversationIdentityBranchName,
@@ -56,8 +57,10 @@ import { getWindow } from '../../../../../base/browser/dom.js';
 import { Codicon } from '../../../../../base/common/codicons.js';
 import { ActionListItemKind, IActionListDelegate, IActionListItem, IActionListOptions } from '../../../../../platform/actionWidget/browser/actionList.js';
 import { IActionWidgetService } from '../../../../../platform/actionWidget/browser/actionWidget.js';
-import { IWorkspacesService, IRecentlyOpened } from '../../../../../platform/workspaces/common/workspaces.js';
+import { IWorkspacesService, IRecentlyOpened, IWorkspaceFolderCreationData } from '../../../../../platform/workspaces/common/workspaces.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
+import { IWorkspaceEditingService } from '../../../../services/workspaces/common/workspaceEditing.js';
+import { IConversationWorkRootMount, type IWorkRootMountOffer } from '../../browser/conversationWorkRootMount.js';
 import { TestHostService, TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 
 declare function __readFileInTests(path: string): Promise<string>;
@@ -228,7 +231,9 @@ suite('ConversationIdentityStrip', () => {
 		stubService?: ConversationStubService;
 		connectionOverrides?: Partial<IUniverseAgentConnection>;
 		sessionContext?: IAgentSessionContext;
-	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService; lens: ConversationLens; workbench: HTMLElement; actionWidget: RecordingActionWidget; host: TestHostService; workspaces: TestWorkspacesService } {
+		addFolders?: (folders: IWorkspaceFolderCreationData[]) => Promise<void>;
+		workRootMount?: IConversationWorkRootMount;
+	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService; lens: ConversationLens; workbench: HTMLElement; actionWidget: RecordingActionWidget; host: TestHostService; workspaces: TestWorkspacesService; addedFolders: IWorkspaceFolderCreationData[][] } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const actionWidget = new RecordingActionWidget();
 		instantiationService.stub(IActionWidgetService, actionWidget as unknown as IActionWidgetService);
@@ -279,6 +284,21 @@ suite('ConversationIdentityStrip', () => {
 		if (options?.sessionContext) {
 			instantiationService.stub(IAgentSessionContext, options.sessionContext);
 		}
+		const addedFolders: IWorkspaceFolderCreationData[][] = [];
+		instantiationService.stub(IWorkspaceEditingService, {
+			_serviceBrand: undefined,
+			addFolders: async (folders: IWorkspaceFolderCreationData[]) => {
+				addedFolders.push(folders);
+				await options?.addFolders?.(folders);
+			},
+		} as unknown as IWorkspaceEditingService);
+		instantiationService.stub(IConversationWorkRootMount, options?.workRootMount ?? {
+			_serviceBrand: undefined,
+			onDidChangeOffer: Event.None,
+			getOffer: () => undefined,
+			setOffer: () => { },
+			acceptOffer: async () => { },
+		});
 
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const workbenchRoot = document.createElement('div');
@@ -316,6 +336,7 @@ suite('ConversationIdentityStrip', () => {
 			actionWidget,
 			host: instantiationService.get(IHostService) as TestHostService,
 			workspaces: instantiationService.get(IWorkspacesService) as TestWorkspacesService,
+			addedFolders,
 		};
 	}
 
@@ -607,11 +628,12 @@ suite('ConversationIdentityStrip', () => {
 		assert.deepStrictEqual(executed, [OPEN_CONNECTION_PREFERENCES_COMMAND_ID]);
 	});
 
-	test('folder chip opens a searchable recents menu and does not reveal in the explorer', async () => {
+	test('folder chip lists workspace folders and adds a recent folder instead of reopening the window', async () => {
 		const folderUri = TestWorkspace.folders[0].uri;
+		const localUri = URI.file('/local-project');
 		const otherUri = URI.file('/other-project');
 		const opened: { toOpen: unknown; options: unknown }[] = [];
-		const { slots, commandService, actionWidget, host, workspaces } = mountLens();
+		const { slots, commandService, actionWidget, host, workspaces, addedFolders } = mountLens();
 		host.openWindow = async (toOpen, options) => {
 			opened.push({ toOpen, options });
 		};
@@ -619,6 +641,7 @@ suite('ConversationIdentityStrip', () => {
 			files: [],
 			workspaces: [
 				{ folderUri, label: 'current-dup' },
+				{ folderUri: localUri, label: 'Local' },
 				{ folderUri: otherUri, label: 'Other', remoteAuthority: 'ssh-remote+dev' },
 				{ workspace: { id: 'multi', configPath: URI.file('/multi.code-workspace') } },
 			],
@@ -629,6 +652,7 @@ suite('ConversationIdentityStrip', () => {
 		assert.strictEqual(folderChip.tagName, 'BUTTON');
 		assert.strictEqual(folderChip.getAttribute('aria-haspopup'), 'listbox');
 		assert.strictEqual(folderChip.getAttribute('aria-expanded'), 'false');
+		assert.strictEqual(folderChip.getAttribute('aria-label'), 'Session folder: testWorkspace. Add a folder to the workspace.');
 		assert.ok(folderChip.querySelector('.codicon-chevron-down'));
 		assert.ok(engineChip.querySelector('.codicon-chevron-down'));
 		assert.strictEqual(engineChip.querySelector('.codicon-chevron-right'), null);
@@ -646,29 +670,39 @@ suite('ConversationIdentityStrip', () => {
 			minWidth: 280,
 		});
 		assert.strictEqual(folderChip.getAttribute('aria-expanded'), 'true');
+		const headers = actionWidget.shows[0].items.filter(item => item.kind === ActionListItemKind.Header).map(item => item.label);
+		assert.deepStrictEqual(headers, ['Workspace', 'Recents']);
 		const actions = menuActions(actionWidget.shows[0]);
-		assert.deepStrictEqual(actions.map(item => item.label), ['testWorkspace', 'Other', 'Open Folder…']);
+		assert.deepStrictEqual(actions.map(item => item.label), ['testWorkspace', 'Local', 'Other', 'Add Folder to Workspace…']);
 		assert.strictEqual(actions[0].group?.icon, Codicon.check);
 		assert.strictEqual(actions[1].group?.icon, Codicon.folder);
-		assert.ok(actionWidget.shows[0].items.some(item => item.kind === ActionListItemKind.Header && item.label === 'Recents'));
 		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, []);
 
 		actionWidget.shows[0].delegate.onSelect(actions[0].item);
 		assert.deepStrictEqual(opened, []);
+		assert.strictEqual(addedFolders.length, 0);
 		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, []);
+
+		folderChip.click();
+		await timeout(0);
+		actionWidget.shows.at(-1)!.delegate.onSelect(menuActions(actionWidget.shows.at(-1)!).find(item => item.label === 'Local')!.item);
+		await timeout(0);
+		assert.deepStrictEqual(addedFolders.map(folders => folders.map(folder => folder.uri.toString())), [[localUri.toString()]]);
+		assert.deepStrictEqual(opened, []);
 
 		folderChip.click();
 		await timeout(0);
 		actionWidget.shows.at(-1)!.delegate.onSelect(menuActions(actionWidget.shows.at(-1)!).find(item => item.label === 'Other')!.item);
 		assert.deepStrictEqual(opened, [{
 			toOpen: [{ folderUri: otherUri }],
-			options: { forceReuseWindow: true, remoteAuthority: 'ssh-remote+dev' },
+			options: { forceNewWindow: true, remoteAuthority: 'ssh-remote+dev' },
 		}]);
+		assert.strictEqual(addedFolders.length, 1);
 
 		folderChip.click();
 		await timeout(0);
-		actionWidget.shows.at(-1)!.delegate.onSelect(menuActions(actionWidget.shows.at(-1)!).find(item => item.label === 'Open Folder…')!.item);
-		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, ['workbench.action.files.openFolder']);
+		actionWidget.shows.at(-1)!.delegate.onSelect(menuActions(actionWidget.shows.at(-1)!).find(item => item.label === 'Add Folder to Workspace…')!.item);
+		assert.deepStrictEqual((commandService as unknown as { executed: string[] }).executed, ['addRootFolder']);
 		assert.deepStrictEqual((commandService as unknown as { executedArgs: unknown[][] }).executedArgs, [[]]);
 	});
 
@@ -705,7 +739,7 @@ suite('ConversationIdentityStrip', () => {
 			folderChip.click();
 			await timeout(0);
 			assert.deepStrictEqual(leaks, []);
-			assert.deepStrictEqual(menuActions(actionWidget.shows[0]).map(item => item.label), ['testWorkspace', 'Open Folder…']);
+			assert.deepStrictEqual(menuActions(actionWidget.shows[0]).map(item => item.label), ['testWorkspace', 'Add Folder to Workspace…']);
 		} finally {
 			process.off('unhandledRejection', onLeak);
 		}
@@ -776,7 +810,7 @@ suite('ConversationIdentityStrip', () => {
 		}
 	});
 
-	test('does not leak unhandled rejection when Open Folder rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when Add Folder to Workspace rejects and onUnexpectedError warn-then-rethrows', async () => {
 		const paintBoom = new Error('folder chip boom');
 		const executed: string[] = [];
 		const commandService = new class implements ICommandService {
@@ -792,12 +826,12 @@ suite('ConversationIdentityStrip', () => {
 		const folderChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
 		folderChip.click();
 		await timeout(0);
-		const browse = menuActions(actionWidget.shows[0]).find(item => item.label === 'Open Folder…');
+		const browse = menuActions(actionWidget.shows[0]).find(item => item.label === 'Add Folder to Workspace…');
 		assert.ok(browse);
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
 			actionWidget.shows[0].delegate.onSelect(browse.item);
 		});
-		assert.deepStrictEqual(executed, ['workbench.action.files.openFolder']);
+		assert.deepStrictEqual(executed, ['addRootFolder']);
 	});
 
 	test('does not leak unhandled rejection when branch checkout rejects and onUnexpectedError warn-then-rethrows', async () => {
@@ -825,13 +859,31 @@ suite('ConversationIdentityStrip', () => {
 		assert.deepStrictEqual(executed, ['git.checkout']);
 	});
 
-	test('does not leak unhandled rejection when switching folders rejects and onUnexpectedError warn-then-rethrows', async () => {
+	test('does not leak unhandled rejection when adding a folder rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('add folder boom');
+		const otherUri = URI.file('/other-project');
+		const { slots, actionWidget, workspaces } = mountLens({ addFolders: async () => { throw paintBoom; } });
+		workspaces.getRecentlyOpened = async () => ({
+			files: [],
+			workspaces: [{ folderUri: otherUri, label: 'Other' }],
+		});
+		const folderChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+		folderChip.click();
+		await timeout(0);
+		const other = menuActions(actionWidget.shows[0]).find(item => item.label === 'Other');
+		assert.ok(other);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			actionWidget.shows[0].delegate.onSelect(other.item);
+		});
+	});
+
+	test('does not leak unhandled rejection when opening a folder from another remote rejects and onUnexpectedError warn-then-rethrows', async () => {
 		const paintBoom = new Error('open window boom');
 		const otherUri = URI.file('/other-project');
 		const { slots, actionWidget, host, workspaces } = mountLens();
 		workspaces.getRecentlyOpened = async () => ({
 			files: [],
-			workspaces: [{ folderUri: otherUri, label: 'Other' }],
+			workspaces: [{ folderUri: otherUri, label: 'Other', remoteAuthority: 'ssh-remote+dev' }],
 		});
 		host.openWindow = async () => { throw paintBoom; };
 		const folderChip = getIdentityStrip(slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
@@ -848,14 +900,52 @@ suite('ConversationIdentityStrip', () => {
 		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.ts`);
 		assert.ok(source.includes(`void this.commandService.executeCommand(getEngineStatusCommandId(`));
 		assert.ok(source.includes(`)).catch(onUnexpectedError).catch(onUnexpectedError);`));
-		assert.ok(source.includes(`void this.commandService.executeCommand(OPEN_FOLDER_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(source.includes(`void this.commandService.executeCommand(ADD_ROOT_FOLDER_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(source.includes('void this.workspaceEditingService.addFolders([{ uri: folder.folderUri }]).catch(onUnexpectedError).catch(onUnexpectedError);'));
+		assert.ok(!source.includes('forceReuseWindow'));
 		assert.ok(source.includes(`void this.commandService.executeCommand(GIT_CHECKOUT_COMMAND_ID, folderUri, name).catch(onUnexpectedError).catch(onUnexpectedError);`));
-		assert.ok(source.includes('void this.hostService.openWindow([{ folderUri: action.folder.folderUri }], {'));
-		assert.ok(source.includes('remoteAuthority: action.folder.remoteAuthority ?? null,'));
+		assert.ok(source.includes('void this.hostService.openWindow([{ folderUri: folder.folderUri }], {'));
+		assert.ok(source.includes('remoteAuthority: folder.remoteAuthority ?? null,'));
 		assert.ok(!source.includes('revealInExplorer'));
 		assert.ok(!source.includes('this.commandService.executeCommand(getEngineStatusCommandId(\n\t\t\t\tthis.uaConnection.getConnectionPhase(),\n\t\t\t\tthis.uaConnection.getConnectionSnapshot().pairingPending,\n\t\t\t));'));
+		assert.ok(source.includes('void this.workRootMount.acceptOffer().catch(onUnexpectedError).catch(onUnexpectedError);'));
 		assert.strictEqual((source.match(/void this\.commandService\.executeCommand\([\s\S]*?\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 3);
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 6);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 8);
+	});
+
+	test('engine folder offers Add and trust and the click accepts the offer', async () => {
+		const onDidChangeActiveWorkRoot = store.add(new Emitter<IAgentWorkRoot>());
+		const offer: IWorkRootMountOffer = { uri: URI.file('/remote/gamma'), reason: 'trust' };
+		let accepts = 0;
+		const sessionContext = {
+			getActiveWorkRoot: () => ({
+				sessionId: 's-engine',
+				engineIdentityId: 'eng',
+				workDir: '/remote/gamma',
+				source: 'session',
+				access: 'engine',
+				localRoot: undefined,
+				projectKey: 'eng\n/remote/gamma',
+			}),
+			onDidChangeActiveWorkRoot: onDidChangeActiveWorkRoot.event,
+		} as IAgentSessionContext;
+		const { slots } = mountLens({
+			sessionContext,
+			workRootMount: {
+				_serviceBrand: undefined,
+				onDidChangeOffer: Event.None,
+				getOffer: () => offer,
+				setOffer: () => { },
+				acceptOffer: async () => { accepts++; },
+			},
+		});
+		const button = getIdentityStrip(slots).querySelector(`.${conversationIdentityAddFolderClass}`) as HTMLButtonElement;
+		assert.strictEqual(button.hidden, false);
+		assert.strictEqual(button.textContent, 'Add and trust');
+		assert.strictEqual(button.getAttribute('aria-label'), 'Session folder: gamma. Add and trust it.');
+		button.click();
+		await timeout(0);
+		assert.strictEqual(accepts, 1);
 	});
 
 	test('folder and branch follow the active session work root and engine root has no branch menu', async () => {
@@ -978,8 +1068,8 @@ suite('ConversationIdentityStrip', () => {
 		assert.strictEqual(folderChip.tabIndex, -1);
 		assert.strictEqual(folderChevron().hidden, true);
 		assert.strictEqual(folderChip.classList.contains(conversationIdentityFolderReadOnlyClass), true);
-		assert.ok(!folderChip.getAttribute('aria-label')?.includes('Open the folder list'));
-		assert.strictEqual(folderChip.getAttribute('aria-label'), 'Workspace folder: gamma');
+		assert.ok(!folderChip.getAttribute('aria-label')?.includes('Add a folder'));
+		assert.strictEqual(folderChip.getAttribute('aria-label'), 'Session folder: gamma');
 		assert.strictEqual(branchChip.hidden, false);
 		assert.strictEqual(branchChip.textContent, 'engine-branch');
 		assert.strictEqual(branchChip.getAttribute('aria-haspopup'), null);

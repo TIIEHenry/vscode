@@ -9,6 +9,7 @@ import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import type { UniverseAgentReadGitFileDiffResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { EditorInput } from '../../../common/editor/editorInput.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroup, IEditorGroupsService, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { openEditorInSlot } from '../../../services/editor/browser/editorOpenSlot.js';
@@ -31,6 +32,7 @@ import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { readOpenedSourcesConversationComparison } from './conversationDiffReviewPane.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 import { sourcesGitDiffContentStore, sourcesGitDiffModelUri } from './sourcesGitDiffContent.js';
+import { rememberSourcesDiffOpenIdentity } from './sourcesDiffOpenIdentity.js';
 import { allocateSourcesDiffLoadGeneration, onDidSourcesDiffLoad } from './sourcesDiffLoadSignal.js';
 
 export interface ISourcesChangeEntryOpenOptions {
@@ -148,10 +150,12 @@ async function openSourcesChangeInPreview(
 ): Promise<void> {
 	if (ref.scmResource) {
 		if (options.slot && deps.editorGroupsService) {
-			await openScmResourceInSlot(ref.scmResource, deps.editorGroupsService, options.slot, !!options.preserveFocus);
+			const opened = await openScmResourceInSlot(ref.scmResource, deps.editorGroupsService, options.slot, !!options.preserveFocus);
+			rememberSourcesDiffOpenIdentity(opened, { groupId: ref.groupId, scmResource: ref.scmResource });
 			return;
 		}
 		await ref.scmResource.open(!!options.preserveFocus);
+		rememberSourcesDiffOpenIdentity(deps.editorService.activeEditor, { groupId: ref.groupId, scmResource: ref.scmResource });
 		if (options.pinned) {
 			const activeEditorPane = deps.editorService.activeEditorPane;
 			activeEditorPane?.group.pinEditor(activeEditorPane.input);
@@ -170,13 +174,15 @@ async function openSourcesChangeInPreview(
 			},
 		};
 		if (options.slot && deps.editorGroupsService) {
-			await openEditorInSlot(deps.editorService, deps.editorGroupsService, input, options.slot, {
+			const pane = await openEditorInSlot(deps.editorService, deps.editorGroupsService, input, options.slot, {
 				preserveFocus: options.preserveFocus,
 				source: EditorOpenSource.USER,
 			}, ACTIVE_GROUP);
+			rememberSourcesDiffOpenIdentity(pane?.input, { groupId: ref.groupId, scmResource: ref.scmResource });
 			return;
 		}
-		await deps.editorService.openEditor(input, ACTIVE_GROUP);
+		const pane = await deps.editorService.openEditor(input, ACTIVE_GROUP);
+		rememberSourcesDiffOpenIdentity(pane?.input, { groupId: ref.groupId, scmResource: ref.scmResource });
 		return;
 	}
 
@@ -203,7 +209,7 @@ async function openScmResourceInSlot(
 	editorGroupsService: IEditorGroupsService,
 	slot: EditorOpenSlot,
 	preserveFocus: boolean,
-): Promise<void> {
+): Promise<EditorInput | undefined> {
 	const group = editorGroupsService.activeGroup;
 	const previous = group.activeEditor ?? undefined;
 	// An unpinned diff open replaces the preview tab. Pin it first so "new tab" keeps it.
@@ -216,11 +222,12 @@ async function openScmResourceInSlot(
 		if (opened) {
 			group.pinEditor(opened);
 		}
-		return;
+		return opened;
 	}
 	if (previous && opened && !previous.matches(opened) && group.editors.includes(previous)) {
 		await group.closeEditor(previous);
 	}
+	return opened;
 }
 
 /** Active session has no conversation leaf. */

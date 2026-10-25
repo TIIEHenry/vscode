@@ -109,11 +109,7 @@ export class BasicExecuteStrategy extends Disposable implements ITerminalExecute
 			}
 			if (this._instance.exitCode !== undefined) {
 				this._log(`Terminal pty already exited at strategy entry (code=${this._instance.exitCode})`);
-				return {
-					output: undefined,
-					exitCode: this._instance.exitCode,
-					additionalInformation: `Command exited with code ${this._instance.exitCode}`,
-				};
+				throw new Error(`The terminal shell has already exited (code=${this._instance.exitCode}); the command was not sent`);
 			}
 
 			const idlePollInterval = this._configurationService.getValue<number>(TerminalChatAgentToolsSettingId.IdlePollInterval) ?? 1000;

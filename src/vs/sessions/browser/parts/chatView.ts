@@ -12,6 +12,7 @@ import { URI } from '../../../base/common/uri.js';
 import { defaultProgressBarStyles } from '../../../platform/theme/browser/defaultStyles.js';
 import { IProgressScope, ScopedProgressIndicator } from '../../../workbench/services/progress/browser/progressIndicator.js';
 import { IChat, ISession } from '../../services/sessions/common/session.js';
+import { IActiveSession } from '../../services/sessions/common/sessionsManagement.js';
 
 /**
  * Discriminates between concrete {@link AbstractChatView} subclasses without
@@ -23,6 +24,8 @@ export type ChatViewKind = 'newSession' | 'newChatInSession' | 'chat';
  * Options passed to a chat view when it is created.
  */
 export interface IChatViewOptions {
+	/** The pane's session, when the view is created inside a session grid. */
+	readonly session?: IActiveSession;
 }
 
 /**

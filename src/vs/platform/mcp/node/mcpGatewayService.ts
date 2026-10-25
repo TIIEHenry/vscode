@@ -42,7 +42,7 @@ export class McpGatewayService extends Disposable implements IMcpGatewayService 
 		@ILoggerService loggerService: ILoggerService,
 	) {
 		super();
-		this._logger = this._register(loggerService.createLogger('mcpGateway', { name: 'MCP Gateway', logLevel: 'always' }));
+		this._logger = this._register(loggerService.createLogger('mcpGateway', { name: 'MCP Gateway' }));
 		this._logger.info('[McpGatewayService] Initialized');
 	}
 
@@ -510,7 +510,8 @@ class McpGatewayRoute extends Disposable {
 			}
 
 			const responseBody = JSON.stringify(Array.isArray(message) ? responses : responses[0]);
-			this._logger.debug(`[McpGateway][route ${this.routeId}] POST response: 200, body: ${responseBody}`);
+			// The body can contain tool results; log only status and size.
+			this._logger.debug(`[McpGateway][route ${this.routeId}] POST response: 200, ${responses.length} response(s), ${responseBody.length} bytes`);
 			res.writeHead(200, headers);
 			res.end(responseBody);
 		} catch (error) {

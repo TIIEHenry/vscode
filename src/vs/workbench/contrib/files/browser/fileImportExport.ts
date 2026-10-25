@@ -773,6 +773,7 @@ interface IDownloadOperation {
 
 	filesTotal: number;
 	filesDownloaded: number;
+	readonly filesClosed: string[];
 
 	totalBytesDownloaded: number;
 	fileBytesDownloaded: number;
@@ -793,7 +794,8 @@ export class FileDownload {
 		@IProgressService private readonly progressService: IProgressService,
 		@ILogService private readonly logService: ILogService,
 		@IFileDialogService private readonly fileDialogService: IFileDialogService,
-		@IStorageService private readonly storageService: IStorageService
+		@IStorageService private readonly storageService: IStorageService,
+		@INotificationService private readonly notificationService: INotificationService,
 	) {
 	}
 
@@ -848,32 +850,8 @@ export class FileDownload {
 		const preferFileSystemAccessWebApis = stat.isDirectory || stat.size > maxBlobDownloadSize;
 
 		// Folder: use FS APIs to download files and folders if available and preferred
-		const activeWindow = getActiveWindow();
-		if (preferFileSystemAccessWebApis && WebFileSystemAccess.supported(activeWindow)) {
-			try {
-				const parentFolder: FileSystemDirectoryHandle = await activeWindow.showDirectoryPicker();
-				const operation: IDownloadOperation = {
-					startTime: Date.now(),
-					progressScheduler: new RunOnceWorker<IProgressStep>(steps => { progress.report(steps[steps.length - 1]); }, 1000),
-
-					filesTotal: stat.isDirectory ? 0 : 1, // folders increment filesTotal within downloadFolder method
-					filesDownloaded: 0,
-
-					totalBytesDownloaded: 0,
-					fileBytesDownloaded: 0
-				};
-
-				if (stat.isDirectory) {
-					await this.downloadFolderBrowser(parentFolder, stat, operation, cts.token);
-				} else {
-					await this.downloadFileBrowser(parentFolder, stat, operation, cts.token);
-				}
-
-				operation.progressScheduler.dispose();
-			} catch (error) {
-				this.logService.warn(error);
-				cts.cancel(); // `showDirectoryPicker` will throw an error when the user cancels
-			}
+		if (preferFileSystemAccessWebApis && WebFileSystemAccess.supported(getActiveWindow())) {
+			await this.downloadViaFileSystemAccess(stat, progress, cts);
 		}
 
 		// File: use traditional download to circumvent browser limitations
@@ -888,6 +866,45 @@ export class FileDownload {
 			if (!cts.token.isCancellationRequested) {
 				triggerDownload(bufferOrUri, stat.name);
 			}
+		}
+	}
+
+	private async downloadViaFileSystemAccess(stat: IFileStatWithMetadata, progress: IProgress<IProgressStep>, cts: CancellationTokenSource, activeWindow: Window & typeof globalThis = getActiveWindow()): Promise<void> {
+		let parentFolder: FileSystemDirectoryHandle;
+		try {
+			parentFolder = await activeWindow.showDirectoryPicker();
+		} catch (error) {
+			this.logService.warn(error); // `showDirectoryPicker` throws when the user cancels
+			cts.cancel();
+			return;
+		}
+
+		const operation: IDownloadOperation = {
+			startTime: Date.now(),
+			progressScheduler: new RunOnceWorker<IProgressStep>(steps => { progress.report(steps[steps.length - 1]); }, 1000),
+
+			filesTotal: stat.isDirectory ? 0 : 1, // folders increment filesTotal within downloadFolder method
+			filesDownloaded: 0,
+			filesClosed: [],
+
+			totalBytesDownloaded: 0,
+			fileBytesDownloaded: 0
+		};
+
+		try {
+			if (stat.isDirectory) {
+				await this.downloadFolderBrowser(parentFolder, stat, operation, cts.token);
+			} else {
+				await this.downloadFileBrowser(parentFolder, stat, operation, cts.token);
+			}
+		} catch (error) {
+			if (!isCancellationError(error)) {
+				const closed = operation.filesClosed.length ? ` (${operation.filesClosed.join(', ')} already downloaded)` : '';
+				this.notificationService.error(localize('downloadFailed', "Failed to download '{0}'{1}: {2}", stat.name, closed, error instanceof Error ? error.message : String(error)));
+			}
+			throw error;
+		} finally {
+			operation.progressScheduler.dispose();
 		}
 	}
 
@@ -1074,6 +1091,9 @@ export class FileDownload {
 			throw errorToThrow;
 		}
 
+		if (closed) {
+			operation.filesClosed.push(file.name);
+		}
 		return closed;
 	}
 

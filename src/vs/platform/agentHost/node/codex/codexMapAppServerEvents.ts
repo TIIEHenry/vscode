@@ -1197,6 +1197,11 @@ export function mapTurnCompleted(
 	params: TurnCompletedNotification,
 	fallbackDuration?: number,
 ): (SessionAction | ChatAction)[] {
+	if (params.turn.status === 'inProgress') {
+		// Not a completion: keep the turn's item map and current-turn binding so
+		// later items still land in it.
+		return [];
+	}
 	state.currentTurnId = undefined;
 	state.itemToPartId.clear();
 	state.itemToReasoningPartId.clear();
@@ -1229,7 +1234,7 @@ export function mapTurnCompleted(
 				: 0;
 	const orphanedToolCallActions = completeOrphanedToolCalls(state, status === 'interrupted' ? 'Turn interrupted before the tool completed' : 'Turn completed before the tool reported completion');
 	const deferredResponseActions = flushDeferredResponseActions(state);
-	if (status === 'failed' && params.turn.error) {
+	if (status === 'failed') {
 		return [
 			...recoveredToolCallActions,
 			...preflightFlush,
@@ -1239,7 +1244,9 @@ export function mapTurnCompleted(
 				type: ActionType.ChatError,
 				turnId,
 				duration,
-				part: createErrorResponsePart(mapCodexTurnError(params.turn.error)),
+				part: createErrorResponsePart(params.turn.error
+					? mapCodexTurnError(params.turn.error)
+					: { errorType: 'CodexError', message: 'Codex turn failed' }),
 			},
 			{
 				type: ActionType.ChatTurnComplete,
@@ -1267,7 +1274,7 @@ export function mapCodexTurnError(error: TurnError): ErrorInfo {
  * Build a {@link TurnState} from a codex `Turn.status`. Mostly useful
  * for replay (Phase 3).
  */
-export function turnStateFromStatus(status: string): TurnState {
+export function turnStateFromStatus(status: string): TurnState | undefined {
 	switch (status) {
 		case 'completed':
 			return TurnState.Complete;
@@ -1275,6 +1282,10 @@ export function turnStateFromStatus(status: string): TurnState {
 			return TurnState.Cancelled;
 		case 'failed':
 			return TurnState.Error;
+		case 'inProgress':
+			// There is no in-progress state in the host protocol; callers that
+			// persist a turn must skip it rather than claim it completed.
+			return undefined;
 		default:
 			return TurnState.Complete;
 	}

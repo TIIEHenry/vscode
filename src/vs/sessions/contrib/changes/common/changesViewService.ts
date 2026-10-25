@@ -78,4 +78,11 @@ export interface IChangesViewService {
 	setDetailsViewState(sessionResource: URI, viewMode: ChangesViewMode, state: IChangesDetailsViewState): void;
 
 	setChangesetFilesReviewState(resources: readonly URI[], reviewed: boolean): void;
+
+	/**
+	 * Review state setter for a specific session's changeset. Unlike
+	 * {@link setChangesetFilesReviewState}, this never falls back to the
+	 * globally active session, so a stale editor writes to its own session.
+	 */
+	setSessionChangesetFilesReviewState(sessionResource: URI, resources: readonly URI[], reviewed: boolean): void;
 }

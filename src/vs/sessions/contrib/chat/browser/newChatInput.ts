@@ -1989,6 +1989,28 @@ export class NewChatInputWidget extends Disposable implements IHistoryNavigation
 		this.storageService.store(draftStorageKeyForComposer(this.options?.draftStorageKey), stringify(state), StorageScope.WORKSPACE, StorageTarget.MACHINE);
 	}
 
+	/**
+	 * Rebinds this composer to another draft key. The old draft is flushed
+	 * first, so switching the pane's session cannot carry one session's text
+	 * into the next session's key.
+	 */
+	setDraftStorageKey(draftStorageKey: string): void {
+		if (this.options.draftStorageKey === draftStorageKey) {
+			return;
+		}
+		if (this._draftReady) {
+			this.saveState();
+		}
+		this.options.draftStorageKey = draftStorageKey;
+		if (this._draftReady) {
+			this._draftState = { inputText: '', attachments: [] };
+			this._editor?.getModel()?.setValue('');
+			this._contextAttachments.setAttachments([]);
+			this._restoreState();
+			this._updateDraftState();
+		}
+	}
+
 	layout(_height: number, _width: number): void {
 		this._editor?.layout();
 		this._primaryPickerResponsiveLayout?.layout();

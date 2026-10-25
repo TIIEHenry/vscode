@@ -1733,7 +1733,15 @@ export class SessionViewHost extends Disposable {
 			const handle: UniverseAgentChatStream = open.call(
 				this.connection,
 				engineSessionId,
-				response => this.noteChatRunFailed(sessionId, response),
+				response => {
+					// A disposed stream is no longer this session's chat. Its late
+					// error frame must not patch the failure row or clear pending
+					// messages on a link that has already been replaced.
+					if (disposed) {
+						return;
+					}
+					this.noteChatRunFailed(sessionId, response);
+				},
 				cause => {
 					if (disposed || (cause.kind !== 'remote' && cause.kind !== 'error')) {
 						return;

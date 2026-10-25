@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getActiveElement } from '../../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
@@ -289,6 +290,20 @@ suite('Conversation session window side-by-side (S5)', () => {
 
 		const leaf = sessionWindowService.getLeafSlots(secondaryId);
 		assert.ok(leaf?.container.classList.contains(conversationSessionLeafHiddenClass));
+	});
+
+	test('active conversation part skips a focused leaf that is hidden', async () => {
+		const { parts, sessionWindowService, primaryId, secondaryId } = await createSideBySideHarness();
+
+		sessionWindowService.hideSessionWindow(secondaryId);
+		const active = getActiveElement();
+		if (active instanceof HTMLElement) {
+			active.blur();
+		}
+		parts.setFocusedConversationLeaf(secondaryId);
+
+		assert.strictEqual(parts.getFocusedConversationLeaf(), secondaryId);
+		assert.strictEqual(parts.getActiveConversationEditorPart()?.sessionKey, primaryId);
 	});
 
 	test('restore hidden session window shows side-by-side layout again', async () => {

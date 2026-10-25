@@ -229,15 +229,22 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.strictEqual(clusterFlex, true);
 	});
 
-	test('session unavailable gate row has warning chrome without error-alert styling', () => {
+	test('session unavailable gate warning is an icon, not a filled alert', () => {
 		const css = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8'));
 		const rules = collectCssRules(css);
-		const warning = rules.find(rule => rule.selector.includes('.conversation-lens-dock-gate-row.is-warning'));
-		assert.ok(warning);
-		assert.match(warning!.body, /inputValidation-warningBackground/);
-		assert.match(warning!.body, /inputValidation-warningBorder/);
-		assert.match(warning!.body, /editorWarning-foreground/);
-		const icon = rules.find(rule => rule.selector.trim().endsWith('.conversation-lens-dock-gate-icon'));
+		const warningRules = rules.filter(rule => rule.selector.includes('.conversation-lens-dock-gate-row.is-warning') && !rule.selector.includes('hc-black') && !rule.selector.includes('hc-light'));
+		assert.ok(warningRules.length > 0);
+		for (const rule of warningRules) {
+			assert.ok(!/background-color/.test(rule.body), rule.selector);
+			assert.ok(!/font-weight\s*:\s*600/.test(rule.body), rule.selector);
+		}
+		const warningIcon = rules.find(rule => rule.selector.includes('.conversation-lens-dock-gate-row.is-warning') && rule.selector.includes('.conversation-lens-dock-gate-icon'));
+		assert.ok(warningIcon);
+		assert.match(warningIcon!.body, /editorWarning-foreground/);
+		const icon = rules.find(rule => {
+			const selector = rule.selector.trim();
+			return selector.endsWith('.conversation-lens-dock-gate-icon') && !selector.includes('.is-warning');
+		});
 		assert.ok(icon);
 		assert.match(icon!.body, /font-size\s*:\s*16px/);
 		const hiddenIcon = rules.find(rule => rule.selector.includes('.conversation-lens-dock-gate-icon[hidden]'));

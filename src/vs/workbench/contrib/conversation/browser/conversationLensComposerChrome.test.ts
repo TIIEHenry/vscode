@@ -6,12 +6,19 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import {
+	conversationLensDockAgentUnavailable,
+	conversationLensDockEngineCapabilityUnsupported,
+	conversationLensDockModelUnavailable,
+	conversationLensDockPermissionUnavailable,
 	syncComposerPlacement,
+	updateAgentSelectEnabled,
 	updateComposerEditChrome,
 	updateGateRow,
+	updateModelSelectEnabled,
+	updatePermissionSelectEnabled,
 	type IConversationLensComposerChromeHost,
 } from './conversationLensComposerChrome.js';
-import { conversationLensDockEditingMessage, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason } from './conversationLensDockStrings.js';
+import { conversationLensDockEditingMessage, conversationLensDockSessionLoading, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason } from './conversationLensDockStrings.js';
 
 suite('ConversationLensComposerChrome', () => {
 
@@ -97,6 +104,116 @@ suite('ConversationLensComposerChrome', () => {
 		assert.strictEqual(gateRow.hidden, true);
 		assert.ok(!gateRow.classList.contains('is-warning'));
 		assert.strictEqual(icon.hidden, true);
+	});
+
+	test('loading session gate is status copy without the warning chrome', () => {
+		const gateRow = document.createElement('div');
+		gateRow.className = 'conversation-lens-dock-gate-row';
+		const gateLabel = document.createElement('span');
+		gateLabel.className = 'conversation-lens-dock-gate-label';
+		gateRow.append(gateLabel);
+		const host = {
+			postFailureVisible: false,
+			gateRow,
+			gateLabel,
+			stubService: {
+				isEngineConnected: () => true,
+				getEngineSessionReadiness: () => 'loading' as const,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+		} as unknown as IConversationLensComposerChromeHost;
+
+		updateGateRow(host);
+
+		assert.strictEqual(gateLabel.textContent, conversationLensDockSessionLoading);
+		assert.ok(!gateRow.classList.contains('is-warning'));
+		assert.ok(!gateRow.classList.contains('is-error'));
+	});
+
+	test('agent permission and model copy follows connection, readiness, and engine support', () => {
+		const dockRoot = document.createElement('div');
+		const permission = document.createElement('div');
+		permission.className = 'conversation-lens-dock-permission';
+		const model = document.createElement('div');
+		model.className = 'conversation-lens-dock-model';
+		dockRoot.append(permission, model);
+		const agentContainer = document.createElement('div');
+		const aria: { permission?: string; model?: string } = {};
+		const selectBox = {
+			setEnabled() { },
+			setAriaLabel(label: string) {
+				if (!aria.permission) {
+					aria.permission = label;
+				} else {
+					aria.model = label;
+				}
+			},
+		};
+		let connected = false;
+		let pairing = false;
+		let readiness: 'ready' | 'loading' | 'unavailable' = 'ready';
+		const host = {
+			postFailureVisible: false,
+			dockRoot,
+			agentContainer,
+			permissionSelectBox: selectBox,
+			modelSelectBox: {
+				setEnabled() { },
+				setAriaLabel(label: string) { aria.model = label; },
+			},
+			sessionConfigBySessionId: new Map(),
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				isEngineConnected: () => connected,
+				getEngineSessionReadiness: () => readiness,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const, path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: pairing }),
+			},
+		} as unknown as IConversationLensComposerChromeHost;
+
+		const paint = () => {
+			aria.permission = undefined;
+			aria.model = undefined;
+			updateAgentSelectEnabled(host);
+			updatePermissionSelectEnabled(host);
+			updateModelSelectEnabled(host);
+		};
+		const agentText = () => agentContainer.textContent;
+
+		paint();
+		assert.strictEqual(agentText(), conversationLensDockAgentUnavailable);
+		assert.strictEqual(permission.title, conversationLensDockPermissionUnavailable);
+		assert.strictEqual(model.title, conversationLensDockModelUnavailable);
+
+		connected = true;
+		pairing = true;
+		paint();
+		assert.strictEqual(agentText(), conversationLensDockAgentUnavailable);
+		assert.strictEqual(permission.title, conversationLensDockPermissionUnavailable);
+
+		pairing = false;
+		readiness = 'loading';
+		paint();
+		assert.strictEqual(agentText(), conversationLensDockSessionLoading);
+		assert.strictEqual(permission.title, conversationLensDockSessionLoading);
+		assert.strictEqual(model.title, conversationLensDockSessionLoading);
+
+		readiness = 'unavailable';
+		paint();
+		assert.strictEqual(agentText(), conversationLensDockSessionUnavailable);
+		assert.strictEqual(permission.title, conversationLensDockSessionUnavailable);
+		assert.strictEqual(model.title, conversationLensDockSessionUnavailable);
+
+		readiness = 'ready';
+		paint();
+		assert.strictEqual(agentText(), conversationLensDockEngineCapabilityUnsupported);
+		assert.strictEqual(permission.title, conversationLensDockEngineCapabilityUnsupported);
+		assert.strictEqual(model.title, conversationLensDockEngineCapabilityUnsupported);
 	});
 
 	test('turnEdit while the edit surface is live puts a disconnected composer back in the cluster', () => {

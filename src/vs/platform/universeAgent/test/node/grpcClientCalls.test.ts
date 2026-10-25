@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import * as path from '../../../../base/common/path.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type { UniverseAgentSessionStreamCloseCause } from '../../common/universeAgentTypes.js';
-import { asUnaryProtoBytes, makeClientStreamBytesClient } from '../../node/grpc/grpcClientCalls.js';
+import { asUnaryProtoBytes, makeClientStreamBytesClient, makeResidentBidiBytesHandleClient } from '../../node/grpc/grpcClientCalls.js';
 
 /** Not valid UTF-8 and not a JSON object (`{` as a raw byte). */
 const BINARY_CHUNK = Uint8Array.from([0x00, 0xff, 0xfe, 0x7b, 0x22]);
@@ -104,6 +104,29 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 		assert.ok(bytesBody.includes('call.cancel()'));
 		assert.ok(bytesBody.includes('call.end()'));
 		assert.ok(bytesBody.includes('call.write('));
+	});
+
+	test('resident bidi handle drops data after local dispose but keeps it after a half-close', () => {
+		const channel = fakeBidiChannel();
+		const open = makeResidentBidiBytesHandleClient<{ n: number }>(
+			channel as never,
+			'agentservice.ChatService',
+			'Chat',
+			buffer => ({ n: buffer[0] ?? 0 }),
+		);
+		const responses: number[] = [];
+		const causes: UniverseAgentSessionStreamCloseCause[] = [];
+		const handle = open(response => responses.push(response.n), cause => causes.push(cause));
+
+		handle.end();
+		channel.emitData({ n: 1 });
+		assert.deepStrictEqual(responses, [1], 'half-close must still deliver server frames');
+		assert.deepStrictEqual(causes, [], 'half-close is not a close');
+
+		handle.dispose();
+		channel.emitData({ n: 2 });
+		assert.deepStrictEqual(responses, [1], 'locally disposed stream must drop late frames');
+		assert.deepStrictEqual(causes, []);
 	});
 
 	test('openUploadAttachmentStream wires makeClientStreamBytesClient; SaveSkillContent stays JSON', () => {
@@ -204,6 +227,24 @@ function openFakeBytesClient(): FakeBytesClient {
 	assert.ok(deserialize);
 	assert.ok(callback);
 	return { path, serialize, deserialize, callback, call, decoded, responses, closes, handle };
+}
+
+function fakeBidiChannel(): { emitData(data: unknown): void } {
+	let onData: ((data: unknown) => void) | undefined;
+	const call = {
+		on(event: string, listener: (value: unknown) => void): void {
+			if (event === 'data') {
+				onData = listener;
+			}
+		},
+		write(): void { },
+		end(): void { },
+		cancel(): void { },
+	};
+	return {
+		makeBidiStreamRequest: () => call,
+		emitData: data => onData?.(data),
+	} as never;
 }
 
 function grpcDir(): string {

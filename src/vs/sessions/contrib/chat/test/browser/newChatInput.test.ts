@@ -368,7 +368,7 @@ suite('NewChatInputWidget', () => {
 			dispose: () => { },
 		};
 		const widget = disposables.add(new NewChatInSessionWidget(
-			{},
+			{ session: { sessionId: 'session-1' } },
 			{
 				createInstance: (_ctor: unknown, options: { draftStorageKey?: string }) => {
 					assert.strictEqual(options.draftStorageKey, inSessionDraftStorageKey('session-1'));
@@ -394,6 +394,45 @@ suite('NewChatInputWidget', () => {
 		assert.strictEqual(draftSaves, 2);
 		flush?.();
 		assert.strictEqual(draftSaves, 2);
+	});
+
+	test('follow-up send stays on the pane session after the global active session changes', async () => {
+		const sent: { sessionId: string; background: boolean | undefined }[] = [];
+		const opened: string[] = [];
+		const sessionA = {
+			sessionId: 'session-a',
+			activeChat: { get: () => ({ resource: URI.parse('chat://a') }) },
+		};
+		const widget = disposables.add(new NewChatInSessionWidget(
+			{ session: sessionA as never },
+			{
+				createInstance: () => ({
+					saveState: () => { },
+					dispose: () => { },
+					setDraftStorageKey: () => { },
+				}),
+			} as never,
+			{ error: () => { } } as never,
+			{
+				sendRequest: async (session: { sessionId: string }, _chat: unknown, options: { background?: boolean }) => {
+					sent.push({ sessionId: session.sessionId, background: options.background });
+					return { kind: 'sent' };
+				},
+			} as never,
+			{
+				activeSession: { get: () => ({ sessionId: 'session-b' }) },
+				openNewChatInSession: async (session: { sessionId: string }) => { opened.push(session.sessionId); },
+			} as never,
+			{ onWillSaveState: () => ({ dispose: () => { } }) } as never,
+			{ error: () => { } } as never,
+		));
+
+		await (widget as unknown as { _send(query: string, attachments: undefined, background: boolean): Promise<boolean> })._send('continue', undefined, true);
+
+		assert.deepStrictEqual({ sent, opened }, {
+			sent: [{ sessionId: 'session-a', background: true }],
+			opened: ['session-a'],
+		});
 	});
 
 	test('renders GitHub context pills as openable with a keyboard-reachable remove button', async () => {

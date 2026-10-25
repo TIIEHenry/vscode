@@ -27,7 +27,7 @@ export type ISourcesFilesListSource =
 	| { readonly kind: 'workspace' }
 	| ISourcesFilesEngineListSource;
 
-const engineFileTextByPath = new Map<string, string>();
+const engineFileTextBySessionPath = new Map<string, string>();
 
 /**
  * `fileSearch` when workDir is missing, `listFiles` is missing, or workDir
@@ -81,10 +81,10 @@ export function sourcesEngineFileText(content: Uint8Array): string {
 	return VSBuffer.wrap(content).toString();
 }
 
-export function sourcesEngineFileResource(enginePath: string): URI {
+export function sourcesEngineFileResource(sessionId: string, enginePath: string): URI {
 	const slash = enginePath.replace(/\\/g, '/');
 	const path = slash.startsWith('/') ? slash : `/${slash}`;
-	return URI.from({ scheme: SOURCES_ENGINE_FILE_SCHEME, path });
+	return URI.from({ scheme: SOURCES_ENGINE_FILE_SCHEME, path, query: JSON.stringify({ sessionId }) });
 }
 
 /**
@@ -110,19 +110,19 @@ export function sourcesEngineReadonlyTextInput(
 }
 
 export function putSourcesEngineFileText(resource: URI, text: string): void {
-	engineFileTextByPath.set(resource.path, text);
+	engineFileTextBySessionPath.set(sourcesEngineFileTextKey(resource), text);
 }
 
 /** Test isolation. Production only moves text forward for a path. */
 export function resetSourcesEngineFileTextForTests(): void {
-	engineFileTextByPath.clear();
+	engineFileTextBySessionPath.clear();
 }
 
 export function provideSourcesEngineFileText(resource: URI, modelService: IModelService): ITextModel | null {
 	if (resource.scheme !== SOURCES_ENGINE_FILE_SCHEME) {
 		return null;
 	}
-	const text = engineFileTextByPath.get(resource.path);
+	const text = engineFileTextBySessionPath.get(sourcesEngineFileTextKey(resource));
 	if (text === undefined) {
 		return null;
 	}
@@ -178,7 +178,7 @@ function projectSourcesEngineFileEntry(source: ISourcesFilesEngineListSource, fi
 	if (!enginePath) {
 		return undefined;
 	}
-	const resource = sourcesEngineFileResource(enginePath);
+	const resource = sourcesEngineFileResource(source.sessionId, enginePath);
 	const name = file.name || basename(resource);
 	const origin: ISourcesEngineFileOrigin = { sessionId: source.sessionId, path: enginePath };
 	return {
@@ -204,4 +204,9 @@ function sourcesEngineFileDescription(workDir: string, enginePath: string, name:
 
 function normalizeEnginePath(path: string): string {
 	return path.replace(/\\/g, '/').replace(/\/+$/, '');
+}
+
+/** Engine text identity is session plus path, not path alone. */
+function sourcesEngineFileTextKey(resource: URI): string {
+	return `${resource.query}\n${resource.path}`;
 }

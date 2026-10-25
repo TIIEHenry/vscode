@@ -2327,6 +2327,36 @@ suite('Async', () => {
 			]);
 		});
 
+		test('cancelling before iteration starts rejects instead of ending normally', async () => {
+			const producer = async.createCancelableAsyncIterableProducer(async function* () {
+				yield 1;
+			});
+			producer.cancel();
+
+			const seen: number[] = [];
+			await assert.rejects(async () => {
+				for await (const item of producer) {
+					seen.push(item);
+				}
+			}, (error: Error) => isCancellationError(error));
+			assert.deepStrictEqual(seen, []);
+		});
+
+		test('cancelling before iteration starts does not hand the first value to the consumer', async () => {
+			const producer = async.createCancelableAsyncIterableProducer<number>(async function* () {
+				yield 1;
+			});
+			producer.cancel();
+
+			const seen: number[] = [];
+			await assert.rejects(async () => {
+				for await (const item of producer) {
+					seen.push(item);
+				}
+			}, (error: Error) => isCancellationError(error));
+			assert.deepStrictEqual(seen, []);
+		});
+
 		test('tee - both iterators receive all values', async () => {
 			// TODO: Implementation bug - executors don't await start(), causing producers to finalize early
 			async function* sourceGenerator() {

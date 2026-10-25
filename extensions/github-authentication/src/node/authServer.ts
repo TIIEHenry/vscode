@@ -107,6 +107,8 @@ export class LoopbackAuthServer implements ILoopbackServer {
 					if (receivedNonce !== this.nonce) {
 						res.writeHead(302, { location: `/?error=${encodeURIComponent('Nonce does not match.')}${appNameQueryParam}` });
 						res.end();
+						deferred.reject(new Error('Nonce does not match.'));
+						return;
 					}
 					res.writeHead(302, { location: this._startingRedirect.toString() });
 					res.end();

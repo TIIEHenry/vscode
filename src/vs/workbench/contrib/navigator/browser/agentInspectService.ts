@@ -15,6 +15,8 @@ export class AgentInspectService extends Disposable implements IAgentInspectServ
 	private target: AgentInspectTarget | undefined;
 	private agentsLiveAgentIds: ReadonlySet<string> | undefined;
 	private teamLiveAgentIds: ReadonlySet<string> | undefined;
+	private agentsLiveAgentSessionId: string | undefined;
+	private teamLiveAgentSessionId: string | undefined;
 	private liveActivityIds: ReadonlySet<string> | undefined;
 	private liveTaskIds: ReadonlySet<string> | undefined;
 
@@ -36,17 +38,19 @@ export class AgentInspectService extends Disposable implements IAgentInspectServ
 		this._onDidChangeTarget.fire(this.target);
 	}
 
-	setLiveAgentIds(source: AgentInspectLiveAgentIdSource, ids: ReadonlySet<string> | undefined): void {
+	setLiveAgentIds(source: AgentInspectLiveAgentIdSource, ids: ReadonlySet<string> | undefined, sessionId?: string): void {
 		if (source === 'agents') {
-			if (this.agentsLiveAgentIds === ids) {
+			if (this.agentsLiveAgentIds === ids && this.agentsLiveAgentSessionId === sessionId) {
 				return;
 			}
 			this.agentsLiveAgentIds = ids;
+			this.agentsLiveAgentSessionId = sessionId;
 		} else {
-			if (this.teamLiveAgentIds === ids) {
+			if (this.teamLiveAgentIds === ids && this.teamLiveAgentSessionId === sessionId) {
 				return;
 			}
 			this.teamLiveAgentIds = ids;
+			this.teamLiveAgentSessionId = sessionId;
 		}
 		this._onDidChangeLiveAgentIds.fire();
 	}
@@ -71,6 +75,10 @@ export class AgentInspectService extends Disposable implements IAgentInspectServ
 
 	getLiveAgentIdsFor(source: AgentInspectLiveAgentIdSource): ReadonlySet<string> | undefined {
 		return source === 'agents' ? this.agentsLiveAgentIds : this.teamLiveAgentIds;
+	}
+
+	getLiveAgentIdsSession(source: AgentInspectLiveAgentIdSource): string | undefined {
+		return source === 'agents' ? this.agentsLiveAgentSessionId : this.teamLiveAgentSessionId;
 	}
 
 	setLiveActivityIds(ids: ReadonlySet<string> | undefined): void {

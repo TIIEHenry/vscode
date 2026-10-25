@@ -12,7 +12,7 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { stubTurnsToEntries } from '../../browser/conversationSessionView.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
-import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
+import { ConversationTimelineHost, conversationTimelineEmptyTitle, conversationTimelineMessagesNotLoaded } from '../../browser/conversationTimelineHost.js';
 
 suite('ConversationTimelineHost', () => {
 
@@ -180,6 +180,28 @@ suite('ConversationTimelineHost', () => {
 		assert.strictEqual(article.querySelector('.monaco-button'), null);
 		assert.ok(article.textContent?.includes("Couldn't send this response: gone"));
 		assert.ok(!article.textContent?.includes('Input needed'));
+	});
+
+	test('empty timeline copy follows loading and unavailable', () => {
+		const host = createHost();
+		const empty = host.domNode.querySelector('.conversation-lens-timeline-empty') as HTMLElement;
+		const title = empty.querySelector('.conversation-lens-timeline-empty-title') as HTMLElement;
+		assert.strictEqual(title.textContent, conversationTimelineEmptyTitle);
+		assert.ok(!empty.classList.contains('is-loading'));
+		assert.ok(!empty.classList.contains('is-unavailable'));
+
+		host.setEmptyStateKind('loading');
+		assert.strictEqual(title.textContent, '');
+		assert.ok(empty.classList.contains('is-loading'));
+		assert.ok(!empty.classList.contains('is-unavailable'));
+
+		host.setEmptyStateKind('unavailable');
+		assert.strictEqual(title.textContent, conversationTimelineMessagesNotLoaded);
+		assert.ok(!empty.classList.contains('is-loading'));
+		assert.ok(empty.classList.contains('is-unavailable'));
+
+		host.applyEntries(stubTurnsToEntries([user('u1', 'hello')]), { kind: 'baseline' });
+		assert.strictEqual(empty.style.display, 'none');
 	});
 
 	test('resetTestApplyMetrics zeroes the counters', () => {

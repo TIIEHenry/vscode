@@ -173,11 +173,13 @@ export async function handleWritePermission(
 	}
 	const toolParams = await getFileEditConfirmationToolParams(instantiationService, permissionRequest, toolCall, workspaceFolderForFile);
 	if (!toolParams) {
-		// No confirmation needed (e.g. no file to edit) — auto-approve.
+		// A resolved file with nothing to show needs no confirmation. No file at
+		// all is not an approval: ask the user before writing something we cannot name.
 		if (editFile) {
 			await trackEditIfNeeded(editTracker, toolCall, editFile, stream, logService);
+			return { kind: 'approve-once' };
 		}
-		return { kind: 'approve-once' };
+		return showInteractivePermissionPrompt(permissionRequest, toolParentCallId, toolsService, toolInvocationToken, logService, token);
 	}
 	const result = await invokeConfirmationTool(toolParams, toolParentCallId, toolsService, toolInvocationToken, logService, token);
 	if (result.kind === 'approve-once' && editFile) {

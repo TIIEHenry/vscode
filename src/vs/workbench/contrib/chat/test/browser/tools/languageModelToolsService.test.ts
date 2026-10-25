@@ -841,6 +841,56 @@ suite('LanguageModelToolsService', () => {
 		}, 'Expected tool call to be cancelled');
 	});
 
+	test('a failed tool call is completed with an error, not the prepared success sentence', async () => {
+		const capture: { invocation?: ChatToolInvocation } = {};
+		const tool = registerToolForTest(service, store, 'failingTool', {
+			prepareToolInvocation: async () => ({ invocationMessage: 'Editing', pastTenseMessage: 'Edited successfully' }),
+			invoke: async () => { throw new Error('write failed'); },
+		});
+
+		const sessionId = 'sessionId-failing-tool';
+		stubGetSession(chatService, sessionId, { requestId: 'requestId-failing-tool', capture });
+
+		await assert.rejects(
+			service.invokeTool(tool.makeDto({ a: 1 }, { sessionId }), async () => 0, CancellationToken.None),
+			/invoke failed|write failed/,
+		);
+
+		const invocation = capture.invocation;
+		assert.ok(invocation);
+		const state = invocation.state.get();
+		assert.strictEqual(state.type, IChatToolInvocation.StateKind.Completed);
+		assert.ok(state.type === IChatToolInvocation.StateKind.Completed && state.toolResultError, 'the failed result must be visible on the completed state');
+		assert.notStrictEqual(invocation.pastTenseMessage, 'Edited successfully');
+	});
+
+	test('cancelling a tool while it waits for confirmation leaves it cancelled', async () => {
+		const capture: { invocation?: ChatToolInvocation } = {};
+		const tool = registerToolForTest(service, store, 'confirmingTool', {
+			prepareToolInvocation: async () => ({
+				invocationMessage: 'Confirm',
+				confirmationMessages: { title: 'Run?', message: 'Run the tool?', allowAutoConfirm: false },
+			}),
+			invoke: async () => ({ content: [{ kind: 'text', value: 'ran' }] }),
+		});
+
+		const sessionId = 'sessionId-confirm-cancel';
+		const requestId = 'requestId-confirm-cancel';
+		const dto = tool.makeDto({ a: 1 }, { sessionId });
+		stubGetSession(chatService, sessionId, { requestId, capture });
+
+		const promise = service.invokeTool(dto, async () => 0, CancellationToken.None);
+		const invocation = await waitForPublishedInvocation(capture);
+		assert.ok(invocation);
+		assert.strictEqual(invocation.state.get().type, IChatToolInvocation.StateKind.WaitingForConfirmation);
+
+		service.cancelToolCallsForRequest(requestId);
+		await assert.rejects(promise, err => isCancellationError(err));
+
+		const state = invocation.state.get();
+		assert.strictEqual(state.type, IChatToolInvocation.StateKind.Cancelled);
+	});
+
 	test('rejects tool invocation for cancelled request id', async () => {
 		let invoked = false;
 		const tool = registerToolForTest(service, store, 'testTool', {

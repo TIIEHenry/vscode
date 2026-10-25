@@ -27,6 +27,7 @@ import {
 	ConversationStubTurn,
 	getConversationStubNextTurnId,
 } from './conversationStubModel.js';
+import type { ConversationSessionReadiness } from './conversationSessionAvailability.js';
 import { mergeTrajectoryFixtureExtras, projectSnapshotToTrajectory, shouldMergeTrajectoryFixtureExtras, type TrajectoryProjectionOptions, ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import {
 	entriesToLegacyTurns,
@@ -276,6 +277,11 @@ export interface IConversationRosterService {
 	setEngineConnected(connected: boolean): void;
 	/** Connected engine roster has a bindable session id (not stub seed / not pending catalog). */
 	isEngineSessionReady(): boolean;
+	/**
+	 * Split of {@link isEngineSessionReady} for connected rosters.
+	 * Stub omits this; callers then treat `isEngineSessionReady() === false` as unavailable.
+	 */
+	getEngineSessionReadiness?(): ConversationSessionReadiness;
 	/**
 	 * True after a live engine catalog was adopted. Disconnected cache must not
 	 * fall back to stub echo or claim the send was delivered / synced.

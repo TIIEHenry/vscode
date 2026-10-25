@@ -595,7 +595,7 @@ export class NotebookTextModel extends Disposable implements INotebookTextModel 
 	private static _commonPrefix(a: readonly NotebookCellTextModel[], aLen: number, aDelta: number, b: ICellDto2[], bLen: number, bDelta: number, isExecuting: (cell: NotebookCellTextModel) => boolean): number {
 		const maxResult = Math.min(aLen, bLen);
 		let result = 0;
-		for (let i = 0; i < maxResult && a[aDelta + i].fastEqual(b[bDelta + i], isExecuting(a[aDelta + i])); i++) {
+		for (let i = 0; i < maxResult && a[aDelta + i].fastEqual(b[bDelta + i], isExecuting(a[aDelta + i])) && this._outputIdsEqual(a[aDelta + i], b[bDelta + i]); i++) {
 			result++;
 		}
 
@@ -605,10 +605,22 @@ export class NotebookTextModel extends Disposable implements INotebookTextModel 
 	private static _commonSuffix(a: readonly NotebookCellTextModel[], aLen: number, aDelta: number, b: ICellDto2[], bLen: number, bDelta: number, isExecuting: (cell: NotebookCellTextModel) => boolean): number {
 		const maxResult = Math.min(aLen, bLen);
 		let result = 0;
-		for (let i = 0; i < maxResult && a[aDelta + aLen - i - 1].fastEqual(b[bDelta + bLen - i - 1], isExecuting(a[aDelta + aLen - i - 1])); i++) {
+		for (let i = 0; i < maxResult && a[aDelta + aLen - i - 1].fastEqual(b[bDelta + bLen - i - 1], isExecuting(a[aDelta + aLen - i - 1])) && this._outputIdsEqual(a[aDelta + aLen - i - 1], b[bDelta + bLen - i - 1]); i++) {
 			result++;
 		}
 		return result;
+	}
+
+	private static _outputIdsEqual(a: NotebookCellTextModel, b: ICellDto2): boolean {
+		if (a.outputs.length !== b.outputs.length) {
+			return false;
+		}
+		for (let i = 0; i < a.outputs.length; i++) {
+			if (a.outputs[i].outputId !== b.outputs[i].outputId) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private newCellsFromLastEdit = new Set<number>();

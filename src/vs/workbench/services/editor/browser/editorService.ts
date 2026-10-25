@@ -280,7 +280,7 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 				// Delegate rename() to editor instance
 				const moveResult = await editor.rename(group.id, targetResource);
 				if (!moveResult) {
-					return; // not target - ignore
+					continue; // not target - ignore this editor, keep moving the rest
 				}
 
 				const optionOverrides = {

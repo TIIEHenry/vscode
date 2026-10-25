@@ -3215,6 +3215,16 @@ export class RunInTerminalTool extends Disposable implements IToolImpl {
 				return;
 			}
 
+			// A terminal can outlive the command that started this background
+			// execution. Ignore end events for other commands instead of
+			// reporting them as this command's completion and disposing a
+			// terminal whose process is still running.
+			const isThisCommand = (command.id !== undefined && command.id === toolSpecificData.terminalCommandId)
+				|| command.command === commandName;
+			if (!isThisCommand) {
+				return;
+			}
+
 			if (handleSessionCancelled()) {
 				return;
 			}

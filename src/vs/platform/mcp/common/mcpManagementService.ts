@@ -501,10 +501,12 @@ export abstract class AbstractMcpResourceManagementService extends AbstractCommo
 
 		try {
 			const currentServers = await this.mcpResourceScannerService.scanMcpServers(this.mcpResource, this.target);
-			if (!currentServers.servers) {
-				return;
+			if (currentServers.servers) {
+				await this.mcpResourceScannerService.removeMcpServers([server.name], this.mcpResource, this.target);
 			}
-			await this.mcpResourceScannerService.removeMcpServers([server.name], this.mcpResource, this.target);
+			// A missing resource file (or one without `servers`) is not proof that
+			// the installation is gone: the in-memory record and its directory may
+			// still exist. Finish the uninstall either way.
 			if (server.location) {
 				await this.fileService.del(URI.revive(server.location), { recursive: true });
 			}

@@ -24,7 +24,8 @@
 
 /* Author `display` beats the UA `[hidden]` rule, so hidden chips/strip stayed visible as empty pills. */
 .monaco-workbench .part.conversation .conversation-identity-strip[hidden],
-.monaco-workbench .part.conversation .conversation-identity-chip[hidden] {
+.monaco-workbench .part.conversation .conversation-identity-chip[hidden],
+.monaco-workbench .part.conversation .conversation-identity-add-folder[hidden] {
 	display: none;
 }
 
@@ -121,6 +122,29 @@
 .monaco-workbench .part.conversation button.conversation-identity-chip.conversation-identity-chip-folder--readonly:hover,
 .monaco-workbench .part.conversation button.conversation-identity-chip.conversation-identity-chip-folder--readonly:active {
 	background-color: transparent;
+}
+
+.monaco-workbench .part.conversation button.conversation-identity-add-folder {
+	display: inline-flex;
+	align-items: center;
+	padding: 3px 10px;
+	border-radius: 999px;
+	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	background-color: transparent;
+	color: var(--vscode-foreground);
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 16px;
+	cursor: pointer;
+}
+
+.monaco-workbench .part.conversation button.conversation-identity-add-folder:hover {
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.conversation button.conversation-identity-add-folder:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: 1px;
 }
 
 .monaco-workbench .part.conversation .conversation-identity-chip-engine--failed {

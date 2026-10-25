@@ -72,6 +72,7 @@ import {
 	planSourcesDiffStageAttempt,
 	resolveSourcesDiffEmptyStageChrome,
 	resolveSourcesDiffWriteControllerChrome,
+	sourcesDiffAcceptUnavailableMessage,
 	sourcesDiffWriteCollapseFor,
 } from '../common/sourcesDiffWriteController.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
@@ -642,6 +643,8 @@ export class SourcesDiffPanelView extends ViewPane {
 			}
 			const patch = read?.supported ? sourcesGitHunkPatchAtCursor(read.unifiedDiff, cursor.line, cursor.side) : undefined;
 			if (!patch || !hasSourcesGitApplyHunksPayload(sessionId, [patch])) {
+				this.showActionNotice(sourcesDiffAcceptUnavailableMessage());
+				this.updateWriteActions();
 				return;
 			}
 			const hook = this.uaConnection.writeGitApplyHunks;

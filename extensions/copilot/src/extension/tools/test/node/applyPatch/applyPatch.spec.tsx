@@ -5,20 +5,22 @@
 
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { beforeEach, expect, it, suite } from 'vitest';
+import { beforeEach, expect, it, suite, vi } from 'vitest';
 import { IIgnoreService, NullIgnoreService } from '../../../../../platform/ignore/common/ignoreService';
+import { IAlternativeNotebookContentEditGenerator } from '../../../../../platform/notebook/common/alternativeContentEditGenerator';
 import { ITestingServicesAccessor } from '../../../../../platform/test/node/services';
 import { TestWorkspaceService } from '../../../../../platform/test/node/testWorkspaceService';
 import { IWorkspaceService } from '../../../../../platform/workspace/common/workspaceService';
 import { ChatResponseStreamImpl } from '../../../../../util/common/chatResponseStreamImpl';
+import { ExtHostNotebookDocumentData } from '../../../../../util/common/test/shims/notebookDocument';
 import { createTextDocumentData } from '../../../../../util/common/test/shims/textDocument';
-import { CancellationToken } from '../../../../../util/vs/base/common/cancellation';
+import { CancellationToken, CancellationTokenSource } from '../../../../../util/vs/base/common/cancellation';
 import { ResourceSet } from '../../../../../util/vs/base/common/map';
 import { assertType } from '../../../../../util/vs/base/common/types';
 import { URI } from '../../../../../util/vs/base/common/uri';
 import { SyncDescriptor } from '../../../../../util/vs/platform/instantiation/common/descriptors';
 import { IInstantiationService } from '../../../../../util/vs/platform/instantiation/common/instantiation';
-import { ChatResponseTextEditPart, ExtendedLanguageModelToolResult } from '../../../../../vscodeTypes';
+import { ChatResponseNotebookEditPart, ChatResponseTextEditPart, ExtendedLanguageModelToolResult, NotebookCellData, NotebookCellKind, NotebookData, NotebookEdit } from '../../../../../vscodeTypes';
 import { ChatVariablesCollection } from '../../../../prompt/common/chatVariablesCollection';
 import { WorkingCopyOriginalDocument } from '../../../../prompts/node/inline/workingCopies';
 import { createExtensionUnitTestingServices } from '../../../../test/node/services';
@@ -325,6 +327,154 @@ suite('ApplyPatch Tool', () => {
 			hasError: false,
 			editedUris: [destination.toString()],
 		});
+	});
+
+	it('keeps interleaved requests on their own stream and allowed edit URIs', async () => {
+		const tool = accessor.get(IInstantiationService).createInstance(ApplyPatchTool);
+		const firstEdits: string[] = [];
+		const secondEdits: string[] = [];
+		const firstStream = createRecordingStream(firstEdits);
+		const secondStream = createRecordingStream(secondEdits);
+		const destination = URI.file(join(__dirname, 'fixtures/interleaved.ts'));
+		const patch = createMovePatch(destination);
+
+		await tool.resolveInput(patch, {
+			requestId: 'request-a',
+			history: [],
+			stream: firstStream,
+			query: 'first request',
+			chatVariables: new ChatVariablesCollection([]),
+			allowedEditUris: new ResourceSet([fileTsUri, destination]),
+		});
+		await tool.resolveInput(patch, {
+			requestId: 'request-b',
+			history: [],
+			stream: secondStream,
+			query: 'second request',
+			chatVariables: new ChatVariablesCollection([]),
+			allowedEditUris: new ResourceSet(),
+		});
+
+		// The second resolveInput must not replace the first request's context.
+		const result = await tool.invoke({ input: patch, toolInvocationToken: undefined, chatRequestId: 'request-a' }, CancellationToken.None);
+
+		expect({
+			hasError: result instanceof ExtendedLanguageModelToolResult ? result.hasError : undefined,
+			firstEdits,
+			secondEdits,
+		}).toEqual({
+			hasError: false,
+			firstEdits: [destination.toString()],
+			secondEdits: [],
+		});
+	});
+
+	it('does not reuse a prepared patch from another request', async () => {
+		const tool = accessor.get(IInstantiationService).createInstance(ApplyPatchTool);
+		const destination = URI.file(join(__dirname, 'fixtures/prepared.ts'));
+		const patch = createMovePatch(destination);
+		const buildSpy = vi.spyOn(tool as unknown as { buildCommitWithHealing: (...args: unknown[]) => Promise<unknown> }, 'buildCommitWithHealing');
+		const firstEdits: string[] = [];
+		const secondEdits: string[] = [];
+
+		await tool.resolveInput(patch, {
+			requestId: 'request-a',
+			history: [],
+			stream: createRecordingStream(firstEdits),
+			query: 'prepare',
+			chatVariables: new ChatVariablesCollection([]),
+			allowedEditUris: new ResourceSet([fileTsUri, destination]),
+		});
+		await tool.prepareInvocation({ input: patch, forceConfirmationReason: 'test' }, CancellationToken.None);
+
+		await tool.resolveInput(patch, {
+			requestId: 'request-b',
+			history: [],
+			stream: createRecordingStream(secondEdits),
+			query: 'invoke',
+			chatVariables: new ChatVariablesCollection([]),
+			allowedEditUris: new ResourceSet([fileTsUri, destination]),
+		});
+		await tool.invoke({ input: patch, toolInvocationToken: undefined, chatRequestId: 'request-b' }, CancellationToken.None);
+
+		// One call for request A's prepareInvocation, one for request B's invoke.
+		expect(buildSpy).toHaveBeenCalledTimes(2);
+		expect(secondEdits).toEqual([destination.toString()]);
+	});
+
+	it('does not emit text edits when the invocation token is already cancelled', async () => {
+		const tool = accessor.get(IInstantiationService).createInstance(ApplyPatchTool);
+		const editedUris: string[] = [];
+		const destination = URI.file(join(__dirname, 'fixtures/cancelled.ts'));
+		const patch = createMovePatch(destination);
+		const source = new CancellationTokenSource();
+		source.cancel();
+
+		await tool.resolveInput(patch, {
+			requestId: 'request-cancelled',
+			history: [],
+			stream: createRecordingStream(editedUris),
+			query: 'cancel',
+			chatVariables: new ChatVariablesCollection([]),
+			allowedEditUris: new ResourceSet([fileTsUri, destination]),
+		});
+
+		await expect(tool.invoke({ input: patch, toolInvocationToken: undefined, chatRequestId: 'request-cancelled' }, source.token))
+			.rejects.toMatchObject({ name: 'Canceled' });
+		expect(editedUris).toEqual([]);
+	});
+
+	it('does not emit notebook edits when the token is cancelled during notebook rewrite', async () => {
+		const services = createExtensionUnitTestingServices();
+		const notebookPath = join(__dirname, 'fixtures/cancelled.ipynb');
+		const notebookUri = URI.file(notebookPath);
+		const notebook = ExtHostNotebookDocumentData.fromNotebookData(
+			notebookUri,
+			new NotebookData([new NotebookCellData(NotebookCellKind.Code, 'print(1)', 'python')]),
+			'jupyter-notebook'
+		);
+		const source = new CancellationTokenSource();
+		services.define(IAlternativeNotebookContentEditGenerator, {
+			_serviceBrand: undefined,
+			async *generateNotebookEdits() {
+				source.cancel();
+				yield NotebookEdit.insertCells(0, [new NotebookCellData(NotebookCellKind.Code, 'print(2)', 'python')]);
+			},
+		});
+		services.define(IWorkspaceService, new SyncDescriptor(TestWorkspaceService, [[], [], [notebook.document]]));
+		const localAccessor = services.createTestingAccessor();
+		const tool = localAccessor.get(IInstantiationService).createInstance(ApplyPatchTool);
+		const notebookEdits: unknown[] = [];
+		const textEdits: unknown[] = [];
+		const stream = new ChatResponseStreamImpl(part => {
+			if (part instanceof ChatResponseNotebookEditPart) {
+				notebookEdits.push(part);
+			} else if (part instanceof ChatResponseTextEditPart) {
+				textEdits.push(part);
+			}
+		}, () => { }, () => { }, undefined, undefined, () => Promise.resolve(undefined));
+		const patch: IApplyPatchToolParams = {
+			explanation: 'Rewrite the notebook.',
+			input: [
+				'*** Begin Patch',
+				`*** Update File: ${notebookPath}`,
+				'@@',
+				'+print(2)',
+				'*** End Patch',
+			].join('\n'),
+		};
+
+		await tool.resolveInput(patch, {
+			requestId: 'request-notebook',
+			history: [],
+			stream,
+			query: 'rewrite',
+			chatVariables: new ChatVariablesCollection([]),
+		});
+
+		await expect(tool.invoke({ input: patch, toolInvocationToken: undefined, chatRequestId: 'request-notebook' }, source.token))
+			.rejects.toMatchObject({ name: 'Canceled' });
+		expect({ notebookEdits, textEdits }).toEqual({ notebookEdits: [], textEdits: [] });
 	});
 
 	suite('healedPatchAffectsSameFiles', () => {

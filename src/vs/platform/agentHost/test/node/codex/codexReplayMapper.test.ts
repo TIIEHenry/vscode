@@ -487,6 +487,18 @@ suite('codexReplayMapper', () => {
 		}]);
 	});
 
+	test('in-progress turn is not replayed as complete', () => {
+		const turns = replayThreadToTurns({
+			id: 'thr',
+			turns: [{
+				id: 'turn_running',
+				status: 'inProgress',
+				items: [{ type: 'userMessage', id: 'u1', content: [{ type: 'text', text: 'still running' }] }],
+			}],
+		} as never);
+		assert.deepStrictEqual(turns, []);
+	});
+
 	test('turn with no recognizable items is dropped', () => {
 		const turns = replayThreadToTurns({
 			id: 'thr',

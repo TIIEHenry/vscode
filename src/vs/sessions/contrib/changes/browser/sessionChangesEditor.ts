@@ -45,6 +45,7 @@ import { IChangesViewService } from '../common/changesViewService.js';
 import { ChangesActionsBar } from './changesView.js';
 import { SessionChangesEditorInput } from './sessionChangesEditorInput.js';
 import { ISessionChangesService } from './sessionChangesService.js';
+import { ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
 import { ISessionFileChange } from '../../../services/sessions/common/session.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { IAction } from '../../../../base/common/actions.js';
@@ -75,8 +76,10 @@ export class SessionChangesUIElementFactory implements IWorkbenchUIElementFactor
 
 	constructor(
 		private readonly changesObs: IObservable<readonly ISessionFileChange[]>,
+		private readonly sessionResourceObs: IObservable<URI | undefined>,
 		@ICommandService private readonly commandService: ICommandService,
 		@IChangesViewService private readonly changesViewService: IChangesViewService,
+		@ISessionsManagementService private readonly sessionsManagementService: ISessionsManagementService,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
 	) { }
 
@@ -87,12 +90,18 @@ export class SessionChangesUIElementFactory implements IWorkbenchUIElementFactor
 	}
 
 	handleHeaderMiddleClick(resource: URI): boolean {
-		if (this.changesViewService.activeSessionChangesetObs.get()?.capabilities?.review !== true) {
+		const sessionResource = this.sessionResourceObs.get();
+		const session = sessionResource ? this.sessionsManagementService.getSession(sessionResource) : undefined;
+		const changeset = session
+			? session.changesets.get()?.find(candidate => getChangesEditorFileStats(resource, candidate.changes.get()) !== undefined)
+			: this.changesViewService.activeSessionChangesetObs.get();
+
+		if (changeset?.capabilities?.review !== true) {
 			return false;
 		}
 
-		// `changesObs` can retain a stale row during a session switch; validate against the active changeset.
-		if (!getChangesEditorFileStats(resource, this.changesViewService.activeSessionChangesObs.get())) {
+		// `changesObs` can retain a stale row during a session switch; validate against this editor's changeset.
+		if (!getChangesEditorFileStats(resource, this.changesObs.get())) {
 			return false;
 		}
 
@@ -260,7 +269,7 @@ export class SessionChangesEditor extends AbstractEditorWithViewState<IMultiDiff
 		this.widget = this._register(paneInstantiationService.createInstance(
 			MultiDiffEditorWidget,
 			this.bodyContainer,
-			paneInstantiationService.createInstance(SessionChangesUIElementFactory, this._scopedChangesObs),
+			paneInstantiationService.createInstance(SessionChangesUIElementFactory, this._scopedChangesObs, this._inputSessionResource),
 			CHANGES_DIFF_EDITOR_OPTIONS,
 		));
 		this._register(autorun(reader => {

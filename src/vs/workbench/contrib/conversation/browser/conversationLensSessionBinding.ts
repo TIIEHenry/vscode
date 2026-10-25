@@ -25,6 +25,7 @@ import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { applyComposerSurfaceText } from './conversationComposerRefs.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
+import { conversationTimelineEmptyKind, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 export interface IConversationLensSessionBindingHost {
 	/** Same dispose gate Mermaid resolve uses. */
 	readonly isDisposed: boolean;
@@ -100,15 +101,14 @@ export function rejectPairingHoldWrite(host: IConversationPairingHoldWriteHost):
 
 /** KEEP leftover list-fail (D449/D460): connected but roster not ready is not a live write surface. */
 function isKeepLeftoverListFailWrite(host: IConversationKeepLeftoverWriteHost): boolean {
-	return host.stubService.isEngineConnected?.() === true
-		&& host.stubService.isEngineSessionReady?.() === false;
+	return isConversationSessionNotReady(host.stubService);
 }
 
 export function rejectKeepLeftoverListFailWrite(host: IConversationKeepLeftoverWriteHost): boolean {
 	if (!isKeepLeftoverListFailWrite(host)) {
 		return false;
 	}
-	host.showPostFailure('engine_disconnected');
+	host.showPostFailure('session_not_ready');
 	return true;
 }
 
@@ -143,6 +143,15 @@ function blankDetachedTimeline(host: IConversationLensSessionBindingHost, dropPa
 }
 
 export function bindSessionView(host: IConversationLensSessionBindingHost, sessionId: string): void {
+	try {
+		bindSessionViewNow(host, sessionId);
+	} finally {
+		const readiness = getConversationSessionReadiness(host.stubService);
+		host.timelineTree?.setEmptyStateKind?.(conversationTimelineEmptyKind(readiness));
+	}
+}
+
+function bindSessionViewNow(host: IConversationLensSessionBindingHost, sessionId: string): void {
 
 	if (host.isDisposed) {
 		return;
@@ -156,7 +165,7 @@ export function bindSessionView(host: IConversationLensSessionBindingHost, sessi
 		blankDetachedTimeline(host, dropPaint);
 		return;
 	}
-	if (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady()) {
+	if (isConversationSessionNotReady(host.stubService)) {
 		// D269: same-session leftover stays painted. Cross-session / first pull still clears.
 		if (hadEntries && previousSessionId === sessionId) {
 			return;

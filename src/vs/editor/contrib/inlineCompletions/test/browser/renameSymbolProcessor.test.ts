@@ -4,6 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import * as fs from 'fs';
+import * as path from '../../../../../base/common/path.js';
+import { fileURLToPath } from 'url';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Range } from '../../../../common/core/range.js';
@@ -267,5 +270,34 @@ suite('renameSymbolProcessor', () => {
 		assert.strictEqual(edit.range.endLineNumber, 1);
 		assert.strictEqual(edit.range.endColumn, 8);
 		assert.strictEqual(edit.text, 'width');
+	});
+});
+
+suite('renameSymbolProcessor - stale rename guards', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	function source(): string {
+		const candidates = [
+			path.join(process.cwd(), 'src/vs/editor/contrib/inlineCompletions/browser/model/renameSymbolProcessor.ts'),
+			path.join(path.dirname(fileURLToPath(import.meta.url)), '../../browser/model/renameSymbolProcessor.ts'),
+		];
+		const found = candidates.find(candidate => fs.existsSync(candidate));
+		assert.ok(found, `renameSymbolProcessor.ts not found (${candidates.join(' | ')})`);
+		return fs.readFileSync(found, 'utf8');
+	}
+
+	test('revalidates the captured editor state after awaiting the workspace edit', () => {
+		const text = source();
+		const commandBlock = text.slice(text.indexOf('registerCommand(renameSymbolCommandId'), text.indexOf('public async proposeRenameRefactoring'));
+		const afterAwait = commandBlock.slice(commandBlock.indexOf('await renameRunnable.getWorkspaceEdit()'));
+		assert.ok(afterAwait.includes('!renameRunnable.isValid(this._codeEditorService)'));
+		assert.ok(afterAwait.indexOf('isValid') < afterAwait.indexOf('bulkEditService.apply'));
+	});
+
+	test('stamps NES edits with the version captured when the rename was proposed', () => {
+		const text = source();
+		const nesBlock = text.slice(text.indexOf('private async sendNesRenameRequest'), text.indexOf('export class RenameSymbolProcessor'));
+		assert.ok(nesBlock.includes('this.versionId'));
+		assert.ok(nesBlock.includes('new ResourceTextEdit(item.file, new TextReplacement(range, change.newText ?? newName), versionId)'));
 	});
 });

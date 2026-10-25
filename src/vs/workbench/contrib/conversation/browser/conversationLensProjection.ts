@@ -27,6 +27,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { refreshStaleSnapshotBanner } from './conversationLensReadingColumn.js';
+import { conversationTimelineEmptyKind, getConversationSessionReadiness } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 
 export const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
@@ -223,6 +224,8 @@ export function updateSyncChrome(host: IConversationLensProjectionHost, _sync?: 
 
 export function updateConversationPhase(host: IConversationLensProjectionHost): void {
 
+		const readiness = getConversationSessionReadiness(host.stubService);
+		host.timelineTree?.setEmptyStateKind?.(conversationTimelineEmptyKind(readiness));
 		const preFirst = isPreFirst(host);
 		if (preFirst && host.composerPolicy !== 'compose') {
 			host.exitComposerEdit();

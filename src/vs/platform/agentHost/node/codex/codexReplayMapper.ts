@@ -88,6 +88,12 @@ type ReplaySegment = {
 };
 
 function replayCodexTurnToHostTurns(codexTurn: CodexTurn, model: ModelSelection | undefined, rolloutCoordination: readonly ICodexThreadCoordinationCall[] | undefined): Turn[] {
+	const state = turnStateFromStatus(codexTurn.status);
+	if (state === undefined) {
+		// The host protocol has no in-progress turn; do not replay a running
+		// codex turn as if it had completed.
+		return [];
+	}
 	let userText = '';
 	let hostTurnId = codexTurn.id;
 	const parts: ResponsePart[] = [];
@@ -230,7 +236,6 @@ function replayCodexTurnToHostTurns(codexTurn: CodexTurn, model: ModelSelection 
 	sealSegment();
 
 	const timing = codexTurnTiming(codexTurn);
-	const state = turnStateFromStatus(codexTurn.status);
 	const turns: Turn[] = [];
 	for (let i = 0; i < segments.length; i++) {
 		const segment = segments[i];

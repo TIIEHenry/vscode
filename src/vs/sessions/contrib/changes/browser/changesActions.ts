@@ -37,7 +37,7 @@ import { ISessionContext } from '../../../services/sessions/browser/sessionConte
 import { ISessionsService } from '../../../services/sessions/browser/sessionsService.js';
 import { ISessionFileChange, SessionChangesetOperationScope } from '../../../services/sessions/common/session.js';
 import { ISessionChangesStatsCache, readSessionChangesStats } from '../../../services/sessions/common/sessionChangesStatsCache.js';
-import { IActiveSession } from '../../../services/sessions/common/sessionsManagement.js';
+import { IActiveSession, ISessionsManagementService } from '../../../services/sessions/common/sessionsManagement.js';
 import { IChangesViewService } from '../common/changesViewService.js';
 import { findSessionFileChange, getSessionChangeResource } from './changesEditorLabels.js';
 import { ChangesMultiDiffSourceResolver, SessionChangesReviewedFilesContext } from './changesMultiDiffSourceResolver.js';
@@ -483,6 +483,11 @@ function changesetOperationCandidateUris(args: readonly unknown[]): URI[] {
 	return URI.isUri(args[0]) ? [args[0]] : [];
 }
 
+/** The session an action runner addressed explicitly, if it passed one. */
+function changesetOperationSessionResource(args: readonly unknown[]): URI | undefined {
+	return args.length >= 2 && args[0] instanceof URI && typeof args[1] === 'string' ? args[0] : undefined;
+}
+
 /** Root rows have no file. The diff editor does not set this key, so it stays available there. */
 export const changesetResourceOperationMenuWhen = ChangesContextKeys.ChangeKind.notEqualsTo('root');
 
@@ -578,11 +583,23 @@ class ChangesetOperationsActionControllerContribution extends Disposable impleme
 
 					async run(accessor: ServicesAccessor, ...args: unknown[]): Promise<void> {
 						const changesViewService = accessor.get(IChangesViewService);
-						const changeset = changesViewService.activeSessionChangesetObs.get();
+						const activeEditorPane = accessor.get(IEditorService).activeEditorPane;
+						const editorSession = changesetOperationSessionResource(args)
+							?? (activeEditorPane?.input
+								? accessor.get(ISessionChangesService).getSessionResource(activeEditorPane.input.resource)
+								: undefined);
+						const session = editorSession ? accessor.get(ISessionsManagementService).getSession(editorSession) : undefined;
+						const changes = session?.changes.get() ?? changesViewService.activeSessionChangesObs.get();
+						const resources = changesetOperationFileTargets(args, changes);
+						if (resources.length === 0) {
+							return;
+						}
+						const changeset = session
+							? session.changesets.get()?.find(candidate => resources.some(resource => findSessionFileChange(resource, candidate.changes.get()) !== undefined))
+							: changesViewService.activeSessionChangesetObs.get();
 						if (!changeset) {
 							return;
 						}
-						const resources = changesetOperationFileTargets(args, changesViewService.activeSessionChangesObs.get());
 						for (const resource of resources) {
 							await changeset.invokeOperation(operation.id, {
 								kind: 'resource',

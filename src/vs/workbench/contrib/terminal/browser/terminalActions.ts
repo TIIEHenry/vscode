@@ -293,6 +293,29 @@ function getTerminalServices(accessor: ServicesAccessor): ITerminalServicesColle
 	};
 }
 
+export async function runSelectedTextInActiveTerminal(c: ITerminalServicesCollection, accessor: ServicesAccessor): Promise<void> {
+	const codeEditorService = accessor.get(ICodeEditorService);
+	const notificationService = accessor.get(INotificationService);
+	const editor = codeEditorService.getActiveCodeEditor();
+	if (!editor || !editor.hasModel()) {
+		return;
+	}
+	const instance = await c.service.getActiveOrCreateInstance({ acceptsInput: true });
+	const selection = editor.getSelection();
+	let text: string;
+	if (selection.isEmpty()) {
+		text = editor.getModel().getLineContent(selection.selectionStartLineNumber).trim();
+	} else {
+		const endOfLinePreference = isWindows ? EndOfLinePreference.LF : EndOfLinePreference.CRLF;
+		text = editor.getModel().getValueInRange(selection, endOfLinePreference);
+	}
+	if (!await instance.sendText(text, true, true)) {
+		notificationService.error(localize('runSelectedTextFailed', "Could not send the selected text because the terminal is no longer accepting input."));
+		return;
+	}
+	await c.service.revealActiveTerminal(true);
+}
+
 export function registerTerminalActions() {
 	registerTerminalAction({
 		id: TerminalCommandId.NewInActiveWorkspace,
@@ -564,24 +587,7 @@ export function registerTerminalActions() {
 	registerTerminalAction({
 		id: TerminalCommandId.RunSelectedText,
 		title: localize2('workbench.action.terminal.runSelectedText', 'Run Selected Text In Active Terminal'),
-		run: async (c, accessor) => {
-			const codeEditorService = accessor.get(ICodeEditorService);
-			const editor = codeEditorService.getActiveCodeEditor();
-			if (!editor || !editor.hasModel()) {
-				return;
-			}
-			const instance = await c.service.getActiveOrCreateInstance({ acceptsInput: true });
-			const selection = editor.getSelection();
-			let text: string;
-			if (selection.isEmpty()) {
-				text = editor.getModel().getLineContent(selection.selectionStartLineNumber).trim();
-			} else {
-				const endOfLinePreference = isWindows ? EndOfLinePreference.LF : EndOfLinePreference.CRLF;
-				text = editor.getModel().getValueInRange(selection, endOfLinePreference);
-			}
-			instance.sendText(text, true, true);
-			await c.service.revealActiveTerminal(true);
-		}
+		run: (c, accessor) => runSelectedTextInActiveTerminal(c, accessor)
 	});
 
 	registerTerminalAction({

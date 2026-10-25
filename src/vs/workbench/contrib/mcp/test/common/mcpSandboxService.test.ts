@@ -177,6 +177,77 @@ suite('MCP Sandbox Service', () => {
 		assert.strictEqual(calls, 1);
 	});
 
+	suite('applySandboxConfigSuggestion', () => {
+		function scanner(initial: IMcpSandboxConfiguration): { service: IMcpResourceScannerService; current: () => IMcpSandboxConfiguration } {
+			let current = initial;
+			return {
+				service: {
+					updateSandboxConfig: async update => {
+						current = update({ sandbox: current }).sandbox ?? {};
+					},
+				} as unknown as IMcpResourceScannerService,
+				current: () => current,
+			};
+		}
+
+		function serviceFor(scannerService: IMcpResourceScannerService): McpSandboxService {
+			return store.add(new McpSandboxService(
+				{} as IFileService,
+				{} as IEnvironmentService,
+				{} as ILogService,
+				scannerService,
+				{ getEnvironment: async () => null } as IRemoteAgentService,
+			));
+		}
+
+		test('keeps denied domains when only allowWrite grows', async () => {
+			const state = scanner({ network: { deniedDomains: ['evil.test'] } });
+			const service = serviceFor(state.service);
+
+			const changed = await service.applySandboxConfigSuggestion(serverDefinition(), URI.file('/mcp.json'), ConfigurationTarget.USER, [], {
+				filesystem: { allowWrite: ['/new/path'] },
+			});
+
+			assert.strictEqual(changed, true);
+			assert.deepStrictEqual(state.current(), {
+				network: { deniedDomains: ['evil.test'] },
+				filesystem: { allowWrite: ['/new/path'] },
+			});
+		});
+
+		test('keeps denyRead and denyWrite when only allowedDomains grows', async () => {
+			const state = scanner({ filesystem: { denyRead: ['/secret'], denyWrite: ['/protected'] } });
+			const service = serviceFor(state.service);
+
+			const changed = await service.applySandboxConfigSuggestion(serverDefinition(), URI.file('/mcp.json'), ConfigurationTarget.USER, [], {
+				network: { allowedDomains: ['registry.npmjs.org'] },
+			});
+
+			assert.strictEqual(changed, true);
+			assert.deepStrictEqual(state.current(), {
+				filesystem: { denyRead: ['/secret'], denyWrite: ['/protected'] },
+				network: { allowedDomains: ['registry.npmjs.org'] },
+			});
+		});
+
+		test('returns false and leaves the data untouched when every suggestion already exists', async () => {
+			const initial: IMcpSandboxConfiguration = {
+				network: { allowedDomains: ['registry.npmjs.org'] },
+				filesystem: { allowWrite: ['/already/allowed'] },
+			};
+			const state = scanner(initial);
+			const service = serviceFor(state.service);
+
+			const changed = await service.applySandboxConfigSuggestion(serverDefinition(), URI.file('/mcp.json'), ConfigurationTarget.USER, [], {
+				network: { allowedDomains: ['registry.npmjs.org'] },
+				filesystem: { allowWrite: ['/already/allowed'] },
+			});
+
+			assert.strictEqual(changed, false);
+			assert.deepStrictEqual(state.current(), initial);
+		});
+	});
+
 	test('a rejected remote environment read drops the promise only while it still points at that attempt', async () => {
 		const error = new Error('remote env unavailable');
 		let rejectFirst!: (reason: Error) => void;

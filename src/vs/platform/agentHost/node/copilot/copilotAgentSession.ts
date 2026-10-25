@@ -2411,6 +2411,7 @@ export class CopilotAgentSession extends Disposable {
 		// observe a fresh, uncancelled token and miss the abort, starting an autonomous
 		// fleet loop after cancellation. The captured reference reliably reflects it.
 		const abortToken = this._abortToken;
+		const sendingTurn = this._currentTurn.value;
 
 		const slashCommand = parseLeadingSlashCommand(prompt);
 		if (slashCommand?.command === 'compact') {
@@ -2547,8 +2548,16 @@ export class CopilotAgentSession extends Disposable {
 		const sdkAttachments = await this._toSdkAttachments(attachments);
 
 		await this._prepareSdkTurn(mode);
+		// The turn and abort token captured before the dispatch awaits still own
+		// this send. If either moved on, the SDK must not run the prompt at all.
+		if ((sendingTurn && this._currentTurn.value !== sendingTurn) || abortToken.isCancellationRequested) {
+			this._logService.warn(`[Copilot:${this.sessionId}] send aborted during preflight; not dispatching to the SDK`);
+			if (abortToken.isCancellationRequested) {
+				this.discardActiveTurn();
+			}
+			return;
+		}
 		const traceContext = this._otelService.getSessionTraceContext(this.sessionId, this.resourceUri.toString());
-		const sendingTurn = this._currentTurn.value;
 		sendingTurn?.markProviderCallPending();
 		try {
 			await this._otelService.withTraceContext(traceContext, () => {
@@ -2570,6 +2579,7 @@ export class CopilotAgentSession extends Disposable {
 
 	async resume(turnId: string, mode?: CopilotSdkMode, senderClientId?: string, clientType = AgentHostClientType.Unknown, clientContext = createUnknownAgentHostClientTelemetryContext(clientType)): Promise<void> {
 		this._resetAbortToken();
+		const abortToken = this._abortToken;
 		this.resetTurnState(turnId, senderClientId, clientType, clientContext);
 		if (this._tryContinueDevelopmentRecoverableError(turnId)) {
 			return;
@@ -2579,6 +2589,13 @@ export class CopilotAgentSession extends Disposable {
 		turn?.markProviderCallPending();
 		try {
 			await this._prepareSdkTurn(mode);
+			if ((turn && this._currentTurn.value !== turn) || abortToken.isCancellationRequested) {
+				this._logService.warn(`[Copilot:${this.sessionId}] resume aborted during preflight; not dispatching to the SDK`);
+				if (abortToken.isCancellationRequested && turn && this._currentTurn.value === turn) {
+					this.discardActiveTurn();
+				}
+				return;
+			}
 			const traceContext = this._otelService.getSessionTraceContext(this.sessionId, this.resourceUri.toString());
 			await this._otelService.withTraceContext(traceContext, () => this._wrapper.session.rpc.sendMessages({ messages: [] }));
 			turn?.markProviderCallResolved();
@@ -3490,6 +3507,14 @@ export class CopilotAgentSession extends Disposable {
 			// likewise excluded: the sandbox contains a command to the workspace,
 			// not to that surface's one file, so it can still edit other files.
 			if (!managedApprovalRequired && !this._launchPlan.hasScopedEditSurface && isShellRequest && !requestSandboxBypass && await this._isShellSandboxedByDefault()) {
+				// A late request from an aborted turn must not be approved, even
+				// though its default sandbox would normally contain it.
+				if (this._abortToken.isCancellationRequested || this._dropLateRootTurnEvents) {
+					if (this._pendingPermissions.has(toolCallId)) {
+						this._pendingPermissions.respond(toolCallId, { kind: 'reject' });
+					}
+					return { kind: 'reject' };
+				}
 				// Session may have been disposed while we awaited the engine
 				// check; if so the deferred has already been settled and
 				// removed, so leave it alone.
@@ -4857,9 +4882,6 @@ export class CopilotAgentSession extends Disposable {
 
 		this._register(wrapper.onIdle(e => {
 			this._logService.info(`[Copilot:${sessionId}] Session idle`);
-			if (e.data.aborted) {
-				this._resetAbortToken();
-			}
 			if (this._hasActivity) {
 				this._hasActivity = false;
 				this._emitAction({
@@ -4892,6 +4914,10 @@ export class CopilotAgentSession extends Disposable {
 					this._clearActiveTurn();
 				} else {
 					this._logService.trace(`[Copilot:${sessionId}] Idle from abort; leaving ${turn.state} turn ${turn.id} open`);
+					// Only an intentionally kept pending turn starts a new abort
+					// generation. A torn-down turn keeps its cancelled token so late
+					// permission callbacks from that turn stay rejected.
+					this._resetAbortToken();
 				}
 				return;
 			}

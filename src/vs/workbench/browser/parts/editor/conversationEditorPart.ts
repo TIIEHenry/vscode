@@ -23,8 +23,6 @@ import { IWorkbenchLayoutService } from '../../../services/layout/browser/layout
 
 export class ConversationEditorPartImpl extends EditorPart implements IConversationEditorPart {
 
-	private static COUNTER = 1;
-
 	readonly excludeFromGlobalEditorAggregation = true as const;
 
 	private readonly partOptionsDisposable = this._register(new DisposableStore());
@@ -55,10 +53,12 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 		@IHostService hostService: IHostService,
 		@IContextKeyService contextKeyService: IContextKeyService,
 	) {
-		const id = ConversationEditorPartImpl.COUNTER++;
 		super(
 			editorPartsView,
-			`workbench.parts.conversationEditor.${id}`,
+			// The memento belongs to this session leaf. A process-wide counter would
+			// restore one session's grid into whichever leaf was created first after
+			// a reload. Old counter-based ids are intentionally not migrated.
+			`workbench.parts.conversationEditor.${sessionKey}`,
 			localize('conversationEditorPart', "Conversation"),
 			windowId,
 			instantiationService,
@@ -84,6 +84,12 @@ export class ConversationEditorPartImpl extends EditorPart implements IConversat
 
 		if (hidden) {
 			this.hiddenGroupIds.add(groupView.id);
+			if (this.activeGroup.id === groupView.id) {
+				const visibleGroup = this.groups.find(group => group.id !== groupView.id && !this.isGroupHidden(group));
+				if (visibleGroup) {
+					this.activateGroup(visibleGroup);
+				}
+			}
 		} else {
 			this.hiddenGroupIds.delete(groupView.id);
 		}

@@ -5,13 +5,17 @@
 
 import * as vscode from 'vscode';
 import { IGitExtensionService } from '../../../platform/git/common/gitExtensionService';
-import { IGitService } from '../../../platform/git/common/gitService';
+import { IGitService, RepoContext } from '../../../platform/git/common/gitService';
 import { Repository } from '../../../platform/git/vscode/git';
 import { ILogService } from '../../../platform/log/common/logService';
-import { getRepoId } from '../vscode/copilotCodingAgentUtils';
+import { getGithubRepoIdFromFetchUrl, GithubRepoId } from '../../../platform/git/common/gitService';
+
+const DEFAULT_REPOSITORY_ID = '___vscode_repository_default___';
 
 export interface GitRepoInfo {
 	repository: Repository;
+	/** The GitHub identity of `repository`, from its own remote. */
+	repoId: GithubRepoId | undefined;
 	remoteName: string;
 	baseRef: string;
 }
@@ -24,42 +28,85 @@ export class CopilotCloudGitOperationsManager {
 	) { }
 
 	async repoInfo(): Promise<GitRepoInfo> {
+		return this.repoInfoFor(undefined);
+	}
+
+	/**
+	 * Resolves the repository this delegation targets. `selectedRepository` is
+	 * either `DEFAULT_REPOSITORY_ID` (the active repository) or `org/repo`.
+	 */
+	async repoInfoFor(selectedRepository: string | undefined): Promise<GitRepoInfo> {
 		// TODO: support selecting remote
 		// await this.promptAndUpdatePreferredGitHubRemote(true);
-		const repoIds = await getRepoId(this.gitService);
-		if (!repoIds || repoIds.length === 0) {
-			throw new Error(vscode.l10n.t('Repository information is not available. Open a GitHub repository to continue with cloud agent.'));
+		const wantsSelected = selectedRepository !== undefined && selectedRepository !== DEFAULT_REPOSITORY_ID;
+		const [selectedOrg, selectedRepo] = wantsSelected ? selectedRepository.split('/') : [];
+		const target = wantsSelected ? `${selectedOrg}/${selectedRepo}` : undefined;
+
+		let currentRepository: RepoContext | undefined;
+		let repoId: GithubRepoId | undefined;
+		if (wantsSelected) {
+			// A selected repository is a promise to the user: only use the local
+			// checkout whose remote is that repository, never the active one.
+			currentRepository = this.gitService.repositories.find(repository =>
+				this._repositoryMatches(repository.remoteFetchUrls, new GithubRepoId(selectedOrg, selectedRepo))
+			);
+			repoId = currentRepository
+				? this._repoIdFromRepository(currentRepository)
+				: new GithubRepoId(selectedOrg, selectedRepo);
+		} else {
+			currentRepository = this.gitService.activeRepository.get();
+			repoId = currentRepository ? this._repoIdFromRepository(currentRepository) : undefined;
 		}
-		const repoId = repoIds[0];
-		const currentRepository = this.gitService.activeRepository.get();
+
 		if (!currentRepository) {
-			throw new Error(vscode.l10n.t('No active repository found. Open a GitHub repository to continue with cloud agent.'));
+			throw new Error(target
+				? vscode.l10n.t('Unable to access {0}. Please check your permissions and try again.', `\`${target}\``)
+				: vscode.l10n.t('No active repository found. Open a GitHub repository to continue with cloud agent.'));
 		}
+
 		const git = this.gitExtensionService.getExtensionApi();
-		const repo = git?.getRepository(currentRepository?.rootUri);
+		const repo = git?.getRepository(currentRepository.rootUri);
 		// Checks if user has permission to access the repository
 		if (!repo) {
 			throw new Error(
 				vscode.l10n.t(
 					'Unable to access {0}. Please check your permissions and try again.',
-					`\`${repoId.org}/${repoId.repo}\``
+					`\`${target ?? (repoId ? `${repoId.org}/${repoId.repo}` : '')}\``
 				)
 			);
 		}
 		return {
 			repository: repo,
+			repoId: repoId ?? this._repoIdFromRepository(currentRepository),
 			remoteName: repo.state.HEAD?.upstream?.remote ?? currentRepository.upstreamRemote ?? repo.state.remotes?.[0]?.name ?? 'origin',
 			baseRef: currentRepository.headBranchName ?? 'main'
 		};
+	}
+
+	private _repoIdFromRepository(repository: RepoContext): GithubRepoId | undefined {
+		for (const url of repository.remoteFetchUrls ?? []) {
+			const id = url ? getGithubRepoIdFromFetchUrl(url) : undefined;
+			if (id) {
+				return id;
+			}
+		}
+		return undefined;
+	}
+
+	private _repositoryMatches(remoteFetchUrls: readonly (string | undefined)[] | undefined, repoId: GithubRepoId): boolean {
+		return (remoteFetchUrls ?? []).some(url => {
+			const id = url ? getGithubRepoIdFromFetchUrl(url) : undefined;
+			return !!id && id.org.toLowerCase() === repoId.org.toLowerCase() && id.repo.toLowerCase() === repoId.repo.toLowerCase();
+		});
 	}
 
 	/**
 	 * Pushes the current ref to the remote
 	 * @returns The name of the pushed branch
 	 */
-	async pushBaseRefToRemote(): Promise<string> {
+	async pushBaseRefToRemote(selectedRepository?: string): Promise<string> {
 		try {
-			const { repository, remoteName, baseRef } = await this.repoInfo();
+			const { repository, remoteName, baseRef } = await this.repoInfoFor(selectedRepository);
 			const expectedRemoteBranch = `${remoteName}/${baseRef}`;
 			this.logService.warn(`Base branch '${expectedRemoteBranch}' not found on remote. Pushing...`);
 			await repository.push(remoteName, baseRef, true);
@@ -96,8 +143,8 @@ export class CopilotCloudGitOperationsManager {
 		return hasRemoteBranch;
 	}
 
-	async commitAndPushChanges(): Promise<string> {
-		const { repository, remoteName, baseRef } = await this.repoInfo();
+	async commitAndPushChanges(selectedRepository?: string): Promise<string> {
+		const { repository, remoteName, baseRef } = await this.repoInfoFor(selectedRepository);
 		const asyncBranch = await this.generateRandomBranchName(repository, 'copilot');
 
 		const commitMessage = vscode.l10n.t('Checkpoint from VS Code for cloud agent session');

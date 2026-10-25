@@ -48,7 +48,7 @@ export class McpGatewayToolBrokerChannel extends Disposable implements IServerCh
 	 * after a cache reset), `_waitForStartup` discards the stale entry and creates
 	 * a fresh race so the server gets another chance to start.
 	 */
-	private readonly _startupGrace = new Map<string, { promise: Promise<boolean>; resolved: boolean }>();
+	private readonly _startupGrace = new Map<string, { promise: Promise<boolean>; resolved: boolean; sawReady: boolean }>();
 
 	constructor(
 		private readonly _mcpService: IMcpService,
@@ -86,6 +86,21 @@ export class McpGatewayToolBrokerChannel extends Disposable implements IServerCh
 			}
 		}));
 
+		// Remember that a server was ready at least once. A resolved grace entry that
+		// never became ready must keep rejecting without re-waiting, but one whose
+		// cache later regresses to Unknown is stale and deserves a fresh attempt.
+		this._register(autorun(reader => {
+			for (const server of this._mcpService.servers.read(reader)) {
+				const state = server.cacheState.read(reader);
+				if (state === McpServerCacheState.Live || state === McpServerCacheState.Cached || state === McpServerCacheState.RefreshingFromCached) {
+					const entry = this._startupGrace.get(server.definition.id);
+					if (entry) {
+						entry.sawReady = true;
+					}
+				}
+			}
+		}));
+
 		let serversInitialized = false;
 		this._register(autorun(reader => {
 			const servers = this._mcpService.servers.read(reader);
@@ -114,21 +129,25 @@ export class McpGatewayToolBrokerChannel extends Disposable implements IServerCh
 		// If the previous grace promise already resolved but the server is still
 		// Unknown/Outdated, the entry is stale (e.g. caches were reset). Discard
 		// it so we create a fresh race below.
-		if (existing?.resolved) {
+		if (existing?.resolved && existing.sawReady) {
 			const state = server.cacheState.get();
 			if (state === McpServerCacheState.Unknown || state === McpServerCacheState.Outdated) {
 				this._startupGrace.delete(id);
 			}
 		}
 		if (!this._startupGrace.has(id)) {
-			const entry: { promise: Promise<boolean>; resolved: boolean } = {
+			const entry: { promise: Promise<boolean>; resolved: boolean; sawReady: boolean } = {
 				promise: Promise.race([
 					this._ensureServerReady(server),
 					new Promise<boolean>(resolve => setTimeout(() => resolve(false), this._startupGracePeriodMs)),
 				]),
 				resolved: false,
+				sawReady: false,
 			};
-			entry.promise.then(() => { entry.resolved = true; }).catch(onUnexpectedError).catch(onUnexpectedError);
+			entry.promise.then(ready => {
+				entry.resolved = true;
+				entry.sawReady ||= ready;
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 			this._startupGrace.set(id, entry);
 		}
 		return this._startupGrace.get(id)!.promise;
@@ -139,13 +158,27 @@ export class McpGatewayToolBrokerChannel extends Disposable implements IServerCh
 		if (cacheState === McpServerCacheState.Unknown || cacheState === McpServerCacheState.Outdated) {
 			await this._waitForStartup(server);
 			const newState = server.cacheState.get();
-			return newState === McpServerCacheState.Live
+			const ready = newState === McpServerCacheState.Live
 				|| newState === McpServerCacheState.Cached
 				|| newState === McpServerCacheState.RefreshingFromCached;
+			if (ready) {
+				const entry = this._startupGrace.get(server.definition.id);
+				if (entry) {
+					entry.sawReady = true;
+				}
+			}
+			return ready;
 		}
-		return cacheState === McpServerCacheState.Live
+		const ready = cacheState === McpServerCacheState.Live
 			|| cacheState === McpServerCacheState.Cached
 			|| cacheState === McpServerCacheState.RefreshingFromCached;
+		if (ready) {
+			const entry = this._startupGrace.get(server.definition.id);
+			if (entry) {
+				entry.sawReady = true;
+			}
+		}
+		return ready;
 	}
 
 	listen<T>(_ctx: unknown, event: string): Event<T> {
@@ -212,12 +245,10 @@ export class McpGatewayToolBrokerChannel extends Disposable implements IServerCh
 	private async _listToolsForServer(serverId: string): Promise<readonly MCP.Tool[]> {
 		const server = this._getServerById(serverId);
 		if (!server) {
-			this._logService.warn(`[McpGateway][ToolBroker] listToolsForServer: unknown server '${serverId}'`);
-			return [];
+			throw new Error(`Unknown MCP server '${serverId}'`);
 		}
 		if (!await this._shouldUseCachedData(server)) {
-			this._logService.debug(`[McpGateway][ToolBroker] Server '${serverId}' not ready, skipping tool listing`);
-			return [];
+			throw new Error(`MCP server '${serverId}' is not ready to list tools`);
 		}
 		const tools = server.tools.get()
 			.filter(t => t.visibility & McpToolVisibility.Model)

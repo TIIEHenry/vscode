@@ -2002,6 +2002,17 @@
 	color: var(--vscode-foreground);
 }
 
+.monaco-workbench .part.conversation .conversation-lens-timeline-empty.is-loading::before,
+.monaco-workbench .part.conversation .conversation-lens-timeline-empty.is-unavailable::before {
+	content: none;
+	display: none;
+}
+
+.monaco-workbench .part.conversation .conversation-lens-timeline-empty.is-unavailable .conversation-lens-timeline-empty-title {
+	font-weight: 400;
+	color: var(--vscode-descriptionForeground);
+}
+
 /* PreFirst — centered composer cluster in reading column; dock slot hidden */
 .monaco-workbench .part.conversation .conversation-dock.conversation-lens-phase-prefirst-dock-hidden {
 	display: none;
@@ -2930,11 +2941,12 @@
 	color: var(--vscode-errorForeground);
 }
 
-.monaco-workbench .part.conversation .conversation-lens-dock-gate-row.is-warning {
-	padding: 6px 10px;
-	border: 1px solid var(--vscode-inputValidation-warningBorder, color-mix(in srgb, var(--vscode-editorWarning-foreground) 45%, transparent));
-	border-radius: var(--vscode-cornerRadius-medium, 8px);
-	background-color: var(--vscode-inputValidation-warningBackground, color-mix(in srgb, var(--vscode-editorWarning-foreground) 10%, transparent));
+.monaco-workbench .part.conversation .conversation-lens-dock-gate-row.is-warning .conversation-lens-dock-gate-label {
+	font-weight: 400;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-lens-dock-gate-row.is-warning .conversation-lens-dock-gate-icon {
 	color: var(--vscode-editorWarning-foreground);
 }
 
@@ -2952,9 +2964,6 @@
 	display: none;
 }
 
-.monaco-workbench .part.conversation .conversation-lens-dock-gate-row.is-warning .conversation-lens-dock-gate-label {
-	font-weight: 600;
-}
 
 .monaco-workbench.hc-black .part.conversation .conversation-lens-dock-gate-row.is-warning,
 .monaco-workbench.hc-light .part.conversation .conversation-lens-dock-gate-row.is-warning {

@@ -321,7 +321,7 @@ class EditorState {
 
 	private constructor(
 		private readonly editor: ICodeEditor,
-		private readonly versionId: number,
+		public readonly versionId: number,
 	) { }
 
 	public equals(other: EditorState | undefined): boolean {
@@ -362,6 +362,11 @@ class RenameSymbolRunnable {
 
 	public isValid(codeEditorService: ICodeEditorService): boolean {
 		return this._state.equals(EditorState.create(codeEditorService, this._textModel));
+	}
+
+	/** The model version this rename was computed against. */
+	public get versionId(): number {
+		return this._state.versionId;
 	}
 
 	public cancel(): void {
@@ -407,7 +412,10 @@ class RenameSymbolRunnable {
 			for (const item of result) {
 				for (const change of item.changes) {
 					const range = new Range(change.range.start.line + 1, change.range.start.character + 1, change.range.end.line + 1, change.range.end.character + 1);
-					const edit = new ResourceTextEdit(item.file, new TextReplacement(range, change.newText ?? newName));
+					// Stamp the model version this rename was computed against, so an edit that arrives
+					// after the document moved on is rejected instead of applied at stale offsets.
+					const versionId = item.file.toString() === textModel.uri.toString() ? this.versionId : undefined;
+					const edit = new ResourceTextEdit(item.file, new TextReplacement(range, change.newText ?? newName), versionId);
 					edits.push(edit);
 				}
 			}
@@ -441,7 +449,10 @@ export class RenameSymbolProcessor extends Disposable {
 
 			try {
 				const workspaceEdit = await renameRunnable.getWorkspaceEdit();
-				if (workspaceEdit === undefined) {
+				// The edit was computed against the state captured when the rename was proposed. Waiting
+				// for the provider or the user can change the document or move focus, and the ranges no
+				// longer describe what is on screen.
+				if (workspaceEdit === undefined || !renameRunnable.isValid(this._codeEditorService)) {
 					return;
 				}
 				bulkEditService.apply(workspaceEdit, { reason: source });

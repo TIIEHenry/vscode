@@ -131,9 +131,10 @@ export function formatSessionRosterGroupLabel(group: SessionRosterGroup): string
 }
 
 /**
- * Today / Yesterday / Earlier, in that order. Sessions without a usable
- * access time stay in Earlier. When nothing has a time, the list stays flat
- * so a stub roster does not grow a header.
+ * Today / Yesterday / Earlier, in that order. Within a group, newer access
+ * times come first; sessions without a time stay at the end of Earlier, in
+ * input order. When nothing has a time, the list stays flat so a stub roster
+ * does not grow a header.
  */
 export function groupSessionsForRoster(sessions: readonly ConversationStubSession[], now = Date.now()): SessionRosterEntry[] {
 	if (!sessions.some(session => sessionAccessedAtMs(session.lastAccessedAt) !== undefined)) {
@@ -156,7 +157,7 @@ export function groupSessionsForRoster(sessions: readonly ConversationStubSessio
 	}
 	const entries: SessionRosterEntry[] = [];
 	for (const group of ['today', 'yesterday', 'earlier'] as const) {
-		const bucket = buckets[group];
+		const bucket = sortRosterBucket(buckets[group]);
 		if (bucket.length === 0) {
 			continue;
 		}
@@ -166,6 +167,23 @@ export function groupSessionsForRoster(sessions: readonly ConversationStubSessio
 		}
 	}
 	return entries;
+}
+
+/** Newer access times first. Sessions without a time stay at the end, in input order. */
+function sortRosterBucket(sessions: readonly ConversationStubSession[]): ConversationStubSession[] {
+	const dated: { session: ConversationStubSession; index: number; accessed: number }[] = [];
+	const undated: ConversationStubSession[] = [];
+	for (let index = 0; index < sessions.length; index++) {
+		const session = sessions[index]!;
+		const accessed = sessionAccessedAtMs(session.lastAccessedAt);
+		if (accessed === undefined) {
+			undated.push(session);
+		} else {
+			dated.push({ session, index, accessed });
+		}
+	}
+	dated.sort((a, b) => b.accessed - a.accessed || a.index - b.index);
+	return [...dated.map(entry => entry.session), ...undated];
 }
 
 export function formatSessionRosterAriaLabel(session: ConversationStubSession, pendingConfirmations: number, turnCount: number, tone: SessionRosterTone, active: boolean): string {

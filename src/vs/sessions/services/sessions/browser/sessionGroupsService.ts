@@ -216,6 +216,20 @@ export class SessionGroupsService extends Disposable implements ISessionGroupsSe
 				this._inFlightSessionGroups.delete(from.sessionId);
 				this._inFlightSessionGroups.set(to.sessionId, groupId);
 			}
+
+			// A session that already reached the list keeps its membership under
+			// the old id. Move it, or the committed session falls out of its group.
+			const membershipGroupId = this._membership.get(from.sessionId);
+			if (membershipGroupId === undefined) {
+				return;
+			}
+			this._membership.delete(from.sessionId);
+			const changed = new Set<string>([from.sessionId]);
+			if (this._groups.has(membershipGroupId)) {
+				this.setMembership(to.sessionId, membershipGroupId, changed);
+			}
+			this.save();
+			this._onDidChange.fire({ groupsChanged: false, membershipChanged: changed });
 		}));
 
 		// The started session carries the committed id; record its group now.

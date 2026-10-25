@@ -3967,11 +3967,11 @@ export class SessionsList extends Disposable implements ISessionsList {
 	// -- Read/Unread --
 
 	markRead(session: ISession): void {
-		this._sessionsManagementService.markRead(session);
+		this._sessionsManagementService.markRead(session).catch(() => { });
 	}
 
 	markUnread(session: ISession): void {
-		this._sessionsManagementService.markUnread(session);
+		this._sessionsManagementService.markUnread(session).catch(() => { });
 	}
 
 	// -- Session type filtering --

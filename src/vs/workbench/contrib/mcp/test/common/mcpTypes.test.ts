@@ -6,9 +6,11 @@
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
 import { McpServerType } from '../../../../../platform/mcp/common/mcpPlatformTypes.js';
-import { getMcpCollectionProvenance, McpCollectionProvenance, McpResourceURI, McpServerDefinition, McpServerLaunch, McpServerTransportType } from '../../common/mcpTypes.js';
+import { getMcpCollectionProvenance, IMcpServer, McpCollectionProvenance, McpResourceURI, McpServerDefinition, McpServerLaunch, McpServerTransportType } from '../../common/mcpTypes.js';
+import { canLoadMcpNetworkResourceDirectly } from '../../common/mcpTypesUtils.js';
 import * as assert from 'assert';
 import { URI } from '../../../../../base/common/uri.js';
+import { observableValue } from '../../../../../base/common/observable.js';
 
 suite('MCP Types', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -114,6 +116,38 @@ suite('MCP Types', () => {
 				}
 			});
 			assert.strictEqual(McpServerDefinition.equals(def1, def2), false);
+		});
+	});
+
+	suite('canLoadMcpNetworkResourceDirectly', () => {
+		const server = (launch: McpServerLaunch | undefined): IMcpServer => ({
+			connection: observableValue('connection', launch ? { launchDefinition: launch } : undefined),
+		} as unknown as IMcpServer);
+		const httpLaunch = (authority: string): McpServerLaunch => ({
+			type: McpServerTransportType.HTTP,
+			uri: URI.parse(`http://${authority}`),
+		} as McpServerLaunch);
+
+		test('loads https only when the launch is HTTP on the same host', () => {
+			assert.strictEqual(canLoadMcpNetworkResourceDirectly(new URL('https://example.com/a'), server(httpLaunch('example.com'))), true);
+			assert.strictEqual(canLoadMcpNetworkResourceDirectly(new URL('https://EXAMPLE.com/a'), server(httpLaunch('example.COM'))), true);
+			assert.strictEqual(canLoadMcpNetworkResourceDirectly(new URL('https://other.com/a'), server(httpLaunch('example.com'))), false);
+		});
+
+		test('rejects a missing server or a non-HTTP launch', () => {
+			assert.strictEqual(canLoadMcpNetworkResourceDirectly(new URL('https://example.com/a'), undefined), false);
+			assert.strictEqual(canLoadMcpNetworkResourceDirectly(new URL('https://example.com/a'), server(undefined)), false);
+			assert.strictEqual(canLoadMcpNetworkResourceDirectly(new URL('https://example.com/a'), server({
+				type: McpServerTransportType.Stdio,
+				command: 'server',
+				args: [],
+				env: {},
+			} as McpServerLaunch)), false);
+		});
+
+		test('http still requires the same host', () => {
+			assert.strictEqual(canLoadMcpNetworkResourceDirectly(new URL('http://example.com/a'), server(httpLaunch('example.com'))), true);
+			assert.strictEqual(canLoadMcpNetworkResourceDirectly(new URL('http://other.com/a'), server(httpLaunch('example.com'))), false);
 		});
 	});
 

@@ -1057,6 +1057,47 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(service.isEngineSessionReady(), false);
 	});
 
+	test('engine session readiness splits loading from unavailable', () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const service = store.add(createService(connection));
+		const internals = service as unknown as {
+			testEngineConnected: boolean | undefined;
+			engineSessionBindFailed: boolean;
+			listCompleted: boolean;
+			pendingEngineBindSessionId: string | undefined;
+			activeEngineSessionId: string | undefined;
+			engineSessions: { id: string; title: string; turns: [] }[];
+		};
+
+		assert.strictEqual(service.getEngineSessionReadiness(), 'ready');
+		assert.strictEqual(service.isEngineSessionReady(), true);
+
+		internals.testEngineConnected = true;
+		internals.engineSessionBindFailed = true;
+		internals.listCompleted = false;
+		assert.strictEqual(service.getEngineSessionReadiness(), 'unavailable');
+
+		internals.engineSessionBindFailed = false;
+		assert.strictEqual(service.getEngineSessionReadiness(), 'loading');
+		assert.strictEqual(service.isEngineSessionReady(), false);
+
+		internals.listCompleted = true;
+		internals.pendingEngineBindSessionId = 'pending';
+		assert.strictEqual(service.getEngineSessionReadiness(), 'loading');
+
+		internals.pendingEngineBindSessionId = undefined;
+		internals.activeEngineSessionId = undefined;
+		internals.engineSessions = [];
+		assert.strictEqual(service.getEngineSessionReadiness(), 'unavailable');
+
+		internals.activeEngineSessionId = 'missing';
+		assert.strictEqual(service.getEngineSessionReadiness(), 'unavailable');
+
+		internals.engineSessions = [{ id: 'missing', title: 'There', turns: [] }];
+		assert.strictEqual(service.getEngineSessionReadiness(), 'ready');
+		assert.strictEqual(service.isEngineSessionReady(), true);
+	});
+
 	test('roster constructed while the engine is already connected lists sessions without a later connection event', async () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'session-101', title: 'Already there' }]);

@@ -23,7 +23,7 @@ import { ICodeReviewService, PRReviewStateKind } from '../../codeReview/browser/
 import { ChangesViewMode, IsolationMode } from '../common/changes.js';
 import { isChangesWritePairingHold } from '../common/changesWriteHold.js';
 import { ActiveSessionState, ChangesViewSection, IChangesDetailsViewState, IChangesDetailsViewStateTransfer, IChangesViewSectionCollapseState, IChangesViewService } from '../common/changesViewService.js';
-import { getSessionChangeResource } from './changesEditorLabels.js';
+import { findSessionFileChange, getSessionChangeResource } from './changesEditorLabels.js';
 
 export const ChangesetReviewSupportContext = new RawContextKey<boolean>('sessions.changesetReviewSupport', false);
 export const ChangesetReviewedFilesContext = new RawContextKey<string[]>('sessions.changesetReviewedFiles', []);
@@ -99,7 +99,7 @@ export class ChangesViewService extends Disposable implements IChangesViewServic
 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@ISessionsService private readonly sessionsService: ISessionsService,
 		@IStorageService private readonly storageService: IStorageService,
-		@ISessionsManagementService sessionsManagementService: ISessionsManagementService,
+		@ISessionsManagementService private readonly sessionsManagementService: ISessionsManagementService,
 		@IUniverseAgentConnection uaConnection: IUniverseAgentConnection,
 	) {
 		super();
@@ -366,6 +366,18 @@ export class ChangesViewService extends Disposable implements IChangesViewServic
 		}
 
 		changeset.setReviewState(resources, reviewed);
+	}
+
+	setSessionChangesetFilesReviewState(sessionResource: URI, resources: readonly URI[], reviewed: boolean): void {
+		if (resources.length === 0) {
+			return;
+		}
+
+		const session = this.sessionsManagementService.getSession(sessionResource);
+		const changeset = session?.changesets.get()?.find(candidate =>
+			candidate.setReviewState !== undefined
+			&& resources.some(resource => findSessionFileChange(resource, candidate.changes.get()) !== undefined));
+		changeset?.setReviewState?.(resources, reviewed);
 	}
 
 	private _getActiveSessionState(): IObservable<ActiveSessionState | undefined> {

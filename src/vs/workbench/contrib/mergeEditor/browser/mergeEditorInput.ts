@@ -149,8 +149,8 @@ export class MergeEditorInput extends AbstractTextResourceEditorInput implements
 		return this._inputModelResolvePromise;
 	}
 
-	public async accept(): Promise<void> {
-		await this._inputModel?.accept();
+	public async accept(): Promise<boolean> {
+		return (await this._inputModel?.accept()) ?? false;
 	}
 
 	override async save(group: number, options?: ITextFileSaveOptions | undefined): Promise<IUntypedEditorInput | undefined> {

@@ -336,6 +336,20 @@ suite('mapSessionEvents — history replay', () => {
 		]);
 	});
 
+	test('a tool request without a completion is not replayed as successful', async () => {
+		const events: ISessionEvent[] = [
+			{ type: 'user.message', data: { interactionId: 'm1', content: 'hi' } },
+			{ type: 'assistant.message', data: { messageId: 'm2', content: '', toolRequests: [{ toolCallId: 'tc-1', name: 'bash' }] } },
+			{ type: 'tool.execution_start', data: { toolCallId: 'tc-1', toolName: 'bash', arguments: { command: 'echo hi' } } },
+		];
+
+		const { turns } = await mapSessionEvents(session, undefined, toSessionEvents(events));
+		const part = turns[0].responseParts.find(part => part.kind === ResponsePartKind.ToolCall) as ToolCallResponsePart | undefined;
+		assert.ok(part, 'the tool request should still be restored');
+		assert.notStrictEqual(part.toolCall.status, ToolCallStatus.Completed);
+		assert.strictEqual(part.toolCall.status === ToolCallStatus.Completed ? part.toolCall.success : undefined, undefined);
+	});
+
 	test('resolves relative patch links in restored tool messages', async () => {
 		const patch = [
 			'*** Begin Patch',

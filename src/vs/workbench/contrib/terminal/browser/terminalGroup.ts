@@ -421,12 +421,14 @@ export class TerminalGroup extends Disposable implements ITerminalGroup {
 		if (hasInvalidInstance) {
 			return;
 		}
+		const activeInstance = this.activeInstance;
 		const insertIndex = position === 'before' ? index : index + 1;
 		this._terminalInstances.splice(insertIndex, 0, ...instances);
 		for (const item of instances) {
 			const originSourceGroupIndex = position === 'after' ? this._terminalInstances.indexOf(item) : this._terminalInstances.lastIndexOf(item);
 			this._terminalInstances.splice(originSourceGroupIndex, 1);
 		}
+		let focusedInstance: ITerminalInstance | undefined;
 		if (this._splitPaneContainer) {
 			for (let i = 0; i < instances.length; i++) {
 				const item = instances[i];
@@ -434,8 +436,15 @@ export class TerminalGroup extends Disposable implements ITerminalGroup {
 				this._splitPaneContainer.remove(item);
 				this._splitPaneContainer.split(item, index + (position === 'before' ? i : 0));
 				if (hadFocus) {
+					focusedInstance = item;
 					item.focus(true);
 				}
+			}
+		}
+		if (!focusedInstance && activeInstance) {
+			const activeIndex = this._terminalInstances.indexOf(activeInstance);
+			if (activeIndex !== -1) {
+				this._activeInstanceIndex = activeIndex;
 			}
 		}
 		this._onInstancesChanged.fire();

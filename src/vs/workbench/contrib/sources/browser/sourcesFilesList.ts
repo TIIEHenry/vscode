@@ -143,6 +143,7 @@ export class SourcesFilesList extends Disposable {
 	private engineCancellation: CancellationTokenSource | undefined;
 	private _refreshSeq = 0;
 	private levelSeq = 0;
+	private engineOpenGeneration = 0;
 
 	constructor(
 		private readonly host: HTMLElement,
@@ -469,13 +470,18 @@ export class SourcesFilesList extends Disposable {
 		}
 		const resource = element.resource.scheme === SOURCES_ENGINE_FILE_SCHEME
 			? element.resource
-			: sourcesEngineFileResource(engine.path);
+			: sourcesEngineFileResource(engine.sessionId, engine.path);
+		const sessionId = engine.sessionId;
+		const generation = ++this.engineOpenGeneration;
 		const options: ITextEditorOptions = {
 			preserveFocus,
 			pinned: true,
 			source: EditorOpenSource.USER,
 		};
-		return readFile.call(this.connection, buildSourcesEngineReadFileRequest(engine.sessionId, engine.path)).then(result => {
+		return readFile.call(this.connection, buildSourcesEngineReadFileRequest(sessionId, engine.path)).then(result => {
+			if (this.engineOpenGeneration !== generation || this.session.getActiveSessionId() !== sessionId) {
+				return undefined;
+			}
 			const text = sourcesEngineFileText(result.content);
 			putSourcesEngineFileText(resource, text);
 			const input = sourcesEngineReadonlyTextInput(resource, text, element.name, options);

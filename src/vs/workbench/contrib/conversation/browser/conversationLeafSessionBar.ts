@@ -12,6 +12,7 @@ import { Disposable, IDisposable } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IContextMenuService, IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -90,6 +91,7 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		@IConfigurationService public readonly configurationService: IConfigurationService,
 		@IInstantiationService public readonly instantiationService: IInstantiationService,
 		@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,
+		@IDialogService public readonly dialogService: IDialogService,
 	) {
 		super();
 		this.readingColumn = accessors.getReadingColumn() ?? $('div');
@@ -200,8 +202,8 @@ export class ConversationLeafSessionBar extends Disposable implements IConversat
 		createNewSession(this);
 	}
 
-	deleteActiveSession(): void {
-		deleteActiveSession(this);
+	deleteActiveSession(): Promise<void> {
+		return deleteActiveSession(this);
 	}
 
 	switchToSession(sessionId: string): void {

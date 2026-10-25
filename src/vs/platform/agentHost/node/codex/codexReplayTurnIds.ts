@@ -62,6 +62,44 @@ export function isLastUserMessageWithTextInCodexTurn(items: readonly ThreadItem[
 	return lastIdWithText !== undefined && lastIdWithText === userMessageItemId;
 }
 
+/**
+ * Whether `hostTurnId` is the last host turn written for `codexTurnId` in the
+ * live map. Steering opens several host turns inside one codex turn; only the
+ * newest one can be rolled back without leaving later segments in the thread.
+ */
+export function isLastHostTurnForCodexTurn(
+	hostTurnId: string,
+	codexTurnId: string,
+	codexTurnIdByHostTurnId: ReadonlyMap<string, string> | undefined,
+): boolean {
+	let lastHostTurnId: string | undefined;
+	for (const [candidateHostTurnId, candidateCodexTurnId] of codexTurnIdByHostTurnId ?? []) {
+		if (candidateCodexTurnId === codexTurnId) {
+			lastHostTurnId = candidateHostTurnId;
+		}
+	}
+	return lastHostTurnId === undefined || lastHostTurnId === hostTurnId;
+}
+
+/**
+ * Whether a host turn can be used as a rollback/fork boundary inside its codex
+ * turn. A split replay id must be the last text user message. Without one, the
+ * host turn is the codex turn's first segment and any later text user message
+ * means later segments remain.
+ */
+export function isLastTextSegmentOfCodexTurn(items: readonly ThreadItem[], splitUserMessageItemId: string | undefined): boolean {
+	if (splitUserMessageItemId !== undefined) {
+		return isLastUserMessageWithTextInCodexTurn(items, splitUserMessageItemId);
+	}
+	let count = 0;
+	for (const item of items) {
+		if (item.type === 'userMessage' && item.content.some(c => c.type === 'text' && (c.text?.length ?? 0) > 0)) {
+			count++;
+		}
+	}
+	return count <= 1;
+}
+
 export function resolveCodexTurnIdFromHostTurnId(
 	hostTurnId: string,
 	codexTurnIdByHostTurnId: ReadonlyMap<string, string> | undefined,

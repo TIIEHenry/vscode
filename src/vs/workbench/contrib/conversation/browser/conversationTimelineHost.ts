@@ -44,6 +44,9 @@ import { IConversationTimelineHostOptions } from './conversationTimelineTypes.js
 import { IConversationTimelineLinkHit } from './resolveConversationTimelineLink.js';
 import { ConversationTurnContentAdapter, IConversationTurnContentAdapter } from './conversationTurnContentAdapter.js';
 
+export const conversationTimelineEmptyTitle = localize('conversationLens.timelineEmptyTitle', "No messages yet");
+export const conversationTimelineMessagesNotLoaded = localize('conversationLens.timelineMessagesNotLoaded', "Messages not loaded");
+
 const CONVERSATION_TIMELINE_INITIAL_WINDOW = 60;
 const CONVERSATION_TIMELINE_WINDOW_BATCH = 40;
 const CONVERSATION_TIMELINE_CV_TAIL = 3;
@@ -59,6 +62,7 @@ export class ConversationTimelineHost extends Disposable {
 	private readonly stream: HTMLElement;
 	private readonly sentinel: HTMLElement;
 	private readonly emptyState: HTMLElement;
+	private readonly emptyTitle: HTMLElement;
 	private readonly pinnedHost: HTMLElement;
 	private pinnedChromePx = 0;
 	private readonly pinnedUserBubble: HTMLButtonElement;
@@ -144,8 +148,8 @@ export class ConversationTimelineHost extends Disposable {
 		this.viewport.style.height = '100%';
 
 		this.emptyState = append(this.viewport, $('.conversation-lens-timeline-empty'));
-		append(this.emptyState, $('p.conversation-lens-timeline-empty-title')).textContent =
-			localize('conversationLens.timelineEmptyTitle', "No messages yet");
+		this.emptyTitle = append(this.emptyState, $('p.conversation-lens-timeline-empty-title'));
+		this.setEmptyStateKind('empty');
 
 		this.stream = append(this.viewport, $('.conversation-timeline-stream.conversation-lens-timeline-content'));
 		this.stream.setAttribute('role', 'feed');
@@ -897,6 +901,16 @@ export class ConversationTimelineHost extends Disposable {
 		if (this.follow.shouldStickOnResize()) {
 			this.scrollToEnd();
 		}
+	}
+
+	setEmptyStateKind(kind: 'empty' | 'loading' | 'unavailable'): void {
+		this.emptyState.classList.toggle('is-loading', kind === 'loading');
+		this.emptyState.classList.toggle('is-unavailable', kind === 'unavailable');
+		this.emptyTitle.textContent = kind === 'unavailable'
+			? conversationTimelineMessagesNotLoaded
+			: kind === 'loading'
+				? ''
+				: conversationTimelineEmptyTitle;
 	}
 
 	private updateEmptyState(): void {

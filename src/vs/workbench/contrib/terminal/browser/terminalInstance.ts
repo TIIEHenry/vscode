@@ -700,8 +700,9 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 	}
 
 	private async _handleOnData(data: string): Promise<void> {
-		await this._processManager.write(data);
-		this._onDidInputData.fire(data);
+		if (await this._processManager.write(data)) {
+			this._onDidInputData.fire(data);
+		}
 	}
 
 	private _getIcon(): TerminalIcon | undefined {
@@ -1416,7 +1417,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		this.focus(force);
 	}
 
-	async sendText(text: string, shouldExecute: boolean, forceBracketedPasteMode?: boolean): Promise<void> {
+	async sendText(text: string, shouldExecute: boolean, forceBracketedPasteMode?: boolean): Promise<boolean> {
 		// Apply bracketed paste sequences if the terminal has the mode enabled, this will prevent
 		// the text from triggering keybindings and ensure new lines are handled properly
 		if (forceBracketedPasteMode && this.xterm?.raw.modes.bracketedPasteMode) {
@@ -1431,13 +1432,16 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 
 		// Send it to the process
 		this._logService.debug('sending data (vscode)', text);
-		await this._processManager.write(text);
+		if (!await this._processManager.write(text)) {
+			return false;
+		}
 		this._onDidInputData.fire(text);
 		this._onDidSendText.fire(text);
 		this.xterm?.scrollToBottom();
 		if (shouldExecute) {
 			this._onDidExecuteText.fire();
 		}
+		return true;
 	}
 
 	async sendSignal(signal: string): Promise<void> {

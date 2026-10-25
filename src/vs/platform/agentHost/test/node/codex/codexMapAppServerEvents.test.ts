@@ -1173,6 +1173,44 @@ suite('codexMapAppServerEvents', () => {
 		assert.strictEqual(state.currentTurnId, undefined);
 	});
 
+	test('turn/completed with status=failed and no error still emits ChatError', () => {
+		const state = createCodexSessionMapState();
+		state.currentTurnId = 'turn_a';
+		const actions = mapTurnCompleted(state, {
+			threadId: 'thr_1',
+			turn: {
+				id: 'turn_a',
+				items: [], itemsView: { type: 'full' } as never,
+				status: 'failed' as never,
+				error: null, startedAt: null, completedAt: null, durationMs: 1,
+			},
+		});
+		assert.deepStrictEqual(actions.map(a => a.type), [ActionType.ChatError, ActionType.ChatTurnComplete]);
+		const error = actions[0];
+		if (error.type !== ActionType.ChatError) {
+			throw new Error('expected ChatError');
+		}
+		assert.strictEqual(error.part.error.message, 'Codex turn failed');
+	});
+
+	test('turn/completed with status=inProgress does not complete the turn', () => {
+		const state = createCodexSessionMapState();
+		state.currentTurnId = 'turn_a';
+		state.itemToToolCall.set('tool_1', { toolCallId: 'tc_1', turnId: 'turn_a', toolName: 'shell', output: '' });
+		const actions = mapTurnCompleted(state, {
+			threadId: 'thr_1',
+			turn: {
+				id: 'turn_a',
+				items: [], itemsView: { type: 'full' } as never,
+				status: 'inProgress' as never,
+				error: null, startedAt: null, completedAt: null, durationMs: 1,
+			},
+		});
+		assert.deepStrictEqual(actions, []);
+		assert.strictEqual(state.currentTurnId, 'turn_a');
+		assert.ok(state.itemToToolCall.has('tool_1'));
+	});
+
 	test('turn/completed does not infer dropped command success without an exit status', () => {
 		const state = createCodexSessionMapState();
 		mapItemStarted(state, {
@@ -1440,6 +1478,7 @@ suite('codexMapAppServerEvents', () => {
 		assert.strictEqual(turnStateFromStatus('completed'), TurnState.Complete);
 		assert.strictEqual(turnStateFromStatus('interrupted'), TurnState.Cancelled);
 		assert.strictEqual(turnStateFromStatus('failed'), TurnState.Error);
+		assert.strictEqual(turnStateFromStatus('inProgress'), undefined);
 		assert.strictEqual(turnStateFromStatus('weird'), TurnState.Complete);
 	});
 

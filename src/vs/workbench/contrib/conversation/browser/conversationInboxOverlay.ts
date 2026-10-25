@@ -26,8 +26,6 @@ import {
 	conversationLensDockInboxQueueNotListed,
 	conversationLensDockInboxQueueLabel,
 	conversationLensDockNoGoal,
-	conversationLensDockSessionUnavailable,
-	conversationLensDockSessionUnavailableReason,
 	conversationLensDockStop,
 	conversationLensDockStopGenerating,
 	conversationLensDockStopNotGenerating,
@@ -63,6 +61,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.js';
+import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { conversationUserBodyText } from './conversationComposerRefs.js';
 
@@ -306,8 +305,7 @@ export class ConversationInboxOverlay extends Disposable {
 
 	/** KEEP leftover list-fail (D451): connected but roster not ready is not a live Inbox write surface. */
 	private isKeepLeftoverListFailWrite(): boolean {
-		return this.stubService.isEngineConnected()
-			&& this.stubService.isEngineSessionReady?.() === false;
+		return isConversationSessionNotReady(this.stubService);
 	}
 
 	private isGenerating(_sessionId: string): boolean {
@@ -603,9 +601,10 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private leftoverQueueWriteHoldReason(): string {
-		return this.isKeepLeftoverListFailWrite()
-			? `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`
-			: conversationLensDockEngineNotConnected;
+		return conversationSessionHoldReason(
+			isConversationPairingHold(this.uaConnection),
+			getConversationSessionReadiness(this.stubService),
+		) ?? conversationLensDockEngineNotConnected;
 	}
 
 	private bindLeftoverQueueWrite(button: HTMLButtonElement, run: () => void): void {

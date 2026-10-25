@@ -12,7 +12,7 @@ import { mock } from '../../../../util/common/test/simpleMock';
 import { ChatRequestTurn2, ChatResponseMarkdownPart, ChatResponseTurn2, ChatToolInvocationPart } from '../../../../vscodeTypes';
 import { ITaskApiClient, ListTaskEventsOptions, ListTasksOptions } from '../../common/taskApiTypes';
 import { ChatSessionContentBuilder, extractTaskErrorDetail, formatTaskStoppedMessage } from '../copilotCloudSessionContentBuilder';
-import { formatNewSessionContextReference, getCloudSessionItemMetadata, getCloudSessionResources, normalizeInitialSessionOptions, parseGitHubContextUrl, taskStateToChatSessionStatus } from '../copilotCloudSessionsProvider';
+import { formatNewSessionContextReference, getCloudSessionItemMetadata, getCloudSessionResources, normalizeInitialSessionOptions, parseGitHubContextUrl, resolveCloudBaseRef, resolveCloudRepositoryTarget, taskStateToChatSessionStatus } from '../copilotCloudSessionsProvider';
 import { TaskApiBackend, parseRepoFromTaskUrl, isCloudCodingAgentTask } from '../taskApiBackend';
 import { isActiveTaskState, isFailedTaskState } from '../../vscode/copilotCodingAgentUtils';
 import { NullCloudBackendInstrumentation } from '../cloudBackendTelemetry';
@@ -137,6 +137,32 @@ describe('copilotCloudSessionsProvider helpers', () => {
 				legacyResource: vscode.Uri.parse('copilot-cloud-agent:/325'),
 			},
 		});
+	});
+});
+
+describe('cloud repository and base ref resolution', () => {
+	const vscodeRepo = new GithubRepoId('microsoft', 'vscode');
+	const typescriptRepo = new GithubRepoId('microsoft', 'typescript');
+
+	it('uses the active repository when nothing is selected, even when it is not the first repository', () => {
+		expect(resolveCloudRepositoryTarget(typescriptRepo, undefined, [vscodeRepo, typescriptRepo])).toBe(typescriptRepo);
+		expect(resolveCloudRepositoryTarget(typescriptRepo, '___vscode_repository_default___', [vscodeRepo, typescriptRepo])).toBe(typescriptRepo);
+	});
+
+	it('uses the explicitly selected repository and its known host', () => {
+		expect(resolveCloudRepositoryTarget(typescriptRepo, 'microsoft/vscode', [vscodeRepo, typescriptRepo])).toBe(vscodeRepo);
+		expect(resolveCloudRepositoryTarget(typescriptRepo, 'microsoft/vscode', undefined, 'github.example.com'))
+			.toEqual(new GithubRepoId('microsoft', 'vscode', 'github.example.com'));
+	});
+
+	it('keeps a computed current branch for the default sentinel', () => {
+		expect(resolveCloudBaseRef('feature/x', vscodeRepo, vscodeRepo, false)).toBe('feature/x');
+	});
+
+	it('falls back to the default branch when the selected repository differs from the baseline repository', () => {
+		expect(resolveCloudBaseRef('feature/x', vscodeRepo, typescriptRepo, true)).toBeUndefined();
+		expect(resolveCloudBaseRef('feature/x', undefined, typescriptRepo, true)).toBeUndefined();
+		expect(resolveCloudBaseRef(undefined, vscodeRepo, vscodeRepo, false)).toBeUndefined();
 	});
 });
 

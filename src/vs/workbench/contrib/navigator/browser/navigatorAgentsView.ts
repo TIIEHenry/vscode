@@ -496,7 +496,7 @@ export class NavigatorAgentsView extends ViewPane {
 			if (!e.element || !this.isAgentsRowActionLive()) {
 				return;
 			}
-			this.inspectService.setTarget({ kind: 'agent', node: e.element.source });
+			this.inspectService.setTarget({ kind: 'agent', node: e.element.source, sessionId: e.element.sessionId });
 			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.agentId, e.element!.label, e.element!.sessionId)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
@@ -607,7 +607,7 @@ export class NavigatorAgentsView extends ViewPane {
 			return;
 		}
 
-		this.inspectService.setLiveAgentIds('agents', collectLiveAgentTreeAgentIds(liveTree!));
+		this.inspectService.setLiveAgentIds('agents', collectLiveAgentTreeAgentIds(liveTree!), lease!.sessionId);
 		this.hadHierarchySnapshot = true;
 		this.markLiveRowActionsOpen();
 
@@ -668,7 +668,7 @@ export class NavigatorAgentsView extends ViewPane {
 		}
 		this.markLeftoverRowActionsClosed();
 		if (this.hadHierarchySnapshot) {
-			this.inspectService.setLiveAgentIds('agents', EMPTY_LIVE_AGENT_IDS);
+			this.inspectService.setLiveAgentIds('agents', EMPTY_LIVE_AGENT_IDS, this.rosterService.getActiveSessionId() ?? undefined);
 			this.setHierarchyNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 		} else {
 			this.clearAgentsInspectLiveIds();
@@ -748,7 +748,7 @@ export class NavigatorAgentsView extends ViewPane {
 	}
 
 	private clearAgentsInspectLiveIds(): void {
-		this.inspectService.setLiveAgentIds('agents', undefined);
+		this.inspectService.setLiveAgentIds('agents', undefined, this.rosterService.getActiveSessionId() ?? undefined);
 		this.inspectService.setLiveActivityIds(undefined);
 	}
 
@@ -826,7 +826,7 @@ export class NavigatorAgentsView extends ViewPane {
 		if (!this.isAgentsRowActionLive()) {
 			return;
 		}
-		this.inspectService.setTarget({ kind: 'agent', node: node.source });
+		this.inspectService.setTarget({ kind: 'agent', node: node.source, sessionId: node.sessionId });
 		this.openInspectPanel();
 	}
 

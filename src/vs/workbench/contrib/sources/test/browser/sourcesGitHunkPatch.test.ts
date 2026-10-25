@@ -47,7 +47,7 @@ suite('Sources - git hunk patch', () => {
 	const diff = `${header}\n${hunk1}\n${hunk2}`;
 
 	test('keeps the file header and only the hunk under the cursor', () => {
-		const second = sourcesGitHunkPatchAtCursor(diff, 12, 'new');
+		const second = sourcesGitHunkPatchAtCursor(diff, 5, 'new');
 		assert.strictEqual(second, `${header}\n${hunk2}\n`);
 		assert.ok(second?.includes('rename from src/old.ts'));
 		assert.ok(second?.includes('rename to src/new.ts'));
@@ -72,8 +72,8 @@ suite('Sources - git hunk patch', () => {
 		assert.strictEqual(sourcesGitHunkPatchAtCursor('  (No Changes)\n', 1), undefined);
 		assert.strictEqual(sourcesGitHunkPatchAtCursor('   ', 1), undefined);
 		assert.strictEqual(sourcesGitHunkPatchAtCursor('', 1), undefined);
-		assert.strictEqual(sourcesGitHunkPatchAtCursor(diff, 5, 'new'), undefined);
-		assert.strictEqual(sourcesGitHunkPatchAtCursor(diff, 14, 'new'), undefined);
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(diff, 7, 'new'), undefined);
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(diff, 0, 'new'), undefined);
 		assert.strictEqual(sourcesGitHunkPatchAtCursor(diff, 0, 'new'), undefined);
 		assert.strictEqual(sourcesGitHunkPatchAtCursor(diff, 1.5, 'new'), undefined);
 		assert.strictEqual(sourcesGitHunkPatchAtCursor('@@ -1 +1 @@\n-a\n+b\n', 1), undefined);
@@ -88,10 +88,10 @@ suite('Sources - git hunk patch', () => {
 			'-old',
 			'+new',
 		].join('\n');
-		assert.ok(sourcesGitHunkPatchAtCursor(omitted, 9, 'new')?.includes('@@ -4 +9 @@'));
-		assert.strictEqual(sourcesGitHunkPatchAtCursor(omitted, 10, 'new'), undefined);
-		assert.ok(sourcesGitHunkPatchAtCursor(omitted, 4, 'old')?.includes('@@ -4 +9 @@'));
-		assert.strictEqual(sourcesGitHunkPatchAtCursor(omitted, 5, 'old'), undefined);
+		assert.ok(sourcesGitHunkPatchAtCursor(omitted, 1, 'new')?.includes('@@ -4 +9 @@'));
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(omitted, 2, 'new'), undefined);
+		assert.ok(sourcesGitHunkPatchAtCursor(omitted, 1, 'old')?.includes('@@ -4 +9 @@'));
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(omitted, 2, 'old'), undefined);
 
 		const explicitZero = [
 			'diff --git a/a b/a',
@@ -99,8 +99,8 @@ suite('Sources - git hunk patch', () => {
 			'+++ b/a',
 			'@@ -3,0 +8,0 @@',
 		].join('\n');
-		assert.strictEqual(sourcesGitHunkPatchAtCursor(explicitZero, 8, 'new'), undefined);
-		assert.strictEqual(sourcesGitHunkPatchAtCursor(explicitZero, 3, 'old'), undefined);
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(explicitZero, 1, 'new'), undefined);
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(explicitZero, 1, 'old'), undefined);
 
 		const newSideZero = [
 			'diff --git a/a b/a',
@@ -109,7 +109,8 @@ suite('Sources - git hunk patch', () => {
 			'@@ -1 +1,0 @@',
 		].join('\n');
 		assert.strictEqual(sourcesGitHunkPatchAtCursor(newSideZero, 1, 'new'), undefined);
-		assert.ok(sourcesGitHunkPatchAtCursor(newSideZero, 1, 'old')?.includes('@@ -1 +1,0 @@'));
+		// The hunk has no body lines, so the diff model has no line to select.
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(newSideZero, 1, 'old'), undefined);
 	});
 
 	test('a bad hunk header returns undefined instead of throwing', () => {
@@ -143,12 +144,12 @@ suite('Sources - git hunk patch', () => {
 			'-old',
 			'+new',
 		].join('\n');
-		const patch = sourcesGitHunkPatchAtCursor(withContext, 8, 'new');
+		const patch = sourcesGitHunkPatchAtCursor(withContext, 1, 'new');
 		assert.ok(patch?.includes('@@ -8,1 +8,1 @@ function foo()'));
 		assert.ok(patch?.includes('--- a/a.ts'));
 	});
 
-	test('old side matches the old file line range', () => {
+	test('both sides select by the diff-model body line, not the @@ file line', () => {
 		const both = [
 			'diff --git a/a b/a',
 			'--- a/a',
@@ -158,9 +159,12 @@ suite('Sources - git hunk patch', () => {
 			'-old',
 			'+new',
 		].join('\n');
-		assert.ok(sourcesGitHunkPatchAtCursor(both, 21, 'old')?.includes('@@ -20,2 +40,2 @@'));
-		assert.strictEqual(sourcesGitHunkPatchAtCursor(both, 21, 'new'), undefined);
-		assert.ok(sourcesGitHunkPatchAtCursor(both, 40, 'new')?.includes('@@ -20,2 +40,2 @@'));
+		assert.ok(sourcesGitHunkPatchAtCursor(both, 2, 'old')?.includes('@@ -20,2 +40,2 @@'));
+		assert.ok(sourcesGitHunkPatchAtCursor(both, 2, 'new')?.includes('@@ -20,2 +40,2 @@'));
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(both, 3, 'new'), undefined);
+		// The header's file lines (20 / 40) are not model lines.
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(both, 20, 'old'), undefined);
+		assert.strictEqual(sourcesGitHunkPatchAtCursor(both, 40, 'new'), undefined);
 	});
 
 	test('a synced caret on the unfocused side does not steal the hunk line', () => {

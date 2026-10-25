@@ -467,7 +467,9 @@ export class SessionsService extends Disposable implements ISessionsService {
 		this._register(autorun(reader => {
 			const activeSession = this.activeSession.read(reader);
 			if (activeSession && !activeSession.isRead.read(reader)) {
-				this.sessionsManagementService.markRead(activeSession);
+				// A disconnected host keeps the session unread; there is no
+				// user action here to report the failure to.
+				this.sessionsManagementService.markRead(activeSession).catch(() => { });
 			}
 		}));
 

@@ -638,6 +638,37 @@ suite('Inline Completions', () => {
 			}
 		);
 	});
+
+	test('Additional Text Edits - cursor follows the shifted completion', async function () {
+		const provider = new MockInlineCompletionsProvider();
+		await withAsyncTestCodeEditorAndInlineCompletionsModel('',
+			{ fakeClock: true, provider },
+			async ({ editor, model, context }) => {
+				context.keyboardType('buzz\nbaz');
+				provider.setReturnValue({
+					insertText: 'bazz',
+					range: new Range(2, 1, 2, 4),
+					additionalTextEdits: [{
+						// Insert a line above the completion, which moves it down by one.
+						range: new Range(1, 1, 1, 1),
+						text: 'inserted\n'
+					}],
+				});
+				model.triggerExplicitly();
+				await timeout(1000);
+
+				model.accept(editor);
+
+				assert.deepStrictEqual({
+					value: editor.getValue(),
+					position: editor.getPosition()?.toString()
+				}, {
+					value: 'inserted\nbuzz\nbazz',
+					position: '(3,5)'
+				});
+			}
+		);
+	});
 });
 
 suite('Multi Cursor Support', () => {

@@ -33,6 +33,8 @@ export interface IAsyncDataTreeNode<TInput, T> {
 	readonly children: IAsyncDataTreeNode<TInput, T>[];
 	readonly id?: string | null;
 	refreshPromise: CancelablePromise<void> | undefined;
+	/** The refresh-and-render round currently running for this node, if any. */
+	refreshAndRenderPromise: Promise<void> | undefined;
 	hasChildren: boolean;
 	stale: boolean;
 	slow: boolean;
@@ -52,6 +54,7 @@ function createAsyncDataTreeNode<TInput, T>(props: IAsyncDataTreeNodeRequiredPro
 		...props,
 		children: [],
 		refreshPromise: undefined,
+		refreshAndRenderPromise: undefined,
 		stale: true,
 		slow: false,
 		forceExpanded: false
@@ -345,15 +348,32 @@ class AsyncFindController<TInput, T, TFilterData> extends FindController<T, TFil
 			this.activateFindSession();
 		}
 
+		const previousMetadata = this.activeFindMetadata;
 		this.asyncWorkInProgress = true;
 		this.activeFindMetadata = undefined;
 
-		const findMetadata = await this.findProvider.find(pattern, { matchType: this.matchType, findMode: this.mode }, token);
-		if (token.isCancellationRequested || findMetadata === undefined) {
+		let findMetadata: IAsyncFindResult<T> | undefined;
+		try {
+			findMetadata = await this.findProvider.find(pattern, { matchType: this.matchType, findMode: this.mode }, token);
+		} catch (error) {
+			// This round owns the flag and metadata only while it is still the current one. A newer
+			// `applyPattern` has already taken both over, so leave them to it.
+			if (this.activeTokenSource?.token === token) {
+				this.asyncWorkInProgress = false;
+				this.activeFindMetadata = previousMetadata;
+			}
+			throw error;
+		}
+
+		if (this.activeTokenSource?.token !== token) {
 			return;
 		}
 
 		this.asyncWorkInProgress = false;
+		if (findMetadata === undefined) {
+			this.activeFindMetadata = previousMetadata;
+			return;
+		}
 		this.activeFindMetadata = findMetadata;
 
 		this.filter.reset();
@@ -816,8 +836,7 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 		}
 
 		if (this.root.refreshPromise) {
-			await this.root.refreshPromise;
-			await Event.toPromise(this._onDidRender.event);
+			await this.root.refreshAndRenderPromise ?? this.root.refreshPromise;
 		}
 
 		const node = this.getDataNode(element);
@@ -892,8 +911,7 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 		}
 
 		if (this.root.refreshPromise) {
-			await this.root.refreshPromise;
-			await Event.toPromise(this._onDidRender.event);
+			await this.root.refreshAndRenderPromise ?? this.root.refreshPromise;
 		}
 
 		const node = this.getDataNode(element);
@@ -903,8 +921,7 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 		}
 
 		if (node.refreshPromise) {
-			await node.refreshPromise;
-			await Event.toPromise(this._onDidRender.event);
+			await node.refreshAndRenderPromise ?? node.refreshPromise;
 		}
 
 		if (node !== this.root && !node.refreshPromise && !this.tree.isCollapsed(node)) {
@@ -914,8 +931,7 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 		const result = this.tree.expand(node === this.root ? null : node, recursive);
 
 		if (node.refreshPromise) {
-			await node.refreshPromise;
-			await Event.toPromise(this._onDidRender.event);
+			await node.refreshAndRenderPromise ?? node.refreshPromise;
 		}
 
 		return result;
@@ -1082,15 +1098,36 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 		return node;
 	}
 
-	private async refreshAndRenderNode(node: IAsyncDataTreeNode<TInput, T>, recursive: boolean, viewStateContext?: IAsyncDataTreeViewStateContext<TInput, T>, options?: IAsyncDataTreeUpdateChildrenOptions<T>): Promise<void> {
+	private refreshAndRenderNode(node: IAsyncDataTreeNode<TInput, T>, recursive: boolean, viewStateContext?: IAsyncDataTreeViewStateContext<TInput, T>, options?: IAsyncDataTreeUpdateChildrenOptions<T>): Promise<void> {
 		if (this.disposables.isDisposed) {
-			return; // tree disposed during refresh, again (#228211)
+			return Promise.resolve(); // tree disposed during refresh, again (#228211)
 		}
-		await this.refreshNode(node, recursive, viewStateContext);
-		if (this.disposables.isDisposed) {
-			return; // tree disposed during refresh (#199264)
-		}
-		this.render(node, viewStateContext, options);
+
+		const round = (async () => {
+			const rootElement = this.root.element;
+			const nodeElement = node.element;
+
+			await this.refreshNode(node, recursive, viewStateContext);
+			if (this.disposables.isDisposed) {
+				return; // tree disposed during refresh (#199264)
+			}
+			// A refresh only publishes for the input it started with. When the input changed while
+			// it was running, the new round owns the children and this one must not render them.
+			if (this.root.element !== rootElement || node.element !== nodeElement) {
+				return;
+			}
+			this.render(node, viewStateContext, options);
+		})();
+
+		// Waiters need the whole round, including the decision not to render. `refreshPromise`
+		// resolves before `render`, so awaiting it alone would leave them waiting on an event that
+		// a skipped render never fires.
+		node.refreshAndRenderPromise = round;
+		return round.finally(() => {
+			if (node.refreshAndRenderPromise === round) {
+				node.refreshAndRenderPromise = undefined;
+			}
+		});
 	}
 
 	private async refreshNode(node: IAsyncDataTreeNode<TInput, T>, recursive: boolean, viewStateContext?: IAsyncDataTreeViewStateContext<TInput, T>): Promise<void> {
@@ -1120,8 +1157,13 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 	}
 
 	private async doRefreshSubTree(node: IAsyncDataTreeNode<TInput, T>, recursive: boolean, viewStateContext?: IAsyncDataTreeViewStateContext<TInput, T>): Promise<void> {
-		const cancelablePromise = createCancelablePromise(async () => {
-			const childrenToRefresh = await this.doRefreshNode(node, recursive, viewStateContext);
+		const cancelablePromise = createCancelablePromise(async token => {
+			const rootElement = this.root.element;
+			const nodeElement = node.element;
+			const childrenToRefresh = await this.doRefreshNode(node, recursive, viewStateContext, token);
+			if (token.isCancellationRequested || this.root.element !== rootElement || node.element !== nodeElement) {
+				return;
+			}
 			node.stale = false;
 
 			await Promises.settled(childrenToRefresh.map(child => this.doRefreshSubTree(child, recursive, viewStateContext)));
@@ -1138,7 +1180,9 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 		return cancelablePromise;
 	}
 
-	private async doRefreshNode(node: IAsyncDataTreeNode<TInput, T>, recursive: boolean, viewStateContext?: IAsyncDataTreeViewStateContext<TInput, T>): Promise<IAsyncDataTreeNode<TInput, T>[]> {
+	private async doRefreshNode(node: IAsyncDataTreeNode<TInput, T>, recursive: boolean, viewStateContext?: IAsyncDataTreeViewStateContext<TInput, T>, token?: CancellationToken): Promise<IAsyncDataTreeNode<TInput, T>[]> {
+		const rootElement = this.root.element;
+		const nodeElement = node.element;
 		node.hasChildren = !!this.dataSource.hasChildren(node.element);
 
 		let childrenPromise: Promise<Iterable<T>>;
@@ -1163,6 +1207,9 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 
 		try {
 			const children = await childrenPromise;
+			if (token?.isCancellationRequested || this.root.element !== rootElement || node.element !== nodeElement) {
+				return [];
+			}
 			return this.setChildren(node, children, recursive, viewStateContext);
 		} catch (err) {
 			if (node !== this.root && this.tree.hasElement(node)) {

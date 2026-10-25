@@ -198,6 +198,8 @@ export class AgentSideEffects extends Disposable {
 
 	private readonly _subagentChats = new NKeyMap<ISubagentSessionRef, [ProtocolURI, string]>();
 	private readonly _cancelledTurnIds = new Map<ProtocolURI, Set<string>>();
+	/** Tool calls owned by cancelled turns; a late confirmation must not execute them. */
+	private readonly _cancelledTurnToolCallIds = new Map<ProtocolURI, Set<string>>();
 	/** Serializes refreshes per session so state-based deduplication observes the preceding dispatch. */
 	private readonly _pendingSessionCustomizationPublishes = new Map<ProtocolURI, Promise<void>>();
 	private readonly _pendingCustomizationEnablementRefreshes = new Set<ProtocolURI>();
@@ -344,6 +346,22 @@ export class AgentSideEffects extends Disposable {
 						this._cancelledTurnIds.set(envelope.channel, turnIds);
 					}
 					turnIds.add(envelope.action.turnId);
+					// The reducer has already ended the turn, so its response parts are now
+					// history. Remember the tool calls it owned: a confirmation that arrives
+					// after the active turn is gone must be denied, not auto-approved.
+					const cancelledTurn = chatState?.turns.find(turn => turn.id === envelope.action.turnId);
+					if (cancelledTurn) {
+						let toolCallIds = this._cancelledTurnToolCallIds.get(envelope.channel);
+						if (!toolCallIds) {
+							toolCallIds = new Set();
+							this._cancelledTurnToolCallIds.set(envelope.channel, toolCallIds);
+						}
+						for (const part of cancelledTurn.responseParts) {
+							if (part.kind === ResponsePartKind.ToolCall) {
+								toolCallIds.add(part.toolCall.toolCallId);
+							}
+						}
+					}
 					const sessionChannel = parseRequiredSessionUriFromChatUri(envelope.channel);
 					void this._checkpointService.discardTurnStartCheckpoint(URI.parse(sessionChannel), URI.parse(envelope.channel), envelope.action.turnId).catch(() => undefined);
 				}
@@ -1143,6 +1161,7 @@ export class AgentSideEffects extends Disposable {
 		for (const chatUri of this._cancelledTurnIds.keys()) {
 			if (parseRequiredSessionUriFromChatUri(chatUri) === parentSession) {
 				this._cancelledTurnIds.delete(chatUri);
+				this._cancelledTurnToolCallIds.delete(chatUri);
 			}
 		}
 
@@ -1159,6 +1178,11 @@ export class AgentSideEffects extends Disposable {
 			this._subagentChats.deleteAll(parentChatURI);
 			this._pendingSubagentSignals.deleteAll(parentChatURI);
 		}
+	}
+
+	private _isCancelledTurnToolCall(chat: ProtocolURI, sessionKey: ProtocolURI, toolCallId: string): boolean {
+		return this._cancelledTurnToolCallIds.get(chat.toString())?.has(toolCallId) === true
+			|| this._cancelledTurnToolCallIds.get(sessionKey.toString())?.has(toolCallId) === true;
 	}
 
 	/**
@@ -1247,6 +1271,14 @@ export class AgentSideEffects extends Disposable {
 	 * for the client.
 	 */
 	private async _handleToolReady(e: IAgentToolPendingConfirmationSignal, sessionKey: ProtocolURI, turnId: string, agent: IAgent): Promise<void> {
+		const toolCallKey = `${sessionKey}:${e.state.toolCallId}`;
+		if (this._isCancelledTurnToolCall(e.chat, sessionKey, e.state.toolCallId)) {
+			this._logService.trace(`[AgentSideEffects] Denying late confirmation for cancelled turn tool call ${e.state.toolCallId}`);
+			this._toolCallAgents.delete(toolCallKey);
+			this._managedApprovalToolCalls.delete(toolCallKey);
+			agent.respondToPermissionRequest(e.state.toolCallId, false);
+			return;
+		}
 		const approvalEvent = {
 			toolCallId: e.state.toolCallId,
 			session: e.chat,
@@ -1278,7 +1310,6 @@ export class AgentSideEffects extends Disposable {
 		}
 		const contributor = e.state.contributor ?? toolCall?.contributor;
 		let effective = e;
-		const toolCallKey = `${sessionKey}:${e.state.toolCallId}`;
 		if (forbiddenSnapshotWrite) {
 			// Hard-deny: the model tried to edit a read-only attachment snapshot. Refusing lets the
 			// model recover (e.g. reply with the transformed content / edit the real file) instead of

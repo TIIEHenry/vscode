@@ -165,11 +165,11 @@ suite('RichExecuteStrategy', () => {
 		strictEqual(result.exitCode, 127);
 	});
 
-	test('returns immediately with captured exit code when pty has already exited before execute()', async () => {
+	test('rejects when pty has already exited before execute()', async () => {
 		// Simulates the scenario where the shell process from a previous command
 		// has already died, so onExit has already fired and Event.toPromise(onExit)
-		// would never resolve. The strategy must short-circuit using the
-		// instance's already-captured exitCode.
+		// would never resolve. The strategy must fail rather than reporting the
+		// previous command's exit code as this command's result.
 		const onCommandFinishedEmitter = new Emitter<{ getOutput(): string; exitCode: number }>();
 		const onExitEmitter = new Emitter<number | undefined>();
 		const instance = {
@@ -192,11 +192,10 @@ suite('RichExecuteStrategy', () => {
 			createLogService(),
 		));
 
-		const result = await strategy.execute('Rscript /app/ars.R', CancellationToken.None);
-
-		strictEqual(result.exitCode, 1);
-		strictEqual(result.output, undefined);
-		strictEqual(result.additionalInformation, 'Command exited with code 1');
+		await rejects(
+			() => strategy.execute('Rscript /app/ars.R', CancellationToken.None),
+			/already exited/
+		);
 	});
 
 	test('throws "The terminal was closed" when instance is already disposed before execute()', async () => {

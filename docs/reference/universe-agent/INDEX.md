@@ -3,7 +3,7 @@ title: "UniverseAgent 引擎参考索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-05
+updated: 2026-10-24
 summary: "本仓消费 UniverseAgent 引擎协议面与 Hub 控制面的导航；Engine 页九节见 engine-catalog；调试用钉死 HeadlessServer 见指南"
 ---
 
@@ -37,3 +37,4 @@ summary: "本仓消费 UniverseAgent 引擎协议面与 Hub 控制面的导航�
 - [Conversation 会话数据契约](../../systems/conversation/stub-and-fixtures.md)（IDE 侧需要被满足的面）
 - [Agent Host 概览](../../systems/agent-host/overview.md)（vscode 侧 harness，非权威）
 - [钉死引擎调试](../../guides/debug-engine.md)（本仓调试用，不是外仓 HEAD）
+- [外部多 Agent 设计对照](../external-multi-agent-design.md)（AionUi / Orca 只读对照；2026-10-24 签收：IDE 只消费引擎投影，不自建编排）

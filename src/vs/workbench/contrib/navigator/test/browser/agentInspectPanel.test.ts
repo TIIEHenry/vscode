@@ -156,6 +156,7 @@ suite('Agent inspect panel', () => {
 		const view = await mountViewWithService(instantiationService);
 		inspectService.setTarget({
 			kind: 'agent',
+			sessionId: 'session-1',
 			node: {
 				agentId: 'sub:1',
 				name: 'Worker',
@@ -203,6 +204,7 @@ suite('Agent inspect panel', () => {
 		const view = await mountViewWithService(instantiationService);
 		inspectService.setTarget({
 			kind: 'agent',
+			sessionId: 'session-1',
 			node: {
 				agentId: 'sub:1',
 				name: 'Worker',
@@ -223,6 +225,7 @@ suite('Agent inspect panel', () => {
 		assert.ok(entries.some(entry => entry.label === 'Agent ID: sub:1'));
 		assert.strictEqual(inspectTitleFromTarget({
 			kind: 'agent',
+			sessionId: 'session-1',
 			node: {
 				agentId: 'sub:1',
 				name: 'Worker',
@@ -327,6 +330,7 @@ suite('Agent inspect panel', () => {
 	test('isInspectTargetStale treats leftover empty set as stale and undefined as not following', () => {
 		const agentTarget = {
 			kind: 'agent' as const,
+			sessionId: 'session-1',
 			node: {
 				agentId: 'sub:1',
 				name: 'Worker',
@@ -394,6 +398,7 @@ suite('Agent inspect panel', () => {
 		const view = await mountViewWithService(instantiationService);
 		inspectService.setTarget({
 			kind: 'agent',
+			sessionId: 'session-1',
 			node: {
 				agentId: 'sub:leftover',
 				name: 'Gone',
@@ -415,6 +420,53 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(isInspectTargetStale(inspectService.getTarget(), inspectService.getLiveAgentIds()), true);
 	});
 
+	test('agent target from another session is stale even when its id is still in the new tree', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		instantiationService.stub(IAgentInspectService, inspectService);
+
+		const view = await mountViewWithService(instantiationService);
+		inspectService.setTarget({
+			kind: 'agent',
+			sessionId: 'session-old',
+			node: {
+				agentId: 'root',
+				name: 'Root',
+				type: 'AGENT_TYPE_ROOT',
+				status: 'AGENT_STATUS_RUNNING',
+				model: 'gpt',
+				turnCount: 4,
+				createdAt: 1,
+				children: [],
+			},
+		});
+		inspectService.setLiveAgentIds('agents', new Set(['root']), 'session-new');
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		const staleNote = view.element.querySelector('.agent-inspect-stale-note') as HTMLElement;
+		assert.ok(staleNote);
+		assert.strictEqual(staleNote.style.display, '');
+		assert.strictEqual(isInspectTargetStale(inspectService.getTarget(), inspectService.getLiveAgentIds(), {
+			agents: inspectService.getLiveAgentIdsFor('agents'),
+			agentsSession: inspectService.getLiveAgentIdsSession('agents'),
+		}), true);
+
+		inspectService.setLiveAgentIds('agents', new Set(['root']), 'session-old');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(staleNote.style.display, 'none');
+		assert.strictEqual(isInspectTargetStale(inspectService.getTarget(), inspectService.getLiveAgentIds(), {
+			agents: inspectService.getLiveAgentIdsFor('agents'),
+			agentsSession: inspectService.getLiveAgentIdsSession('agents'),
+		}), false);
+
+		inspectService.setLiveAgentIds('agents', undefined);
+		assert.strictEqual(isInspectTargetStale(inspectService.getTarget(), inspectService.getLiveAgentIds(), {
+			agents: inspectService.getLiveAgentIdsFor('agents'),
+			agentsSession: inspectService.getLiveAgentIdsSession('agents'),
+		}), false);
+	});
+
 	test('GC-5d both hidden live-id sources do not mark stale', async () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
@@ -424,6 +476,7 @@ suite('Agent inspect panel', () => {
 		const view = await mountViewWithService(instantiationService);
 		inspectService.setTarget({
 			kind: 'agent',
+			sessionId: 'session-1',
 			node: {
 				agentId: 'sub:hidden',
 				name: 'Hidden',

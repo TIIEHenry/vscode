@@ -394,7 +394,7 @@ import type {
 	ITurnSettleSignal,
 } from '../common/universeAgentTypes.js';
 import { createEmptyCapabilitySnapshot, createUnknownConversationEntryCapability, createUnknownGitWriteCapability } from '../common/universeAgentCapabilities.js';
-import { probeConversationEntryCapability, probeEngineCapabilities, probeGitWriteCapability, probeListFilesCapability, probeSessionListCapability } from './grpcCapabilityProbe.js';
+import { isAdvertisedMethod, probeConversationEntryCapability, probeEngineCapabilities, probeGitWriteCapability, probeListFilesCapability, probeSessionListCapability } from './grpcCapabilityProbe.js';
 import { createGrpcUniverseAgentClient, createPinnedGrpcUniverseAgentClient, type GrpcUniverseAgentClient } from './grpc/grpcClient.js';
 import { createDiscoveredLocalEngineClient, findLocalEngine, type LocalEngineTarget } from './localEngineDiscovery.js';
 import { loadGrpcModule, type UniverseAgentPinnedTlsTarget } from './universeAgentChannel.js';
@@ -770,11 +770,22 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		if (this._agentTreeProbeUnsupported) {
 			return undefined;
 		}
+		// The capability snapshot and probe flags belong to the current transport.
+		// A result from a transport that has since been replaced describes the old
+		// link; dropping it here keeps the new link's committed state intact and
+		// prevents the coordinator from binding a stale tree.
+		const transport = this._transport;
 		try {
-			const root = await this._withTransport(transport => transport.fetchAgentTree(sessionId));
+			const root = await this._withTransport(current => current.fetchAgentTree(sessionId));
+			if (transport !== this._transport) {
+				return undefined;
+			}
 			this._setAgentTreeFetchFailed(false);
 			return root;
 		} catch (error) {
+			if (transport !== this._transport) {
+				return undefined;
+			}
 			if (error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNIMPLEMENTED) {
 				this._agentTreeProbeUnsupported = true;
 				this._setAgentTreeFetchFailed(false);
@@ -802,11 +813,15 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		if (!this.isEngineConnected() || !this._transport) {
 			return { ok: false, reason: 'failed', message: 'Engine not connected' };
 		}
-		if (this._fetchToolDetailUnsupported || !this._advertisedMethods.includes(UniverseAgentFetchToolDetailMethodKey)) {
+		const transport = this._transport;
+		if (this._fetchToolDetailUnsupported || !isAdvertisedMethod(this._advertisedMethods, UniverseAgentFetchToolDetailMethodKey)) {
 			return { ok: false, reason: 'unavailable' };
 		}
 		try {
-			const wire = await this._transport.fetchToolDetail(request);
+			const wire = await transport.fetchToolDetail(request);
+			if (transport !== this._transport) {
+				return { ok: false, reason: 'failed' };
+			}
 			if (!wire.success) {
 				return { ok: false, reason: 'failed', message: wire.errorMessage };
 			}
@@ -817,6 +832,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				...(wire.totalBytes !== undefined ? { totalBytes: wire.totalBytes } : {}),
 			};
 		} catch (error) {
+			if (transport !== this._transport) {
+				return { ok: false, reason: 'failed' };
+			}
 			if (error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNIMPLEMENTED) {
 				this._fetchToolDetailUnsupported = true;
 				return { ok: false, reason: 'unavailable' };
@@ -3115,7 +3133,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	private async _probeSaveSkill(transport: IUniverseAgentGrpcTransport, methods: readonly string[]): Promise<boolean> {
-		if (!methods.includes(UniverseAgentSaveSkillContentMethodKey)) {
+		if (!isAdvertisedMethod(methods, UniverseAgentSaveSkillContentMethodKey)) {
 			return false;
 		}
 		const status = await transport.probeRpc(

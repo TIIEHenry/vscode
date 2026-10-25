@@ -1073,7 +1073,9 @@ export class Response extends AbstractResponse implements IDisposable {
 
 	private _mergeOrPushTextEditGroup(uri: URI, edits: TextEdit[], done: boolean | undefined, isExternalEdit: boolean | undefined): void {
 		for (const candidate of this._responseParts) {
-			if (candidate.kind === 'textEditGroup' && !candidate.done && isEqual(candidate.uri, uri)) {
+			// External and ordinary batches have different owners. Keeping them in one
+			// group would let the observer skip the ordinary edits with the external flag.
+			if (candidate.kind === 'textEditGroup' && !candidate.done && isEqual(candidate.uri, uri) && !!candidate.isExternalEdit === !!isExternalEdit) {
 				candidate.edits.push(edits);
 				candidate.done = done;
 				return;
@@ -1084,7 +1086,7 @@ export class Response extends AbstractResponse implements IDisposable {
 
 	private _mergeOrPushNotebookEditGroup(uri: URI, edits: ICellTextEditOperation[] | ICellEditOperation[], done: boolean | undefined, isExternalEdit: boolean | undefined): void {
 		for (const candidate of this._responseParts) {
-			if (candidate.kind === 'notebookEditGroup' && !candidate.done && isEqual(candidate.uri, uri)) {
+			if (candidate.kind === 'notebookEditGroup' && !candidate.done && isEqual(candidate.uri, uri) && !!candidate.isExternalEdit === !!isExternalEdit) {
 				candidate.edits.push(edits);
 				candidate.done = done;
 				return;

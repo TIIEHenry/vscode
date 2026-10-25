@@ -2922,6 +2922,26 @@ suite('CopilotAgentSession', () => {
 			});
 		});
 
+		test('an abort during mode preflight does not send the prompt', async () => {
+			const { session, mockSession, signals } = await createAgentSession(disposables);
+			mockSession.onModeSet = () => {
+				void session.abort();
+				mockSession.fire('session.idle', { aborted: true } as SessionEventPayload<'session.idle'>['data']);
+			};
+
+			await session.send('hello', undefined, 'turn-preflight-abort', 'interactive');
+
+			assert.deepStrictEqual({
+				sentThroughNormalSend: mockSession.operationLog.includes('send'),
+				hasActiveTurn: session.hasActiveTurn,
+				turnCompleteCount: getActions(signals).filter(a => a.type === ActionType.ChatTurnComplete).length,
+			}, {
+				sentThroughNormalSend: false,
+				hasActiveTurn: false,
+				turnCompleteCount: 0,
+			});
+		});
+
 		test('binds the fleet user.message event id to the original turn (message after RPC resolves)', async () => {
 			const sessionDatabase = new TestSessionDatabase();
 			const { session, mockSession } = await createAgentSession(disposables, { sessionDatabase });
@@ -4454,6 +4474,25 @@ suite('CopilotAgentSession', () => {
 			assert.strictEqual((await resultPromise).kind, 'approve-once');
 		});
 
+		test('does not auto-approve a sandboxed shell command after an aborted turn', async () => {
+			const { session, runtime, mockSession } = await createAgentSession(disposables, {
+				rootValues: { [AgentHostSandboxConfigKey.Sandbox]: { [AgentHostSandboxKey.Enabled]: AgentSandboxEnabledValue.On } },
+			});
+			mockSession.onModeSet = () => {
+				void session.abort();
+				mockSession.fire('session.idle', { aborted: true } as SessionEventPayload<'session.idle'>['data']);
+			};
+			await session.send('hello', undefined, 'turn-aborted-sandbox', 'interactive');
+
+			const result = await runtime.handlePermissionRequest({
+				kind: 'shell',
+				toolCallId: 'tc-after-abort',
+				fullCommandText: 'cat ~/something.txt',
+			});
+
+			assert.strictEqual(result.kind, 'reject');
+		});
+
 		test('does not auto-approve a shell command that opted out of the sandbox', async () => {
 			const { session, runtime, signals, waitForSignal } = await createAgentSession(disposables, {
 				rootValues: { [AgentHostSandboxConfigKey.Sandbox]: { [AgentHostSandboxKey.Enabled]: AgentSandboxEnabledValue.On } },
@@ -5823,6 +5862,24 @@ Use the attached image as context.
 				sendRequests: [],
 				sendMessagesRequests: [{ messages: [] }],
 				modeSetCalls: [{ mode: 'plan' }],
+			});
+		});
+
+		test('an abort during resume preflight does not send the continuation', async () => {
+			const { session, mockSession } = await createAgentSession(disposables);
+			mockSession.onModeSet = () => {
+				void session.abort();
+				mockSession.fire('session.idle', { aborted: true } as SessionEventPayload<'session.idle'>['data']);
+			};
+
+			await session.resume('turn-resume-abort', 'plan', 'client-1');
+
+			assert.deepStrictEqual({
+				sendMessagesRequests: mockSession.sendMessagesRequests,
+				hasActiveTurn: session.hasActiveTurn,
+			}, {
+				sendMessagesRequests: [],
+				hasActiveTurn: false,
 			});
 		});
 
@@ -8245,7 +8302,7 @@ Use the attached image as context.
 				message: 'inspect the workspace',
 				parts: [
 					{ kind: ResponsePartKind.Markdown, content: 'I will inspect the workspace.' },
-					{ kind: ResponsePartKind.ToolCall, toolCallId: 'tc-view', toolName: 'view', status: ToolCallStatus.Completed, success: true, content: undefined },
+					{ kind: ResponsePartKind.ToolCall, toolCallId: 'tc-view', toolName: 'view', status: ToolCallStatus.Cancelled, success: undefined, content: undefined },
 					{ kind: ResponsePartKind.ToolCall, toolCallId: 'tc-bash', toolName: 'bash', status: ToolCallStatus.Completed, success: false, content: [{ type: ToolResultContentType.Text, text: 'tests failed' }] },
 					{ kind: ResponsePartKind.Markdown, content: 'Done.' },
 				],

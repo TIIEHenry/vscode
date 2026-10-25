@@ -84,7 +84,7 @@ suite('Sources - Diff ref helpers', () => {
 		return service;
 	}
 
-	function createEditorService(activeEditor: EditorInput | undefined, instantiationService?: IInstantiationService): IEditorService & { closed: EditorInput[]; opened: unknown[] } {
+	function createEditorService(activeEditor: EditorInput | undefined, instantiationService?: IInstantiationService): IEditorService & { closed: EditorInput[]; opened: unknown[]; setActiveEditor(editor: EditorInput | undefined): void } {
 		const state = {
 			activeEditor,
 			closed: [] as EditorInput[],
@@ -92,7 +92,7 @@ suite('Sources - Diff ref helpers', () => {
 		};
 		return {
 			get activeEditor() { return state.activeEditor; },
-			activeEditorPane: { group: { id: 1 } },
+			activeEditorPane: { group: { id: 1, pinEditor: () => { } } },
 			closeEditor: async (ident: { editor: EditorInput }) => {
 				state.closed.push(ident.editor);
 				if (state.activeEditor === ident.editor) {
@@ -117,7 +117,10 @@ suite('Sources - Diff ref helpers', () => {
 			},
 			get closed() { return state.closed; },
 			get opened() { return state.opened; },
-		} as unknown as IEditorService & { closed: EditorInput[]; opened: unknown[] };
+			setActiveEditor(editor: EditorInput | undefined) {
+				state.activeEditor = editor;
+			},
+		} as unknown as IEditorService & { closed: EditorInput[]; opened: unknown[]; setActiveEditor(editor: EditorInput | undefined): void };
 	}
 
 	test('view title moves the panel ref and leaves the editor diff; editor title moves the editor diff', async function () {
@@ -404,6 +407,73 @@ suite('Sources - Diff ref helpers', () => {
 		assert.strictEqual(panelService.cleared, false);
 		assert.strictEqual(editorService.closed[0], diffInput);
 		assert.strictEqual(panelService.shown?.modified.toString(), previewModified.toString());
+	});
+
+	test('preview opened from workingTree keeps that group when the same URI is also staged', async function () {
+		const modified = toResource.call(this, '/project/same.ts');
+		const original = toResource.call(this, '/project/same.ts.git');
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const originalInput = store.add(new TestEditorInput(original, 'test.original'));
+		const modifiedInput = store.add(new TestEditorInput(modified, 'test.modified'));
+		const diffInput = store.add(instantiationService.createInstance(DiffEditorInput, undefined, undefined, originalInput, modifiedInput, undefined));
+		const editorService = createEditorService(undefined);
+
+		const indexGroup = { id: 'index', label: 'Staged Changes', resources: [] as unknown[] };
+		const workingGroup = { id: 'workingTree', label: 'Changes', resources: [] as unknown[] };
+		const indexResource = {
+			sourceUri: modified,
+			resourceGroup: indexGroup,
+			decorations: {},
+			open: async () => { },
+		};
+		const workingResource = {
+			sourceUri: modified,
+			resourceGroup: workingGroup,
+			decorations: {},
+			open: async () => { editorService.setActiveEditor(diffInput); },
+		};
+		indexGroup.resources.push(indexResource);
+		workingGroup.resources.push(workingResource);
+		const scmService = {
+			repositories: [{ provider: { groups: [indexGroup, workingGroup] } }],
+		} as unknown as ISCMService;
+
+		const panelService = createPanelService({
+			modified,
+			original,
+			groupId: 'workingTree',
+			scmResource: workingResource as never,
+		});
+		const deps = createMoveDeps(editorService, instantiationService, panelService);
+
+		await moveActiveDiffToPreview('viewTitle', deps, scmService);
+		assert.strictEqual(editorService.activeEditor, diffInput);
+		await moveActiveDiffToConversation('editorTitle', deps, scmService);
+		assert.strictEqual((conversationOpened[0] as ConversationDiffReviewInput).groupId, 'workingTree');
+
+		editorService.setActiveEditor(diffInput);
+		await moveActiveDiffToPreview('viewTitle', deps, scmService);
+		await moveActiveDiffToPanel(deps, scmService);
+		assert.strictEqual(panelService.shown?.groupId, 'workingTree');
+		assert.strictEqual(panelService.shown?.scmResource, workingResource);
+	});
+
+	test('a preview diff without an open record does not guess between two groups', function () {
+		const modified = toResource.call(this, '/project/ambiguous.ts');
+		const original = toResource.call(this, '/project/ambiguous.ts.git');
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const originalInput = store.add(new TestEditorInput(original, 'test.original'));
+		const modifiedInput = store.add(new TestEditorInput(modified, 'test.modified'));
+		const diffInput = store.add(instantiationService.createInstance(DiffEditorInput, undefined, undefined, originalInput, modifiedInput, undefined));
+		const indexGroup = { id: 'index', label: 'Staged Changes', resources: [{ sourceUri: modified, decorations: {}, open: async () => { } }] };
+		const workingGroup = { id: 'workingTree', label: 'Changes', resources: [{ sourceUri: modified, decorations: {}, open: async () => { } }] };
+		const scmService = {
+			repositories: [{ provider: { groups: [indexGroup, workingGroup] } }],
+		} as unknown as ISCMService;
+
+		const resolved = resolveSourcesChangeRefFromEditor(diffInput, scmService);
+		assert.strictEqual(resolved?.groupId, '');
+		assert.strictEqual(resolved?.scmResource, undefined);
 	});
 
 	test('move to preview closes the conversation diff host', async function () {

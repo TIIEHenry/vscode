@@ -6,7 +6,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { AccountLinks } from '../common/accountLinks';
-import { IGitHubUserInfo } from '../common/gitHubAccount';
+import { GitHubUserInfoError, IGitHubUserInfo } from '../common/gitHubAccount';
 import { Log } from '../common/logger';
 import { EntraTokenExchangeError, EntraTokenExchangeFailure, IEntraRenewal, IEntraRenewedToken } from '../entraTokenExchange';
 import { AuthProviderType, GitHubAuthenticationProvider } from '../github';
@@ -108,6 +108,259 @@ suite('GitHub session persistence', () => {
 			userInfoRequests: 1,
 			secretWrites: 0
 		});
+	});
+
+	test('does not return or persist a session whose identity could not be verified', async () => {
+		const storedSessions = JSON.stringify([{
+			id: 'session-id',
+			scopes: ['repo'],
+			accessToken: 'access-token'
+		}]);
+		let userInfoRequests = 0;
+		let secretWrites = 0;
+		let secretDeletes = 0;
+
+		const provider: TestGitHubAuthenticationProvider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: Promise.resolve([]),
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionChangeEmitter: { fire: () => { } },
+			_keychain: {
+				getToken: async () => storedSessions,
+				deleteToken: async () => { secretDeletes++; },
+				setToken: async () => { secretWrites++; }
+			},
+			_githubServer: {
+				getUserInfo: async () => {
+					userInfoRequests++;
+					if (userInfoRequests === 1) {
+						throw new Error('network error');
+					}
+					return { id: 'account-id', accountName: 'octocat', avatarUrl: undefined };
+				},
+				login: async () => 'unused',
+				logout: async () => { },
+				sendAdditionalTelemetryInfo: async () => { }
+			},
+			_logger: {
+				error: () => { },
+				info: () => { },
+				trace: () => { }
+			}
+		});
+
+		const whileUnreachable = await provider.readSessions();
+		const afterRecovery = await provider.readSessions();
+
+		assert.deepStrictEqual({
+			whileUnreachable: whileUnreachable.map(session => session.id),
+			afterRecovery: afterRecovery.map(session => ({ id: session.id, accountId: session.account.id, label: session.account.label })),
+			userInfoRequests,
+			secretWrites,
+			secretDeletes
+		}, {
+			// The token stays in the keychain: a network failure says nothing about it.
+			whileUnreachable: [],
+			afterRecovery: [{ id: 'session-id', accountId: 'account-id', label: 'octocat' }],
+			userInfoRequests: 2,
+			secretWrites: 0,
+			secretDeletes: 0
+		});
+	});
+
+	test('removes only sessions the server explicitly rejected', async () => {
+		const storedSessions = JSON.stringify([
+			{ id: 'rejected-session', scopes: ['repo'], accessToken: 'rejected-token' },
+			{ id: 'valid-session', scopes: ['repo'], accessToken: 'valid-token' }
+		]);
+		let stored: string | undefined;
+		let secretDeletes = 0;
+
+		const provider: TestGitHubAuthenticationProvider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: Promise.resolve([]),
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionChangeEmitter: { fire: () => { } },
+			_keychain: {
+				getToken: async () => storedSessions,
+				deleteToken: async () => { secretDeletes++; },
+				setToken: async (value: string) => { stored = value; }
+			},
+			_githubServer: {
+				getUserInfo: async (token: string) => {
+					if (token === 'rejected-token') {
+						throw new GitHubUserInfoError('Unauthorized', 401);
+					}
+					return { id: 'valid-account', accountName: 'octocat', avatarUrl: undefined };
+				},
+				login: async () => 'unused',
+				logout: async () => { },
+				sendAdditionalTelemetryInfo: async () => { }
+			},
+			_logger: {
+				error: () => { },
+				info: () => { },
+				trace: () => { }
+			}
+		});
+
+		const sessions = await provider.readSessions();
+		const persisted = JSON.parse(stored!) as vscode.AuthenticationSession[];
+
+		assert.deepStrictEqual({
+			returned: sessions.map(session => session.id),
+			persisted: persisted.map(session => session.id),
+			secretDeletes
+		}, {
+			returned: ['valid-session'],
+			persisted: ['valid-session'],
+			secretDeletes: 0
+		});
+	});
+
+	test('defers the number account id migration until every session was verified', async () => {
+		const storedSessions = JSON.stringify([
+			{ id: 'migrated-session', scopes: ['repo'], accessToken: 'migrated-token', account: { id: 1, label: 'octocat' } },
+			{ id: 'unverified-session', scopes: ['repo'], accessToken: 'unverified-token' }
+		]);
+		let userInfoRequests = 0;
+		let stored: string | undefined;
+
+		const provider: TestGitHubAuthenticationProvider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: Promise.resolve([]),
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionChangeEmitter: { fire: () => { } },
+			_keychain: {
+				getToken: async () => storedSessions,
+				deleteToken: async () => { },
+				setToken: async (value: string) => { stored = value; }
+			},
+			_githubServer: {
+				getUserInfo: async () => {
+					userInfoRequests++;
+					if (userInfoRequests === 1) {
+						throw new Error('network error');
+					}
+					return { id: 'unverified-account', accountName: 'hubot', avatarUrl: undefined };
+				},
+				login: async () => 'unused',
+				logout: async () => { },
+				sendAdditionalTelemetryInfo: async () => { }
+			},
+			_logger: {
+				error: () => { },
+				info: () => { },
+				trace: () => { }
+			}
+		});
+
+		const whileUnreachable = await provider.readSessions();
+		const writesWhileUnreachable = stored;
+		const afterRecovery = await provider.readSessions();
+		const persisted = JSON.parse(stored!) as vscode.AuthenticationSession[];
+
+		assert.deepStrictEqual({
+			whileUnreachable: whileUnreachable.map(session => session.id),
+			writesWhileUnreachable,
+			afterRecovery: afterRecovery.map(session => ({ id: session.id, accountId: session.account.id })),
+			persisted: persisted.map(session => ({ id: session.id, accountId: session.account.id }))
+		}, {
+			whileUnreachable: ['migrated-session'],
+			writesWhileUnreachable: undefined,
+			afterRecovery: [
+				{ id: 'migrated-session', accountId: '1' },
+				{ id: 'unverified-session', accountId: 'unverified-account' }
+			],
+			persisted: [
+				{ id: 'migrated-session', accountId: '1' },
+				{ id: 'unverified-session', accountId: 'unverified-account' }
+			]
+		});
+	});
+
+	test('does not overwrite the keychain with an empty list when every session is unverified', async () => {
+		const storedSessions = JSON.stringify([
+			{ id: 'session-a', scopes: ['repo'], accessToken: 'token-a' },
+			{ id: 'session-b', scopes: ['repo'], accessToken: 'token-b' }
+		]);
+		let secretWrites = 0;
+		let secretDeletes = 0;
+
+		const provider: TestGitHubAuthenticationProvider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: Promise.resolve([]),
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionChangeEmitter: { fire: () => { } },
+			_keychain: {
+				getToken: async () => storedSessions,
+				deleteToken: async () => { secretDeletes++; },
+				setToken: async () => { secretWrites++; }
+			},
+			_githubServer: {
+				getUserInfo: async () => { throw new Error('network error'); },
+				login: async () => 'unused',
+				logout: async () => { },
+				sendAdditionalTelemetryInfo: async () => { }
+			},
+			_logger: {
+				error: () => { },
+				info: () => { },
+				trace: () => { }
+			}
+		});
+
+		const sessions = await provider.readSessions();
+
+		assert.deepStrictEqual({ sessions, secretWrites, secretDeletes }, { sessions: [], secretWrites: 0, secretDeletes: 0 });
+	});
+
+	test('keeps an unverified token when a login rewrites the keychain', async () => {
+		const storedSessions = JSON.stringify([{
+			id: 'unverified-session',
+			scopes: ['repo'],
+			accessToken: 'unverified-token'
+		}]);
+		let stored: string | undefined;
+
+		const provider: TestGitHubAuthenticationProvider = Object.assign(Object.create(GitHubAuthenticationProvider.prototype), {
+			_persistedSessionsPromise: Promise.resolve([]),
+			_accountsSeen: new Set<string>(),
+			_transientSessions: new Map(),
+			_sessionChangeEmitter: { fire: () => { } },
+			_keychain: {
+				getToken: async () => storedSessions,
+				deleteToken: async () => { },
+				setToken: async (value: string) => { stored = value; }
+			},
+			_githubServer: {
+				login: async () => 'new-token',
+				getUserInfo: async (token: string) => {
+					if (token === 'unverified-token') {
+						throw new Error('network error');
+					}
+					return { id: 'new-account', accountName: 'octocat', avatarUrl: undefined };
+				},
+				logout: async () => { },
+				sendAdditionalTelemetryInfo: async () => { }
+			},
+			_logger: {
+				error: () => { },
+				info: () => { },
+				trace: () => { }
+			}
+		});
+
+		provider._persistedSessionsPromise = provider.readSessions();
+		await provider._persistedSessionsPromise;
+		await provider.createSession(['repo']);
+
+		const persisted = JSON.parse(stored!) as { id: string; accessToken: string; account?: { id: string } }[];
+		assert.deepStrictEqual(persisted.map(session => ({ token: session.accessToken, accountId: session.account?.id })), [
+			{ token: 'new-token', accountId: 'new-account' },
+			// The token a network failure hid stays put, without an invented account.
+			{ token: 'unverified-token', accountId: undefined }
+		]);
 	});
 
 	test('persists a new login alongside sessions added while authorization was in flight', async () => {

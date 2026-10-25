@@ -1333,6 +1333,54 @@ suite('McpResourceManagementService', () => {
 		assert.deepStrictEqual(cached.map(server => server.name), ['recovered']);
 		assert.strictEqual(watchCalls, 1);
 	});
+
+	test('uninstall removes the install record and directory when the resource has no servers', async () => {
+		const location = URI.from({ scheme: Schemas.inMemory, path: '/mcp-install-dir' });
+		await fileService.createFolder(location);
+		let scans = 0;
+		const serviceWithLocation = disposables.add(new TestMcpResourceManagementService(
+			mcpResource,
+			fileService,
+			uriIdentityService,
+			upcastPartial<McpResourceScannerService>({
+				scanMcpServers: async () => ++scans === 1 ? {
+					servers: { test: { type: McpServerType.LOCAL, command: 'node' } }
+				} : {},
+			}),
+		));
+		(serviceWithLocation as unknown as { getLocalServerInfo: () => Promise<{ location: URI }> }).getLocalServerInfo = async () => ({ location });
+
+		const [server] = await serviceWithLocation.getInstalled();
+		assert.deepStrictEqual(server.location, location);
+
+		await serviceWithLocation.uninstall(server);
+
+		assert.deepStrictEqual((await serviceWithLocation.getInstalled()).map(s => s.name), []);
+		assert.strictEqual(await fileService.exists(location), false);
+	});
+
+	test('uninstall removes the install record and directory when the resource file is missing', async () => {
+		const location = URI.from({ scheme: Schemas.inMemory, path: '/mcp-missing-install-dir' });
+		await fileService.createFolder(location);
+		const missingResource = URI.from({ scheme: Schemas.inMemory, path: '/mcp-missing.json' });
+		await fileService.writeFile(missingResource, VSBuffer.fromString(JSON.stringify({
+			servers: { test: { type: 'stdio', command: 'node' } }
+		})));
+		const serviceWithLocation = disposables.add(new TestMcpResourceManagementService(
+			missingResource,
+			fileService,
+			uriIdentityService,
+			scannerService,
+		));
+		(serviceWithLocation as unknown as { getLocalServerInfo: () => Promise<{ location: URI }> }).getLocalServerInfo = async () => ({ location });
+
+		const [server] = await serviceWithLocation.getInstalled();
+		await fileService.del(missingResource);
+		await serviceWithLocation.uninstall(server);
+
+		assert.deepStrictEqual((await serviceWithLocation.getInstalled()).map(s => s.name), []);
+		assert.strictEqual(await fileService.exists(location), false);
+	});
 });
 
 suite('McpResourceManagementService - install policy enforcement', () => {

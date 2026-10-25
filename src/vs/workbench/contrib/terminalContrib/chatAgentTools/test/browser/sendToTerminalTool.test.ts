@@ -58,7 +58,7 @@ suite('SendToTerminalTool', () => {
 		} as unknown as IToolInvocation;
 	}
 
-	function createMockExecution(output: string): IActiveTerminalExecution & { sentTexts: { text: string; shouldExecute: boolean; forceBracketedPasteMode?: boolean }[]; dataEmitter: Emitter<string> } {
+	function createMockExecution(output: string, sendTextResult = true): IActiveTerminalExecution & { sentTexts: { text: string; shouldExecute: boolean; forceBracketedPasteMode?: boolean }[]; dataEmitter: Emitter<string> } {
 		const sentTexts: { text: string; shouldExecute: boolean; forceBracketedPasteMode?: boolean }[] = [];
 		const dataEmitter = store.add(new Emitter<string>());
 		return {
@@ -66,6 +66,7 @@ suite('SendToTerminalTool', () => {
 			instance: {
 				sendText: async (text: string, shouldExecute: boolean, forceBracketedPasteMode?: boolean) => {
 					sentTexts.push({ text, shouldExecute, forceBracketedPasteMode });
+					return sendTextResult;
 				},
 				registerMarker: () => undefined,
 				onData: dataEmitter.event,
@@ -122,6 +123,25 @@ suite('SendToTerminalTool', () => {
 			assert.strictEqual(mockExecution.sentTexts.length, 1);
 			assert.strictEqual(mockExecution.sentTexts[0].text, 'ls');
 			assert.strictEqual(mockExecution.sentTexts[0].shouldExecute, true);
+		});
+	});
+
+	test('returns an error when the terminal process no longer accepts input', () => {
+		return runWithFakedTimers({}, async () => {
+			const mockExecution = createMockExecution('output', false);
+			RunInTerminalTool.getExecution = () => mockExecution;
+
+			const result = await tool.invoke(
+				createInvocation(KNOWN_TERMINAL_ID, 'ls'),
+				async () => 0,
+				{ report: () => { } },
+				CancellationToken.None,
+			);
+
+			assert.strictEqual(result.content.length, 1);
+			const value = (result.content[0] as { value: string }).value;
+			assert.ok(value.startsWith('Error:'));
+			assert.ok(!value.includes('Successfully sent command'));
 		});
 	});
 

@@ -322,7 +322,7 @@ export class ModelService extends Disposable implements IModelService {
 					? sha1Computer.computeSHA1(model) === disposedModelData.sha1
 					: false
 			);
-			if (sha1IsEqual || disposedModelData.sharesUndoRedoStack) {
+			if (sha1IsEqual) {
 				for (const element of elements.past) {
 					if (isEditStackElement(element) && element.matchesResource(resource)) {
 						element.setModel(model);
@@ -334,11 +334,17 @@ export class ModelService extends Disposable implements IModelService {
 					}
 				}
 				this._undoRedoService.setElementsValidFlag(resource, true, (element) => (isEditStackElement(element) && element.matchesResource(resource)));
-				if (sha1IsEqual) {
-					model._overwriteVersionId(disposedModelData.versionId);
-					model._overwriteAlternativeVersionId(disposedModelData.alternativeVersionId);
-					model._overwriteInitialUndoRedoSnapshot(disposedModelData.initialUndoRedoSnapshot);
-				}
+				model._overwriteVersionId(disposedModelData.versionId);
+				model._overwriteAlternativeVersionId(disposedModelData.alternativeVersionId);
+				model._overwriteInitialUndoRedoSnapshot(disposedModelData.initialUndoRedoSnapshot);
+			} else if (disposedModelData.sharesUndoRedoStack) {
+				// The buffer changed while the model was closed, so the recorded offsets no longer
+				// describe it. Keep this resource's elements where they are, bound to the URI: undo
+				// and redo skip them and still consume their own stack entry. Removing them would
+				// expose another resource on the shared stack, and leaving them invalid would flush
+				// the whole stack in `_resourceUndo`. Marking them valid again only means "do not
+				// flush"; the URI binding is what makes the edit a no-op.
+				this._undoRedoService.setElementsValidFlag(resource, true, (element) => (isEditStackElement(element) && element.matchesResource(resource)));
 			} else {
 				if (disposedModelData.initialUndoRedoSnapshot !== null) {
 					this._undoRedoService.restoreSnapshot(disposedModelData.initialUndoRedoSnapshot);

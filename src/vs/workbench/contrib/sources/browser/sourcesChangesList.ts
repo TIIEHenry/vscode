@@ -1285,7 +1285,13 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 				return;
 			}
 			if (isSourcesGitWriteAccepted(written)) {
-				this.setWriteStatusMessage(undefined);
+				// The accepted result belongs to the session this commit was
+				// issued for. If the active session changed while the write was
+				// in flight, its status line describes the new session and must
+				// not be cleared by the previous one.
+				if (this.session.getActiveSessionId() === sessionId) {
+					this.setWriteStatusMessage(undefined);
+				}
 				this.scheduleRefresh();
 				return;
 			}
@@ -1329,6 +1335,11 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.setWriteStatusMessage(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."));
 			return;
 		}
-		await this.runEngineCommit(this.commitSessionId(snapshot), message, this.activeRepository);
+		const commitSessionId = this.commitSessionId(snapshot);
+		if (isSourcesEngineWriteSessionBlocked('engine', commitSessionId, this.session.getActiveSessionId())) {
+			this.setWriteStatusMessage(sourcesGitSessionChangedMessage());
+			return;
+		}
+		await this.runEngineCommit(commitSessionId, message, this.activeRepository);
 	}
 }

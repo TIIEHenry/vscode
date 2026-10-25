@@ -147,7 +147,12 @@ export class RunSubagentTool extends Disposable implements IToolImpl {
 			throw new Error('Chat model not found for session');
 		}
 
-		const request = model.getRequests().at(-1)!;
+		const request = invocation.chatRequestId
+			? model.getRequests().find(r => r.id === invocation.chatRequestId)
+			: model.getRequests().at(-1);
+		if (!request || request.response?.isComplete || request.response?.isCanceled) {
+			throw new Error('The chat request for this subagent is no longer active');
+		}
 		let subagentCredits: number | undefined;
 
 		const store = new DisposableStore();

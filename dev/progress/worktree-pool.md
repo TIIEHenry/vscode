@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: M7
 created: 2026-08-30
-updated: 2026-10-16
-summary: "2026-10-16：loop/merge 在 f551c7400c1。A、B、D、E、F、G、I、J 干净槽已全量 ff 对齐。C 只脏 dev/loop，H 有未跟踪 attachments。人类工位有 82 文件在途重叠未 ff。"
+updated: 2026-10-25
+summary: "2026-10-25：人类工位把十六路审查收成提交（父提交 10e04195bf0）。merge 与 A–J 随后 ff-only。H 仍有未跟踪 attachments/。compile 在父提交上退出 1，未 push。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,20 +23,21 @@ summary: "2026-10-16：loop/merge 在 f551c7400c1。A、B、D、E、F、G、I、
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 集成尖端（`loop/merge`） | `f551c7400c1`（第十二批：r02 与 r05 状态收归）。未 push。 |
-| 工位池 compile | `flock -x /tmp/vscode-compile.lock npm run transpile-client` 0 错误。109 单测全绿。 |
+| 集成尖端（`agent-ide`） | 父提交 `10e04195bf0` 之上的人类工位收尾提交（十六路审查与本槽位账）。提交后 merge 与字母槽 `merge --ff-only` 到该提交。 |
+| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。父提交上 merge 槽 `npm run compile` 退出码 1：`compile-src` 105 个 TS 错误，与 2026-10-24 既有基线同数。按 P5 不 push。 |
 
-## 槽位表（2026-10-16）
+## 槽位表（2026-10-25 关仓）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `f551c7400c1` | `parked`。已合入第十二批（r02/r05）及前十一批全部成果 |
-| A、B、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | `f551c7400c1` | `idle`。已全量 `git merge --ff-only` 对齐 |
-| C | `vscode-WorkTrees/C` | `loop/C` | `e9d176da857` | `blocked`。仅脏 `dev/loop` gitlink。勿 add，勿 `checkout -B` |
-| H | `vscode-WorkTrees/H` | `loop/H` | `e9d176da857` | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
-| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | `393ccc6e9fd` | `HUMAN_DECISION_REQUIRED`。工作区含 82 个修改/未跟踪文件与进站提交重叠，`git merge --ff-only` 拒绝覆盖。按关仓 P6 规范严格保留在途修改不丢 WIP |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | 收尾提交 | 提交后 `merge --ff-only`。干净则不是 `parked`：HEAD 仍不等于已 push 的 `origin/agent-ide` |
+| A、B、C、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 收尾提交 | `idle`。提交后 `git merge --ff-only`。工作区干净 |
+| H | `vscode-WorkTrees/H` | `loop/H` | 收尾提交 | `blocked`。未跟踪 `attachments/`（`q1bind2`、`q1env1`、`q1overlap1`、`q1probe1`）。勿 add，勿 `checkout -B` |
+| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 收尾提交 | 用户要求把在途审查改动收成 commit。提交前 202 个已跟踪修改和 52 个未跟踪文件都在这次提交里 |
 
-并行归属见 [status.md](status.md)。M7 看板已归档：[m7-ui-completion](../parallel/archive/m7-ui-completion.md)。本波无独立 parallel board。
+P0：字母槽与 merge 停在 `59120887458`。人类工位在 `10e04195bf0` 上带着十六路审查改动。stash 0。用户随后要求人类工位收尾提交，这些改动进入 `agent-ide`，不再留在工作区。
+
+并行归属见 [status.md](status.md)。M7 看板已归档：[m7-ui-completion](../parallel/archive/m7-ui-completion.md)。本波无独立 parallel board。`dev/parallel/active/` 里 2026-09 至 2026-10-05 的看板不是本波，本次未归档。
 
 IDE 调试用引擎 **不是** 本表槽位：仓外 `vscode-debug-engine/`（UA 分离头指针），见 [钉死引擎调试](../../docs/guides/debug-engine.md)。
 

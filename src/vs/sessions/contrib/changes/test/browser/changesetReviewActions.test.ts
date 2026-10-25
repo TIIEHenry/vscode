@@ -11,8 +11,10 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { ServiceCollection } from '../../../../../platform/instantiation/common/serviceCollection.js';
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import { IEditorService } from '../../../../../workbench/services/editor/common/editorService.js';
-import { ISessionChangeset, ISessionFileChange } from '../../../../services/sessions/common/session.js';
+import { ISession, ISessionChangeset, ISessionFileChange } from '../../../../services/sessions/common/session.js';
+import { ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ChangesetReviewAction } from '../../browser/changesetReviewActions.js';
+import { ISessionChangesService } from '../../browser/sessionChangesService.js';
 import { IChangesViewService } from '../../common/changesViewService.js';
 
 suite('ChangesetReviewAction', () => {
@@ -38,6 +40,12 @@ suite('ChangesetReviewAction', () => {
 		return disposables.add(new TestInstantiationService(new ServiceCollection(
 			[IChangesViewService, changesViewService],
 			[IEditorService, editorService],
+			[ISessionChangesService, new class extends mock<ISessionChangesService>() {
+				override getSessionResource(): undefined { return undefined; }
+			}()],
+			[ISessionsManagementService, new class extends mock<ISessionsManagementService>() {
+				override getSession(): undefined { return undefined; }
+			}()],
 		)));
 	}
 
@@ -87,5 +95,41 @@ suite('ChangesetReviewAction', () => {
 		new ChangesetReviewAction().run(instantiationService, workspaceUri);
 
 		assert.deepStrictEqual(setReviewStateCalls, [{ resources: [snapshotUri], reviewed: false }]);
+	});
+
+	test('writes review state to the editor session, not the globally active one', () => {
+		const resource = URI.file('/workspace/shared.ts');
+		const editorSession = URI.parse('session://a');
+		const activeSession = URI.parse('session://b');
+		const calls: { session: URI; resources: readonly URI[]; reviewed: boolean }[] = [];
+		const changesViewService = new class extends mock<IChangesViewService>() {
+			override readonly activeSessionChangesetObs = constObservable(upcastPartial<ISessionChangeset>({ capabilities: { review: true } }));
+			override readonly activeSessionChangesObs = constObservable<readonly ISessionFileChange[]>([{ modifiedUri: resource, insertions: 1, deletions: 0, reviewed: false }]);
+			override setChangesetFilesReviewState(resources: readonly URI[], reviewed: boolean): void {
+				calls.push({ session: activeSession, resources, reviewed });
+			}
+			override setSessionChangesetFilesReviewState(session: URI, resources: readonly URI[], reviewed: boolean): void {
+				calls.push({ session, resources, reviewed });
+			}
+		}();
+		const editorChanges: ISessionFileChange[] = [{ modifiedUri: resource, insertions: 1, deletions: 0, reviewed: false }];
+		const editorChangeset = upcastPartial<ISessionChangeset>({ capabilities: { review: true }, changes: constObservable(editorChanges) });
+		const session = upcastPartial<ISession>({ changes: constObservable(editorChanges), changesets: constObservable([editorChangeset]) });
+		const instantiationService = disposables.add(new TestInstantiationService(new ServiceCollection(
+			[IChangesViewService, changesViewService],
+			[IEditorService, new class extends mock<IEditorService>() {
+				override readonly activeEditorPane = { input: { resource: URI.parse('changes-multi-diff-source:/a') } } as unknown as IEditorService['activeEditorPane'];
+			}()],
+			[ISessionChangesService, new class extends mock<ISessionChangesService>() {
+				override getSessionResource(): URI { return editorSession; }
+			}()],
+			[ISessionsManagementService, new class extends mock<ISessionsManagementService>() {
+				override getSession(): ISession { return session; }
+			}()],
+		)));
+
+		new ChangesetReviewAction().run(instantiationService, resource);
+
+		assert.deepStrictEqual(calls, [{ session: editorSession, resources: [resource], reviewed: true }]);
 	});
 });

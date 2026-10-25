@@ -60,8 +60,9 @@ export interface IMergeEditorInputModel extends IDisposable {
 
 	/**
 	 * Marks the merge as done. The merge editor must be closed afterwards.
+	 * Returns whether the result was confirmed to be written to disk.
 	*/
-	accept(): Promise<void>;
+	accept(): Promise<boolean>;
 }
 
 /* ================ Temp File ================ */
@@ -158,12 +159,17 @@ class TempFileMergeEditorInputModel extends EditorModel implements IMergeEditorI
 		super.dispose();
 	}
 
-	async accept(): Promise<void> {
+	async accept(): Promise<boolean> {
 		const value = await this.model.resultTextModel.getValue();
 		this.result.textEditorModel.setValue(value);
-		this.savedAltVersionId.set(this.model.resultTextModel.getAlternativeVersionId(), undefined);
-		await this.textFileService.save(this.result.textEditorModel.uri);
+		const versionBeforeSave = this.model.resultTextModel.getAlternativeVersionId();
+		const savedUri = await this.textFileService.save(this.result.textEditorModel.uri);
+		if (!savedUri || this.model.resultTextModel.getAlternativeVersionId() !== versionBeforeSave) {
+			return false;
+		}
+		this.savedAltVersionId.set(versionBeforeSave, undefined);
 		this.finished = true;
+		return true;
 	}
 
 	private async _discard(): Promise<void> {
@@ -415,9 +421,13 @@ class WorkspaceMergeEditorInputModel extends EditorModel implements IMergeEditor
 		}
 	}
 
-	public async accept(): Promise<void> {
+	public async accept(): Promise<boolean> {
+		const saved = await this.resultTextFileModel.save();
+		if (!saved) {
+			return false;
+		}
 		this.reportClose(true);
-		await this.resultTextFileModel.save();
+		return true;
 	}
 
 	get resultUri(): URI {

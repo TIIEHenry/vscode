@@ -10,6 +10,8 @@ export const conversationLensDockEngineNotConnected = localize('conversationLens
 /** Transport is up, but the bound session is not a live write target. */
 export const conversationLensDockSessionUnavailable = localize('conversationLens.dockSessionUnavailable', "Session unavailable");
 export const conversationLensDockSessionUnavailableReason = localize('conversationLens.dockSessionUnavailableReason', "The engine is connected, but the active session is not ready.");
+/** Catalog or bind still in flight. The gate uses this alone; unavailable keeps the longer sentence. */
+export const conversationLensDockSessionLoading = localize('conversationLens.dockSessionLoading', "Loading session…");
 export const conversationLensDockInboxNoQueue = localize('conversationLens.inboxNoQueue', "No queue");
 /** Connected / disconnected-cache Inbox is not a live engine queue (no GetQueue). */
 export const conversationLensDockInboxQueueNotListed = localize('conversationLens.inboxQueueNotListed', "Queue not listed");
@@ -74,6 +76,7 @@ export const conversationLensPostFailedMailboxFull = localize('conversationLens.
 export const conversationLensPostFailedNotAuthenticated = localize('conversationLens.postFailedNotAuthenticated', "Message not sent — not signed in.");
 export const conversationLensPostFailedNoSession = localize('conversationLens.postFailedNoSession', "Message not sent — session not found.");
 export const conversationLensPostFailedDisconnected = localize('conversationLens.postFailedDisconnected', "Message not sent — engine disconnected. Draft kept.");
+export const conversationLensPostFailedSessionNotReady = localize('conversationLens.postFailedSessionNotReady', "Session not ready — not sent. Draft kept.");
 export const conversationLensPostFailedChatStreamClosed = localize('conversationLens.postFailedChatStreamClosed', "Message not sent — chat stream unavailable. Draft kept.");
 /** Honest fallback when postBound throws — not one of the four Actor reject reasons. */
 export const conversationLensPostFailed = localize('conversationLens.postFailed', "Retry failed — could not post. Try again.");
@@ -83,6 +86,7 @@ export type ConversationComposerPostFailureReason =
 	| 'not_authenticated'
 	| 'chat_stream_closed'
 	| 'engine_disconnected'
+	| 'session_not_ready'
 	| 'empty_session_title'
 	| 'failed';
 export const conversationLensDockPlaceholder = localize('conversationLens.dockPlaceholder', "Message");

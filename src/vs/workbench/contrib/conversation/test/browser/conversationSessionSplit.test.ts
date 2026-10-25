@@ -12,20 +12,26 @@ import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { IStorageService, StorageScope, WillSaveStateReason } from '../../../../../platform/storage/common/storage.js';
+import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
+import { Memento } from '../../../../common/memento.js';
 import { findGroup } from '../../../../services/editor/common/editorGroupFinder.js';
 import { IEditorGroupsService, type IConversationEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
-import { CONVERSATION_SIDE_GROUP, IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
+import { CONVERSATION_GROUP, CONVERSATION_SIDE_GROUP, IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
 import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
+import { IAuxiliaryWindowService } from '../../../../services/auxiliaryWindow/browser/auxiliaryWindowService.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
+import { ConversationChatInput } from '../../common/conversationChatInput.js';
 import '../../browser/conversationEditor.contribution.js';
 import { ConversationChatTablistKeyboard } from '../../browser/conversationSplitActions.contribution.js';
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { ConversationWorkRootMountModel, IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { stubConversationLensRuntimeServices, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
@@ -68,11 +74,14 @@ suite('Conversation session split (S4)', () => {
 			}
 			await timeout(20);
 		}
-		throw new Error(`ConversationEditorPane not ready for ${part.sessionKey}; got ${part.activeGroup.activeEditorPane?.getId()}`);
+		const pane = part.activeGroup.activeEditorPane;
+		const error = (pane?.options as { error?: Error } | undefined)?.error;
+		throw new Error(`ConversationEditorPane not ready for ${part.sessionKey}; got ${pane?.getId()}${error ? `: ${error.stack ?? error.message}` : ''}`);
 	}
 
 	setup(function () {
 		this.timeout(20_000);
+		Memento.clear(StorageScope.WORKSPACE);
 		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
 	});
 
@@ -81,6 +90,8 @@ suite('Conversation session split (S4)', () => {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IConversationRosterService, rosterService);
 		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		instantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()));
+		instantiationService.stub(IAuxiliaryWindowService, { getWindow: () => undefined } as unknown as IAuxiliaryWindowService);
 		stubConversationLensRuntimeServices(instantiationService);
 		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
@@ -122,6 +133,48 @@ suite('Conversation session split (S4)', () => {
 		assert.strictEqual(conversationPart.groups.length, groupsBefore + 1);
 	});
 
+	test('conversation part id is scoped to its session key', async () => {
+		const { parts, conversationPart } = await createHarness();
+		const otherHost = document.createElement('div');
+		document.body.appendChild(otherHost);
+		store.add({ dispose: () => otherHost.remove() });
+
+		const otherPart = parts.createConversationEditorPart(otherHost, 'other-session');
+
+		assert.strictEqual(conversationPart.getId(), `workbench.parts.conversationEditor.${SESSION_KEY}`);
+		assert.strictEqual(otherPart.getId(), 'workbench.parts.conversationEditor.other-session');
+		assert.notStrictEqual(conversationPart.getId(), otherPart.getId());
+	});
+
+	test('conversation part grid memento is scoped to its session key and old counter ids are not migrated', async () => {
+		const { instantiationService, parts, conversationPart } = await createHarness();
+		const storage = instantiationService.get(IStorageService) as TestStorageService;
+		const file = store.add(new TestFileEditorInput(URI.file('/tmp/session-a-grid.txt'), TEST_EDITOR_INPUT_ID));
+		await conversationPart.activeGroup.openEditor(file);
+
+		storage.testEmitWillSaveState(WillSaveStateReason.SHUTDOWN);
+		const sessionKey = `memento/workbench.parts.conversationEditor.${SESSION_KEY}`;
+		const savedState = storage.getObject(sessionKey, StorageScope.WORKSPACE);
+		assert.ok(savedState, 'session A must save its grid under its own session key');
+
+		const otherHost = document.createElement('div');
+		document.body.appendChild(otherHost);
+		store.add({ dispose: () => otherHost.remove() });
+		const otherPart = parts.createConversationEditorPart(otherHost, 'other-session');
+
+		assert.strictEqual(storage.getObject('memento/workbench.parts.conversationEditor.other-session', StorageScope.WORKSPACE), undefined);
+		assert.ok(!otherPart.activeGroup.editors.some(editor => editor.resource?.toString() === file.resource.toString()));
+
+		storage.store('memento/workbench.parts.conversationEditor.1', savedState, StorageScope.WORKSPACE);
+		const oldIdHost = document.createElement('div');
+		document.body.appendChild(oldIdHost);
+		store.add({ dispose: () => oldIdHost.remove() });
+		const oldIdPart = parts.createConversationEditorPart(oldIdHost, 'session-after-old-id');
+
+		assert.ok(!oldIdPart.activeGroup.editors.some(editor => editor.resource?.toString() === file.resource.toString()));
+		assert.notStrictEqual(oldIdPart.getId(), 'workbench.parts.conversationEditor.1');
+	});
+
 	test('splitSessionWindow adds a second group in the same conversation part', async () => {
 		const { conversationPart, sessionChatService } = await createHarness();
 
@@ -158,6 +211,20 @@ suite('Conversation session split (S4)', () => {
 		assert.strictEqual(sideGroup.count, editorsBefore);
 	});
 
+	test('hiding the active split column activates a visible group', async () => {
+		const { conversationPart, sessionChatService } = await createHarness();
+
+		await sessionChatService.splitSessionWindow();
+		const sideGroup = conversationPart.groups.at(1);
+		assert.ok(sideGroup);
+		conversationPart.activateGroup(sideGroup);
+
+		sessionChatService.hideSplitColumn(undefined, sideGroup.id);
+
+		assert.strictEqual(conversationPart.activeGroup.id, conversationPart.groups.at(0)!.id);
+		assert.strictEqual(conversationPart.isGroupHidden(conversationPart.activeGroup.id), false);
+	});
+
 	test('show split column restores hidden column rendering', async () => {
 		const { conversationPart, sessionChatService } = await createHarness();
 
@@ -169,6 +236,24 @@ suite('Conversation session split (S4)', () => {
 		sessionChatService.showSplitColumn(undefined, sideGroup.id);
 
 		assert.strictEqual(conversationPart.isGroupHidden(sideGroup.id), false);
+	});
+
+	test('CONVERSATION_GROUP and CONVERSATION_SIDE_GROUP never target a hidden group', async () => {
+		const { instantiationService, conversationPart, sessionChatService } = await createHarness();
+
+		await sessionChatService.splitSessionWindow();
+		const sideGroup = conversationPart.groups.at(1);
+		assert.ok(sideGroup);
+		sessionChatService.hideSplitColumn(undefined, sideGroup.id);
+
+		const input = store.add(new ConversationChatInput(getDefaultConversationChatResource(SESSION_KEY), { isDefaultRoot: true }));
+		const activeTarget = instantiationService.invokeFunction(accessor => findGroup(accessor, input, CONVERSATION_GROUP));
+		const sideTarget = instantiationService.invokeFunction(accessor => findGroup(accessor, input, CONVERSATION_SIDE_GROUP));
+		const activeGroup = Array.isArray(activeTarget) ? activeTarget[0] : activeTarget;
+		const sideTargetGroup = Array.isArray(sideTarget) ? sideTarget[0] : sideTarget;
+
+		assert.strictEqual(conversationPart.isGroupHidden(activeGroup), false);
+		assert.strictEqual(conversationPart.isGroupHidden(sideTargetGroup), false);
 	});
 });
 

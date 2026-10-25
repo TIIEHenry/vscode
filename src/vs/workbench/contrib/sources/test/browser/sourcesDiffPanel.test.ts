@@ -20,6 +20,10 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentReadGitFileDiffRequest, UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitStagePathsRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+import { ITextFileService } from '../../../../services/textfile/common/textfiles.js';
+import { IDiffProviderFactoryService } from '../../../../../editor/browser/widget/diffEditor/diffProviderFactoryService.js';
+import { TestDiffProviderFactoryService } from '../../../../../editor/test/browser/diff/testDiffProviderFactoryService.js';
+import { IUserInteractionService, MockUserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionService.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewPaneContainer, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
@@ -43,11 +47,13 @@ import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPane
 import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
 import { SourcesDiffPanelView } from '../../browser/sourcesDiffPanelView.js';
+import { DiffEditorWidget } from '../../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
 import { ISourcesChangeRef, sourcesGitApplyHunksPatches } from '../../common/sourcesChangeRef.js';
 import { SOURCES_GIT_APPLY_CACHED_ARGV, sourcesGitHunkPatchAtCursor } from '../../common/sourcesGitHunkPatch.js';
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
+import { sourcesDiffAcceptUnavailableMessage } from '../../common/sourcesDiffWriteController.js';
 import { canSendSourcesGitApplyHunks, canSendSourcesGitStagePaths, canShowSourcesReviewAccept, resolveSourcesDiffWriteActions, sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
@@ -315,6 +321,8 @@ suite('Sources diff panel', () => {
 		engineSessionReady?: boolean;
 	} = {}) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IDiffProviderFactoryService, new TestDiffProviderFactoryService());
+		instantiationService.stub(IUserInteractionService, new MockUserInteractionService());
 		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
 		const connection = options.connection ?? {
 			isEngineConnected: () => false,
@@ -411,12 +419,23 @@ suite('Sources diff panel', () => {
 		const originalA = toResource.call(this, '/project/src/stale-panel-a.ts.git');
 		const originalB = toResource.call(this, '/project/src/stale-panel-b.ts.git');
 		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		let textFileService: ITextFileService | undefined;
+		let view: SourcesDiffPanelView | undefined;
 		try {
 			let releaseStale: (() => void) | undefined;
 			const staleGate = new Promise<void>(resolve => {
 				releaseStale = resolve;
 			});
 			const instantiationService = stubDiffHonestyServices({ resource: resourceA });
+			textFileService = instantiationService.get(ITextFileService);
+			const fakeWidget = {
+				setModel: () => { },
+				getModifiedEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),
+				getOriginalEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),
+				layout: () => { },
+				dispose: () => { },
+			};
+			instantiationService.stubInstance(DiffEditorWidget, fakeWidget as unknown as DiffEditorWidget);
 			instantiationService.stub(IViewsService, {
 				openView: async () => null,
 				onDidChangeViewVisibility: Event.None,
@@ -425,7 +444,7 @@ suite('Sources diff panel', () => {
 			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
 			instantiationService.stub(ISourcesDiffPanelService, panelService);
 
-			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
 				id: SOURCES_DIFF_PANEL_VIEW_ID,
 				title: 'Diff',
 			}));
@@ -466,6 +485,11 @@ suite('Sources diff panel', () => {
 			assert.strictEqual(await shownA, false);
 			assert.strictEqual(await shownB, true);
 		} finally {
+			for (const model of textFileService?.files.models ?? []) {
+				model.dispose();
+			}
+			view?.dispose();
+			await timeout(0);
 			stageCommand.dispose();
 		}
 	});
@@ -3565,8 +3589,8 @@ suite('Sources diff panel', () => {
 		assert.strictEqual(writeGroupId(harness.view), 'workingTree');
 		assert.strictEqual(writeGroupId(harness.pane), 'workingTree');
 		assertAcceptHidden(harness);
-		pinAcceptCursor(harness.view, 12);
-		pinAcceptCursor(harness.pane, 12);
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
 		await runBothAccept(harness);
 		assert.deepStrictEqual(harness.readCalls, []);
 		assert.deepStrictEqual(harness.applyCalls, []);
@@ -3621,8 +3645,8 @@ suite('Sources diff panel', () => {
 			ref: engineAcceptRef('accept-empty-path', { gitPath: '' }),
 		});
 		assertAcceptHidden(harness);
-		pinAcceptCursor(harness.view, 12);
-		pinAcceptCursor(harness.pane, 12);
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
 		await runBothAccept(harness);
 		assert.deepStrictEqual(harness.readCalls, []);
 		assert.deepStrictEqual(harness.applyCalls, []);
@@ -3633,8 +3657,8 @@ suite('Sources diff panel', () => {
 			ref: engineAcceptRef('accept-empty-session', { sessionId: '' }),
 		});
 		assertAcceptHidden(harness);
-		pinAcceptCursor(harness.view, 12);
-		pinAcceptCursor(harness.pane, 12);
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
 		await runBothAccept(harness);
 		assert.deepStrictEqual(harness.readCalls, []);
 		assert.deepStrictEqual(harness.applyCalls, []);
@@ -3645,8 +3669,8 @@ suite('Sources diff panel', () => {
 			ref: engineAcceptRef('accept-click', { indexState: 'WORKTREE', kind: 'Modified' }),
 			countRefresh: true,
 		});
-		pinAcceptCursor(harness.view, 12);
-		pinAcceptCursor(harness.pane, 12);
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
 		await runBothAccept(harness);
 
 		assert.strictEqual(harness.readCalls.length, 2);
@@ -3655,7 +3679,7 @@ suite('Sources diff panel', () => {
 			assert.strictEqual(request.path, 'src/a.ts');
 			assert.strictEqual(request.indexState, 'Unstaged');
 		}
-		const expected = sourcesGitHunkPatchAtCursor(acceptCursorUnifiedDiff, 12, 'new');
+		const expected = sourcesGitHunkPatchAtCursor(acceptCursorUnifiedDiff, 5, 'new');
 		assert.ok(expected);
 		assert.strictEqual(harness.applyCalls.length, 2);
 		for (const request of harness.applyCalls) {
@@ -3685,6 +3709,8 @@ suite('Sources diff panel', () => {
 		assert.strictEqual(harness.readCalls.length, 2);
 		assert.deepStrictEqual(harness.applyCalls, []);
 		assert.strictEqual(harness.refreshCount.n, 0);
+		assert.strictEqual(harness.view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesDiffAcceptUnavailableMessage());
+		assert.strictEqual(harness.parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesDiffAcceptUnavailableMessage());
 	});
 
 	test('binary diff does not apply', async function () {
@@ -3716,8 +3742,8 @@ suite('Sources diff panel', () => {
 			writeClosed: true,
 			countRefresh: true,
 		});
-		pinAcceptCursor(harness.view, 12);
-		pinAcceptCursor(harness.pane, 12);
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
 		await runBothAccept(harness);
 		assert.deepStrictEqual(harness.readCalls, []);
 		assert.deepStrictEqual(harness.applyCalls, []);
@@ -3730,8 +3756,8 @@ suite('Sources diff panel', () => {
 			ref: engineAcceptRef('accept-not-ready'),
 			engineSessionReady: false,
 		});
-		pinAcceptCursor(harness.view, 12);
-		pinAcceptCursor(harness.pane, 12);
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
 		await runBothAccept(harness);
 		assert.deepStrictEqual(harness.readCalls, []);
 		assert.deepStrictEqual(harness.applyCalls, []);
@@ -3745,8 +3771,8 @@ suite('Sources diff panel', () => {
 			applySuccess: false,
 			applyErrorMessage: 'apply denied',
 		});
-		pinAcceptCursor(harness.view, 12);
-		pinAcceptCursor(harness.pane, 12);
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
 		await runBothAccept(harness);
 		assert.strictEqual(harness.applyCalls.length, 2);
 		assert.strictEqual(harness.view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, 'apply denied');

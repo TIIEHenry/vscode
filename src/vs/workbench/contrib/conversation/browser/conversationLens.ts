@@ -10,6 +10,7 @@ import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IClipboardService } from '../../../../platform/clipboard/common/clipboardService.js';
 import { IContextMenuService, IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
@@ -319,6 +320,7 @@ export class ConversationLens extends Disposable {
 		@IConversationReviewNavService public readonly reviewNavService: IConversationReviewNavService,
 		@ICommandService public readonly commandService: ICommandService,
 		@IUniverseAgentConnection public readonly uaConnection: IUniverseAgentConnection,
+		@IDialogService public readonly dialogService: IDialogService,
 	) {
 		super();
 
@@ -762,8 +764,8 @@ export class ConversationLens extends Disposable {
 		createNewSession(this);
 	}
 
-	deleteActiveSession(): void {
-		deleteActiveSession(this);
+	deleteActiveSession(): Promise<void> {
+		return deleteActiveSession(this);
 	}
 
 	applyActiveSession(sessionId: string): void {

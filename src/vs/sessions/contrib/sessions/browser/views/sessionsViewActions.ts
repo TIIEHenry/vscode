@@ -1147,13 +1147,17 @@ registerAction2(class MarkSessionReadAction extends Action2 {
 			}]
 		});
 	}
-	run(accessor: ServicesAccessor, context?: ISession | ISession[]): void {
+	async run(accessor: ServicesAccessor, context?: ISession | ISession[]): Promise<void> {
 		if (!context) {
 			return;
 		}
 		const sessions = Array.isArray(context) ? context : [context];
 		const sessionsManagementService = accessor.get(ISessionsManagementService);
-		sessionsManagementService.markAllRead(sessions);
+		try {
+			await sessionsManagementService.markAllRead(sessions);
+		} catch (err) {
+			accessor.get(IDialogService).error(localize('markRead.error', "Failed to mark the session as read: {0}", toErrorMessage(err)));
+		}
 	}
 });
 
@@ -1181,14 +1185,16 @@ registerAction2(class MarkSessionUnreadAction extends Action2 {
 			}]
 		});
 	}
-	run(accessor: ServicesAccessor, context?: ISession | ISession[]): void {
+	async run(accessor: ServicesAccessor, context?: ISession | ISession[]): Promise<void> {
 		if (!context) {
 			return;
 		}
 		const sessions = Array.isArray(context) ? context : [context];
 		const sessionsManagementService = accessor.get(ISessionsManagementService);
-		for (const session of sessions) {
-			sessionsManagementService.markUnread(session);
+		try {
+			await Promise.all(sessions.map(session => sessionsManagementService.markUnread(session)));
+		} catch (err) {
+			accessor.get(IDialogService).error(localize('markUnread.error', "Failed to mark the session as unread: {0}", toErrorMessage(err)));
 		}
 	}
 });

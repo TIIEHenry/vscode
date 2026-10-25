@@ -127,6 +127,48 @@ suite('Workbench - TerminalProcessManager', () => {
 		}
 	});
 
+	test('write returns false after the process has exited', async () => {
+		const managerInternals = manager as unknown as {
+			ptyProcessReady: Promise<void>;
+			shellProcessId: number | undefined;
+			_process: unknown;
+		};
+		managerInternals.ptyProcessReady = Promise.resolve();
+		managerInternals.shellProcessId = 123;
+		managerInternals._process = null;
+
+		strictEqual(await manager.write('echo hello'), false);
+	});
+
+	test('write queues input before the process is ready and returns true', async () => {
+		const managerInternals = manager as unknown as {
+			ptyProcessReady: Promise<void>;
+			shellProcessId: number | undefined;
+			_preLaunchInputQueue: string[];
+		};
+		managerInternals.ptyProcessReady = Promise.resolve();
+		managerInternals.shellProcessId = undefined;
+		managerInternals._preLaunchInputQueue = [];
+
+		strictEqual(await manager.write('echo hello'), true);
+		deepStrictEqual(managerInternals._preLaunchInputQueue, ['echo hello']);
+	});
+
+	test('write returns true when the process accepts input', async () => {
+		const written: string[] = [];
+		const managerInternals = manager as unknown as {
+			ptyProcessReady: Promise<void>;
+			shellProcessId: number | undefined;
+			_process: { id: number; input(data: string): void; shutdown(immediate: boolean): void };
+		};
+		managerInternals.ptyProcessReady = Promise.resolve();
+		managerInternals.shellProcessId = 123;
+		managerInternals._process = { id: 1, input: data => written.push(data), shutdown: () => { } };
+
+		strictEqual(await manager.write('echo hello'), true);
+		deepStrictEqual(written, ['echo hello']);
+	});
+
 	suite('process persistence', () => {
 		suite('local', () => {
 			test('regular terminal should persist', async () => {

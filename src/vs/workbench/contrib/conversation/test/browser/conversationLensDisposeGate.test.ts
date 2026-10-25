@@ -44,6 +44,7 @@ import { beginSessionTitleEdit, commitSessionTitleEdit, createNewSession, delete
 import { mountDock, type IConversationLensDockHost } from '../../browser/conversationLensDock.js';
 import {
 	conversationLensDockAgentLabel,
+	conversationLensDockEngineNotConnected,
 	conversationLensDockSessionUnavailable,
 	conversationLensDockSessionUnavailableReason,
 	conversationLensDockNoEngineTools,
@@ -2249,7 +2250,7 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(failures, []);
 	});
 
-	test('KEEP leftover list-fail resolveConfirmation skips unary and shows engine_disconnected', async () => {
+	test('KEEP leftover list-fail resolveConfirmation skips unary and shows session_not_ready', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
 		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
@@ -2260,10 +2261,10 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(fixture.resolveConfirmationCalls, 0);
 		assert.strictEqual(fixture.posted, 0);
 		assert.strictEqual(fixture.focused, 0);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(failures, ['session_not_ready']);
 	});
 
-	test('KEEP leftover list-fail resolveQuestion skips unary and shows engine_disconnected', async () => {
+	test('KEEP leftover list-fail resolveQuestion skips unary and shows session_not_ready', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
 		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
@@ -2274,10 +2275,10 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(fixture.respondQuestionCalls, 0);
 		assert.strictEqual(fixture.posted, 0);
 		assert.strictEqual(fixture.focused, 0);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(failures, ['session_not_ready']);
 	});
 
-	test('KEEP leftover list-fail deleteTurn skips unary and shows engine_disconnected', () => {
+	test('KEEP leftover list-fail deleteTurn skips unary and shows session_not_ready', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
 		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
@@ -2287,10 +2288,10 @@ suite('conversation lens dispose gate', () => {
 		deleteTurn(fixture.host, 'turn-1');
 		assert.strictEqual(fixture.deleteTurnCalls, 0);
 		assert.strictEqual(fixture.posted, 0);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(failures, ['session_not_ready']);
 	});
 
-	test('KEEP leftover list-fail cancelToolCall skips unary and shows engine_disconnected', () => {
+	test('KEEP leftover list-fail cancelToolCall skips unary and shows session_not_ready', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
 		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
@@ -2300,10 +2301,10 @@ suite('conversation lens dispose gate', () => {
 		cancelToolCall(fixture.host, { id: 'e-run', toolCallId: 'tc-1', agentId: 'sub:a' });
 		assert.strictEqual(fixture.cancelToolCallCalls, 0);
 		assert.strictEqual(fixture.posted, 0);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(failures, ['session_not_ready']);
 	});
 
-	test('KEEP leftover list-fail retryError skips postBound and shows engine_disconnected', async () => {
+	test('KEEP leftover list-fail retryError skips postBound and shows session_not_ready', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
 		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
@@ -2313,7 +2314,7 @@ suite('conversation lens dispose gate', () => {
 		retryError(fixture.host, { id: 'msg-1', turnId: 'turn-1', agentId: 'root' });
 		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
 		assert.strictEqual(fixture.posted, 0);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(failures, ['session_not_ready']);
 	});
 
 	test('retryError pairing-hold leftover lease does not post and shows engine_disconnected', async () => {
@@ -2506,7 +2507,7 @@ suite('conversation lens dispose gate', () => {
 		};
 	}
 
-	test('KEEP leftover list-fail submitDraft skips postBound and shows engine_disconnected', async () => {
+	test('KEEP leftover list-fail submitDraft skips postBound and shows session_not_ready', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const fixture = leftoverComposerHandlerHost({
 			pairingPending: false,
@@ -2522,7 +2523,7 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(fixture.posted, 0);
 		assert.strictEqual(fixture.enqueueCalls, 0);
 		assert.strictEqual(fixture.host.submitInFlight, false);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(failures, ['session_not_ready']);
 		assert.strictEqual(fixture.host.dockTextarea.value, 'leftover draft');
 	});
 
@@ -2542,7 +2543,7 @@ suite('conversation lens dispose gate', () => {
 		saveTurnEdit(fixture.host);
 		assert.strictEqual(fixture.turnWrites, 0);
 		assert.strictEqual(fixture.exited, 0);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(failures, ['session_not_ready']);
 		assert.strictEqual(fixture.host.editingTurnId, 'turn-1');
 		assert.strictEqual(fixture.host.composerPolicy, 'turnEdit');
 		assert.strictEqual(fixture.host.dockTextarea.value, 'leftover draft');
@@ -2564,7 +2565,7 @@ suite('conversation lens dispose gate', () => {
 		saveQueueEdit(fixture.host);
 		assert.strictEqual(fixture.queueWrites, 0);
 		assert.strictEqual(fixture.exited, 0);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(failures, ['session_not_ready']);
 		assert.strictEqual(fixture.host.editingQueueItemId, 'q1');
 		assert.strictEqual(fixture.host.composerPolicy, 'queueEdit');
 		assert.strictEqual(fixture.host.dockTextarea.value, 'leftover draft');
@@ -2914,6 +2915,7 @@ suite('conversation lens dispose gate', () => {
 			sessionTitleLive: titleLive,
 			sessionTitleEditing: false,
 			sessionTitleEditSnapshot: 'A',
+			dialogService: { confirm: () => Promise.resolve({ confirmed: true }) },
 			dockTextarea: { value: 'leftover draft' },
 			getBoundSessionId: () => 'ua-a',
 			writeComposerDraft: () => { },
@@ -2987,7 +2989,7 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(fixture.createCalls, []);
 		assert.deepStrictEqual(fixture.deleteCalls, []);
 		assert.deepStrictEqual(fixture.host.stubService.getSessions().map(session => session.title), ['A']);
-		assert.deepStrictEqual(fixture.failures, ['engine_disconnected', 'engine_disconnected']);
+		assert.deepStrictEqual(fixture.failures, ['session_not_ready', 'session_not_ready']);
 
 		fixture.host.sessionTitleEditing = true;
 		fixture.host.sessionTitleButton.hidden = true;
@@ -3001,7 +3003,7 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(fixture.createCalls, []);
 		assert.deepStrictEqual(fixture.deleteCalls, []);
 		assert.deepStrictEqual(fixture.host.stubService.getSessions().map(session => session.title), ['A']);
-		assert.deepStrictEqual(fixture.failures, ['engine_disconnected', 'engine_disconnected', 'engine_disconnected']);
+		assert.deepStrictEqual(fixture.failures, ['session_not_ready', 'session_not_ready', 'session_not_ready']);
 	});
 
 	test('pairing-hold SessionBar handlers still refuse title edit create delete', () => {
@@ -3021,7 +3023,7 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(fixture.failures, ['engine_disconnected', 'engine_disconnected']);
 	});
 
-	test('connected live SessionBar handlers still write when engine session is ready', () => {
+	test('connected live SessionBar handlers still write when engine session is ready', async () => {
 		const fixture = sessionBarHandlerHost({ pairingPending: false, engineSessionReady: true });
 		assert.strictEqual(fixture.host.stubService.isEngineConnected(), true);
 		assert.strictEqual(fixture.host.stubService.isEngineSessionReady(), true);
@@ -3039,7 +3041,7 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(fixture.createCalls, [1]);
 		assert.strictEqual(fixture.host.stubService.getSessions().length, 2);
 
-		deleteActiveSession(fixture.host);
+		await deleteActiveSession(fixture.host);
 		assert.deepStrictEqual(fixture.deleteCalls, [1]);
 		assert.deepStrictEqual(fixture.failures, []);
 	});
@@ -3100,6 +3102,7 @@ suite('conversation lens dispose gate', () => {
 		permissionSelect: HTMLSelectElement;
 		modelSelect: HTMLSelectElement;
 		agentSelect: HTMLSelectElement;
+		setPairingPending(pending: boolean): void;
 		dispose(): void;
 	} {
 		const store = new DisposableStore();
@@ -3120,12 +3123,13 @@ suite('conversation lens dispose gate', () => {
 		const modelContainer = document.createElement('div');
 		modelContainer.className = 'conversation-lens-dock-model';
 		const modelSelect = document.createElement('select');
-		modelSelect.add(new Option('No model', ''));
-		modelSelect.add(new Option('gpt-test', 'gpt-test'));
+		for (const id of options?.catalogModelIds ?? ['', 'gpt-test']) {
+			modelSelect.add(new Option(id || 'No model', id));
+		}
 		modelContainer.appendChild(modelSelect);
 		dockRoot.appendChild(modelContainer);
 		const moreButton = document.createElement('button');
-		const pairingPending = options?.pairingPending ?? true;
+		let pairingPending = options?.pairingPending ?? true;
 		const engineSessionReady = options?.engineSessionReady;
 		const sessionConfigBySessionId = new Map<string, { agentIndex: number; permissionIndex: number }>([
 			['sess-leftover', { agentIndex: 0, permissionIndex: options?.permissionIndex ?? 0 }],
@@ -3139,6 +3143,7 @@ suite('conversation lens dispose gate', () => {
 		agentContainer.appendChild(agentSelect);
 		const gateRow = document.createElement('div');
 		const gateLabel = document.createElement('span');
+		gateRow.appendChild(gateLabel);
 		const host = {
 			catalogToolNames: options?.catalogToolNames ?? ['bash'],
 			catalogModelIds: options?.catalogModelIds ?? ['', 'gpt-test'],
@@ -3231,6 +3236,9 @@ suite('conversation lens dispose gate', () => {
 			permissionSelect,
 			modelSelect,
 			agentSelect,
+			setPairingPending(pending: boolean) {
+				pairingPending = pending;
+			},
 			dispose: () => {
 				host.tuneContextView?.close();
 				host.moreContextView?.close();
@@ -3377,7 +3385,7 @@ suite('conversation lens dispose gate', () => {
 		assert.ok(!source.includes('void applySessionPermissionIndex(host, sessionId, index);'));
 	});
 
-	test('in-flight leftover-looks-live permission and model apply restore leftover index', async () => {
+	test('in-flight leftover-looks-live permission and model apply keep the accepted value and stay read-only', async () => {
 		const store = new DisposableStore();
 		const permissionCalls: { sessionId: string; mode: string }[] = [];
 		const modelCalls: { sessionId: string; modelId: string }[] = [];
@@ -3399,6 +3407,11 @@ suite('conversation lens dispose gate', () => {
 		modelContainer.className = 'conversation-lens-dock-model';
 		modelContainer.appendChild(modelSelect);
 		dockRoot.appendChild(modelContainer);
+		const gateRow = document.createElement('div');
+		gateRow.hidden = true;
+		const gateLabel = document.createElement('span');
+		gateRow.appendChild(gateLabel);
+		dockRoot.appendChild(gateRow);
 		const sessionConfigBySessionId = new Map<string, { agentIndex: number; permissionIndex: number }>([
 			['sess-leftover', { agentIndex: 0, permissionIndex: 0 }],
 		]);
@@ -3423,6 +3436,8 @@ suite('conversation lens dispose gate', () => {
 			moreContextView: undefined as { close(): void } | undefined,
 			dockRoot,
 			sendButton: { enabled: true },
+			gateRow,
+			gateLabel,
 			composerPolicy: 'compose' as const,
 			dockTextarea: { value: '' },
 			permissionSelectBox: {
@@ -3494,12 +3509,274 @@ suite('conversation lens dispose gate', () => {
 
 			assert.strictEqual(typedHost.stubService.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
 			assert.strictEqual(isConversationPairingHold(typedHost.uaConnection), true);
-			assert.strictEqual(permissionSelect.selectedIndex, 0);
-			assert.strictEqual(modelSelect.selectedIndex, 0);
-			assert.strictEqual(typedHost.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
-			assert.strictEqual(typedHost.modelSelectedIndex, 0);
+			assert.strictEqual(permissionSelect.selectedIndex, 2);
+			assert.strictEqual(modelSelect.selectedIndex, 1);
+			assert.strictEqual(typedHost.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
+			assert.strictEqual(typedHost.modelSelectedIndex, 1);
+			assert.strictEqual(typedHost.modelProfileIdBySessionId?.get('sess-leftover'), 'gpt-test');
+
+			updateComposerSessionSelectsEnabled(typedHost);
+			updateGateRow(typedHost);
+			assert.strictEqual(permissionSelect.disabled, true);
+			assert.strictEqual(modelSelect.disabled, true);
+			assert.strictEqual(typedHost.gateRow.hidden, false);
+			assert.strictEqual(typedHost.gateLabel.textContent, conversationLensDockEngineNotConnected);
+
+			pairingPending = false;
+			updateComposerSessionSelectsEnabled(typedHost);
+			updateGateRow(typedHost);
+			assert.strictEqual(permissionSelect.disabled, false);
+			assert.strictEqual(modelSelect.disabled, false);
+			assert.strictEqual(permissionSelect.selectedIndex, 2);
+			assert.strictEqual(modelSelect.selectedIndex, 1);
+			assert.strictEqual(typedHost.gateRow.hidden, true);
 		} finally {
 			store.dispose();
+		}
+	});
+
+	test('leftover permission keeps the accepted value and does not show an unsent newer target', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			let releasePermit: ((value: { ok: true }) => void) | undefined;
+			let permitStarted: (() => void) | undefined;
+			const permitEntered = new Promise<void>(resolve => { permitStarted = resolve; });
+			const permitHold = new Promise<{ ok: true }>(resolve => { releasePermit = resolve; });
+			const uaConnection = fixture.host.uaConnection as {
+				setPermissionMode: (request: { sessionId: string; mode: string }) => Promise<{ ok: true }>;
+			};
+			uaConnection.setPermissionMode = async request => {
+				fixture.permissionCalls.push(request);
+				permitStarted?.();
+				return permitHold;
+			};
+			const permit = applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await permitEntered;
+			const ask = applySessionPermissionIndex(fixture.host, 'sess-leftover', 0);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			fixture.setPairingPending(true);
+			releasePermit!({ ok: true });
+			await permit;
+			await ask;
+			assert.deepStrictEqual(fixture.permissionCalls.map(call => call.mode), ['SESSION_TOOL_PERMISSION_MODE_PERMIT']);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 2);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 2);
+			updateComposerSessionSelectsEnabled(fixture.host);
+			assert.strictEqual(fixture.permissionSelect.disabled, true);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('leftover permission failure rolls back and does not paint a failure notice', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			let releasePermit: ((value: { ok: false; message: string }) => void) | undefined;
+			let permitStarted: (() => void) | undefined;
+			const permitEntered = new Promise<void>(resolve => { permitStarted = resolve; });
+			const permitHold = new Promise<{ ok: false; message: string }>(resolve => { releasePermit = resolve; });
+			const uaConnection = fixture.host.uaConnection as {
+				setPermissionMode: (request: { sessionId: string; mode: string }) => Promise<{ ok: false; message: string }>;
+			};
+			uaConnection.setPermissionMode = async request => {
+				fixture.permissionCalls.push(request);
+				permitStarted?.();
+				return permitHold;
+			};
+			const apply = applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await permitEntered;
+			fixture.setPairingPending(true);
+			releasePermit!({ ok: false, message: 'engine rejected permit' });
+			await apply;
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.postFailureVisible, false);
+			assert.strictEqual(fixture.host.gateLabel.textContent, '');
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('leftover model keeps the accepted value and does not show an unsent newer target', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			catalogModelIds: ['', 'gpt-a', 'gpt-b'],
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			let releaseFirst: ((value: { resolvedModelId: string }) => void) | undefined;
+			let firstStarted: (() => void) | undefined;
+			const firstEntered = new Promise<void>(resolve => { firstStarted = resolve; });
+			const firstHold = new Promise<{ resolvedModelId: string }>(resolve => { releaseFirst = resolve; });
+			const uaConnection = fixture.host.uaConnection as {
+				switchModel: (request: { sessionId: string; modelId: string }) => Promise<{ resolvedModelId: string }>;
+			};
+			uaConnection.switchModel = async request => {
+				fixture.modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				firstStarted?.();
+				return firstHold;
+			};
+			const first = applySessionModelIndex(fixture.host, 'sess-leftover', 1);
+			await firstEntered;
+			const second = applySessionModelIndex(fixture.host, 'sess-leftover', 2);
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
+			fixture.setPairingPending(true);
+			releaseFirst!({ resolvedModelId: 'gpt-a' });
+			await first;
+			await second;
+			assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a']);
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 1);
+			assert.strictEqual(fixture.host.modelSelectedIndex, 1);
+			assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-leftover'), 'gpt-a');
+			updateComposerSessionSelectsEnabled(fixture.host);
+			assert.strictEqual(fixture.modelSelect.disabled, true);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('leftover model with an empty resolved id rolls back and does not paint a failure notice', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			let releaseModel: ((value: { resolvedModelId: string }) => void) | undefined;
+			let modelStarted: (() => void) | undefined;
+			const modelEntered = new Promise<void>(resolve => { modelStarted = resolve; });
+			const modelHold = new Promise<{ resolvedModelId: string }>(resolve => { releaseModel = resolve; });
+			const uaConnection = fixture.host.uaConnection as {
+				switchModel: (request: { sessionId: string; modelId: string }) => Promise<{ resolvedModelId: string }>;
+			};
+			uaConnection.switchModel = async request => {
+				fixture.modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				modelStarted?.();
+				return modelHold;
+			};
+			const apply = applySessionModelIndex(fixture.host, 'sess-leftover', 1);
+			await modelEntered;
+			fixture.setPairingPending(true);
+			releaseModel!({ resolvedModelId: '' });
+			await apply;
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
+			assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-leftover'), undefined);
+			assert.strictEqual(fixture.host.postFailureVisible, false);
+			assert.strictEqual(fixture.host.gateLabel.textContent, '');
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('leftover stale model with an empty resolved id restores the last accepted model', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			catalogModelIds: ['', 'gpt-a', 'gpt-b'],
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			let releaseFirst: ((value: { resolvedModelId: string }) => void) | undefined;
+			let firstStarted: (() => void) | undefined;
+			const firstEntered = new Promise<void>(resolve => { firstStarted = resolve; });
+			const firstHold = new Promise<{ resolvedModelId: string }>(resolve => { releaseFirst = resolve; });
+			const uaConnection = fixture.host.uaConnection as {
+				switchModel: (request: { sessionId: string; modelId: string }) => Promise<{ resolvedModelId: string }>;
+			};
+			uaConnection.switchModel = async request => {
+				fixture.modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				firstStarted?.();
+				return firstHold;
+			};
+			const first = applySessionModelIndex(fixture.host, 'sess-leftover', 1);
+			await firstEntered;
+			const second = applySessionModelIndex(fixture.host, 'sess-leftover', 2);
+			fixture.setPairingPending(true);
+			releaseFirst!({ resolvedModelId: '' });
+			await first;
+			await second;
+			assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a']);
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
+			assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-leftover'), undefined);
+			assert.strictEqual(fixture.host.postFailureVisible, false);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('leftover stale permission throw restores the last accepted value and not the unsent target', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			let rejectPermit: ((error: Error) => void) | undefined;
+			let permitStarted: (() => void) | undefined;
+			const permitEntered = new Promise<void>(resolve => { permitStarted = resolve; });
+			const permitHold = new Promise<never>((_resolve, reject) => { rejectPermit = reject; });
+			const uaConnection = fixture.host.uaConnection as {
+				setPermissionMode: (request: { sessionId: string; mode: string }) => Promise<{ ok: true }>;
+			};
+			uaConnection.setPermissionMode = async request => {
+				fixture.permissionCalls.push(request);
+				permitStarted?.();
+				return permitHold;
+			};
+			const permit = applySessionPermissionIndex(fixture.host, 'sess-leftover', 2);
+			await permitEntered;
+			const agent = applySessionPermissionIndex(fixture.host, 'sess-leftover', 1);
+			fixture.setPairingPending(true);
+			rejectPermit!(new Error('permit failed'));
+			await permit;
+			await agent;
+			assert.deepStrictEqual(fixture.permissionCalls.map(call => call.mode), ['SESSION_TOOL_PERMISSION_MODE_PERMIT']);
+			assert.strictEqual(fixture.permissionSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-leftover')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.postFailureVisible, false);
+		} finally {
+			fixture.dispose();
+		}
+	});
+
+	test('leftover stale model throw restores the last accepted model and not the unsent target', async () => {
+		const fixture = leftoverLooksLiveSessionSelectsHost({
+			catalogModelIds: ['', 'gpt-a', 'gpt-b'],
+			pairingPending: false,
+			engineSessionReady: true,
+		});
+		try {
+			let rejectFirst: ((error: Error) => void) | undefined;
+			let firstStarted: (() => void) | undefined;
+			const firstEntered = new Promise<void>(resolve => { firstStarted = resolve; });
+			const firstHold = new Promise<never>((_resolve, reject) => { rejectFirst = reject; });
+			const uaConnection = fixture.host.uaConnection as {
+				switchModel: (request: { sessionId: string; modelId: string }) => Promise<{ resolvedModelId: string }>;
+			};
+			uaConnection.switchModel = async request => {
+				fixture.modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
+				firstStarted?.();
+				return firstHold;
+			};
+			const first = applySessionModelIndex(fixture.host, 'sess-leftover', 1);
+			await firstEntered;
+			const second = applySessionModelIndex(fixture.host, 'sess-leftover', 2);
+			fixture.setPairingPending(true);
+			rejectFirst!(new Error('gpt-a failed'));
+			await first;
+			await second;
+			assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a']);
+			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
+			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
+			assert.strictEqual(fixture.host.modelProfileIdBySessionId?.get('sess-leftover'), undefined);
+			assert.strictEqual(fixture.host.postFailureVisible, false);
+		} finally {
+			fixture.dispose();
 		}
 	});
 
@@ -3993,7 +4270,7 @@ suite('conversation lens dispose gate', () => {
 		}
 	});
 
-	test('in-flight leftover permission restore after switch to B does not roll back B select', async () => {
+	test('in-flight leftover permission after switch to B keeps A accepted value and does not roll back B select', async () => {
 		const fixture = permissionApplyBoundSessionHost();
 		try {
 			const apply = applySessionPermissionIndex(fixture.host, 'sess-A', 2);
@@ -4002,7 +4279,7 @@ suite('conversation lens dispose gate', () => {
 			fixture.setPairingPending(true);
 			fixture.releasePermission({ ok: true });
 			await apply;
-			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 0);
+			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-A')?.permissionIndex, 2);
 			assert.strictEqual(fixture.host.sessionConfigBySessionId.get('sess-B')?.permissionIndex, 1);
 			assert.strictEqual(fixture.permissionSelect.selectedIndex, 1);
 			assert.strictEqual(fixture.host.gateRow.hidden, true);
@@ -5066,7 +5343,7 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
 	});
 
-	test('KEEP leftover list-fail respondClientTool skips unary and shows engine_disconnected', () => {
+	test('KEEP leftover list-fail respondClientTool skips unary and shows session_not_ready', () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const fixture = leftoverLooksLiveConfirmQuestionHost(failures, false, false);
 		let respondCalls = 0;
@@ -5077,7 +5354,7 @@ suite('conversation lens dispose gate', () => {
 		respondClientTool(fixture.host, { id: 'call-1' });
 		assert.strictEqual(respondCalls, 0);
 		assert.strictEqual(fixture.posted, 0);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+		assert.deepStrictEqual(failures, ['session_not_ready']);
 	});
 
 	test('respondClientTool roster false after disconnect shows engine_disconnected', () => {

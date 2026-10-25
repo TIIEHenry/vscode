@@ -691,10 +691,19 @@ export class ClaudeSdkPipeline extends Disposable {
 		if (!query) {
 			throw new Error('ClaudeSdkPipeline._processMessages called before query was bound');
 		}
+		// This pass owns one generation of the query. A rebind swaps both the
+		// query and the abort controller, so checking the mutable controller
+		// would let a message from the old stream be routed under the new
+		// queue head's turnId. Capture the signal with the query and stop
+		// dispatching as soon as either generation fact changes.
+		const signal = this._abortController.signal;
 		try {
 			for await (const message of query) {
-				if (this._abortController.signal.aborted) {
+				if (signal.aborted) {
 					throw new CancellationError();
+				}
+				if (this._query !== query) {
+					break;
 				}
 				if (message.type === 'system' && message.subtype === 'init') {
 					// Capture the loaded native-plugin list on every init (incl.
@@ -736,7 +745,7 @@ export class ClaudeSdkPipeline extends Disposable {
 					}
 				}
 			}
-			if (this._abortController.signal.aborted) {
+			if (signal.aborted) {
 				throw new CancellationError();
 			}
 			// A rebind ({@link _rebindQuery}) swaps in a fresh `_query` and

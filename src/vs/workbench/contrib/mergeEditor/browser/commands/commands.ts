@@ -655,7 +655,12 @@ export class AcceptMerge extends MergeEditorAction2 {
 			}
 		}
 
-		await inputModel.accept();
+		const accepted = await inputModel.accept();
+		if (!accepted) {
+			return {
+				successful: false
+			};
+		}
 		await editorService.closeEditor(editorIdentifier);
 
 		return {

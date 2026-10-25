@@ -19,6 +19,7 @@ import { UndoRedoService } from '../../../../../platform/undoRedo/common/undoRed
 import { ExplorerItem } from '../../common/explorerModel.js';
 import { UNDO_REDO_SOURCE } from '../../browser/explorerService.js';
 import { BrowserFileUpload, FileDownload } from '../../browser/fileImportExport.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 
 interface IUploadEntry {
 	name: string | undefined;
@@ -53,11 +54,13 @@ interface IDownloadOperation {
 	progressScheduler: { work(step: { message?: string }): void };
 	filesTotal: number;
 	filesDownloaded: number;
+	filesClosed: string[];
 	totalBytesDownloaded: number;
 	fileBytesDownloaded: number;
 }
 
 interface IDownloadApi {
+	downloadViaFileSystemAccess(stat: { resource: URI; name: string; isDirectory: boolean; isFile: boolean; size: number; children?: ReadonlyArray<{ resource: URI; name: string; size: number; isFile: boolean }> }, progress: { report(step: unknown): void }, cts: CancellationTokenSource, activeWindow: { showDirectoryPicker(): Promise<FileSystemDirectoryHandle> }): Promise<void>;
 	downloadFileUnbufferedBrowser(resource: URI, target: FileSystemWritableFileStream, operation: IDownloadOperation, token: CancellationToken): Promise<void>;
 	downloadFileBufferedBrowser(resource: URI, target: FileSystemWritableFileStream, operation: IDownloadOperation, token: CancellationToken): Promise<void>;
 	downloadFileBrowser(targetFolder: FileSystemDirectoryHandle, file: { resource: URI; name: string; size: number }, operation: IDownloadOperation, token: CancellationToken): Promise<boolean>;
@@ -113,6 +116,7 @@ function downloadOperation(store: Pick<DisposableStore, 'add'>): IDownloadOperat
 		progressScheduler: store.add(new RunOnceWorker(() => { }, 1000)),
 		filesTotal: 1,
 		filesDownloaded: 0,
+		filesClosed: [],
 		totalBytesDownloaded: 0,
 		fileBytesDownloaded: 0,
 	};
@@ -374,13 +378,18 @@ suite('Files - Browser download cancel', () => {
 	const resource = URI.file('/download/note.txt');
 
 	function createDownload(fileService: object): IDownloadApi {
+		return createDownloadWithNotification(fileService, { error() { } } as unknown as INotificationService);
+	}
+
+	function createDownloadWithNotification(fileService: object, notificationService: INotificationService): IDownloadApi {
 		return new FileDownload(
 			fileService as IFileService,
 			undefined!,
 			undefined!,
+			{ warn() { } } as never,
 			undefined!,
 			undefined!,
-			undefined!,
+			notificationService,
 		) as unknown as IDownloadApi;
 	}
 
@@ -811,6 +820,61 @@ suite('Files - Browser download cancel', () => {
 		assert.strictEqual(tree.hasFile('notes/a.txt'), false);
 		assert.deepStrictEqual(tree.calls, ['abort:notes/a.txt']);
 		assert.deepStrictEqual(tree.removed, ['notes/a.txt', 'notes']);
+	});
+
+	test('directory picker cancellation ends quietly without a notification', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const errors: string[] = [];
+		const download = createDownloadWithNotification({}, { error: message => errors.push(String(message)) } as unknown as INotificationService);
+
+		await download.downloadViaFileSystemAccess(
+			{ resource: URI.file('/src/notes'), name: 'notes', isDirectory: true, isFile: false, size: 0, children: [] },
+			{ report() { } },
+			cts,
+			{ showDirectoryPicker: async () => { throw new DOMException('cancelled', 'AbortError'); } },
+		);
+
+		assert.strictEqual(cts.token.isCancellationRequested, true);
+		assert.deepStrictEqual(errors, []);
+	});
+
+	test('write failure notifies with the already closed file and rethrows', async () => {
+		const cts = store.add(new CancellationTokenSource());
+		const tree = fakeDownloadTree();
+		const errors: string[] = [];
+		const download = createDownloadWithNotification({
+			readFile: async (resource: URI) => {
+				if (resource.path.endsWith('/b.txt')) {
+					throw new Error('read failed');
+				}
+				return { name: 'a.txt', size: 4, value: VSBuffer.fromString('data') };
+			},
+		}, { error: message => errors.push(String(message)) } as unknown as INotificationService);
+
+		await assert.rejects(
+			() => download.downloadViaFileSystemAccess(
+				{
+					resource: URI.file('/src/notes'),
+					name: 'notes',
+					isDirectory: true,
+					isFile: false,
+					size: 0,
+					children: [
+						{ resource: URI.file('/src/notes/a.txt'), name: 'a.txt', size: 4, isFile: true },
+						{ resource: URI.file('/src/notes/b.txt'), name: 'b.txt', size: 4, isFile: true },
+					],
+				},
+				{ report() { } },
+				cts,
+				{ showDirectoryPicker: async () => tree.root },
+			),
+			/read failed/,
+		);
+
+		assert.strictEqual(errors.length, 1);
+		assert.ok(errors[0].includes('a.txt'));
+		assert.ok(errors[0].includes('read failed'));
+		assert.deepStrictEqual(tree.calls, ['write:notes/a.txt', 'close:notes/a.txt', 'abort:notes/b.txt']);
 	});
 });
 

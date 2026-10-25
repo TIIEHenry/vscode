@@ -215,14 +215,16 @@ export class EditorParts extends MultiWindowParts<EditorPart, IEditorPartsMement
 		const activeElement = getActiveElement();
 		for (const part of this.conversationParts) {
 			const container = (part as ConversationEditorPartImpl).getContainer();
-			if (container && isAncestor(activeElement, container)) {
+			const leaf = container?.closest('.conversation-session-leaf') as HTMLElement | null;
+			if (container && !leaf?.classList.contains(conversationSessionLeafHiddenClass) && isAncestor(activeElement, container)) {
 				return part;
 			}
 		}
 
 		if (this.focusedConversationLeaf) {
 			const focused = this.conversationEditorParts.get(this.focusedConversationLeaf);
-			if (focused) {
+			const leaf = (focused as ConversationEditorPartImpl | undefined)?.getContainer()?.closest('.conversation-session-leaf') as HTMLElement | null;
+			if (focused && !leaf?.classList.contains(conversationSessionLeafHiddenClass)) {
 				return focused;
 			}
 		}

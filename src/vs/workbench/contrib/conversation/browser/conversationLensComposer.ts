@@ -13,6 +13,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerEnabledModelIds, composerModelIds, composerModelSelectionIndex, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
+import { isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { rejectKeepLeftoverListFailWrite, rejectPairingHoldWrite } from './conversationLensSessionBinding.js';
 import {
@@ -345,7 +346,7 @@ export function postBound(
 				? { accepted: true, correlation: { id: `clientTool:${msg.requestId}` } }
 				: { accepted: false, reason: 'no_such_session' });
 		}
-		if (host.stubService.isEngineConnected() && !host.stubService.isEngineSessionReady()) {
+		if (isConversationSessionNotReady(host.stubService)) {
 			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
 		}
 		const lease = sessionViewLease ?? host.sessionViewLease;

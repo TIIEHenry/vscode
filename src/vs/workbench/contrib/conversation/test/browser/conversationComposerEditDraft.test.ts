@@ -32,6 +32,7 @@ suite('ConversationComposerEditDraft', () => {
 		const host = {
 			composerPolicy: options.composerPolicy,
 			composeDraftSnapshot: options.composeDraftSnapshot,
+			dialogService: { confirm: () => Promise.resolve({ confirmed: true }) },
 			dockTextarea: { value: options.textarea },
 			getBoundSessionId: () => 'sess-a',
 			writeComposerDraft: (sessionId: string, text: string) => {
@@ -106,7 +107,7 @@ suite('ConversationComposerEditDraft', () => {
 		return { host, drafts, textarea, sendButton };
 	}
 
-	test('turnEdit deleteSession false keeps compose draft snapshot not bubble text', () => {
+	test('turnEdit deleteSession false keeps compose draft snapshot not bubble text', async () => {
 		const { host, drafts, written } = deleteHost({
 			composerPolicy: 'turnEdit',
 			composeDraftSnapshot: 'A',
@@ -114,14 +115,14 @@ suite('ConversationComposerEditDraft', () => {
 			deleteResult: false,
 		});
 
-		deleteActiveSession(host);
+		await deleteActiveSession(host);
 
 		assert.deepStrictEqual(written, ['A', 'A']);
 		assert.strictEqual(drafts.get('sess-a'), 'A');
 		assert.strictEqual(host.dockTextarea.value, 'A');
 	});
 
-	test('compose deleteSession false still writes textarea into drafts', () => {
+	test('compose deleteSession false still writes textarea into drafts', async () => {
 		const { host, drafts, written } = deleteHost({
 			composerPolicy: 'compose',
 			composeDraftSnapshot: 'A',
@@ -129,7 +130,7 @@ suite('ConversationComposerEditDraft', () => {
 			deleteResult: false,
 		});
 
-		deleteActiveSession(host);
+		await deleteActiveSession(host);
 
 		assert.deepStrictEqual(written, ['live compose', 'live compose']);
 		assert.strictEqual(drafts.get('sess-a'), 'live compose');

@@ -12,12 +12,14 @@ import { URI } from '../../../../../base/common/uri.js';
 import { WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { IRecentlyOpened, IWorkspacesService } from '../../../../../platform/workspaces/common/workspaces.js';
+import { IRecentlyOpened, IWorkspaceFolderCreationData, IWorkspacesService } from '../../../../../platform/workspaces/common/workspaces.js';
 import { IWorkspaceContextService, WorkbenchState } from '../../../../../platform/workspace/common/workspace.js';
 import { testWorkspace, Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { IViewContainerModel, IViewDescriptorService, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
+import { IWorkspaceEditingService } from '../../../../services/workspaces/common/workspaceEditing.js';
+import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
 import { TestHostService, TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -143,6 +145,8 @@ suite('NavigatorProjectsView', () => {
 		rosterService?: ConversationStubService;
 		uaConnection?: IUniverseAgentConnection;
 		patchHost?: (host: TestHostService) => void;
+		addedFolders?: IWorkspaceFolderCreationData[][];
+		executedCommands?: { id: string; args: unknown[] }[];
 	}): Promise<NavigatorProjectsView> {
 		const contextService = options?.contextService ?? new TestContextService(new Workspace('empty-workspace', []));
 		const workspacesService = options?.workspacesService ?? new TestWorkspacesService();
@@ -155,6 +159,16 @@ suite('NavigatorProjectsView', () => {
 		if (options?.patchHost) {
 			options.patchHost(instantiationService.get(IHostService) as TestHostService);
 		}
+		instantiationService.stub(IWorkspaceEditingService, {
+			_serviceBrand: undefined,
+			addFolders: async (folders: IWorkspaceFolderCreationData[]) => { options?.addedFolders?.push(folders); },
+		} as unknown as IWorkspaceEditingService);
+		instantiationService.stub(ICommandService, {
+			_serviceBrand: undefined,
+			onWillExecuteCommand: Event.None,
+			onDidExecuteCommand: Event.None,
+			executeCommand: async (id: string, ...args: unknown[]) => { options?.executedCommands?.push({ id, args }); return undefined; },
+		} as unknown as ICommandService);
 		instantiationService.stub(IWorkbenchLayoutService, {
 			isVisible: () => true,
 			setPartHidden: async () => { },
@@ -659,7 +673,7 @@ suite('NavigatorProjectsView', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(() => { });
 		try {
-			openTreeNode(view, folderNode, new MouseEvent('click'));
+			openTreeNode(view, folderNode, new MouseEvent('click', { ctrlKey: true }));
 			await flushMicrotasks();
 			await new Promise<void>(resolve => setImmediate(() => resolve()));
 			assert.deepStrictEqual(unhandledRejections, []);
@@ -675,6 +689,55 @@ suite('NavigatorProjectsView', () => {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('local-folder click grows the workspace: current folder reveals, recent folder is added, modifiers open windows', async () => {
+		const folderUri = URI.file('/projects/current');
+		const recentUri = URI.file('/projects/recent');
+		const remoteUri = URI.file('/projects/remote');
+		const contextService = new TestContextService(testWorkspace(folderUri));
+		const workspacesService = new WorkspacesWithRecents({
+			files: [],
+			workspaces: [
+				{ folderUri: recentUri, label: 'recent' },
+				{ folderUri: remoteUri, label: 'remote', remoteAuthority: 'ssh-remote+dev' },
+			],
+		});
+		const addedFolders: IWorkspaceFolderCreationData[][] = [];
+		const executedCommands: { id: string; args: unknown[] }[] = [];
+		const openWindowCalls: unknown[][] = [];
+		const view = await mountView({
+			contextService,
+			workspacesService,
+			addedFolders,
+			executedCommands,
+			patchHost: host => {
+				host.openWindow = async (...args: unknown[]) => { openWindowCalls.push(args); };
+			},
+		});
+		const nodes = getViewTreeNodes(view);
+		const currentNode = findTreeNode(nodes, node => node.kind === 'local-folder' && node.resource?.toString() === folderUri.toString());
+		const recentNode = findTreeNode(nodes, node => node.kind === 'local-folder' && node.resource?.toString() === recentUri.toString());
+		const remoteNode = findTreeNode(nodes, node => node.kind === 'local-folder' && node.resource?.toString() === remoteUri.toString());
+		assert.ok(currentNode && recentNode && remoteNode);
+
+		openTreeNode(view, currentNode, new MouseEvent('click'));
+		openTreeNode(view, recentNode, new MouseEvent('click'));
+		await flushMicrotasks();
+		assert.deepStrictEqual(executedCommands.map(command => [command.id, String(command.args[0])]), [['revealInExplorer', folderUri.toString()]]);
+		assert.deepStrictEqual(addedFolders.map(folders => folders.map(folder => folder.uri.toString())), [[recentUri.toString()]]);
+		assert.deepStrictEqual(openWindowCalls, []);
+
+		openTreeNode(view, remoteNode, new MouseEvent('click'));
+		openTreeNode(view, recentNode, new MouseEvent('click', { ctrlKey: true }));
+		openTreeNode(view, recentNode, new MouseEvent('click', { altKey: true }));
+		await flushMicrotasks();
+		assert.deepStrictEqual(openWindowCalls.map(call => call[1]), [
+			{ forceNewWindow: true, forceReuseWindow: false, remoteAuthority: 'ssh-remote+dev' },
+			{ forceNewWindow: true, forceReuseWindow: false, remoteAuthority: null },
+			{ forceNewWindow: false, forceReuseWindow: true, remoteAuthority: null },
+		]);
+		assert.strictEqual(addedFolders.length, 1);
 	});
 
 	test('does not leak unhandled rejection when openWindow rejects and onUnexpectedError warn-then-rethrows', async () => {
@@ -705,7 +768,7 @@ suite('NavigatorProjectsView', () => {
 			}
 		});
 		try {
-			openTreeNode(view, folderNode, new MouseEvent('click'));
+			openTreeNode(view, folderNode, new MouseEvent('click', { ctrlKey: true }));
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, openWindowCalls, unexpectedWarns }, {
 				unhandledRejections: [],

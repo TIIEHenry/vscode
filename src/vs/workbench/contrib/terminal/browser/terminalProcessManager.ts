@@ -728,19 +728,24 @@ export class TerminalProcessManager extends Disposable implements ITerminalProce
 		this._dimensions.rows = rows;
 	}
 
-	async write(data: string): Promise<void> {
+	async write(data: string): Promise<boolean> {
 		await this.ptyProcessReady;
-		this._dataFilter.disableSeamlessRelaunch();
-		this._hasWrittenData = true;
 		if (this.shellProcessId || this._processType === ProcessType.PsuedoTerminal) {
 			if (this._process) {
+				this._dataFilter.disableSeamlessRelaunch();
+				this._hasWrittenData = true;
 				// Send data if the pty is ready
 				this._process.input(data);
+				return true;
 			}
+			// The process exited while this terminal object is still around. Report the
+			// dropped input instead of letting callers announce a command was sent.
+			return false;
 		} else {
 			// If the pty is not ready, queue the data received to send later
 			this._logService.debug('queueing data in prelaunch input queue', data);
 			this._preLaunchInputQueue.push(data);
+			return true;
 		}
 	}
 

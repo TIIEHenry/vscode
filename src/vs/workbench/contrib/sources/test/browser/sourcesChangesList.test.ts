@@ -3065,7 +3065,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		}
 	});
 
-	test('no-hook commit still calls writeGitCommit with the leftover session', async function () {
+	test('no-hook commit is blocked after the active session changes', async function () {
 		let active = 'session-old';
 		const roster = {
 			getActiveSessionId: () => active,
@@ -3112,9 +3112,64 @@ suite('Sources - Changes list leftover honesty', () => {
 			active = 'session-new';
 			(host.querySelector('.sources-changes-commit-input') as HTMLTextAreaElement).value = 'fix';
 			await (widget as unknown as { runCommit(): Promise<void> }).runCommit();
-			assert.strictEqual(commitCalls.length, 1);
-			assert.strictEqual(commitCalls[0]?.sessionId, 'session-old');
+			assert.strictEqual(commitCalls.length, 0);
 			assert.deepStrictEqual(gitCommands, []);
+			assert.strictEqual(readChangesNotice(host), sourcesGitSessionChangedMessage());
+		} finally {
+			acceptCommand.dispose();
+			commitCommand.dispose();
+		}
+	});
+
+	test('an accepted commit from the previous session does not clear the new status line', async function () {
+		let active = 'session-old';
+		let releaseCommit: (() => void) | undefined;
+		const roster = {
+			getActiveSessionId: () => active,
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			isEngineSessionReady: () => true,
+		} as unknown as IConversationRosterService;
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [{ path: 'src/inflight.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' }],
+			}),
+			readGitSummary: async () => ({ supported: true, reason: '', branch: 'main', changeCount: 1 }),
+			writeGitCommit: async () => new Promise(resolve => {
+				releaseCommit = () => resolve(acceptedEngineWrite());
+			}),
+		} as unknown as IUniverseAgentConnection;
+		const acceptCommand = CommandsRegistry.registerCommand('scm.acceptInput', () => { });
+		const commitCommand = CommandsRegistry.registerCommand('git.commit', () => { });
+		try {
+			const scmStub = toResource.call(this, '/project/src/inflight.ts');
+			const host = mountHost();
+			const widget = store.add(stubChangesListServices(connection, createIndexScmService(scmStub, 'workingTree', true, {
+				acceptInputCommand: { id: 'scm.acceptInput' },
+			}), async () => { }, undefined, roster).createInstance(SourcesChangesList, host));
+			(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+			await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+			(host.querySelector('.sources-changes-commit-input') as HTMLTextAreaElement).value = 'fix';
+			const commit = (widget as unknown as { runCommit(): Promise<void> }).runCommit();
+			const deadline = Date.now() + 2000;
+			while (Date.now() < deadline && !releaseCommit) {
+				await timeout(20);
+			}
+			assert.ok(releaseCommit);
+			active = 'session-new';
+			(widget as unknown as { setWriteStatusMessage(message: string | undefined): void }).setWriteStatusMessage('status-for-new-session');
+			const statusBefore = readChangesNotice(host);
+			assert.strictEqual(statusBefore, 'status-for-new-session');
+			releaseCommit!();
+			await commit;
+			assert.strictEqual(readChangesNotice(host), statusBefore);
 		} finally {
 			acceptCommand.dispose();
 			commitCommand.dispose();

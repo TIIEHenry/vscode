@@ -16,6 +16,7 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { ContextKeyExpr, IContextKey, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
@@ -34,6 +35,8 @@ import { matchesConversationSessionsInlineFilter } from '../common/conversationS
 import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
 import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches, formatSessionAccessedLabel, formatSessionMessageCount, formatSessionPendingConfirmations, formatSessionRosterAriaLabel, formatSessionRosterGroupLabel, formatSessionRosterStatus, formatSessionRosterSubtitle, groupSessionsForRoster, resolveSessionRosterTone, type SessionRosterEntry, type SessionRosterTone } from './conversationSessionsViewStrings.js';
 import { ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
+import { confirmDeleteConversationSession } from './conversationDeleteSessionConfirm.js';
+import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
 import { IConversationRosterService } from './conversationStubService.js';
@@ -271,6 +274,7 @@ export class ConversationSessionsView extends ViewPane {
 		@IOpenerService openerService: IOpenerService,
 		@IThemeService themeService: IThemeService,
 		@IHoverService hoverService: IHoverService,
+		@IDialogService private readonly dialogService: IDialogService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
@@ -291,8 +295,11 @@ export class ConversationSessionsView extends ViewPane {
 
 	/** KEEP leftover list-fail (D453): connected but roster not ready is not a live Sessions write surface. */
 	private isKeepLeftoverListFailWrite(): boolean {
-		return this.stubService.isEngineConnected?.() === true
-			&& this.stubService.isEngineSessionReady?.() === false;
+		return isConversationSessionNotReady(this.stubService);
+	}
+
+	private sessionNotReadyNotice(): string {
+		return conversationSessionHoldReason(false, getConversationSessionReadiness(this.stubService)) ?? '';
 	}
 
 	private updateDeleteEnabledContextKey(): void {
@@ -303,10 +310,14 @@ export class ConversationSessionsView extends ViewPane {
 	}
 
 	createNewSession(): void {
-		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite()) {
+		if (isConversationPairingHold(this.uaConnection)) {
 			this.notificationService.error(
 				localize('conversationSessionsView.createSessionDisconnected', "Could not create session — engine disconnected."),
 			);
+			return;
+		}
+		if (this.isKeepLeftoverListFailWrite()) {
+			this.notificationService.error(this.sessionNotReadyNotice());
 			return;
 		}
 		if (!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()) {
@@ -318,14 +329,43 @@ export class ConversationSessionsView extends ViewPane {
 		this.stubService.createSession();
 	}
 
-	deleteActiveSession(): void {
-		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite()) {
+	private rejectDeleteBeforeConfirm(): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
 			this.notificationService.error(
 				localize('conversationSessionsView.deleteSessionDisconnected', "Could not delete session — engine disconnected."),
 			);
+			return true;
+		}
+		if (this.isKeepLeftoverListFailWrite()) {
+			this.notificationService.error(this.sessionNotReadyNotice());
+			return true;
+		}
+		if (!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()) {
+			this.notificationService.error(
+				localize('conversationSessionsView.deleteSessionDisconnected', "Could not delete session — engine disconnected."),
+			);
+			return true;
+		}
+		return false;
+	}
+
+	async deleteActiveSession(): Promise<void> {
+		if (this.rejectDeleteBeforeConfirm()) {
 			return;
 		}
-		if (this.stubService.deleteSession(this.stubService.getActiveSessionId())) {
+		const sessionId = this.stubService.getActiveSessionId();
+		const title = this.stubService.getSessions().find(session => session.id === sessionId)?.title ?? '';
+		const confirmed = await confirmDeleteConversationSession(this.dialogService, title);
+		if (!confirmed) {
+			return;
+		}
+		if (this.rejectDeleteBeforeConfirm()) {
+			return;
+		}
+		if (!this.stubService.getSessions().some(session => session.id === sessionId)) {
+			return;
+		}
+		if (this.stubService.deleteSession(sessionId)) {
 			return;
 		}
 		this.notificationService.error(
@@ -595,7 +635,7 @@ registerAction2(class ConversationSessionsDeleteSessionAction extends ViewAction
 		});
 	}
 
-	override runInView(_accessor: ServicesAccessor, view: ConversationSessionsView): void {
-		view.deleteActiveSession();
+	override runInView(_accessor: ServicesAccessor, view: ConversationSessionsView): Promise<void> {
+		return view.deleteActiveSession();
 	}
 });

@@ -7,8 +7,11 @@ import assert from 'assert';
 import * as fs from 'fs';
 import * as path from '../../../../../base/common/path.js';
 import { fileURLToPath } from 'url';
+import { Emitter } from '../../../../../base/common/event.js';
+import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { State } from '../../common/debug.js';
+import { DebugService } from '../../browser/debugService.js';
+import { IBreakpoint, IDebugSession, IThread, State } from '../../common/debug.js';
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const SOURCE_REL = 'src/vs/workbench/contrib/debug/browser/debugService.ts';
@@ -149,5 +152,120 @@ suite('Debug - runTo temp breakpoint removal', () => {
 			sawTargetRunning: false,
 			continueFinished: false,
 		}), 'remove');
+	});
+});
+
+type RunToHarness = {
+	service: DebugService;
+	removed: string[];
+	added: number;
+	existingBreakpoints: IBreakpoint[];
+	session: IDebugSession;
+	thread: IThread;
+	fireState(state: State): void;
+};
+
+function createRunToHarness(options: { state: State; existingBreakpoints?: IBreakpoint[]; threads?: IThread[]; focusedThread?: IThread }): RunToHarness {
+	const removed: string[] = [];
+	let added = 0;
+	const stateEmitter = new Emitter<State>();
+	const existingBreakpoints = options.existingBreakpoints ?? [];
+	const thread = {
+		stopped: true,
+		getTopStackFrame: () => ({ range: { startLineNumber: 4 }, source: { uri: URI.file('/tmp/target.ts') } }),
+		continue: async () => { },
+		session: undefined as unknown as IDebugSession,
+	} as unknown as IThread;
+	const session = {
+		state: options.state,
+		onDidChangeState: stateEmitter.event,
+		getAllThreads: () => options.threads ?? [thread],
+	} as unknown as IDebugSession;
+	(thread as unknown as { session: IDebugSession }).session = session;
+
+	const service = Object.create(DebugService.prototype) as DebugService;
+	const serviceInternals = service as unknown as {
+		viewModel: unknown;
+		model: unknown;
+		uriIdentityService: unknown;
+	};
+	serviceInternals.viewModel = {
+		focusedSession: session,
+		focusedThread: options.focusedThread,
+	};
+	serviceInternals.model = {
+		getBreakpoints: () => existingBreakpoints,
+	};
+	serviceInternals.uriIdentityService = {
+		extUri: {
+			isEqual: (a: URI, b: URI) => a.toString() === b.toString(),
+		},
+	};
+	(service as unknown as { addAndValidateBreakpoints: () => Promise<{ breakpoint: IBreakpoint; thread: IThread }> }).addAndValidateBreakpoints = async () => {
+		added++;
+		return { breakpoint: { getId: () => 'temp-bp' } as IBreakpoint, thread };
+	};
+	(service as unknown as { removeBreakpoints: (id: string) => void }).removeBreakpoints = (id: string) => {
+		removed.push(id);
+	};
+
+	return {
+		service,
+		removed,
+		get added() { return added; },
+		existingBreakpoints,
+		session,
+		thread,
+		fireState: (state: State) => {
+			(session as unknown as { state: State }).state = state;
+			stateEmitter.fire(state);
+		},
+	};
+}
+
+suite('Debug - runTo running session cleanup', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('running session keeps the temp breakpoint until the target line stops', async () => {
+		const harness = createRunToHarness({ state: State.Running });
+		await harness.service.runTo(URI.file('/tmp/target.ts'), 4);
+
+		assert.strictEqual(harness.added, 1);
+		assert.deepStrictEqual(harness.removed, []);
+
+		harness.fireState(State.Stopped);
+		assert.deepStrictEqual(harness.removed, ['temp-bp']);
+
+		harness.fireState(State.Inactive);
+		assert.deepStrictEqual(harness.removed, ['temp-bp']);
+	});
+
+	test('running session removes the temp breakpoint when it becomes inactive', async () => {
+		const harness = createRunToHarness({ state: State.Running });
+		await harness.service.runTo(URI.file('/tmp/target.ts'), 4);
+
+		harness.fireState(State.Inactive);
+		assert.deepStrictEqual(harness.removed, ['temp-bp']);
+	});
+
+	test('stopped session without a continuable thread removes the temp breakpoint before returning', async () => {
+		const harness = createRunToHarness({ state: State.Stopped, threads: [] });
+		await harness.service.runTo(URI.file('/tmp/target.ts'), 4);
+
+		assert.strictEqual(harness.added, 1);
+		assert.deepStrictEqual(harness.removed, ['temp-bp']);
+	});
+
+	test('an existing breakpoint on the line is not added or removed', async () => {
+		const existing = { getId: () => 'user-bp' } as IBreakpoint;
+		const harness = createRunToHarness({ state: State.Running, existingBreakpoints: [existing] });
+		await harness.service.runTo(URI.file('/tmp/target.ts'), 4);
+
+		assert.strictEqual(harness.added, 0);
+		assert.deepStrictEqual(harness.removed, []);
+
+		harness.fireState(State.Stopped);
+		assert.deepStrictEqual(harness.removed, []);
 	});
 });

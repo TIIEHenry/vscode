@@ -24,6 +24,7 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import { conversationLensPhasePreFirstClass, conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { applyLeafWidthClasses } from './conversationNarrowLayout.js';
+import { isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
@@ -184,8 +185,7 @@ export function isReadingColumnWritesEnabled(host: {
 	};
 	readonly uaConnection: IConversationPairingHoldSource;
 }): boolean {
-	const leftoverCatalogListFailed = host.stubService.isEngineConnected()
-		&& host.stubService.isEngineSessionReady?.() === false;
+	const leftoverCatalogListFailed = isConversationSessionNotReady(host.stubService);
 	return !isConversationPairingHold(host.uaConnection) && !leftoverCatalogListFailed;
 }
 

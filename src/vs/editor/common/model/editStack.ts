@@ -210,8 +210,9 @@ export class SingleModelEditStackElement implements IResourceUndoRedoElement {
 
 	public undo(): void {
 		if (URI.isUri(this.model)) {
-			// don't have a model
-			throw new Error(`Invalid SingleModelEditStackElement`);
+			// The model is gone and was not reattached. Its changes cannot be applied anywhere, and
+			// throwing here would abort an enclosing workspace undo for the other resources.
+			return;
 		}
 		if (this._data instanceof SingleModelEditStackData) {
 			this._data = this._data.serialize();
@@ -222,8 +223,8 @@ export class SingleModelEditStackElement implements IResourceUndoRedoElement {
 
 	public redo(): void {
 		if (URI.isUri(this.model)) {
-			// don't have a model
-			throw new Error(`Invalid SingleModelEditStackElement`);
+			// See `undo`: skip a resource that no longer has a model instead of aborting the group.
+			return;
 		}
 		if (this._data instanceof SingleModelEditStackData) {
 			this._data = this._data.serialize();

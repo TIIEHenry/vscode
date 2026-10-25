@@ -1221,7 +1221,11 @@ export class SessionsManagementService extends Disposable implements ISessionsMa
 	}
 
 	async setSessionReadState(session: ISession, isRead: boolean): Promise<void> {
-		await this._getProvider(session)?.setSessionReadState(session.sessionId, isRead);
+		const provider = this._getProvider(session);
+		if (!provider) {
+			throw new Error(localize('sessions.setSessionReadState.noProvider', "Failed to update the session read state: no provider is registered for this session."));
+		}
+		await provider.setSessionReadState(session.sessionId, isRead);
 	}
 
 	markRead(session: ISession): Promise<void> {

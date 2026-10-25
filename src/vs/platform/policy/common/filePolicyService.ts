@@ -46,7 +46,11 @@ export class FilePolicyService extends AbstractPolicyService implements IPolicyS
 		await this.refresh();
 	}
 
-	private async read(): Promise<Map<PolicyName, PolicyValue>> {
+	/**
+	 * Reads the policy file. `undefined` means the read or parse failed for a
+	 * reason other than a missing file; callers must keep the last good table.
+	 */
+	private async read(): Promise<Map<PolicyName, PolicyValue> | undefined> {
 		const policies = new Map<PolicyName, PolicyValue>();
 
 		try {
@@ -63,9 +67,11 @@ export class FilePolicyService extends AbstractPolicyService implements IPolicyS
 				}
 			}
 		} catch (error) {
-			if ((<FileOperationError>error).fileOperationResult !== FileOperationResult.FILE_NOT_FOUND) {
-				this.logService.error(`[FilePolicyService] Failed to read policies`, error);
+			if ((<FileOperationError>error).fileOperationResult === FileOperationResult.FILE_NOT_FOUND) {
+				return policies;
 			}
+			this.logService.error(`[FilePolicyService] Failed to read policies`, error);
+			return undefined;
 		}
 
 		return policies;
@@ -74,7 +80,7 @@ export class FilePolicyService extends AbstractPolicyService implements IPolicyS
 	private async refresh(): Promise<void> {
 		const generation = ++this._refreshGeneration;
 		const policies = await this.read();
-		if (generation !== this._refreshGeneration || this._store.isDisposed) {
+		if (policies === undefined || generation !== this._refreshGeneration || this._store.isDisposed) {
 			return;
 		}
 		const diff = keysDiff(this.policies, policies);

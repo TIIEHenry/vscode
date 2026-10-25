@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
+import { CancellationError } from '../../../../../../base/common/errors.js';
 import { MarkdownString } from '../../../../../../base/common/htmlContent.js';
 import { IDisposable } from '../../../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../../../base/common/observable.js';
@@ -49,7 +50,12 @@ export class EditTool implements IToolImpl {
 		const uri = CellUri.parse(fileUri)?.notebook || fileUri;
 
 		const model = this.chatService.getSession(invocation.context.sessionResource) as ChatModel;
-		const request = model.getRequests().at(-1)!;
+		const request = invocation.chatRequestId
+			? model.getRequests().find(r => r.id === invocation.chatRequestId)
+			: model.getRequests().at(-1);
+		if (!request || request.response?.isComplete || request.response?.isCanceled) {
+			throw new Error('The chat request for this edit is no longer active');
+		}
 
 		model.acceptResponseProgress(request, {
 			kind: 'markdownContent',
@@ -84,6 +90,7 @@ export class EditTool implements IToolImpl {
 			throw new Error('This tool must be called from within an editing session');
 		}
 
+		let hasEdit = false;
 		const result = await this.codeMapperService.mapCode({
 			codeBlocks: [{ code: parameters.code, resource: uri, markdownBeforeBlock: parameters.explanation }],
 			location: 'tool',
@@ -92,9 +99,11 @@ export class EditTool implements IToolImpl {
 			chatSessionResource: invocation.context.sessionResource,
 		}, {
 			textEdit: (target, edits) => {
+				hasEdit = true;
 				model.acceptResponseProgress(request, { kind: 'textEdit', uri: target, edits });
 			},
 			notebookEdit(target, edits) {
+				hasEdit = true;
 				model.acceptResponseProgress(request, { kind: 'notebookEdit', uri: target, edits });
 			},
 		}, token);
@@ -108,6 +117,13 @@ export class EditTool implements IToolImpl {
 
 		if (result?.errorMessage) {
 			throw new Error(result.errorMessage);
+		}
+
+		if (token.isCancellationRequested) {
+			throw new CancellationError();
+		}
+		if (result === undefined || !hasEdit) {
+			throw new Error('The file edit did not produce any changes');
 		}
 
 		let dispose: IDisposable;

@@ -33,6 +33,7 @@ import { timeout } from '../../../util/vs/base/common/async';
 import { CancellationToken } from '../../../util/vs/base/common/cancellation';
 import { ResourceMap, ResourceSet } from '../../../util/vs/base/common/map';
 import { count } from '../../../util/vs/base/common/strings';
+import { CancellationError, isCancellationError } from '../../../util/vs/base/common/errors';
 import { isDefined } from '../../../util/vs/base/common/types';
 import { extUriBiasedIgnorePathCase } from '../../../util/vs/base/common/resources';
 import { URI } from '../../../util/vs/base/common/uri';
@@ -69,10 +70,27 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 	public static toolName = ToolName.ApplyPatch;
 	public static readonly nonDeferred = true;
 
-	private _promptContext: IBuildPromptContext | undefined;
+	/**
+	 * Prompt context per chat request. A tool instance is shared by every
+	 * request, so this must never be a single field: an interleaved request
+	 * would otherwise overwrite the allowed URIs, stream, and model of another.
+	 */
+	private readonly _promptContexts = new Map<string, IBuildPromptContext>();
 
-	// Simple cache using stringified params as key to avoid WeakMap stability issues
-	private lastProcessed: { input: string; output: Promise<{ commit: Commit; docTexts: DocText; healed?: string }> } | undefined;
+	/**
+	 * Healed patch work started by `prepareInvocation`, keyed by request id and
+	 * patch text. The same patch text in another request must not reuse a
+	 * commit healed against a different document state.
+	 */
+	private readonly _preparedPatches = new Map<string, { input: string; output: Promise<{ commit: Commit; docTexts: DocText; healed?: string }> }>();
+
+	private _contextKey(requestId: string | undefined): string {
+		return requestId ?? '';
+	}
+
+	private _patchKey(requestId: string | undefined, input: string): string {
+		return `${this._contextKey(requestId)}\u0000${input}`;
+	}
 
 	constructor(
 		@IPromptPathRepresentationService protected readonly promptPathRepresentationService: IPromptPathRepresentationService,
@@ -140,7 +158,7 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 		return path;
 	}
 
-	private async generateUpdateNotebookDocumentEdit(altDoc: NotebookDocumentSnapshot, uri: URI, movePath: URI | undefined, file: string, change: FileChange) {
+	private async generateUpdateNotebookDocumentEdit(altDoc: NotebookDocumentSnapshot, uri: URI, movePath: URI | undefined, file: string, change: FileChange, promptContext: IBuildPromptContext, token: CancellationToken) {
 		// Notebooks can have various formats, it could be JSON, XML, Jupytext (which is a format that depends on the code cell language).
 		// Lets generate new content based on multiple formats.
 		const cellLanguage = getDefaultLanguage(altDoc.document) || 'python';
@@ -162,8 +180,8 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 
 		const telemetryOptions: NotebookEditGenerationTelemtryOptions = {
 			source: NotebookEditGenrationSource.applyPatch,
-			requestId: this._promptContext?.requestId,
-			model: this._promptContext?.request?.model ? this.endpointProvider.getChatEndpoint(this._promptContext?.request?.model).then(m => m.model) : undefined
+			requestId: promptContext.requestId,
+			model: promptContext.request?.model ? this.endpointProvider.getChatEndpoint(promptContext.request.model).then(m => m.model) : undefined
 		};
 		await processFullRewriteNotebook(altDoc.document, newContent, {
 			notebookEdit(_, notebookEdits) {
@@ -173,7 +191,7 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 				textEdits = Array.isArray(textEdits) ? textEdits : [textEdits];
 				edits.push([target, textEdits]);
 			},
-		}, this.alternativeNotebookEditGenerator, telemetryOptions, CancellationToken.None);
+		}, this.alternativeNotebookEditGenerator, telemetryOptions, token);
 
 		return { path: uri, edits };
 	}
@@ -202,31 +220,39 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 	}
 
 	async invoke(options: vscode.LanguageModelToolInvocationOptions<IApplyPatchToolParams>, token: vscode.CancellationToken) {
-		if (!options.input.input || !this._promptContext?.stream) {
+		// Read this request's context once, before any await. Everything below
+		// uses the local value so a concurrent request cannot change it midway.
+		const promptContext = this._promptContexts.get(this._contextKey(options.chatRequestId));
+		if (!options.input.input || !promptContext?.stream) {
 			this.sendApplyPatchTelemetry('invalidInput', options, undefined, false, undefined);
 			throw new Error('Missing patch text or stream');
 		}
 
+		const patchKey = this._patchKey(options.chatRequestId, options.input.input);
 		let commit: Commit | undefined;
 		let healed: string | undefined;
 		const docText: DocText = {};
 
 		try {
-			if (this.lastProcessed?.input === options.input.input) {
-				const cached = await this.lastProcessed.output;
+			const prepared = this._preparedPatches.get(patchKey);
+			if (prepared?.input === options.input.input) {
+				const cached = await prepared.output;
 				commit = cached.commit;
 				healed = cached.healed;
 				Object.assign(docText, cached.docTexts);
 				logEditToolResult(this.logService, options.chatRequestId, { input: options.input.input, success: true, healed });
-				this.lastProcessed = undefined;
+				this._preparedPatches.delete(patchKey);
 			}
 
 			// If not cached or cache failed, build with healing
 			if (!commit) {
-				({ commit, healed } = await this.buildCommitWithHealing(options.model, options.input.input, docText, options.input.explanation, token));
+				({ commit, healed } = await this.buildCommitWithHealing(options.model, options.input.input, docText, options.input.explanation, token, promptContext));
 				logEditToolResult(this.logService, options.chatRequestId, { input: options.input.input, success: true, healed });
 			}
 		} catch (error) {
+			if (isCancellationError(error)) {
+				throw error;
+			}
 			if (error instanceof HealedError) {
 				healed = error.healedPatch;
 				error = error.originalError;
@@ -271,7 +297,7 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 					? [{ uri: path, contents: undefined }, { uri: movePath, contents: changes.newContent ?? '' }]
 					: [{ uri: path, contents: undefined }];
 				for (const { uri, contents } of affectedUris) {
-					const disallowedUriError = getDisallowedEditUriError(uri, this._promptContext?.allowedEditUris, this.promptPathRepresentationService);
+					const disallowedUriError = getDisallowedEditUriError(uri, promptContext.allowedEditUris, this.promptPathRepresentationService);
 					if (disallowedUriError) {
 						const result = new ExtendedLanguageModelToolResult([
 							new LanguageModelTextPart(disallowedUriError),
@@ -287,9 +313,9 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 			const editSurvivalTrackers = new ResourceMap<IEditSurvivalTrackingSession>();
 
 			// Set up a response stream that will collect AI edits for telemetry
-			let responseStream = this._promptContext.stream;
-			if (this._promptContext.stream) {
-				responseStream = ChatResponseStreamImpl.spy(this._promptContext.stream, (part) => {
+			let responseStream = promptContext.stream;
+			if (promptContext.stream) {
+				responseStream = ChatResponseStreamImpl.spy(promptContext.stream, (part) => {
 					if (part instanceof ChatResponseTextEditPart && !this.notebookService.hasSupportedNotebooks(part.uri)) {
 						const tracker = editSurvivalTrackers.get(part.uri);
 						if (tracker) {
@@ -320,7 +346,7 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 						break;
 					}
 					case ActionType.UPDATE: {
-						const document = await this.instantiationService.invokeFunction(openDocumentAndSnapshot, this._promptContext, path);
+						const document = await this.instantiationService.invokeFunction(openDocumentAndSnapshot, promptContext, path);
 						let updated: TextDocumentSnapshot | NotebookDocumentSnapshot | undefined;
 
 						if (movePath && !extUriBiasedIgnorePathCase.isEqual(path, movePath)) {
@@ -338,13 +364,16 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 							// We have found issues with the patches generated by Model for XML, Jupytext
 							// Possible there are other issues with other formats as well.
 							try {
-								const result = await this.generateUpdateNotebookDocumentEdit(document, path, movePath, file, changes);
+								const result = await this.generateUpdateNotebookDocumentEdit(document, path, movePath, file, changes, promptContext, token);
 								notebookEdits.set(result.path, result.edits);
 								path = result.path;
 								if (changes.newContent) {
 									updated = NotebookDocumentSnapshot.fromNewText(changes.newContent, document);
 								}
 							} catch (error) {
+								if (isCancellationError(error)) {
+									throw error;
+								}
 								this.sendApplyPatchTelemetry('invalidNotebookEdit', options, document.getText(), !!healed, true, error);
 								return new LanguageModelToolResult([
 									new LanguageModelTextPart('Applying patch failed with error: ' + error.message),
@@ -383,13 +412,17 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 				}
 				uri = notebookUri || uri;
 
+				if (token.isCancellationRequested) {
+					throw new CancellationError();
+				}
+
 				const existingDiagnostics = this.languageDiagnosticsService.getDiagnostics(uri);
 
 				// Initialize edit survival tracking for text documents
 				const existsOnDisk = await this.instantiationService.invokeFunction(canExistingFileBeEdited, uri);
 				if (existsOnDisk) {
 					const document = notebookUri ?
-						await this.workspaceService.openNotebookDocumentAndSnapshot(notebookUri, this.alternativeNotebookContent.getFormat(this._promptContext?.request?.model)) :
+						await this.workspaceService.openNotebookDocumentAndSnapshot(notebookUri, this.alternativeNotebookContent.getFormat(promptContext.request?.model)) :
 						await this.workspaceService.openTextDocumentAndSnapshot(uri);
 					if (document instanceof TextDocumentSnapshot) {
 						const tracker = this._editSurvivalTrackerService.initialize(document.document);
@@ -408,20 +441,20 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 						}
 					}
 					responseStream.notebookEdit(notebookUri, true);
-					sendEditNotebookTelemetry(this.telemetryService, this.endpointProvider, 'applyPatch', notebookUri, this._promptContext.requestId, options.model ?? this._promptContext.request?.model);
+					sendEditNotebookTelemetry(this.telemetryService, this.endpointProvider, 'applyPatch', notebookUri, promptContext.requestId, options.model ?? promptContext.request?.model);
 				} else {
-					this._promptContext.stream.markdown('\n```\n');
-					this._promptContext.stream.codeblockUri(notebookUri || uri, true);
+					promptContext.stream.markdown('\n```\n');
+					promptContext.stream.codeblockUri(notebookUri || uri, true);
 
 					responseStream.textEdit(uri, textEdit);
 					responseStream.textEdit(uri, true);
-					this._promptContext.stream.markdown('\n' + '```\n');
+					promptContext.stream.markdown('\n' + '```\n');
 				}
 
 				const opResult = resourceToOperation.get(uri);
 				if (opResult?.action === ActionType.UPDATE && opResult.updated) {
-					this._promptContext.turnEditedDocuments ??= new ResourceMap();
-					this._promptContext.turnEditedDocuments.set(uri, opResult.updated);
+					promptContext.turnEditedDocuments ??= new ResourceMap();
+					promptContext.turnEditedDocuments.set(uri, opResult.updated);
 				}
 				files.push({ uri, isNotebook: !!notebookUri, existingDiagnostics, operation: opResult?.action ?? ActionType.UPDATE });
 			}
@@ -454,14 +487,14 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 								"timeDelayMs": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "comment": "The time delay between the user accepting the edit and measuring the survival rate." }
 							}
 						*/
-						res.telemetryService.sendMSFTTelemetryEvent('applyPatch.trackEditSurvival', { requestId: this._promptContext?.requestId, requestSource: 'agent', mapper: 'applyPatchTool' }, {
+						res.telemetryService.sendMSFTTelemetryEvent('applyPatch.trackEditSurvival', { requestId: promptContext.requestId, requestSource: 'agent', mapper: 'applyPatchTool' }, {
 							survivalRateFourGram: res.fourGram,
 							survivalRateNoRevert: res.noRevert,
 							timeDelayMs: res.timeDelayMs,
 							didBranchChange: res.didBranchChange ? 1 : 0,
 						});
 						res.telemetryService.sendInternalMSFTTelemetryEvent('applyPatch.trackEditSurvival', {
-							requestId: this._promptContext?.requestId,
+							requestId: promptContext.requestId,
 							requestSource: 'agent',
 							mapper: 'applyPatchTool',
 							textBeforeAiEdits: res.textBeforeAiEdits ? JSON.stringify(res.textBeforeAiEdits) : undefined,
@@ -474,7 +507,7 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 							didBranchChange: res.didBranchChange ? 1 : 0,
 						});
 						res.telemetryService.sendGHTelemetryEvent('applyPatch/trackEditSurvival', {
-							headerRequestId: this._promptContext?.requestId,
+							headerRequestId: promptContext.requestId,
 							requestSource: 'agent',
 							mapper: 'applyPatchTool',
 							headBranchName: res.workspace?.headBranchName,
@@ -488,7 +521,7 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 							didBranchChange: res.didBranchChange ? 1 : 0,
 						});
 
-						emitEditSurvivalEvent(this._otelService, 'apply_patch', res.fourGram, res.noRevert, res.timeDelayMs, res.didBranchChange, this._promptContext?.requestId ?? '', res.workspace);
+						emitEditSurvivalEvent(this._otelService, 'apply_patch', res.fourGram, res.noRevert, res.timeDelayMs, res.didBranchChange, promptContext.requestId ?? '', res.workspace);
 						GenAiMetrics.recordEditSurvivalFourGram(this._otelService, 'apply_patch', res.fourGram, res.timeDelayMs);
 						GenAiMetrics.recordEditSurvivalNoRevert(this._otelService, 'apply_patch', res.noRevert, res.timeDelayMs);
 					});
@@ -496,7 +529,7 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 			});
 
 			// Return the result
-			const isInlineChat = this._promptContext.request?.location2 instanceof ChatRequestEditorData;
+			const isInlineChat = promptContext.request?.location2 instanceof ChatRequestEditorData;
 			const isNotebook = editEntires.length === 1 ? handledNotebookUris.size === 1 : undefined;
 			this.sendApplyPatchTelemetry('success', options, undefined, !!healed, isNotebook);
 			const result = new ExtendedLanguageModelToolResult([
@@ -516,6 +549,9 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 			result.hasError = files.some(f => f.error);
 			return result;
 		} catch (error) {
+			if (isCancellationError(error)) {
+				throw error;
+			}
 			const isNotebook = Object.values(docText).length === 1 ? (!!mapFindFirst(Object.values(docText), v => v.notebookUri)) : undefined;
 			// TODO parser.ts could annotate DiffError with a telemetry detail if we want
 			this.sendApplyPatchTelemetry('error', options, undefined, false, isNotebook, error);
@@ -574,9 +610,9 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 		return healed;
 	}
 
-	private async buildCommitWithHealing(model: vscode.LanguageModelChat | undefined, patch: string, docText: DocText, explanation: string, token: CancellationToken): Promise<{ commit: Commit; healed?: string }> {
+	private async buildCommitWithHealing(model: vscode.LanguageModelChat | undefined, patch: string, docText: DocText, explanation: string, token: CancellationToken, promptContext: IBuildPromptContext | undefined): Promise<{ commit: Commit; healed?: string }> {
 		try {
-			const result = await this.buildCommit(patch, docText);
+			const result = await this.buildCommit(patch, docText, promptContext);
 			if (model) {
 				this.editToolLearningService.didMakeEdit(model, ToolName.ApplyPatch, true);
 			}
@@ -598,7 +634,7 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 					throw error;
 				}
 
-				const { commit } = await this.buildCommit(healed, docText);
+				const { commit } = await this.buildCommit(healed, docText, promptContext);
 				return { commit, healed };
 			} catch (healedError) {
 				success = false;
@@ -622,12 +658,12 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 		}
 	}
 
-	private async buildCommit(patch: string, docText: DocText): Promise<{ commit: Commit; docTexts: DocText }> {
+	private async buildCommit(patch: string, docText: DocText, promptContext: IBuildPromptContext | undefined): Promise<{ commit: Commit; docTexts: DocText }> {
 		const commit = await processPatch(patch, async (uri) => {
 			const vscodeUri = resolveToolInputPath(uri, this.promptPathRepresentationService);
 			if (this.notebookService.hasSupportedNotebooks(vscodeUri)) {
 				const notebookUri = findNotebook(vscodeUri, this.workspaceService.notebookDocuments)?.uri || vscodeUri;
-				const altDoc = await this.workspaceService.openNotebookDocumentAndSnapshot(notebookUri, this.alternativeNotebookContent.getFormat(this._promptContext?.request?.model));
+				const altDoc = await this.workspaceService.openNotebookDocumentAndSnapshot(notebookUri, this.alternativeNotebookContent.getFormat(promptContext?.request?.model));
 				docText[vscodeUri.toString()] = { text: altDoc.getText(), notebookUri };
 				return new StringTextDocumentWithLanguageId(altDoc.getText(), altDoc.languageId);
 			} else {
@@ -680,17 +716,18 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 	}
 
 	async resolveInput(input: IApplyPatchToolParams, promptContext: IBuildPromptContext): Promise<IApplyPatchToolParams> {
-		this._promptContext = promptContext;
+		this._promptContexts.set(this._contextKey(promptContext.requestId), promptContext);
 		return input;
 	}
 
 	async prepareInvocation(options: vscode.LanguageModelToolInvocationPrepareOptions<IApplyPatchToolParams>, token: vscode.CancellationToken): Promise<vscode.PreparedToolInvocation> {
 		const uris = [...identify_files_affected(options.input.input)].map(f => URI.file(f));
+		const promptContext = this._promptContexts.get(this._contextKey(options.chatRequestId));
 
 		return this.instantiationService.invokeFunction(
 			createEditConfirmation,
 			uris,
-			this._promptContext?.allowedEditUris,
+			promptContext?.allowedEditUris,
 			(urisNeedingConfirmation) => this.generatePatchConfirmationDetails(options, urisNeedingConfirmation, token),
 			options.forceConfirmationReason,
 			undefined,
@@ -707,20 +744,22 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 		const promptPathRepresentationService = this.promptPathRepresentationService;
 
 		// Process the patch and cache it for later use in invoke()
+		const promptContext = this._promptContexts.get(this._contextKey(options.chatRequestId));
 		const docTexts: DocText = {};
 		const processPromise = (async () => {
 			const { commit, healed } = await this.buildCommitWithHealing(
-				this._promptContext?.request?.model,
+				promptContext?.request?.model,
 				options.input.input,
 				docTexts,
 				options.input.explanation,
-				token
+				token,
+				promptContext
 			);
 			return { commit, docTexts, healed };
 		})();
 
-		// Cache using stringified params
-		this.lastProcessed = { input: options.input.input, output: processPromise };
+		// Cache for this request and patch only.
+		this._preparedPatches.set(this._patchKey(options.chatRequestId, options.input.input), { input: options.input.input, output: processPromise });
 
 		const { commit } = await processPromise;
 
