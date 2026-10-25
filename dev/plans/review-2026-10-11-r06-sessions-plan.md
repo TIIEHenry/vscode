@@ -3,8 +3,8 @@ title: "方案 r06：sessions"
 type: plan
 status: draft
 phase: N/A
-updated: 2026-10-11
-summary: "hold 3，drop 0，weaken 1。审批选择器写入不会被宿主拒绝；活动槽超时后不再补放、自动化先标失败再取消、删会话时终端关闭失败会丢掉跟踪。"
+updated: 2026-10-26
+summary: "hold 3，drop 0，weaken 1。r06-4 已按 D1313 落地：删会话时一个终端关失败留下跟踪并继续关其余。r06-2 / r06-3 不在该刀。方案仍 draft。"
 ---
 
 hold 3，drop 0，weaken 1。
@@ -68,7 +68,7 @@ hold 3，drop 0，weaken 1。
 
 应新增：超时路径里 `cancelCurrentRequest` resolve 之后才出现 `status: 'failed'` 和超时文案；`cancelCurrentRequest` 抛错时该 run 不保持 `failed`。
 
-## r06-4（hold，中）
+## r06-4（D1313 已落地；原 hold，中）
 
 ### 问题类
 删掉会话时，某个终端 `safeDisposeTerminal` 抛错会中断后面的关闭，`finally` 仍删掉整份 `_sessionTerminals`。
@@ -88,3 +88,7 @@ hold 3，drop 0，weaken 1。
 现有 `does not leak unhandled rejection when disposing a removed session terminal fails`（`src/vs/sessions/contrib/terminal/test/browser/sessionsTerminalContribution.test.ts`）只断言没有 unhandled rejection。`closes terminals when a non-focused session is removed` 只覆盖成功关闭一个终端。`_closeTerminalsForSession double-catch then finally; _closeArchivedSessionTerminals double-catch (D644)`（`src/vs/sessions/contrib/terminal/test/node/sessionsTerminalContributionCatchScan.test.ts`）把「双 catch 之后 finally 删除整个 session 键」钉在源码上；改掉整表删除后，这条扫描要改成新的收尾形状。
 
 应新增：同一会话两个非活动终端，第一个 `safeDisposeTerminal` 抛错时，第二个仍被关闭，失败的那个仍留在 `_sessionTerminals` 里。
+
+### 落地（2026-10-25，D1313）
+
+`_closeTerminalsForSession` 对每个终端单独接住抛错。抛错的实例留在该会话跟踪里，循环继续关掉后面的，并写 warn。正常返回仍从跟踪里移除：用户取消关闭时 `safeDisposeTerminal` 不抛错、终端仍在，这次按收尾处理，不把该终端留在已删除会话 id 上。活动终端和已经不在的终端也不再挂在这个 id 上。调用点不再 `.finally` 删掉整张表。r06-2 对照当前源码已会在第一次等待落空后把活动槽放进补放；r06-3 不在本刀。方案仍是 `draft`。

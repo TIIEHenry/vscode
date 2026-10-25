@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-10-25
-summary: "D1312 已关：Inspect 的成员、任务和工具活动在来源会话不一致时显示 No longer in the current tree。D1311–D1305 已关。D24、D8、D16、D147、D405 仍开。"
+updated: 2026-10-26
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1312–D1305 已关。D24、D8、D16、D147、D405 仍开。"
 ---
 
 # Deferred Gaps
@@ -1261,3 +1261,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1310 | P3 | **closed** 身份条文件夹与分支菜单在查询去掉空白后仍非空、目录里还有动作、可见动作行是 0 时分别写 “No matching folders.” 与 “No matching branches.”。空白或只有空白、仍有动作行（含 `showAlways` 与能匹配上的 Add Folder to Workspace…）、目录里没有动作、菜单还在加载、或动态 `onFilter` 换成空目录时不写。其它动作列表不套这两句。匹配仍是未去掉首尾空白的子串。`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run` `actionList.test.ts` 与 `conversationIdentityStrip.test.ts` **exit 0**（52 passing，含 assertCleanState）。`flock` 下只增量转译本刀文件，并补转译当前 `out/` 所缺的 `conversationWorkRootMount.js`。未跑 `npm run compile`，未跑 `compile-client`。既有 compile-client 505 条 / 114 个文件与更早的 147 / 56 不在本刀。 | 只改这两份菜单的筛选落空句，不改其它 ActionList 的默认空态，不改匹配规则 | 查询去掉空白后仍非空且可见动作为零时文件夹是 No matching folders.、分支是 No matching branches.；空白查询、仍有动作行或动态筛选替换目录时不写 | conversation | closed |
 | D1311 | P3 | **closed** Changes 右键另一种标签打开与单击共用 `openChangeEntry`。抛错或比较没画上时 `.sources-changes-status` 写 `sourcesGitDiffOpenFailureMessage` 并标 `is-error`；成功则清掉这条打开状态；过期一代不写。不标已审阅。列表失败残留与 pairing-hold 残留仍不打开。`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run` 两条 Changes 打开用例 **exit 0**（2 passing）；leftover 接线扫描 **exit 0**（1 passing）。`flock` 下 `npm run transpile-client` 退出码 0。未跑 `npm run compile`，未跑 `compile-client`。既有 compile-client 505 条 / 114 个文件与更早的 147 / 56 不在本刀。 | 只改 Changes 右键打开的失败状态，不改 Review 标已审，不改筛选空态 | 右键另一种打开抛错时状态行是 Unable to open diff；成功清掉该行；不标已审阅 | sources / changes | closed |
 | D1312 | P3 | **closed** Inspect 的成员、任务和工具活动目标带上画出该行时的会话。Team 与 Activity 发布 live id 时带上该次列表的会话。已发布会话与目标会话不一致时，即使 id 仍在新列表里，`.agent-inspect-stale-note` 也显示 “No longer in the current tree”。同一会话且 id 仍在则不显示。live id 为 undefined 且没有发布新会话（叶隐藏）时不标过期。Agent 目标的会话判断未改。不改筛选空态。`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run` 三份 Navigator 测试退出码 0（118 passing）。只增量转译，未跑 `npm run compile`，未跑 `compile-client`。既有 compile-client 505 条 / 114 个文件与更早的 147 / 56 不在本刀。见 [status](status.md)。 | 只改这三类检查目标的会话过期，不改 Agent 过期规则，不改筛选空态 | 另一会话的成员、任务或活动即使 id 还在也显示 No longer in the current tree；同一会话且 id 在则不显示；叶隐藏不发布会话时不标过期 | navigator / inspect | closed |
+| D1313 | P3 | **closed** Agents 窗口删掉会话时，某个非活动终端 `safeDisposeTerminal` 抛错不再停掉后面的关闭，也不再在结束时删掉该会话的整张跟踪表。抛错的终端留在屏幕上，并仍记在这个会话 id 下，下一份同目录会话不会把它当成空闲终端接走。正常返回（含用户取消关闭、终端仍开着）仍从跟踪里拿掉。当前正在用的终端不关，也不再挂在已删除的会话 id 上。归档清理未改。`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run` 两份 `sessionsTerminalContribution` 测试退出码 0（90 passing）。只增量转译，未跑 `npm run compile`，未跑 `compile-client`。既有 compile-client 505 条 / 114 个文件与更早的 147 / 56 不在本刀。见 [status](status.md)。 | 只改删会话时的关闭失败，不改归档清理，不改筛选空态，不改 Changes 右键，不改 Inspect 会话过期 | 一个非活动终端关失败时后面的仍关掉，失败的那个仍被跟踪且不被下一份同目录会话接走；正常返回（含用户取消）从跟踪拿掉；活动终端不关也不留在已删除会话 id 上 | sessions / terminal | closed |

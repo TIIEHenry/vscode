@@ -3,14 +3,15 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-25
-summary: "2026-10-25：loop/I 的 D1312（5544ec7dd96）已快进合入。未跑 npm run compile，未 push。compile-client 既有 505 条 error TS。派槽 J 对照代码重选下一刀。"
+updated: 2026-10-26
+summary: "2026-10-26：D1313 删会话时一个终端关失败留下跟踪并继续关其余。两份终端测试 90 passing。未跑 npm run compile，未 push。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **会话终端关闭失败（2026-10-25，D1313）**：Agents 窗口删掉会话时，某个非活动终端 `safeDisposeTerminal` 抛错不再停掉后面的关闭，也不再在结束时删掉该会话的整张跟踪表。抛错的终端留在屏幕上，并仍记在这个会话 id 下，所以下一份同目录会话不会把它当成空闲终端接走。正常返回（含用户取消关闭、终端仍开着）仍从跟踪里拿掉。当前正在用的终端不关，也不再挂在已删除的会话 id 上。毕业换 id 仍先移交，这条关闭碰不到它们。用户取消关闭按正常返回收尾，不留在死会话 id 上。`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run` 两份 `sessionsTerminalContribution` 测试退出码 0（90 passing，含 assertCleanState）。`flock` 空闲，只增量转译贡献与这两份测试。未跑 `npm run compile`，未跑 `compile-client`。既有 compile-client 在 `6ecaeaa3f91` 上退出码 1（505 条 error TS，114 个文件，缺 Electron 类型，与 `1117f5f95f2` 同量级）；更早一次 147 条 / 56 个文件。本刀不改这些。未 push，未合入 merge。见 [D1313](deferred-gaps.md)、[sessions overview](../../docs/systems/sessions/overview.md)。
 - **合入 D1312（2026-10-25）**：`loop/I` 的 `5544ec7dd96` 是 merge 槽 `b11fd1a4e2e` 的快进子提交。merge 槽 `git merge --ff-only`。没有冲突，没有二父 merge commit。本仓没有 `scripts/check-merge-both-sides.sh`，快进用不上两边保留脚本。本条所在提交写完后，人类工位与 A–J 再快进到该 SHA。相对 `origin/agent-ide`（`9128b870dbe`）本提交 ahead 1836、behind 0。该提交自述 Inspect 的成员、任务和工具活动在来源会话不一致时显示 “No longer in the current tree”；三份 Navigator 测试 118 passing。未跑 `npm run compile`，未跑 `compile-client`。`6ecaeaa3f91` 上 compile-client 仍是退出码 1（505 条 `error TS`，114 个文件）。本轮编译锁空闲，不 push。不把这 505 条或先前的 147 条当成下一刀。已派槽 J 对照代码重选一个仍未落地的行为并做完。不重做 D1305–D1312。H 的未跟踪 `attachments/` 仍不要 add。
 - **Inspect 会话过期（2026-10-25，D1312）**：Navigator Inspect 里 Team 成员、Team 任务和 Agents 工具活动的目标带上画出该行时的会话。对应列表发布了另一个会话时，即使 id 还在新列表里，也显示 “No longer in the current tree”。同一会话且 id 仍在则不显示。叶隐藏把 live id 写成 undefined 且不发布新会话，不因此标过期。Agent 目标的会话判断未改。`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run` `agentInspectPanel.test.ts`、`navigatorAgentsSubviews.test.ts`、`navigatorTeamSubviews.test.ts` 退出码 0（118 passing）。`flock` 空闲，只增量转译本刀文件；`out/` 缺既有的 `conversationSessionAvailability.js`、`conversationSessionReadiness.js` 与 `connectionDeviceList.css`，同一把锁补了这三份，并刷新了测试图里导出对不上的过期产物。未跑 `npm run compile`，未跑 `compile-client`。既有 compile-client 在 `6ecaeaa3f91` 上退出码 1（505 条 error TS，114 个文件，缺 Electron 类型，与 `1117f5f95f2` 同量级）；更早一次 147 条 / 56 个文件。本刀不改这些。未 push，未合入 merge。见 [D1312](deferred-gaps.md)、[activity-and-sidebar](../../docs/systems/workbench/activity-and-sidebar.md)。
 - **合入 D1311（2026-10-25）**：`loop/G` 的 `55cd0b1a786` 是 merge 槽 `9b84fc132ab` 的快进子提交。merge 槽 `git merge --ff-only`。没有冲突，没有二父 merge commit。本仓没有 `scripts/check-merge-both-sides.sh`，快进用不上两边保留脚本。本条所在提交写完后，人类工位与 A–J 再快进到该 SHA。相对 `origin/agent-ide`（`9128b870dbe`）本提交 ahead 1834、behind 0。该提交自述 Changes 右键另一种打开失败时状态行写打开失败，成功则清掉；`sourcesReviewList.test.ts` 2 passing，`sourcesWiringScan.test.ts` 1 passing，`transpile-client` 退出码 0。未跑 `npm run compile`，未跑 `compile-client`。`6ecaeaa3f91` 上 compile-client 仍是退出码 1（505 条 `error TS`，114 个文件）。本轮编译锁空闲，不 push。不把这 505 条或先前的 147 条当成下一刀。已派槽 I 对照代码重选一个仍未落地的行为并做完。不重做 D1305–D1311。H 的未跟踪 `attachments/` 仍不要 add。

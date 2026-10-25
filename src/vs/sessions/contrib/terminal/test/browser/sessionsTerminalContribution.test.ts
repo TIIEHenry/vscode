@@ -291,6 +291,7 @@ suite('SessionsTerminalContribution', () => {
 	let defaultCwdCalls: (URI | undefined)[];
 	let vetoSafeDispose: boolean;
 	let rejectSafeDispose: Error | undefined;
+	let safeDisposeRejectIds: Set<number>;
 	let safeDisposeBarrier: DeferredPromise<void> | undefined;
 	let logService: TestLogService;
 	let allSessions: ISession[];
@@ -317,6 +318,7 @@ suite('SessionsTerminalContribution', () => {
 		defaultCwdCalls = [];
 		vetoSafeDispose = false;
 		rejectSafeDispose = undefined;
+		safeDisposeRejectIds = new Set();
 		safeDisposeBarrier = undefined;
 		logService = new TestLogService();
 		allSessions = [];
@@ -384,6 +386,10 @@ suite('SessionsTerminalContribution', () => {
 				await safeDisposeBarrier?.p;
 				if (rejectSafeDispose) {
 					throw rejectSafeDispose;
+				}
+				if (safeDisposeRejectIds.has(instance.instanceId)) {
+					safeDisposeRejectIds.delete(instance.instanceId);
+					throw new Error(`safeDispose failed for ${instance.instanceId}`);
 				}
 				if (vetoSafeDispose) {
 					return;
@@ -1840,6 +1846,39 @@ suite('SessionsTerminalContribution', () => {
 		await tick();
 
 		assert.strictEqual(disposedInstances.length, 1);
+	});
+
+	test('keeps closing later terminals when one removed-session dispose fails', async () => {
+		const removed = makeAgentSession({ sessionId: 'test:removed-two', worktree: URI.file('/one'), providerType: AgentSessionProviders.Background });
+		await contribution.ensureTerminal(URI.file('/one'), false, removed);
+		await contribution.ensureTerminal(URI.file('/two'), false, removed);
+		await contribution.ensureTerminal(URI.file('/other'), false, makeAgentSession({ sessionId: 'test:keeper', worktree: URI.file('/other'), providerType: AgentSessionProviders.Background }));
+
+		assert.deepStrictEqual(createdTerminals.map(terminal => terminal.cwd.fsPath), ['/one', '/two', '/other']);
+		assert.strictEqual(activeInstanceId, 3);
+
+		safeDisposeRejectIds.add(1);
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			onDidChangeSessions.fire({ added: [], removed: [removed], changed: [] });
+			await tick();
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.deepStrictEqual(disposedInstances.map(instance => instance.instanceId), [2], 'a later terminal still closes');
+			assert.ok(terminalInstances.has(1), 'the terminal whose close threw stays open');
+			assert.ok(terminalInstances.has(3), 'another session\'s active terminal stays open');
+
+			const before = createdTerminals.length;
+			await contribution.ensureTerminal(URI.file('/one'), false, makeAgentSession({ sessionId: 'test:next', worktree: URI.file('/one'), providerType: AgentSessionProviders.Background }));
+			assert.strictEqual(createdTerminals.length, before + 1, 'the terminal that failed to close stays tracked and is not reused');
+			assert.ok(terminalInstances.has(1));
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
 	});
 
 	test('does not leak unhandled rejection when disposing a removed session terminal fails', async () => {

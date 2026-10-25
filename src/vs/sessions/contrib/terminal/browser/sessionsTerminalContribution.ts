@@ -301,7 +301,7 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 			}
 			this._logService.trace(`[SessionsTerminal] onDidChangeSessions cleanup (removed: ${e.removed.length}, justArchived: ${justArchived.length}, trackedSessions: ${this._sessionTerminals.size}, activeKey: ${this._activeKey ?? '<none>'})`);
 			for (const session of e.removed) {
-				void this._closeTerminalsForSession(session.sessionId, `session removed (${session.sessionId})`).catch(onUnexpectedError).catch(onUnexpectedError).finally(() => this._sessionTerminals.delete(session.sessionId));
+				void this._closeTerminalsForSession(session.sessionId, `session removed (${session.sessionId})`).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			for (const session of justArchived) {
 				void this._closeArchivedSessionTerminals(session).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -915,14 +915,25 @@ export class SessionsTerminalContribution extends Disposable implements IWorkben
 		for (const instance of this._getTrackedTerminalsForSession(sessionId)) {
 			if (protectedInstanceId !== undefined && instance.instanceId === protectedInstanceId) {
 				this._logService.info(`[SessionsTerminal] Skipping active terminal ${instance.instanceId} for session ${sessionId} (user is working in it)`);
+				// The session id is gone. Do not leave the terminal the user is in under it.
+				this._removeTerminalFromTrackedSessions(instance.instanceId);
 				continue;
 			}
 			const availableInstance = this._getAvailableTerminal(instance, `close removed session terminal for session ${sessionId}`);
 			if (!availableInstance) {
+				this._removeTerminalFromTrackedSessions(instance.instanceId);
 				continue;
 			}
 			this._logService.info(`[SessionsTerminal] Killing terminal ${availableInstance.instanceId} (session: ${sessionId}, reason: ${reason})`);
-			await this._terminalService.safeDisposeTerminal(availableInstance);
+			try {
+				await this._terminalService.safeDisposeTerminal(availableInstance);
+			} catch (error) {
+				// The close did not finish. Keep this id and close the rest.
+				// A normal return, including a user veto that leaves the terminal open, still drops the id.
+				this._logService.warn(`[SessionsTerminal] Failed to kill terminal ${availableInstance.instanceId} (session: ${sessionId}, reason: ${reason})`);
+				onUnexpectedError(error);
+				continue;
+			}
 			this._removeTerminalFromTrackedSessions(availableInstance.instanceId);
 		}
 	}
