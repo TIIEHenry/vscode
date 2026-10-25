@@ -10,6 +10,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
+import { localize } from '../../../../nls.js';
 
 const $ = dom.$;
 
@@ -38,7 +39,7 @@ export class SourcesListFilterBox extends Disposable {
 
 		this.clearButton = dom.append(this.element, $('button.sources-list-filter-clear')) as HTMLButtonElement;
 		this.clearButton.type = 'button';
-		this.clearButton.setAttribute('aria-label', ariaLabel);
+		this.clearButton.setAttribute('aria-label', localize('sourcesListFilter.clearFilter', "Clear filter"));
 		this.clearButton.appendChild(renderIcon(Codicon.close));
 
 		this._register(dom.addStandardDisposableListener(this.input, 'input', () => {
