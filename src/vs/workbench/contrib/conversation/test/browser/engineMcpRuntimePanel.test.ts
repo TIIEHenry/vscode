@@ -21,6 +21,7 @@ import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy,
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { EngineMcpRuntimePanel } from '../../browser/engineMcpRuntimePanel.js';
+import { EngineCatalogStatusWidget } from '../../browser/engineCatalogStatus.js';
 import { localize } from '../../../../../nls.js';
 
 const MCP_RUNTIME_FEATURE = localize('ua.engineMcpRuntimeFeatureLabel', "MCP server runtime");
@@ -33,6 +34,33 @@ const ALT_RUNTIME_SERVER_ID = 'alt-runtime-server';
 const STALE_TOOLS_FAIL_REASON = 'stale getMcpServerTools for prior server';
 const LEFTOVER_TOOL_NAME = 'leftover-mcp-tool';
 const FRESH_LIVE_TOOL_NAME = 'inflight-live-mcp-tool';
+
+suite('Engine catalog status actions', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('disconnected status exposes the provided connection action', () => {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		let openConnectionCalls = 0;
+		const widget = store.add(new EngineCatalogStatusWidget(parent));
+
+		widget.render({
+			mode: 'disconnected',
+			onOpenConnection: () => openConnectionCalls++,
+		});
+
+		const action = parent.querySelector('.engine-catalog-status-actions .monaco-button') as HTMLButtonElement | null;
+		assert.ok(action);
+		assert.strictEqual(action.textContent?.trim(), 'Open Connection');
+		action.click();
+		assert.strictEqual(openConnectionCalls, 1);
+
+		widget.render({ mode: 'failed', onRetry: () => { } });
+		assert.strictEqual(parent.querySelectorAll('.engine-catalog-status-actions .monaco-button').length, 1);
+		parent.remove();
+	});
+});
 
 suite('EngineMcpRuntimePanel leftover (D227 / D238 / D256 / D263)', () => {
 
