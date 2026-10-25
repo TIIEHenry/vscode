@@ -53,6 +53,12 @@ type EngineSkillListEntry =
 	| { readonly kind: 'group'; readonly source: UniverseAgentSkillSummary['source']; readonly label: string; readonly count?: number }
 	| { readonly kind: 'skill'; readonly skill: UniverseAgentSkillSummary };
 
+function getSkillToggleLabel(skillName: string, enabled: boolean): string {
+	return enabled
+		? localize('ua.engineSkillRowToggleDisable', "Disable {0}", skillName)
+		: localize('ua.engineSkillRowToggleEnable', "Enable {0}", skillName);
+}
+
 function skillEntryHeight(_entry: EngineSkillListEntry): number {
 	return 24;
 }
@@ -120,6 +126,7 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 		const checkboxDisposable = checkbox.onChange(() => {
 			const skill = (row as unknown as { __skill?: UniverseAgentSkillSummary }).__skill;
 			if (skill && this.canToggle()) {
+				checkbox.setTitle(getSkillToggleLabel(skill.name, checkbox.checked));
 				this.onToggle(skill, checkbox.checked);
 			}
 		});
@@ -140,9 +147,7 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 		const description = entry.skill.description?.trim() ?? '';
 		templateData.description.textContent = description;
 		templateData.description.style.display = description ? '' : 'none';
-		templateData.checkbox.setTitle(entry.skill.enabled
-			? localize('ua.engineSkillRowToggleDisable', "Disable {0}", entry.skill.name)
-			: localize('ua.engineSkillRowToggleEnable', "Enable {0}", entry.skill.name));
+		templateData.checkbox.setTitle(getSkillToggleLabel(entry.skill.name, entry.skill.enabled));
 		templateData.checkbox.checked = entry.skill.enabled;
 		templateData.checkbox.enable();
 		if (!this.canToggle()) {
