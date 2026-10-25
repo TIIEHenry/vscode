@@ -309,6 +309,30 @@ suite('EngineSkillsSection (E1)', () => {
 		await flushMicrotasks();
 	});
 
+	test('skill toggle action names describe the next enablement state', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async (): Promise<UniverseAgentListSkillsResult> => ({
+				skills: [
+					{ name: 'enabled-skill', source: 'bundled', enabled: true },
+					{ name: 'disabled-skill', source: 'user', enabled: false },
+				],
+			}),
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')];
+		const enabledToggle = rows.find(row => row.textContent?.includes('enabled-skill'))?.querySelector('.monaco-custom-toggle');
+		const disabledToggle = rows.find(row => row.textContent?.includes('disabled-skill'))?.querySelector('.monaco-custom-toggle');
+		assert.ok(enabledToggle);
+		assert.ok(disabledToggle);
+		assert.strictEqual(enabledToggle?.getAttribute('aria-label'), 'Disable enabled-skill');
+		assert.strictEqual(disabledToggle?.getAttribute('aria-label'), 'Enable disabled-skill');
+	});
+
 	test('late listSkills after dispose does not paint skill rows', async () => {
 		let releaseList: ((value: UniverseAgentListSkillsResult) => void) | undefined;
 		const connection = createConnectionStub({

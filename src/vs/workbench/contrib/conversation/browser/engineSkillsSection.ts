@@ -140,7 +140,9 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 		const description = entry.skill.description?.trim() ?? '';
 		templateData.description.textContent = description;
 		templateData.description.style.display = description ? '' : 'none';
-		templateData.checkbox.setTitle(localize('ua.engineSkillRowToggle', "Enable {0}", entry.skill.name));
+		templateData.checkbox.setTitle(entry.skill.enabled
+			? localize('ua.engineSkillRowToggleDisable', "Disable {0}", entry.skill.name)
+			: localize('ua.engineSkillRowToggleEnable', "Enable {0}", entry.skill.name));
 		templateData.checkbox.checked = entry.skill.enabled;
 		templateData.checkbox.enable();
 		if (!this.canToggle()) {
