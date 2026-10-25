@@ -12,6 +12,7 @@ summary: "2026-10-26：D1316–D1318 已合入 merge 槽；唯一一次 npm run 
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
 - **本波集成验证（2026-10-26）**：C/D/E 三槽已在 merge 槽串行合入（D1316/D1317/D1318）。唯一一次 `npm run compile` 在 `compile-copilot` 写入只读输出目录时 exit 1；未进入源码类型检查，暂不归因本波。未 push，待可写构建输出环境复验。
+- **本波槽位同步（2026-10-26）**：主工作区 `agent-ide`、固定 `merge` 槽及 C/D/E 均已 `merge --ff-only` 到 `c429e0a13be` 且干净；未 push。
 - **上下文选择器 Configure 拒绝收口（2026-10-26，D1316）**：`src/vs/sessions/contrib/chat/browser/newChatContextAttachments.ts` 的 Configure 命令改为 `void ...catch(onUnexpectedError).catch(onUnexpectedError)`；新增 `newChatContextAttachmentsCatchScan.test.ts` 锁定单一调用点与双 catch。已登记到 [deferred-gaps](deferred-gaps.md)，待定向测试与集成编译环境可写时复验。
 - **Replace Preview 更新队列收口（2026-10-26，D1317）**：`replaceService.ts` 的 `next.finally(...)` 清理链现在补上 `onUnexpectedError` 双 catch，避免预览更新失败时清理派生 Promise 留下未处理 rejection。`git diff --check` 与该文件 ESLint 均退出 0；未跑全量 `npm run compile`，待 merge 槽统一验证。
 - **本轮合入（2026-10-26）**：A 槽 `66de06a061c` 与 B 槽 `cae1454ffc4` 在固定 merge 槽串行真三路合入，集成提交 `3eeb375703d`，随后以 `1c749e3163c` 记录验证边界。两侧代码与行动层记录均保留；未 push，因唯一一次 `npm run compile` 受只读输出目录限制失败。
