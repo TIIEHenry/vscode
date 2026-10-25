@@ -671,6 +671,44 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.changesModel.scheduleRefresh();
 	}
 
+	// Click and the alternate-slot menu share one open-status generation. This list does not mark reviewed.
+	private async openChangeEntry(element: ISourcesChangeEntry, options: ISourcesChangeEntryOpenOptions): Promise<void> {
+		// List-fail leftover and KEEP pairing-hold leftover are not live FileDiff / preview surfaces (D444 / D446).
+		if (this.isSourcesGitFileDiffOpenSkipped()) {
+			return;
+		}
+
+		const generation = beginSourcesChangesOpenStatus();
+		try {
+			const opened = await openSourcesChangeEntry(element, {
+				editorService: this.editorService,
+				quickDiffService: this.quickDiffService,
+				configurationService: this.configurationService,
+				instantiationService: this.instantiationService,
+				sourcesDiffPanelService: this.sourcesDiffPanelService,
+				modelService: this.modelService,
+				readGitFileDiff: entry => this.readGitFileDiff(entry),
+				editorGroupsService: this.editorGroupsService,
+				session: this.session,
+			}, options);
+			settleSourcesOpenStatus(generation, isCurrentSourcesChangesOpenStatus, opened, {
+				onFalse: () => {
+					this.writeStatusMessage = undefined;
+					this.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())));
+				},
+				onTrue: () => {
+					this.setStatusMessage(undefined);
+				},
+			});
+		} catch (error) {
+			if (!isCurrentSourcesChangesOpenStatus(generation)) {
+				return;
+			}
+			this.writeStatusMessage = undefined;
+			this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
+		}
+	}
+
 	private ensureList(): WorkbenchList<ISourcesChangeEntry> {
 		if (this.list) {
 			return this.list;
@@ -704,39 +742,11 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 					return;
 				}
 
-				const generation = beginSourcesChangesOpenStatus();
-				try {
-					const opened = await openSourcesChangeEntry(element, {
-						editorService: this.editorService,
-						quickDiffService: this.quickDiffService,
-						configurationService: this.configurationService,
-						instantiationService: this.instantiationService,
-						sourcesDiffPanelService: this.sourcesDiffPanelService,
-						modelService: this.modelService,
-						readGitFileDiff: entry => this.readGitFileDiff(entry),
-						editorGroupsService: this.editorGroupsService,
-						session: this.session,
-					}, {
-						preserveFocus: e.editorOptions.preserveFocus,
-						pinned: e.editorOptions.pinned,
-						slot: e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService),
-					});
-					settleSourcesOpenStatus(generation, isCurrentSourcesChangesOpenStatus, opened, {
-						onFalse: () => {
-							this.writeStatusMessage = undefined;
-							this.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())));
-						},
-						onTrue: () => {
-							this.setStatusMessage(undefined);
-						},
-					});
-				} catch (error) {
-					if (!isCurrentSourcesChangesOpenStatus(generation)) {
-						return;
-					}
-					this.writeStatusMessage = undefined;
-					this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
-				}
+				await this.openChangeEntry(element, {
+					preserveFocus: e.editorOptions.preserveFocus,
+					pinned: e.editorOptions.pinned,
+					slot: e.sideBySide ? undefined : sourcesEditorOpenSlot(this.configurationService),
+				});
 			})().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
@@ -751,17 +761,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			this.contextMenuService.showContextMenu({
 				getAnchor: () => e.anchor,
 				getActions: () => [sourcesAlternateOpenAction(current, slot => {
-					void openSourcesChangeEntry(element, {
-						editorService: this.editorService,
-						quickDiffService: this.quickDiffService,
-						configurationService: this.configurationService,
-						instantiationService: this.instantiationService,
-						sourcesDiffPanelService: this.sourcesDiffPanelService,
-						modelService: this.modelService,
-						readGitFileDiff: entry => this.readGitFileDiff(entry),
-						editorGroupsService: this.editorGroupsService,
-						session: this.session,
-					}, { preserveFocus: true, slot }).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.openChangeEntry(element, { preserveFocus: true, slot }).catch(onUnexpectedError).catch(onUnexpectedError);
 				})],
 			});
 		}));

@@ -2726,6 +2726,37 @@ suite('Sources - review list model', () => {
 		assert.ok(status.includes('boom'));
 	});
 
+	test('Changes context menu alternate open writes open-diff failure on the status line', async function () {
+		const host = mountListHost();
+		const instantiationService = stubSourcesGitListServices({
+			connection: createGitConnection(),
+			getQuickDiffs: async () => { throw new Error('boom'); },
+		});
+		const shown = stubReviewContextMenu(instantiationService);
+		const widget = store.add(instantiationService.createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '120px';
+		await waitForList(widget as unknown as { list?: WorkbenchList<unknown> });
+
+		const row = host.querySelector('.sources-changes-list .monaco-list-row') as HTMLElement | null;
+		assert.ok(row, 'changes row');
+		row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+		const actions = shown.current?.getActions() ?? [];
+		try {
+			const openAction = actions.find(action => action.id === 'sources.openInNewTab' || action.id === 'sources.replaceActiveEditor');
+			assert.ok(openAction, 'alternate open action');
+			await openAction.run();
+		} finally {
+			for (const action of actions) {
+				action.dispose();
+			}
+		}
+
+		const status = await waitForStatusText(host, '.sources-changes-status', 'Unable to open diff');
+		assert.strictEqual(status, sourcesGitDiffOpenFailureMessage(new Error('boom')));
+		assert.ok(status.includes('boom'));
+		assert.ok(host.querySelector('.sources-changes-status')?.classList.contains('is-error'));
+	});
+
 	test('Changes list status DOM shows Stage Selected write throw', async function () {
 		const host = mountListHost();
 		const instantiationService = stubSourcesGitListServices({
