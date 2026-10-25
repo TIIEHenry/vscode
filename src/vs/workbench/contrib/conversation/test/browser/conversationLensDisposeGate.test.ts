@@ -2891,17 +2891,21 @@ suite('conversation lens dispose gate', () => {
 	function sessionBarHandlerHost(options: {
 		pairingPending: boolean;
 		engineSessionReady: boolean;
+		engineConnected?: boolean;
+		hasEngineConnectionHistory?: boolean;
 	}): {
 		host: IConversationLensSessionBarHost;
 		failures: ConversationComposerPostFailureReason[];
 		createCalls: number[];
 		deleteCalls: number[];
 		renameCalls: number[];
+		draftWrites: string[];
 	} {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const createCalls: number[] = [];
 		const deleteCalls: number[] = [];
 		const renameCalls: number[] = [];
+		const draftWrites: string[] = [];
 		const sessions = [{ id: 'ua-a', title: 'A' }];
 		const titleButton = document.createElement('button');
 		titleButton.textContent = 'A';
@@ -2918,7 +2922,9 @@ suite('conversation lens dispose gate', () => {
 			dialogService: { confirm: () => Promise.resolve({ confirmed: true }) },
 			dockTextarea: { value: 'leftover draft' },
 			getBoundSessionId: () => 'ua-a',
-			writeComposerDraft: () => { },
+			writeComposerDraft: (_sessionId: string, text: string) => {
+				draftWrites.push(text);
+			},
 			deleteComposerDraftsForSession: () => { },
 			refreshSessionSelectOptions: () => { },
 			updateSessionTitle: () => { },
@@ -2926,9 +2932,9 @@ suite('conversation lens dispose gate', () => {
 				failures.push(reason);
 			},
 			stubService: {
-				isEngineConnected: () => true,
+					isEngineConnected: () => options.engineConnected ?? true,
 				isEngineSessionReady: () => options.engineSessionReady,
-				hasEngineConnectionHistory: () => true,
+					hasEngineConnectionHistory: () => options.hasEngineConnectionHistory ?? true,
 				getActiveSessionId: () => 'ua-a',
 				getActiveSession: () => sessions[0],
 				getSessions: () => sessions,
@@ -2967,6 +2973,7 @@ suite('conversation lens dispose gate', () => {
 			createCalls,
 			deleteCalls,
 			renameCalls,
+			draftWrites,
 		};
 	}
 
@@ -2988,6 +2995,7 @@ suite('conversation lens dispose gate', () => {
 		deleteActiveSession(fixture.host);
 		assert.deepStrictEqual(fixture.createCalls, []);
 		assert.deepStrictEqual(fixture.deleteCalls, []);
+		assert.deepStrictEqual(fixture.draftWrites, []);
 		assert.deepStrictEqual(fixture.host.stubService.getSessions().map(session => session.title), ['A']);
 		assert.deepStrictEqual(fixture.failures, ['session_not_ready', 'session_not_ready']);
 
@@ -3019,9 +3027,22 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(fixture.createCalls, []);
 		assert.deepStrictEqual(fixture.deleteCalls, []);
 		assert.deepStrictEqual(fixture.renameCalls, []);
+		assert.deepStrictEqual(fixture.draftWrites, []);
 		assert.deepStrictEqual(fixture.host.stubService.getSessions().map(session => session.title), ['A']);
 		assert.deepStrictEqual(fixture.failures, ['engine_disconnected', 'engine_disconnected']);
 	});
+
+		test('engine-cache disconnect SessionBar handlers refuse create without capturing a draft', () => {
+			const fixture = sessionBarHandlerHost({ pairingPending: false, engineSessionReady: true, engineConnected: false });
+			assert.strictEqual(isConversationPairingHold(fixture.host.uaConnection), false);
+
+			createNewSession(fixture.host);
+			deleteActiveSession(fixture.host);
+			assert.deepStrictEqual(fixture.createCalls, []);
+			assert.deepStrictEqual(fixture.deleteCalls, []);
+			assert.deepStrictEqual(fixture.draftWrites, []);
+			assert.deepStrictEqual(fixture.failures, ['engine_disconnected', 'engine_disconnected']);
+		});
 
 	test('connected live SessionBar handlers still write when engine session is ready', async () => {
 		const fixture = sessionBarHandlerHost({ pairingPending: false, engineSessionReady: true });
@@ -3039,6 +3060,7 @@ suite('conversation lens dispose gate', () => {
 
 		createNewSession(fixture.host);
 		assert.deepStrictEqual(fixture.createCalls, [1]);
+		assert.deepStrictEqual(fixture.draftWrites, ['leftover draft']);
 		assert.strictEqual(fixture.host.stubService.getSessions().length, 2);
 
 		await deleteActiveSession(fixture.host);

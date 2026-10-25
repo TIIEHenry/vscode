@@ -579,7 +579,6 @@ function outgoingComposerDraftText(host: IConversationLensSessionBarHost): strin
 
 export function createNewSession(host: IConversationLensSessionBarHost): void {
 
-		host.writeComposerDraft(host.getBoundSessionId(), outgoingComposerDraftText(host));
 		if (isConversationPairingHold(host.uaConnection)) {
 			host.showPostFailure('engine_disconnected');
 			return;
@@ -592,6 +591,7 @@ export function createNewSession(host: IConversationLensSessionBarHost): void {
 			host.showPostFailure('engine_disconnected');
 			return;
 		}
+		host.writeComposerDraft(host.getBoundSessionId(), outgoingComposerDraftText(host));
 		host.stubService.createSession();
 	
 }
