@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1330–D1331 已合入，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332 移动 Chat Input Config Picker 错误收口已改；D1330–D1331 已合入，D467 回收证据已闭合。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **移动 Chat Input Config Picker Promise 收口（2026-10-26，D1332）**：Mode/Model 组合选择器的模型 picker、点击和键盘入口原直接 fire-and-forget `_showSheet()`；现统一接入 `onUnexpectedError` 双 catch，并新增源码扫描测试，不改变 sheet 或选择语义。
 - **Automation dialog Promise 收口（2026-10-26，D1330）**：分支 retry、工作区变化刷新与移动工作区选择器 dispatch 原直接 fire-and-forget；现接入 `onUnexpectedError` 双 catch，并新增源码扫描测试。定向 Electron 测试仍受 sandbox 133 限制；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。
 - **移动端 Host 选择层焦点边界（2026-10-26，D1331，本波 UI 审查）**：Remote Agent Hosts 底部选择层声明为 modal，但无已选主机时打开后焦点仍留在底层标题栏，Tab 也能离开浮层；主机行的 `:focus-visible` 还只复用悬停底色。现为已选主机优先、首个主机/重发现/关闭按钮回退的初始焦点，Tab/Shift+Tab 在选择层内循环，关闭动画结束后恢复触发控件焦点，并为主机行补 `--vscode-focusBorder` token 化焦点环。空主机、发现中和正常列表状态共用同一边界；新增源码扫描测试锁定焦点陷阱与恢复。未改主机选择、连接或发现语义。
 - **Manage Remote Agent Hosts Promise 收口（2026-10-26，D1328）**：远端主机选项对话框的 fire-and-forget Promise 原无 rejection handler；现补 `onUnexpectedError` 双 catch，并新增源码扫描测试。定向 Electron 测试仍受 sandbox 133 限制；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。
