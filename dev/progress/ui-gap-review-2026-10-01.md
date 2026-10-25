@@ -3,7 +3,7 @@ title: "UI 缺口并行审查 2026-10-01"
 type: progress
 status: draft
 phase: M7
-updated: 2026-10-02
+updated: 2026-10-26
 summary: "四路只读审查 UI 缺口已齐：3 条 Critical 与 Important/Minor 清单。提问 Submit 空选项静默已由后续切片补上提示。PRD 不升档。"
 ---
 
@@ -70,7 +70,7 @@ summary: "四路只读审查 UI 缺口已齐：3 条 Critical 与 Important/Mino
 - Q5a 停洗白、Q6 `is-narrow`、Accessible View、提问座位、`requestDetail`、composer `@` chip（D464）均在 HEAD。
 - r03 方案与 sources-architecture P6 / P7 与 HEAD 对上。D31 仍开，属默认窗，本轮未代验。
 - `sessions.web.main.ts:210-211` 的 `TODO` + `NullAgentFeedback`、SSH / WSL 为 Null：Sessions 窗诚实降级，不是 Conversation Web 缺口。PRD-019 / W1 / D15 保持 accepted 正确。
-- D467（隐藏叶回收）为有意延期，不在本轮重开。
+- D467（隐藏叶回收）已由 D1321 关闭：删除隐藏叶会回收 editor part、store、DOM 与索引，并有回归测试；本轮不再把它列为延期。
 - PRD-018 / PRD-019 与 [a11y 方案](../plans/accessibility-responsive-ui.md) 仍 `accepted`，与「代码已落、手测 / axe 未做」一致，本文不改其状态。
 
 ## U3 补充

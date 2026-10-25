@@ -3,7 +3,7 @@ title: "Conversation 时间线正文：会话与子代理 pill"
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
+updated: 2026-10-26
 summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill + 轻量 hover + 点击按 PRD-016 路由；跨会话 reveal 目标自己的叶；S3w 钉死叶级 SessionBar（方案 C，每扇一份，用户 2026-09-14 拍板）+ 隐藏叶 restore 仍单叶 + 隐藏叶释放 lease；规则 16 第五轮（fable 5.1）已审改稿，2026-09-14 用户签收。§9 钉死 Composer @ 宿主为 textarea 上方 chip 行（代码已按合同改；transpile-client 0，conversationComposerAtChip 4 通过）"
 ---
 
@@ -333,7 +333,7 @@ S1–S4 全部可在**无引擎**下落地：链接目标是本窗口自己的 c
 | 根 pill 关掉已有 tool tab | 不走 `navigateAgentBreadcrumb`；测试 7 |
 | `toString` 往返误杀合法 key | §3.2 改 parse + authority/query/fragment |
 
-**仍开放（不阻塞正文）：** 修饰键 / 右键「打开到旁边」与 Navigator 入口如何统一。R9 已闭，不再等字面链接格式。`sideChat` 要等 catalog 能产出条目且对话框有「侧聊」标识和一级来源，才按 §3.3b 放行 pill。已删除会话的隐藏叶 DOM / part 永不回收（lease 已释放），不在本期设上限。
+**仍开放（不阻塞正文）：** 修饰键 / 右键「打开到旁边」与 Navigator 入口如何统一。R9 已闭，不再等字面链接格式。`sideChat` 要等 catalog 能产出条目且对话框有「侧聊」标识和一级来源，才按 §3.3b 放行 pill。已删除会话的隐藏叶由 session-window 生命周期回收（D1321，含 editor part、store、DOM 与索引）；仍不设隐藏叶上限或 LRU，以保留隐藏叶中的 tab / 导航栈 / 草稿。
 
 **群聊 / DeepThink / Team member / Advise（引擎已有，本仓 Conversation 未分面；外仓细节待核，不当事合同）：** wire 层 `AGENT_TYPE_ROOT | SUB | MEMBER | ADVISE`，`LiveAgentTreeNodeView.type` 只是 `string`。HEAD `collectLiveAgentTreeCatalogEntries` **不看 type**，`syncSubAgentsFromLiveTree` 把非根一律写成 catalog `originKind:'tool'`。DeepThink / Circle 群聊的引擎形态不在本仓 docs 落锚，本稿 **不**按 type 分 pill、**不**加 `agentType`。若这类节点已经在 catalog 里且链接命中，点击会走今天的 `openSubAgent` 对话框——可能是错面。后续要分面时另开方案，先改 PRD。
 
