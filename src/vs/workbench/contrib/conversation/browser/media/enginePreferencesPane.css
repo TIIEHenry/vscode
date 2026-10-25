@@ -1025,6 +1025,13 @@
 	box-shadow: none;
 }
 
+.monaco-workbench .engine-provider-catalog-filter:disabled {
+	color: var(--vscode-disabledForeground);
+	background-color: color-mix(in srgb, var(--vscode-foreground) 2%, transparent);
+	border-color: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	cursor: not-allowed;
+}
+
 .monaco-workbench .engine-provider-catalog-filter-empty {
 	margin: 0 0 12px;
 	color: var(--vscode-descriptionForeground);

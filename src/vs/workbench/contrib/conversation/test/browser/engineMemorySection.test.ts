@@ -102,6 +102,9 @@ suite('EngineMemorySection', () => {
 		assert.deepStrictEqual(lists, [{ scope: 'global', category: '' }]);
 
 		const filter = root.querySelector('input.engine-provider-catalog-filter') as HTMLInputElement;
+		assert.strictEqual(filter.disabled, false);
+		assert.strictEqual(filter.title, '');
+		assert.strictEqual(filter.getAttribute('aria-label'), 'Search memory');
 		filter.value = 'alpha';
 		filter.dispatchEvent(new (filter.ownerDocument.defaultView!.Event)('input', { bubbles: true }));
 		await timeout(0);
@@ -316,7 +319,21 @@ suite('EngineMemorySection', () => {
 		await timeout(0);
 		const unavailable = getEngineSectionApiUnavailableCopy('memory');
 		assert.ok((missingMount.section.getDomNode().textContent ?? '').includes(unavailable));
+		const missingFilter = missingMount.section.getDomNode().querySelector('input.engine-provider-catalog-filter') as HTMLInputElement;
+		assert.strictEqual(missingFilter.disabled, true);
+		assert.strictEqual(missingFilter.title, unavailable);
+		assert.strictEqual(missingFilter.getAttribute('aria-label'), `Search memory. ${unavailable}`);
 		missingMount.section.getDomNode().parentElement?.remove();
+
+		const disconnected = createMemoryConnection({ listMemory: async () => ({ categories: [] }) });
+		const disconnectedMount = mountSection(disconnected);
+		await timeout(0);
+		const disconnectedFilter = disconnectedMount.section.getDomNode().querySelector('input.engine-provider-catalog-filter') as HTMLInputElement;
+		const disconnectedReason = 'No engine connected. Connect from Connection preferences to load this section.';
+		assert.strictEqual(disconnectedFilter.disabled, true);
+		assert.strictEqual(disconnectedFilter.title, disconnectedReason);
+		assert.strictEqual(disconnectedFilter.getAttribute('aria-label'), `Search memory. ${disconnectedReason}`);
+		disconnectedMount.section.getDomNode().parentElement?.remove();
 
 		let resolveList: (value: { categories: [] }) => void = () => { };
 		const pending = createMemoryConnection({

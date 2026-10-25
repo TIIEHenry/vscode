@@ -22,13 +22,14 @@ import { canPerformCatalogWriteLive, type EngineCatalogPaneMode } from './engine
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
-import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
+import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
 
 const $ = DOM.$;
 
 const MEMORY_FEATURE = localize('ua.engineMemoryFeatureLabel', "memory");
 const MEMORY_SCOPE = 'global';
 const MEMORY_SEARCH_LIMIT = 50;
+const MEMORY_SEARCH_LABEL = localize('ua.engineMemorySearch', "Search memory");
 
 function getTransportErrorMessage(error: unknown): string | undefined {
 	if (error instanceof Error && error.message) {
@@ -77,8 +78,8 @@ export class EngineMemorySection extends Disposable {
 
 		this.filter = DOM.append(this.container, $('input.engine-provider-catalog-filter')) as HTMLInputElement;
 		this.filter.type = 'search';
-		this.filter.placeholder = localize('ua.engineMemorySearch', "Search memory");
-		this.filter.setAttribute('aria-label', localize('ua.engineMemorySearch', "Search memory"));
+		this.filter.placeholder = MEMORY_SEARCH_LABEL;
+		this.filter.setAttribute('aria-label', MEMORY_SEARCH_LABEL);
 		this._register(DOM.addDisposableListener(this.filter, 'input', () => {
 			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
@@ -160,6 +161,16 @@ export class EngineMemorySection extends Disposable {
 			refreshButton.style.display = canList ? '' : 'none';
 		}
 		this.filter.disabled = !canList;
+		if (canList) {
+			this.filter.removeAttribute('title');
+			this.filter.setAttribute('aria-label', MEMORY_SEARCH_LABEL);
+		} else {
+			const reason = isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()
+				? getEngineSectionDisconnectedCopy()
+				: getEngineSectionApiUnavailableCopy(MEMORY_FEATURE);
+			this.filter.title = reason;
+			this.filter.setAttribute('aria-label', `${MEMORY_SEARCH_LABEL}. ${reason}`);
+		}
 		this.syncMemoryDeleteActions();
 	}
 
