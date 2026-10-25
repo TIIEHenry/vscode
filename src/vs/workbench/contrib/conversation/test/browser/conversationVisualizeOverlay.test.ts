@@ -163,6 +163,30 @@ suite('ConversationVisualizeOverlay', () => {
 		assert.strictEqual(overlay.isOpen(), false);
 	});
 
+	test('closing restores focus to the trigger that opened the overlay', () => {
+		const trigger = append(document.body, $('button.conversation-visualize-trigger')) as HTMLButtonElement;
+		store.add({ dispose: () => trigger.remove() });
+		trigger.focus();
+		const { overlay } = mountOverlay();
+		assert.notStrictEqual(document.activeElement, trigger);
+
+		overlay.close();
+
+		assert.strictEqual(document.activeElement, trigger);
+	});
+
+	test('closing does not focus a trigger that became hidden', () => {
+		const trigger = append(document.body, $('button.conversation-visualize-trigger-hidden')) as HTMLButtonElement;
+		store.add({ dispose: () => trigger.remove() });
+		trigger.focus();
+		const { overlay } = mountOverlay();
+		trigger.hidden = true;
+
+		overlay.close();
+
+		assert.notStrictEqual(document.activeElement, trigger);
+	});
+
 	test('Reset button is present when webview host mounts', () => {
 		const { container } = mountOverlay();
 		const resetButton = container.querySelector('.conversation-visualize-overlay-reset .monaco-button') as HTMLButtonElement | null;

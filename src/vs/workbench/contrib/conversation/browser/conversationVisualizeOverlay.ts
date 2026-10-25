@@ -14,7 +14,7 @@ import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { ILayoutService } from '../../../../platform/layout/browser/layoutService.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
-import { handleConversationOverlayTab } from './conversationConfirmationSeat.js';
+import { captureConversationOverlayTrigger, handleConversationOverlayTab, restoreConversationOverlayFocus } from './conversationConfirmationSeat.js';
 import {
 	ConversationMermaidExtensionInfo,
 	createMermaidHostContext,
@@ -41,6 +41,7 @@ export class ConversationVisualizeOverlay extends Disposable {
 
 	private overlayElement: HTMLElement | undefined;
 	private sessionDisposables: DisposableStore | undefined;
+	private overlayTrigger: HTMLElement | undefined;
 
 	constructor(
 		@ILayoutService private readonly layoutService: ILayoutService,
@@ -57,11 +58,12 @@ export class ConversationVisualizeOverlay extends Disposable {
 			return;
 		}
 		this.close();
+		const container = options.host ?? this.layoutService.getContainer(options.targetWindow);
+		this.overlayTrigger = captureConversationOverlayTrigger(container);
 
 		const session = new DisposableStore();
 		this.sessionDisposables = session;
 
-		const container = options.host ?? this.layoutService.getContainer(options.targetWindow);
 		const overlay = append(container, $('div.conversation-visualize-overlay'));
 		overlay.setAttribute('role', 'dialog');
 		overlay.setAttribute('aria-modal', 'true');
@@ -131,9 +133,15 @@ export class ConversationVisualizeOverlay extends Disposable {
 	}
 
 	close(): void {
+		const trigger = this.overlayTrigger;
+		this.overlayTrigger = undefined;
+		const overlay = this.overlayElement;
+		if (overlay) {
+			restoreConversationOverlayFocus(overlay, trigger);
+		}
 		this.sessionDisposables?.dispose();
 		this.sessionDisposables = undefined;
-		this.overlayElement?.remove();
+		overlay?.remove();
 		this.overlayElement = undefined;
 	}
 

@@ -158,6 +158,36 @@ export function handleConversationOverlayTab(container: HTMLElement, event: Keyb
 }
 
 /**
+ * Remember the control that opened an overlay so closing it can return keyboard
+ * focus to the same task context. The active element may be inside another
+ * overlay while one is being replaced, so callers must capture after closing
+ * any previous instance.
+ */
+export function captureConversationOverlayTrigger(container: HTMLElement): HTMLElement | undefined {
+	const active = getActiveElement();
+	if (!isHTMLElement(active) || active === container || container.contains(active) || active === active.ownerDocument.body || active === active.ownerDocument.documentElement) {
+		return undefined;
+	}
+	return active;
+}
+
+/** Restore focus only while the overlay still owns focus and the trigger is usable. */
+export function restoreConversationOverlayFocus(container: HTMLElement, trigger: HTMLElement | undefined): void {
+	if (!trigger?.isConnected || trigger.hidden || !!trigger.closest('[hidden]')) {
+		return;
+	}
+	const style = getWindow(trigger).getComputedStyle(trigger);
+	if (style.display === 'none' || style.visibility === 'hidden') {
+		return;
+	}
+	const active = getActiveElement();
+	if (active !== container && !container.contains(active)) {
+		return;
+	}
+	trigger.focus();
+}
+
+/**
  * Timeline permission seat (Allow / Skip, pending summary, Input needed).
  * Not ChatConfirmationWidget: no IChatModel, no engine, no Copilot setup.
  * Allow/Skip are a decision toolbar, not question answers — ask-user uses

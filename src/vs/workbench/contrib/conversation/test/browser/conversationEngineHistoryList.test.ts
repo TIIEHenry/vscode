@@ -156,6 +156,30 @@ suite('ConversationEngineHistoryList', () => {
 		assert.strictEqual(afterClose.defaultPrevented, false);
 	});
 
+	test('closing an open history list restores focus to its trigger', () => {
+		const { list, buttonParent, overlayParent } = mountList(createConversationConnectionTestStub());
+		const trigger = buttonParent.querySelector(`.${conversationLensHistoryButtonClass} .monaco-button`) as HTMLElement;
+		trigger.focus();
+		list.show();
+		assert.ok(overlayParent.querySelector(`.${conversationLensHistoryOverlayClass}`)?.contains(document.activeElement));
+
+		list.close();
+
+		assert.strictEqual(document.activeElement, trigger);
+	});
+
+	test('closing does not focus a trigger that became hidden', () => {
+		const { list, buttonParent } = mountList(createConversationConnectionTestStub());
+		const trigger = buttonParent.querySelector(`.${conversationLensHistoryButtonClass} .monaco-button`) as HTMLElement;
+		trigger.focus();
+		list.show();
+		trigger.hidden = true;
+
+		list.close();
+
+		assert.notStrictEqual(document.activeElement, trigger);
+	});
+
 	test('disconnected open does not send and shows unavailable', async () => {
 		const calls: UniverseAgentGetHistoryRequest[] = [];
 		const { list, overlayParent } = mountList(createConversationConnectionTestStub({

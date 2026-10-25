@@ -149,4 +149,46 @@ suite('ConversationSubAgentOverlay', () => {
 		assert.strictEqual(maximize?.getAttribute('aria-label'), 'Restore');
 		assert.strictEqual(maximize?.getAttribute('aria-pressed'), 'true');
 	});
+
+	test('closing restores focus to the trigger that opened the overlay', () => {
+		const host = append(document.body, $('.conversation-subagent-overlay-focus-host'));
+		store.add({ dispose: () => host.remove() });
+		const trigger = append(document.body, $('button.conversation-subagent-trigger')) as HTMLButtonElement;
+		store.add({ dispose: () => trigger.remove() });
+		trigger.focus();
+		const overlay = mountOverlay(host);
+		overlay.open({
+			sessionKey: 'session-focus',
+			chatId: 'sub-focus',
+			title: 'Agent focus',
+			sessionTitle: 'Session focus',
+			breadcrumb: [],
+		});
+		assert.notStrictEqual(document.activeElement, trigger);
+
+		overlay.close();
+
+		assert.strictEqual(document.activeElement, trigger);
+	});
+
+	test('closing does not focus a trigger that became hidden', () => {
+		const host = append(document.body, $('.conversation-subagent-overlay-focus-hidden-host'));
+		store.add({ dispose: () => host.remove() });
+		const trigger = append(document.body, $('button.conversation-subagent-trigger-hidden')) as HTMLButtonElement;
+		store.add({ dispose: () => trigger.remove() });
+		trigger.focus();
+		const overlay = mountOverlay(host);
+		overlay.open({
+			sessionKey: 'session-focus-hidden',
+			chatId: 'sub-focus-hidden',
+			title: 'Agent focus hidden',
+			sessionTitle: 'Session focus hidden',
+			breadcrumb: [],
+		});
+		trigger.hidden = true;
+
+		overlay.close();
+
+		assert.notStrictEqual(document.activeElement, trigger);
+	});
 });
