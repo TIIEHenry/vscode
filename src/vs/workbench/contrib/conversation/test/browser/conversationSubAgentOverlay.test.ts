@@ -10,6 +10,8 @@ import { IInstantiationService } from '../../../../../platform/instantiation/com
 import { TestInstantiationService } from '../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
 import {
 	ConversationSubAgentOverlay,
+	conversationSubAgentOverlayMaximizeClass,
+	conversationSubAgentOverlayPopoutClass,
 	conversationSubAgentOverlayTitleElementId,
 } from '../../browser/conversationSubAgentOverlay.js';
 
@@ -122,5 +124,29 @@ suite('ConversationSubAgentOverlay', () => {
 		overlay.close();
 		assert.strictEqual(overlay.element.querySelector(`#${titleId}`), null);
 		assert.strictEqual(document.getElementById(titleId), null);
+	});
+
+	test('icon-only overlay actions expose accessible names and update maximize state', () => {
+		const host = append(document.body, $('.conversation-subagent-overlay-a11y-host'));
+		store.add({ dispose: () => host.remove() });
+		const overlay = mountOverlay(host);
+		overlay.open({
+			sessionKey: 'session-a',
+			chatId: 'sub-a',
+			title: 'Agent A',
+			sessionTitle: 'Session A',
+			breadcrumb: [],
+		});
+
+		const popout = host.querySelector(`.${conversationSubAgentOverlayPopoutClass}`);
+		const maximize = host.querySelector(`.${conversationSubAgentOverlayMaximizeClass}`) as HTMLElement | null;
+		const close = host.querySelector('.conversation-subagent-overlay-close');
+		assert.strictEqual(popout?.getAttribute('aria-label'), 'Open as tab');
+		assert.strictEqual(maximize?.getAttribute('aria-label'), 'Maximize');
+		assert.strictEqual(close?.getAttribute('aria-label'), 'Close');
+
+		maximize?.click();
+		assert.strictEqual(maximize?.getAttribute('aria-label'), 'Restore');
+		assert.strictEqual(maximize?.getAttribute('aria-pressed'), 'true');
 	});
 });
