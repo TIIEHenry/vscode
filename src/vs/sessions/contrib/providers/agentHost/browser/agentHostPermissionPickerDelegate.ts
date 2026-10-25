@@ -15,7 +15,7 @@ import { narrowCodexPermissionsPreset } from '../../../../../platform/agentHost/
 import { SessionConfigPropertySchema } from '../../../../../platform/agentHost/common/state/protocol/commands.js';
 import { ChatConfiguration, ChatPermissionLevel, isChatPermissionLevel } from '../../../../../workbench/contrib/chat/common/constants.js';
 import { IPermissionLevelMeta, IPermissionPickerDelegate } from '../../copilotChatSessions/browser/permissionPicker.js';
-import { IAgentHostSessionsProvider, isAgentHostProvider } from '../../../../common/agentHostSessionsProvider.js';
+import { IAgentHostSessionsProvider, isAgentHostProvider, LOCAL_AGENT_HOST_PROVIDER_ID } from '../../../../common/agentHostSessionsProvider.js';
 import { ISessionsProvider } from '../../../../services/sessions/common/sessionsProvider.js';
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
 import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
@@ -165,15 +165,23 @@ export class AgentHostPermissionPickerDelegate extends Disposable implements IPe
 			return provider?.isSessionConfigResolving(session.sessionId).read(reader) ?? false;
 		});
 		this.isWritable = derived(this, reader => {
+			this._configChangedSignal.read(reader);
 			const session = this._session.read(reader);
 			if (!session) {
 				return false;
 			}
 			const provider = this._getProvider(session.providerId);
-			const status = provider?.connectionStatus?.read(reader);
-			// Local providers have no remote connection status; their provider
-			// boundary remains the source of truth for write availability.
-			return status === undefined || RemoteAgentHostConnectionStatus.isConnected(status);
+			if (!provider) {
+				return false;
+			}
+			// The local provider has no remote transport status. Every remote
+			// provider must expose one; an absent status is therefore treated as
+			// unavailable rather than accidentally opening a write path.
+			if (!provider.connectionStatus) {
+				return provider.id === LOCAL_AGENT_HOST_PROVIDER_ID;
+			}
+			const status = provider.connectionStatus.read(reader);
+			return RemoteAgentHostConnectionStatus.isConnected(status);
 		});
 		this.unavailableReason = derived(this, reader => {
 			if (this.isWritable.read(reader)) {

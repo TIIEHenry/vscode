@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1353 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332–D1355 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Permission picker 远程未知状态写闸（2026-10-26，D1355，D1351 反向审计）**：D1351 原将缺失 `connectionStatus` 当作本地无远端状态，`agenthost-*` 远程 provider 在状态未知时会 fail-open。现仅 `local-agent-host` 允许无状态写入；远程缺状态、无 provider 与非 Agent Host 均 fail-closed；补 reconnecting、cached accepted 值保留及 remote unknown/local unknown/non-Agent Host 回归。未跑 full compile。
 - **Connection Preferences 窄宽详情焦点迁移（2026-10-26，D1353，本波窄宽/焦点反向审计）**：Connection Preferences 在窄宽从导航选中 zone 后会隐藏导航，原焦点仍停在被 `display:none` 的导航行，键盘用户无法继续沿详情操作。现仅在焦点来自导航时，在窄详情切换完成后的微任务中把焦点移到可见 Back 按钮；Back 返回导航仍复用 `navList.domFocus()`，宽布局和程序化切换不抢焦点。新增 browser 回归锁定窄宽详情状态与 Back 焦点；目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，未跑 full compile。见 [D1353](deferred-gaps.md)。
 - **Permission picker 断连写闸（2026-10-26，D1351，会话权限状态审计）**：Agent Host 权限芯片原只在 session config resolving 时禁用；remote provider 断连、连接中或协议不兼容时仍显示可操作的缓存权限值，选择会落到 provider 无连接的 no-op。现按 `connectionStatus` 仅在 connected 时开放写入，其他状态同步 `aria-disabled`、禁用下拉和“Session is not ready; reconnect the engine to change permissions.” 提示，写入口再做一次 fail-closed 防护；补 connecting / disconnected / incompatible 回归。目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，未跑 full compile。
 - **Engine Preferences 窄宽详情焦点迁移（2026-10-26，D1350，本波全局 UI 键盘/ARIA 审计）**：Engine Preferences 在窄宽选中导航分节后会隐藏导航，原焦点仍停在被 `display:none` 的导航行，键盘用户无法继续沿详情操作。现仅当焦点来自导航时，在窄详情切换完成后的微任务中把焦点移到可见 Back 按钮；Back 返回导航仍复用 `navList.domFocus()`，宽布局和程序化切换不抢焦点。新增 browser 回归锁定窄宽详情状态与 Back 焦点；目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，目标文件 ESLint 0 errors（仅既有 warning），未跑 full compile。见 [D1350](deferred-gaps.md)。
