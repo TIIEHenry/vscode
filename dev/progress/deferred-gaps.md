@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1353 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1355 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
 ---
 
 # Deferred Gaps
@@ -1300,3 +1300,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1350 | P3 | **open** Engine Preferences 窄宽导航选中分节后，`selectSection()` 隐藏导航而未迁移焦点；焦点仍落在 `display:none` 的导航行，键盘用户无法沿 Back/详情继续 Tab。现进入窄详情时将焦点移到可见 Back 按钮，并补 browser 回归覆盖导航焦点与窄宽详情状态。目标 Electron 测试因本机 `sandbox_host_linux` 退出 133；目标文件 ESLint 0 errors（仅既有 warning）；未跑 full compile。 | 只修窄宽 Engine Preferences 的焦点迁移，不改分节选择、Back 返回导航、布局阈值或详情内容 | 从导航行选中分节后焦点落在 Back；隐藏导航不保留活动焦点；Back 仍可回到导航并恢复列表焦点；宽布局不抢焦点 | conversation / engine-preferences | open |
 | D1353 | P3 | **open** Connection Preferences 窄宽导航选中 zone 后，`selectZone()` 隐藏导航而未迁移焦点；焦点仍停在 `display:none` 的导航行，键盘用户无法继续沿 Back/详情操作。现仅在窄宽且焦点来自导航时，在详情切换后的微任务中把焦点移到可见 Back 按钮，并补 browser 回归。目标 Electron 测试因本机 `sandbox_host_linux` 退出 133；未跑 full compile。 | 只修窄宽 Connection Preferences 的焦点迁移，不改 zone 选择、Back 返回导航、布局阈值或详情内容 | 从导航行选中 zone 后焦点落在 Back；隐藏导航不保留活动焦点；Back 仍可回到导航并恢复列表焦点；宽布局与程序化选择不抢焦点 | conversation / connection-preferences | open |
 | D1351 | P3 | **open** Agent Host 权限 picker 原只在 session-config resolving 时门控；remote provider 断连、连接中或协议不兼容时仍把缓存权限值画成可写，选择会静默落到 provider 无连接的 no-op。现按 `connectionStatus` 仅在 connected 时开放写入，禁用下拉并同步 `aria-disabled` 与会话未就绪提示，写入口再做 fail-closed；补三种远程连接非 live 状态回归。目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，未跑 full compile。 | 只收口 Agent Host Composer Permission picker 的连接态门控，不改 accepted 权限值、schema resolving 合同或其他 Composer 控件 | connecting / disconnected / incompatible 均不可写且说明重连；connected 恢复可写；非 Agent Host / 本地 provider 仍沿原路径 | sessions / permission-picker | open |
+| D1355 | P3 | **open** D1351 的连接态写闸对缺失 `connectionStatus` 的远程 `agenthost-*` provider 原会 fail-open，导致连接事实未知时仍可写。现仅 `local-agent-host` 允许无状态本地路径；远程缺状态、无 provider 与非 Agent Host 均 fail-closed；补 reconnecting、cached accepted 值保留及 remote unknown/local unknown/non-Agent Host 回归。 | 只收口 Agent Host Permission picker 对 connectionStatus 缺失的 fail-closed 边界；不改变 connected 写入、local provider 无远端状态、accepted 值或其他 picker 行为 | remote 缺 status 不可写；local 缺 status 可写；reconnecting 及其他非 connected 不可写且恢复 connected 后可写；非 Agent Host 仍不适用 | sessions / permission-picker | open |
