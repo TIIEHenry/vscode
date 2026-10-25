@@ -47,6 +47,7 @@ import {
 	agentStatusTone,
 	formatAgentStatusLabel,
 	formatAgentTypeShort,
+	type AgentStatusTone,
 	INavigatorAgentsHierarchyNode,
 	collectLiveAgentTreeAgentIds,
 	EMPTY_LIVE_AGENT_IDS,
@@ -111,6 +112,23 @@ function iconForAgentType(type: string): ThemeIcon {
 		return Codicon.account;
 	}
 	return Codicon.robot;
+}
+
+function iconForAgentStatus(tone: AgentStatusTone): ThemeIcon {
+	switch (tone) {
+		case 'running':
+			return Codicon.pulse;
+		case 'error':
+			return Codicon.error;
+		case 'done':
+			return Codicon.check;
+		case 'paused':
+			return Codicon.debugPause;
+		case 'idle':
+			return Codicon.circleOutline;
+		case 'unknown':
+			return Codicon.question;
+	}
 }
 
 class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchyNode, void, IAgentsHierarchyTemplateData> {
@@ -186,7 +204,8 @@ class AgentsHierarchyRenderer implements ITreeRenderer<INavigatorAgentsHierarchy
 		templateData.typeIcon.className = `navigator-agents-type-icon ${ThemeIcon.asClassName(iconForAgentType(element.type))}`;
 		templateData.typeIcon.title = formatAgentTypeShort(element.type);
 		templateData.statusGlyph.textContent = '';
-		templateData.statusGlyph.className = `navigator-agents-status-glyph is-${agentStatusTone(element.status)}`;
+		const statusTone = agentStatusTone(element.status);
+		templateData.statusGlyph.className = `navigator-agents-status-glyph is-${statusTone} ${ThemeIcon.asClassName(iconForAgentStatus(statusTone))}`;
 		templateData.statusGlyph.title = formatAgentStatusLabel(element.status);
 		templateData.statusGlyph.setAttribute('aria-label', formatAgentStatusLabel(element.status));
 		this.syncTemplateActions(templateData);

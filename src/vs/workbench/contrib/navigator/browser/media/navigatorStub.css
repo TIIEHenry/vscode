@@ -99,15 +99,9 @@
 	justify-content: center;
 	width: 16px;
 	height: 16px;
+	font-size: 14px;
+	line-height: 16px;
 	opacity: 0.55;
-}
-
-.monaco-workbench .navigator-agents-status-glyph::before {
-	content: '';
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	background: currentColor;
 }
 
 .monaco-workbench .navigator-agents-status-glyph.is-running {
