@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-25
-summary: "2026-10-25：槽 A 完成三节列表能力 UNKNOWN 的 capability loading。compile-client 退出码 1（147 条 error TS）。未跑 npm run compile，未 push。其余槽与人类工位仍在 ee15319b92f。H 的 attachments/ 仍未跟踪。"
+summary: "2026-10-25：D1305（81948ae6388）已快进合入。未跑 npm run compile，未 push。槽 B 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,18 +23,18 @@ summary: "2026-10-25：槽 A 完成三节列表能力 UNKNOWN 的 capability loa
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 集成尖端（`agent-ide`） | 人类工位、merge 与 B–J 仍在 `ee15319b92f`。槽 A 的本提交在 `loop/A`，未快进其他槽，未合入 merge。 |
-| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`ee15319b92f` ahead 1819、behind 0。槽 A 再超前本提交。未跑 `npm run compile`，未 push。本槽 `compile-client` 退出码 1（147 条 `error TS`，56 个文件）。 |
+| 集成尖端（`agent-ide`） | D1305 在 `81948ae6388`。本账本提交只记合入；写完后 merge 与字母槽、人类工位 `merge --ff-only` 到本提交。 |
+| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。本提交 ahead 1822、behind 0。未跑 `npm run compile`，未 push。`81948ae6388` 上 compile-client 退出码 1（147 条 `error TS`，56 个文件）未复跑。 |
 
-## 槽位表（2026-10-25 槽 A 完成 D1305 后）
+## 槽位表（2026-10-25 合入 D1305 后）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `ee15319b92f` | 干净，不是 `parked`。本轮未合并，没有 `npm run compile` |
-| A | `vscode-WorkTrees/A` | `loop/A` | 本提交 | `occupied`。D1305：三节列表能力 UNKNOWN 画 capability loading。`compile-client` 退出码 1 |
-| B、C、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | `ee15319b92f` | `idle`。工作区干净。未快进 |
-| H | `vscode-WorkTrees/H` | `loop/H` | `ee15319b92f` | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
-| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | `ee15319b92f` | 未改。禁止 reset / stash / restore / clean / `checkout -B` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `81948ae6388`，随后快进到本账 | 干净，不是 `parked`。快进合入，没有二父 merge commit，没有 `npm run compile` |
+| B | `vscode-WorkTrees/B` | `loop/B` | 同上 | `occupied`。对照代码重选下一刀并自行实施。不重做 D1305，不把 compile-client 的 147 / 505 条 error TS 当成这一刀 |
+| A、C、D、E、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 同上 | `idle`。工作区干净 |
+| H | `vscode-WorkTrees/H` | `loop/H` | 同上 | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
+| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 本账本提交 | 只记合入。禁止 reset / stash / restore / clean / `checkout -B` |
 
 P0 旧账：字母槽与 merge 曾停在 `59120887458`，人类工位曾在 `10e04195bf0` 上带着审查改动。那些改动已在 `279f2c18f08`。本轮核对时 stash 未再查；不把文档里的进度当成已完成。
 

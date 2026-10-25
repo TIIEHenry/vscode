@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-25
-summary: "2026-10-25：槽 A 把 Triggers / Clipboard / Context Variables 的列表能力 UNKNOWN 画成 capability loading，不发 list。compile-client 退出码 1（147 条 error TS）。三份 section 测试 108 passing。未跑 npm run compile，未 push。"
+summary: "2026-10-25：loop/A 的 D1305（81948ae6388）已快进合入。compile-client 仍红（147 条 error TS），未跑 npm run compile，未 push。派槽 B 对照代码重选下一刀。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **合入 D1305（2026-10-25）**：`loop/A` 的 `81948ae6388` 是 merge 槽 `ee15319b92f` 的快进子提交。merge 槽 `git merge --ff-only`。没有冲突，没有二父 merge commit。本仓没有 `scripts/check-merge-both-sides.sh`，快进用不上两边保留脚本。本条所在提交写完后，人类工位与 A–J 再快进到该 SHA。相对 `origin/agent-ide`（`9128b870dbe`）本提交 ahead 1822、behind 0。该提交自述 `compile-client` 退出码 1（147 条 `error TS`，56 个文件），三份 section 测试 108 passing。本轮编译锁空闲，没有再跑 `npm run compile`，不 push。不把这 147 条或更早的 505 条当成下一刀。已派槽 B 对照代码重选一个仍未落地的行为并做完。H 的未跟踪 `attachments/` 仍不要 add。
 - **三节列表能力未知画确认中（2026-10-25，D1305）**：Triggers、Clipboard、Context Variables 在已连接、非 pairing-hold、列表键为 `UNKNOWN`（缺字段归一成 `UNKNOWN`）时不发 `listTriggers` / `listClipboard` / `listContextVariable`，画 `loading` / `loadingKind: 'capability'`（Confirming engine capability…）。没有上次成功行则清展示。已有行留下，不再发 list。`UNSUPPORTED`，或 `SUPPORTED` 但 hook 不是函数，仍画 unsupported。pairing-hold 与断连仍先走原路径。FireTrigger 色调、写能力未知时的禁用、Overview 八行未改。`flock /tmp/vscode-compile.lock npm run compile-client` 退出码 1（147 条 `error TS`，56 个文件）。这次日志里没有 `.build/typings/electron.d.ts`。本刀新增分支 0 条；三份源文件里未使用的 import，以及测试里既有的 `TestDialogService` `input` 覆写，落在这 147 条里。未跑 `npm run compile`。`VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run` 上述三份 section 测试退出码 0（108 passing）。`python3 scripts/check-docs-health.py` 0 errors（46 条既有断链警告）。未 push，未合入 merge。其余槽、merge 与人类工位仍在 `ee15319b92f`。见 [D1305](deferred-gaps.md)、[engine-catalog](../../docs/systems/workbench/engine-catalog.md)。
 - **既有问题**：这次 `compile-client` 退出码 1（147 条 `error TS`，56 个文件）。未跑 `npm run compile`。H 的未跟踪 `attachments/` 仍不要 add。
 - **合入 open-untitled 记录（2026-10-25）**：`loop/J` 的 `a1a905be7b1` 是 merge 槽 `90855d366c1` 的快进子提交，只改进度文档。merge 槽 `git merge --ff-only`。没有冲突，没有二父 merge commit。人类工位与 A–J 已快进到该 SHA。相对 `origin/agent-ide`（`9128b870dbe`）ahead 1819、behind 0。未跑 `npm run compile`，不 push。该提交自述转译后壳冒烟十步 Outcome passed。
