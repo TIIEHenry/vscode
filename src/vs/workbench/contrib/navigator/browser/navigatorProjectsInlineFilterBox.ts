@@ -38,7 +38,7 @@ export class NavigatorProjectsInlineFilterBox extends Disposable {
 		this.input.setAttribute('aria-label', ariaLabel);
 
 		this.clearButton = dom.append(this.element, $('button.navigator-projects-inline-filter-clear'));
-		this.clearButton.type = 'button';
+		this.clearButton.setAttribute('type', 'button');
 		this.clearButton.setAttribute('aria-label', localize('navigatorProjects.clearFilter', "Clear filter"));
 		this.clearButton.appendChild(renderIcon(Codicon.close));
 
