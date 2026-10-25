@@ -553,7 +553,7 @@ export class NewChatContextAttachments extends Disposable implements INewChatAtt
 				}
 				if (configureItem && selected === configureItem) {
 					defer.complete(true);
-					void this.commandService.executeCommand(configureItem.commandId);
+					void this.commandService.executeCommand(configureItem.commandId).catch(onUnexpectedError).catch(onUnexpectedError);
 				}
 				if (!e.inBackground) {
 					defer.complete(true);
