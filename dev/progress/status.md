@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1333 已合入，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332–D1334 已合入，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Engine Triggers 状态动作收口（2026-10-26，D1334，本波 UI 审查）**：Triggers 工具栏原同时显示 Enable 与 Disable 两个动作，未选中行时也都可用，用户难以判断当前会执行的状态变化。现合成单一状态动作：选中已启用触发器时显示 Disable，选中已停用触发器时显示 Enable，未选中时禁用；写回成功后同步图标、标签和可用性。新增浏览器回归断言锁定 action row 只有一个状态动作；不改变 SetTriggerEnabled 请求契约或写闸。目标 Electron 测试受本机 `sandbox_host_linux` 限制退出 133；`git diff --check` 通过；ESLint 需可写缓存环境复验。见 [D1334](deferred-gaps.md)。
 - **会话标题键盘入口（2026-10-26，D1333，本波 UI 审查）**：可重命名会话的标题原只有鼠标点击，键盘用户无法发现或触发 inline rename；现仅在 rename capability 存在且未编辑时提供 button 语义、描述性 aria-label、Tab 焦点与 Enter/Space 激活，编辑态和不可重命名态移除语义，补 token 化 `:focus-visible` / 高对比焦点环。新增 `sessionHeader.test.ts` 边界断言；定向 Electron 测试受本机 `sandbox_host_linux` 限制退出 133，目标文件 `npx eslint --no-cache` 退出 0；`compile-client` 因 `out/` 只读在启动阶段退出 EROFS，未进入源码检查。见 [D1333](deferred-gaps.md)。
 - **Automation dialog Promise 收口（2026-10-26，D1330）**：分支 retry、工作区变化刷新与移动工作区选择器 dispatch 原直接 fire-and-forget；现接入 `onUnexpectedError` 双 catch，并新增源码扫描测试。定向 Electron 测试仍受 sandbox 133 限制；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。
 - **本波集成验证（2026-10-26）**：E/F 两槽已在 merge 槽串行合入（D1332/D1333）。唯一一次 `npm run compile` 在 `compile-copilot` 写入只读输出目录时 exit 1，未进入源码类型检查，暂不归因本波。未 push，待可写构建输出环境复验。
