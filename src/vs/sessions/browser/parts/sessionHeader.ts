@@ -289,9 +289,11 @@ export class SessionHeader extends Disposable {
 		if (isEditable && !this._renameInput) {
 			this._titleEl.tabIndex = 0;
 			this._titleEl.setAttribute('role', 'button');
+			this._titleEl.setAttribute('aria-label', localize('renameSessionHeader.aria', "Rename session: {0}", this._titleTextEl.textContent ?? ''));
 		} else {
 			this._titleEl.removeAttribute('tabindex');
 			this._titleEl.removeAttribute('role');
+			this._titleEl.removeAttribute('aria-label');
 		}
 	}
 
