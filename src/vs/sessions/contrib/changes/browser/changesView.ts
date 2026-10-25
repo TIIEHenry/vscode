@@ -7,6 +7,7 @@ import './media/changesView.css';
 import * as dom from '../../../../base/browser/dom.js';
 import { ActionViewItem, BaseActionViewItem, IActionViewItemOptions } from '../../../../base/browser/ui/actionbar/actionViewItems.js';
 import { Schemas } from '../../../../base/common/network.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { renderLabelWithIcons } from '../../../../base/browser/ui/iconLabel/iconLabels.js';
 import { IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IObjectTreeElement, ITreeSorter } from '../../../../base/browser/ui/tree/tree.js';
@@ -1076,12 +1077,12 @@ export class ChangesViewPane extends ViewPane {
 				if (openSingleFileDiff) {
 					// Alt here only switches the diff mode, not the target group.
 					const sideBySide = e.sideBySide && !altKey;
-					void this._openSingleFileDiffEditor(e.element, sideBySide, !!e.editorOptions?.preserveFocus, !!e.editorOptions?.pinned);
+					void this._openSingleFileDiffEditor(e.element, sideBySide, !!e.editorOptions?.preserveFocus, !!e.editorOptions?.pinned).catch(onUnexpectedError).catch(onUnexpectedError);
 					return;
 				}
 
 				// Open multi-file diff editor
-				void this._openMultiFileDiffEditor(e.element.uri);
+				void this._openMultiFileDiffEditor(e.element.uri).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 

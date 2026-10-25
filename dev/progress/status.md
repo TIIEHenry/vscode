@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1322–D1323 已合入，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1322–D1324 已合入或待收口，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Changes 视图普通打开收口（2026-10-26，D1324）**：Changes 树单击打开单文件或多文件 Diff 时的两个 fire-and-forget Promise 现在接入 `onUnexpectedError` 双 catch，新增源码扫描测试；不改变打开模式与失败状态语义。定向 Electron 测试待 sandbox 可运行环境复验；未跑全量 compile。
 - **NewChatWidget 后台创建收口（2026-10-26，D1322）**：恢复工作区草稿、提供方变化重建草稿和提示选项刷新均为 fire-and-forget 时补上 `onUnexpectedError` 双 catch；新增源码扫描测试，避免新会话创建失败留下未处理 rejection。定向 Electron 测试仍受 sandbox 133 限制；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。
 - **分支选择器筛选落空提示（2026-10-26，D1323）**：共享 BranchPicker 在分支数超过筛选阈值时会显示搜索框，但过滤后零匹配只留下空白列表，用户无法区分“没有匹配分支”和加载/状态问题。现为 ActionList 复用 `filterEmptyMessage`，写入 “No matching branches.”；仅影响分支筛选，不改分支来源、选择语义或 Workspace picker。新增 Copilot BranchPicker 选项合同测试。目标 Electron 测试因本机 `sandbox_host_linux` 受限退出 133；临时缓存路径 ESLint 退出 0，默认 `.eslintcache` 仍为只读。
 - **本波集成验证（2026-10-26）**：C/D 两槽已在 merge 槽串行合入（D1322/D1323）。唯一一次 `npm run compile` 在 `compile-copilot` 写入只读输出目录时 exit 1，未进入源码类型检查，暂不归因本波。未 push，待可写构建输出环境复验。
