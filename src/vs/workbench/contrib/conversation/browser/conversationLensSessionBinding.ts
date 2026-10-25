@@ -225,9 +225,9 @@ function bindSessionViewNow(host: IConversationLensSessionBindingHost, sessionId
 
 export function applyActiveSession(host: IConversationLensSessionBindingHost, sessionId: string): void {
 
-	host.visualizeOverlay.close();
-	host.engineHistoryList?.close();
-	host.engineSnapshotsList?.close();
+	host.visualizeOverlay.close({ restoreFocus: false });
+	host.engineHistoryList?.close({ restoreFocus: false });
+	host.engineSnapshotsList?.close({ restoreFocus: false });
 	host.inboxOverlay.closeListPanel();
 	host.trajectoryView.clearSessionState();
 	host.exitComposerEdit();
@@ -592,8 +592,8 @@ export function retryError(host: IConversationLensSessionBindingHost, turn: { re
 export function openVisualizeOverlay(host: IConversationLensSessionBindingHost, source: string, title?: string): void {
 
 	host.setInputMaximized(false);
-	host.engineHistoryList?.close();
-	host.engineSnapshotsList?.close();
+	host.engineHistoryList?.close({ restoreFocus: false });
+	host.engineSnapshotsList?.close({ restoreFocus: false });
 	host.visualizeOverlay.open({
 		source,
 		title,

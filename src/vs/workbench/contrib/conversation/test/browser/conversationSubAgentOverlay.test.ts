@@ -193,4 +193,28 @@ suite('ConversationSubAgentOverlay', () => {
 
 		assert.notStrictEqual(document.activeElement, trigger);
 	});
+
+	test('session switch close can leave focus with the switched session', () => {
+		const host = append(document.body, $('.conversation-subagent-overlay-focus-switch-host'));
+		store.add({ dispose: () => host.remove() });
+		const trigger = append(document.body, $('button.conversation-subagent-trigger-switch')) as HTMLButtonElement;
+		store.add({ dispose: () => trigger.remove() });
+		trigger.focus();
+		const overlay = mountOverlay(host);
+		overlay.open({
+			sessionKey: 'session-focus-switch',
+			chatId: 'sub-focus-switch',
+			title: 'Agent focus switch',
+			sessionTitle: 'Session focus switch',
+			breadcrumb: [],
+		});
+		const nextSessionControl = append(document.body, $('button.conversation-next-session-subagent')) as HTMLButtonElement;
+		store.add({ dispose: () => nextSessionControl.remove() });
+
+		overlay.close({ restoreFocus: false });
+		nextSessionControl.focus();
+
+		assert.strictEqual(document.activeElement, nextSessionControl);
+		assert.notStrictEqual(document.activeElement, trigger);
+	});
 });

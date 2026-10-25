@@ -187,6 +187,21 @@ suite('ConversationVisualizeOverlay', () => {
 		assert.notStrictEqual(document.activeElement, trigger);
 	});
 
+	test('session switch close can leave focus with the switched session', () => {
+		const trigger = append(document.body, $('button.conversation-visualize-trigger-switch')) as HTMLButtonElement;
+		store.add({ dispose: () => trigger.remove() });
+		trigger.focus();
+		const { overlay } = mountOverlay();
+		const nextSessionControl = append(document.body, $('button.conversation-next-session')) as HTMLButtonElement;
+		store.add({ dispose: () => nextSessionControl.remove() });
+
+		overlay.close({ restoreFocus: false });
+		nextSessionControl.focus();
+
+		assert.strictEqual(document.activeElement, nextSessionControl);
+		assert.notStrictEqual(document.activeElement, trigger);
+	});
+
 	test('Reset button is present when webview host mounts', () => {
 		const { container } = mountOverlay();
 		const resetButton = container.querySelector('.conversation-visualize-overlay-reset .monaco-button') as HTMLButtonElement | null;

@@ -180,6 +180,20 @@ suite('ConversationEngineHistoryList', () => {
 		assert.notStrictEqual(document.activeElement, trigger);
 	});
 
+	test('session switch closes without restoring the old trigger focus', () => {
+		const activeSession = new Emitter<string>();
+		const roster = createRosterStub({ onDidChangeActiveSession: activeSession.event });
+		const { list, buttonParent } = mountList(createConversationConnectionTestStub(), roster, () => 'sess-1');
+		const trigger = buttonParent.querySelector(`.${conversationLensHistoryButtonClass} .monaco-button`) as HTMLElement;
+		trigger.focus();
+		list.show();
+
+		activeSession.fire('sess-2');
+
+		assert.strictEqual(list.isOpen(), false);
+		assert.notStrictEqual(document.activeElement, trigger);
+	});
+
 	test('disconnected open does not send and shows unavailable', async () => {
 		const calls: UniverseAgentGetHistoryRequest[] = [];
 		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
