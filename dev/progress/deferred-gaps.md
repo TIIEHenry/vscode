@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314/D1315 已合入；定向 Electron 测试受 sandbox 限制，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。D24、D8、D16、D147、D405 仍开。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1318 已合入；定向 Electron 测试受 sandbox 限制，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。D24、D8、D16、D147、D405 仍开。"
 ---
 
 # Deferred Gaps
@@ -1265,5 +1265,5 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1314 | P3 | Agents 层级树的状态 glyph 从同一种彩色圆点改为按 tone 映射的 Codicon（pulse / error / check / debugPause / circleOutline / question），保留原有颜色、tooltip 与读屏状态；状态在不依赖颜色时仍可辨认。改动文件 ESLint 退出码 0；目标 `navigatorAgentsHierarchy.test.ts` 在本工位因 Electron sandbox host 的受限环境退出码 133，未取得单测结果。唯一一次 merge 槽 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。 | 只改 Agents 层级行的状态图标，不改状态计算、活动列表、Team 列表或空态文案；单测需在可运行 Electron sandbox 的工位复核 | 各状态 tone 使用不同图形且仍保留现有状态颜色；浅色、深色、高对比主题和键盘聚焦需在壳冒烟中复核；目标单测通过且构建输出可写 | navigator / agents | open |
 | D1315 | P3 | **启动后台 Promise 收口**：`sessionsSetUpService.ts` 的默认账户初始读取与 Web/首启/回访三条 setup 流原只挂 `finally` 或 `then`，拒绝会留下未处理 rejection。现统一在收尾后接 `onUnexpectedError` 双 catch；D980 扫描断言已更新。A 槽 `git diff --check` 与静态 pattern 检查通过；定向 Electron 测试在本机 `sandbox_host_linux` 受限退出 **133**；唯一一次 merge 槽 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。 | 测试环境 Electron sandbox 与构建输出目录不可写；代码与扫描断言已落盘，不把环境失败归因本刀 | 上述 D980 定向测试在可启动 Electron、且输出目录可写的环境通过，并确认四条后台流均不泄漏 rejection | sessions / startup | open |
 | D1316 | P3 | **NewChatContextAttachments Configure 命令 Promise 未收口**：上下文选择器点 Configure 时直接 `void commandService.executeCommand(...)`，拒绝会留下未处理 rejection；现接入 `onUnexpectedError` 双 catch，并新增源码扫描测试。 | 只改 Configure 入口的错误收口，不改变选择器完成时序或命令语义；目标测试需在可启动 Electron 环境复验 | Configure 命令拒绝不再泄漏；扫描测试通过 | sessions / chat | open |
-| D1317 | P3 | **Replace Preview 更新队列清理链**：`replaceService.ts` 用 `void next.finally(...)` 删除队列项，但清理返回的派生 Promise 原来没有 rejection handler；预览更新失败时可能留下未处理 rejection。现补 `onUnexpectedError` 双 catch。`git diff --check` 与该文件 ESLint 退出 0；未跑全量 compile。 | 仅收口清理派生 Promise，不改变更新队列顺序、调用方返回的 `next` 或预览内容 | 在预览更新失败并完成清理时，原始调用方仍收到失败且清理派生链不再产生未处理 rejection；merge 槽编译通过 | search / replace | open |
+| D1317 | P3 | **Replace Preview 更新队列清理链**：`replaceService.ts` 用 `void next.finally(...)` 删除队列项，但清理返回的派生 Promise 原来没有 rejection handler；预览更新失败时可能留下未处理 rejection。现补 `onUnexpectedError` 双 catch。`git diff --check` 与该文件 ESLint 退出 0；唯一一次 merge 槽编译因 `compile-copilot` 输出目录只读 exit 1，未归因本刀。 | 仅收口清理派生 Promise，不改变更新队列顺序、调用方返回的 `next` 或预览内容 | 在预览更新失败并完成清理时，原始调用方仍收到失败且清理派生链不再产生未处理 rejection；可写输出环境下 merge 槽编译通过 | search / replace | open |
 | D1318 | P3 | **open** Memory 搜索在断连、配对等待或缺少 `listMemory` API 时禁用，但原输入框没有就地原因且专用筛选样式没有明确禁用层次。现沿用既有状态文案写入 `title` / `aria-label`，连接恢复时还原普通标签，并补 `:disabled` token 化低对比样式。定向 `engineMemorySection.test.ts` 因本机 `sandbox_host_linux` 受限退出 **133**；`git diff --check` 通过；ESLint 因工位 `.eslintcache` 只读（EROFS）未取得结果。 | 环境限制阻止 Electron 单测与 eslint；本刀代码、断言和样式已落盘，失败不归因本刀 | 在可启动 Electron 且 eslint cache 可写的环境，断连/缺 API 时输入框的 `title` 与 `aria-label` 含同一原因、恢复连接后标签还原，浅色/深色/高对比主题保留可辨识禁用态 | conversation / engine-memory | open |
