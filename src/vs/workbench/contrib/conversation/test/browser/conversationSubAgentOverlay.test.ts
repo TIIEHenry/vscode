@@ -53,6 +53,8 @@ suite('ConversationSubAgentOverlay', () => {
 		const titleIdB = overlayB.element.getAttribute('aria-labelledby');
 		assert.strictEqual(titleIdA, conversationSubAgentOverlayTitleElementId('session-a'));
 		assert.strictEqual(titleIdB, conversationSubAgentOverlayTitleElementId('session-b'));
+		assert.strictEqual(overlayA.element.getAttribute('aria-modal'), 'false');
+		assert.strictEqual(overlayB.element.getAttribute('aria-modal'), 'false');
 		assert.notStrictEqual(titleIdA, titleIdB);
 		assert.strictEqual(overlayA.element.querySelector(`#${titleIdA}`)?.textContent, 'Agent A');
 		assert.strictEqual(overlayB.element.querySelector(`#${titleIdB}`)?.textContent, 'Agent B');

@@ -1341,7 +1341,7 @@ suite('Conversation session chat (S3)', () => {
 		const overlay = sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}:not([hidden])`) as HTMLElement | null;
 		assert.ok(overlay);
 		assert.strictEqual(overlay.dataset.sessionKey, SESSION_KEY);
-		assert.strictEqual(overlay.getAttribute('aria-modal'), 'true');
+		assert.strictEqual(overlay.getAttribute('aria-modal'), 'false');
 		assert.strictEqual(overlay.getAttribute('aria-labelledby'), conversationSubAgentOverlayTitleId);
 		assert.strictEqual(overlay.querySelector(`#${conversationSubAgentOverlayTitleId}`)?.textContent, 'Research sub-agent');
 		assert.strictEqual(overlay.getAttribute(conversationSubAgentOverlayMaximizedAttribute), 'false');
