@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-25
-summary: "2026-10-25：槽 A 落地 D1297，目录刷新卸掉被刷掉的会话叶并为仍在名册的活动会话开窗。不 push。compile 未跑。H 的 attachments/ 仍未跟踪。"
+summary: "2026-10-25：loop/A 的 D1297（b955f10fd71）已在 merge 槽快进合入。各槽跟上。未跑 npm run compile，未 push。派槽 B 做仍开的 D1296。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **合入 D1297（2026-10-25）**：`loop/A` 的 `b955f10fd71` 是 merge 槽 `1699d66e2a2` 的快进子提交。merge 槽 `git merge --ff-only`。没有冲突，也没有二父 merge commit；两边保留脚本只用于二父合并，这次用不上。人类工位与 A–J 已快进到该 SHA。`origin/agent-ide` 仍是 `9128b870dbe`，该 SHA ahead 1803、behind 0。编译锁无人持有，本轮不跑 `npm run compile`，不 push。D1296 的表项仍是 open，叶上 `setInputMaximized` 仍只转发到透镜。已派槽 B 做这一刀。本条所在提交写完后各槽再快进。
 - **目录刷新补窗（2026-10-25，D1297）**：对照代码后，十六路审查、会话就绪度 S1–S5、PRD-029 开放问题 4–6（Add and trust / 已保存工作区不自动改写 / 仓库根优先）以及抽查的 2026-10-11 剩余子项（r10-5、r11-1/4/5、r13-1/2/3、r14-1/3/4、r15-2/3）已经在源码里。方案 frontmatter 仍有 `accepted` / `draft`，本刀不改状态。ChatGPT S0 要登录取样，S5 依赖 S0，不做。选定仍开的行为：连接着的目录列表少了焦点会话时不发 `onDidDeleteSession`，窗口因此留着旧叶、也不给新活动会话开窗。`doRefreshEngineCatalog` 在列表生效后发 `onDidPruneEngineSessions`。窗口卸掉这些叶；没有可见叶时才 `reveal` 仍在名册里的活动会话。活动 id 时序和 `rollbackEngineSessionDelete` 未改。在途删除仍不在活动变化时开邻居窗。验证：`flock /tmp/vscode-compile.lock npm run transpile-client` 退出码 0（10079 文件）。未跑 `npm run compile`。`scripts/test.sh --run src/vs/workbench/contrib/conversation/browser/conversationSessionWindowService.test.ts` 9 passing。`scripts/test.sh --run src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts --grep 'catalog refresh prunes|listSessions refresh keeps remembered turns|connected deleteSession fires|connected deleteSession remote throw'` 4 passing。`python3 scripts/check-docs-health.py` 0 errors（46 条既有断链警告）。`conversationLensDisposeGate` 两条失败、git `smoke.test.ts` 仓库数 2 !== 1、`hover new-session is only on the current engine workDir`，以及 `10e04195bf0` 上约 105 个 compile-src TS 错误，本轮都未复跑，不写成通过或失败，也不当成当前尖端的编译颜色。见 [session-windows](../../docs/systems/conversation/session-windows.md)、[D1297](deferred-gaps.md)。
 - **重新分析派工（2026-10-25）**：核对时人类工位、merge 与 A–J 都在 `279f2c18f08`。字母槽没有独有提交，本轮不合并。除 H 的未跟踪 `attachments/` 外工作区干净。`origin/agent-ide` 仍是 `9128b870dbe`（ahead 1800、behind 0）。编译锁无人持有，merge 槽没有 `npm run compile`，本轮不编译、不 push。父提交 `10e04195bf0` 上的编译退出码 1 不能当成当前尖端的结果。status 里的「已收口」未当完成。没有一份已对照代码、仍未落地的实现可直接派工。上一笔账是 `79fda2279e4`；本条所在提交写完后各槽再快进。已派槽 A 从该提交重选下一刀并自行做下去。槽表见 [worktree-pool.md](worktree-pool.md)。
 - **工位关仓（2026-10-25）**：用户要求人类工位也收尾提交。十六路审查的代码、测试、方案和本槽位账在 `279f2c18f08`，父提交是 `10e04195bf0`。merge 与 A–J 已 `merge --ff-only` 到该 SHA。H 仍有未跟踪 `attachments/`，记 `blocked`。merge 槽 `npm run compile` 在父提交上退出码 1（`compile-src` 105 个既有 TS 错误），因此未 push。`origin/agent-ide` 仍是 `9128b870dbe`。merge 槽不标 `parked`。不宣称 wave 完成。
