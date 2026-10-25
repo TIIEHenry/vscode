@@ -64,6 +64,7 @@ import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.j
 import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { conversationUserBodyText } from './conversationComposerRefs.js';
+import { isConversationInboxQueueItemActivationKey } from './conversationInboxKeyboard.js';
 
 export const conversationLensInboxOverlayClass = 'conversation-lens-inbox-overlay';
 
@@ -728,6 +729,7 @@ export class ConversationInboxOverlay extends Disposable {
 	private renderQueueItem(item: ConversationMessageQueueItem): HTMLElement {
 		const row = $('div.queue-item');
 		row.setAttribute('role', 'listitem');
+		row.tabIndex = 0;
 		row.setAttribute('data-item-id', item.id);
 		if (item.hold === 'EDITING') {
 			row.classList.add('hold-editing');
@@ -749,7 +751,8 @@ export class ConversationInboxOverlay extends Disposable {
 
 		const main = append(row, $('.queue-item-main'));
 		const itemBody = append(main, $('.queue-item-body'));
-		append(itemBody, $('.queue-item-preview')).textContent = conversationUserBodyText(item.content);
+		const preview = conversationUserBodyText(item.content);
+		append(itemBody, $('.queue-item-preview')).textContent = preview;
 		const meta = append(itemBody, $('.queue-item-meta'));
 		const appendMetaSep = () => {
 			if (meta.childNodes.length > 0) {
@@ -780,17 +783,42 @@ export class ConversationInboxOverlay extends Disposable {
 			meta.appendChild(document.createTextNode(`✗ ${item.lastError ?? conversationLensInboxQueueFailedTag}`));
 			row.appendChild(this.renderQueueRetryAction(item));
 		}
+		const accessibleState: string[] = [];
+		if (item.status === 'PENDING' && item.hold !== 'EDITING') {
+			accessibleState.push(conversationLensInboxQueueQueuedTag);
+		} else if (item.status === 'SENDING') {
+			accessibleState.push(localize('conversationLens.inboxQueueSending', "Sending…"));
+		}
+		if (item.hold === 'EDITING') {
+			accessibleState.push(conversationLensInboxQueueEditingTag);
+		}
+		if (item.status === 'UPLOADING') {
+			const pct = item.uploadProgress !== undefined ? Math.round(item.uploadProgress * 100) : 0;
+			accessibleState.push(format(conversationLensInboxQueueUploadingTag, pct));
+		}
+		if (item.status === 'FAILED' || item.status === 'UPLOAD_FAILED') {
+			accessibleState.push(`${conversationLensInboxQueueFailedTag}: ${item.lastError ?? conversationLensInboxQueueFailedTag}`);
+		}
+		const accessibleName = preview.trim() || localize('conversationLens.inboxQueueEmptyItem', "Empty queued message");
+		row.setAttribute('aria-label', [accessibleName, ...accessibleState].join(', '));
 
-		addDisposableListener(row, 'click', () => {
-			if (isConversationPairingHold(this.uaConnection)) {
+		const holdItem = () => {
+			if (isConversationPairingHold(this.uaConnection) || item.hold === 'EDITING') {
 				return;
 			}
-			if (item.hold !== 'EDITING') {
-				this.stubService.holdMessageQueueItem(this.resolveSessionId(), item.id, 'EDITING');
-				this.delegate.onQueueItemHold(item.id);
-				this.render();
-				this.refreshOpenListPanel();
+			this.stubService.holdMessageQueueItem(this.resolveSessionId(), item.id, 'EDITING');
+			this.delegate.onQueueItemHold(item.id);
+			this.render();
+			this.refreshOpenListPanel();
+		};
+
+		addDisposableListener(row, 'click', holdItem);
+		addDisposableListener(row, 'keydown', event => {
+			if (event.target !== row || !isConversationInboxQueueItemActivationKey(event.key)) {
+				return;
 			}
+			event.preventDefault();
+			holdItem();
 		});
 
 		return row;
