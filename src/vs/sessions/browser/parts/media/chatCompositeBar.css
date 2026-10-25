@@ -109,7 +109,7 @@
 }
 
 :is(.hc-black, .hc-light) .chat-composite-bar-session-title.editable:focus-visible {
-	outline-color: var(--vscode-contrastActiveBorder);
+	outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }
 
 .chat-composite-bar-session-title.editing {

@@ -152,11 +152,11 @@ suite('Sessions - SessionHeader', () => {
 		const title = header.element.querySelector<HTMLElement>('.chat-composite-bar-session-title');
 		assert.ok(title);
 
-		assert.deepStrictEqual({ role: title.getAttribute('role'), tabIndex: title.tabIndex }, { role: 'button', tabIndex: 0 });
+		assert.deepStrictEqual({ ariaLabel: title.getAttribute('aria-label'), role: title.getAttribute('role'), tabIndex: title.tabIndex }, { ariaLabel: 'Rename session: My Session', role: 'button', tabIndex: 0 });
 
 		title.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Enter', bubbles: true, cancelable: true }));
 		assert.ok(header.element.querySelector('.chat-composite-bar-session-title-input'));
-		assert.deepStrictEqual({ role: title.getAttribute('role'), tabIndex: title.getAttribute('tabindex') }, { role: null, tabIndex: null });
+		assert.deepStrictEqual({ ariaLabel: title.getAttribute('aria-label'), role: title.getAttribute('role'), tabIndex: title.getAttribute('tabindex') }, { ariaLabel: null, role: null, tabIndex: null });
 
 		header.startTitleEditing();
 		const input = header.element.querySelector<HTMLElement>('.chat-composite-bar-session-title-input');
