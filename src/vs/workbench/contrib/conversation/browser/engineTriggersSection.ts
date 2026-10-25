@@ -118,6 +118,9 @@ export class EngineTriggersSection extends Disposable {
 	private sectionActive = false;
 	private renderGeneration = 0;
 	private _setEnabledGeneration = 0;
+	private _fireGeneration = 0;
+	private _deleteGeneration = 0;
+	private _upsertGeneration = 0;
 	private leftoverListFailed = false;
 	private triggers: UniverseAgentTrigger[] = [];
 	private triggerCount = 0;
@@ -227,6 +230,9 @@ export class EngineTriggersSection extends Disposable {
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
 		++this._setEnabledGeneration;
+		++this._fireGeneration;
+		++this._deleteGeneration;
+		++this._upsertGeneration;
 		const hook = this.connection.listTriggers;
 		const pairingHold = isConversationPairingHold(this.connection);
 		const listSupport = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listTriggers;
@@ -338,6 +344,10 @@ export class EngineTriggersSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(hadLiveCatalog: boolean): boolean {
+		++this._setEnabledGeneration;
+		++this._fireGeneration;
+		++this._deleteGeneration;
+		++this._upsertGeneration;
 		this.updateWriteActions();
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.status.render({
@@ -547,13 +557,21 @@ export class EngineTriggersSection extends Disposable {
 		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerFire(this.connection.isEngineConnected(), this.triggerSupported('fireTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
+		const generation = this.renderGeneration;
+		const fireGeneration = ++this._fireGeneration;
 		const request = engineTriggerFireRequest(this.selectedTrigger);
 		try {
 			const result = await hook.call(this.connection, request);
+			if (generation !== this.renderGeneration || fireGeneration !== this._fireGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+				return;
+			}
 			this.fireStatus.style.display = '';
 			const tone = result.status === '' ? 'error' : 'neutral';
 			writeStatus(this.fireStatus, `${result.status} — ${result.eventId} — ${result.reason}`, tone);
 		} catch (error) {
+			if (generation !== this.renderGeneration || fireGeneration !== this._fireGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.fireStatus.style.display = '';
 			writeStatus(this.fireStatus, reason, 'error');
@@ -565,9 +583,14 @@ export class EngineTriggersSection extends Disposable {
 		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerDelete(this.connection.isEngineConnected(), this.triggerSupported('deleteTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
+		const generation = this.renderGeneration;
+		const deleteGeneration = ++this._deleteGeneration;
 		const request = engineTriggerDeleteRequest(this.selectedTrigger);
 		try {
 			await hook.call(this.connection, request);
+			if (generation !== this.renderGeneration || deleteGeneration !== this._deleteGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+				return;
+			}
 			this.deleteStatus.style.display = '';
 			writeStatus(this.deleteStatus, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, 'success');
 			const listed = await this.refresh();
@@ -576,6 +599,9 @@ export class EngineTriggersSection extends Disposable {
 				writeStatus(this.deleteStatus, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, 'success');
 			}
 		} catch (error) {
+			if (generation !== this.renderGeneration || deleteGeneration !== this._deleteGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.deleteStatus.style.display = '';
 			writeStatus(this.deleteStatus, reason, 'error');
@@ -621,17 +647,22 @@ export class EngineTriggersSection extends Disposable {
 		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerSupported('upsertTrigger', hook), this.isTriggerWritePairingHold()) || !hook) {
 			return;
 		}
+		const generation = this.renderGeneration;
+		const upsertGeneration = ++this._upsertGeneration;
 		const drafted = await this.promptTrigger(mode);
 		if (!drafted) {
 			return;
 		}
 		const liveHook = this.connection.upsertTrigger;
-		if (this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerSupported('upsertTrigger', liveHook), this.isTriggerWritePairingHold()) || !liveHook) {
+		if (generation !== this.renderGeneration || this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerSupported('upsertTrigger', liveHook), this.isTriggerWritePairingHold()) || !liveHook) {
 			return;
 		}
 		const request = engineTriggerUpsertRequest(drafted);
 		try {
 			const result = await liveHook.call(this.connection, request);
+			if (generation !== this.renderGeneration || upsertGeneration !== this._upsertGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+				return;
+			}
 			this.upsertStatus.style.display = '';
 			writeStatus(this.upsertStatus, formatEngineTriggerListLabel(result.trigger), 'success');
 			const listed = await this.refresh();
@@ -640,6 +671,9 @@ export class EngineTriggersSection extends Disposable {
 				writeStatus(this.upsertStatus, formatEngineTriggerListLabel(result.trigger), 'success');
 			}
 		} catch (error) {
+			if (generation !== this.renderGeneration || upsertGeneration !== this._upsertGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.upsertStatus.style.display = '';
 			writeStatus(this.upsertStatus, reason, 'error');
