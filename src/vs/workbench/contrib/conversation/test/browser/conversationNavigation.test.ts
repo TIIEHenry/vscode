@@ -728,6 +728,7 @@ suite('Conversation navigation (S2)', () => {
 		items[0].click();
 		assert.deepStrictEqual(harness.openedChildren, [{ sessionKey: SESSION_KEY, chatId: 'tool-1' }]);
 		assert.strictEqual(document.querySelector('.conversation-agent-down-popup'), null);
+		assert.strictEqual(document.activeElement, harness.down);
 
 		harness.down.click();
 		const reopened = document.querySelector('.conversation-agent-down-popup');
@@ -739,6 +740,7 @@ suite('Conversation navigation (S2)', () => {
 			{ sessionKey: SESSION_KEY, chatId: 'fork-1' },
 		]);
 		assert.strictEqual(document.querySelector('.conversation-agent-down-popup'), null);
+		assert.strictEqual(document.activeElement, harness.down);
 	});
 
 	test('down one agent popup closes on Escape and on an outside press', () => {
@@ -747,15 +749,19 @@ suite('Conversation navigation (S2)', () => {
 			children: [{ chatId: 'tool-1', title: 'Tool child', originKind: 'tool' }],
 		});
 		harness.down.click();
-		assert.ok(document.querySelector('.conversation-agent-down-popup'));
+		const popup = document.querySelector('.conversation-agent-down-popup') as HTMLElement | null;
+		assert.ok(popup);
+		assert.strictEqual(document.activeElement, popup?.querySelector('.conversation-agent-down-item'));
 		document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
 		assert.strictEqual(document.querySelector('.conversation-agent-down-popup'), null);
+		assert.strictEqual(document.activeElement, harness.down);
 		assert.deepStrictEqual(harness.openedChildren, []);
 
 		harness.down.click();
 		assert.ok(document.querySelector('.conversation-agent-down-popup'));
 		document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
 		assert.strictEqual(document.querySelector('.conversation-agent-down-popup'), null);
+		assert.strictEqual(document.activeElement, harness.down);
 		assert.deepStrictEqual(harness.goBackParts, []);
 		assert.deepStrictEqual(harness.goForwardParts, []);
 	});

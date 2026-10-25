@@ -5,12 +5,14 @@ status: active
 phase: M7
 updated: 2026-10-26
 summary: "2026-10-26：D1332–D1357 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Agent child menu 关闭焦点回收（2026-10-26，D1358，本波菜单键盘/ARIA 审计）**：会话栏“下一级 Agent”自定义 menu 打开后将焦点放进首个 menuitem，Escape、外部点击或选择关闭时原未把焦点还给下拉按钮，菜单项移除后键盘上下文会落到 body。现记录 popup 内最近焦点，关闭时仅当活动焦点仍属于 popup 且 anchor 可见才恢复下拉按钮；补三种关闭路径浏览器回归。不改子会话打开、上下箭头导航、关闭触发或写闸；目标 ESLint 临时缓存通过，定向 Electron 测试待在可启动环境复验，未跑 full compile。见 [D1358](deferred-gaps.md)。
 - **窄桌面导航抽屉关闭焦点回收（2026-10-26，D1354，本波窄宽/焦点反向审计）**：Compact desktop 导航抽屉关闭时若焦点已进入 sidebar，原逻辑隐藏 sidebar 后会把 activeElement 留在 `display:none` 节点；现仅在关闭前确认焦点位于 sidebar 时，关闭后恢复到可见的导航打开按钮，Esc/backdrop 与程序化关闭共用门控，不抢其他焦点。新增导航宿主焦点回归；未跑 full compile。见 [D1354](deferred-gaps.md)。
 - **Client-tool unary accepted 收口（2026-10-26，D1356，协议面状态审计）**：远程 `sendClientToolResponse` 原只发 unary，未像权限/提问一样在 `{ok:true}` 后本地收口；回帧延迟或不回显时 pending 与工具行仍显示未完成。现复用 renderer 侧 `clientToolRespondCleanupPatches`：accepted 后按 `isError` / bounded content 更新已有工具行并移除 pending，`ok:false` / throw 保留原状态；补 common 回归。目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，目标文件 ESLint `--no-cache` 0 errors，未跑 full compile。见 [D1356](deferred-gaps.md)。
 - **Client-tool cleanup 身份与 accepted 闸（2026-10-26，D1357，反向边界审计）**：D1356 的 cleanup 原会对未知或同 id 的 permission/question/server-tool 行无条件 remove 或改写；通用 wrapper 也把 `undefined` / 非布尔 `ok` 当作 accepted。现仅对已知 `respondable` client-tool timeline/pending 行生成 patch，并让该 unary 专用要求显式 `ok:true`；未知/collision、`ok:false`、malformed 与 throw 保留原状态。补 collision、pending-only 与 malformed 回归。定向 Electron 测试仍受本机 `sandbox_host_linux` 退出 133，工作台目标文件 ESLint 0 errors，未跑 full compile。见 [D1357](deferred-gaps.md)。
