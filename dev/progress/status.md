@@ -11,6 +11,7 @@ summary: "2026-10-26：D1326–D1327 已合入，D467 回收证据已闭合；�
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Manage Remote Agent Hosts Promise 收口（2026-10-26，D1328）**：远端主机选项对话框的 fire-and-forget Promise 原无 rejection handler；现补 `onUnexpectedError` 双 catch，并新增源码扫描测试。待定向 Electron 测试与本波集成编译复验。
 - **引擎目录断连状态就地连接（2026-10-26，D1327）**：`EngineCatalogStatusWidget` 原已接收 `onOpenConnection`，但断连状态只显示“从 Connection preferences 连接”文案，没有可点入口；现为 disconnected 状态渲染 token 化次要按钮 “Open Connection”，复用各目录已有回调，失败/加载/空/不支持状态不新增操作。新增状态组件回归测锁定按钮仅在回调存在时显示、点击调用一次，切换到 failed 只保留 Retry。目标 Electron 测试因本机 `sandbox_host_linux` 受限退出 133；`git diff --check` 通过；ESLint 受工位 `.eslintcache` 只读（EROFS）阻塞，待可写环境复验。
 - **Changes 视图普通打开收口（2026-10-26，D1324）**：Changes 树单击打开单文件或多文件 Diff 时的两个 fire-and-forget Promise 现在接入 `onUnexpectedError` 双 catch，新增源码扫描测试；不改变打开模式与失败状态语义。定向 Electron 测试仍受 sandbox 133 限制；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。
 - **NewChatWidget 后台创建收口（2026-10-26，D1322）**：恢复工作区草稿、提供方变化重建草稿和提示选项刷新均为 fire-and-forget 时补上 `onUnexpectedError` 双 catch；新增源码扫描测试，避免新会话创建失败留下未处理 rejection。定向 Electron 测试仍受 sandbox 133 限制；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。
