@@ -7,6 +7,7 @@
  * not invent a timeline row.
  */
 
+import { timelineItemFromClientToolRespond } from './client-tool-call.js';
 import type { ClientActionRequestId, PendingActionView, SessionViewSnapshot, TimelineItemId, TimelineItemView, ViewPatch } from './types.js';
 
 export interface PermissionRespondCleanupInput {
@@ -17,6 +18,12 @@ export interface PermissionRespondCleanupInput {
 export interface QuestionRespondCleanupInput {
 	readonly questionId: string;
 	readonly answers?: Readonly<Record<string, { readonly selectedLabels: readonly string[] }>>;
+}
+
+export interface ClientToolRespondCleanupInput {
+	readonly callId: string;
+	readonly isError: boolean;
+	readonly content: string;
 }
 
 function isExactRespondTimelineIdentity(value: string): boolean {
@@ -154,6 +161,32 @@ export function questionRespondCleanupPatches(
 	patches.push({
 		op: 'removePendingAction',
 		requestId: fact.questionId as ClientActionRequestId,
+	});
+	return patches;
+}
+
+/**
+ * Mirrors the engine's client-tool response fold after the renderer-side
+ * unary has succeeded. The unary does not enter the Chat stream, so the
+ * pending action and existing timeline row must be settled locally.
+ */
+export function clientToolRespondCleanupPatches(
+	snapshot: SessionViewSnapshot,
+	fact: ClientToolRespondCleanupInput,
+): readonly ViewPatch[] {
+	const patches: ViewPatch[] = [];
+	if (isExactRespondTimelineIdentity(fact.callId)) {
+		const existing = snapshot.timeline.find(item => String(item.id) === fact.callId);
+		if (existing !== undefined) {
+			const item = timelineItemFromClientToolRespond(fact, existing);
+			if (item !== undefined) {
+				patches.push({ op: 'upsertTimelineItem', item });
+			}
+		}
+	}
+	patches.push({
+		op: 'removePendingAction',
+		requestId: fact.callId as ClientActionRequestId,
 	});
 	return patches;
 }

@@ -28,7 +28,7 @@ import {
 	type PersistedConversationSession,
 } from './conversationRosterStorage.js';
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/types.js';
-import { permissionRespondCleanupPatches, questionRespondCleanupPatches } from '../../../../platform/universeAgent/common/sessionView/respond-cleanup.js';
+import { clientToolRespondCleanupPatches, permissionRespondCleanupPatches, questionRespondCleanupPatches } from '../../../../platform/universeAgent/common/sessionView/respond-cleanup.js';
 import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type ConversationTrajectoryRecord, type TrajectoryProjectionOptions } from './conversationTrajectoryModel.js';
 import {
 	ConversationStubService,
@@ -1252,6 +1252,15 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 					...(content !== undefined ? { content } : {}),
 					...(metadataJson !== undefined ? { metadataJson } : {}),
 				}),
+				() => {
+					// Accepted unary only. The client-tool response has no Chat-stream
+					// arm, so settle the pending action and timeline locally.
+					this.engineFrameSource.applyRespondCleanup(sessionId, snapshot => clientToolRespondCleanupPatches(snapshot, {
+						callId: trimmedCallId,
+						isError: options?.isError === true,
+						content: content ?? '',
+					}));
+				},
 			));
 			return true;
 		}
