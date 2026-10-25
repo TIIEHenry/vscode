@@ -7,6 +7,7 @@ import * as nls from '../../../../nls.js';
 import { URI } from '../../../../base/common/uri.js';
 import * as network from '../../../../base/common/network.js';
 import { Disposable, IReference } from '../../../../base/common/lifecycle.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { IReplaceService } from './replace.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
@@ -197,7 +198,7 @@ export class ReplaceService implements IReplaceService {
 			if (replacePreviewUpdateQueues.get(key) === next) {
 				replacePreviewUpdateQueues.delete(key);
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 		return next;
 	}
 
