@@ -146,4 +146,35 @@ suite('Sessions - SessionHeader', () => {
 			hasInputWhenNotRenameable: false,
 		});
 	});
+
+	test('exposes an editable title as a keyboard button and activates it with Enter or Space', () => {
+		const { header } = createHarness(disposables, { supportsMultipleChats: false, supportsRename: true });
+		const title = header.element.querySelector<HTMLElement>('.chat-composite-bar-session-title');
+		assert.ok(title);
+
+		assert.deepStrictEqual({ role: title.getAttribute('role'), tabIndex: title.tabIndex }, { role: 'button', tabIndex: 0 });
+
+		title.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Enter', bubbles: true, cancelable: true }));
+		assert.ok(header.element.querySelector('.chat-composite-bar-session-title-input'));
+		assert.deepStrictEqual({ role: title.getAttribute('role'), tabIndex: title.getAttribute('tabindex') }, { role: null, tabIndex: null });
+
+		header.startTitleEditing();
+		const input = header.element.querySelector<HTMLElement>('.chat-composite-bar-session-title-input');
+		assert.ok(input);
+		input.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Escape', bubbles: true, cancelable: true }));
+		assert.deepStrictEqual({ role: title.getAttribute('role'), tabIndex: title.tabIndex }, { role: 'button', tabIndex: 0 });
+
+		title.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: ' ', bubbles: true, cancelable: true }));
+		assert.ok(header.element.querySelector('.chat-composite-bar-session-title-input'));
+	});
+
+	test('does not expose a non-editable title as a button', () => {
+		const { header } = createHarness(disposables);
+		const title = header.element.querySelector<HTMLElement>('.chat-composite-bar-session-title');
+		assert.ok(title);
+
+		assert.deepStrictEqual({ role: title.getAttribute('role'), tabIndex: title.getAttribute('tabindex') }, { role: null, tabIndex: null });
+		title.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Enter', bubbles: true, cancelable: true }));
+		assert.strictEqual(header.element.querySelector('.chat-composite-bar-session-title-input'), null);
+	});
 });

@@ -118,6 +118,15 @@ export class SessionHeader extends Disposable {
 		this._register(addDisposableListener(this._titleEl, EventType.CLICK, () => {
 			this.startTitleEditing();
 		}));
+		this._register(addStandardDisposableListener(this._titleEl, EventType.KEY_DOWN, e => {
+			if (!this._isTitleEditable() || (!e.equals(KeyCode.Enter) && !e.equals(KeyCode.Space))) {
+				return;
+			}
+
+			e.preventDefault();
+			e.stopPropagation();
+			this.startTitleEditing();
+		}));
 
 		const titleActions = $('.chat-composite-bar-title-actions');
 		titleRow.appendChild(titleActions);
@@ -230,6 +239,7 @@ export class SessionHeader extends Disposable {
 
 		if (!session) {
 			this._sessionIsCreated = false;
+			this._updateTitleAccessibility();
 			this._updateVisibility();
 			return;
 		}
@@ -269,8 +279,20 @@ export class SessionHeader extends Disposable {
 		// Session title — quick chats use "New Chat" as the untitled fallback.
 		const isQuickChat = session.isQuickChat?.read(reader) ?? false;
 		this._titleTextEl.textContent = session.title.read(reader) || getUntitledSessionTitle(isQuickChat);
-		this._titleEl.classList.toggle('editable', this._isTitleEditable());
+		this._updateTitleAccessibility();
 		this._onDidChangeHeight.fire();
+	}
+
+	private _updateTitleAccessibility(): void {
+		const isEditable = this._isTitleEditable();
+		this._titleEl.classList.toggle('editable', isEditable);
+		if (isEditable && !this._renameInput) {
+			this._titleEl.tabIndex = 0;
+			this._titleEl.setAttribute('role', 'button');
+		} else {
+			this._titleEl.removeAttribute('tabindex');
+			this._titleEl.removeAttribute('role');
+		}
 	}
 
 	private _applyVisibility(visible: boolean): void {
@@ -343,6 +365,7 @@ export class SessionHeader extends Disposable {
 		this._titleEl.appendChild(input);
 		this._titleEl.classList.add('editing');
 		this._renameInput = input;
+		this._updateTitleAccessibility();
 
 		input.focus();
 		input.select();
@@ -406,6 +429,7 @@ export class SessionHeader extends Disposable {
 		}
 		this._titleTextEl.style.display = '';
 		this._titleEl.classList.remove('editing');
+		this._updateTitleAccessibility();
 		this._editingDisposables.clear();
 	}
 }
