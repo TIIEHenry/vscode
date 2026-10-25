@@ -1522,7 +1522,7 @@ export class WorkspacePicker extends Disposable {
 	/**
 	 * Returns whether the given provider is a remote that is currently unavailable
 	 * (incompatible, or disconnected/still connecting without on-demand connect).
-	 * Returns false for providers without connection status (e.g. local providers).
+	 * Returns undefined for providers without connection status (e.g. local providers).
 	 */
 	protected _getProviderUnavailableReason(providerId: string): string | undefined {
 		const provider = this.sessionsProvidersService.getProvider(providerId);
