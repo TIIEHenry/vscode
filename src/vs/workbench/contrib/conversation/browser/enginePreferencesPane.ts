@@ -364,8 +364,18 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 			section.setShowSectionHeading(false);
 		}
 		if (this.isNarrow()) {
+			const focusNarrowDetailBackButton = !this.narrowShowingDetail && this.navHost.contains(this.navHost.ownerDocument.activeElement);
 			this.narrowShowingDetail = true;
 			this.applyNarrowChrome();
+			if (focusNarrowDetailBackButton) {
+				// The nav is hidden by CSS as soon as the detail opens. Move focus after
+				// the list selection settles so keyboard users do not remain on a hidden row.
+				queueMicrotask(() => {
+					if (this.narrowShowingDetail && !this.backButton.hidden) {
+						this.backButton.focus();
+					}
+				});
+			}
 		}
 		const active = this.sections.get(id);
 		active?.layout(this.getDetailWidth(), this.getDetailHeight());

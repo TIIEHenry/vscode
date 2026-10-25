@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { Dimension } from '../../../../base/browser/dom.js';
 import { timeout } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -59,5 +60,36 @@ suite('EnginePreferencesPane (browser)', () => {
 		await timeout(0);
 
 		assert.strictEqual(testStatus.textContent, '');
+	});
+
+	test('narrow navigation returns focus to Back when opening a detail section', async () => {
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+		});
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const pane = instantiationService.createInstance(EnginePreferencesPane);
+		container.appendChild(pane.getDomNode());
+		pane.layout(new Dimension(480, 600));
+
+		const backButton = pane.getDomNode().querySelector('.engine-preferences-back') as HTMLButtonElement;
+		backButton.click();
+		const navHost = pane.getDomNode().querySelector('.engine-preferences-nav') as HTMLElement;
+		const navFocusProbe = document.createElement('button');
+		navFocusProbe.type = 'button';
+		navHost.appendChild(navFocusProbe);
+		navFocusProbe.focus();
+
+		// The Back button is the first reachable control after the nav is hidden.
+		pane.selectSection('providers');
+		await timeout(0);
+		assert.strictEqual(backButton.hidden, false);
+		assert.strictEqual(document.activeElement, backButton);
+		assert.strictEqual(pane.getDomNode().classList.contains('is-showing-detail'), true);
 	});
 });
