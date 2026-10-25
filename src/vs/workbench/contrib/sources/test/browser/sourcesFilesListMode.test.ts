@@ -10,6 +10,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { SOURCES_FILES_LIST_MODE_STORAGE_KEY, sourcesFilterFitsOnBar, sourcesListDirectoryTarget } from '../../common/sourcesFilesListMode.js';
 import { readSourcesFilesListMode, SOURCES_FILES_EXPLORER_ID, sourcesFilesListModeScope, sourcesFilesListModeStorageKey } from '../../browser/sourcesFilesExplorer.js';
+import { SourcesListFilterBox } from '../../browser/sourcesListFilterBox.js';
 
 suite('Sources - files list mode', () => {
 
@@ -44,6 +45,16 @@ suite('Sources - files list mode', () => {
 		assert.strictEqual(sourcesFilterFitsOnBar(0), false);
 		assert.strictEqual(sourcesFilterFitsOnBar(599), false);
 		assert.strictEqual(sourcesFilterFitsOnBar(600), true);
+	});
+
+	test('sources filter clear action has its own accessible name', function () {
+		const parent = document.createElement('div');
+		const filter = store.add(new SourcesListFilterBox(parent, 'Filter files', 'Filter files'));
+		const clear = parent.querySelector('.sources-list-filter-clear') as HTMLButtonElement | null;
+		assert.ok(clear);
+		assert.strictEqual(clear.type, 'button');
+		assert.strictEqual(clear.getAttribute('aria-label'), 'Clear filter');
+		filter.dispose();
 	});
 
 	test('same project key shares list mode and different project keys stay independent', function () {
