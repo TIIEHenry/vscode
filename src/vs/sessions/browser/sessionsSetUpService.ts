@@ -170,10 +170,13 @@ class SessionsSetUpWidget extends Disposable {
 			if (!this._initialSetupFlow && this._allowSignedOutWhenUsable.get()) {
 				this._onAllowSignedOutWhenUsableChanged();
 			}
-		});
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 
 		if (isWeb) {
-			void this._checkWebAuth().finally(() => this._initialSetupFlow = false);
+			void this._checkWebAuth()
+				.finally(() => this._initialSetupFlow = false)
+				.catch(onUnexpectedError)
+				.catch(onUnexpectedError);
 			this._watchWebAuth();
 			return;
 		}
@@ -181,9 +184,15 @@ class SessionsSetUpWidget extends Disposable {
 		const isFirstLaunch = !this.storageService.getBoolean(WELCOME_COMPLETE_KEY, StorageScope.APPLICATION, false);
 
 		if (isFirstLaunch) {
-			void this._showWelcome(true).finally(() => this._initialSetupFlow = false);
+			void this._showWelcome(true)
+				.finally(() => this._initialSetupFlow = false)
+				.catch(onUnexpectedError)
+				.catch(onUnexpectedError);
 		} else {
-			void this._watchSignInState().finally(() => this._initialSetupFlow = false);
+			void this._watchSignInState()
+				.finally(() => this._initialSetupFlow = false)
+				.catch(onUnexpectedError)
+				.catch(onUnexpectedError);
 		}
 	}
 
