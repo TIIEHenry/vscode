@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-25
-summary: "2026-10-25：白屏修复（e64b68e1062）已快进合入，D1303 关闭。未跑 npm run compile，未 push。槽 J 修 open-untitled。H 的 attachments/ 仍未跟踪。"
+summary: "2026-10-25：槽 J 的 open-untitled 通过（转译旧 out/ 后，十步 Outcome passed）。未跑 npm run compile，未 push，未合入 merge。H 的 attachments/ 仍未跟踪。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,18 +23,18 @@ summary: "2026-10-25：白屏修复（e64b68e1062）已快进合入，D1303 关�
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 集成尖端（`agent-ide`） | 白屏修复在 `e64b68e1062`。本账本提交只记合入；写完后 merge 与字母槽 `merge --ff-only` 到本提交。 |
-| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`e64b68e1062` ahead 1817、behind 0。未跑 `npm run compile`，未 push。`1117f5f95f2` 上 compile-client 退出码 1（505 条 `error TS`）未复跑。 |
+| 集成尖端（`agent-ide`） | 人类工位、merge 与 A–I 仍在 `90855d366c1`。槽 J 的 `loop/J` 在本提交，只记 open-untitled 通过，尚未合入 merge。 |
+| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。本提交 ahead 1819、behind 0。未跑 `npm run compile`，未 push。`1117f5f95f2` 上 compile-client 退出码 1（505 条 `error TS`）未复跑。 |
 
-## 槽位表（2026-10-25 合入白屏修复后）
+## 槽位表（2026-10-25 open-untitled 通过后）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `e64b68e1062`，随后快进到本账 | 干净，不是 `parked`。快进合入，没有二父 merge commit，没有 `npm run compile` |
-| A、B、C、D、E、F、G、I | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 同上 | `idle`。工作区干净 |
-| J | `vscode-WorkTrees/J` | `loop/J` | 同上 | `occupied`。修壳冒烟 `open-untitled`（`editor:false`，Preview Group 2–7） |
-| H | `vscode-WorkTrees/H` | `loop/H` | 同上 | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
-| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 本账本提交 | 只记合入。禁止 reset / stash / restore / clean / `checkout -B` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `90855d366c1` | 干净，不是 `parked`。槽 J 的提交还没合进来，没有 `npm run compile` |
+| A、B、C、D、E、F、G、I | `vscode-WorkTrees/{槽}` | `loop/{槽}` | `90855d366c1` | `idle`。工作区干净 |
+| J | `vscode-WorkTrees/J` | `loop/J` | 本提交 | `occupied`。`open-untitled` 已通过（`Untitled-1, Preview: Editor Group 1`），整次 Outcome passed。独有提交，未合入 merge |
+| H | `vscode-WorkTrees/H` | `loop/H` | `90855d366c1` | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
+| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | `90855d366c1` | 禁止 reset / stash / restore / clean / `checkout -B` |
 
 P0 旧账：字母槽与 merge 曾停在 `59120887458`，人类工位曾在 `10e04195bf0` 上带着审查改动。那些改动已在 `279f2c18f08`。本轮核对时 stash 未再查；不把文档里的进度当成已完成。
 
