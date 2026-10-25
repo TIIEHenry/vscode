@@ -218,12 +218,15 @@ export class ConversationNavigationContribution extends Disposable implements IW
 			return;
 		}
 
+		let popupElement: HTMLElement | undefined;
+		let lastPopupFocused: HTMLElement | undefined;
 		const openView = this.contextViewService.showContextView({
 			getAnchor: () => anchor,
 			anchorAlignment: AnchorAlignment.LEFT,
 			anchorPosition: AnchorPosition.BELOW,
 			render: container => {
 				const popup = append(container, $('.conversation-agent-down-popup'));
+				popupElement = popup;
 				popup.setAttribute('role', 'menu');
 				popup.setAttribute('aria-label', conversationLensSessionBarDownAgent);
 				const popupStore = new DisposableStore();
@@ -243,6 +246,11 @@ export class ConversationNavigationContribution extends Disposable implements IW
 						void this.sessionChatService.openDirectChildAgent(sessionKey, child.chatId).catch(onUnexpectedError).catch(onUnexpectedError);
 					}));
 				}
+				popupStore.add(addDisposableListener(popup, 'focusin', event => {
+					if (isHTMLElement(event.target)) {
+						lastPopupFocused = event.target;
+					}
+				}));
 				popupStore.add(addDisposableListener(popup, 'keydown', event => {
 					if (event.key === 'Escape') {
 						event.preventDefault();
@@ -288,6 +296,13 @@ export class ConversationNavigationContribution extends Disposable implements IW
 			onHide: () => {
 				if (openView && this.directChildPopups.get(sessionKey) === openView) {
 					this.directChildPopups.delete(sessionKey);
+				}
+				const active = getWindow(anchor).document.activeElement;
+				if (lastPopupFocused && (active === lastPopupFocused || popupElement?.contains(active))) {
+					const style = getWindow(anchor).getComputedStyle(anchor);
+					if (anchor.isConnected && !anchor.hidden && !anchor.closest('[hidden]') && style.display !== 'none' && style.visibility !== 'hidden') {
+						anchor.focus();
+					}
 				}
 			},
 		});
