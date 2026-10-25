@@ -577,6 +577,10 @@ suite('ConversationSessionsView', () => {
 		const input = getFilterInput(view);
 		assert.ok(input);
 		assert.strictEqual(input.placeholder, 'Filter sessions');
+		const clearButton = view.element.querySelector('.conversation-sessions-inline-filter-clear') as HTMLButtonElement | null;
+		assert.ok(clearButton);
+		assert.strictEqual(clearButton.type, 'button');
+		assert.strictEqual(clearButton.getAttribute('aria-label'), 'Clear filter');
 	});
 
 	test('filter input stays visible after New session', () => {

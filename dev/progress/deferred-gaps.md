@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1338 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1339 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
 ---
 
 # Deferred Gaps
@@ -1286,3 +1286,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1336 | P3 | **open** D1334 合并单一状态动作后，旧 `engineTriggersSection.test.ts` 仍假设无选中时存在可用 Disable，且允许发送空 `triggerId`；这与当前 `setEnabledButton` 无选中禁用、按选中状态切换的运行时合同冲突。本刀仅更新陈旧断言：无选中时只保留一个禁用 Enable，已启用选中项的异常回报场景点 Disable，公共写按钮辅助断言只检查一个状态动作；未改生产代码或 RPC。 | 仅修复 D1334 引入的回归测试合同，不改变 Triggers UI 或 SetTriggerEnabled 语义；可运行 Electron 环境复验整份 Triggers 套件 | 旧测试不再查找不存在的第二个状态按钮，不再期望无选中写请求；状态动作仍仅一个且无选中禁用 | conversation / engine-triggers | open |
 | D1337 | P3 | **open** History、Snapshots 与 Visualize overlay 的 Reset/Close 图标按钮原只设置 tooltip `title`，而 `Button` 不会把 title 作为 `aria-label`，读屏用户得到无名按钮。现为四个按钮复用已有本地化文案显式设置 `ariaLabel`，并在三份 browser 回归测试中锁定名称；不改变打开、关闭或重置行为。定向 Electron 测试受本机 `sandbox_host_linux` 限制退出 **133**；目标文件 ESLint `--no-cache` 退出 **0**（4 条既有 warning），`git diff --check` 通过。 | 只补图标按钮的无障碍名称，不改 overlay 生命周期、焦点陷阱、按钮可用性或重置/关闭语义 | History close、Snapshots close、Visualize reset/close 均存在本地化 `aria-label`；现有交互与键盘行为保持 | conversation / overlays | open |
 | D1338 | P3 | **open** Inbox MessageQueue 行原只有鼠标 `click`，队列项是无 `tabIndex` 的 `role=listitem`，键盘用户无法把待发送项置为 Editing；列表内唯一的 Retry 按钮也没有可见的行焦点线索。现为队列行提供 `tabIndex=0`、内容 `aria-label`、Enter/Space 激活和 token 化 `:focus-visible`，并忽略 Retry 子按钮冒泡；不改变队列写闸、重试或状态语义。新增键盘键判定单测；目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 **133**，目标文件 ESLint 退出 **0**（2 条既有 import-pattern warning），`git diff --check` 通过。 | 只补 Inbox 队列行键盘可达性、命名和焦点可见性，不改队列状态机、RPC 或 Retry 行为 | Tab 可到每个队列行；Enter/Space 与鼠标点击同样进入 Editing；pairing-hold 和已 Editing 行仍不写；Retry 获焦时 Enter 不会重复触发行操作；浅色、深色、高对比主题显示焦点环 | conversation / inbox | open |
+| D1339 | P3 | **open** Sessions 内联筛选与 Sources Files/Changes/Review 共享的清除图标按钮原把“Filter sessions/files/changes”作为自身 `aria-label`，读屏用户得到筛选框名称而非清除动作；Sessions 清除按钮也未显式声明 `type=button`。现统一使用本地化 “Clear filter”，并为 Sessions 按钮补 `type=button`；新增 Sessions 与 Sources DOM 回归断言。只改筛选清除控件的语义名称与按钮类型，不改过滤、清除、焦点或布局行为。 | 只修 Sessions/Sources 清除图标的无障碍命名与按钮类型；不改变过滤匹配、清除逻辑或视觉布局 | Sessions 与 Sources 三类列表的清除按钮均读为 “Clear filter”；Sessions 清除按钮为普通按钮类型；已有点击、Escape 清除和筛选结果保持 | sessions / sources-filter | open |
