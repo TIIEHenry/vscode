@@ -3,8 +3,8 @@ title: "配套 IDE 设施：files / SCM / terminal / debug"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-02
-summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources Files 挂资源管理器同一棵树且不占活动栏；Changes/Review 仍是 SCM 列表投影；Review 无写操作、审阅进度不入 SCM；Diff 归属 ADR-005 已裁决（默认 Preview，可移对话窗口/底部 Panel，F1–F3 已落）"
+updated: 2026-10-25
+summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources Files 挂资源管理器同一棵树且不占活动栏；Changes/Review 仍是 SCM 列表投影；Review 无写操作、审阅进度不入 SCM；Diff 归属 ADR-005 已裁决（默认 Preview，可移对话窗口/底部 Panel，F1–F3 已落）。Test Explorer 在发现结束后、集合非空且筛选后零可见行时写 No matching tests."
 ---
 
 # 配套 IDE 设施：files / SCM / terminal / debug
@@ -71,6 +71,10 @@ Desktop ADR-047：Terminal **可 Pin 在 Bottom Panel**；默认座也曾写在 
 ### 3.4 debug — 侧栏会话面 + 底栏 REPL
 
 Run and Debug 是 Sidebar 容器；Debug Console 是独立 Panel 容器。断点/当前行画在已打开的文件编辑器上；反汇编才是单独 `EditorPane`。调试是配套运行时设施，时间线工具卡若「打开落到已有 Terminal / File」，应对到这些既有面，**卡本身不是 L1**。
+
+### 3.5 testing — Test Explorer 筛选落空
+
+Testing 视图（`workbench.view.testing`）在发现已结束（`busyProviders === 0`）、集合里已有测试、筛选文字去掉空白后仍非空、且树上可见行是 0 时，在列表上写 “No matching tests.”。发现还在进行、集合为空（欢迎页 “No tests have been found in this workspace yet.”，或当前文件 “No tests were found in this file.”）、筛选为空白、或仍有可见行（含错误行）时不写。`@failed`、`@executed`、`@doc`、`@openedFiles`、文本和标签都走这一句，因为它们都在筛选文字里。空白筛选下的排除不写这句。结果状态变化只重排、不重筛；这句跟着树上当前可见行，不另做一次重筛。
 
 ## 4. Sources Files ↔ Navigator Files（映射张力）
 

@@ -43,6 +43,22 @@
 	position: relative;
 }
 
+.testing-explorer-filter-empty {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	z-index: 1;
+	padding: 24px 16px;
+	box-sizing: border-box;
+	text-align: center;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 1.5;
+	pointer-events: none;
+	user-select: none;
+}
+
 .testing-stdtree-container {
 	display: flex;
 	align-items: center;

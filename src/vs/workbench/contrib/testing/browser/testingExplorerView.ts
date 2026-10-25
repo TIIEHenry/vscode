@@ -67,6 +67,7 @@ import { TestId } from '../common/testId.js';
 import { ITestProfileService, canUseProfileWithTest } from '../common/testProfileService.js';
 import { LiveTestResult, TestResultItemChangeReason } from '../common/testResult.js';
 import { ITestResultService } from '../common/testResultService.js';
+import { testingExplorerFilterEmptyReason } from '../common/testingExplorerFilterEmpty.js';
 import { IMainThreadTestCollection, ITestService, testCollectionIsEmpty } from '../common/testService.js';
 import { ITestRunProfile, InternalTestItem, TestControllerCapability, TestItemExpandState, TestResultState, TestRunProfileBitset, testProfileBitset, testResultStateToContextValues } from '../common/testTypes.js';
 import { TestingContextKeys } from '../common/testingContextKeys.js';
@@ -83,6 +84,7 @@ import { TreeProjection } from './explorerProjections/treeProjection.js';
 import * as icons from './icons.js';
 import './media/testing.css';
 import { DebugLastRun, ReRunLastRun } from './testExplorerActions.js';
+import { applyTestingExplorerFilterEmpty } from './testingExplorerFilterEmpty.js';
 import { TestingExplorerFilter } from './testingExplorerFilter.js';
 
 const enum LastFocusState {
@@ -699,6 +701,7 @@ class TestingExplorerViewModel extends Disposable {
 	private readonly actionRunner = this._register(new TestExplorerActionRunner(() => this.tree.getSelection().filter(isDefined)));
 	private readonly lastViewState: StoredValue<ISerializedTestTreeCollapseState>;
 	private readonly noTestForDocumentWidget: NoTestsForDocumentWidget;
+	private readonly filterEmptyMessage: HTMLElement;
 
 	/**
 	 * Whether there's a reveal request which has not yet been delivered. This
@@ -800,6 +803,9 @@ class TestingExplorerViewModel extends Disposable {
 				findWidgetEnabled: false,
 			}) as TestingObjectTree<FuzzyScore>;
 
+		this.filterEmptyMessage = dom.append(listContainer, dom.$('.testing-explorer-filter-empty'));
+		this.filterEmptyMessage.setAttribute('role', 'status');
+		this.filterEmptyMessage.style.display = 'none';
 
 		// saves the collapse state so that if items are removed or refreshed, they
 		// retain the same state (#170169)
@@ -843,17 +849,20 @@ class TestingExplorerViewModel extends Disposable {
 			testService.excluded.onTestExclusionsChanged,
 		)(() => {
 			if (!filterState.text.value) {
-				return this.tree.refilter();
-			}
+				this.tree.refilter();
+			} else {
+				const items = this.filter.lastIncludedTests = new Set();
+				this.tree.refilter();
+				this.filter.lastIncludedTests = undefined;
 
-			const items = this.filter.lastIncludedTests = new Set();
-			this.tree.refilter();
-			this.filter.lastIncludedTests = undefined;
-
-			for (const test of items) {
-				this.tree.expandTo(test);
+				for (const test of items) {
+					this.tree.expandTo(test);
+				}
 			}
+			this.updateFilterEmpty();
 		}));
+
+		this._register(testService.collection.onBusyProvidersChange(() => this.updateFilterEmpty()));
 
 		this._register(this.tree.onDidOpen(e => {
 			if (!(e.element instanceof TestItemTreeElement)) {
@@ -965,6 +974,7 @@ class TestingExplorerViewModel extends Disposable {
 
 			if (this.filterState.isFilteringFor(TestFilterTerm.CurrentDoc) || this.filterState.isFilteringFor(TestFilterTerm.OpenedFiles)) {
 				this.tree.refilter();
+				this.updateFilterEmpty();
 			}
 		}));
 
@@ -1154,10 +1164,32 @@ class TestingExplorerViewModel extends Disposable {
 		this.projection.value?.applyTo(this.tree);
 
 		this.tree.refilter();
+		this.updateFilterEmpty();
 
 		if (this.hasPendingReveal) {
 			this.revealById(this.filterState.reveal.get());
 		}
+	}
+
+	/** Unprojected tree stays silent. Otherwise the reason function owns the sentence. */
+	private updateFilterEmpty(): void {
+		if (!this.projection.value) {
+			applyTestingExplorerFilterEmpty(this.filterEmptyMessage, undefined);
+			return;
+		}
+		let visibleCount = 0;
+		try {
+			visibleCount = this.tree.getNode().visibleChildrenCount;
+		} catch {
+			applyTestingExplorerFilterEmpty(this.filterEmptyMessage, undefined);
+			return;
+		}
+		applyTestingExplorerFilterEmpty(this.filterEmptyMessage, testingExplorerFilterEmptyReason({
+			providersBusy: this.testService.collection.busyProviders > 0,
+			collectionEmpty: testCollectionIsEmpty(this.testService.collection),
+			filterText: this.filterState.text.value,
+			visibleCount,
+		}));
 	}
 
 	/**
