@@ -1260,8 +1260,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 						isError: options?.isError === true,
 						content: content ?? '',
 					}));
-				},
-			));
+				}, true),
+			);
 			return true;
 		}
 		return false;
@@ -1429,11 +1429,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	 * `onAccepted` runs only after the engine accepts, in this same turn, so a
 	 * refusal still rejects before any local cleanup.
 	 */
-	private wrapEngineQueueMutation(action: string, send: () => Promise<unknown>, onAccepted?: () => void): () => Promise<void> {
+	private wrapEngineQueueMutation(action: string, send: () => Promise<unknown>, onAccepted?: () => void, requireExplicitOk = false): () => Promise<void> {
 		return async () => {
 			const result = await send() as { ok?: boolean; error?: string; message?: string } | undefined;
 			if (result && result.ok === false) {
 				throw new Error(result.error?.trim() || result.message?.trim() || `${action} refused`);
+			}
+			if (requireExplicitOk && (!result || result.ok !== true)) {
+				throw new Error(`${action} refused`);
 			}
 			onAccepted?.();
 		};

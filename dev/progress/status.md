@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1356 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332–D1357 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
@@ -13,6 +13,7 @@ summary: "2026-10-26：D1332–D1356 已落盘，D467 回收证据已闭合；�
 ## Current Session
 - **窄桌面导航抽屉关闭焦点回收（2026-10-26，D1354，本波窄宽/焦点反向审计）**：Compact desktop 导航抽屉关闭时若焦点已进入 sidebar，原逻辑隐藏 sidebar 后会把 activeElement 留在 `display:none` 节点；现仅在关闭前确认焦点位于 sidebar 时，关闭后恢复到可见的导航打开按钮，Esc/backdrop 与程序化关闭共用门控，不抢其他焦点。新增导航宿主焦点回归；未跑 full compile。见 [D1354](deferred-gaps.md)。
 - **Client-tool unary accepted 收口（2026-10-26，D1356，协议面状态审计）**：远程 `sendClientToolResponse` 原只发 unary，未像权限/提问一样在 `{ok:true}` 后本地收口；回帧延迟或不回显时 pending 与工具行仍显示未完成。现复用 renderer 侧 `clientToolRespondCleanupPatches`：accepted 后按 `isError` / bounded content 更新已有工具行并移除 pending，`ok:false` / throw 保留原状态；补 common 回归。目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，目标文件 ESLint `--no-cache` 0 errors，未跑 full compile。见 [D1356](deferred-gaps.md)。
+- **Client-tool cleanup 身份与 accepted 闸（2026-10-26，D1357，反向边界审计）**：D1356 的 cleanup 原会对未知或同 id 的 permission/question/server-tool 行无条件 remove 或改写；通用 wrapper 也把 `undefined` / 非布尔 `ok` 当作 accepted。现仅对已知 `respondable` client-tool timeline/pending 行生成 patch，并让该 unary 专用要求显式 `ok:true`；未知/collision、`ok:false`、malformed 与 throw 保留原状态。补 collision、pending-only 与 malformed 回归。定向 Electron 测试仍受本机 `sandbox_host_linux` 退出 133，工作台目标文件 ESLint 0 errors，未跑 full compile。见 [D1357](deferred-gaps.md)。
 - **Permission picker 远程未知状态写闸（2026-10-26，D1355，D1351 反向审计）**：D1351 原将缺失 `connectionStatus` 当作本地无远端状态，`agenthost-*` 远程 provider 在状态未知时会 fail-open。现仅 `local-agent-host` 允许无状态写入；远程缺状态、无 provider 与非 Agent Host 均 fail-closed；补 reconnecting、cached accepted 值保留及 remote unknown/local unknown/non-Agent Host 回归。未跑 full compile。
 
 - **Permission picker 远程未知状态写闸（2026-10-26，D1355，D1351 反向审计）**：D1351 原将缺失 `connectionStatus` 当作本地无远端状态，`agenthost-*` 远程 provider 在状态未知时会 fail-open。现仅 `local-agent-host` 允许无状态写入；远程缺状态、无 provider 与非 Agent Host 均 fail-closed；补 reconnecting、cached accepted 值保留及 remote unknown/local unknown/non-Agent Host 回归。未跑 full compile。

@@ -3254,6 +3254,24 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.sendClientToolResponseCalls.length, 0);
 	});
 
+	test('client-tool accepted cleanup requires an explicit ok:true result', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		(connection as unknown as { sendClientToolResponse: () => Promise<unknown> }).sendClientToolResponse = async () => undefined;
+		assert.strictEqual(service.respondClientTool('ua-only', 'call-malformed', { content: 'late' }), true);
+		assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+
+		(connection as unknown as { sendClientToolResponse: () => Promise<unknown> }).sendClientToolResponse = async () => ({ ok: 1 });
+		assert.strictEqual(service.respondClientTool('ua-only', 'call-malformed-2', { content: 'late' }), true);
+		assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+	});
+
 	test('connected respondQuestion forwards AgentService.RespondQuestion', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
