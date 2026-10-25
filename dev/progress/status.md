@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1324–D1325 已合入，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1324–D1326 已合入或待收口，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
@@ -15,6 +15,7 @@ summary: "2026-10-26：D1324–D1325 已合入，D467 回收证据已闭合；�
 - **NewChatWidget 后台创建收口（2026-10-26，D1322）**：恢复工作区草稿、提供方变化重建草稿和提示选项刷新均为 fire-and-forget 时补上 `onUnexpectedError` 双 catch；新增源码扫描测试，避免新会话创建失败留下未处理 rejection。定向 Electron 测试仍受 sandbox 133 限制；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。
 - **分支选择器筛选落空提示（2026-10-26，D1323）**：共享 BranchPicker 在分支数超过筛选阈值时会显示搜索框，但过滤后零匹配只留下空白列表，用户无法区分“没有匹配分支”和加载/状态问题。现为 ActionList 复用 `filterEmptyMessage`，写入 “No matching branches.”；仅影响分支筛选，不改分支来源、选择语义或 Workspace picker。新增 Copilot BranchPicker 选项合同测试。目标 Electron 测试因本机 `sandbox_host_linux` 受限退出 133；临时缓存路径 ESLint 退出 0，默认 `.eslintcache` 仍为只读。
 - **Sessions 列表过滤零匹配提示（2026-10-26，D1325）**：状态、类型、已读、归档或 Agent Host 过滤后原只留下空白树，用户无法判断过滤是否生效；现复用 `SessionPlaceholderRenderer` 写入 “No sessions match the current filters.”。搜索零匹配仍由 Find widget 提示；空目录、自动化会话和仍有可见行不显示该句。新增边界与 DOM 回归断言；定向 `sessionsList.test.ts` 因本机 `sandbox_host_linux` 受限退出 133，目标文件 ESLint（`--no-cache`）退出 0，`git diff --check` 退出 0。见 [D1325](deferred-gaps.md)。
+- **PermissionPicker 沙盒设置收口（2026-10-26，D1326）**：独立 Sandbox toggle 写配置时原直接 `void configurationService.updateValue(...)`；现补 `onUnexpectedError` 双 catch，并新增源码扫描测试，避免设置写入拒绝产生未处理 rejection。定向 Electron 测试待 sandbox 可运行环境复验；未跑全量 compile。
 - **本波集成验证（2026-10-26）**：E/F 两槽已在 merge 槽串行合入（D1324/D1325）。唯一一次 `npm run compile` 在 `compile-copilot` 写入只读输出目录时 exit 1，未进入源码类型检查，暂不归因本波。未 push，待可写构建输出环境复验。
 - **本波槽位同步（2026-10-26）**：主工作区 `agent-ide`、固定 `merge` 槽及 E/F 将在本条提交后统一 `merge --ff-only` 到最终 SHA。
 - **Provider/Model 设置操作收口（2026-10-26，D1319）**：`engineProviderModelSection.ts` 的 Provider/Model 新增、编辑、清除、导入、启停、删除和测试按钮统一接入 `onUnexpectedError` 双 catch；新增 `engineProviderModelSectionCatchScanD1319.test.ts` 锁定 fire-and-forget 调用。定向 Electron 测试因 `sandbox_host_linux` 受限退出 133，已登记到 [deferred-gaps](deferred-gaps.md)，待可运行环境复验。
