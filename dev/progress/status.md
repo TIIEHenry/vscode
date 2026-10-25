@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1319–D1321 已合入，D467 回收证据已闭合；唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1319–D1322 已合入或待收口，D467 回收证据已闭合；唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **NewChatWidget 后台创建收口（2026-10-26，D1322）**：恢复工作区草稿、提供方变化重建草稿和提示选项刷新均为 fire-and-forget 时补上 `onUnexpectedError` 双 catch；新增源码扫描测试，避免新会话创建失败留下未处理 rejection。定向 Electron 测试待可运行 sandbox 复验；未跑全量 compile。
 - **Provider/Model 设置操作收口（2026-10-26，D1319）**：`engineProviderModelSection.ts` 的 Provider/Model 新增、编辑、清除、导入、启停、删除和测试按钮统一接入 `onUnexpectedError` 双 catch；新增 `engineProviderModelSectionCatchScanD1319.test.ts` 锁定 fire-and-forget 调用。定向 Electron 测试因 `sandbox_host_linux` 受限退出 133，已登记到 [deferred-gaps](deferred-gaps.md)，待可运行环境复验。
 - **隐藏会话叶回收证据（2026-10-26，D1321）**：当前 `ConversationSessionWindowService.disposeLeafForDeletedSession` 已同时清理被删除会话的可见与隐藏叶、editor part、store、DOM 与索引；新增回归测覆盖“第二叶可见、主叶隐藏后删除”的路径，确认删除后只保留存活叶。D467 已具备代码与测试证据并随本波合入；定向 Electron 测试仍受 sandbox 133 限制。
 - **本波集成验证（2026-10-26）**：F/G/I 三槽已在 merge 槽串行合入（D1319/D1320/D1321）。唯一一次 `npm run compile` 在 `compile-copilot` 写入只读输出目录时 exit 1，未进入源码类型检查，暂不归因本波。未 push，待可写构建输出环境复验。

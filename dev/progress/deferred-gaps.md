@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1321 已合入，D467 回收证据已闭合；定向 Electron 测试受 sandbox 限制，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。D24、D8、D16、D147、D405 仍开。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1321 已合入，D1322 待合入；D467 回收证据已闭合；定向 Electron 测试受 sandbox 限制，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。D24、D8、D16、D147、D405 仍开。"
 ---
 
 # Deferred Gaps
@@ -1269,3 +1269,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1318 | P3 | **open** Memory 搜索在断连、配对等待或缺少 `listMemory` API 时禁用，但原输入框没有就地原因且专用筛选样式没有明确禁用层次。现沿用既有状态文案写入 `title` / `aria-label`，连接恢复时还原普通标签，并补 `:disabled` token 化低对比样式。定向 `engineMemorySection.test.ts` 因本机 `sandbox_host_linux` 受限退出 **133**；`git diff --check` 通过；ESLint 因工位 `.eslintcache` 只读（EROFS）未取得结果。 | 环境限制阻止 Electron 单测与 eslint；本刀代码、断言和样式已落盘，失败不归因本刀 | 在可启动 Electron 且 eslint cache 可写的环境，断连/缺 API 时输入框的 `title` 与 `aria-label` 含同一原因、恢复连接后标签还原，浅色/深色/高对比主题保留可辨识禁用态 | conversation / engine-memory | open |
 | D1319 | P3 | **Engine provider/model 设置操作 Promise 未收口**：Provider/Model 设置页的新增、编辑、清除、导入、启停、删除与测试按钮直接 `void` 调用 async 方法，弹窗或确认层拒绝时会留下未处理 rejection；现统一接入 `onUnexpectedError` 双 catch，并新增源码扫描测试。定向扫描测试在本机 Electron `sandbox_host_linux` 受限退出 **133**。 | 仅覆盖按钮 fire-and-forget 的错误收口，不改变对话框、引擎写入或刷新语义；环境限制阻止定向 Electron 测试，不归因本刀 | 上述操作拒绝不再泄漏 rejection；扫描测试在可启动 Electron 环境通过，设置页的成功/失败文案保持原有语义 | conversation / provider-model | open |
 | D1320 | P3 | **open** Workspace picker 的 Recent workspace 与 Browse/Attach 行在远端不兼容或断连且不支持按需连接时原只画 `disabled`，用户无法在选择器内判断下一步；现复用同一可用性判定，将 “Unavailable: this agent host is incompatible.” / “Unavailable: the agent host is disconnected.” 写入行 `description` 与 `tooltip`，桌面 ActionList、Web 与手机 sheet 共用。定向 `sessionWorkspacePicker.test.ts` 因本机 `sandbox_host_linux` 受限退出 **133**；目标文件 ESLint `--no-cache` 退出 **0**；`git diff --check` 退出 **0**；`transpile-client` 因 `out/` 只读 EROFS 未执行源码转译。 | 只改不可用远端行的状态呈现，不改变连接、按需连接或选择语义；兼容、不支持按需连接、可连接和本地 provider 的判定边界保持不变 | 断连/不兼容的 recent 与 browse/attach 行均显示原因、带 disabled 与相同 tooltip；连接恢复或可按需连接时回到原 description/tooltip；桌面、Web 与手机路径保持一致 | sessions / workspace-picker | open |
+| D1322 | P3 | **NewChatWidget 后台创建 Promise 未收口**：恢复工作区草稿、提供方变化重建草稿和提示选项刷新原直接 `void` 调用 async 方法，拒绝会留下未处理 rejection；现统一接入 `onUnexpectedError` 双 catch，并新增源码扫描测试。 | 只改 fire-and-forget 错误收口，不改变新会话选择、草稿替换或提示选项语义；目标测试需在可启动 Electron 环境复验 | 三类后台调用的 rejection 均被捕获；扫描测试通过，创建失败的既有 UI 状态保持不变 | sessions / new-chat | open |
