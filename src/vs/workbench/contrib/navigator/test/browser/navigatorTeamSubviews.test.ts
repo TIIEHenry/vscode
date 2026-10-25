@@ -1362,8 +1362,12 @@ suite('Navigator Team subviews', () => {
 		}), undefined, hiddenInspect);
 		await (hiddenView as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
 		assert.ok(hiddenInspect.getLiveAgentIds()?.has('member:1'));
+		assert.strictEqual(hiddenInspect.getLiveAgentIdsSession('team'), hiddenRoster.getActiveSessionId());
+		assert.strictEqual(hiddenInspect.getLiveTaskIdsSession(), hiddenRoster.getActiveSessionId());
 		hiddenView.setVisible(false);
 		assert.strictEqual(hiddenInspect.getLiveAgentIds(), undefined);
+		assert.strictEqual(hiddenInspect.getLiveAgentIdsSession('team'), undefined);
+		assert.strictEqual(hiddenInspect.getLiveTaskIdsSession(), undefined);
 	});
 
 	test('live Team members and tasks keep leftover while pairingPending then true disconnect stays stale', async () => {
@@ -2158,6 +2162,9 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(revealCalls.length, 1, 'live member row-open must still reveal');
 		const setTargetAfterLive = inspectService.setTargetCalls.length;
 		assert.ok(setTargetAfterLive > 0, 'live member row-open must still setTarget');
+		assert.strictEqual(inspectService.getLiveAgentIdsSession('team'), roster.getActiveSessionId());
+		assert.strictEqual(inspectService.getLiveTaskIdsSession(), roster.getActiveSessionId());
+		assert.strictEqual((inspectService.setTargetCalls.at(-1) as { sessionId?: string }).sessionId, roster.getActiveSessionId());
 
 		roster.engineSessionReady = false;
 		roster.createTestFrameSourceCallback().onSessionChanged(roster.getActiveSessionId());

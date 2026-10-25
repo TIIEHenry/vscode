@@ -18,7 +18,9 @@ export class AgentInspectService extends Disposable implements IAgentInspectServ
 	private agentsLiveAgentSessionId: string | undefined;
 	private teamLiveAgentSessionId: string | undefined;
 	private liveActivityIds: ReadonlySet<string> | undefined;
+	private liveActivitySessionId: string | undefined;
 	private liveTaskIds: ReadonlySet<string> | undefined;
+	private liveTaskSessionId: string | undefined;
 
 	private readonly _onDidChangeTarget = this._register(new Emitter<AgentInspectTarget | undefined>());
 	readonly onDidChangeTarget = this._onDidChangeTarget.event;
@@ -81,11 +83,12 @@ export class AgentInspectService extends Disposable implements IAgentInspectServ
 		return source === 'agents' ? this.agentsLiveAgentSessionId : this.teamLiveAgentSessionId;
 	}
 
-	setLiveActivityIds(ids: ReadonlySet<string> | undefined): void {
-		if (this.liveActivityIds === ids) {
+	setLiveActivityIds(ids: ReadonlySet<string> | undefined, sessionId?: string): void {
+		if (this.liveActivityIds === ids && this.liveActivitySessionId === sessionId) {
 			return;
 		}
 		this.liveActivityIds = ids;
+		this.liveActivitySessionId = sessionId;
 		this._onDidChangeLiveAgentIds.fire();
 	}
 
@@ -93,16 +96,25 @@ export class AgentInspectService extends Disposable implements IAgentInspectServ
 		return this.liveActivityIds;
 	}
 
-	setLiveTaskIds(ids: ReadonlySet<string> | undefined): void {
-		if (this.liveTaskIds === ids) {
+	getLiveActivityIdsSession(): string | undefined {
+		return this.liveActivitySessionId;
+	}
+
+	setLiveTaskIds(ids: ReadonlySet<string> | undefined, sessionId?: string): void {
+		if (this.liveTaskIds === ids && this.liveTaskSessionId === sessionId) {
 			return;
 		}
 		this.liveTaskIds = ids;
+		this.liveTaskSessionId = sessionId;
 		this._onDidChangeLiveAgentIds.fire();
 	}
 
 	getLiveTaskIds(): ReadonlySet<string> | undefined {
 		return this.liveTaskIds;
+	}
+
+	getLiveTaskIdsSession(): string | undefined {
+		return this.liveTaskSessionId;
 	}
 }
 

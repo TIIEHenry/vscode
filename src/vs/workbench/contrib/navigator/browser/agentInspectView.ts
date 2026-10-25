@@ -119,6 +119,9 @@ export function isInspectTargetStale(
 		readonly activity?: ReadonlySet<string>;
 		readonly task?: ReadonlySet<string>;
 		readonly agentsSession?: string;
+		readonly teamSession?: string;
+		readonly activitySession?: string;
+		readonly taskSession?: string;
 	},
 ): boolean {
 	if (!target) {
@@ -127,14 +130,17 @@ export function isInspectTargetStale(
 	if (sourceIds) {
 		switch (target.kind) {
 			case 'agent':
-				return (sourceIds.agentsSession !== undefined && target.sessionId !== sourceIds.agentsSession)
-					|| (sourceIds.agents !== undefined && !sourceIds.agents.has(target.node.agentId));
+				return sessionDiffers(sourceIds.agentsSession, target.sessionId)
+					|| idMissing(sourceIds.agents, target.node.agentId);
 			case 'member':
-				return sourceIds.team !== undefined && !sourceIds.team.has(target.info.memberAgentId);
+				return sessionDiffers(sourceIds.teamSession, target.sessionId)
+					|| idMissing(sourceIds.team, target.info.memberAgentId);
 			case 'task':
-				return sourceIds.task !== undefined && !sourceIds.task.has(target.task.taskId);
+				return sessionDiffers(sourceIds.taskSession, target.sessionId)
+					|| idMissing(sourceIds.task, target.task.taskId);
 			case 'activity':
-				return sourceIds.activity !== undefined && !sourceIds.activity.has(target.item.id);
+				return sessionDiffers(sourceIds.activitySession, target.sessionId)
+					|| idMissing(sourceIds.activity, target.item.id);
 		}
 	}
 	if (liveAgentIds === undefined) {
@@ -150,6 +156,14 @@ export function isInspectTargetStale(
 		default:
 			return false;
 	}
+}
+
+function sessionDiffers(published: string | undefined, targetSession: string): boolean {
+	return published !== undefined && published !== targetSession;
+}
+
+function idMissing(ids: ReadonlySet<string> | undefined, id: string): boolean {
+	return ids !== undefined && !ids.has(id);
 }
 
 function entriesFromTarget(target: AgentInspectTarget | undefined): IAgentInspectEntry[] {
@@ -296,10 +310,13 @@ export class AgentInspectView extends ViewPane {
 		this.updateTitle(inspectTitleFromTarget(target));
 		const stale = isInspectTargetStale(target, this.inspectService.getLiveAgentIds(), {
 			agents: this.inspectService.getLiveAgentIdsFor('agents'),
-		agentsSession: this.inspectService.getLiveAgentIdsSession('agents'),
+			agentsSession: this.inspectService.getLiveAgentIdsSession('agents'),
 			team: this.inspectService.getLiveAgentIdsFor('team'),
+			teamSession: this.inspectService.getLiveAgentIdsSession('team'),
 			activity: this.inspectService.getLiveActivityIds(),
+			activitySession: this.inspectService.getLiveActivityIdsSession(),
 			task: this.inspectService.getLiveTaskIds(),
+			taskSession: this.inspectService.getLiveTaskIdsSession(),
 		});
 		if (this.staleNote) {
 			this.staleNote.style.display = stale ? '' : 'none';

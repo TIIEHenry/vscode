@@ -3,7 +3,7 @@ title: "ActivityBar 与 Sidebar：容器绑定与显隐"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-30
+updated: 2026-10-25
 summary: "ACTIVITYBAR_PART 与 SIDEBAR_PART 的从属与 grid 关系、ViewContainer 如何变成图标、显隐 API 与 activityBar.location；对照 Desktop Navigator；§5.1 Navigator 段数据来源（N1–N4）"
 ---
 
@@ -101,7 +101,7 @@ Sidebar 显隐 **不** 自动藏 Activity；点已激活图标收起的是 Sideb
 | Agents · Hierarchy | 空态（connecting 时 **Connecting to engine…**，否则 **No agents — no engine.**） | 当前会话 lease → `snapshot.liveAgentTree`（M6-A2 host `AgentService.Tree` → `agentTreeBound`） |
 | Agents · Activity | 空态（connecting 同上；不读 stub tool）。`itemId` 以 `overlay:` 开头只开 Inspect，不 `conversation.revealItem` | 同一 lease → `timeline[] ∪ overlay.blocks[]` 中 tool 项 |
 | Team | 空态（connecting 时 **Connecting to engine…**） | 独立 lease → 同树发现 manager → `IUniverseAgentConnection.team.*` unary；`onDidChangeTeamRuntime` 刷新 |
-| Inspect（Panel） | 空 target（overlay 行 **Inspect-only**，不 `conversation.revealItem`） | `IAgentInspectService` 四模板；字段/值两列 + 状态色；compact 换行 + `supportDynamicHeights`；过期判断按 Agents/Team 分源，activity/task 对照当前列表；v1 单叶 |
+| Inspect（Panel） | 空 target（overlay 行 **Inspect-only**，不 `conversation.revealItem`） | `IAgentInspectService` 四模板；字段/值两列 + 状态色；compact 换行 + `supportDynamicHeights`；过期判断按 Agents、Team、活动、任务分源，并带上该次列表的会话。会话不一致时，即使 id 还在，也显示 “No longer in the current tree”。叶隐藏不发布新会话，不因此标过期。v1 单叶 |
 
 ## 6. 相关文档
 

@@ -528,7 +528,7 @@ export class NavigatorAgentsView extends ViewPane {
 			if (!e.element || !this.isAgentsRowActionLive()) {
 				return;
 			}
-			this.inspectService.setTarget({ kind: 'activity', item: e.element });
+			this.setActivityInspectTarget(e.element);
 			this.openInspectPanel();
 			if (e.element.itemId.startsWith('overlay:')) {
 				return;
@@ -675,7 +675,7 @@ export class NavigatorAgentsView extends ViewPane {
 			this.setHierarchyState([], hierarchyEmpty);
 		}
 		if (this.hadActivitySnapshot || this.activityEntries.length > 0) {
-			this.inspectService.setLiveActivityIds(EMPTY_LIVE_AGENT_IDS);
+			this.inspectService.setLiveActivityIds(EMPTY_LIVE_AGENT_IDS, this.publishedAgentsSession());
 			this.setActivityNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 		} else {
 			this.setActivityState([], activityEmpty);
@@ -747,17 +747,38 @@ export class NavigatorAgentsView extends ViewPane {
 		this.publishLiveActivityIds(items);
 	}
 
+	/** Active session when this list is following. Hidden leaves do not call this. */
+	private publishedAgentsSession(): string | undefined {
+		const sessionId = this.rosterService.getActiveSessionId();
+		return sessionId ? sessionId : undefined;
+	}
+
+	private activityInspectSession(): string | undefined {
+		const sessionId = this.leaseHolder.getLease()?.sessionId || this.rosterService.getActiveSessionId();
+		return sessionId ? sessionId : undefined;
+	}
+
+	private setActivityInspectTarget(item: INavigatorAgentsActivityItem): void {
+		const sessionId = this.activityInspectSession();
+		if (!sessionId) {
+			return;
+		}
+		this.inspectService.setTarget({ kind: 'activity', item, sessionId });
+	}
+
 	private clearAgentsInspectLiveIds(): void {
-		this.inspectService.setLiveAgentIds('agents', undefined, this.rosterService.getActiveSessionId() ?? undefined);
-		this.inspectService.setLiveActivityIds(undefined);
+		const sessionId = this.publishedAgentsSession();
+		this.inspectService.setLiveAgentIds('agents', undefined, sessionId);
+		this.inspectService.setLiveActivityIds(undefined, sessionId);
 	}
 
 	private publishLiveActivityIds(items: readonly INavigatorAgentsActivityItem[]): void {
 		if (this.inspectService.getLiveAgentIdsFor('agents') === undefined) {
-			this.inspectService.setLiveActivityIds(undefined);
+			this.inspectService.setLiveActivityIds(undefined, this.inspectService.getLiveAgentIdsSession('agents'));
 			return;
 		}
-		this.inspectService.setLiveActivityIds(new Set(items.map(item => item.id)));
+		const sessionId = this.leaseHolder.getLease()?.sessionId || this.inspectService.getLiveAgentIdsSession('agents');
+		this.inspectService.setLiveActivityIds(new Set(items.map(item => item.id)), sessionId || undefined);
 	}
 
 	private setHierarchyState(
@@ -834,7 +855,7 @@ export class NavigatorAgentsView extends ViewPane {
 		if (!this.isAgentsRowActionLive()) {
 			return;
 		}
-		this.inspectService.setTarget({ kind: 'activity', item });
+		this.setActivityInspectTarget(item);
 		this.openInspectPanel();
 	}
 

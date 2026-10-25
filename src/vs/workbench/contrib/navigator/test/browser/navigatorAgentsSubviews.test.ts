@@ -826,6 +826,8 @@ suite('Navigator Agents subviews', () => {
 		const view = mountAgentsView(roster, connection, inspectService);
 		assert.ok(inspectService.getLiveAgentIds()?.has('sub:alpha'));
 		assert.ok(inspectService.getLiveAgentIds()?.has('root'));
+		assert.strictEqual(inspectService.getLiveAgentIdsSession('agents'), roster.getActiveSessionId());
+		assert.strictEqual(inspectService.getLiveActivityIdsSession(), roster.getActiveSessionId());
 
 		const hierarchyTree = (view as unknown as { hierarchyTree: WorkbenchObjectTree<INavigatorAgentsHierarchyNode, void> }).hierarchyTree;
 		assert.strictEqual(hierarchyTree.getNode(null)?.children.length ?? 0, 1);
@@ -858,6 +860,8 @@ suite('Navigator Agents subviews', () => {
 
 		view.setVisible(false);
 		assert.strictEqual(inspectService.getLiveAgentIds(), undefined);
+		assert.strictEqual(inspectService.getLiveAgentIdsSession('agents'), undefined);
+		assert.strictEqual(inspectService.getLiveActivityIdsSession(), undefined);
 		view.setVisible(true);
 		assert.ok(inspectService.getLiveAgentIds()?.has('sub:alpha'));
 

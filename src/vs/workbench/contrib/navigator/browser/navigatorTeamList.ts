@@ -378,7 +378,7 @@ export class NavigatorTeamView extends ViewPane {
 			if (!e.element || !this.isTeamRowActionLive()) {
 				return;
 			}
-			this.inspectService.setTarget({ kind: 'member', info: e.element });
+			this.inspectService.setTarget({ kind: 'member', info: e.element, sessionId: e.element.sessionId });
 			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.memberAgentId, e.element!.memberName, e.element!.sessionId)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
@@ -406,7 +406,7 @@ export class NavigatorTeamView extends ViewPane {
 			if (!e.element || !this.isTeamRowActionLive()) {
 				return;
 			}
-			this.inspectService.setTarget({ kind: 'task', task: e.element });
+			this.inspectService.setTarget({ kind: 'task', task: e.element, sessionId: e.element.sessionId });
 		}));
 
 		return this.tasksList;
@@ -441,8 +441,9 @@ export class NavigatorTeamView extends ViewPane {
 		if (pairingHold || !engineReady) {
 			if (hadLiveTeamPaint) {
 				this.markLeftoverRowActionsClosed();
-				this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS);
-				this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS);
+				const sessionId = this.publishedTeamSession();
+				this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS, sessionId);
+				this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS, sessionId);
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}
@@ -461,16 +462,13 @@ export class NavigatorTeamView extends ViewPane {
 		const treeEmpty = getTeamTreeEmptyCopy(agentTreeCapability, liveTree, treeFetchFailed);
 		if (treeEmpty) {
 			const pending = getNavigatorAgentTreePendingCopy(agentTreeCapability, liveTree, treeFetchFailed);
-			this.inspectService.setLiveAgentIds(
-				'team',
-				agentTreeCapability === 'UNSUPPORTED' || pending ? undefined : EMPTY_LIVE_AGENT_IDS,
-			);
+			const closedIds = agentTreeCapability === 'UNSUPPORTED' || pending ? undefined : EMPTY_LIVE_AGENT_IDS;
+			const sessionId = this.publishedTeamSession();
+			this.inspectService.setLiveAgentIds('team', closedIds, sessionId);
 			if (hadLiveTeamPaint) {
 				this.markLeftoverRowActionsClosed();
 			}
-			this.inspectService.setLiveTaskIds(
-				agentTreeCapability === 'UNSUPPORTED' || pending ? undefined : EMPTY_LIVE_AGENT_IDS,
-			);
+			this.inspectService.setLiveTaskIds(closedIds, sessionId);
 			this.setTeamAfterTreeEmpty(treeEmpty);
 			if (liveTree !== undefined || agentTreeCapability === 'UNSUPPORTED' || treeFetchFailed) {
 				this.hadTeamSnapshot = true;
@@ -496,7 +494,7 @@ export class NavigatorTeamView extends ViewPane {
 			return;
 		}
 
-		this.inspectService.setLiveAgentIds('team', collectLiveAgentTreeAgentIds(liveTree!));
+		this.inspectService.setLiveAgentIds('team', collectLiveAgentTreeAgentIds(liveTree!), sessionId || undefined);
 
 		const managers = findManagerNodes(liveTree!);
 
@@ -560,6 +558,7 @@ export class NavigatorTeamView extends ViewPane {
 						label: `${prefix}${row.subject || row.taskId} · ${row.status}${blocked}`,
 						managerAgentId: manager.agentId,
 						managerName: manager.name || manager.agentId,
+						sessionId,
 					});
 				}
 			}
@@ -580,7 +579,7 @@ export class NavigatorTeamView extends ViewPane {
 			this.markLiveRowActionsOpen();
 			this.setMemberEntries(members, members.length === 0 ? TEAM_MEMBERS_EMPTY_COPY : undefined);
 			this.setTaskEntries(tasks, tasks.length === 0 ? TEAM_TASKS_EMPTY_COPY : undefined);
-			this.publishLiveTaskIds(tasks);
+			this.publishLiveTaskIds(tasks, sessionId);
 			this.setTeamSnapshotNote(undefined);
 		} catch {
 			if (!stillCurrent()) {
@@ -594,22 +593,31 @@ export class NavigatorTeamView extends ViewPane {
 				this.markLeftoverRowActionsClosed();
 			}
 			this.setTeamSnapshotNote(TEAM_FETCH_FAILED_COPY);
-			this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS);
-			this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS);
+			const failedSession = this.publishedTeamSession();
+			this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS, failedSession);
+			this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS, failedSession);
 		}
+	}
+
+	/** Active session when this list is following. Hidden leaves do not call this. */
+	private publishedTeamSession(): string | undefined {
+		const sessionId = this.rosterService.getActiveSessionId();
+		return sessionId ? sessionId : undefined;
 	}
 
 	private clearTeamInspectLiveIds(): void {
-		this.inspectService.setLiveAgentIds('team', undefined);
-		this.inspectService.setLiveTaskIds(undefined);
+		const sessionId = this.publishedTeamSession();
+		this.inspectService.setLiveAgentIds('team', undefined, sessionId);
+		this.inspectService.setLiveTaskIds(undefined, sessionId);
 	}
 
-	private publishLiveTaskIds(tasks: readonly INavigatorTeamTaskEntry[]): void {
+	private publishLiveTaskIds(tasks: readonly INavigatorTeamTaskEntry[], sessionId: string): void {
+		const published = sessionId || this.inspectService.getLiveAgentIdsSession('team');
 		if (this.inspectService.getLiveAgentIdsFor('team') === undefined) {
-			this.inspectService.setLiveTaskIds(undefined);
+			this.inspectService.setLiveTaskIds(undefined, published);
 			return;
 		}
-		this.inspectService.setLiveTaskIds(new Set(tasks.map(task => task.taskId)));
+		this.inspectService.setLiveTaskIds(new Set(tasks.map(task => task.taskId)), published);
 	}
 
 	private async listTeamsForInfo(sessionId: string, liveTeamId: number | undefined): Promise<readonly UniverseAgentTeamListEntry[]> {
@@ -799,8 +807,9 @@ export class NavigatorTeamView extends ViewPane {
 		if (!this.isKeepLeftoverListFailWrite()) {
 			return;
 		}
-		this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS);
-		this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS);
+		const sessionId = this.publishedTeamSession();
+		this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS, sessionId);
+		this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS, sessionId);
 	}
 
 	private isTeamRowActionLive(): boolean {
@@ -826,7 +835,7 @@ export class NavigatorTeamView extends ViewPane {
 		if (!this.isTeamRowActionLive()) {
 			return;
 		}
-		this.inspectService.setTarget({ kind: 'member', info: member });
+		this.inspectService.setTarget({ kind: 'member', info: member, sessionId: member.sessionId });
 		this.openInspectPanel();
 	}
 
@@ -834,7 +843,7 @@ export class NavigatorTeamView extends ViewPane {
 		if (!this.isTeamRowActionLive()) {
 			return;
 		}
-		this.inspectService.setTarget({ kind: 'task', task });
+		this.inspectService.setTarget({ kind: 'task', task, sessionId: task.sessionId });
 		this.openInspectPanel();
 	}
 

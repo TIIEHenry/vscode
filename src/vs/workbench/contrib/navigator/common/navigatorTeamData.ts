@@ -46,6 +46,8 @@ export interface INavigatorTeamTaskEntry extends INavigatorTeamTaskInfo {
 	readonly label: string;
 	readonly managerAgentId: string;
 	readonly managerName: string;
+	/** Session captured when this task row was painted. */
+	readonly sessionId: string;
 }
 
 const MEMBER_TYPE = 'AGENT_TYPE_MEMBER';

@@ -239,6 +239,7 @@ suite('Agent inspect panel', () => {
 		}), 'Inspect: Worker');
 		assert.strictEqual(inspectTitleFromTarget({
 			kind: 'member',
+			sessionId: 'session-1',
 			info: {
 				memberName: 'Alice',
 				memberAgentId: 'member:1',
@@ -250,6 +251,7 @@ suite('Agent inspect panel', () => {
 		}), 'Inspect: Alice');
 		assert.strictEqual(inspectTitleFromTarget({
 			kind: 'task',
+			sessionId: 'session-1',
 			task: {
 				taskId: 't1',
 				subject: 'Fix bug',
@@ -262,6 +264,7 @@ suite('Agent inspect panel', () => {
 		}), 'Inspect: Fix bug');
 		assert.strictEqual(inspectTitleFromTarget({
 			kind: 'activity',
+			sessionId: 'session-1',
 			item: { id: 'a1', label: 'Run', toolName: 'grep', status: 'completed', itemId: 'i1' },
 		}), 'Inspect: grep');
 		assert.strictEqual(inspectTitleFromTarget(undefined), 'Inspect');
@@ -276,6 +279,7 @@ suite('Agent inspect panel', () => {
 		const view = await mountViewWithService(instantiationService);
 		inspectService.setTarget({
 			kind: 'activity',
+			sessionId: 'session-1',
 			item: {
 				id: 'act:1',
 				label: 'grep',
@@ -303,6 +307,7 @@ suite('Agent inspect panel', () => {
 		const view = await mountViewWithService(instantiationService);
 		inspectService.setTarget({
 			kind: 'member',
+			sessionId: 'session-1',
 			info: {
 				memberName: 'Alice',
 				memberAgentId: 'member:gone',
@@ -344,6 +349,7 @@ suite('Agent inspect panel', () => {
 		};
 		const memberTarget = {
 			kind: 'member' as const,
+			sessionId: 'session-1',
 			info: {
 				memberName: 'Alice',
 				memberAgentId: 'member:gone',
@@ -355,6 +361,7 @@ suite('Agent inspect panel', () => {
 		};
 		const taskTarget = {
 			kind: 'task' as const,
+			sessionId: 'session-1',
 			task: {
 				taskId: 't1',
 				subject: 'Fix bug',
@@ -377,6 +384,7 @@ suite('Agent inspect panel', () => {
 
 		const activityTarget = {
 			kind: 'activity' as const,
+			sessionId: 'session-1',
 			item: { id: 'overlay:1', label: 'grep', toolName: 'grep', status: 'completed', itemId: 'overlay:1' },
 		};
 		assert.strictEqual(isInspectTargetStale(activityTarget, undefined, { activity: undefined }), false);
@@ -464,6 +472,101 @@ suite('Agent inspect panel', () => {
 		assert.strictEqual(isInspectTargetStale(inspectService.getTarget(), inspectService.getLiveAgentIds(), {
 			agents: inspectService.getLiveAgentIdsFor('agents'),
 			agentsSession: inspectService.getLiveAgentIdsSession('agents'),
+		}), false);
+	});
+
+	test('member, task, and activity targets from another session are stale even when their ids are still listed', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		instantiationService.stub(IAgentInspectService, inspectService);
+
+		const view = await mountViewWithService(instantiationService);
+		const member = {
+			kind: 'member' as const,
+			sessionId: 'session-old',
+			info: {
+				memberName: 'Alice',
+				memberAgentId: 'member:1',
+				status: 'IDLE',
+				preset: 'p',
+				dynamic: 'd',
+				turnCount: 2,
+			},
+		};
+		const task = {
+			kind: 'task' as const,
+			sessionId: 'session-old',
+			task: {
+				taskId: 't1',
+				subject: 'Fix bug',
+				owner: 'mgr',
+				status: 'OPEN',
+				blockedBy: '',
+				lastMessage: '',
+				description: '',
+			},
+		};
+		const activity = {
+			kind: 'activity' as const,
+			sessionId: 'session-old',
+			item: { id: 'tool-1', label: 'grep', toolName: 'grep', status: 'completed', itemId: 'tool-1' },
+		};
+
+		inspectService.setTarget(member);
+		inspectService.setLiveAgentIds('team', new Set(['member:1']), 'session-new');
+		inspectService.setLiveTaskIds(new Set(['t1']), 'session-new');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		const staleNote = view.element.querySelector('.agent-inspect-stale-note') as HTMLElement;
+		assert.ok(staleNote);
+		assert.strictEqual(staleNote.style.display, '');
+		assert.strictEqual(isInspectTargetStale(member, inspectService.getLiveAgentIds(), {
+			team: inspectService.getLiveAgentIdsFor('team'),
+			teamSession: inspectService.getLiveAgentIdsSession('team'),
+		}), true);
+
+		inspectService.setLiveAgentIds('team', new Set(['member:1']), 'session-old');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(staleNote.style.display, 'none');
+
+		inspectService.setTarget(task);
+		inspectService.setLiveTaskIds(new Set(['t1']), 'session-new');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(staleNote.style.display, '');
+		assert.strictEqual(isInspectTargetStale(task, undefined, {
+			task: inspectService.getLiveTaskIds(),
+			taskSession: inspectService.getLiveTaskIdsSession(),
+		}), true);
+		inspectService.setLiveTaskIds(new Set(['t1']), 'session-old');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(staleNote.style.display, 'none');
+
+		inspectService.setTarget(activity);
+		inspectService.setLiveActivityIds(new Set(['tool-1']), 'session-new');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(staleNote.style.display, '');
+		assert.strictEqual(isInspectTargetStale(activity, undefined, {
+			activity: inspectService.getLiveActivityIds(),
+			activitySession: inspectService.getLiveActivityIdsSession(),
+		}), true);
+		inspectService.setLiveActivityIds(new Set(['tool-1']), 'session-old');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(staleNote.style.display, 'none');
+
+		inspectService.setLiveAgentIds('team', undefined);
+		inspectService.setLiveTaskIds(undefined);
+		inspectService.setLiveActivityIds(undefined);
+		assert.strictEqual(isInspectTargetStale(member, undefined, {
+			team: inspectService.getLiveAgentIdsFor('team'),
+			teamSession: inspectService.getLiveAgentIdsSession('team'),
+		}), false);
+		assert.strictEqual(isInspectTargetStale(task, undefined, {
+			task: inspectService.getLiveTaskIds(),
+			taskSession: inspectService.getLiveTaskIdsSession(),
+		}), false);
+		assert.strictEqual(isInspectTargetStale(activity, undefined, {
+			activity: inspectService.getLiveActivityIds(),
+			activitySession: inspectService.getLiveActivityIdsSession(),
 		}), false);
 	});
 
