@@ -38,6 +38,7 @@ export class NavigatorTeamInlineFilterBox extends Disposable {
 		this.input.setAttribute('aria-label', ariaLabel);
 
 		this.clearButton = dom.append(this.element, $('button.navigator-team-inline-filter-clear'));
+		this.clearButton.type = 'button';
 		this.clearButton.setAttribute('aria-label', localize('navigatorTeam.clearFilter', "Clear filter"));
 		this.clearButton.appendChild(renderIcon(Codicon.close));
 

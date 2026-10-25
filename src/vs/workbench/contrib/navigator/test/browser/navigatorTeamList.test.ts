@@ -177,6 +177,9 @@ suite('NavigatorTeamView', () => {
 
 	test('mounted view has WorkbenchList and no chat widgets', async () => {
 		const view = await mountView();
+		const clearButton = view.element.querySelector('.navigator-team-inline-filter-clear') as HTMLButtonElement | null;
+		assert.ok(clearButton, 'Team filter must expose a clear button');
+		assert.strictEqual(clearButton.type, 'button');
 		const list = getMembersList(view);
 		assert.ok(list instanceof WorkbenchList, 'Team view must construct WorkbenchList');
 		assert.ok(view.element.querySelector('.navigator-team-list'));

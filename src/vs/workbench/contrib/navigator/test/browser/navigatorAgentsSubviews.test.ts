@@ -753,6 +753,7 @@ suite('Navigator Agents subviews', () => {
 		const clearButton = view.element.querySelector('.navigator-agents-inline-filter-clear') as HTMLElement | null;
 		assert.ok(clearButton);
 		assert.strictEqual(clearButton.getAttribute('aria-label'), 'Clear filter');
+		assert.strictEqual((clearButton as HTMLButtonElement).type, 'button');
 		assert.strictEqual(filter?.classList.contains('has-text'), false);
 
 		assert.strictEqual(view.element.querySelector('.navigator-agents-type-filter'), null);
