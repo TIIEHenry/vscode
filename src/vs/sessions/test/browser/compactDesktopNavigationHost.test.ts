@@ -30,4 +30,26 @@ suite('CompactDesktopNavigationHost', () => {
 
 		assert.strictEqual(parent.querySelectorAll('.compact-desktop-nav-host').length, 0);
 	});
+
+	test('restores focus to the navigation trigger after the drawer closes', () => {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = disposables.add(new TestInstantiationService());
+		instantiationService.stub(
+			ICustomViewService,
+			disposables.add(new CustomViewService(new NullLogService(), disposables.add(new InMemoryStorageService()))),
+		);
+
+		const host = disposables.add(instantiationService.createInstance(CompactDesktopNavigationHost, parent));
+		const navigationButton = parent.querySelector<HTMLButtonElement>('.compact-desktop-nav-button');
+		assert.ok(navigationButton);
+		navigationButton.focus();
+		assert.strictEqual(document.activeElement, navigationButton);
+
+		host.focusNavigationButton();
+		assert.strictEqual(document.activeElement, navigationButton);
+
+		host.dispose();
+		parent.remove();
+	});
 });
