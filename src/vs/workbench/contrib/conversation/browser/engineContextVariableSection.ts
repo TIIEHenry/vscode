@@ -144,6 +144,7 @@ export class EngineContextVariableSection extends Disposable {
 
 	private async refresh(): Promise<void> {
 		const generation = ++this.renderGeneration;
+		++this.readGeneration;
 		const hook = this.connection.listContextVariable;
 		const pairingHold = isConversationPairingHold(this.connection);
 		const listSupport = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listContextVariable;
@@ -229,6 +230,7 @@ export class EngineContextVariableSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(hadLiveCatalog: boolean): void {
+		++this.readGeneration;
 		this.updateReadAction();
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.status.render({
@@ -362,13 +364,13 @@ export class EngineContextVariableSection extends Disposable {
 		const readGeneration = ++this.readGeneration;
 		try {
 			const result = await hook.call(this.connection, request);
-			if (readGeneration !== this.readGeneration || renderGeneration !== this.renderGeneration || this.selectedRow !== selectedRow || this._store.isDisposed) {
+			if (readGeneration !== this.readGeneration || renderGeneration !== this.renderGeneration || this.selectedRow !== selectedRow || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
 				return;
 			}
 			this.readStatus.style.display = '';
 			writeStatus(this.readStatus, formatEngineContextVariableReadLabel(result.entry), 'success');
 		} catch (error) {
-			if (readGeneration !== this.readGeneration || renderGeneration !== this.renderGeneration || this.selectedRow !== selectedRow || this._store.isDisposed) {
+			if (readGeneration !== this.readGeneration || renderGeneration !== this.renderGeneration || this.selectedRow !== selectedRow || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
 				return;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);

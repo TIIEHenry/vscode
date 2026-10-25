@@ -84,6 +84,8 @@ export class EngineClipboardSection extends Disposable {
 	private sectionActive = false;
 	private renderGeneration = 0;
 	private _writeGeneration = 0;
+	private _readGeneration = 0;
+	private _clearGeneration = 0;
 	private leftoverListFailed = false;
 	private entries: UniverseAgentClipboardEntrySummary[] = [];
 	private entryCount = 0;
@@ -178,6 +180,12 @@ export class EngineClipboardSection extends Disposable {
 
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.renderGeneration;
+		// A refresh can be caused by a connection phase change. Any action that
+		// was started against the previous catalog must not paint success into
+		// the new (possibly pairing-hold or failed) state.
+		++this._writeGeneration;
+		++this._readGeneration;
+		++this._clearGeneration;
 		const hook = this.connection.listClipboard;
 		const pairingHold = isConversationPairingHold(this.connection);
 		const listSupport = readConversationEntryCapability(this.connection.getConnectionSnapshot()).listClipboard;
@@ -282,6 +290,9 @@ export class EngineClipboardSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(hadLiveCatalog: boolean): boolean {
+		++this._writeGeneration;
+		++this._readGeneration;
+		++this._clearGeneration;
 		this.updateWriteAction();
 		this.updateReadAction();
 		this.updateClearAction();
@@ -496,12 +507,21 @@ export class EngineClipboardSection extends Disposable {
 		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardRead(this.connection.isEngineConnected(), this.clipboardAdvertised('readClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
+		const generation = this.renderGeneration;
+		const readGeneration = ++this._readGeneration;
+		const selectedEntry = this.selectedEntry;
 		const request = engineClipboardReadRequest(this.selectedEntry);
 		try {
 			const result = await hook.call(this.connection, request);
+			if (generation !== this.renderGeneration || readGeneration !== this._readGeneration || this.selectedEntry !== selectedEntry || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+				return;
+			}
 			this.readStatus.style.display = '';
 			writeStatus(this.readStatus, formatEngineClipboardReadLabel(result.entry), 'success');
 		} catch (error) {
+			if (generation !== this.renderGeneration || readGeneration !== this._readGeneration || this.selectedEntry !== selectedEntry || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.readStatus.style.display = '';
 			writeStatus(this.readStatus, reason, 'error');
@@ -513,9 +533,14 @@ export class EngineClipboardSection extends Disposable {
 		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardClear(this.connection.isEngineConnected(), this.clipboardAdvertised('clearClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
+		const generation = this.renderGeneration;
+		const clearGeneration = ++this._clearGeneration;
 		const request = engineClipboardClearRequest();
 		try {
 			const result = await hook.call(this.connection, request);
+			if (generation !== this.renderGeneration || clearGeneration !== this._clearGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+				return;
+			}
 			this.clearStatus.style.display = '';
 			writeStatus(this.clearStatus, formatEngineClipboardClearLabel(result.removedCount), 'success');
 			const listed = await this.refresh();
@@ -524,6 +549,9 @@ export class EngineClipboardSection extends Disposable {
 				writeStatus(this.clearStatus, formatEngineClipboardClearLabel(result.removedCount), 'success');
 			}
 		} catch (error) {
+			if (generation !== this.renderGeneration || clearGeneration !== this._clearGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			this.clearStatus.style.display = '';
 			writeStatus(this.clearStatus, reason, 'error');
