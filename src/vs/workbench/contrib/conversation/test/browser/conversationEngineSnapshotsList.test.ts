@@ -32,6 +32,7 @@ import {
 } from '../../browser/conversationEngineSnapshotsList.js';
 import {
 	conversationLensSessionBarSnapshots,
+	conversationLensSessionBarSnapshotsClose,
 	conversationLensSessionBarSnapshotsDelete,
 	conversationLensSessionBarSnapshotsEmpty,
 	conversationLensSessionBarSnapshotsLoading,
@@ -203,6 +204,8 @@ suite('ConversationEngineSnapshotsList', () => {
 		const button = buttonParent.querySelector(`.${conversationLensSnapshotsButtonClass} .monaco-button`) as HTMLElement | null;
 		assert.ok(button);
 		assert.strictEqual(button.getAttribute('aria-label'), conversationLensSessionBarSnapshots);
+		const closeButton = overlayParent.querySelector('.conversation-lens-snapshots-close .monaco-button');
+		assert.strictEqual(closeButton?.getAttribute('aria-label'), conversationLensSessionBarSnapshotsClose);
 		assert.ok(button.classList.contains('codicon-layers'));
 		assert.ok(!button.textContent?.includes(conversationLensSessionBarSnapshots));
 		assert.ok(!button.textContent?.includes('History'));

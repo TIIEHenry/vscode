@@ -200,6 +200,7 @@ export class ConversationEngineSnapshotsList extends Disposable {
 			small: true,
 			secondary: true,
 			title: conversationLensSessionBarSnapshotsClose,
+			ariaLabel: conversationLensSessionBarSnapshotsClose,
 		}));
 		closeButton.icon = Codicon.close;
 		this._register(closeButton.onDidClick(() => this.close()));

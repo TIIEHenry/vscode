@@ -143,6 +143,7 @@ export class ConversationEngineHistoryList extends Disposable {
 			small: true,
 			secondary: true,
 			title: conversationLensSessionBarHistoryClose,
+			ariaLabel: conversationLensSessionBarHistoryClose,
 		}));
 		closeButton.icon = Codicon.close;
 		this._register(closeButton.onDidClick(() => this.close()));

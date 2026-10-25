@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1336 已合入，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332–D1337 已合入，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Conversation overlay 图标按钮无障碍名称（2026-10-26，D1337，本波 UI 审查）**：History、Snapshots 与 Visualize overlay 的 Reset/Close 图标按钮原只设置 tooltip `title`，`Button` 不会把 title 作为 `aria-label`，读屏用户得到无名按钮。现复用已有本地化文案显式设置 `ariaLabel`，并在三份 browser 回归测试中锁定四个按钮名称；不改变打开、关闭或重置行为。定向 Electron 测试受本机 `sandbox_host_linux` 限制退出 133；目标文件 ESLint `--no-cache` 退出 0（4 条既有 warning），`git diff --check` 通过。见 [D1337](deferred-gaps.md)。
 - **D464 Composer `@` 复用同一套会话 pill（2026-10-26，证据审计）**：当前 HEAD 已包含 textarea 上方 chip、纯文本正文尾块与用户行/无障碍/轨迹摘要去尾块实现，`conversationComposerAtChip.test.ts` 历史 4 passing、transpile-client 0；本机 Electron 重跑受 sandbox 133 限制。D464 现关闭，PRD-015 的纯文本正文与会话 pill陈述已与实现一致。
 - **追问浮层图标按钮无障碍名称（2026-10-26，D1335，本波 UI 审查）**：ConversationSubAgentOverlay 的 Open as tab 与 Maximize 图标按钮原只设置 tooltip `title`，读屏无法得到按钮名称；Maximize 切换后也只改 title。现补显式 `aria-label`，并在最大化 / 还原时同步更新为 Maximize / Restore；新增浏览器回归断言覆盖三个图标按钮名称与状态切换。不改变打开、弹出、最大化或关闭语义。定向 Electron 测试受本机 sandbox 启动限制退出 133；`git diff --check` 通过；ESLint 临时缓存 0 errors，待可用环境复验。见 [D1335](deferred-gaps.md)。
 - **Engine Triggers 状态动作收口（2026-10-26，D1334，本波 UI 审查）**：Triggers 工具栏原同时显示 Enable 与 Disable 两个动作，未选中行时也都可用，用户难以判断当前会执行的状态变化。现合成单一状态动作：选中已启用触发器时显示 Disable，选中已停用触发器时显示 Enable，未选中时禁用；写回成功后同步图标、标签和可用性。新增浏览器回归断言锁定 action row 只有一个状态动作；不改变 SetTriggerEnabled 请求契约或写闸。目标 Electron 测试受本机 `sandbox_host_linux` 限制退出 133；目标 ESLint 临时缓存 0 errors（15 条既有 warning）；本波唯一一次 `npm run compile` 在 `compile-copilot` 写只读输出目录时 exit 1，未归因本刀。见 [D1334](deferred-gaps.md)。

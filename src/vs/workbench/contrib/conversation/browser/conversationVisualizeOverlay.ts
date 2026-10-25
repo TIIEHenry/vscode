@@ -83,6 +83,7 @@ export class ConversationVisualizeOverlay extends Disposable {
 			small: true,
 			secondary: true,
 			title: conversationVisualizeOverlayReset,
+			ariaLabel: conversationVisualizeOverlayReset,
 		}));
 		resetButton.icon = Codicon.discard;
 
@@ -93,6 +94,7 @@ export class ConversationVisualizeOverlay extends Disposable {
 			small: true,
 			secondary: true,
 			title: conversationVisualizeOverlayClose,
+			ariaLabel: conversationVisualizeOverlayClose,
 		}));
 		closeButton.icon = Codicon.close;
 
