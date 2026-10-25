@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-25
-summary: "2026-10-25：D1302 核对（016a087e84a）已快进合入。未跑 npm run compile，未 push。槽 E 做 D1299。H 的 attachments/ 仍未跟踪。"
+summary: "2026-10-25：槽 E 在 loop/E 修好 D1299。未合入 merge，未跑 npm run compile，未 push。H 的 attachments/ 仍未跟踪。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -23,18 +23,18 @@ summary: "2026-10-25：D1302 核对（016a087e84a）已快进合入。未跑 npm
 | 主仓 | `/home/clarence/Projects/Agents/vscode` |
 | 工位根 `$WT_ROOT` | `/home/clarence/Projects/Agents/vscode-WorkTrees` |
 | 集成分支（当前） | **`agent-ide`**（与 `loop/merge` 同一产品历史；不是上游 `main`） |
-| 集成尖端（`agent-ide`） | D1302 核对在 `016a087e84a`。本账本提交只记合入；写完后 merge 与字母槽 `merge --ff-only` 到本提交。 |
-| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`016a087e84a` ahead 1809、behind 0。未跑 `npm run compile`，未 push。`1117f5f95f2` 上 compile-client 退出码 1（505 条 `error TS`）未复跑。 |
+| 集成尖端（`agent-ide`） | 仍是 `c20599a98f3`（D1302 核对账）。槽 E 的 `loop/E` 在其上多一笔 D1299，未 ff 进 merge。 |
+| 相对 `origin/agent-ide` | 远程仍是 `9128b870dbe`（2026-09-26）。`c20599a98f3` ahead 1810、behind 0。本槽提交后 `loop/E` ahead 1811。未跑 `npm run compile`，未 push。`1117f5f95f2` 上 compile-client 退出码 1（505 条 `error TS`）未复跑。 |
 
-## 槽位表（2026-10-25 合入 D1302 核对后）
+## 槽位表（2026-10-25 槽 E 做完 D1299，未合入）
 
 | 槽 | 路径 | 分支 | tip | 状态 |
 |:---|:-----|:-----|:-----|:-----|
-| merge | `vscode-WorkTrees/merge` | `loop/merge` | `016a087e84a`，随后快进到本账 | 干净，不是 `parked`。快进合入，没有二父 merge commit，没有 `npm run compile` |
-| A、B、C、D、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | 同上 | `idle`。工作区干净 |
-| E | `vscode-WorkTrees/E` | `loop/E` | 同上 | `occupied`。做仍开的 D1299（两份 leftover 扫描） |
-| H | `vscode-WorkTrees/H` | `loop/H` | 同上 | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
-| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | 本账本提交 | 只记合入。禁止 reset / stash / restore / clean / `checkout -B` |
+| merge | `vscode-WorkTrees/merge` | `loop/merge` | `c20599a98f3` | 干净，不是 `parked`。本刀未 ff，没有 `npm run compile` |
+| A、B、C、D、F、G、I、J | `vscode-WorkTrees/{槽}` | `loop/{槽}` | `c20599a98f3` | `idle`。工作区干净 |
+| E | `vscode-WorkTrees/E` | `loop/E` | 本提交（D1299） | `occupied`。D1299 已在本槽修好，未合入 merge |
+| H | `vscode-WorkTrees/H` | `loop/H` | `c20599a98f3` | `blocked`。未跟踪 `attachments/`。勿 add，勿 `checkout -B` |
+| 人类工位 | `Projects/Agents/vscode` | `agent-ide` | `c20599a98f3` | 未动。禁止 reset / stash / restore / clean / `checkout -B` |
 
 P0 旧账：字母槽与 merge 曾停在 `59120887458`，人类工位曾在 `10e04195bf0` 上带着审查改动。那些改动已在 `279f2c18f08`。本轮核对时 stash 未再查；不把文档里的进度当成已完成。
 

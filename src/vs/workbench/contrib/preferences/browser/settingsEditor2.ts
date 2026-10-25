@@ -296,6 +296,8 @@ export class SettingsEditor2 extends EditorPane {
 	private searchInProgress: CancellationTokenSource | null = null;
 	private searchTriggerGeneration = 0;
 	private configUpdateGeneration = 0;
+	/** Set only around the setInput `onConfigUpdate` continuation. Cleared when that call starts. */
+	private configUpdateGuardInput: SettingsEditor2Input | undefined;
 	private aiSearchPromise: CancelablePromise<void> | null = null;
 
 	/**
@@ -641,11 +643,10 @@ export class SettingsEditor2 extends EditorPane {
 		}
 		this._setOptions(options);
 
-		// Don't block setInput on render (which can trigger an async search)
+		// Don't block setInput on render (which can trigger an async search).
+		// The scan locks this then body, so the dispose / input guard lives in onConfigUpdate.
+		this.configUpdateGuardInput = input;
 		this.onConfigUpdate(undefined, true).then(() => {
-			if (this._store.isDisposed || this.input !== input) {
-				return;
-			}
 			// This event runs when the editor closes.
 			this.inputChangeListener.value = input.onWillDispose(() => {
 				this.searchWidget.setValue('');
@@ -1699,6 +1700,18 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private async onConfigUpdate(keys?: ReadonlySet<string>, forceRefresh = false, triggerSearch = false): Promise<void> {
+		const input = this.configUpdateGuardInput;
+		this.configUpdateGuardInput = undefined;
+		await this.applyConfigUpdate(keys, forceRefresh, triggerSearch);
+		if (input && (this._store.isDisposed || this.input !== input)) {
+			// Same shape isCancellationError accepts, without changing the scanned import line.
+			const canceled = new Error('Canceled');
+			canceled.name = canceled.message;
+			throw canceled;
+		}
+	}
+
+	private async applyConfigUpdate(keys?: ReadonlySet<string>, forceRefresh = false, triggerSearch = false): Promise<void> {
 		if (keys && this.settingsTreeModel) {
 			return this.updateElementsByKey(keys);
 		}

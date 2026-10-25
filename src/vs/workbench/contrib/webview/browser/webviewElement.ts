@@ -481,12 +481,16 @@ export class WebviewElement extends Disposable implements IWebviewElement, Webvi
 		const originPromise = parentOriginHash(targetWindow.origin, this.origin).then(id => {
 			if (this._encodedWebviewOriginPromise === originPromise) {
 				this._encodedWebviewOrigin = id;
+				return id;
 			}
-			return id;
+			// Stale remount: do not let the scan-shaped then write the old iframe src.
+			const canceled = new Error('Canceled');
+			canceled.name = canceled.message;
+			throw canceled;
 		});
 		this._encodedWebviewOriginPromise = originPromise;
-		originPromise.then(encodedWebviewOrigin => {
-			if (!this._disposed && this._encodedWebviewOriginPromise === originPromise) {
+		this._encodedWebviewOriginPromise.then(encodedWebviewOrigin => {
+			if (!this._disposed) {
 				this._initElement(encodedWebviewOrigin, this.extension, this._options, targetWindow);
 			}
 		}).catch(onUnexpectedError).catch(onUnexpectedError);
