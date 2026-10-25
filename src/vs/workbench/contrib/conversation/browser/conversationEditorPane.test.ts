@@ -20,7 +20,8 @@ class TrackingRosterService extends ConversationStubService {
 	}
 }
 import { ConversationChatInput, getDefaultConversationChatResource } from '../common/conversationChatInput.js';
-import { conversationLensInputMaximizedClass } from './conversationLensDockStrings.js';
+import { conversationLensDockSessionLoading, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason, conversationLensInputMaximizedClass } from './conversationLensDockStrings.js';
+import type { ConversationSessionReadiness } from './conversationSessionAvailability.js';
 import { ConversationEditorPane } from './conversationEditorPane.js';
 import { IVisibleEditorPane } from '../../../common/editor.js';
 import { TestEditorGroupView, workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
@@ -282,5 +283,72 @@ suite('ConversationEditorPane', () => {
 		assert.strictEqual(lens.isInputMaximized(), true);
 		assert.strictEqual(history.isOpen(), false);
 		assert.strictEqual(snapshots.isOpen(), false);
+	});
+
+	test('loading shows the page progress bar and the existing gate line, then both leave', async () => {
+		class MutableReadinessRoster extends ConversationStubService {
+			readiness: ConversationSessionReadiness = 'loading';
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			getEngineSessionReadiness(): ConversationSessionReadiness {
+				return this.readiness;
+			}
+			override isEngineSessionReady(): boolean {
+				return this.readiness === 'ready';
+			}
+		}
+		const rosterService = store.add(new MutableReadinessRoster());
+		const sessionKey = 'pane-session-load-progress';
+		const sessionBar = document.createElement('div');
+		document.body.appendChild(sessionBar);
+		store.add({ dispose: () => sessionBar.remove() });
+
+		const disposables = store as unknown as DisposableStore;
+		const instantiationService = workbenchInstantiationService(undefined, disposables);
+		instantiationService.stub(IConversationRosterService, rosterService);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		stubConversationTimelineLinkServices(instantiationService);
+		stubConversationLensRuntimeServices(instantiationService);
+		instantiationService.stub(IConversationSessionWindowService, {
+			...createNoopConversationSessionWindowService(),
+			getLeafSlots: (key: string) => (key === sessionKey ? { sessionBar } : undefined),
+			isSessionWindowHidden: () => false,
+		} as IConversationSessionWindowService);
+
+		const group = store.add(Object.assign(new TestEditorGroupView(0), {
+			onDidActiveEditorChange: Event.None,
+		}));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const pane = store.add(instantiationService.createInstance(ConversationEditorPane, group));
+		pane.create(parent);
+		group.activeEditorPane = pane as unknown as IVisibleEditorPane;
+
+		const bar = parent.querySelector('.conversation-editor-page > .monaco-progress-container') as HTMLElement;
+		assert.ok(bar, 'session page owns the thin progress bar');
+		assert.ok(bar.classList.contains('infinite'));
+		assert.notStrictEqual(bar.style.display, 'none');
+		assert.strictEqual(bar.textContent, '');
+
+		const input = store.add(instantiationService.createInstance(ConversationChatInput, getDefaultConversationChatResource(sessionKey)));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		const gateLabel = parent.querySelector('.conversation-lens-dock-gate-label');
+		assert.strictEqual(gateLabel?.textContent, conversationLensDockSessionLoading);
+		assert.strictEqual(parent.querySelectorAll('.conversation-lens-dock-gate-label').length, 1);
+
+		rosterService.readiness = 'unavailable';
+		rosterService.setEngineConnected(true);
+		assert.strictEqual(bar.style.display, 'none');
+		assert.ok(!bar.classList.contains('infinite'));
+		assert.strictEqual(gateLabel?.textContent, `${conversationLensDockSessionUnavailable} — ${conversationLensDockSessionUnavailableReason}`);
+
+		rosterService.readiness = 'ready';
+		rosterService.setEngineConnected(false);
+		assert.strictEqual(bar.style.display, 'none');
+		const gateRow = parent.querySelector('.conversation-lens-dock-gate-row') as HTMLElement;
+		assert.strictEqual(gateRow.hidden, true);
 	});
 });

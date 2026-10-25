@@ -31,6 +31,7 @@ import { IEditorService } from '../../../services/editor/common/editorService.js
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
 import { sourcesAlternateOpenAction, sourcesEditorOpenSlot } from './sourcesEditorOpenMode.js';
+import { conversationSessionReadinessProbe, getConversationSessionReadiness } from '../../conversation/common/conversationSessionReadiness.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
@@ -545,7 +546,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		return isSourcesKeepLeftoverWrite(
 			this.uaConnection.isEngineConnected(),
 			!!this.uaConnection.getConnectionSnapshot?.().pairingPending,
-			this.session.isEngineSessionReady(),
+			this.getEngineSessionReady(),
 		);
 	}
 
@@ -554,7 +555,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	}
 
 	private getEngineSessionReady(): boolean {
-		return this.session.isEngineSessionReady();
+		return getConversationSessionReadiness(conversationSessionReadinessProbe(this.session)) === 'ready';
 	}
 
 	/** List-fail leftover or KEEP pairing-hold leftover is not a live FileDiff / preview surface (D444 / D446). */

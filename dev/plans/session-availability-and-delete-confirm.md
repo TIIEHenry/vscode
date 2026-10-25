@@ -3,7 +3,7 @@ title: "会话就绪度单一判定、删除会话确认与会话列表排序"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-10-24
+updated: 2026-10-25
 summary: "2026-10-24 设计评审的缺口：删除会话无确认；会话未就绪在 13 处各判一遍，门闩、Agent 座、失败提示与时间线空态说法互相矛盾；门闩整块黄底；会话列表组内不排序。S1 删除确认（先取会话、确认、再过写闸）；S2 只依赖 roster 的就绪度判定，原因只由门闩写一次，时间线写中性短语，控件按未连接 / 未就绪 / 引擎不支持三分；S3 门闩回到 §6 错误态；S4 组内排序；S5 读屏名回英文。覆盖 composer-agent-picker 的「不另写已连接但不能切换」。不改协议、不改引擎。已过只读审查。"
 ---
 
@@ -32,8 +32,8 @@ summary: "2026-10-24 设计评审的缺口：删除会话无确认；会话未�
 - **原因只写一次。** 会话未就绪的原因只由门闩写（PreFirst 在居中区，Active 在输入卡上方）。时间线空态在未就绪时只写中性短语，不带语义图标，不重复原因句（UI 设计原则 §6 第 5 条、反模式 10）。
 - **PreFirst 保持。** 未就绪、roster 也没有缓存回合时仍进 PreFirst：居中区里没有「空会话」的文字，原因由居中区里的门闩给出。不改 `isPreFirst`。
 - **控件三分。** 输入行里写出原因的控件（Agent 座、Permission、Model 的不可用文案与提示）：未连接或配对保持写 `Needs an engine connection`；会话加载中或不可用写短语 `Loading session…` / `Session unavailable`；会话就绪而引擎没有对应 hook 写 `Not supported by this engine`。这推翻 [composer-agent-picker](composer-agent-picker.md) §2「不另写已连接但不能切换」：生产引擎的 `switchAgent` 恒为不可用，改完后每个已连接会话在 PreFirst 的 Agent 座都写 `Not supported by this engine`。这是本次有意的结果。
-- **加载态细进度条不在本刀。** UI 设计原则 §6 第 6 条要求加载中有视图顶部细进度条。本刀只给文字，进度条登记 [D1304](../progress/deferred-gaps.md)。
-- **范围。** 纳入 conversation 透镜、SessionBar、Sessions 视图、Inbox、Snapshots、引擎动作的 13 处。Navigator（`navigatorProjectsList.ts:653-656`、`navigatorAgentsView.ts:396-399`、`navigatorTeamList.ts:793-796`）、Sources 经 `IAgentSessionContext.isEngineSessionReady`（`agentSessionContext.ts:185-186` 及 `sourcesChangesList.ts`、`sourcesReviewList.ts`、`conversationDiffReviewPane.ts`、`sourcesDiffPanelView.ts`、`sourcesChangesReadModel.ts`）只管读写闸、不写这几句原因，本刀不动，同登记 D1304。`conversationSessionChatService.ts:95` 语义不同（未连接也算），不纳入。
+- **加载态细进度条当时不在本刀。** UI 设计原则 §6 第 6 条要求加载中有视图顶部细进度条。本刀只给文字。进度条与 Navigator / Sources 归一后来由 [D1304](../progress/deferred-gaps.md) 落地，见文末。
+- **范围。** 纳入 conversation 透镜、SessionBar、Sessions 视图、Inbox、Snapshots、引擎动作的 13 处。Navigator（`navigatorProjectsList.ts`、`navigatorAgentsView.ts`、`navigatorTeamList.ts`）、Sources 经 `IAgentSessionContext`（`sourcesChangesList.ts`、`sourcesReviewList.ts`、`conversationDiffReviewPane.ts`、`sourcesDiffPanelView.ts`、`sourcesChangesReadModel.ts`）只管读写闸、不写这几句原因，当时不动，同登记 D1304，已由文末落地。`conversationSessionChatService.ts:95` 语义不同（未连接也算），不纳入。
 
 ## S1 删除会话确认（PRD-002 验收 6）
 
@@ -124,7 +124,7 @@ export function conversationSessionShortStatus(readiness: ConversationSessionRea
 - 不查、不修本次观察到的绑定失败本身（切换测试会话后 `engineSessionBindFailed`）。
 - 不改新建 / 删除按钮的位置与间距，不加撤销。
 - 不改 Preview 空态宽度、状态栏重复项、`isPreFirst`。
-- 加载态细进度条、Navigator 与 Sources 的就绪判定归一：登记 D1304。
+- 加载态细进度条、Navigator 与 Sources 的就绪判定归一：当时登记 D1304，已落地，见文末。
 
 ## 受影响的既有测试
 
@@ -151,4 +151,9 @@ export function conversationSessionShortStatus(readiness: ConversationSessionRea
 
 ## 只读审查与改稿
 
-2026-10-24 初稿经只读 reviewer 审查：Critical 两条（PreFirst 下时间线空态不显示；不可用时门闩与空态双重报错），Important 七条（加载态进度条；13 处清单不全；判定签名套不上窄 host；PRD-007 验收 6 比方案宽、失败提示仍写 engine disconnected；推翻 composer-agent-picker 未声明；删除定序与竞态；既有测试回归点未列）。已全部改入上文：原因只由门闩写一次，时间线写中性短语，PreFirst 保持；判定改为只依赖 roster 的结构类型；控件三分并纳入 Permission / Model 与失败提示；删除改为先取 id、确认、再过闸；进度条与 Navigator / Sources 归一登记 D1304；回归点逐条列出。Minor：门闩分隔线是 `border-bottom`、316 行是 More 菜单的当前 Agent 说明、确认函数与新字符串落点、S4 调用方、Agent 短语与门闩整句的区分、traceability PRD-028 行、活窗步骤——已在上文改正。
+## D1304 落地（2026-10-25）
+
+- **进度条宿主。** 会话页自建，不用叶编辑器组的 `IEditorProgressService`。组指示在活动编辑器变化时 `stop().hide()`，会话加载要留到就绪度离开 `loading`。`ConversationEditorPane` 在 `.conversation-editor-page` 顶部放一条 2px `ProgressBar`（`infinite`），只在 `getConversationSessionReadiness(roster) === 'loading'` 时显示。文字仍是门闩那一行 `Loading session…`，进度条不另写一句。`unavailable` 不画条。
+- **写闸。** Navigator 三处 `isKeepLeftoverListFailWrite` 改为 `getConversationSessionReadiness(roster) !== 'ready'`。Sources 的 Changes、Review、Diff 与 `sourcesChangesReadModel` 把 `IAgentSessionContext` 经 `conversationSessionReadinessProbe` 送进同一个函数。`IAgentSessionContext.getEngineSessionReadiness?()` 可选，由 `AgentSessionContext` 转发 roster。原因句不改。
+
+2026-10-24 初稿经只读 reviewer 审查：Critical 两条（PreFirst 下时间线空态不显示；不可用时门闩与空态双重报错），Important 七条（加载态进度条；13 处清单不全；判定签名套不上窄 host；PRD-007 验收 6 比方案宽、失败提示仍写 engine disconnected；推翻 composer-agent-picker 未声明；删除定序与竞态；既有测试回归点未列）。已全部改入上文：原因只由门闩写一次，时间线写中性短语，PreFirst 保持；判定改为只依赖 roster 的结构类型；控件三分并纳入 Permission / Model 与失败提示；删除改为先取 id、确认、再过闸；进度条与 Navigator / Sources 归一当时登记 D1304（已落地，见上节）；回归点逐条列出。Minor：门闩分隔线是 `border-bottom`、316 行是 More 菜单的当前 Agent 说明、确认函数与新字符串落点、S4 调用方、Agent 短语与门闩整句的区分、traceability PRD-028 行、活窗步骤——已在上文改正。

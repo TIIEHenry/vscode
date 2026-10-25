@@ -4,40 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { conversationLensDockEngineNotConnected, conversationLensDockSessionLoading, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason } from './conversationLensDockStrings.js';
+import { type ConversationSessionReadiness } from '../common/conversationSessionReadiness.js';
 
-/** Connected roster: catalog/bind in flight, or the active session cannot be written. */
-export type ConversationSessionReadiness = 'ready' | 'loading' | 'unavailable';
-
-/**
- * Narrow roster surface. Missing roster, a disconnected roster, or a roster
- * without `isEngineSessionReady` stays ready (D460 / D462).
- */
-export interface IConversationSessionReadinessSource {
-	isEngineConnected?(): boolean;
-	isEngineSessionReady?(): boolean;
-	getEngineSessionReadiness?(): ConversationSessionReadiness;
-}
-
-export function getConversationSessionReadiness(roster: IConversationSessionReadinessSource | undefined): ConversationSessionReadiness {
-	if (!roster) {
-		return 'ready';
-	}
-	if (roster.isEngineConnected?.() !== true) {
-		return 'ready';
-	}
-	if (roster.getEngineSessionReadiness) {
-		return roster.getEngineSessionReadiness();
-	}
-	if (roster.isEngineSessionReady?.() === false) {
-		return 'unavailable';
-	}
-	return 'ready';
-}
-
-/** Connected, and the active session is still loading or cannot be written. */
-export function isConversationSessionNotReady(roster: IConversationSessionReadinessSource | undefined): boolean {
-	return getConversationSessionReadiness(roster) !== 'ready';
-}
+export type { ConversationSessionReadiness, IConversationSessionReadinessSource } from '../common/conversationSessionReadiness.js';
+export { conversationSessionReadinessProbe, getConversationSessionReadiness, isConversationSessionNotReady } from '../common/conversationSessionReadiness.js';
 
 /** Gate and write-hold sentence. Pairing-hold wins over session readiness. */
 export function conversationSessionHoldReason(pairingHold: boolean, readiness: ConversationSessionReadiness): string | undefined {

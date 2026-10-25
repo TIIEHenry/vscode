@@ -29,6 +29,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
 import { EditorModel } from '../../../common/editor/editorModel.js';
 import { IViewDescriptorService } from '../../../common/views.js';
+import { conversationSessionReadinessProbe, getConversationSessionReadiness } from '../../conversation/common/conversationSessionReadiness.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
 import { ISourcesChangeRef, resolveSourcesDiffWriteGate } from '../common/sourcesChangeRef.js';
@@ -372,7 +373,7 @@ export class SourcesDiffPanelView extends ViewPane {
 	}
 
 	private getEngineSessionReady(): boolean {
-		return this.session.isEngineSessionReady();
+		return getConversationSessionReadiness(conversationSessionReadinessProbe(this.session)) === 'ready';
 	}
 
 	private isReadFailed(): boolean {

@@ -34,6 +34,7 @@ import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/v
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { CONVERSATION_REVEAL_ITEM_COMMAND_ID } from '../../conversation/browser/conversationRevealItem.contribution.js';
+import { getConversationSessionReadiness } from '../../conversation/browser/conversationSessionAvailability.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IAgentInspectService } from '../common/agentInspect.js';
@@ -394,8 +395,7 @@ export class NavigatorAgentsView extends ViewPane {
 
 	/** KEEP leftover list-fail (D455 Refresh / D457 Inspect): connected but roster not ready is not a live write surface. */
 	private isKeepLeftoverListFailWrite(): boolean {
-		return this.rosterService.isEngineConnected()
-			&& this.rosterService.isEngineSessionReady() === false;
+		return getConversationSessionReadiness(this.rosterService) !== 'ready';
 	}
 
 	private updateEngineConnectedContextKey(): void {

@@ -40,6 +40,7 @@ import { IWorkspaceEditingService } from '../../../services/workspaces/common/wo
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { getConversationSessionReadiness } from '../../conversation/browser/conversationSessionAvailability.js';
 import { formatSessionRosterSubtitle, resolveSessionRosterTone } from '../../conversation/browser/conversationSessionsViewStrings.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
@@ -673,8 +674,7 @@ export class NavigatorProjectsView extends ViewPane {
 
 	/** KEEP leftover list-fail (D455): connected but roster not ready is not a live session-switch surface. */
 	private isKeepLeftoverListFailWrite(): boolean {
-		return this.rosterService.isEngineConnected()
-			&& this.rosterService.isEngineSessionReady() === false;
+		return getConversationSessionReadiness(this.rosterService) !== 'ready';
 	}
 
 	private isProjectsSessionSwitchLive(): boolean {

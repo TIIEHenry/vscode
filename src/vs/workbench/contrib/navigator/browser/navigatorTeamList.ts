@@ -29,6 +29,7 @@ import type { UniverseAgentTeamListEntry } from '../../../../platform/universeAg
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
+import { getConversationSessionReadiness } from '../../conversation/browser/conversationSessionAvailability.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { IAgentInspectService } from '../common/agentInspect.js';
@@ -791,8 +792,7 @@ export class NavigatorTeamView extends ViewPane {
 
 	/** KEEP leftover list-fail (D457): connected but roster not ready is not a live Inspect/row-open surface. */
 	private isKeepLeftoverListFailWrite(): boolean {
-		return this.rosterService.isEngineConnected()
-			&& this.rosterService.isEngineSessionReady() === false;
+		return getConversationSessionReadiness(this.rosterService) !== 'ready';
 	}
 
 	private syncKeepLeftoverListFailInspect(): void {

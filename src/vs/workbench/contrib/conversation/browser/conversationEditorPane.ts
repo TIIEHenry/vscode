@@ -5,6 +5,7 @@
 
 import './media/conversationEditorPane.css';
 import { $, append } from '../../../../base/browser/dom.js';
+import { ProgressBar } from '../../../../base/browser/ui/progressbar/progressbar.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -13,12 +14,15 @@ import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
+import { defaultProgressBarStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
 import { IEditorOpenContext } from '../../../common/editor.js';
 import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { ConversationAgentBreadcrumbBox } from './conversationAgentBreadcrumb.js';
 import { ConversationLens } from './conversationLens.js';
+import { getConversationSessionReadiness } from './conversationSessionAvailability.js';
+import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationChatInput, parseConversationChatResource } from '../common/conversationChatInput.js';
 import { ConversationEditorPaneId } from '../common/conversationSessionWindow.js';
 import { applyLeafWidthClasses } from './conversationNarrowLayout.js';
@@ -34,6 +38,8 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 	static readonly ID = ConversationEditorPaneId;
 
 	private pageRoot: HTMLElement | undefined;
+	private sessionLoadProgress: ProgressBar | undefined;
+	private sessionLoadProgressVisible = false;
 	private pageChrome: HTMLElement | undefined;
 	private lensTablist: HTMLElement | undefined;
 	private breadcrumb: ConversationAgentBreadcrumbBox | undefined;
@@ -57,14 +63,24 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		@IConversationSessionChatService private readonly sessionChatService: IConversationSessionChatService,
 		@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,
 		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IConversationRosterService private readonly roster: IConversationRosterService,
 	) {
 		super(ConversationEditorPane.ID, group, telemetryService, themeService, storageService);
+		this._register(this.roster.onDidChangeSession(() => this.syncSessionLoadProgress()));
+		this._register(this.roster.onDidChangeActiveSession(() => this.syncSessionLoadProgress()));
+		this._register(this.roster.onDidChangeEngineConnection(() => this.syncSessionLoadProgress()));
 	}
 
 	protected override createEditor(parent: HTMLElement): void {
 		const pageRoot = append(parent, $('.conversation-editor-page'));
 		pageRoot.tabIndex = -1;
 		this.pageRoot = pageRoot;
+		// Group IEditorProgressService clears on editor activation. Session loading
+		// has to stay until readiness leaves 'loading', so the page owns the bar.
+		const sessionLoadProgress = this._register(new ProgressBar(pageRoot, defaultProgressBarStyles));
+		sessionLoadProgress.hide();
+		this.sessionLoadProgress = sessionLoadProgress;
+		this.syncSessionLoadProgress();
 		this.pageChrome = append(pageRoot, $('.conversation-editor-page-chrome'));
 		this.lensTablist = append(this.pageChrome, $('.conversation-editor-lens-tablist'));
 		this.breadcrumb = this.chromeDisposables.add(this.paneInstantiationService.createInstance(ConversationAgentBreadcrumbBox, this.pageChrome));
@@ -165,6 +181,23 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 		this.syncLensTablistPlacement();
 		if (this.lastWidth > 0) {
 			this.leafSessionBar.layout(this.lastWidth);
+		}
+	}
+
+	private syncSessionLoadProgress(): void {
+		const bar = this.sessionLoadProgress;
+		if (!bar) {
+			return;
+		}
+		const loading = getConversationSessionReadiness(this.roster) === 'loading';
+		if (loading === this.sessionLoadProgressVisible) {
+			return;
+		}
+		this.sessionLoadProgressVisible = loading;
+		if (loading) {
+			bar.infinite().show();
+		} else {
+			bar.stop().hide();
 		}
 	}
 

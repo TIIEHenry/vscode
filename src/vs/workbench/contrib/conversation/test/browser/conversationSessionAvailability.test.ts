@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { conversationLensDockEngineNotConnected, conversationLensDockSessionLoading, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason } from '../../browser/conversationLensDockStrings.js';
-import { conversationSessionHoldReason, conversationSessionShortStatus, conversationTimelineEmptyKind, getConversationSessionReadiness, isConversationSessionNotReady, type ConversationSessionReadiness } from '../../browser/conversationSessionAvailability.js';
+import { conversationSessionHoldReason, conversationSessionReadinessProbe, conversationSessionShortStatus, conversationTimelineEmptyKind, getConversationSessionReadiness, isConversationSessionNotReady, type ConversationSessionReadiness } from '../../browser/conversationSessionAvailability.js';
 
 suite('ConversationSessionAvailability', () => {
 
@@ -34,6 +34,23 @@ suite('ConversationSessionAvailability', () => {
 			isEngineConnected: () => true,
 			isEngineSessionReady: () => false,
 		}), 'unavailable');
+	});
+
+	test('a sources probe forces the ready bit and lets an explicit tri-state win', () => {
+		assert.strictEqual(getConversationSessionReadiness(conversationSessionReadinessProbe({
+			isEngineSessionReady: () => false,
+		})), 'unavailable');
+		assert.strictEqual(getConversationSessionReadiness(conversationSessionReadinessProbe({
+			isEngineSessionReady: () => true,
+		})), 'ready');
+		assert.strictEqual(getConversationSessionReadiness(conversationSessionReadinessProbe({
+			isEngineSessionReady: () => false,
+			getEngineSessionReadiness: () => 'loading',
+		})), 'loading');
+		assert.strictEqual(getConversationSessionReadiness(conversationSessionReadinessProbe({
+			isEngineSessionReady: () => false,
+			getEngineSessionReadiness: () => 'ready',
+		})), 'ready');
 	});
 
 	test('hold reason and short status keep pairing ahead of readiness', () => {

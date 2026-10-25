@@ -30,6 +30,11 @@ export interface IAgentSessionContext {
 
 	getActiveSessionId(): string;
 	isEngineSessionReady(): boolean;
+	/**
+	 * Tri-state catalog readiness. Optional so existing test doubles keep compiling.
+	 * Same union as conversation `ConversationSessionReadiness`.
+	 */
+	getEngineSessionReadiness?(): 'ready' | 'loading' | 'unavailable';
 	isPairingHold(): boolean;
 	/** Roster `workDir` for this session. Absent or blank when the engine omitted it. */
 	getSessionWorkDir?(sessionId: string): string | undefined;

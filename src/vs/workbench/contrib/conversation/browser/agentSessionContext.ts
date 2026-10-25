@@ -13,6 +13,7 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 import { IAgentSessionContext, IAgentSessionViewLease } from '../../../services/agentSession/common/agentSessionContext.js';
 import { agentWorkRootDedupeKey, IAgentWorkRoot, resolveAgentWorkRoot } from '../../../services/agentSession/common/agentWorkRoot.js';
 import { ISCMService } from '../../scm/common/scm.js';
+import { getConversationSessionReadiness } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
@@ -184,6 +185,10 @@ export class AgentSessionContext extends Disposable implements IAgentSessionCont
 
 	isEngineSessionReady(): boolean {
 		return this.roster.isEngineSessionReady();
+	}
+
+	getEngineSessionReadiness(): 'ready' | 'loading' | 'unavailable' {
+		return getConversationSessionReadiness(this.roster);
 	}
 
 	isPairingHold(): boolean {

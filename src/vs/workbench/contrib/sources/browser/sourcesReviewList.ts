@@ -26,6 +26,7 @@ import { ResourceLabels, IResourceLabel } from '../../../browser/labels.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import type { EditorOpenSlot } from '../../../services/editor/common/editorOpenSlot.js';
+import { conversationSessionReadinessProbe, getConversationSessionReadiness } from '../../conversation/common/conversationSessionReadiness.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
 import { ISCMService } from '../../scm/common/scm.js';
@@ -366,7 +367,7 @@ export class SourcesReviewList extends Disposable {
 		return isSourcesKeepLeftoverWrite(
 			this.uaConnection.isEngineConnected(),
 			!!this.uaConnection.getConnectionSnapshot?.().pairingPending,
-			this.session.isEngineSessionReady(),
+			getConversationSessionReadiness(conversationSessionReadinessProbe(this.session)) === 'ready',
 		);
 	}
 
