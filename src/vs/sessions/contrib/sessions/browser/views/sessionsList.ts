@@ -3268,6 +3268,29 @@ export class SessionsList extends Disposable implements ISessionsList {
 			}
 		}
 
+		// An active list filter can remove every session while the underlying
+		// catalog is still populated. Keep the tree honest about that state so a
+		// filtered list is not mistaken for a loading or disconnected view. The
+		// find widget owns its own no-match message and is intentionally excluded.
+		if (shouldShowSessionsFilterEmptyState(
+			this.sessions,
+			filtered,
+			this.hasFindPattern,
+			this.excludedSessionTypes.size > 0
+				|| this.excludedStatuses.size > 0
+				|| this._excludeArchived
+				|| this._excludeRead
+				|| this._agentHostFilterService.selectedHostId !== undefined,
+		)) {
+			children.splice(0, children.length, {
+				element: {
+					placeholder: true as const,
+					sectionId: 'filter-empty',
+					label: localize('noMatchingSessionsAfterFilter', "No sessions match the current filters."),
+				}
+			});
+		}
+
 		this.tree.setChildren(null, children);
 		this.reconcileChatApprovalHeights();
 		this._onDidUpdate.fire();
@@ -4436,6 +4459,23 @@ export function isQuickChatSession(session: ISession): boolean {
 /** Whether a session is associated with an automation run. */
 export function isAutomationSession(session: ISession): boolean {
 	return session.isAutomation?.get() ?? false;
+}
+
+/**
+ * Whether the sessions list should explain that an active list filter removed
+ * every user-facing session. Search has its own find-widget message, while an
+ * empty catalog still uses the surrounding view's normal empty state.
+ */
+export function shouldShowSessionsFilterEmptyState(
+	allSessions: readonly ISession[],
+	filteredSessions: readonly ISession[],
+	hasFindPattern: boolean,
+	hasActiveFilter: boolean,
+): boolean {
+	return !hasFindPattern
+		&& hasActiveFilter
+		&& filteredSessions.length === 0
+		&& allSessions.some(session => !isAutomationSession(session));
 }
 
 export function groupSessionsForList(

@@ -39,7 +39,7 @@ import { ISessionsService } from '../../../../services/sessions/browser/sessions
 import { ChatInteractivity, ChatOriginKind, IChat, ISession, SessionStatus } from '../../../../services/sessions/common/session.js';
 import { IActiveSession, ISessionsManagementService } from '../../../../services/sessions/common/sessionsManagement.js';
 import { ISessionsProvidersService } from '../../../../services/sessions/browser/sessionsProvidersService.js';
-import { computeReorderSortChanges, groupByDate, groupByWorkspace, groupSessionsForList, ISessionSection, limitSessionsForList, resolveReorderDrop, SessionSectionRenderer, SessionsFlatList, SessionsList, sortSessions, SessionsGrouping, SessionsSorting } from '../../browser/views/sessionsList.js';
+import { computeReorderSortChanges, groupByDate, groupByWorkspace, groupSessionsForList, ISessionSection, limitSessionsForList, resolveReorderDrop, SessionSectionRenderer, SessionsFlatList, SessionsList, shouldShowSessionsFilterEmptyState, sortSessions, SessionsGrouping, SessionsSorting } from '../../browser/views/sessionsList.js';
 import { AgentSessionApprovalKind, AgentSessionApprovalModel, IAgentSessionApprovalInfo } from '../../../../../workbench/contrib/chat/browser/agentSessions/agentSessionApprovalModel.js';
 import { getSessionSummaryHoverData } from '../../browser/sessionHoverContent.js';
 import { createListHarness, createTestSession } from './sessionsListTestUtils.js';
@@ -448,6 +448,19 @@ suite('Sessions - SessionsList', () => {
 			const sections = groupByDate(sessions, SessionsSorting.Created);
 
 			assert.deepStrictEqual(sections.map(s => s.id), ['older']);
+		});
+	});
+
+	suite('sessions filter empty state', () => {
+		test('shows only when a list filter removes every non-automation session', () => {
+			const session = createSession('visible', {});
+			const automation = createSession('automation', { isAutomation: true });
+
+			assert.strictEqual(shouldShowSessionsFilterEmptyState([session], [], false, true), true);
+			assert.strictEqual(shouldShowSessionsFilterEmptyState([session], [session], false, true), false);
+			assert.strictEqual(shouldShowSessionsFilterEmptyState([session], [], true, true), false);
+			assert.strictEqual(shouldShowSessionsFilterEmptyState([automation], [], false, true), false);
+			assert.strictEqual(shouldShowSessionsFilterEmptyState([session], [], false, false), false);
 		});
 	});
 
@@ -2645,6 +2658,24 @@ suite('Sessions - SessionsList', () => {
 	});
 
 	suite('open trust gate', () => {
+
+		test('explains when an active status filter removes every session', () => {
+			const session = createTestSession('Completed').session;
+			const harness = createListHarness(disposables, [session]);
+			const container = harness.createContainer();
+			const list = harness.store.add(harness.instantiationService.createInstance(SessionsList, container, {
+				grouping: () => SessionsGrouping.Date,
+				sorting: () => SessionsSorting.Created,
+				onSessionOpen: () => { },
+			}));
+			list.layout(300, 400);
+
+			list.setStatusExcluded(SessionStatus.Completed, true);
+			assert.strictEqual(container.querySelector('.session-placeholder-label')?.textContent, 'No sessions match the current filters.');
+
+			list.setStatusExcluded(SessionStatus.Completed, false);
+			assert.strictEqual(container.querySelector('.session-placeholder-label'), null);
+		});
 
 		function findSessionRow(container: HTMLElement, title: string): HTMLElement {
 			const item = [...container.querySelectorAll<HTMLElement>('.session-item')]
