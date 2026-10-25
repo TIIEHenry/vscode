@@ -94,6 +94,12 @@ export class EngineCatalogStatusWidget extends Disposable {
 				options.onRetry?.();
 			}));
 		}
+
+		if (options.mode === 'disconnected' && options.onOpenConnection) {
+			const openConnection = this.actionDisposables.add(new Button(this.actionsEl, { ...defaultButtonStyles, secondary: true }));
+			openConnection.label = localize('ua.engineOpenConnection', "Open Connection");
+			this.actionDisposables.add(openConnection.onDidClick(() => options.onOpenConnection?.()));
+		}
 	}
 
 	hide(): void {
