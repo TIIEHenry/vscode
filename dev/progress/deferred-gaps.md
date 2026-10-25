@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1340 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1342 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
 ---
 
 # Deferred Gaps
@@ -1288,3 +1288,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1338 | P3 | **open** Inbox MessageQueue 行原只有鼠标 `click`，队列项是无 `tabIndex` 的 `role=listitem`，键盘用户无法把待发送项置为 Editing；列表内唯一的 Retry 按钮也没有可见的行焦点线索。现为队列行提供 `tabIndex=0`、内容 `aria-label`、Enter/Space 激活和 token 化 `:focus-visible`，并忽略 Retry 子按钮冒泡；不改变队列写闸、重试或状态语义。新增键盘键判定单测；目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 **133**，目标文件 ESLint 退出 **0**（2 条既有 import-pattern warning），`git diff --check` 通过。 | 只补 Inbox 队列行键盘可达性、命名和焦点可见性，不改队列状态机、RPC 或 Retry 行为 | Tab 可到每个队列行；Enter/Space 与鼠标点击同样进入 Editing；pairing-hold 和已 Editing 行仍不写；Retry 获焦时 Enter 不会重复触发行操作；浅色、深色、高对比主题显示焦点环 | conversation / inbox | open |
 | D1339 | P3 | **open** Sessions 内联筛选与 Sources Files/Changes/Review 共享的清除图标按钮原把“Filter sessions/files/changes”作为自身 `aria-label`，读屏用户得到筛选框名称而非清除动作；Sessions 清除按钮也未显式声明 `type=button`。现统一使用本地化 “Clear filter”，并为 Sessions 按钮补 `type=button`；新增 Sessions 与 Sources DOM 回归断言。只改筛选清除控件的语义名称与按钮类型，不改过滤、清除、焦点或布局行为。 | 只修 Sessions/Sources 清除图标的无障碍命名与按钮类型；不改变过滤匹配、清除逻辑或视觉布局 | Sessions 与 Sources 三类列表的清除按钮均读为 “Clear filter”；Sessions 清除按钮为普通按钮类型；已有点击、Escape 清除和筛选结果保持 | sessions / sources-filter | open |
 | D1340 | P3 | **open** Navigator 的 Projects、Team、Agents 内联筛选清除按钮原未显式声明 `type=button`。现为三处清除按钮统一补普通按钮类型，并在各自浏览器回归测试锁定 DOM 语义；不改变筛选、清除、焦点或布局行为。 | 只补 Navigator 三个筛选清除控件的按钮类型；不改变过滤匹配、清除逻辑或视觉布局 | Projects、Team、Agents 清除按钮均为普通按钮类型；现有点击、Escape 清除和筛选结果保持 | navigator / inline-filter | open |
+| D1342 | P3 | **open** ConversationSubAgentOverlay 原在打开时设置 `aria-modal="true"`，把 session 叶内居中卡片错误声明成覆盖整个文档的 modal；session-windows §3.3c 要求父 Conversation 保持 mounted、overlay `aria-modal=false`。现固定打开态为 `false`，并补 overlay 与 session chat 回归断言。 | 仅修正叶内 overlay 的 ARIA modal 范围；不改变打开、关闭、Esc、焦点、面包屑或提升为 tab 行为。定向 Electron 测试仍受本机 `sandbox_host_linux` 限制时不归因本刀 | 打开子代理对话框在 DOM 上保持 `aria-modal="false"`，关闭后也保持 false；现有 overlay 键盘与 tab 行为继续通过 | conversation / sub-agent-overlay | open |

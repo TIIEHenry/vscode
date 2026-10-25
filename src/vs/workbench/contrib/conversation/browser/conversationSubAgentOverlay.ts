@@ -234,7 +234,9 @@ export class ConversationSubAgentOverlay extends Disposable {
 
 		this.setMaximized(false);
 		this.element.hidden = false;
-		this.element.setAttribute('aria-modal', 'true');
+		// This is a session-leaf overlay. The parent conversation remains mounted and
+		// visible underneath, so it must not claim a document-wide modal scope.
+		this.element.setAttribute('aria-modal', 'false');
 		this.closeButton.focus();
 		this.scheduleLensLayout();
 	}

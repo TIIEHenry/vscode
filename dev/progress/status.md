@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1340 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332–D1342 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
 ---
 
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **子代理叶内 overlay 的 modal 语义（2026-10-26，D1342，会话动作审计）**：`ConversationSubAgentOverlay` 原在打开时把叶内 overlay 改成 `aria-modal="true"`，与 session-windows §3.3c 的非全窗 overlay 合同冲突；父 Conversation 仍保持 mounted 且四周可见，因此现固定为 `aria-modal="false"`，并在 session chat 与 overlay browser 测试锁定。未改打开、关闭、Esc、焦点或 tab 提升行为；定向测试结果见 D1342。
 - **Navigator Projects/Team/Agents 筛选清除按钮类型（2026-10-26，D1340，本波 UI 审查）**：三处内联筛选清除控件原都是未声明类型的 `<button>`；现统一补 `type=button`，避免宿主表单语义下触发隐式提交。新增 Projects、Team、Agents 浏览器 DOM 回归断言；不改筛选匹配、清除、焦点或布局行为。目标 Electron 测试受本机 `sandbox_host_linux` 限制待复验；`git diff --check` 通过。见 [D1340](deferred-gaps.md)。
 - **Inbox 队列行键盘入口（2026-10-26，D1338，本波 UI 审查）**：MessageQueue 浮层里的队列行原只有鼠标 click，行是无 `tabIndex` 的 `role=listitem`，键盘用户无法把待发送项置为 Editing。现为每行提供 `tabIndex=0`、内容 `aria-label`、Enter/Space 激活与 token 化 `:focus-visible`；Retry 子按钮的键盘事件不会冒泡为行操作，pairing-hold 与已 Editing 行仍拒绝写入。不改队列状态机或 RPC。新增键盘键判定单测；目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，目标文件 ESLint 0 errors（2 条既有 import-pattern warning），`git diff --check` 通过。见 [D1338](deferred-gaps.md)。
 - **Sessions/Sources 筛选清除按钮语义（2026-10-26，D1339，本波 UI 审查）**：Sessions 内联筛选和 Sources Files/Changes/Review 共用的清除图标按钮原把筛选框名称作为自身 `aria-label`，读屏用户无法得到清除动作名；Sessions 按钮还未显式声明 `type=button`。现统一使用本地化 “Clear filter”，并为 Sessions 补普通按钮类型；新增 Sessions 与 Sources DOM 回归断言。不改过滤逻辑、清除行为或布局。见 [D1339](deferred-gaps.md)。
