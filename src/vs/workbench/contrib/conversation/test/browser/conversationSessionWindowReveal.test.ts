@@ -720,6 +720,24 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.ok(!harness.conversationParts.some(part => part.sessionKey === sessionId));
 	});
 
+	test('onDidDeleteSession disposes a hidden leaf and its editor part', async () => {
+		const harness = await createRevealHarness();
+		const { parts, sessionWindowService, rosterService, primaryId } = harness;
+		const secondaryId = rosterService.seedSessionQuietly();
+		await sessionWindowService.openSessionBeside(secondaryId);
+		await waitForSessionPane(harness, secondaryId);
+
+		assert.strictEqual(sessionWindowService.isSessionWindowHidden(primaryId), true);
+		assert.ok(sessionWindowService.getLeafSlots(primaryId));
+		assert.ok(parts.conversationParts.some(part => part.sessionKey === primaryId));
+
+		rosterService.fireDeletedSession(primaryId);
+
+		assert.strictEqual(sessionWindowService.getLeafSlots(primaryId), undefined);
+		assert.ok(!parts.conversationParts.some(part => part.sessionKey === primaryId));
+		assert.deepStrictEqual(visibleLeafKeys(sessionWindowService), [secondaryId]);
+	});
+
 	test('15 stub-seed untitled onDidChangeActiveSession still reveals', async () => {
 		const harness = await createRevealHarness();
 		const { sessionWindowService, rosterService } = harness;

@@ -3,7 +3,7 @@ title: "潜在缺陷：会话窗口"
 type: progress
 status: draft
 phase: M7
-updated: 2026-09-24
+updated: 2026-10-26
 summary: "会话窗在已可见叶上会抢回旧焦点，并列替换失败会藏掉副窗，活树 catalog 不改父级也不摘掉已离开的 agent。"
 ---
 
@@ -89,7 +89,7 @@ summary: "会话窗在已可见叶上会抢回旧焦点，并列替换失败会�
 - 行为：按 `getBoundSessionId()` 找不到会话时，改用 `getActiveSession()` 的 title 写到这根 SessionBar 上。叶的 `sessionKey` 不会跟着改（`conversationLeafSessionBar.ts` 构造时钉死）。
 - 为何是缺陷：删会话没有摘掉对应叶（窗口服务只在活动会话仍存在于名单里时 reveal，约 115–117 行）。被删会话的叶还在时，标题变成另一扇正在活动的会话的名字，点这扇叶的 `focusin` 仍 `switchSession` 到旧 key。
 - 触发：两扇可见，删掉其中一扇对应的会话，留下的叶 SessionBar 刷新标题。
-- 已知：否。D467 只延期「已删除会话的隐藏叶 DOM 不回收」，没有这个标题回落。
+- 已知：否。D467 已由 D1321 关闭（删除隐藏叶会回收 editor part、store、DOM 与索引）；本条讨论的标题回落仍需单独验证。
 - 修复方向：绑定 id 已不在名单里时不要显示活动会话标题；隐藏或标出该叶已失效。
 
 ## 看过但未立条
