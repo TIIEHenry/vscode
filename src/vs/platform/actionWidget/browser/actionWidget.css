@@ -545,6 +545,13 @@
 	color: var(--vscode-input-placeholderForeground);
 }
 
+.action-widget .action-list-filter-empty {
+	margin: 2px 2px 0 2px;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+	line-height: 16px;
+}
+
 /* Filter action buttons remain quiet until the pointer reveals them. */
 .action-widget .action-list-filter-actions .action-label {
 	padding: 3px;

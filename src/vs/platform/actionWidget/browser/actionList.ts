@@ -503,6 +503,8 @@ class ActionItemRenderer<T> implements IListRenderer<IActionListItem<T>, IAction
 	}
 }
 
+let actionListFilterEmptySeq = 0;
+
 class AcceptSelectedEvent extends UIEvent {
 	constructor() { super('acceptSelectedAction'); }
 }
@@ -548,6 +550,15 @@ export interface IActionListOptions {
 	 * Placeholder text for the filter input.
 	 */
 	readonly filterPlaceholder?: string;
+
+	/**
+	 * Sentence under the filter when this widget's own text filter leaves no
+	 * action rows. A blank or whitespace query, a catalog with no actions, any
+	 * still-visible action (including `showAlways`), and an in-flight `onFilter`
+	 * stay silent. `onFilter` replaces the catalog, so an empty replacement does
+	 * not use this sentence.
+	 */
+	readonly filterEmptyMessage?: string;
 
 	/**
 	 * Optional actions shown in the filter row, to the right of the input.
@@ -709,6 +720,8 @@ export class ActionListWidget<T> extends Disposable {
 	private _hasLaidOut = false;
 	private readonly _filterInput: HTMLInputElement | undefined;
 	private readonly _filterContainer: HTMLElement | undefined;
+	private readonly _filterEmpty: HTMLElement | undefined;
+	private _filterPending = false;
 	private readonly _footerContainer: HTMLElement | undefined;
 	private _headerContainer: HTMLElement | undefined;
 	private readonly _filterCts = this._register(new MutableDisposable<CancellationTokenSource>());
@@ -931,6 +944,15 @@ export class ActionListWidget<T> extends Disposable {
 					onFilterValueChanged();
 				}));
 				this._register(dom.addDisposableListener(this._filterInput, 'input', onFilterValueChanged));
+
+				const filterEmptyMessage = this._options?.filterEmptyMessage;
+				if (filterEmptyMessage) {
+					this._filterEmpty = dom.append(this._filterContainer, dom.$('.action-list-filter-empty'));
+					this._filterEmpty.id = `action-list-filter-empty-${++actionListFilterEmptySeq}`;
+					this._filterEmpty.setAttribute('role', 'status');
+					this._filterEmpty.setAttribute('aria-live', 'polite');
+					this._filterEmpty.style.display = 'none';
+				}
 			}
 
 			if (this._options?.secondaryHeading) {
@@ -1049,8 +1071,43 @@ export class ActionListWidget<T> extends Disposable {
 		this._applyFilter();
 	}
 
+	private _countActions(items: readonly IActionListItem<T>[]): number {
+		let count = 0;
+		for (const item of items) {
+			if (item.kind === ActionListItemKind.Action) {
+				count++;
+			}
+		}
+		return count;
+	}
+
+	/** Own text filter only. A replacement catalog from `onFilter` is not a miss. */
+	private _syncFilterEmptyMessage(): void {
+		const empty = this._filterEmpty;
+		if (!empty) {
+			return;
+		}
+		const message = this._options?.filterEmptyMessage;
+		const query = this._filterText.trim();
+		const show = !this._filterPending
+			&& !!message
+			&& query.length > 0
+			&& this._countActions(this._allMenuItems) > 0
+			&& this._countActions(this._visibleMenuItems) === 0;
+		if (show) {
+			empty.textContent = message;
+			empty.style.display = '';
+			this._filterInput?.setAttribute('aria-describedby', empty.id);
+			return;
+		}
+		empty.textContent = '';
+		empty.style.display = 'none';
+		this._filterInput?.removeAttribute('aria-describedby');
+	}
+
 	private _applyOrUpdateFilter(): void {
 		if (!this._delegate.onFilter) {
+			this._filterPending = false;
 			this._applyFilter();
 			return;
 		}
@@ -1059,13 +1116,22 @@ export class ActionListWidget<T> extends Disposable {
 		this._filterCts.value?.cancel();
 		const cts = new CancellationTokenSource();
 		this._filterCts.value = cts;
+		this._filterPending = true;
+		this._syncFilterEmptyMessage();
 		this._delegate.onFilter(filterText, cts.token).then(items => {
 			if (cts.token.isCancellationRequested) {
 				return;
 			}
+			this._filterPending = false;
 			this._allMenuItems = [...items];
 			this._applyFilter(true);
-		}).catch(() => { /* best-effort */ });
+		}).catch(() => {
+			if (cts.token.isCancellationRequested) {
+				return;
+			}
+			this._filterPending = false;
+			this._syncFilterEmptyMessage();
+		});
 	}
 
 	private _applyFilter(skipTextFilter = false, fireLayout = true): void {
@@ -1208,6 +1274,7 @@ export class ActionListWidget<T> extends Disposable {
 
 		this._visibleMenuItems = visible;
 		this._list.splice(0, this._list.length, visible);
+		this._syncFilterEmptyMessage();
 
 		// Notify the parent that a re-layout is needed
 		if (fireLayout) {
@@ -1248,6 +1315,18 @@ export class ActionListWidget<T> extends Disposable {
 	 */
 	get filterContainer(): HTMLElement | undefined {
 		return this._filterContainer;
+	}
+
+	/**
+	 * Height reserved for the filter row. The empty sentence adds one line so
+	 * the list does not keep the shorter budget after the sentence appears.
+	 */
+	get filterChromeHeight(): number {
+		if (!this._filterContainer) {
+			return 0;
+		}
+		const emptyShown = !!this._filterEmpty && this._filterEmpty.style.display !== 'none' && !!this._filterEmpty.textContent;
+		return emptyShown ? 56 : 36;
 	}
 
 	get footerContainer(): HTMLElement | undefined {
@@ -2285,7 +2364,7 @@ export class ActionList<T> extends Disposable {
 	private computeHeight(): number {
 		const listHeight = this._widget.computeListHeight();
 
-		const filterHeight = this._widget.filterContainer ? 36 : 0;
+		const filterHeight = this._widget.filterChromeHeight;
 		const footerHeight = this._widget.footerContainer ? 32 : 0;
 		const headerHeight = this._widget.headerContainer ? this._widget.headerContainer.offsetHeight || 36 : 0;
 		const chromeHeight = filterHeight + footerHeight + headerHeight;

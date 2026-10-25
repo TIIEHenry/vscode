@@ -533,6 +533,92 @@ suite('ActionListWidget', () => {
 		);
 	});
 
+	function filterEmpty(widget: ActionListWidget<ITestActionItem>): HTMLElement | null {
+		return widget.filterContainer?.querySelector<HTMLElement>('.action-list-filter-empty') ?? null;
+	}
+
+	test('writes the filter empty sentence only when a trimmed query misses every action', () => {
+		const widget = createActionListWidget(disposables, {
+			items: [separator('Workspace'), action('alpha'), action('Add Folder')],
+			listOptions: { filterEmptyMessage: 'No matching folders.' },
+		});
+
+		assert.strictEqual(filterEmpty(widget)?.textContent, '');
+		assert.strictEqual(filterEmpty(widget)?.style.display, 'none');
+
+		assert.strictEqual(widget.filterChromeHeight, 36);
+
+		typeFilter(widget, 'zzz');
+		assert.strictEqual(filterEmpty(widget)?.textContent, 'No matching folders.');
+		assert.strictEqual(filterEmpty(widget)?.style.display, '');
+		assert.strictEqual(filterEmpty(widget)?.getAttribute('role'), 'status');
+		assert.strictEqual(filterEmpty(widget)?.getAttribute('aria-live'), 'polite');
+		assert.strictEqual(widget.filterInput?.getAttribute('aria-describedby'), filterEmpty(widget)?.id);
+		assert.strictEqual(widget.filterChromeHeight, 56);
+		assert.deepStrictEqual(getVisibleRowText(widget), []);
+
+		typeFilter(widget, '   ');
+		assert.strictEqual(filterEmpty(widget)?.textContent, '');
+		assert.strictEqual(filterEmpty(widget)?.style.display, 'none');
+		assert.strictEqual(widget.filterInput?.hasAttribute('aria-describedby'), false);
+		assert.strictEqual(widget.filterChromeHeight, 36);
+
+		typeFilter(widget, ' add ');
+		assert.strictEqual(filterEmpty(widget)?.textContent, 'No matching folders.');
+		assert.deepStrictEqual(getVisibleRowText(widget), []);
+
+		typeFilter(widget, 'add');
+		assert.strictEqual(filterEmpty(widget)?.textContent, '');
+		assert.deepStrictEqual(getVisibleRowText(widget), ['Workspace', 'Add Folder']);
+
+		typeFilter(widget, '');
+		assert.strictEqual(filterEmpty(widget)?.style.display, 'none');
+		assert.deepStrictEqual(getVisibleRowText(widget), ['Workspace', 'alpha', 'Add Folder']);
+	});
+
+	test('keeps the filter empty sentence hidden for a pinned row, an empty catalog, or no sentence', () => {
+		const pinned = createActionListWidget(disposables, {
+			items: [action('alpha'), { ...action('pinned'), showAlways: true }],
+			listOptions: { filterEmptyMessage: 'No matching folders.' },
+		});
+		typeFilter(pinned, 'zzz');
+		assert.strictEqual(filterEmpty(pinned)?.textContent, '');
+		assert.deepStrictEqual(getVisibleRowText(pinned), ['pinned']);
+
+		const emptyCatalog = createActionListWidget(disposables, {
+			items: [separator('Workspace')],
+			listOptions: { filterEmptyMessage: 'No matching folders.' },
+		});
+		typeFilter(emptyCatalog, 'zzz');
+		assert.strictEqual(filterEmpty(emptyCatalog)?.textContent, '');
+
+		const silent = createActionListWidget(disposables, {
+			items: [action('alpha')],
+		});
+		typeFilter(silent, 'zzz');
+		assert.strictEqual(filterEmpty(silent), null);
+		assert.deepStrictEqual(getVisibleRowText(silent), []);
+	});
+
+	test('keeps the filter empty sentence hidden when a dynamic filter replaces the catalog', async () => {
+		const pending = new DeferredPromise<readonly IActionListItem<ITestActionItem>[]>();
+		const widget = createActionListWidget(disposables, {
+			items: [action('alpha')],
+			listOptions: { filterEmptyMessage: 'No matching folders.' },
+			onFilter: () => pending.p,
+		});
+
+		typeFilter(widget, 'zzz');
+		assert.strictEqual(filterEmpty(widget)?.textContent, '');
+		assert.strictEqual(filterEmpty(widget)?.style.display, 'none');
+		assert.deepStrictEqual(getVisibleRowText(widget), ['alpha']);
+
+		pending.complete([]);
+		await timeout(0);
+		assert.strictEqual(filterEmpty(widget)?.textContent, '');
+		assert.deepStrictEqual(getVisibleRowText(widget), []);
+	});
+
 	test('focuses the configured initial item when opened', () => {
 		const widget = createActionListWidget(disposables, {
 			items: [action('first'), action('active'), action('last')],

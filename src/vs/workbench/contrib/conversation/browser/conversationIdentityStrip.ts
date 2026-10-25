@@ -536,6 +536,7 @@ export class ConversationIdentityStrip extends Disposable {
 		}, {
 			showFilter: true,
 			filterPlaceholder: localize('conversationIdentityStrip.searchFolders', "Search folders..."),
+			filterEmptyMessage: localize('conversationIdentityStrip.noMatchingFolders', "No matching folders."),
 			minWidth: 280,
 		});
 	}
@@ -601,6 +602,7 @@ export class ConversationIdentityStrip extends Disposable {
 		}, {
 			showFilter: true,
 			filterPlaceholder: localize('conversationIdentityStrip.searchBranches', "Search branches..."),
+			filterEmptyMessage: localize('conversationIdentityStrip.noMatchingBranches', "No matching branches."),
 			minWidth: 280,
 		});
 	}

@@ -667,6 +667,7 @@ suite('ConversationIdentityStrip', () => {
 		assert.deepStrictEqual(actionWidget.shows[0].listOptions, {
 			showFilter: true,
 			filterPlaceholder: 'Search folders...',
+			filterEmptyMessage: 'No matching folders.',
 			minWidth: 280,
 		});
 		assert.strictEqual(folderChip.getAttribute('aria-expanded'), 'true');
@@ -773,6 +774,7 @@ suite('ConversationIdentityStrip', () => {
 		assert.deepStrictEqual(actionWidget.shows[0].listOptions, {
 			showFilter: true,
 			filterPlaceholder: 'Search branches...',
+			filterEmptyMessage: 'No matching branches.',
 			minWidth: 280,
 		});
 		const actions = menuActions(actionWidget.shows[0]);
