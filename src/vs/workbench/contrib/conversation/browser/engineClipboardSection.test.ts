@@ -16,7 +16,7 @@ import type {
 	UniverseAgentWriteClipboardResult,
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
-import { formatEngineClipboardListLabel } from './engineClipboardList.js';
+import { formatEngineClipboardListLabel, formatEngineClipboardWriteLabel } from './engineClipboardList.js';
 import { EngineClipboardSection } from './engineClipboardSection.js';
 import { createUnknownConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
@@ -146,5 +146,119 @@ suite('EngineClipboardSection (browser)', () => {
 		releaseWrite?.({ clipId: 'late-write' });
 		await writePromise;
 		assert.strictEqual(parent.querySelector('.engine-clipboard-write-status')?.textContent, '');
+	});
+
+	test('late clipboard write after disconnect does not paint success', async () => {
+		let connected = true;
+		let releaseWrite: ((value: UniverseAgentWriteClipboardResult) => void) | undefined;
+		const connectionChanged = new Emitter<void>();
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		capabilities.writeClipboard = { support: 'SUPPORTED' };
+		const entry = { clipId: 'clip-1', label: 'Clip', type: 'CLIPBOARD_TEXT' as const, createdBy: '', createdAt: 0 };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => connected ? ({ kind: 'connected', path: 'loopback' }) : ({ kind: 'disconnected' }),
+			onDidChangeConnection: connectionChanged.event,
+			getCapabilitySnapshot: () => capabilities,
+			getConnectionSnapshot: () => ({
+				transport: connected ? 'ok' : 'idle', pairingPending: false, channelAlive: connected, sharedFsRootSent: false,
+				capabilities, conversationEntryCapability: { ...createUnknownConversationEntryCapability(), listClipboard: 'SUPPORTED' },
+			}),
+			listClipboard: async () => ({ entries: [entry] }),
+			writeClipboard: () => new Promise(resolve => { releaseWrite = resolve; }),
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		instantiationService.stub(IDialogService, { input: async () => ({ confirmed: true, values: ['label', 'content'] }) } as unknown as IDialogService);
+		const section = store.add(instantiationService.createInstance(EngineClipboardSection, parent));
+		section.setSectionActive(true);
+		await timeout(0);
+
+		const writePromise = (section as unknown as { handleWrite(): Promise<void> }).handleWrite();
+		await timeout(0);
+		connected = false;
+		connectionChanged.fire();
+		await timeout(0);
+		releaseWrite?.({ clipId: 'late-write' });
+		await writePromise;
+		assert.strictEqual(parent.querySelector('.engine-clipboard-write-status')?.textContent, '');
+	});
+
+	test('late clipboard write error after list failure does not paint error', async () => {
+		let listFailed = false;
+		let rejectWrite: ((reason?: unknown) => void) | undefined;
+		const connectionChanged = new Emitter<void>();
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		capabilities.writeClipboard = { support: 'SUPPORTED' };
+		const entry = { clipId: 'clip-1', label: 'Clip', type: 'CLIPBOARD_TEXT' as const, createdBy: '', createdAt: 0 };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			onDidChangeConnection: connectionChanged.event,
+			getCapabilitySnapshot: () => capabilities,
+			getConnectionSnapshot: () => ({
+				transport: 'ok', pairingPending: false, channelAlive: true, sharedFsRootSent: false,
+				capabilities, conversationEntryCapability: { ...createUnknownConversationEntryCapability(), listClipboard: 'SUPPORTED' },
+			}),
+			listClipboard: async () => {
+				if (listFailed) {
+					throw new Error('list failed');
+				}
+				return { entries: [entry] };
+			},
+			writeClipboard: () => new Promise((_resolve, reject) => { rejectWrite = reject; }),
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		instantiationService.stub(IDialogService, { input: async () => ({ confirmed: true, values: ['label', 'content'] }) } as unknown as IDialogService);
+		const section = store.add(instantiationService.createInstance(EngineClipboardSection, parent));
+		section.setSectionActive(true);
+		await timeout(0);
+
+		const writePromise = (section as unknown as { handleWrite(): Promise<void> }).handleWrite();
+		await timeout(0);
+		listFailed = true;
+		connectionChanged.fire();
+		await timeout(0);
+		rejectWrite?.(new Error('late write failure'));
+		await writePromise;
+		assert.strictEqual(parent.querySelector('.engine-clipboard-write-status')?.textContent, '');
+	});
+
+	test('live clipboard write keeps success after its own refresh', async () => {
+		const capabilities = createEmptyTestCapabilitySnapshot();
+		capabilities.writeClipboard = { support: 'SUPPORTED' };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getCapabilitySnapshot: () => capabilities,
+			getConnectionSnapshot: () => ({
+				transport: 'ok', pairingPending: false, channelAlive: true, sharedFsRootSent: false,
+				capabilities, conversationEntryCapability: { ...createUnknownConversationEntryCapability(), listClipboard: 'SUPPORTED' },
+			}),
+			listClipboard: async () => ({ entries: [] }),
+			writeClipboard: async () => ({ clipId: 'live-write' }),
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		instantiationService.stub(IDialogService, { input: async () => ({ confirmed: true, values: ['label', 'content'] }) } as unknown as IDialogService);
+		const section = store.add(instantiationService.createInstance(EngineClipboardSection, parent));
+		section.setSectionActive(true);
+		await timeout(0);
+
+		await (section as unknown as { handleWrite(): Promise<void> }).handleWrite();
+		assert.strictEqual(parent.querySelector('.engine-clipboard-write-status')?.textContent, formatEngineClipboardWriteLabel('live-write'));
 	});
 });
