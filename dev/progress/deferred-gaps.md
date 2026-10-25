@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1342 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1343 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
 ---
 
 # Deferred Gaps
@@ -1290,3 +1290,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1340 | P3 | **open** Navigator 的 Projects、Team、Agents 内联筛选清除按钮原未显式声明 `type=button`。现为三处清除按钮统一补普通按钮类型，并在各自浏览器回归测试锁定 DOM 语义；不改变筛选、清除、焦点或布局行为。 | 只补 Navigator 三个筛选清除控件的按钮类型；不改变过滤匹配、清除逻辑或视觉布局 | Projects、Team、Agents 清除按钮均为普通按钮类型；现有点击、Escape 清除和筛选结果保持 | navigator / inline-filter | open |
 | D1342 | P3 | **open** ConversationSubAgentOverlay 原在打开时设置 `aria-modal="true"`，把 session 叶内居中卡片错误声明成覆盖整个文档的 modal；session-windows §3.3c 要求父 Conversation 保持 mounted、overlay `aria-modal=false`。现固定打开态为 `false`，并补 overlay 与 session chat 回归断言。 | 仅修正叶内 overlay 的 ARIA modal 范围；不改变打开、关闭、Esc、焦点、面包屑或提升为 tab 行为。定向 Electron 测试仍受本机 `sandbox_host_linux` 限制时不归因本刀 | 打开子代理对话框在 DOM 上保持 `aria-modal="false"`，关闭后也保持 false；现有 overlay 键盘与 tab 行为继续通过 | conversation / sub-agent-overlay | open |
 | D1341 | P3 | **open** History、Snapshots、Visualize 与 SubAgent overlay 打开时会把焦点移入浮层，原先通过 Close / Escape 关闭后焦点落到底层或 body，键盘上下文丢失。现复用共享触发元素捕获/恢复辅助函数：仅在浮层仍拥有焦点、触发控件仍连接且未隐藏时恢复；会话切换、控件隐藏或销毁时不抢焦点。新增四类 overlay 的 close 与 hidden-trigger 回归断言；目标 Electron 测试待在可启动环境复验，目标文件 ESLint 0 errors（4 条既有 warning），`git diff --check` 通过。 | 只改 overlay 关闭后的焦点归属，不改浮层生命周期、Tab 陷阱、Escape 语义、会话切换或触发动作；控件不可见/已销毁时保持平台焦点结果 | 四类 overlay 由可见触发控件打开后，Close / Escape 把焦点还给该控件；触发控件 hidden、display:none、离开 DOM 或焦点已在浮层外时不抢焦点；浅色、深色和高对比主题的现有焦点环保持 | conversation / overlay-focus | open |
+| D1343 | P3 | **open** Skills 写入在运行时收到 `SaveSkillContent` `UNIMPLEMENTED` 后，连接层动态移除 `saveSkillContent` binding；原 Skills section 仍保留 Save/New 与可编辑正文 chrome，后续点击只静默拒绝。现检测 binding 消失并立即收起写工具栏、正文 Save chrome，复用既有 API 不可用文案；普通 `{ok:false}` 拒绝仍保留原失败状态。新增 browser 回归覆盖动态移除后的 DOM 与第二次写入不发生。目标 Electron 测试因本机 `sandbox_host_linux` 退出 133；目标文件 ESLint `--no-cache` 退出 0；未跑 full compile。 | 只收口 SaveSkillContent 运行时能力闸的 UI；不改 SaveSkillContent 传输、探针、D24 编码合同或新建 RPC | `UNIMPLEMENTED` 后 Save/New/正文编辑 chrome 均收起且不再发第二次写入；普通拒绝仍显示原失败文案 | conversation / engine-skills | open |
