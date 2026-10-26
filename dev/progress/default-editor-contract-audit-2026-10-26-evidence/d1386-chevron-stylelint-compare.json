@@ -1,0 +1,40 @@
+{
+  "old": {
+    "command": [
+      "rtk",
+      "proxy",
+      "node",
+      "build/stylelint.ts",
+      "/tmp/vscode-followup-identity-before.css"
+    ],
+    "exit": 0,
+    "unknownVariableDiagnostics": 5,
+    "designTokenSuggestions": 9,
+    "variables": [
+      "--vscode-conversation-background",
+      "--ua-ease",
+      "--ua-ease",
+      "--ua-ease",
+      "--ua-ease"
+    ]
+  },
+  "new": {
+    "command": [
+      "rtk",
+      "proxy",
+      "node",
+      "build/stylelint.ts",
+      "src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css"
+    ],
+    "exit": 0,
+    "unknownVariableDiagnostics": 5,
+    "designTokenSuggestions": 9,
+    "variables": [
+      "--vscode-conversation-background",
+      "--ua-ease",
+      "--ua-ease",
+      "--ua-ease",
+      "--ua-ease"
+    ]
+  }
+}

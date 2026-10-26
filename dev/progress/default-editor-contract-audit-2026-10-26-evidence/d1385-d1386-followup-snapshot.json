@@ -1,0 +1,200 @@
+{
+  "sourceHead": "f75bf2189418dc32007f67afed54cf02ec02eed3",
+  "sourceCommits": {
+    "Dcss": "b774373547426a592724f275ef131917fd3bdcfe",
+    "Ccancel": "f9c17e5e0692a6786e3403cb5c1761a7993dbdb3"
+  },
+  "sourceChangesSince57": [
+    {
+      "path": "src/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.ts",
+      "sha256": "a01616784b90eb513450e78b7ada2a958661cdce67b9440a6f5de487406bba68",
+      "bodySha256": "810149789f2641d5183bde84c9bad0952cd30c52f47bfed362ed41d18296d3e1",
+      "bytes": 37531,
+      "mtimeUtc": "2026-10-26T11:35:05.389546+00:00"
+    },
+    {
+      "path": "src/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.ts",
+      "sha256": "2921ccb36bc046053e99b704f43eb328caa6b2faa36b8cc83c1b773718357014",
+      "bodySha256": "fd69cbd3bd50905bbc64e27ec969f024e50f790973f0f81277e87dbe5ec60a14",
+      "bytes": 267637,
+      "mtimeUtc": "2026-10-26T11:35:05.389546+00:00"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css",
+      "sha256": "dee625a2a7c5a5ebbc10020c236f73409b927fb5939f9a3a8f262b8dcd0b8083",
+      "bodySha256": "13192289cb078c7490e7d9521b5065c7f61ec24e2b22ed438fd8e12e0ba7cfa6",
+      "bytes": 5671,
+      "mtimeUtc": "2026-10-26T11:33:14.890042+00:00"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.ts",
+      "sha256": "599a9f56c412af4ec109dd9f5cd6d0c5c7335bc2fd284e70cab1d42071ed16cb",
+      "bodySha256": "ad70a5b00e431effbaf9cb26392ce67ff117345d040cebcd88169335cd939f93",
+      "bytes": 73834,
+      "mtimeUtc": "2026-10-26T11:33:14.892042+00:00"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js",
+      "sha256": "8668ea87d321488bbdec3e4b193ad6984d914a3b9b9bd139e4ebf213c13633bc",
+      "bodySha256": "850684fae597348d54b3bbbfa44163977c5ef7cdf879e94de03fe629d2347d02",
+      "bytes": 55908,
+      "mtimeUtc": "2026-10-26T11:37:24.179438+00:00"
+    },
+    {
+      "path": "out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js",
+      "sha256": "73c412eaab24e644f9dbfeb82eac156708329c44c675f79145a04c21c674d731",
+      "bodySha256": "2da5639e759870da9bda1e3c7d9b1f209070d80feed687902feb7e122b20304d",
+      "bytes": 433580,
+      "mtimeUtc": "2026-10-26T11:36:43.505489+00:00"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css",
+      "sha256": "dee625a2a7c5a5ebbc10020c236f73409b927fb5939f9a3a8f262b8dcd0b8083",
+      "bodySha256": "13192289cb078c7490e7d9521b5065c7f61ec24e2b22ed438fd8e12e0ba7cfa6",
+      "bytes": 5671,
+      "mtimeUtc": "2026-10-26T11:34:30.987993+00:00"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js",
+      "sha256": "9b6366eaf149c4956b0c025485712c3d9713a8e208d29d5665142218cf7d3834",
+      "bodySha256": "b09edb7dcae1728866f8053bde496948f0f3daf180b07b55be62e67c431f410b",
+      "bytes": 126172,
+      "mtimeUtc": "2026-10-26T11:34:03.084599+00:00"
+    }
+  ],
+  "DThreeProductionJsBytesUnchanged": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js",
+      "sha256": "bf004fbac0305c9cb9aaa06dd08f16dac14f2f4816aed19ced22eb0ad3dd892d",
+      "bodySha256": "27af36a5d723fea90c0ebff77fae27d228fcf3957f8881c1a51a34c370707e43",
+      "bytes": 97907,
+      "mtimeUtc": "2026-10-26T11:03:08.099018+00:00"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+      "sha256": "b9894ce411e486a72923b1e27406fb3f3940695523a46110abcab0f8aba9fa08",
+      "bodySha256": "9413b4211c76c9bb11f5603c0158d5c057b6ba47ec5660399f72d4e9a727830f",
+      "bytes": 91573,
+      "mtimeUtc": "2026-10-26T11:03:08.117019+00:00"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+      "sha256": "a0dda7894e377fe0944af36dbfbe294014ab453a5f92c7e2715340e3e7725bb3",
+      "bodySha256": "424582d7af937cc1d1df6c1b961a64ca055517310015cbe20cd700c1a01fdc21",
+      "bytes": 41891,
+      "mtimeUtc": "2026-10-26T11:03:08.148022+00:00"
+    }
+  ],
+  "results": {
+    "DcssRed": {
+      "failing": 4,
+      "failure": "computed display:block/12x12 instead of none/0x0"
+    },
+    "DcssGreen": 4,
+    "DidentityFull": 44,
+    "CcancelRed": {
+      "failing": 1,
+      "actual": {
+        "aborts": 0,
+        "releases": 1,
+        "ends": 1
+      },
+      "expected": {
+        "aborts": 1,
+        "releases": 0,
+        "ends": 0
+      }
+    },
+    "CcancelGreen": 1,
+    "CcompleteGreen": 183,
+    "CcompleteSuiteCounts": {
+      "Tests are using suiteSetup and setup correctly": 1,
+      "AgentsVoiceContribution - default window Command Palette": 1,
+      "AgentsVoiceContribution - startVoiceInChat": 31,
+      "VoiceSessionController": 143,
+      "VoiceSessionController live transcription": 7
+    },
+    "followupNoEmitTargetCount": 3,
+    "followupNoEmitDiagnostics": 0,
+    "followupEslintErrors": 0,
+    "followupEslintWarnings": 0,
+    "cssStylelintOldAndNew": {
+      "exit": 0,
+      "unknownVariableDiagnostics": 5,
+      "tokenSuggestions": 9
+    }
+  },
+  "runs": [
+    {
+      "label": "d1386-chevron-red",
+      "exit": 1,
+      "rawSha256": "47cd62cd147be1f83b1ddb503a58c1961e2ec14f30bd0e9faedc1d34a493b24e",
+      "rawArchive": "d1386-chevron-red.raw.log.gz"
+    },
+    {
+      "label": "d1386-chevron-green",
+      "exit": 0,
+      "rawSha256": "0d4301d226ebbc092931f6dbff94d79a8695cda925ffc4204a0570c44493fb59",
+      "rawArchive": "d1386-chevron-green.raw.log.gz"
+    },
+    {
+      "label": "d1386-chevron-green-full",
+      "exit": 0,
+      "rawSha256": "c08e2bdbbb6be4d870eb7c34bfa7671f7b4b3b4455ddb8362f6fb9f125b1ee91",
+      "rawArchive": "d1386-chevron-green-full.raw.log.gz"
+    },
+    {
+      "label": "d1385-cancel-red",
+      "exit": 1,
+      "rawSha256": "87e04ef930fbe4316711cfb824339cfaf991dc9cb483fcd058f64bef5b7e87de",
+      "rawArchive": "d1385-cancel-red.raw.log.gz"
+    },
+    {
+      "label": "d1385-cancel-green",
+      "exit": 0,
+      "rawSha256": "8e9fb2d36dcbf091a2df11fded2bed25026cd745150f0948dbf64073f3fc1e1f",
+      "rawArchive": "d1385-cancel-green.raw.log.gz"
+    },
+    {
+      "label": "d1385-cancel-green-full",
+      "exit": 0,
+      "rawSha256": "b48ace0174ef0aeac234a3c1de74d262a485cc6617e2e8d7a0bddd55101b5707",
+      "rawArchive": "d1385-cancel-green-full.raw.log.gz"
+    }
+  ],
+  "priorFullCompileLogs": [
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-d1386-compile-client.log",
+      "sha256": "59b0b4d43c275048e00b47c5c32300bed4fedc47f4ef32e328bdc462a65149f2",
+      "unchangedSince57": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1384-compile-client.log",
+      "sha256": "4be48bb97b23e319fb7ae7d8b22bf5b1ae2fdd15baf6be314b8c09f1fbd0f25c",
+      "unchangedSince57": true
+    },
+    {
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/policy-visual-compile-client.log",
+      "sha256": "3940450cfcca15e286aa29da6f51f930d0e44c4a464de613c1f17c66cee1d03d",
+      "unchangedSince57": true
+    }
+  ],
+  "noFollowupFullcompile": true,
+  "lastFullCompileSource": "6f82fe5b05210fd72852abc5df729a70b68b4401",
+  "lastFullCompileExit": 1,
+  "lastFullCompileDiagnostics": 45,
+  "lastFullCompileFiles": 27,
+  "D1386": {
+    "plan": "implemented",
+    "gap": "closed",
+    "independentAfter": "C0/I0/M0; loaded3JS bodies+official CSS dee625; local fixtures/command spy scope only"
+  },
+  "D1385": {
+    "plan": "accepted",
+    "gap": "open",
+    "pending": "Independent actual retained CopilotChat pane/editor toolbar and keybinding owner routing proof; not real mic/backend."
+  },
+  "statusLines": 164
+}

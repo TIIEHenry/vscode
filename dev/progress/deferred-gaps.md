@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1382/3/4closed；D1385修后5业务红/完整182绿、D1386旧11业务红/完整40+Lens8绿；七TS语义/lint0，新波45/27失败。最终独立复审与真实after待到，D1385/6仍open。"
+summary: "D1386根归属与CSS补修运行/非作者真实after通过，closed；D1385取消后修真实controller旧红/183绿、目标TS0，但实际保留CopilotChat owner入口UI待证，仍open；未二次全量。"
 
 
 
@@ -18,8 +18,8 @@ summary: "D1382/3/4closed；D1385修后5业务红/完整182绿、D1386旧11业�
 
 | ID | Priority | Gap | Why Deferred | Exit Condition | Track | Status |
 |:---|:---------|:----|:-------------|:---------------|:------|:-------|
-| D1385 | P2 | Copilot Chat首次连接录音授权未跨完整准入的原缺陷；pane/editor真实owner与手势代次边界。 | 源8619及C自槽e48/69ac精确补修已三路接入6f82。修后重新钉948旧生产5业务断言红，新action完整两套182过；七TS语义/lint0。保留初轮夹具错误/3诊断；后续发现hold-before-discard会正常finalize，Astra已准同合同f9c17先discard补修，真实owner-hide回归待本轮验证，不计Conversation真语音。 | [方案](../plans/copilot-chat-cold-voice-authorization.md) accepted；[运行证据](default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md)。补修最终独立复审及实际CopilotChat pane/editor工具栏/快捷键owner路由证明待到，验收前不关；无真实设备/网络。 | agentsVoice / Copilot Chat | open |
-| D1386 | P2 | 并列叶Session folder/branch身份与动作读取全局活动根的原Important归属缺陷。 | 源ea54727已三路合入328cb823；旧5cc三生产正文确认后11业务断言红，新11绿、完整IdentityStrip40过、Lens绑定8过，四TS语义0。非作者after I1为只读箭头hidden仍display:block/12×12；作者仅补hidden scope选择器与4主题真实CSS/DOM几何回归，尚未运行。不是D1382 ReviewNav缺陷。 | [方案](../plans/2026-10-26-leaf-session-root-identity.md) accepted；[运行证据](default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md) / [I1补修](default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md)。等待唯一merge旧CSS red/新CSS green与C原窗口加载正式新CSS复验；不静态代签，PRD029总体仍proposed。 | Conversation identity strip | open |
+| D1385 | P2 | Copilot Chat首次录音授权及冷意图取消的原缺陷；实际UI发起owner路径仍待证明。 | 原5业务红/182绿；f9c17真三路后，真实controller owner hide旧abort0/release1/ptt_end1红，新完整183绿；本次两目标TS0/lint0，Astra同合同裁定与D peer C0/I0/M0。未再次全量，不计Conversation真语音。 | [方案](../plans/copilot-chat-cold-voice-authorization.md) accepted；[取消后修](default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md)。D非作者实际保留CopilotChat pane/editor工具栏/快捷键owner路由证明待到，验收前不关；无真实设备/网络。 | agentsVoice / Copilot Chat | open |
+| D1386 | P2 | **closed** 叶级folder/aria/branch/菜单/checkout归属与晚结果代次已修；只读chevron隐藏优先CSS补修完成。 | 原11业务旧红/新完整40+Lens8绿；旧CSS四主题真实几何4红，新正式CSS完整44绿；目标TS0、lint0，stylelint新旧同5变量/9建议。C非作者真实两叶/命令URI/实际键盘/四主题/1024窄宽after C0/I0/M0，I1解除。 | [方案](../plans/2026-10-26-leaf-session-root-identity.md) implemented；[CSS运行](default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md) / [独立after](default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md)。保留fixture/无真实Git或checkout/远程授权窗口/在线引擎、仅三JS正文及该CSS范围；PRD029总体仍proposed。 | Conversation identity strip | closed |
 | D1382 | P2 | **closed** ReviewNav会话/工作区目录/SCM变化通知与必需Context/DI合同已补齐，静止活动叶和非活动并列叶同步重读根。 | 旧生产新行为3过/7败，新生产37过，五TS语义0；J静态after C0/I0，D独立默认编辑器after C0/I0，真实行/根失效/并列叶及click/Enter参数通过。 | [方案](../plans/conversation-review-root-invalidation.md) implemented；[自动证据](default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)；[独立after](default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)。无真实git diff、未折叠后再根失效、未独立720px；SCM子根/workspace gate未改，芯片另记D1386。 | Conversation ReviewNav | closed |
 | D1 | P3 | 套件 `dev/loop/overview.md` 引用的 `docs/guides/multi-agent-design-workflow.md` 缺失 | 门禁仅 warning 不阻塞 | 指南落盘且 `check-docs-health` 0 warning | docs | closed |
 | D2 | P2 | 工位池基线未编译验绿 | 编译耗时长；建槽时未跑 | merge 槽 `569ce371`：`npm run compile` 绿；[worktree-pool.md](worktree-pool.md) 已标注 | infra | closed |

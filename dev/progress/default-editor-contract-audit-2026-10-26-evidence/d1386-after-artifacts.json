@@ -1,0 +1,527 @@
+{
+  "origin": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after",
+  "reviewer": "C, independent of D1386 author D",
+  "originalReportSha256": "5e85e8131ecd209a7f71b816c70a9ada9cacaa6b111ebea94e0d72ff1e842a95",
+  "observations": {
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/observations.json",
+    "rawSha256": "219a699dea92d0c7b58148fec0f947adce33e00395ef8a76b6a1deac976675d0",
+    "rawBytes": 2245613,
+    "committedGzip": "d1386-after-observations.json.gz"
+  },
+  "copiedJson": [
+    {
+      "origin": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/loaded-final.json",
+      "committed": "d1386-after-loaded-final.json",
+      "sha256": "a990c429e53b5194e3ac0786365efe2c01e0d942d8b55a827dd78f8693d18115"
+    },
+    {
+      "origin": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/style-refresh.json",
+      "committed": "d1386-after-style-refresh.json",
+      "sha256": "4d0b3a50a46ae149fb93e198c8313d15cd72e24af1f8affbfb6e30a361af269f"
+    },
+    {
+      "origin": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/styles-after.json",
+      "committed": "d1386-after-styles-after.json",
+      "sha256": "96fb2de4c55d0b41093a49e6db09da947abb14cd0081712a0c4df25ac45e19e8"
+    },
+    {
+      "origin": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/observations-css-after.json",
+      "committed": "d1386-after-observations-css-after.json",
+      "sha256": "34b2f3327a54cccda461295722323ef1ce61f46e329ba75271e9cd28500be3e7"
+    },
+    {
+      "origin": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/observations-compact-final.json",
+      "committed": "d1386-after-observations-compact-final.json",
+      "sha256": "f6fbe1c16039ea094b34918eb61075c71ea2a7cc8054d4cba468554765441bef"
+    },
+    {
+      "origin": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/cleanup.json",
+      "committed": "d1386-after-cleanup.json",
+      "sha256": "f27bb84bd41921c376447e206e7a3d5a00195cf35a4579ce1d91e7e3c36fe7b0"
+    }
+  ],
+  "moduleChecks": [
+    {
+      "disk": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+      "diskSha256": "b9894ce411e486a72923b1e27406fb3f3940695523a46110abcab0f8aba9fa08",
+      "loadedSha256": "92dc2a4d52abc5d3e947cceb20c71c35bfe1d08b21a00152b04637c35ba92aad",
+      "bodySha256": "9413b4211c76c9bb11f5603c0158d5c057b6ba47ec5660399f72d4e9a727830f",
+      "bodyEqual": true
+    },
+    {
+      "disk": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+      "diskSha256": "a0dda7894e377fe0944af36dbfbe294014ab453a5f92c7e2715340e3e7725bb3",
+      "loadedSha256": "ac75816ed0a27747b3e7e09d6086301f23361043223bb1a9bd091b0eb16f1565",
+      "bodySha256": "424582d7af937cc1d1df6c1b961a64ca055517310015cbe20cd700c1a01fdc21",
+      "bodyEqual": true
+    },
+    {
+      "disk": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js",
+      "diskSha256": "bf004fbac0305c9cb9aaa06dd08f16dac14f2f4816aed19ced22eb0ad3dd892d",
+      "loadedSha256": "3b44d830db3b2f91e31850466e2ea71ea3754be4434d607a5ffc54879e80bb99",
+      "bodySha256": "27af36a5d723fea90c0ebff77fae27d228fcf3957f8881c1a51a34c370707e43",
+      "bodyEqual": true
+    }
+  ],
+  "loadedCss": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/identity-style-after.css",
+    "sha256": "dee625a2a7c5a5ebbc10020c236f73409b927fb5939f9a3a8f262b8dcd0b8083",
+    "bytes": 5671
+  },
+  "cleanup": {
+    "at": 1793014596.7134528,
+    "runDir": "/tmp/code-oss-dev-20261026-185841-364553-zrMY1e",
+    "electronPids": [
+      364610,
+      364633,
+      364634,
+      364663,
+      364667,
+      364724,
+      364804,
+      364824,
+      364825,
+      364856,
+      364977
+    ],
+    "xvfbPid": 364355,
+    "remainingOwned": [],
+    "xvfbStopped": true,
+    "profileRemoved": true
+  },
+  "independentPidExistenceCheckRemaining": [],
+  "screenshotsStoredInGit": false,
+  "screenshotCount": 82,
+  "screenshots": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/01-local-engine.png",
+      "sha256": "47a2d63b7e4bada78005fa36380d74b500df0f740b274f3752597dd715bb815b",
+      "bytes": 111454
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/02-initial-dom.png",
+      "sha256": "4a2e74f6bc1546cbeb4398551ac9fdd0f79bc69a4bc22bfdb9f63711cb2037be",
+      "bytes": 107062
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/03-local-engine.png",
+      "sha256": "cff8e3381e674175af8a0aa37751b8288544f6b228c08093bccaa246a309fe2a",
+      "bytes": 102997
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/04-engine-summary-ready.png",
+      "sha256": "cff8e3381e674175af8a0aa37751b8288544f6b228c08093bccaa246a309fe2a",
+      "bytes": 102997
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/05-engine-requested.png",
+      "sha256": "39e75894ca1a4a509677a4cc681d80b309490f1389ec7866c973cf44d2854fe5",
+      "bytes": 102999
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/06-engine-readonly.png",
+      "sha256": "39e75894ca1a4a509677a4cc681d80b309490f1389ec7866c973cf44d2854fe5",
+      "bytes": 102999
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/07-session-event.png",
+      "sha256": "39e75894ca1a4a509677a4cc681d80b309490f1389ec7866c973cf44d2854fe5",
+      "bytes": 102999
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/08-engine-loading.png",
+      "sha256": "39e75894ca1a4a509677a4cc681d80b309490f1389ec7866c973cf44d2854fe5",
+      "bytes": 102999
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/09-engine-readonly-head.png",
+      "sha256": "db2ce053f59a442aac662ef1d99bba5e261479a51ce0cf6512994f9ce8f7d442",
+      "bytes": 104581
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/10-global-focus-beta.png",
+      "sha256": "9b2317cef14f7a5d36b652852ee29da82344ab080107e83af1fd2424145b8931",
+      "bytes": 97839
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/11-global-focus-alpha.png",
+      "sha256": "ff91845cae8bbc718ac364fa5dfa1ec2449052df9f4d484b609bd9be075bd28b",
+      "bytes": 104579
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/12-engine-tab-skips-readonly.png",
+      "sha256": "9b2317cef14f7a5d36b652852ee29da82344ab080107e83af1fd2424145b8931",
+      "bytes": 97839
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/13-tab-to-alpha-folder.png",
+      "sha256": "cc9d92bca38c458936e59a8169ac3e475dce4242f0f2b19a801ca6d589e0a74a",
+      "bytes": 104736
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/14-enter-folder-menu.png",
+      "sha256": "11e9de38c97c3b49b2b0458ccf885debcb553d7f521dcb3ea16f003055306329",
+      "bytes": 116839
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/15-escape-folder-menu.png",
+      "sha256": "cff52b89daadd0e0f26683f08f68d3909c3ca16e2f733f57cf7c25ea66f9f33b",
+      "bytes": 104172
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/16-space-alpha-branch-menu.png",
+      "sha256": "019c0f05cd87c83a023c7ebe93cc5b9e4e58a6d96607e802965bc2e7a5d4eacb",
+      "bytes": 107172
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/17-alpha-mouse-checkout-command.png",
+      "sha256": "a74d15948da250f2b5d1484478faf4d7075519854d3cbdf3ce53e1bf0bc71f11",
+      "bytes": 106799
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/18-nonactive-gamma-update.png",
+      "sha256": "5d6156465bc2c4be220b1759e472f61df0b8ea81f469b171c335f0e54900e863",
+      "bytes": 105540
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/19-late-summary-stays-gamma.png",
+      "sha256": "60f19b8f0b7f5da714989c39e642db06c62c77bb4c4ea94bb381af34e498fc77",
+      "bytes": 107439
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/20-workspace-only-beta.png",
+      "sha256": "e29e2c5fa16d173928f1855ca6d6ab3601c2f0f11cd0b902ee2aa6979a5b1196",
+      "bytes": 105294
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/21-two-local-different-heads.png",
+      "sha256": "0698f17eadf9f4cd926f35b6b0084670a690756b4f1de19d546d667e7e7cae5d",
+      "bytes": 106281
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/22-beta-branch-current.png",
+      "sha256": "02ec3eb27933a8ee822a7a1a63773be2d38d847893db24e876f8d2a25fe5b545",
+      "bytes": 109849
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/23-beta-keyboard-checkout.png",
+      "sha256": "fca4ea4c1e4a55aa845d16a684fa8b963331d425c988edcb5b2241d270dfda4b",
+      "bytes": 106263
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/24-beta-folder-current.png",
+      "sha256": "eb5d76986d00e3d5af29c5d2c32b4e38ba95f65792a89c05555972ac5aad8e8f",
+      "bytes": 123532
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/25-global-add-folder.png",
+      "sha256": "8abd6a938bb398a475167d9a61dc0b281937f84944509ca0c658916d28922594",
+      "bytes": 106445
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/26-nonactive-head-change.png",
+      "sha256": "ddddebbb86a2d9eca7cd97417c5623fb499296289a2fa217b4a9f28e245d42c6",
+      "bytes": 107050
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/27-menu-before-root-change.png",
+      "sha256": "a693558fc5db5803ea4b543ebcca7f519378c967eec3a179e6230bdec7b6fc10",
+      "bytes": 110369
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/28-root-change-closes-stale-menu.png",
+      "sha256": "ce468e34572a00a6d25087070157fa0348966d62887f4bb656f1dec2d8ac905d",
+      "bytes": 97192
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/29-workspace-and-scm-remove.png",
+      "sha256": "9f09451e3988676d12cd8d7f353a385a5abaf628dc6398b223968c5830686e54",
+      "bytes": 96480
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/30-matching-global-offer.png",
+      "sha256": "91afa533c6bc97dd6f0e2a09984741db5d78777c9973c19d07042634d16d06f3",
+      "bytes": 101285
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/31-stale-offer-click-rejected.png",
+      "sha256": "f7bad0d38e2f7d3d04369789369bded32f1395f52515ef42990e866a8fac876c",
+      "bytes": 101473
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/32-new-offer-matches-rebound-root.png",
+      "sha256": "3627209ebad226e76cf8b26a3aa3744cc89d40a98fa3298126297b45aae14bd1",
+      "bytes": 99098
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/32b-new-offer-current.png",
+      "sha256": "a56f0e227b5a9a42207bd196952524308d0c147d6f66affaa59f86439b387ac7",
+      "bytes": 101111
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/33-matching-offer-accepted.png",
+      "sha256": "749170c1faba033baffae4025586859ef7bf0c53b8156e02649acf9eb830a456",
+      "bytes": 101302
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/34-connection-fallback-gamma.png",
+      "sha256": "fb43826a93f0fab03867fd48c44a988bf0e2c328848f397f47b29a033acbb527",
+      "bytes": 96776
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/35-connection-fallback-alpha.png",
+      "sha256": "e816d2f3164e844d577d26722236bc9c708bcdd3eb8974fb749899c81ce354dc",
+      "bytes": 104672
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/36-bind-B-to-A.png",
+      "sha256": "6feb8de00d141ee68a7574971faa560de6107bad44d271290ce5493573598241",
+      "bytes": 113810
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/37-rebind-B-late-summary-rejected.png",
+      "sha256": "1aea752b4c1b8972495ee99c42597cdd8b03493c723e588512f195067189315c",
+      "bytes": 98006
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/38-hide-B.png",
+      "sha256": "b65b345823674c691d43390b1beaed4912f760c592e948272056bd52b0bc6c45",
+      "bytes": 100735
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/39-restore-B.png",
+      "sha256": "b65b345823674c691d43390b1beaed4912f760c592e948272056bd52b0bc6c45",
+      "bytes": 100735
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/40-refs-loading.png",
+      "sha256": "341e7075ff5dbd29fcf999a629024644b8bbdcf5758bc6c9a4705bbb2e87e4e7",
+      "bytes": 104325
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/41-old-refs-after-rebind-no-menu.png",
+      "sha256": "b9939efd565d443e474df628e68882310f013a9371f67c2b9370233618c662b2",
+      "bytes": 104044
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/42-old-recents-do-not-open-menu.png",
+      "sha256": "3f8f66d070c1c7556a88191e7eb20a943442e1d0db60386ad92f415da6623861",
+      "bytes": 104231
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/43-fresh-recents-open.png",
+      "sha256": "1ba57129346295d8e5c2498d7f2b5ef5e80fbdbc64e04e1bf93b7289fd003bf4",
+      "bytes": 121141
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/44-hidden-B-after-active-A.png",
+      "sha256": "bdbf394135181a2009a92010f0b19cdf479df8753d290eeb058bd273e7a6257f",
+      "bytes": 104100
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/45-restored-B.png",
+      "sha256": "bdbf394135181a2009a92010f0b19cdf479df8753d290eeb058bd273e7a6257f",
+      "bytes": 104100
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/46-hide-secondary.png",
+      "sha256": "a19388a04124a7f0122bc85f773876bdc68b87b87d00c256eb4a0b22b550e1ca",
+      "bytes": 66441
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/47-restore-secondary.png",
+      "sha256": "3ff6dcd46ccc2e33c8a360c40db03585633cddc6549f19764802aec348b42c97",
+      "bytes": 101391
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/48-native-window-1024-narrow-leaves.png",
+      "sha256": "9104d00f38c57c2ae1057865f7c0a0d1c4037219bd97676bb292082e0a45899f",
+      "bytes": 89843
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/49-wide-singleleaf-identity.png",
+      "sha256": "462924fa401f1b7612f41629815ac7b70aaa40202cdcbf6e72d588a23a6cc202",
+      "bytes": 67035
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/50-final-two-leaves.png",
+      "sha256": "5343da182a53528236f5e4fed8128e763d0cf6b395c5623a9555435b4edc0f2e",
+      "bytes": 101493
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/51-readonly-chevron-details.png",
+      "sha256": "5343da182a53528236f5e4fed8128e763d0cf6b395c5623a9555435b4edc0f2e",
+      "bytes": 101493
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/52-beta-workspace-scm-local.png",
+      "sha256": "d8911a68fa9544d7bf2f3dbc796d7e080a368fa4ced3b1940fabffdd5d378068",
+      "bytes": 111866
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/53-beta-scm-without-workspace.png",
+      "sha256": "9089a6094ac2b473b792064ad735278b3f6d9728bab7413efa20903dc3e5c4fe",
+      "bytes": 107713
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/54-beta-without-scm-engine.png",
+      "sha256": "823c5e9df597844cd71f5c6bfe158d94f578c26e9c9a5849860fb3a9dc21e214",
+      "bytes": 106807
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/55-nonactive-connection-delta.png",
+      "sha256": "494e5777c0bb1644f907290993a90ee4b3742b12ef7928501040cb3b9374f1e0",
+      "bytes": 106837
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/56-root-without-folder-label.png",
+      "sha256": "e63f8072f811e6290293bbcfbaa876aaceeac0d654ff7bc47bccdc86233bdbed",
+      "bytes": 106473
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/57-restored-after-empty-root.png",
+      "sha256": "3e66eed257f7b68feb4634949d789400374799c6e7bb843dfcd638bfb9ef65ca",
+      "bytes": 107827
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/58-two-leaves-expanded-reading-area.png",
+      "sha256": "dc80e19283bc9ddec38b7e999e8d1c427d3791b4b04452a78721b0be828af1ec",
+      "bytes": 84799
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/59-wide-two-leaf-reading-only.png",
+      "sha256": "860d763cb517d1b0c33d0c3401fe88469ac5d4fe92e7a73561064fc312d42128",
+      "bytes": 79505
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/60-wide-folder-menu.png",
+      "sha256": "8cee93dd860b85362c9470c929065190d15b2317366d3f57d3f6ac7e434f5c90",
+      "bytes": 92327
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/61-engine-clicks-have-no-menu-or-command.png",
+      "sha256": "4e1ef7c9697cfeb0273b4ab2266738db57ab3ad5fdfd698a9a2b389e03b4b29b",
+      "bytes": 79005
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-compact1024-folder-menu.png",
+      "sha256": "1fbd722e340c2324faef4ef93724725d5cf8010bae662409d9766215c5ba571c",
+      "bytes": 87893
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-compact1024-readonly-tab-skip.png",
+      "sha256": "d085666a37e9e41187062c3d7063e703d73ab418c27191f7dc06c7b58040191a",
+      "bytes": 78237
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-dark-folder-menu.png",
+      "sha256": "1cba2c5695376ff1d65ce90c13d5a7f90800ec010578bd3c9ec65efc70b795e3",
+      "bytes": 91309
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-dark-identity-focus.png",
+      "sha256": "2ad16cba8b251afc98b3dd220b5070f97563849c8379f4076e63025673afb3d7",
+      "bytes": 78309
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-final-two-leaves.png",
+      "sha256": "25bd2709d8a1271133bb5a5d770ce7b375e7c699f378840e31bca115cc4756ab",
+      "bytes": 90175
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-hc-black-folder-menu.png",
+      "sha256": "65ef13f45463c0ce893899026da3add9203f258120999e532792f8e1ae0a08fe",
+      "bytes": 91076
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-hc-black-identity-focus.png",
+      "sha256": "c93ed2faaeca9a3c6ebf7739857b2aecee3167b6c28d55578918c9a4488bd9e1",
+      "bytes": 79110
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-hc-light-folder-menu.png",
+      "sha256": "fa053a553ecfa2b23d6d482cd21ec4af5367a3421944549688eb1fccef25b1a8",
+      "bytes": 93270
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-hc-light-identity-focus.png",
+      "sha256": "414ee77055085c0a74b11e1c9464d386f749574fa43ea0c4c00d8b4e557ec857",
+      "bytes": 79824
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-light-folder-menu.png",
+      "sha256": "47957fcb52e4f804232e76b53db5df6029e4ff437984719d32359fc95bf2a648",
+      "bytes": 92374
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-light-identity-focus.png",
+      "sha256": "66aa9793895036a9b71d6aaea4ea25afaf0c3015739db2a25e97646d7ff61995",
+      "bytes": 79408
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/fixed-native1024-readonly-tab-skip.png",
+      "sha256": "29a2fb4e09373dec34d2e0b55525d4a77c61767386ecf190e469566a0b46e69e",
+      "bytes": 73885
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/theme-dark-folder-menu.png",
+      "sha256": "c1b84c95ce2c2725690d30432ef05080f12bfa60e1a523f8581bee1f4a7e8a69",
+      "bytes": 118270
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/theme-dark-identity-focus.png",
+      "sha256": "b49e773532ed7f7f6a1da86747667e63a158ec3ce56e013f1faa67b55cc0e780",
+      "bytes": 102356
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/theme-hc-black-folder-menu.png",
+      "sha256": "fbd2e5a2f655db34a8795ade2b2b8a6e58932b4d7bbe695939a9a4507f93f1a4",
+      "bytes": 118505
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/theme-hc-black-identity-focus.png",
+      "sha256": "9405ab8cf66c4d2426a8ec7da32221aff92880e4c9e642f781fc32c08e767453",
+      "bytes": 103640
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/theme-hc-light-folder-menu.png",
+      "sha256": "dbc2c86f8eafa02801d670d7a8f1f00ab982775584936c71f35238d31bbbec96",
+      "bytes": 120760
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/theme-hc-light-identity-focus.png",
+      "sha256": "39eb1a828d534fb384ed48cdefca8f5e116e0115d64a411f656e45d1bca27b65",
+      "bytes": 104089
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/theme-light-folder-menu.png",
+      "sha256": "18fc756ef99aee291a99213de73456b172bd27bac9ca68a49e166285f3948106",
+      "bytes": 119960
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/shots/theme-light-identity-focus.png",
+      "sha256": "eafb916d668d3f6cc9bbe7371a26b43663f5feccc28d7fa04210b4e8f4031894",
+      "bytes": 104631
+    }
+  ],
+  "originalLoadedScriptFiles": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/conversationIdentityStrip.js.loaded.txt",
+      "sha256": "3b44d830db3b2f91e31850466e2ea71ea3754be4434d607a5ffc54879e80bb99",
+      "bodySha256": "27af36a5d723fea90c0ebff77fae27d228fcf3957f8881c1a51a34c370707e43",
+      "bytes": 52415
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/conversationLens.js.loaded.txt",
+      "sha256": "92dc2a4d52abc5d3e947cceb20c71c35bfe1d08b21a00152b04637c35ba92aad",
+      "bodySha256": "9413b4211c76c9bb11f5603c0158d5c057b6ba47ec5660399f72d4e9a727830f",
+      "bytes": 45845
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/conversationLensReadingColumn.js.loaded.txt",
+      "sha256": "ac75816ed0a27747b3e7e09d6086301f23361043223bb1a9bd091b0eb16f1565",
+      "bodySha256": "424582d7af937cc1d1df6c1b961a64ca055517310015cbe20cd700c1a01fdc21",
+      "bytes": 18171
+    }
+  ]
+}

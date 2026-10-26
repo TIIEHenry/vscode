@@ -1,0 +1,16 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[448660:1026/193431.334958:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:448676) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:448676) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:448676) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ConversationIdentityStrip[0m
+  [32m  ✔[0m[90m D1386 production CSS hides readonly folder and branch chevrons with zero bounds in vs[0m[31m (83ms)[0m
+  [32m  ✔[0m[90m D1386 production CSS hides readonly folder and branch chevrons with zero bounds in vs-dark[0m
+  [32m  ✔[0m[90m D1386 production CSS hides readonly folder and branch chevrons with zero bounds in hc-black[0m
+  [32m  ✔[0m[90m D1386 production CSS hides readonly folder and branch chevrons with zero bounds in hc-light[0m
+
+
+[92m [0m[32m 4 passing[0m[90m (460ms)[0m

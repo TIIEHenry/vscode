@@ -1,0 +1,23 @@
+{
+  "sourceHead": "f75bf2189418dc32007f67afed54cf02ec02eed3",
+  "typescriptVersion": "6.0.3",
+  "scope": "Only three changed follow-up TS in unmodified src/tsconfig project context; per-file semantic+syntactic; noEmit. No new fullcompile; prior source6f82 45/27 remains its historical result.",
+  "files": [
+    {
+      "path": "src/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.ts",
+      "sha256": "a01616784b90eb513450e78b7ada2a958661cdce67b9440a6f5de487406bba68",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.ts",
+      "sha256": "2921ccb36bc046053e99b704f43eb328caa6b2faa36b8cc83c1b773718357014",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.ts",
+      "sha256": "599a9f56c412af4ec109dd9f5cd6d0c5c7335bc2fd284e70cab1d42071ed16cb",
+      "diagnostics": []
+    }
+  ],
+  "totalDiagnostics": 0
+}

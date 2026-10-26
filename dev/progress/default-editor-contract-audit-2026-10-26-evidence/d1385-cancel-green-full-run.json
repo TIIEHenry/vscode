@@ -1,0 +1,34 @@
+{
+  "sourceHead": "f75bf2189418dc32007f67afed54cf02ec02eed3",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "20s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.ts"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "started": "2026-10-26T11:37:29.984193+00:00",
+  "ended": "2026-10-26T11:37:31.662008+00:00",
+  "exit": 0,
+  "rawLogSha256": "b48ace0174ef0aeac234a3c1de74d262a485cc6617e2e8d7a0bddd55101b5707",
+  "displayLogSha256": "d098a91e0de8d19a1e78682b96af8b8aeaa8d9a555ac1ec874fe9d30f6567616",
+  "rawArchive": "d1385-cancel-green-full.raw.log.gz",
+  "displayNormalization": "Only line-ending whitespace and extra blank EOF lines; raw bytes gzip-preserved if different.",
+  "scope": "Official Electron + isolated Xvfb; prelaunch skipped; no compile."
+}

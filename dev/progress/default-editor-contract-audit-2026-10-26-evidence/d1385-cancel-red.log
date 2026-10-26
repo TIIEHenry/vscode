@@ -1,0 +1,52 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[451886:1026/193643.853361:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:451903) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:451903) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:451903) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  VoiceSessionController[0m
+  [31m  1) cold public command discards an admitted owner hide without finalizing and allows a new press[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (21ms)[0m
+[31m  1 failing[0m
+
+[0m  1) VoiceSessionController
+       cold public command discards an admitted owner hide without finalizing and allows a new press:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "aborts": 0[0m
+      [32m+  "aborts": 1[0m
+         "capturing": false
+      [31m-  "ends": 1[0m
+      [31m-  "releases": 1[0m
+      [32m+  "ends": 0[0m
+      [32m+  "releases": 0[0m
+         "starts": 1
+         "state": "idle"
+         "turns": 1
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    {
+  +   aborts: 0,
+  -   aborts: 1,
+      capturing: false,
+  +   ends: 1,
+  +   releases: 1,
+  -   ends: 0,
+  -   releases: 0,
+      starts: 1,
+      state: 'idle',
+      turns: 1
+    }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js:4835:14)
+[0m

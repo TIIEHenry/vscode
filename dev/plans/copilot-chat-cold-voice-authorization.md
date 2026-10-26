@@ -103,3 +103,10 @@ summary: "D1385：默认编辑器保留的 Copilot Chat 首按授权绑定 compo
 后续取消顺序：`69ac16e` 仍先 hold 后 discard，真实 setter 会正常释放而非 abort。Astra 同合同只读裁定允许最小顺序修 bug，不新增 API/锁/连接设计。已写一条真实公共 command→真实 controller→有状态 fake mic/client：cold hold 准入后 owner hide 两次，期待 capturing=false、abort=1、mic pttUp=0、ptt_end=0、idle；旧 hold 在 B 新明确录音后才 resolve，不能改变 B target/capture，B 正常按住 350ms 后仍 finalize 一次。真实 controller 场景由 3 增为 4，31 条 action 保留。唯一 merge 固定 `69ac` 的旧顺序生产、只 fresh 测试，应在 abort/release/end 值红（不能以超时/类型错代替）；只 fresh 新 action 后重跑新场景与两完整套。C 未运行该回归；本段不冒充 red/green。
 
 该补修的实际两 TS 与方案补充已由 D 原生同伴独立只读复审，Critical 0 / Important 0 / Minor 0；核对真实 setter/discard/finish/mic 同步路径与 current 所有权重验。作者核验后提交。两 TS ESLint 0/0、diff / generated status / docs health 门禁通过（46 既有链接 warnings）；运行仍交唯一 merge，不以静态复审代替 red/green。
+
+
+## 9. 取消顺序补修实际运行（真实UI来源待证）
+
+f9c17真三路到f75bf218。当前旧action正文与69ac精确同配置转译一致，69ac源=57；只fresh新真实controller测试，owner hide场景21ms在abort0/release1/ptt_end1对期望1/0/0的业务值红，无cleanup/load/timeout。仅fresh新action后新项1绿、完整Contrib+Controller183过；旧A hold晚返回不结束B，B正常350ms松键仍finalize。两TS原project noEmit0/lint0（与D测试合计3），[后修证据](../progress/default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md)。
+
+本次不再fullcompile，source6f82原45/27失败绑定旧检查点，不替f75估算新全量；原失败/原182等证据全保留。D独立实际保留CopilotChat pane/editor工具栏/快捷键owner路由证明仍待到，公共命令fake widget与真实controller fake I/O不单独签整条UI；D1385仍open、本稿accepted，不计Conversation真语音。

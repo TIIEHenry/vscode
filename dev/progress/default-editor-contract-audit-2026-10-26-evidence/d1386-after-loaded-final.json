@@ -1,0 +1,52 @@
+{
+  "at": "2026-10-26T11:36:28.897Z",
+  "sourceHeadAtFinal": "f75bf2189418dc32007f67afed54cf02ec02eed3",
+  "loaded": [
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+      "bytes": 45845,
+      "sha256": "92dc2a4d52abc5d3e947cceb20c71c35bfe1d08b21a00152b04637c35ba92aad",
+      "bodySha256": "9413b4211c76c9bb11f5603c0158d5c057b6ba47ec5660399f72d4e9a727830f"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+      "bytes": 18171,
+      "sha256": "ac75816ed0a27747b3e7e09d6086301f23361043223bb1a9bd091b0eb16f1565",
+      "bodySha256": "424582d7af937cc1d1df6c1b961a64ca055517310015cbe20cd700c1a01fdc21"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js",
+      "bytes": 52415,
+      "sha256": "3b44d830db3b2f91e31850466e2ea71ea3754be4434d607a5ffc54879e80bb99",
+      "bodySha256": "27af36a5d723fea90c0ebff77fae27d228fcf3957f8881c1a51a34c370707e43"
+    }
+  ],
+  "window": {
+    "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html",
+    "agents": false,
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "phase": {
+      "kind": "disconnected"
+    },
+    "transport": "idle",
+    "calls": [
+      {
+        "command": "git.checkout",
+        "args": [
+          "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/beta",
+          "target-beta"
+        ]
+      },
+      {
+        "command": "git.checkout",
+        "args": [
+          "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+          "target-alpha"
+        ]
+      }
+    ]
+  }
+}

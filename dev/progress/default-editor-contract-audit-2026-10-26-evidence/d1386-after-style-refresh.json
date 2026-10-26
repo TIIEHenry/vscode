@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-26T11:34:48.272Z",
+  "diskCss": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css",
+  "sha256": "dee625a2a7c5a5ebbc10020c236f73409b927fb5939f9a3a8f262b8dcd0b8083",
+  "oldHref": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css",
+  "newHref": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css?d1386-after=dee625a2a7c5a5eb",
+  "checks": [
+    {
+      "hidden": true,
+      "display": "none",
+      "width": 0,
+      "height": 0,
+      "parent": "gamma",
+      "aria": "Session folder: gamma"
+    },
+    {
+      "hidden": true,
+      "display": "none",
+      "width": 0,
+      "height": 0,
+      "parent": "gamma-final",
+      "aria": "Git branch: gamma-final"
+    }
+  ]
+}

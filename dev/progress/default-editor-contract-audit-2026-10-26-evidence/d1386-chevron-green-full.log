@@ -1,0 +1,58 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[449207:1026/193448.672687:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:449231) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:449231) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:449231) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ConversationIdentityStrip[0m
+  [32m  ✔[0m[90m identity strip mounts in reading column before timeline scroll when Active[0m[33m (69ms)[0m
+  [32m  ✔[0m[90m PreFirst: identity strip mounts in prefirst hero above composer, not at column top[0m
+  [32m  ✔[0m[90m identity strip is absent from SessionBar and dock[0m
+  [32m  ✔[0m[90m engine chip shows disconnected copy and opens Connection preferences[0m
+  [32m  ✔[0m[90m engine chip stays the hit target when session bar / split-view chrome overlaps it[0m
+  [32m  ✔[0m[90m engine chip opens Connection when roster is connected but phase is not[0m
+  [32m  ✔[0m[90m engine chip shows connected copy and opens Engine preferences[0m
+  [32m  ✔[0m[90m engine chip opens Connection while pairingPending even if phase is connected[0m
+  [32m  ✔[0m[90m engine chip updates when connection phase changes[0m
+  [32m  ✔[0m[90m folder chip is hidden for empty workspace[0m
+  [32m  ✔[0m[90m branch chip is hidden when SCM has no HEAD[0m
+  [32m  ✔[0m[90m branch chip shows SCM HEAD when available[0m
+  [32m  ✔[0m[90m branch stays hidden when folders[0] has no HEAD and another repo does[0m
+  [32m  ✔[0m[90m branch chip uses the folders[0] repository HEAD[0m
+  [32m  ✔[0m[90m identity strip copy does not mention Copilot or Open Chat[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when engine chip executeCommand rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m folder chip lists workspace folders and adds a recent folder instead of reopening the window[0m
+  [32m  ✔[0m[90m folder chip click toggles the open menu and cancels a menu that is still loading[0m
+  [32m  ✔[0m[90m folder menu still opens when recent folders fail to load[0m
+  [32m  ✔[0m[90m branch chip opens a searchable local-branch menu and checks out through git.checkout[0m
+  [32m  ✔[0m[90m branch menu keeps the current branch when history refs fail[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Add Folder to Workspace rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when branch checkout rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when adding a folder rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when opening a folder from another remote rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m identity strip menu commands double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m engine folder offers Add and trust and the click accepts the offer[0m
+  [32m  ✔[0m[90m folder and branch follow the active session work root and engine root has no branch menu[0m
+  [32m  ✔[0m[90m D1386 bound local and engine leaves keep their own folder aria and branch when global focus changes[0m
+  [32m  ✔[0m[90m D1386 each local leaf checks its own workspace folder and checks out its own repository[0m
+  [32m  ✔[0m[90m D1386 engine resolve from before A to B to A binding cannot repaint the new branch[0m
+  [32m  ✔[0m[90m D1386 engine reject from before A to B to A binding cannot repaint the new branch[0m
+  [32m  ✔[0m[90m D1386 same-session root change closes branch menu and invalidates old checkout delegate[0m
+  [32m  ✔[0m[90m D1386 late refs from an old binding do not open a menu on the rebound local leaf[0m
+  [32m  ✔[0m[90m D1386 cancelled recents cannot overtake the next request on the same root[0m
+  [32m  ✔[0m[90m D1386 old Add button cannot accept a replaced global offer even before a repaint[0m
+  [32m  ✔[0m[90m D1386 bound leaf does not borrow a window root when its root API is absent[0m
+  [32m  ✔[0m[90m D1386 workspace SCM and connection changes refresh a nonactive leaf without borrowing active root[0m
+  [32m  ✔[0m[90m D1386 disposed leaf closes its menu and ignores later engine and recents responses[0m[33m (45ms)[0m
+  [32m  ✔[0m[90m D1386 production CSS hides readonly folder and branch chevrons with zero bounds in vs[0m
+  [32m  ✔[0m[90m D1386 production CSS hides readonly folder and branch chevrons with zero bounds in vs-dark[0m
+  [32m  ✔[0m[90m D1386 production CSS hides readonly folder and branch chevrons with zero bounds in hc-black[0m
+  [32m  ✔[0m[90m D1386 production CSS hides readonly folder and branch chevrons with zero bounds in hc-light[0m
+
+
+[92m [0m[32m 44 passing[0m[90m (4s)[0m

@@ -1,0 +1,13 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[453806:1026/193724.536274:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:453830) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:453830) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:453830) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  VoiceSessionController[0m
+  [32m  ✔[0m[90m cold public command discards an admitted owner hide without finalizing and allows a new press[0m
+
+
+[92m [0m[32m 1 passing[0m[90m (21ms)[0m

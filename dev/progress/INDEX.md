@@ -14,8 +14,8 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
 | [D1386 只读箭头补修检查点](default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md) | 非作者after I1的既有合同CSS补修；四主题computed/bounds回归已写，等待旧CSS red/新CSS green与正式新CSS同窗after |
-| [D1386 叶级身份条源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1386-source-checkpoint.md) / [运行](default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md) | 11条业务断言旧红/新绿、完整IdentityStrip40过、Lens绑定8过；四TS语义0，独立默认编辑器after待到，accepted/open |
-| [D1385 首次录音授权运行](default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md) | 修后测试旧生产5个业务断言红，新action完整两套182过；保留初轮夹具错误/源API诊断及C自槽补修。新波fullcompile45/27失败，与旧46/28分列 |
+| [D1386 叶级身份条](default-editor-contract-audit-2026-10-26-evidence/d1386-source-checkpoint.md) / [原运行](default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md) / [CSS后修](default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md) / [独立after](default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md) | 原11红/40+Lens8绿，CSS4红/完整44绿，非作者真实after C0/I0/M0；范围内implemented/closed，限制保留 |
+| [D1385 原运行](default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md) / [取消顺序后修](default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md) | 原5红/182绿；真实controller取消abort/release/end旧红、新完整183绿，目标TS0。实际保留CopilotChat工具栏/快捷键owner路由UI待证，accepted/open |
 | [D1383 Tunnel 验证](default-editor-contract-audit-2026-10-26-evidence/verification.md) | 旧生产 red、新生产 19 passing、两 TS 定向语义 0。该证据写入时全量未跑 |
 | [D1382 ReviewNav 自动回归](default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md) | 旧生产3过/7败、新生产37过；后续[独立默认编辑器after](default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)已到，按ReviewNav通知合同implemented/closed，限制保留 |
 | [D1384 远端配置验证](default-editor-contract-audit-2026-10-26-evidence/d1384-verification.md) | 旧生产 16 项断言失败、4 项旧通过、1 项超时不计；新生产 21 过、远端 17 过。全量 46/28 |

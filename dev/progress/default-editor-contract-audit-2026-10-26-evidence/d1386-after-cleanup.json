@@ -1,0 +1,21 @@
+{
+  "at": 1793014596.7134528,
+  "runDir": "/tmp/code-oss-dev-20261026-185841-364553-zrMY1e",
+  "electronPids": [
+    364610,
+    364633,
+    364634,
+    364663,
+    364667,
+    364724,
+    364804,
+    364824,
+    364825,
+    364856,
+    364977
+  ],
+  "xvfbPid": 364355,
+  "remainingOwned": [],
+  "xvfbStopped": true,
+  "profileRemoved": true
+}

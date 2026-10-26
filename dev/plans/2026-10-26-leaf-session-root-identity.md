@@ -1,10 +1,10 @@
 ---
 title: "Conversation 叶级会话工作根身份条"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "D1386：绑定叶统一 folder/aria/branch/menu/checkout 的工作根与失效代次；全局添加目录和 mount offer 合同保持。方案与实施静态peer C0/I0；merge旧生产11断言红、新11绿/完整40过/Lens8过，四TS语义0；等待独立默认编辑器after。"
+summary: "D1386已范围闭合：旧11业务红/新身份40+Lens8绿；I1旧正式CSS4几何红/新完整44绿，非作者真实默认编辑器after C0/I0/M0，保留夹具/无真实checkout等边界。"
 ---
 
 # Conversation 叶级会话工作根身份条
@@ -74,3 +74,12 @@ C 非作者真实默认编辑器 after 在 `gamma` / `fresh-gamma` 两个 engine
 旧生产CSS SHA256 `5c595ca1447e1e6fe5b5ea3b28395c2d8b2baee1d5e5391b55a93987ce521839` 与57cdb48源CSS逐字一致。codicon作者display覆盖UA `[hidden]`，身份条已有hidden优先组却漏了 `.conversation-identity-chip-open[hidden]`。本次只补该scope选择器，落实§2.4已签“引擎branch无chevron”，不改布局/颜色/权限，无新设计。
 
 新增四主题类的真实生产CSS/DOM回归：加载身份条CSS、codicon.css与生产glyph规则，真实Lens local→engine→local，在240/720宽检查只读folder/branch箭头display:none、零尺寸框，同时本地箭头可见且tabIndex保持0。D仅静态lint/diff/docs；旧CSS red、新CSS green与完整套由唯一merge完成，C再在原窗口加载正式新CSS复验。静态stylelint在新旧CSS均报同五条既有变量诊断/九条token建议，虽exit0也不称无诊断。见[补修检查点](../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md)。本稿accepted、D1386open，I1尚未凭运行解除。
+
+
+## 9. 正式补修运行与独立 after 闭合
+
+D补修b774真三路到1247bec，旧正式CSS5c595…身份成立，仅fresh测试后四主题computed display:block/12×12全AssertionError红；仅复制正式CSS dee625…后4绿、完整IdentityStrip44过。三生产JS整文件与mtime均不动；本刀单test与C两TS合计3TS原project noEmit0、lint0。新旧CSS stylelint均exit0、同5变量诊断/9token建议，未掩盖。详见[后修运行](../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md)。
+
+C非作者最终[默认编辑器after](../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md)已完成：两叶归属、当前项和checkout command URI、非活动/绑定/异步/stale offer、真实Tab/Enter/Space/Esc、四主题和1024紧凑两叶；I1通过原窗口真实生产href reload正式CSS解除，最终C0/I0/M0。Debugger三JS实际loaded正文等当前D产物，CSS.getStyleSheetText精确dee625；清理与82本地截图/hash及原observations保留。父核验授权D1386 closed、本稿implemented。上文accepted/open/待运行/after记录保留为阶段历史。
+
+保留内存SCM/本地fixture/真实UI command spy边界，无真实Git/diff/checkout、远程授权新窗口或在线引擎。仅本三模块正文及该CSS范围一致，不宣称全out同构建；C新voice action不混为此D窗口已加载。PRD-029总体仍proposed、S5不签收，全局addFolders/mount offer/信任合同保持。本后修未全量，原source6f82实际45/27失败不改也不替新源估算计数。

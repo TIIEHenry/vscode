@@ -1,0 +1,55 @@
+{
+  "sourceHead": "1247bec91a29d2202d1a13b40de861f4ea83b461",
+  "scope": "Only official source CSS copied; three production JS and fresh test unchanged.",
+  "source": {
+    "path": "src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css",
+    "sha256": "dee625a2a7c5a5ebbc10020c236f73409b927fb5939f9a3a8f262b8dcd0b8083",
+    "bodySha256": "13192289cb078c7490e7d9521b5065c7f61ec24e2b22ed438fd8e12e0ba7cfa6",
+    "bytes": 5671,
+    "mtime": "2026-10-26T11:33:14.890Z"
+  },
+  "before": {
+    "path": "out/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css",
+    "sha256": "5c595ca1447e1e6fe5b5ea3b28395c2d8b2baee1d5e5391b55a93987ce521839",
+    "bodySha256": "c807356a8cf4cdc59603b5e0ee2f88e0ed6f81df0f9cd31a9b3c29523a71814b",
+    "bytes": 5624,
+    "mtime": "2026-10-25T04:13:32.136Z"
+  },
+  "after": {
+    "path": "out/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css",
+    "sha256": "dee625a2a7c5a5ebbc10020c236f73409b927fb5939f9a3a8f262b8dcd0b8083",
+    "bodySha256": "13192289cb078c7490e7d9521b5065c7f61ec24e2b22ed438fd8e12e0ba7cfa6",
+    "bytes": 5671,
+    "mtime": "2026-10-26T11:34:30.988Z"
+  },
+  "threeProductionJsUnchanged": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js",
+      "sha256": "bf004fbac0305c9cb9aaa06dd08f16dac14f2f4816aed19ced22eb0ad3dd892d",
+      "bodySha256": "27af36a5d723fea90c0ebff77fae27d228fcf3957f8881c1a51a34c370707e43",
+      "bytes": 97907,
+      "mtime": "2026-10-26T11:03:08.099Z"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+      "sha256": "b9894ce411e486a72923b1e27406fb3f3940695523a46110abcab0f8aba9fa08",
+      "bodySha256": "9413b4211c76c9bb11f5603c0158d5c057b6ba47ec5660399f72d4e9a727830f",
+      "bytes": 91573,
+      "mtime": "2026-10-26T11:03:08.117Z"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+      "sha256": "a0dda7894e377fe0944af36dbfbe294014ab453a5f92c7e2715340e3e7725bb3",
+      "bodySha256": "424582d7af937cc1d1df6c1b961a64ca055517310015cbe20cd700c1a01fdc21",
+      "bytes": 41891,
+      "mtime": "2026-10-26T11:03:08.148Z"
+    }
+  ],
+  "testUnchanged": {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js",
+    "sha256": "9b6366eaf149c4956b0c025485712c3d9713a8e208d29d5665142218cf7d3834",
+    "bodySha256": "b09edb7dcae1728866f8053bde496948f0f3daf180b07b55be62e67c431f410b",
+    "bytes": 126172,
+    "mtime": "2026-10-26T11:34:03.085Z"
+  }
+}

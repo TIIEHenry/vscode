@@ -1,0 +1,32 @@
+{
+  "sourceHead": "1247bec91a29d2202d1a13b40de861f4ea83b461",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "20s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.ts"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "started": "2026-10-26T11:34:48.395878+00:00",
+  "ended": "2026-10-26T11:34:53.874010+00:00",
+  "exit": 0,
+  "rawLogSha256": "c08e2bdbbb6be4d870eb7c34bfa7671f7b4b3b4455ddb8362f6fb9f125b1ee91",
+  "displayLogSha256": "f3f291525efdc89048e206abf69e303fbbd8b45ae9ee8169b0737461ed2b397e",
+  "rawArchive": "d1386-chevron-green-full.raw.log.gz",
+  "displayNormalization": "Only line-ending whitespace and extra blank EOF lines; raw bytes gzip-preserved if different.",
+  "scope": "Official Electron + isolated Xvfb; prelaunch skipped; no compile."
+}

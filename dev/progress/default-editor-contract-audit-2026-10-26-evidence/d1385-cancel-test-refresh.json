@@ -1,0 +1,45 @@
+{
+  "sourceHead": "f75bf2189418dc32007f67afed54cf02ec02eed3",
+  "oldSource": "69ac16e02777e45980e2c55a8389fe928d5c474d",
+  "oldSourceEqual57": true,
+  "oldTranspileBodySha256": "c039623ccb2bbffc5ae57584ea1084ab8cf811868d98b0df3bf9c3e8aed3f6ae",
+  "diskActionBodyEqualsOld": true,
+  "scope": "Only new real-controller test fresh. Old69ac action bytes kept; controller production unchanged.",
+  "before": {
+    "action": {
+      "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js",
+      "sha256": "26cd7c36dad55beab1f3c642bd3dd1347b6de428227996d6115db1f3742de992",
+      "bodySha256": "c039623ccb2bbffc5ae57584ea1084ab8cf811868d98b0df3bf9c3e8aed3f6ae",
+      "bytes": 55734,
+      "mtime": "2026-10-26T11:04:56.994Z"
+    },
+    "controllerTest": {
+      "path": "out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js",
+      "sha256": "d640eef33e239e15703a58e24108fba1cb4b91b0b118c7ad26c11c85a53369f5",
+      "bodySha256": "3e4029b0a41c9ed5c8208390269f13f6e06b4e08c7e1f3450bac7d88fc36c3b8",
+      "bytes": 806956,
+      "mtime": "2026-10-26T11:03:08.911Z"
+    },
+    "controllerProduction": {
+      "path": "out/vs/workbench/contrib/chat/browser/voiceClient/voiceSessionController.js",
+      "sha256": "691dfab95e8346717b3a06eb810c2a5640f02e0a388f493a04138c3766902645",
+      "bodySha256": "ded89f731db071ef78735b8cfac88f666f6b0469fb84f61b71f108adfd942e3c",
+      "bytes": 929754,
+      "mtime": "2026-10-26T11:03:08.713Z"
+    }
+  },
+  "source": {
+    "path": "src/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.ts",
+    "sha256": "2921ccb36bc046053e99b704f43eb328caa6b2faa36b8cc83c1b773718357014",
+    "bodySha256": "fd69cbd3bd50905bbc64e27ec969f024e50f790973f0f81277e87dbe5ec60a14",
+    "bytes": 267637,
+    "mtime": "2026-10-26T11:35:05.390Z"
+  },
+  "testAfter": {
+    "path": "out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js",
+    "sha256": "73c412eaab24e644f9dbfeb82eac156708329c44c675f79145a04c21c674d731",
+    "bodySha256": "2da5639e759870da9bda1e3c7d9b1f209070d80feed687902feb7e122b20304d",
+    "bytes": 433580,
+    "mtime": "2026-10-26T11:36:43.505Z"
+  }
+}

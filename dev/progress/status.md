@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1385修后业务5红/完整182绿，D1386业务11红/完整40+Lens8绿；七TS语义/lint0。新波唯一fullcompile实际45/27失败，旧46/28保留；D1385最终复审/D1386真实after待到。"
+summary: "D1386 CSS真实4红/完整44绿，非作者真实after C0/I0/M0并闭合；D1385取消真实controller旧红/完整183绿、本3TS0/lint0，实际保留CopilotChat owner入口UI仍待证/open；后修未全量。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **同波后修与D1386闭合（2026-10-26）**：D b774→1247bec，旧正式CSS5c595…只fresh测试四主题computed block/12×12全红；仅正式CSS dee625…复制后4绿/完整IdentityStrip44过，三生产JS字节/mtime不动。C非作者原窗口真实href/CSS.getStyleSheetText精确dee625，叶身份/菜单URI/异步/实际键盘/四主题/1024窄叶after C0/I0/M0、I1解除，原报告/原observations gzip/82本地图片清单已入库；D1386closed、planimplemented、PRD029不升。C f9→f75bf218，精确69ac旧action+新真实controller测试在abort0/release1/ptt_end1业务红；仅newactionfresh后新项1绿/完整183过。本次3TS原project noEmit0、lint0；新旧CSS stylelint同5变量/9建议。未二次fullcompile，source6f82原45/27失败与更早日志不改。D1385实际保留CopilotChat toolbar/快捷键owner路由UI仍待D非作者证明，accepted/open。[D后修/闭合](default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md) / [C取消后修](default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md)。
 - **D1385 取消顺序源码补修（2026-10-26，C）**：31 条公共场景保留，真实 controller 增为 4 条；同合同补修已写 startedPtt 先 discard 后 hold、owner hide 的 fake mic abort/零 release/零 ptt_end、旧 A 松键不影响 B 与 B 正常释放。该补修待 merge 旧69ac顺序 red / 新 green。本工位未编译/typecheck/transpile/out/单测；方案 accepted、缺口 open，不计 Conversation 真语音。见[方案](../plans/copilot-chat-cold-voice-authorization.md)。
 - **D1386 独立after I1补修（2026-10-26）**：非作者C实测engine只读folder/branch箭头hidden=true却display:block/12×12；D从clean ea54727只ff57后定位production codicon display覆盖UA hidden，原隐藏组漏chip-open。仅补scope选择器，新增4主题真实CSS/glyph+Lens DOM回归，240/720的engine none/零框与local可见；未运行，等待唯一merge旧CSS red/新CSS green及C原窗口正式CSS复验。test lint0/0、diff0；stylelint新旧同5变量诊断/9token建议，不称无诊断。保持accepted/open；[检查点](default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md)。
 - **D1385/D1386 新波统一运行（2026-10-26）**：D源ea54727→328cb823，旧5cc三JS正文核对后11条业务断言红，新三生产11绿/完整IdentityStrip40过/Lens绑定8过；C源8619bc→d941c945，初轮151过31败因新清理断言误用hasListeners，另3类型诊断，已精确退C自槽e48/69ac补修→6f82。修后重新钉948旧action，5业务断言红，无cleanup/load/timeout；新action完整两套182过。最终7TS原project noEmit0、ESLint0/0。source6f82本波唯一compile-client实际exit1、45诊断/27文件，七目标无诊断，较旧3e63的46/28仅Event错消失；不是推算/全绿，旧日志全保留。编译后六输出正文等green，仅action静态字段emit差异最小fresh回green。D1385补修独立复审/实际CopilotChat toolbar与快捷键owner路由证明待到；D1386非作者真实after未签收，审查中反馈只读chevron被CSS显示、补修待接。两plan仍accepted/缺口open。[语音证据](default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md) / [叶身份证据](default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md)。

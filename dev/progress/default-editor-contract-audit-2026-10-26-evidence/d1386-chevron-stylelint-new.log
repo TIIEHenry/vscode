@@ -1,0 +1,22 @@
+Stylelint: checking 1 CSS file matched by 1 requested path.
+
+src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css (9 design-token suggestions)
+  src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(37,1): [spacing] 3px 10px is off the spacing scale -> nearest: 4px 10px (var(--vscode-spacing-size40) var(--vscode-spacing-size100))
+  src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(38,1): [radius] 999px -> var(--vscode-cornerRadius-circle) (off-scale, 9999px)
+  src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(42,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(43,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(72,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(131,1): [spacing] 3px 10px is off the spacing scale -> nearest: 4px 10px (var(--vscode-spacing-size40) var(--vscode-spacing-size100))
+  src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(132,1): [radius] 999px -> var(--vscode-cornerRadius-circle) (off-scale, 9999px)
+  src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(136,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(137,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+All valid variable names are in `build/lib/stylelint/vscode-known-variables.json`
+To update that file, run `./scripts/test-documentation.sh|bat.`
+
+Design-token suggestions: 9 in 1 file (codicon 0, font-size 3, weight 2, radius 2, spacing 2, stroke 0, deprecated 0)
+Stylelint: checked 1 CSS file in 20ms.
+src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(21,1): Unknown variable: --vscode-conversation-background
+src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(48,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(48,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(95,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css(95,1): Unknown variable: --ua-ease

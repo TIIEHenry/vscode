@@ -1,0 +1,138 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[448031:1026/193403.389329:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:448044) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:448044) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:448044) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ConversationIdentityStrip[0m
+  [31m  1) D1386 production CSS hides readonly folder and branch chevrons with zero bounds in vs[0m
+  [31m  2) D1386 production CSS hides readonly folder and branch chevrons with zero bounds in vs-dark[0m
+  [31m  3) D1386 production CSS hides readonly folder and branch chevrons with zero bounds in hc-black[0m
+  [31m  4) D1386 production CSS hides readonly folder and branch chevrons with zero bounds in hc-light[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (424ms)[0m
+[31m  4 failing[0m
+
+[0m  1) ConversationIdentityStrip
+       D1386 production CSS hides readonly folder and branch chevrons with zero bounds in vs:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "display": "block"[0m
+      [31m-  "height": 12[0m
+      [31m-  "width": 12[0m
+      [32m+  "display": "none"[0m
+      [32m+  "height": 0[0m
+      [32m+  "width": 0[0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: vs/240: readonly 0 chevron has no painted box
+  + actual - expected
+
+    {
+  +   display: 'block',
+  +   height: 12,
+  +   width: 12
+  -   display: 'none',
+  -   height: 0,
+  -   width: 0
+    }
+
+      at assertChevrons (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1374:22)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1393:7)
+[0m
+[0m  2) ConversationIdentityStrip
+       D1386 production CSS hides readonly folder and branch chevrons with zero bounds in vs-dark:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "display": "block"[0m
+      [31m-  "height": 12[0m
+      [31m-  "width": 12[0m
+      [32m+  "display": "none"[0m
+      [32m+  "height": 0[0m
+      [32m+  "width": 0[0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: vs-dark/240: readonly 0 chevron has no painted box
+  + actual - expected
+
+    {
+  +   display: 'block',
+  +   height: 12,
+  +   width: 12
+  -   display: 'none',
+  -   height: 0,
+  -   width: 0
+    }
+
+      at assertChevrons (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1374:22)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1393:7)
+[0m
+[0m  3) ConversationIdentityStrip
+       D1386 production CSS hides readonly folder and branch chevrons with zero bounds in hc-black:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "display": "block"[0m
+      [31m-  "height": 12[0m
+      [31m-  "width": 12[0m
+      [32m+  "display": "none"[0m
+      [32m+  "height": 0[0m
+      [32m+  "width": 0[0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: hc-black/240: readonly 0 chevron has no painted box
+  + actual - expected
+
+    {
+  +   display: 'block',
+  +   height: 12,
+  +   width: 12
+  -   display: 'none',
+  -   height: 0,
+  -   width: 0
+    }
+
+      at assertChevrons (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1374:22)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1393:7)
+[0m
+[0m  4) ConversationIdentityStrip
+       D1386 production CSS hides readonly folder and branch chevrons with zero bounds in hc-light:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "display": "block"[0m
+      [31m-  "height": 12[0m
+      [31m-  "width": 12[0m
+      [32m+  "display": "none"[0m
+      [32m+  "height": 0[0m
+      [32m+  "width": 0[0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: hc-light/240: readonly 0 chevron has no painted box
+  + actual - expected
+
+    {
+  +   display: 'block',
+  +   height: 12,
+  +   width: 12
+  -   display: 'none',
+  -   height: 0,
+  -   width: 0
+    }
+
+      at assertChevrons (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1374:22)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1393:7)
+[0m

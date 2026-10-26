@@ -1,0 +1,34 @@
+{
+  "sourceHead": "f75bf2189418dc32007f67afed54cf02ec02eed3",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "20s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.ts",
+    "--grep",
+    "cold public command discards an admitted owner hide without finalizing and allows a new press"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "started": "2026-10-26T11:37:24.303840+00:00",
+  "ended": "2026-10-26T11:37:25.714379+00:00",
+  "exit": 0,
+  "rawLogSha256": "8e9fb2d36dcbf091a2df11fded2bed25026cd745150f0948dbf64073f3fc1e1f",
+  "displayLogSha256": "2fef4eb843b07cac1217df2a8a067078b6595960399526d254ec47be62e1294d",
+  "rawArchive": "d1385-cancel-green.raw.log.gz",
+  "displayNormalization": "Only line-ending whitespace and extra blank EOF lines; raw bytes gzip-preserved if different.",
+  "scope": "Official Electron + isolated Xvfb; prelaunch skipped; no compile."
+}

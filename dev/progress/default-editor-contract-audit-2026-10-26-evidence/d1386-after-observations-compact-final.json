@@ -1,0 +1,586 @@
+{
+  "records": [
+    {
+      "at": "2026-10-26T11:35:32.308Z",
+      "name": "fixed-compact1024-folder-menu",
+      "file": "shots/fixed-compact1024-folder-menu.png",
+      "extra": {
+        "proof": [
+          {
+            "display": "none",
+            "w": 0,
+            "h": 0
+          },
+          {
+            "display": "none",
+            "w": 0,
+            "h": 0
+          }
+        ]
+      },
+      "dom": {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html",
+        "viewport": {
+          "width": 1024,
+          "height": 768,
+          "outerWidth": 1024,
+          "outerHeight": 768
+        },
+        "primary": "session-100",
+        "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled hc-light vscode-theme-defaults-themes-hc_light-json",
+        "activeId": "untitled",
+        "visible": [
+          "untitled",
+          "session-100"
+        ],
+        "leaves": [
+          {
+            "key": "a",
+            "id": "untitled",
+            "hidden": false,
+            "root": {
+              "sessionId": "untitled",
+              "workDir": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+              "source": "session",
+              "access": "local",
+              "localRoot": {
+                "scheme": "file",
+                "authority": "",
+                "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+                "query": "",
+                "fragment": "",
+                "_formatted": "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+                "_fsPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha"
+              }
+            },
+            "container": "<div class=\"conversation-session-leaf conversation-session-leaf-secondary is-narrow is-compact\" data-session-key=\"untitled\" tabindex=\"-1\" data-conversation-width=\"min\" data-d1386=\"a\"><div class=\"conversation-session-leaf-session-bar is-narrow is-compact\" data-",
+            "box": {
+              "x": 348,
+              "y": 35,
+              "width": 228.5,
+              "height": 711,
+              "top": 35,
+              "right": 576.5,
+              "bottom": 746,
+              "left": 348
+            },
+            "folder": {
+              "text": "alpha",
+              "aria": "Session folder: alpha. Add a folder to the workspace.",
+              "title": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+              "tabIndex": 0,
+              "hidden": false,
+              "expanded": "true",
+              "haspopup": "listbox",
+              "x": 361,
+              "y": 100,
+              "w": 67.375,
+              "h": 24,
+              "font": "12px",
+              "color": "rgb(41, 41, 41)",
+              "background": "color(srgb 0.160784 0.160784 0.160784 / 0.035)",
+              "outline": "rgb(41, 41, 41) none 3px",
+              "html": "<button class=\"conversation-identity-chip conversation-identity-chip-folder\" type=\"button\" tabindex=\"0\" title=\"/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha\" aria-label=\"Session folder: alpha. Add a folder to the workspace.\" aria-haspopup=\"listbox\" aria-expanded=\"true\">alpha<span class=\"conversation-identity-chip-open codicon codicon-chevron-down\" aria-hidden=\"true\"></span></button>"
+            },
+            "branch": {
+              "text": "alpha-head",
+              "aria": "Git branch: alpha-head. Open the branch list.",
+              "title": "alpha-head",
+              "tabIndex": 0,
+              "hidden": false,
+              "expanded": "false",
+              "haspopup": "listbox",
+              "x": 434.375,
+              "y": 100,
+              "w": 98.0625,
+              "h": 24,
+              "font": "12px",
+              "color": "rgb(41, 41, 41)",
+              "background": "color(srgb 0.160784 0.160784 0.160784 / 0.035)",
+              "outline": "rgb(41, 41, 41) none 3px",
+              "html": "<button class=\"conversation-identity-chip conversation-identity-chip-branch\" type=\"button\" tabindex=\"0\" title=\"alpha-head\" aria-haspopup=\"listbox\" aria-label=\"Git branch: alpha-head. Open the branch list.\" aria-expanded=\"false\">alpha-head<span class=\"conversation-identity-chip-open codicon codicon-chevron-down\" aria-hidden=\"true\"></span></button>"
+            },
+            "add": {
+              "text": "",
+              "aria": null,
+              "title": null,
+              "tabIndex": 0,
+              "hidden": true,
+              "expanded": null,
+              "haspopup": null,
+              "x": 0,
+              "y": 0,
+              "w": 0,
+              "h": 0,
+              "font": "12px",
+              "color": "rgb(41, 41, 41)",
+              "background": "rgba(0, 0, 0, 0)",
+              "outline": "rgb(41, 41, 41) none 3px",
+              "html": "<button class=\"conversation-identity-add-folder\" type=\"button\" hidden=\"\"></button>"
+            }
+          },
+          {
+            "key": "b",
+            "id": "session-100",
+            "hidden": false,
+            "root": {
+              "sessionId": "session-100",
+              "workDir": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/gamma",
+              "source": "session",
+              "access": "engine"
+            },
+            "container": "<div class=\"conversation-session-leaf conversation-session-leaf-primary is-narrow is-compact\" data-session-key=\"session-100\" tabindex=\"-1\" data-conversation-width=\"min\" data-d1386=\"b\"><div class=\"conversation-session-leaf-session-bar is-narrow is-compact\" data",
+            "box": {
+              "x": 576.5,
+              "y": 35,
+              "width": 227.5,
+              "height": 711,
+              "top": 35,
+              "right": 804,
+              "bottom": 746,
+              "left": 576.5
+            },
+            "folder": {
+              "text": "gamma",
+              "aria": "Session folder: gamma",
+              "title": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/gamma",
+              "tabIndex": -1,
+              "hidden": false,
+              "expanded": null,
+              "haspopup": null,
+              "x": 592.5,
+              "y": 346.390625,
+              "w": 61.359375,
+              "h": 22,
+              "font": "13px",
+              "color": "rgba(41, 41, 41, 0.7)",
+              "background": "rgba(0, 0, 0, 0)",
+              "outline": "rgba(41, 41, 41, 0.7) none 3px",
+              "html": "<button class=\"conversation-identity-chip conversation-identity-chip-folder conversation-identity-chip-folder--readonly\" type=\"button\" tabindex=\"-1\" title=\"/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/gamma\" aria-label=\"Session folder: gamma\">gamma<span class=\"conversation-identity-chip-open codicon codicon-chevron-down\" aria-hidden=\"true\" hidden=\"\"></span></button>"
+            },
+            "branch": {
+              "text": "gamma-final",
+              "aria": "Git branch: gamma-final",
+              "title": "gamma-final",
+              "tabIndex": -1,
+              "hidden": false,
+              "expanded": null,
+              "haspopup": null,
+              "x": 659.859375,
+              "y": 346.390625,
+              "w": 89.53125,
+              "h": 22,
+              "font": "13px",
+              "color": "rgba(41, 41, 41, 0.7)",
+              "background": "rgba(0, 0, 0, 0)",
+              "outline": "rgba(41, 41, 41, 0.7) none 3px",
+              "html": "<button class=\"conversation-identity-chip conversation-identity-chip-branch conversation-identity-chip-branch--readonly\" type=\"button\" tabindex=\"-1\" title=\"gamma-final\" aria-label=\"Git branch: gamma-final\">gamma-final<span class=\"conversation-identity-chip-open codicon codicon-chevron-down\" aria-hidden=\"true\" hidden=\"\"></span></button>"
+            },
+            "add": {
+              "text": "",
+              "aria": null,
+              "title": null,
+              "tabIndex": 0,
+              "hidden": true,
+              "expanded": null,
+              "haspopup": null,
+              "x": 0,
+              "y": 0,
+              "w": 0,
+              "h": 0,
+              "font": "12px",
+              "color": "rgb(41, 41, 41)",
+              "background": "rgba(0, 0, 0, 0)",
+              "outline": "rgb(41, 41, 41) none 3px",
+              "html": "<button class=\"conversation-identity-add-folder\" type=\"button\" hidden=\"\"></button>"
+            }
+          }
+        ],
+        "focus": {
+          "text": "Workspacealpha~/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alphaadded~/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/addedAdd Folder to Workspace….monaco-list.list_id_30:focus .monaco-list-row.focused { background-color: var(--vscode-list-focusBackground); }\n.monaco-list.list_id_30:focus .monaco-list-row.focused:hover { background-color: var(--vscode-list-focusBackground); }\n.monaco-list.list_id_30:focus .monaco-list-row.focused { color: var(--vscode-list-focusForeground); }\n.monaco-list.list_id_30:focus .monaco-list-row.selected { background-color: var(--vscode-list-activeSelectionBackground); }\n.monaco-list.list_id_30:focus .monaco-list-row.selected:hover { background-color: var(--vscode-list-activeSelectionBackground); }\n.monaco-list.list_id_30:focus .monaco-list-row.selected { color: var(--vscode-list-activeSelectionForeground); }\n.monaco-list.list_id_30:focus .monaco-list-row.selected .codicon { color: var(--vscode-list-activeSelectionIconForeground); }\n\n\t\t\t\t.monaco-drag-image.list_id_30,\n\t\t\t\t.monaco-list.list_id_30:focus .monaco-list-row.selected.focused { background-color: var(--vscode-list-activeSelectionBackground); }\n\t\t\t\n\n\t\t\t\t.monaco-drag-image.list_id_30,\n\t\t\t\t.monaco-list.list_id_30:focus .monaco-list-row.selected.focused { color: var(--vscode-list-activeSelectionForeground); }\n\t\t\t\n.monaco-list.list_id_30 .monaco-list-row.focused .codicon { color:  var(--vscode-list-inactiveSelectionIconForeground); }\n.monaco-list.list_id_30 .monaco-list-row.focused { background-color:  var(--vscode-list-inactiveFocusBackground); }\n.monaco-list.list_id_30 .monaco-list-row.focused:hover { background-color:  var(--vscode-list-inactiveFocusBackground); }\n.monaco-list.list_id_30 .monaco-list-row.selected { background-color:  var(--vscode-list-inactiveSelectionBackground); }\n.monaco-list.list_id_30 .monaco-list-row.selected:hover { background-color:  var(--vscode-list-inactiveSelectionBackground); }\n.monaco-list.list_id_30 .monaco-list-row.selected { color: var(--vscode-list-inactiveSelectionForeground); }\n.monaco-list.list_id_30:not(.drop-target):not(.dragging) .monaco-list-row:hover:not(.selected):not(.focused) { background-color: var(--vscode-list-hoverBackground); }\n.monaco-list.list_id_30:not(.drop-target):not(.dragging) .monaco-list-row:hover:not(.selected):not(.focused) { color:  var(--vscode-list-hoverForeground); }\n.monaco-list.list_id_30:focus .monaco-list-row.focused.selected { outline: 1px solid var(--vscode-list-focusAndSelectionOutline, var(--vscode-contrastActiveBorder, var(--vscode-list-focusOutline))); outline-offset: -1px;}\n\n\t\t\t\t.monaco-drag-image.list_id_30,\n\t\t\t\t.monaco-list.list_id_30:focus .monaco-list-row.focused,\n\t\t\t\t.context-menu-visible .monaco-list.list_id_30.last-focused .monaco-list-row.focused { outline: 1px solid var(--vscode-list-focusOutline); outline-offset: -1px; }\n\t\t\t\n.monaco-list.list_id_30 .monaco-list-row.focused.selected { outline: 1px dotted var(--vscode-contrastActiveBorder, var(--vscode-list-inactiveFocusOutline)); outline-offset: -1px; }\n.monaco-list.list_id_30 .monaco-list-row.selected { outline: 1px dotted var(--vscode-contrastActiveBorder); outline-offset: -1px; }\n.monaco-list.list_id_30 .monaco-list-row.focused { outline: 1px dotted var(--vscode-list-inactiveFocusOutline); outline-offset: -1px; }\n.monaco-list.list_id_30 .monaco-list-row:hover { outline: 1px dashed var(--vscode-contrastActiveBorder); outline-offset: -1px; }\n\n\t\t\t\t.monaco-list.list_id_30.drop-target,\n\t\t\t\t.monaco-list.list_id_30 .monaco-list-rows.drop-target,\n\t\t\t\t.monaco-list.list_id_30 .monaco-list-row.drop-target { background-color: var(--vscode-list-dropBackground) !important; color: inherit !important; }\n\t\t\t\n\n\t\t\t.monaco-list.list_id_30 .monaco-list-rows.drop-target-before .monaco-list-row:first-child::before,\n\t\t\t.monaco-list.list_id_30 .monaco-list-row.drop-target-before::before {\n\t\t\t\tcontent: \"\"; position: absolute; top: 0px; left: 0px; width: 100%; height: 1px;\n\t\t\t\tbackground-color: var(--vscode-list-dropBetweenBackground);\n\t\t\t}\n\n\t\t\t.monaco-list.list_id_30 .monaco-list-rows.drop-target-after .monaco-list-row:last-child::after,\n\t\t\t.monaco-list.list_id_30 .monaco-list-row.drop-target-after::after {\n\t\t\t\tcontent: \"\"; position: absolute; bottom: 0px; left: 0px; width: 100%; height: 1px;\n\t\t\t\tbackground-color: var(--vscode-list-dropBetweenBackground);\n\t\t\t}\n\n\t\t\t\t.monaco-table > .monaco-split-view2,\n\t\t\t\t.monaco-table > .monaco-split-view2 .monaco-sash.vertical::before,\n\t\t\t\t.monaco-enable-motion .monaco-table:hover > .monaco-split-view2,\n\t\t\t\t.monaco-enable-motion .monaco-table:hover > .monaco-split-view2 .monaco-sash.vertical::before {\n\t\t\t\t\tborder-color: var(--vscode-tree-tableColumnsBorder);\n\t\t\t\t}\n\n\t\t\t\t.monaco-enable-motion .monaco-table > .monaco-split-view2,\n\t\t\t\t.monaco-enable-motion .monaco-table > .monaco-split-view2 .monaco-sash.vertical::before {\n\t\t\t\t\tborder-color: transparent;\n\t\t\t\t}\n\t\t\t\n\n\t\t\t\t.monaco-table .monaco-list-row[data-parity=odd]:not(.focused):not(.selected):not(:hover) .monaco-table-tr,\n\t\t\t\t.monaco-table .monaco-list:not(:focus) .monaco-list-row[data-parity=odd].focused:not(.selected):not(:hover) .monaco-table-tr,\n\t\t\t\t.monaco-table .monaco-list:not(.focused) .monaco-list-row[data-parity=odd].focused:not(.selected):not(:hover) .monaco-table-tr {\n\t\t\t\t\tbackground-color: var(--vscode-tree-tableOddRowsBackground);\n\t\t\t\t}\n\t\t\t",
+          "aria": "Folders",
+          "title": null,
+          "tabIndex": 0,
+          "hidden": false,
+          "expanded": null,
+          "haspopup": null,
+          "x": 366,
+          "y": 160,
+          "w": 603.375,
+          "h": 104,
+          "font": "13px",
+          "color": "rgb(41, 41, 41)",
+          "background": "rgba(0, 0, 0, 0)",
+          "outline": "rgb(41, 41, 41) none 0px",
+          "html": "<div class=\"monaco-list list_id_30 mouse-support selection-none element-focused\" tabindex=\"0\" role=\"listbox\" aria-label=\"Folders\" aria-multiselectable=\"true\" aria-activedescendant=\"list_id_30_1\"><div class=\"monaco-scrollable-element \" role=\"presentation\" style=\"position: relative; overflow: hidden;\"><div class=\"monaco-list-rows\" style=\"transform: translate3d(0px, 0px, 0px); overflow: hidden; contain: strict; height: 104px; left: 0px; top: 0px;\"><div class=\"monaco-list-row group-header\" role=\"separator\" data-index=\"0\" data-last-element=\"false\" data-parity=\"even\" aria-setsize=\"3\" aria-posinset=\"1\" id=\"list_id_30_0\" aria-label=\"Workspace\" draggable=\"false\" style=\"top: 0px; height: 24px; line-height: 24px;\"><span>Workspace</span></div><div class=\"monaco-list-row action focused\" role=\"option\" data-index=\"1\" data-last-element=\"false\" data-parity=\"odd\" aria-setsize=\"3\" aria-posinset=\"1\" id=\"list_id_30_1\" aria-label=\"alpha\" title=\"Enter to Apply\" draggable=\"false\" style=\"top: 24px; height: 24px; line-height: 24px;\"><div class=\"codicon codicon-check\"></div><span class=\"title\">alpha</span><span class=\"action-item-badge\" style=\"display: none;\"></span><span class=\"description\" style=\"display: inline;\">~/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha</span><span class=\"group-title\" style=\"display: none;\"></span><span class=\"detail\" style=\"display: none;\"></span><div class=\"monaco-keybinding\" custom-hover=\"true\"></div><div class=\"action-list-item-toolbar\"></div><div class=\"action-list-submenu-indicator\" style=\"display: none;\"></div><div class=\"action-list-item-inline-toggle\" style=\"display: none;\"></div></div><div class=\"monaco-list-row action\" role=\"option\" data-index=\"2\" data-last-element=\"false\" data-parity=\"even\" aria-setsize=\"3\" aria-posinset=\"2\" id=\"list_id_30_2\" aria-label=\"added\" title=\"Enter to Apply\" draggable=\"false\" style=\"top: 48px; height: 24px; line-height: 24px;\"><div class=\"codicon codicon-folder\"></div><span class=\"title\">added</span><span class=\"action-item-badge\" style=\"display: none;\"></span><span class=\"description\" style=\"display: inline;\">~/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/added</span><span class=\"group-title\" style=\"display: none;\"></span><span class=\"detail\" style=\"display: none;\"></span><div class=\"monaco-keybinding\" custom-hover=\"true\"></div><div class=\"action-list-item-toolbar\"></div><div class=\"action-list-submenu-indicator\" style=\"display: none;\"></div><div class=\"action-list-item-inline-toggle\" style=\"display: none;\"></div></div><div class=\"monaco-list-row separator\" role=\"separator\" data-index=\"3\" data-last-element=\"false\" data-parity=\"odd\" aria-setsize=\"3\" aria-posinset=\"2\" id=\"list_id_30_3\" draggable=\"false\" style=\"top: 72px; height: 8px; line-height: 8px;\"><span></span></div><div class=\"monaco-list-row action\" role=\"option\" data-index=\"4\" data-last-element=\"true\" data-parity=\"even\" aria-setsize=\"3\" aria-posinset=\"3\" id=\"list_id_30_4\" aria-label=\"Add Fo"
+        },
+        "menus": [
+          {
+            "class": "action-widget",
+            "text": "Workspace\nalpha\n~/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha\nadded\n~/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/added\nAdd Folder to Workspace…",
+            "html": "<div class=\"action-widget\" style=\"width: 603.375px;\"><div class=\"action-list-filter\"><div class=\"action-list-filter-row\"><input type=\"text\" class=\"action-list-filter-input\" placeholder=\"Search folders...\" aria-label=\"Filter items\"></div><div class=\"action-list-filter-empty\" id=\"action-list-filter-empty-17\" role=\"status\" aria-live=\"polite\" style=\"display: none;\"></div></div><div class=\"actionList\" style=\"height: 104px;\"><div class=\"action-list-submenu-panel action-widget\" tabindex=\"-1\" style=\"display: none;\"></div><div class=\"monaco-list list_id_30 mouse-support selection-none element-focused\" tabindex=\"0\" role=\"listbox\" aria-label=\"Folders\" aria-multiselectable=\"true\" aria-activedescendant=\"list_id_30_1\"><div class=\"monaco-scrollable-element \" role=\"presentation\" style=\"position: relative; overflow: hidden;\"><div class=\"monaco-list-rows\" style=\"transform: translate3d(0px, 0px, 0px); overflow: hidden; contain: strict; height: 104px; left: 0px; top: 0px;\"><div class=\"monaco-list-row group-header\" role=\"separator\" data-index=\"0\" data-last-element=\"false\" data-parity=\"even\" aria-setsize=\"3\" aria-posinset=\"1\" id=\"list_id_30_0\" aria-label=\"Workspace\" draggable=\"false\" style=\"top: 0px; height: 24px; line-height: 24px;\"><span>Workspace</span></div><div class=\"monaco-list-row action focused\" role=\"option\" data-index=\"1\" data-last-element=\"false\" data-parity=\"odd\" aria-setsize=\"3\" aria-posinset=\"1\" id=\"list_id_30_1\" aria-label=\"alpha\" title=\"Enter to Apply\" draggable=\"false\" style=\"top: 24px; height: 24px; line-height: 24px;\"><div class=\"codicon codicon-check\"></div><span class=\"title\">alpha</span><span class=\"action-item-badge\" style=\"display: none;\"></span><span class=\"description\" style=\"display: inline;\">~/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha</span><span class=\"group-title\" style=\"display: none;\"></span><span class=\"detail\" style=\"display: none;\"></span><div class=\"monaco-keybinding\" custom-hover=\"true\"></div><div class=\"action-list-item-toolbar\"></div><div class=\"action-list-submenu-indicator\" style=\"display: none;\"></div><div class=\"action-list-item-inline-toggle\" style=\"display: none;\"></div></div><div class=\"monaco-list-row action\" role=\"option\" data-index=\"2\" data-last-element=\"false\" data-parity=\"even\" aria-setsize=\"3\" aria-posinset=\"2\" id=\"list_id_30_2\" aria-label=\"added\" title=\"Enter to Apply\" draggable=\"false\" style=\"top: 48px; height: 24px; line-height: 24px;\"><div class=\"codicon codicon-folder\"></div><span class=\"title\">added</span><span class=\"action-item-badge\" style=\"display: none;\"></span><span class=\"description\" style=\"display: inline;\">~/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/added</span><span class=\"group-title\" style=\"display: none;\"></span><span class=\"detail\" style=\"display: none;\"></span><div class=\"monaco-keybinding\" custom-hover=\"true\"></div><div class=\"action-list-item-toolbar\"></div><div class=\"action-list-submenu-indicator\" style=\"display: none;\"></div><div class=\"action-list-item-inline-toggle\" style=\"display: none;\"></div></div><div class=\"monaco-list-row separator\" role=\"separator\" data-index=\"3\" data-last-element=\"false\" data-parity=\"odd\" aria-setsize=\"3\" aria-posinset=\"2\" id=\"list_id_30_3\" draggable=\"false\" style=\"top: 72px; height: 8px; line-height: 8px;\"><span></span></div><div class=\"monaco-list-row action\" role=\"option\" data-index=\"4\" data-last-element=\"true\" data-parity=\"even\" aria-setsize=\"3\" aria-posinset=\"3\" id=\"list_id_30_4\" aria-label=\"Add Folder to Workspace…\" title=\"Enter to Apply\" draggable=\"false\" style=\"top: 80px; height: 24px; line-height: 24px;\"><div class=\"codicon codicon-folder-opened\"></div><span class=\"title\">Add Folder to Workspace…</span><span class=\"action-item-badge\" style=\"display: none;\"></span><span class=\"description\" style=\"display: none;\"></span><span class=\"group-title\" style=\"display: none;\"></span><span class=\"detail\" style=\"display: none;\"></span><div class=\"monaco-keybinding\" custom-hover=\"true\"></div><div class=\"action-list-item-toolbar\"></div><div class=\"action-list-submenu-indicator\" style=\"display: none;\"></div><div class=\"action-list-item-inline-toggle\" style=\"display: none;\"></div></div></div><div role=\"presentation\" aria-hidden=\"true\" class=\"invisible scrollbar horizontal\" style=\"position: absolute; width: 0px; height: 10px; left: 0px; bottom: 0px;\"><div class=\"slider\" style=\"position: absolute; top: 0px; left: 0px; height: 10px; transform: translate3d(0px, 0px, 0px); contain: strict; width: 0px;\"></div></div><div role=\"presentation\" aria-hidden=\"true\" class=\"invisible scrollbar vertical\" style=\"position: absolute; width: 10px; height: 104px; right: 0px; top: 0px;\"><div class=\"slider\" style=\"position: absolute; top: 0px; left: 0px; width: 10px; transform: translate3d(0px, 0px, 0px); contain: strict; height: 104px;\"></div></div><div class=\"shadow\"></div><div class=\"shadow\"></div><div class=\"shadow\"></div></div><style type=\"text/css\" media=\"screen\">.monaco-list.list_id_30:focus .monaco-list-row.focused { background-color: var(--vscode-list-focusBackground); }\n.monaco-list.list_id_30:focus .monaco-list-row.focused:hover { background-color: var(--vscode-list-focusBackground); }\n.monaco-list.list_id_30:focus .monaco-list-row.focused { color: var(--vscode-list-focusForeground); }\n.monaco-list.list_id_30:focus .monaco-list-row.selected { background-color: var(--vscode-list-activeSelectionBackground); }\n.monaco-list.list_id_30:focus .monaco-list-row.selected:hover { background-color: var(--vscode-list-activeSelectionBackground); }\n.monaco-list.list_id_30:focus .monaco-list-row.selected { color: var(--vscode-list-activeSelectionForeground); }\n.monaco-list.list_id_30:focus .monaco-list-row.selected .codicon { color: var(--vscode-list-activeSelectionIconForeground); }\n\n\t\t\t\t.monaco-drag-image.list_id_30,\n\t\t\t\t.monaco-list.list_id_30:focus .monaco-list-row.selected.focused { background-color: var(--vscode-list-activeSelectionBackground); }\n\t\t\t\n\n\t\t\t\t.monaco-drag-image.list_id_30,\n\t\t\t\t.monaco-list.list_id_30:focus .monaco-list-row.selected.focused { color: var(--vscode-list-activeSelectionForeground); }\n\t\t\t\n.monaco-list.list_id_30 .monaco-list-row.focused .codicon { color:  var(--vscode-list-inactiveSelectionIconForeground); }\n.monaco-list.list_id_30 .monaco-list-row.focused { background-color:  var(--vscode-list-inactiveFocusBackground); }\n.monaco-list.list_id_30 .monaco-list-row.focused:hover { background-color:  var(--vscode-list-inactiveFocusBackground); }\n.monaco-list.list_id_30 .monaco-list-row.selected { background-color:  var(--vscode-list-inactiveSelectionBackground); }\n.monaco-list.list_id_30 .monaco-list-row.selected:hover { background-color:  var(--vscode-list-inactiveSelectionBackground); }\n.monaco-list.list_id_30 .monaco-list-row.selected { color: var(--vscode-list-inactiveSelectionForeground); }\n.monaco-list.list_id_30:not(.drop-target):not(.dragging) .monaco-list-row:hover:not(.selected):not(.focused) { background-color: var(--vscode-list-hoverBackground); }\n.monaco-list.list_id_30:not(.drop-target):not(.dragging) .monaco-list-row:hover:not(.selected):not(.focused) { color:  var(--vscode-list-hoverForeground); }\n.monaco-list.list_id_30:focus .monaco-list-row.focused.selected { outline: 1px solid var(--vscode-list-focusAndSelectionOutline, var(--vscode-contrastActiveBorder, var(--vscode-list-focusOutline))); outline-offset: -1px;}\n\n\t\t\t\t.monaco-drag-image.list_id_30,\n\t\t\t\t.monaco-list.list_id_30:focus .monaco-list-row.focused,\n\t\t\t\t.context-menu-visible .monaco-list.list_id_30.last-focused .monaco-list-row.focused { outline: 1px solid var(--vscode-list-focusOutline); outline-offset: -1px; }\n\t\t\t\n.monaco-list.list_id_30 .monaco-list-row.focused.selected { outline: 1px dotted var(--vscode-contrastActiveBorder, var(--vscode-list-inactiveFocusOutline)); outline-offset: -1px; }\n.monaco-list.list_id_30 .monaco-list-row.selected { outline: 1px dotted var(--vscode-contrastActiveBorder); outline-offset: -1px; }\n.monaco-list.list_id_30 .monaco-list-row.focused { outline: 1px dotted var(--vscode-list-inactiveFocusOutline); outline-offset: -1px; }\n.monaco-list.list_id_30 .monaco-list-row:hover { outline: 1px dashed var(--vscode-contrastActiveBorder); outline-offset: -1px; }\n\n\t\t\t\t.monaco-list.list_id_30.drop-target,\n\t\t\t\t.monaco-list.list_id_30 .monaco-list-rows.drop-target,\n\t\t\t\t.monaco-list.list_id_30 .monaco-list-row.drop-target { background-color: var(--vscode-list-dropBackground) !important; color: inherit !important; }\n\t\t\t\n\n\t\t\t.monaco-list.list_id_30 .monaco-list-rows.drop-target-before .monaco-list-row:first-child::before,\n\t\t\t.monaco-list.list_id_30 .monaco-list-row.drop-target-before::before {\n\t\t\t\tcontent: \"\"; position: absolute; top: 0px; left: 0px; width: 100%; height: 1px;\n\t\t\t\tbackground-color: var(--vscode-list-dropBetweenBackground);\n\t\t\t}\n\n\t\t\t.monaco-list.list_id_30 .monaco-list-rows.drop-target-after .monaco-list-row:last-child::after,\n\t\t\t.monaco-list.list_id_30 .monaco-list-row.drop-target-after::after {\n\t\t\t\tcontent: \"\"; position: absolute; bottom: 0px; left: 0px; width: 100%; height: 1px;\n\t\t\t\tbackground-color: var(--vscode-list-dropBetweenBackground);\n\t\t\t}\n\n\t\t\t\t.monaco-table > .monaco-split-view2,\n\t\t\t\t.monaco-table > .monaco-split-view2 .monaco-sash.vertical::before,\n\t\t\t\t.monaco-enable-motion .monaco-table:hover > .monaco-split-view2,\n\t\t\t\t.monaco-enable-motion .monaco-table:hover > .monaco-split-view2 .monaco-sash.vertical::before {\n\t\t\t\t\tborder-color: var(--vscode-tree-tableColumnsBorder);\n\t\t\t\t}\n\n\t\t\t\t.monaco-enable-motion .monaco-table > .monaco-split-view2,\n\t\t\t\t.monaco-enable-motion .monaco-table > .monaco-split-view2 .monaco-sash.vertical::before {\n\t\t\t\t\tborder-color: transparent;\n\t\t\t\t}\n\t\t\t\n\n\t\t\t\t.monaco-table .monaco-list-row[data-parity=odd]:not(.focused):not(.selected):not(:hover) .monaco-table-tr,\n\t\t\t\t.monaco-table .monaco-list:not(:focus) .monaco-list-row[data-parity=odd].focused:not(.selected):not(:hover) .monaco-table-tr,\n\t\t\t\t.monaco-table .monaco-list:not(.focused) .monaco-list-row[data-parity=odd].focused:not(.selected):not(:hover) .monaco-table-tr {\n\t\t\t\t\tbackground-color: var(--vscode-tree-tableOddRowsBackground);\n\t\t\t\t}\n\t\t\t</style></div></div></div>",
+            "box": {
+              "x": 361,
+              "y": 124,
+              "width": 613.375,
+              "height": 145,
+              "top": 124,
+              "right": 974.375,
+              "bottom": 269,
+              "left": 361
+            }
+          },
+          {
+            "class": "action-list-submenu-panel action-widget",
+            "text": "",
+            "html": "<div class=\"action-list-submenu-panel action-widget\" tabindex=\"-1\" style=\"display: none;\"></div>",
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        ],
+        "calls": [
+          {
+            "command": "git.checkout",
+            "args": [
+              "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/beta",
+              "target-beta"
+            ]
+          },
+          {
+            "command": "git.checkout",
+            "args": [
+              "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+              "target-alpha"
+            ]
+          }
+        ],
+        "summaries": [
+          {
+            "sessionId": "session-100"
+          },
+          {
+            "sessionId": "session-100"
+          },
+          {
+            "sessionId": "session-100"
+          },
+          {
+            "sessionId": "session-100"
+          }
+        ],
+        "folders": [
+          "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+          "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/added"
+        ],
+        "snapshot": {
+          "phase": {
+            "kind": "disconnected"
+          },
+          "transport": "idle"
+        },
+        "body": "File\nEdit\nSelection\nidentity (Workspace)\nFILES\nIDENTITY (WORKSPACE)\nRoot\nhome\nclarence\nProjects\nAgents\nvscode-WorkTrees\nC\n.build\nd1386-independent-after\nfixture\nalpha\nalpha\nadded\nREADME.md\nOUTLINE\nTIMELINE\nConversation\nTrajectory\nAlpha local\nAlpha local\nEngine not connected\nalpha\nalpha-head\nHelp me draft the README.\nStub · 4 steps · Stub: outline sections, read, Stub: draft, write\n1 waiting\n\nStub: README draft is waiting on permission to write README.md. See \nVisualize session (Stub)\n or \nREADME agent (Stub)\n.\n\n1 confirmation pending\nInput needed\n\nAllow write to README.md?\n\nAllow\nSkip\nNo queue\n1 confirmation pending\nStop\nNo model\nConversation\nTrajectory\nGamma final\nGamma final\nEngine not connected\ngamma\ngamma-final\nNo model\nNo Open Code Editors\nSelect files from the Sources file tree or jump directly from conversation references.\nOpen File\nCtrl\n+\nO\nNew File\nCtrl\n+\nN\nFiles\nChanges\nReview\nRoot\nhome\nclarence\nProjects\nAgents\nvscode-WorkTrees\nC\n.build\nd1386-independent-after\nfixture\nalpha\nalpha\nadded\nAlpha local\nEngine not connected\nHello \nNavigator shown\nWorkspace\nalpha\n~/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha\nadded\n~/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/added\nAdd Folder to Workspace…"
+      }
+    },
+    {
+      "at": "2026-10-26T11:35:32.423Z",
+      "name": "fixed-compact1024-readonly-tab-skip",
+      "file": "shots/fixed-compact1024-readonly-tab-skip.png",
+      "extra": {
+        "proof": [
+          {
+            "display": "none",
+            "w": 0,
+            "h": 0
+          },
+          {
+            "display": "none",
+            "w": 0,
+            "h": 0
+          }
+        ]
+      },
+      "dom": {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html",
+        "viewport": {
+          "width": 1024,
+          "height": 768,
+          "outerWidth": 1024,
+          "outerHeight": 768
+        },
+        "primary": "session-100",
+        "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled hc-light vscode-theme-defaults-themes-hc_light-json",
+        "activeId": "session-100",
+        "visible": [
+          "untitled",
+          "session-100"
+        ],
+        "leaves": [
+          {
+            "key": "a",
+            "id": "untitled",
+            "hidden": false,
+            "root": {
+              "sessionId": "untitled",
+              "workDir": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+              "source": "session",
+              "access": "local",
+              "localRoot": {
+                "scheme": "file",
+                "authority": "",
+                "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+                "query": "",
+                "fragment": "",
+                "_formatted": "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+                "_fsPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha"
+              }
+            },
+            "container": "<div class=\"conversation-session-leaf conversation-session-leaf-secondary is-narrow is-compact\" data-session-key=\"untitled\" tabindex=\"-1\" data-conversation-width=\"min\" data-d1386=\"a\"><div class=\"conversation-session-leaf-session-bar is-narrow is-compact\" data-",
+            "box": {
+              "x": 348,
+              "y": 35,
+              "width": 228.5,
+              "height": 711,
+              "top": 35,
+              "right": 576.5,
+              "bottom": 746,
+              "left": 348
+            },
+            "folder": {
+              "text": "alpha",
+              "aria": "Session folder: alpha. Add a folder to the workspace.",
+              "title": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+              "tabIndex": 0,
+              "hidden": false,
+              "expanded": "false",
+              "haspopup": "listbox",
+              "x": 361,
+              "y": 100,
+              "w": 67.375,
+              "h": 24,
+              "font": "12px",
+              "color": "rgb(41, 41, 41)",
+              "background": "color(srgb 0.160784 0.160784 0.160784 / 0.035)",
+              "outline": "rgb(41, 41, 41) none 3px",
+              "html": "<button class=\"conversation-identity-chip conversation-identity-chip-folder\" type=\"button\" tabindex=\"0\" title=\"/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha\" aria-label=\"Session folder: alpha. Add a folder to the workspace.\" aria-haspopup=\"listbox\" aria-expanded=\"false\">alpha<span class=\"conversation-identity-chip-open codicon codicon-chevron-down\" aria-hidden=\"true\"></span></button>"
+            },
+            "branch": {
+              "text": "alpha-head",
+              "aria": "Git branch: alpha-head. Open the branch list.",
+              "title": "alpha-head",
+              "tabIndex": 0,
+              "hidden": false,
+              "expanded": "false",
+              "haspopup": "listbox",
+              "x": 434.375,
+              "y": 100,
+              "w": 98.0625,
+              "h": 24,
+              "font": "12px",
+              "color": "rgb(41, 41, 41)",
+              "background": "color(srgb 0.160784 0.160784 0.160784 / 0.035)",
+              "outline": "rgb(41, 41, 41) none 3px",
+              "html": "<button class=\"conversation-identity-chip conversation-identity-chip-branch\" type=\"button\" tabindex=\"0\" title=\"alpha-head\" aria-haspopup=\"listbox\" aria-label=\"Git branch: alpha-head. Open the branch list.\" aria-expanded=\"false\">alpha-head<span class=\"conversation-identity-chip-open codicon codicon-chevron-down\" aria-hidden=\"true\"></span></button>"
+            },
+            "add": {
+              "text": "",
+              "aria": null,
+              "title": null,
+              "tabIndex": 0,
+              "hidden": true,
+              "expanded": null,
+              "haspopup": null,
+              "x": 0,
+              "y": 0,
+              "w": 0,
+              "h": 0,
+              "font": "12px",
+              "color": "rgb(41, 41, 41)",
+              "background": "rgba(0, 0, 0, 0)",
+              "outline": "rgb(41, 41, 41) none 3px",
+              "html": "<button class=\"conversation-identity-add-folder\" type=\"button\" hidden=\"\"></button>"
+            }
+          },
+          {
+            "key": "b",
+            "id": "session-100",
+            "hidden": false,
+            "root": {
+              "sessionId": "session-100",
+              "workDir": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/gamma",
+              "source": "session",
+              "access": "engine"
+            },
+            "container": "<div class=\"conversation-session-leaf conversation-session-leaf-primary is-narrow is-compact\" data-session-key=\"session-100\" tabindex=\"-1\" data-conversation-width=\"min\" data-d1386=\"b\"><div class=\"conversation-session-leaf-session-bar is-narrow is-compact\" data",
+            "box": {
+              "x": 576.5,
+              "y": 35,
+              "width": 227.5,
+              "height": 711,
+              "top": 35,
+              "right": 804,
+              "bottom": 746,
+              "left": 576.5
+            },
+            "folder": {
+              "text": "gamma",
+              "aria": "Session folder: gamma",
+              "title": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/gamma",
+              "tabIndex": -1,
+              "hidden": false,
+              "expanded": null,
+              "haspopup": null,
+              "x": 592.5,
+              "y": 346.390625,
+              "w": 61.359375,
+              "h": 22,
+              "font": "13px",
+              "color": "rgba(41, 41, 41, 0.7)",
+              "background": "rgba(0, 0, 0, 0)",
+              "outline": "rgba(41, 41, 41, 0.7) none 3px",
+              "html": "<button class=\"conversation-identity-chip conversation-identity-chip-folder conversation-identity-chip-folder--readonly\" type=\"button\" tabindex=\"-1\" title=\"/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/gamma\" aria-label=\"Session folder: gamma\">gamma<span class=\"conversation-identity-chip-open codicon codicon-chevron-down\" aria-hidden=\"true\" hidden=\"\"></span></button>"
+            },
+            "branch": {
+              "text": "gamma-final",
+              "aria": "Git branch: gamma-final",
+              "title": "gamma-final",
+              "tabIndex": -1,
+              "hidden": false,
+              "expanded": null,
+              "haspopup": null,
+              "x": 659.859375,
+              "y": 346.390625,
+              "w": 89.53125,
+              "h": 22,
+              "font": "13px",
+              "color": "rgba(41, 41, 41, 0.7)",
+              "background": "rgba(0, 0, 0, 0)",
+              "outline": "rgba(41, 41, 41, 0.7) none 3px",
+              "html": "<button class=\"conversation-identity-chip conversation-identity-chip-branch conversation-identity-chip-branch--readonly\" type=\"button\" tabindex=\"-1\" title=\"gamma-final\" aria-label=\"Git branch: gamma-final\">gamma-final<span class=\"conversation-identity-chip-open codicon codicon-chevron-down\" aria-hidden=\"true\" hidden=\"\"></span></button>"
+            },
+            "add": {
+              "text": "",
+              "aria": null,
+              "title": null,
+              "tabIndex": 0,
+              "hidden": true,
+              "expanded": null,
+              "haspopup": null,
+              "x": 0,
+              "y": 0,
+              "w": 0,
+              "h": 0,
+              "font": "12px",
+              "color": "rgb(41, 41, 41)",
+              "background": "rgba(0, 0, 0, 0)",
+              "outline": "rgb(41, 41, 41) none 3px",
+              "html": "<button class=\"conversation-identity-add-folder\" type=\"button\" hidden=\"\"></button>"
+            }
+          }
+        ],
+        "focus": {
+          "text": "",
+          "aria": "Message",
+          "title": null,
+          "tabIndex": 0,
+          "hidden": false,
+          "expanded": null,
+          "haspopup": null,
+          "x": 605.5,
+          "y": 391.390625,
+          "w": 172,
+          "h": 56,
+          "font": "13px",
+          "color": "rgb(41, 41, 41)",
+          "background": "rgba(0, 0, 0, 0)",
+          "outline": "rgb(0, 107, 189) solid 1px",
+          "html": "<textarea class=\"conversation-lens-dock-input\" aria-label=\"Message\" data-testid=\"conversation-composer-input\" placeholder=\"Message\" rows=\"1\" style=\"\"></textarea>"
+        },
+        "menus": [
+          {
+            "class": "action-widget",
+            "text": "",
+            "html": "<div class=\"action-widget\" style=\"width: 603.375px;\"><div class=\"action-list-filter\"><div class=\"action-list-filter-row\"><input type=\"text\" class=\"action-list-filter-input\" placeholder=\"Search folders...\" aria-label=\"Filter items\" style=\"\"></div><div class=\"action-list-filter-empty\" id=\"action-list-filter-empty-17\" role=\"status\" aria-live=\"polite\" style=\"display: none;\"></div></div><div class=\"actionList\" style=\"height: 104px;\"><div class=\"action-list-submenu-panel action-widget\" tabindex=\"-1\" style=\"display: none;\"></div></div></div>",
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          },
+          {
+            "class": "action-list-submenu-panel action-widget",
+            "text": "",
+            "html": "<div class=\"action-list-submenu-panel action-widget\" tabindex=\"-1\" style=\"display: none;\"></div>",
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        ],
+        "calls": [
+          {
+            "command": "git.checkout",
+            "args": [
+              "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/beta",
+              "target-beta"
+            ]
+          },
+          {
+            "command": "git.checkout",
+            "args": [
+              "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+              "target-alpha"
+            ]
+          }
+        ],
+        "summaries": [
+          {
+            "sessionId": "session-100"
+          },
+          {
+            "sessionId": "session-100"
+          },
+          {
+            "sessionId": "session-100"
+          },
+          {
+            "sessionId": "session-100"
+          },
+          {
+            "sessionId": "session-100"
+          }
+        ],
+        "folders": [
+          "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/alpha",
+          "file:///home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/d1386-independent-after/fixture/added"
+        ],
+        "snapshot": {
+          "phase": {
+            "kind": "disconnected"
+          },
+          "transport": "idle"
+        },
+        "body": "File\nEdit\nSelection\nidentity (Workspace)\nFILES\nIDENTITY (WORKSPACE)\nRoot\nhome\nclarence\nProjects\nAgents\nvscode-WorkTrees\nC\n.build\nd1386-independent-after\nfixture\nalpha\nalpha\nadded\nREADME.md\nOUTLINE\nTIMELINE\nConversation\nTrajectory\nAlpha local\nAlpha local\nEngine not connected\nalpha\nalpha-head\nHelp me draft the README.\nStub · 4 steps · Stub: outline sections, read, Stub: draft, write\n1 waiting\n\nStub: README draft is waiting on permission to write README.md. See \nVisualize session (Stub)\n or \nREADME agent (Stub)\n.\n\n1 confirmation pending\nInput needed\n\nAllow write to README.md?\n\nAllow\nSkip\nNo queue\n1 confirmation pending\nStop\nNo model\nConversation\nTrajectory\nGamma final\nGamma final\nEngine not connected\ngamma\ngamma-final\nNo model\nNo Open Code Editors\nSelect files from the Sources file tree or jump directly from conversation references.\nOpen File\nCtrl\n+\nO\nNew File\nCtrl\n+\nN\nFiles\nChanges\nReview\nGamma final\nEngine not connected\nHello \nNavigator shown"
+      }
+    }
+  ],
+  "errors": []
+}

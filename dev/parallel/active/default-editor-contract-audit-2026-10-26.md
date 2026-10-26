@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1385修后5业务红/完整182绿、D1386旧11业务红/完整40+Lens8绿；七TS语义/lint0，新波真实fullcompile45/27失败，旧46/28保留。D1385最终复审/D1386真实after待到。"
+summary: "D1386 CSS4红/完整44绿及非作者真实after C0/I0/M0后closed；D1385取消真实controller旧红/完整183绿，实际保留CopilotChat owner路由UI待证/open；后修3TS0，无第二全量。"
 ---
 
 # 默认编辑器合同与功能缺口续审
@@ -26,9 +26,9 @@ D1382/1383/1384 按各自证据 closed。D1385/1386 仍 open、正式方案 acce
 | C / conversation_navigation_contracts | D1382：默认编辑器 ReviewNav 工作根变化失效与正式 Context/DI 合同 | 源 `37aa2956b77` 已三路合入 `b5f69d4`。旧生产新行为 3过/7败，新生产 37过，五TS语义0。方案 implemented、缺口 closed。J 静态 after 与 D 独立默认编辑器 after 均 C0/I0；真实行/根失效/并列叶/命令参数通过，限制见入库报告 |
 | D / tunnel_retry_contracts（Astra） | D1383：Tunnel 引用身份、getExisting 所有权与 provider 失败后重试；同时审查 C/J 方案 | 方案 `e451d5da071` / 实施 `22386bcf3ae` 已合入；merge 旧生产 red / 新生产 19 passing、定向语义 0，范围内 closed |
 | J / configuration_initialization_contracts | D1384：RemoteUserConfiguration 显式重试共有等待、reload 及销毁边界 | 源 `c4b9332` 已三路合入 `3e63f9e`。旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。方案 implemented，缺口 closed。C 静态 after C0/I0，两条 Minor 不阻断 |
-| C / voice_cold_start | D1385：保留Copilot Chat首次连接录音授权 | 源8619及自槽e48/69ac已三路合入6f82；修后测试精确旧948五业务红，新action完整182过，三TS语义0；最终独立复审核验待到，accepted/open |
-| D / leaf_root_identity（原生接班） | D1386：叶根身份、菜单/checkout与mount offer代次 | ea54727三路到328cb823；旧三生产正文核对后11业务红，新11绿、完整IdentityStrip40过、Lens8过，四TS语义0；C非作者默认编辑器after正在做，accepted/open |
-| merge / 唯一集成者 | 串行源码/旧生产身份/red-green、唯一编译、类型/lint与真实after证据 | 两源及C补修均已合；七TS noEmit0/lint0。本波唯一compile-client source6f82实际exit1、45/27，旧3e63 46/28不覆盖；六输出正文等green，仅action最小fresh回green；最终独立复审/after待到 |
+| C / voice_cold_start | D1385：保留CopilotChat首次录音授权与冷取消 | 原5红/182绿，f9取消先discard后hold已真三路f75；真实controller owner-hide旧业务红、新完整183绿，本次目标TS0；D非作者实际保留pane/editor toolbar/快捷键owner路由证明待到，accepted/open |
+| D / leaf_root_identity（原生接班） | D1386：叶根身份、命令URI/菜单与只读CSS | ea根归属旧11红/40+Lens8绿；b774CSS旧4几何红/新完整44绿，C非作者真实after C0/I0/M0、I1正式CSS原窗口复验解除；D1386closed、planimplemented，限制保留 |
+| merge / 唯一集成者 | 串行源码/精确旧基线/red-green、类型/lint及after收录 | 当前f75后修只fresh两个测试JS/一个actionJS/一CSS，本次3TS0/lint0；D1386closed、D1385实际入口UI待证。后修不全量，source6f82原45/27真实失败不覆盖，不取J新Sources实现 |
 
 D1386 after I1已由C真实确认只读folder/branch箭头12×12仍可见；D clean ff57后仅补production hidden组的chip-open选择器与4主题真实CSS/DOM几何回归，未运行。等待唯一merge旧CSS red/新CSS green与C原窗口正式新CSS复验，保持accepted/open；[补修检查点](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md)。
 
@@ -91,3 +91,12 @@ D1385最终独立复审、D1386非作者C的真实默认编辑器after待到，�
 
 
 本可审runtime checkpoint不等待未知报告、未接后续实施WIP：D1385补修独立复审及实际保留CopilotChat pane/editor toolbar/快捷键owner路由证明待父安排（无真实mic/后端），fake widget上下文不签整条UI。D1386 C审查中反馈只读chevron hidden仍被CSS显示，最终报告与作者补修待后续独立交付；本次仍accepted/open。J新Sources问题也不在此checkpoint接入。
+
+
+## 同波后修范围闭合与当前交接
+
+D b774三路1247bec，旧正式CSS5c595核身份后仅testfresh，四主题真实computed block/12×12各AssertionError红；仅正式新CSSdee625复制后四新绿、完整身份条44过，三生产JS不动。C非作者最终真实after C0/I0/M0，原窗口CSS.getStyleSheetText精确dee625、三实际loadedJS正文等当前D产物，真实leaf/菜单URI/异步/Tab/Enter/Space/Esc/四主题/1024窄宽及I1复验齐全。父按限定证据核验D1386closed/planimplemented；[完整原报告/观察/82本地图清单](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md)和[CSS运行](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md)保留fixture、无真实Git/checkout/远程授权新窗口/在线引擎限制，不升PRD029或S5，不宣称全out同构建。此前open/待after段落保留为阶段历史。
+
+C f9真三路f75，精确旧69ac/57action正文+只fresh真实controller测试，owner hide重复两次得到abort0/release1/ptt_end1真实业务红；仅fresh新action后新项1绿/完整183过，旧A松键不结束B、B350ms正常finalize。Astra同合同裁定+D peer C0/I0/M0，三本次TS原project noEmit0/lint0，stylelint新旧CSS同5变量/9建议。[取消运行](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md)。D1385仍等D非作者实际保留CopilotChat pane/editor工具栏/快捷键owner路由证明，accepted/open，不把fake widget或本real-controller fake I/O单独签整UI，不接Conversation真voice。
+
+后修没有fullcompile；source6f82的唯一45/27失败和旧46/28/55/36原log按字节保留，不替f75估算新计数。新红绿/失败/产物hash/body/mtime分文件落现有证据目录；未写人类/字母槽、未push。J新Sources设计或未提交实现不在此checkpoint，D1382既定通知合同不倒灌。
