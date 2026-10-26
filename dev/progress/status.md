@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1383引用与provider重试已写、静态检查过，待merge正式red/green；2026-10-26 D1379–81闭合：Policy41、投影/缓存138、Provider49+Chrome4过及独立after C0/I0；唯一全量原55/36未过，补修后14TS语义0。历史保留，未push。"
+summary: "D1383旧生产8项行为失败加1次裸拒绝hook，新生产隧道两套件19 passing，两TS定向语义0。全量compile-client未重跑，先前55/36仍失败。D1382/D1384未合入。未push。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
 - **当前安全同步与续审**：父实读人类工位agent-ide及merge/C/D/J均为4963799b1e95且clean，前轮验证元数据已同步，未push。新轮C会话导航、D Tunnel重试、J配置初始化只从当前源码/公共行为确证缺口，D1382–1384仅预留；见[续审看板](../parallel/active/default-editor-contract-audit-2026-10-26.md)。
-- **Tunnel 引用与 provider 重试（2026-10-26，D1383）**：方案 `e451d5d` 经独立 J 只读 C0/I0；open/getExisting 的句柄已统一幂等与原 Promise 身份，强制 close/reopen 后旧句柄不减新引用，provider 同步 throw 清门禁、异步清理不旁生裸拒绝。原 3 场景保留并改公共 close/reopen，新 14 场景已写；两 TS ESLint 0/0、diff/docs 门禁过。未编译、未运行测试、未写 out；red/green 与正式类型交 merge，D1383 仍 open。候选 empty/string 清理竞态无真实生产可达证据，不改。见[方案](../plans/tunnel-reference-and-provider-retry.md)。
+- **Tunnel 引用与 provider 重试（2026-10-26，D1383）**：merge 在 `a9d9babf77f` 核对旧 `tunnel.js` 去掉 source map 的正文与 `4963799b1e95` 同一 esbuild 转译一致，再只刷新测试。新增 grep 对旧生产为 8 项行为失败加 1 次裸 `provider rejected` hook；hook 停掉同进程后续 4 项，这 4 项另次旧生产 4 passing。仅刷新生产后 `platform/tunnel/test/common` 两套件 **19 passing**（清理检查 1、portMapping 1、重试 17，无裸拒绝）。两 TS 未改 `src/tsconfig` 的定向语义 0，ESLint 0/0。方案 implemented，D1383 closed。未跑全量 compile-client，先前 55/36 仍失败。见[证据](default-editor-contract-audit-2026-10-26-evidence/verification.md)、[方案](../plans/tunnel-reference-and-provider-retry.md)。
 - **本轮唯一集成验证收尾（2026-10-26）**：J/C/D源齐后flock内唯一compile-client原始exit1、55诊断/36文件；旧Policy4与MainThread1消失，新Roster回调1由D正式类型补修。之后未重全量，14改动TS定向语义0、ESLint0errors/7warnings、stylelint exit0；原日志未动54/35只为子集说明。15产物fresh/hash留证，独立after C0/I0，三局部计划与原视觉方案按范围implemented，PRD总体不升。见[最终记录](../parallel/active/ui-visual-review-2026-10-26.md#d1379d1381最终收口)。
 - **Policy definition提交生命周期（2026-10-26，D1379）**：J方案ed5a136/实施8a7d81d三路合入30ef3e1；旧330两生产out正文核验一致后test-only red为0过/12败（11行为+1原裸拒绝hook，无超时/加载异常），仅fresh两生产后官方Electron三完整套件+FilePolicyService **41 passing**，11新项与既有owner/reference全执行；五TS正式项目上下文定向语义0、ESLint0errors/0warnings。D1379 closed/方案implemented；当阶段尚未global；后续唯一全量55/36及D1380/1381闭合见当前收尾。见[本轮证据](../parallel/active/ui-visual-review-2026-10-26.md#d1379当前运行证据)。
 - **D1381 Provider布局闭合（2026-10-26）**：C方案fec79c4/实施4e21eb8及f275429焦点测试等待修正真三路纳入source7b6e87；旧八几何全红，新样式+Provider49 passing/4focus pending由Chrome4全补齐。独立四主题32组/96行/192焦点命中无碰撞、0写；宽24px/窄自然增高的局部例外已先获PRD/UI接受。D1381 closed。

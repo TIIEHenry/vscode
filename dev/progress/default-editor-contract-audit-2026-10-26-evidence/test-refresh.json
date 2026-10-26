@@ -1,0 +1,15 @@
+{
+  "kind": "test-only",
+  "esbuildVersion": "0.27.2",
+  "productionUnchanged": true,
+  "productionSha256": "c05ce84bcfbdb5d9408a09950e1655e57ce71955332c540c7d0c766bd8976e5b",
+  "productionMtime": "2026-10-26T04:06:43.668Z",
+  "testSourceSha256": "8727f27341aeb4df2af5600902b6f5751ecd35502647ec3cbea252045525674e",
+  "testSourceMtime": "2026-10-26T04:42:20.383Z",
+  "testOutputBefore": {
+    "sha256": "356eaa313c7f2642b8ce81f41a7becd4c8524e6766731a21935a7ed83dafb70e",
+    "mtime": "2026-10-26T04:43:28.774Z"
+  },
+  "testOutputSha256": "538a0ae17d7b28fcd10956396d0b1c3837c1acf74e48661b0ffa31a35c6f813d",
+  "testOutputMtime": "2026-10-26T08:19:10.279Z"
+}

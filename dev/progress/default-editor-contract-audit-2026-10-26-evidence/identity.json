@@ -1,0 +1,24 @@
+{
+  "esbuildVersion": "0.27.2",
+  "options": {
+    "loader": "ts",
+    "format": "esm",
+    "target": "es2024",
+    "sourcemap": "inline",
+    "sourcesContent": false,
+    "tsconfigRaw": "{\"compilerOptions\":{\"experimentalDecorators\":true,\"useDefineForClassFields\":false}}"
+  },
+  "baselineRev": "4963799b1e95101cc267615cb01b4ebee6939c70",
+  "baselineSourceSha256": "90e119dba51bdcbd14415489e69ba34a23ebcb1400d28eb254f3494ecf3d6de1",
+  "currentSourceSha256": "53c6e8be4397fec766b0ba9e4f0cb046e4315a3a16a248e2b87ae9271e3f3ab0",
+  "currentSourceEqualsBaseline": false,
+  "currentSourceMtime": "2026-10-26T04:42:20.383Z",
+  "existingOutSha256": "c05ce84bcfbdb5d9408a09950e1655e57ce71955332c540c7d0c766bd8976e5b",
+  "existingOutMtime": "2026-10-26T04:06:43.668Z",
+  "existingOutBytes": 55554,
+  "transpiledBytes": 27186,
+  "bodyMatch": true,
+  "existingBodySha256": "f1e831881785bea9cf805f57d92c46d27f57add9f76a55cdd2d3cea62c06934c",
+  "transpiledBodySha256": "f1e831881785bea9cf805f57d92c46d27f57add9f76a55cdd2d3cea62c06934c",
+  "firstDiff": null
+}

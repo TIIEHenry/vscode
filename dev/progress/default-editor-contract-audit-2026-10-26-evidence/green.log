@@ -1,0 +1,38 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[4125230:1026/162205.065672:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:4125250) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `exe --trace-warnings ...` to show where the warning was created)
+(node:4125250) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(node:4125250) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:4125250) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+(node:4125194) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `universe-agent-studio --trace-warnings ...` to show where the warning was created)
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  [32m✔[39m[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  Tunnel[0m
+  [32m  [32m✔[39m[0m[90m portMapping[0m
+
+[0m  Tunnel open retry[0m
+  [32m  [32m✔[39m[0m[90m opens again after the cached promise rejects[0m
+  [32m  [32m✔[39m[0m[90m shares one open while it is in flight and keeps a fulfilled tunnel[0m
+  [32m  [32m✔[39m[0m[90m a rejection drops the slot only while it still points at that attempt[0m
+  [32m  [32m✔[39m[0m[90m releasing one open handle twice preserves the other owner[0m
+  [32m  [32m✔[39m[0m[90m an old open handle cannot release a reopened tunnel[0m
+  [32m  [32m✔[39m[0m[90m an old existing handle cannot release a reopened tunnel[0m
+  [32m  [32m✔[39m[0m[90m a pending tunnel closed before completion cannot release its replacement[0m
+  [32m  [32m✔[39m[0m[90m an existing localhost alias shares and releases the original localhost tunnel[0m
+  [32m  [32m✔[39m[0m[90m an existing localhost alias shares and releases the original 0.0.0.0 tunnel[0m
+  [32m  [32m✔[39m[0m[90m an existing handle acquired while opening owns one independent reference[0m
+  [32m  [32m✔[39m[0m[90m a rejected existing acquisition retains the original error and permits retry[0m
+  [32m  [32m✔[39m[0m[90m a synchronous provider failure releases the factory guard for retry[0m
+  [32m  [32m✔[39m[0m[90m a rejected provider promise has one rejection path and permits retry[0m
+  [32m  [32m✔[39m[0m[90m provider recursion remains blocked only for the pending port and clears after success[0m
+  [32m  [32m✔[39m[0m[90m a provider undefined result leaves no retained acquisition[0m
+  [32m  [32m✔[39m[0m[90m a provider provider declined result leaves no retained acquisition[0m
+  [32m  [32m✔[39m[0m[90m a synchronous undefined provider result releases the factory guard[0m
+
+
+[92m [0m[32m 19 passing[0m[90m (9ms)[0m

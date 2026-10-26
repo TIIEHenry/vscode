@@ -1,10 +1,10 @@
 ---
 title: "Tunnel 引用所有权与 provider 重试"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "D1383：open/getExisting 引用身份与 provider 重试已写；两 TS ESLint 0/0，正式类型与 red/green 待 merge。empty/string 清理候选未证实不改。"
+summary: "D1383已实现：旧生产8项行为失败加1次裸拒绝hook，新生产两套件19 passing，两TS定向语义0。empty/string清理候选未改。全量55/36未重跑。"
 ---
 
 # Tunnel 引用所有权与 provider 重试
@@ -52,7 +52,7 @@ summary: "D1383：open/getExisting 引用身份与 provider 重试已写；两 T
 - [x] 本方案独立只读审查，Critical/Important 为 0；方案单独 commit。
 - [x] `common/tunnel.ts` 与 `test/common/tunnelOpenRetry.test.ts` 实施，知识层 `docs/modules/platform/overview.md` 简述引用/失败语义，status 记录实际 diff。
 - [x] 工位仅运行针对性 ESLint、diff 检查与 docs health；不编译、不 typecheck、不 transpile、不写 out、不启动 watcher。
-- [ ] merge 集成者完成正式类型检查、旧生产 red / 新生产 green 并回填原日志；之前方案保持 accepted，D1383 不闭合。
+- [x] merge 完成正式类型检查、旧生产 red / 新生产 green 并回填日志，见 §7。D1383 按该范围闭合。全量 compile-client 未重跑。
 
 不改 Agents Window、`platform/agentHost` tunnel relay、IPC 字段或 URI 归因；不处理 `dispose()` 总服务失败遍历、provider registration 替换句柄等其他独立合同。
 
@@ -64,8 +64,12 @@ summary: "D1383：open/getExisting 引用身份与 provider 重试已写；两 T
 
 ## 6. 实施证据与集成入口
 
-方案提交 `e451d5d` 后生产改动仅 `getExistingTunnel`、`makeTunnel`、`createWithProvider`。原三个 retry 场景保留，其中 map replacement 改为公共 close/reopen 屏障；新增 14 个测试实例（含参数化 host/获取方式/失败返回值），总计 17 项。尚未运行，不把数量当通过证据。
+方案提交 `e451d5d` 后生产改动仅 `getExistingTunnel`、`makeTunnel`、`createWithProvider`。原三个 retry 场景保留，其中 map replacement 改为公共 close/reopen 屏障；新增 14 个测试实例（含参数化 host/获取方式/失败返回值），总计 17 项。工位当时尚未运行，不把数量当通过证据；merge 结果见 §7。
 
 工位实际执行 `rtk proxy node ./node_modules/eslint/bin/eslint.js src/vs/platform/tunnel/common/tunnel.ts src/vs/platform/tunnel/test/common/tunnelOpenRetry.test.ts`，exit 0、0 errors / 0 warnings；`rtk git diff --check` 通过；文档生成无漂移，docs health 0 errors / 46 既有链接 warnings。没有运行任何编译、转译、typecheck、测试或 out 写入。
 
 merge 先核旧生产正文仍对应基线 `4963799b1e95`，只刷新测试取得真实行为 red（旧重复释放、旧句柄、getExisting 所有权和同步 provider throw 必须失败；原裸 finally 可能另触发 harness 未处理拒绝，须单列）。再仅刷新生产，运行 `rtk scripts/test.sh --runGlob '**/platform/tunnel/test/common/*.test.js'` 完整公共套件，核实 17 项全部执行且无裸拒绝；正式项目语义检查需确认旧 ILogService 诊断消失。记录 source/output 身份、原始 red/green 日志，结果回填前 D1383 保持 open。
+
+## 7. merge 验证
+
+2026-10-26，merge 在 `a9d9babf77f` 上完成 §6 的顺序。旧 `tunnel.js` 去掉 source map 后的正文与 `4963799b1e95` 同一 esbuild 选项转译一致。新增 grep 对旧生产为 8 项行为失败，外加 1 次未处理 `provider rejected` hook；该 hook 停掉同进程后续 4 项，另一次旧生产运行这 4 项为 4 passing。仅刷新生产后，`platform/tunnel/test/common` 两套件 19 passing / 0 failing，其中重试 17 项全部执行且无裸拒绝。两 TS 在未改 `src/tsconfig.json` 的定向语义 0，ESLint 0 errors / 0 warnings。全量 compile-client 未跑，先前 55 诊断 / 36 文件仍是失败。日志与身份见 [验证记录](../progress/default-editor-contract-audit-2026-10-26-evidence/verification.md)。

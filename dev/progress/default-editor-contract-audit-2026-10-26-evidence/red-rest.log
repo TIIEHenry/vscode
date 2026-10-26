@@ -1,0 +1,19 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[4122519:1026/162116.972864:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:4122533) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `exe --trace-warnings ...` to show where the warning was created)
+(node:4122533) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(node:4122533) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:4122533) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+(node:4122487) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `universe-agent-studio --trace-warnings ...` to show where the warning was created)
+[0m[0m
+[0m  Tunnel open retry[0m
+  [32m  [32m✔[39m[0m[90m provider recursion remains blocked only for the pending port and clears after success[0m
+  [32m  [32m✔[39m[0m[90m a provider undefined result leaves no retained acquisition[0m
+  [32m  [32m✔[39m[0m[90m a provider provider declined result leaves no retained acquisition[0m
+  [32m  [32m✔[39m[0m[90m a synchronous undefined provider result releases the factory guard[0m
+
+
+[92m [0m[32m 4 passing[0m[90m (4ms)[0m

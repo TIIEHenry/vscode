@@ -1,0 +1,11 @@
+{
+  "typescriptVersion": "6.0.3",
+  "sourceHead": "a9d9babf77fff698375314002ea3599c2f143b23",
+  "scope": "Unmodified src/tsconfig project context; per-target semantic/syntactic only; noEmit",
+  "config": "src/tsconfig.json",
+  "files": [
+    "src/vs/platform/tunnel/common/tunnel.ts",
+    "src/vs/platform/tunnel/test/common/tunnelOpenRetry.test.ts"
+  ],
+  "diagnostics": []
+}

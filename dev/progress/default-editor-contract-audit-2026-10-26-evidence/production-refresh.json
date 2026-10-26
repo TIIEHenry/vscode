@@ -1,0 +1,12 @@
+{
+  "kind": "production-only",
+  "esbuildVersion": "0.27.2",
+  "previousProductionSha256": "c05ce84bcfbdb5d9408a09950e1655e57ce71955332c540c7d0c766bd8976e5b",
+  "productionSourceSha256": "53c6e8be4397fec766b0ba9e4f0cb046e4315a3a16a248e2b87ae9271e3f3ab0",
+  "productionSourceMtime": "2026-10-26T04:42:20.383Z",
+  "productionOutputSha256": "5ccceee6d16de0792f650b39038667d62c4c6a0e15f1a8b6eaab4e615bafa073",
+  "productionOutputMtime": "2026-10-26T08:22:04.828Z",
+  "productionBodySha256": "de173a5e083030d583272642f1597f3a93ddae4eb890bf371e68026b6051c0a4",
+  "retryTestUnchangedSha256": "538a0ae17d7b28fcd10956396d0b1c3837c1acf74e48661b0ffa31a35c6f813d",
+  "tunnelTestJsBodyMatchesCurrentSource": true
+}

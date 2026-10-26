@@ -4,7 +4,7 @@ type: progress
 status: in_progress
 phase: M7
 updated: 2026-10-26
-summary: "D1383引用与provider重试已写、静态检查过，待merge正式red/green；D1379–81按范围闭合：Policy41、投影138、Provider49+Chrome4过，独立after C0/I0；唯一全量原55/36未过、补修后14TS语义0。main已安全同步source7b6，等元数据cascade。"
+summary: "D1383已按旧生产red与新生产19 passing闭合；D1379–81按范围闭合：Policy41、投影138、Provider49+Chrome4过，独立after C0/I0；唯一全量原55/36未过、补修后14TS语义0。main已安全同步source7b6，等元数据cascade。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -224,8 +224,8 @@ D1379/D1380/D1381 closed，三局部计划及原视觉方案按范围implemented
 
 最终门禁：docs-health535份Markdown、0errors/46既有链接warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/policy-visual-docs-health.log)），generated-status/diff-check通过，status150行。15项source/output共30个SHA256复核一致；无本流水线compile/watch/测试进程残留，独立reviewer自建Electron/Xvfb已停，仅系统既有Xvfb:98保留。最后只读主工位HEAD7b6e87且clean，不代父处理其后状态。入库日志仅规范化行尾空白，原始/tmp日志保留。
 
-## D1383 Tunnel 引用与 provider 重试（待统一运行）
+## D1383 Tunnel 引用与 provider 重试
 
 D 基线 `4963799b1e95`；方案 `e451d5d` 经独立 J 只读 Critical0/Important0，已写两份 TS。`openTunnel` / `getExistingTunnel` 句柄共享同一幂等释放和原 Promise 身份，显式 close 后旧句柄不影响同地址新条目；provider 同步 throw 清 factory guard，异步拒绝无裸 finally 派生拒绝。默认编辑器 `window.ts` 的外部 URI 映射是 getExisting 引用错误的真实消费者。未证实的 empty/string helper 三代清理候选不改，未用私有 map 制造回归。
 
-原 3 场景保留，其中 replacement 改公共 close/reopen；新增 14 个测试实例覆盖共享/别名/晚到/失败/重入保护，总计 17 项待运行。D 只做 ESLint 0 errors/0 warnings、diff 与文档门禁，不编译、不 typecheck、不 transpile、不写 out。merge 先核旧生产身份并仅刷新测试跑 red，再刷新生产跑 `**/platform/tunnel/test/common/*.test.js`；裸拒绝 hook 与行为断言失败分列，正式 ILogService 诊断需清零。D1383 open、方案 accepted；[完整合同及命令](../../plans/tunnel-reference-and-provider-retry.md)。
+原 3 场景保留，其中 replacement 改公共 close/reopen；新增 14 个测试实例，总计 17 项。merge 在 `a9d9babf77f` 核对旧生产正文后，新增 grep 得到 8 项行为失败和 1 次裸拒绝 hook；hook 停掉的 4 项既有门禁在另一次旧生产运行为 4 passing。仅刷新生产后两套件 19 passing，重试 17 项全部执行且无裸拒绝。两 TS 定向语义 0，ESLint 0/0。D1383 closed、方案 implemented。全量 compile-client 未重跑，先前 55/36 仍失败。原始日志见[验证记录](../../progress/default-editor-contract-audit-2026-10-26-evidence/verification.md)，合同见[方案](../../plans/tunnel-reference-and-provider-retry.md)。

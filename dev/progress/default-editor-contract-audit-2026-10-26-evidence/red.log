@@ -1,0 +1,399 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[4118247:1026/161910.529253:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:4118264) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `exe --trace-warnings ...` to show where the warning was created)
+(node:4118264) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(node:4118264) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:4118264) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+(node:4118214) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `universe-agent-studio --trace-warnings ...` to show where the warning was created)
+[0m[0m
+[0m  Tunnel open retry[0m
+  [31m  1) releasing one open handle twice preserves the other owner[0m
+  [31m  2) an old open handle cannot release a reopened tunnel[0m
+  [31m  3) an old existing handle cannot release a reopened tunnel[0m
+  [31m  4) a pending tunnel closed before completion cannot release its replacement[0m
+  [31m  5) an existing localhost alias shares and releases the original localhost tunnel[0m
+  [31m  6) an existing localhost alias shares and releases the original 0.0.0.0 tunnel[0m
+  [31m  7) an existing handle acquired while opening owns one independent reference[0m
+  [32m  [32m✔[39m[0m[90m a rejected existing acquisition retains the original error and permits retry[0m
+  [31m  8) a synchronous provider failure releases the factory guard for retry[0m
+  [32m  [32m✔[39m[0m[90m a rejected provider promise has one rejection path and permits retry[0m
+[4118214:1026/161911.511857:INFO:CONSOLE:272] "Error: Test run should not have unexpected errors:
+provider rejected
+Error: provider rejected
+    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:301:21
+    at withService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:61:13)
+    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:299:11)
+    at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    at Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+    at Runner.runTest (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14857:12)
+    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14980:14
+    at next (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14772:16)
+    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14782:9
+    at next (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14665:16)", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+  [31m  9) "after each" hook for "a rejected provider promise has one rejection path and permits retry"[0m
+
+
+[92m [0m[32m 2 passing[0m[90m (13ms)[0m
+[31m  9 failing[0m
+
+[0m  1) Tunnel open retry
+       releasing one open handle twice preserves the other owner:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "closed": [[0m
+      [32m+  "closed": [][0m
+      [32m+  "disposed": 0[0m
+      [32m+  "opened": 2[0m
+      [32m+  "tunnels": [[0m
+           {
+      [31m-      "host": "localhost"[0m
+      [31m-      "port": 9[0m
+      [32m+      "disposals": 1[0m
+      [32m+      "localAddress": "127.0.0.1:9"[0m
+      [32m+      "privacy": "private"[0m
+      [32m+      "protocol": "http"[0m
+      [32m+      "tunnelRemoteHost": "localhost"[0m
+      [32m+      "tunnelRemotePort": 9[0m
+           }
+         ]
+      [31m-  "disposed": 1[0m
+      [31m-  "opened": 2[0m
+      [31m-  "tunnels": [][0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [32m+[39m   closed: [
+  [31m-[39m   closed: [],
+  [31m-[39m   disposed: 0,
+  [31m-[39m   opened: 2,
+  [31m-[39m   tunnels: [
+  [39m      {
+  [32m+[39m       host: 'localhost',
+  [32m+[39m       port: 9
+  [31m-[39m       disposals: 1,
+  [31m-[39m       dispose: [AsyncFunction: dispose],
+  [31m-[39m       localAddress: '127.0.0.1:9',
+  [31m-[39m       privacy: 'private',
+  [31m-[39m       protocol: 'http',
+  [31m-[39m       tunnelRemoteHost: 'localhost',
+  [31m-[39m       tunnelRemotePort: 9
+  [39m      }
+  [39m    ],
+  [32m+[39m   disposed: 1,
+  [32m+[39m   opened: 2,
+  [32m+[39m   tunnels: []
+  [39m  }
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:144:14
+      at async withService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:61:7)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:137:5)
+[0m
+[0m  2) Tunnel open retry
+       an old open handle cannot release a reopened tunnel:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "closed": 2[0m
+      [31m-  "newDisposed": 1[0m
+      [32m+  "closed": 1[0m
+      [32m+  "newDisposed": 0[0m
+         "oldDisposed": 1
+      [31m-  "tunnels": [][0m
+      [32m+  "tunnels": [[0m
+      [32m+    {[0m
+      [32m+      "disposals": 1[0m
+      [32m+      "localAddress": "127.0.0.1:9"[0m
+      [32m+      "privacy": "private"[0m
+      [32m+      "protocol": "http"[0m
+      [32m+      "tunnelRemoteHost": "localhost"[0m
+      [32m+      "tunnelRemotePort": 9[0m
+      [32m+    }[0m
+      [32m+  ][0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [32m+[39m   closed: 2,
+  [32m+[39m   newDisposed: 1,
+  [31m-[39m   closed: 1,
+  [31m-[39m   newDisposed: 0,
+  [39m    oldDisposed: 1,
+  [32m+[39m   tunnels: []
+  [31m-[39m   tunnels: [
+  [31m-[39m     {
+  [31m-[39m       disposals: 1,
+  [31m-[39m       dispose: [AsyncFunction: dispose],
+  [31m-[39m       localAddress: '127.0.0.1:9',
+  [31m-[39m       privacy: 'private',
+  [31m-[39m       protocol: 'http',
+  [31m-[39m       tunnelRemoteHost: 'localhost',
+  [31m-[39m       tunnelRemotePort: 9
+  [31m-[39m     }
+  [31m-[39m   ]
+  [39m  }
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:173:16
+      at async withService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:61:7)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:161:7)
+[0m
+[0m  3) Tunnel open retry
+       an old existing handle cannot release a reopened tunnel:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "closed": 2[0m
+      [31m-  "newDisposed": 1[0m
+      [31m-  "oldDisposed": 2[0m
+      [31m-  "tunnels": [][0m
+      [32m+  "closed": 1[0m
+      [32m+  "newDisposed": 0[0m
+      [32m+  "oldDisposed": 1[0m
+      [32m+  "tunnels": [[0m
+      [32m+    {[0m
+      [32m+      "disposals": 1[0m
+      [32m+      "localAddress": "127.0.0.1:9"[0m
+      [32m+      "privacy": "private"[0m
+      [32m+      "protocol": "http"[0m
+      [32m+      "tunnelRemoteHost": "localhost"[0m
+      [32m+      "tunnelRemotePort": 9[0m
+      [32m+    }[0m
+      [32m+  ][0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [32m+[39m   closed: 2,
+  [32m+[39m   newDisposed: 1,
+  [32m+[39m   oldDisposed: 2,
+  [32m+[39m   tunnels: []
+  [31m-[39m   closed: 1,
+  [31m-[39m   newDisposed: 0,
+  [31m-[39m   oldDisposed: 1,
+  [31m-[39m   tunnels: [
+  [31m-[39m     {
+  [31m-[39m       disposals: 1,
+  [31m-[39m       dispose: [AsyncFunction: dispose],
+  [31m-[39m       localAddress: '127.0.0.1:9',
+  [31m-[39m       privacy: 'private',
+  [31m-[39m       protocol: 'http',
+  [31m-[39m       tunnelRemoteHost: 'localhost',
+  [31m-[39m       tunnelRemotePort: 9
+  [31m-[39m     }
+  [31m-[39m   ]
+  [39m  }
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:173:16
+      at async withService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:61:7)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:161:7)
+[0m
+[0m  4) Tunnel open retry
+       a pending tunnel closed before completion cannot release its replacement:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "closed": 2[0m
+      [31m-  "newDisposed": 1[0m
+      [32m+  "closed": 1[0m
+      [32m+  "newDisposed": 0[0m
+         "oldDisposed": 1
+      [31m-  "tunnels": [][0m
+      [32m+  "tunnels": [[0m
+      [32m+    {[0m
+      [32m+      "disposals": 1[0m
+      [32m+      "localAddress": "127.0.0.1:9"[0m
+      [32m+      "privacy": "private"[0m
+      [32m+      "protocol": "http"[0m
+      [32m+      "tunnelRemoteHost": "localhost"[0m
+      [32m+      "tunnelRemotePort": 9[0m
+      [32m+    }[0m
+      [32m+  ][0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [32m+[39m   closed: 2,
+  [32m+[39m   newDisposed: 1,
+  [31m-[39m   closed: 1,
+  [31m-[39m   newDisposed: 0,
+  [39m    oldDisposed: 1,
+  [32m+[39m   tunnels: []
+  [31m-[39m   tunnels: [
+  [31m-[39m     {
+  [31m-[39m       disposals: 1,
+  [31m-[39m       dispose: [AsyncFunction: dispose],
+  [31m-[39m       localAddress: '127.0.0.1:9',
+  [31m-[39m       privacy: 'private',
+  [31m-[39m       protocol: 'http',
+  [31m-[39m       tunnelRemoteHost: 'localhost',
+  [31m-[39m       tunnelRemotePort: 9
+  [31m-[39m     }
+  [31m-[39m   ]
+  [39m  }
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:203:14
+      at async withService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:61:7)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:190:5)
+[0m
+[0m  5) Tunnel open retry
+       an existing localhost alias shares and releases the original localhost tunnel:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "closed": []
+      [31m-  "disposed": 2[0m
+      [32m+  "disposed": 0[0m
+         "opened": 1
+         "tunnels": [
+           {
+             "disposals": 3
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [39m    closed: [],
+  [32m+[39m   disposed: 2,
+  [31m-[39m   disposed: 0,
+  [39m    opened: 1,
+  [39m    tunnels: [
+  [39m      {
+  [39m        disposals: 2,
+  [39m        dispose: [AsyncFunction: dispose],
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:222:16
+      at async withService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:61:7)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:214:7)
+[0m
+[0m  6) Tunnel open retry
+       an existing localhost alias shares and releases the original 0.0.0.0 tunnel:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "closed": []
+      [31m-  "disposed": 2[0m
+      [32m+  "disposed": 0[0m
+         "opened": 1
+         "tunnels": [
+           {
+             "disposals": 3
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [39m    closed: [],
+  [32m+[39m   disposed: 2,
+  [31m-[39m   disposed: 0,
+  [39m    opened: 1,
+  [39m    tunnels: [
+  [39m      {
+  [39m        disposals: 2,
+  [39m        dispose: [AsyncFunction: dispose],
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:222:16
+      at async withService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:61:7)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:214:7)
+[0m
+[0m  7) Tunnel open retry
+       an existing handle acquired while opening owns one independent reference:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "closed": 0[0m
+      [32m+  "closed": 1[0m
+         "disposed": 1
+         "opened": 1
+      [31m-  "tunnels": [[0m
+      [31m-    {[0m
+      [31m-      "disposals": 2[0m
+      [31m-      "localAddress": "127.0.0.1:9"[0m
+      [31m-      "privacy": "private"[0m
+      [31m-      "protocol": "http"[0m
+      [31m-      "tunnelRemoteHost": "localhost"[0m
+      [31m-      "tunnelRemotePort": 9[0m
+      [31m-    }[0m
+      [31m-  ][0m
+      [32m+  "tunnels": [][0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [32m+[39m   closed: 0,
+  [31m-[39m   closed: 1,
+  [39m    disposed: 1,
+  [39m    opened: 1,
+  [32m+[39m   tunnels: [
+  [32m+[39m     {
+  [32m+[39m       disposals: 1,
+  [32m+[39m       dispose: [AsyncFunction: dispose],
+  [32m+[39m       localAddress: '127.0.0.1:9',
+  [32m+[39m       privacy: 'private',
+  [32m+[39m       protocol: 'http',
+  [32m+[39m       tunnelRemoteHost: 'localhost',
+  [32m+[39m       tunnelRemotePort: 9
+  [32m+[39m     }
+  [32m+[39m   ]
+  [31m-[39m   tunnels: []
+  [39m  }
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:251:14
+      at async withService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:61:7)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:238:5)
+[0m
+[0m  8) Tunnel open retry
+       a synchronous provider failure releases the factory guard for retry:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(tunnel && typeof tunnel !== "string")
+
+      at open (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:55:12)
+      at async file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:290:25
+      at async withService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:61:7)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:276:5)
+[0m
+[0m  9) "after each" hook for "a rejected provider promise has one rejection path and permits retry":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Error: Test run should not have unexpected errors:
+  provider rejected
+  Error: provider rejected
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:301:21
+      at withService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:61:13)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js:299:11)
+      at Context.<anonymous> (renderer.js:351:11)
+[0m
