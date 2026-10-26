@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留M01修订与compile6后24/2、410/2泄漏历史；a166 Pane自有VM补修定向C0/I0/M0，39项实际运行与新freeze/after待。"
+summary: "a166 Pane VM源码补修C0/I0；新增生命周期旧跑先遇SCM事件夹具I1，业务红0；保留compile6泄漏原件，39项/新freeze待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -477,3 +477,16 @@ Actions、Helper、全局DiffEditorWidget、Panel no-unhandled负控和WiringSca
 **定向C0/I0/M0允许继续父调度的验证；不签运行green。** 原始24/2与410/2泄漏失败及23/1旧scan边界完整保留于§15。新增生命周期测试应由唯一lane配精确旧0da Pane实际验证旧释放断言失败，再对新src实际完整编译与39项、完整相关套复验；原4入口业务旧红来自各自原harness身份，不能混作新生命周期旧红。实际无泄漏、余14及新freeze/D after仍待。
 
 B起点clean `5972836d932ff0cbde50c970b672743e0eee8563`，src fdca不变；只写原报告+INDEX，短C/I已交父/原J/唯一lane。本补修保持§15父授权局部生命周期范围，不需要新的方案或全局架构设计。
+
+
+## 17. a166生命周期旧跑的SCM夹具失败与依赖复核（2026-10-27）
+
+§15三个第六轮raw/JSON现已永久落入唯一lane提交 `fb214e7e06c7e23ede11003bfdb1d5b4f86a7db8` 的同证据目录。reviewer独立Git读取其中 `m01-sixth-M01-focused.log`、`m01-sixth-J-complete-11.log`、`m01-sixth-J-wiring-scan.log`，三SHA256均与§15所列完全相同；长期原件以该提交为准。
+
+随后唯一lane以精确旧0da Pane及a166新增生命周期test实际执行selector `real Pane comparison view models release`，**0 passing / 1 failing，生命周期业务旧红0**。reviewer已读 `/tmp/vscode-m01-old0da-a166-lifecycle.log` 及JSON，raw SHA256 `51ce0aea9498f185b9853269bba12235ae0f686f4ad3757000c461a408c44f43`；失败为 `this.scmService.onDidAddRepository is not a function`，native SourcesChangesReadModel.js:62→feedbackPane test.js:400→case:439，尚未创建VM或到replacement disposal断言。不是释放行为旧红；clear/dispose后续断言也未到达。
+
+**本轮新增C0/I1/M0，I1限定测试夹具依赖。** feedbackPane将ISCMService覆写为只提供repositories=[]的mock，而真实SourcesChangesModel构造器必调onDidAddRepository和onDidRemoveRepository。此前38项运行在首真实入口的afterEach即abort，后面的反馈helper尚未执行；不能把24已过扩成此helper已经可运行，也不能用§16限定VM源码peer推导夹具通过。§16生产所有权静态结论保留，此运行问题必须由原J补。
+
+独立读完整SourcesChangesModel、connection helper、session stub、Pane构造及workbench基座后，最小建议为同一SCM stub补两个公开Event.None事件，并保留repositories=[]和真实model/scheduler。空repo不触发provider的资源/组订阅；connection helper已提供连接事件、phase/snapshot/isEngineConnected/capabilities，session有active/pairing/readiness及两事件；workspace.getWorkspace、model/resolver由基座提供，diffProvider已显式stub。当前断开连接/无read hook路径不调用engine RPC或acquireSessionView。未发现第二个确定缺失依赖，但此静态核对不保证后续运行全过；不得删除真实model、绕过refresh、屏蔽leak/console或补产品私有dispose。
+
+lane JSON记录source `fb214e7e06c7e23ede11003bfdb1d5b4f86a7db8` / src d5eca，current compile6的163输出存在性/mode/SHA、对应source及旧Pane均已finally恢复，HEAD/src/clean不变；此为其执行声明，不是reviewer逐产物复跑。a166未合、第七次完整编译未开始、未freeze/UI。已将两事件与完整依赖检查建议交原J/父；待新immutable修订定向peer后由唯一lane再跑，所有旧失败原件保留。
