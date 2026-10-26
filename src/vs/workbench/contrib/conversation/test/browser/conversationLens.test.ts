@@ -2241,7 +2241,8 @@ suite('ConversationLens', () => {
 			}());
 			stubService.setEngineConnected(true);
 			const sessionId = stubService.getActiveSessionId();
-			stubService.appendUserTurn(sessionId, 'Keep live content during pairing');
+			const turn = stubService.appendUserTurn(sessionId, 'Keep live content during pairing');
+			assert.ok(turn);
 			const { model, onSessionChanged } = stubService.createTestFrameSourceCallback();
 			const testSource = store.add(new TestConversationFrameSource(model, onSessionChanged));
 			stubService.wireTestFrameSource(testSource);
@@ -2273,8 +2274,14 @@ suite('ConversationLens', () => {
 			assert.strictEqual(snapshot.sync.kind, 'live');
 			const entries = lens.lastAttachedEntries;
 			assert.ok(entries.length > 0);
-			const paintedContent = slots.timeline.textContent;
-			assert.ok(paintedContent?.includes('Keep live content during pairing'));
+			const turnSelector = `.conversation-lens-turn[data-kind="user"][data-turn-id="${turn.id}"]`;
+			const paintedTurn = queryTimeline(slots, turnSelector);
+			assert.ok(paintedTurn);
+			assert.strictEqual(paintedTurn.getAttribute('data-turn-id'), turn.id);
+			const paintedBody = paintedTurn.querySelector('.conversation-lens-turn-body');
+			assert.ok(paintedBody);
+			const paintedContent = paintedBody.textContent;
+			assert.strictEqual(paintedContent, 'Keep live content during pairing');
 
 			pairingPending = true;
 			assert.strictEqual(stubService.isEngineConnected(), false);
@@ -2296,7 +2303,12 @@ suite('ConversationLens', () => {
 			assert.strictEqual(lease.snapshot, snapshot);
 			assert.strictEqual(lease.snapshot.sync.kind, 'live');
 			assert.strictEqual(lens.lastAttachedEntries, entries);
-			assert.strictEqual(slots.timeline.textContent, paintedContent);
+			const retainedTurn = queryTimeline(slots, turnSelector);
+			assert.ok(retainedTurn);
+			assert.strictEqual(retainedTurn.getAttribute('data-turn-id'), turn.id);
+			const retainedBody = retainedTurn.querySelector('.conversation-lens-turn-body');
+			assert.ok(retainedBody);
+			assert.strictEqual(retainedBody.textContent, paintedContent);
 			assert.strictEqual(badge.hidden, false);
 			assert.strictEqual(badge.textContent, 'Session disconnected: Pairing required');
 			assert.strictEqual(badge.title, 'Session disconnected: Pairing required');

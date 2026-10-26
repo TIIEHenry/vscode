@@ -783,6 +783,15 @@ suite('conversation lens dispose gate', () => {
 		banner.hidden = true;
 		const readingColumn = document.createElement('div');
 		readingColumn.appendChild(banner);
+		const dock = document.createElement('div');
+		const prefirstHero = document.createElement('div');
+		const dockRoot = document.createElement('div');
+		const gateRow = document.createElement('div');
+		const identityStripElement = document.createElement('div');
+		const inboxOverlayElement = document.createElement('div');
+		inboxOverlayElement.hidden = true;
+		prefirstHero.append(identityStripElement, gateRow);
+		dockRoot.appendChild(inboxOverlayElement);
 		const host = {
 			isDisposed: false,
 			lensId: 'conversation' as const,
@@ -815,12 +824,12 @@ suite('conversation lens dispose gate', () => {
 			exitComposerEdit: () => { },
 			updateGateRow: () => { },
 			relayoutReadingSurfaces: () => { },
-			slotHosts: { dock: { classList: { toggle: () => { } } } },
-			prefirstHero: { hidden: false, appendChild: () => { } },
-			dockRoot: { insertBefore: () => { } },
-			gateRow: {},
-			identityStrip: { element: {} },
-			inboxOverlay: { element: { hidden: true } },
+			slotHosts: { dock },
+			prefirstHero,
+			dockRoot,
+			gateRow,
+			identityStrip: { element: identityStripElement },
+			inboxOverlay: { element: inboxOverlayElement },
 		};
 		return host as unknown as IConversationLensProjectionHost & { readonly sessionSyncBadge: HTMLSpanElement; readonly staleBanner: HTMLDivElement; getSessionSyncCalls: number };
 	}
