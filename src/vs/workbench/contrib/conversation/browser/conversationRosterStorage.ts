@@ -207,7 +207,7 @@ function sanitizeSessions(
 			id: session.id,
 			title: session.title,
 			// Migrate every bucket before a later save stamps the root encoding marker.
-			turns: session.turns.filter(isTurn).map(turn => legacyToolStatus && turn.kind === 'tool' && turn.toolStatus === undefined
+			turns: session.turns.filter(isTurn).map((turn: ConversationStubTurn) => legacyToolStatus && turn.kind === 'tool' && turn.toolStatus === undefined
 				? { ...turn, toolStatus: 'completed' as const }
 				: cloneTurn(turn)),
 			source,
