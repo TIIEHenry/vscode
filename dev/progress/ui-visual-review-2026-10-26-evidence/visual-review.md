@@ -52,7 +52,7 @@ D 工位静态检查：目标 ESLint exit 0，无诊断；stylelint exit 0，仍
 1. 仅由 merge 验证者按本轮唯一产物流程刷新新增测试 JS 与 `conversationLens.css`，记录源码/产物 hash；D 工位不编译、不转译、不写 `out/`。
 2. 在 merge 运行 `rtk proxy ./scripts/test.sh --run vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test --grep "Conversation pending badge styles"`。预期四个主题用例通过，真实结果待填；使用当前测试 JS 与 CSS，不能使用旧产物判通过。
 3. 由独立验证者以全新隔离 user-data/extensions/shared-data、默认编辑器入口与 Stub fixture 打开等待权限座位，复拍同内容浅/深色 1024×768 和宽窗；补 HC light/dark，测标签真实 computed 前景/合成底对比至少 4.5:1、HC contrastBorder 可见、300px 叶宽不裁文字；核验 Tab/方向键仍可进入并切换 Allow/Skip。不得使用或复制日常 profile，不登录、不连引擎。
-4. 新截图和测量写入本地 `.build/visual-review-astra/`，记录 fresh 源码/产物对应关系后再评估关闭 [D1373](../deferred-gaps.md)。merge 已执行最小产物刷新，browser 四个主题用例 4 passing，测试定向语义 0，见 [行为日志](d1373-browser.log) / [新输出清单](d1373-fresh-output.json)。独立实际产品主题 after 已通过，D1373 已闭合。
+4. 新截图和测量已写入本地 `.build/visual-review-astra/d1373/`，fresh 源码/产物对应关系与独立实拍支持关闭 [D1373](../deferred-gaps.md)。merge 已执行最小产物刷新，browser 四个主题用例 4 passing，测试定向语义 0，见 [行为日志](d1373-browser.log) / [新输出清单](d1373-fresh-output.json)。独立实际产品主题 after 已通过，D1373 已闭合。
 
 ## 覆盖限制与清理
 
@@ -67,3 +67,5 @@ Astra 重新隔离启动实际 Electron，验明 merge 的 `conversationLens.css
 真实分栏拖动 300→720→300，四主题共 12 个状态均无裁切或溢出。实测文字对比分别 Dark 7.75:1、Light 9.06:1、HC black 16.48:1、HC light 11.55:1；标签约 100.69×20px，保持紧凑。HC 边框分别为 `#6fc3df` / `#0f4a85`，等于各主题 `contrastBorder`。实际键盘从 Allow 经 ArrowRight 到 Skip，焦点可见；状态标签 tabIndex 为 -1，pending summary 不变，视觉复核没有提交决策。四条 browser 行为测试另行验证提交路径。
 
 这些是 D1373 的真实 after，修复前证据仍在上级目录的 `fresh-pending-badge.json`、`fresh-light-shell-1024.png` 与 `fresh-dark-shell-navigator.png`。原引擎离线、Stub fixture、未登录 / 配对 / 长会话等覆盖限制保持。截图不加入 git；独立审查者自建进程的最终清理记录由本地报告留存。
+
+D1373 最终只读报告已写入本地 `d1373/review.md`，`artifacts.json` 确认 CSS freshness / src-out 一致，`measurements.json` 保存12个真实状态；`d1373/cleanup.json` 确认本次审查的 Electron `3040999` 与 Xvfb `3040925` 均已清理。此前与此次各自的截图、数据和限制分别保留。

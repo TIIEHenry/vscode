@@ -1,0 +1,127 @@
+{
+  "source_head": "a4c5e30896ffaf465e6b2dd94cc7418796625274",
+  "compile_start": "2026-10-26T10:11:26+08:00",
+  "out_root": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out",
+  "files": [
+    {
+      "source": "src/vs/sessions/services/sessions/browser/sessionsService.ts",
+      "source_sha256": "a06998cc4b4fd665144f5e91bb826ff486d8992d1f5288d7c211aada9b9aebb6",
+      "output": "out/vs/sessions/services/sessions/browser/sessionsService.js",
+      "output_sha256": "07c859d31b776ef162f32aae8c1d42b5a9062c135f2b624a5b9f7108d63e02a9",
+      "output_mtime": "2026-10-26T10:11:45.306324+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/sessions/services/sessions/test/browser/sessionsManagementService.test.ts",
+      "source_sha256": "351de69f2a7a7efa813304563524dad9e70a921e9611d71fbaa36955d8fc5fa1",
+      "output": "out/vs/sessions/services/sessions/test/browser/sessionsManagementService.test.js",
+      "output_sha256": "833da1e9eb0f11dfd3899dd6f4b60320097f1f594f3cb5bb8a776bc263bcc8cc",
+      "output_mtime": "2026-10-26T10:11:45.890399+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "source_sha256": "b19102a802eb49fadc7e45cf6be3837b0d253bd0435ad2433ee763183064afc9",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "output_sha256": "b19102a802eb49fadc7e45cf6be3837b0d253bd0435ad2433ee763183064afc9",
+      "output_mtime": "2026-10-26T10:02:53.233000+08:00",
+      "fresh_since_compile_start": false
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test.ts",
+      "source_sha256": "5b603cb0b5a42ef4aa1ce5dd3e083cb4358391d2950664ffbd9830c0f82f4b80",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test.js",
+      "output_sha256": "dca1192a1f5da64da4044f889cef0c3f415cee337b0f884f0a8aee13a4b711ba",
+      "output_mtime": "2026-10-26T10:11:46.014415+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "source_sha256": "fea0aec79f26aeac4c8ff16d4b1ebacf48e86a3bdc9d2d4b1287b9f54b5e04b4",
+      "output": "out/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.js",
+      "output_sha256": "fb5b7d7fb0bd690a0b974f4fa1d61938f9be8e29278732509b18d88d1eb2d319",
+      "output_mtime": "2026-10-26T10:11:45.691373+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/browser/sourcesFilesExplorer.ts",
+      "source_sha256": "f0cd90baf438f8698e60c45f12c6a57fd1e197d136cb69dd30edb85a31ad10d7",
+      "output": "out/vs/workbench/contrib/sources/browser/sourcesFilesExplorer.js",
+      "output_sha256": "c64044c486af0d580b1a729b098d712a217b5a571eeaf09d42ea58b1c5f19157",
+      "output_mtime": "2026-10-26T10:11:45.692373+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/browser/sourcesReviewProgressService.ts",
+      "source_sha256": "b1b45134ed6ca7b840cf4e0d31e09e2328c9a3683c986daf352a1a79cc92c7a8",
+      "output": "out/vs/workbench/contrib/sources/browser/sourcesReviewProgressService.js",
+      "output_sha256": "05cf9cbb830fb37846094f253e9c377659d540983b3cdd8ebf1c789a21dccfbd",
+      "output_mtime": "2026-10-26T10:11:45.694374+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts",
+      "source_sha256": "5215126180b53de3035872ff24ec7127c918a30353023d67d767acd325d28e56",
+      "output": "out/vs/workbench/contrib/sources/browser/sourcesTabsHost.js",
+      "output_sha256": "7c63e509130ed1fb77c4f3740d2e19504a65446df717c143733f2a200ed625f0",
+      "output_mtime": "2026-10-26T10:11:45.694374+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+      "source_sha256": "4a920ab8f6463b8d04dfcab64d708577cd8158336e7c67d8bdaa76e26a651785",
+      "output": "out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js",
+      "output_sha256": "261b491f7d670e703932e84048b146b3b7ee4bb8e7e7304423efdd16ffb1c270",
+      "output_mtime": "2026-10-26T10:11:46.085424+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/test/browser/sourcesFilesListMode.test.ts",
+      "source_sha256": "b999d9c08f35525264481d220efb7bf26e29e471bcd392cadb1f512fdb7e5c8c",
+      "output": "out/vs/workbench/contrib/sources/test/browser/sourcesFilesListMode.test.js",
+      "output_sha256": "1ab890a3899a1e18767b44ed3d9732ee5959e6c4b831b16365fc0f97ffeb6485",
+      "output_mtime": "2026-10-26T10:11:46.082424+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/test/browser/sourcesPartFocus.test.ts",
+      "source_sha256": "b849e961c4175833b022b09d8a9fb2ddfa6b7aeb1354e4271ffa0524a3e9d6ca",
+      "output": "out/vs/workbench/contrib/sources/test/browser/sourcesPartFocus.test.js",
+      "output_sha256": "1ec97dad21fbdb410e3555a6075d9605b7bad4771dbc84d30f723a7021cca454",
+      "output_mtime": "2026-10-26T10:11:46.083424+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.ts",
+      "source_sha256": "188b2f81622d8359979bd15d6cd9289f725cccf2ddee669336f12afc6aa1e08d",
+      "output": "out/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.js",
+      "output_sha256": "9258743180d5e7cdd4c9a2948c1c13f03f8844d61099b3a8d9244b6ccacd72d2",
+      "output_mtime": "2026-10-26T10:11:46.085424+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/test/browser/sourcesReviewProgress.test.ts",
+      "source_sha256": "0d375bf0669ce52f8392efa788555d0226f52c157da54a101136f893337f8799",
+      "output": "out/vs/workbench/contrib/sources/test/browser/sourcesReviewProgress.test.js",
+      "output_sha256": "c6ff453b7bb4383348706d257fc6771e35e1b5d97d1b44a860243940e935c103",
+      "output_mtime": "2026-10-26T10:11:46.083424+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/test/browser/sourcesTabs.test.ts",
+      "source_sha256": "73b14d2356b21388558ff0ee18981877eb6223aeb77db1670277380c263b634b",
+      "output": "out/vs/workbench/contrib/sources/test/browser/sourcesTabs.test.js",
+      "output_sha256": "8fa9f9adc9cbad23a8471268cfbe3feaee58c803712305a72248c7fc30a45368",
+      "output_mtime": "2026-10-26T10:11:46.084424+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/test/browser/sourcesTestSessionContext.ts",
+      "source_sha256": "7f9b9b9b6ba1f5558c402bb398da1ddc651738731645c7517f25934bab96eddd",
+      "output": "out/vs/workbench/contrib/sources/test/browser/sourcesTestSessionContext.js",
+      "output_sha256": "e1882c34e7bcaedb30572eb8f6d9c2ff2738cc22a80cc8b3b3299a5fc4961b4b",
+      "output_mtime": "2026-10-26T10:11:46.083424+08:00",
+      "fresh_since_compile_start": true
+    }
+  ]
+}

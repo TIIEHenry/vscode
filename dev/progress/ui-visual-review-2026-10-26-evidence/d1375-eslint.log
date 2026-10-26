@@ -1,0 +1,39 @@
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts
+  1533:7   warning  'connected' is never reassigned. Use 'const' instead                                                                 prefer-const
+  1860:7   warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  1951:7   warning  'connected' is never reassigned. Use 'const' instead                                                                 prefer-const
+  2775:7   warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2776:29  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2776:50  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2776:60  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2776:84  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2777:29  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2777:50  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2777:60  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2777:84  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2780:39  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2785:13  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2786:13  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2791:13  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2792:13  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2799:23  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2799:79  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2803:38  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2807:40  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2808:40  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2810:44  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2810:89  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2811:44  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2811:89  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2812:35  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2815:41  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  2816:35  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.ts
+   433:7  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  2464:7  warning  'connected' is never reassigned. Use 'const' instead                                                                 prefer-const
+
+✖ 31 problems (0 errors, 31 warnings)
+  0 errors and 3 warnings potentially fixable with the `--fix` option.
+

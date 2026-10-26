@@ -1,10 +1,10 @@
 ---
 title: "2026-10-26 UI 与权限审查集成看板"
 type: progress
-status: active
+status: completed
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26 follow-up：D1373 fresh browser 4 主题与独立实拍通过；D1374 受控屏障 red 11 败 / green 14 过；D1375 Sources 根因已合入待唯一新编译和六套件验证，不沿用前轮全仓诊断作为当前结果。"
+summary: "D1373–D1375 follow-up 已按真实行为与独立视觉闭合；当前唯一新编译 Sources 0、本轮改动 TS 0，全仓仍 160 条 / 58 文件未通过；Sources 官方 Electron 六套件 171 passing。首轮与本次日志分开保存。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -21,17 +21,17 @@ summary: "2026-10-26 follow-up：D1373 fresh browser 4 主题与独立实拍通�
 | merge / 唯一集成验证 | 保留两边进度和历史归档，修编译诊断与真实测试夹具，统一写出产物和验证 | 核心验证提交 `2fec8eaf636`；其后设置页切片见下节 |
 | Astra / 独立视觉复核 | 用真实运行画面复核现有设置页与 responsive UI | 发现 Direct Address 中窄 Host 竖条、Client Settings 窄 Preview 裁切；已交 D 修复 |
 | D / 设置页视觉修复 | D1371 / D1372 局部响应式修复 | `292ec409fc1`，三路合成 `a514ec3d2a5`；最小刷新和行为复验已过，独立视觉 after 已通过 |
-| J / Sources 编译基线 | D1375 正式服务注入、SCM null 结果与测试生命周期 | 基线 `0ea26634bed`；方案 `220db77` 已过 D 槽只读审查，实施已写；目标 ESLint 0 errors / 31 既有 warnings，merge 新编译与运行待验 |
+| J / Sources 编译基线 | D1375 正式服务注入、SCM null 结果与测试生命周期 | 基线 `0ea26634bed`；方案 `220db77` 已过 D 槽只读审查，实施 `7dd0c6d` 三路合成 `a4c5e30`；当前 Sources 0 诊断，官方 Electron 六套件 171 passing，D1375 closed |
 
 两次源码合入均只有 `status.md` / `deferred-gaps.md` 文档冲突，按三路内容保留 D1368、D1369、D1370 的独立意图。D1369 迁出的 2026-10-11–12 历史仍在 [原归档](../../archive/status-2026-10-11-12-retained-2026-10-26.md)，没有删除。
 
 ### D1375 Sources 合同基线
 
-[方案](../../plans/sources-compile-contracts.md) 收敛旧日志 Sources 的 9 条，而非全仓 176 条：三个装饰参数 optional/union 使 `GetLeadingNonServiceArgs` / singleton 合同失败 6 条；SCM 组空编辑器 `null` 未归一 2 条；list-mode 测试漏接 `store` 1 条。已按当前源码逐点修复；D1368–D1372 的已修日志不重做。J 只做静态分析与目标 ESLint（11 文件，0 errors / 31 既有 warnings），没有编译、转译、watch 或写 `out/`。新增 6 条运行回归仍待 merge 新产物：`sourcesTabs` 1、`sourcesReviewProgress` 1、`sourcesChangesList` 4；同时运行夹具对齐的 `sourcesPartFocus`、`sourcesReviewList`、`sourcesFilesListMode`。D1375 暂不闭，不把预计 9 条写成实际消除数。
+[方案](../../plans/sources-compile-contracts.md) 收敛旧日志 Sources 的 9 条，而非全仓 176 条：三个装饰参数 optional/union 使 `GetLeadingNonServiceArgs` / singleton 合同失败 6 条；SCM 组空编辑器 `null` 未归一 2 条；list-mode 测试漏接 `store` 1 条。已按当前源码逐点修复；D1368–D1372 的已修日志不重做。J 只做静态分析与目标 ESLint（11 文件，0 errors / 31 既有 warnings），没有编译、转译、watch 或写 `out/`。新增 6 条运行回归已在 merge 当前新产物通过：`sourcesTabs` 1、`sourcesReviewProgress` 1、`sourcesChangesList` 4；同时运行夹具对齐的 `sourcesPartFocus`、`sourcesReviewList`、`sourcesFilesListMode`。当前 compile-client 已实证 Sources 0 诊断，原映射 9 条均消失；仅 D1375 合同范围闭合，全仓仍 160 条 / 58 文件。
 
-## 唯一编译与修正
+## 首轮编译与修正
 
-2026-10-26 `09:32:05+08:00`，确认没有现存 compile/watch 且 `out/` 可写后，在 `/tmp/vscode-compile.lock` 下执行本轮唯一一次 `npm run compile-client`。该命令真实进入源码检查并生成新 JS，22 秒后因 TS 检查退出 1，计 176 条诊断、69 个文件；不是旧 EROFS / 权限环境断言。原始 [编译日志](../../progress/ui-visual-review-2026-10-26-evidence/compile-client.log) 保留。
+2026-10-26 `09:32:05+08:00`，确认没有现存 compile/watch 且 `out/` 可写后，在 `/tmp/vscode-compile.lock` 下执行首轮唯一一次 `npm run compile-client`。该命令真实进入源码检查并生成新 JS，22 秒后因 TS 检查退出 1，计 176 条诊断、69 个文件；不是旧 EROFS / 权限环境断言。原始 [编译日志](../../progress/ui-visual-review-2026-10-26-evidence/compile-client.log) 保留。
 
 其中改动文件有 7 条诊断，均在本次集成内修正：取消 turn id 在回调前捕获；权限信号的 URI 归一为协议字符串；避免空数组断言把 Ready 数组收窄为 `never[]`；去掉两个只赋值未读取的局部变量；无关 context key 显式采用 boolean。四个文件的 TypeScript 6.0.3 API [定向语义检查](../../progress/ui-visual-review-2026-10-26-evidence/target-types.log) 为 0；补正的三份焦点测试 [定向语义检查](../../progress/ui-visual-review-2026-10-26-evidence/focus-test-types.log) 也为 0。没有第二次全仓编译，不以定向通过冒充全仓通过，也不推算未重跑的剩余诊断数。
 
@@ -79,7 +79,7 @@ D 的 `292ec409fc1` 基于 `df7c5b1`，在 merge 的 `2fec8eaf636` 上真三路�
 
 本阶段 browser 命令为 `node test/unit/browser/index.js --browser chromium-chrome`，三份 `--run` 分别指向 `conversation/test/browser/connectionPreferencesPane.test.ts`、`preferences/test/browser/settingsEditor2.test.ts` 与 `conversation/browser/connectionPreferencesPane.test.ts`，再以 `--grep 'Direct Address input rows|UA Client responsive scope|ConnectionPreferencesPane \(browser\)'` 聚焦。实际编辑器中的尺寸约束变更、UA↔普通切换与 TOC / 重开由 Astra 独立视觉复核；独立视觉结论已通过，见 [入库视觉报告](../../progress/ui-visual-review-2026-10-26-evidence/visual-review.md)；截图与完整测量按要求留在主线 `.build/visual-review-astra/`，不入 git。
 
-独立 after 已确认：Direct Address 305px 单列、479.19→480.00px 无坏带；UA exact / ordinary / mixed / return / TOC / 300px 叶重开往返通过。D1371 / D1372 已闭合。第三项 `Input needed` 文字低对比仅登记 D1373 open，本轮未扩大实现；覆盖限制与本地截图 / JSON 路径见 [视觉报告](../../progress/ui-visual-review-2026-10-26-evidence/visual-review.md)。
+独立 after 已确认：Direct Address 305px 单列、479.19→480.00px 无坏带；UA exact / ordinary / mixed / return / TOC / 300px 叶重开往返通过。D1371 / D1372 已闭合。首轮结束时第三项 `Input needed` 文字低对比仅登记 D1373 open；其后 follow-up 已获授权实施并闭合，见下节；覆盖限制与本地截图 / JSON 路径见 [视觉报告](../../progress/ui-visual-review-2026-10-26-evidence/visual-review.md)。
 
 ## Follow-up D1373–D1375
 
@@ -89,8 +89,8 @@ D 的 `292ec409fc1` 基于 `df7c5b1`，在 merge 的 `2fec8eaf636` 上真三路�
 |:---|:---|:---|
 | D | D1373 `Input needed` 真实对比修复 | `9213459c87f` 已 fast-forward 进入 merge；真实生产 CSS + Permission/Question Seat browser 4 主题通过；独立四主题×三宽度实拍已通过，D1373 closed |
 | C | D1374 SessionsService 异步打开被显式 focus / active-close / all-close / restore 覆盖后的取消边界 | `9b6d532fee4` 已三路合成 `88acc5c`；旧 `0ea` 生产输出 red 为 3 passing / 11 failing，刷新生产并修正空网格占位夹具后 green 14 passing |
-| J | D1375 Sources 正式 DI、null/undefined、测试 store 三类根因 | 短方案经独立只读审查无 Critical / Important；方案 `220db777939`、实施 `7dd0c6d` 已提交待三路合入；只处理九条命名诊断与相应文件 |
-| merge | 唯一真实集成与验证 | 不重复上一轮已绿套件；新源码全齐后按需要只串行跑一次 compile-client，不能拿上一轮日志当本轮结果 |
+| J | D1375 Sources 正式 DI、null/undefined、测试 store 三类根因 | 短方案经独立只读审查无 Critical / Important；方案 `220db777939`、实施 `7dd0c6d` 已三路合成 `a4c5e30`，当前编译与六套件通过；只处理九条命名诊断与相应文件 |
+| merge | 唯一真实集成与验证 | 不重复上一轮已绿套件；新源码全齐后本 follow-up 只串行跑了一次 compile-client，当前 160 条 / 58 文件与首轮日志分别保存 |
 
 D1373 只在 `/tmp/vscode-compile.lock` 内刷新新测试 JS 与 `conversationLens.css`，没有启动全仓编译；[刷新日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-refresh.log) 和 [两文件新输出清单](../../progress/ui-visual-review-2026-10-26-evidence/d1373-fresh-output.json) 保留。`node test/unit/browser/index.js --browser chromium-chrome --run src/vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test.ts` 为 4 passing，覆盖 Light / Dark Modern 与 HC light / dark、300→720→300、真实文字对比至少 4.5:1、紧凑/不裁切、HC 边界与方向键决策路径；见 [行为日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-browser.log)。
 
@@ -102,4 +102,14 @@ D1373 只在 `/tmp/vscode-compile.lock` 内刷新新测试 JS 与 `conversationL
 
 随后锁内仅刷新 `sessionsService.js`（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-production-refresh.log)），首次 13 passing / 1 failing；剩余失败是新 empty-grid 测试错误期望 `[]`。既有 `VisibleSessions` 的初始网格是 `[undefined]` 新会话 composer 占位，取消已正确阻止 pending 复活；集成仅把新测试期望改为保留占位，不改生产网格契约。最终同 suite 14 passing / 0 failing（[green 日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-green-final.log)）；覆盖 openSession / openChat 的 focus、active-close、all-close、inactive-close，同 active 显式 focus、空网格 all-close、正常加载 focus echo 与 restore 三类显式导航。没有重复运行上一轮已绿 suite。
 
-两份 TS 定向语义 0（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-types.log)）、目标 ESLint 0 errors（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-eslint.log)）；[新产物快照](../../progress/ui-visual-review-2026-10-26-evidence/d1374-fresh-output.json) 保存根目录、源码/JS摘要与时间。D1374 行为证据已闭合，等待本轮 Sources 源码到齐后统一当前构建证据。
+两份 TS 定向语义 0（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-types.log)）、目标 ESLint 0 errors（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-eslint.log)）；[新产物快照](../../progress/ui-visual-review-2026-10-26-evidence/d1374-fresh-output.json) 保存根目录、源码/JS摘要与时间。D1374 行为证据已闭合；其后 Sources 源码到齐的当前统一构建证据见下节。
+
+### D1375 当前编译与官方 Electron 回归
+
+本 follow-up 的源提交 `9213459c87f`（D1373）、`9b6d532fee4`（D1374）、方案 `220db777939` + 实施 `7dd0c6d`（D1375）均到齐后，merge `a4c5e30896f` 确认没有 live compile/watch，持 `/tmp/vscode-compile.lock` 只执行一次 `npm run compile-client`。当前结果 **exit 1，160 条 TS 诊断 / 58 个文件**；不是全仓通过。Sources 目录与本 follow-up 所有改动 TS 均为 **0 诊断**；旧日志映射的 Sources 9 条全部消失，但不把首轮总计 176→本次 160 的完整差值都归因于 D1375（其中还包括之前已修的七条）。[当前原始日志](../../progress/ui-visual-review-2026-10-26-evidence/followup-compile-client.log)、[计数与58文件余量](../../progress/ui-visual-review-2026-10-26-evidence/followup-compile-summary.json) 独立保存。
+
+六份 Sources browser 目录套件：`sourcesTabs`、`sourcesPartFocus`、`sourcesReviewProgress`、`sourcesReviewList`、`sourcesFilesListMode`、`sourcesChangesList`。Chrome 实跑 162 passing / 8 failing，8 项均为既有 warn-then-rethrow 测试读取 `process` 监听（纯 browser 不提供），新增六项均通过；保留 [browser 原始日志](../../progress/ui-visual-review-2026-10-26-evidence/d1375-browser.log)。随后使用官方 `scripts/test.sh`、隔离 `xvfb-run -a`、测试进程参数 `--no-sandbox --disable-gpu` 跑同六套件，**171 passing / 0 failing**，包含 `assertCleanState`；八项在 Electron 下全部通过。[Electron 完整日志](../../progress/ui-visual-review-2026-10-26-evidence/d1375-electron.log) 保留。没有修改产品 sandbox 设置，也没有改这些既有测试或增加 browser process shim。
+
+新六项覆盖 TabsHost 注入会话事件的 tab 往返 / dispose 后停止响应、ReviewProgress 双会话工作根隔离与 SCM null/newTab/replace 的四条打开结果。11 TS 文件 targeted ESLint **0 errors / 31 既有 warnings**（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1375-eslint.log)）；D1374 占位夹具修后 ESLint **0 errors**（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-eslint-final.log)）。[当前15文件产物快照](../../progress/ui-visual-review-2026-10-26-evidence/followup-fresh-output.json) 记录全部 follow-up TS / CSS 的 source/output hash、mtime，均晚于本次编译开始；没有用旧 out 跑这些 Sources 验证。未重复上一轮已绿套件，也没有继续改其余 58 文件。
+
+D1375 短方案按范围转 `implemented`，生成索引随源重建；D1373 / D1374 / D1375 均 closed。按文档规则 3c 检索知识层的 D 编号 / 方案名与 Sources 会话上下文合同，未发现需继续翻转的待实施叙述：D1373 的 Conversation 规格、D1374 的 Sessions 概览已随源提交同步；D1375 恢复正式 DI / 空值合同，不改变已接受的 Sources 系统所有权与呈现契约，既有 Sources 总方案和 PRD 状态不翻转。首轮 docs-status 29/28 旧夹具失败保留原证据，本 follow-up 未重复或扩范围修它。

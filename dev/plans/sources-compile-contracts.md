@@ -1,10 +1,10 @@
 ---
 title: "Sources 编译基线：注入、空编辑器与测试生命周期合同"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "D1375：正式服务注入、SCM 空编辑器归一与测试夹具生命周期已修，新增 6 条行为回归；J 目标 ESLint 0 errors，统一编译与运行回归仍留在 merge。"
+summary: "D1375：三类 Sources 合同根因已修；merge 当前 compile-client 中 Sources 0 诊断、全仓仍 160 条 / 58 文件；官方 Electron 六套件 171 passing，新增 6 条行为通过；范围内验收完成。"
 ---
 
 # Sources 编译基线合同修复
@@ -40,11 +40,11 @@ summary: "D1375：正式服务注入、SCM 空编辑器归一与测试夹具生�
 - J 只做静态源码/调用点复核、目标 ESLint、`git diff --check`、文档健康与生成状态检查，不编译、不转译、不启动 watch、不写 `out/`。
 - merge 的唯一新编译实际诊断决定本轮消除数；旧日志的 9 条只作预计，不把全仓通过或 176→167 当作已验证事实。
 - merge 新产物定向运行 `sourcesTabs`、`sourcesPartFocus`、`sourcesReviewProgress`、`sourcesReviewList`、`sourcesFilesListMode` 与 SCM 打开行为所在套件。失败按 [health-gates](../progress/health-gates.md) 分类，不改既定编译门政策。
-- D1375 在 J 实施后保持 open，待 merge 新编译无本轮合同诊断且回归通过再闭；不升 PRD 或既有 Sources 总方案状态。
+- D1375 已由 merge 当前编译无本轮合同诊断与官方 Electron 回归通过闭合；只翻转本方案，不升 PRD 或既有 Sources 总方案状态。
 
 ## 5. 只读审查与实施
 
 - [x] 规则 16：D / `conversation_status_visual` 于 2026-10-26 完成只读审查（未改 J 文件）：Strengths 为三根因与正式服务合同吻合、行为回归及 merge 验证边界清晰；Critical / Important 无；Minor 两项已改入本文（null 归一边界、实际审查者身份）；Assessment 可进入方案独立提交及实施。
-- [x] 三类合同修复与行为回归：生产 4 文件、测试 6 文件及 1 份完整 session 夹具；新增 SCM null/newTab/replace 4 项、TabsHost 会话/销毁 1 项、ReviewProgress 双会话工作根 1 项。代码已写，未运行回归。
-- [x] 静态检查：11 个改动 TS 文件 ESLint exit 0（0 errors / 31 既有 warnings），直接构造与工厂调用点已全仓复核；文档健康、生成状态与 diff-check 通过；行动层随 scoped 实施提交保留 merge 待验。
-- [ ] merge 新编译与新产物定向回归，登记实际结果。
+- [x] 三类合同修复与行为回归：生产 4 文件、测试 6 文件及 1 份完整 session 夹具；新增 SCM null/newTab/replace 4 项、TabsHost 会话/销毁 1 项、ReviewProgress 双会话工作根 1 项。merge 已用当前新产物完成官方 Electron 六套件 171 passing（含清理检查），新增 6 项全部通过。
+- [x] 静态检查：11 个改动 TS 文件 ESLint exit 0（0 errors / 31 既有 warnings），直接构造与工厂调用点已全仓复核；文档健康、生成状态与 diff-check 通过；行动层与下列当前 merge 验收结果一并落账。
+- [x] merge 新编译与新产物定向回归：`a4c5e30896f` 上唯一 `compile-client` exit 1，160 条 / 58 文件；Sources 0、本轮改动 TS 0；命名旧 9 条均消失。Chromium 六套件 162 passing / 8 既有 process 环境失败，转官方 Electron + 隔离 Xvfb / `--no-sandbox` 同六套件 171 passing / 0 failing。目标 ESLint 0 errors / 31 既有 warnings。真实日志与新输出清单见 [本轮看板](../parallel/active/ui-visual-review-2026-10-26.md)。

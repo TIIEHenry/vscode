@@ -1,0 +1,202 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3071488:1026/101405.870357:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3071504) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3071504) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3071504) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  Sources - tab model[0m
+  [32m  ✔[0m[90m default tab is Files[0m
+  [32m  ✔[0m[90m tab order matches Desktop IA roster[0m
+  [32m  ✔[0m[90m nextSourcesTab wraps in both directions[0m
+  [32m  ✔[0m[90m switching sessions saves the tab you left and restores the tab that session last had[0m
+
+[0m  Sources - tabs host docking[0m
+  [32m  ✔[0m[90m injected session events restore each tab and stop saving after disposal[0m
+  [32m  ✔[0m[90m filterSlot docks Files actions only when Files tab is active[0m
+  [32m  ✔[0m[90m docked actions element preserves accessibility and DOM containment[0m
+
+[0m  Sources - part focus[0m
+  [32m  ✔[0m[90m tab aria-controls matches the panel id[0m
+  [32m  ✔[0m[90m focuses the part root when no delegate is registered[0m
+  [32m  ✔[0m[90m focuses the part root when the delegate returns false[0m
+  [32m  ✔[0m[90m Changes focus stays in the visible panel and not on the Files input[0m
+  [32m  ✔[0m[90m Review focus stays in the visible panel and not on the Files input[0m
+  [32m  ✔[0m[90m Changes focus lands on the selected tab button when the panel has no focusable control[0m
+  [32m  ✔[0m[90m Review focus lands on the selected tab button when the panel has no focusable control[0m
+  [32m  ✔[0m[90m disposed tabs host clears the focus delegate[0m
+
+[0m  Sources - review progress service[0m
+  [32m  ✔[0m[90m markReviewed is idempotent for the same key[0m
+  [32m  ✔[0m[90m etag change invalidates reviewed state[0m
+  [32m  ✔[0m[90m different repositories do not affect each other[0m
+  [32m  ✔[0m[90m stat failure uses empty etag[0m
+  [32m  ✔[0m[90m file change invalidates reviewed state when stat keeps failing[0m
+  [32m  ✔[0m[90m pruneMissingKeys clears keys for resources no longer listed[0m
+  [32m  ✔[0m[90m file change does not stat when nothing is reviewed[0m
+  [32m  ✔[0m[90m engine hash uses turn and tool call; a new mutation clears review; a local edit does not[0m
+  [32m  ✔[0m[90m pruneMissingKeys leaves other origin and session buckets[0m
+  [32m  ✔[0m[90m noteRefreshedKey drops the mark when the recomputed hash differs[0m
+  [32m  ✔[0m[90m engine-root row records progress and keeps it after reload[0m
+  [32m  ✔[0m[90m injected session roots match absolute mutations without invalidating another session[0m
+  [32m  ✔[0m[90m never calls IStorageService at runtime[0m
+
+[0m  Sources - review progress key[0m
+  [32m  ✔[0m[90m buildSourcesReviewProgressKey is stable[0m
+  [32m  ✔[0m[90m engine content hash keeps the embedded separator[0m
+  [32m  ✔[0m[90m sourcesReviewProgressBucket prunes only a settled engine-live or scm read[0m
+
+[0m  Sources - review list model[0m
+  [32m  ✔[0m[90m filterReviewEntries applies text, path-set, and unreviewed toggle with AND semantics[0m
+  [32m  ✔[0m[90m path filter banner counts the visible intersection, not the path filter length[0m
+  [32m  ✔[0m[90m path filter banner follows the unreviewed-only toggle[0m
+  [32m  ✔[0m[90m reviewListEmptyReason distinguishes unreviewed-done, path miss, and text miss[0m
+  [32m  ✔[0m[90m countReviewProgress reports reviewed and total[0m
+  [32m  ✔[0m[90m markReviewedAfterSuccessfulOpen marks only when open is true[0m
+  [32m  ✔[0m[90m markReviewedAfterSuccessfulOpen does not mark when open throws comparison load failure[0m
+  [32m  ✔[0m[90m markReviewedAfterSuccessfulOpen ignores stale and false without marking[0m
+  [32m  ✔[0m[90m ensureEntryKeys returns before await when the changes generation already moved[0m
+  [32m  ✔[0m[90m ensureEntryKeys does not prune when a round stuck on resolveKey is stale[0m
+  [32m  ✔[0m[90m ensureEntryKeys prunes only a successful read of the current bucket[0m
+  [32m  ✔[0m[90m refresh stats only entries that are already reviewed[0m
+  [32m  ✔[0m[90m a successful read of another session does not delete the previous session key[0m
+  [32m  ✔[0m[90m openSourcesChangeEntry conversation load-fail returns false and still hands the pane[0m
+  [32m  ✔[0m[90m openSourcesChangeEntry panel load-fail returns false from show()[0m
+  [32m  ✔[0m[90m Review list conversation comparison load-fail does not mark reviewed[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m Review list panel comparison load-fail does not mark reviewed[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m Open Selected conversation comparison load-fail does not mark reviewed[0m[31m (265ms)[0m
+  [32m  ✔[0m[90m conversation open treats undefined as failure before a load event[0m
+  [32m  ✔[0m[90m reveal through editor panes skips setInput and marks an already ok comparison[0m
+  [32m  ✔[0m[90m first setInput failure still returns the pane and a failed reveal does not mark[0m
+  [32m  ✔[0m[90m a later open of a different comparison does not reuse the earlier ok[0m
+  [32m  ✔[0m[90m preview open resolves true when the editor promise resolves[0m
+  [32m  ✔[0m[90m panel show joins the first paint and returns true only after the header is drawn[0m
+  [32m  ✔[0m[90m panel show joins the failure paint and does not treat renderRef resolve as success[0m
+  [32m  ✔[0m[90m a later review open keeps its status when an older open finishes[0m[31m (335ms)[0m
+  [32m  ✔[0m[90m stale review open does not mark reviewed or write an open failure[0m[31m (325ms)[0m
+  [32m  ✔[0m[90m Review list status DOM shows git-read throw[0m[31m (265ms)[0m
+  [32m  ✔[0m[90m Review list setStatusMessage uses error tone only for throw-style failures[0m
+  [32m  ✔[0m[90m Review list success then git-read throw keeps leftover rows and paints failed[0m[31m (547ms)[0m
+  [32m  ✔[0m[90m Open Selected leftover list-fail uses the same FileDiff gate as onDidOpen[0m[31m (547ms)[0m
+  [32m  ✔[0m[90m list-fail leftover closes Mark chrome and forced click stays 0 markReviewed/markAllReviewed[0m[31m (547ms)[0m
+  [32m  ✔[0m[90m connecting pairing-hold closes Mark chrome while write door is still open and forced click stays 0 markReviewed[0m[33m (45ms)[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail closes Mark chrome while git-read still succeeds and forced click stays 0 markReviewed/markAllReviewed[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m Open Selected KEEP leftover still opens FileDiff and does not markReviewed[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m connected leftover without pairing Mark still marks[0m[31m (325ms)[0m
+  [32m  ✔[0m[90m Review list success then missing readGitChanges keeps leftover rows and does not paint local-only[0m[31m (525ms)[0m
+  [32m  ✔[0m[90m Review list success then pairingPending keeps leftover rows and does not paint local-only[0m[31m (788ms)[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold keeps leftover rows and skips git-read[0m[31m (829ms)[0m
+  [32m  ✔[0m[90m in-flight readGitChanges leftover-looks-live keeps leftover and does not paint fresh live[0m[31m (546ms)[0m
+  [32m  ✔[0m[90m Changes list status DOM shows git-read throw[0m[31m (265ms)[0m
+  [32m  ✔[0m[90m empty roster session does not call git-read; Changes stay on SCM empty copy[0m[31m (264ms)[0m
+  [32m  ✔[0m[90m Review context menu alternate open marks reviewed only when the diff opens[0m[33m (43ms)[0m
+  [32m  ✔[0m[90m Review context menu alternate open does not mark when opening the diff throws[0m[31m (284ms)[0m
+  [32m  ✔[0m[90m Review list status DOM shows onDidOpen open-diff throw and does not mark reviewed[0m[31m (284ms)[0m
+  [32m  ✔[0m[90m Changes list status DOM shows onDidOpen open-diff throw[0m[31m (286ms)[0m
+  [32m  ✔[0m[90m Changes context menu alternate open writes open-diff failure on the status line[0m[31m (284ms)[0m
+  [32m  ✔[0m[90m Changes list status DOM shows Stage Selected write throw[0m[31m (286ms)[0m
+  [32m  ✔[0m[90m Changes list status DOM shows Commit write throw[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m Changes list status DOM shows Stage Selected write ok:false[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m Changes list status DOM shows Commit write ok:false[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m Changes list status DOM shows Unstage Selected command throw[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m Review list throw clears leftover SCM rows and chrome[0m[31m (265ms)[0m
+  [32m  ✔[0m[90m Changes list throw clears leftover SCM rows and chrome[0m[31m (265ms)[0m
+  [32m  ✔[0m[90m leftover SCM is local-only when session is empty, disconnected, or unsupported[0m[31m (1055ms)[0m
+  [32m  ✔[0m[90m empty supported git entries do not hide leftover SCM on Changes or Review[0m[31m (528ms)[0m
+  [32m  ✔[0m[90m Review list empty unifiedDiff does not mark reviewed[0m[31m (283ms)[0m
+  [32m  ✔[0m[90m Changes write failure status survives applyRefreshPresentation[0m[31m (685ms)[0m
+  [32m  ✔[0m[90m Changes unsupported Commit without local command shows unavailable[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m review progress keys remain distinct per content hash[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when revealAttributionItem catch-path hint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Changes list refresh catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Changes list runCommit catch-path paint throws and onUnexpectedError warn-then-rethrows[0m[31m (268ms)[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Changes list onRowAction catch-path paint throws and onUnexpectedError warn-then-rethrows[0m[31m (268ms)[0m
+  [32m  ✔[0m[90m Changes and Review share one git read per connection change[0m[31m (926ms)[0m
+  [32m  ✔[0m[90m leftover engine rows keep the ReadGitChanges sessionId when the active session changes[0m[31m (526ms)[0m
+  [32m  ✔[0m[90m Review filter input does not start another git read[0m[31m (664ms)[0m
+
+[0m  Sources - files list mode[0m
+  [32m  ✔[0m[90m list directory stays on the workspace folder when the pick is above it[0m
+  [32m  ✔[0m[90m list directory snaps to the only workspace folder contained by the pick[0m
+  [32m  ✔[0m[90m filter fits on the bar only when the part is at least 600px[0m
+  [32m  ✔[0m[90m sources filter clear action has its own accessible name[0m
+  [32m  ✔[0m[90m same project key shares list mode and different project keys stay independent[0m
+  [32m  ✔[0m[90m missing project key is session private and the window key seeds once[0m
+  [32m  ✔[0m[90m switching the active work root reloads that project list mode[0m
+  [32m  ✔[0m[90m files explorer registers six navigation actions in ViewTitle with correct orders and metadata[0m
+
+[0m  Sources - Changes list open[0m
+  [32m  ✔[0m[90m openSourcesChangeEntry uses scmResource.open for working-tree diff[0m
+  [32m  ✔[0m[90m SCM newTab accepts a group with no active editor[0m
+  [32m  ✔[0m[90m SCM newTab preserves editor order and records the opened identity[0m
+  [32m  ✔[0m[90m SCM replace accepts a group with no active editor[0m
+  [32m  ✔[0m[90m SCM replace preserves editor order and records the opened identity[0m
+  [32m  ✔[0m[90m openSourcesChangeEntry falls back to file preview without scmResource[0m
+  [32m  ✔[0m[90m openSourcesChangeEntry passes editor options on preview fallback[0m
+  [32m  ✔[0m[90m openSourcesChangeEntry opens conversation diff review input when default owner is conversation[0m
+  [32m  ✔[0m[90m conversation open fails when the roster session has no leaf and does not open Preview[0m
+  [32m  ✔[0m[90m conversation open fails when the leaf has no default chat root[0m
+  [32m  ✔[0m[90m conversation open lands on the roster leaf beside the default chat root[0m
+  [32m  ✔[0m[90m conversation open reveals the group that already has the same diff[0m
+  [32m  ✔[0m[90m conversation open unhides the neighbor of the chat root and does not add a group[0m
+  [32m  ✔[0m[90m conversation open adds a group beside the chat root when findGroup has no neighbor[0m
+  [32m  ✔[0m[90m ConversationDiffReviewInput matches original and groupId[0m
+  [32m  ✔[0m[90m openSourcesChangeEntry reads Git file diff for git-sourced rows without local original[0m
+  [32m  ✔[0m[90m openSourcesChangeEntry does not invent a git diff when hook is missing or unsupported[0m
+  [32m  ✔[0m[90m openSourcesChangeEntry does not open supported empty unifiedDiff as a new file[0m
+  [32m  ✔[0m[90m engine-root row opens a hunk diff and unsupported diff stays unopenable[0m
+
+[0m  Sources - Changes list leftover honesty[0m
+  [32m  ✔[0m[90m a later changes open keeps its status when an older open finishes[0m[31m (335ms)[0m
+  [32m  ✔[0m[90m first git-read throw stays empty and paints failure[0m[31m (264ms)[0m
+  [32m  ✔[0m[90m first git-read throw with an SCM repository still hides commit chrome[0m[31m (264ms)[0m
+  [32m  ✔[0m[90m success then git-read throw keeps leftover rows and paints failure[0m[31m (525ms)[0m
+  [32m  ✔[0m[90m success then missing readGitChanges keeps leftover rows and does not paint local-only[0m[31m (526ms)[0m
+  [32m  ✔[0m[90m proxy write methods with UNSUPPORTED git write capability do not offer engine stage or commit[0m
+  [32m  ✔[0m[90m proxy readGitChanges with UNSUPPORTED capability falls back to local SCM[0m[31m (264ms)[0m
+  [32m  ✔[0m[90m success then pairingPending keeps leftover rows and does not paint local-only[0m[31m (788ms)[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold keeps leftover rows and skips git-read[0m[31m (807ms)[0m
+  [32m  ✔[0m[90m in-flight readGitChanges leftover-looks-live keeps leftover and does not paint fresh live[0m[31m (546ms)[0m
+  [32m  ✔[0m[90m a slower ReadGitChanges must not replace a newer snapshot after the fast read lands[0m[33m (46ms)[0m
+  [32m  ✔[0m[90m scm snapshot with local rows keeps scm when readGitChanges throws again and Stage stays on git.stage[0m[31m (1073ms)[0m
+  [32m  ✔[0m[90m leftover-looks-live first-pull pairing without leftover stays SCM and skips git-read[0m[31m (264ms)[0m
+  [32m  ✔[0m[90m success then pairingPending disables Stage / Commit and forced click stays 0 unary[0m[31m (567ms)[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold Stage / Commit stay 0 unary[0m[31m (306ms)[0m
+  [32m  ✔[0m[90m list-fail leftover closes Stage / Commit and forced click stays 0 unary[0m[31m (567ms)[0m
+  [32m  ✔[0m[90m list-fail leftover closes Unstage and forced click stays 0 git.unstage[0m[31m (567ms)[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold Stage with local SCM stays hidden and 0 git.stage[0m[31m (305ms)[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold Unstage stays disabled and 0 git.unstage[0m[31m (305ms)[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail closes Stage / Commit while git-read still succeeds and forced click stays 0 unary[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail closes Unstage while leftoverListFailed stays false and forced click stays 0 git.unstage[0m[31m (305ms)[0m
+  [32m  ✔[0m[90m connected leftover without pairing Unstage still runs git.unstage[0m[31m (306ms)[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Stage Selected button click catch-path paint throws and onUnexpectedError warn-then-rethrows[0m[31m (269ms)[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Unstage Selected button click catch-path paint throws and onUnexpectedError warn-then-rethrows[0m[31m (268ms)[0m
+  [32m  ✔[0m[90m local git.stage success schedules refresh; failure does not[0m[31m (276ms)[0m
+  [32m  ✔[0m[90m local git.unstage success schedules refresh; failure does not[0m[31m (267ms)[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Commit button click catch-path paint throws and onUnexpectedError warn-then-rethrows[0m[31m (269ms)[0m
+  [32m  ✔[0m[90m renders group header with title and count on first row of group, subsequent rows do not show header[0m[31m (265ms)[0m
+  [32m  ✔[0m[90m engine stage uses gitPath and the entry session when the active session still matches[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m engine stage refuses when the active session changed and does not git.stage[0m[31m (286ms)[0m
+  [32m  ✔[0m[90m engine stage with an empty gitPath does not send and does not substitute fsPath[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m engine unstage is only git.unstage and sends nothing without scmResource[0m[31m (265ms)[0m
+  [32m  ✔[0m[90m empty engine list stages and commits the SCM row locally[0m[31m (284ms)[0m
+  [32m  ✔[0m[90m engine-live commit does not fall back to acceptInputCommand when the engine does not accept[0m[31m (529ms)[0m
+  [32m  ✔[0m[90m no-hook commit is blocked after the active session changes[0m[31m (526ms)[0m
+  [32m  ✔[0m[90m an accepted commit from the previous session does not clear the new status line[0m[31m (265ms)[0m
+  [32m  ✔[0m[90m engine commit does not write the message into SCM inputs when two repositories exist[0m[31m (264ms)[0m
+  [32m  ✔[0m[90m commit uses the only repository that already has staged changes[0m[31m (264ms)[0m
+  [32m  ✔[0m[90m commit stays disabled when no repository or more than one has staged changes[0m[31m (529ms)[0m
+  [32m  ✔[0m[90m engine paths join the workDir repository and drop paths outside that root[0m[31m (265ms)[0m
+  [32m  ✔[0m[90m engine row resolves repository root from connection workRoot fallback when session has no workDir[0m[31m (265ms)[0m
+  [32m  ✔[0m[90m engine row whose workDir matches no root is listed and does not open a file[0m[31m (285ms)[0m
+  [32m  ✔[0m[90m engine-root row can open a diff; unsupported diff stays unopenable[0m[31m (569ms)[0m
+  [32m  ✔[0m[90m settled non-SCM repaint keeps a typed commit message[0m[31m (265ms)[0m
+
+
+[92m [0m[32m 171 passing[0m[90m (33s)[0m
+
