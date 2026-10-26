@@ -38,6 +38,7 @@ interface ResolvedResponse {
 	readonly key: string;
 	readonly identity: ConversationResponseIdentity;
 	readonly semantic: string;
+	readonly rowSummaries: ReadonlyMap<string, TimelineItemSummary>;
 	readonly rowIds: readonly string[];
 	readonly pendingAliases: readonly string[];
 	readonly blocked: boolean;
@@ -57,10 +58,24 @@ export function conversationResponseSemantic(summary: TimelineItemSummary): stri
 		case 'permission':
 			return JSON.stringify([summary.kind, summary.permissionKind, summary.argPreview, summary.optionsPreview]);
 		case 'tool':
-			return JSON.stringify([summary.kind, summary.toolName, summary.toolCallId, summary.toolCallIds, summary.argPreview, summary.respondable]);
+			// Finishing a known client response drops respondable. That is lifecycle,
+			// not a replacement of its request content; it must retain closed ownership.
+			return JSON.stringify([summary.kind, summary.toolName, summary.toolCallId, summary.toolCallIds, summary.argPreview,
+				summary.respondable === true || (summary.status !== 'pending' && summary.status !== 'running') ? true : summary.respondable]);
 		default:
 			return summary.kind;
 	}
+}
+
+/** Terminal cleanup may omit client-call chrome; explicit replacement content still retires it. */
+export function conversationResponseSemanticChanged(before: TimelineItemSummary, after: TimelineItemSummary): boolean {
+	if (before.kind === 'tool' && before.respondable === true && after.kind === 'tool' && after.status !== 'pending' && after.status !== 'running') {
+		return conversationResponseSemantic(before) !== conversationResponseSemantic({ ...after,
+			...(after.toolCallId === undefined ? { toolCallId: before.toolCallId } : {}),
+			...(after.toolCallIds === undefined ? { toolCallIds: before.toolCallIds } : {}),
+		});
+	}
+	return conversationResponseSemantic(before) !== conversationResponseSemantic(after);
 }
 
 /** Exact id first, then the longest admitted prefix, across every pending kind. */
@@ -137,13 +152,14 @@ export function resolveConversationResponses(snapshot: SessionViewSnapshot, attr
 		if (rowIds.length === 0) {
 			continue;
 		}
-		result.set(key, { key, identity, semantic: conversationResponseSemantic(summary), rowIds, pendingAliases: candidate.pending ? [`pending:${id}`] : [], blocked });
+		result.set(key, { key, identity, semantic: conversationResponseSemantic(summary), rowSummaries: new Map(rows.map(row => [String(row.id), row.summary])), rowIds, pendingAliases: candidate.pending ? [`pending:${id}`] : [], blocked });
 	}
 	return result;
 }
 
 interface ResponseRecord extends ConversationResponseSeatState {
 	readonly semantic: string;
+	readonly rowSummaries: ReadonlyMap<string, TimelineItemSummary>;
 	readonly attempt?: number;
 }
 
@@ -184,9 +200,16 @@ export class ConversationResponseState {
 		let changed = false;
 		for (const [key, resolved] of resolveConversationResponses(snapshot, attribution)) {
 			const prev = this.records.get(key);
-			const reuse = prev?.semantic === resolved.semantic && !retiredIds.has(resolved.identity.requestId) ? prev : undefined;
+			// Baselines can replace an interactive row while retaining a stale pending
+			// summary. Compare every previously materialized row as well. New rows do
+			// not retire a pending-only request on its first materialization.
+			const reuse = prev && prev.semantic === resolved.semantic && !retiredIds.has(resolved.identity.requestId)
+				&& [...prev.rowSummaries].every(([id, summary]) => {
+					const row = resolved.rowSummaries.get(id);
+					return row !== undefined && !conversationResponseSemanticChanged(summary, row);
+				}) ? prev : undefined;
 			const blocked = resolved.blocked || (reuse && reuse.failure?.retryable === false) || false;
-			if (reuse && reuse.blocked === blocked && JSON.stringify(reuse.rowIds) === JSON.stringify(resolved.rowIds) && JSON.stringify(reuse.pendingAliases) === JSON.stringify(resolved.pendingAliases)) {
+			if (reuse && reuse.blocked === blocked && reuse.rowSummaries.size === resolved.rowSummaries.size && JSON.stringify(reuse.rowIds) === JSON.stringify(resolved.rowIds) && JSON.stringify(reuse.pendingAliases) === JSON.stringify(resolved.pendingAliases)) {
 				next.set(key, reuse);
 			} else {
 				changed = true;
@@ -198,18 +221,24 @@ export class ConversationResponseState {
 				});
 			}
 		}
-		// Keep authoritative closed chrome as a blocked tombstone until its row
-		// is removed/replaced. A terminal request must not become untracked and
-		// accidentally take the unary compatibility path.
+		// A timeline-only client response no longer resolves after terminal cleanup
+		// drops respondable. Preserve only its previously known identity, never
+		// infer client ownership for an ordinary terminal tool.
 		for (const [key, prev] of this.records) {
-			if (!next.has(key) && prev.blocked && !retiredIds.has(prev.identity.requestId)
+			if (!next.has(key) && (prev.blocked || prev.identity.kind === 'clientTool') && !retiredIds.has(prev.identity.requestId)
 				&& !snapshot.pendingActions.some(action => String(action.requestId) === prev.identity.requestId)
-				&& snapshot.timeline.some(row => prev.rowIds.includes(String(row.id))
+				&& snapshot.timeline.filter(row => prev.rowIds.includes(String(row.id))).length === 1
+				&& snapshot.timeline.some(row => prev.rowSummaries.has(String(row.id)) && !conversationResponseSemanticChanged(prev.rowSummaries.get(String(row.id))!, row.summary)
 					&& [row.agentId, attribution.get(String(row.id))?.agentId].every(agent => agent === undefined || agent === prev.identity.agentId) && (
 					(row.summary.kind === 'tool' && prev.identity.kind === 'clientTool' && row.summary.status !== 'pending' && row.summary.status !== 'running')
 					|| (row.summary.kind === 'permission' && prev.identity.kind === 'permission' && row.summary.decision !== undefined)
 					|| (row.summary.kind === 'question' && prev.identity.kind === 'question' && row.summary.answered === true)))) {
-				next.set(key, prev);
+				if (prev.blocked) {
+					next.set(key, prev);
+				} else {
+					changed = true;
+					next.set(key, { ...prev, incarnation: ++this.incarnation, revision: ++this.revision, inFlight: false, blocked: true, attempt: undefined, failure: undefined });
+				}
 			}
 		}
 

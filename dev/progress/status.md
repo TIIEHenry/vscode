@@ -3,13 +3,14 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "当前编译合同基线已修：全量compile-client45→3→0，Electron325过3既有红、Node10过；D1387已有J实现正在独立补修，未合入；D1385范围纠正保留。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **响应失败恢复独立源码审查补修（2026-10-27，E）**：初版`900f772`经原Astra独立code review C0/I3，保留不可排队历史；按[方案§9](../plans/conversation-unary-response-recovery.md#9-初版源码独立审查与原合同补修2026-10-27)修timeline-only clientTool闭态身份、scope通知前写门/identity ownership与同代baseline已有交互行语义。新增18项真实public roster/lease/host回归含三旧结果、同步通知零unary及普通terminal/首次materialize/同语义busy正控；4TS AST无checker/emit0语法错、lint0errors/5既有warnings，未compile/typecheck/transpile/out/运行依赖out测试。父转达旧09f6六业务red中permission/question四项达settle缺inline错误，clientTool两项先缺busy，未达完成回调；旧失败保留。修订待原Astra复审，唯一lane旧900f新回归最小red/统一green、完整套/after待，仍accepted，不升PRD/旧D项。
 - **响应失败恢复源码交接（2026-10-26，E）**：accepted方案独立提交`5dd7d97`（同Astra受审262df24增量C0/I0）；本轮按[方案](../plans/conversation-unary-response-recovery.md#8-e-实施交接仅源码与静态证据)实施canonical typed投影、共享唯一attempt/blocked、顺序incarnation、三类unary准确完成与Question草稿，补document-flow processFold真实CTA接线。回归源码含六业务整链、双叶同步重入、同帧同id重建、权威stream优先与跨代/无票据迟到结果；静态AST17文件0语法错、ESLint0errors/17warnings、docs0errors/73既有warnings无增减；未编译/typecheck/transpile/out/跑业务。方案仍accepted，唯一merge旧09f6业务red/新green、完整相关套与非作者after待；不升PRD/不改旧D项状态。冻结J+E，不取root外部WIP。
 - **D1387 原两机制业务红（2026-10-26）**：主/merge已同clean555c，只有merge取不可变J23f两新测试JS；五core源逐字等c968/133ef、生产JS前后SHA不变。官方Electron0过14败：12DTO在resource.open实际1/期望0断言红，准确对象/id两项被旧finder业务拒绝，无加载/类型/timeout。明确test-only混合scope，最终J补修green/完整套/after待；D cbac规则16custom窄例外报告另真三路接入，逐路径保留门禁PASS。[红与身份](default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md)。
 - **编译基线安全同步与D1387 peer接入（2026-10-26）**：父实核54个source/out SHA与src树后，主工位clean agent-ide仅ff de22成功；D不可变c664独立报告真三路合入0dd2，两边保留等价逐路径门禁PASS、src/out未变、无新编译。J原23f实现已独立审C0/I2，newTab预pin与单侧URI身份误配由Astra裁定、J补修中，尚未合生产或宣告after。[接入证据](default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md)。

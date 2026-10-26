@@ -3,8 +3,8 @@ title: "Conversation 响应失败后恢复准确座位"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-10-26
-summary: "三类 unary 失败按 canonical 身份/共享 attempt/incarnation 恢复座位与草稿；规则16增量复读 C0/I0 已 accepted；实施与整链红绿/after 待证。"
+updated: 2026-10-27
+summary: "三类 unary 准确恢复方案 accepted；初版900f源码独立审查C0/I3，E按原合同补修闭态身份、通知前写门与baseline行语义，复审/新green/after待。"
 ---
 
 # Conversation 响应失败后恢复准确座位
@@ -108,7 +108,7 @@ Shared binding 维护递增 request incarnation。有效 host frame 经 `applyVi
 
 语义签名包含 kind、准确 requestId、已解析 agent；question 包含 items 的 id/title/options/multiSelect/allowCustom、ask-level options/flags/answerKeysValid；permission 包含 permissionKind/argPreview/optionsPreview；client-tool 包含 toolName/准确 call identity/argPreview/respondable。状态变 terminal 单独退休；orderKey、frameId、无关 timeline 行及相同内容重放不构成新 incarnation。
 
-baseline 用真实 generation 和 canonical 请求语义核对：generation 改则整体换 scope；同 generation、同请求同语义保留 incarnation；消失或语义改变的请求退休，不能把每个无关 baseline 重放都当新请求。roster 在现有 `connectionGeneration` 或 published identity 变化处同步通知 FrameSource 切 connection scope，使旧 busy/draft 即使没有新 host frame 也失效；不用另一套连接代次源。binding 替换、最后 consumer release、服务 dispose 同样使旧票据无效。
+baseline 用真实 generation、canonical 请求语义和**已存在交互 timeline 行**核对：generation 改则整体换 scope；同 generation、同请求同语义保留 incarnation；pending summary 未变而已有 question options/items 或 tool args 改变仍须退休旧 attempt。pending-only 请求首次 materialize 合法行不退休；不能把每个无关 baseline 重放都当新请求。roster 在现有 `connectionGeneration` 或 published identity 变化处同步通知 FrameSource 切 connection scope，使旧 busy/draft 即使没有新 host frame 也失效；发布 scope 前先关闭 disconnected 写门，或先提交新 identity/目录并以 transition gate 阻止新 begin，旧 cache 先按旧 owner 保存；不用另一套连接代次源。binding 替换、最后 consumer release、服务 dispose 同样使旧票据无效。
 
 每次 authoritative apply 和局部 begin/complete 都先原子得到新 snapshot 与 response projection，再把新 projection 安装到**所有** live consumers，最后发通知。snapshot、legacy failure、typed state、scope/incarnation 分开判断：任一局部状态变即通知，即使整帧 remove→re-add 后 timeline/pending JSON 完全相同也必须通知旧/新 rowIds 与 pending aliases。重复相同结果可无通知。local sidecar-only 不推进 host cursor、不伪造 frame、不发送 host ack；真实 host 帧仍走原 acknowledge 合同。
 
@@ -132,7 +132,7 @@ TimelineHost 在每次 apply/空列表清理前从正式 getter 同步当前 sco
 
 ## 6. 验证合同与证据
 
-所有运行项目前均未执行。E 只写正式源码/回归、静态 lint/AST无checker/diff/docs检查；不编译、transpile/typecheck/out/watch 或运行依赖out测试。唯一 merge 先新测试+精确旧生产 red，再最终新生产 green、完整相关套/必要 compile；运行记录须绑定不可变源、测试和实际JS摘要。
+E 不执行运行项，只写正式源码/回归、静态 lint/AST无checker/diff/docs检查；不编译、transpile/typecheck/out/watch 或运行依赖out测试。唯一 merge 先新测试+精确旧生产 red，再最终新生产 green、完整相关套/必要 compile；运行记录须绑定不可变源、测试和实际JS摘要。父已转达初版六项旧业务red的有限结果，见§9；不将clientTool的busy断言失败写成已达完成回调。
 
 | 验证 | 必须可观察的断言 |
 | --- | --- |
@@ -192,3 +192,35 @@ accepted 方案提交 `5dd7d97` 后在 E 实施，未取 root 外部视觉/协�
 - 新 green 先跑 `rtk proxy scripts/test.sh --run src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts --grep 'response recovery'`，再跑该文件完整 suite；matrix 包括三类×false/reject、双叶同步 click/reentry、late leaf、同帧 pending/timeline remove→re-add×false/reject/accepted、同代 baseline保留与跨代清空、无票据迟到accepted、不复活blocked、implicit多组activation与权威stream优先×三种迟到结果。snapshot相等/noack/答案payload/RPC次数/post=0均须实际通过。
 - 完整相关 browser 套：`conversationEngineFrameSource.test.ts`、`conversationResponseState.test.ts`、`conversationSessionView.test.ts`、`conversationTimelineProjection.test.ts`、`conversationTimelineRenderer.test.ts`、`conversationTimelineHost.test.ts`、`conversationQuestionSeat.test.ts`、`conversationProcessFold.test.ts`、`conversationProcessFoldToolDetails.test.ts`、`conversationStreamToDom.test.ts`、`conversationStreamScripts.test.ts`；必要 `compile-client` 仅该 lane 执行。已有 D1356/1357/1359 的身份/显式ok/cleanup边界不得删断言以变绿。
 - 新产物冻结并核实际 JS/源摘要后，父派非作者默认编辑器 after；仍按 §6 的实际座位点击/键盘、busy、错误、重试、答案与准确隔离，不拿这里的源码矩阵充运行证据。
+
+## 9. 初版源码独立审查与原合同补修（2026-10-27）
+
+初版不可变实现为 `900f772bfd139214651a7c15e82678a1a0ef6f69`（src tree `da5aa1664b65970dc72790749b1101c4534f074f`）。父 `/root` 转达原 Astra 的独立 code review **Critical 0 / Important 3**，该候选不可正式排队。以下是原合同内修正，保留900f失败历史，不重开方案签收、不自称意见已获独立闭合；修订候选待同一 Astra 复审。
+
+| 原 Important | 本轮修订与新增公共边界回归源码 |
+| --- | --- |
+| I1：仅timeline `respondable:true`、无pending的clientTool，accepted终态丢respondable后记录被退休，重复begin落untracked并二发；权威terminal先到也有同漏洞 | FrameSource与State共用语义变化判断，已知clientTool终态省略respondable/cleanup省略call chrome属于生命周期；仅从旧已知身份保存blocked tombstone，显式替换语义/移除/agent冲突仍退休，不将普通terminal tool识别为clientTool。真实host点击→unary accepted→重复公共respond返回false/RPC仍1；另有权威terminal→旧false/reject/accepted迟到三项与普通terminal兼容转发正控。 |
+| I2：disconnect/identity switch先发scope reset，监听器同步respond可在旧写门/目录创建新票据，单使旧generation失效不足 | public disconnect先提交关闭状态；真实connection disconnect先移除display override；identity adoption先开启response transition gate，旧catalog按旧owner落盘，再提交新identity/目录并发scope。dispatch开始与通知后都核实际live连接及transition gate。真实held lease scope listener内同步调用permission/question/clientTool三公共API，disconnect两入口和published identity switch均断言三false/零unary；新旧identity cache用相同session id固定owner不串写。 |
+| I3：同代baseline沿用pending summary，已有question/tool行语义替换未退休，旧结果可污染/清理新行 | State保存已materialized行summary，reconcile比较规范语义，覆盖baseline和patch共同入口。pending-only首次materialize允许沿用；同语义baseline继续busy。真实host question options / question item id-title / clientTool args三变化×旧false/reject/accepted共9项：pending逐引用不变、替换后旧busy/draft解除、新点击建新attempt、旧完成不改snapshot/不解除新busy、当前结果仍准确投影。另有公共边界首次materialize正控。 |
+
+父转达唯一merge的初版旧业务red共6项：permission/question四项已到unary settle后缺inline失败；clientTool两项先在processFold busy断言失败，**不能称已达完成回调**。E未运行这些测试，不改已有运行记录；精确旧生产仍是 `09f6da72d30`，与下列三Important的旧900f red分开。
+
+### 9.1 唯一lane精确旧900f与新候选验证
+
+本次新增18项全部在 `conversationEngineRosterService.test.ts`，总selector为 `response recovery review`；测试经真实public roster、held EngineFrameSource lease/正式projection，交互项使用真实TimelineHost/renderer/processFold，不调用新增State/begin测试入口。
+
+| 精确test名或grep | 旧900f预期业务断言落点 / 正控 |
+| --- | --- |
+| `response recovery review I1 timeline-only clientTool accepted remains blocked after respondable is removed` | 真实点击及accepted cleanup后，重复public respond应false且RPC仍1；旧900f会返回true并二发。包括cleanup省略call id chrome。 |
+| `response recovery review I1 timeline-only clientTool authoritative terminal supersedes late`（3项） | terminal先到即重复应false，晚到false/reject/accepted均不改终态/RPC仍1。 |
+| `response recovery review I1 ordinary terminal tool stays untracked on the public response boundary` | 正控：普通terminal仍走unknown兼容转发一次，无typed ownership/本地cleanup，不能靠把所有terminal都blocked通过I1。 |
+| `response recovery review I2 public disconnect closes writes before synchronous scope notice` | 旧900f通知中的三响应返回true/新增unary；修订须三false/零unary。 |
+| `response recovery review I2 published identity switch closes writes before synchronous scope notice and preserves cache owners` | 旧900f在旧目录仍可respond；修订须三false/零unary、A/B缓存owner准确。与public disconnect分别作最小旧red代表。 |
+| `response recovery review I2 connection disconnect closes writes before synchronous scope notice` | 真实connection入口正控：通知确发生、三false/零unary。 |
+| `response recovery review I3 same-generation baseline question options retires old false while pending stays unchanged` | 旧900f在baseline替换后的真实按钮仍busy，不能新建替换attempt；此业务断言作question最小旧red代表。 |
+| `response recovery review I3 same-generation baseline clientTool args retires old accepted while pending stays unchanged` | 同上，tool args代表；后续assert固定旧accepted不清理新snapshot。完整I3矩阵另含question items、三旧结果共9项。 |
+| `response recovery review I3 pending-only first baseline materialization preserves the live attempt` | 正控：首次合法行落位仍busy，二次public respond仅返回已处理不二发；当前false准确恢复新行。9项矩阵各自另验同语义baseline replay仍busy。 |
+
+先在唯一lane以修订测试JS+精确旧900f生产做上述代表性业务red，再统一最终生产跑 `response recovery`、完整roster及§8全部相关套、必要compile与独立默认编辑器after。missing API/module、type、timeout不计业务red。E未编译/typecheck/transpile、未写out、未跑依赖out测试。
+
+本轮静态门禁：4个改动TS `createSourceFile` parse为0语法诊断（无checker/emit）；ESLint 0 errors / 5既有warnings，原始JSON `/tmp/vscode-response-recovery-E-review-fixes-eslint.json`；`git diff --check`通过。生成状态核对OK；docs health为0 errors / 73既有warnings，对上一实现检查新增0/移除0，原始JSON `/tmp/vscode-response-recovery-E-review-fixes-docs-health.json`；status173行。最终不可变身份随提交交接给出；方案仍accepted，不升PRD/不关闭旧D项。

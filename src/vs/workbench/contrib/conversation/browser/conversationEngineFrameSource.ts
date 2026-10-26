@@ -18,7 +18,7 @@ import {
 	type ConversationViewFrame,
 	type IConversationViewFrameSource,
 } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
-import { ConversationResponseState, conversationResponseChangedIds, conversationResponseSemantic, type ConversationResponseKind, type ConversationResponseProjection, type ConversationResponseBegin } from '../../../../platform/universeAgent/common/conversationResponseState.js';
+import { ConversationResponseState, conversationResponseChangedIds, conversationResponseSemanticChanged, type ConversationResponseKind, type ConversationResponseProjection, type ConversationResponseBegin } from '../../../../platform/universeAgent/common/conversationResponseState.js';
 import type { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import {
 	applyViewFrame,
@@ -199,7 +199,7 @@ class SharedEngineHostBinding {
 			} else if (patch.op === 'removeTimelineItem' || patch.op === 'upsertTimelineItem') {
 				const id = String(patch.op === 'removeTimelineItem' ? patch.itemId : patch.item.id);
 				const prev = current.timeline.find(item => String(item.id) === id);
-				if (patch.op === 'removeTimelineItem' || (prev && conversationResponseSemantic(prev.summary) !== conversationResponseSemantic(patch.item.summary))) {
+				if (patch.op === 'removeTimelineItem' || (prev && conversationResponseSemanticChanged(prev.summary, patch.item.summary))) {
 					const key = this.responseProjection.byRow.get(id);
 					const state = key ? this.responseProjection.byRequest.get(key) : undefined;
 					if (state) {
