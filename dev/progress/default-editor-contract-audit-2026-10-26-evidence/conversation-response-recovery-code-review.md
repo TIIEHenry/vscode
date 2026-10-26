@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留compile7实际38/1与424/1；468d生命周期seed resolver引用补修定向C0/I0/M0，原VM/SCM/progress历史保留，39项及新freeze待。"
+summary: "保留M01源码/夹具与运行历史；468d定向C0/I0；D新J-only after的toJSON异常定位为观察层返回service bag，双attempt分记，真实M01验收仍待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -557,3 +557,28 @@ fixture先用IModelService.createModel创建inmemory双侧并store.add，但这�
 **新增断言区分资源与视图模型。** 三次await setInput后均要求comparisonLoadState='ok'，每次open以及clearInput/Pane.dispose后都要求两文本仍live；同时保留createViewModel计数1/2/3和三代dispose.calledOnce原断言。即使产品错误地在VM清理时直接销毁共享文本，live断言也会失败；即使文本仍存活但旧VM漏释放，dispose断言仍会失败。没有改count为1、加sleep、替换resolver返回值或删除clear/dispose验证。真实4 Move入口区及原feedback tests开始至文件末逐字与64a4一致；原38场景expected与gates保留。
 
 **Assessment：定向C0/I0/M0，可交唯一lane执行新test与准确旧0da Pane的生命周期旧红，再按父调度新候选验证。** 先前compile7=0、原38实过和完整424/1只是各自实际边界；新39/完整相关套及freeze/D after尚未签。作者AST/lint未由reviewer代跑；B起点clean `e5c25b4b33853e8d6b9da9476adfbe589e24a0b9`，仅原报告与INDEX，src fdca不变，无compile/typecheck/transpile/out/native/UI。短C/I已交父/原J/唯一lane。
+
+
+## 21. D新after观察层toJSON异常独立定界（2026-10-27）
+
+### 原件、因果与范围
+
+父调度D新的J-only默认编辑器after，E仍未授权。reviewer仅只读D的 `.build/d1387-m01-after-20261027-r2/` probe/driver、快照、归档renderer日志和本机Playwright序列化实现，未操作窗口、CDP、engine或out。D快照绑定consumer `800d383ba65fdefb36da324b380941c7574c4bf3` / src `2b5df2b37ca926e38888443e371cf65e2883dba2`；本节不代签D readiness、最终矩阵或freeze全清单。
+
+attempt1的初始probe uiErrors=[]，其后首次config快照保留两条unhandledrejection `CodeExpectedError: Method not found: toJSON`，at分别1793046845654/5656。原快照 `observer-attempt-1/steps/01-preview-replace-config.json` SHA256 `ea6ee721257e2485b404d32cc61ecbc0df77c069982d80dc9004c6bf2a6f0cf1`；归档renderer日志SHA256 `21c8e5b6195f0b38a03573fa23a36b3e7c7f237daa33f3f7158b121173a0c018`，两栈同generic IPC ChannelServer无方法分支，一条经Session.emit、一条MessagePortMain，时点在首次Sources动作之前。原probe脚本 `probe-original.cjs` SHA256 `500e981800a2e02bd5fdf5103ea31e92d222eeb6c57a9393d22cb9d33d37c8a2`，原driver `ce10923c006a7a253135a8059febd3c6d4b7f0f72855bcf1183b6024b90732a9`。
+
+**独立因果闭合为观察层误序列化，不是M01生产调用失败。** probe末 `page.evaluate(binding=>Object.assign(window.__d1387,...))` 的expression-arrow隐式返回整个含服务对象的bag；初始probe快照在该语句前采集，所以不能用它的空数组排除其后的观察错误。本机Playwright coreBundle内utilityScriptSerializers对无自有可序列化字段且有toJSON函数的对象会调用value.toJSON；ProxyChannel.toService的get将除then外任意字符串成员映射为async channel.call，因此toJSON变成未实现的IPC方法，generic服务端拒绝。同步序列化try/catch不能捕获返回Promise之后的rejection。两失败到无方法分支，没有执行对应业务方法；这不是新增引擎RPC的证据，引擎隔离仍以D自己的采样验证为准。
+
+### 最小观察层修订与真实参数身份
+
+修订probe改为block callback，只执行Object.assign不返回bag。driver命令观察改为typed Conversation source的显式身份投影、URI字段DTO和plain object的own data descriptors（accessor不执行、深度上限），不再任意JSON.stringify服务对象。已读版本probe SHA256 `90b83305ea7b14c17c1aa6767a21250b75b58a738f972f256b0a9f47cd7e3a47`、driver `d8cdca886b91ac69a49513329125ae1230ebac506d180d99c2b7e441506118d9`；修订记录 `observer-revision.json` SHA256 `b889f9b0d29b3404da59388038684799fc012e48a74e901e840ed61543fc98f8`。这些是reviewer读取时的观察脚本身份，不是冻结产品文件。
+
+**投影仅改变证据，不改变真实命令参数。** listener从e.args用map创建新证据数组写b.events，未回写e.args、source.editor/group/pane，也没有用DTO重新execute命令。typed分支只读原对象关系，记录sameEditor/sameGroup/sameActivePane及精确成员；真实按钮仍把原Pane来源交registered command。不得将这份窄DTO作为生产调用源，以免破坏正在验收的对象身份合同。另提醒D：faultInstall hits中旧任意JSON.stringify应同样改为只读投影；原args继续交original.handler，不用DTO替换。此为观察层局部建议，不要求改产品ProxyChannel的toJSON合同。
+
+### 两attempt分开，继续范围
+
+reviewer认为修观察层后同窗重绑+plain snapshot验证无新增异常即可继续，既有业务状态未被两条无方法调用更改，无需为该错误全量重来。但D在收到该建议前已依父先前“必要可重启自有profile”的授权执行clean重启；父确认接受。已独立读两launch：attempt1 Electron1926141/Xvfb1926062/CDP34987，attempt2 Electron1931833/Xvfb1931775/CDP37197；旧launch/lease/cleanup、8steps/PNG/profile logs和脚本存于observer-attempt-1。cleanup原件声明remainingOwned=[]、profileRemoved=true；reviewer未代做进程关闭或逐句柄复验。
+
+attempt2使用新profile从P01重新开始，已读其config快照uiErrors=[]，SHA256 `c7edcbb7be528c0b37fb52666650be2267984bc4bc0e574626ee7f4bba343bb8`。只能陈述该新attempt已读时点无异常，不能删除attempt1数组、按错误字符串过滤后称整轮零异常，也不把新空config快照等同整个M01/真实UI通过。D后续应记录观察修订边界和各attempt身份，再完成真实动作与最终证据；本节未发现要求原J改产品的新缺陷，不阻断D在已授权默认窗口内继续。
+
+本次只写B原报告+INDEX，src仍fdca，未操作D脚本/窗口/产物；因果和参数身份结论已交父与D。
