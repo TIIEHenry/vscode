@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1370 源码已落盘；D1368 权限晚到取消闸、D1369 Sort/Group 生命周期与 D1370 响应式控件待 merge 统一新编译和行为验证；先前环境失败仅作历史记录，未 push。"
+summary: "2026-10-26：D1332–D1372 源码已落盘；D1371 Connection 字段与 D1372 UA Client 窄宽布局待 merge 统一新编译和行为验证；先前环境失败仅作历史记录，未 push。"
 
 ---
 
@@ -12,6 +12,7 @@ summary: "2026-10-26：D1332–D1370 源码已落盘；D1368 权限晚到取消�
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **设置页详情与 Preview 窄宽修复（2026-10-26，D1371 / D1372）**：Astra 在 merge 新产物实拍复现 Connection 606px pane 中 Host 说明只剩 49px，以及 356px Preview 被 Settings 500px 最小宽撑开。Direct Address 的 Host / Port / Name 现共用网格列宽，详情正文不足 480px 时统一纵排，勾选项和 Hub 原表单保持；UA 专属 TOC / 纯 UA `@id:` 视图的 pane 与内部列共用 300px 最小宽并同步约束事件，普通 / 混合搜索恢复 500px，TOC 仍以 700px 显隐。新增实际 CSS+DOM 容器宽度往返、UA/上游样式往返与查询范围回归，替代旧 CSS 字符串扫描；目标 ESLint 0 errors、stylelint exit 0（既有提示）、docs-health 0 errors / 46 既有链接警告、generated-status --check 与 diff-check 通过。D 不编译、转译或运行新测试，交 merge 唯一验证流水线。见 [D1371 / D1372](deferred-gaps.md) 与 [Settings SSOT](../../docs/reference/code-oss-b2/settings-ua-access.md)。
 - **Permission 评估晚到取消闸（2026-10-26，D1368，权限/Agent Host 状态审计）**：`pending_confirmation` 进入异步路径策略评估后，turn/session 可能已取消或销毁；原逻辑只在 await 前检查取消，晚到结果仍可派发 `ChatToolCallReady` 或留下 SDK 权限等待。现 await 后复核 cancelled tool 与 session state，过期请求立即拒绝并清理跟踪；可控评估屏障回归覆盖取消后的两种评估结果、session 移除及 hook continuation，断言答复次数与 Ready 公告。目标文件 ESLint `--no-cache` 0 errors，Node 测试交 merge 工位统一验证，未跑 full compile/转译。见 [D1368](deferred-gaps.md)。
 - **Sort/Group sheet 焦点与关闭生命周期（2026-10-26，D1369）**：表单打开后按 DOM 顺序循环 Tab/Shift+Tab，空项时聚焦 Close；关闭开始即释放监听、设置 inert/aria-hidden 并按焦点归属恢复可用 opener，动画结束只移除旧 DOM，避免新 sheet/外部焦点被抢。新增 13 条 browser 回归覆盖关闭入口、动画重开、隐藏/销毁/禁用 opener 与外部焦点；目标 ESLint 0 errors，最终行为回归留 merge 一路执行；未完整编译或转译 out。历史 2026-10-11–12 条目已[归档](../archive/status-2026-10-11-12-retained-2026-10-26.md)，未删除。见 [D1369](deferred-gaps.md)。
 - **Sessions 响应式生命周期收口（2026-10-26，D1370）**：Host toolbar 直接订阅 phone / Sessions / auxiliary 上下文，往返切换时创建或清理原 divider 与 toolbar 两个 flex 子项，撤掉额外 wrapper。复核发现 D1367 同样会在 phone context 先于 CSS 类更新时早退；header toolbar、chips 与 header 可见性现统一读 context。镜像源码扫描改为上下文往返、手机启动、重复切换、旧监听释放、筛选保留、窗口门控及 flex 子项清理的 browser 回归。C 的 diff-check、docs-health（0 errors / 46 既有链接警告）与 generated-status --check 通过；docs-status 7 测 6 过 / 1 败，HEAD requirements 已有 29 PRD 而夹具期望 28，本刀未改需求或该测试。最终类型/运行验证由 merge 工位统一执行，C 未编译/转译 out；D1370 待该验证后再闭。见 [D1370](deferred-gaps.md)。

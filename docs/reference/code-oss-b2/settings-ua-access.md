@@ -3,7 +3,7 @@ title: "Settings 接入：UA 设置项如何挂进 vscode Preferences"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-23
+updated: 2026-10-26
 summary: "混合宿主已落；Client 9 键与 Engine E2-1–E2-7 代码完成线已落；HEAD Engine 左栏 15 节，Rules 桌面可写，Hooks 仍只读；PRD-025/026 仍 accepted，待产品验证"
 ---
 
@@ -70,6 +70,8 @@ Client 与 vscode 原生重叠的项 **不要双入口**：
 - 主题/色 → `workbench.colorTheme`（Display 不另做主题选择器）
 - 编辑器字号 → `editor.fontSize`（消息字号仅当产品要独立时才新 key）
 - 快捷键编辑器 → `KeybindingsEditor` / `workbench.action.openGlobalKeybindings`；UA 只保留「聊天输入 Enter 行为」一项挂 TOC
+
+**窄宽布局边界（D1371 / D1372）**：Connection 的 Direct Address 输入型行（Host / Port / Name）共享双列布局；列宽由网格单一分配，不再叠加百分比上限。详情正文自身不足 480px 时，三行统一改为说明在上、输入框占满行宽，独立于整个 pane 的导航断点；private-network 勾选项仍保持说明与勾选框同行，Hub 原纵向表单保持。Client 继续复用完整 `SettingsEditor2`：仅默认窗的空查询 UA TOC 分类（`ua` / `ua/*`）或全部 `@id:` 均为 `ua.client.*` 的查询启用 UA 专属布局，pane 与内部设置列共用 300px 最小宽；切换查询、TOC 或关闭输入时同步 class 与尺寸约束。普通查询、含普通键的混合 `@id:` 和 Agents 窗仍用上游 500px 最小宽，TOC 的 700px 显隐阈值保持。窄宽样式限于 UA 专属 class；代码落地不代表 §3 / PRD-026 产品验证已完成。
 
 ## 4. Customizations 切分（ADR-061 决策 5 + two-surfaces）
 

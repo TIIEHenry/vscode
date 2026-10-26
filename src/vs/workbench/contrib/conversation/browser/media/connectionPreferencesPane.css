@@ -172,8 +172,10 @@
 
 .monaco-workbench .connection-preferences-detail-body {
 	flex: 1 1 auto;
+	min-width: 0;
 	min-height: 0;
 	overflow: auto;
+	container: connection-detail / inline-size;
 }
 
 .monaco-workbench .connection-preferences-pane.is-narrow .connection-preferences-body {
@@ -380,9 +382,23 @@
 	min-width: 0;
 }
 
-.monaco-workbench .connection-preferences-pane .ua-setting-row > .connection-field-input {
-	width: 240px;
-	max-width: 46%;
+.monaco-workbench .connection-preferences-pane .connection-input-row {
+	grid-template-columns: minmax(0, 1fr) 240px;
+}
+
+.monaco-workbench .connection-preferences-pane .connection-input-row > .connection-field-input {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+}
+
+/* Field layout follows the detail column, which can be narrow while the nav is visible. */
+@container connection-detail (width < 480px) {
+	.monaco-workbench .connection-preferences-pane .connection-input-row {
+		grid-template-columns: minmax(0, 1fr);
+		align-items: stretch;
+		row-gap: var(--vscode-spacing-size80);
+	}
 }
 
 .monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox {

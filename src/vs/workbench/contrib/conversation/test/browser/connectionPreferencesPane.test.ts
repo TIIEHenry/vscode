@@ -316,6 +316,55 @@ suite('ConnectionPreferencesPane', () => {
 		return { pane, workbench };
 	}
 
+	test('Direct Address input rows respond to the detail width while checkbox keeps its row', async () => {
+		const stylesheet = document.createElement('link');
+		stylesheet.rel = 'stylesheet';
+		stylesheet.href = new URL('../../browser/media/connectionPreferencesPane.css', import.meta.url).href;
+		store.add(toDisposable(() => stylesheet.remove()));
+		await new Promise<void>((resolve, reject) => {
+			stylesheet.onload = () => resolve();
+			stylesheet.onerror = () => reject(new Error('Connection Preferences stylesheet failed to load'));
+			document.head.appendChild(stylesheet);
+		});
+		const { pane, workbench } = mountPaneInWorkbench();
+		store.add(toDisposable(() => workbench.remove()));
+		workbench.style.width = '1000px';
+		workbench.style.setProperty('--vscode-spacing-size200', '20px');
+		workbench.style.setProperty('--vscode-spacing-size80', '8px');
+		pane.layout(new Dimension(1000, 800));
+		pane.selectZone('direct');
+		const container = pane.getDomNode();
+		const detail = container.querySelector<HTMLElement>('.connection-preferences-detail')!;
+		const rows = [...container.querySelectorAll<HTMLElement>('.connection-direct-address .connection-input-row')];
+		assert.strictEqual(rows.length, 3, 'Host, Port and Name share one input-row layout');
+		const host = rows[0].querySelector<HTMLInputElement>('input')!;
+		host.value = 'long-engine-hostname.example.internal';
+		host.focus();
+		for (const width of [560, 480, 479, 320, 560]) {
+			detail.style.flex = `0 0 ${width}px`;
+			await timeout(0);
+			const stacked = width < 480;
+			assert.strictEqual(container.classList.contains('is-narrow'), false, 'field layout is independent of pane navigation');
+			for (const row of rows) {
+				const copy = row.querySelector<HTMLElement>('.ua-setting-copy')!.getBoundingClientRect();
+				const control = row.querySelector<HTMLElement>('.connection-field-input')!.getBoundingClientRect();
+				const bounds = row.getBoundingClientRect();
+				assert.deepStrictEqual({
+					stacked: control.top >= copy.bottom,
+					withinRow: control.left >= bounds.left && control.right <= bounds.right + 1,
+					usesAvailableColumn: stacked ? control.width >= bounds.width - 1 : control.width >= 239,
+					copyReadable: copy.width >= (stacked ? bounds.width - 1 : 220),
+				}, { stacked, withinRow: true, usesAvailableColumn: true, copyReadable: true }, `detail width ${width}`);
+			}
+			const toggle = container.querySelector<HTMLElement>('.connection-toggle-row')!;
+			const toggleCopy = toggle.querySelector<HTMLElement>('.connection-toggle-details')!.getBoundingClientRect();
+			const checkbox = toggle.querySelector<HTMLElement>('.monaco-custom-toggle')!.getBoundingClientRect();
+			assert.ok(checkbox.left >= toggleCopy.right, 'checkbox remains beside its label');
+			assert.strictEqual(container.ownerDocument.activeElement, host, 'resizing preserves the active input');
+			assert.strictEqual(host.value, 'long-engine-hostname.example.internal');
+		}
+	});
+
 	function assertNoInPanePairingDialog(container: ParentNode): void {
 		assert.ok(
 			!container.querySelector('.connection-pairing-confirm .monaco-dialog-box'),
