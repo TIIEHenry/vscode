@@ -919,7 +919,7 @@ reviewer独立读取唯一lane原始JSON/log，并与durable checkpoint `74b9c68
 | clientTool断连call-count | 旧版通过一次roster调用；新写门在入站已断连时正确提前拒绝 | 区分入站已断连0调用与入站live、roster内部断连后false的一次调用 |
 | showPostFailure fake DOM | 同样TypeError：classList.toggle不是函数 | 用真实DOM补全能力，保原错误文案和状态断言 |
 
-因此前三项是旧测试/夹具问题；第四项是有意新增早拒绝合同后的时序期待需要更新，不归为新的产品回归，也不能简单删去一次调用的晚断连分支。原484/4与1/3真实结果继续保留。
+因此KEEP源码pin、草稿与fake DOM三项是旧测试/夹具问题；clientTool call-count是新增早拒绝合同后的时序期待对齐，不归为新的产品回归，也不能简单删去一次调用的晚断连分支。原484/4与1/3真实结果继续保留。
 
 ### c683四项修正与唯一Important
 
