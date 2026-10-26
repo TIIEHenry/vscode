@@ -49,3 +49,5 @@ summary: "J89f3e5a六路径补修静态核查：原API预pin及单侧身份问�
 ## Assessment
 
 原两项补修与有意义回归源码已静态落实；**新同tuple双组宿主风险待Astra定级/处理，当前不签整体实现通过或C0/I0**。父安排下一裁决/执行，审查者释放并发槽，不改产品、不提前启动after。D1387保持open，完整目标不缩小，不声称全量compile0或整个out同构建。
+
+后续：父转达Astra确认该宿主风险为Important/must-fix；J先改方案，D两轮规则16又指出并解决Sources重叠时will无操作关联的Important。精确稿件与第二轮方案C0/I0见[宿主观测与重叠保护独立审查](d1387-host-observation-plan-review.md)。这是后续方案结论，不追改上面的历史源码审查，也不说明新算法已实施或运行。
