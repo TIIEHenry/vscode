@@ -1,0 +1,49 @@
+{
+  "label": "E-response-focused",
+  "sourceHead": "0930c43e7d2f2cc91d7d3355deaf5db270bc31fe",
+  "sourceTree": "ab952ce1fc0bd279754f747460bea9a8dc97f216",
+  "nativeCompileHead": "0930c43e7d2f2cc91d7d3355deaf5db270bc31fe",
+  "nativeCompileExit": 0,
+  "nativeSourceOutputIdentityScope": 163,
+  "nativeOutputsAllExistAndUnchanged": true,
+  "nativeJavaScriptAllWrittenAfterCompileStart": true,
+  "nativeCopiedCssExactSourceBytes": true,
+  "sourceHashesAllMatchCompiledRecord": true,
+  "startedAtUtc": "2026-10-26T20:11:41.283040+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts",
+    "--grep",
+    "response recovery"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "sharedLockHeld": true,
+  "globalLaneMatches": [],
+  "outFrozen": false,
+  "testFiles": [
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts"
+  ],
+  "exitCode": 0,
+  "finishedAtUtc": "2026-10-26T20:11:42.778349+00:00",
+  "mochaSummaries": [
+    "  44 passing (269ms)"
+  ],
+  "outputsUnchangedAfterRun": true,
+  "sourceTreeUnchanged": true
+}

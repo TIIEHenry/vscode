@@ -1,0 +1,286 @@
+{
+  "preparedAt": "2026-10-27",
+  "createdBy": "/root/sources_audit",
+  "state": "NOT_RUN",
+  "reportCommit": "a075db2e1bd3fdfc4440196e7226ff130f61009f",
+  "reportPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md",
+  "reportSection": "8 / D\u4e34\u65f6\u5939\u5177\u7684\u6700\u5c0f\u517c\u5bb9\u4e0efreeze\u589e\u91cf",
+  "reportSha256": "2e77ed7356507fa60dd332c6a849482fb251cf2532fa48370c06ee5b1f9a5817",
+  "fixedExternalBaselineCommit": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "originalJ18": [
+    "out/vs/workbench/api/browser/mainThreadSCM.js",
+    "out/vs/workbench/browser/parts/editor/editorCommands.js",
+    "out/vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+    "out/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.js",
+    "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+    "out/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.js",
+    "out/vs/workbench/contrib/sources/browser/sourcesChangesList.js",
+    "out/vs/workbench/contrib/sources/browser/sourcesDiffActions.js",
+    "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.js",
+    "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+    "out/vs/workbench/contrib/sources/browser/sourcesOpenStatus.js",
+    "out/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.js",
+    "out/vs/workbench/contrib/sources/browser/sourcesReviewList.js",
+    "out/vs/workbench/contrib/sources/browser/sourcesTabsHost.js",
+    "out/vs/workbench/contrib/sources/common/sourcesReviewHostService.js",
+    "out/vs/workbench/services/editor/browser/editorOpenSlot.js",
+    "out/vs/workbench/services/editor/browser/editorService.js",
+    "out/vs/workbench/services/editor/common/editorGroupFinder.js"
+  ],
+  "originalE16": [
+    "out/vs/workbench/contrib/conversation/browser/conversation.contribution.js",
+    "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "out/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.js",
+    "out/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.js",
+    "out/vs/workbench/contrib/conversation/browser/conversationSessionView.js",
+    "out/vs/workbench/contrib/conversation/browser/conversationTimelineHost.js",
+    "out/vs/workbench/contrib/conversation/browser/conversationProcessFold.js",
+    "out/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.js",
+    "out/vs/workbench/contrib/conversation/browser/conversationStubService.js",
+    "out/vs/platform/universeAgent/electron-browser/universeAgentSessionViewService.js",
+    "out/vs/platform/universeAgent/electron-main/universeAgentMainService.js",
+    "out/vs/platform/universeAgent/node/localEngineDiscovery.js",
+    "out/vs/platform/universeAgent/node/universeAgentConnectionService.js",
+    "out/vs/platform/universeAgent/node/sessionViewHost.js",
+    "out/vs/platform/universeAgent/node/sessionStreamDemux.js",
+    "out/vs/platform/universeAgent/node/grpc/grpcSessionAttachWire.js"
+  ],
+  "mandatoryAdditions": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEngineQueueReader.js",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEngineQueueReader.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationMessageQueueModel.js",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationMessageQueueModel.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.js",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.js",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.js",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.js",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLensProjection.js",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/common/conversationResponseState.js",
+      "sourcePath": "src/vs/platform/universeAgent/common/conversationResponseState.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/common/universeAgentCapabilities.js",
+      "sourcePath": "src/vs/platform/universeAgent/common/universeAgentCapabilities.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/common/universeAgentRendererSync.js",
+      "sourcePath": "src/vs/platform/universeAgent/common/universeAgentRendererSync.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.js",
+      "sourcePath": "src/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpcCapabilityProbe.js",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpcCapabilityProbe.ts",
+      "kind": "javascript",
+      "runtimeSurface": "node-main",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcClient.js",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcClient.ts",
+      "kind": "javascript",
+      "runtimeSurface": "node-main",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcProtoCodec.js",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcProtoCodec.ts",
+      "kind": "javascript",
+      "runtimeSurface": "node-main",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcQueueSkillWire.js",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcQueueSkillWire.ts",
+      "kind": "javascript",
+      "runtimeSurface": "node-main",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcTransport.js",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcTransport.ts",
+      "kind": "javascript",
+      "runtimeSurface": "node-main",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "kind": "stylesheet",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffRefHelpers.js",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffRefHelpers.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    }
+  ],
+  "hashEvidence": "source/native existence and exact hashes only; does not prove runtime loaded",
+  "runtimeEvidence": "separate actual renderer Debugger JS / CSS observations; main-node assets remain manifest-only unless independently observed",
+  "fakeTransportScope": "response recovery coexistence with queue unsupported; no GetQueue/SaveSkillContent/wildcard advertisement or handlers and no queue/skills acceptance credit",
+  "fakeRpcSurface": {
+    "reviewedScriptSha256": "bd9549f634bec1695bb9cf57b69b99ec422dd23f32ae64bb264798da83abfcef",
+    "methodsDeclaration": "const methods = ['SystemService.HealthCheck', 'SessionService.List', 'SessionService.Info', 'SessionService.Resume', 'SessionService.Create', 'SessionService.GetHistory', 'SessionService.SessionEventStream', 'AgentService.Chat', 'AgentService.Tree', 'PermissionService.Respond', 'AgentService.RespondQuestion', 'AgentService.SendClientToolResponse'];",
+    "registrationPairs": [
+      [
+        "SystemService",
+        "HealthCheck"
+      ],
+      [
+        "SystemService",
+        "Connect"
+      ],
+      [
+        "SessionService",
+        "List"
+      ],
+      [
+        "SessionService",
+        "Info"
+      ],
+      [
+        "SessionService",
+        "Create"
+      ],
+      [
+        "SessionService",
+        "Resume"
+      ],
+      [
+        "SessionService",
+        "GetHistory"
+      ],
+      [
+        "AgentService",
+        "Tree"
+      ],
+      [
+        "PermissionService",
+        "Respond"
+      ],
+      [
+        "AgentService",
+        "RespondQuestion"
+      ],
+      [
+        "AgentService",
+        "SendClientToolResponse"
+      ],
+      [
+        "SessionService",
+        "SessionEventStream"
+      ],
+      [
+        "AgentService",
+        "Chat"
+      ]
+    ],
+    "policy": "keep these exact advertisements and handlers; no AgentService.*, GetQueue, SaveSkillContent"
+  },
+  "mandatoryM01Production": [
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffRefHelpers.js",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffRefHelpers.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffActions.js",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "kind": "javascript",
+      "runtimeSurface": "renderer",
+      "frozenEvidenceScope": "manifest-only until actual runtime observation"
+    }
+  ],
+  "schemaVersion": 2,
+  "minimumUnionAssets": 53,
+  "noticePolicy": "Both J and E templates require the exact 53-path union as a common superset; actual hashes/sourceHead/srcTree are filled only by the sole native compile lane.",
+  "m01PreparationState": "STATIC_ONLY_NEW_AFTER_NOT_AUTHORIZED",
+  "runId": "sources-m01-after-20261027-r2",
+  "previousRunPreserved": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-after-sources-audit-20261026",
+  "phaseBindingPolicy": "New J and E notices, actual J completion, root E authorization and launch must bind this runId, sourceHead/sourceTree, raw notice SHA256 and canonical source/native outputs SHA256. Old partial/pass gates are forbidden.",
+  "m01CandidateCommit": "468d805ef929298de9113f72665a3de0bdf4742a",
+  "actualJCompletionPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2/j-phase-complete.json",
+  "actualRootEAuthorizationPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2/e-phase-authorization.json",
+  "canonicalOutputsHashAlgorithm": "SHA256(UTF8(JSON.stringify(recursively-key-sorted(outputs sorted by native path using codepoint comparison)))); Python json.dumps(...,sort_keys=True,separators=(comma,colon)) yields same ASCII paths/hash bytes",
+  "m01CandidateParentCommit": "64a4e46b5fa27d48920789aa4b66e7340dfa833b",
+  "m01CandidateMetadataScope": "Informational static preparation identity only; runtime consumers do not read m01CandidateCommit. The sole compile lane supplies the actual frozen sourceHead/sourceTree and source/native hashes in new notices, independently verified before separate root J authorization. Production repair remains a166 VM ownership; parent 64a4 completed the group-level progress fixture; 468d adds ordered real two-sided resolver-reference retention and loading-state assertions only. Neither candidate metadata nor historical snapshots constitute an accepted new freeze.",
+  "expectedNativeCompileOrdinal": 8,
+  "m01NativePrerequisitePolicy": "Planned next actual native build (ordinal 8): require actual exit0 and new related runtime success from the sole lane before a new freeze can be accepted. Neither outcome is claimed here; compile7 exit0 and historical partial green do not satisfy this new-candidate prerequisite.",
+  "m01ProductionRepairCommit": "a166d422747b1e123109d0f7cec527821c06b04c",
+  "m01CandidateChangeScope": "Per /root: lifecycle fixture only, retain real original/modified resolver references in order and assert loading state; production unchanged from the a166 VM ownership repair. Four real Move entries, original 38 tests and total 39 expected remain unchanged. This statement records candidate metadata, not independently executed acceptance.",
+  "m01ExpectedFocusedTestCount": 39
+}

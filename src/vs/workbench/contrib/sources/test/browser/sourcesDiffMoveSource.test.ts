@@ -24,6 +24,7 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import { IDiffProviderFactoryService } from '../../../../../editor/browser/widget/diffEditor/diffProviderFactoryService.js';
 import { DiffEditorWidget } from '../../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
+import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
 import { TestDiffProviderFactoryService } from '../../../../../editor/test/browser/diff/testDiffProviderFactoryService.js';
 import { EditorParts } from '../../../../browser/parts/editor/editorParts.js';
 import { EditorExtensions, IEditorFactoryRegistry, IVisibleEditorPane } from '../../../../common/editor.js';
@@ -278,7 +279,7 @@ suite('Sources M01 move source', () => {
 	}
 
 
-	async function feedbackPane(compare = false) {
+	async function feedbackPane(compare = false, modelReferences?: DisposableStore) {
 		const instantiation = workbenchInstantiationService(undefined, store);
 		instantiation.stub(IEditorProgressService, {
 			_serviceBrand: undefined,
@@ -314,6 +315,7 @@ suite('Sources M01 move source', () => {
 		} };
 		instantiation.stub(ICommandService, commandService);
 		pane = store.add(instantiation.createInstance(ConversationDiffReviewPane, group));
+		modelReferences?.add({ dispose: () => pane.dispose() });
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		store.add({ dispose: () => parent.remove() });
@@ -323,34 +325,52 @@ suite('Sources M01 move source', () => {
 		const models = instantiation.invokeFunction(accessor => accessor.get(IModelService));
 		if (original) { store.add(models.createModel('before feedback', null, original)); }
 		store.add(models.createModel('feedback content', null, input.modified));
+		const textModelService = instantiation.invokeFunction(accessor => accessor.get(ITextModelService));
+		const originalReference = modelReferences && original ? modelReferences.add(await textModelService.createModelReference(original)) : undefined;
+		const modifiedReference = modelReferences ? modelReferences.add(await textModelService.createModelReference(input.modified)) : undefined;
 		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
 		const button = parent.querySelector('button.conversation-diff-review-open-preview');
 		const notice = parent.querySelector('.conversation-diff-review-move-notice');
 		assert.ok(button instanceof HTMLButtonElement && notice instanceof HTMLElement);
-		return { pane, parent, input, notice, click: () => { button.click(); assert.ok(pending.length); return pending[pending.length - 1]; } };
+		return { pane, parent, input, notice, originalReference, modifiedReference, click: () => { button.click(); assert.ok(pending.length); return pending[pending.length - 1]; } };
 	}
 
 	test('real Pane comparison view models release on replacement, clear and dispose', async () => {
 		const sandbox = sinon.createSandbox();
 		const createViewModel = sandbox.spy(DiffEditorWidget.prototype, 'createViewModel');
+		const modelReferences = new DisposableStore();
 		try {
-			const h = await feedbackPane(true);
+			const h = await feedbackPane(true, modelReferences);
+			const { originalReference: original, modifiedReference: modified } = h;
+			assert.ok(original && modified);
+			const assertModelsLive = () => {
+				assert.strictEqual(original.object.textEditorModel.isDisposed(), false);
+				assert.strictEqual(modified.object.textEditorModel.isDisposed(), false);
+			};
+			assert.strictEqual(h.pane.getComparisonLoadState(), 'ok');
+			assertModelsLive();
 			assert.strictEqual(createViewModel.callCount, 1);
 			const firstDispose = sandbox.spy(createViewModel.firstCall.returnValue, 'dispose');
 			await h.pane.setInput(store.add(new ConversationDiffReviewInput(h.input.modified, h.input.original, 'index')), undefined, Object.create(null), CancellationToken.None);
 			assert.strictEqual(firstDispose.calledOnce, true, 'replacing input must release its comparison view model');
+			assert.strictEqual(h.pane.getComparisonLoadState(), 'ok');
+			assertModelsLive();
 			assert.strictEqual(createViewModel.callCount, 2);
 			const secondDispose = sandbox.spy(createViewModel.secondCall.returnValue, 'dispose');
 			h.pane.clearInput();
 			assert.strictEqual(h.pane.getControl(), undefined);
 			assert.strictEqual(secondDispose.calledOnce, true, 'clearing input must release its comparison view model');
+			assertModelsLive();
 			await h.pane.setInput(store.add(new ConversationDiffReviewInput(h.input.modified, h.input.original, 'workingTree')), undefined, Object.create(null), CancellationToken.None);
+			assert.strictEqual(h.pane.getComparisonLoadState(), 'ok');
+			assertModelsLive();
 			assert.strictEqual(createViewModel.callCount, 3);
 			const finalDispose = sandbox.spy(createViewModel.thirdCall.returnValue, 'dispose');
 			h.pane.dispose();
 			assert.strictEqual(finalDispose.calledOnce, true, 'disposing the Pane must release its comparison view model');
+			assertModelsLive();
 		} finally {
-			sandbox.restore();
+			try { modelReferences.dispose(); } finally { sandbox.restore(); }
 		}
 	});
 

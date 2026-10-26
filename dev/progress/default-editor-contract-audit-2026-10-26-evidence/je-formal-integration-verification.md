@@ -313,3 +313,29 @@ finally所有163输出存在性/mode/SHA、163源SHA及旧Pane source/native全�
 在新纯生命周期旧红及实际原件C/I闭合后，对64a4以实际merge-base0da真三路接入；incoming5路径=Pane、test、3行动docs，源码无冲突，仅status/parallel合成，[139路径mode/type/blob门禁](je-formal-m01-vm-final-source-merge-identity.json)PASS，[双方整文及理由](je-formal-m01-vm-final-source-conflict-resolutions.json)保留全部历史。两TS SHA和完整src tree精确受审候选：**`ab952ce1fc0bd279754f747460bea9a8dc97f216`**。此时native仍是compile6/d5eca，与新源码严格分开；[第七实际peer依据](m01-seventh-code-peer-approved.json)在上述实际闭合后才写，不代表compile7或39green。
 
 全部296历史artifact精确核保留。本轮compile7 driver显式163scope（原156+E11新增7），runtime显式拒绝非实际compile7 exit0/任何TS诊断；待实际完整compile及39/J29/完整相关套。D最后静态合同为candidate64a4/ordinal7、SHA f7655ad9fe2c493a535bbfaf5cdccadade070d449d3436c69b49c6087a69137f；先前5248/337/114身份由D保留，冻结时只消费最后明确合同，53模板/3mandatory不变。当前没有新freeze/notice/UI/E授权，cache同编译窗口待条件允许逐entry恢复、D1387 open，不push/主ff不重试。
+
+## 第七实际运行与468d保活夹具准确旧红
+
+实际producer `0930c43e7d2f2cc91d7d3355deaf5db270bc31fe` / src `ab952ce1fc0bd279754f747460bea9a8dc97f216` 精确64a4，第七完整 `npm run compile-client` **exit0 / 0 TS**，全局lane空/共享锁，HEAD/src/clean不变。[完整raw](m01-seventh-native-build.log)、[163身份/时间/命令JSON](m01-seventh-native-build.json)、实际driver及两进程原件完整保留。六TS ESLint实际0error/21warning（Panel1+Wiring20），不是新全仓lint。
+
+| 第七实际runtime | 结果 | 准确边界 |
+| --- | --- | --- |
+| [M01 focus](m01-seventh-M01-focused.json) | **38过 / 1败，exit1** | 原38及四真实Move全部过，无leak/console/TypeError；新生命周期firstDispose已过，第二VM计数actual1/expected2（test.js457）失败，clear/dispose后续未达 |
+| [J focused](m01-seventh-J-focused.json) | 29过，exit0 | 实际重跑 |
+| [完整11 J/Sources](m01-seventh-J-complete-11.json) | **424过 / 1败，exit1** | 唯一同一新增生命周期计数断言，非新产品错误、不是425green |
+| [E response](m01-seventh-E-response-focused.json) / [Roster](m01-seventh-E-roster-full.json) | 44过 / 190过，各exit0 | 两组实际重跑 |
+| [Node wiring](m01-seventh-J-wiring-scan.json) | 23过 / 1败，exit1 | 唯一原Accept builder排除parseSourcesGitUnifiedDiff断言保持 |
+
+每组运行后全部163 source/native身份与src tree保持；runtime driver采集exit0不能覆盖各runner exit1。原Astra `08705a64438ecce1f7bef6dfd452dfcb68bbe111` §20实际读取两raw后定界：raw只直接证明首次VM已释放/第二VM未创建；setInput已await完整render且无index gate，静态根因为fixture仅裸seed模型、Pane释放最后resolver引用后异步销毁modified，下一次original await期间它可被回收。该fixture I1不以sleep/改count消掉。随后原J不可变 `468d805ef929298de9113f72665a3de0bdf4742a`（父64a4）仅1test+3行动文档：专用store先登记Pane disposer，再逐次获取并立即登记两侧真实resolver refs，跨三次open且finally先Pane再refs、outer store再seed；保留count1/2/3和三dispose，新增每次load ok及两文本live。生产/原38/四real Move字节不变，实际peer同§20 **C0/I0/M0**，未签新39green。
+
+[468d精确selected连续性](m01-468d-harness-continuity.json)核Git完整test diff：去掉新resolver import及feedback helper/新lifecycle切片后与64a4逐字相同，原38body/expected与真实四CommandService链保留。因此明示复用0da第三次配旧928的四纯Preview红，不机械重跑它们；新增生命周期case有新前置，另作实际准确旧反例。
+
+唯一lane全局空/共享锁备份当前compile7 **全部163输出存在性/mode/SHA及源SHA**，从不可变0da重建旧Pane，并在安装前核SHA256 **`15e1b96acaec17b9e42ac0b5eba97e24e48f0add0b3a67d29b8ff1fe0b98befa`** 精确历史compile6 native；其余161对精确sixth/seventh。只临时安装此旧Pane JS及468d test JS，源码不写。[官方selector raw](m01-old0da-468d805ef929-lifecycle.log)实际 **0 passing (70ms) / 1 failing / exit1**，唯一 `replacing input must release its comparison view model` false!==true（test.js470），无TypeError/API/timeout/hook错；新initial resolver refs/load ok/两model live/count1前置已实际过，second load/count2/clear/dispose后续未达，**本新test身份纯生命周期旧红成立**。[完整JSON/finally](m01-old0da-468d805ef929-lifecycle.json)、实际driver及两进程原件保留；finally当前compile7全163存在性/mode/SHA与sourceSHA、Pane source/native、HEAD0930/srcab952/clean精确恢复。a166首fixture败、fccde mixed、64a4先前纯红与第7失败均保留，不回写。
+
+[第七只读连续性](m01-seventh-static-identity.json)在共享锁内核当前163全匹配；较第六只有Pane/test两对变、161对精确连续。61 Node tests及50生产pair承接第四/第六实际记录，external-browser133对应source/native和UA/conversation两Git树一致；E11 **全部11** pair现在精确承接第六实际255/1（包含单独补记7输出），明确复用旧reasoning THINKING vs hmm\nthen this红，不机械再跑Node880/E11或抹掉旧红。第七44/Roster190仍是本次实际重跑。
+
+真三路接入实际§20报告为 `0275233fa14`，[418路径mode/type/blob门禁](je-formal-m01-modelrefs-peer-merge-identity.json)PASS，仅INDEX冲突，报告blob精确incoming；对468d以实际merge-base64a4三路合源，[160路径门禁](je-formal-m01-modelrefs-source-merge-identity.json)PASS，源码无冲突，仅status/parallel综合并保留双方完整原文，status仍200行。test SHA `eb81299cb0e6b170b888aa2e57ee5655d23613236b7a41c2d908c9132524577d`、Pane SHA `e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`及完整src tree精确受审候选：**`2b5df2b37ca926e38888443e371cf65e2883dba2`**。此时out仍compile7/ab952，不用其0签新src；[compile8依据](m01-eighth-code-peer-approved.json)在实际新旧红/peer/合源闭合后填写，真实第八完整compile及39/完整相关套尚待。
+
+[第七cache核验](m01-seventh-cache-status.json)对三自有ignored mirror逐entry mode/type/path/uid/gid/bytes/SHA全匹配，原path symlink稳定；当时/home **1,337,892,864 bytes**、/tmp **2,734,157,824 bytes**，全量还原文件需 **1,590,020,186 bytes** 另加512MiB余量，故按父明确授权保留全部symlink，不部分还原耗尽空间、不删未知/其他工位/source/out/evidence。精确三原路径/目标/清单哈希及后续共享锁内验证还原顺序在该JSON/原relocation record，未声称已恢复；这一稳定缓存安排不阻塞后续经授权J UI。
+
+全部318历史artifact逐bytes/SHA保留。D最新r2静态合同为 [5a3原件](m01-eighth-D-freeze-contract.json)：candidate468d/parent64a4/productionRepaira166、39expected/planned ordinal8；旧f765等历史仍在，53模板/3mandatory/runId不变。冻结前仍取D最后明确合同；没有新notice/freeze/UI/E授权，D1387 open，不push/不重试主ff/不追main。父已独立实读§20、新旧反例JSON与5a3合同属于父只读核验，不冒称父业务重跑。

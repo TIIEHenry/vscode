@@ -1,0 +1,7 @@
+{
+  "phase": "before-real-three-way-468d-model-reference-source",
+  "ours": "0275233fa1462a5a5a3dfca60ae7defc0b41dce3",
+  "theirs": "468d805ef929298de9113f72665a3de0bdf4742a",
+  "mergeBase": "64a4e46b5fa27d48920789aa4b66e7340dfa833b",
+  "recordedAtUtc": "2026-10-26T20:21:59.700360+00:00"
+}

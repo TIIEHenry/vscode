@@ -1,0 +1,43 @@
+{
+  "label": "J-wiring-scan",
+  "sourceHead": "0930c43e7d2f2cc91d7d3355deaf5db270bc31fe",
+  "sourceTree": "ab952ce1fc0bd279754f747460bea9a8dc97f216",
+  "nativeCompileHead": "0930c43e7d2f2cc91d7d3355deaf5db270bc31fe",
+  "nativeCompileExit": 0,
+  "nativeSourceOutputIdentityScope": 163,
+  "nativeOutputsAllExistAndUnchanged": true,
+  "nativeJavaScriptAllWrittenAfterCompileStart": true,
+  "nativeCopiedCssExactSourceBytes": true,
+  "sourceHashesAllMatchCompiledRecord": true,
+  "startedAtUtc": "2026-10-26T20:11:44.360099+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "240s",
+    "node",
+    "test/unit/node/index.js",
+    "--run",
+    "src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "sharedLockHeld": true,
+  "globalLaneMatches": [],
+  "outFrozen": false,
+  "testFiles": [
+    "src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts"
+  ],
+  "exitCode": 1,
+  "finishedAtUtc": "2026-10-26T20:11:44.443088+00:00",
+  "mochaSummaries": [
+    "  23 passing (11ms)",
+    "  1 failing"
+  ],
+  "outputsUnchangedAfterRun": true,
+  "sourceTreeUnchanged": true
+}
