@@ -14,6 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [Policy definition 提交生命周期](policy-definition-submission-lifecycle.md) | `accepted` | D1379；请求与成功水位分离，同定义等待/原拒绝重试与顺序提交；未实施，运行验证归 merge。 |
 | [默认编辑器视觉状态修复与续审](default-editor-visual-state-followup.md) | `implemented` | 五项视觉修复及同根因续审已落；Electron 350 passing、十四项 Chrome 真实焦点补验全过，定向类型无新增诊断；不升 PRD。 |
 | [Extension Host 输出通道 PromiseLike 合同](ext-host-output-promise-contract.md) | `implemented` | D1378；Output22+Search4及清理检查27 passing，保留原19项并补3个生命周期屏障；mkdir原拒绝与共享缓存身份保持，命名诊断清零。 |
 | [Sources 编译基线合同修复](sources-compile-contracts.md) | `implemented` | D1375；三类合同修复与 6 条新行为回归已写，目标 ESLint 0 errors；只收 Sources 旧日志 9 条，编译与运行验证留在 merge。 |
