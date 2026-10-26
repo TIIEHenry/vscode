@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关。D1314–D1367 已合入；D1370–D1372 响应式生命周期与设置窄宽修复待 merge 统一验证。D464/D467 证据已闭合。D465、D24、D8、D16、D147、D405 仍开；既有唯一一次 compile 写只读输出目录时 exit 1。D1312–D1305 已关。"
+summary: "D1374 显式导航取消旧 Sessions open/restore 已实施，14 条屏障回归待 merge red/green；D1373 仍 open。本表保留各 D 项证据状态；D465、D24、D8、D16、D147、D405 仍开。"
 
 
 
@@ -1323,3 +1323,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1371 | P3 | **closed** Astra 在 merge 新产物复现：Connection pane 606px、详情正文 305px 时 Host 的 auto 网格预留 240px，再以 max-width 46% 把输入降至约 110px，说明只余 49px；Port / Name 又沿另一纵排规则。现三输入行共用单一网格列宽，详情正文不足 480px 时统一纵排，并新增加载真实生产 CSS 的 DOM 回归覆盖 560 / 480 / 479 / 320 / 560 宽度往返、输入焦点和值、勾选项独立布局。 | 只修 Direct Address 输入行可读性；保留 Connection 导航阈值、宽转窄焦点迁移、checkbox 与 Hub 表单；merge 最小刷新后新布局 1 项与 Connection 焦点 / dispose 4 项通过，定向语义 0 | 三字段在窄详情容器中说明可读、输入不超行；宽容器一致双列，低于 480px 一致纵排；宽窄往返不抢焦点、不丢 hostname；Astra 独立浅深色 after 已通过，479.19→480.00px 无坏带；见本轮视觉证据 | conversation / connection-preferences | closed |
 | D1372 | P3 | **closed** Astra 在 merge 新产物经 Back to Client Settings 复现：1024px 窗口的 Preview 仅 356px，SettingsEditor2 与内部 split 的 500px 最小宽使设置选择框裁切。现仅默认窗 UA TOC 空查询分类或纯 UA `@id:` 查询启用 300px 最小宽，pane 与内部列同源、模式切换广播尺寸约束，窄宽 CSS 限于 UA class；补 UA→普通→UA、混合 ID、TOC 与 Agents 窗范围回归，并用真实上游+UA CSS 的控件宽度往返回归替代旧字符串扫描。 | 继续完整复用 SettingsEditor2；普通 / 混合搜索与 Agents 窗保持 500px，700px TOC 显隐阈值不变；merge 最小刷新后 UA scope / 真实 CSS 4 项通过，SplitView 事件契约已适配，定向语义 0；PRD-026 不升状态 | 300–356px UA Preview 中搜索、标题、控件完整可用；查询 / TOC / 输入重开能双向刷新布局与约束；普通与混合查询保上游布局，Astra 独立 exact / ordinary / mixed / return / TOC / 300px 叶重开均通过；见本轮视觉证据 | preferences / ua-client-settings | closed |
 | D1373 | P2 | **open** 独立 fresh Electron 视觉审查确认 `Input needed` 把 `badge.background` 当文字色，并以同色 16% 铺底：默认浅色约 1.42:1、深色约 2.17:1，等待处理标签呈禁用观感。源码为 `conversationLens.css` 的 `.conversation-lens-input-needed`（本轮 2832 起），截图与测色路径见 [本轮视觉证据](ui-visual-review-2026-10-26-evidence/visual-review.md)。 | D 工位源码已改为正常 foreground + 12% 中性淡底、8% 细边，高对比采用 contrastBorder，保持体积；同语义提问的 badge 前景/背景已配对，未改。已补四主题真实 CSS + Seat DOM 回归，尚未运行；等待 merge 新输出及独立视觉复验，不以源码改动闭合 | 浅色、深色与高对比下标签文字可读，等待处理语义可辨，不以低对比表示状态；真实截图与主题色测量通过后再闭 | conversation / input-needed-contrast | open |
+| D1374 | P2 | **open** Sessions 的显式分屏聚焦、关闭当前与关闭全部原未取消较早的异步打开 / 窗口恢复；资源解析晚到后会重新激活目标，覆盖用户刚选的分屏或关闭结果。现这些入口取消旧导航；关闭无关分屏保留正在打开的目标，正常打开产生的同会话 focus echo 不自取消。 | 仅恢复最新明确导航意图的优先级，不改 provider 资源解析、后端会话生命周期、聊天内容或布局；14 条受控屏障 browser 行为测试已补，目标 ESLint 0 errors，统一 merge 新产物 red/green 尚待运行；本槽未编译/转译 | openSession / openChat 在新聚焦、active close、all-close 后的晚到结果不再改活动会话；empty-grid all-close 仍取消；无关 close 与正常 focus echo 继续完成；restore 同样服从显式导航 | sessions / navigation-cancellation | open |
