@@ -12,10 +12,10 @@ import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentConnectionSnapshot, UniverseAgentReadGitSummaryResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
-import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
+import { IWorkspaceContextService, toWorkspaceFolder, type IWorkspaceFoldersChangeEvent } from '../../../../../platform/workspace/common/workspace.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { TestWorkspace, Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
 import { ConversationPart, IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
@@ -25,8 +25,8 @@ import { TestContextService, TestStorageService } from '../../../../test/common/
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import { AgentSessionContext } from '../../browser/agentSessionContext.js';
 import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
-import type { UniverseAgentReadGitSummaryResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
@@ -181,11 +181,13 @@ suite('ConversationIdentityStrip', () => {
 		rootUri: URI,
 		id = 'git',
 		provideHistoryItemRefs: () => Promise<readonly { id: string; name: string }[]> = async () => [],
+		branchUpdates: Event<string> = Event.None,
 	): ISCMRepository {
 		const historyItemRef = observableValue<{ id: string; name: string } | undefined>(
 			'historyItemRef',
 			branchName ? { id: 'HEAD', name: branchName } : undefined,
 		);
+		store.add(branchUpdates(name => historyItemRef.set({ id: 'HEAD', name }, undefined)));
 		const historyProvider = {
 			historyItemRef,
 			historyItemRemoteRef: observableValue('remote', undefined),
@@ -229,11 +231,13 @@ suite('ConversationIdentityStrip', () => {
 		scmService?: ISCMService;
 		commandService?: ICommandService;
 		stubService?: ConversationStubService;
+		sessionKey?: string;
+		connection?: IUniverseAgentConnection;
 		connectionOverrides?: Partial<IUniverseAgentConnection>;
 		sessionContext?: IAgentSessionContext;
 		addFolders?: (folders: IWorkspaceFolderCreationData[]) => Promise<void>;
 		workRootMount?: IConversationWorkRootMount;
-	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService; lens: ConversationLens; workbench: HTMLElement; actionWidget: RecordingActionWidget; host: TestHostService; workspaces: TestWorkspacesService; addedFolders: IWorkspaceFolderCreationData[][] } {
+	}): { part: ConversationPart; slots: IConversationLensSlots; commandService: ICommandService; stubService: ConversationStubService; lens: ConversationLens; workbench: HTMLElement; actionWidget: RecordingActionWidget; host: TestHostService; workspaces: TestWorkspacesService; addedFolders: IWorkspaceFolderCreationData[][]; executedCommands: { id: string; args: unknown[] }[] } {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		const actionWidget = new RecordingActionWidget();
 		instantiationService.stub(IActionWidgetService, actionWidget as unknown as IActionWidgetService);
@@ -241,6 +245,7 @@ suite('ConversationIdentityStrip', () => {
 		instantiationService.stub(IStorageService, storageService);
 		const stubService = options?.stubService ?? store.add(new ConversationStubService());
 		const clipboardService = new TestClipboardService();
+		const executedCommands: { id: string; args: unknown[] }[] = [];
 		const commandService = options?.commandService ?? new class implements ICommandService {
 			declare readonly _serviceBrand: undefined;
 			readonly executed: string[] = [];
@@ -248,6 +253,7 @@ suite('ConversationIdentityStrip', () => {
 			onWillExecuteCommand = Event.None;
 			onDidExecuteCommand = Event.None;
 			executeCommand<T>(id: string, ...args: unknown[]): Promise<T | undefined> {
+				executedCommands.push({ id, args });
 				this.executed.push(id);
 				this.executedArgs.push(args);
 				return Promise.resolve(undefined);
@@ -260,7 +266,7 @@ suite('ConversationIdentityStrip', () => {
 
 		instantiationService.stub(IConversationRosterService, stubService);
 		stubConversationTimelineLinkServices(instantiationService);
-		instantiationService.stub(IUniverseAgentConnection, createConnectionStub(options?.connectionOverrides));
+		instantiationService.stub(IUniverseAgentConnection, options?.connection ?? createConnectionStub(options?.connectionOverrides));
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),
@@ -314,6 +320,7 @@ suite('ConversationIdentityStrip', () => {
 		const partSlots = part.getSlots();
 		assert.ok(partSlots);
 		const slots: IConversationLensSlots = {
+			sessionKey: options?.sessionKey,
 			sessionBar: partSlots.sessionBar,
 			timeline: document.createElement('div'),
 			dock: document.createElement('div'),
@@ -337,6 +344,40 @@ suite('ConversationIdentityStrip', () => {
 			host: instantiationService.get(IHostService) as TestHostService,
 			workspaces: instantiationService.get(IWorkspacesService) as TestWorkspacesService,
 			addedFolders,
+			executedCommands,
+		};
+	}
+
+	function workRootHarness(paths: readonly (string | undefined)[], scmService: ISCMService, workspaceContextService: IWorkspaceContextService = new TestContextService()) {
+		const stubService = store.add(new ConversationStubService());
+		const sessionIds = paths.map((path, index) => {
+			const id = index === 0 ? stubService.getActiveSessionId() : stubService.createSession();
+			stubService.getSessions().find(session => session.id === id)!.workDir = path;
+			return id;
+		});
+		stubService.switchSession(sessionIds[0]);
+		const changes = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		let snapshot: UniverseAgentConnectionSnapshot = {
+			...createConnectionStub().getConnectionSnapshot(), engineIdentityId: 'identity-engine', linkId: 1,
+		};
+		const summaries: { sessionId: string; resolve: (result: UniverseAgentReadGitSummaryResult) => void; reject: (error: Error) => void }[] = [];
+		const connection = createConnectionStub({
+			getConnectionSnapshot: () => snapshot,
+			onDidChangeConnection: changes.event,
+			readGitSummary: request => new Promise((resolve, reject) => summaries.push({ sessionId: request.sessionId, resolve, reject })),
+		});
+		const sessionContext = store.add(new AgentSessionContext(stubService, connection, workspaceContextService, scmService));
+		return {
+			sessionIds, summaries, stubService, sessionContext, connection, workspaceContextService, scmService,
+			setWorkDir(sessionId: string, workDir: string | undefined) {
+				const session = stubService.getSessions().find(candidate => candidate.id === sessionId)!;
+				session.workDir = workDir;
+				stubService.renameSession(sessionId, `${session.title}!`);
+			},
+			setConnection(change: Partial<UniverseAgentConnectionSnapshot>) {
+				snapshot = { ...snapshot, ...change };
+				changes.fire(snapshot);
+			},
 		};
 	}
 
@@ -1100,5 +1141,267 @@ suite('ConversationIdentityStrip', () => {
 		assert.strictEqual(folderChip.classList.contains(conversationIdentityFolderReadOnlyClass), false);
 		assert.strictEqual(folderChevron().hidden, false);
 		assert.strictEqual(folderChip.getAttribute('aria-haspopup'), 'listbox');
+	});
+
+	test('D1386 bound local and engine leaves keep their own folder aria and branch when global focus changes', async () => {
+		const alpha = URI.file('/repo/alpha');
+		const harness = workRootHarness([alpha.path, '/remote/beta'], createScmServiceWithBranch('alpha-head', alpha));
+		const [sessionA, sessionB] = harness.sessionIds;
+		const leafA = mountLens({ ...harness, sessionKey: sessionA });
+		const leafB = mountLens({ ...harness, sessionKey: sessionB });
+		const folderA = getIdentityStrip(leafA.slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+		const folderB = getIdentityStrip(leafB.slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+		const branchA = getIdentityStrip(leafA.slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLButtonElement;
+		const branchB = getIdentityStrip(leafB.slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLButtonElement;
+		assert.strictEqual(folderA.textContent, 'alpha');
+		assert.strictEqual(folderB.textContent, 'beta');
+		assert.strictEqual(folderB.getAttribute('aria-label'), 'Session folder: beta');
+		assert.strictEqual(folderB.title, '/remote/beta');
+		assert.strictEqual(folderB.tabIndex, -1);
+		assert.strictEqual(branchA.textContent, 'alpha-head');
+		assert.ok(harness.summaries.length > 0);
+		assert.ok(harness.summaries.every(request => request.sessionId === sessionB));
+		harness.stubService.switchSession(sessionB);
+		assert.strictEqual(folderA.textContent, 'alpha');
+		assert.strictEqual(branchA.textContent, 'alpha-head');
+		harness.stubService.switchSession(sessionA);
+		const previous = harness.summaries.at(-1)!;
+		harness.setWorkDir(sessionB, '/remote/gamma');
+		assert.strictEqual(folderB.textContent, 'gamma');
+		assert.strictEqual(folderB.getAttribute('aria-label'), 'Session folder: gamma');
+		harness.summaries.at(-1)!.resolve({ supported: true, reason: '', branch: 'gamma-head', changeCount: 0 });
+		await timeout(0);
+		previous.resolve({ supported: true, reason: '', branch: 'stale-beta', changeCount: 0 });
+		await timeout(0);
+		assert.strictEqual(branchB.textContent, 'gamma-head');
+		assert.strictEqual(branchB.title, 'gamma-head');
+		assert.strictEqual(branchB.getAttribute('aria-haspopup'), null);
+		assert.strictEqual(branchB.tabIndex, -1);
+		branchB.click();
+		assert.strictEqual(leafB.actionWidget.shows.length, 0);
+	});
+
+	test('D1386 each local leaf checks its own workspace folder and checks out its own repository', async () => {
+		const alphaFolder = URI.file('/repo/alpha');
+		const alpha = URI.file('/repo/alpha/nested');
+		const beta = URI.file('/repo/beta');
+		const workspaceContextService = new TestContextService(new Workspace('identity-roots', [alphaFolder, beta].map(toWorkspaceFolder)));
+		const scm = createScmServiceWithRepositories([alpha, beta].map((uri, index) => createScmRepository(index === 0 ? 'alpha-head' : 'beta-head', uri, String(index), async () => [{ id: 'refs/heads/main', name: 'main' }])));
+		const harness = workRootHarness([alpha.path, beta.path], scm, workspaceContextService);
+		for (const [index, sessionKey] of harness.sessionIds.entries()) {
+			const leaf = mountLens({ ...harness, sessionKey });
+			const folder = getIdentityStrip(leaf.slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+			folder.click();
+			await timeout(0);
+			const checked = menuActions(leaf.actionWidget.shows.at(-1)!).filter(item => item.group?.icon === Codicon.check);
+			assert.deepStrictEqual(checked.map(item => item.label), [index === 0 ? 'alpha' : 'beta']);
+			leaf.actionWidget.hide(true);
+			const branch = getIdentityStrip(leaf.slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLButtonElement;
+			branch.focus();
+			assert.strictEqual(document.activeElement, branch);
+			branch.click();
+			await timeout(0);
+			assert.strictEqual(menuActions(leaf.actionWidget.shows.at(-1)!)[0].label, index === 0 ? 'alpha-head' : 'beta-head');
+			leaf.actionWidget.shows.at(-1)!.delegate.onSelect('main');
+			assert.deepStrictEqual(leaf.executedCommands, [{ id: 'git.checkout', args: [index === 0 ? alpha : beta, 'main'] }]);
+		}
+	});
+
+	for (const outcome of ['resolve', 'reject'] as const) {
+		test(`D1386 engine ${outcome} from before A to B to A binding cannot repaint the new branch`, async () => {
+			const harness = workRootHarness(['/remote/alpha', '/remote/beta'], createEmptyScmService());
+			const [sessionA, sessionB] = harness.sessionIds;
+			const leaf = mountLens({ ...harness, sessionKey: sessionA });
+			const original = harness.summaries.at(-1)!;
+			leaf.lens.setBoundSessionId(sessionB);
+			assert.strictEqual(getIdentityStrip(leaf.slots).querySelector(`.${conversationIdentityFolderChipClass}`)!.textContent, 'beta');
+			leaf.lens.setBoundSessionId(sessionA);
+			harness.summaries.at(-1)!.resolve({ supported: true, reason: '', branch: 'fresh-alpha', changeCount: 0 });
+			await timeout(0);
+			if (outcome === 'resolve') {
+				original.resolve({ supported: true, reason: '', branch: 'stale-alpha', changeCount: 0 });
+			} else {
+				original.reject(new Error('stale read failed'));
+			}
+			await timeout(0);
+			assert.strictEqual(getIdentityStrip(leaf.slots).querySelector(`.${conversationIdentityBranchChipClass}`)!.textContent, 'fresh-alpha');
+		});
+	}
+
+	test('D1386 same-session root change closes branch menu and invalidates old checkout delegate', async () => {
+		const alpha = URI.file('/repo/alpha');
+		const beta = URI.file('/repo/beta');
+		const scm = createScmServiceWithRepositories([alpha, beta].map(uri => createScmRepository(uri.path.endsWith('alpha') ? 'alpha-head' : 'beta-head', uri, uri.path, async () => [{ id: 'refs/heads/main', name: 'main' }])));
+		const harness = workRootHarness([alpha.path], scm);
+		const leaf = mountLens({ ...harness, sessionKey: harness.sessionIds[0] });
+		const branch = getIdentityStrip(leaf.slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLButtonElement;
+		branch.click();
+		await timeout(0);
+		const oldMenu = leaf.actionWidget.shows.at(-1)!;
+		harness.setWorkDir(harness.sessionIds[0], beta.path);
+		assert.strictEqual(branch.textContent, 'beta-head');
+		assert.strictEqual(leaf.actionWidget.isVisible, false);
+		assert.strictEqual(branch.getAttribute('aria-expanded'), 'false');
+		oldMenu.delegate.onSelect('main');
+		assert.deepStrictEqual(leaf.executedCommands, []);
+		branch.click();
+		await timeout(0);
+		leaf.actionWidget.shows.at(-1)!.delegate.onSelect('main');
+		assert.deepStrictEqual(leaf.executedCommands, [{ id: 'git.checkout', args: [beta, 'main'] }]);
+	});
+
+	test('D1386 late refs from an old binding do not open a menu on the rebound local leaf', async () => {
+		const alpha = URI.file('/repo/alpha');
+		const beta = URI.file('/repo/beta');
+		let resolveRefs!: (refs: readonly { id: string; name: string }[]) => void;
+		const scm = createScmServiceWithRepositories([
+			createScmRepository('alpha-head', alpha, 'alpha', () => new Promise(resolve => { resolveRefs = resolve; })),
+			createScmRepository('beta-head', beta, 'beta'),
+		]);
+		const harness = workRootHarness([alpha.path, beta.path], scm);
+		const leaf = mountLens({ ...harness, sessionKey: harness.sessionIds[0] });
+		const branch = getIdentityStrip(leaf.slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLButtonElement;
+		branch.click();
+		leaf.lens.setBoundSessionId(harness.sessionIds[1]);
+		resolveRefs([{ id: 'refs/heads/stale', name: 'stale' }]);
+		await timeout(0);
+		assert.strictEqual(branch.textContent, 'beta-head');
+		assert.strictEqual(leaf.actionWidget.shows.length, 0);
+	});
+
+	test('D1386 cancelled recents cannot overtake the next request on the same root', async () => {
+		const leaf = mountLens();
+		const pending: ((opened: IRecentlyOpened) => void)[] = [];
+		leaf.workspaces.getRecentlyOpened = () => new Promise(resolve => pending.push(resolve));
+		const folder = getIdentityStrip(leaf.slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+		folder.click();
+		folder.click();
+		folder.click();
+		pending[0]({ files: [], workspaces: [{ folderUri: URI.file('/old'), label: 'stale' }] });
+		await timeout(0);
+		assert.strictEqual(leaf.actionWidget.shows.length, 0);
+		pending[1]({ files: [], workspaces: [{ folderUri: URI.file('/new'), label: 'fresh' }] });
+		await timeout(0);
+		assert.strictEqual(leaf.actionWidget.shows.length, 1);
+		assert.ok(menuActions(leaf.actionWidget.shows[0]).some(item => item.label === 'fresh'));
+		assert.ok(!menuActions(leaf.actionWidget.shows[0]).some(item => item.label === 'stale'));
+	});
+
+	test('D1386 old Add button cannot accept a replaced global offer even before a repaint', async () => {
+		const harness = workRootHarness(['/remote/alpha', '/remote/beta'], createEmptyScmService());
+		let offer: IWorkRootMountOffer | undefined = { uri: URI.file('/remote/alpha'), reason: 'confirm' };
+		const offers = store.add(new Emitter<void>());
+		const accepted: string[] = [];
+		const workRootMount: IConversationWorkRootMount = {
+			_serviceBrand: undefined, onDidChangeOffer: offers.event,
+			getOffer: () => offer, setOffer: () => { },
+			acceptOffer: async () => { accepted.push(offer!.uri.path); },
+		};
+		const leafA = mountLens({ ...harness, sessionKey: harness.sessionIds[0], workRootMount });
+		const leafB = mountLens({ ...harness, sessionKey: harness.sessionIds[1], workRootMount });
+		const buttonA = getIdentityStrip(leafA.slots).querySelector(`.${conversationIdentityAddFolderClass}`) as HTMLButtonElement;
+		const buttonB = getIdentityStrip(leafB.slots).querySelector(`.${conversationIdentityAddFolderClass}`) as HTMLButtonElement;
+		assert.strictEqual(buttonA.hidden, false);
+		assert.strictEqual(buttonB.hidden, true);
+		offer = { uri: URI.file('/remote/beta'), reason: 'trust' };
+		buttonA.click();
+		await timeout(0);
+		assert.deepStrictEqual(accepted, []);
+		offers.fire();
+		assert.strictEqual(buttonA.hidden, true);
+		assert.strictEqual(buttonB.hidden, false);
+		buttonB.click();
+		await timeout(0);
+		assert.deepStrictEqual(accepted, ['/remote/beta']);
+	});
+
+	test('D1386 bound leaf does not borrow a window root when its root API is absent', () => {
+		const legacy: IAgentSessionContext = {
+			_serviceBrand: undefined, getActiveSessionId: () => 'active', isEngineSessionReady: () => true, isPairingHold: () => false,
+			onDidChangeActiveSession: Event.None, onDidChangeSession: Event.None,
+			acquireSessionView: () => { throw new Error('not used'); },
+		};
+		const bound = mountLens({ sessionContext: legacy, sessionKey: 'bound' });
+		assert.strictEqual((getIdentityStrip(bound.slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLElement).hidden, true);
+		const unbound = mountLens({ sessionContext: legacy });
+		assert.strictEqual(getIdentityStrip(unbound.slots).querySelector(`.${conversationIdentityFolderChipClass}`)!.textContent, 'testWorkspace');
+		const none = workRootHarness([undefined], createEmptyScmService(), new TestContextService(new Workspace('ambiguous', [URI.file('/one'), URI.file('/two')].map(toWorkspaceFolder))));
+		const rootless = mountLens({ ...none, sessionKey: none.sessionIds[0] });
+		assert.strictEqual((getIdentityStrip(rootless.slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLElement).hidden, true);
+		assert.strictEqual((getIdentityStrip(rootless.slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLElement).hidden, true);
+	});
+
+	test('D1386 workspace SCM and connection changes refresh a nonactive leaf without borrowing active root', async () => {
+		const alpha = URI.file('/repo/alpha');
+		const beta = URI.file('/repo/beta');
+		const folders = store.add(new Emitter<IWorkspaceFoldersChangeEvent>());
+		const workspace = new class extends TestContextService {
+			override get onDidChangeWorkspaceFolders() { return folders.event; }
+		}(new Workspace('roots', [alpha, beta].map(toWorkspaceFolder)));
+		const added = store.add(new Emitter<ISCMRepository>());
+		const removed = store.add(new Emitter<ISCMRepository>());
+		const repositories: ISCMRepository[] = [];
+		const scm: ISCMService = {
+			...createScmServiceWithRepositories(repositories),
+			onDidAddRepository: added.event, onDidRemoveRepository: removed.event,
+		};
+		const harness = workRootHarness([alpha.path, beta.path], scm, workspace);
+		const leaf = mountLens({ ...harness, sessionKey: harness.sessionIds[1] });
+		const folder = getIdentityStrip(leaf.slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+		const branch = getIdentityStrip(leaf.slots).querySelector(`.${conversationIdentityBranchChipClass}`) as HTMLButtonElement;
+		assert.strictEqual(folder.textContent, 'beta');
+		assert.strictEqual(folder.tabIndex, 0);
+		const betaFolder = workspace.getWorkspace().folders[1];
+		workspace.setWorkspace(new Workspace('roots', [toWorkspaceFolder(alpha)]));
+		folders.fire({ added: [], removed: [betaFolder], changed: [] });
+		assert.strictEqual(folder.textContent, 'beta');
+		assert.strictEqual(folder.tabIndex, -1);
+		const headChanges = store.add(new Emitter<string>());
+		const repository = createScmRepository('beta-head', beta, 'beta', async () => [], headChanges.event);
+		repositories.push(repository);
+		added.fire(repository);
+		assert.strictEqual(folder.tabIndex, 0);
+		assert.strictEqual(branch.textContent, 'beta-head');
+		headChanges.fire('new-beta-head');
+		assert.strictEqual(branch.textContent, 'new-beta-head');
+		repositories.pop();
+		removed.fire(repository);
+		assert.strictEqual(folder.tabIndex, -1);
+		assert.strictEqual(branch.hidden, true);
+		harness.setConnection({ linkId: 2, workDir: '/fallback/delta' });
+		harness.setWorkDir(harness.sessionIds[1], undefined);
+		assert.strictEqual(folder.textContent, 'delta');
+		assert.strictEqual(folder.getAttribute('aria-label'), 'Session folder: delta');
+		harness.setConnection({ transport: 'idle', channelAlive: false, engineIdentityId: undefined, workDir: undefined });
+		assert.strictEqual(folder.textContent, 'delta');
+		assert.strictEqual(folder.tabIndex, -1);
+	});
+
+	test('D1386 disposed leaf closes its menu and ignores later engine and recents responses', async () => {
+		const harness = workRootHarness(['/remote/alpha'], createEmptyScmService());
+		const leaf = mountLens({ ...harness, sessionKey: harness.sessionIds[0] });
+		const strip = getIdentityStrip(leaf.slots);
+		const summary = harness.summaries.at(-1)!;
+		leaf.lens.dispose();
+		summary.resolve({ supported: true, reason: '', branch: 'late', changeCount: 0 });
+		await timeout(0);
+		assert.ok(!strip.textContent?.includes('late'));
+		const restored = mountLens({ ...harness, sessionKey: harness.sessionIds[0] });
+		assert.strictEqual(getIdentityStrip(restored.slots).querySelector(`.${conversationIdentityFolderChipClass}`)!.textContent, 'alpha');
+		const local = mountLens({ scmService: createScmServiceWithBranch('main') });
+		const folder = getIdentityStrip(local.slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement;
+		folder.click();
+		await timeout(0);
+		assert.strictEqual(local.actionWidget.isVisible, true);
+		local.lens.dispose();
+		assert.strictEqual(local.actionWidget.isVisible, false);
+		const loading = mountLens();
+		let resolveRecents!: (opened: IRecentlyOpened) => void;
+		loading.workspaces.getRecentlyOpened = () => new Promise(resolve => { resolveRecents = resolve; });
+		(getIdentityStrip(loading.slots).querySelector(`.${conversationIdentityFolderChipClass}`) as HTMLButtonElement).click();
+		loading.lens.dispose();
+		resolveRecents({ files: [], workspaces: [] });
+		await timeout(0);
+		assert.strictEqual(loading.actionWidget.shows.length, 0);
 	});
 });

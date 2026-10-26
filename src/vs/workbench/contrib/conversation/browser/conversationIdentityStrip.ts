@@ -14,8 +14,8 @@ import { URI } from '../../../../base/common/uri.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { localize } from '../../../../nls.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
-import { normalizeAgentWorkDirUri, type IAgentWorkRoot } from '../../../services/agentSession/common/agentWorkRoot.js';
-import { IConversationWorkRootMount } from './conversationWorkRootMount.js';
+import { agentWorkRootDedupeKey, normalizeAgentWorkDirUri, type IAgentWorkRoot } from '../../../services/agentSession/common/agentWorkRoot.js';
+import { IConversationWorkRootMount, type IWorkRootMountOffer } from './conversationWorkRootMount.js';
 import { ActionListItemKind, IActionListDelegate, IActionListItem, IActionListOptions } from '../../../../platform/actionWidget/browser/actionList.js';
 import { IActionWidgetService } from '../../../../platform/actionWidget/browser/actionWidget.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -129,10 +129,14 @@ export class ConversationIdentityStrip extends Disposable {
 	private openMenu: 'folder' | 'branch' | undefined;
 	/** Set while a menu is still loading, so a second click cancels instead of opening twice. */
 	private menuLoad: 'folder' | 'branch' | undefined;
+	private menuRequestId = 0;
+	private rootKey: string | undefined;
+	private rootGeneration = 0;
+	private paintedOffer: { readonly offer: IWorkRootMountOffer; readonly uri: URI; readonly generation: number } | undefined;
 
 	private readonly repositoryListeners = this._register(new DisposableStore());
 
-	/** Window folder for the reopen-window menu. Not the session work root. */
+	/** Window folder enabling the add-to-workspace menu. Not the session work root. */
 	private folderResource: URI | undefined;
 	/** Local work root checked out by the branch menu. Unset for an engine root. */
 	private branchCheckoutUri: URI | undefined;
@@ -143,6 +147,7 @@ export class ConversationIdentityStrip extends Disposable {
 
 	constructor(
 		parent: HTMLElement,
+		private boundSessionId: string | undefined,
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
 		@ISCMService private readonly scmService: ISCMService,
 		@ICommandService private readonly commandService: ICommandService,
@@ -208,12 +213,17 @@ export class ConversationIdentityStrip extends Disposable {
 
 		this._register(this.rosterService.onDidChangeEngineConnection(() => this.render()));
 		this._register(this.uaConnection.onDidChangeConnection(() => this.render()));
-		this._register(this.contextService.onDidChangeWorkspaceFolders(() => this.render()));
+		this._register(this.contextService.onDidChangeWorkspaceFolders(() => {
+			this.invalidateMenus();
+			this.render();
+		}));
 		this._register(this.scmService.onDidAddRepository(repository => {
+			this.invalidateMenus();
 			this.registerRepositoryListeners(repository);
 			this.render();
 		}));
 		this._register(this.scmService.onDidRemoveRepository(() => {
+			this.invalidateMenus();
 			this.repositoryListeners.clear();
 			for (const repository of this.scmService.repositories) {
 				this.registerRepositoryListeners(repository);
@@ -229,19 +239,73 @@ export class ConversationIdentityStrip extends Disposable {
 		if (onDidChangeActiveWorkRoot) {
 			this._register(onDidChangeActiveWorkRoot(() => this.render()));
 		}
+		const onDidChangeSession = this.sessionContext?.onDidChangeSession ?? this.rosterService.onDidChangeSession;
+		this._register(onDidChangeSession(sessionId => {
+			if (sessionId === (this.boundSessionId ?? this.rosterService.getActiveSessionId())) {
+				this.render();
+			}
+		}));
 		this._register(this.workRootMount.onDidChangeOffer(() => this.render()));
 
 		this.render();
 	}
 
+	setBoundSessionId(sessionId: string | undefined): void {
+		if (this.boundSessionId !== sessionId) {
+			this.boundSessionId = sessionId;
+			this.render();
+		}
+	}
+
+	private resolveWorkRoot(): IAgentWorkRoot | undefined {
+		return this.boundSessionId === undefined
+			? this.sessionContext?.getActiveWorkRoot?.()
+			: this.sessionContext?.getWorkRoot?.(this.boundSessionId);
+	}
+
+	private workRootKey(root: IAgentWorkRoot | undefined): string {
+		const owner = this.boundSessionId === undefined ? 'unbound' : `bound:${this.boundSessionId}`;
+		const fallback = this.boundSessionId === undefined ? getConversationIdentityFolder(this.contextService)?.resource.toString() ?? '' : '';
+		return `${owner}\n${root ? agentWorkRootDedupeKey(root) : fallback}`;
+	}
+
+	private isCurrentRoot(generation: number): boolean {
+		return !this._store.isDisposed && generation === this.rootGeneration
+			&& this.rootKey === this.workRootKey(this.resolveWorkRoot());
+	}
+
+	private invalidateMenus(): void {
+		this.menuRequestId++;
+		this.menuLoad = undefined;
+		if (this.openMenu && this.actionWidgetService.isVisible) {
+			this.actionWidgetService.hide(true);
+		}
+		this.openMenu = undefined;
+		this.syncMenuExpanded();
+	}
+
+	override dispose(): void {
+		this.invalidateMenus();
+		super.dispose();
+	}
+
 	private registerRepositoryListeners(repository: ISCMRepository): void {
 		this.repositoryListeners.add(autorun(reader => {
 			repository.provider.historyProvider.read(reader)?.historyItemRef.read(reader);
+			this.invalidateMenus();
 			this.render();
 		}));
 	}
 
 	private render(): void {
+		const root = this.resolveWorkRoot();
+		const rootKey = this.workRootKey(root);
+		if (rootKey !== this.rootKey) {
+			this.rootKey = rootKey;
+			this.rootGeneration++;
+			this.invalidateMenus();
+			this.leaveEngineBranch();
+		}
 		const snapshot = this.uaConnection.getConnectionSnapshot();
 		const phase = this.uaConnection.getConnectionPhase();
 		const engineText = getConnectionPhaseStatusBarText(
@@ -257,12 +321,11 @@ export class ConversationIdentityStrip extends Disposable {
 		const windowFolder = getConversationIdentityFolder(this.contextService);
 		// The folder menu adds to this window's workspace. It needs a workspace folder to start from.
 		this.folderResource = windowFolder?.resource;
-		const root = this.sessionContext?.getActiveWorkRoot?.();
 		if (!root) {
 			this.leaveEngineBranch();
-			this.branchCheckoutUri = windowFolder?.resource;
-			this.paintFolder(windowFolder?.label, !!windowFolder?.resource);
-			const branchName = getConversationIdentityBranchName(this.scmService, windowFolder?.resource);
+			this.branchCheckoutUri = this.boundSessionId === undefined ? windowFolder?.resource : undefined;
+			this.paintFolder(this.boundSessionId === undefined ? windowFolder?.label : undefined, !!this.branchCheckoutUri, this.branchCheckoutUri?.fsPath);
+			const branchName = getConversationIdentityBranchName(this.scmService, this.branchCheckoutUri);
 			this.paintBranch(branchName, !!branchName);
 			this.paintAddOffer();
 			return;
@@ -270,14 +333,14 @@ export class ConversationIdentityStrip extends Disposable {
 
 		if (root.access === 'local' && root.localRoot) {
 			this.leaveEngineBranch();
-			this.paintFolder(workRootFolderLabel(root), !!this.folderResource);
+			this.paintFolder(workRootFolderLabel(root), !!this.folderResource, root.localRoot.fsPath);
 			this.branchCheckoutUri = root.localRoot;
 			this.paintBranch(getConversationIdentityBranchName(this.scmService, root.localRoot), true);
 			this.paintAddOffer();
 			return;
 		}
 		if (root.access === 'engine' && root.workDir) {
-			this.paintFolder(workRootFolderLabel(root), false);
+			this.paintFolder(workRootFolderLabel(root), false, root.workDir);
 			this.branchCheckoutUri = undefined;
 			this.beginEngineBranchRead(root);
 			this.paintAddOffer();
@@ -290,7 +353,7 @@ export class ConversationIdentityStrip extends Disposable {
 		this.paintAddOffer();
 	}
 
-	private paintFolder(label: string | undefined, menu: boolean = true): void {
+	private paintFolder(label: string | undefined, menu: boolean = true, title?: string): void {
 		const menuEnabled = menu && !!label;
 		if (!menuEnabled) {
 			if (this.menuLoad === 'folder') {
@@ -305,6 +368,7 @@ export class ConversationIdentityStrip extends Disposable {
 		this.folderChip.tabIndex = menuEnabled ? 0 : -1;
 		if (!label) {
 			this.folderChip.hidden = true;
+			this.folderChip.removeAttribute('title');
 			this.folderLabel.data = '';
 			this.folderChip.removeAttribute('aria-label');
 			this.folderChip.removeAttribute('aria-haspopup');
@@ -313,6 +377,7 @@ export class ConversationIdentityStrip extends Disposable {
 			return;
 		}
 		this.folderChip.hidden = false;
+		this.folderChip.title = title ?? label;
 		this.folderLabel.data = label;
 		this.folderChip.classList.toggle(conversationIdentityFolderReadOnlyClass, !menuEnabled);
 		if (menuEnabled) {
@@ -341,6 +406,7 @@ export class ConversationIdentityStrip extends Disposable {
 		this.branchChip.tabIndex = menuEnabled ? 0 : -1;
 		if (!name) {
 			this.branchChip.hidden = true;
+			this.branchChip.removeAttribute('title');
 			this.branchLabel.data = '';
 			this.branchChip.removeAttribute('aria-label');
 			this.branchChip.removeAttribute('aria-haspopup');
@@ -349,6 +415,7 @@ export class ConversationIdentityStrip extends Disposable {
 			return;
 		}
 		this.branchChip.hidden = false;
+		this.branchChip.title = name;
 		this.branchLabel.data = name;
 		this.branchChip.classList.toggle(conversationIdentityBranchReadOnlyClass, !menuEnabled);
 		if (menuEnabled) {
@@ -368,12 +435,13 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	private beginEngineBranchRead(root: IAgentWorkRoot): void {
-		const key = `${root.sessionId}\n${root.workDir ?? ''}`;
+		const key = agentWorkRootDedupeKey(root);
 		if (key !== this.engineBranchKey) {
 			this.engineBranchKey = key;
 			this.paintBranch(undefined, false);
 		}
 		const requestId = ++this.branchRequestId;
+		const generation = this.rootGeneration;
 		const sessionId = root.sessionId;
 		const read = this.uaConnection.readGitSummary?.bind(this.uaConnection);
 		if (!read || !sessionId.trim()) {
@@ -381,17 +449,17 @@ export class ConversationIdentityStrip extends Disposable {
 			return;
 		}
 		void read({ sessionId }).then(result => {
-			if (requestId !== this.branchRequestId || this._store.isDisposed) {
+			if (requestId !== this.branchRequestId || !this.isCurrentRoot(generation)) {
 				return;
 			}
-			const current = this.sessionContext?.getActiveWorkRoot?.();
+			const current = this.resolveWorkRoot();
 			if (!current || current.access !== 'engine' || current.sessionId !== sessionId) {
 				return;
 			}
 			const branch = result.supported ? result.branch.trim() : '';
 			this.paintBranch(branch || undefined, false);
 		}, () => {
-			if (requestId !== this.branchRequestId || this._store.isDisposed) {
+			if (requestId !== this.branchRequestId || !this.isCurrentRoot(generation)) {
 				return;
 			}
 			this.paintBranch(undefined, false);
@@ -400,11 +468,12 @@ export class ConversationIdentityStrip extends Disposable {
 
 	private paintAddOffer(): void {
 		const offer = this.workRootMount.getOffer();
-		const root = this.sessionContext?.getActiveWorkRoot?.();
+		const root = this.resolveWorkRoot();
 		const label = root ? workRootFolderLabel(root) : undefined;
 		const matches = !!offer && !!root && root.access === 'engine' && !!root.workDir && !!label
 			&& isEqual(offer.uri, normalizeAgentWorkDirUri(URI.file(root.workDir)));
 		if (!matches || !offer || !label) {
+			this.paintedOffer = undefined;
 			this.addFolderButton.hidden = true;
 			this.addFolderButton.textContent = '';
 			this.addFolderButton.removeAttribute('aria-label');
@@ -414,6 +483,7 @@ export class ConversationIdentityStrip extends Disposable {
 			? localize('conversationIdentityStrip.addAndTrust', "Add and trust")
 			: localize('conversationIdentityStrip.addToWorkspace', "Add to workspace");
 		this.addFolderButton.hidden = false;
+		this.paintedOffer = { offer, uri: offer.uri, generation: this.rootGeneration };
 		this.addFolderButton.textContent = text;
 		this.addFolderButton.setAttribute('aria-label', offer.reason === 'trust'
 			? localize('conversationIdentityStrip.addAndTrustAria', "Session folder: {0}. Add and trust it.", label)
@@ -421,7 +491,10 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	private onAddFolderClick(): void {
-		if (this.addFolderButton.hidden) {
+		const painted = this.paintedOffer;
+		const current = this.workRootMount.getOffer();
+		if (this.addFolderButton.hidden || !painted || !current || !this.isCurrentRoot(painted.generation)
+			|| current !== painted.offer || !isEqual(current.uri, painted.uri)) {
 			return;
 		}
 		void this.workRootMount.acceptOffer().catch(onUnexpectedError).catch(onUnexpectedError);
@@ -450,12 +523,11 @@ export class ConversationIdentityStrip extends Disposable {
 	/** Close an open menu, or cancel a menu that has not painted yet. */
 	private consumeToggle(which: 'folder' | 'branch'): boolean {
 		if (this.actionWidgetService.isVisible && this.openMenu === which) {
-			this.actionWidgetService.hide(true);
-			this.menuLoad = undefined;
+			this.invalidateMenus();
 			return true;
 		}
 		if (this.menuLoad === which) {
-			this.menuLoad = undefined;
+			this.invalidateMenus();
 			return true;
 		}
 		return false;
@@ -463,13 +535,16 @@ export class ConversationIdentityStrip extends Disposable {
 
 	private async showFolderMenu(): Promise<void> {
 		const workspaceFolders = this.contextService.getWorkspace().folders;
-		const root = this.sessionContext?.getActiveWorkRoot?.();
+		const root = this.resolveWorkRoot();
 		const current = root?.access === 'local' && root.localRoot
 			? root.localRoot
 			: getConversationIdentityFolder(this.contextService)?.resource;
 		if (!current || workspaceFolders.length === 0) {
 			return;
 		}
+		this.invalidateMenus();
+		const requestId = this.menuRequestId;
+		const generation = this.rootGeneration;
 		this.menuLoad = 'folder';
 		let recents: IRecentFolder[] = [];
 		try {
@@ -478,7 +553,7 @@ export class ConversationIdentityStrip extends Disposable {
 		} catch {
 			recents = [];
 		}
-		if (this.menuLoad !== 'folder') {
+		if (this.menuLoad !== 'folder' || requestId !== this.menuRequestId || !this.isCurrentRoot(generation)) {
 			return;
 		}
 		this.menuLoad = undefined;
@@ -538,7 +613,7 @@ export class ConversationIdentityStrip extends Disposable {
 			filterPlaceholder: localize('conversationIdentityStrip.searchFolders', "Search folders..."),
 			filterEmptyMessage: localize('conversationIdentityStrip.noMatchingFolders', "No matching folders."),
 			minWidth: 280,
-		});
+		}, requestId, generation);
 	}
 
 	/** Adds to this window's workspace. A folder on another remote cannot join it, so that one opens a new window. */
@@ -561,6 +636,9 @@ export class ConversationIdentityStrip extends Disposable {
 		if (!this.branchMenuEnabled || !folderUri || !current) {
 			return;
 		}
+		this.invalidateMenus();
+		const requestId = this.menuRequestId;
+		const generation = this.rootGeneration;
 		this.menuLoad = 'branch';
 		const names = new Map<string, boolean>();
 		names.set(current, true);
@@ -577,7 +655,7 @@ export class ConversationIdentityStrip extends Disposable {
 		} catch {
 			// The current branch still opens. Checkout of other refs waits for the next click.
 		}
-		if (this.menuLoad !== 'branch') {
+		if (this.menuLoad !== 'branch' || requestId !== this.menuRequestId || !this.isCurrentRoot(generation)) {
 			return;
 		}
 		this.menuLoad = undefined;
@@ -604,7 +682,7 @@ export class ConversationIdentityStrip extends Disposable {
 			filterPlaceholder: localize('conversationIdentityStrip.searchBranches', "Search branches..."),
 			filterEmptyMessage: localize('conversationIdentityStrip.noMatchingBranches', "No matching branches."),
 			minWidth: 280,
-		});
+		}, requestId, generation);
 	}
 
 	private repositoryFor(folderUri: URI): ISCMRepository | undefined {
@@ -623,14 +701,20 @@ export class ConversationIdentityStrip extends Disposable {
 		items: readonly IActionListItem<T>[],
 		onSelect: (item: T) => void,
 		listOptions: IActionListOptions,
+		requestId: number,
+		generation: number,
 	): void {
 		const delegate: IActionListDelegate<T> = {
 			onSelect: item => {
+				if (requestId !== this.menuRequestId || !this.isCurrentRoot(generation)) {
+					return;
+				}
 				this.actionWidgetService.hide();
 				onSelect(item);
 			},
 			onHide: () => {
-				if (this.openMenu === which) {
+				if (requestId === this.menuRequestId && this.openMenu === which) {
+					this.menuRequestId++;
 					this.openMenu = undefined;
 					this.syncMenuExpanded();
 				}

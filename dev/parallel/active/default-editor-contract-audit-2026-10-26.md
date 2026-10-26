@@ -27,7 +27,7 @@ D1382/1383/1384 按各自证据 closed。D1385/1386 仍 open、正式方案 acce
 | D / tunnel_retry_contracts（Astra） | D1383：Tunnel 引用身份、getExisting 所有权与 provider 失败后重试；同时审查 C/J 方案 | 方案 `e451d5da071` / 实施 `22386bcf3ae` 已合入；merge 旧生产 red / 新生产 19 passing、定向语义 0，范围内 closed |
 | J / configuration_initialization_contracts | D1384：RemoteUserConfiguration 显式重试共有等待、reload 及销毁边界 | 源 `c4b9332` 已三路合入 `3e63f9e`。旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。方案 implemented，缺口 closed。C 静态 after C0/I0，两条 Minor 不阻断 |
 | C / voice_cold_start | D1385：保留Copilot Chat首次连接录音授权 | 方案3d291db已三路合入09ac7dbefd8，规则16 C0/I0、accepted；作者各槽实施WIP未接入，功能open |
-| D / leaf_root_identity | D1386：叶绑定工作根身份及动作目标 | 方案ab142cd已三路合入a2fbb411cda，规则16 C0/I0、accepted；作者各槽实施WIP未接入，Important/open |
+| D / leaf_root_identity（原生接班） | D1386：叶会话根身份、分支读取/checkout、菜单与 mount offer 代次 | 方案 `ab142cd` 后三生产TS/11条真实Lens DOM公共回归已写；规则16与实施静态peer均C0/I0，四TS ESLint0/0。未编译/out/运行/本刀实拍；accepted/open交唯一merge与独立默认编辑器after |
 | merge / 唯一集成者 | 串行合入、旧生产身份核验、受控 red/green、唯一编译与必要真实界面复验 | D1382/1383/1384按范围已闭合。948单行Event注解已真三路合入，单TS noEmit 0、转译正文等价；D1385/1386功能仍open。本轮唯一全量 exit1、46/28 |
 
 ## 工作约束与验收

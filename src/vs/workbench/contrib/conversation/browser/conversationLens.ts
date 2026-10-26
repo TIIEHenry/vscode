@@ -437,6 +437,7 @@ export class ConversationLens extends Disposable {
 			this.writeComposerDraft(this.getBoundSessionId(), composerDraftText(this));
 		}
 		this.boundSessionId = next;
+		this.identityStrip.setBoundSessionId(next);
 		this.applyActiveSession(this.getBoundSessionId());
 	}
 
