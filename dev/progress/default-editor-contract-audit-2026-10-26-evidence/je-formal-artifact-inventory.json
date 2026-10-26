@@ -1,5 +1,5 @@
 {
-  "phase": "M01-r2-parent-independently-verified-freeze-J-only-actually-scheduled-result-pending-E-unauthorized",
+  "phase": "r2-observer-and-CSS-independent-review-three-way-merged-J-final-seal-pending-E-unauthorized",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -2799,6 +2799,34 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-r2-parent-freeze-verification.json",
       "bytes": 3928,
       "sha256": "ef109d5dbaf8cb51e7c883a5d3f0f94c7ee41563888be9e7f80fabfbc828f0f9",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-r2-observer-css-peer-conflict-resolutions.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-r2-observer-css-peer-conflict-resolutions.json",
+      "bytes": 12236,
+      "sha256": "a286e438be3bfd550b0b6c203e8354dda02a9269137898fc1a3e06338cf216c1",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-r2-observer-css-peer-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-r2-observer-css-peer-merge-identity.json",
+      "bytes": 280917,
+      "sha256": "ee498641434708cf0467e4db99f3d766e8e3d817f3d0d4461095f4ddc0baffa3",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-r2-observer-css-peer-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-r2-observer-css-peer-merge.log",
+      "bytes": 258,
+      "sha256": "e79030392ad87cbb4f1060ef97eb0a084b9d33d459e71a66a29df17eccb1ae25",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-r2-observer-css-peer-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-r2-observer-css-peer-pre-merge.json",
+      "bytes": 302,
+      "sha256": "ffa3bc500ea3d29e2a5b6522158786ea87275f52b16af61bb816ad35b479f53d",
       "bytePreservingCopy": true
     }
   ]

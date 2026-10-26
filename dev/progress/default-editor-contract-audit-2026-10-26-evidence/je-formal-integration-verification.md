@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "实际compile8及M0139/完整J425通过；r2两53/full163冻结经父独立核准，已仅调度J真实默认编辑器after，结果PENDING，E未授权，out保持稳定。"
+summary: "r2冻结保持；§21/22独立observer/CSS报告真三路500路径保留，attempt1错误与CSS原507/1不改写；J正式封存PENDING，E未授权。"
 ---
 
 # J/E 正式集成
@@ -380,3 +380,13 @@ finally所有163输出存在性/mode/SHA、163源SHA及旧Pane source/native全�
 父 `/root` 已实际独立核准：[r2父核验原记录](m01-r2-parent-freeze-verification.json)逐字保留其交接消息，另列准确核验范围。两新notice的raw SHA、共同53 canonical SHA、完整163 freeze的raw/canonical SHA全精确；两53及完整163的当前native、FS source、冻结Git source逐hash零差；冻结800d/当时current800d/native producerbd1b/候选468d完整src同为2b5d，d91/468d/peer08705祖先、真实compile8 exit0及三mandatory生产均核真。最初核验时J completion/E authorization均不存在。父随后实际核纯docs e7cab252aa3的src仍2b5d、800d为祖先且worktree clean。这些是父只读核验，不是父重跑业务或UI。
 
 父已经**实际followup D，仅授权J真实默认编辑器after**：真实按钮、五Move、两真实Git fixture、全阶段zeroEngineRpc、无Git写（stage/revert/checkout均0）。**J实际结果仍PENDING**；hash核验和已调度不能写成J通过。E仍未授权，不启动E server；只有同runId/同冻结身份的真实J completion和父另行明确E授权才可进入E阶段。本lane这次仅文档记录，没有运行readiness/UI/业务测试，也没有改source/out/依赖缓存；全部保持冻结。原399 artifacts逐bytes/SHA保留，新增该父独核JSON后库存400，D1387仍open。
+
+## r2观察层与CSS来源独立报告接入
+
+本lane已实际读原Astra不可变 **`0560ad52621183a4cc89f62630e3c0792042b41a`**（父215fefa）原报告§21/22完整增量，按父授权仅真三路接报告+INDEX。[500路径Git mode/type/blob门禁](je-formal-m01-r2-observer-css-peer-merge-identity.json)PASS，原报告blob精确incoming，src仍 **`2b5df2b37ca926e38888443e371cf65e2883dba2`**；仅INDEX冲突，[双方完整原文与合成理由](je-formal-m01-r2-observer-css-peer-conflict-resolutions.json)保留本lane实际验证/冻结/父独核/原D部分after导航及incoming两节独审边界。没有新模块、源码/out/缓存改动、编译或UI运行。
+
+§21准确分开两attempt：attempt1两条 `Method not found: toJSON` 来自observer evaluate隐式返回含service bag而触发Playwright序列化/IPC未知方法，两错误及原脚本/快照不删除；修订block callback和只读typed身份投影，不改真实command args。D按父既有授权clean重启的attempt2使用新profile从P01开始，已读初始config无异常不能冒充全轮通过。reviewer只读因果审查，没有自行操作窗口或代签D最终结果。
+
+§22保留原CSS guard **507通过/1 raw mismatch失败**，`matchesFrozenNativeBytes:false`不改写。实际CDP全文逐字符精确等于冻结native字节的确定性windows-1252解码结果，256单字节表可逆恢复原175386字节/SHA；这闭合来源，不是CDP Unicode文本UTF-8回编码与native raw相同。实际CSSOM目标content为正确 **✓**，无匹配元素故不称visible glyph验收；其完整683条cssText与detached UTF-8冻结参考逐字符串相等，detached reference未adopt/未插DOM。不能从CDP源码表示差异登记未经实证的产品glyph缺陷，不声称具体Chromium内部解码机制已动态定位。40JS actual raw-match、1CSS解码来源/规则一致、12 manifest-only分别保留，不能升级整out loaded。
+
+父已实际读§22完整增量与CSSOM原件，接受既有冻结合同下该typed来源证明；不是父重跑UI或原raw失败转绿。D正在封存J final，**J正式完成仍PENDING，E未授权/未run**；不能从独审接入翻plan/PRD/whole wave。原400 artifacts逐bytes/SHA全保留，新增四份三路证明后库存404，source/out/依赖缓存继续绝对冻结，等待D正式不可变证据。
