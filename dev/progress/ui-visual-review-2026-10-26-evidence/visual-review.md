@@ -47,12 +47,12 @@ Astra 独立只读视觉审查确认 D1371 / D1372 的 before/after 与模式退
 
 D 工位静态检查：目标 ESLint exit 0，无诊断；stylelint exit 0，仍列出本文件既有的 15 条 unknown-variable 提示与 179 条设计 token 建议；docs-health 0 errors / 46 既有链接警告，generated-status --check 与 diff-check 通过。这些检查不替代以下 browser / Electron 实测。
 
-### 集中复验条件（尚未执行）
+### 集中复验状态（行为通过，独立实拍待回传）
 
 1. 仅由 merge 验证者按本轮唯一产物流程刷新新增测试 JS 与 `conversationLens.css`，记录源码/产物 hash；D 工位不编译、不转译、不写 `out/`。
 2. 在 merge 运行 `rtk proxy ./scripts/test.sh --run vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test --grep "Conversation pending badge styles"`。预期四个主题用例通过，真实结果待填；使用当前测试 JS 与 CSS，不能使用旧产物判通过。
 3. 由独立验证者以全新隔离 user-data/extensions/shared-data、默认编辑器入口与 Stub fixture 打开等待权限座位，复拍同内容浅/深色 1024×768 和宽窗；补 HC light/dark，测标签真实 computed 前景/合成底对比至少 4.5:1、HC contrastBorder 可见、300px 叶宽不裁文字；核验 Tab/方向键仍可进入并切换 Allow/Skip。不得使用或复制日常 profile，不登录、不连引擎。
-4. 新截图和测量写入本地 `.build/visual-review-astra/`，记录 fresh 源码/产物对应关系后再评估关闭 [D1373](../deferred-gaps.md)。目前 browser 与实际 after 尚未运行，因此保持 open。
+4. 新截图和测量写入本地 `.build/visual-review-astra/`，记录 fresh 源码/产物对应关系后再评估关闭 [D1373](../deferred-gaps.md)。merge 已执行最小产物刷新，browser 四个主题用例 4 passing，测试定向语义 0，见 [行为日志](d1373-browser.log) / [新输出清单](d1373-fresh-output.json)。实际产品主题 after 尚待回传，因此保持 open。
 
 ## 覆盖限制与清理
 

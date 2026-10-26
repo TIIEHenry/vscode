@@ -1,10 +1,10 @@
 ---
 title: "2026-10-26 UI 与权限审查集成看板"
 type: progress
-status: completed
+status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1368–D1372 已三路集成；Node 202、核心 browser 32 与设置页补充 browser 9 项通过，新增类型问题已定向修复；独立视觉 after 已通过；D1373 只登记未实施。唯一 compile-client 的真实失败与新输出证据分别记录。"
+summary: "D1368–D1372 已完成真实验证；follow-up D1373 徽标新输出 browser 4 主题通过，独立视觉待复核；D1374 会话异步打开与 D1375 Sources 编译根因切片在途，仍由 merge 唯一写出与验证。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -75,3 +75,18 @@ D 的 `292ec409fc1` 基于 `df7c5b1`，在 merge 的 `2fec8eaf636` 上真三路�
 本阶段 browser 命令为 `node test/unit/browser/index.js --browser chromium-chrome`，三份 `--run` 分别指向 `conversation/test/browser/connectionPreferencesPane.test.ts`、`preferences/test/browser/settingsEditor2.test.ts` 与 `conversation/browser/connectionPreferencesPane.test.ts`，再以 `--grep 'Direct Address input rows|UA Client responsive scope|ConnectionPreferencesPane \(browser\)'` 聚焦。实际编辑器中的尺寸约束变更、UA↔普通切换与 TOC / 重开由 Astra 独立视觉复核；独立视觉结论已通过，见 [入库视觉报告](../../progress/ui-visual-review-2026-10-26-evidence/visual-review.md)；截图与完整测量按要求留在主线 `.build/visual-review-astra/`，不入 git。
 
 独立 after 已确认：Direct Address 305px 单列、479.19→480.00px 无坏带；UA exact / ordinary / mixed / return / TOC / 300px 叶重开往返通过。D1371 / D1372 已闭合。第三项 `Input needed` 文字低对比仅登记 D1373 open，本轮未扩大实现；覆盖限制与本地截图 / JSON 路径见 [视觉报告](../../progress/ui-visual-review-2026-10-26-evidence/visual-review.md)。
+
+## Follow-up D1373–D1375
+
+本节承接上一轮完成线；D1373 后续已获授权实施，不再停留于初始的只登记状态。C / D / J 共同基线为 `0ea26634bed`，禁止各槽编译、转译、watch 或写 out；merge 仍是唯一产物与验证工位。
+
+| 工位 | 范围 | 当前状态 |
+|:---|:---|:---|
+| D | D1373 `Input needed` 真实对比修复 | `9213459c87f` 已 fast-forward 进入 merge；真实生产 CSS + Permission/Question Seat browser 4 主题通过；独立浅/深/HC 实拍待回传 |
+| C | D1374 SessionsService 异步打开被显式 focus / active-close / all-close / restore 覆盖后的取消边界 | 实施在途；待最终 SHA；计划先只刷新新增受控屏障测试对旧 `0ea` 生产输出取 red，再刷新生产取 green |
+| J | D1375 Sources 正式 DI、null/undefined、测试 store 三类根因 | 短方案经独立只读审查无 Critical / Important；方案先提交、实施后提交；待最终 SHA，只处理九条命名诊断与相应文件 |
+| merge | 唯一真实集成与验证 | 不重复上一轮已绿套件；新源码全齐后按需要只串行跑一次 compile-client，不能拿上一轮日志当本轮结果 |
+
+D1373 只在 `/tmp/vscode-compile.lock` 内刷新新测试 JS 与 `conversationLens.css`，没有启动全仓编译；[刷新日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-refresh.log) 和 [两文件新输出清单](../../progress/ui-visual-review-2026-10-26-evidence/d1373-fresh-output.json) 保留。`node test/unit/browser/index.js --browser chromium-chrome --run src/vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test.ts` 为 4 passing，覆盖 Light / Dark Modern 与 HC light / dark、300→720→300、真实文字对比至少 4.5:1、紧凑/不裁切、HC 边界与方向键决策路径；见 [行为日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-browser.log)。
+
+该测试 TypeScript 6.0.3 API 定向语义为 0（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-types.log)）；ESLint 0 errors（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-eslint.log)）；生产 CSS 的仓库 stylelint exit 0，15 条既有 unknown-variable 提示 / 179 条 token 建议（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-stylelint.log)）。独立视觉仍待新输出实拍，因此 D1373 暂不闭合。

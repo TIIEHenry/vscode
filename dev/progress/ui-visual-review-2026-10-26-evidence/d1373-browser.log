@@ -1,0 +1,12 @@
+Failed to load resource: the server responded with a status of 404 (Not Found) []
+
+
+  Conversation pending badge styles - /CHROMIUM-CHROME/
+    ✔ Light Modern: pending permission and question text is readable at narrow and wide widths
+    ✔ Dark Modern: pending permission and question text is readable at narrow and wide widths
+    ✔ High Contrast Dark: pending permission and question text is readable at narrow and wide widths
+    ✔ High Contrast Light: pending permission and question text is readable at narrow and wide widths
+
+
+  4 passing (24ms)
+

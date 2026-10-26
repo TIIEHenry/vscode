@@ -11,7 +11,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
-| [ui-visual-review-2026-10-26](active/ui-visual-review-2026-10-26.md) | **已完成**：D1368–D1372 行为与独立视觉复验通过；D1373 只登记，真实全仓编译失败单列 |
+| [ui-visual-review-2026-10-26](active/ui-visual-review-2026-10-26.md) | **进行中**：D1368–D1372 已验证；follow-up D1373–D1375 统一集成 / 实拍 / 编译根因复验 |
 | [session-work-root](active/session-work-root.md) | **进行中**：PRD-029 S1–S4。S5 不做 |
 | [visual-audit-2026-10-05](active/visual-audit-2026-10-05.md) | **已完成**：自有界面八项已确认视觉问题、一项待实测疑点；收口方案已签收，排除 VS Code 原生部分 |
 | [architecture-review-2026-10-05](active/architecture-review-2026-10-05.md) | **已完成**：自研架构只读审查及 Grok 复核，排除 VS Code 原生；5 条已核实发现、1 条契约疑点 |

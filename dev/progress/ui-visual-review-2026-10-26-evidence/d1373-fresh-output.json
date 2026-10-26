@@ -1,0 +1,23 @@
+{
+  "source_head": "9213459c87f903a983cf7d37b35af23e4dafdf7b",
+  "refresh_start": "2026-10-26T10:02:53+08:00",
+  "out_root": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out",
+  "files": [
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test.ts",
+      "source_sha256": "5b603cb0b5a42ef4aa1ce5dd3e083cb4358391d2950664ffbd9830c0f82f4b80",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test.js",
+      "output_sha256": "dca1192a1f5da64da4044f889cef0c3f415cee337b0f884f0a8aee13a4b711ba",
+      "output_mtime": "2026-10-26T10:02:53.336319+08:00",
+      "fresh_since_refresh_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "source_sha256": "b19102a802eb49fadc7e45cf6be3837b0d253bd0435ad2433ee763183064afc9",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "output_sha256": "b19102a802eb49fadc7e45cf6be3837b0d253bd0435ad2433ee763183064afc9",
+      "output_mtime": "2026-10-26T10:02:53.336319+08:00",
+      "fresh_since_refresh_start": true
+    }
+  ]
+}
