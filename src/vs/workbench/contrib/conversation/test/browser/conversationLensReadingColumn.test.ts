@@ -5,12 +5,42 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { conversationLensStaleSnapshotClass, refreshStaleSnapshotBanner, shouldShowReadingColumnLiveChrome } from '../../browser/conversationLensReadingColumn.js';
+import { conversationLensStaleSnapshotClass, isReadingColumnWritesEnabled, refreshStaleSnapshotBanner, shouldShowReadingColumnLiveChrome } from '../../browser/conversationLensReadingColumn.js';
 import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
+import type { ConversationSessionSource } from '../../browser/conversationRosterStorage.js';
 
 suite('conversationLensReadingColumn', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('the bound cached session and connection history both close writes without disabling never-connected local fixtures', () => {
+		let connected = false;
+		let history = false;
+		let source: ConversationSessionSource = 'local';
+		const queried: string[] = [];
+		const host = {
+			getBoundSessionId: () => 'bound-cache',
+			stubService: {
+				isEngineConnected: () => connected,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => history,
+				getSessionSource: (id: string) => { queried.push(id); return source; },
+			},
+			uaConnection: {
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+				getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+			},
+		};
+		assert.strictEqual(isReadingColumnWritesEnabled(host), true);
+		source = 'engine-cache';
+		assert.strictEqual(isReadingColumnWritesEnabled(host), false);
+		assert.deepStrictEqual(queried, ['bound-cache', 'bound-cache'], 'session source must follow the bound pane rather than an unrelated active session');
+		source = 'local';
+		history = true;
+		assert.strictEqual(isReadingColumnWritesEnabled(host), false, 'the existing engine history gate also covers transitional local source metadata');
+		connected = true;
+		assert.strictEqual(isReadingColumnWritesEnabled(host), true);
+	});
 
 	test('stale snapshot banner follows bound session sync when lease sessionId is stale', () => {
 		const boundClosed: SyncChrome = { kind: 'closed', reason: 'Bound leaf disconnect' };
