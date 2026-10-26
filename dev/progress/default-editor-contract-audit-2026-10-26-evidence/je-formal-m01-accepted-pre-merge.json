@@ -1,0 +1,15 @@
+{
+  "ours": "30c489a3d9a4e57a08937526d4f71f99df47beba",
+  "theirs": "265b1fe8e01f88725169696976f6cc463a8b61dd",
+  "mergeBase": "4173b3fea640124a50cbdaa6aa7ceb7892274641",
+  "theirsChangedPaths": [
+    "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+    "dev/plans/sources-open-dispatch-and-conversation-target.md",
+    "dev/progress/status.md",
+    "docs/systems/sources/overview.md"
+  ],
+  "bothChangedPaths": [],
+  "incomingCommitVsParentPathCount": 5,
+  "actualIncomingDeltaVsMergeBasePathCount": 4,
+  "note": "accepted commit changes five paths against draft parent; net accepted delta vs merge-base is four because plans INDEX status returned to its original accepted value"
+}

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "固定d91实际peer闭合、第四compile0；相关新绿与255/1旧reasoning红原件齐，154身份核、两份52项已freeze；D顺序after待，不push/主ff重试。"
+summary: "D真实J部分after C0/I1、M01按钮no-op，D1387 open/J重开；3f审查+ee189六证据+265b accepted已真三路保留，旧928/native154不动，E未启动。"
 ---
 
 # J/E 正式集成
@@ -178,3 +178,23 @@ D扩充的[原J36模板](je-final-J-freeze-template.json) SHA `7a88a4952b522bc31
 父与D已收到精确notice路径和hash。**通知只交付冻结身份，不等于E阶段执行授权。** 父独立核验后只先调度J；J实际真实默认编辑器矩阵与zeroEngineRpc完成，再由父另发E-after phase授权。E保持现有精确fake广告/handler，不添加GetQueue、SaveSkillContent或wildcard；在queue unsupported下验证响应链，不授予队列/技能产品验收。唯一lane未启动D窗口/server或运行D脚本；after仍待，保持out稳定。P5禁push、P6主ff不重试，不声称wave完成。
 
 父独立冻结核验已实际收到：两notice SHA与各52项source/native entries全部零差；当前merge HEAD:src、notice sourceHead:src及native producer8b4:src精确同92801b5，固定d91祖先、compileExit0与outFrozen均核真。[父核验受理原件](je-final-parent-freeze-verification.json)明确此为父执行范围，不冒称由唯一lane代跑。父已正式followup D **仅J**真实默认编辑器/两真实Git18矩阵，要求J全程engineRPC=0及stage/revert/checkout=0；这只是调度，J实际结果仍待，E未授权/server不得起。整个after期唯一lane保持out不变，不再compile/typecheck/transpile或最小fresh。后续纯doc提交只推进证据，不改源树/native身份。
+
+## D真实J部分after、M01重开与最终accepted增量纯文档接入
+
+本次只接已提交文档/证据，不改产品源码，不执行compile/typecheck/transpile、最小fresh、业务测试或D窗口/server。旧freeze当时真实成立：src仍 `92801b513611ed3ae1ba36862a58131c609f6aa2`、native producer仍8b4，154项source/native逐SHA前后保持，供原作者新候选到达后准确M01旧red使用；不把真实I1改写成从未freeze。原107/115/153/166各层历史artifact全部精确保留。
+
+| 真三路接入 | 结果与保留范围 |
+| --- | --- |
+| Astra `3f299c3dc5b18c47209e6ccb23ba40a2fe0765e4`（含7b63 §10与§11）→ `d3c1bf8b3c29db5f51284b3cfca1a63818de02e8` | [257路径mode/type/blob门禁](je-formal-m01-peer-merge-identity.json)PASS；仅INDEX冲突，保留当前native/freeze历史与incoming M01/规则16边界；[完整hunk原文](je-formal-m01-peer-conflict-resolutions.json)，审查报告blob精确incoming |
+| D `ee1892ee8cd3499ec9af0b1fd8ca66124524fb0c` → `30c489a3d9a4e57a08937526d4f71f99df47beba` | [263路径门禁](je-formal-J-partial-after-merge-identity.json)PASS；六份报告/matrix/assertions/inventory/tar/health全mode/blob精确incoming，仅在证据INDEX新增导航行 |
+| 原J最终accepted `265b1fe8e01f88725169696976f6cc463a8b61dd` → `f3be0d57d69b2b0de56679c5b206801536cf14c2` | [12路径门禁](je-formal-m01-accepted-merge-identity.json)PASS，无冲突，plan精确accepted原blob；单commit对draft父5路径，但对实际merge-base4173净差4路径，plans INDEX状态已回到原accepted，非遗漏。没有单独取draft b882或任何产品实现 |
+
+D永久[部分after报告](d1387-j-partial-after-2026-10-27.md)准确记 **C0/I1、14 PASS_RUNTIME / 1 PASS_ISOLATION / 2 PASS_LANE_CONTINUITY / 1 PARTIAL_FAIL**，不是18项UI全过。M01在普通Review创建的Beta比较及move创建的Alpha比较中两次实际点击Open Diff in Preview均no-op：真实Conversation input/group存在而全局active为空，Pane无参发command、helper只读global active，属于原J产品缺陷。§9的Roster定向C0/I0/M0历史不因此回写；§10 M01产品I1持续open。J已reopened occupied，原作者在accepted增量后实施，不新增coder/模块，不由唯一lane代修。D1387不关闭、PRD不升级、whole wave不释放。
+
+[证据包校验](je-J-partial-after-package-verification.json)由本lane只流式读tar/member、核bytes/SHA：压缩包 **5,107,580 bytes**、SHA256 `17e6b62b91bd493d5c021924eb8c255d8585baba16c7c050134d6a6c656e75f4`，**250个文件全部匹配inventory**，含29张原PNG；未解包执行、未运行截图脚本或重复产品测试。读包JSON另确认101成功状态采样全部 disconnected/idle/channelAlive=false/events0，runtime manifest为39 renderer JS实际loaded + 1 Lens CSS实际loaded / 12 manifest-only，J18 Debugger是39的子集，不能相加。144 checks是对真实状态/已知失败的核对，不代表产品144项全绿。上述UI执行归D，本lane只核已提交原件。
+
+D cleanup原件记录其自有main1643431/Xvfb1643371/子1643372已无proc，37999/35563不监听，自有profile/home已清、两真实Git fixture保留。D未stage/revert/checkout、未碰50061；E阶段**从未授权或启动**，J内E01/E02只是本地open错误用例名，不作E引擎after。J partial且已有zeroRPC记录也不能自动授权E；父另行调度新freeze/新after。
+
+§11规则16对b882为C0/I0/M1，最终accepted265b1已落实native toolbar仅groupId、context menu URI先/context后、无index仅明确组、非法不fallback及数字context时间边界。accepted仅签方案，保留原false/stale/void/非leaf异常关闭代数与缺leaf保源例外，尚无M01产品新green。后续原J不可变实施候选/codepeer到位，才由唯一lane按父调度做准确旧red→正式merge/compile5→新green→新freeze/D复验；当前不重编。
+
+[接入前身份](je-m01-docs-integration-preservation-before.json)与[接入后身份](je-m01-docs-integration-preservation-after.json)保留154 source/native及原166 artifacts零差；[status压缩整文](je-m01-status-consolidation.json)保留旧逐字记录，当前账压至195行，明确J occupied/E未跑。所有原merge日志、生成列/diff/health原日志仅追加库存；仍无主ff重试/push、无root WIP/out消费或追随后续main。

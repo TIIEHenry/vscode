@@ -1,0 +1,29 @@
+{
+  "checkedAtUtc": "2026-10-26T18:42:34.713322+00:00",
+  "phase": "pure-doc-M01-partial-after-and-final-accepted-integration",
+  "workspaceHeadBeforeCheckpoint": "f3be0d57d69b2b0de56679c5b206801536cf14c2",
+  "sourceTree": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+  "all154FrozenSourceNativeHashesExact": true,
+  "all166HistoricalArtifactsExact": true,
+  "reviewIncomingCommit": "3f299c3dc5b18c47209e6ccb23ba40a2fe0765e4",
+  "reviewBlobExactIncoming": "48aced41d40a6fbf18d38a789b4ba56b16e3fd6e",
+  "acceptedPlanIncomingCommit": "265b1fe8e01f88725169696976f6cc463a8b61dd",
+  "acceptedPlanBlobExactIncoming": "19cbd862fe90f2378a6f5f2df7be68a3494620df",
+  "partialAfterIncomingCommit": "ee1892ee8cd3499ec9af0b1fd8ca66124524fb0c",
+  "M01": {
+    "critical": 0,
+    "important": 1,
+    "productDefectStillOpen": true,
+    "JState": "reopened occupied; original author implementing after accepted addendum",
+    "EAfterStarted": false,
+    "EPhaseAuthorized": false,
+    "oldFreezeHistoricallyValid": true,
+    "old928NativePreservedForFutureExactRed": true,
+    "D1387Closed": false,
+    "wholeWaveReleased": false
+  },
+  "noSourceOrOutWrites": true,
+  "noCompileTypecheckTranspileOrBusinessTests": true,
+  "rootWipContentNotRead": true,
+  "laterMainNotFollowed": true
+}

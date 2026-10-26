@@ -1,0 +1,14 @@
+{
+  "ours": "d3c1bf8b3c29db5f51284b3cfca1a63818de02e8",
+  "theirs": "ee1892ee8cd3499ec9af0b1fd8ca66124524fb0c",
+  "mergeBase": "24a3850cc46c680799309adfc9bc093ae653ff27",
+  "theirsChangedPaths": [
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-2026-10-27.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-artifact-inventory.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-assertions.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-docs-health.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-evidence.tar.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-matrix.json"
+  ],
+  "bothChangedPaths": []
+}
