@@ -1,0 +1,33 @@
+{
+  "checkedAtUtc": "2026-10-26T23:06:19.160Z",
+  "sourceOrNativeWritten": false,
+  "actualResolvedModules": [
+    {
+      "name": "typescript",
+      "modulePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript/lib/typescript.js",
+      "moduleSha256": "d3f3cd2b04b7f466f4484df921b744223f7bd1f3e353ec9110bdf52695b983d5",
+      "runtimeVersion": "6.0.3",
+      "packagePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript/package.json",
+      "packageVersion": "6.0.2",
+      "packageSha256": "d9b8fb53c67c947fece83bcb73fa8512227ea6a12b110e096fdab8ecdc02b655"
+    },
+    {
+      "name": "esbuild",
+      "modulePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/esbuild/lib/main.js",
+      "moduleSha256": "948fce5d4115d4486af681d49211dd0a4de0f3b8e86c2af312ae3684cd9f534f",
+      "runtimeVersion": "0.27.2",
+      "packagePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/esbuild/package.json",
+      "packageVersion": "0.27.2",
+      "packageSha256": "3139328c2722a5f517e908ef5c3d8aa28cf154fe3931185ed456351e662025df"
+    },
+    {
+      "name": "gulp",
+      "modulePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/gulp/index.js",
+      "moduleSha256": "c9c63160d0f825964216d76cbc21321518621c5d9f7aa42a2a4a5876a7f56058",
+      "runtimeVersion": null,
+      "packagePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/gulp/package.json",
+      "packageVersion": "4.0.2",
+      "packageSha256": "2b9b9964cf7416d606222ccb9131e71dd525c731bb84655a3e487e31697c1da7"
+    }
+  ]
+}

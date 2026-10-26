@@ -1,0 +1,48 @@
+{
+  "nodeVersion": "v26.7.0",
+  "nodeExecutable": "/home/clarence/.hermes/node/bin/node",
+  "nodeExecutableSha256": "ad19784f7e90ba789a099eccba77ede8dc90a778c424f1c10a70fed3ff903fdc",
+  "packages": {
+    "typescript": {
+      "version": "6.0.2",
+      "packagePath": "node_modules/typescript/package.json",
+      "packageSha256": "d9b8fb53c67c947fece83bcb73fa8512227ea6a12b110e096fdab8ecdc02b655"
+    },
+    "esbuild": {
+      "version": "0.27.2",
+      "packagePath": "node_modules/esbuild/package.json",
+      "packageSha256": "3139328c2722a5f517e908ef5c3d8aa28cf154fe3931185ed456351e662025df"
+    },
+    "gulp": {
+      "version": "4.0.2",
+      "packagePath": "node_modules/gulp/package.json",
+      "packageSha256": "2b9b9964cf7416d606222ccb9131e71dd525c731bb84655a3e487e31697c1da7"
+    }
+  },
+  "repositoryBuildInputs": [
+    {
+      "path": "build/lib/compilation.ts",
+      "sha256": "7d37e11086d3fff5ad2b21c875127bd20e559abfaa67a6363afc08452199592d"
+    },
+    {
+      "path": "build/lib/tsb/index.ts",
+      "sha256": "5c05df6e808ed86c3d333cc99d95e96d105290de338e8797ac8a53cdd7e4085f"
+    },
+    {
+      "path": "build/lib/tsb/transpiler.ts",
+      "sha256": "f68f2fa43e7cd65f98b05a405a0c3b27bb838b7fee57f53859c7f5c3bd17a9a0"
+    },
+    {
+      "path": "build/lib/tsconfigUtils.ts",
+      "sha256": "24b3bc275d6bef14c1497b70fcd6b4ed4ade94bb317d7363453697fbab3783fd"
+    },
+    {
+      "path": "src/tsconfig.json",
+      "sha256": "6c35a05a6798601b37cd28c535f4e7258ffdf34e271fbf6a4411d328f1db2332"
+    },
+    {
+      "path": "src/tsconfig.base.json",
+      "sha256": "74359c514fb10624b9871279dd094fdd8034d4f3e37b154b5b98726db361c8c4"
+    }
+  ]
+}

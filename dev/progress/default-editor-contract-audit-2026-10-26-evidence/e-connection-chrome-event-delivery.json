@@ -1,0 +1,49 @@
+{
+  "commit": "2fd206e74d846052ca0083ee27d8046c91b348ac",
+  "parent": "c683f0eb11160b6d985f31150616c5b592f5783b",
+  "srcTree": "792ebb57bb1e48fa4b2ee00752c5e81c10a85ff6",
+  "productionBrowserTree": "fc073478b35e20c1fd63378ec93ecc54bea7a6de",
+  "productionDiffEmpty": true,
+  "clean": true,
+  "files": [
+    {
+      "file": "dev/plans/conversation-unary-response-recovery.md",
+      "sha256": "ec8fa29c9320268c4e34fa8fd1fdca3f7ac3388d814659055104bceb962ee958"
+    },
+    {
+      "file": "dev/progress/status.md",
+      "sha256": "bb276bc4a102a7230b41576b53ec6e49e133c84ff620691bc7e84e84f28183ce"
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+      "sha256": "f926424e99c73b0dbd06325a2c78017a4c9ceb513145f4593aab79bc5a85e93c"
+    }
+  ],
+  "evidence": [
+    {
+      "file": "/tmp/vscode-e-connection-chrome-event-static.json",
+      "sha256": "e3af6199e5a41f1b222a2932d664e39df97658e83bebbd312811d5d321f7e035"
+    },
+    {
+      "file": "/tmp/vscode-e-connection-chrome-event-eslint.json",
+      "sha256": "c05ce4f0001e6f42f9c1850fc251cfa8fd5f2373e5ea51c77a1dc6149e3db386"
+    },
+    {
+      "file": "/tmp/vscode-e-connection-chrome-event-docs-health.json",
+      "sha256": "635f9535d23c0baf922b0527e19361ff282c117bf3a449a95955732477414a36"
+    }
+  ],
+  "syntaxErrors": 0,
+  "checker": false,
+  "emit": false,
+  "errors": 0,
+  "warnings": 1,
+  "docs": {
+    "errors": 0,
+    "warnings": 73
+  },
+  "statusLines": 200,
+  "planStatus": "accepted",
+  "c683LensEntireFilePreservedExceptNewBlock": true,
+  "runtimeValidation": "not run in E; pending original Astra rereview and sole baseline lane"
+}

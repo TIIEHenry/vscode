@@ -1,0 +1,23 @@
+[07:02:35] Starting [32mcompilation[39m...
+(node:2203101) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[07:02:35] Finished [32mcompilation[39m with 0 errors after [35m40 ms[39m
+node:internal/streams/end-of-stream:103
+      return new ERR_STREAM_PREMATURE_CLOSE();
+             ^
+
+Error [ERR_STREAM_PREMATURE_CLOSE]: Premature close
+    at getEosOnCloseError (node:internal/streams/end-of-stream:103:14)
+    at Stream.onclose (node:internal/streams/end-of-stream:265:19)
+    at Stream.emit (node:events:526:24)
+    at Stream.emit (node:domain:473:12)
+    at Stream.reemit (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/duplexer/index.js:70:25)
+    at Stream.emit (node:events:526:24)
+    at Stream.emit (node:domain:473:12)
+    at stream.destroy (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/through/index.js:84:12)
+    at _end (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/through/index.js:67:14)
+    at stream.end (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/through/index.js:74:5) {
+  code: 'ERR_STREAM_PREMATURE_CLOSE'
+}
+
+Node.js v26.7.0

@@ -1,0 +1,40 @@
+{
+  "phase": "failed-emitter-driver-adaptation-no-business-tests",
+  "checkedAtUtc": "2026-10-26T23:03:23.156640+00:00",
+  "sourceHead": "a064cd8a8997a028239b279bb50e03212645be60",
+  "sourceTree": "792ebb57bb1e48fa4b2ee00752c5e81c10a85ff6",
+  "failure": "Node stream/promises.pipeline reports ERR_STREAM_PREMATURE_CLOSE for legacy through/duplexer after reporter 0errors; not an E business assertion failure",
+  "semanticExit": 0,
+  "eslintErrors": 0,
+  "eslintWarnings": 1,
+  "actualEmitterExit": 1,
+  "changedOutMetadataPaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationLens.test.js"
+  ],
+  "allOther12553OutputMetadataExact": true,
+  "compile10Unchanged252SourceNativeModeExact": true,
+  "partialOutputCopies": [
+    {
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js",
+      "copyPath": "/tmp/vscode-e-final-two-tests-attempt1-conversationLensDisposeGate.test.js",
+      "bytes": 707141,
+      "sha256": "9f1da0a76209b1cd4b71278a46b8feea0b8e74f16780f27e25181f6d6f1a46ab",
+      "nativeMode": 436
+    },
+    {
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationLens.test.js",
+      "copyPath": "/tmp/vscode-e-final-two-tests-attempt1-conversationLens.test.js",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "nativeMode": 436
+    }
+  ],
+  "driverPath": "/tmp/vscode-e-final-two-tests-emitter.mjs",
+  "driverSha256": "4bea58a95f7055d74d244f15de5d295f6fe0d94f2ce9b176fd82b3dd52345aa8",
+  "optionsPath": "/tmp/vscode-e-final-two-tests-emitter-options.json",
+  "optionsSha256": "11fee2fd171ca1a65913eb9c2b69fd7a6e2031d9024f34a99fd236598cd9f014",
+  "rawLogPath": "/tmp/vscode-e-final-two-tests.emitter.log",
+  "rawLogSha256": "6bc01cbaa278ebf61e6ab9b780168c9d23297b954946b3b2b37c994dc44f7846",
+  "businessTestsExecuted": false,
+  "noFreeze": true
+}

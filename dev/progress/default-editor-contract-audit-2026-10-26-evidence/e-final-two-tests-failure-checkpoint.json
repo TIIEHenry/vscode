@@ -1,0 +1,162 @@
+{
+  "phase": "actual-complete-two-suite-failure-checkpoint-no-freeze",
+  "recordedAtUtc": "2026-10-26T23:07:15.381857+00:00",
+  "candidate": "2fd206e74d846052ca0083ee27d8046c91b348ac",
+  "testedSourceHead": "a064cd8a8997a028239b279bb50e03212645be60",
+  "testedSourceTree": "792ebb57bb1e48fa4b2ee00752c5e81c10a85ff6",
+  "fullCompileOfFinalSourceTree": false,
+  "semantic": {
+    "actualExit": 0,
+    "completeSrcProjectRoots": 10316,
+    "diagnosticsScope": "two changed tests only",
+    "configErrors": 0,
+    "syntacticErrors": 0,
+    "semanticErrors": 0,
+    "noEmit": true
+  },
+  "eslint": {
+    "actualExit": 0,
+    "errors": 0,
+    "warnings": 1,
+    "warning": "existing Lens.test duplicate import"
+  },
+  "firstEmitterAttempt": {
+    "actualExit": 1,
+    "classification": "local lane legacy-stream adapter failure, not E business failure",
+    "error": "ERR_STREAM_PREMATURE_CLOSE",
+    "partialOutput": "Lens.test only",
+    "businessTestsExecuted": false,
+    "qualificationPath": "/tmp/vscode-e-final-two-tests-attempt1-qualification.json"
+  },
+  "successfulEmitter": {
+    "actualExit": 0,
+    "driver": "repository createCompile via util.streamToPromise, exact two gulp.src inputs",
+    "recordPath": "/tmp/vscode-e-final-two-tests-r2-emitter.json",
+    "recordSha256": "13af5805921aed688f5f883574247c10c89323f84456bfa2cce68b38cba101e2",
+    "freshOutputCopies": [
+      {
+        "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js",
+        "copyPath": "/tmp/vscode-e-final-two-tests-r2-conversationLensDisposeGate.test.js",
+        "bytes": 712145,
+        "sha256": "b6db8ca7d164e0d57b0f460287adb59d68e106a8cc4d28c41410f718c1ce9db5"
+      },
+      {
+        "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationLens.test.js",
+        "copyPath": "/tmp/vscode-e-final-two-tests-r2-conversationLens.test.js",
+        "bytes": 704557,
+        "sha256": "8a2e0614304e3b19033047305f5104d9903dd7a53963e42045899841b21c977e"
+      }
+    ]
+  },
+  "actualCompleteSuites": {
+    "exitCode": 1,
+    "passing": 314,
+    "failing": 3,
+    "globalMetaPassing": 1,
+    "LensDisposeGate": {
+      "passing": 168,
+      "failing": 1,
+      "complete": true
+    },
+    "Lens": {
+      "passing": 145,
+      "failing": 2,
+      "complete": true
+    },
+    "rawLogPath": "/tmp/vscode-e-final-two-tests-r2.full-lens-suites.log",
+    "rawLogSha256": "56df7129b5116e90808c6a71a429976cd4f0821c9a680af1510b73c2108e31cd",
+    "grepUsed": false,
+    "skipUsed": false
+  },
+  "failures": [
+    {
+      "test": "pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live",
+      "kind": "TypeError fixture DOM contract",
+      "actual": "insertBefore argument1 is not a Node",
+      "sourceCall": "LensDisposeGate.test.ts updateConversationPhase(host)",
+      "productionLocation": "conversationLensProjection.ts:252 / native.js:156",
+      "priorAssertionsReached": "same lease and entries retained before updateConversationPhase",
+      "laterAssertionsNotReached": [
+        "updateSyncChrome",
+        "closed badge text/title/aria",
+        "manual lifetime.dispose"
+      ],
+      "productionSourceEntireFileUnchangedAcrossRefs": [
+        {
+          "head": "4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff",
+          "path": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+          "sourceSha256": "4260175f51ee8dc1b96973f6c813d10fdad59bb834e9782c42819b7598bd91db",
+          "sourceBlob": "20caa5e0bf8da7ac78f5534784577f6059e9faec"
+        },
+        {
+          "head": "c3f9fd04f9eb46c74170aa06e65054b80ac974b9",
+          "path": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+          "sourceSha256": "4260175f51ee8dc1b96973f6c813d10fdad59bb834e9782c42819b7598bd91db",
+          "sourceBlob": "20caa5e0bf8da7ac78f5534784577f6059e9faec"
+        },
+        {
+          "head": "2fd206e74d846052ca0083ee27d8046c91b348ac",
+          "path": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+          "sourceSha256": "4260175f51ee8dc1b96973f6c813d10fdad59bb834e9782c42819b7598bd91db",
+          "sourceBlob": "20caa5e0bf8da7ac78f5534784577f6059e9faec"
+        },
+        {
+          "head": "a064cd8a8997a028239b279bb50e03212645be60",
+          "path": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+          "sourceSha256": "4260175f51ee8dc1b96973f6c813d10fdad59bb834e9782c42819b7598bd91db",
+          "sourceBlob": "20caa5e0bf8da7ac78f5534784577f6059e9faec"
+        }
+      ],
+      "helperFunctionByteExactOld4919": true,
+      "helperFunctionSha256": "b2756142f43fa83443b5e459cdb76f76842c11aeafdc84a9cace1b608172f391",
+      "fixtureActualValue": "identityStrip.element = {}",
+      "oldBusinessRerunExecuted": false
+    },
+    {
+      "tests": [
+        "pairing-hold roster connection event demotes the live badge while keeping the same lease and content",
+        "pairing-hold UA connection event demotes the live badge while keeping the same lease and content"
+      ],
+      "kind": "AssertionError at whole slots.timeline.textContent equality",
+      "actualPrefix": "Waiting for pairingShowing snapshot from before disconnect: Pairing required",
+      "expectedPrefix": "Engine · Loopback",
+      "priorAssertionsReached": [
+        "event count matches chosen public event",
+        "same lease object",
+        "same snapshot object",
+        "snapshot.sync remains live",
+        "same lastAttachedEntries object"
+      ],
+      "laterAssertionsNotReached": [
+        "badge.hidden false after event",
+        "closed badge text/title/aria",
+        "absence of Session live in sessionBar"
+      ],
+      "boundary": "Full reading-column container includes connection identity and stale snapshot chrome; exact turn-content assertion contract is pending original Astra/E review. Do not assert later badge behavior passed."
+    }
+  ],
+  "scope": {
+    "total": 254,
+    "compile10Continuous": 252,
+    "freshTests": 2,
+    "all254SourceNativeModeExactAfter": true,
+    "allOutFileCount": 12554,
+    "allOtherOutFileMetadataUnchanged": true,
+    "onlyTwoTestNativePathsWritten": true,
+    "headSourceCleanUnchanged": true,
+    "threeStableCacheSymlinksUnchanged": true
+  },
+  "historyPreserved": [
+    "original531/539 artifacts",
+    "compile10 actual0/0TS",
+    "new10 actual10/0",
+    "related full484/4",
+    "old4919 exact selectors1/3",
+    "reasoning expected hmm\\nthen this",
+    "old E overall after FAIL and accepted plan"
+  ],
+  "next": "Return exact failure raw/source evidence to original E/Astra; wait fixed immutable tests-only SHA and peer before integration, refresh or business rerun.",
+  "freezeIssued": false,
+  "uiLaunched": false,
+  "productionChanged": false
+}

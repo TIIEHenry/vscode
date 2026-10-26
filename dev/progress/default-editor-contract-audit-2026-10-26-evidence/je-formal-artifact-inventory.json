@@ -1,5 +1,5 @@
 {
-  "phase": "final-2fd-test-only-source-merged-compile10-history-preserved-before-targeted-validation",
+  "phase": "final2fd-targeted-semantic0-eslint0-1-attempt1-emitter-fail-r2-emitter0-full-lens314-3-current254-preserved-no-freeze",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -3772,6 +3772,307 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-two-tests-peer-correction-merge-identity.json",
       "bytes": 342871,
       "sha256": "3d77fb951048c0204fdba31bab9f4e21202ece625ad920dc8398778c1229a1a0",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-attempt1-conversationLens.test.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-attempt1-conversationLens.test.js",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-attempt1-conversationLensDisposeGate.test.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-attempt1-conversationLensDisposeGate.test.js",
+      "bytes": 707141,
+      "sha256": "9f1da0a76209b1cd4b71278a46b8feea0b8e74f16780f27e25181f6d6f1a46ab",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-attempt1-qualification.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-attempt1-qualification.json",
+      "bytes": 1928,
+      "sha256": "7fcf9cf4989f32c0af875cd5ea676ea45977b3739d9cd61fbdf28b2b662f6946",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-current254-preservation.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-current254-preservation.json",
+      "bytes": 144143,
+      "sha256": "877b1b4e3c080586227337d3ce6b20106c882d8dbe7b57c6246bf4a438558c52",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-emitter-options.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-emitter-options.json",
+      "bytes": 4761,
+      "sha256": "11fee2fd171ca1a65913eb9c2b69fd7a6e2031d9024f34a99fd236598cd9f014",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-emitter-r2.mjs",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-emitter-r2.mjs",
+      "bytes": 2809,
+      "sha256": "833810dc3a9d6260646f8016d7ef3a855607068240ab292280c6edf9212a637d",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-emitter-toolversion.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-emitter-toolversion.json",
+      "bytes": 1655,
+      "sha256": "fac7e1a31e0edcbf9891f22999234c1a1190d5e6368ef520759961074831aec4",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-emitter.mjs",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-emitter.mjs",
+      "bytes": 2744,
+      "sha256": "4bea58a95f7055d74d244f15de5d295f6fe0d94f2ce9b176fd82b3dd52345aa8",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-failure-checkpoint.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-failure-checkpoint.json",
+      "bytes": 6834,
+      "sha256": "472a4c0be20b525fdf843d95aa3c37aeb59cede91c1e0cc1f52f69a63f02a18e",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-out-metadata-after.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-out-metadata-after.json",
+      "bytes": 2702442,
+      "sha256": "1a69364ec0c0eef08b51d87aae6d4ec0c415ad58d40b5788ea102f014895496f",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-prior539-preservation.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-prior539-preservation.json",
+      "bytes": 334,
+      "sha256": "263f72f7a04b44291038f48d2676949f54d4fa85a3435b0cc6de3648e2695802",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2-conversationLens.test.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2-conversationLens.test.js",
+      "bytes": 704557,
+      "sha256": "8a2e0614304e3b19033047305f5104d9903dd7a53963e42045899841b21c977e",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2-conversationLensDisposeGate.test.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2-conversationLensDisposeGate.test.js",
+      "bytes": 712145,
+      "sha256": "b6db8ca7d164e0d57b0f460287adb59d68e106a8cc4d28c41410f718c1ce9db5",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2-emitter-options.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2-emitter-options.json",
+      "bytes": 4761,
+      "sha256": "11fee2fd171ca1a65913eb9c2b69fd7a6e2031d9024f34a99fd236598cd9f014",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2-emitter-toolversion.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2-emitter-toolversion.json",
+      "bytes": 1773,
+      "sha256": "e6ff04fb88ba12544c4aaa689666c3c4ac1b1b016405bf3c6bd21bd29047d93d",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2-emitter.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2-emitter.json",
+      "bytes": 2501,
+      "sha256": "13af5805921aed688f5f883574247c10c89323f84456bfa2cce68b38cba101e2",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2-mixed-pairs.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2-mixed-pairs.json",
+      "bytes": 132649,
+      "sha256": "8ee12640b50062cf009c1077df65c55150909ebe948d0053c7dad3d490cb1670",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2.emitter-options.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2.emitter-options.log",
+      "bytes": 66,
+      "sha256": "405c9d2c1f3a4ae742900406854effcd682264a7ce011f341f03d204052fa4f4",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2.emitter.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2.emitter.log",
+      "bytes": 531,
+      "sha256": "1289d0fad941174aab5110968e1f425490999f9eaba0aeab8c589675eac092e8",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2.full-lens-suites.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2.full-lens-suites.log",
+      "bytes": 40729,
+      "sha256": "56df7129b5116e90808c6a71a429976cd4f0821c9a680af1510b73c2108e31cd",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2.json",
+      "bytes": 7446,
+      "sha256": "2d8697d0884cf88faacca48ab8d62b4e57b7a66a7a102a13c181d0ef8c58fcf2",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2.out-metadata-before.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2.out-metadata-before.json",
+      "bytes": 2702437,
+      "sha256": "6a53d5bd8a5d29aaf391e1982474d81134d936a13d3bfe5e60b8fa540791d449",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2.processes-before.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2.processes-before.log",
+      "bytes": 249168,
+      "sha256": "1da9b55960059776276e9c48ee0abe56fabcb1d30fbb4e4d4016805061981aaf",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-r2.processes-under-lock.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-r2.processes-under-lock.log",
+      "bytes": 249168,
+      "sha256": "25234df01dc78122c4f0bd59c7a4031ed9a8b3d8473533ec668ee35609a730f9",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-semantic.mjs",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-semantic.mjs",
+      "bytes": 1920,
+      "sha256": "3b859439cc046dbef05d41bbaee92dc4730b0fb361701f0b4cf0db9e8a951324",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-toolchain-module-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-toolchain-module-identity.json",
+      "bytes": 1636,
+      "sha256": "f5f439b6b3051fb8bf89bf9752e03e5d8bdf034bb31aafd1a117af3eee81d06d",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-validation-r2.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-validation-r2.py",
+      "bytes": 12972,
+      "sha256": "e2d3ec96416c658d3d698c0fff7540ba330d4eb0596cde3fb47a147c40083d7d",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests-validation.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests-validation.py",
+      "bytes": 13173,
+      "sha256": "5f40dadf1107ca0d3881c88ad93c2aafeec530323a9c29f29aad93e3b320888b",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests.emitter-options.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests.emitter-options.log",
+      "bytes": 66,
+      "sha256": "405c9d2c1f3a4ae742900406854effcd682264a7ce011f341f03d204052fa4f4",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests.emitter.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests.emitter.log",
+      "bytes": 1231,
+      "sha256": "6bc01cbaa278ebf61e6ab9b780168c9d23297b954946b3b2b37c994dc44f7846",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests.eslint.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests.eslint.log",
+      "bytes": 241627,
+      "sha256": "af28db8f5a290f6c686a902ec920e2cabbb5826c7d8ce6c48a2fc9e1b88d867f",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests.json",
+      "bytes": 7328,
+      "sha256": "8f33656c7f1ed52933a8d24efb9eb4de959501688ecf637ed74c3a7f349b0ef0",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests.out-metadata-before.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests.out-metadata-before.json",
+      "bytes": 2702442,
+      "sha256": "e9773fbfc015b2bb190fd5b83087dcdd024079cd076c01ba68b54464e034aca7",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests.processes-before.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests.processes-before.log",
+      "bytes": 253857,
+      "sha256": "7243ba394e0b157831c9ef6d5cccfda80ecd64173c2f0b8d79465e7d7b100e3e",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests.processes-under-lock.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests.processes-under-lock.log",
+      "bytes": 253857,
+      "sha256": "5f1ff920624a5e45f21a6a636f982bb8bf2f0bd99572679b352a6a8e7da06b26",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-final-two-tests.semantic.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-final-two-tests.semantic.log",
+      "bytes": 775,
+      "sha256": "4028168184aaf376c6adb0322f4af66247e22905abce59cacbbc7d3ea13bd742",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-four-fixture-corrections-static.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-four-fixture-corrections-static.json",
+      "bytes": 920,
+      "sha256": "dc5213c5d360fdf105551333c859cdc8457307a9a9aad8e3ad62157f17e86f47",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-four-fixture-corrections-eslint.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-four-fixture-corrections-eslint.json",
+      "bytes": 236911,
+      "sha256": "5459e203a7da80dcecc498217d250132e4d5458bda2121f42e454efdf35c0b75",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-four-fixture-corrections-docs-health.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-four-fixture-corrections-docs-health.json",
+      "bytes": 12908,
+      "sha256": "635f9535d23c0baf922b0527e19361ff282c117bf3a449a95955732477414a36",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-connection-chrome-event-static.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-connection-chrome-event-static.json",
+      "bytes": 1312,
+      "sha256": "e3af6199e5a41f1b222a2932d664e39df97658e83bebbd312811d5d321f7e035",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-connection-chrome-event-eslint.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-connection-chrome-event-eslint.json",
+      "bytes": 240146,
+      "sha256": "c05ce4f0001e6f42f9c1850fc251cfa8fd5f2373e5ea51c77a1dc6149e3db386",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-connection-chrome-event-docs-health.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-connection-chrome-event-docs-health.json",
+      "bytes": 12908,
+      "sha256": "635f9535d23c0baf922b0527e19361ff282c117bf3a449a95955732477414a36",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-connection-chrome-event-delivery.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-connection-chrome-event-delivery.json",
+      "bytes": 1651,
+      "sha256": "e00e639a2b5f37e740cd63fb3495df6ec9b53e944693b72e88709e135092db7c",
       "bytePreservingCopy": true
     }
   ]

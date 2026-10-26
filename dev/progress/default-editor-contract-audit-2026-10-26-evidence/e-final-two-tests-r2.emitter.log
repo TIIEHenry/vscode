@@ -1,0 +1,5 @@
+[07:03:59] Starting [32mcompilation[39m...
+(node:2208028) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[07:03:59] Finished [32mcompilation[39m with 0 errors after [35m35 ms[39m
+{"emittedInputs":["src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts","src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts"],"onlyExactTwoInputs":true,"repositoryCreateCompilePipeline":true}

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J旧r2源码身份after510/0；E attempt2八行及并发/换链过但断连缓存权限假Allowed为Important，整体after FAIL/原方案accepted，§25独审515路径真三路，163native仍冻结。"
+summary: "最终2fd两test项目noEmit0/lint0-1、定向emitter首轮lane失败与r2成功原件保留；完整Lens314/3及254身份/全out守卫，待原作者最小测试修订，不freeze/UI。"
 ---
 
 # J/E 正式集成
@@ -511,3 +511,32 @@ finally **完整253当前native存在/mode/bytes/SHA及source全部恢复compile
 固定 2fd206e74d846052ca0083ee27d8046c91b348ac（含 c683f0e）按真实三路合并，父已读原 Astra fbee68cf12ad7f0b8771367f7ca8774d913b62b5 §28 C0/I0/M0 并授权唯一 lane；单句分类次序纠正 fcc2a8212a282c04e3096e5b31d51c5a3e2dda4a 将单独接入。两份测试与 plan 精确 incoming，生产 browser tree 与 c3 相同；124 路径 mode/type/blob/hunk 门禁全过。status 原双方整文入冲突证明，全部 ours 进度条目与 incoming 最终作者条目逐字保留，200 行。
 
 此时未运行 checker、emit 或业务测试，未生成新 freeze/UI；compile10 的 253 项 source/native/mode 在合源前全核。后续仅真实 src 项目上下文内两测试 semantic/syntactic/noEmit、两测试原编译选项定向 emit，再完整 LensDisposeGate 与 Lens；最终身份预期 254 项（252 compile10 连续 + 2 fresh tests），不得把 fresh tests 冒称 compile10 原件。旧 531 原件、compile10 0/0TS、新10 10/0、完整相关484/4与精确旧四 selector1/3均保留。
+
+## 两测试定向刷新与完整 Lens 套 314/3 实际失败检查点
+
+父授权后，测试源固定为 `a064cd8a8997a028239b279bb50e03212645be60:src`（`792ebb57bb1e48fa4b2ee00752c5e81c10a85ff6`，候选 `2fd206e`）；报告 fbee 与单句纠正 fcc2a 已分别真三路接入。未修改生产代码，未运行新的 full compile。原 539 份原件在写入新证据前逐 bytes/SHA/Git blob 全核；旧 531 行前缀保留。现库存 582 原件，包含作者两阶段静态交付、两个 emitter 尝试、原始测试日志和每文件身份。
+
+唯一共享锁与全局空闲扫描后，用真实 `src/tsconfig.json` 的完整 10,316 roots/options 创建 TypeScript Program，只收两份变更测试的 syntactic/semantic 诊断，config/global/options 与这两份诊断均为 0；实际 noEmit exit0。两文件 ESLint 实际 exit0，0 errors / 1 既有 Lens.test 重复 import warning。未把该局部检查称为全项目 semantic 全绿。工具原件同时记录 package metadata 与实际 runtime version：TypeScript 分别为 6.0.2 / 6.0.3，实际解析模块 SHA 另存，不混写；esbuild 为 0.27.2。
+
+首个 emitter 使用 Node `stream/promises.pipeline` 对仓库 legacy through/duplexer 收尾，实际 exit1，`ERR_STREAM_PREMATURE_CLOSE`。reporter 曾输出 0 errors，但只写入 Lens.test.js，Dispose 输出仍旧；因此没有执行业务测试，也没有把它当成功构建。失败 driver/options/toolversion、raw log、部分输出与未写 Dispose 的 bytes/mode 原件完整保留。该次是本 lane 驱动适配失败，不属于 E 业务断言失败。
+
+父确认后，仅修本地 driver 的流收尾，使用仓库原 `util.streamToPromise` 与 `createCompile('src', { build:false, emitError:true, transpileOnly:{esbuild:true}, preserveEnglish:false })`，精确 `gulp.src` 两测试后写入 out。第二次 emitter 实际 exit0；driver/options/toolversion 各有路径与 SHA，两个 fresh 输出单独记录为 `test-refresh-2fd206e74d84`。原 compile10 的 252 个未变成员逐 source/native/mode 连续；两份测试替换后实际 scope254。两个 emitter 跨前后共 12,554 个 out 文件的 metadata 差异仅为这两份测试，其他 12,552 个路径无刷新；没有把新测试产物标作 compile10 原件。
+
+成功刷新后，同一锁内无 grep、无 skip 实际完整运行两套：
+
+| 实际 suite | passing | failing |
+| --- | ---: | ---: |
+| conversation lens dispose gate | 168 | 1 |
+| ConversationLens | 145 | 2 |
+| runner 全局 registry meta | 1 | 0 |
+| 合计 | 314 | 3 |
+
+总 exit1。三败逐项定界如下，不复跑或改断言：
+
+1. KEEP 测试去掉早先 source pin 后到达原后半，`updateConversationPhase(host)` 在 Projection native.js:156 / TS:252 的 `readingColumn.insertBefore(host.identityStrip.element, ...)` 抛 TypeError，参数不是 Node。原 helper 的 `identityStrip.element` 实际为 `{}`，readingColumn 是真 DOM；Projection 整份源与 helper 整函数都已核为 old4919 → c3 → 2fd → 当前逐字相同，Projection native 精确 compile10。该次未到 `updateSyncChrome`、徽章 text/title/aria 或手动 lifetime.dispose；未机械新增旧业务运行。
+2. 新 roster 公开事件用例在整个 `slots.timeline.textContent === paintedContent` 断言失败：actual 前缀为 “Waiting for pairingShowing snapshot from before disconnect: Pairing required”，expected 前缀为 “Engine · Loopback”。此前已过事件计数、同 lease/snapshot、snapshot 仍 live、同 entries 身份；后面的 badge hidden/text/title/aria 和 Session live 缺席断言未达。
+3. 新 UA 公开事件用例在同一整容器文本断言失败，落点及已达/未达边界同上。容器包含连接 identity/stale chrome；应比较的真实 turn 内容范围交原 Astra/E 裁定，本 lane 不自行改 expected。
+
+两 suite 前后 254 个 source/native/mode、HEAD/src/clean 与三个稳定 cache symlink 均完全不变，全 out metadata 守卫通过。成功 emitter 的两份 JS 原件也已保存，便于后续测试修订后仍可核本次实际输入。测试原始日志 SHA `56df7129b5116e90808c6a71a429976cd4f0821c9a680af1510b73c2108e31cd`；完整资格和未达断言见 [失败检查点](e-final-two-tests-failure-checkpoint.json)、[当前254身份](e-final-two-tests-current254-preservation.json)、[成功 emitter 原件](e-final-two-tests-r2-emitter.json)、[原始 full 日志](e-final-two-tests-r2.full-lens-suites.log)。
+
+旧 compile10 0/0TS、新10 10/0、完整相关484/4、精确 old4919 四 selector1/3与所有 raw 历史保持。未生成 freeze 或启动 UI，不把本次局部结果升成产品 after；原 E overall after FAIL、原方案 accepted、wave active、PRD/旧 D 不关闭。等待原作者最小 test-only 固定 SHA 与原 Astra peer，再由父授权唯一 lane。

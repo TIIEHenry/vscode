@@ -1,0 +1,111 @@
+{
+  "repositoryAPI": "build/lib/compilation.ts:createCompile",
+  "call": {
+    "src": "src",
+    "build": false,
+    "emitError": true,
+    "transpileOnly": {
+      "esbuild": true
+    },
+    "preserveEnglish": false
+  },
+  "gulpSource": {
+    "patterns": [
+      "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts"
+    ],
+    "base": "src"
+  },
+  "gulpDestination": "out",
+  "projectPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/tsconfig.json",
+  "overrides": {
+    "verbose": false,
+    "sourceMap": true,
+    "rootDir": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "baseUrl": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "sourceRoot": "file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "newLine": 1,
+    "inlineSources": false,
+    "inlineSourceMap": true
+  },
+  "effectiveCompilerOptions": {
+    "module": 199,
+    "moduleResolution": 99,
+    "moduleDetection": 1,
+    "experimentalDecorators": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUncheckedSideEffectImports": true,
+    "allowUnreachableCode": false,
+    "strict": true,
+    "exactOptionalPropertyTypes": false,
+    "useUnknownInCatchVariables": false,
+    "forceConsistentCasingInFileNames": true,
+    "target": 11,
+    "useDefineForClassFields": false,
+    "paths": {
+      "electron": [
+        "../.build/typings/electron.d.ts"
+      ],
+      "electron/*": [
+        "../.build/typings/electron.d.ts"
+      ]
+    },
+    "lib": [
+      "lib.es2024.d.ts",
+      "lib.esnext.disposable.d.ts",
+      "lib.dom.d.ts",
+      "lib.dom.iterable.d.ts",
+      "lib.webworker.importscripts.d.ts"
+    ],
+    "pathsBasePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "esModuleInterop": true,
+    "removeComments": false,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "skipLibCheck": true,
+    "outDir": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+    "types": [
+      "@webgpu/types",
+      "mocha",
+      "semver",
+      "sinon",
+      "trusted-types",
+      "winreg",
+      "wicg-file-system-access"
+    ],
+    "plugins": [
+      {
+        "name": "tsec",
+        "exemptionConfig": "./tsec.exemptions.json"
+      }
+    ],
+    "verbose": false,
+    "rootDir": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "baseUrl": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "sourceRoot": "file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "newLine": 1,
+    "inlineSources": false,
+    "inlineSourceMap": true
+  },
+  "actualESBuildTranspilerOptions": {
+    "target": [
+      "ES2024"
+    ],
+    "format": "esm",
+    "loader": "ts",
+    "sourcemap": "inline",
+    "tsconfigRaw": "{\"compilerOptions\":{\"moduleResolution\":99,\"moduleDetection\":1,\"experimentalDecorators\":true,\"noImplicitReturns\":true,\"noImplicitOverride\":true,\"noUnusedLocals\":true,\"noUncheckedSideEffectImports\":true,\"allowUnreachableCode\":false,\"strict\":true,\"exactOptionalPropertyTypes\":false,\"useUnknownInCatchVariables\":false,\"forceConsistentCasingInFileNames\":true,\"target\":11,\"useDefineForClassFields\":false,\"paths\":{\"electron\":[\"../.build/typings/electron.d.ts\"],\"electron/*\":[\"../.build/typings/electron.d.ts\"]},\"lib\":[\"lib.es2024.d.ts\",\"lib.esnext.disposable.d.ts\",\"lib.dom.d.ts\",\"lib.dom.iterable.d.ts\",\"lib.webworker.importscripts.d.ts\"],\"pathsBasePath\":\"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src\",\"esModuleInterop\":true,\"removeComments\":false,\"preserveConstEnums\":true,\"sourceMap\":true,\"allowJs\":true,\"resolveJsonModule\":true,\"isolatedModules\":false,\"skipLibCheck\":true,\"outDir\":\"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs\",\"types\":[\"@webgpu/types\",\"mocha\",\"semver\",\"sinon\",\"trusted-types\",\"winreg\",\"wicg-file-system-access\"],\"plugins\":[{\"name\":\"tsec\",\"exemptionConfig\":\"./tsec.exemptions.json\"}],\"verbose\":false,\"rootDir\":\"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src\",\"baseUrl\":\"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src\",\"sourceRoot\":\"file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/src\",\"newLine\":1,\"inlineSources\":false,\"inlineSourceMap\":true}}",
+    "supported": {
+      "class-static-blocks": false,
+      "dynamic-import": true,
+      "class-field": true
+    }
+  },
+  "sourcefileRule": "absolute Vinyl file.path per original ESBuildTranspiler",
+  "VSCODE_NO_SOURCEMAP": null
+}

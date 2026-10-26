@@ -1,0 +1,42 @@
+{
+  "base": "c683f0eb11160b6d985f31150616c5b592f5783b",
+  "checker": false,
+  "emit": false,
+  "files": [
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+      "diagnostics": []
+    }
+  ],
+  "syntaxErrors": 0,
+  "c683LensEntireFilePreservedExceptNewBlock": true,
+  "unchangedFiles": [
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "unchangedFromC683": true
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts",
+      "unchangedFromC683": true
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+      "unchangedFromC683": true
+    }
+  ],
+  "productionBrowserDiffEmpty": true,
+  "productionBrowserTree": "fc073478b35e20c1fd63378ec93ecc54bea7a6de",
+  "newBlock": {
+    "sha256": "af47c09eb80762942e39ecae61672b690779d597b4296350f9a1d46d6965fc2e",
+    "lines": 76,
+    "hasAnyUnknownPartial": false,
+    "hasTypeAssertionOtherThanConst": false,
+    "callsPhaseOrSyncMethods": false,
+    "usesRealMountLens": true,
+    "eventSources": [
+      "roster",
+      "UA"
+    ]
+  },
+  "fileSha256": "f926424e99c73b0dbd06325a2c78017a4c9ceb513145f4593aab79bc5a85e93c"
+}

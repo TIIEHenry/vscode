@@ -1,0 +1,191 @@
+{
+  "phase": "authorized-targeted-two-test-validation-stopped-on-actual-failure-no-freeze",
+  "startedAtUtc": "2026-10-26T23:02:20.315591+00:00",
+  "sourceHead": "a064cd8a8997a028239b279bb50e03212645be60",
+  "sourceTree": "792ebb57bb1e48fa4b2ee00752c5e81c10a85ff6",
+  "candidate": "2fd206e74d846052ca0083ee27d8046c91b348ac",
+  "peer": "fbee68cf12ad7f0b8771367f7ca8774d913b62b5",
+  "peerCorrection": "fcc2a8212a282c04e3096e5b31d51c5a3e2dda4a",
+  "fullCompileOfFinalSourceTree": false,
+  "latestFullCompileOrdinal": 10,
+  "latestFullCompileSourceHead": "db0981fca4f555176b5735a7055dd40242fbbb9a",
+  "latestFullCompileSourceTree": "58b3f3e8d69e2177eefe0a7dd7c0a74b0a7a1c4c",
+  "latestFullCompileRecordPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c3-tenth-native-build.json",
+  "latestFullCompileRecordSha256": "39252328912aa8b4a9b84945c79ecf34f5a0ebda5ced1b5e83212e4baa110ee7",
+  "testFiles": [
+    "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts"
+  ],
+  "outputPaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js",
+    "out/vs/workbench/contrib/conversation/test/browser/conversationLens.test.js"
+  ],
+  "identityScopeCount": 254,
+  "unchangedCompile10MemberCount": 252,
+  "globalLaneMatches": [],
+  "sharedLockHeld": true,
+  "cacheSymlinks": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/extensions",
+      "target": "/tmp/vscode-m01-fifth-extensions-m61of5_0/extensions",
+      "resolved": "/tmp/vscode-m01-fifth-extensions-m61of5_0/extensions"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron",
+      "target": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron",
+      "resolved": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/foundry-local-sdk",
+      "target": "/tmp/vscode-m01-fifth-foundry-local-sdk-d4_hburf/foundry-local-sdk",
+      "resolved": "/tmp/vscode-m01-fifth-foundry-local-sdk-d4_hburf/foundry-local-sdk"
+    }
+  ],
+  "outMetadataBeforePath": "/tmp/vscode-e-final-two-tests.out-metadata-before.json",
+  "outMetadataBeforeSha256": "e9773fbfc015b2bb190fd5b83087dcdd024079cd076c01ba68b54464e034aca7",
+  "outFileCount": 12554,
+  "guards": [
+    {
+      "label": "before-semantic",
+      "atUtc": "2026-10-26T23:02:20.506312+00:00",
+      "all254SourceNativeModeExact": true,
+      "headSourceCleanUnchanged": true,
+      "threeCacheSymlinksUnchanged": true,
+      "allOutFileMetadataExact": true
+    },
+    {
+      "label": "after-semantic",
+      "atUtc": "2026-10-26T23:02:32.962608+00:00",
+      "all254SourceNativeModeExact": true,
+      "headSourceCleanUnchanged": true,
+      "threeCacheSymlinksUnchanged": true,
+      "allOutFileMetadataExact": true
+    },
+    {
+      "label": "after-eslint",
+      "atUtc": "2026-10-26T23:02:34.129200+00:00",
+      "all254SourceNativeModeExact": true,
+      "headSourceCleanUnchanged": true,
+      "threeCacheSymlinksUnchanged": true,
+      "allOutFileMetadataExact": true
+    },
+    {
+      "label": "after-options-no-transform",
+      "atUtc": "2026-10-26T23:02:35.011878+00:00",
+      "all254SourceNativeModeExact": true,
+      "headSourceCleanUnchanged": true,
+      "threeCacheSymlinksUnchanged": true,
+      "allOutFileMetadataExact": true
+    }
+  ],
+  "stages": [
+    {
+      "stage": "semantic",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "15s",
+        "240s",
+        "node",
+        "--max-old-space-size=8192",
+        "/tmp/vscode-e-final-two-tests-semantic.mjs",
+        "[\"src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts\", \"src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts\"]"
+      ],
+      "startedAtUtc": "2026-10-26T23:02:20.506517+00:00",
+      "finishedAtUtc": "2026-10-26T23:02:32.756405+00:00",
+      "exitCode": 0,
+      "rawLogPath": "/tmp/vscode-e-final-two-tests.semantic.log",
+      "rawLogSha256": "4028168184aaf376c6adb0322f4af66247e22905abce59cacbbc7d3ea13bd742"
+    },
+    {
+      "stage": "eslint",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "15s",
+        "240s",
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "--format",
+        "json",
+        "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+        "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts"
+      ],
+      "startedAtUtc": "2026-10-26T23:02:32.963013+00:00",
+      "finishedAtUtc": "2026-10-26T23:02:33.950552+00:00",
+      "exitCode": 0,
+      "rawLogPath": "/tmp/vscode-e-final-two-tests.eslint.log",
+      "rawLogSha256": "af28db8f5a290f6c686a902ec920e2cabbb5826c7d8ce6c48a2fc9e1b88d867f"
+    },
+    {
+      "stage": "emitter-options",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "15s",
+        "240s",
+        "node",
+        "/tmp/vscode-e-final-two-tests-emitter.mjs",
+        "options",
+        "[\"src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts\", \"src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts\"]",
+        "/tmp/vscode-e-final-two-tests-emitter-options.json"
+      ],
+      "startedAtUtc": "2026-10-26T23:02:34.129971+00:00",
+      "finishedAtUtc": "2026-10-26T23:02:34.830403+00:00",
+      "exitCode": 0,
+      "rawLogPath": "/tmp/vscode-e-final-two-tests.emitter-options.log",
+      "rawLogSha256": "405c9d2c1f3a4ae742900406854effcd682264a7ce011f341f03d204052fa4f4"
+    },
+    {
+      "stage": "emitter",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "15s",
+        "240s",
+        "node",
+        "/tmp/vscode-e-final-two-tests-emitter.mjs",
+        "emit",
+        "[\"src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts\", \"src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts\"]",
+        "/tmp/vscode-e-final-two-tests-emitter-options.json"
+      ],
+      "startedAtUtc": "2026-10-26T23:02:35.202268+00:00",
+      "finishedAtUtc": "2026-10-26T23:02:35.914857+00:00",
+      "exitCode": 1,
+      "rawLogPath": "/tmp/vscode-e-final-two-tests.emitter.log",
+      "rawLogSha256": "6bc01cbaa278ebf61e6ab9b780168c9d23297b954946b3b2b37c994dc44f7846"
+    }
+  ],
+  "freezeIssued": false,
+  "uiLaunched": false,
+  "rootWipConsumed": false,
+  "rootOutWritten": false,
+  "semanticRootCount": 10316,
+  "eslintCounts": {
+    "errorCount": 0,
+    "warningCount": 1,
+    "fatalErrorCount": 0
+  },
+  "onlyExpectedTwoOutPathsMetadataChanged": false,
+  "outMetadataChangedPaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationLens.test.js"
+  ],
+  "failure": "RuntimeError('Actual targeted emitter failed; no business tests executed')",
+  "exitCode": 1,
+  "finishedAtUtc": "2026-10-26T23:02:36.020329+00:00",
+  "headUnchanged": true,
+  "sourceTreeUnchanged": true,
+  "worktreeClean": true
+}

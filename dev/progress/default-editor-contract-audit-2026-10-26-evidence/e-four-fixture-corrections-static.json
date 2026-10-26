@@ -1,0 +1,30 @@
+{
+  "checker": false,
+  "emit": false,
+  "files": [
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+      "diagnostics": []
+    }
+  ],
+  "syntaxErrors": 0,
+  "keepRuntimeSuffixUnchanged": true,
+  "keepSuffixSha256": "749fb415d177f57c846733a5a1a52b8e39721b8f1d04e267aea9d4e0c4d9d202",
+  "postFailureAssertionsUnchanged": true,
+  "sessionBarLiveTestUnchanged": true,
+  "untouched": [
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts",
+      "entireFileUnchanged": true
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+      "entireFileUnchanged": true
+    }
+  ],
+  "newAnyUnknownPartial": false
+}

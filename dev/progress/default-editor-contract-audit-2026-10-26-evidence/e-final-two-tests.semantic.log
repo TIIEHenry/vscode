@@ -1,0 +1,23 @@
+{
+  "checker": "TypeScript createProgram with actual complete src project roots/options, targeted diagnostics only",
+  "typescript": "6.0.3",
+  "configPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/tsconfig.json",
+  "rootCount": 10316,
+  "noEmit": true,
+  "fullProjectSemanticCheck": false,
+  "sourceOrNativeWritten": false,
+  "configDiagnostics": [],
+  "files": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "syntacticDiagnostics": [],
+      "semanticDiagnostics": []
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+      "syntacticDiagnostics": [],
+      "semanticDiagnostics": []
+    }
+  ],
+  "errorCount": 0
+}
