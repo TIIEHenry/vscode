@@ -236,3 +236,17 @@ Astra独立比较5df/900f/c2b/正式源，确认E900f把旧 `onHostFrame` ack搬
 另一个resync的2次实际值对旧1次夹具期望并非本次生产回归。父转达Astra比对四版本生产块同SHA `bcfc736085a4f3ceb49949206f4e5fda3b2d9f271712914fdb42649b66e2a0b6`，且[既有r08-4合同](review-2026-10-08-r08-conversation-session-plan.md#r08-4hold低)明确首败自动跟进一次、跟进再败且无新缺口不第三次。本次按该合同仅修现有 `requestResync reject does not leave an unhandled rejection or apply a bad frame` 夹具：断言恰好2次，再经过额外事件循环仍2；坏帧不应用、无ack、snapshot不变和无未处理拒绝全部保留，生产requestResync逻辑不改。ack修订和resync夹具纠正分别记因，原失败日志保留；待同一Astra复读及唯一lane实际复验，不提前freeze或升方案/PRD状态。
 
 E静态检查仅2个TS的无checker/emit parse，0语法诊断；ESLint 0 errors / 7既有warnings（FrameSource5、既有测试`in`操作2），JSON `/tmp/vscode-response-recovery-E-ack-fix-eslint.json`；diff check与生成状态核对通过；docs health 0 errors / 73 warnings，JSON `/tmp/vscode-response-recovery-E-ack-fix-docs-health.json`；status196行。E未做编译/typecheck/transpile/out/业务执行。
+
+### 9.3 旧相关套夹具纠正与reasoning既有问题边界
+
+本次从clean `5f28071`继续，父转达该ack修订已获原Astra C0/I0/M0，唯一lane新运行待。本次父另转达baseline用精确旧 `5df` 生产跑三完整套，复现与新生产相同4红：Projection 15过/2败、Renderer 29过/1败、StreamScripts 32过/1败。Astra已将三处旧夹具与一个独立reasoning生产问题定界，E不借这些旧红隐藏新回归，原运行失败记录仍由baseline保留。
+
+本次**只改三个测试夹具文件**及行动文档，不改任何生产模块或校验逻辑：
+
+- Projection `pending removal changes the confirmation entry status`：起步没有decision且有pending为pending；撤回pending但仍无decision为undecided；再明确allow才是allowed。每段cached/fresh等价，A→B与B→C只有目标entry换引用；额外固定allow+仍pending终态优先，不将A/B统一改成allowed而消除缓存失效测试意义。
+- StreamScripts `question-valid-flag-without-options-is-not-submit-safe`：先保留无pend→undecided负控，再发真实 `pend q1 as question`，仍须pending且answerKeysValid=false、无Submit文案并显示不能提交原因；撤回后回到undecided。现有DSL只有帧发送与rows/entries断言，没有点击或回调计数能力，本轮不新增DSL功能；QuestionSeat既有invalid-key无Submit/零callback断言原样保留，不放宽生产submit校验。
+- Renderer `repainting a respondable client tool stays disabled until a retryable failure`：用正式 `projectProcessFoldSpans` / process-fold variant和公开展开入口渲染，先assert真实CTA存在才click，保留重绘后的二发抑制、retryable恢复+错误、nonretryable隐藏+错误全部断言；新增standalone只读fallback无CTA/零callback负控，不给fallback新增产品按钮。
+
+`persisted reasoning keeps the joined thinking preview on the reading line` 是旧生产投影/summary合同差异：payload有完整 `hmm\nthen this`，摘要却取 `THINKING`。该测试及其 `hmm\nthen this` 预期原样保留，**不改为THINKING、不skip、不修本波生产**；精确旧失败原件保留，作为独立既有问题待冻结波后处理，不宣称本次三套全绿或据此关闭产品需求。唯一lane仍须运行三夹具/负控和相关全套，原Astra定向复读不可变补修后再判定。
+
+静态核对：3份改动TS的 `createSourceFile` 解析0语法错误（无checker/emit），ESLint 0错误/6条既有警告；`git diff --check`、`generate-docs-status.py --check` 通过，docs-health 0错误/73警告，status保持197行。reasoning完整测试块与本轮起点逐字相同，SHA-256为 `c72b6abdcd4b0317eb7f1aa17fe7e3a4ef34457ea37da54c3ebc73c19a8e3026`；生产路径diff为空。本轮未运行compile/typecheck/transpile/watch、未写out、未执行依赖out的测试，静态结果不替代唯一lane运行与原Astra复读。

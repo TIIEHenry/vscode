@@ -124,13 +124,13 @@ suite('conversationTimelineProjection', () => {
 	test('pending removal changes the confirmation entry status', () => {
 		const base = stubTurnsToSnapshot('s', [
 			{ id: 'u1', kind: 'user', text: 'hi' },
-			{ id: 'c1', kind: 'confirmation', text: 'Allow?', status: 'allowed' },
+			{ id: 'c1', kind: 'confirmation', text: 'Allow?', status: 'pending' },
 		]);
 		const pendingSnapshot: SessionViewSnapshot = {
 			...base.snapshot,
 			pendingActions: [{
 				requestId: 'c1' as SessionViewSnapshot['pendingActions'][number]['requestId'],
-				summary: { kind: 'permission', title: 'Allow?', permissionKind: 'stub', decision: 'allow' },
+				summary: { kind: 'permission', title: 'Allow?', permissionKind: 'stub' },
 			}],
 		};
 		const cache = createConversationProjectionCache();
@@ -145,9 +145,26 @@ suite('conversationTimelineProjection', () => {
 		const clearedCached = project(clearedProjection, cache);
 		const clearedFresh = project(clearedProjection);
 		assert.deepStrictEqual(clearedCached, clearedFresh);
-		assert.strictEqual(entryById(clearedCached, 'c1').status, 'allowed');
+		assert.strictEqual(entryById(clearedCached, 'c1').status, 'undecided');
 		assert.notStrictEqual(entryById(clearedCached, 'c1'), entryById(pendingCached, 'c1'));
 		assert.strictEqual(entryById(clearedCached, 'u1'), entryById(pendingCached, 'u1'));
+
+		const allowedSnapshot = replaceTimelineItem(clearedSnapshot, 'c1', item => {
+			assert.ok(item.summary.kind === 'permission');
+			return { ...item, summary: { ...item.summary, decision: 'allow' } };
+		});
+		const allowedProjection = { ...base, snapshot: allowedSnapshot };
+		const allowedCached = project(allowedProjection, cache);
+		assert.deepStrictEqual(allowedCached, project(allowedProjection));
+		assert.strictEqual(entryById(allowedCached, 'c1').status, 'allowed');
+		assert.notStrictEqual(entryById(allowedCached, 'c1'), entryById(clearedCached, 'c1'));
+		assert.strictEqual(entryById(allowedCached, 'u1'), entryById(clearedCached, 'u1'));
+
+		const terminalWithPending = { ...base, snapshot: { ...allowedSnapshot, pendingActions: pendingSnapshot.pendingActions } };
+		const terminalCached = project(terminalWithPending, cache);
+		assert.deepStrictEqual(terminalCached, project(terminalWithPending));
+		assert.strictEqual(entryById(terminalCached, 'c1').status, 'allowed', 'an explicit terminal decision wins even before pending removal');
+		assert.strictEqual(entryById(terminalCached, 'u1'), entryById(allowedCached, 'u1'));
 	});
 
 	test('question requestId change invalidates that entry', () => {

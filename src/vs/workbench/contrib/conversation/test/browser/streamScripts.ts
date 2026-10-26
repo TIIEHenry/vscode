@@ -435,12 +435,22 @@ export const STREAM_SCRIPTS: readonly StreamScript[] = [
 		title: 'a question claiming answerKeysValid=true whose sub-question has no options and no custom answer is not submit-safe',
 		steps: [
 			{
-				name: 'ask claims valid keys but offers nothing to pick',
+				name: 'question without a pending ask remains undecided',
 				send: [
 					{ do: 'baseline' },
 					{ do: 'patches', ops: [{ op: 'question', id: 'q1', title: 'Pick', at: 1, answerKeysValid: true, items: [{ id: 'a', title: 'A' }] }] },
 				],
-				expect: { rows: [{ id: 'q1', kind: 'question', status: 'pending', answerKeysValid: false, questionItems: ['a'] }] },
+				expect: { rows: [{ id: 'q1', kind: 'question', status: 'undecided', answerKeysValid: false, questionItems: ['a'], lacks: 'Submit' }] },
+			},
+			{
+				name: 'pending ask still cannot submit without options',
+				send: [{ do: 'patches', ops: [{ op: 'pend', id: 'q1', title: 'Pick', as: 'question' }] }],
+				expect: { rows: [{ id: 'q1', kind: 'question', status: 'pending', answerKeysValid: false, questionItems: ['a'], lacks: 'Submit', also: 'Can\'t answer — these choices can\'t be submitted.' }] },
+			},
+			{
+				name: 'withdrawn ask remains undecided without a submit control',
+				send: [{ do: 'patches', ops: [{ op: 'unpend', id: 'q1' }] }],
+				expect: { rows: [{ id: 'q1', kind: 'question', status: 'undecided', answerKeysValid: false, questionItems: ['a'], lacks: 'Submit' }] },
 			},
 		],
 	},

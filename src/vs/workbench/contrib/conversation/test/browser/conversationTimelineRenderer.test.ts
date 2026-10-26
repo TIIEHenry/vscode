@@ -11,6 +11,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ConversationConfirmationSeat } from '../../browser/conversationConfirmationSeat.js';
+import { projectProcessFoldSpans } from '../../browser/conversationProcessFoldModel.js';
 import { ConversationQuestionSeat } from '../../browser/conversationQuestionSeat.js';
 import { getConversationEntryAriaLabel } from '../../browser/conversationSessionView.js';
 import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
@@ -477,27 +478,48 @@ suite('ConversationTimelineRenderer seat decision hold', () => {
 			id: 'client-call', kind: 'tool', text: 'Pick a file', toolName: 'clientPick', toolStatus: 'pending', respondable: true,
 		};
 		const template = renderer.renderTemplate(container);
-		renderer.renderElement(node(pending), 0, template);
-		(container.querySelector('.conversation-process-fold-tool-respond') as HTMLElement).click();
+		const renderFold = (turn: ConversationStubTurn) => {
+			const span = projectProcessFoldSpans([turn])[0];
+			assert.ok(span);
+			renderer.ensureProcessFoldExpanded(span.id);
+			renderer.renderElement({ ...node(turn), element: { variant: 'process-fold', turn, processFoldSpan: span } }, 0, template);
+		};
+		renderFold(pending);
+		const first = container.querySelector<HTMLButtonElement>('.conversation-process-fold-tool-respond');
+		assert.ok(first, 'the formal process fold must render the client-tool response CTA');
+		first.click();
 		assert.deepStrictEqual(responded, ['client-call']);
 
-		renderer.renderElement(node({ ...pending }), 0, template);
-		const held = container.querySelector('.conversation-process-fold-tool-respond') as HTMLButtonElement;
+		renderFold({ ...pending });
+		const held = container.querySelector<HTMLButtonElement>('.conversation-process-fold-tool-respond');
+		assert.ok(held);
 		assert.strictEqual(held.disabled, true);
 		assert.strictEqual(held.getAttribute('aria-busy'), 'true');
 		held.click();
 		assert.deepStrictEqual(responded, ['client-call']);
 
-		renderer.renderElement(node({ ...pending, respondFailure: { retryable: true, error: 'ipc closed' } }), 0, template);
-		const retry = container.querySelector('.conversation-process-fold-tool-respond') as HTMLButtonElement;
+		renderFold({ ...pending, respondFailure: { retryable: true, error: 'ipc closed' } });
+		const retry = container.querySelector<HTMLButtonElement>('.conversation-process-fold-tool-respond');
+		assert.ok(retry);
 		assert.strictEqual(retry.disabled, false);
 		assert.ok(container.textContent?.includes("Couldn't send this response: ipc closed"));
 		retry.click();
 		assert.deepStrictEqual(responded, ['client-call', 'client-call']);
 
-		renderer.renderElement(node({ ...pending, respondFailure: { retryable: false, error: 'gone' } }), 0, template);
+		renderFold({ ...pending, respondFailure: { retryable: false, error: 'gone' } });
 		assert.strictEqual(container.querySelector('.conversation-process-fold-tool-respond'), null);
 		assert.ok(container.textContent?.includes("Couldn't send this response: gone"));
+		template.disposables.dispose();
+	});
+
+	test('a standalone respondable client-tool fallback stays read-only without a response CTA', () => {
+		const responded: string[] = [];
+		const renderer = renderSeat(() => { }, undefined, turn => responded.push(turn.id));
+		const container = document.createElement('div');
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(node({ id: 'client-fallback', kind: 'tool', text: 'Pick a file', toolName: 'clientPick', toolStatus: 'pending', respondable: true }), 0, template);
+		assert.strictEqual(container.querySelector('.conversation-process-fold-tool-respond'), null);
+		assert.deepStrictEqual(responded, []);
 		template.disposables.dispose();
 	});
 });
