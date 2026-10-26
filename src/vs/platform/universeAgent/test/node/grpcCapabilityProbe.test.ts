@@ -5,13 +5,47 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../common/universeAgentCapabilities.js';
+import { conversationEntryHookPresent, createUnknownConversationEntryCapability, PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../common/universeAgentCapabilities.js';
 import { isAdvertisedMethod, probeConversationEntryCapability, probeEngineCapabilities, probeGitWriteCapability, probeListFilesCapability, projectRuleListProbeRequest } from '../../node/grpcCapabilityProbe.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentGrpcServices } from '../../node/grpc/grpcTransport.js';
 
 suite('grpc capability probe advertisement', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('new session writes require explicit support even when a proxy method exists', () => {
+		for (const key of ['setClientToolProfile', 'registerSessionEngineTrigger'] as const) {
+			assert.strictEqual(conversationEntryHookPresent(undefined, key, () => { }), false);
+			for (const support of ['UNKNOWN', 'UNSUPPORTED', 'SUPPORTED'] as const) {
+				const snapshot = { conversationEntryCapability: { ...createUnknownConversationEntryCapability(), [key]: support } };
+				assert.strictEqual(conversationEntryHookPresent(snapshot, key, () => { }), support === 'SUPPORTED');
+				assert.strictEqual(conversationEntryHookPresent(snapshot, key, undefined), false);
+			}
+		}
+	});
+
+	test('session writes probe only advertised empty requests with method-specific status semantics', async () => {
+		assert.strictEqual(GrpcStatusCode.INVALID_ARGUMENT, 3);
+		const calls: string[] = [];
+		for (const status of [GrpcStatusCode.OK, GrpcStatusCode.INVALID_ARGUMENT, GrpcStatusCode.UNIMPLEMENTED, GrpcStatusCode.UNAVAILABLE, GrpcStatusCode.UNAUTHENTICATED]) {
+			const transport = {
+				probeRpc: async (_service: string, method: string, request?: Uint8Array) => {
+					assert.ok(!request || request.byteLength === 0, 'Capability probes must never register a real trigger');
+					calls.push(method);
+					return status;
+				},
+			} as unknown as IUniverseAgentGrpcTransport;
+			const hidden = await probeConversationEntryCapability({ methods: [], transport });
+			assert.strictEqual(hidden.setClientToolProfile, 'UNSUPPORTED');
+			assert.strictEqual(hidden.registerSessionEngineTrigger, 'UNSUPPORTED');
+			assert.deepStrictEqual(calls, []);
+			const snapshot = await probeConversationEntryCapability({ methods: ['PermissionService.SetClientToolProfile', 'TriggerService.RegisterSessionEngineTrigger'], transport });
+			const ordinary = status === GrpcStatusCode.OK ? 'SUPPORTED' : status === GrpcStatusCode.UNIMPLEMENTED ? 'UNSUPPORTED' : 'UNKNOWN';
+			assert.strictEqual(snapshot.setClientToolProfile, ordinary);
+			assert.strictEqual(snapshot.registerSessionEngineTrigger, status === GrpcStatusCode.INVALID_ARGUMENT ? 'SUPPORTED' : ordinary);
+			assert.deepStrictEqual(calls.splice(0), ['SetClientToolProfile', 'RegisterSessionEngineTrigger']);
+		}
+	});
 
 	test('FooService.* wildcard counts as advertised for that service method', () => {
 		assert.strictEqual(isAdvertisedMethod(['TeamService.*'], 'TeamService.MemberStatus'), true);

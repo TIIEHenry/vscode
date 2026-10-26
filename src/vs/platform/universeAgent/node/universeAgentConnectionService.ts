@@ -126,6 +126,10 @@ import type {
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
 	UniverseAgentSetPermissionModeRequest,
+	UniverseAgentSetClientToolProfileRequest,
+	UniverseAgentSetClientToolProfileResult,
+	UniverseAgentRegisterSessionEngineTriggerRequest,
+	UniverseAgentRegisterSessionEngineTriggerResult,
 	UniverseAgentSetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
@@ -1556,6 +1560,14 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async getSessionRules(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult> {
 		return this._withTransport(transport => transport.getSessionRules(request));
+	}
+
+	async setClientToolProfile(request: UniverseAgentSetClientToolProfileRequest): Promise<UniverseAgentSetClientToolProfileResult> {
+		return this._withTransport(transport => transport.setClientToolProfile(request));
+	}
+
+	async registerSessionEngineTrigger(request: UniverseAgentRegisterSessionEngineTriggerRequest): Promise<UniverseAgentRegisterSessionEngineTriggerResult> {
+		return this._withTransport(transport => transport.registerSessionEngineTrigger(request));
 	}
 
 	async setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult> {

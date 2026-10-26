@@ -11,6 +11,19 @@ summary: "2026-10-20：Engine Token Usage 无参调用 GetGlobalUsage；Memory �
 
 > 导航：[索引](INDEX.md)。RPC 名以外仓 proto 为准。§1 **Conversation 传输**行来自 `platform/universeAgent/node/grpc/grpcTransport.ts`（`UniverseAgentGrpcServices`）。2026-09-12 本仓 **node + `IUniverseAgentConnection` list 已挂** A–F 新面。设置页桌面 Providers 可写凭据并导入本地 harness，并列出内置预设与 models.dev 云端目录（`listProviderPresetCatalog?`，不是引擎 RPC）；Models 可写注册表；Rules 的 Upsert/Delete 已进桌面 connection（网页不实现）；Hooks 仍为**只读列表**（无定义写）。网页连接不实现 Provider/Model/Rules 写方法，也没有云端目录。Token Usage 无参调用 `getGlobalUsage`；Memory 页调用 List/Search/Save/Delete。SearchDeep / Read / Reflect / Rebuild / Revert / History 不在该页。Projects 按会话 `work_dir` 分组、Navigator `ListTeams` 标题、Review 历史 `file_mutation` chip 已接。§4 登记行写清写表单与 Chat catalog 仍开。§1 **Engine catalog** 与 §7 UI 口径来自 [customizations-engine](../../../dev/plans/customizations-engine.md) 与 [engine-catalog](../../systems/workbench/engine-catalog.md)。
 
+## 2026-10-26 协议消费补齐
+
+[方案](../../../dev/plans/engine-protocol-consumption-closeout.md) 与 [功能缺口快照及当前进展](ide-engine-feature-gaps.md)。本节为现行增量，优先于下列旧快照中“未接”的叙述。
+
+- Create 的类型/bytes 补 systemPrompt(1)、provider(2)、promptLocale(5)、clientHost(6)、workDir(7)；clientHost 的 versionId(3)/kernel(4) 保留 optional presence。title 仍是本地值。SessionViewHost 的实际创建调用尚不传选定目录，不把本机映射根发给远端引擎。
+- Info 补 title(8)；Fork 补 anchorTurnId(7) 与失败 message(4)。空 anchor 沿用引擎当前回合，parent 仍缺省 root。
+- Provider 凭据请求补 refreshModels(5)，默认不触发 discovery；状态补 discoveredModels(8)/modelSyncError(9)。现有设置未新增 discovery 表单。
+- AgentProfile 补 optional maxRewinds(20)，List→编辑正文/模型/工具→Save 及 Reset 保留缺省、0、正数；0 明确禁用 rewind，与 maxTurns 的零值省略不同。
+- SetClientToolProfile 与 RegisterSessionEngineTrigger 已贯通可选 connection、node、protobuf unary、IPC allowlist。前者只接受 ALL=1 / READ_ONLY=2 / NONE=3，非法枚举拒绝；后者发送 session/name/type/prompt/watchPaths/optional dedupeKeyField，复用正式 trigger=1 响应映射。
+- 两项独立 conversationEntryCapability 不新增 Overview 行。缺广告/UNIMPLEMENTED→UNSUPPORTED；OK→SUPPORTED；只有 Register 空 session 的 INVALID_ARGUMENT(3) 也计 SUPPORTED，其余错误→UNKNOWN。探测不注册真实触发器。两项写入口 helper 仅在明确 SUPPORTED 且 hook 存在时开放。
+
+这两条 RPC 当前为契约/传输能力，默认窗口尚无会话工具范围或会话触发器新入口。运行中钉死引擎仍缺 SetClientToolProfile；本轮未替换或重启它。队列读回与技能正文保存另行补正式引擎合同，不因本节而开放生成中发送，不提升 PRD 总状态。
+
 ## 1. 已知服务与 RPC
 
 | 服务 | RPC | 本仓消费面 | 备注 |

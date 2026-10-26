@@ -112,6 +112,10 @@ import type {
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
 	UniverseAgentSetPermissionModeRequest,
+	UniverseAgentSetClientToolProfileRequest,
+	UniverseAgentSetClientToolProfileResult,
+	UniverseAgentRegisterSessionEngineTriggerRequest,
+	UniverseAgentRegisterSessionEngineTriggerResult,
 	UniverseAgentSetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
@@ -798,6 +802,19 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
 	readonly setPermissionModeCalls: UniverseAgentSetPermissionModeRequest[] = [];
 	setPermissionModeResult: UniverseAgentSetPermissionModeResult = { ok: true };
+
+	readonly setClientToolProfileCalls: UniverseAgentSetClientToolProfileRequest[] = [];
+	readonly registerSessionEngineTriggerCalls: UniverseAgentRegisterSessionEngineTriggerRequest[] = [];
+
+	async setClientToolProfile(request: UniverseAgentSetClientToolProfileRequest): Promise<UniverseAgentSetClientToolProfileResult> {
+		this.setClientToolProfileCalls.push(request);
+		return { ok: false, error: 'Session not found' };
+	}
+
+	async registerSessionEngineTrigger(request: UniverseAgentRegisterSessionEngineTriggerRequest): Promise<UniverseAgentRegisterSessionEngineTriggerResult> {
+		this.registerSessionEngineTriggerCalls.push(request);
+		return this.upsertTriggerResult;
+	}
 
 	async setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult> {
 		this.setPermissionModeCalls.push(request);
@@ -5048,6 +5065,26 @@ suite('UniverseAgentConnectionService', () => {
 		assert.deepStrictEqual(empty, { rules: [] });
 		assert.strictEqual(transport.getSessionRulesCalls[1]?.sessionId, '');
 		service.dispose();
+	});
+
+	test('session tool profile and engine trigger forward exact requests and preserve responses', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport,
+		});
+		try {
+			await connectPlainFixture(service);
+			const profile = { sessionId: 's', profile: 'CLIENT_TOOL_PROFILE_NONE' as const };
+			const trigger = { sessionId: 's', name: 'Watch', type: 'file_changed' as const, promptTemplate: 'Changed', watchPaths: ['src'], dedupeKeyField: '' };
+			assert.deepStrictEqual(await service.setClientToolProfile(profile), { ok: false, error: 'Session not found' });
+			assert.strictEqual(await service.registerSessionEngineTrigger(trigger), transport.upsertTriggerResult);
+			assert.deepStrictEqual(transport.setClientToolProfileCalls, [profile]);
+			assert.deepStrictEqual(transport.registerSessionEngineTriggerCalls, [trigger]);
+		} finally {
+			service.dispose();
+		}
 	});
 
 	test('setPermissionMode forwards request and maps result', async () => {

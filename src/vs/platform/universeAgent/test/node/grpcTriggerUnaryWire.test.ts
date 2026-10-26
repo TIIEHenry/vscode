@@ -431,7 +431,7 @@ suite('grpc TriggerService List/Upsert/Delete/SetEnabled/Fire protobuf wire', ()
 		});
 	});
 
-	test('trigger unary wire is five unaries only; no JSON.stringify; identifier scan', () => {
+	test('trigger unary wire uses proto bytes; identifier scan', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcTriggerUnaryWire.ts'), 'utf8');
 		assert.ok(!source.includes('JSON.stringify'));
 		assert.ok(/\bencodeListTriggersRequest\b/.test(source));
@@ -446,7 +446,6 @@ suite('grpc TriggerService List/Upsert/Delete/SetEnabled/Fire protobuf wire', ()
 		assert.ok(/\bdecodeFireTriggerResponse\b/.test(source));
 		assert.ok(/\bencodeMessageField\b/.test(source));
 		assert.ok(/\bencodePresentMessageField\b/.test(source));
-		assert.ok(!/\bRegisterSessionEngineTrigger\b/.test(source));
 		assert.ok(!/\bSaveSkillContent\b|\bWatch\b|\bGetModelPreferences\b|\bSetModelPreferences\b/.test(source));
 		assert.ok(!/\bonOpenConnection\b|\bOPEN_CONNECTION\b/.test(source));
 		assert.ok(!/\bencodeConnect|\bdecodeConnect|\bmapConnect\b/.test(source));
@@ -476,7 +475,6 @@ suite('grpc TriggerService List/Upsert/Delete/SetEnabled/Fire protobuf wire', ()
 		assert.ok(!upsert.includes('triggerDtoWire'), 'upsertTrigger must not use triggerDtoWire');
 		assert.ok(!source.includes('function triggerDtoWire'));
 		assert.ok(source.includes('grpcTriggerUnaryWire'));
-		assert.ok(!/\basync registerSessionEngineTrigger\(/.test(source));
 		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 	});

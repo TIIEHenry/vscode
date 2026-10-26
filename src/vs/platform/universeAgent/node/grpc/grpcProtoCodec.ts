@@ -91,6 +91,11 @@ export function encodeInt32Field(field: number, value: number | undefined): Buff
 	return Buffer.concat([encodeTag(field, WIRE_VARINT), encodeVarint(value)]);
 }
 
+/** proto3 optional int32: an explicit zero must still be encoded. */
+export function encodeOptionalInt32Field(field: number, value: number | undefined): Buffer {
+	return value === undefined ? Buffer.alloc(0) : Buffer.concat([encodeTag(field, WIRE_VARINT), encodeVarint(value)]);
+}
+
 export function encodeInt64Field(field: number, value: number | bigint | undefined): Buffer {
 	if (value === undefined || value === 0 || value === 0n) {
 		return Buffer.alloc(0);

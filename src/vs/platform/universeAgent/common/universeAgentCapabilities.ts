@@ -94,6 +94,8 @@ export const UNIVERSE_AGENT_CONVERSATION_ENTRY_KEYS = [
 	'getMcpServerTools',
 	'setSessionGoal',
 	'setPermissionMode',
+	'setClientToolProfile',
+	'registerSessionEngineTrigger',
 	'switchModel',
 	'switchAgent',
 ] as const satisfies readonly (keyof UniverseAgentConversationEntryCapability)[];
@@ -136,6 +138,8 @@ export function readConversationEntryCapability(snapshot: { readonly conversatio
 		getMcpServerTools: normalizeCapabilitySupport(raw?.getMcpServerTools),
 		setSessionGoal: normalizeCapabilitySupport(raw?.setSessionGoal),
 		setPermissionMode: normalizeCapabilitySupport(raw?.setPermissionMode),
+		setClientToolProfile: normalizeCapabilitySupport(raw?.setClientToolProfile),
+		registerSessionEngineTrigger: normalizeCapabilitySupport(raw?.registerSessionEngineTrigger),
 		switchModel: normalizeCapabilitySupport(raw?.switchModel),
 		switchAgent: normalizeCapabilitySupport(raw?.switchAgent),
 	};
@@ -151,7 +155,11 @@ export function conversationEntryHookPresent(
 	key: keyof UniverseAgentConversationEntryCapability,
 	method: unknown,
 ): boolean {
-	return isAdvertisedEngineRpcSupport(readConversationEntryCapability(snapshot)[key], method);
+	const support = readConversationEntryCapability(snapshot)[key];
+	if (key === 'setClientToolProfile' || key === 'registerSessionEngineTrigger') {
+		return support === 'SUPPORTED' && typeof method === 'function';
+	}
+	return isAdvertisedEngineRpcSupport(support, method);
 }
 
 /** Missing or illegal values stay UNKNOWN so unit stubs keep the method check. */

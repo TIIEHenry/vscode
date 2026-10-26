@@ -115,6 +115,10 @@ import type {
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
 	UniverseAgentSetPermissionModeRequest,
+	UniverseAgentSetClientToolProfileRequest,
+	UniverseAgentSetClientToolProfileResult,
+	UniverseAgentRegisterSessionEngineTriggerRequest,
+	UniverseAgentRegisterSessionEngineTriggerResult,
 	UniverseAgentSetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
@@ -814,6 +818,11 @@ export interface IUniverseAgentConnection {
 	 * ≠ SetSessionGoal / CancelSessionGoal / Respond / SyncPermissionRule / PromotePermissionRule.
 	 */
 	getSessionRules?(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult>;
+
+	/** Requires explicit advertised/probed support; no client-tool profile fallback. */
+	setClientToolProfile?(request: UniverseAgentSetClientToolProfileRequest): Promise<UniverseAgentSetClientToolProfileResult>;
+	/** Register a session-owned file_changed/webhook trigger, not a catalogue trigger. */
+	registerSessionEngineTrigger?(request: UniverseAgentRegisterSessionEngineTriggerRequest): Promise<UniverseAgentRegisterSessionEngineTriggerResult>;
 
 	/**
 	 * PermissionService.SetPermissionMode unary (session Ask/Agent/Permit

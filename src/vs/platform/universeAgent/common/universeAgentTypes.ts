@@ -78,6 +78,8 @@ export interface UniverseAgentConversationEntryCapability {
 	readonly getMcpServerTools: UniverseAgentCapabilitySupport;
 	readonly setSessionGoal: UniverseAgentCapabilitySupport;
 	readonly setPermissionMode: UniverseAgentCapabilitySupport;
+	readonly setClientToolProfile: UniverseAgentCapabilitySupport;
+	readonly registerSessionEngineTrigger: UniverseAgentCapabilitySupport;
 	readonly switchModel: UniverseAgentCapabilitySupport;
 	readonly switchAgent: UniverseAgentCapabilitySupport;
 }
@@ -121,7 +123,25 @@ export interface UniverseAgentListSessionsResult {
 	readonly totalCount?: number;
 }
 
+/** SessionService.Create client_host; optional strings retain explicit presence. */
+export interface UniverseAgentClientHostReport {
+	readonly os: string;
+	readonly version: string;
+	readonly versionId?: string;
+	readonly kernel?: string;
+	readonly arch: string;
+	readonly shell: string;
+	readonly locale: string;
+	readonly executionClient: string;
+}
+
 export interface UniverseAgentCreateSessionRequest {
+	readonly systemPrompt?: string;
+	readonly provider?: string;
+	readonly promptLocale?: string;
+	readonly clientHost?: UniverseAgentClientHostReport;
+	/** Raw engine path; never a locally mapped workspace path. */
+	readonly workDir?: string;
 	readonly title?: string;
 	readonly model?: string;
 	/** proto CreateSessionRequest.client_session_id (field 4). Local session id. */
@@ -142,6 +162,7 @@ export interface UniverseAgentSessionInfoRequest {
 }
 
 export interface UniverseAgentSessionInfoResult {
+	readonly title?: string;
 	readonly sessionId: string;
 	readonly rootAgent?: UniverseAgentAgentTreeNode;
 	readonly createdAt: number;
@@ -958,6 +979,19 @@ export interface UniverseAgentSetPermissionModeResult {
 	readonly message?: string;
 }
 
+/** PermissionService.SetClientToolProfile; UNSPECIFIED is never an editable profile. */
+export type UniverseAgentClientToolProfile = 'CLIENT_TOOL_PROFILE_ALL' | 'CLIENT_TOOL_PROFILE_READ_ONLY' | 'CLIENT_TOOL_PROFILE_NONE';
+
+export interface UniverseAgentSetClientToolProfileRequest {
+	readonly sessionId: string;
+	readonly profile: UniverseAgentClientToolProfile;
+}
+
+export interface UniverseAgentSetClientToolProfileResult {
+	readonly ok: boolean;
+	readonly error?: string;
+}
+
 /** TeamService.TaskUpdate — Manager overwrite of blackboard task status (≠ TaskList / TaskCancel / MemberStatus / TeamInfo / SetPermissionMode). */
 export interface UniverseAgentTaskUpdateRequest {
 	readonly sessionId: string;
@@ -1176,6 +1210,8 @@ export interface UniverseAgentQueueMutationResult {
 
 /** AgentService.Fork request — create a SubAgent. Connected Fork action forwards this; disconnected Fork tab stays local `registerForkChat`. */
 export interface UniverseAgentForkAgentRequest {
+	/** Stable engine turn id; omit to use the current turn. */
+	readonly anchorTurnId?: string;
 	readonly sessionId: string;
 	/** Parent agent; empty/omitted wires as `root`. */
 	readonly parentAgentId?: string;
@@ -1186,6 +1222,7 @@ export interface UniverseAgentForkAgentRequest {
 }
 
 export interface UniverseAgentForkAgentResult {
+	readonly message?: string;
 	readonly ok: boolean;
 	/** New SubAgent id (e.g. `sub:name`) when `ok`. */
 	readonly agentId?: string;
@@ -1674,6 +1711,8 @@ export interface UniverseAgentListTeamsResult {
 export type UniverseAgentProviderCredentialSource = 'FILE' | 'PROVIDER_ENV' | 'BUILTIN_ENV' | 'NONE' | string;
 
 export interface UniverseAgentProviderStatus {
+	readonly discoveredModels?: number;
+	readonly modelSyncError?: string;
 	readonly providerId: string;
 	readonly brand: string;
 	readonly protocol: string;
@@ -1689,6 +1728,8 @@ export interface UniverseAgentListProviderStatusResult {
 
 /** api_key is node/electron-main outbound only; blank = keep existing. */
 export interface UniverseAgentUpsertProviderCredentialsRequest {
+	/** Explicit opt-in to model discovery; omitted/false does not fetch models. */
+	readonly refreshModels?: boolean;
 	readonly providerId: string;
 	readonly apiKey?: string;
 	readonly baseUrl?: string;
@@ -1853,6 +1894,8 @@ export interface UniverseAgentAgentProfileSummary {
 	readonly modelType?: string;
 	/** proto max_turns; omit when 0/unset (engine default, not unlimited). */
 	readonly maxTurns?: number;
+	/** optional max_rewinds: absent uses engine default; 0 explicitly disables rewinds. */
+	readonly maxRewinds?: number;
 }
 
 /** Full agent profile from SaveAgentProfile / ResetAgentProfile (customizations-engine §3.2). */
@@ -1875,6 +1918,8 @@ export interface UniverseAgentAgentProfileDetail {
 	readonly modelType?: string;
 	/** proto max_turns; omit when 0/unset (engine default, not unlimited). */
 	readonly maxTurns?: number;
+	/** optional max_rewinds: absent uses engine default; 0 explicitly disables rewinds. */
+	readonly maxRewinds?: number;
 }
 
 export interface UniverseAgentSaveAgentProfileRequest {
@@ -3659,6 +3704,20 @@ export interface UniverseAgentTrigger {
 
 export interface UniverseAgentListTriggersResult {
 	readonly triggers: readonly UniverseAgentTrigger[];
+}
+
+/** Session-owned engine trigger registration; distinct from catalogue UpsertTrigger. */
+export interface UniverseAgentRegisterSessionEngineTriggerRequest {
+	readonly sessionId: string;
+	readonly name: string;
+	readonly type: 'file_changed' | 'webhook';
+	readonly promptTemplate: string;
+	readonly watchPaths: readonly string[];
+	readonly dedupeKeyField?: string;
+}
+
+export interface UniverseAgentRegisterSessionEngineTriggerResult {
+	readonly trigger: UniverseAgentTrigger;
 }
 
 /**

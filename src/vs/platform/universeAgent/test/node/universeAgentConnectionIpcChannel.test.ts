@@ -116,6 +116,22 @@ suite('UniverseAgentConnectionIpcChannel', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('session tool profile and engine trigger requests cross the explicit IPC allowlist unchanged', async () => {
+		const calls: unknown[] = [];
+		const service = {
+			team: new FakeWindowService().team,
+			setClientToolProfile: async (request: unknown) => { calls.push(request); return { ok: false, error: 'missing' }; },
+			registerSessionEngineTrigger: async (request: unknown) => { calls.push(request); return { trigger: { triggerId: 't' } }; },
+		};
+		const inner = ProxyChannel.fromService<string>(service, store.add(new DisposableStore()));
+		const channel = new UniverseAgentConnectionIpcChannel(service, inner);
+		const profile = { sessionId: 's', profile: 'CLIENT_TOOL_PROFILE_NONE' };
+		const trigger = { sessionId: 's', name: 'Watch', type: 'file_changed', promptTemplate: 'Changed', watchPaths: ['src'], dedupeKeyField: '' };
+		assert.deepStrictEqual(await channel.call('ctx', 'setClientToolProfile', [profile]), { ok: false, error: 'missing' });
+		assert.deepStrictEqual(await channel.call('ctx', 'registerSessionEngineTrigger', [trigger]), { trigger: { triggerId: 't' } });
+		assert.deepStrictEqual(calls, [profile, trigger]);
+	});
+
 	function open() {
 		const disposables = store.add(new DisposableStore());
 		const service = new FakeWindowService();

@@ -115,5 +115,6 @@ export function summaryToProfileDetail(summary: UniverseAgentAgentProfileSummary
 		...(summary.model?.trim() ? { model: summary.model.trim() } : {}),
 		...(summary.modelType?.trim() ? { modelType: summary.modelType.trim() } : {}),
 		...(summary.maxTurns !== undefined && summary.maxTurns > 0 ? { maxTurns: summary.maxTurns } : {}),
+		...(summary.maxRewinds !== undefined ? { maxRewinds: summary.maxRewinds } : {}),
 	};
 }

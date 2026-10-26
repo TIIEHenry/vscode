@@ -11,6 +11,17 @@ suite('engineToolProfile', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
+	for (const maxRewinds of [undefined, 0, 5]) {
+		test(`editing tools preserves optional maxRewinds=${maxRewinds} in the save profile`, () => {
+			const summary = { id: 'p', name: 'Profile', source: 'user' as const, maxRewinds };
+			const detail = summaryToProfileDetail(summary);
+			const saved = applyToolEnablementChange({ ...detail, systemPrompt: 'Edited' }, 'bash', false);
+			assert.strictEqual(Reflect.get(saved, 'maxRewinds'), maxRewinds);
+			assert.strictEqual(saved.systemPrompt, 'Edited');
+			assert.deepStrictEqual(saved.disabledTools, ['bash']);
+		});
+	}
+
 	test('disabledTools mode: tool enabled unless listed', () => {
 		assert.strictEqual(isToolEnabledInProfile('read_file', { disabledTools: ['bash'] }), true);
 		assert.strictEqual(isToolEnabledInProfile('bash', { disabledTools: ['bash'] }), false);
