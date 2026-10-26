@@ -1,0 +1,7 @@
+{
+  "sourceHead": "53ad4b1e5a2b94c9693bbe32ebbdc93544b0a185",
+  "typescriptVersion": "6.0.3",
+  "scope": "One target in the unmodified src/tsconfig.json project; semantic and syntactic diagnostics only; noEmit. Not a full compile, and not a recheck of the prior eleven files.",
+  "target": "src/vs/workbench/contrib/agentsVoice/browser/agentsVoiceWidget.ts",
+  "diagnostics": []
+}

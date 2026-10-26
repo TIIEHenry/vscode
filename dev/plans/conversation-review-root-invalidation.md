@@ -1,10 +1,10 @@
 ---
 title: "Conversation 审阅导航随工作根刷新"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-10-26
-summary: "D1382：ReviewNav 随会话、工作区及 SCM 变化失效。merge 自动回归已完成，方案仍 accepted；默认编辑器实拍未做，不闭合。"
+summary: "D1382已闭合：自动37过、五TS语义0，独立默认编辑器after C0/I0；真实Review行、根失效、并列叶与命令参数通过，保留实拍限制。"
 ---
 
 # Conversation 审阅导航随工作根刷新
@@ -63,3 +63,10 @@ C 工位只做静态 diff、ESLint 与文档检查，禁止编译、transpile、
 2026-10-26 C 已按上文写入生产 `conversationReviewNavService.ts`、正式替身 `conversationReviewNavTestHarness.ts`，以及 ReviewNav、ReviewEntry、AgentSessionContext 三套直接测试。delayed 回归先 `createInstance(ConversationReviewNavService)`，再对 Context 做一次非事件读取：ReviewNav 若未在连接订阅前解析 `getWorkRoot`，Context 的连接监听会排在后面，回调仍读到旧根。方案保持 `accepted`，D1382 保持 open。本工位未编译、未跑测试、未做默认编辑器实拍。
 
 2026-10-26 merge 将 `37aa2956b77` 三路合入 `b5f69d4`。旧生产正文对齐 `4963799b1e95` 后，新行为为 3 passing / 7 failing；只刷新生产后三套直接测试加相邻审阅挂载共 37 passing。五份改动 TS 在未改的 `src/tsconfig` 上定向语义 0。J 的静态 after 为 Critical 0 / Important 0。默认编辑器实拍仍未做，方案不升 `implemented`，D1382 不闭合。全量 compile-client 未跑。
+
+
+## 独立 after 与范围内闭合
+
+2026-10-26 非作者 D 在隔离默认编辑器中完成真实 Review 行、工作区/SCM 增删、连接回退、非活动并列叶、点击及 Enter 的 `sources.review.showForPaths` 参数检查，ReviewNav 范围 Critical 0 / Important 0。四主题、225/226px 并列叶与612px单叶有截图和 DOM；见[原始 after 与签收注记](../progress/default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)。自动37过与五TS语义0沿用先前运行，未重复。D1382 closed，本稿 implemented。上文“未实拍/仍accepted”的过程记录保留为当阶段事实。
+
+加载模块与后续磁盘 JS 整文件摘要不同，仅去 source map 正文一致，不扩大为整棵 out 同构建。实拍使用本地 Stub/内存SCM与通知夹具，没有真实 git diff，没有折叠展开后再根失效，没有独立720px叶宽，只测浅色按钮对比。SCM子根/workspace gate归因未改；芯片归属另记D1386 Important/open，`1 files`独立Minor。本轮唯一全量仍为source `3e63f9e` 的 exit1、46诊断/28文件，未再全量。

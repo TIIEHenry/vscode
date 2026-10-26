@@ -1,0 +1,1079 @@
+{
+  "retarget": {
+    "revealError": null
+  },
+  "afterRetarget": {
+    "label": "after-retarget",
+    "marker": "continue",
+    "buttons": [
+      {
+        "text": "View changes (1 files)",
+        "turnId": "reviewNav:session-100-102",
+        "focused": false,
+        "x": 372,
+        "y": 319,
+        "w": 133,
+        "h": 22,
+        "fontSize": "12px",
+        "padding": "4px 8px",
+        "color": "rgb(0, 105, 204)",
+        "background": "rgba(0, 0, 0, 0)",
+        "parentBackground": "rgba(0, 0, 0, 0)",
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "leafWidth": 612
+      }
+    ],
+    "nav": {
+      "untitled": [
+        {
+          "sessionId": "untitled",
+          "turnId": "untitled-a1",
+          "paths": [
+            "file:///tmp/d1382-review-fixture/alpha/README.md"
+          ]
+        }
+      ],
+      "beta": [
+        {
+          "sessionId": "session-100",
+          "turnId": "session-100-102",
+          "paths": [
+            "sources-git-unrooted:/README.md"
+          ]
+        }
+      ]
+    },
+    "roots": {
+      "untitled": {
+        "source": "session",
+        "access": "local",
+        "workDir": "/tmp/d1382-review-fixture/alpha",
+        "localRoot": "file:///tmp/d1382-review-fixture/alpha"
+      },
+      "beta": {
+        "source": "session",
+        "access": "engine",
+        "workDir": "/tmp/d1382-review-fixture/beta",
+        "localRoot": null
+      }
+    },
+    "buckets": [
+      [
+        "untitled",
+        1,
+        [
+          "untitled-a1"
+        ]
+      ],
+      [
+        "session-100",
+        1,
+        [
+          "session-100-102"
+        ]
+      ]
+    ],
+    "folders": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "repos": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "connected": false,
+    "phase": {
+      "kind": "disconnected"
+    },
+    "transport": "idle",
+    "engineNotConnectedText": true,
+    "leaves": [
+      "untitled",
+      "session-100"
+    ],
+    "visible": [
+      "session-100"
+    ],
+    "active": "session-100",
+    "parts": [
+      {
+        "x": 348,
+        "y": 35,
+        "w": 612,
+        "h": 843,
+        "head": "Conversation\nTrajectory\nBeta session\nBeta session\nSession\nUntitled session\nVisualize (Stub)\nBeta session\nEngine not connected\nbeta\nDraft the beta README.\n\nBeta "
+      }
+    ],
+    "gitDiffCalls": 0,
+    "commands": [],
+    "themeClass": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+    "folds": [
+      {
+        "expanded": "false",
+        "text": "Stub · 4 steps · Stub: outline sections, read, Stub: draft, write1 waiting",
+        "focused": false
+      }
+    ],
+    "activeElement": "conversation-lens-dock-input",
+    "filterBanner": "Clear",
+    "filesError": "Unable to read workspace files.\nError details\nRetry\nBeta session\nEngine not connected\nHello \nInfo: This step was not found in the conversation"
+  },
+  "addedFolder": {
+    "before": 1,
+    "after": 1,
+    "marker": "continue",
+    "navBeta": [
+      {
+        "sessionId": "session-100",
+        "turnId": "session-100-102",
+        "paths": [
+          "sources-git-unrooted:/README.md"
+        ]
+      }
+    ],
+    "navAlpha": [
+      {
+        "sessionId": "untitled",
+        "turnId": "untitled-a1",
+        "paths": [
+          "file:///tmp/d1382-review-fixture/alpha/README.md"
+        ]
+      }
+    ],
+    "rootBeta": "engine",
+    "folders": [
+      "file:///tmp/d1382-review-fixture/alpha",
+      "file:///tmp/d1382-review-fixture/beta"
+    ]
+  },
+  "addedScm": {
+    "before": 1,
+    "after": 1
+  },
+  "afterScm": {
+    "label": "after-scm-beta",
+    "marker": "continue",
+    "buttons": [
+      {
+        "text": "View changes (1 files)",
+        "turnId": "reviewNav:session-100-102",
+        "focused": false,
+        "x": 372,
+        "y": 319,
+        "w": 133,
+        "h": 22,
+        "fontSize": "12px",
+        "padding": "4px 8px",
+        "color": "rgb(0, 105, 204)",
+        "background": "rgba(0, 0, 0, 0)",
+        "parentBackground": "rgba(0, 0, 0, 0)",
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "leafWidth": 612
+      }
+    ],
+    "nav": {
+      "untitled": [
+        {
+          "sessionId": "untitled",
+          "turnId": "untitled-a1",
+          "paths": [
+            "file:///tmp/d1382-review-fixture/alpha/README.md"
+          ]
+        }
+      ],
+      "beta": [
+        {
+          "sessionId": "session-100",
+          "turnId": "session-100-102",
+          "paths": [
+            "file:///tmp/d1382-review-fixture/beta/README.md"
+          ]
+        }
+      ]
+    },
+    "roots": {
+      "untitled": {
+        "source": "session",
+        "access": "local",
+        "workDir": "/tmp/d1382-review-fixture/alpha",
+        "localRoot": "file:///tmp/d1382-review-fixture/alpha"
+      },
+      "beta": {
+        "source": "session",
+        "access": "local",
+        "workDir": "/tmp/d1382-review-fixture/beta",
+        "localRoot": "file:///tmp/d1382-review-fixture/beta"
+      }
+    },
+    "buckets": [
+      [
+        "untitled",
+        1,
+        [
+          "untitled-a1"
+        ]
+      ],
+      [
+        "session-100",
+        1,
+        [
+          "session-100-102"
+        ]
+      ]
+    ],
+    "folders": [
+      "file:///tmp/d1382-review-fixture/alpha",
+      "file:///tmp/d1382-review-fixture/beta"
+    ],
+    "repos": [
+      "file:///tmp/d1382-review-fixture/alpha",
+      "file:///tmp/d1382-review-fixture/beta"
+    ],
+    "connected": false,
+    "phase": {
+      "kind": "disconnected"
+    },
+    "transport": "idle",
+    "engineNotConnectedText": true,
+    "leaves": [
+      "untitled",
+      "session-100"
+    ],
+    "visible": [
+      "session-100"
+    ],
+    "active": "session-100",
+    "parts": [
+      {
+        "x": 348,
+        "y": 35,
+        "w": 612,
+        "h": 843,
+        "head": "Conversation\nTrajectory\nBeta session\nBeta session\nSession\nUntitled session\nVisualize (Stub)\nBeta session\nEngine not connected\nbeta\nDraft the beta README.\n\nBeta "
+      }
+    ],
+    "gitDiffCalls": 0,
+    "commands": [],
+    "themeClass": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+    "folds": [
+      {
+        "expanded": "false",
+        "text": "Stub · 4 steps · Stub: outline sections, read, Stub: draft, write1 waiting",
+        "focused": false
+      }
+    ],
+    "activeElement": "conversation-lens-dock-input",
+    "filterBanner": "Clear",
+    "filesError": null
+  },
+  "removedFolder": {
+    "before": [
+      "README.md"
+    ],
+    "afterBuckets": 1,
+    "marker": "continue"
+  },
+  "afterRemoveFolder": {
+    "label": "after-remove-beta-folder",
+    "marker": "continue",
+    "buttons": [],
+    "nav": {
+      "untitled": [
+        {
+          "sessionId": "untitled",
+          "turnId": "untitled-a1",
+          "paths": [
+            "file:///tmp/d1382-review-fixture/alpha/README.md"
+          ]
+        }
+      ],
+      "beta": []
+    },
+    "roots": {
+      "untitled": {
+        "source": "session",
+        "access": "local",
+        "workDir": "/tmp/d1382-review-fixture/alpha",
+        "localRoot": "file:///tmp/d1382-review-fixture/alpha"
+      },
+      "beta": {
+        "source": "session",
+        "access": "local",
+        "workDir": "/tmp/d1382-review-fixture/beta",
+        "localRoot": "file:///tmp/d1382-review-fixture/beta"
+      }
+    },
+    "buckets": [
+      [
+        "untitled",
+        1,
+        [
+          "untitled-a1"
+        ]
+      ],
+      [
+        "session-100",
+        1,
+        [
+          "session-100-102"
+        ]
+      ]
+    ],
+    "folders": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "repos": [
+      "file:///tmp/d1382-review-fixture/alpha",
+      "file:///tmp/d1382-review-fixture/beta"
+    ],
+    "connected": false,
+    "phase": {
+      "kind": "disconnected"
+    },
+    "transport": "idle",
+    "engineNotConnectedText": true,
+    "leaves": [
+      "untitled",
+      "session-100"
+    ],
+    "visible": [
+      "session-100"
+    ],
+    "active": "session-100",
+    "parts": [
+      {
+        "x": 348,
+        "y": 35,
+        "w": 612,
+        "h": 843,
+        "head": "Conversation\nTrajectory\nBeta session\nBeta session\nSession\nUntitled session\nVisualize (Stub)\nBeta session\nEngine not connected\nbeta\nDraft the beta README.\n\nBeta "
+      }
+    ],
+    "gitDiffCalls": 0,
+    "commands": [],
+    "themeClass": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+    "folds": [
+      {
+        "expanded": "false",
+        "text": "Stub · 4 steps · Stub: outline sections, read, Stub: draft, write1 waiting",
+        "focused": false
+      }
+    ],
+    "activeElement": "conversation-lens-dock-input",
+    "filterBanner": "Clear",
+    "filesError": null
+  },
+  "removedScm": {
+    "buckets": 1
+  },
+  "afterRemoveScm": {
+    "label": "after-remove-beta-scm",
+    "marker": "continue",
+    "buttons": [
+      {
+        "text": "View changes (1 files)",
+        "turnId": "reviewNav:session-100-102",
+        "focused": false,
+        "x": 372,
+        "y": 319,
+        "w": 133,
+        "h": 22,
+        "fontSize": "12px",
+        "padding": "4px 8px",
+        "color": "rgb(0, 105, 204)",
+        "background": "rgba(0, 0, 0, 0)",
+        "parentBackground": "rgba(0, 0, 0, 0)",
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "leafWidth": 612
+      }
+    ],
+    "nav": {
+      "untitled": [
+        {
+          "sessionId": "untitled",
+          "turnId": "untitled-a1",
+          "paths": [
+            "file:///tmp/d1382-review-fixture/alpha/README.md"
+          ]
+        }
+      ],
+      "beta": [
+        {
+          "sessionId": "session-100",
+          "turnId": "session-100-102",
+          "paths": [
+            "sources-git-unrooted:/README.md"
+          ]
+        }
+      ]
+    },
+    "roots": {
+      "untitled": {
+        "source": "session",
+        "access": "local",
+        "workDir": "/tmp/d1382-review-fixture/alpha",
+        "localRoot": "file:///tmp/d1382-review-fixture/alpha"
+      },
+      "beta": {
+        "source": "session",
+        "access": "engine",
+        "workDir": "/tmp/d1382-review-fixture/beta",
+        "localRoot": null
+      }
+    },
+    "buckets": [
+      [
+        "untitled",
+        1,
+        [
+          "untitled-a1"
+        ]
+      ],
+      [
+        "session-100",
+        1,
+        [
+          "session-100-102"
+        ]
+      ]
+    ],
+    "folders": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "repos": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "connected": false,
+    "phase": {
+      "kind": "disconnected"
+    },
+    "transport": "idle",
+    "engineNotConnectedText": true,
+    "leaves": [
+      "untitled",
+      "session-100"
+    ],
+    "visible": [
+      "session-100"
+    ],
+    "active": "session-100",
+    "parts": [
+      {
+        "x": 348,
+        "y": 35,
+        "w": 612,
+        "h": 843,
+        "head": "Conversation\nTrajectory\nBeta session\nBeta session\nSession\nUntitled session\nVisualize (Stub)\nBeta session\nEngine not connected\nbeta\nDraft the beta README.\n\nBeta "
+      }
+    ],
+    "gitDiffCalls": 0,
+    "commands": [],
+    "themeClass": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+    "folds": [
+      {
+        "expanded": "false",
+        "text": "Stub · 4 steps · Stub: outline sections, read, Stub: draft, write1 waiting",
+        "focused": false
+      }
+    ],
+    "activeElement": "conversation-lens-dock-input",
+    "filterBanner": "Clear",
+    "filesError": null
+  },
+  "subroot": {
+    "during": {
+      "source": "session",
+      "access": "local",
+      "workDir": "/tmp/d1382-review-fixture/alpha/sub",
+      "localRoot": "file:///tmp/d1382-review-fixture/alpha/sub",
+      "paths": [],
+      "folders": [
+        "file:///tmp/d1382-review-fixture/alpha"
+      ]
+    },
+    "restoredPaths": [
+      {
+        "sessionId": "untitled",
+        "turnId": "untitled-a1",
+        "paths": [
+          "file:///tmp/d1382-review-fixture/alpha/README.md"
+        ]
+      }
+    ]
+  },
+  "connection": {
+    "first": {
+      "source": "connection",
+      "access": "local",
+      "workDir": "/tmp/d1382-review-fixture/alpha",
+      "paths": [
+        {
+          "sessionId": "session-100",
+          "turnId": "session-100-102",
+          "paths": [
+            "file:///tmp/d1382-review-fixture/alpha/README.md"
+          ]
+        }
+      ],
+      "activeSource": "session",
+      "activeWorkDir": "/tmp/d1382-review-fixture/alpha",
+      "connected": false,
+      "phase": {
+        "kind": "disconnected"
+      }
+    },
+    "second": {
+      "source": "connection",
+      "access": "engine",
+      "workDir": "/tmp/d1382-review-fixture/gamma",
+      "paths": [
+        {
+          "sessionId": "session-100",
+          "turnId": "session-100-102",
+          "paths": [
+            "sources-git-unrooted:/README.md"
+          ]
+        }
+      ],
+      "activeSource": "session",
+      "activeWorkDir": "/tmp/d1382-review-fixture/alpha",
+      "connected": false,
+      "phase": {
+        "kind": "disconnected"
+      }
+    }
+  },
+  "afterConnection": {
+    "label": "after-connection-restored",
+    "marker": "continue",
+    "buttons": [
+      {
+        "text": "View changes (1 files)",
+        "turnId": "reviewNav:session-100-102",
+        "focused": false,
+        "x": 372,
+        "y": 319,
+        "w": 133,
+        "h": 22,
+        "fontSize": "12px",
+        "padding": "4px 8px",
+        "color": "rgb(0, 105, 204)",
+        "background": "rgba(0, 0, 0, 0)",
+        "parentBackground": "rgba(0, 0, 0, 0)",
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "leafWidth": 612
+      }
+    ],
+    "nav": {
+      "untitled": [
+        {
+          "sessionId": "untitled",
+          "turnId": "untitled-a1",
+          "paths": [
+            "file:///tmp/d1382-review-fixture/alpha/README.md"
+          ]
+        }
+      ],
+      "beta": [
+        {
+          "sessionId": "session-100",
+          "turnId": "session-100-102",
+          "paths": [
+            "sources-git-unrooted:/README.md"
+          ]
+        }
+      ]
+    },
+    "roots": {
+      "untitled": {
+        "source": "session",
+        "access": "local",
+        "workDir": "/tmp/d1382-review-fixture/alpha",
+        "localRoot": "file:///tmp/d1382-review-fixture/alpha"
+      },
+      "beta": {
+        "source": "session",
+        "access": "engine",
+        "workDir": "/tmp/d1382-review-fixture/beta",
+        "localRoot": null
+      }
+    },
+    "buckets": [
+      [
+        "untitled",
+        1,
+        [
+          "untitled-a1"
+        ]
+      ],
+      [
+        "session-100",
+        1,
+        [
+          "session-100-102"
+        ]
+      ]
+    ],
+    "folders": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "repos": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "connected": false,
+    "phase": {
+      "kind": "disconnected"
+    },
+    "transport": "idle",
+    "engineNotConnectedText": true,
+    "leaves": [
+      "untitled",
+      "session-100"
+    ],
+    "visible": [
+      "session-100"
+    ],
+    "active": "session-100",
+    "parts": [
+      {
+        "x": 348,
+        "y": 35,
+        "w": 612,
+        "h": 843,
+        "head": "Conversation\nTrajectory\nBeta session\nBeta session\nSession\nUntitled session\nVisualize (Stub)\nBeta session\nEngine not connected\nbeta\nDraft the beta README.\n\nBeta "
+      }
+    ],
+    "gitDiffCalls": 0,
+    "commands": [],
+    "themeClass": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+    "folds": [
+      {
+        "expanded": "false",
+        "text": "Stub · 4 steps · Stub: outline sections, read, Stub: draft, write1 waiting",
+        "focused": false
+      }
+    ],
+    "activeElement": "conversation-lens-dock-input",
+    "filterBanner": "Clear",
+    "filesError": null
+  },
+  "click": {
+    "beforeFocus": true,
+    "text": "View changes (1 files)",
+    "turnId": "reviewNav:session-100-102"
+  },
+  "afterClick": {
+    "label": "after-click",
+    "marker": "continue",
+    "buttons": [
+      {
+        "text": "View changes (1 files)",
+        "turnId": "reviewNav:session-100-102",
+        "focused": false,
+        "x": 372,
+        "y": 319,
+        "w": 133,
+        "h": 22,
+        "fontSize": "12px",
+        "padding": "4px 8px",
+        "color": "rgb(0, 105, 204)",
+        "background": "rgba(0, 0, 0, 0)",
+        "parentBackground": "rgba(0, 0, 0, 0)",
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "leafWidth": 612
+      }
+    ],
+    "nav": {
+      "untitled": [
+        {
+          "sessionId": "untitled",
+          "turnId": "untitled-a1",
+          "paths": [
+            "file:///tmp/d1382-review-fixture/alpha/README.md"
+          ]
+        }
+      ],
+      "beta": [
+        {
+          "sessionId": "session-100",
+          "turnId": "session-100-102",
+          "paths": [
+            "sources-git-unrooted:/README.md"
+          ]
+        }
+      ]
+    },
+    "roots": {
+      "untitled": {
+        "source": "session",
+        "access": "local",
+        "workDir": "/tmp/d1382-review-fixture/alpha",
+        "localRoot": "file:///tmp/d1382-review-fixture/alpha"
+      },
+      "beta": {
+        "source": "session",
+        "access": "engine",
+        "workDir": "/tmp/d1382-review-fixture/beta",
+        "localRoot": null
+      }
+    },
+    "buckets": [
+      [
+        "untitled",
+        1,
+        [
+          "untitled-a1"
+        ]
+      ],
+      [
+        "session-100",
+        1,
+        [
+          "session-100-102"
+        ]
+      ]
+    ],
+    "folders": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "repos": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "connected": false,
+    "phase": {
+      "kind": "disconnected"
+    },
+    "transport": "idle",
+    "engineNotConnectedText": true,
+    "leaves": [
+      "untitled",
+      "session-100"
+    ],
+    "visible": [
+      "session-100"
+    ],
+    "active": "session-100",
+    "parts": [
+      {
+        "x": 348,
+        "y": 35,
+        "w": 612,
+        "h": 843,
+        "head": "Conversation\nTrajectory\nBeta session\nBeta session\nSession\nUntitled session\nVisualize (Stub)\nBeta session\nEngine not connected\nbeta\nDraft the beta README.\n\nBeta "
+      }
+    ],
+    "gitDiffCalls": 0,
+    "commands": [
+      {
+        "commandId": "sources.review.showForPaths",
+        "args": [
+          [
+            "sources-git-unrooted:/README.md"
+          ]
+        ]
+      }
+    ],
+    "themeClass": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+    "folds": [
+      {
+        "expanded": "false",
+        "text": "Stub · 4 steps · Stub: outline sections, read, Stub: draft, write1 waiting",
+        "focused": false
+      }
+    ],
+    "activeElement": "sources-tab selected",
+    "filterBanner": "Showing 0 files from this turn · Clear",
+    "filesError": null
+  },
+  "fold": {
+    "before": "false",
+    "after": "true",
+    "focused": false
+  },
+  "themes": [
+    {
+      "themeName": "Default Light Modern",
+      "applied": "Default Light Modern",
+      "workbenchClass": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-light_modern-json",
+      "color": "rgb(0, 95, 184)",
+      "background": "rgba(0, 0, 0, 0)",
+      "parentBackground": "rgba(0, 0, 0, 0)",
+      "fontSize": "12px",
+      "text": "View changes (1 files)"
+    },
+    {
+      "themeName": "Default Dark Modern",
+      "applied": "Default Dark Modern",
+      "workbenchClass": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs-dark vscode-theme-defaults-themes-dark_modern-json",
+      "color": "rgb(77, 170, 252)",
+      "background": "rgba(0, 0, 0, 0)",
+      "parentBackground": "rgba(0, 0, 0, 0)",
+      "fontSize": "12px",
+      "text": "View changes (1 files)"
+    },
+    {
+      "themeName": "Default High Contrast",
+      "applied": "Default High Contrast",
+      "workbenchClass": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled hc-black vscode-theme-defaults-themes-hc_black-json",
+      "color": "rgb(33, 166, 255)",
+      "background": "rgba(0, 0, 0, 0)",
+      "parentBackground": "rgba(0, 0, 0, 0)",
+      "fontSize": "12px",
+      "text": "View changes (1 files)"
+    },
+    {
+      "themeName": "Default High Contrast Light",
+      "applied": "Default High Contrast Light",
+      "workbenchClass": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled hc-light vscode-theme-defaults-themes-hc_light-json",
+      "color": "rgb(15, 74, 133)",
+      "background": "rgba(0, 0, 0, 0)",
+      "parentBackground": "rgba(0, 0, 0, 0)",
+      "fontSize": "12px",
+      "text": "View changes (1 files)"
+    }
+  ],
+  "geometry": {
+    "parts": [
+      {
+        "x": 348,
+        "y": 35,
+        "width": 612,
+        "height": 843,
+        "top": 35,
+        "right": 960,
+        "bottom": 878,
+        "left": 348
+      }
+    ],
+    "sashes": [
+      {
+        "x": 46,
+        "y": 35,
+        "width": 4,
+        "height": 843,
+        "top": 35,
+        "right": 50,
+        "bottom": 878,
+        "left": 46
+      },
+      {
+        "x": 346,
+        "y": 35,
+        "width": 4,
+        "height": 843,
+        "top": 35,
+        "right": 350,
+        "bottom": 878,
+        "left": 346
+      },
+      {
+        "x": 958,
+        "y": 35,
+        "width": 4,
+        "height": 843,
+        "top": 35,
+        "right": 962,
+        "bottom": 878,
+        "left": 958
+      },
+      {
+        "x": 1438,
+        "y": 35,
+        "width": 4,
+        "height": 843,
+        "top": 35,
+        "right": 1442,
+        "bottom": 878,
+        "left": 1438
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      }
+    ]
+  },
+  "narrow": {
+    "label": "narrow",
+    "marker": "continue",
+    "buttons": [
+      {
+        "text": "View changes (1 files)",
+        "turnId": "reviewNav:session-100-102",
+        "focused": false,
+        "x": 242,
+        "y": 319,
+        "w": 133,
+        "h": 22,
+        "fontSize": "12px",
+        "padding": "4px 8px",
+        "color": "rgb(15, 74, 133)",
+        "background": "rgba(0, 0, 0, 0)",
+        "parentBackground": "rgba(0, 0, 0, 0)",
+        "whiteSpace": "normal",
+        "textOverflow": "clip",
+        "leafWidth": 450
+      }
+    ],
+    "nav": {
+      "untitled": [
+        {
+          "sessionId": "untitled",
+          "turnId": "untitled-a1",
+          "paths": [
+            "file:///tmp/d1382-review-fixture/alpha/README.md"
+          ]
+        }
+      ],
+      "beta": [
+        {
+          "sessionId": "session-100",
+          "turnId": "session-100-102",
+          "paths": [
+            "sources-git-unrooted:/README.md"
+          ]
+        }
+      ]
+    },
+    "roots": {
+      "untitled": {
+        "source": "session",
+        "access": "local",
+        "workDir": "/tmp/d1382-review-fixture/alpha",
+        "localRoot": "file:///tmp/d1382-review-fixture/alpha"
+      },
+      "beta": {
+        "source": "session",
+        "access": "engine",
+        "workDir": "/tmp/d1382-review-fixture/beta",
+        "localRoot": null
+      }
+    },
+    "buckets": [
+      [
+        "untitled",
+        1,
+        [
+          "untitled-a1"
+        ]
+      ],
+      [
+        "session-100",
+        1,
+        [
+          "session-100-102"
+        ]
+      ]
+    ],
+    "folders": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "repos": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "connected": false,
+    "phase": {
+      "kind": "disconnected"
+    },
+    "transport": "idle",
+    "engineNotConnectedText": true,
+    "leaves": [
+      "untitled",
+      "session-100"
+    ],
+    "visible": [
+      "session-100"
+    ],
+    "active": "session-100",
+    "parts": [
+      {
+        "x": 218,
+        "y": 35,
+        "w": 450,
+        "h": 843,
+        "head": "Conversation\nTrajectory\nBeta session\nBeta session\nSession\nUntitled session\nVisualize (Stub)\nBeta session\nEngine not connected\nbeta\nDraft the beta README.\n\nBeta "
+      }
+    ],
+    "gitDiffCalls": 0,
+    "commands": [
+      {
+        "commandId": "sources.review.showForPaths",
+        "args": [
+          [
+            "sources-git-unrooted:/README.md"
+          ]
+        ]
+      }
+    ],
+    "themeClass": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled hc-light vscode-theme-defaults-themes-hc_light-json",
+    "folds": [
+      {
+        "expanded": "true",
+        "text": "Stub · 4 steps · Stub: outline sections, read, Stub: draft, write1 waiting",
+        "focused": false
+      }
+    ],
+    "activeElement": "sources-tab selected",
+    "filterBanner": "Showing 0 files from this turn · Clear",
+    "filesError": null
+  },
+  "pageErrors": []
+}

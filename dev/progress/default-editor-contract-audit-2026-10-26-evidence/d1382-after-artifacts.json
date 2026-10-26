@@ -1,0 +1,83 @@
+{
+  "origin": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after",
+  "report": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/review.md",
+    "sha256": "366db03ee701466b0b5ecbc5358267d95dd7b81faa6a2fbf9d4125e99e0c5b2c"
+  },
+  "observations": [
+    {
+      "origin": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/observations.json",
+      "copied": "d1382-after-observations.json",
+      "sha256": "5b8f2f0957e4c11f1e1190bcd6c2c0d7c2b120a01ecb449ba54205ea26c7489c"
+    },
+    {
+      "origin": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/observations-continue.json",
+      "copied": "d1382-after-observations-continue.json",
+      "sha256": "bda79ebe8ac2f4b6522db6f78670e5d32a16d8d2fa3ca9f439d789efcb47d2c5"
+    },
+    {
+      "origin": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/observations-final.json",
+      "copied": "d1382-after-observations-final.json",
+      "sha256": "c836c868cb749eafc298dc231aaeb4846856f757e4a88d1389303ab2aff8e1b5"
+    }
+  ],
+  "screenshotsStoredInGit": false,
+  "screenshots": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/shots/03-beta-local-row.png",
+      "sha256": "46290fd611a71c50c86e1a841915eec3fd3d9161e709294fced9c429bc70424b",
+      "bytes": 75057
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/shots/04-beta-folder-removed.png",
+      "sha256": "b616ed491b3b864d3e0feb707dce2c67eb02576ae3544fa7d1f5002ca5791219",
+      "bytes": 70568
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/shots/11-both-leaves.png",
+      "sha256": "048ec5f55d3d44c476826f48045694213393c6a36ee0f6419331a579f34a4c97",
+      "bytes": 102944
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/shots/12-alpha-file-click.png",
+      "sha256": "c4cb1ab1079d424d233b315ee4184dbd19f72ed04e6941a90552f0f68deb0fbe",
+      "bytes": 99445
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/shots/13-fold-keyboard.png",
+      "sha256": "93f61fff0ce16d9c5425bf1e8bd6bd82c38c0d273780017e072701cb183f848f",
+      "bytes": 103711
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/shots/theme-default-light-modern.png",
+      "sha256": "5a791ff2ac89cd97e73103445ce0d8318ee414a92aeec9bdb323b6d5957304e3",
+      "bytes": 70705
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/shots/theme-default-dark-modern.png",
+      "sha256": "605d539133084776ff0691d0f2360292c0fef1e1eae21549025bd105724b39a9",
+      "bytes": 70323
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/shots/theme-default-high-contrast.png",
+      "sha256": "1b0dae060d7bb5fd96595c5bbb616601115f208a2f37e787cec083d501526792",
+      "bytes": 68880
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1382-independent-after/shots/theme-default-high-contrast-light.png",
+      "sha256": "115f53822f95d8d2ae9a2eb4f0184319b1fe8b834a81764a3c9c5fb628b616b8",
+      "bytes": 69697
+    }
+  ],
+  "cleanupReportedByAuthor": {
+    "electronPid": 39929,
+    "xvfbPid": 39873,
+    "display": ":188",
+    "temporaryProfileRemoved": true
+  },
+  "integratorPidExistenceCheck": {
+    "39929": false,
+    "39873": false
+  },
+  "scope": "Original author report and JSON preserved. No real git diff, no root invalidation after fold expansion, no independent 720px leaf. Only light theme button contrast measured. Fixture emits local notifications, not external RPC."
+}

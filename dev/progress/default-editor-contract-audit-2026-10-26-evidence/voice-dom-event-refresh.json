@@ -1,0 +1,111 @@
+{
+  "sourceHead": "53ad4b1e5a2b94c9693bbe32ebbdc93544b0a185",
+  "authorCommit": "94893edf39b2f1b9ffdfd9e11b597c65bf6e1ba6",
+  "oldSourceHead": "3e63f9e6f40e3c3c3dca1a55f47a978ddb02ed1a",
+  "esbuildVersion": "0.27.2",
+  "scope": "Old and new source transformed with identical esbuild options. Only agentsVoiceWidget.js refreshed. No second full compile. Prior eleven files hash-checked, not typechecked or retested.",
+  "oldSourceSha256": "9378097d218093a8cb17430dca935e305b525a38db109b8fc34288eba375343c",
+  "source": {
+    "path": "src/vs/workbench/contrib/agentsVoice/browser/agentsVoiceWidget.ts",
+    "sha256": "c4f8d64cf202ad25e318810a051c1f1deda797f6c9fb3e66e6be9ff9bf503665",
+    "bytes": 56727,
+    "bodySha256": "ea686df176cfd1987f22fb536806fed312b0907d234cdeb00c7ced849dfd9bf5",
+    "mtime": "2026-10-26T10:36:16.027Z"
+  },
+  "oldTranspileBodySha256": "1d65641979d1cc3bd505241203c0810448f0dd674c3bd2429a533da6481aac72",
+  "newTranspileBodySha256": "1d65641979d1cc3bd505241203c0810448f0dd674c3bd2429a533da6481aac72",
+  "transpileBodyEqual": true,
+  "before": {
+    "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoiceWidget.js",
+    "sha256": "4bfb7aa5a3e95773f17e40eac04b6cd5bb9186ad7ab74523ab73789cf2239968",
+    "bytes": 158794,
+    "bodySha256": "1d65641979d1cc3bd505241203c0810448f0dd674c3bd2429a533da6481aac72",
+    "mtime": "2026-10-26T09:01:48.284Z"
+  },
+  "after": {
+    "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoiceWidget.js",
+    "sha256": "c256699cfb3e64324ed6715b7a74bb1a38fdc5d90900fad6ca8855a242918e4f",
+    "bytes": 77530,
+    "bodySha256": "1d65641979d1cc3bd505241203c0810448f0dd674c3bd2429a533da6481aac72",
+    "mtime": "2026-10-26T10:37:21.052Z"
+  },
+  "priorEleven": [
+    {
+      "source": "src/vs/platform/tunnel/common/tunnel.ts",
+      "output": "out/vs/platform/tunnel/common/tunnel.js",
+      "sourceUnchanged": true,
+      "outputUnchanged": true,
+      "outputMtime": "2026-10-26T09:01:46.752Z"
+    },
+    {
+      "source": "src/vs/platform/tunnel/test/common/tunnelOpenRetry.test.ts",
+      "output": "out/vs/platform/tunnel/test/common/tunnelOpenRetry.test.js",
+      "sourceUnchanged": true,
+      "outputUnchanged": true,
+      "outputMtime": "2026-10-26T09:01:50.053Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationReviewNavService.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationReviewNavService.js",
+      "sourceUnchanged": true,
+      "outputUnchanged": true,
+      "outputMtime": "2026-10-26T09:01:48.926Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/agentSessionContext.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/agentSessionContext.test.js",
+      "sourceUnchanged": true,
+      "outputUnchanged": true,
+      "outputMtime": "2026-10-26T09:01:48.891Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationReviewEntry.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationReviewEntry.test.js",
+      "sourceUnchanged": true,
+      "outputUnchanged": true,
+      "outputMtime": "2026-10-26T09:01:50.363Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.js",
+      "sourceUnchanged": true,
+      "outputUnchanged": true,
+      "outputMtime": "2026-10-26T09:01:50.362Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationReviewNavTestHarness.ts",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavTestHarness.js",
+      "sourceUnchanged": true,
+      "outputUnchanged": true,
+      "outputMtime": "2026-10-26T09:01:50.363Z"
+    },
+    {
+      "source": "src/vs/workbench/services/configuration/browser/configuration.ts",
+      "output": "out/vs/workbench/services/configuration/browser/configuration.js",
+      "sourceUnchanged": true,
+      "outputUnchanged": true,
+      "outputMtime": "2026-10-26T09:04:46.865Z"
+    },
+    {
+      "source": "src/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.ts",
+      "output": "out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js",
+      "sourceUnchanged": true,
+      "outputUnchanged": true,
+      "outputMtime": "2026-10-26T09:04:46.868Z"
+    },
+    {
+      "source": "src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScan.test.ts",
+      "output": "out/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScan.test.js",
+      "sourceUnchanged": true,
+      "outputUnchanged": true,
+      "outputMtime": "2026-10-26T09:04:46.870Z"
+    },
+    {
+      "source": "src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.ts",
+      "output": "out/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.js",
+      "sourceUnchanged": true,
+      "outputUnchanged": true,
+      "outputMtime": "2026-10-26T09:04:46.871Z"
+    }
+  ]
+}

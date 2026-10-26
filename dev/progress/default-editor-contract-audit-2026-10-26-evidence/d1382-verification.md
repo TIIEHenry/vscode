@@ -55,3 +55,8 @@ ESLint `--no-cache` exit 0：0 errors / 4 warnings。四条都是 `agentSessionC
 ## 未闭合
 
 J 的静态 after 在 `/tmp/vscode-d1382-grok-peer-review.md`，读到的结论是 Critical 0、Important 0，并且写明它自己不闭合 D1382。默认编辑器窗口没有启动。未实拍的点是：已有审阅行在工作区目录或 SCM 仓库变化后是否更新、非活动并列叶是否一起更新、更新后的点击目标。自动测试不代替这次实拍。方案保持 accepted，D1382 保持 open。没有启动 `src/vs/sessions` 窗口或它的网页 e2e。
+
+
+## 后续独立 UI after（2026-10-26）
+
+此前“实拍未做/仍open”是本自动 checkpoint 当阶段事实。后续非作者 D 已交付[真实默认编辑器 after](d1382-independent-after.md)、三份原始 observations 和本地截图，ReviewNav 自身 C0/I0。工作区/SCM增删、连接回退、非活动并列叶及click/Enter参数已确认，D1382现闭合，方案implemented。仅模块正文一致，不扩大到全out或真实git diff；fixture、折叠后未再根失效、未独立720px及只测浅色对比的限制保留。芯片归属由独立Astra判为D1386 Important/open，不影响本合同签收。

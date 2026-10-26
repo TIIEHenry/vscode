@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1383已闭合。D1382自动回归仍accepted，实拍未做。D1384已闭合：21过、远端17过、语义0。本轮全量46/28。"
+summary: "D1382独立默认编辑器after C0/I0并闭合，D1383/1384已闭合；DOM Event单行类型修复已验证。D1385首次录音/D1386叶身份open；唯一全量仍46/28。"
 ---
 
 # 默认编辑器合同与功能缺口续审
@@ -17,10 +17,10 @@ summary: "D1383已闭合。D1382自动回归仍accepted，实拍未做。D1384�
 
 | 工位 / 子代理 | 整体模块与审查目标 | 当前阶段 |
 | --- | --- | --- |
-| C / conversation_navigation_contracts | D1382：默认编辑器 ReviewNav 工作根变化失效与正式 Context/DI 合同 | 源 `37aa2956b77` 已三路合入 `b5f69d4`。旧生产新行为 3过/7败，新生产 37过，五TS语义0。方案仍 accepted，缺口仍 open。J 静态 after C0/I0，三条 Minor 不阻断。默认编辑器实拍未做 |
+| C / conversation_navigation_contracts | D1382：默认编辑器 ReviewNav 工作根变化失效与正式 Context/DI 合同 | 源 `37aa2956b77` 已三路合入 `b5f69d4`。旧生产新行为 3过/7败，新生产 37过，五TS语义0。方案 implemented、缺口 closed。J 静态 after 与 D 独立默认编辑器 after 均 C0/I0；真实行/根失效/并列叶/命令参数通过，限制见入库报告 |
 | D / tunnel_retry_contracts（Astra） | D1383：Tunnel 引用身份、getExisting 所有权与 provider 失败后重试；同时审查 C/J 方案 | 方案 `e451d5da071` / 实施 `22386bcf3ae` 已合入；merge 旧生产 red / 新生产 19 passing、定向语义 0，范围内 closed |
 | J / configuration_initialization_contracts | D1384：RemoteUserConfiguration 显式重试共有等待、reload 及销毁边界 | 源 `c4b9332` 已三路合入 `3e63f9e`。旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。方案 implemented，缺口 closed。C 静态 after C0/I0，两条 Minor 不阻断 |
-| merge / 集成者（待源提交） | 串行合入、旧生产身份核验、受控 red/green、唯一编译与必要真实界面复验 | D1383已闭合。D1382自动回归已写入，实拍未做，未闭合。D1384已运行并闭合。本轮唯一全量 exit 1、46/28 |
+| merge / 唯一集成者 | 串行合入、旧生产身份核验、受控 red/green、唯一编译与必要真实界面复验 | D1382/1383/1384按范围已闭合。948单行Event注解已真三路合入，单TS noEmit 0、转译正文等价；D1385/1386功能仍open。本轮唯一全量 exit1、46/28 |
 
 ## 工作约束与验收
 
@@ -36,7 +36,7 @@ D 没有采用泛化 test subclass 才能构造的 empty/string 三代 pending �
 
 J 保留首次远端环境 pending 时读取缓存，以及无远端环境的终态；仅失败后的显式重试让所有参与者共同等待同一次结果，reload 参加重试。Astra 的三项 Important 已纳入：attempt 身份归属、用显式错误记录保留 undefined/null 原拒绝、销毁取消与原始失败的优先规则。D747 一个远端实现源码字符串 pin 的替代必须映射真实公共行为回归，其他六项与历史证据保留。
 
-以上是合入前的方案与源码审计结论。D1383 随后已按该边界完成范围内运行并闭合。D1382 源码已合入，merge 自动回归见[证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)；没有默认编辑器实拍，不记 closed。D1384 已由 merge 完成旧生产 red / 新生产 green 并闭合，见[证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1384-verification.md)。D1382 的 accepted 方案在实拍完成前不写成落地证明。
+本段保留合入前及自动 checkpoint 的阶段事实；D1382后续独立after闭合见文末。D1383 随后已按该边界完成范围内运行并闭合。D1382 源码已合入，merge 自动回归见[证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)；没有默认编辑器实拍，不记 closed。D1384 已由 merge 完成旧生产 red / 新生产 green 并闭合，见[证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1384-verification.md)。D1382 的 accepted 方案在实拍完成前不写成落地证明。
 
 D1383源码合入只发生status文档冲突，保留父当前分工/同步记录及D实施事实。验证完成后方案为 implemented、缺口 closed。新产物由 merge 锁内顺序刷新：先钉 496 旧生产正文，再 test-only red，记录原始结果后才刷新生产。详情见[证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/verification.md)。
 
@@ -50,4 +50,15 @@ D1383 验证元数据提交为 `0345517385bbc7938d2f82f01d538a880ec04b77`。父�
 
 父保存了 [11 对最终源码/产物与同步摘要](../../progress/default-editor-contract-audit-2026-10-26-evidence/parent-sync-941-snapshot.json)。全量编译改变了 C/D JS 的整文件摘要，但去掉 source map 后的两份生产正文仍分别等于其已通过的运行正文；J 最小刷新后的四份输出与其 green 一致，没有因此重复已通过套件。摘要绑定 source `3e63f9e` / checkpoint `9411311`，不含后续语音工作。
 
-当前执行工位按任务复用：D 独立非作者审查者继续 D1382 默认编辑器实拍，产品只读、禁止写 out，已启动独立空 profile / Xvfb / 本地 Stub，未连接在线引擎；尚未产最终 after，不闭 D1382。C 前作者已交付并退出，空槽现交 Grok 做 `agentsVoice` 整体生命周期与控件功能扫描（D1385 仅预留）；现有 TS2314 仅作线索，非 trivial 设计仍须 Astra 决策。父未改动这两个在用工位，也未把其未验证结果同步进人类工位。
+此前执行工位按任务复用：D 独立非作者审查者继续 D1382 默认编辑器实拍，产品只读、禁止写 out，已启动独立空 profile / Xvfb / 本地 Stub，未连接在线引擎；尚未产最终 after，不闭 D1382。C 前作者已交付并退出，空槽现交 Grok 做 `agentsVoice` 整体生命周期与控件功能扫描（D1385 仅预留）；现有 TS2314 仅作线索，非 trivial 设计仍须 Astra 决策。父未改动这两个在用工位，也未把其未验证结果同步进人类工位。
+
+
+## D1382 after 签收与单行类型检查点
+
+非作者D独立默认编辑器after已到，ReviewNav范围Critical0/Important0；活动与非活动并列叶真实Review行、workspace/SCM增删、连接回退、点击/Enter参数通过。D1382closed、方案implemented；[报告/三份observations/截图本地绝对入口](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)和[制品摘要](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1382-after-artifacts.json)已落库。Electron39929/Xvfb39873及临时profile由作者清理，集成核对两PID已不存在。图片未作为图片文件入git。
+
+已加载ReviewNav整文件27704…与磁盘3b10…不同，去source map正文同14942…；不是整out同构建。夹具为本地Stub/内存SCM/本地通知，无真实git diff、未在折叠展开后再次根失效、无独立720px叶宽，仅浅色测对比。SCM子根/workspace gate归因未改。原报告芯片Minor经Astra独立判为D1386 Important/open；11图两芯片beta与后续DOM两芯片alpha属不同时刻，不混写。1 files仍独立Minor。
+
+C的94893edf39b已真实三路合入53ad4b1e5a，唯一变化是agentsVoiceWidget.ts的DOM Event注解。单TS原project noEmit 0；旧3e63与新源同配置转译正文相等，盘上旧正文也相同，仅fresh此JS并记hash/mtime，11对先前source/out摘要未变。详见[类型验证](../../progress/default-editor-contract-audit-2026-10-26-evidence/voice-dom-event-verification.md)。未重跑19/37/21+17+15；本轮唯一fullcompile仍3e63 exit1、46/28，不报告45/27推算。
+
+D1385功能与D1386叶身份归属均open，正式方案由独立作者后续交付，不能将未提交WIP写成已审或已实现。语音维护是默认窗保留Copilot Chat入口，不是Conversation真语音；pane桥不等于editor当前发起者，controller connecting焦点会改变target。首按授权必须保持到真实连接准入并以owner/代次撤销；完整功能验收待正式方案与实施。身份条须以叶绑定根解析文字/aria/branch/checkout，窗口addFolders仍全局；不改ReviewNav、Sources活动跟随或扩展mount策略。

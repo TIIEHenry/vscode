@@ -1,0 +1,418 @@
+{
+  "stages": [],
+  "errors": [],
+  "loadedReviewNav": [
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationReviewNavService.js",
+      "sourceMapURL": "data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsiL2hvbWUvY2xhcmVuY2UvUHJvamVjdHMvQWdlbnRzL3ZzY29kZS1Xb3JrVHJlZXMvbWVyZ2Uvc3JjL3ZzL3dvcmtiZW5jaC9jb250cmliL2NvbnZlcnNhdGlvbi9icm93c2VyL2NvbnZlcnNhdGlvblJldmlld05hdlNlcnZpY2UudHMiXSwKICAibWFwcGluZ3MiOiAiOzs7Ozs7Ozs7OztBQUtBLFNBQVMsZUFBZTtBQUN4QixTQUFTLGtCQUFrQjtBQUMzQixTQUFTLGdCQUFnQjtBQUN6QixTQUFTLGdDQUFnQztBQUV6QyxTQUFTLGdDQUFnQztBQUN6QyxTQUFTLDRCQUE0QjtBQUVyQyxTQUFTLG1CQUFtQjtBQUM1QixTQUFTLCtCQUErQjtBQUN4QyxTQUFTLGtDQUFrQztBQUMzQztBQUFBLEVBSUM7QUFBQSxPQUNNO0FBT0EsSUFBTSwrQkFBTixjQUEyQyxXQUFvRDtBQUFBLEVBYXJHLFlBQzJCLFlBQ21CLFFBQ0Ysa0JBQ2IsWUFDUixTQUNyQjtBQUNELFVBQU07QUFMdUM7QUFDRjtBQUNiO0FBYi9CLFNBQWlCLGtCQUFrQixvQkFBSSxJQUEwQztBQUNqRixTQUFpQixpQkFBaUIsb0JBQUksSUFBeUI7QUFDL0QsU0FBaUIsMkJBQTJCLG9CQUFJLElBQWlDO0FBSWpGLFNBQWlCLGVBQWUsS0FBSyxVQUFVLElBQUksUUFBYyxDQUFDO0FBQ2xFLFNBQVMsY0FBYyxLQUFLLGFBQWE7QUFjeEMsU0FBSyxxQkFBcUIsUUFBUSxjQUMvQixlQUFhLFFBQVEsY0FBYyxTQUFTLElBQzVDLE1BQU07QUFDVCxTQUFLLHFCQUFxQixXQUFXLHNCQUFzQjtBQUUzRCxTQUFLLFVBQVUsV0FBVyxrQkFBa0IsWUFBVTtBQUNyRCxXQUFLLGVBQWUsTUFBTTtBQUFBLElBQzNCLENBQUMsQ0FBQztBQUVGLFNBQUssVUFBVSxXQUFXLGdCQUFnQixZQUFVO0FBQ25ELFdBQUssZ0JBQWdCLE1BQU07QUFBQSxJQUM1QixDQUFDLENBQUM7QUFFRixTQUFLLFVBQVUsUUFBUSx5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",
+      "sha256": "27704b8313bfffc6e03a373f02b4cdf46289b25bc7a56cfbb7ab046840270701",
+      "bytes": 9560,
+      "hasGetSessionWorkRoot": true,
+      "workRootBeforeMutation": true,
+      "hasWorkspace": true,
+      "hasScmAdd": true,
+      "hasScmRemove": true,
+      "hasSession": true,
+      "hasConnection": true,
+      "sourceMapPointsAtMergeTs": false
+    }
+  ],
+  "emitters": {
+    "emitterCount": 3975,
+    "hits": [
+      {
+        "index": 780,
+        "tags": [
+          "reviewConnection",
+          "contextConnection"
+        ],
+        "size": 21,
+        "order": [
+          "() => {\n          if (!this.isEngineConnected()) {\n            this.bridgeQueryGeneration++;\n            this.bridgeAvailable = false;\n            this.bridgeProbe = void 0;\n      ",
+          "() => {\n          if (!this.isEngineConnected()) {\n            this.bridgeQueryGeneration++;\n            this.bridgeAvailable = false;\n            this.bridgeProbe = void 0;\n      ",
+          "() => {\n          if (!this.isEngineConnected()) {\n            this.bridgeQueryGeneration++;\n            this.bridgeAvailable = false;\n            this.bridgeProbe = void 0;\n      ",
+          "() => {\n          if (!this.isEngineConnected()) {\n            this.bridgeQueryGeneration++;\n            this.bridgeAvailable = false;\n            this.bridgeProbe = void 0;\n      ",
+          "() => {\n          if (!this.isEngineConnected()) {\n            this.bridgeQueryGeneration++;\n            this.bridgeAvailable = false;\n            this.bridgeProbe = void 0;\n      ",
+          "() => {\n          if (!this.isEngineConnected()) {\n            this.bridgeQueryGeneration++;\n            this.bridgeAvailable = false;\n            this.bridgeProbe = void 0;\n      ",
+          "() => {\n          if (!this.isEngineConnected()) {\n            this.bridgeQueryGeneration++;\n            this.bridgeAvailable = false;\n            this.bridgeProbe = void 0;\n      ",
+          "() => this.onUaConnectionChanged()",
+          "() => this.evaluate()",
+          "(snapshot) => {\n        this.observeSnapshot(snapshot);\n        this.publishActiveWorkRoot();\n      }",
+          "() => this.updateEngineEntry()",
+          "() => this.render()",
+          "() => this.render()",
+          "() => {\n      updateComposerSessionSelectsEnabled(host);\n      updateGateRow(host);\n      host.updateSendEnabled();\n    }",
+          "(snapshot) => {\n      this.connectionSnapshot = snapshot;\n      this._onDidChange.fire();\n    }",
+          "() => {\n      this.refreshComposerCatalogs();\n      this.updateGateRow();\n      this.rebindSessionViewAfterConnectionChange();\n      this.updateConversationPhase();\n      this.upda",
+          "() => {\n      if (this.open) {\n        void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);\n      }\n    }",
+          "() => {\n      if (this.open) {\n        void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);\n      }\n    }",
+          "() => this.syncExplorer()",
+          "() => this.scheduleRefresh()",
+          "(snapshot) => {\n      this.connectionSnapshot = snapshot;\n      if (!this.session.isPairingHold() && snapshot.authenticated) {\n        this.everConnected = true;\n      }\n      this"
+        ]
+      },
+      {
+        "index": 1124,
+        "tags": [
+          "settle"
+        ],
+        "size": 2,
+        "order": [
+          "(signal) => this.onTurnSettle(signal.sessionId)",
+          "(signal) => {\n      this.applyTurnSettle(signal);\n    }"
+        ]
+      },
+      {
+        "index": 1125,
+        "tags": [
+          "mutation"
+        ],
+        "size": 3,
+        "order": [
+          "(record) => {\n      this.ingestMutation(record);\n    }",
+          "(record) => {\n      this.rememberMutation(record);\n      this.invalidateEngineMutation(record);\n    }",
+          "(record) => {\n      if (this.session.isPairingHold()) {\n        return;\n      }\n      this.everConnected = true;\n      this.remember(record);\n      this._onDidChange.fire();\n    }"
+        ]
+      }
+    ]
+  },
+  "setup": {
+    "ctorHasWorkRootFirst": true,
+    "ctorMarkers": {
+      "workspace": true,
+      "scmAdd": true,
+      "scmRemove": true,
+      "session": true
+    },
+    "reviewName": "bound ConversationReviewNavService",
+    "hasMutationBuckets": true,
+    "workRoot": {
+      "sessionId": "untitled",
+      "workDir": "/tmp/d1382-review-fixture/alpha",
+      "source": "session",
+      "access": "local",
+      "localRoot": {
+        "scheme": "file",
+        "authority": "",
+        "path": "/tmp/d1382-review-fixture/alpha",
+        "query": "",
+        "fragment": "",
+        "_formatted": "file:///tmp/d1382-review-fixture/alpha",
+        "_fsPath": "/tmp/d1382-review-fixture/alpha"
+      }
+    },
+    "connected": false,
+    "phase": {
+      "kind": "disconnected"
+    },
+    "snapshot": {
+      "transport": "idle",
+      "authenticated": false,
+      "sharedFsRootSent": false,
+      "pairingPending": false,
+      "channelAlive": false,
+      "capabilities": {
+        "skills": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "mcp": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "mcpRuntime": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "plugins": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "models": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "providerConfig": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "globalRules": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "agentProfiles": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "projectRules": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "tools": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "hooksMetadata": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "agentTree": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "team": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "fireTrigger": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "setTriggerEnabled": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "deleteTrigger": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "upsertTrigger": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "writeClipboard": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "readClipboard": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "clearClipboard": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "readContextVariable": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "restoreSnapshot": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "deleteSnapshot": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "readGitChanges": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        }
+      },
+      "sessionListCapability": "UNKNOWN",
+      "gitWriteCapability": {
+        "writeGitStagePaths": "UNKNOWN",
+        "writeGitCommit": "UNKNOWN",
+        "writeGitApplyHunks": "UNKNOWN"
+      },
+      "conversationEntryCapability": {
+        "listClipboard": "UNKNOWN",
+        "listTriggers": "UNKNOWN",
+        "listContextVariable": "UNKNOWN",
+        "listSnapshots": "UNKNOWN",
+        "listDevices": "UNKNOWN",
+        "listPending": "UNKNOWN",
+        "pairApprove": "UNKNOWN",
+        "pairReject": "UNKNOWN",
+        "rotateToken": "UNKNOWN",
+        "revoke": "UNKNOWN",
+        "getPluginInfo": "UNKNOWN",
+        "getMcpServerTools": "UNKNOWN",
+        "setSessionGoal": "UNKNOWN",
+        "setPermissionMode": "UNKNOWN",
+        "switchModel": "UNKNOWN",
+        "switchAgent": "UNKNOWN"
+      },
+      "listFilesCapability": "UNKNOWN",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "agentTreeFetchFailed": false
+    },
+    "transport": "idle",
+    "state": 3,
+    "folders": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "hasAddFolders": true,
+    "repoCount": 0,
+    "projectedTurn": {
+      "id": "untitled-t1",
+      "turnId": "untitled-t1"
+    }
+  },
+  "scmAlpha": {
+    "errors": [],
+    "repoCount": 1,
+    "roots": [
+      "file:///tmp/d1382-review-fixture/alpha"
+    ],
+    "workRoot": {
+      "sessionId": "untitled",
+      "workDir": "/tmp/d1382-review-fixture/alpha",
+      "source": "session",
+      "access": "local",
+      "localRoot": {
+        "scheme": "file",
+        "authority": "",
+        "path": "/tmp/d1382-review-fixture/alpha",
+        "query": "",
+        "fragment": "",
+        "_formatted": "file:///tmp/d1382-review-fixture/alpha",
+        "_fsPath": null
+      }
+    }
+  },
+  "beta": {
+    "betaId": "session-100",
+    "besideError": null,
+    "userId": "session-100-101",
+    "assistantId": "session-100-102",
+    "projected": {
+      "id": "session-100-102",
+      "turnId": "session-100-102"
+    },
+    "leaves": [
+      "untitled",
+      "session-100"
+    ],
+    "active": "untitled",
+    "workRoots": {
+      "untitled": {
+        "sessionId": "untitled",
+        "workDir": "/tmp/d1382-review-fixture/alpha",
+        "source": "session",
+        "access": "local",
+        "localRoot": {
+          "scheme": "file",
+          "authority": "",
+          "path": "/tmp/d1382-review-fixture/alpha",
+          "query": "",
+          "fragment": "",
+          "_formatted": "file:///tmp/d1382-review-fixture/alpha",
+          "_fsPath": null
+        }
+      },
+      "beta": {
+        "sessionId": "session-100",
+        "workDir": "/tmp/d1382-review-fixture/beta",
+        "source": "session",
+        "access": "engine"
+      }
+    }
+  },
+  "lenses": [
+    {
+      "bound": "untitled",
+      "sameReview": true,
+      "name": "ConversationLens"
+    },
+    {
+      "bound": "session-100",
+      "sameReview": true,
+      "name": "ConversationLens"
+    }
+  ],
+  "fired": {
+    "bucketsBefore": [],
+    "bucketSizes": [
+      [
+        "untitled",
+        1
+      ],
+      [
+        "session-100",
+        1
+      ]
+    ],
+    "changeEvents": 4,
+    "nav": {
+      "untitled": [
+        {
+          "sessionId": "untitled",
+          "turnId": "untitled-t1",
+          "paths": [
+            "file:///tmp/d1382-review-fixture/alpha/README.md"
+          ]
+        }
+      ],
+      "beta": [
+        {
+          "sessionId": "session-100",
+          "turnId": "session-100-102",
+          "paths": [
+            "sources-git-unrooted:/README.md"
+          ]
+        }
+      ]
+    },
+    "roots": {
+      "untitled": {
+        "sessionId": "untitled",
+        "workDir": "/tmp/d1382-review-fixture/alpha",
+        "source": "session",
+        "access": "local",
+        "localRoot": {
+          "scheme": "file",
+          "authority": "",
+          "path": "/tmp/d1382-review-fixture/alpha",
+          "query": "",
+          "fragment": "",
+          "_formatted": "file:///tmp/d1382-review-fixture/alpha",
+          "_fsPath": null
+        }
+      },
+      "beta": {
+        "sessionId": "session-100",
+        "workDir": "/tmp/d1382-review-fixture/beta",
+        "source": "session",
+        "access": "engine"
+      }
+    },
+    "buttons": [
+      {
+        "text": "View changes (1 files)",
+        "turnId": "reviewNav:session-100-102",
+        "className": "conversation-review-nav",
+        "rect": {
+          "x": 372,
+          "y": 319,
+          "width": 133.171875,
+          "height": 22,
+          "top": 319,
+          "right": 505.171875,
+          "bottom": 341,
+          "left": 372
+        }
+      }
+    ],
+    "leaves": [
+      "untitled",
+      "session-100"
+    ],
+    "connected": false,
+    "phase": {
+      "kind": "disconnected"
+    },
+    "lensCount": 2,
+    "turnIds": {
+      "untitledId": "untitled-t1",
+      "betaTurnId": "session-100-102",
+      "betaId": "session-100"
+    }
+  },
+  "shots": [
+    "shots/01-review-rows.png"
+  ],
+  "pageErrors": []
+}

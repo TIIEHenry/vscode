@@ -1,0 +1,258 @@
+{
+  "layout": {
+    "visible": [
+      "untitled",
+      "session-100"
+    ],
+    "hidden": {
+      "untitled": false,
+      "beta": false
+    },
+    "primary": "session-100",
+    "leaves": [
+      {
+        "className": "conversation-session-leaf conversation-session-leaf-secondary is-narrow is-compact",
+        "ariaHidden": null,
+        "x": 218,
+        "w": 226,
+        "h": 843,
+        "buttons": 1,
+        "head": "Conversation\nTrajectory\nUntitled session\nUntitled session\nEngine not connected\nbeta\nHelp me draft the README.\nStub · 4 steps · Stub: outline"
+      },
+      {
+        "className": "conversation-session-window",
+        "ariaHidden": null,
+        "x": 219,
+        "w": 225,
+        "h": 814,
+        "buttons": 1,
+        "head": "Engine not connected\nbeta\nHelp me draft the README.\nStub · 4 steps · Stub: outline sections, read, Stub: draft, write\n1 waiting\n\nStub: READM"
+      },
+      {
+        "className": "conversation-session-leaf conversation-session-leaf-primary is-narrow is-compact",
+        "ariaHidden": null,
+        "x": 444,
+        "w": 225,
+        "h": 843,
+        "buttons": 1,
+        "head": "Conversation\nTrajectory\nBeta session\nBeta session\nEngine not connected\nbeta\nDraft the beta README.\n\nBeta draft is ready.\n\nView changes (1 fi"
+      },
+      {
+        "className": "conversation-session-window",
+        "ariaHidden": null,
+        "x": 444,
+        "w": 225,
+        "h": 814,
+        "buttons": 1,
+        "head": "Engine not connected\nbeta\nDraft the beta README.\n\nBeta draft is ready.\n\nView changes (1 files)\nNo queue\nStop\nNo model"
+      }
+    ],
+    "buttons": [
+      {
+        "turnId": "reviewNav:untitled-a1",
+        "text": "View changes (1 files)",
+        "hidden": false,
+        "w": 133
+      },
+      {
+        "turnId": "reviewNav:session-100-102",
+        "text": "View changes (1 files)",
+        "hidden": false,
+        "w": 133
+      }
+    ],
+    "nav": {
+      "untitled": [
+        {
+          "sessionId": "untitled",
+          "turnId": "untitled-a1",
+          "paths": [
+            "file:///tmp/d1382-review-fixture/alpha/README.md"
+          ]
+        }
+      ],
+      "beta": [
+        {
+          "sessionId": "session-100",
+          "turnId": "session-100-102",
+          "paths": [
+            "sources-git-unrooted:/README.md"
+          ]
+        }
+      ]
+    }
+  },
+  "click": {
+    "focusedBefore": true,
+    "commands": [
+      {
+        "commandId": "sources.review.showForPaths",
+        "args": [
+          [
+            "file:///tmp/d1382-review-fixture/alpha/README.md"
+          ]
+        ]
+      }
+    ],
+    "banner": "Showing 0 files from this turn · Clear",
+    "gitDiffCalls": 0,
+    "color": "rgb(0, 95, 184)",
+    "opaqueBackground": "rgb(255, 255, 255)",
+    "fontSize": "12px",
+    "padding": "4px 8px",
+    "connected": false,
+    "engineText": true
+  },
+  "keyboardFocus": "reviewNav:untitled-a1",
+  "keyboardCommand": [
+    {
+      "commandId": "sources.review.showForPaths",
+      "args": [
+        [
+          "file:///tmp/d1382-review-fixture/alpha/README.md"
+        ]
+      ]
+    },
+    {
+      "commandId": "sources.review.showForPaths",
+      "args": [
+        [
+          "file:///tmp/d1382-review-fixture/alpha/README.md"
+        ]
+      ]
+    }
+  ],
+  "fold": {
+    "before": "false",
+    "hidden": false,
+    "text": "Stub · 4 steps · Stub: outline sections, read, Stub: draft, write1 waiting",
+    "focused": true,
+    "afterKeyboard": "true"
+  },
+  "geometry": {
+    "part": {
+      "x": 218,
+      "y": 35,
+      "width": 450,
+      "height": 843,
+      "top": 35,
+      "right": 668,
+      "bottom": 878,
+      "left": 218
+    },
+    "sashes": [
+      {
+        "x": 46,
+        "y": 35,
+        "width": 4,
+        "height": 843,
+        "top": 35,
+        "right": 50,
+        "bottom": 878,
+        "left": 46
+      },
+      {
+        "x": 216,
+        "y": 35,
+        "width": 4,
+        "height": 843,
+        "top": 35,
+        "right": 220,
+        "bottom": 878,
+        "left": 216
+      },
+      {
+        "x": 666,
+        "y": 35,
+        "width": 4,
+        "height": 843,
+        "top": 35,
+        "right": 670,
+        "bottom": 878,
+        "left": 666
+      },
+      {
+        "x": 1438,
+        "y": 35,
+        "width": 4,
+        "height": 843,
+        "top": 35,
+        "right": 1442,
+        "bottom": 878,
+        "left": 1438
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      },
+      {
+        "x": 1439,
+        "y": 63,
+        "width": 4,
+        "height": 590,
+        "top": 63,
+        "right": 1443,
+        "bottom": 653,
+        "left": 1439
+      }
+    ]
+  },
+  "narrow300": {
+    "partWidth": 471,
+    "buttonWidth": 133,
+    "buttonText": "View changes (1 files)",
+    "narrowClass": true,
+    "overflow": "clip"
+  },
+  "contrast": {
+    "foreground": "rgb(0, 95, 184)",
+    "background": "rgb(255, 255, 255)",
+    "ratio": 6.31
+  }
+}
