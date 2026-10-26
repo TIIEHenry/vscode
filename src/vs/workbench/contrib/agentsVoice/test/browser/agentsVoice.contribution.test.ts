@@ -157,7 +157,7 @@ suite('AgentsVoiceContribution - startVoiceInChat', () => {
 		}
 		override pttDown(): void { this.downCalls++; }
 		override pttUp(source?: 'explicit' | 'internal', forceFinish?: boolean): void { this.ups.push({ source, forceFinish }); }
-		override discardRecording(): void { this.discardCalls++; }
+		override discardListening(): void { this.discardCalls++; }
 		admit(): void {
 			transaction(tx => {
 				this.isConnecting.set(false, tx);
@@ -181,7 +181,7 @@ suite('AgentsVoiceContribution - startVoiceInChat', () => {
 		let focused: IChatWidget | undefined = options.focused === null ? undefined : a;
 		let hold = options.hold;
 		let bridgeCalls = 0;
-		const widgets = [a, b];
+		const widgets: IChatWidget[] = [a, b];
 		const instantiationService = workbenchInstantiationService(undefined, disposables);
 		instantiationService.stub(IConfigurationService, new TestConfigurationService({
 			'agents.voice.handsFree': options.handsFree ?? true,
@@ -215,8 +215,8 @@ suite('AgentsVoiceContribution - startVoiceInChat', () => {
 			setHold: (value: Promise<void> | undefined) => { hold = value; },
 			get bridgeCalls() { return bridgeCalls; },
 			assertReleased: () => assert.deepStrictEqual([
-				focusChanged.hasListeners, removed.hasListeners,
-				a.changed.hasListeners, a.hidden.hasListeners, b.changed.hasListeners, b.hidden.hasListeners,
+				focusChanged.hasListeners(), removed.hasListeners(),
+				a.changed.hasListeners(), a.hidden.hasListeners(), b.changed.hasListeners(), b.hidden.hasListeners(),
 			], [false, false, false, false, false, false]),
 		};
 	}
@@ -476,7 +476,7 @@ suite('AgentsVoiceContribution - startVoiceInChat', () => {
 		const run = h.run();
 		await h.controller.connectEntered.p;
 		await flush();
-		assert.strictEqual(h.a.changed.hasListeners, true);
+		assert.strictEqual(h.a.changed.hasListeners(), true);
 		auth.complete();
 		await flush();
 		h.controller.admit();

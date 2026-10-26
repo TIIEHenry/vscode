@@ -298,7 +298,7 @@ registerAction2(class extends Action2 {
 					this.heldController = voiceController;
 					voiceController.setAutoListenHeld(true);
 					if (startedPtt) {
-						voiceController.discardRecording();
+						voiceController.discardListening();
 					}
 					if (wroteTarget && (resource
 						? isEqual(voiceController.targetSession.get(), resource)
