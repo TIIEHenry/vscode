@@ -10,7 +10,7 @@ summary: "2026-10-26 D1379–81闭合：Policy41、投影/缓存138、Provider49
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **当前安全同步**：父已将人类工位agent-ide及C/D/J安全ff到source7b6e87且clean；旧主线/WIP阻塞解除。当前仅本轮验证元数据待父cascade，未push。
+- **当前安全同步与续审**：父实读人类工位agent-ide及merge/C/D/J均为4963799b1e95且clean，前轮验证元数据已同步，未push。新轮C会话导航、D Tunnel重试、J配置初始化只从当前源码/公共行为确证缺口，D1382–1384仅预留；见[续审看板](../parallel/active/default-editor-contract-audit-2026-10-26.md)。
 - **本轮唯一集成验证收尾（2026-10-26）**：J/C/D源齐后flock内唯一compile-client原始exit1、55诊断/36文件；旧Policy4与MainThread1消失，新Roster回调1由D正式类型补修。之后未重全量，14改动TS定向语义0、ESLint0errors/7warnings、stylelint exit0；原日志未动54/35只为子集说明。15产物fresh/hash留证，独立after C0/I0，三局部计划与原视觉方案按范围implemented，PRD总体不升。见[最终记录](../parallel/active/ui-visual-review-2026-10-26.md#d1379d1381最终收口)。
 - **Policy definition提交生命周期（2026-10-26，D1379）**：J方案ed5a136/实施8a7d81d三路合入30ef3e1；旧330两生产out正文核验一致后test-only red为0过/12败（11行为+1原裸拒绝hook，无超时/加载异常），仅fresh两生产后官方Electron三完整套件+FilePolicyService **41 passing**，11新项与既有owner/reference全执行；五TS正式项目上下文定向语义0、ESLint0errors/0warnings。D1379 closed/方案implemented；当阶段尚未global；后续唯一全量55/36及D1380/1381闭合见当前收尾。见[本轮证据](../parallel/active/ui-visual-review-2026-10-26.md#d1379当前运行证据)。
 - **D1381 Provider布局闭合（2026-10-26）**：C方案fec79c4/实施4e21eb8及f275429焦点测试等待修正真三路纳入source7b6e87；旧八几何全红，新样式+Provider49 passing/4focus pending由Chrome4全补齐。独立四主题32组/96行/192焦点命中无碰撞、0写；宽24px/窄自然增高的局部例外已先获PRD/UI接受。D1381 closed。
