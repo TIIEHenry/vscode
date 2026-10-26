@@ -472,3 +472,36 @@ D提供的[不可变字节快照静态ASTmembership](e93-ninth-native-build.cand
 两生产Composer/Binding分别仅删除新增Pick alias注释/声明及还原限定1/4个host类型后，**整文件与93逐字同**，所以所有function body/运行期import/顺序不变；Roster全文按明确typeimports/route注解/返回类型/六cast去除白名单变换后与c3全同。另ReadingColumn、Availability、ReadingColumn.test与reasoning整文件同93；旧160与新增10的业务判断不改，不放松原`hmm\nthen this`或旧Accept预期。
 
 资格闭合后真正三路consume **`c3f9fd04f9eb46c74170aa06e65054b80ac974b9`**，actual base93，只有明确5路径（3TS、plan§9.5与status）。[89路径mode/type/blob门禁](je-formal-E-c3-types-source-merge-identity.json)PASS；三个TS与plan精确incoming，唯一status交集保留当前failed9、旧after FAIL、方案accepted/wave active和新source-only待验，[双方全文与理由](je-formal-E-c3-types-source-conflict-resolutions.json)保留。新src精确 **`58b3f3e8d69e2177eefe0a7dd7c0a74b0a7a1c4c`**，此刻native仍失败compile9身份，未借旧0或签新freeze。原495 artifacts逐bytes/SHA全保，加五连续性原件及四merge证明现 **504**，status200；下一步只执行一次完整compile10，成功后实际新10/完整Roster/Reading及选定相关suite，暂不UI/冻结/升级plan/关闭波。
+
+## 第十次完整构建0/0TS、新10通过与完整相关套484/4原始检查点
+
+在明确条件授权下，唯一lane对实际合源 **`db0981fca4f555176b5735a7055dd40242fbbb9a` / src `58b3f3e8d69e2177eefe0a7dd7c0a74b0a7a1c4c`** 只实跑一次完整compile10：[完整日志](e-c3-tenth-native-build.log)、[driver](e-c3-tenth-native-build.py)、[producer/source/253清单](e-c3-tenth-native-build.json)保留。**exit0 / 0 TS**，253追踪输出全存在，所有JS实际写于本轮起点之后，source/HEAD/src/clean和三cache symlink稳定。compile9六TS2352失败原件及其253身份历史完全保留，未改写成当时通过，也没有额外预跑typecheck或第二次完整compile。
+
+随后用官方runner与compile10实际native运行：[新增十项](e-c3-new10.json) **10 passing / exit0**，无load/API/fixture/cleanup/timeout；[完整10个相关suite](e-c3-related-full.json) **484 passing / 4 failing / exit1**，[完整原日志](e-c3-related-full.log)保留。这是4生产影响下已选定实际相关套，不是whole E11或whole client新绿；SessionBinding无独立同名suite，真实callback/最终门由Roster和LensDisposeGate覆盖。真实逐suite计数如下，组内另有全局suiteSetup元检查1 passing，计入原484总数；不要把该meta项重复加到Roster业务项里。
+
+| 实际suite | passing | failing |
+| --- | ---: | ---: |
+| Roster（完整） | 199 | 0 |
+| ReadingColumn（完整） | 3 | 0 |
+| Composer | 12 | 0 |
+| Availability | 4 | 0 |
+| LensDisposeGate | 164 | 4 |
+| SessionReadinessSurface | 2 | 0 |
+| SessionView | 41 | 0 |
+| ComposerCatalog | 35 | 0 |
+| ComposerEditDraft | 17 | 0 |
+| ComposerAtChip | 6 | 0 |
+
+四败均来自既有LensDisposeGate，不能隐藏或称full全绿。[逐项检查点](e-c3-four-failure-classification-checkpoint.json)分开记录：①源码文本期待`bindSessionView`而既有Lens已调用`rebindSessionViewAfterConnectionChange`；②SessionBar fixture缺composerPolicy/composeDraftSnapshot导致undefined草稿；③旧断言期待history=true断连仍调一次roster，而accepted新写门正确先拒绝；④假gateRow缺classList.toggle，真实TypeError。③新旧差异须由原E/Astra正式对齐合同，本lane没有改任何断言、源码或测试夹具。
+
+## 四失败最小旧4919对照与完整253 finally恢复
+
+父明确追加最小必要旧对照授权后，本lane在空闲lane/共享锁内先备份**全部当前253** native存在性/mode/bytes/SHA及source存在性/mode/bytes/SHA，只临时替换四生产门native。ReadingColumn/Binding取此前163原备份，Composer/Availability取新emit前extra4完整原件，再次以不可变旧4919 Git源与真实compile8选项核准**完整native字节含map**；suite及Lens/SessionBar/Chrome/ComposerRefs/DockStrings/commonReadiness关键未改依赖也以旧Git源确定性完整字节资格核准，总11pair。实际读取Lens.ts与旧4919逐字同，另存[实际读取TS原件](e-c3-old4919-four-failure-classification.actually-read-Lens.ts.log)，**没有为源码文本测试修改TS工作树**；未宣称整个client运行闭包都由历史oldguard覆盖。
+
+[精确命令/selector、11资格pair及253恢复清单](e-c3-old4919-four-failure-classification.json)、[raw log](e-c3-old4919-four-failure-classification.log)、[driver](e-c3-old4919-four-failure-classification.py)完整保留，四个失败全名正则OR的官方runner实际 **1 passing / 3 failing / exit1**。①同源码文本AssertionError、②同undefined草稿AssertionError、④同classList.toggle TypeError在旧生产均实际复现；③旧roster-call断言实际通过。因此本轮484/4准确分类为三个实际旧失败与一个新合同断言冲突，不能笼统说全是设施错，也不把旧TypeError算新产品业务红。父独立重算506当前source/native存在/mode/bytes/SHA与11旧pair/embedded map匹配、实读1/3原log；父只核验原件，未重跑。
+
+finally **完整253当前native存在/mode/bytes/SHA及source全部恢复compile10**，HEAD/src/clean相同，[恢复后当前253只读守卫](e-c3-current-native253-preservation.json)PASS，旧override没有污染新10与完整套的产物身份。新10/484–4发生在旧对照前，后续资格通过全恢复继续，未借旧运行生成新green。三cache稳定symlink全部保留，home不足不partial restore或删除他方cache/证据。
+
+[六TS独立ESLint](e-c3-six-ts-eslint.json)实际 **0 errors / 0 warnings**；[历史精确pair连续性](e-c3-historical-pair-continuity.json)核旧163中160源/native同compile8→10，明确排除Reading/Binding/Roster变3。J39/425所有测试与Sources/editorOpenSlot owned共28pair精确同，只在原断言scope复用历史，不新跑或冒称新src默认编辑器after。旧Node test61/61、external browser3/3、E11 test11/11同，但旧production50只有48同，**不称整个依赖域未变**；改变的门与直接消费者由本次实际新10及10相关suite覆盖。旧reasoning255/1、Accept23/1与`hmm\nthen this`原预期保持，不机械重跑880或E11、不翻旧红绿。
+
+原504 artifact对象逐项序列化前缀与全部bytes/SHA/路径保持，新增27原件后现 **531**，status200。这一检查点在任何后续fixture-only修订前单独落账，保留compile10成功、actual10/0、full484/4、old1/3与六TS lint原貌。等待原E两个既有测试文件/行动文档的固定SHA与Astra peer，生产c3保持不动；此时不再编译、没有签freeze/UI或把plan/PRD/旧D/整波升级。后续若只刷新测试native，须逐文件标明新的source/emitter，不能把最终源码树称整树compile10或把新测试标成compile10原出品。

@@ -1,0 +1,23 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[2140243:1027/063023.816052:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:2140258) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:2140258) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:2140258) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ConversationEngineRosterService (M6-A2)[0m
+  [32m  ✔[0m[90m response recovery disconnected seat normal permission clicks keep both cached panes pending and the model unchanged[0m
+  [32m  ✔[0m[90m response recovery disconnected seat permission callback rejects before the cached stub route[0m
+  [32m  ✔[0m[90m response recovery disconnected seat permission postBound rejects implicit and captured cached leases[0m
+  [32m  ✔[0m[90m response recovery disconnected seat question callback rejects before the cached stub route[0m
+  [32m  ✔[0m[90m response recovery disconnected seat question postBound rejects implicit and captured cached leases[0m
+  [32m  ✔[0m[90m response recovery disconnected seat clientTool callback rejects before the cached stub route[0m
+  [32m  ✔[0m[90m response recovery disconnected seat clientTool postBound rejects implicit and captured cached leases[0m
+  [32m  ✔[0m[90m response recovery disconnected seat reconnect restores the real permission route in both panes[0m
+  [32m  ✔[0m[90m response recovery disconnected seat never-connected local stub still authorizes through the real callback and captured lease[0m
+  [32m  ✔[0m[90m response recovery disconnected seat keeps pairing and connected-not-ready response gates[0m
+
+
+[92m [0m[32m 10 passing[0m[90m (102ms)[0m
+

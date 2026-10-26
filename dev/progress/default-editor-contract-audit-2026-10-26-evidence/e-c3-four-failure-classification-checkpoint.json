@@ -1,0 +1,53 @@
+{
+  "phase": "actual-full484-4-and-necessary-exact-old4919-four-selector1-3-classification-checkpoint-before-any-fixture-fix",
+  "checkedAtUtc": "2026-10-26T22:39:18.103594+00:00",
+  "fullRuntimeRecord": "/tmp/vscode-e-c3-related-full.json",
+  "fullRawLogSha256": "f3a9293521e28dc46c25227bc0ea742c3cce4d78f4b854c333691dad852a4306",
+  "fullActualCounts": {
+    "passing": 484,
+    "failing": 4,
+    "includesGlobalMetaPassing": 1
+  },
+  "new10ActualPassing": 10,
+  "oldSelectorRecord": "/tmp/vscode-e-c3-old4919-four-failure-classification.json",
+  "oldSelectorRecordSha256": "c2eb863cbd57047300b2620da06f40ad36a36004e2afdf6f96833c446e864002",
+  "oldRawLogSha256": "037187dd1051f6e32933a1612592dd0a62a1052f2e3dc3e6675a1f02264bf564",
+  "oldActualCounts": {
+    "passing": 1,
+    "failing": 3
+  },
+  "individual": [
+    {
+      "name": "pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live",
+      "current": "AssertionError source text bindSessionView needle",
+      "old4919": "same AssertionError reproduced",
+      "classification": "existing source-text expectation mismatch; real old Lens.ts exact Git bytes read without changing worktree TS"
+    },
+    {
+      "name": "connected live SessionBar handlers still write when engine session is ready",
+      "current": "AssertionError actual [undefined], expected [leftover draft]",
+      "old4919": "same AssertionError reproduced",
+      "classification": "existing fixture missing composerPolicy/composeDraftSnapshot context, unchanged outgoingComposerDraftText selects snapshot for undefined policy"
+    },
+    {
+      "name": "respondClientTool roster false after disconnect shows engine_disconnected",
+      "current": "AssertionError calls [] rather than old expected one roster call",
+      "old4919": "pass actual one roster call",
+      "classification": "old assertion conflicts with new accepted history-disconnected pre-roster rejection; no expectation edited here, original author/Astra correction pending"
+    },
+    {
+      "name": "showPostFailure failed uses retry copy not disconnected",
+      "current": "TypeError gateRow.classList.toggle missing",
+      "old4919": "same TypeError reproduced",
+      "classification": "existing fake gateRow DOM contract missing toggle, not response gate load/API error; actual fixture failure retained"
+    }
+  ],
+  "oldFourProductionNativeBasis": "original163 + before-new-emit extra4 backups, all four complete native including map requalified by exact old4919 Git source and real compile8 options",
+  "supportingQualifiedPairCount": 11,
+  "keyUnchangedSupportingNativeBasis": "complete bytes deterministic from exact old Git source; not labeled historical whole-client old native snapshot",
+  "all253CurrentNativeAndSourceExistenceModeBytesShaFinallyRestored": true,
+  "sourceHeadTreeAndCleanUnchanged": true,
+  "sourceTestsOrExpectationsEdited": false,
+  "newFullGreenClaim": false,
+  "freezeIssued": false
+}
