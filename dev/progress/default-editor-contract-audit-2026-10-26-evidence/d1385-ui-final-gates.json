@@ -1,0 +1,35 @@
+{
+  "isSessionsWindow": false,
+  "publicOpenView": false,
+  "publicRevealWidget": true,
+  "publicOpenExistingSession": true,
+  "canSerializeFixtureInput": false,
+  "deserializeReturnsUndefined": true,
+  "events": [],
+  "blocked": [],
+  "actualConnected": false,
+  "fixtureEvidenceExcluded": true,
+  "widgetsAfterFixtureDispose": [
+    {
+      "index": 0,
+      "ctor": "ChatWidget",
+      "visible": false,
+      "location": "panel"
+    }
+  ],
+  "defaultShortcut": {
+    "before": 0,
+    "after": 0,
+    "events": [],
+    "focused": "<textarea class=\"conversation-lens-dock-input\" aria-label=\"Message\" data-testid=\"conversation-composer-input\" placeholder=\"Message\" rows=\"1\" style=\"\"></textarea>",
+    "widgets": [
+      {
+        "index": 0,
+        "ctor": "ChatWidget",
+        "visible": false,
+        "location": "panel"
+      }
+    ],
+    "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html"
+  }
+}

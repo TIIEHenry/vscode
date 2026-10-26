@@ -7,6 +7,8 @@ updated: 2026-10-26
 summary: "94893edf39b真三路合入53ad4b1e5a；单TS原project noEmit 0，旧/新/原盘JS正文相同，仅fresh该JS。D1385功能/D1386身份仍open；唯一全量仍3e63的46/28失败。"
 ---
 
+> **2026-10-26 范围纠正：** 本报告保留原运行/类型检查点及当时的交接假设；“默认保留 CopilotChat 入口”前提随后被完整 gate 与独立 UI 核验推翻，原默认 pane/editor UI 验收未满足并停止。当前仅保留共享兼容修复，不再等待账号或构造宿主；方案 accepted、D1385 open 且移出当前产品执行队列。见[最终裁定](d1385-default-window-scope-decision.md) / [独立入口核验](d1385-default-window-ui-boundary.md)。以下旧运行结果不改写，也不换算为产品 UI 通过。
+
 # DOM Event 注解检查点
 
 C 作者提交 `94893edf39b2f1b9ffdfd9e11b597c65bf6e1ba6`，父为 `3e63f9e6f40e3c3c3dca1a55f47a978ddb02ed1a`。在 clean merge `5cc987d8ea50ca73af88452a0164386889587988` 以 `git merge --no-ff` 真三路合入为 `53ad4b1e5a2b94c9693bbe32ebbdc93544b0a185`，无冲突。唯一源码 diff 是 `agentsVoiceWidget.ts:893` 的 `e: Event` 改为 `e: globalThis.Event`。顶层工作台 `Event<T>` import 仍服务第73行，未删除；mousedown/keydown回调传DOM事件且调用preventDefault，修复类型指向，不改变录音或连接行为。
@@ -25,7 +27,7 @@ C 作者提交 `94893edf39b2f1b9ffdfd9e11b597c65bf6e1ba6`，父为 `3e63f9e6f40e
 
 ## 仍开放与限制
 
-- D1385首次录音归属功能仍open；类型注解不算功能修复。维护范围是默认编辑器保留的Copilot Chat入口 `agentsVoice.startVoiceInChat`，不是Conversation真语音或浮窗挂载。Astra纠正：ChatViewPane桥返回pane自己的widget，不能等同editor实际发起者；controller在connecting/connected时也可能随焦点修改target，因此不写“换composer后旧A必然仍为target”。真正缺口是首按授权没有跨过完整真实连接准入窗口。正式owner/代次/hold方案与审查/实施待独立作者交付。
+- D1385首次录音归属功能仍open；类型注解不算功能修复。当时维护范围被误归为默认编辑器保留的 Copilot Chat 入口（现已撤回）；共享 `agentsVoice.startVoiceInChat` 局部修复保留，不是Conversation真语音或浮窗挂载。Astra纠正：ChatViewPane桥返回pane自己的widget，不能等同editor实际发起者；controller在connecting/connected时也可能随焦点修改target，因此不写“换composer后旧A必然仍为target”。真正缺口是首按授权没有跨过完整真实连接准入窗口。正式owner/代次/hold方案与审查/实施待独立作者交付。
 - D1386叶级Session folder/branch归属为独立Important/open；原D after列Minor的判定已被Astra纠正，无实际错误checkout运行证据。不得借D1382关闭而签收身份条或PRD-029总体。
 - 本次没有启动UI、真实麦克风、语音后端、网络或账户访问。D1382UI结论只引用其独立[after](d1382-independent-after.md)，不冒充本次重拍。
 - 本轮唯一fullcompile仍是source `3e63f9e` 的exit1、46诊断/28文件；原55/36日志及原失败均保留。没有第二次全量，不把单TS诊断消失推算成新的45/27结果，不宣称全out同构建或全仓绿。

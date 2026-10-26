@@ -4,8 +4,10 @@ type: reference
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "固定69ac/57旧action，只fresh真实controller测试取得abort0/release1/ptt_end1业务红；仅fresh新action后新项1绿、完整183过，目标2TS0/lint0。真实保留CopilotChat owner路由UI仍待证，D1385open。"
+summary: "固定69ac/57旧action，只fresh真实controller测试取得abort0/release1/ptt_end1业务红；仅fresh新action后新项1绿、完整183过，目标2TS0/lint0。默认产品宿主前提随后撤回，原UI验收未满足并停止，D1385open。"
 ---
+
+> **2026-10-26 范围纠正：** 本报告保留原运行/类型检查点及当时的交接假设；“默认保留 CopilotChat 入口”前提随后被完整 gate 与独立 UI 核验推翻，原默认 pane/editor UI 验收未满足并停止。当前仅保留共享兼容修复，不再等待账号或构造宿主；方案 accepted、D1385 open 且移出当前产品执行队列。见[最终裁定](d1385-default-window-scope-decision.md) / [独立入口核验](d1385-default-window-ui-boundary.md)。以下旧运行结果不改写，也不换算为产品 UI 通过。
 
 # D1385 取消顺序后修
 
@@ -29,6 +31,6 @@ sourceaction SHA `a01616784b90eb513450e78b7ada2a958661cdce67b9440a6f5de487406bba
 
 ## 仍开放与历史边界
 
-D1385保持open、[方案](../../plans/copilot-chat-cold-voice-authorization.md) accepted，仍待独立实际保留CopilotChat pane/editor工具栏与快捷键如何传入owner的路由证明；公共命令fake widget上下文及本real-controller fake I/O不单独签整条实际UI来源。不是Conversation真voice、不挂浮窗，不改connect/API/协议；warm与安静连接成本保持。
+D1385保持open、[方案](../../plans/copilot-chat-cold-voice-authorization.md) accepted，本检查点当时仍待原假设中的默认 CopilotChat pane/editor owner 路由证明，现已核宿主关闭、该 UI 验收未满足并停止；公共命令fake widget上下文及本real-controller fake I/O不单独签整条实际UI来源。不是Conversation真voice、不挂浮窗，不改connect/API/协议；warm与安静连接成本保持。
 
 本后修没有全量编译，也没有为后修声称新full计数。source6f82原45/27 exit1、旧46/28及55/36和原182/151+31/三诊断证据全部保留；新日志独立，运行后修不覆盖初轮成功或失败。测试日志展示副本只规范空白，原始字节同名.raw.log.gz与run metadata SHA保留。D1386 after只涵盖D三JS与正式CSS，不把新voice action借为已加载。

@@ -15,7 +15,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
 | [Conversation 叶级会话工作根身份条](2026-10-26-leaf-session-root-identity.md) | `implemented` | D1386；原根归属11红/40+Lens8绿，I1旧CSS4几何红/新完整44绿；非作者真实默认编辑器after C0/I0/M0、正式dee625 CSS复验通过，范围内closed。 |
-| [Copilot Chat 首次连接录音授权](copilot-chat-cold-voice-authorization.md) | `accepted` | D1385；原业务5红/182绿；取消顺序后修真实mic abort/release/end旧红、新完整183绿，目标TS0；实际保留CopilotChat toolbar/快捷键owner路由证明待到，仍open。 |
+| [Copilot Chat 首次连接录音授权](copilot-chat-cold-voice-authorization.md) | `accepted` | D1385；共享兼容修复原5红/182绿、取消旧红/完整183绿；默认产品宿主前提失效，原UI验收未满足并停止，移出当前产品执行队列；accepted/open保留。 |
 | [Tunnel 引用所有权与 provider 重试](tunnel-reference-and-provider-retry.md) | `implemented` | D1383；旧生产8项行为失败加1次裸拒绝hook，新生产两套件19 passing，两TS定向语义0。该闭合当时未跑全量。 |
 | [Conversation 审阅导航随工作根刷新](conversation-review-root-invalidation.md) | `implemented` | D1382；旧生产新行为3过/7败，新生产37过，五TS语义0；独立默认编辑器after C0/I0，真实行/根失效/并列叶/命令参数通过，限制见证据。 |
 | [远端用户配置初始化与重试合同](remote-user-configuration-attempts.md) | `implemented` | D1384；旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。四TS与11TS语义0。 |
