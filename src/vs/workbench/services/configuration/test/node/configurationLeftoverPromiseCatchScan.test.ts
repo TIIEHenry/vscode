@@ -14,7 +14,6 @@ const CONFIG_REL = 'src/vs/workbench/services/configuration/browser/configuratio
 const SERVICE_REL = 'src/vs/workbench/services/configuration/browser/configurationService.ts';
 const ERRORS_REL = 'src/vs/base/common/errors.ts';
 const FILES_REL = 'src/vs/platform/files/common/files.ts';
-const REMOTE_REL = 'src/vs/workbench/services/remote/common/remoteAgentService.ts';
 const EXTENSIONS_REL = 'src/vs/workbench/services/extensions/common/extensions.ts';
 const USER_SETTINGS_REL = 'src/vs/platform/configuration/common/configurationModels.ts';
 
@@ -43,18 +42,6 @@ function assertDoubleThen(source: string, call: string): void {
 
 const applicationSchedulerThen = `this.loadConfiguration().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel))`;
 const userSchedulerThen = `this.userConfiguration.value!.loadConfiguration().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel))`;
-const remoteEnvironmentThen = `remoteAgentService.getEnvironment().then(async environment => {
-			if (environment) {
-				const userConfiguration = this._register(new FileServiceBasedRemoteUserConfiguration(environment.settingsPath, { scopes: REMOTE_MACHINE_SCOPES }, this._fileService, uriIdentityService, logService));
-				this._register(userConfiguration.onDidChangeConfiguration(configurationModel => this.onDidUserConfigurationChange(configurationModel)));
-				this._userConfigurationInitializationPromise = userConfiguration.initialize();
-				const configurationModel = await this._userConfigurationInitializationPromise;
-				this._userConfiguration.dispose();
-				this._userConfiguration = userConfiguration;
-				this.onDidUserConfigurationChange(configurationModel);
-				this._onDidInitialize.fire(configurationModel);
-			}
-		})`;
 const remoteReloadSchedulerThen = `this.reload().then(configurationModel => this._onDidChangeConfiguration.fire(configurationModel))`;
 const folderProviderThen = `whenProviderRegistered(workspaceFolder.uri, fileService)
 				.then(() => {
@@ -85,19 +72,23 @@ suite('workbench/services/configuration leftover Promise fire-and-forget catch s
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers seven leftover Promise double-chain sites', () => {
+	test('six remaining fire-and-forget sites retain their Promise double-chain guards', () => {
 		const configuration = fs.readFileSync(resolveSource(CONFIG_REL), 'utf8');
 		const service = fs.readFileSync(resolveSource(SERVICE_REL), 'utf8');
 		const d747 = [
 			[configuration, applicationSchedulerThen],
 			[configuration, userSchedulerThen],
-			[configuration, remoteEnvironmentThen],
 			[configuration, remoteReloadSchedulerThen],
 			[configuration, folderProviderThen],
 			[service, workspaceChangedThen],
 			[service, schemasRegisteredThen],
 		] as const;
-		assert.strictEqual(d747.length, 7);
+		// D747 drops only the RemoteUserConfiguration environment source pin and the seventh count.
+		// That fire-and-forget duty now maps to the public contract suite:
+		// "first background rejection is reported once and observed before the next attempt",
+		// shared explicit-retry rejection (reports stay the initial error only),
+		// and dispose-while-pending / disposed initial background work (late rejection is not reported).
+		assert.strictEqual(d747.length, 6);
 		for (const [source, call] of d747) {
 			assertDoubleThen(source, call);
 		}
@@ -108,23 +99,15 @@ suite('workbench/services/configuration leftover Promise fire-and-forget catch s
 		const userSettings = fs.readFileSync(resolveSource(USER_SETTINGS_REL), 'utf8');
 		assertPromiseSignature(source, 'override async loadConfiguration(): Promise<ConfigurationModel> {');
 		assertPromiseSignature(userSettings, 'async loadConfiguration(): Promise<ConfigurationModel> {');
-		assert.ok(source.includes("import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(source.includes("import { CancellationError, getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertDoubleThen(source, applicationSchedulerThen);
 		assertDoubleThen(source, userSchedulerThen);
-	});
-
-	test('leftover RemoteUserConfiguration getEnvironment then is Promise double-chain', () => {
-		const source = fs.readFileSync(resolveSource(CONFIG_REL), 'utf8');
-		const remote = fs.readFileSync(resolveSource(REMOTE_REL), 'utf8');
-		assertPromiseSignature(remote, 'getEnvironment(): Promise<IRemoteAgentEnvironment | null>;');
-		assert.ok(source.includes("import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';"));
-		assertDoubleThen(source, remoteEnvironmentThen);
 	});
 
 	test('leftover FileServiceBasedRemoteUserConfiguration reload scheduler then is Promise double-chain', () => {
 		const source = fs.readFileSync(resolveSource(CONFIG_REL), 'utf8');
 		assertPromiseSignature(source, 'async reload(): Promise<ConfigurationModel> {');
-		assert.ok(source.includes("import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(source.includes("import { CancellationError, getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertDoubleThen(source, remoteReloadSchedulerThen);
 	});
 
@@ -132,7 +115,7 @@ suite('workbench/services/configuration leftover Promise fire-and-forget catch s
 		const source = fs.readFileSync(resolveSource(CONFIG_REL), 'utf8');
 		const files = fs.readFileSync(resolveSource(FILES_REL), 'utf8');
 		assertPromiseSignature(files, 'export async function whenProviderRegistered(file: URI, fileService: IFileService): Promise<void> {');
-		assert.ok(source.includes("import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(source.includes("import { CancellationError, getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertDoubleThen(source, folderProviderThen);
 	});
 

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1382源已合入b5f69d4：旧生产新行为3过/7败，新生产37过，五TS语义0。方案仍accepted，缺口仍open，未做默认编辑器实拍。全量55/36未重跑。D1384未合入。"
+summary: "D1382自动回归3过/7败、新生产37过，方案仍accepted、实拍未做。D1383已闭合。D1384源已合入，21条已写入未跑，方案仍accepted。全量55/36未重跑。"
 ---
 
 # Development Progress
@@ -14,6 +14,7 @@ summary: "D1382源已合入b5f69d4：旧生产新行为3过/7败，新生产37�
 - **当前安全同步与续审**：父已核验D1383两TS/两JS摘要并安全ff人类agent-ide与D到0345517385bb，未push。J配置初始化仍为WIP未合入。原子代理额度退出后由获授权Grok4.7 xhigh接班，唯一merge编译约束不变。D1383已范围闭合。D1382源码已合入并完成自动回归，方案仍accepted、缺口仍open，实拍未做。见[续审看板](../parallel/active/default-editor-contract-audit-2026-10-26.md)。
 - **Tunnel 引用与 provider 重试（2026-10-26，D1383）**：merge 在 `a9d9babf77f` 核对旧 `tunnel.js` 去掉 source map 的正文与 `4963799b1e95` 同一 esbuild 转译一致，再只刷新测试。新增 grep 对旧生产为 8 项行为失败加 1 次裸 `provider rejected` hook；hook 停掉同进程后续 4 项，这 4 项另次旧生产 4 passing。仅刷新生产后 `platform/tunnel/test/common` 两套件 **19 passing**（清理检查 1、portMapping 1、重试 17，无裸拒绝）。两 TS 未改 `src/tsconfig` 的定向语义 0，ESLint 0/0。方案 implemented，D1383 closed。未跑全量 compile-client，先前 55/36 仍失败。见[证据](default-editor-contract-audit-2026-10-26-evidence/verification.md)、[方案](../plans/tunnel-reference-and-provider-retry.md)。
 - **D1382 审阅导航刷新（2026-10-26，C）**：C 将生产 ReviewNav 改为必需会话 Context，构造时先解析 `getWorkRoot` 再登记连接监听，并在会话、工作区目录与 SCM 增减时失效，含非活动并列叶。C 未编译、未跑测试、未做实拍。不扩路径归因 gate。SCM 子根与 workspace gate 差异仍在边界外。自动回归见上一条 checkpoint。
+- **远端用户配置重试（2026-10-26，D1384）**：`RemoteUserConfiguration` 保留首次缓存快返和 `null` 终态。已观察失败后，`initialize` 与 `reload` 共享一轮尝试和原始拒绝；销毁把晚到成功变成取消，保留晚到拒绝，且不后台报告。21 条公共屏障、D747 余下六项源码守卫和 D827 导入行已写入。本工位未编译，也未跑依赖 `out/` 的测试。方案保持 accepted，D1384 仍 open，待 merge 做旧生产 red / 新生产 green。见 [方案](../plans/remote-user-configuration-attempts.md)。
 - **本轮唯一集成验证收尾（2026-10-26）**：J/C/D源齐后flock内唯一compile-client原始exit1、55诊断/36文件；旧Policy4与MainThread1消失，新Roster回调1由D正式类型补修。之后未重全量，14改动TS定向语义0、ESLint0errors/7warnings、stylelint exit0；原日志未动54/35只为子集说明。15产物fresh/hash留证，独立after C0/I0，三局部计划与原视觉方案按范围implemented，PRD总体不升。见[最终记录](../parallel/active/ui-visual-review-2026-10-26.md#d1379d1381最终收口)。
 - **Policy definition提交生命周期（2026-10-26，D1379）**：J方案ed5a136/实施8a7d81d三路合入30ef3e1；旧330两生产out正文核验一致后test-only red为0过/12败（11行为+1原裸拒绝hook，无超时/加载异常），仅fresh两生产后官方Electron三完整套件+FilePolicyService **41 passing**，11新项与既有owner/reference全执行；五TS正式项目上下文定向语义0、ESLint0errors/0warnings。D1379 closed/方案implemented；当阶段尚未global；后续唯一全量55/36及D1380/1381闭合见当前收尾。见[本轮证据](../parallel/active/ui-visual-review-2026-10-26.md#d1379当前运行证据)。
 - **D1381 Provider布局闭合（2026-10-26）**：C方案fec79c4/实施4e21eb8及f275429焦点测试等待修正真三路纳入source7b6e87；旧八几何全红，新样式+Provider49 passing/4focus pending由Chrome4全补齐。独立四主题32组/96行/192焦点命中无碰撞、0写；宽24px/窄自然增高的局部例外已先获PRD/UI接受。D1381 closed。
