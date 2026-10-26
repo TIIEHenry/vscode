@@ -833,7 +833,7 @@
 }
 
 .monaco-workbench .engine-providers-section .engine-catalog-row.engine-provider-status-row {
-	height: 24px;
+	height: auto;
 	min-height: 24px;
 	padding: 0 8px;
 	box-sizing: border-box;
@@ -842,8 +842,32 @@
 	background: transparent;
 	box-shadow: none;
 	gap: 6px;
-	align-items: center;
+	align-items: flex-start;
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+/* Only provider status rows may add 24px tracks when complete status text does not fit. */
+.monaco-workbench .engine-provider-content {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0 var(--vscode-spacing-size60, 6px);
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.monaco-workbench .engine-provider-identity {
+	display: flex;
+	align-items: center;
+	gap: var(--vscode-spacing-size60, 6px);
+	flex: 1 1 16ch;
+	min-width: 0;
+	min-height: 24px;
+}
+
+.monaco-workbench .engine-provider-status-row > .engine-catalog-row-actions {
+	flex-wrap: nowrap;
+	min-height: 24px;
 }
 
 .monaco-workbench .engine-providers-section .engine-catalog-row.engine-provider-status-row:hover {
@@ -883,7 +907,7 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	min-width: 0;
+	min-width: min(100%, 6ch);
 }
 
 .monaco-workbench .engine-providers-section .engine-catalog-name {
@@ -909,11 +933,32 @@
 
 .monaco-workbench .engine-provider-badges {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
-	gap: 6px;
+	gap: 0 var(--vscode-spacing-size60, 6px);
 	flex: 0 1 auto;
 	min-width: 0;
+	max-width: 100%;
+	min-height: 24px;
 	margin-left: auto;
+}
+
+.monaco-workbench .engine-provider-state {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0 var(--vscode-spacing-size60, 6px);
+	min-width: 0;
+	max-width: 100%;
+	min-height: 24px;
+}
+
+.monaco-workbench .engine-provider-source {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	max-width: 100%;
+	min-height: 24px;
 }
 
 .monaco-workbench .engine-provider-pill {
@@ -925,7 +970,11 @@
 	font-size: 11px;
 	font-weight: 400;
 	line-height: 16px;
-	white-space: nowrap;
+	box-sizing: border-box;
+	min-width: 0;
+	max-width: 100%;
+	white-space: normal;
+	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .engine-provider-pill--success {
@@ -962,9 +1011,7 @@
 
 .monaco-workbench .engine-provider-pill--muted {
 	display: block;
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	flex: 0 0 auto;
 	background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	color: var(--vscode-descriptionForeground);
 	border: none;
@@ -977,10 +1024,12 @@
 
 .monaco-workbench .engine-provider-enabled-status {
 	flex: 0 0 auto;
+	max-width: 100%;
 	font-size: var(--vscode-fontSize-label2, 11px);
 	line-height: 24px;
 	color: var(--vscode-foreground);
-	white-space: nowrap;
+	white-space: normal;
+	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .engine-provider-catalog {

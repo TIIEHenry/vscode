@@ -193,3 +193,10 @@ J方案ed5a136/实施8a7d81d已真三路合成source30ef3e1890d；旧330两生�
 新生产通过官方Electron隔离Xvfb跑完整policy.test、policyIpc.test、policyConfiguration.test及filePolicyService.test：**41 passing/0 failing**，11新场景与原owner/reference、动态注册、全集替换/删除公告等断言保留（[green](../../progress/ui-visual-review-2026-10-26-evidence/d1379-green.log)）。测试进程限时90s、单项5s，未改测试为假成功。五目标TS在未修改src/tsconfig完整上下文下定向semantic/syntactic0、noEmit（[类型日志](../../progress/ui-visual-review-2026-10-26-evidence/d1379-types.log)），typed IPC旧4条不再出现；只查这五文件，不推断其它平台诊断。targeted ESLint0errors/0warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1379-eslint.log)）。
 
 [五文件产物快照](../../progress/ui-visual-review-2026-10-26-evidence/d1379-fresh-output.json)绑定source30ef3e1与merge/out，记录两生产/三测试source/output SHA256与时间。D1379按其合同closed、方案implemented；D1380/D1381 Important保持open、外部视觉方案accepted。此阶段未跑global/旧287+14/833套件，等待C/D源码到齐后再判断唯一全量需要。规则3c知识层已核对并沿用J同步的平台提交成功/失败语义，原始失败与新结果分开留证。
+### C / D1381 Provider 内容预算局部修复
+
+C 独占工位以 `dfcb960a147` 为基线；方案 `fec79c4b79a` 经 Astra 规则16只读 Critical0/Important1，已核验并按规则10a先修入 PRD-028/UI 的 Provider 状态行窄宽密度例外。源码只调整状态行的 content/identity、主状态（配置+启用）与完整来源，avatar在身份组内，动作仍直属行尾、22×22且预留空间；宽时24px，窄时按24px轨自然增加高度，本地化可继续折行，无72px上限。未改整pane断点、预设目录、Models、门控或写RPC。
+
+真实生产CSS/Section几何测试已拆出原生focus前提：四主题×只读/可写共八条，pane300→340→720→340→300，含实际左右内衬后的行宽、各兄弟/动作矩形不相交、相邻行占位、来源全文、长状态/来源超过72px可继续增长；四条activeChrome焦点用例检查每颗动作焦点/outline/中心命中及显隐无重排，读/聚焦零写。测试源未运行，旧287+14与旧24px验收记录仅是历史证据，不用作本修复after。
+
+Astra对三份源码/测试草稿静态复核C0/I0，长状态/来源Minor已补。当前仅目标lint：2TS 0errors/2既有selector warnings（HEAD基线复现），CSS stylelint exit0但仍有既有变量/token提示；无编译/转译/类型检查或out写入。最小fresh为Provider源+preferencesStatusStyle测试+生产CSS（2TS/1CSS），唯一merge锁内刷新后跑Provider语义/真实样式，再由Astra做完整主题默认窗口after实拍；详见[局部方案](../../plans/provider-status-row-layout.md)。D1381继续open，不升PRD与整轮视觉状态。
