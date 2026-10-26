@@ -1,0 +1,44 @@
+{
+  "base": "2fd206e74d846052ca0083ee27d8046c91b348ac",
+  "checker": false,
+  "emit": false,
+  "files": [
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+      "diagnostics": [],
+      "sha256": "b8e34e375e0e0bac58a33754bec01e0e6d6bf0d5a1ef3ef4c8f280aad0fbfa94"
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "diagnostics": [],
+      "sha256": "2c8cff7b8f79804d6a8e187bd602ee2dc6fa4f6c0103589ce29481d2f1f48318"
+    }
+  ],
+  "syntaxErrors": 0,
+  "keepTestBodyUnchanged": true,
+  "keepTestSha256": "cb4eb357c0d0f301be290deaecf023e64238864aef41bd0f276bd85d4680957d",
+  "disposeGateOnlyFixtureHelperChanged": true,
+  "lensOnlyEventBlockChanged": true,
+  "priorEventNonObserverAssertionsPreserved": true,
+  "protectedEventAssertionCount": 27,
+  "oldOuterObserverAssertionsReplaced": true,
+  "addedAnyUnknownPartial": false,
+  "addedTypeAssertions": false,
+  "untouched": [
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts",
+      "unchangedFrom2fd": true
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+      "unchangedFrom2fd": true
+    }
+  ],
+  "productionBrowserDiffEmpty": true,
+  "productionBrowserTree": "fc073478b35e20c1fd63378ec93ecc54bea7a6de",
+  "rawRuntimeLog": {
+    "file": "/tmp/vscode-e-final-two-tests-r2.full-lens-suites.log",
+    "sha256": "56df7129b5116e90808c6a71a429976cd4f0821c9a680af1510b73c2108e31cd",
+    "result": "314 passing / 3 failing; downstream badge assertions not reached"
+  }
+}

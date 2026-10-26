@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "最终2fd两test项目noEmit0/lint0-1、定向emitter首轮lane失败与r2成功原件保留；完整Lens314/3及254身份/全out守卫，待原作者最小测试修订，不freeze/UI。"
+summary: "e7两test真实项目noEmit0/lint0-1、定向emitter0、完整Lens317/0与254资格已封存；旧失败历史全保，614原件，待父独核后另授权v4 freeze/J，不升产品after。"
 ---
 
 # J/E 正式集成
@@ -540,3 +540,24 @@ finally **完整253当前native存在/mode/bytes/SHA及source全部恢复compile
 两 suite 前后 254 个 source/native/mode、HEAD/src/clean 与三个稳定 cache symlink 均完全不变，全 out metadata 守卫通过。成功 emitter 的两份 JS 原件也已保存，便于后续测试修订后仍可核本次实际输入。测试原始日志 SHA `56df7129b5116e90808c6a71a429976cd4f0821c9a680af1510b73c2108e31cd`；完整资格和未达断言见 [失败检查点](e-final-two-tests-failure-checkpoint.json)、[当前254身份](e-final-two-tests-current254-preservation.json)、[成功 emitter 原件](e-final-two-tests-r2-emitter.json)、[原始 full 日志](e-final-two-tests-r2.full-lens-suites.log)。
 
 旧 compile10 0/0TS、新10 10/0、完整相关484/4、精确 old4919 四 selector1/3与所有 raw 历史保持。未生成 freeze 或启动 UI，不把本次局部结果升成产品 after；原 E overall after FAIL、原方案 accepted、wave active、PRD/旧 D 不关闭。等待原作者最小 test-only 固定 SHA 与原 Astra peer，再由父授权唯一 lane。
+
+## e7 两测试定向校验与完整 Lens 317/0
+
+父实读固定 `e7c246315db77aa8277775338522bb9a1cb8ff84` 与原 Astra `8f45ece14a319557ab61406dcd7deb36db717657` §29 C0/I0/M0 后再次授权。真实三路分别合为 `3daa625f3eb` 与 `8ad5164da61`，175 / 693 路径 mode/type/blob/hunk 门禁全过；两测试与 plan 精确 incoming，status 全部旧条目及 incoming 最终作者条目逐字保留且 200 行；peer 报告精确 incoming，旧 153,562 bytes 前缀全保。生产 browser tree 与 compile10 完全相同，源码差异仍仅两份测试。旧 588 原件在本轮新增前逐 bytes/SHA/Git blob 全核，现 614 原件，旧582/539/531历史全部保留。
+
+本次测试/emit 的真实 Git 身份为 `8ad5164da61fbfea94023d42c7be5c72071ec299:src`，树 `a2c34649ee88df907c03b70c9ec3235cb1b4a9d9`。新的全局空闲扫描与同一共享锁内，重新使用真实 src 项目 10,316 roots/options，仅两测试 syntactic/semantic 及 config/global/options 诊断均 0，noEmit 实际 exit0；不是复用上次的检查。两文件 ESLint 实际 exit0，0 errors / 1 既有重复 import warning。
+
+独立 e7 driver 直接复用已验证的仓库 `createCompile` + `util.streamToPromise` 管线、原真实 effective compiler/esbuild options，仅 `gulp.src` 精确两份测试；emit 实际 exit0，未执行新的完整 compile。新 id 为 `test-refresh-e7c246315db7`；driver/options/toolversion 原件各有路径与 SHA，工具版本同时记 package/runtime 与实际解析 module SHA。两个 fresh 输出的源 blob 精确等获审 e7；成功 emitter 原件 SHA `85006b04204d964befc7f0eed41331ec4acbdec4ba88579e12b53834aa5e695c`，mixed254 pair manifest SHA `ba637fcb5e19feae1925e92088f1be3d35410b38b410473e31098f705772c517`。其余252成员逐 source/native/mode 精确 compile10；全 out 共12,554文件仅这两份测试的 metadata改变，其他12,552路径无刷新。
+
+随后同锁内无 grep、无 skip 实际完整运行两套：
+
+| 实际 suite | passing | failing |
+| --- | ---: | ---: |
+| conversation lens dispose gate | 169 | 0 |
+| ConversationLens | 147 | 0 |
+| runner 全局 registry meta | 1 | 0 |
+| 合计 | 317 | 0 |
+
+总 exit0，业务测试实际316项。原先314/3的KEEP及roster/UA三项名称均真实通过，徽章 hidden/text/title/aria、同lease/snapshot/entries、精确真实turn正文等后续断言已执行通过。本轮没有 load/API/fixture/cleanup/timeout 失败。原始日志 SHA `3092b8b9662cbd8395a5342f53e5d47d43864e3fe25aece975b98b2e071a2400`，见 [完整两套 raw](e-e7-two-tests.full-lens-suites.log)、[实际校验记录](e-e7-two-tests.json)、[成功检查点](e-e7-two-tests-success-checkpoint.json)、[成功 emitter 资格](e-e7-two-tests-emitter.json) 和 [254 身份守卫](e-e7-two-tests-current254-preservation.json)。两个成功 fresh native JS 也按全文字节封存，便于后续独立实核。
+
+所有步骤前后254 source/native/mode、HEAD/src/clean、三个稳定cache symlink 与全 out metadata守卫通过。第一轮 emitter 的 lane驱动失败、2fd完整314/3、compile10原完整484/4、精确old4919四selector1/3、reasoning原断言及旧E overall after FAIL均保持历史，不回填成功。`fullCompileOfFinalSourceTree=false`，没有新freeze/UI，原方案仍accepted、wave active、PRD/旧D未关闭。下一步须父独立实核本检查点后分别授权 v4 common138/full254 freeze，再单独授权 J；测试通过本身不构成启动或产品验收完成。
