@@ -3759,6 +3759,20 @@
       "bytes": 354959,
       "sha256": "095cb10d3835bd34a8912f51287fb7fd47f419422fadf8e5e08695b8aa0782f3",
       "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-two-tests-peer-correction-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-two-tests-peer-correction-pre-merge.json",
+      "bytes": 226,
+      "sha256": "3a1dff1290da7a44dd32a553dced43a4360b546d24fd27f83777f9a6db4301d3",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-two-tests-peer-correction-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-two-tests-peer-correction-merge-identity.json",
+      "bytes": 342871,
+      "sha256": "3d77fb951048c0204fdba31bab9f4e21202ece625ad920dc8398778c1229a1a0",
+      "bytePreservingCopy": true
     }
   ]
 }
