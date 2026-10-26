@@ -9,7 +9,7 @@ summary: "1ac新测对65d宿主4真红、并发2有业务误记但混有hasListe
 
 # J/E 正式接入前旧业务验证
 
-> 以下是旧red采样历史。后续E900f实现peer C0/I3/M0退回occupied补修、当前不可formal queued；J八处listener夹具修订/两旧red复跑待，现行来源与边界见[补修阶段](je-peer-rework-2026-10-27.md)。原始日志与采样计数不改。
+> 以下是旧red采样历史。后续E900f实现peer C0/I3/M0退回occupied补修、当前不可formal queued；J已在4d49补8调用并完成[两项纯并发旧红](j-4d49-overlap-old65d-red-verification.md)，现行来源与边界见[补修阶段](je-peer-rework-2026-10-27.md)。原始日志与采样计数不改。
 
 本轮只消费不可变 Git：J `1ac1fdc4ae2db39f4e2c3a49e014bcc629b40419` 的 Changes 测试、精确旧 helper `65d2288036fdad74ab607e231d3db758fa397aa8`，以及 E `900f772bfd139214651a7c15e82678a1a0ef6f69` 的 roster 测试。未读取作者 WIP，未正式合入字母源码。源码 HEAD 始终为纯文档 `8781acd0b2dccbc46fec5ede3022fbe1f1ee6dc5`，src 始终为实际[全量编译过的 ad80/030def](main-180fc-baseline-verification.md)。两次开始前全局 compile/typecheck/transpile 车道扫描均无匹配。
 

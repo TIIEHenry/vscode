@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "main5df/src7fa3c86尚未新emit；E900f实现peer C0/I3、occupied补修不可queued；J listener夹具补修与2旧red复跑待，未正式集成。"
+summary: "main5df/src7fa3c86尚未新emit；J4d49夹具修正/D静态M1闭合、2纯并发旧红；E900f仍C0/I3 occupied补修，未正式集成。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **J/E实现peer补修阶段（2026-10-27）**：父转达Astra对E900f静态peer C0/I3/M0，原报告尚未入库；timeline-only clientTool accepted丢closed身份、disconnect/identity scope通知先于write gate可重入、同generation已有interactive语义改变仍复用attempt。E已退回occupied补修、当前不可formal queued，须不可变修订/复读。J正补8处hasListeners()，到SHA后仅复跑2 overlap旧red，宿主4不重跑。当前main5df/src7fa3c86未新emit，34native仍ad80身份；不formal合J/E/全量emit/freeze，不取WIP/主ff重试/push。[阶段事实与来源](default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md)。
+- **J listener补修与2纯业务旧红（2026-10-27）**：不可变4d49相对1ac精确8处hasListeners()、生产不变；独占共享编译锁/全局进程空后，仅新test02a626配精确旧65d helper f136，2 settles-first均0过2身份AssertionError红，listening=false/calls[1,1]/trace[]均符合；原4host红不重跑。finally两JS原字节恢复、34native全恢复，HEAD/src/clean不变。D0aef原件仅文档真三路95ce892、192路径保留PASS，核心C0/I0且M1关闭；J模块queued，E仍C0/I3 occupied，整波不formal合源/全量emit/freeze。[原件/运行/身份](default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md)。
+- **J/E实现peer补修阶段（2026-10-27）**：父转达Astra对E900f静态peer C0/I3/M0，原报告尚未入库；timeline-only clientTool accepted丢closed身份、disconnect/identity scope通知先于write gate可重入、同generation已有interactive语义改变仍复用attempt。E已退回occupied补修、当前不可formal queued，须不可变修订/复读。当次J正补8处hasListeners()，后续不可变交付/2纯旧红见上条，宿主4不重跑。当前main5df/src7fa3c86未新emit，34native仍ad80身份；不formal合J/E/全量emit/freeze，不取WIP/主ff重试/push。[阶段事实与来源](default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md)。
 - **main已提交5df协议基线接入（2026-10-26）**：只取明确5df（含7cf协议源码/后续方案），从clean02261真三路231b7bb7529，119路径全PASS；status双方原记录逐字保留，result:src精确7fa3c86=5df。无本轮compile/typecheck/transpile/out写入，34native仍ad80身份，旧compile0不延伸到新src。J/E未formal合，最终peer/作者补修后统一实际完整emit；无主ff重试/root WIP/out/push。[源与保留门禁](default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md)。
 - **队列与技能跨仓方案（2026-10-26）**：用户已明确两仓范围；独立只读评估的锁覆盖、fresh原文CAS、bind唤醒与保存中新草稿保持已改入[方案](../plans/engine-queue-and-skill-contracts.md)。先方案commit，再实施；保留生成中Send/Enqueue闸与其他WIP。
 - **引擎协议消费修复（2026-10-26）**：补Create/Info/Fork/Provider/Profile字段、两条正式RPC与IPC/能力闸，maxRewinds显式0在正文/模型/工具保存中保持。原8业务red转绿；Node203+498、Profile编辑器3过，原project native tsc通过，MCP一既有mapper失败单独复现。跨仓队列/技能获授权，另续方案，不升产品状态。见[方案](../plans/engine-protocol-consumption-closeout.md)。

@@ -1,0 +1,96 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1377169:1027/000629.354352:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1377190) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1377190) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1377190) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources - Changes list open[0m
+  [31m  1) Sources overlap same tuple g1 settles first never attributes B to the no-op delegate[0m
+  [31m  2) Sources overlap same tuple g2 settles first never attributes B to the no-op delegate[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (9ms)[0m
+[31m  2 failing[0m
+
+[0m  1) Sources - Changes list open
+       Sources overlap same tuple g1 settles first never attributes B to the no-op delegate:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+           1
+           1
+         ]
+         "identity": {
+      [31m-    "groupId": "g2"[0m
+      [31m-    "sameResource": false[0m
+      [32m+    "groupId": "old"[0m
+      [32m+    "sameResource": true[0m
+         }
+         "listening": false
+         "trace": []
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      calls: [
+        1,
+        1
+      ],
+      identity: {
+  +     groupId: 'g2',
+  +     sameResource: false
+  -     groupId: 'old',
+  -     sameResource: true
+      },
+      listening: false,
+      trace: []
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:581:14)
+[0m
+[0m  2) Sources - Changes list open
+       Sources overlap same tuple g2 settles first never attributes B to the no-op delegate:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+           1
+           1
+         ]
+         "identity": {
+      [31m-    "groupId": "g1"[0m
+      [31m-    "sameResource": false[0m
+      [32m+    "groupId": "old"[0m
+      [32m+    "sameResource": true[0m
+         }
+         "listening": false
+         "trace": []
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      calls: [
+        1,
+        1
+      ],
+      identity: {
+  +     groupId: 'g1',
+  +     sameResource: false
+  -     groupId: 'old',
+  -     sameResource: true
+      },
+      listening: false,
+      trace: []
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:581:14)
+[0m
+
+

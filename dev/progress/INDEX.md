@@ -13,7 +13,8 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
-| [J/E实现peer补修阶段](default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md) | E900f C0/I3/M0退回occupied、原报告未入库；J八处hasListeners调用待不可变修订/仅两overlap旧red复跑，不formal合源/emit/freeze |
+| [J4d49两项并发纯业务旧红](default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md) / [D宿主实现peer原件](default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-code-review.md) | 八处listener调用精确修补后2纯旧红；D核心C0/I0/M1关闭，192路径仅文档接入；34native身份恢复，E仍occupied |
+| [J/E实现peer补修阶段](default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md) | E900f C0/I3/M0退回occupied、原报告未入库；J4d49已补8调用且2 overlap纯旧红，不formal合源/emit/freeze |
 | [5df已提交协议基线接入](default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md) | 231b真三路119路径保留、src精确7fa3c86=5df；无新emit，out仍ad80身份，J/E正式完整编译待 |
 | [J/E不可变候选旧业务红](default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md) | J宿主4真红/并发2混夹具问题待作者补修；E真实DOM6红（4缺错误、2先缺busy）；34native身份均恢复，未formal合源/新绿/after |
 | [180fc已提交基线接入与全量编译](default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md) | ad80真三路保留78路径，src精确030def=180fc，真实compile-client0；原生emit替换65d旧pack，J/E候选未接，无主ff重试/after |

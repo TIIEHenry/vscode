@@ -1,0 +1,4005 @@
+{
+  "phase": "D-docs-true-three-way-preservation",
+  "startedAtUtc": "2026-10-26T16:10:46.250751+00:00",
+  "ours": "114fd4ee6df451040989d4f716c24628357f8b31",
+  "theirs": "0aef80980ae42692562b163deaef7a01bda2e512",
+  "mergeBase": "7c84e0167e3f5fef3db1e7dea5cd6f96ca3393c4",
+  "oursChangedPaths": [
+    "dev/parallel/INDEX.md",
+    "dev/parallel/active/control-detail-polish.md",
+    "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+    "dev/parallel/active/engine-protocol-consumption-closeout.md",
+    "dev/parallel/active/engine-queue-and-skill-contracts.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/control-detail-polish.md",
+    "dev/plans/current-typescript-contract-baseline.md",
+    "dev/plans/engine-protocol-consumption-closeout.md",
+    "dev/plans/engine-queue-and-skill-contracts.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/control-detail-polish-evidence/after-manifest.json",
+    "dev/progress/control-detail-polish-evidence/disabled.json",
+    "dev/progress/control-detail-polish-evidence/matrix.json",
+    "dev/progress/control-detail-polish-evidence/runtime-js.json",
+    "dev/progress/control-detail-polish-evidence/toolbar.json",
+    "dev/progress/control-detail-polish-evidence/verification.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-docs-health.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron-command.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-eslint.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-final-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-green.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-grpcClientCalls.test.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-manageRemoteAgentHostsCatchScanD1328.test.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-mobileHostFilterFocusScan.test.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-repair-1.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-D-host-reviews-merge.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-custom-review-integration.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-committed-docs-merge.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-sync-docs-health.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red-runner.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-old65d-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-overlap-old65d-red-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-overlap-old65d-red-runner.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-overlap-old65d-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27-docs-health.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-artifact-inventory.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-docs-health.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-artifact-inventory.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge-docs-health.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-pre-merge.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile-runner.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-final-docs-health.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-artifact-inventory.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge-docs-health.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-pre-merge.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-final-docs-health.log",
+    "dev/progress/deferred-gaps.md",
+    "dev/progress/health-gates.md",
+    "dev/progress/status.md",
+    "docs/INDEX.md",
+    "docs/reference/universe-agent/INDEX.md",
+    "docs/reference/universe-agent/engine-protocol-surface.md",
+    "docs/reference/universe-agent/ide-engine-feature-gaps.md",
+    "src/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts",
+    "src/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts",
+    "src/vs/platform/universeAgent/common/universeAgentCapabilities.ts",
+    "src/vs/platform/universeAgent/common/universeAgentConnection.ts",
+    "src/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.ts",
+    "src/vs/platform/universeAgent/common/universeAgentTypes.ts",
+    "src/vs/platform/universeAgent/node/grpc/grpcCatalogUnaryWire.ts",
+    "src/vs/platform/universeAgent/node/grpc/grpcClient.ts",
+    "src/vs/platform/universeAgent/node/grpc/grpcClientMappersCatalog.ts",
+    "src/vs/platform/universeAgent/node/grpc/grpcClientMappersSession.ts",
+    "src/vs/platform/universeAgent/node/grpc/grpcConfigPermissionUnaryWire.ts",
+    "src/vs/platform/universeAgent/node/grpc/grpcProtoCodec.ts",
+    "src/vs/platform/universeAgent/node/grpc/grpcSessionAttachWire.ts",
+    "src/vs/platform/universeAgent/node/grpc/grpcTransport.ts",
+    "src/vs/platform/universeAgent/node/grpc/grpcTriggerUnaryWire.ts",
+    "src/vs/platform/universeAgent/node/grpcCapabilityProbe.ts",
+    "src/vs/platform/universeAgent/node/universeAgentConnectionService.ts",
+    "src/vs/platform/universeAgent/test/common/respondCleanup.test.ts",
+    "src/vs/platform/universeAgent/test/node/deviceAuthHandshake.test.ts",
+    "src/vs/platform/universeAgent/test/node/grpcCapabilityProbe.test.ts",
+    "src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+    "src/vs/platform/universeAgent/test/node/grpcProtocolConsumption.test.ts",
+    "src/vs/platform/universeAgent/test/node/grpcSessionWrites.test.ts",
+    "src/vs/platform/universeAgent/test/node/grpcTriggerUnaryWire.test.ts",
+    "src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts",
+    "src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts",
+    "src/vs/platform/universeAgent/test/node/universeAgentConnectionIpcChannel.test.ts",
+    "src/vs/sessions/contrib/changes/browser/changesActions.ts",
+    "src/vs/sessions/contrib/changes/browser/changesetReviewActions.ts",
+    "src/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts",
+    "src/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts",
+    "src/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts",
+    "src/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts",
+    "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+    "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+    "src/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+    "src/vs/workbench/contrib/conversation/browser/engineToolProfile.ts",
+    "src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+    "src/vs/workbench/contrib/conversation/browser/media/conversationSessionsInlineFilter.css",
+    "src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/engineToolProfile.test.ts",
+    "src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+    "src/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+    "src/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts",
+    "src/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts",
+    "src/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts",
+    "src/vs/workbench/contrib/output/test/browser/outputServices.test.ts",
+    "src/vs/workbench/contrib/sources/browser/media/sourcesTabs.css",
+    "src/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts",
+    "src/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts",
+    "src/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+    "src/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts",
+    "src/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts"
+  ],
+  "theirsChangedPaths": [
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-code-review.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md"
+  ],
+  "sourceTree": "7fa3c86d152420afeb66c6038bd961bb6d5b8f4b",
+  "bothChangedPaths": [],
+  "worktreeClean": true,
+  "resultTree": "6c6f8d1cf6ae67575e579182bfe7f1254e83ea8d",
+  "allPathsPassed": true,
+  "pathCount": 192,
+  "paths": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "base": [
+        "100644",
+        "blob",
+        "733035e60dfc1c00d6aac11545fe1185da2a994a"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "f5e2b815ffc4e3fae968d016cf859c6862da3f9f"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "733035e60dfc1c00d6aac11545fe1185da2a994a"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "f5e2b815ffc4e3fae968d016cf859c6862da3f9f"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/parallel/active/control-detail-polish.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "6b4beca78e421cd02d7b4006f0dc172766b973d1"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "6b4beca78e421cd02d7b4006f0dc172766b973d1"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "base": [
+        "100644",
+        "blob",
+        "f61857115878f33d6f7a03dfaee73750dec3d34e"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "c229c73d2aa25bd52733e2e90e60d54fbd0caec0"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "f61857115878f33d6f7a03dfaee73750dec3d34e"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "c229c73d2aa25bd52733e2e90e60d54fbd0caec0"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/parallel/active/engine-protocol-consumption-closeout.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "45df00389715eae21a60eafad449b2a9163c2ef3"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "45df00389715eae21a60eafad449b2a9163c2ef3"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/parallel/active/engine-queue-and-skill-contracts.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "11db60d6646e23d9a42373b1509b1dd2e3788ab7"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "11db60d6646e23d9a42373b1509b1dd2e3788ab7"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "base": [
+        "100644",
+        "blob",
+        "c53e340eee447d632ca09d91a2e9c47043b431bf"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "2f123f801d554abfa9491ae0cbfa57b5208bded3"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "c53e340eee447d632ca09d91a2e9c47043b431bf"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "2f123f801d554abfa9491ae0cbfa57b5208bded3"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/plans/control-detail-polish.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "fd51f098662667f8fb8b56bb0d431d8d51161da2"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "fd51f098662667f8fb8b56bb0d431d8d51161da2"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/plans/current-typescript-contract-baseline.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "6e2cd2a01e3589e5b3d883f7fcfbd7d25ab012ec"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "6e2cd2a01e3589e5b3d883f7fcfbd7d25ab012ec"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/plans/engine-protocol-consumption-closeout.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "a89fd940e8f71023174f8a5245e35e87d9cea625"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "a89fd940e8f71023174f8a5245e35e87d9cea625"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/plans/engine-queue-and-skill-contracts.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "a194a61de5c7a816857dcf80367295950bd043e4"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "a194a61de5c7a816857dcf80367295950bd043e4"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "base": [
+        "100644",
+        "blob",
+        "22691910e38d481c0bcb270f96972f1f237b48c9"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "0726e7f4e3c512501634a32676122ccacc6b5704"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "22691910e38d481c0bcb270f96972f1f237b48c9"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "0726e7f4e3c512501634a32676122ccacc6b5704"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/after-manifest.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "d7f0db43b8bdd8774c03b485c8e90ad749dca0ec"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "d7f0db43b8bdd8774c03b485c8e90ad749dca0ec"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/disabled.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "9f9af2f981502cf6d78f868ed86632cd4e40b3c6"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "9f9af2f981502cf6d78f868ed86632cd4e40b3c6"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/matrix.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "6051dfa339e0f03f52b06a3b13b37c893dc48a59"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "6051dfa339e0f03f52b06a3b13b37c893dc48a59"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/runtime-js.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "f78dda033ab7493222c370457c60d8ec2a8be9dc"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "f78dda033ab7493222c370457c60d8ec2a8be9dc"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/toolbar.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "563d32dfc5098f04d6e475118b0bccfcd6962e53"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "563d32dfc5098f04d6e475118b0bccfcd6962e53"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/verification.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "fed9f31d93c90de9e3e24f0a11ed43f3fc56e054"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "fed9f31d93c90de9e3e24f0a11ed43f3fc56e054"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-docs-health.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "25dc2ea8b8262c7bef1cd53af19b7307e7bd11d0"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "25dc2ea8b8262c7bef1cd53af19b7307e7bd11d0"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron-command.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "3e35783c6e2d2296a58b237a467f416cf552c2e1"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "3e35783c6e2d2296a58b237a467f416cf552c2e1"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "627e8760066dc9f4ab698367a486a5488aa93452"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "627e8760066dc9f4ab698367a486a5488aa93452"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-eslint.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "8fcb2e82f3b6a7f40ea12dacb23babfbcdef1b6f"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "8fcb2e82f3b6a7f40ea12dacb23babfbcdef1b6f"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "5aba7abf909e80f4dc6a4e1d6edc398be2721ea2"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "5aba7abf909e80f4dc6a4e1d6edc398be2721ea2"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "3c88cceb8e680dab280ba653063c4ffb35eb2556"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "3c88cceb8e680dab280ba653063c4ffb35eb2556"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-final-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "4b2b9685cefc34596a98a7252d3acfeef3d562d5"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "4b2b9685cefc34596a98a7252d3acfeef3d562d5"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-green.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "fec7e0dbde9549cd11845de17c64ed4dfe14c68d"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "fec7e0dbde9549cd11845de17c64ed4dfe14c68d"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "0646873c32af30b3281286fc4c21e81558f280ca"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "0646873c32af30b3281286fc4c21e81558f280ca"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "27e50097f7879e1012da776562e47e5747eb2d84"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "27e50097f7879e1012da776562e47e5747eb2d84"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-grpcClientCalls.test.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "9a40de8bf1dc8184fc977e5878ee09124b99101d"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "9a40de8bf1dc8184fc977e5878ee09124b99101d"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-manageRemoteAgentHostsCatchScanD1328.test.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "240873f8d5a7799ed8a31c34498d3c65a133eaef"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "240873f8d5a7799ed8a31c34498d3c65a133eaef"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-mobileHostFilterFocusScan.test.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "0df5428c9f211ff58ac118d525c2fc1497f819c1"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "0df5428c9f211ff58ac118d525c2fc1497f819c1"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-repair-1.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "0ae5a0fe3f456f5bb330f3d7cd7e4c48219be6ee"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "0ae5a0fe3f456f5bb330f3d7cd7e4c48219be6ee"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ab35bd36bbb428276e0f119348989ca5a055d9cb"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ab35bd36bbb428276e0f119348989ca5a055d9cb"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "df3cfbda3506a36dd2d3e54cbded7d4d56d59769"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "df3cfbda3506a36dd2d3e54cbded7d4d56d59769"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "76e7be2038bab1478362ccdec607d9b604255f76"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "76e7be2038bab1478362ccdec607d9b604255f76"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "61546574a636d33e693587720cd471cd2bb6e0d2"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "61546574a636d33e693587720cd471cd2bb6e0d2"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "96c63d090d144d5bfa4dfae4f9dbab1ff7a43a8e"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "96c63d090d144d5bfa4dfae4f9dbab1ff7a43a8e"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "d8f38f3dd20b879d4420d42c49b9016d249edc35"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "d8f38f3dd20b879d4420d42c49b9016d249edc35"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "70c7af04d6627a068621494f3e8d866db1910956"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "70c7af04d6627a068621494f3e8d866db1910956"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "60f17d64fc6f9038fce6d45467979f2efa55e5c3"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "60f17d64fc6f9038fce6d45467979f2efa55e5c3"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "a4d7395c27c50d999c7c2588dc35ebd3ef09a7b7"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "a4d7395c27c50d999c7c2588dc35ebd3ef09a7b7"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ca8c0c31db980e53477aaa744ac25fb6d141f842"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ca8c0c31db980e53477aaa744ac25fb6d141f842"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "b7af8459d744845cae8a878a3cddf21be6a16e58"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "b7af8459d744845cae8a878a3cddf21be6a16e58"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "0b389debf86a686f1f580379485f851754fd5675"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "0b389debf86a686f1f580379485f851754fd5675"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "3a6d5a1563b517c1136f639a11f2d7e8fb116d30"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "3a6d5a1563b517c1136f639a11f2d7e8fb116d30"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "546f1ee2c9d0983cfae6f5f99c318e3a5278bc77"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "546f1ee2c9d0983cfae6f5f99c318e3a5278bc77"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "821033d637781a06f56e08f828fec60b37d5858d"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "821033d637781a06f56e08f828fec60b37d5858d"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "54faefcf482141de5400ef231d910c0c6dd2c790"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "54faefcf482141de5400ef231d910c0c6dd2c790"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "38d774d9cf5c6373e3f17864fc3c5aafe033a521"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "38d774d9cf5c6373e3f17864fc3c5aafe033a521"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "6fcf8d6202e0da52f3f03e7ee8f19b99a7dccc5a"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "6fcf8d6202e0da52f3f03e7ee8f19b99a7dccc5a"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "760ca167e003746e08263d4ed286c82d36918f95"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "760ca167e003746e08263d4ed286c82d36918f95"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "929c9e46b6e9f5d1b9425cf6e40b2f7fe2c37059"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "929c9e46b6e9f5d1b9425cf6e40b2f7fe2c37059"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "11fadf7719a46eb35c41b0953c575cb47a87f91d"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "11fadf7719a46eb35c41b0953c575cb47a87f91d"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "234cdc91ca51a594db98344bb66e963eb6d0ca1a"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "234cdc91ca51a594db98344bb66e963eb6d0ca1a"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "8fc7ceb92563231f18e28dad12ff96a9845df77b"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "8fc7ceb92563231f18e28dad12ff96a9845df77b"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "54e7e82a64c9e649ed1dbd4565e1ca0e4cc1ed20"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "54e7e82a64c9e649ed1dbd4565e1ca0e4cc1ed20"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "2bb4feca13501f20f75bd62df01b7dd8259f10ef"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "2bb4feca13501f20f75bd62df01b7dd8259f10ef"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "7bf6f698c30492143f394102dc183db078de4a0b"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "7bf6f698c30492143f394102dc183db078de4a0b"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "2f08792a77cd8745e2fdce2056ccb2ad29fbf45f"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "2f08792a77cd8745e2fdce2056ccb2ad29fbf45f"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "7937c2ad9a8896935f22f4ef5166d6e9a75d9640"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "7937c2ad9a8896935f22f4ef5166d6e9a75d9640"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "9902e2fbb8e426c583f54bdb4f5b7de79161eb89"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "9902e2fbb8e426c583f54bdb4f5b7de79161eb89"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "c86acc43ae06ea701c773f4fd10feb7b14401820"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "c86acc43ae06ea701c773f4fd10feb7b14401820"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "1bae0aa726195fa730ccf1a8c240c5824ad7163d"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "1bae0aa726195fa730ccf1a8c240c5824ad7163d"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "c8630472bc4e3c5382e8cf25c71056580ae7961c"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "c8630472bc4e3c5382e8cf25c71056580ae7961c"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ed674f7d5f498c6704694b060702edc54c7b78c6"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ed674f7d5f498c6704694b060702edc54c7b78c6"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "e727bd070d415b86b3acdaae079a409cfdf5fac9"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "e727bd070d415b86b3acdaae079a409cfdf5fac9"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "62414d485511de450dfbd11fa145ca61d8db76dd"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "62414d485511de450dfbd11fa145ca61d8db76dd"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "538e1bcebead54f04f687d7d754f9ebaf288865e"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "538e1bcebead54f04f687d7d754f9ebaf288865e"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "129bd776bfdf5197d879764545393da5d9565ff7"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "129bd776bfdf5197d879764545393da5d9565ff7"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "a1628fa9386115a916e719ad504a0089a99d4e98"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "a1628fa9386115a916e719ad504a0089a99d4e98"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "453d2d0a4abe6d4256cf1027871220c84b0e485f"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "453d2d0a4abe6d4256cf1027871220c84b0e485f"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ce725457179e80d3f23079d2772bdad7936fcf8f"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ce725457179e80d3f23079d2772bdad7936fcf8f"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "622109114a99f4aa612301f286a249cd399ef2a4"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "622109114a99f4aa612301f286a249cd399ef2a4"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-D-host-reviews-merge.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "8bd175f6af1cacab1c3e36ad1670cb0da78d4abf"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "8bd175f6af1cacab1c3e36ad1670cb0da78d4abf"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-custom-review-integration.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "f903c556cc61da441b5809583a5698c457d0e574"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "f903c556cc61da441b5809583a5698c457d0e574"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-code-review.md",
+      "base": null,
+      "ours": null,
+      "theirs": [
+        "100644",
+        "blob",
+        "eb85f59ab70e2c0714c0ea7cea947dbabd449c7d"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "eb85f59ab70e2c0714c0ea7cea947dbabd449c7d"
+      ],
+      "rule": "theirs-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md",
+      "base": [
+        "100644",
+        "blob",
+        "1c0bc621e232c76f7e5d5a6a5a0be8f9d06ff55b"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "1c0bc621e232c76f7e5d5a6a5a0be8f9d06ff55b"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "6872a8ece98634c7300e7903afe67ff452e0cbdf"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "6872a8ece98634c7300e7903afe67ff452e0cbdf"
+      ],
+      "rule": "theirs-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-committed-docs-merge.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "f46b1a910d02243fa851cac2643c2470fc0102e0"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "f46b1a910d02243fa851cac2643c2470fc0102e0"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "7f4aed679e8bb247369d020fbec28404c07e5556"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "7f4aed679e8bb247369d020fbec28404c07e5556"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ea75ff5b79045fc0a917751a857e8b69ea544407"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ea75ff5b79045fc0a917751a857e8b69ea544407"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "f44e36516df359922736bf28f848ebbca54f283d"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "f44e36516df359922736bf28f848ebbca54f283d"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "732829d73416b92b8260fd958daed37e703bf3eb"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "732829d73416b92b8260fd958daed37e703bf3eb"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "6dad1c651d8f487ab81edb06424ca2354a24169c"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "6dad1c651d8f487ab81edb06424ca2354a24169c"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "9e93d97de580146d646028c98c6a0c0928b65d48"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "9e93d97de580146d646028c98c6a0c0928b65d48"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "f3fd83d9200c2673f3f4f37dabe418aac4aa94b8"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "f3fd83d9200c2673f3f4f37dabe418aac4aa94b8"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-sync-docs-health.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "7f05549c3a5f9d78ea03c1c06bb446714e48565d"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "7f05549c3a5f9d78ea03c1c06bb446714e48565d"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "f1746f3f5fde231c9efe6ae258e85d00534dcbb8"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "f1746f3f5fde231c9efe6ae258e85d00534dcbb8"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "4e70288e9a6c031decbaffd5f17719ce0a20f77d"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "4e70288e9a6c031decbaffd5f17719ce0a20f77d"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "fce319679e1de0ebb8fda415c26df105c8be44f3"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "fce319679e1de0ebb8fda415c26df105c8be44f3"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ff392690dd304b14ea16bb7d6ed6b4ead26d2659"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ff392690dd304b14ea16bb7d6ed6b4ead26d2659"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "d29751406a2d71e078015a8221feb7dd91511db5"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "d29751406a2d71e078015a8221feb7dd91511db5"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "c979aa84d0969328299f2389677e03baba524cbb"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "c979aa84d0969328299f2389677e03baba524cbb"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "78b5d398103fa55af9adf92c850fe6f23bd8b4bd"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "78b5d398103fa55af9adf92c850fe6f23bd8b4bd"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "27eb9d7a13b283463cf921dd4c2b68bde0330be5"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "27eb9d7a13b283463cf921dd4c2b68bde0330be5"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "bfb6e4efc2eaf4df21e837ccb37e62c972fcaf88"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "bfb6e4efc2eaf4df21e837ccb37e62c972fcaf88"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "789498104704da8c4cd124d6b1eaea95a88e7258"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "789498104704da8c4cd124d6b1eaea95a88e7258"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "c23b4c2cbfe016a3e890a47e2a411cc9563b49d1"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "c23b4c2cbfe016a3e890a47e2a411cc9563b49d1"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "a799dfb71dd2838eb9b2ef9576aff24d475563d6"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "a799dfb71dd2838eb9b2ef9576aff24d475563d6"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "cf7a0a49dbda4b2a7677234fcc15d4ca034e79d3"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "cf7a0a49dbda4b2a7677234fcc15d4ca034e79d3"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "49b45da77e738c27ba9b8460cb93badc861234f9"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "49b45da77e738c27ba9b8460cb93badc861234f9"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red-runner.py",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ab8d9899dcdb80d1826c4669c3bf6aafb0fbadcd"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ab8d9899dcdb80d1826c4669c3bf6aafb0fbadcd"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "b6bbf0f8382d4479d9fabef6de698991718fc7dd"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "b6bbf0f8382d4479d9fabef6de698991718fc7dd"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-old65d-red.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "dad4a9e1500084617075985fb6954aecd7a24ad9"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "dad4a9e1500084617075985fb6954aecd7a24ad9"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-overlap-old65d-red-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "af42fc43335e3035ba7383b745e62dfb9e09f74a"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "af42fc43335e3035ba7383b745e62dfb9e09f74a"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-overlap-old65d-red-runner.py",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "892860117955000062eb3a9981bb0103dfb93d21"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "892860117955000062eb3a9981bb0103dfb93d21"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-overlap-old65d-red.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "c2a8028aa84506de83ae94ed5162505cd12efc0c"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "c2a8028aa84506de83ae94ed5162505cd12efc0c"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27-docs-health.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "b6bd30b1e7ad358d3fa422d7076912b52a1315f2"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "b6bd30b1e7ad358d3fa422d7076912b52a1315f2"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "bb388a877828687b7fde1754913440b69df706a4"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "bb388a877828687b7fde1754913440b69df706a4"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-artifact-inventory.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "859ea6b616663fbb2c8546064e7386a9e1ebcad5"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "859ea6b616663fbb2c8546064e7386a9e1ebcad5"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-docs-health.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ba9711c960329275fd7923800a2394ff7db10e94"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ba9711c960329275fd7923800a2394ff7db10e94"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "c10293ed46a767752c894ba423f40db66857118e"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "c10293ed46a767752c894ba423f40db66857118e"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-artifact-inventory.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "3e436675fcdae55e15c55ddae0394fea37e22e36"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "3e436675fcdae55e15c55ddae0394fea37e22e36"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge-docs-health.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "f55908f61721cdeb3bc651d13aab1efa725912e9"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "f55908f61721cdeb3bc651d13aab1efa725912e9"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "5b67991210ec892d901d8cf32bf462109202c1ce"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "5b67991210ec892d901d8cf32bf462109202c1ce"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-pre-merge.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "fb8461a7386c58c9072a79bca7bf73548bfadc93"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "fb8461a7386c58c9072a79bca7bf73548bfadc93"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "16e1548dd0107b5d7206d1eb749657376725b95a"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "16e1548dd0107b5d7206d1eb749657376725b95a"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile-runner.py",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ddeef561dfda5216d7b61a90bc88a5cc0eb818d4"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ddeef561dfda5216d7b61a90bc88a5cc0eb818d4"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "96c38c52e4f16480caef12336f9f792a2eb38d14"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "96c38c52e4f16480caef12336f9f792a2eb38d14"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "b82e871e0882b3dcb183ca994482ab4bf797cf7a"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "b82e871e0882b3dcb183ca994482ab4bf797cf7a"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-final-docs-health.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "d2c5f66c7509adf57ec3b731538fb3833ec3c751"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "d2c5f66c7509adf57ec3b731538fb3833ec3c751"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-artifact-inventory.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "6cba50668e805b2624c1e4bf30f44ce4077b7993"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "6cba50668e805b2624c1e4bf30f44ce4077b7993"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge-docs-health.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ffe56c1bb5f69ced09290d58e245ef869bd8a2d1"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ffe56c1bb5f69ced09290d58e245ef869bd8a2d1"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge-identity.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "aee627ace6018b59f36abe597d25ff88b3d9e521"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "aee627ace6018b59f36abe597d25ff88b3d9e521"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-pre-merge.json",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "b18031c1d6a4e11fafdf343be30e3e592330d053"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "b18031c1d6a4e11fafdf343be30e3e592330d053"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "23cfd3c8f9f79e8425e2b6c4f2750722f982b3bf"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "23cfd3c8f9f79e8425e2b6c4f2750722f982b3bf"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-final-docs-health.log",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "9b52ca52c17c514294df3d63bd01d0f410734536"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "9b52ca52c17c514294df3d63bd01d0f410734536"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/deferred-gaps.md",
+      "base": [
+        "100644",
+        "blob",
+        "f61100d2cf33d53c2fee89c55f14f0a8969e56f1"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "a011a6ceeb8d83ab4bda57c1fefc94efada6db30"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "f61100d2cf33d53c2fee89c55f14f0a8969e56f1"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "a011a6ceeb8d83ab4bda57c1fefc94efada6db30"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/health-gates.md",
+      "base": [
+        "100644",
+        "blob",
+        "e6f6971c147b16b7211d995c81c730b3d12097be"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "4c81de80c7beb7ce654d7910e27f0afc93282f05"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "e6f6971c147b16b7211d995c81c730b3d12097be"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "4c81de80c7beb7ce654d7910e27f0afc93282f05"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "base": [
+        "100644",
+        "blob",
+        "5776263560cbf39f8f0c973f7a32d1f863fca96d"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "2a662f511399bde657a4ae21c459ca793cc703ed"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "5776263560cbf39f8f0c973f7a32d1f863fca96d"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "2a662f511399bde657a4ae21c459ca793cc703ed"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "docs/INDEX.md",
+      "base": [
+        "100644",
+        "blob",
+        "27ee7ba2ac6c5a0cf6b3469638f689ab37755c63"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "b1b8ca72db971e8c1375daf74b78e4863da3b6c9"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "27ee7ba2ac6c5a0cf6b3469638f689ab37755c63"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "b1b8ca72db971e8c1375daf74b78e4863da3b6c9"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "docs/reference/universe-agent/INDEX.md",
+      "base": [
+        "100644",
+        "blob",
+        "5c8ade8fc1166ee820e22bd21d8835091cafac28"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "2becb6aaaed7fbb3040e82d3c1e96e663a506248"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "5c8ade8fc1166ee820e22bd21d8835091cafac28"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "2becb6aaaed7fbb3040e82d3c1e96e663a506248"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "docs/reference/universe-agent/engine-protocol-surface.md",
+      "base": [
+        "100644",
+        "blob",
+        "d8d45c06047b37a0c5269c3411d71f33d07097c0"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "9ac1b9cb15aa282ac7620c83d76bdca6cf31fb36"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "d8d45c06047b37a0c5269c3411d71f33d07097c0"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "9ac1b9cb15aa282ac7620c83d76bdca6cf31fb36"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "docs/reference/universe-agent/ide-engine-feature-gaps.md",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "eb4addc3aacfd7aee42005615c22ed9e6359259c"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "eb4addc3aacfd7aee42005615c22ed9e6359259c"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "3566a12382b8d4ed32439a49d14697222444174e"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "77cd8c6d13305da1206e98aec146e2f2d8cc8cb4"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "3566a12382b8d4ed32439a49d14697222444174e"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "77cd8c6d13305da1206e98aec146e2f2d8cc8cb4"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "5fb5120797bb71f5f43e7bcab484f0200935e534"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "f4b5bba856ee10ef362d749839f31a5509b3b76c"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "5fb5120797bb71f5f43e7bcab484f0200935e534"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "f4b5bba856ee10ef362d749839f31a5509b3b76c"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentCapabilities.ts",
+      "base": [
+        "100644",
+        "blob",
+        "546a029f8b92bd55784d0e205318d58fb55b2e3f"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "90d417d1a595536c7af0d39b7c3bd87a0b108a56"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "546a029f8b92bd55784d0e205318d58fb55b2e3f"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "90d417d1a595536c7af0d39b7c3bd87a0b108a56"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentConnection.ts",
+      "base": [
+        "100644",
+        "blob",
+        "a657b8a7397e01f5af40155517302ba1fb30b2bd"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "5bd23d87d9b28d771f201dcbb19e1865f63c230e"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "a657b8a7397e01f5af40155517302ba1fb30b2bd"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "5bd23d87d9b28d771f201dcbb19e1865f63c230e"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.ts",
+      "base": [
+        "100644",
+        "blob",
+        "895d12d47fd15cac012431024fc9557f0d3fd96a"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "4926d0068c3e0b9dcdebb39e6a836eeab6c2a276"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "895d12d47fd15cac012431024fc9557f0d3fd96a"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "4926d0068c3e0b9dcdebb39e6a836eeab6c2a276"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentTypes.ts",
+      "base": [
+        "100644",
+        "blob",
+        "d1bb55b33764b186973f85a84cddc60689b4482f"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "77bdb39b03ae5df8ff5f9a0ad6b9ffae0438222b"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "d1bb55b33764b186973f85a84cddc60689b4482f"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "77bdb39b03ae5df8ff5f9a0ad6b9ffae0438222b"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcCatalogUnaryWire.ts",
+      "base": [
+        "100644",
+        "blob",
+        "57b9200c4bb0926567b01361d2b04a906db605f8"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "669fc8e3bcb16155bb05c102b885601a1ed3046d"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "57b9200c4bb0926567b01361d2b04a906db605f8"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "669fc8e3bcb16155bb05c102b885601a1ed3046d"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcClient.ts",
+      "base": [
+        "100644",
+        "blob",
+        "34b243f96c7bb4c833601393974d50963ec932ca"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "a5c462eba75b221c8d244b69c4c2a189e433afbc"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "34b243f96c7bb4c833601393974d50963ec932ca"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "a5c462eba75b221c8d244b69c4c2a189e433afbc"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcClientMappersCatalog.ts",
+      "base": [
+        "100644",
+        "blob",
+        "c53684cfd0890690edf586546aab1e6dc1783e8b"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "d5272cd3b08481cc2e3d11301e8c3f0f3e107d97"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "c53684cfd0890690edf586546aab1e6dc1783e8b"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "d5272cd3b08481cc2e3d11301e8c3f0f3e107d97"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcClientMappersSession.ts",
+      "base": [
+        "100644",
+        "blob",
+        "1dcf3bf29f0649f27995539e9a1b75525efae8fc"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "6e65c83ea7bbc8a59c27f224655a44ee866968a2"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "1dcf3bf29f0649f27995539e9a1b75525efae8fc"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "6e65c83ea7bbc8a59c27f224655a44ee866968a2"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcConfigPermissionUnaryWire.ts",
+      "base": [
+        "100644",
+        "blob",
+        "7fd0bd998c23f396e8ec4c3b8ed2e363f4d28a9e"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "a81818aa65e0a6009716f84b6fa6d5d35d442b93"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "7fd0bd998c23f396e8ec4c3b8ed2e363f4d28a9e"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "a81818aa65e0a6009716f84b6fa6d5d35d442b93"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcProtoCodec.ts",
+      "base": [
+        "100644",
+        "blob",
+        "f87ed92723dc0a123a1ee3299fd7dfe9c4398175"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "f9b5e3b15994f9de3c38c5ad3827547ea3a55f73"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "f87ed92723dc0a123a1ee3299fd7dfe9c4398175"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "f9b5e3b15994f9de3c38c5ad3827547ea3a55f73"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcSessionAttachWire.ts",
+      "base": [
+        "100644",
+        "blob",
+        "a869484f30beff9938eac3ee418bdc638e5f9089"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "429a1d6eb9e4d20176cecd684bae83f7af3a0216"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "a869484f30beff9938eac3ee418bdc638e5f9089"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "429a1d6eb9e4d20176cecd684bae83f7af3a0216"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcTransport.ts",
+      "base": [
+        "100644",
+        "blob",
+        "81797182b442b0862f4c99040525d80a16fd0a53"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "c6c9b1bdca9991c73dbf0ce3f95212fd2da68b4f"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "81797182b442b0862f4c99040525d80a16fd0a53"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "c6c9b1bdca9991c73dbf0ce3f95212fd2da68b4f"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcTriggerUnaryWire.ts",
+      "base": [
+        "100644",
+        "blob",
+        "465aac8f4a97ce8f79ebd11f7e339737cf6c5174"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "a0ac7b821fd342882b696808fc12d84a0055b86e"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "465aac8f4a97ce8f79ebd11f7e339737cf6c5174"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "a0ac7b821fd342882b696808fc12d84a0055b86e"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpcCapabilityProbe.ts",
+      "base": [
+        "100644",
+        "blob",
+        "ea09f0413bbcb92b0d5be7a4a8962aaa12684938"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "56a680d64c4c6a87c1f96411d27034d2fe5dcd99"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "ea09f0413bbcb92b0d5be7a4a8962aaa12684938"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "56a680d64c4c6a87c1f96411d27034d2fe5dcd99"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/universeAgentConnectionService.ts",
+      "base": [
+        "100644",
+        "blob",
+        "cc5c1e6d7d756affb8ec40758572373047cb59c3"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "3805ab5f5645917b05a4a1320aaf76163451bcfb"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "cc5c1e6d7d756affb8ec40758572373047cb59c3"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "3805ab5f5645917b05a4a1320aaf76163451bcfb"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/common/respondCleanup.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "b6df3025e5dd96ab712d2377d9e85823a29a4f60"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "bd2d4aaf5822495a692d69e5a01c7c2861cbdb6b"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "b6df3025e5dd96ab712d2377d9e85823a29a4f60"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "bd2d4aaf5822495a692d69e5a01c7c2861cbdb6b"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/deviceAuthHandshake.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "078d958124355fffc88a88b6fc331a2ebaa549f3"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "ce8377418985de4d87bd73bf97c9e0fccea0d14f"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "078d958124355fffc88a88b6fc331a2ebaa549f3"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "ce8377418985de4d87bd73bf97c9e0fccea0d14f"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcCapabilityProbe.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "a6dab8e889d031ddc642afe63a4cfbcc4b216639"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "df4f607aac96381c9f22e62720d5598234dd8528"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "a6dab8e889d031ddc642afe63a4cfbcc4b216639"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "df4f607aac96381c9f22e62720d5598234dd8528"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "ea8cdd4f3d5e521a0ed56cf72c32ebf926aaf302"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "6bd02e937e9f40e6b5d78b8ff4286b9020f1fb31"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "ea8cdd4f3d5e521a0ed56cf72c32ebf926aaf302"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "6bd02e937e9f40e6b5d78b8ff4286b9020f1fb31"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcProtocolConsumption.test.ts",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "d78735b651a4cf5cf01b68ec634806e176441ce4"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "d78735b651a4cf5cf01b68ec634806e176441ce4"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcSessionWrites.test.ts",
+      "base": null,
+      "ours": [
+        "100644",
+        "blob",
+        "31753414bbfebbca434a4a73df90f743f048cbc7"
+      ],
+      "theirs": null,
+      "result": [
+        "100644",
+        "blob",
+        "31753414bbfebbca434a4a73df90f743f048cbc7"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcTriggerUnaryWire.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "e2935e1a325e9ae3435fe0dbd217693904d951b6"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "c4906a04b885349058740d1fcd4b368cc58333a9"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "e2935e1a325e9ae3435fe0dbd217693904d951b6"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "c4906a04b885349058740d1fcd4b368cc58333a9"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "db6541673c8e473bbf716219909c5b8ece6ff3c7"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "08b5ab6c36f6fc8645fd1108a249fbeaaf256f9e"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "db6541673c8e473bbf716219909c5b8ece6ff3c7"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "08b5ab6c36f6fc8645fd1108a249fbeaaf256f9e"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "ac6bd146a1393fc72414276426d30051f3cc8b5f"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "6314fcff4da9ba8d75ebc9028a0904291feff117"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "ac6bd146a1393fc72414276426d30051f3cc8b5f"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "6314fcff4da9ba8d75ebc9028a0904291feff117"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/universeAgentConnectionIpcChannel.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "a5316cb431787792098ef279bb2e36466ee113ad"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "806627360e67681b729fda0dbaacff3ca878ce60"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "a5316cb431787792098ef279bb2e36466ee113ad"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "806627360e67681b729fda0dbaacff3ca878ce60"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/changes/browser/changesActions.ts",
+      "base": [
+        "100644",
+        "blob",
+        "7f75a31cf5b61356d5f94e79cd7f69f8346689e7"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "373a716a07c7d8800c278f586fdfc6533e0a5043"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "7f75a31cf5b61356d5f94e79cd7f69f8346689e7"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "373a716a07c7d8800c278f586fdfc6533e0a5043"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/changes/browser/changesetReviewActions.ts",
+      "base": [
+        "100644",
+        "blob",
+        "7a622f9c2cdd24780f05606cc818b9380e2dbe88"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "a75a25daf433fb9c499a97e01b7e688c7a14be48"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "7a622f9c2cdd24780f05606cc818b9380e2dbe88"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "a75a25daf433fb9c499a97e01b7e688c7a14be48"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "b6818cdd64e1ed339b39819833d2883db1ac86e5"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "7961da1343ab64e02c88d9bc9bb6eff887bcc48a"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "b6818cdd64e1ed339b39819833d2883db1ac86e5"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "7961da1343ab64e02c88d9bc9bb6eff887bcc48a"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "75a016cb6db835a3e024bde53711822effbac953"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "d9cb1bd1ba9c1504f24537dcfb75d7ae48295682"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "75a016cb6db835a3e024bde53711822effbac953"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "d9cb1bd1ba9c1504f24537dcfb75d7ae48295682"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "505355b7c6bf2ae3fef5366b2e05f18b2168b324"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "5e3096c8944445f316260a52107e5100654c30ea"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "505355b7c6bf2ae3fef5366b2e05f18b2168b324"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "5e3096c8944445f316260a52107e5100654c30ea"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts",
+      "base": [
+        "100644",
+        "blob",
+        "c951c05b0d9b6ec5ace0b5186f379f3f5a12d761"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "4cfa490846617d9a3d3985ad280a1bd4bae6db52"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "c951c05b0d9b6ec5ace0b5186f379f3f5a12d761"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "4cfa490846617d9a3d3985ad280a1bd4bae6db52"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "3df76363a2edde4b04d1600bf47e4c32765138a1"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "099c92397fb8c022d032c6c8f8e49d3ddc11f9d4"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "3df76363a2edde4b04d1600bf47e4c32765138a1"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "099c92397fb8c022d032c6c8f8e49d3ddc11f9d4"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "a49ec799653515a9784b4c768c40fb376c656678"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "1299ab9bd45dda0a3a1e4a2a1560068fadf5cc5b"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "a49ec799653515a9784b4c768c40fb376c656678"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "1299ab9bd45dda0a3a1e4a2a1560068fadf5cc5b"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "ffd50263d0db9957341978a2c47537e6ad680351"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "c6da71247f8b12579df4f177083cee8788156d06"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "ffd50263d0db9957341978a2c47537e6ad680351"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "c6da71247f8b12579df4f177083cee8788156d06"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/engineToolProfile.ts",
+      "base": [
+        "100644",
+        "blob",
+        "cacfc0d93bd9c9207fc814c1d38c13231f6067fb"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "b80dc979d6dcf31c50fe1747c2777d9d3c6827d8"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "cacfc0d93bd9c9207fc814c1d38c13231f6067fb"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "b80dc979d6dcf31c50fe1747c2777d9d3c6827d8"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "base": [
+        "100644",
+        "blob",
+        "08fbfaeaca75a1968db91e151b9bb72a37ccab4a"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "b47df73d702020c2020aa8d2fa9f389e00fbc8a8"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "08fbfaeaca75a1968db91e151b9bb72a37ccab4a"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "b47df73d702020c2020aa8d2fa9f389e00fbc8a8"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/conversationSessionsInlineFilter.css",
+      "base": [
+        "100644",
+        "blob",
+        "1cb2cbdf70bf259989601ab11a4c3cdabb2e076c"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "0a123e0b9d1a61b8e536aa4cf8c4b59c56f1c386"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "1cb2cbdf70bf259989601ab11a4c3cdabb2e076c"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "0a123e0b9d1a61b8e536aa4cf8c4b59c56f1c386"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "base": [
+        "100644",
+        "blob",
+        "d384c0d5f9f8db5838be4781f3637c60acf4a0a4"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "c5f5390418094679147c6aa908974e6074754d1f"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "d384c0d5f9f8db5838be4781f3637c60acf4a0a4"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "c5f5390418094679147c6aa908974e6074754d1f"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "d1ac4bcb7653b00c58eaf42d6be94a707c9bcf5c"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "cb2c9a86e3265d6118604c45d090f0908847b679"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "d1ac4bcb7653b00c58eaf42d6be94a707c9bcf5c"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "cb2c9a86e3265d6118604c45d090f0908847b679"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "c4389d205e7192a2bf9805f89d50a8b166224cab"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "07535717f1bfb3438f5f00d8cb4a679c8dda63f3"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "c4389d205e7192a2bf9805f89d50a8b166224cab"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "07535717f1bfb3438f5f00d8cb4a679c8dda63f3"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "545eff17fc2221fc2979b5f9ad5cf04e0bb3b96d"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "c7f5121f290d90a7ae16d1d6c05bd86479cf303d"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "545eff17fc2221fc2979b5f9ad5cf04e0bb3b96d"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "c7f5121f290d90a7ae16d1d6c05bd86479cf303d"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "12c6c9a3aa3c3de5d957f8944dc9dc5fc225e67d"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "c0dce7cf1e5cf177da282979a758a852458cb8fa"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "12c6c9a3aa3c3de5d957f8944dc9dc5fc225e67d"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "c0dce7cf1e5cf177da282979a758a852458cb8fa"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/engineToolProfile.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "c9919d70c7250d10ea26176314cb89a6888a4f02"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "d3bd68558396f16bf0237b3c1ca1baf9062e407b"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "c9919d70c7250d10ea26176314cb89a6888a4f02"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "d3bd68558396f16bf0237b3c1ca1baf9062e407b"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "d20d6d716b1db2b5599e04456113d60f731f2767"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "caacea76caec12cd73e8e17d210028d071422bc5"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "d20d6d716b1db2b5599e04456113d60f731f2767"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "caacea76caec12cd73e8e17d210028d071422bc5"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "870424170088a514cd5835c7d2e0825b5bed0c5a"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "6cf44bb7039433071ced7d3ed84eb237779b69a7"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "870424170088a514cd5835c7d2e0825b5bed0c5a"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "6cf44bb7039433071ced7d3ed84eb237779b69a7"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "73b8e5eed13f573951e8da6184643fabe4a4b58f"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "9f975e76f36287ba96f01bcbeec6c1232b8afdb3"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "73b8e5eed13f573951e8da6184643fabe4a4b58f"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "9f975e76f36287ba96f01bcbeec6c1232b8afdb3"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "c2a7f24009d352b01f54df7f6f2c75fbe56e982c"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "a5a948de5c8139dfd7b2e5b0e4ce4b332caa884e"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "c2a7f24009d352b01f54df7f6f2c75fbe56e982c"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "a5a948de5c8139dfd7b2e5b0e4ce4b332caa884e"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "bdbc3794c96cf61ec6720741b51bf0a682affa68"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "0f787c34970259b4ea7d53c7387551b49131ce4c"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "bdbc3794c96cf61ec6720741b51bf0a682affa68"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "0f787c34970259b4ea7d53c7387551b49131ce4c"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/output/test/browser/outputServices.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "98dc0001669ec36ed90fdeb642675c0c0db7009e"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "5c6c5f848045c9323a76d90fe2095986901bb8e1"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "98dc0001669ec36ed90fdeb642675c0c0db7009e"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "5c6c5f848045c9323a76d90fe2095986901bb8e1"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/media/sourcesTabs.css",
+      "base": [
+        "100644",
+        "blob",
+        "306d3c1776f461aeac11db38e23264aef7e62ee4"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "4bbdbdd630a07f25458178a95feb7cd2e596d1a9"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "306d3c1776f461aeac11db38e23264aef7e62ee4"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "4bbdbdd630a07f25458178a95feb7cd2e596d1a9"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "d1eecbfd9cf3c563137f54a3a61a8eacbf7befb9"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "b9956c48c6dcef202d578900295002098bb263f6"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "d1eecbfd9cf3c563137f54a3a61a8eacbf7befb9"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "b9956c48c6dcef202d578900295002098bb263f6"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "d6ed53f50a0d1a1cd84f022430e78d0cd56c7c74"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "f71addba8fc30c96c786de14a7a820aa895704a6"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "d6ed53f50a0d1a1cd84f022430e78d0cd56c7c74"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "f71addba8fc30c96c786de14a7a820aa895704a6"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "a0f3b750bb76d7e9c37cdfa9a6269c6eccfbe207"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "276a058d3e886af0eee77e6ec27eab76d86d46e5"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "a0f3b750bb76d7e9c37cdfa9a6269c6eccfbe207"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "276a058d3e886af0eee77e6ec27eab76d86d46e5"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts",
+      "base": [
+        "100644",
+        "blob",
+        "366de9b22ea0172d0c819aa77a4977aa5ee4c832"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "3a7f6ec138d7edb0288a5a85849c4a1fbe15f279"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "366de9b22ea0172d0c819aa77a4977aa5ee4c832"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "3a7f6ec138d7edb0288a5a85849c4a1fbe15f279"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts",
+      "base": [
+        "100644",
+        "blob",
+        "6ea43ade18bae27062a80ed1731f17673a68cf62"
+      ],
+      "ours": [
+        "100644",
+        "blob",
+        "f941beecb422ed8779294b283480cd0ec45da4c2"
+      ],
+      "theirs": [
+        "100644",
+        "blob",
+        "6ea43ade18bae27062a80ed1731f17673a68cf62"
+      ],
+      "result": [
+        "100644",
+        "blob",
+        "f941beecb422ed8779294b283480cd0ec45da4c2"
+      ],
+      "rule": "ours-only-exact",
+      "passed": true
+    }
+  ],
+  "sourceTreeUnchanged": true,
+  "bashScriptMissingAndNotExecuted": true
+}

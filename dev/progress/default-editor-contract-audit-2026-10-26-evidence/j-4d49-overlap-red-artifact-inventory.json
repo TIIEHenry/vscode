@@ -1,0 +1,65 @@
+{
+  "phase": "fixed-listener-immutable-overlap-business-red-and-D-peer-docs",
+  "testRef": "4d4906163044929c1b7b7a7ed40693a2cd4a9a91",
+  "producerRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+  "nativeCompileSource": "ad80c9fe1cfaaa250ea0eac9e05de6d780f984c2",
+  "currentSourceTree": "7fa3c86d152420afeb66c6038bd961bb6d5b8f4b",
+  "artifacts": [
+    {
+      "originalPath": "/tmp/vscode-d1387-fixed-listener-old65d-overlap-red.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-runner.py",
+      "bytes": 7647,
+      "sha256": "69d9babff85f6345e01c7f738ba2beec66c97dacf129df0d5b1d0e30e033991f",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-d1387-fixed-listener-old65d-overlap-red.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red.log",
+      "bytes": 2968,
+      "sha256": "6383f6eea2284d326194f147eac93d00f46aed27fba0b7b1ec5b458ddfae7eee",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-d1387-fixed-listener-old65d-overlap-red-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-identity.json",
+      "bytes": 16061,
+      "sha256": "a3d6b9097045b2ad4035d0bf7729bf41721cab4192da3f68f7d1c122070980c7",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-j-4d49-D-peer-docs-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-D-peer-docs-pre-merge.json",
+      "bytes": 17755,
+      "sha256": "8ca97db3e09a8d7213a90ba0293779047cf4aded7d5049ab9c755ead4c935890",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-j-4d49-D-peer-docs-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-D-peer-docs-merge.log",
+      "bytes": 55,
+      "sha256": "b0a553d20817e5980c564f1485d89ea0f776bc5f8ebf0f34a0a4010e2bcb9099",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-j-4d49-D-peer-docs-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-D-peer-docs-merge-identity.json",
+      "bytes": 112601,
+      "sha256": "4d4daee17f6e51fd94aa98eb4db659d0cc01aef4084d6dc614942ff0e4449fce",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-j-4d49-D-peer-docs-health.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-D-peer-docs-health.log",
+      "bytes": 4384,
+      "sha256": "c40601bcf9a980d7a37defd49144e53a73cc326ddc24446a2d99ad6881abbfb8",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-j-4d49-final-docs-health.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-final-docs-health.log",
+      "bytes": 4384,
+      "sha256": "97e48bdc3f3ec3a6ec8dc173f85f2b09569dffe2994821cfffab47591aef9178",
+      "bytePreservingCopy": true
+    }
+  ]
+}
