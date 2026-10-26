@@ -1,0 +1,9 @@
+{
+  "ours": "509ed19ef339e39236e90169ece9cd0f92d72585",
+  "theirs": "e7c246315db77aa8277775338522bb9a1cb8ff84",
+  "mergeBase": "2fd206e74d846052ca0083ee27d8046c91b348ac",
+  "checkedAtUtc": "2026-10-26T23:12:26.668230+00:00",
+  "all254PriorSourceNativeModeExactBefore": true,
+  "priorArtifactCount": 582,
+  "peer": "8f45ece14a319557ab61406dcd7deb36db717657"
+}

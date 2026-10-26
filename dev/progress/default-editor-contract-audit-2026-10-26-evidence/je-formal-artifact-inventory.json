@@ -1,5 +1,5 @@
 {
-  "phase": "final2fd-targeted-semantic0-eslint0-1-attempt1-emitter-fail-r2-emitter0-full-lens314-3-current254-preserved-no-freeze",
+  "phase": "e7-test-only-source-integrated-before-targeted-validation",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -4073,6 +4073,27 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-connection-chrome-event-delivery.json",
       "bytes": 1651,
       "sha256": "e00e639a2b5f37e740cd63fb3495df6ec9b53e944693b72e88709e135092db7c",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-pairing-dom-turn-source-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-pairing-dom-turn-source-pre-merge.json",
+      "bytes": 359,
+      "sha256": "cf887d52da265d4dccec9fbde1974706744790d5e8b41e59a699ab84d3acf403",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-pairing-dom-turn-source-conflict-resolutions.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-pairing-dom-turn-source-conflict-resolutions.json",
+      "bytes": 420423,
+      "sha256": "b94b775c81c4523b5cb2a19eeee3812477e0a1647815ba030cbf2d600cf2bc1c",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-pairing-dom-turn-source-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-pairing-dom-turn-source-merge-identity.json",
+      "bytes": 510366,
+      "sha256": "3197fb892d62cc95fa574a464d8142347e8725deddf7c1f2f4c05b1d6a568f28",
       "bytePreservingCopy": true
     }
   ]

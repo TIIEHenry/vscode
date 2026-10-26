@@ -306,3 +306,13 @@ postBound与三种响应函数及断连guard只更换参数的静态宿主类型
 §9.6四项修订及断言全部保留：从当前Lens测试删除本次唯一新增block后与c683整文件逐字一致，DisposeGate整文件不变；原roster新10/旧160、Projection reasoning与生产browser树也未改。仅补测试和行动记录，无新的用户行为/契约，知识规格无需同步；方案继续accepted，不作freeze/green/wave关闭或新UI after结论。
 
 本轮静态检查：1个改动TS parse 0语法诊断（无checker/emit），ESLint 0 errors / 1条既有line82 duplicate-import warning；新增行无any/unknown/Partial及除as const外的类型断言，生产diff为空。diff check、生成状态核对通过，docs-health 0 errors / 73条既有warnings，status200行。静态证据 `/tmp/vscode-e-connection-chrome-event-{static,eslint,docs-health}.json`。E未compile/typecheck/transpile/watch、未写out或运行依赖out的测试；固定候选仍待原Astra复审和唯一baseline实际验证，不将静态证据当作I1业务已转绿。
+
+### 9.8 唯一lane实际314过3败后的DOM夹具与正文观察面补修
+
+原Astra对 `2fd206e74d846052ca0083ee27d8046c91b348ac` 复读C0/I0/M0（报告commit `fbee68cf12ad7f0b8771367f7ca8774d913b62b5`），仅闭合I1静态覆盖。唯一lane随后按src `792ebb57bb1e48fa4b2ee00752c5e81c10a85ff6` 定向emit exit0，完整两测试文件实际exit1：DisposeGate168过/1败、Lens145过/2败、meta1过，共314过/3败。原始日志 `/tmp/vscode-e-final-two-tests-r2.full-lens-suites.log`，SHA-256 `56df7129b5116e90808c6a71a429976cd4f0821c9a680af1510b73c2108e31cd`。前述draft、client-tool早拒/roster内晚断连及gateRow文案三组夹具修订本轮实际通过，不扩大改动。
+
+三败均须保留：KEEP测试去掉source pin后进入原后半，真实updateConversationPhase在readingColumn.insertBefore收到假identityStrip.element时抛非Node TypeError，后续sync徽章断言尚未达；两真实事件用例已到同lease/snapshot/entries断言，随后outer timeline全文相等失败，因为连接状态合法从 `Engine · Loopback` 变为 `Waiting for pairing` 并显示stale snapshot banner，原正文相同，后续badge三属性断言同样未达。该次运行不计两徽章回归green，也不归为生产行为失败。
+
+父采纳原Astra独立裁定，仅补测试：`pairingSyncChromeHost` 的dock、hero、dockRoot、gateRow、identityStrip.element、inboxOverlay.element全用真实div，hero初始持identity/gate，dockRoot真实持inbox作为insertBefore reference；KEEP测试body及原phase/sync调用、全部业务断言逐字不变，不设phase绕过、不新增noop。两个事件实例捕获appendUserTurn返回的真实turn，按其id在事件前后分别重查实际user turn行和body，精确核data-turn-id及正文text，而不比较合法变化的外层状态chrome或强求重render前DOM Node引用。事件前live与0事件计数、单一路public事件1/0、同lease/snapshot/entries及closed徽章text/title/aria和无Session live断言全部保留，不手调phase/sync、不新增宽cast或生产改动。
+
+本轮静态核对：2个改动TS parse 0语法诊断（无checker/emit）；ESLint 0 errors / 1条Lens line82既有duplicate-import warning；KEEP测试body逐字不变，DisposeGate仅helper变动、Lens仅事件block变动，原事件block的27条非observer断言全部原文保留，原roster新10/旧160与reasoning整文件及生产browser树不变，新增行无any/unknown/Partial或类型断言。diff check、生成状态核对通过，docs-health 0 errors / 73条既有warnings，status200行。证据 `/tmp/vscode-e-pairing-dom-turn-corrections-{static,eslint,docs-health}.json`；不编译/typecheck/transpile/watch、不写out、不运行业务。固定新候选待原Astra复审和唯一lane最小fresh运行；保留314/3失败历史、方案accepted，不freeze、不关wave、不借旧green或after结论。
