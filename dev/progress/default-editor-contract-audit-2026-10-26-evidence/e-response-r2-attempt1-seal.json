@@ -1,0 +1,12 @@
+{
+  "runId": "sources-m01-after-20261027-r2",
+  "attempt": 1,
+  "classification": "EXECUTED_WITH_OBSERVER_CONTAMINATION",
+  "files": 320,
+  "archiveSha256": "4aff8e15b0a277f49fbef43a17188c7d9ecc5f8d8b74e9773d19f94e34f2a792",
+  "inventorySha256": "4d1af46f525f9249565babfec2dadd0f1339a19d5484678c3978c8d159d125c5",
+  "everyArchivedOriginalShaVerified": true,
+  "zeroQueueProbe": false,
+  "businessUiCasesPassed": 8,
+  "boundaryCases": 1
+}

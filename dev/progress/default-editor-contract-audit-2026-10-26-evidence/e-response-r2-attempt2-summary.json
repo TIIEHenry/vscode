@@ -1,0 +1,89 @@
+{
+  "runId": "sources-m01-after-20261027-r2",
+  "attempt": 2,
+  "stage": "E-after-current-frozen-production",
+  "status": "EVIDENCE_SEALED_PENDING_PRODUCT_FIX",
+  "sourceHead": "800d383ba65fdefb36da324b380941c7574c4bf3",
+  "sourceTree": "2b5df2b37ca926e38888443e371cf65e2883dba2",
+  "producer": "bd1b756066932d524f5de5f6b8fdc247c70d46f5",
+  "eNoticeRawSha256": "cacee49ecc452d69fbf6dd33557a6363b32ad269626f0d4aec9a444f80d38098",
+  "jNoticeRawSha256": "671cb3c8d944cd785772b8c8326415f0c2263c29e47cc0bfc991f2454e62479b",
+  "frozenOutputsSha256": "f9dd6bc5f3923a4bd57f6b70ab01ac5070bcbd991c67cbef667d8cbfcbfc23d6",
+  "full163RawSha256": "ba84c0c60db4de894d2b0276cda24665f48003a911dbb053570dc0c4e00cc022",
+  "allRequiredCasesPassed": false,
+  "phaseComplete": false,
+  "waveComplete": false,
+  "businessUiCasesPassed": 8,
+  "timelineOnlyBoundaryCases": 1,
+  "importantProductFailures": [
+    {
+      "id": "disconnected-cached-permission-false-local-success",
+      "severity": "Important",
+      "state": "FAIL_PRODUCT",
+      "steps": [
+        "69-A2-disconnect-public-disconnect-observed",
+        "70-A2-disconnect-permission-normal-ui-attempt"
+      ],
+      "observed": "closed/channelAlive=false cached permission controls remained enabled; normal Allow click changed both actual Pane cards to Allowed and cleared local pending without an engine response unary",
+      "reviewer": "/root/architecture_audit",
+      "reviewClassification": "contract-in-scope E \u00a72/\u00a76 fix required; zero RPC does not offset false local success",
+      "sourceChangedInThisAttempt": false
+    }
+  ],
+  "minorFocusCandidate": {
+    "step": 38,
+    "postEnterActiveElement": "BODY",
+    "businessDispatchPassed": true
+  },
+  "supplementStates": {
+    "keyboardDispatch": {
+      "state": "PASS_DISPATCH_WITH_FOCUS_OBSERVATION",
+      "artifact": "keyboard-theme-width-focus.json",
+      "minor": "clientTool post-Enter activeElement BODY; permission/question moved to their own seat DIV"
+    },
+    "differentRequestsConcurrent": {
+      "state": "PASS",
+      "artifact": "concurrency-result.json"
+    },
+    "actualTransportLossRestart": {
+      "state": "PASS",
+      "artifact": "transport-restart-result.json",
+      "scope": "local response busy/failure not carried into new binding; global CANCELLED error remains in body"
+    },
+    "finalPublicDisconnect": {
+      "state": "FAIL_PRODUCT",
+      "artifact": "disconnect-negative-result.json",
+      "permission": "real normal UI click falsely changed cached model to Allowed",
+      "question": "response control absent after disconnect; no disabled-control credit",
+      "clientTool": "response control absent after disconnect; no disabled-control credit",
+      "responseUnaryDelta": 0,
+      "chatWriteDelta": 0
+    }
+  },
+  "runtimeAssetCounts": {
+    "renderer-js-loaded": 40,
+    "manifest-only": 12,
+    "renderer-css-loaded": 1
+  },
+  "runtimeMissingRequired": [],
+  "cssRawBytesMatch": false,
+  "cssAll683ActualRulesEqualFrozenReference": true,
+  "traceCounts": {
+    "receivedCallCount": 43,
+    "unaryDispatchCount": 39,
+    "responseUnaryCount": 19,
+    "residentChatStreamOpens": 2,
+    "chatWritePayloads": 0,
+    "getQueueReceived": 0,
+    "saveSkillContentReceived": 0,
+    "unknownMethodCount": 0
+  },
+  "sourceNative163Guard": "full163-guard-after.json",
+  "jGuard": "j-preservation-after-cleanup.json",
+  "fixturesGuard": "git-fixtures-exact-baseline-after.json",
+  "cleanup": "attempt2-cleanup.json",
+  "remainingOwnedLiveProcesses": 0,
+  "attempt1ContaminatedArchiveSha256": "4aff8e15b0a277f49fbef43a17188c7d9ecc5f8d8b74e9773d19f94e34f2a792",
+  "observerAssertionPreserved": "transport-episode-2/observer-inode-reuse-assertion.json",
+  "scopeLimit": "This is a completed evidence stage with a product FAIL, not completion or acceptance of E or the wave."
+}
