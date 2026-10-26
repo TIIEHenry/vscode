@@ -1,0 +1,63 @@
+{
+  "phase": "immutable-j-e-old-business-red-before-formal-source-integration",
+  "nativeSourceBaseline": "ad80c9fe1cfaaa250ea0eac9e05de6d780f984c2",
+  "nativeSourceTree": "030defda3cc7cfac7148e84fac470a3bf5098d06",
+  "artifacts": [
+    {
+      "originalPath": "/tmp/vscode-d1387-host-overlap-old65d-red.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-overlap-old65d-red-runner.py",
+      "bytes": 5842,
+      "sha256": "9ae460d23891be396beefaac8983cde20d5de58871c9909a89525c8666584470",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-d1387-host-overlap-old65d-red-host.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-old65d-red.log",
+      "bytes": 6662,
+      "sha256": "35da41701b38b4d835f39ab168d482933ad65d686d7b5bc5bed7481439508fde",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-d1387-host-overlap-old65d-red-overlap.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-overlap-old65d-red.log",
+      "bytes": 3072,
+      "sha256": "21c87f78b09dd1bfbe8788f88a824fa3c3faaa14ac478ca553d33ebd36d4042f",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-d1387-host-overlap-old65d-red-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-overlap-old65d-red-identity.json",
+      "bytes": 16927,
+      "sha256": "f3354d207fccb2faff93a0188e3a910b93a7955576bbe26f8d5288ec39264899",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-response-recovery-old-ad80-red.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red-runner.py",
+      "bytes": 7395,
+      "sha256": "5493856621bd361672a0bf1c8f6306b6482681629822e8dc956a6d417889f109",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-response-recovery-old-ad80-red.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red.log",
+      "bytes": 4851,
+      "sha256": "8cdd4d16843cd624926dd38f1f70dde6457f8f304b4340623a1d84803272e265",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-response-recovery-old-ad80-red-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red-identity.json",
+      "bytes": 22572,
+      "sha256": "1bb38d04c8ff7b50bc4619378a838dd8286a3d19d763f9ab8a0dfb5cb2a284f0",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-old-red-docs-health.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-docs-health.log",
+      "bytes": 4384,
+      "sha256": "79833c7e070ecba89491c2be96954ae88f32900356a900dc65fe65d9cbf3afaf",
+      "bytePreservingCopy": true
+    }
+  ]
+}

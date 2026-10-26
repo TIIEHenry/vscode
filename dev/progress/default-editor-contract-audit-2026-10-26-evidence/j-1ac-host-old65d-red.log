@@ -1,0 +1,212 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1333911:1026/234740.331001:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1333935) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1333935) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1333935) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources - Changes list open[0m
+  [31m  1) delegated host official file newTab records inactive B and its canonical reveal while A stays active[0m
+  [31m  2) delegated host official file replace records inactive B and its canonical reveal while A stays active[0m
+  [31m  3) delegated host official diff newTab records inactive B and its canonical reveal while A stays active[0m
+  [31m  4) delegated host official diff replace records inactive B and its canonical reveal while A stays active[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (175ms)[0m
+[31m  4 failing[0m
+
+[0m  1) Sources - Changes list open
+       delegated host official file newTab records inactive B and its canonical reveal while A stays active:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+         "activeA": true
+         "activeB": true
+         "calls": 1
+         "identityA": {
+      [32m+    "groupId": "workingTree"[0m
+      [32m+    "sameResource": true[0m
+      [32m+  }[0m
+      [32m+  "identityB": {[0m
+           "groupId": "index"
+      [31m-    "sameResource": false[0m
+      [32m+    "sameResource": true[0m
+         }
+      [31m-  "identityB": "[undefined]"[0m
+         "pinnedA": false
+         "pinnedB": false
+         "visibleB": false
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      activeA: true,
+      activeB: true,
+      calls: 1,
+      identityA: {
+  -     groupId: 'workingTree',
+  -     sameResource: true
+  -   },
+  -   identityB: {
+        groupId: 'index',
+  +     sameResource: false
+  -     sameResource: true
+      },
+  +   identityB: undefined,
+      pinnedA: false,
+      pinnedB: false,
+      visibleB: false
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:437:18)
+[0m
+[0m  2) Sources - Changes list open
+       delegated host official file replace records inactive B and its canonical reveal while A stays active:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+         "activeA": true
+         "activeB": true
+         "calls": 1
+         "identityA": {
+      [32m+    "groupId": "workingTree"[0m
+      [32m+    "sameResource": true[0m
+      [32m+  }[0m
+      [32m+  "identityB": {[0m
+           "groupId": "index"
+      [31m-    "sameResource": false[0m
+      [32m+    "sameResource": true[0m
+         }
+      [31m-  "identityB": "[undefined]"[0m
+         "pinnedA": false
+         "pinnedB": false
+         "visibleB": false
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      activeA: true,
+      activeB: true,
+      calls: 1,
+      identityA: {
+  -     groupId: 'workingTree',
+  -     sameResource: true
+  -   },
+  -   identityB: {
+        groupId: 'index',
+  +     sameResource: false
+  -     sameResource: true
+      },
+  +   identityB: undefined,
+      pinnedA: false,
+      pinnedB: false,
+      visibleB: false
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:437:18)
+[0m
+[0m  3) Sources - Changes list open
+       delegated host official diff newTab records inactive B and its canonical reveal while A stays active:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+         "activeA": true
+         "activeB": true
+         "calls": 1
+         "identityA": {
+      [32m+    "groupId": "workingTree"[0m
+      [32m+    "sameResource": true[0m
+      [32m+  }[0m
+      [32m+  "identityB": {[0m
+           "groupId": "index"
+      [31m-    "sameResource": false[0m
+      [32m+    "sameResource": true[0m
+         }
+      [31m-  "identityB": "[undefined]"[0m
+         "pinnedA": false
+         "pinnedB": false
+         "visibleB": false
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      activeA: true,
+      activeB: true,
+      calls: 1,
+      identityA: {
+  -     groupId: 'workingTree',
+  -     sameResource: true
+  -   },
+  -   identityB: {
+        groupId: 'index',
+  +     sameResource: false
+  -     sameResource: true
+      },
+  +   identityB: undefined,
+      pinnedA: false,
+      pinnedB: false,
+      visibleB: false
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:437:18)
+[0m
+[0m  4) Sources - Changes list open
+       delegated host official diff replace records inactive B and its canonical reveal while A stays active:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+         "activeA": true
+         "activeB": true
+         "calls": 1
+         "identityA": {
+      [32m+    "groupId": "workingTree"[0m
+      [32m+    "sameResource": true[0m
+      [32m+  }[0m
+      [32m+  "identityB": {[0m
+           "groupId": "index"
+      [31m-    "sameResource": false[0m
+      [32m+    "sameResource": true[0m
+         }
+      [31m-  "identityB": "[undefined]"[0m
+         "pinnedA": false
+         "pinnedB": false
+         "visibleB": false
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      activeA: true,
+      activeB: true,
+      calls: 1,
+      identityA: {
+  -     groupId: 'workingTree',
+  -     sameResource: true
+  -   },
+  -   identityB: {
+        groupId: 'index',
+  +     sameResource: false
+  -     sameResource: true
+      },
+  +   identityB: undefined,
+      pinnedA: false,
+      pinnedB: false,
+      visibleB: false
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:437:18)
+[0m
+
+

@@ -13,6 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
+| [J/E不可变候选旧业务红](default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md) | J宿主4真红/并发2混夹具问题待作者补修；E真实DOM6红（4缺错误、2先缺busy）；34native身份均恢复，未formal合源/新绿/after |
 | [180fc已提交基线接入与全量编译](default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md) | ad80真三路保留78路径，src精确030def=180fc，真实compile-client0；原生emit替换65d旧pack，J/E候选未接，无主ff重试/after |
 | [D1387 宿主源码审查](default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md) / [宿主与重叠保护两轮方案审查](default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md) | 原实现同tuple多宿主Important；新增Sources重叠I1经第二轮方案C0/I0，J bf50方案独立accepted后实施中，未接新生产/after |
 | [D1387 不可变叠加验证](default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md) | 精确23f R1/R2各4业务红；65d虚拟noEmit0、完整Electron357过、wiring23/1既有红、lint0/56；51份原始证据入库，父51/30/Src独立复核通过；J并发I1方案C0/I0/生产待接、E accepted实施中，未formal合源/after |

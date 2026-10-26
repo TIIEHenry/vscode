@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "180fc已提交UI基线真三路接入ad80，src030def完整compile-client0；65d旧pack非live；J/E完整候选待，无主ff重试/after。"
+summary: "180fc已提交UI基线真三路接入ad80，src030def完整compile-client0；65d旧pack非live；J/E已queued且旧业务red留证，J夹具/最终peer与正式新绿待。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **J/E不可变候选旧业务验证（2026-10-26）**：J1ac新Changes测配精确65d旧helper，官方真实宿主4业务身份红；并发2实际错记但混hasListeners方法未调用夹具问题，已转原作者，不计干净门禁。E900f新roster测对nativead80旧链6实际DOM红（permission/question4缺就地错误、clientTool2先缺busy，未走到其结果完成）；AST0/无新helper runtime import，7核心09f6/ad80源相同。每轮临时JS均finally原字节恢复、34native SHA零变，HEAD/src/clean不变。两模块queued但peer/补修与正式合源/新绿/after待。[原日志/身份](default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md)。
 - **180fc已提交UI基线对齐与完整编译（2026-10-26）**：从clean54c53真三路吸收明确main180fc形成ad80c9fe1cf，78路径门禁全PASS，唯一status双改保留双方，result:src精确030def=180fc。编译前全局车道空闲，实际`rtk proxy npm run compile-client` exit0/0TS诊断；HEAD/src/clean前后不变。原生emit替换旧65d30JS+4CSS，旧pack已非live、357仅历史；J/E WIP未取、不formal合字母源码/不freeze、不重试mainff/不写rootout。[本次基线与源产物](default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md)。
 - **主工位单次安全ff拒绝（2026-10-26）**：对纯docs检查点a7123fb10a5仅执行一次`merge --ff-only`，Git exit128“无法快进，终止”；main HEAD、全部采样WIP SHA、index diff SHA、status前后全同，原样保留未重试/未覆盖，main非clean且未同步。merge源树仍932031、30份65d虚拟out不变，不称本波完成。[拒绝原记录](default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json)。
 - **外部纯文档安全接入（2026-10-26）**：只取主工位不可变3d522的9份已提交文档，src树仍932031，真三路da0d263；D7c84两轮宿主规则16报告另接6c75c2。逐路径两边保留门禁65/117全PASS；本方51份原始证据、分工与外部两方案/索引均保留，不取root/J/E WIP、不改30份65d pack。Sources宿主新生产与E代码仍未接，正式波未完成。[门禁](default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json)。

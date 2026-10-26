@@ -4,12 +4,12 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "180fc基线ad80/src030def真实compile-client0；65d旧pack非live；J/E仍独立完整实施，宿主新生产/正式源集成与after待。"
+summary: "180fc基线ad80/src030def真实compile-client0；65d旧pack非live；J1ac/E900f已queued且旧业务red留证；J夹具补修/peer待，正式源集成与after待。"
 ---
 
 # 默认编辑器合同与功能缺口续审
 
-> 当前代码波固定 J Sources + E unary 失败恢复两 coder，正式合源等两模块 queued / 书面范围后由唯一 merge 串行；D1387 accepted/open，E 已独立提交 accepted 方案并开始实施，仍 occupied。D1385原UI验收停止、accepted/open且退出队列；D1386已closed。本轮另接main已提交180fc基线，src精确030def、实际全量compile-client0，native emit已替换65d虚拟pack；未取root/J/E WIP，主工位out未写。
+> 当前代码波固定 J Sources + E unary 失败恢复两 coder，J1ac/E900f均已queued、待最终peer及J夹具补修后由唯一merge串行正式合源；D1387 accepted/open。D1385原UI验收停止、accepted/open且退出队列；D1386已closed。本轮另接main已提交180fc基线，src精确030def、实际全量compile-client0，native emit已替换65d虚拟pack；未取root/J/E WIP，主工位out未写。
 
 
 ## 当前已提交基线：180fc对齐
@@ -18,10 +18,12 @@ summary: "180fc基线ad80/src030def真实compile-client0；65d旧pack非live；J
 
 ## 当前冻结分工与本次实际验证
 
+最新J宿主4旧业务红，same-tuple2出现真实错记但混hasListeners夹具错误已交作者；E真实DOM6旧红（4缺失败提示、2先缺busy）。均仅测试组合、34native身份已恢复，不代表正式新green；[两模块旧业务证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md)。
+
 | 工位 | 书面范围 | 当前阶段 |
 | --- | --- | --- |
-| J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。Astra追加并发I1采纳同service/API完整tuple与custom wildcard重叠sticky歧义门；D两轮报告7c84e0167e3已到，第二轮C0/I0；J已独立提交accepted方案bf50c66b8b9并在自己槽位实施宿主生产/回归，尚无已接入新生产/非作者after |
-| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | accepted方案已独立提交5dd7d97d45b（受审SHA256 262df24…，C0/I0；blocked Minor已写），已在自己槽位14条源码路径完整实施且occupied；准确request/连接代次并保留question答案，真实processFold document-flow也纳入正式busy投影；方案/代码均未合入本线，不计完成 |
+| J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。Astra追加并发I1采纳同service/API完整tuple与custom wildcard重叠sticky歧义门；D两轮报告7c84e0167e3已到，第二轮C0/I0；J完整宿主候选1ac已queued；唯一lane宿主4旧业务红，并发2夹具hasListeners须原作者补修，最终peer/新green/非作者after待 |
+| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | accepted方案已独立提交5dd7d97d45b（受审SHA256 262df24…，C0/I0；blocked Minor已写），完整候选900f已queued且独立peer待；唯一lane旧链真实DOM6红，准确request/连接代次/答案与processFold busy新green待；方案/代码均未合入本线，不计完成 |
 | D / Sources独立审查与after | 非作者codepeer、正式产物冻结后的默认编辑器真实Git after | 两轮宿主规则16报告7c84e0167e3第二轮C0/I0；尚未收到freeze notice，不消费当前虚拟pack冒称最终after |
 | merge / baseline_executor | 唯一编译、类型、转译、out与串行集成车道 | 当前ad80/src030def对齐180fc并实际compile-client0；51份历史原始证据保留，65d旧pack已非live。J/E正式合源后仍实际重新编译/测试/after，不复用旧pack身份 |
 

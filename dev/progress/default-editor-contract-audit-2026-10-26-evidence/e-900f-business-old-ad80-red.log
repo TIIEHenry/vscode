@@ -1,0 +1,100 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1338430:1026/235002.124454:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1338447) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1338447) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1338447) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ConversationEngineRosterService (M6-A2)[0m
+  [31m  1) response recovery business permission unary false restores the actual seat and retries once[0m
+  [31m  2) response recovery business permission unary reject restores the actual seat and retries once[0m
+  [31m  3) response recovery business question unary false restores the actual seat and retries once[0m
+  [31m  4) response recovery business question unary reject restores the actual seat and retries once[0m
+  [31m  5) response recovery business clientTool unary false restores the actual seat and retries once[0m
+  [31m  6) response recovery business clientTool unary reject restores the actual seat and retries once[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (54ms)[0m
+[31m  6 failing[0m
+
+[0m  1) ConversationEngineRosterService (M6-A2)
+       response recovery business permission unary false restores the actual seat and retries once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: unary failure must reach the actual seat without a stream failure
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3284:16)
+[0m
+[0m  2) ConversationEngineRosterService (M6-A2)
+       response recovery business permission unary reject restores the actual seat and retries once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: unary failure must reach the actual seat without a stream failure
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3284:16)
+[0m
+[0m  3) ConversationEngineRosterService (M6-A2)
+       response recovery business question unary false restores the actual seat and retries once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: unary failure must reach the actual seat without a stream failure
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3284:16)
+[0m
+[0m  4) ConversationEngineRosterService (M6-A2)
+       response recovery business question unary reject restores the actual seat and retries once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: unary failure must reach the actual seat without a stream failure
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3284:16)
+[0m
+[0m  5) ConversationEngineRosterService (M6-A2)
+       response recovery business clientTool unary false restores the actual seat and retries once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: all real response paths must show the shared busy hold
+  
+  'false' !== 'true'
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3277:16)
+[0m
+[0m  6) ConversationEngineRosterService (M6-A2)
+       response recovery business clientTool unary reject restores the actual seat and retries once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: all real response paths must show the shared busy hold
+  
+  'false' !== 'true'
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3277:16)
+[0m
+
+
