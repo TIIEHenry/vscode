@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "64a4新生命周期配精确old0da纯业务旧红成立，SCM夹具败与progress mixed全保；最终Astrae5c25实际读并三路合源，新srcab952待第七完整compile。"
+summary: "实际compile8及M0139/完整J425通过；r2两53/full163冻结经父独立核准，已仅调度J真实默认编辑器after，结果PENDING，E未授权，out保持稳定。"
 ---
 
 # J/E 正式集成
@@ -374,3 +374,9 @@ finally所有163输出存在性/mode/SHA、163源SHA及旧Pane source/native全�
 [完整163冻结JSON](m01-r2-final-freeze.json)原始SHA256 **`ba84c0c60db4de894d2b0276cda24665f48003a911dbb053570dc0c4e00cc022`**，canonical全163 outputs SHA256 **`decb88f3f79afee5671bba09b32ac280dd80065f7ba63c3396a4c4a940a847f9`**；全部163实际source/native逐SHA对真实Git/磁盘核准，另含存在性/mode/bytes/mtime及两consumer原件路径/hash。[实际签发脚本](m01-r2-final-freeze.py)与两进程scan原件保留，使用exclusive新建，未覆盖旧run通知。全部391原件bytes/SHA保留，现399 artifact；status仍200行。
 
 **所有out mutation自签发起停止，直至D阶段结束。** 后续仅纯docs保存；缓存镜像和原路径symlink按已核状态保留，未虚称恢复。通知是source/native manifest，不是renderer实际loaded或产品验收；父已收到精确sourceHead/tree/producer/原始及canonical SHA，独立核后才调度J默认编辑器zeroEngineRpc。本lane没有跑D/readiness/UI/server/engine；E须同runId/身份的实际J completion及父独立E授权，当前未授权。Wiring23/1和E11 reasoning旧红仍在，不由新notice抹去；D1387 open、不push/不重试主ff。
+
+## r2父独立冻结核验与仅J实际调度
+
+父 `/root` 已实际独立核准：[r2父核验原记录](m01-r2-parent-freeze-verification.json)逐字保留其交接消息，另列准确核验范围。两新notice的raw SHA、共同53 canonical SHA、完整163 freeze的raw/canonical SHA全精确；两53及完整163的当前native、FS source、冻结Git source逐hash零差；冻结800d/当时current800d/native producerbd1b/候选468d完整src同为2b5d，d91/468d/peer08705祖先、真实compile8 exit0及三mandatory生产均核真。最初核验时J completion/E authorization均不存在。父随后实际核纯docs e7cab252aa3的src仍2b5d、800d为祖先且worktree clean。这些是父只读核验，不是父重跑业务或UI。
+
+父已经**实际followup D，仅授权J真实默认编辑器after**：真实按钮、五Move、两真实Git fixture、全阶段zeroEngineRpc、无Git写（stage/revert/checkout均0）。**J实际结果仍PENDING**；hash核验和已调度不能写成J通过。E仍未授权，不启动E server；只有同runId/同冻结身份的真实J completion和父另行明确E授权才可进入E阶段。本lane这次仅文档记录，没有运行readiness/UI/业务测试，也没有改source/out/依赖缓存；全部保持冻结。原399 artifacts逐bytes/SHA保留，新增该父独核JSON后库存400，D1387仍open。

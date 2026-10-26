@@ -14,7 +14,7 @@ summary: "独立实现审查与最近旧生产业务验证入口；完整迭代�
 | 证据 | 范围 |
 | --- | --- |
 | [D1387 J真实部分after](d1387-j-partial-after-2026-10-27.md) | C0/I1：14真实UI过、1隔离过、2仅lane连续性；M01真实按钮no-op，250原件逐SHA保留，D1387仍open、E未启动 |
-| [J/E正式集成与验证](je-formal-integration-verification.md) | 固定d91真三路/399原件与失败历史全保留；真实compile8零TS，新M0139/完整J425/J29/E44/Roster190过，Wiring23/1及E11旧reasoning红保留；r2新53共同通知+完整163freeze已签（sourceHead800d/src2b5d/producerbd1b），out停止写入，待父独核调度J，E未授权 |
+| [J/E正式集成与验证](je-formal-integration-verification.md) | 固定d91三路/400原件及失败历史保留；compile8零TS、M0139/J425/J29/E44/Roster190过，Wiring23/1及E11旧reasoning红保留；r2两53/full163冻结已签，父实际独核raw/canonical与163 FS/Git/native；已仅调度D J真实默认窗after，结果PENDING，E未授权，source/out/cache稳定。父范围见[独核JSON](m01-r2-parent-freeze-verification.json) |
 | [Conversation响应恢复实现审查](conversation-response-recovery-code-review.md) | 900f原三I与c2b闭合历史；5f280/9e79定向补修C0/I0/M0；固定d91合源peer C0/I0/M0；D真实M01产品I1留存；b882方案规则16 C0/I0/M1；d046两I/4夹具失败历史；a222两I及0da326四TS补修C0/I0/M0，保留compile5失败；compile6后24/2与410/2泄漏历史；a166 VM与SCM夹具失败历史；fccde mixed旧红分类；64a4 progress与468d seed引用补修C0/I0/M0；compile7实际38/1、424/1保留，新39项待；保留reasoning旧红 |
 | [E c2b回归配精确旧900f代表红](e-c2b-review-old900f-red-verification.md) | 五项纯业务旧红，非c2b新green |
 | [J/E初版旧业务验证](je-preintegration-old-red-verification.md) | 初版六项响应业务红及Sources宿主旧红的实际落点 |

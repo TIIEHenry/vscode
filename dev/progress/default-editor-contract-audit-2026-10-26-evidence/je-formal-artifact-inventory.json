@@ -1,5 +1,5 @@
 {
-  "phase": "M01-r2-compile8-new-scope-green-53-common-notices-full163-frozen-awaiting-root-authorized-J",
+  "phase": "M01-r2-parent-independently-verified-freeze-J-only-actually-scheduled-result-pending-E-unauthorized",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -2792,6 +2792,13 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-r2-E-freeze-template.json",
       "bytes": 15704,
       "sha256": "30bd9ba9251876e72894c8b4085bf2732507ede0503e34a4c923599d11170823",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-r2-parent-freeze-verification.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-r2-parent-freeze-verification.json",
+      "bytes": 3928,
+      "sha256": "ef109d5dbaf8cb51e7c883a5d3f0f94c7ee41563888be9e7f80fabfbc828f0f9",
       "bytePreservingCopy": true
     }
   ]
