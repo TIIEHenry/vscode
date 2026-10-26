@@ -4,7 +4,7 @@ type: reference
 status: completed
 phase: M7
 updated: 2026-10-26
-summary: "Astra 使用唯一集成流水线的 fresh Electron 输出独立复验；D1371/1372 通过，D1373 Input needed 标签低对比只登记未实施。截图与测量留在本地 .build。"
+summary: "Astra 使用唯一集成流水线的 fresh Electron 输出独立复验；D1371/1372 通过，D1373 Input needed 标签已修复源码，等待新输出与独立复验，仍 open。截图与测量留在本地 .build。"
 ---
 
 # 结论与证据位置
@@ -37,11 +37,22 @@ Astra 独立只读视觉审查确认 D1371 / D1372 的 before/after 与模式退
 | TOC Client→Text Editor→Client | 实测 300→500→300，700px TOC 规则保留 | `after-client-toc-300.png`、`after-ordinary-toc-500.png`、`after-client-toc-return-300.png`、`after-toc-threshold.json` |
 | 原焦点修复 | Engine / Connection 在导航内获焦后宽转窄，实际 activeElement 是 Back 按钮，焦点环可见 | `fresh-dark-engine-narrow-keyboard.png`、`fresh-light-connection-narrow-keyboard.png` |
 
-## D1373：只登记的高置信度待办
+## D1373：源码已修复，真实复验待办
 
 `Input needed` 使用 `badge.background` 当文字色，并用同色 16% 作底，视觉接近 disabled；标签实际表示等待用户处理。默认浅色文字 `#ccc`、合成底约 `#f1f1f1`，对比约 1.42:1；深色文字 `#616161`、合成底约 `#2f2f2f`，约 2.17:1。源码已核对：[conversationLens.css](../../../src/vs/workbench/contrib/conversation/browser/media/conversationLens.css) 的 `.conversation-lens-input-needed`（本轮行 2832 起）。
 
-本地证据是 `fresh-light-shell-1024.png`、`fresh-dark-shell-navigator.png` 与 `fresh-pending-badge.json`。建议在这条标签语义内使用主题配对的 `badge.background` + `badge.foreground`，或浅底配正常 foreground；随后验证浅色、深色及高对比。此项只作为 [D1373](../deferred-gaps.md) open 登记，本轮没有改动该 CSS，不宣称已修复。
+以上是修复前观察，本地证据是 `fresh-light-shell-1024.png`、`fresh-dark-shell-navigator.png` 与 `fresh-pending-badge.json`。D 工位后续源码改为正常 `foreground` 文字、`foreground` 12% 与 `editor.background` 合成中性淡底和 8% 细边；高对比主题使用 `contrastBorder`。遵循 [视觉原则](../../../docs/architecture/cross-cutting/ui-design-principles.md) 的淡底与状态清晰约束，保留原标签体积。同语义提问使用 `conversation-lens-turn-honest-status`，已有完整 `badge.foreground` / `badge.background` 配对，没有同一根因，不改其呈现。
+
+新增 [browser 回归](../../../src/vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test.ts) 直接载入生产样式表并挂载权限 / 提问 Seat。它测实际 computed style 和颜色合成后的对比度（至少 4.5:1），覆盖 Default Light/Dark Modern 与 HC light/dark 的 token fixture、300→720→300 宽度、紧凑与不溢出、HC 标签边界、键盘从 Allow 到 Skip 及提交。它不扫描 CSS 字符串，也不证明完整产品主题已复验。
+
+D 工位静态检查：目标 ESLint exit 0，无诊断；stylelint exit 0，仍列出本文件既有的 15 条 unknown-variable 提示与 179 条设计 token 建议；docs-health 0 errors / 46 既有链接警告，generated-status --check 与 diff-check 通过。这些检查不替代以下 browser / Electron 实测。
+
+### 集中复验条件（尚未执行）
+
+1. 仅由 merge 验证者按本轮唯一产物流程刷新新增测试 JS 与 `conversationLens.css`，记录源码/产物 hash；D 工位不编译、不转译、不写 `out/`。
+2. 在 merge 运行 `rtk proxy ./scripts/test.sh --run vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test --grep "Conversation pending badge styles"`。预期四个主题用例通过，真实结果待填；使用当前测试 JS 与 CSS，不能使用旧产物判通过。
+3. 由独立验证者以全新隔离 user-data/extensions/shared-data、默认编辑器入口与 Stub fixture 打开等待权限座位，复拍同内容浅/深色 1024×768 和宽窗；补 HC light/dark，测标签真实 computed 前景/合成底对比至少 4.5:1、HC contrastBorder 可见、300px 叶宽不裁文字；核验 Tab/方向键仍可进入并切换 Allow/Skip。不得使用或复制日常 profile，不登录、不连引擎。
+4. 新截图和测量写入本地 `.build/visual-review-astra/`，记录 fresh 源码/产物对应关系后再评估关闭 [D1373](../deferred-gaps.md)。目前 browser 与实际 after 尚未运行，因此保持 open。
 
 ## 覆盖限制与清理
 
