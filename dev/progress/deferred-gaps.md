@@ -18,7 +18,7 @@ summary: "D1383已闭合。D1382自动checkpoint仍open、实拍未做。D1384�
 
 | ID | Priority | Gap | Why Deferred | Exit Condition | Track | Status |
 |:---|:---------|:----|:-------------|:---------------|:------|:-------|
-| D1386 | P2 | 并列叶身份条读全局活动工作根，folder/aria/branch/readGitSummary/checkout 和菜单勾选可投影另一叶。 | 已裁定独立 Important；[正式方案](../plans/2026-10-26-leaf-session-root-identity.md) 规则16 C0/I0，accepted。尚未实施/运行；不归入 D1382 ReviewNav。 | merge 旧生产 red/新生产 green、定向校验与独立默认编辑器两叶/键盘/主题 after；全局 addFolders、Sources/ReviewNav/Preview 与挂载信任边界保持。 | Conversation identity | open |
+| D1386 | P2 | 并列叶身份条读全局活动工作根，folder/aria/branch/readGitSummary/checkout 和菜单勾选可投影另一叶。 | [正式方案](../plans/2026-10-26-leaf-session-root-identity.md) accepted；三生产 TS 与11条真实 Lens DOM/公共事件回归已写，方案/实施静态peer C0/I0，四TS ESLint 0/0。未运行/未实拍；不归入 D1382 ReviewNav。 | merge 旧生产 red/新生产 green、定向校验与独立默认编辑器两叶/键盘/主题 after；[源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1386-source-checkpoint.md)。全局 addFolders、Sources/ReviewNav/Preview 与挂载信任边界保持。 | Conversation identity | open |
 | D1382 | P2 | ReviewNav未完整转发会话工作目录、工作区目录及SCM根变化；静止活动叶/非活动并列叶可保留旧审阅路径。可选DI与直接相关工作根夹具有静态合同诊断。 | merge 已核对旧生产正文。新行为 3过/7败，新生产 37过，五TS语义0，ESLint 0 errors/4既有warnings。方案仍 accepted。J 静态 after C0/I0，三条 Minor 不阻断。默认编辑器实拍未做。SCM子根与workspace gate未改。 | [方案](../plans/conversation-review-root-invalidation.md)；[自动证据](default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)。独立非作者默认编辑器实拍确认审阅行随根变化后才闭合 | Conversation ReviewNav | open |
 | D1 | P3 | 套件 `dev/loop/overview.md` 引用的 `docs/guides/multi-agent-design-workflow.md` 缺失 | 门禁仅 warning 不阻塞 | 指南落盘且 `check-docs-health` 0 warning | docs | closed |
 | D2 | P2 | 工位池基线未编译验绿 | 编译耗时长；建槽时未跑 | merge 槽 `569ce371`：`npm run compile` 绿；[worktree-pool.md](worktree-pool.md) 已标注 | infra | closed |

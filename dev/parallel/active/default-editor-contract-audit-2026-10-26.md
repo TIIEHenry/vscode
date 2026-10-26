@@ -17,6 +17,7 @@ summary: "D1383已闭合。D1382自动回归仍accepted，实拍未做。D1384�
 
 | 工位 / 子代理 | 整体模块与审查目标 | 当前阶段 |
 | --- | --- | --- |
+| D / leaf_root_identity（原生接班） | D1386：叶会话根身份、分支读取/checkout、菜单与 mount offer 代次 | 方案 `ab142cd` 后三生产TS/11条真实Lens DOM公共回归已写；规则16与实施静态peer均C0/I0，四TS ESLint0/0。未编译/out/运行/本刀实拍；accepted/open交唯一merge与独立默认编辑器after |
 | C / conversation_navigation_contracts | D1382：默认编辑器 ReviewNav 工作根变化失效与正式 Context/DI 合同 | 源 `37aa2956b77` 已三路合入 `b5f69d4`。旧生产新行为 3过/7败，新生产 37过，五TS语义0。方案仍 accepted，缺口仍 open。J 静态 after C0/I0，三条 Minor 不阻断。默认编辑器实拍未做 |
 | D / tunnel_retry_contracts（Astra） | D1383：Tunnel 引用身份、getExisting 所有权与 provider 失败后重试；同时审查 C/J 方案 | 方案 `e451d5da071` / 实施 `22386bcf3ae` 已合入；merge 旧生产 red / 新生产 19 passing、定向语义 0，范围内 closed |
 | J / configuration_initialization_contracts | D1384：RemoteUserConfiguration 显式重试共有等待、reload 及销毁边界 | 源 `c4b9332` 已三路合入 `3e63f9e`。旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。方案 implemented，缺口 closed。C 静态 after C0/I0，两条 Minor 不阻断 |

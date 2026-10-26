@@ -13,6 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
+| [D1386 叶级身份条源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1386-source-checkpoint.md) | 11条真实 Lens DOM/公共事件回归已写；四TS ESLint 0/0，静态peer C0/I0；未运行/实拍，等待merge |
 | [D1383 Tunnel 验证](default-editor-contract-audit-2026-10-26-evidence/verification.md) | 旧生产 red、新生产 19 passing、两 TS 定向语义 0。该证据写入时全量未跑 |
 | [D1382 ReviewNav 自动回归](default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md) | 旧生产 3 过 / 7 败，新生产 37 过。方案仍 accepted，默认编辑器实拍未做 |
 | [D1384 远端配置验证](default-editor-contract-audit-2026-10-26-evidence/d1384-verification.md) | 旧生产 16 项断言失败、4 项旧通过、1 项超时不计；新生产 21 过、远端 17 过。全量 46/28 |

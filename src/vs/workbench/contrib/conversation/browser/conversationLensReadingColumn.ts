@@ -46,6 +46,7 @@ export interface IConversationLensReadingColumnHost {
 	readonly configurationService: IConfigurationService;
 	readonly commandService: ICommandService;
 	readonly instantiationService: IInstantiationService;
+	readonly boundSessionId: string | undefined;
 	getBoundSessionId(): string;
 	register<T extends IDisposable>(disposable: T): T;
 	resolveConfirmation(turnId: string, status: 'allowed' | 'skipped'): Promise<void>;
@@ -65,7 +66,7 @@ export interface IConversationLensReadingColumnHost {
 export function mountTimeline(host: IConversationLensReadingColumnHost, timelineHost: HTMLElement): void {
 
 	host.readingColumn = append(timelineHost, $('.conversation-lens-reading-column'));
-	host.identityStrip = host.register(host.instantiationService.createInstance(ConversationIdentityStrip, host.readingColumn));
+	host.identityStrip = host.register(host.instantiationService.createInstance(ConversationIdentityStrip, host.readingColumn, host.boundSessionId));
 	const staleSnapshot = append(host.readingColumn, $(`.${conversationLensStaleSnapshotClass}`));
 	staleSnapshot.hidden = true;
 	staleSnapshot.setAttribute('role', 'status');

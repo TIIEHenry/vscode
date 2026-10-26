@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-26
-summary: "D1386：绑定叶统一 folder/aria/branch/menu/checkout 的工作根与失效代次；全局添加目录和 mount offer 合同保持。规则16 C0/I0；等待实施与 merge 运行。"
+summary: "D1386：绑定叶统一 folder/aria/branch/menu/checkout 的工作根与失效代次；全局添加目录和 mount offer 合同保持。方案与实施静态peer C0/I0；源码已写，等待 merge red/green 与独立默认编辑器 after。"
 ---
 
 # Conversation 叶级会话工作根身份条
@@ -53,3 +53,9 @@ merge 是唯一可编译/转译/out 写入者。D 只提交源码/测试和静�
 - V：merge red/green/定向校验，独立默认编辑器 after；证据确认后才决定 implemented/closed。
 
 2026-10-26 规则16独立只读审查：C 原生执行者核对实际正式稿、PRD/SSOT diff 与源码，Strengths 为原始绑定/活动 fallback 分离、统一根与代次、offer 复核及验证门槛。Critical 0 / Important 0；Minor 1 为 SSOT 提前写 accepted，作者核验后随本次 accepted 对齐。准许单独方案提交后实施。该审查未运行代码/界面；未编译、未运行单测、未实拍本刀，不宣称通过。
+
+## 6. 源码检查点（等待运行）
+
+方案单独提交 `ab142cd` 后，三生产 TS 已接入原始绑定、统一解析/根代次、非活动会话刷新、菜单请求代次与旧 delegate 失效；Add 同时保存 offer 对象和 URI 快照并在点击重验。新增 11 条 D1386 公共行为回归使用真实 Lens DOM + `AgentSessionContext`，控制 roster/workspace/SCM/connection 输入，不镜像解析器。覆盖两叶不同根、各自菜单当前项/checkout 参数、非活动更新、A→B→A 晚到成功/失败、旧 refs/recents、过期 offer、无根与旧无 API 兼容、dispose/重建。
+
+实施独立只读 peer（C 原生执行者）C0/I0；Minor 的新 checkout 宽 cast 已改为 mount harness 正式 recorder 字段。`.focus()` + `.click()` 只证明 DOM 聚焦与动作参数，未冒充 Enter/Space；真实键盘必须在独立 after 做。四 TS ESLint 0 errors/0 warnings、`git diff --check` 通过；文档门禁见[源码检查点](../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-source-checkpoint.md)。未编译/typecheck/transpile/写 out，未运行单测、旧生产 red/新生产 green 或本刀真实界面，不改 accepted/open。
