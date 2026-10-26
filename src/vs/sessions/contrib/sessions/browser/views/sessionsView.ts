@@ -7,7 +7,7 @@ import '../media/sessionsViewPane.css';
 import * as DOM from '../../../../../base/browser/dom.js';
 import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { DisposableStore, MutableDisposable } from '../../../../../base/common/lifecycle.js';
 import { autorun } from '../../../../../base/common/observable.js';
 import { isWeb } from '../../../../../base/common/platform.js';
 import { Orientation } from '../../../../../base/browser/ui/sash/sash.js';
@@ -63,6 +63,7 @@ export const IsWorkspaceGroupCappedContext = new RawContextKey<boolean>('session
 export class SessionsView extends ViewPane {
 
 	private viewPaneContainer: HTMLElement | undefined;
+	private sessionsContainer: HTMLElement | undefined;
 	private sidebarSplitViewContainer: HTMLElement | undefined;
 	private sidebarSplitView: SplitView | undefined;
 	private sessionsControlContainer: HTMLElement | undefined;
@@ -72,6 +73,7 @@ export class SessionsView extends ViewPane {
 	private headerActions: HTMLElement | undefined;
 	private filterChipsContainer: HTMLElement | undefined;
 	private readonly responsiveControls = this._register(new DisposableStore());
+	private readonly agentHostShortcutsWidget = this._register(new MutableDisposable<AgentHostShortcutsWidget>());
 	private responsiveControlsPhone: boolean | undefined;
 	private isFindWidgetOpen = false;
 	sessionsControl: SessionsList | undefined;
@@ -134,11 +136,16 @@ export class SessionsView extends ViewPane {
 		this.viewPaneContainer.classList.add('agent-sessions-viewpane');
 
 		this.createControls(parent);
+		this.registerResponsiveControls();
+	}
+
+	private registerResponsiveControls(): void {
 		this._register(this.scopedContextKeyService.onDidChangeContext(e => {
 			if (e.affectsSome(new Set([IsPhoneLayoutContext.key]))) {
 				this.updateResponsiveControls();
 			}
 		}));
+		this.updateResponsiveControls();
 	}
 
 	protected override getLocationBasedColors(): IViewPaneLocationColors {
@@ -155,7 +162,7 @@ export class SessionsView extends ViewPane {
 	}
 
 	private createControls(parent: HTMLElement): void {
-		const sessionsContainer = DOM.append(parent, $('.agent-sessions-container'));
+		const sessionsContainer = this.sessionsContainer = DOM.append(parent, $('.agent-sessions-container'));
 		this.sidebarSplitViewContainer = DOM.append(sessionsContainer, $('.agent-sessions-sidebar-splitview-container'));
 
 		// Sessions section (top, fills available space)
@@ -262,8 +269,6 @@ export class SessionsView extends ViewPane {
 			}
 		}));
 
-		this.updateResponsiveControls();
-
 		// When the active session changes, reveal it in the sessions list.
 		this._register(autorun(reader => {
 			const activeSession = this.sessionsService.activeSession.read(reader);
@@ -340,22 +345,9 @@ export class SessionsView extends ViewPane {
 		updateSplitViewStyles();
 		this._register(this.themeService.onDidColorThemeChange(updateSplitViewStyles));
 
-		// Agent Host toolbar (bottom, below customizations). Only rendered
-		// in the sessions window on web desktop layouts: electron has no
-		// host picker today (gated out at the menu level), phone layout
-		// uses the mobile titlebar pill instead, and auxiliary windows do
-		// not contribute any host actions — without this gate they would
-		// show an empty toolbar shell.
-		if (isWeb && this.scopedContextKeyService.contextMatchesRules(ContextKeyExpr.and(
-			IsSessionsWindowContext,
-			IsAuxiliaryWindowContext.toNegated(),
-			IsPhoneLayoutContext.negate(),
-		))) {
-			this._register(this.instantiationService.createInstance(AgentHostShortcutsWidget, sessionsContainer, {
-				onDidChangeLayout: () => {
-					this.layoutSidebarSplitView();
-				},
-			}));
+		// The Host picker is web-only; phone uses the titlebar picker instead.
+		if (isWeb) {
+			this.registerAgentHostShortcutsWidget();
 		}
 
 		this._register(DOM.scheduleAtNextAnimationFrame(DOM.getWindow(parent), () => this.layoutSidebarSplitView()));
@@ -372,7 +364,7 @@ export class SessionsView extends ViewPane {
 			return;
 		}
 
-		const phoneLayout = isPhoneLayout(this.layoutService);
+		const phoneLayout = !!IsPhoneLayoutContext.getValue(this.scopedContextKeyService);
 		if (this.responsiveControlsPhone === phoneLayout) {
 			this.updateHeaderLayout();
 			return;
@@ -407,6 +399,40 @@ export class SessionsView extends ViewPane {
 		}
 
 		this.updateHeaderLayout();
+	}
+
+	private registerAgentHostShortcutsWidget(): void {
+		const contextKeys = new Set([IsSessionsWindowContext.key, IsAuxiliaryWindowContext.key, IsPhoneLayoutContext.key]);
+		this._register(this.scopedContextKeyService.onDidChangeContext(e => {
+			if (e.affectsSome(contextKeys)) {
+				this.updateAgentHostShortcutsWidget();
+			}
+		}));
+		this.updateAgentHostShortcutsWidget();
+	}
+
+	/** Read context directly: it changes before the workbench's phone CSS class. */
+	private updateAgentHostShortcutsWidget(): void {
+		if (!this.sessionsContainer) {
+			return;
+		}
+
+		const shouldShow = this.scopedContextKeyService.contextMatchesRules(ContextKeyExpr.and(
+			IsSessionsWindowContext,
+			IsAuxiliaryWindowContext.toNegated(),
+			IsPhoneLayoutContext.negate(),
+		));
+		if (shouldShow === !!this.agentHostShortcutsWidget.value) {
+			return;
+		}
+
+		this.agentHostShortcutsWidget.clear();
+		if (shouldShow) {
+			this.agentHostShortcutsWidget.value = this.instantiationService.createInstance(AgentHostShortcutsWidget, this.sessionsContainer, {
+				onDidChangeLayout: () => this.layoutSidebarSplitView(),
+			});
+		}
+		this.layoutSidebarSplitView();
 	}
 
 	focusCustomizations(): void {
@@ -652,7 +678,7 @@ export class SessionsView extends ViewPane {
 
 		// On phone the desktop header content is hidden; the row is only
 		// visible when the find widget is open (so the user can search).
-		if (isPhoneLayout(this.layoutService)) {
+		if (IsPhoneLayoutContext.getValue(this.scopedContextKeyService)) {
 			this.headerRow.classList.toggle('phone-layout-empty', !this.isFindWidgetOpen);
 			return;
 		}

@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1367 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关。D1314–D1367 已合入，D1370 收口响应式生命周期并待 merge 统一验证；D464/D467 证据已闭合。D465、D24、D8、D16、D147、D405 仍开；既有唯一一次 compile 写只读输出目录时 exit 1。D1312–D1305 已关。"
 
 
 
@@ -1317,3 +1317,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1365 | P3 | **open** SessionHeader 标题可编辑性原在标题 autorun 中调用未追踪的 `capabilities.get()`；提供方 hydration 后动态开放或收回 `supportsRename` 时，标题的键盘/ARIA 重命名入口不会更新。现使用 reader 订阅能力 observable，并补能力切换回归。 | 只修标题重命名能力的动态状态传播，不改变 rename RPC、标题文案、输入提交或不可编辑时的行为 | `supportsRename` 从 false→true 时标题获得 button/Tab/aria-label；从 true→false 时同步移除；静态能力与现有 Enter/Space/提交行为保持 | sessions / session-header | open |
 | D1366 | P3 | **open** Engine 与 Connection Preferences 从宽布局缩到窄布局时，原逻辑把导航隐藏却保留导航行焦点；键盘用户会停在 `display:none` 节点，无法沿 Back/详情继续操作。现仅当缩窄前焦点确在导航宿主内时，在窄详情布局完成后的微任务中把焦点移到可见 Back 按钮；程序化缩窄或焦点在导航外时不抢焦点。两份 browser 回归覆盖 Engine/Connection。 | 只修设置页宽→窄响应式切换的焦点迁移，不改导航选择、窄宽阈值、Back 返回、详情内容或宽布局焦点语义 | 从导航行获焦后缩到窄宽，焦点落在 Back 且隐藏导航不保留活动焦点；焦点在其他区域时保持原归属；Engine 与 Connection 两页行为一致 | conversation / preferences-focus | open |
 | D1367 | P3 | **closed** SessionsView 原只在首次布局创建桌面 header toolbar 或移动端 filter chips；运行时跨 phone breakpoint 后，工作台虽更新 `.phone-layout` 与 `IsPhoneLayoutContext`，控件却不切换。现保留可切换的 chips slot，监听 phone-layout context，在桌面与手机控件间安全 dispose/recreate；新增源码回归锁定初始与运行时共用重建路径。 | 只收口 Sessions 列表在运行时 phone/desktop 布局切换后的控件生命周期；不改变会话排序、筛选匹配、打开、创建、关闭或移动标题栏语义 | 桌面→手机后出现状态筛选 chips；手机→桌面后恢复 Sessions/New/Filter/Search toolbar；旧控件不会重复或残留；初始两种布局行为保持 | sessions / responsive-controls | closed |
+| D1370 | P3 | **open** SessionsView 的 web-only Host toolbar 原只按首次布局创建；D1367 的 header toolbar/chips 又在 phone context 已更新、CSS 类未跟上时早退。现 Host 独立订阅上下文，header/chips/可见性统一读 context；widget 保留原 divider 与 toolbar 两个 flex 子项并在 dispose 清理，不增加 wrapper。以真实 context+DOM 行为回归取代镜像源码扫描。 | 代码已收口；按本轮约束，仅 merge 工位执行最终验证，C 不编译/转译 out；不改变 Host 菜单、连接动作或移动标题栏语义 | browser 回归通过：两种初始布局、context 先于 CSS 的双向切换、三次往返无重复、旧监听已释放、筛选保留、非 Sessions/auxiliary 门控，以及两个原 flex 子项的布局/清理；验证后再闭本行 | sessions / agent-host-responsive | open |

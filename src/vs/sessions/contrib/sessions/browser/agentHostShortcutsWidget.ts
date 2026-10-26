@@ -5,7 +5,7 @@
 
 import './media/agentHostToolbar.css';
 import * as DOM from '../../../../base/browser/dom.js';
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { HiddenItemStrategy, MenuWorkbenchToolBar } from '../../../../platform/actions/browser/toolbar.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { Menus } from '../../../browser/menus.js';
@@ -40,9 +40,11 @@ export class AgentHostShortcutsWidget extends Disposable {
 		// Separates the picker from the customizations above it, mirroring the
 		// split view's separator between sessions and customizations — but
 		// static, since this section is not resizable.
-		DOM.append(parent, $('.agent-host-toolbar-separator'));
+		const separator = DOM.append(parent, $('.agent-host-toolbar-separator'));
+		this._register(toDisposable(() => separator.remove()));
 
 		const container = DOM.append(parent, $('.agent-host-toolbar'));
+		this._register(toDisposable(() => container.remove()));
 
 		const toolbarContainer = DOM.append(container, $('.agent-host-toolbar-content'));
 

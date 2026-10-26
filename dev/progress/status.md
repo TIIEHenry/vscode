@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1367 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1332–D1367 已落盘，D1370 收口响应式生命周期；D467 回收证据已闭合。既有唯一一次 compile 写只读输出目录时 exit 1；本轮只在 merge 工位统一验证，不在 C 编译/转译 out，未 push。"
 
 
 ---
@@ -13,6 +13,7 @@ summary: "2026-10-26：D1332–D1367 已落盘，D467 回收证据已闭合；�
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Sessions 响应式生命周期收口（2026-10-26，D1370）**：Host toolbar 直接订阅 phone / Sessions / auxiliary 上下文，往返切换时创建或清理原 divider 与 toolbar 两个 flex 子项，撤掉额外 wrapper。复核发现 D1367 同样会在 phone context 先于 CSS 类更新时早退；header toolbar、chips 与 header 可见性现统一读 context。镜像源码扫描改为上下文往返、手机启动、重复切换、旧监听释放、筛选保留、窗口门控及 flex 子项清理的 browser 回归。C 的 diff-check、docs-health（0 errors / 46 既有链接警告）与 generated-status --check 通过；docs-status 7 测 6 过 / 1 败，HEAD requirements 已有 29 PRD 而夹具期望 28，本刀未改需求或该测试。最终类型/运行验证由 merge 工位统一执行，C 未编译/转译 out；D1370 待该验证后再闭。见 [D1370](deferred-gaps.md)。
 - **SessionsView 响应式控件重建（2026-10-26，D1367，会话列表/窄宽审计）**：SessionsView 原只在首次布局创建桌面 header toolbar 或移动端 filter chips；运行时跨 phone breakpoint 后，工作台虽更新 `.phone-layout` 与 `IsPhoneLayoutContext`，控件却不切换。现保留可切换的 chips slot，监听 phone-layout context，在桌面与手机控件间安全 dispose/recreate；新增源码回归锁定初始与运行时共用重建路径。目标文件 ESLint 通过；定向 Electron 测试受本机 sandbox 限制，未跑 full compile。见 [D1367](deferred-gaps.md)。
 - **Preferences 宽转窄焦点迁移（2026-10-26，D1366，本波响应式 UI/键盘焦点审计）**：Engine 与 Connection Preferences 从宽布局缩到窄布局时，原逻辑隐藏导航却保留导航行焦点，键盘用户会停在 `display:none` 节点。现仅当缩窄前焦点在导航宿主内时，在窄详情布局完成后的微任务中把焦点移到可见 Back 按钮；补 Engine/Connection 两份 browser 回归，不抢程序化缩窄或导航外焦点。目标 ESLint 0 errors，定向 Electron 测试受本机 sandbox 限制，未跑 full compile。见 [D1366](deferred-gaps.md)。
 - **SessionHeader 标题重命名能力 hydration（2026-10-26，D1365，会话生命周期审计）**：标题可编辑性原在标题 autorun 中用未追踪的 `capabilities.get()`，提供方动态开放/收回 `supportsRename` 时键盘/ARIA 重命名入口不更新。现通过 reader 订阅能力 observable，并补能力切换回归；目标文件 ESLint 通过，浏览器测试受本机 `listen EPERM` 限制，未跑 full compile。见 [D1365](deferred-gaps.md)。
@@ -28,7 +29,6 @@ summary: "2026-10-26：D1332–D1367 已落盘，D467 回收证据已闭合；�
 - **Client-tool cleanup 身份与 accepted 闸（2026-10-26，D1357，反向边界审计）**：D1356 的 cleanup 原会对未知或同 id 的 permission/question/server-tool 行无条件 remove 或改写；通用 wrapper 也把 `undefined` / 非布尔 `ok` 当作 accepted。现仅对已知 `respondable` client-tool timeline/pending 行生成 patch，并让该 unary 专用要求显式 `ok:true`；未知/collision、`ok:false`、malformed 与 throw 保留原状态。补 collision、pending-only 与 malformed 回归。定向 Electron 测试仍受本机 `sandbox_host_linux` 退出 133，工作台目标文件 ESLint 0 errors，未跑 full compile。见 [D1357](deferred-gaps.md)。
 - **Permission picker 远程未知状态写闸（2026-10-26，D1355，D1351 反向审计）**：D1351 原将缺失 `connectionStatus` 当作本地无远端状态，`agenthost-*` 远程 provider 在状态未知时会 fail-open。现仅 `local-agent-host` 允许无状态写入；远程缺状态、无 provider 与非 Agent Host 均 fail-closed；补 reconnecting、cached accepted 值保留及 remote unknown/local unknown/non-Agent Host 回归。未跑 full compile。
 
-- **Permission picker 远程未知状态写闸（2026-10-26，D1355，D1351 反向审计）**：D1351 原将缺失 `connectionStatus` 当作本地无远端状态，`agenthost-*` 远程 provider 在状态未知时会 fail-open。现仅 `local-agent-host` 允许无状态写入；远程缺状态、无 provider 与非 Agent Host 均 fail-closed；补 reconnecting、cached accepted 值保留及 remote unknown/local unknown/non-Agent Host 回归。未跑 full compile。
 - **Connection Preferences 窄宽详情焦点迁移（2026-10-26，D1353，本波窄宽/焦点反向审计）**：Connection Preferences 在窄宽从导航选中 zone 后会隐藏导航，原焦点仍停在被 `display:none` 的导航行，键盘用户无法继续沿详情操作。现仅在焦点来自导航时，在窄详情切换完成后的微任务中把焦点移到可见 Back 按钮；Back 返回导航仍复用 `navList.domFocus()`，宽布局和程序化切换不抢焦点。新增 browser 回归锁定窄宽详情状态与 Back 焦点；目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，未跑 full compile。见 [D1353](deferred-gaps.md)。
 - **Permission picker 断连写闸（2026-10-26，D1351，会话权限状态审计）**：Agent Host 权限芯片原只在 session config resolving 时禁用；remote provider 断连、连接中或协议不兼容时仍显示可操作的缓存权限值，选择会落到 provider 无连接的 no-op。现按 `connectionStatus` 仅在 connected 时开放写入，其他状态同步 `aria-disabled`、禁用下拉和“Session is not ready; reconnect the engine to change permissions.” 提示，写入口再做一次 fail-closed 防护；补 connecting / disconnected / incompatible 回归。目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，未跑 full compile。
 - **Engine Preferences 窄宽详情焦点迁移（2026-10-26，D1350，本波全局 UI 键盘/ARIA 审计）**：Engine Preferences 在窄宽选中导航分节后会隐藏导航，原焦点仍停在被 `display:none` 的导航行，键盘用户无法继续沿详情操作。现仅当焦点来自导航时，在窄详情切换完成后的微任务中把焦点移到可见 Back 按钮；Back 返回导航仍复用 `navList.domFocus()`，宽布局和程序化切换不抢焦点。新增 browser 回归锁定窄宽详情状态与 Back 焦点；目标 Electron 测试因本机 `sandbox_host_linux` 限制退出 133，目标文件 ESLint 0 errors（仅既有 warning），未跑 full compile。见 [D1350](deferred-gaps.md)。
