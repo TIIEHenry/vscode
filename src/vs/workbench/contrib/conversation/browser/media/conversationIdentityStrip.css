@@ -22,9 +22,10 @@
 	pointer-events: auto;
 }
 
-/* Author `display` beats the UA `[hidden]` rule, so hidden chips/strip stayed visible as empty pills. */
+/* Author `display` (including codicons) beats the UA `[hidden]` rule. */
 .monaco-workbench .part.conversation .conversation-identity-strip[hidden],
 .monaco-workbench .part.conversation .conversation-identity-chip[hidden],
+.monaco-workbench .part.conversation .conversation-identity-chip-open[hidden],
 .monaco-workbench .part.conversation .conversation-identity-add-folder[hidden] {
 	display: none;
 }

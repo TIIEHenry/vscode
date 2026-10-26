@@ -15,6 +15,7 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import type { UniverseAgentConnectionSnapshot, UniverseAgentReadGitSummaryResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
+import { getIconsStyleSheet } from '../../../../../platform/theme/browser/iconsStyleSheet.js';
 import { IWorkspaceContextService, toWorkspaceFolder, type IWorkspaceFoldersChangeEvent } from '../../../../../platform/workspace/common/workspace.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { TestWorkspace, Workspace } from '../../../../../platform/workspace/test/common/testWorkspace.js';
@@ -1404,4 +1405,72 @@ suite('ConversationIdentityStrip', () => {
 		await timeout(0);
 		assert.strictEqual(loading.actionWidget.shows.length, 0);
 	});
+
+	for (const theme of ['vs', 'vs-dark', 'hc-black', 'hc-light']) {
+		test(`D1386 production CSS hides readonly folder and branch chevrons with zero bounds in ${theme}`, async () => {
+			// Load the same author display and glyph rules as the workbench; an
+			// attribute-only assertion misses codicons overriding the UA hidden rule.
+			for (const path of [
+				'../../browser/media/conversationIdentityStrip.css',
+				'../../../../../base/browser/ui/codicons/codicon/codicon.css',
+			]) {
+				const stylesheet = document.createElement('link');
+				stylesheet.rel = 'stylesheet';
+				stylesheet.href = new URL(path, import.meta.url).href;
+				store.add(toDisposable(() => stylesheet.remove()));
+				await new Promise<void>((resolve, reject) => {
+					stylesheet.onload = () => resolve();
+					stylesheet.onerror = () => reject(new Error(`Identity regression stylesheet failed to load: ${path}`));
+					document.head.appendChild(stylesheet);
+				});
+			}
+			const iconRules = store.add(getIconsStyleSheet(undefined));
+			const iconStyle = document.createElement('style');
+			iconStyle.textContent = iconRules.getCSS();
+			document.head.appendChild(iconStyle);
+			store.add(toDisposable(() => iconStyle.remove()));
+			const alpha = URI.file('/repo/alpha');
+			const harness = workRootHarness([alpha.path, '/remote/beta'], createScmServiceWithBranch('alpha-head', alpha));
+			const [sessionA, sessionB] = harness.sessionIds;
+			const leaf = mountLens({ ...harness, sessionKey: sessionA });
+			const workbench = leaf.workbench.parentElement!;
+			workbench.classList.add(theme);
+			const strip = getIdentityStrip(leaf.slots);
+			const folder = strip.querySelector<HTMLButtonElement>(`.${conversationIdentityFolderChipClass}`)!;
+			const branch = strip.querySelector<HTMLButtonElement>(`.${conversationIdentityBranchChipClass}`)!;
+			const chevrons = [folder, branch].map(chip => chip.querySelector<HTMLElement>('.conversation-identity-chip-open')!);
+			await document.fonts.load('12px codicon');
+			const assertChevrons = (hidden: boolean) => {
+				for (const width of [240, 720]) {
+					leaf.workbench.style.width = `${width}px`;
+					getReadingColumn(leaf.slots).style.width = `${width}px`;
+					leaf.lens.layout(LENS_LAYOUT_HEIGHT, width);
+					assert.ok(strip.getBoundingClientRect().height > 0, `${theme}/${width}: identity strip is rendered`);
+					for (const [index, chevron] of chevrons.entries()) {
+						const style = getWindow(chevron).getComputedStyle(chevron);
+						const bounds = chevron.getBoundingClientRect();
+						assert.strictEqual(chevron.hidden, hidden);
+						assert.strictEqual([folder, branch][index].tabIndex, hidden ? -1 : 0);
+						if (hidden) {
+							assert.deepStrictEqual({ display: style.display, width: bounds.width, height: bounds.height },
+								{ display: 'none', width: 0, height: 0 }, `${theme}/${width}: readonly ${index} chevron has no painted box`);
+						} else {
+							assert.notStrictEqual(style.display, 'none');
+							assert.strictEqual(style.visibility, 'visible');
+							assert.ok(bounds.width > 0 && bounds.height > 0, `${theme}/${width}: local ${index} chevron remains visible`);
+						}
+					}
+				}
+			};
+			assertChevrons(false);
+			leaf.lens.setBoundSessionId(sessionB);
+			harness.summaries.at(-1)!.resolve({ supported: true, reason: '', branch: 'beta-head', changeCount: 0 });
+			await timeout(0);
+			assert.strictEqual(branch.hidden, false);
+			assert.strictEqual(branch.textContent, 'beta-head');
+			assertChevrons(true);
+			leaf.lens.setBoundSessionId(sessionA);
+			assertChevrons(false);
+		});
+	}
 });

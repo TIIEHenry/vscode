@@ -30,6 +30,8 @@ D1382/1383/1384 按各自证据 closed。D1385/1386 仍 open、正式方案 acce
 | D / leaf_root_identity（原生接班） | D1386：叶根身份、菜单/checkout与mount offer代次 | ea54727三路到328cb823；旧三生产正文核对后11业务红，新11绿、完整IdentityStrip40过、Lens8过，四TS语义0；C非作者默认编辑器after正在做，accepted/open |
 | merge / 唯一集成者 | 串行源码/旧生产身份/red-green、唯一编译、类型/lint与真实after证据 | 两源及C补修均已合；七TS noEmit0/lint0。本波唯一compile-client source6f82实际exit1、45/27，旧3e63 46/28不覆盖；六输出正文等green，仅action最小fresh回green；最终独立复审/after待到 |
 
+D1386 after I1已由C真实确认只读folder/branch箭头12×12仍可见；D clean ff57后仅补production hidden组的chip-open选择器与4主题真实CSS/DOM几何回归，未运行。等待唯一merge旧CSS red/新CSS green与C原窗口正式新CSS复验，保持accepted/open；[补修检查点](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md)。
+
 ## 工作约束与验收
 
 子代理只写自己的字母槽，不写人类工位或 merge。父只协调、记录和安全同步；产品实现交子代理。非 trivial 修复先满足 [规则 13/16](../../../docs/DOCUMENTATION.md#规则-13方案与实施分离) 的方案独立提交和只读审查，Critical/Important 核验后改入；设计决策按原则驱动设计交 Astra，不要求人类逐项决策。
