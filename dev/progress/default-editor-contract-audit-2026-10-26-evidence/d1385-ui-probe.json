@@ -1,0 +1,88 @@
+{
+  "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html",
+  "ChatViewId": "workbench.panel.chat.view.copilot",
+  "widgets": [],
+  "commands": [
+    "chat.openFileUpdatedBySnapshot",
+    "chat.openFileSnapshot",
+    "workbench.action.chat.openAgentHostModePicker",
+    "workbench.action.chat.openAgentHostAutoApprovePicker",
+    "workbench.action.chat.openAgentHostPermissionModePicker",
+    "workbench.action.chat.openAgentHostCodexApprovalsPicker",
+    "workbench.action.chat.openAgentHostFolderPicker",
+    "workbench.action.chat.openSessionInNewWindow",
+    "workbench.action.chat.openSessionInEditorGroup",
+    "workbench.action.chat.openSessionInNewEditorGroup",
+    "workbench.action.chat.openAgentHostChat",
+    "workbench.action.chat.open",
+    "workbench.action.chat.openask",
+    "workbench.action.chat.openagent",
+    "workbench.action.chat.openedit",
+    "workbench.action.chat.openQuotaExceededDialog",
+    "workbench.action.chat.openFeatureSettings",
+    "workbench.action.chat.openModelFeedbackSurvey",
+    "workbench.action.chat.openAgentDebugPanel",
+    "workbench.action.chat.openAgentDebugPanelForSession",
+    "workbench.action.chat.openCompareBlockInDiffEditor",
+    "workbench.action.chat.openModelPicker",
+    "workbench.action.chat.openPermissionPicker",
+    "workbench.action.chat.openModePicker",
+    "workbench.action.chat.openSessionTargetPicker",
+    "workbench.action.chat.openDelegationPicker",
+    "workbench.action.chat.openWorkspacePicker",
+    "workbench.action.quickchat.openInChatView",
+    "workbench.action.chat.openInEditor",
+    "workbench.action.chat.openInNewWindow",
+    "workbench.action.chat.openInSidebar",
+    "workbench.action.chat.newChat",
+    "workbench.action.chat.newChat.copilotIcon",
+    "workbench.action.chat.newChat.newSessionIcon",
+    "workbench.action.chat.newChat.commentIcon",
+    "workbench.action.chat.newEditSession",
+    "workbench.action.chat.newLocalChat",
+    "workbench.action.chat.openCopilotCliStateFile",
+    "workbench.action.chat.openAgentHostSettings",
+    "workbench.action.chat.openAgentSessionSettings",
+    "agentsVoice.startVoiceInChat",
+    "workbench.action.chat.openImageInCarousel",
+    "workbench.action.terminal.chat.openTerminalSettingsLink",
+    "workbench.action.chat.openWorkspaceInAgentsWindow.chatTitle",
+    "workbench.action.chat.openWorkspaceInAgentsWindow.titleBar",
+    "workbench.action.chat.openSessionInAgentsWindow",
+    "workbench.action.chat.openStorageFolder",
+    "workbench.action.chat.openNewSessionSidebar.agent-host-copilotcli",
+    "workbench.action.chat.openNewSessionEditor.agent-host-copilotcli",
+    "workbench.action.chat.openNewChatSessionInPlace.local",
+    "workbench.action.chat.openNewChatSessionInPlace.agent-host-copilotcli",
+    "workbench.action.chat.openNewChatSessionInPlace.agent-host-claude"
+  ],
+  "body": "File\nEdit\nSelection\nView\nGo\nHelp\nfixture\nFILES\nFIXTURE\nRoot\nhome\nclarence\nProjects\nAgents\nvscode-WorkTrees\nD\n.build\nd1385-independent-ui\nfixture\nREADME.md\nOUTLINE\nTIMELINE\nConversation\nTrajectory\nUntitled session\nUntitled session\nSession\nUntitled session\nVisualize (Stub)\nEngine not connected\nfixture\nHelp me draft the README.\nStub · 4 steps · Stub: outline sections, read, Stub: draft, write\n1 waiting\n\nStub: README draft is waiting on permission to write README.md. See \nVisualize session (Stub)\n or \nREADME agent (Stub)\n.\n\n1 confirmation pending\nInput needed\n\nAllow write to README.md?\n\nAllow\nSkip\nNo queue\n1 confirmation pending\nStop\nAsk\nAgent\nPermit\nNo model\nNo Open Code Editors\nSelect files from the Sources file tree or jump directly from conversation references.\nOpen File\nCtrl\n+\nO\nNew File\nCtrl\n+\nN\nFiles\nChanges\nReview\nRoot\nhome\nclarence\nProjects\nAgents\nvscode-WorkTrees\nD\n.build\nd1385-independent-ui\nfixture\nREADME.md\nUntitled session\nEngine not connected\nHello \nInfo: All installed extensions are temporarily disabled.",
+  "blocked": [],
+  "loaded": [
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js",
+      "sha256": "8668ea87d321488bbdec3e4b193ad6984d914a3b9b9bd139e4ebf213c13633bc",
+      "bytes": 55908
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/chat/browser/voiceClient/voiceSessionController.js",
+      "sha256": "691dfab95e8346717b3a06eb810c2a5640f02e0a388f493a04138c3766902645",
+      "bytes": 929754
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/chat/browser/widgetHosts/editor/chatEditor.js",
+      "sha256": "df4972da3658c0b4e50dacc54facaa3961c3ec48bcc5196f56a3d49d450dd4e9",
+      "bytes": 43495
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/chat/browser/widget/chatWidget.js",
+      "sha256": "7bf12a0a6a6097351ac515618727f2a6a0a7a7359de97dd7c89c7b67660a28f8",
+      "bytes": 512507
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/chat/browser/widgetHosts/viewPane/chatViewPane.js",
+      "sha256": "dfa0e5f690ac746062c7f5cfba7d872f93f2536d5971bb3ffd5ce200eba9f78d",
+      "bytes": 257677
+    }
+  ]
+}

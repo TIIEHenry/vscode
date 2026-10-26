@@ -1,0 +1,9 @@
+{
+  "electronPid": 481218,
+  "electronExists": false,
+  "xvfbPid": 477932,
+  "xvfbExists": false,
+  "cdpPort": 37199,
+  "cdpOpen": false,
+  "userDataExists": false
+}

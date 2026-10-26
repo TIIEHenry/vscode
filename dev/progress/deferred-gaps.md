@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1386根归属与CSS补修运行/非作者真实after通过，closed；D1385取消后修真实controller旧红/183绿、目标TS0，但实际保留CopilotChat owner入口UI待证，仍open；未二次全量。"
+summary: "D1386范围内closed；D1385共享兼容修复旧红/183绿保留，默认产品宿主前提失效，原UI验收未满足并停止；accepted/open且移出当前产品执行队列。"
 
 
 
@@ -18,7 +18,7 @@ summary: "D1386根归属与CSS补修运行/非作者真实after通过，closed�
 
 | ID | Priority | Gap | Why Deferred | Exit Condition | Track | Status |
 |:---|:---------|:----|:-------------|:---------------|:------|:-------|
-| D1385 | P2 | Copilot Chat首次录音授权及冷意图取消的原缺陷；实际UI发起owner路径仍待证明。 | 原5业务红/182绿；f9c17真三路后，真实controller owner hide旧abort0/release1/ptt_end1红，新完整183绿；本次两目标TS0/lint0，Astra同合同裁定与D peer C0/I0/M0。未再次全量，不计Conversation真语音。 | [方案](../plans/copilot-chat-cold-voice-authorization.md) accepted；[取消后修](default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md)。D非作者实际保留CopilotChat pane/editor工具栏/快捷键owner路由证明待到，验收前不关；无真实设备/网络。 | agentsVoice / Copilot Chat | open |
+| D1385 | P2 | 首次录音授权/冷取消的共享兼容实现修复已验证；原“默认CopilotChat pane/editor可达”前提失效，产品UI验收未满足并停止。 | 原5业务红/182绿；f9取消真实controller旧abort0/release1/ptt_end1红、新完整183绿，目标TS0/lint0与独立源码复审C0/I0/M0保留。默认公开入口按既有M5关闭，不是账号/设备缺失；组件fixture excluded。 | [方案](../plans/copilot-chat-cold-voice-authorization.md#10-默认产品可达性范围纠正2026-10-26) accepted；[最终范围裁定](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md) / [独立入口核验](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md)。移出当前默认产品执行队列，不继续造入口或探测，不计Conversation真语音；未closed/implemented。 | agentsVoice / 共享兼容维护 | open |
 | D1386 | P2 | **closed** 叶级folder/aria/branch/菜单/checkout归属与晚结果代次已修；只读chevron隐藏优先CSS补修完成。 | 原11业务旧红/新完整40+Lens8绿；旧CSS四主题真实几何4红，新正式CSS完整44绿；目标TS0、lint0，stylelint新旧同5变量/9建议。C非作者真实两叶/命令URI/实际键盘/四主题/1024窄宽after C0/I0/M0，I1解除。 | [方案](../plans/2026-10-26-leaf-session-root-identity.md) implemented；[CSS运行](default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md) / [独立after](default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md)。保留fixture/无真实Git或checkout/远程授权窗口/在线引擎、仅三JS正文及该CSS范围；PRD029总体仍proposed。 | Conversation identity strip | closed |
 | D1382 | P2 | **closed** ReviewNav会话/工作区目录/SCM变化通知与必需Context/DI合同已补齐，静止活动叶和非活动并列叶同步重读根。 | 旧生产新行为3过/7败，新生产37过，五TS语义0；J静态after C0/I0，D独立默认编辑器after C0/I0，真实行/根失效/并列叶及click/Enter参数通过。 | [方案](../plans/conversation-review-root-invalidation.md) implemented；[自动证据](default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)；[独立after](default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)。无真实git diff、未折叠后再根失效、未独立720px；SCM子根/workspace gate未改，芯片另记D1386。 | Conversation ReviewNav | closed |
 | D1 | P3 | 套件 `dev/loop/overview.md` 引用的 `docs/guides/multi-agent-design-workflow.md` 缺失 | 门禁仅 warning 不阻塞 | 指南落盘且 `check-docs-health` 0 warning | docs | closed |

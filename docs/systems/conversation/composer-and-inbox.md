@@ -87,7 +87,7 @@ Model 菜单在选项后有分隔线，下一项是 **Manage Models…**，只�
 
 `IUniverseAgentConnection` 无 voice/transcript 方法，也无对应 capability key。Composer **不画**麦克风按钮、转写条或预设台词；不得用 `durationLabel '0:01'` / stub phrase 冒充用户说过话。真转写须等引擎 capability 后再开门控。语音队列不是 MessageQueue。
 
-默认编辑器中保留的 Copilot Chat `agentsVoice.startVoiceInChat` 是另一条兼容入口，不属于 Conversation 真语音验收，也不挂载浮动语音窗。其首次连接录音授权绑定发起 widget/composer 与当次手势；连接请求完成不等于录音准入，须等既有 ack 或 fallback 令 `isConnected` 成立。等待中离开发起 composer、换其 view model、隐藏或移除 owner、松开冷启动按住手势，都会单向撤销该次授权；回到原 composer 不复活。取消可保留安静连接，下次明确按下重新建立归属。已由当前冷意图开始的录音在owner失效时先同步discard再持auto-listen闸，走abort而非正常提交结束；仍只清自己拥有的目标，旧松键不影响后来意图。hands-free 准入后才释放 auto-listen hold；非 hands-free 冷点击仅连接，冷按住只在按住期间录音，释放强制结束；已连接 tap/hold/停止合同保持。生命周期、例外与验证见 [冷连接授权方案](../../../dev/plans/copilot-chat-cold-voice-authorization.md)。
+默认产品按既有 [M5 壳合同](../../../dev/plans/m5-ui-shell-hardening.md#2-保留的架构决定) 不使用 Copilot `ChatWidget` / `ChatEditor`；公开打开、服务、resolver 与恢复链有意关闭或转向 Conversation。`agentsVoice.startVoiceInChat` 的命令注册及组件可构造性不等于默认产品 UI 可达，不能用组件夹具代替原 pane/editor 工具栏与快捷键验收。2026-10-26 撤回本节此前“默认编辑器保留独立兼容入口”的错误前提。保留共享语音实现的冷授权/取消安全修复与回归，代价是继续维护其小状态机；它不改变本节无 voice capability 时省略麦克风的产品合同。机制、原验收未满足及范围纠正见 [冷连接授权方案 §10](../../../dev/plans/copilot-chat-cold-voice-authorization.md#10-默认产品可达性范围纠正2026-10-26)。
 
 ## 6. 输入历史
 

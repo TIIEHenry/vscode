@@ -7,9 +7,11 @@ updated: 2026-10-26
 summary: "C源与自槽补修已合入；修后测试精确旧948生产5个业务断言红，新action完整Contrib+Controller182过。七TS定向0，唯一新fullcompile45/27失败；保留初轮夹具错误与三诊断。"
 ---
 
+> **2026-10-26 范围纠正：** 本报告保留原运行/类型检查点及当时的交接假设；“默认保留 CopilotChat 入口”前提随后被完整 gate 与独立 UI 核验推翻，原默认 pane/editor UI 验收未满足并停止。当前仅保留共享兼容修复，不再等待账号或构造宿主；方案 accepted、D1385 open 且移出当前产品执行队列。见[最终裁定](d1385-default-window-scope-decision.md) / [独立入口核验](d1385-default-window-ui-boundary.md)。以下旧运行结果不改写，也不换算为产品 UI 通过。
+
 # D1385 首次录音授权运行证据
 
-默认编辑器保留Copilot Chat的 `agentsVoice.startVoiceInChat`；不是Conversation真语音、不挂载浮窗、不开发src/vs/sessions。作者源 `8619bc47c8f623ae64e03dcb86f6f458e04eecda` 真三路合入 `d941c9458548d989ac548fb01a4b6c7861475e99`；C自槽补修 `e48f88b4ac0e9f025797495c690b83526a8a7aff`、`69ac16e02777e45980e2c55a8389fe928d5c474d` 三路合入 `6f82fe5b05210fd72852abc5df729a70b68b4401`。merge只反馈、接提交、验证，未悄改产品/测试。948的DOM Event注解与本功能修复分开。
+本检查点当时误判默认编辑器保留 Copilot Chat 入口（现已撤回）；共享 `agentsVoice.startVoiceInChat` 修复保留；不是Conversation真语音、不挂载浮窗、不开发src/vs/sessions。作者源 `8619bc47c8f623ae64e03dcb86f6f458e04eecda` 真三路合入 `d941c9458548d989ac548fb01a4b6c7861475e99`；C自槽补修 `e48f88b4ac0e9f025797495c690b83526a8a7aff`、`69ac16e02777e45980e2c55a8389fe928d5c474d` 三路合入 `6f82fe5b05210fd72852abc5df729a70b68b4401`。merge只反馈、接提交、验证，未悄改产品/测试。948的DOM Event注解与本功能修复分开。
 
 ## 第一次运行暴露的真实问题
 
@@ -49,7 +51,7 @@ summary: "C源与自槽补修已合入；修后测试精确旧948生产5个业�
 
 ## 验收边界
 
-独立正式方案与初次实施静态peer均C0/I0；C自己的补修是直接运行/正式类型暴露的API名称与断言调用纠正。运行证据已齐，C两次补修的独立复审、实际保留CopilotChat pane/editor工具栏与快捷键如何传入owner的路由证明仍待到；公共命令fake widget测试不能单独证明这条实际UI来源。后续最终状态以父核验为准，本报告不冒充实际麦克风/后端或Conversation真语音交付。离开后回A须重新明确按下；cold hold释放结束、不把网络等待扩张为tap-toggle；安静连接可保留，无存储/config迁移，warm/协议/恢复合同保持。D1386真实界面独立after另外等待，不用本语音green代签。
+独立正式方案与初次实施静态peer均C0/I0；C自己的补修是直接运行/正式类型暴露的API名称与断言调用纠正。运行证据已齐，C两次补修的独立复审、原假设中的默认 CopilotChat pane/editor owner 路由证明当时待到，现已核宿主关闭、该 UI 验收未满足并停止；公共命令fake widget测试不能单独证明这条实际UI来源。后续最终状态以父核验为准，本报告不冒充实际麦克风/后端或Conversation真语音交付。离开后回A须重新明确按下；cold hold释放结束、不把网络等待扩张为tap-toggle；安静连接可保留，无存储/config迁移，warm/协议/恢复合同保持。D1386真实界面独立after另外等待，不用本语音green代签。
 
 ## 日志字节保留
 

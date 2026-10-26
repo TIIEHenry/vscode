@@ -1,0 +1,15 @@
+{
+  "openViewNullish": true,
+  "result": "null",
+  "visibleChatWidgets": [],
+  "allChatWidgets": [
+    {
+      "index": 0,
+      "ctor": "ChatWidget",
+      "visible": false,
+      "location": "panel"
+    }
+  ],
+  "voiceEvents": [],
+  "blocked": []
+}
