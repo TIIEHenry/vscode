@@ -3,7 +3,7 @@ title: "进度索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；ELR S1–S4 与 bug-hunt 01 S2 已落，Sources 架构 P7 已落且方案仍 accepted；2026-10-16 视觉审查发现稿"
 ---
 
@@ -13,6 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
+| [J/E实现peer补修阶段](default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md) | E900f C0/I3/M0退回occupied、原报告未入库；J八处hasListeners调用待不可变修订/仅两overlap旧red复跑，不formal合源/emit/freeze |
 | [5df已提交协议基线接入](default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md) | 231b真三路119路径保留、src精确7fa3c86=5df；无新emit，out仍ad80身份，J/E正式完整编译待 |
 | [J/E不可变候选旧业务红](default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md) | J宿主4真红/并发2混夹具问题待作者补修；E真实DOM6红（4缺错误、2先缺busy）；34native身份均恢复，未formal合源/新绿/after |
 | [180fc已提交基线接入与全量编译](default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md) | ad80真三路保留78路径，src精确030def=180fc，真实compile-client0；原生emit替换65d旧pack，J/E候选未接，无主ff重试/after |

@@ -3,11 +3,13 @@ title: "J/E 不可变候选正式接入前旧业务红"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "1ac新测对65d宿主4真红、并发2有业务误记但混有hasListeners夹具错误；900f新测对ad80旧链6真DOM红，34native身份已恢复，未正式合源/新绿/after。"
 ---
 
 # J/E 正式接入前旧业务验证
+
+> 以下是旧red采样历史。后续E900f实现peer C0/I3/M0退回occupied补修、当前不可formal queued；J八处listener夹具修订/两旧red复跑待，现行来源与边界见[补修阶段](je-peer-rework-2026-10-27.md)。原始日志与采样计数不改。
 
 本轮只消费不可变 Git：J `1ac1fdc4ae2db39f4e2c3a49e014bcc629b40419` 的 Changes 测试、精确旧 helper `65d2288036fdad74ab607e231d3db758fa397aa8`，以及 E `900f772bfd139214651a7c15e82678a1a0ef6f69` 的 roster 测试。未读取作者 WIP，未正式合入字母源码。源码 HEAD 始终为纯文档 `8781acd0b2dccbc46fec5ede3022fbe1f1ee6dc5`，src 始终为实际[全量编译过的 ad80/030def](main-180fc-baseline-verification.md)。两次开始前全局 compile/typecheck/transpile 车道扫描均无匹配。
 
@@ -32,6 +34,6 @@ permission/question四项已经完成各自false/reject，实际roster → Frame
 
 所有临时JS均在finally以开始前原始字节回写；两轮独立复核均 **34份已登记native输出SHA零变化**，E另核7核心旧JS不变，HEAD/src/worktree clean不变。此恢复只证明明确采样范围，不把整个out冒称同构建、也不把此前65d虚拟pack重新变成live。原日志ANSI、空白与尾空格按[7份原件清单](je-preintegration-old-red-artifact-inventory.json)逐字保留。
 
-J/E完整源码均已由父确认queued；J夹具补修与最终独立codepeer签收仍待。正式P2须先核明确的最新已提交main基线，按真三路保留双方再串行接入不可变候选，实际完整compile-client、J全部29与原完整相关套、E response recovery/完整roster及全部相关套新green后，才给非作者最终产物冻结通知与after。当前无新green、无freeze/after、无主ff重试/root out/push，D1387与PRD状态不提升。
+旧red采样时J/E完整源码均由父确认交付queued；后续E实现peer未过已退回occupied，现行阶段见文首。J夹具补修与最终独立codepeer签收仍待。正式P2须先核明确的最新已提交main基线，按真三路保留双方再串行接入不可变候选，实际完整compile-client、J全部29与原完整相关套、E response recovery/完整roster及全部相关套新green后，才给非作者最终产物冻结通知与after。当前无新green、无freeze/after、无主ff重试/root out/push，D1387与PRD状态不提升。
 
 文档收尾：生成状态`--check`通过，[本轮health原日志](je-preintegration-old-red-docs-health.log)为0 errors / 46既有链接warnings、580 Markdown，status178行；原始日志排除后的diff空白门禁通过。
