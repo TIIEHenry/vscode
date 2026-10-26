@@ -14,6 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [Conversation 审阅导航随工作根刷新](conversation-review-root-invalidation.md) | `accepted` | D1382；补齐会话/工作区/SCM变化的ReviewNav失效通知，保留工作根与归因规则，运行及默认编辑器验收交merge。 |
 | [Policy definition 提交生命周期](policy-definition-submission-lifecycle.md) | `implemented` | D1379；旧生产11行为red与原裸拒绝hook成立，新生产四完整套件41过，五TS语义0/ESLint0，原拒绝与owner/reference保持。 |
 | [Provider 状态行按内容宽度换行](provider-status-row-layout.md) | `implemented` | D1381；旧八几何red，新49过/4focus Chrome补过；独立32组/192焦点无碰撞零写，Provider窄宽局部增高例外保留。 |
 | [默认编辑器视觉状态修复与续审](default-editor-visual-state-followup.md) | `implemented` | 原阶段运行保留历史，D1380/1381直接缺口已获真实回归及独立after闭合，不升PRD或签全仓绿。 |
