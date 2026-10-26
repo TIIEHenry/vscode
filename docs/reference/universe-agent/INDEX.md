@@ -3,8 +3,8 @@ title: "UniverseAgent 引擎参考索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-24
-summary: "本仓消费 UniverseAgent 引擎协议面与 Hub 控制面的导航；Engine 页九节见 engine-catalog；调试用钉死 HeadlessServer 见指南"
+updated: 2026-10-26
+summary: "本仓消费 UniverseAgent 引擎协议面与 Hub 控制面的导航；Engine 页十五节见 engine-catalog；调试用钉死 HeadlessServer 见指南"
 ---
 
 # UniverseAgent 引擎参考
@@ -20,8 +20,9 @@ summary: "本仓消费 UniverseAgent 引擎协议面与 Hub 控制面的导航�
 | 页 | 内容 |
 |----|------|
 | [engine-protocol-surface.md](engine-protocol-surface.md) | 已知 gRPC 服务与 RPC、Device Grant 握手、能力探测三态、本仓消费口径、协议缺口、会话面清单 |
+| [ide-engine-feature-gaps.md](ide-engine-feature-gaps.md) | 默认编辑器与引擎的功能缺口快照：运行时、协议字段与产品入口分开核对 |
 | [hub-control-plane-surface.md](hub-control-plane-surface.md) | Connection Hub HTTPS 控制面：AuthSession、设备目录、relay ticket、Hub 失败码 |
-| [engine-catalog §](../../systems/workbench/engine-catalog.md) | Engine 页九节：四节写路径；Provider/Rules/Hooks 只读列表已接（无写表单）；PRD-025 待产品验证 |
+| [engine-catalog §](../../systems/workbench/engine-catalog.md) | Engine 页十五节：桌面 Provider/Model/Rules 等写路径已接，Hooks 点位只读；PRD-025 待产品验证 |
 | [钉死引擎调试](../../guides/debug-engine.md) | 仓外隔离 HeadlessServer；同一 `UNIVERSE_AGENT_HOME` 下用 UDS 或 `server.lock` 加证书 pin 自动连接，不再扫固定端口；不升 PRD-008 |
 
 ## 红线（摘自 ADR-006 壳不变量、ADR-003 adapter 边界草案与 customizations-engine）
