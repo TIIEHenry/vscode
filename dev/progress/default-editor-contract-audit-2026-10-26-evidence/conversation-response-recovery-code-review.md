@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留原三I和ack回归历史；5f280 ack补修定向C0/I0/M0；另四旧红经精确旧5df复现，三项夹具纠正待、reasoning旧生产差异保留。"
+summary: "保留原三I与ack回归历史；5f280 ack及9e79三夹具补修定向C0/I0/M0，运行待；精确旧5df四红归因留存，reasoning既有生产差异保留。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -201,3 +201,28 @@ reviewer收到唯一lane结果并只读其JSON原件；执行者仍是baseline�
 ### 本轮交接
 
 父已转原E按上述前三项具体夹具/负控修正，reasoning原红保留；提交不可变修订后再定向复读。当前仅ack补修静态C0/I0/M0，不预先宣告尚未修订的夹具或完整E运行通过。首次失败、精确旧复现和未来新green须各自保留来源。
+
+
+## 7. 三项旧夹具修订定向复读（2026-10-27）
+
+### 不可变身份与范围
+
+受审提交 `9e79c26ad11156d691f25a64be8164205ebb475f`，父 `5f28071f4cafeb850ae014c92ce8bcfab75b1875`，src `2232d14ecec6f2b0b795993a47f88c2fe47d4a8f`。Git完整diff仅TimelineProjection.test、TimelineRenderer.test、streamScripts.ts三个测试文件及既有plan/status，共5路径，无生产路径、runner、DSL断言器改动。conversation/browser生产树与父同为 `e5402ee034e67152c39a683481c4d5d091643e68`。reviewer开始时B为clean `5bbeeb57dbebaf56a3800b8690e9b856436984e3` / src `fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1`，只通过Git读受审源码；未checkout作者代码、未编译/typecheck/transpile、未写out、未运行业务测试。
+
+### Strengths
+
+- **Projection：**真实无decision+pending起步，撤回pending得undecided，再写明确allow才得allowed；每段cached/fresh等价。A→B、B→C均检查目标entry换引用及无关user引用稳定；明确allow与pending并存负控仍为allowed。没有把旧断言简单统一改成终态，保留了本测试应覆盖的缓存失效与终态优先级。
+- **StreamScripts：**同一真实帧序列覆盖无pend→undecided、pend→pending、unpend→undecided；三个阶段均保留answerKeysValid=false、子问题id，且无Submit文本，pending阶段还检查不可提交原因。已读DSL实现：`lacks`检验DOM行文本，status/answerKeysValid检验投影字段，不把它夸大为点击/回调测试。DSL本身没有点击或回调计数接口，本波不扩基础设施；原QuestionSeat `invalid answer keys and no payload show an honest empty state` 仍逐字保留无radio/checkbox/button及零callback的DOM断言，未放宽生产校验。
+- **Renderer：**使用真实 `projectProcessFoldSpans` 生成span、公开 `ensureProcessFoldExpanded` 展开，并走正式process-fold variant；已读该生产分支，它实际接入noteClientToolResponse与in-flight查询，没有伪造按钮或绕过hold。首次断言CTA存在后点击一次；重绘仍检查disabled、aria-busy和第二click不多发；retryable恢复可点并显示原错误、再次发送；nonretryable仍隐藏CTA并显示错误。新增standalone fallback无CTA/零callback负控，产品fallback保持只读。所有旧行为断言继续存在，没有skip或runner过滤。
+
+### Critical / Important / Minor / Assessment
+
+**Critical 0 / Important 0 / Minor 0（仅本次三个夹具修订定向范围）。** 修订遵守§6既有合同和边界，可交唯一lane正式合源与复验。生产不变与静态复读不能替代新native运行；本结论不宣称三相关套或整个E全绿。
+
+reasoning原测试从起始tab到结束 `});`（不含末尾换行）在父与受审提交逐字相同，SHA256均 `c72b6abdcd4b0317eb7f1aa17fe7e3a4ef34457ea37da54c3ebc73c19a8e3026`；含末尾换行时均为 `afe2f6dd7c84a17db4f7e5800bf0b535127c3a4e9f8af5fcdc97b738226112d3`。`row.text`与rendered turn仍期待完整 `hmm\nthen this`，排除THINKING，cache/payload/agent/turn断言保留；没有改预期、skip或删除。§6既有生产投影/摘要差异仍为独立旧红，本波不修、不关闭，唯一lane后续报告须明确保留这条已精确旧复现的问题。
+
+### 旧运行永久证据补记与交接
+
+§6提交后，唯一lane交付永久证据提交 `130087b692411f20365343d170bcb4f3cd7e67ad`。本reviewer已直接读取该提交同目录的 `je-formal-old5df-frame.json`、`je-formal-old5df-related.json` blob，SHA256分别仍为§6的 `edf70728563bd6a67785319791c859aa88614a80911b13285bbe0fa913a1aecb`、`1377e7cd1f88428b3623b4b74e26fdd44ae39314db051d52bd11b00fa35345f0`，与当时暂存原件一致。配套日志和完整72artifact校验由唯一lane报告承载；本reviewer未重复执行这些运行，也不将旧模块隔离对照称为整旧native build。
+
+后续由唯一lane按已定流程合不可变9e79及报告，进行第三次实际完整编译、相关全套和身份freeze。此前原失败、精确旧对照与未来新运行继续分别记账；只有当前报告及证据INDEX由B提交，产品、测试、plan/status均不在本reviewer写集。
