@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留M01源码/夹具与运行历史；468d定向C0/I0；D新J-only after的toJSON异常定位为观察层返回service bag，双attempt分记，真实M01验收仍待。"
+summary: "保留M01及observer历史；CSS实际CDP全文可逆对应冻结native，原507/1保留；CSSOM勾号正确，CDP文本差异不作产品缺陷或全局UI验收。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -582,3 +582,58 @@ reviewer认为修观察层后同窗重绑+plain snapshot验证无新增异常即
 attempt2使用新profile从P01重新开始，已读其config快照uiErrors=[]，SHA256 `c7edcbb7be528c0b37fb52666650be2267984bc4bc0e574626ee7f4bba343bb8`。只能陈述该新attempt已读时点无异常，不能删除attempt1数组、按错误字符串过滤后称整轮零异常，也不把新空config快照等同整个M01/真实UI通过。D后续应记录观察修订边界和各attempt身份，再完成真实动作与最终证据；本节未发现要求原J改产品的新缺陷，不阻断D在已授权默认窗口内继续。
 
 本次只写B原报告+INDEX，src仍fdca，未操作D脚本/窗口/产物；因果和参数身份结论已交父与D。
+
+
+## 22. D最终J的CSS来源与字符语义独立复核（2026-10-27）
+
+### 结论与边界
+
+**CSS来源证据可以接受；raw byte equality不能称通过。** 原508断言507通过/1失败准确记录了将CDP Unicode文本重新UTF-8编码后与native原字节比较的不等，必须原样保留。补充完整、确定、可逆的解码证明后，可以在既定合同下单独判定实际加载内容来源闭合，不需要过滤字符、替换乱码、重载CSS、修改out或重跑全部J。
+
+CDP源文本中唯一非注释差异涉及窄叶composer More菜单已选permission项的`::before`勾号；但D随后只读实际CSSOM得到正确的`"✓"`，故**不能把CDP源码文本乱码认定为产品glyph缺陷或实际应用CSS解码错误**。目前未发现该差异带来的产品阻断，也不凭没有打开的菜单宣称完成视觉验收。当前独立工作只读文件、不可变Git与静态hash/映射，没有运行窗口、CDP、引擎、编译、类型检查或业务测试，不签D整套J、E或产品总验收。
+
+### 原件与collector边界
+
+D临时根为`D/.build/d1387-m01-after-20261027-r2/`，资产采集在相邻`e-response-after-m01-20261027-r2/`；consumer `800d383ba65fdefb36da324b380941c7574c4bf3` / src `2b5df2b37ca926e38888443e371cf65e2883dba2`。独立读取以下原件，SHA是读取时身份：
+
+| 原件 | SHA256 |
+| --- | --- |
+| `assertion-attempts/css-raw-byte-guard/assertions.json` | `57efc43ef949c1d2a271b3467bccf2fb9720dedf46957e2bc1d7ee1f1d5eca42` |
+| 同目录`assert-observations-r2.py` | `c8713243cef4a60df61298a17e35228ccaceb33e6dcc0093ed667b93951237ee` |
+| `collect-runtime-assets.cjs` | `73f15dfcde01f5cc606006562bb4b4a5c94c6466abc02010a37c81db7599e7d4` |
+| `runtime-assets-J.json` | `9d354da4b1bdb07fddc661e7d0a292fc5d61ef1234c3b19e0068c6d690f6076e` |
+| `final-freeze-contract.json` | `5a3d7eb82cce25f0f5b9bbe1325c71817b14e2481eab14d9c5f1bfe45149c138` |
+| `css-encoding-observation.json` | `5b2562771037682c482e43c0f0e18321ace98fb9853eee106d1e99c6465f7a7f` |
+
+collector监听`CSS.styleSheetAdded`，按实际`header.sourceURL`绑定冻结路径，通过`CSS.getStyleSheetText`取`text`，直接`fs.writeFileSync(copy,text)`并对`Buffer.from(text)`算SHA。该路径无windows-1252转换或字符串清理，故乱码已在CDP返回源文本边界，不是采集器写盘引入。此结论不等于样式解析器采用同一解码；下述实际CSSOM反而保留正确勾号。DOM记录唯一enabled LINK、exact冻结CSS URL，无link charset，documentCharacterSet为UTF-8；不能仅由文档字符集反推此stylesheet的实际解码。静态protocolMainService使用`registerFileProtocol`并回传path/headers，本审查未捕获响应头或Chromium内部解码调用栈，不把具体默认字符集选择机制说成已动态证明。
+
+### 全文映射与冻结合同
+
+实际CSS为`out/vs/workbench/contrib/conversation/browser/media/conversationLens.css`，CDP stylesheet ID `style-sheet-1931945-55`。独立读取当前source/native与原始runtime文本：source/native皆175386 bytes / SHA256 `828212ceaf9d6457edc2de7896c8c801829c6e900c99766ea7106256ba5ce956`；runtime文本UTF-8为175609 bytes / SHA256 `75252ed2812cf2ea73e9a9519a55cc10a44bc6847d1c183dee1552d69637745f`。
+
+reviewer仅做离线静态映射：`new TextDecoder('windows-1252').decode(nativeBytes)`与全部CDP原文逐字符完全相等。独立构造256个单字节的解码表，256个结果互不相同；将CDP全文逐字符逆映射，得到原175386 bytes，逐字节相等且SHA恢复`828212…`。没有trim、删注释、字符过滤、替换或模糊normalize。WHATWG的iso-8859-1标签也映射windows-1252，不能误写为Python/传统ISO Latin-1语义。
+
+因此，结合actual LINK/CDP URL、source/native冻结守卫，可准确表达为“实际stylesheet全文精确等于同一冻结native字节的确定性windows-1252解码结果”；它强于只看URL，也不冒充网络raw响应捕获。`matchesFrozenNativeBytes:false`必须保留。原§8冻结合同要求source/native exact hash与独立actual CSS观察；`final-freeze-contract.json`明确hashEvidence是source/native，runtimeEvidence另记Debugger/CSS，未规定CDP Unicode字符串的UTF-8回编码必须等native raw bytes。新补充身份断言应与原失败分列，不能把原507/1改写为当时全绿。53资产中40JS实际raw-match、1CSS上述解码来源、12 manifest-only亦须分开，不升级整out。
+
+### 有效规则、基线连续性及最小后续
+
+逐行完整diff除注释外，只有以下有效声明变化（当前native约4311行）：
+
+```css
+.monaco-workbench .conversation-lens-dock-more-popup .conversation-lens-dock-more-item[aria-checked="true"]::before {
+    content: "✓"; /* CDP文本实际为 "âœ“" */
+}
+```
+
+真实producer `conversationLensComposerChrome.ts`在窄叶More菜单构造permission的`role=menuitemradio`与`aria-checked`。若这条乱码成为实际应用值，就会影响视觉选中标记，因此reviewer最初向父/D提示产品语义风险；后续直接CSSOM证据排除了这一步推断，不能把初判固化为既有产品缺陷。
+
+D补充`css-glyph-cssom-observation.json`：同一冻结href的enabled sheet有683条规则，目标规则的`style.content`为正确`"✓"`，`cssText`也为正确勾号，`matchingElementCount:0`。reviewer读取了该原件，没有自行操作CDP。该结果证明此规则实际解析值与CDP源码文本不同；没有现存匹配元素，所以没有computed可见glyph证据，不虚报截图验证。具体差异发生在Chromium/DevTools何处仍未定位；现有证据支持“CDP源文本获取/表示差异”，不支持“浏览器实际用windows-1252解析了这条CSS”。
+
+独立Git核验整份CSS在旧集成`9cc56b5595cdc680020cc832fe390c592a55c25c`、M01旧`0da326c052fdaac3d6ff9e2118ba95b001868f1f`、候选`468d805ef929298de9113f72665a3de0bdf4742a`与consumer `800d383…`均为`828212…`。外部d91整CSS为不同`f358ee13…`，不能称整份相同，但该勾号规则已存在；d91/9cc56/800d的protocolMainService全文SHA均`45b51c7f687d0fa56ac11684ee1d573a76090d61de086e457d9fb7797da56fbe`，composer producer全文均`aaea54ee64a4193e3a624cd0f47c9291a02f8624df82e93febe3880e3bdf1fac`。这证明相关源与加载路径连续，不冒称已重跑旧baseline窗口。
+
+最小后续：D保留原507/1和raw-mismatch，另存全文映射及CSSOM原件/采集表达式，单独给出已加载来源补充判定。当前没有已证的产品glyph缺陷，无需产品修补、新方案、重新emit或为来源证明再开菜单。不得为了让raw断言绿而修改CSS、过滤字符或临时写out。J完成签署与E授权仍由父按全部D证据另行决定。
+
+新增CSSOM原件SHA256：`031b54932a3c8cd3b9eeece985d140ef39cae56efce51b37a6f3330c5f9832c2`。上述纠正保留本次从CDP源文本风险到实际CSSOM消歧的证据顺序，不把初步推断当作曾经证实的产品失败。
+
+
+D随后提供`cssom-complete-reference-comparison.json`（SHA256 `01048ff59b3be02de790f2317e64e4d133b164f6b269c6772d973e611331f398`）。reviewer独立读取并比较其保存的actual/reference两组683条`cssText`数组，全部逐字符串相等；记录的两组摘要同为`f34471034a242c1876d7f00db7879e16e23188fca16b73eb67a71a181b5136ac`。D记录reference为冻结UTF-8正文经detached CSSStyleSheet解析、未adopt也未插DOM，不改变产品样式；这是D的浏览器执行证据及reviewer对原件的离线复核，不能写成reviewer自己重做解析。它补强有效规则一致性，不替代全文字节来源证明，也不让原raw equality断言翻绿。已请D将实际采集表达式随原件归档，避免仅靠JSON声明描述采集步骤。
