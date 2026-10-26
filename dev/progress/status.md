@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "main5df/src7fa3c86尚未新emit；J4d49 peer闭合/2纯旧红；E c2b五代表对精确旧900f纯业务红已留证，复读待且不可formal queued。"
+summary: "J4d49/Ec2b peer原件C/I闭合、正式merge-queued，无occupied；main明确5df，P0/P1完，P2串行合源/完整emit待；禁push/主ff不重试。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **J/E正式queued与P0/P1（2026-10-27）**：已实读Astra不可变3e550原900f C0/I3与c2b复读C0/I0/M0，2docs仅在merge自身ff接入；J4d49核心peer/M1闭合，两代码成员clean且正式merge-queued，无occupied。P0 main明确5df/src7fa、有99dirty路径只登记不取源码；J/E/merge clean、stash0，P1 already-committed。父授权本wake直接P0–P7，P2真三路/完整emit/全套随后；P5禁push/P6主ff既有拒绝不重试，不先宣称wave释放。[正式记录与边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。
 - **E三I修订的精确旧900f代表红（2026-10-27）**：c2b新roster测配完整不可变900f的14生产模块，独占共享锁/全局空闲后实载5代表=0过5纯业务AssertionError：I1accepted后重复响应true应false，I2disconnect/identity同步三API全true应false，I3question options/toolargs替换后DOM仍busy。I3旧false/accepted与I2缓存后续断言尚未达，不越报。15输出身份全部恢复（State.js原无现仍无）、34native SHA全恢复，HEAD/src/clean不变。c2b独立Astra复读待，E occupied不可formal queued；不formal合源/全量emit/freeze。[原日志/范围/身份](default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md)。
 - **J listener补修与2纯业务旧红（2026-10-27）**：不可变4d49相对1ac精确8处hasListeners()、生产不变；独占共享编译锁/全局进程空后，仅新test02a626配精确旧65d helper f136，2 settles-first均0过2身份AssertionError红，listening=false/calls[1,1]/trace[]均符合；原4host红不重跑。finally两JS原字节恢复、34native全恢复，HEAD/src/clean不变。D0aef原件仅文档真三路95ce892、192路径保留PASS，核心C0/I0且M1关闭；J模块queued，E仍C0/I3 occupied，整波不formal合源/全量emit/freeze。[原件/运行/身份](default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md)。
 - **J/E实现peer补修阶段（2026-10-27）**：父转达Astra对E900f静态peer C0/I3/M0，原报告尚未入库；timeline-only clientTool accepted丢closed身份、disconnect/identity scope通知先于write gate可重入、同generation已有interactive语义改变仍复用attempt。E已退回occupied补修、当前不可formal queued，须不可变修订/复读。当次J正补8处hasListeners()，后续不可变交付/2纯旧红见上条，宿主4不重跑。当前main5df/src7fa3c86未新emit，34native仍ad80身份；不formal合J/E/全量emit/freeze，不取WIP/主ff重试/push。[阶段事实与来源](default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md)。

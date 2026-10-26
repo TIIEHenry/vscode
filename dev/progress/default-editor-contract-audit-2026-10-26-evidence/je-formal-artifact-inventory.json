@@ -1,0 +1,33 @@
+{
+  "phase": "P0-P1-complete-P2-authorized",
+  "artifacts": [
+    {
+      "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-P0-P1.json",
+      "bytes": 11442,
+      "sha256": "e9325d62bb900a24edc8f21f41553bac1c9c588d1be8aaf5cb796442f6e3b515",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-peer-report-ff.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-peer-report-ff.log",
+      "bytes": 445,
+      "sha256": "065830c897bd0d45fa23895d7ffd6040dd31edafea2b10f355b4952e89bc6d11",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-peer-report-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-peer-report-identity.json",
+      "bytes": 754,
+      "sha256": "fa8221e5539d8a3228d7099f36d26168b38ad5590468d130b1e9125719e81421",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-queued-docs-health.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-queued-docs-health.log",
+      "bytes": 4384,
+      "sha256": "dfe9992093b75032fe29e4f7b1fd2a9f30ea154b6e2a73693800fbdf8bc47944",
+      "bytePreservingCopy": true
+    }
+  ]
+}

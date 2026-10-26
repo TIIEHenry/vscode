@@ -1,0 +1,17 @@
+{
+  "phase": "independent-E-peer-report-fast-forward-only-merge-worktree",
+  "beforeHead": "19b91119a5524a4d2a339487441eb04543a6534e",
+  "reportCommit": "3e5502be545378cd48871bc2f0f0fc7359e2a0d9",
+  "afterHead": "3e5502be545378cd48871bc2f0f0fc7359e2a0d9",
+  "sourceTreeUnchanged": "7fa3c86d152420afeb66c6038bd961bb6d5b8f4b",
+  "paths": [
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md"
+  ],
+  "onlyTwoDocumentationPaths": true,
+  "actualReportRead": true,
+  "original900fPeer": "C0/I3/M0",
+  "c2bPeer": "C0/I0/M0",
+  "capturedAtUtc": "2026-10-26T16:24:09.255448+00:00",
+  "mainFastForwardNotRetried": true
+}

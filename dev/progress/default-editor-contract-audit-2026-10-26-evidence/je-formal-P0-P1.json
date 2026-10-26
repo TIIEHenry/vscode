@@ -1,0 +1,64 @@
+{
+  "phase": "P0-P1-frozen-J-E-wave-inventory",
+  "capturedAtUtc": "2026-10-26T16:23:33.571742+00:00",
+  "frozenCodeMembers": {
+    "J": "4d4906163044929c1b7b7a7ed40693a2cd4a9a91",
+    "E": "c2b1266006b7c192fbaaf737e80be25726021fc4"
+  },
+  "independentEPeerCommit": "3e5502be545378cd48871bc2f0f0fc7359e2a0d9",
+  "noOccupiedCodeMember": true,
+  "P1": "already-committed",
+  "P5PushForbidden": true,
+  "P6MainFastForwardAlreadyRefusedNoRetry": true,
+  "worktrees": {
+    "main": {
+      "path": "/home/clarence/Projects/Agents/vscode",
+      "branch": "agent-ide",
+      "head": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceTree": "7fa3c86d152420afeb66c6038bd961bb6d5b8f4b",
+      "statusPorcelain": " M dev/plans/conversation-empty-hero.md\n M dev/plans/thinkrail-visualize-port.md\n M docs/architecture/cross-cutting/ui-design-principles.md\n M docs/reference/code-oss-b2/conversation-lens-assembly.md\n M docs/systems/conversation/composer-and-inbox.md\n M src/vs/platform/universeAgent/common/universeAgentCapabilities.ts\n M src/vs/platform/universeAgent/common/universeAgentConnection.ts\n M src/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.ts\n M src/vs/platform/universeAgent/common/universeAgentTypes.ts\n M src/vs/platform/universeAgent/node/grpc/grpcClient.ts\n M src/vs/platform/universeAgent/node/grpc/grpcProtoCodec.ts\n M src/vs/platform/universeAgent/node/grpc/grpcTransport.ts\n M src/vs/platform/universeAgent/node/grpcCapabilityProbe.ts\n M src/vs/platform/universeAgent/node/universeAgentConnectionService.ts\n M src/vs/platform/universeAgent/test/node/deviceAuthHandshake.test.ts\n M src/vs/platform/universeAgent/test/node/grpcAgentChatServerStreamWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcAgentHistoryUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcBackUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcBranchUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcCancelRemoteSessionUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcCatalogUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcCheckConnectionUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcClearSessionDemoFakeUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts\n M src/vs/platform/universeAgent/test/node/grpcCompactUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcCreateRemoteSessionUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcDeleteConfigUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcDestroyRemoteSessionUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcDevicePairUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcDownloadAttachmentStreamWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcExitMaintenanceUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcFetchToolUsageDetailUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcFireTriggerWebhookUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcGetConfigUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcGetNodeUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcGetRemoteSessionHistoryUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcGetRemoteSessionStatusUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcGetUploadProgressUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcListConfigsUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcListLoopSnapshotsUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcListNodesUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcMemoryRebuildStreamWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcModelPreferencesUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcPauseUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcPruneUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcReloadRemoteAgentsUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcRemoteChatStreamWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcResetErrorUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcResetUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcResolveModelUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcResumeLoopUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcResumeRemoteSessionUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcRunToolInBackgroundUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcSaveConfigUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcSendShellSessionClientControlUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcSessionLifecycleUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcSessionResolveUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcSetMaintenanceUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcStatusUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcStopLoopUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcStopShellTaskUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcSubscribeToolDetailStreamWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcSuspendLoopUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcSwitchWorkDirUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcTestModelProfileUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcTodoUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcTriggerUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcUploadAttachmentStreamWire.test.ts\n M src/vs/platform/universeAgent/test/node/grpcUsageUnaryWire.test.ts\n M src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts\n M src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts\n M src/vs/platform/universeAgent/test/node/universeAgentConnectionIpcChannel.test.ts\n M src/vs/workbench/contrib/conversation/browser/conversationComposerAt.ts\n M src/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.ts\n M src/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.test.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensSessionBarStrings.ts\n M src/vs/workbench/contrib/conversation/browser/conversationMessageQueueModel.ts\n M src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts\n M src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts\n M src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts\n M src/vs/workbench/contrib/conversation/browser/engineSkillsSection.ts\n M src/vs/workbench/contrib/conversation/browser/media/conversationLens.css\n M src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationInboxOverlay.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLensRevealNavigation.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLensSessionBar.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/engineSkillsSection.test.ts\n M src/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.ts\n?? dev/plans/subscription-recovery-closeout.md\n?? src/vs/platform/universeAgent/node/grpc/grpcQueueSkillWire.ts\n?? src/vs/platform/universeAgent/test/node/grpcQueueSkillWire.test.ts\n?? src/vs/workbench/contrib/conversation/browser/conversationEngineQueueReader.ts\n?? src/vs/workbench/contrib/conversation/test/browser/conversationEngineQueueReader.test.ts\n",
+      "stashList": ""
+    },
+    "merge": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+      "branch": "loop/merge",
+      "head": "19b91119a5524a4d2a339487441eb04543a6534e",
+      "sourceTree": "7fa3c86d152420afeb66c6038bd961bb6d5b8f4b",
+      "statusPorcelain": "",
+      "stashList": ""
+    },
+    "J": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/J",
+      "branch": "loop/J",
+      "head": "4d4906163044929c1b7b7a7ed40693a2cd4a9a91",
+      "sourceTree": "1a3073c6ca6bd11c0daf049b3d713a593001b663",
+      "statusPorcelain": "",
+      "stashList": ""
+    },
+    "E": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/E",
+      "branch": "loop/E",
+      "head": "c2b1266006b7c192fbaaf737e80be25726021fc4",
+      "sourceTree": "43743552d07546d34bf19eab097cd3f197250691",
+      "statusPorcelain": "",
+      "stashList": ""
+    },
+    "B_peer": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/B",
+      "branch": "loop/B",
+      "head": "3e5502be545378cd48871bc2f0f0fc7359e2a0d9",
+      "sourceTree": "7fa3c86d152420afeb66c6038bd961bb6d5b8f4b",
+      "statusPorcelain": "",
+      "stashList": ""
+    },
+    "D_after": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D",
+      "branch": "loop/D",
+      "head": "0aef80980ae42692562b163deaef7a01bda2e512",
+      "sourceTree": "4173904de91b61a95d2404a4900afa2960e56c9f",
+      "statusPorcelain": "",
+      "stashList": ""
+    }
+  },
+  "worktreesRegistered": "worktree /home/clarence/Projects/Agents/vscode\nHEAD 5df17cb7273f490ccd59818dccba479fa80848dc\nbranch refs/heads/agent-ide\n\nworktree /home/clarence/Projects/Agents/vscode-WorkTrees/A\nHEAD e1150a40a31bf016ac2aaf381fb85c550fc80351\nbranch refs/heads/loop/A\n\nworktree /home/clarence/Projects/Agents/vscode-WorkTrees/B\nHEAD 3e5502be545378cd48871bc2f0f0fc7359e2a0d9\nbranch refs/heads/loop/B\n\nworktree /home/clarence/Projects/Agents/vscode-WorkTrees/C\nHEAD 61aadabda7e1b0fd1496dc0201b60f720f91aced\nbranch refs/heads/loop/C\n\nworktree /home/clarence/Projects/Agents/vscode-WorkTrees/D\nHEAD 0aef80980ae42692562b163deaef7a01bda2e512\nbranch refs/heads/loop/D\n\nworktree /home/clarence/Projects/Agents/vscode-WorkTrees/E\nHEAD c2b1266006b7c192fbaaf737e80be25726021fc4\nbranch refs/heads/loop/E\n\nworktree /home/clarence/Projects/Agents/vscode-WorkTrees/F\nHEAD 02801f9de9921a0d9f95961bdfd77d2d7b3c764f\nbranch refs/heads/loop/F\n\nworktree /home/clarence/Projects/Agents/vscode-WorkTrees/G\nHEAD cee80f079666d3ece241edebdbccc8a55f419038\nbranch refs/heads/loop/G\n\nworktree /home/clarence/Projects/Agents/vscode-WorkTrees/H\nHEAD e8b8538cf5a5b0e6ec021e1492058182548cc5fa\nbranch refs/heads/loop/H\n\nworktree /home/clarence/Projects/Agents/vscode-WorkTrees/I\nHEAD cee80f079666d3ece241edebdbccc8a55f419038\nbranch refs/heads/loop/I\n\nworktree /home/clarence/Projects/Agents/vscode-WorkTrees/J\nHEAD 4d4906163044929c1b7b7a7ed40693a2cd4a9a91\nbranch refs/heads/loop/J\n\nworktree /home/clarence/Projects/Agents/vscode-WorkTrees/merge\nHEAD 19b91119a5524a4d2a339487441eb04543a6534e\nbranch refs/heads/loop/merge\n\n"
+}
