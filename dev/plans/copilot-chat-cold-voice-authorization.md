@@ -70,10 +70,18 @@ summary: "D1385：默认编辑器保留的 Copilot Chat 首按授权绑定 compo
 ## 5. 实施与审查
 
 - [x] 规则 16 独立只读审查正式方案，核验并改入 Critical/Important；不是把事前 Astra 决策当预签。
-- [ ] 单独方案提交，再改 action 与公共行为测试。
-- [ ] 实施只读 peer；C 的静态 lint/diff/docs 门禁；记录实际 SHA 与未运行项。
+- [x] 单独方案提交，再改 action 与公共行为测试。
+- [x] 实施只读 peer；C 的静态 lint/diff/docs 门禁；记录实际 SHA 与未运行项。
 - [ ] merge 旧生产 red / 新生产 green 与独立复审；在此之前方案保持 accepted、D1385 open。
 
 2026-10-26 正式方案由 D 原生同伴独立只读审查，Strengths 为真实 widget 身份、完整准入闸和公共/真实 controller 两层验证；Critical 0 / Important 0，作者已核验。Minor 两项已落验收：草稿 view model materialize 撤销；准入临时观察释放后仍保留 cold hold release 的代次所有权，直到 release/取消完成。该审查只通过方案，不构成代码/运行验收。
 
 设计决定来源为 2026-10-26 Astra 只读裁定。任何超出上述合同的新重大决策先送父调度的 Astra，不自行扩设计、不问人类。
+
+## 6. 源码交付与统一验证交接
+
+正式方案提交 `3d291db` 后，action 已写同步 hold、context/widget owner 快照、单向取消与目标所有权、ack/fallback 准入等待、旧 Promise 拒绝观察、legacy 异步重验、冷按住强制结束与 warm 原 PTT。测试写入 31 条公共 action 场景（替换旧 2 条），以及 3 条真实 controller 场景：ack/fallback 持闸与释放、真实公共命令在虚拟五秒连接等待后 0ms 松键结束。真实 controller 只用 fake voice client/mic/auth/signal；所有设备/网络边界都走注入对象，不构造 WebSocket 或真实麦克风服务。
+
+2026-10-26 D 对实际三 TS diff 的独立实施 peer 为 Critical 0 / Important 0；不是运行验收。C 三 TS ESLint `--no-cache` 为 0 errors / 0 warnings；`git diff --check` 通过。文档健康检查 0 errors / 46 既有链接 warnings。C 未编译/typecheck/transpile、未写 out、未跑单测、未启 Electron、未访问真实麦克风/语音网络/系统权限。
+
+唯一 merge 工位先保留并核对旧生产 `agentsVoice.contribution` 对应 `94893edf39b2`（与父 `3e63` 的 action 正文相同），只更新两份测试产物。最小 old-red 选择 `connect resolve does not release|toolbar uses the actual editor|cold hold released before admission|cold public command ends a short mic turn`；这些会以调用/状态断言失败，不需要等待未实现的取消使测试超时。真实 controller 的两条 gate API 测试本来就可在旧 controller 上通过，它们验证既有生产闸，不冒充 action 旧红。再只更新 action 生产，运行完整 agentsVoice contribution 与 VoiceSessionController 套件（含原 warm/停止回归），并对三 TS 做正式项目上下文定向语义检查和 ESLint。旧失败必须与同配置旧生产比较。运行前本方案 accepted、D1385 open，不宣称新 green、完整编译或 Conversation 真语音交付。

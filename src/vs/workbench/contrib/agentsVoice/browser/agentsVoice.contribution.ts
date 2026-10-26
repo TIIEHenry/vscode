@@ -18,7 +18,8 @@ import '../common/voiceTranscriptStore.js';
 // Register the Voice Transcripts view + show-command + chat-menu entry
 import './transcriptsView/voiceTranscripts.contribution.js';
 
-import { Disposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { DeferredPromise } from '../../../../base/common/async.js';
 import { autorun } from '../../../../base/common/observable.js';
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { URI } from '../../../../base/common/uri.js';
@@ -54,6 +55,9 @@ import { CONFIGURE_VOICE_INSTRUCTIONS_ACTION_ID } from '../../chat/browser/actio
 import { IVoiceModeOnboardingService } from './voiceModeOnboarding.js';
 import { SHOW_VOICE_MODE_ONBOARDING_COMMAND } from '../../chat/browser/speechToText/micButtonMenuActions.js';
 import { IsSessionsWindowContext } from '../../../common/contextkeys.js';
+import { IChatWidget, IChatWidgetService } from '../../chat/browser/chat.js';
+import { IChatExecuteActionContext } from '../../chat/browser/actions/chatExecuteActions.js';
+import { isEqual } from '../../../../base/common/resources.js';
 
 // --- Context Keys ---
 
@@ -217,6 +221,9 @@ registerAction2(class extends Action2 {
 });
 
 registerAction2(class extends Action2 {
+	private currentStart: { cancel(): void } | undefined;
+	private heldController: IVoiceSessionController | undefined;
+
 	constructor() {
 		super({
 			id: 'agentsVoice.startVoiceInChat',
@@ -253,83 +260,207 @@ registerAction2(class extends Action2 {
 			},
 		});
 	}
-	async run(accessor: ServicesAccessor): Promise<void> {
+	async run(accessor: ServicesAccessor, context?: IChatExecuteActionContext): Promise<void> {
 		const voiceController = accessor.get(IVoiceSessionController);
 		const commandService = accessor.get(ICommandService);
 		const keybindingService = accessor.get(IKeybindingService);
+		const widgetService = accessor.get(IChatWidgetService);
 		const handsFree = accessor.get(IConfigurationService).getValue<boolean>('agents.voice.handsFree') === true;
 		const activeWindow = getActiveWindow();
-		voiceController.setActiveWindow(activeWindow);
-
-		// Capture hold-mode FIRST, synchronously, before any `await`. The
-		// keybinding service only reports a held chord while it is still
-		// dispatching this command; the moment `run()` first suspends on an
-		// await it clears `_currentlyDispatchingCommandId`, after which
-		// `enableKeybindingHoldMode` returns `undefined`. Calling it up-front is
-		// what makes press-and-hold work even on the very first (cold) press
-		// where we still have to connect. `undefined` here means the action was
-		// invoked without a held key (toolbar mic button / command palette).
+		// Hold mode is only available while the keybinding dispatch is synchronous.
 		const holdMode = keybindingService.enableKeybindingHoldMode('agentsVoice.startVoiceInChat');
-
-		// An explicit press in another composer transfers Voice Mode ownership to
-		// that composer. The draft sentinel deliberately clears the concrete target.
-		const sessionAtPress = await commandService.executeCommand<string | undefined>('_chat.voice.getCurrentSession');
-		if (sessionAtPress) {
-			try {
-				const resource = URI.parse(sessionAtPress);
-				if (resource.scheme === 'sessions-voice') {
-					voiceController.setDraftTarget();
-				} else {
-					voiceController.setTargetSession(resource);
-					voiceController.activateSession(resource);
-				}
-			} catch {
-				// The routing command owns validation; leave the current target unchanged.
-			}
-		}
-
-		// Ensure the session is connected before we start recording. The mic
-		// button's first press connects; a held keybinding also connects here so
-		// that press-and-hold works on the very first invocation. If the user
-		// releases the key while we're still connecting, `holdMode` resolves
-		// early and the awaited release below fires right after pttDown() — the
-		// controller then treats it as a quick tap (toggle on).
 		const wasConnected = voiceController.isConnected.get();
-		if (!wasConnected) {
-			await voiceController.connect(activeWindow);
-			// The user may switch composers while we connect. Do not start capture
-			// for the composer they left — that would require an explicit press
-			// in the new composer.
-			if (sessionAtPress) {
-				const sessionAfterConnect = await commandService.executeCommand<string | undefined>('_chat.voice.getCurrentSession');
-				if (sessionAfterConnect !== sessionAtPress) {
+		this.currentStart?.cancel();
+		const gated = !wasConnected || this.heldController === voiceController;
+		if (gated) {
+			// Releasing can open the mic immediately. Take the gate before bridge,
+			// auth or connect work, and keep it until the owner is stable at admission.
+			this.heldController = voiceController;
+			voiceController.setAutoListenHeld(true);
+		}
+		const listeners = new DisposableStore();
+		const cancelled = new DeferredPromise<void>();
+		let invalid = false;
+		let released = false;
+		let admitted = wasConnected;
+		let startedPtt = false;
+		let wroteTarget = false;
+		let owner = context?.widget ?? widgetService.lastFocusedWidget;
+		let ownerModel = owner?.viewModel;
+		let resource = ownerModel?.sessionResource;
+		const intent = {
+			cancel: () => {
+				if (invalid) {
+					return;
+				}
+				invalid = true;
+				if (gated && this.currentStart === intent) {
+					this.heldController = voiceController;
+					voiceController.setAutoListenHeld(true);
+					if (startedPtt) {
+						voiceController.discardRecording();
+					}
+					if (wroteTarget && (resource
+						? isEqual(voiceController.targetSession.get(), resource)
+						: voiceController.hasDraftTarget.get())) {
+						voiceController.setTargetSession(undefined);
+					}
+				}
+				listeners.dispose();
+				cancelled.complete();
+			}
+		};
+		this.currentStart = intent;
+		const validOwner = () => !invalid && this.currentStart === intent && !!owner
+			&& owner.visible && owner.viewModel === ownerModel
+			&& isEqual(owner.viewModel?.sessionResource, resource);
+		const watchOwner = (widget: IChatWidget) => {
+			listeners.add(widget.onDidChangeViewModel(() => intent.cancel()));
+			listeners.add(widget.onDidHide(() => intent.cancel()));
+		};
+		listeners.add(widgetService.onDidChangeFocusedWidget(widget => {
+			if (widget !== owner) {
+				intent.cancel();
+			}
+		}));
+		listeners.add(widgetService.onDidRemoveWidget(widget => {
+			if (!owner || widget === owner) {
+				intent.cancel();
+			}
+		}));
+		if (owner) {
+			watchOwner(owner);
+		}
+		if (holdMode) {
+			void holdMode.then(() => {
+				released = true;
+				if (!admitted) {
+					intent.cancel();
+				}
+			}, () => intent.cancel());
+		}
+		const setTarget = () => {
+			if (resource) {
+				voiceController.setTargetSession(resource);
+				voiceController.activateSession(resource);
+			} else {
+				voiceController.setDraftTarget();
+			}
+			wroteTarget = true;
+		};
+		try {
+			voiceController.setActiveWindow(activeWindow);
+			const legacyOwner = !owner;
+			if (legacyOwner) {
+				// Only old callers without a concrete widget use the pane bridge.
+				// A bridge URI must resolve back to a real, observable owner.
+				let session: string | undefined;
+				try {
+					session = await Promise.race([
+						commandService.executeCommand<string | undefined>('_chat.voice.getCurrentSession'),
+						cancelled.p.then(() => undefined),
+					]);
+					if (session && !invalid) {
+						owner = widgetService.getWidgetBySessionResource(URI.parse(session));
+					}
+				} catch {
+					intent.cancel();
+					return;
+				}
+				ownerModel = owner?.viewModel;
+				resource = ownerModel?.sessionResource;
+				if (owner) {
+					watchOwner(owner);
+				}
+			}
+			if (!validOwner()) {
+				intent.cancel();
+				return;
+			}
+			setTarget();
+			if (!wasConnected) {
+				const admission = new DeferredPromise<boolean>();
+				let connectSettled = false;
+				let sawConnecting = false;
+				const checkAdmission = () => {
+					const connected = voiceController.isConnected.get();
+					if (admitted && !connected) {
+						intent.cancel();
+					}
+					if (admission.isSettled) {
+						return;
+					}
+					const connecting = voiceController.isConnecting.get() || voiceController.isReconnecting.get();
+					sawConnecting ||= connecting;
+					if (connected) {
+						admission.complete(true);
+					} else if (!connecting && (sawConnecting || connectSettled)) {
+						admission.complete(false);
+					}
+				};
+				listeners.add(autorun(reader => {
+					voiceController.isConnected.read(reader);
+					voiceController.isConnecting.read(reader);
+					voiceController.isReconnecting.read(reader);
+					voiceController.voiceState.read(reader);
+					checkAdmission();
+				}));
+				const ready = Promise.race([admission.p, cancelled.p.then(() => false)]);
+				// Observe rejection even if cancellation makes the command finish first.
+				void voiceController.connect(activeWindow).then(() => {
+					connectSettled = true;
+					checkAdmission();
+				}, error => { admission.error(error); });
+				if (!await ready) {
+					intent.cancel();
+					return;
+				}
+				if (legacyOwner) {
+					const currentSession = await Promise.race([
+						commandService.executeCommand<string | undefined>('_chat.voice.getCurrentSession'),
+						cancelled.p.then(() => undefined),
+					]);
+					if (currentSession !== resource?.toString()) {
+						intent.cancel();
+						return;
+					}
+				}
+			}
+			if (!validOwner() || (!wasConnected && released) || !voiceController.isConnected.get()) {
+				intent.cancel();
+				return;
+			}
+			admitted = true;
+			if (gated) {
+				// connect/focus may have changed target while the gate was held.
+				setTarget();
+				this.heldController = undefined;
+				voiceController.setAutoListenHeld(false);
+				if (handsFree || (!holdMode && !wasConnected)) {
 					return;
 				}
 			}
+			voiceController.pttDown();
+			startedPtt = true;
+			if (!holdMode) {
+				voiceController.pttUp();
+				return;
+			}
+			await Promise.race([holdMode, cancelled.p]);
+			if (validOwner()) {
+				// A cold hold authorizes recording only while physically held. Network
+				// delay must not turn a short post-admission recording into tap-toggle.
+				voiceController.pttUp('explicit', !wasConnected);
+			}
+		} catch (error) {
+			intent.cancel();
+			throw error;
+		} finally {
+			listeners.dispose();
+			if (this.currentStart === intent) {
+				this.currentStart = undefined;
+			}
 		}
-
-		if (!holdMode && !handsFree && !wasConnected) {
-			return;
-		}
-
-		// Map the physical key/button gesture directly onto the controller's
-		// push-to-talk model: press => pttDown(), release => pttUp(). The
-		// controller itself decides tap-vs-hold based on how long the key was
-		// held (a quick tap enters toggle mode and keeps recording; a real hold
-		// records only while held). `enableKeybindingHoldMode` also swallows OS
-		// key-repeat while held, so holding the shortcut no longer rapidly
-		// toggles.
-		voiceController.pttDown();
-		if (!holdMode) {
-			// Not invoked via a held keybinding (toolbar mic button or command
-			// palette): emulate a tap so the controller enters toggle mode and
-			// keeps listening. Pressing the button/shortcut again stops.
-			voiceController.pttUp();
-			return;
-		}
-
-		await holdMode;
-		voiceController.pttUp();
 	}
 });
 
