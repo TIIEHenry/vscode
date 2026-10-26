@@ -3281,7 +3281,8 @@ suite('SessionsManagementService', () => {
 			resolution.complete(undefined);
 			await opening;
 
-			assert.deepStrictEqual(grid(view), { visible: [], active: undefined });
+			// An empty grid keeps its initial new-session composer slot.
+			assert.deepStrictEqual(grid(view), { visible: [undefined], active: undefined });
 		});
 
 		test('the focus event caused by opening a session does not cancel loading its targeted chat', async () => {

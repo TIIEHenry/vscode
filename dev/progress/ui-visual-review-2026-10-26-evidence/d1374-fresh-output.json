@@ -1,0 +1,24 @@
+{
+  "source_base_head": "88acc5c",
+  "source_state": "C slice plus empty-grid expected composer-slot correction committed with this snapshot",
+  "red_baseline": "0ea26634bed",
+  "red_original_production_body_verified": true,
+  "red_original_production_sha256": "c25c590536c2c29ea0587e2fcbc704478e43849af39778fa1fbf30e508bf6d59",
+  "out_root": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out",
+  "files": [
+    {
+      "source": "src/vs/sessions/services/sessions/browser/sessionsService.ts",
+      "source_sha256": "a06998cc4b4fd665144f5e91bb826ff486d8992d1f5288d7c211aada9b9aebb6",
+      "output": "out/vs/sessions/services/sessions/browser/sessionsService.js",
+      "output_sha256": "07c859d31b776ef162f32aae8c1d42b5a9062c135f2b624a5b9f7108d63e02a9",
+      "output_mtime": "2026-10-26T10:06:31.728349+08:00"
+    },
+    {
+      "source": "src/vs/sessions/services/sessions/test/browser/sessionsManagementService.test.ts",
+      "source_sha256": "351de69f2a7a7efa813304563524dad9e70a921e9611d71fbaa36955d8fc5fa1",
+      "output": "out/vs/sessions/services/sessions/test/browser/sessionsManagementService.test.js",
+      "output_sha256": "833da1e9eb0f11dfd3899dd6f4b60320097f1f594f3cb5bb8a776bc263bcc8cc",
+      "output_mtime": "2026-10-26T10:07:54.041891+08:00"
+    }
+  ]
+}

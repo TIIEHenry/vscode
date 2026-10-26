@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1368–D1372 已完成真实验证；follow-up D1373 徽标新输出 browser 4 主题通过，独立视觉待复核；D1374 会话异步打开与 D1375 Sources 编译根因切片在途，仍由 merge 唯一写出与验证。"
+summary: "D1368–D1372 已完成真实验证；follow-up D1373 徽标新输出 browser 4 主题通过，独立四主题视觉已通过；D1374 会话异步打开与 D1375 Sources 编译根因切片在途，仍由 merge 唯一写出与验证。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -82,11 +82,19 @@ D 的 `292ec409fc1` 基于 `df7c5b1`，在 merge 的 `2fec8eaf636` 上真三路�
 
 | 工位 | 范围 | 当前状态 |
 |:---|:---|:---|
-| D | D1373 `Input needed` 真实对比修复 | `9213459c87f` 已 fast-forward 进入 merge；真实生产 CSS + Permission/Question Seat browser 4 主题通过；独立浅/深/HC 实拍待回传 |
-| C | D1374 SessionsService 异步打开被显式 focus / active-close / all-close / restore 覆盖后的取消边界 | 实施在途；待最终 SHA；计划先只刷新新增受控屏障测试对旧 `0ea` 生产输出取 red，再刷新生产取 green |
-| J | D1375 Sources 正式 DI、null/undefined、测试 store 三类根因 | 短方案经独立只读审查无 Critical / Important；方案先提交、实施后提交；待最终 SHA，只处理九条命名诊断与相应文件 |
+| D | D1373 `Input needed` 真实对比修复 | `9213459c87f` 已 fast-forward 进入 merge；真实生产 CSS + Permission/Question Seat browser 4 主题通过；独立四主题×三宽度实拍已通过，D1373 closed |
+| C | D1374 SessionsService 异步打开被显式 focus / active-close / all-close / restore 覆盖后的取消边界 | `9b6d532fee4` 已三路合成 `88acc5c`；旧 `0ea` 生产输出 red 为 3 passing / 11 failing，刷新生产并修正空网格占位夹具后 green 14 passing |
+| J | D1375 Sources 正式 DI、null/undefined、测试 store 三类根因 | 短方案经独立只读审查无 Critical / Important；方案 `220db777939`、实施 `7dd0c6d` 已提交待三路合入；只处理九条命名诊断与相应文件 |
 | merge | 唯一真实集成与验证 | 不重复上一轮已绿套件；新源码全齐后按需要只串行跑一次 compile-client，不能拿上一轮日志当本轮结果 |
 
 D1373 只在 `/tmp/vscode-compile.lock` 内刷新新测试 JS 与 `conversationLens.css`，没有启动全仓编译；[刷新日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-refresh.log) 和 [两文件新输出清单](../../progress/ui-visual-review-2026-10-26-evidence/d1373-fresh-output.json) 保留。`node test/unit/browser/index.js --browser chromium-chrome --run src/vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test.ts` 为 4 passing，覆盖 Light / Dark Modern 与 HC light / dark、300→720→300、真实文字对比至少 4.5:1、紧凑/不裁切、HC 边界与方向键决策路径；见 [行为日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-browser.log)。
 
-该测试 TypeScript 6.0.3 API 定向语义为 0（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-types.log)）；ESLint 0 errors（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-eslint.log)）；生产 CSS 的仓库 stylelint exit 0，15 条既有 unknown-variable 提示 / 179 条 token 建议（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-stylelint.log)）。独立视觉仍待新输出实拍，因此 D1373 暂不闭合。
+该测试 TypeScript 6.0.3 API 定向语义为 0（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-types.log)）；ESLint 0 errors（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-eslint.log)）；生产 CSS 的仓库 stylelint exit 0，15 条既有 unknown-variable 提示 / 179 条 token 建议（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1373-stylelint.log)）。独立四主题×三宽度实拍已通过，实测对比 7.75 / 9.06 / 16.48 / 11.55，100.69×20px；D1373 closed，见 [视觉报告](../../progress/ui-visual-review-2026-10-26-evidence/visual-review.md)。
+
+### D1374 受控导航边界 red / green
+
+先只刷新新 `sessionsManagementService.test.js`，逐字比对去除 inline source map 的旧生产 JS 正文与 `git show 0ea26634bed:src/.../sessionsService.ts` 的相同 esbuild 转译结果一致，保留其 SHA256 / 时间（[基线身份与 test-only 刷新日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-test-refresh.log)）。精确 suite `navigation while an open is resolving` 对旧生产运行，结果 3 passing / 11 failing，失败均为晚到 open / restore 覆盖新导航（[red 日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-red.log)）。
+
+随后锁内仅刷新 `sessionsService.js`（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-production-refresh.log)），首次 13 passing / 1 failing；剩余失败是新 empty-grid 测试错误期望 `[]`。既有 `VisibleSessions` 的初始网格是 `[undefined]` 新会话 composer 占位，取消已正确阻止 pending 复活；集成仅把新测试期望改为保留占位，不改生产网格契约。最终同 suite 14 passing / 0 failing（[green 日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-green-final.log)）；覆盖 openSession / openChat 的 focus、active-close、all-close、inactive-close，同 active 显式 focus、空网格 all-close、正常加载 focus echo 与 restore 三类显式导航。没有重复运行上一轮已绿 suite。
+
+两份 TS 定向语义 0（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-types.log)）、目标 ESLint 0 errors（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-eslint.log)）；[新产物快照](../../progress/ui-visual-review-2026-10-26-evidence/d1374-fresh-output.json) 保存根目录、源码/JS摘要与时间。D1374 行为证据已闭合，等待本轮 Sources 源码到齐后统一当前构建证据。

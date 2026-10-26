@@ -1,0 +1,23 @@
+Failed to load resource: the server responded with a status of 404 (Not Found) []
+
+
+  SessionsManagementService - /CHROMIUM-CHROME/
+    navigation while an open is resolving - /CHROMIUM-CHROME/
+      ✔ focusing a visible session supersedes a pending openSession
+      ✔ closing the active session supersedes a pending openSession when another slot remains
+      ✔ closing all sessions supersedes a pending openSession
+      ✔ closing an inactive session lets the current openSession finish
+      ✔ focusing a visible session supersedes a pending openChat
+      ✔ closing the active session supersedes a pending openChat when another slot remains
+      ✔ closing all sessions supersedes a pending openChat
+      ✔ closing an inactive session lets the current openChat finish
+      ✔ explicitly focusing the already-active session supersedes a pending open
+      ✔ closing all sessions still cancels an open when the grid is already empty
+      ✔ the focus event caused by opening a session does not cancel loading its targeted chat
+      ✔ focus supersedes a restore waiting for its persisted resource
+      ✔ close-active supersedes a restore waiting for its persisted resource
+      ✔ close-all supersedes a restore waiting for its persisted resource
+
+
+  14 passing (57ms)
+

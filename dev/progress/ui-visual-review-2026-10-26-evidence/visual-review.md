@@ -4,7 +4,7 @@ type: reference
 status: completed
 phase: M7
 updated: 2026-10-26
-summary: "Astra 使用唯一集成流水线的 fresh Electron 输出独立复验；D1371/1372 通过，D1373 Input needed 标签已修复源码，等待新输出与独立复验，仍 open。截图与测量留在本地 .build。"
+summary: "Astra 使用唯一集成流水线的 fresh Electron 输出独立复验；D1371/1372 通过，D1373 Input needed 标签已修复源码，新输出与独立四主题 / 三宽度复验均已通过。截图与测量留在本地 .build。"
 ---
 
 # 结论与证据位置
@@ -37,7 +37,7 @@ Astra 独立只读视觉审查确认 D1371 / D1372 的 before/after 与模式退
 | TOC Client→Text Editor→Client | 实测 300→500→300，700px TOC 规则保留 | `after-client-toc-300.png`、`after-ordinary-toc-500.png`、`after-client-toc-return-300.png`、`after-toc-threshold.json` |
 | 原焦点修复 | Engine / Connection 在导航内获焦后宽转窄，实际 activeElement 是 Back 按钮，焦点环可见 | `fresh-dark-engine-narrow-keyboard.png`、`fresh-light-connection-narrow-keyboard.png` |
 
-## D1373：源码已修复，真实复验待办
+## D1373：新输出与独立真实复验通过
 
 `Input needed` 使用 `badge.background` 当文字色，并用同色 16% 作底，视觉接近 disabled；标签实际表示等待用户处理。默认浅色文字 `#ccc`、合成底约 `#f1f1f1`，对比约 1.42:1；深色文字 `#616161`、合成底约 `#2f2f2f`，约 2.17:1。源码已核对：[conversationLens.css](../../../src/vs/workbench/contrib/conversation/browser/media/conversationLens.css) 的 `.conversation-lens-input-needed`（本轮行 2832 起）。
 
@@ -47,15 +47,23 @@ Astra 独立只读视觉审查确认 D1371 / D1372 的 before/after 与模式退
 
 D 工位静态检查：目标 ESLint exit 0，无诊断；stylelint exit 0，仍列出本文件既有的 15 条 unknown-variable 提示与 179 条设计 token 建议；docs-health 0 errors / 46 既有链接警告，generated-status --check 与 diff-check 通过。这些检查不替代以下 browser / Electron 实测。
 
-### 集中复验状态（行为通过，独立实拍待回传）
+### 集中复验结果（行为与独立实拍均通过）
 
 1. 仅由 merge 验证者按本轮唯一产物流程刷新新增测试 JS 与 `conversationLens.css`，记录源码/产物 hash；D 工位不编译、不转译、不写 `out/`。
 2. 在 merge 运行 `rtk proxy ./scripts/test.sh --run vs/workbench/contrib/conversation/test/browser/conversationPendingBadgeStyle.test --grep "Conversation pending badge styles"`。预期四个主题用例通过，真实结果待填；使用当前测试 JS 与 CSS，不能使用旧产物判通过。
 3. 由独立验证者以全新隔离 user-data/extensions/shared-data、默认编辑器入口与 Stub fixture 打开等待权限座位，复拍同内容浅/深色 1024×768 和宽窗；补 HC light/dark，测标签真实 computed 前景/合成底对比至少 4.5:1、HC contrastBorder 可见、300px 叶宽不裁文字；核验 Tab/方向键仍可进入并切换 Allow/Skip。不得使用或复制日常 profile，不登录、不连引擎。
-4. 新截图和测量写入本地 `.build/visual-review-astra/`，记录 fresh 源码/产物对应关系后再评估关闭 [D1373](../deferred-gaps.md)。merge 已执行最小产物刷新，browser 四个主题用例 4 passing，测试定向语义 0，见 [行为日志](d1373-browser.log) / [新输出清单](d1373-fresh-output.json)。实际产品主题 after 尚待回传，因此保持 open。
+4. 新截图和测量写入本地 `.build/visual-review-astra/`，记录 fresh 源码/产物对应关系后再评估关闭 [D1373](../deferred-gaps.md)。merge 已执行最小产物刷新，browser 四个主题用例 4 passing，测试定向语义 0，见 [行为日志](d1373-browser.log) / [新输出清单](d1373-fresh-output.json)。独立实际产品主题 after 已通过，D1373 已闭合。
 
 ## 覆盖限制与清理
 
 未连接引擎；Conversation 使用明确标注的 Stub fixture。真实流式内容、长会话、在线 Engine catalog、登录/配对状态未验证。CDP viewport 重排不代表手机触控或虚拟键盘验收。Direct Address 窄排增加纵向高度是可读性的取舍；深色原生滚动条轨道观感另留后续，不扩大本轮实现范围。
 
 Astra 只清理自己创建的 fresh / after Electron 与 Xvfb `:117`，本地 `cleanup.json` 记录身份和 stopped=true。集成测试子进程均已结束；没有后台 compile/watch，其他既有用户进程未清理。
+
+### D1373 独立实际主题 after
+
+Astra 重新隔离启动实际 Electron，验明 merge 的 `conversationLens.css` 是 2026-10-26 `10:02:53+08:00` 新文件，源码与 out 字节一致。证据目录为 `/home/clarence/Projects/Agents/vscode/.build/visual-review-astra/d1373/`；数据在 `measurements.json`，截图包括 `{dark,light,hc-black,hc-light}-300-leaf.png`、`*-300-full.png` 与 `*-{narrow,wide,narrow-return}-seat.png`。父代理另行查看浅、深色 300px 叶图确认。
+
+真实分栏拖动 300→720→300，四主题共 12 个状态均无裁切或溢出。实测文字对比分别 Dark 7.75:1、Light 9.06:1、HC black 16.48:1、HC light 11.55:1；标签约 100.69×20px，保持紧凑。HC 边框分别为 `#6fc3df` / `#0f4a85`，等于各主题 `contrastBorder`。实际键盘从 Allow 经 ArrowRight 到 Skip，焦点可见；状态标签 tabIndex 为 -1，pending summary 不变，视觉复核没有提交决策。四条 browser 行为测试另行验证提交路径。
+
+这些是 D1373 的真实 after，修复前证据仍在上级目录的 `fresh-pending-badge.json`、`fresh-light-shell-1024.png` 与 `fresh-dark-shell-navigator.png`。原引擎离线、Stub fixture、未登录 / 配对 / 长会话等覆盖限制保持。截图不加入 git；独立审查者自建进程的最终清理记录由本地报告留存。
