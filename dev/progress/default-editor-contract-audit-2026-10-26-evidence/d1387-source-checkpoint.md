@@ -4,12 +4,33 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J在独立方案bf50c66后写宿主候选核对与Sources重叠歧义保护，新增29项官方真实宿主/并发/成员回归源码；3TS静态0语法/0lint错误，唯一车道运行与非作者after待"
+summary: "J在独立accepted方案265b1fe后写M01显式Move来源及Pane局部反馈，新增38项业务场景源码；5TS静态0语法/0lint错误，唯一车道运行、源码peer与新freeze真实after待"
 ---
 
 # D1387 Sources 打开合同源码检查点
 
 [正式方案](../../plans/sources-open-dispatch-and-conversation-target.md) accepted，独立规则16 C0/I0后于 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 单独提交。[真实Git before/C1–C6](d1387-before.md)与两轮Astra已证两个根因；以下是源码检查点，不是after或运行通过。
+
+## M01 显式 Move 来源源码检查点（2026-10-27，J）
+
+原Astra规则16正式报告`3f299c3dc5b18c47209e6ccb23ba40a2fe0765e4`§11已只读核验，C0/I0/M1；native toolbar仅groupId、context菜单URI先/context后、可缺index/非法index拒绝及数字入队前代次边界已实改，并以`265b1fe8e01f88725169696976f6cc463a8b61dd`独立accepted方案提交后才实施。D原真实M01失败保留，父已看原Beta Pane按钮聚焦而Preview为空的图；本段不把源码/静态检查当新after。原冻结src928/native8b4的完整编译与green只属旧冻结身份，不延伸到本候选。
+
+- `sourcesDiffRefHelpers.ts`：typed Pane携原input/group/Pane对象；native从完整args识别明确group/index，缺index仅取该组当时active，非法index/失效显式来源不fallback全局/别叶。入口捕获注册Conversation part对象/sessionKey、严格group/input/Pane成员，ref与close共用此capture；await后关前重核原对象/成员，global焦点改变仍关原live源，替代input/同id组/同key新part不误关。legacy无参global路径及Panel viewTitle clear保留；boolean/stale/void、缺leaf保源和其他异常关闭代数不改。
+- `sourcesDiffActions.ts`：实际registered command转交完整参数并透传既有helper结果，不修改官方context位置。`conversationDiffReviewPane.ts`：真实按钮发送来源对象，按input/render/move尝试代次处理局部反馈；move notice复用既有样式但独立节点，不清比较载入或读写notice，clearInput/setInput/dispose失效旧attempt，catch自身异常仍有双catch无unhandled保护。
+- 新独立`sourcesDiffMoveSource.test.ts`承载38项业务场景源码，便于唯一lane单独选择，不导入新runtime export：4项真实默认EditorParts/Conversation part、真实Pane按钮/registered command/helper链（global空、无关Preview、native toolbar、URI先行context菜单），A/B同tuple独立input/SCM组隔离、准确两侧与源/根保留；2 native公共helper正控、5非法index、9显式来源负控、6 await关闭复核、非leaf reject及缺leaf异常代数，另10项Pane局部错误/当前成功恢复/旧结果与clear/换input/dispose隔离、false/undefined/stale完成语义。新typed context/result仅type-only import，旧src928能加载并到业务断言；真实入口等待原registered command实际settle，旧no-op不等待目标open屏障。真实两侧内容与实际按钮修复仍由D新freeze after证明。
+- 既有`sourcesDiffPanel.test.ts`的Preview无unhandled负控适配为命令拒绝后的局部notice绘制异常，仍验证warn-then-rethrow两级catch；临时DOM setter用finally恢复，不污染teardown。原J29项与完整相关套、R1/R2、三owner/slot/finder/既有状态和关闭代数全部保留。
+
+作者实际仅5TS `createSourceFile` AST解析0诊断、ESLint0errors/1既有warning；按rule/message/所在行文本与accepted基线4个既有文件逐条比较added=[]、removed=[]，新测试0warning。`git diff --check`通过；无编译、typecheck、transpile、写out/watch、业务测试或第二窗口。本次fresh文档门禁health 0errors/73warnings，相对同工位accepted方案基线逐条added=[]、removed=[]；generated-status --check与diff通过，status197行。源码SHA256：
+
+| 文件 | SHA256 |
+|---|---|
+| sourcesDiffRefHelpers.ts | `7e3e913c1e2ed60fe271202a57be85c45d69f855c831da534c74c3c876a847b1` |
+| sourcesDiffActions.ts | `fcfb757755ea9266012db87393924598eb948ed165a98bcc24cfbd473548c805` |
+| conversationDiffReviewPane.ts | `54daab997ad5006d095ea674a0edb5e2d7d8d29fc367c3c6fa5367ab0fdc3ca0` |
+| sourcesDiffMoveSource.test.ts | `70fc4664a2d93e8ee7b5f9b90779a79a38e93fbc125a30efb90358685d6aa3e5` |
+| sourcesDiffPanel.test.ts | `bc55199a234cccf409073f9b76138d350196b29bc129e358ba7dd8ae76e91663` |
+
+唯一baseline须先用冻结src928旧生产（三文件不变）配本轮新测试，selector `real Pane registered command`，4种入口均在未移动B/Preview缺失的业务断言red，加载/类型/夹具/timeout不计。新生产后运行整个`Sources M01 move source`套及既有Sources相关完整套/必要全编译；原29项与386套连续性不得丢。正式源码peer与D新freeze真实M01 after待，方案accepted、D1387/M01 open、PRD不升。
 
 ## 宿主观测与 Sources 重叠补修（2026-10-26，J）
 

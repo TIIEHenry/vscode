@@ -35,7 +35,7 @@ import {
 	SOURCES_GIT_STAGE_COMMAND,
 	SOURCES_GIT_UNSTAGE_COMMAND,
 } from '../common/sourcesChangesGit.js';
-import { tryReadSourcesGitFileDiff } from '../common/sourcesChangesGitRead.js';
+import { sourcesGitDiffOpenFailureMessage, tryReadSourcesGitFileDiff } from '../common/sourcesChangesGitRead.js';
 import {
 	attemptSourcesGitWrite,
 	canSendSourcesGitApplyHunks,
@@ -75,6 +75,8 @@ import {
 } from '../common/sourcesDiffWriteController.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 import { fireSourcesDiffLoad } from './sourcesDiffLoadSignal.js';
+import { sourcesChangeOpenIncompleteMessage } from './sourcesChangeEntryOpen.js';
+import type { ISourcesConversationDiffMoveSource, SourcesDiffMoveResult } from './sourcesDiffRefHelpers.js';
 
 const $ = dom.$;
 
@@ -109,6 +111,8 @@ export class ConversationDiffReviewPane extends EditorPane {
 	private acceptButton: HTMLButtonElement | undefined;
 	private previewButton: HTMLButtonElement | undefined;
 	private noticeElement: HTMLElement | undefined;
+	private moveNoticeElement: HTMLElement | undefined;
+	private moveAttemptGeneration = 0;
 	private editorContainer: HTMLElement | undefined;
 	private dimension: dom.Dimension | undefined;
 	private comparisonLoadFailed = false;
@@ -196,17 +200,21 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.previewButton.textContent = localize('conversationDiffReviewPane.openPreview', "Open Diff in Preview");
 		this.previewButton.style.display = 'none';
 		this._register(dom.addDisposableListener(this.previewButton, 'click', () => {
-			void this.commandService.executeCommand('sources.diff.moveToPreview').catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.runMoveToPreview().catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 		this.toolbar.style.display = 'none';
 
 		this.noticeElement = dom.append(this.container, $('.conversation-diff-review-notice'));
 		this.noticeElement.style.display = 'none';
+		this.moveNoticeElement = dom.append(this.container, $('.conversation-diff-review-notice.conversation-diff-review-move-notice'));
+		this.hideMoveNotice();
 		this.editorContainer = dom.append(this.container, $('.conversation-diff-review-editor'));
 	}
 
 	override async setInput(input: ConversationDiffReviewInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
 		this.stageAttemptGeneration++;
+		this.moveAttemptGeneration++;
+		this.hideMoveNotice();
 		const generation = input.loadGeneration;
 		this.renderGeneration = generation;
 		this.comparisonState = 'pending';
@@ -266,12 +274,16 @@ export class ConversationDiffReviewPane extends EditorPane {
 
 	override dispose(): void {
 		this.stageAttemptGeneration++;
+		this.moveAttemptGeneration++;
+		this.hideMoveNotice();
 		this.clearEditors();
 		super.dispose();
 	}
 
 	override clearInput(): void {
 		this.stageAttemptGeneration++;
+		this.moveAttemptGeneration++;
+		this.hideMoveNotice();
 		this.writeCollapse = undefined;
 		this.comparisonLoadFailed = false;
 		this.comparisonState = undefined;
@@ -678,6 +690,51 @@ export class ConversationDiffReviewPane extends EditorPane {
 			this.showNotice(getErrorMessage(error));
 		} finally {
 			this.updateReviewActions();
+		}
+	}
+
+	/** Keep button feedback on the original Pane/input and on this move attempt. */
+	private async runMoveToPreview(): Promise<void> {
+		const input = this.input;
+		if (!(input instanceof ConversationDiffReviewInput)) {
+			return;
+		}
+		const generation = this.renderGeneration;
+		const attempt = ++this.moveAttemptGeneration;
+		const source: ISourcesConversationDiffMoveSource = { kind: 'conversationPane', editor: input, group: this.group, pane: this };
+		const isCurrent = () => !this._store.isDisposed && this.input === input && !input.isDisposed()
+			&& this.renderGeneration === generation && this.moveAttemptGeneration === attempt;
+		let result: SourcesDiffMoveResult;
+		try {
+			result = await this.commandService.executeCommand<SourcesDiffMoveResult>('sources.diff.moveToPreview', source);
+		} catch (error) {
+			if (isCurrent()) {
+				this.showMoveNotice(sourcesGitDiffOpenFailureMessage(error));
+			}
+			return;
+		}
+		if (!isCurrent() || result === 'stale') {
+			return;
+		}
+		if (result === true) {
+			this.hideMoveNotice();
+		} else {
+			this.showMoveNotice(sourcesChangeOpenIncompleteMessage());
+		}
+	}
+
+	private showMoveNotice(message: string): void {
+		if (this.moveNoticeElement) {
+			this.moveNoticeElement.textContent = message;
+			this.moveNoticeElement.classList.add('is-error');
+			this.moveNoticeElement.style.display = '';
+		}
+	}
+
+	private hideMoveNotice(): void {
+		if (this.moveNoticeElement) {
+			this.moveNoticeElement.textContent = '';
+			this.moveNoticeElement.style.display = 'none';
 		}
 	}
 

@@ -25,7 +25,7 @@ import { ConversationDiffReviewEditorId } from '../../../common/editor/conversat
 import { SourcesDiffPanelService } from './sourcesDiffPanelService.js';
 import { SOURCES_DIFF_PANEL_VIEW_ID } from './sourcesDiffPanelIds.js';
 import { ISourcesChangeEntryOpenDeps, sourcesConversationLeafMissingMessage } from './sourcesChangeEntryOpen.js';
-import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview, SourcesDiffMoveHost } from './sourcesDiffRefHelpers.js';
+import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPreview, SourcesDiffMoveHost, SourcesDiffMoveResult } from './sourcesDiffRefHelpers.js';
 
 function sourcesChangeEntryOpenDeps(accessor: ServicesAccessor): ISourcesChangeEntryOpenDeps {
 	return {
@@ -62,19 +62,19 @@ function registerHostedDiffMove(
 	icon: typeof Codicon.commentDiscussion,
 	host: SourcesDiffMoveHost,
 	menu: { id: MenuId; group: string; order: number; when?: ContextKeyExpression | undefined }[],
-	move: (host: SourcesDiffMoveHost, deps: ISourcesChangeEntryOpenDeps, scmService: ISCMService) => Promise<unknown>,
+	move: (host: SourcesDiffMoveHost, deps: ISourcesChangeEntryOpenDeps, scmService: ISCMService, ...args: unknown[]) => Promise<SourcesDiffMoveResult>,
 ): void {
 	registerAction2(class extends Action2 {
 		constructor() {
 			super({ id, title, icon, f1: false, menu });
 		}
 
-		override async run(accessor: ServicesAccessor): Promise<void> {
+		override async run(accessor: ServicesAccessor, ...args: unknown[]): Promise<SourcesDiffMoveResult> {
 			const notificationService = accessor.get(INotificationService);
 			const deps = sourcesChangeEntryOpenDeps(accessor);
 			const scmService = accessor.get(ISCMService);
 			try {
-				await move(host, deps, scmService);
+				return await move(host, deps, scmService, ...args);
 			} catch (error) {
 				if (getErrorMessage(error) !== sourcesConversationLeafMissingMessage()) {
 					throw error;
@@ -138,8 +138,8 @@ registerAction2(class SourcesDiffMoveToPanelAction extends Action2 {
 		});
 	}
 
-	override async run(accessor: ServicesAccessor): Promise<void> {
-		await moveActiveDiffToPanel(sourcesChangeEntryOpenDeps(accessor), accessor.get(ISCMService));
+	override async run(accessor: ServicesAccessor, ...args: unknown[]): Promise<SourcesDiffMoveResult> {
+		return moveActiveDiffToPanel(sourcesChangeEntryOpenDeps(accessor), accessor.get(ISCMService), ...args);
 	}
 });
 

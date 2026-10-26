@@ -5,8 +5,10 @@
 
 import { getErrorMessage } from '../../../../base/common/errors.js';
 import { basename } from '../../../../base/common/resources.js';
+import { hasKey } from '../../../../base/common/types.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
-import { EditorResourceAccessor, isDiffEditorInput, SideBySideEditor } from '../../../common/editor.js';
+import { IEditorGroup, isEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
+import { EditorResourceAccessor, IEditorPane, isEditorCommandsContext, isDiffEditorInput, SideBySideEditor } from '../../../common/editor.js';
 import { ISCMResource, ISCMService } from '../../scm/common/scm.js';
 import { findScmResourceForUri, ISourcesChangeRef, resolveSourcesDiffWriteGate, sourcesChangeIdentity } from '../common/sourcesChangeRef.js';
 import { ISourcesChangeEntry } from '../common/sourcesChangesModel.js';
@@ -99,6 +101,21 @@ function sourcesChangeEntryFromRef(ref: ISourcesChangeRef): ISourcesChangeEntry 
 }
 
 export type SourcesDiffMoveHost = 'viewTitle' | 'editorTitle';
+export type SourcesDiffMoveResult = boolean | 'stale' | undefined;
+
+/** Local Pane origin; unlike native title context, these are the original objects. */
+export interface ISourcesConversationDiffMoveSource {
+	readonly kind: 'conversationPane';
+	readonly editor: ConversationDiffReviewInput;
+	readonly group: IEditorGroup;
+	readonly pane: IEditorPane;
+}
+
+function isConversationPaneSource(value: unknown): value is ISourcesConversationDiffMoveSource {
+	const source = value as Partial<ISourcesConversationDiffMoveSource> | undefined;
+	return source?.kind === 'conversationPane' && source.editor instanceof ConversationDiffReviewInput
+		&& isEditorGroup(source.group) && !!source.pane;
+}
 
 async function moveActiveDiffTo(
 	owner: SourcesDiffDefaultOwner,
@@ -106,14 +123,13 @@ async function moveActiveDiffTo(
 	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
 	pinned?: boolean,
-): Promise<boolean | 'stale' | undefined> {
-	const ref = resolveMoveHostRef(host, deps, scmService);
-	if (!ref) {
+	commandArgs: readonly unknown[] = [],
+): Promise<SourcesDiffMoveResult> {
+	const source = captureMoveHost(host, deps, scmService, commandArgs);
+	if (!source) {
 		return undefined;
 	}
-	// Open before closing. The host editor is the one active now; a successful
-	// open can replace it, and a missing conversation leaf must leave it in place.
-	const closeHost = captureMoveHostClose(host, deps, scmService);
+	const { ref, close: closeHost } = source;
 	try {
 		const opened = await openSourcesChangeEntry(sourcesChangeEntryFromRef(ref), deps, {
 			owner,
@@ -130,62 +146,93 @@ async function moveActiveDiffTo(
 	}
 }
 
-function resolveMoveHostRef(
+/** Resolve ref and close from one origin, before any asynchronous dispatch. */
+function captureMoveHost(
 	host: SourcesDiffMoveHost,
 	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
-): ISourcesChangeRef | undefined {
+	commandArgs: readonly unknown[],
+): { ref: ISourcesChangeRef; close: () => Promise<void> } | undefined {
 	if (host === 'viewTitle') {
-		return deps.sourcesDiffPanelService.getCurrentRef();
+		const ref = deps.sourcesDiffPanelService.getCurrentRef();
+		return ref ? { ref, close: async () => deps.sourcesDiffPanelService.clear() } : undefined;
 	}
 
-	const activeEditor = deps.editorService.activeEditor;
-	if (!activeEditor) {
+	if (commandArgs.length === 0) {
+		// Compatibility for existing programmatic commands without an explicit origin.
+		const editor = deps.editorService.activeEditor;
+		const group = deps.editorService.activeEditorPane?.group;
+		const ref = editor && resolveSourcesChangeRefFromEditor(editor, scmService);
+		return ref ? { ref, close: async () => {
+			if (editor && group) {
+				await deps.editorService.closeEditor({ editor, groupId: group.id });
+			}
+		} } : undefined;
+	}
+
+	const groups = deps.editorGroupsService;
+	if (!groups) {
 		return undefined;
 	}
-	return resolveSourcesChangeRefFromEditor(activeEditor, scmService);
-}
-
-function captureMoveHostClose(
-	host: SourcesDiffMoveHost,
-	deps: ISourcesChangeEntryOpenDeps,
-	scmService: ISCMService,
-): () => Promise<void> {
-	if (host === 'viewTitle') {
-		return async () => {
-			deps.sourcesDiffPanelService.clear();
-		};
+	const paneArgument = commandArgs.find(arg => typeof arg === 'object' && arg !== null && hasKey(arg, { kind: true }) && arg.kind === 'conversationPane');
+	const paneSource = isConversationPaneSource(paneArgument) ? paneArgument : undefined;
+	if (paneArgument && !paneSource) {
+		return undefined;
 	}
-
-	const activeEditor = deps.editorService.activeEditor;
-	const activeGroup = deps.editorService.activeEditorPane?.group;
-	if (!activeEditor || !activeGroup || !resolveSourcesChangeRefFromEditor(activeEditor, scmService)) {
-		return async () => { };
+	const context = commandArgs.find(isEditorCommandsContext);
+	const group = paneSource?.group ?? (context ? groups.getGroup(context.groupId) : undefined);
+	if (!group) {
+		return undefined;
 	}
-	return async () => {
-		await deps.editorService.closeEditor({ editor: activeEditor, groupId: activeGroup.id });
-	};
+	const index = context?.editorIndex;
+	if (!paneSource && index !== undefined && (!Number.isInteger(index) || index < 0 || index >= group.editors.length)) {
+		return undefined;
+	}
+	const editor = paneSource?.editor ?? (index === undefined ? group.activeEditor : group.editors[index]);
+	if (!editor) {
+		return undefined;
+	}
+	const part = groups.conversationParts.find(candidate => candidate.groups.includes(group));
+	const sessionKey = part?.sessionKey;
+	if ((paneSource || editor instanceof ConversationDiffReviewInput) && !part) {
+		return undefined;
+	}
+	const isCurrent = () => groups.getGroup(group.id) === group && !editor.isDisposed() && group.editors.includes(editor)
+		&& (!part || (groups.conversationParts.includes(part) && part.sessionKey === sessionKey && part.groups.includes(group)))
+		&& (!paneSource || (paneSource.pane.group === group && paneSource.pane.input === editor && group.activeEditorPane === paneSource.pane));
+	if (!isCurrent()) {
+		return undefined;
+	}
+	const ref = resolveSourcesChangeRefFromEditor(editor, scmService);
+	return ref ? { ref, close: async () => {
+		if (isCurrent()) {
+			await group.closeEditor(editor);
+		}
+	} } : undefined;
 }
 
 export async function moveActiveDiffToConversation(
 	host: SourcesDiffMoveHost,
 	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
-): Promise<boolean | 'stale' | undefined> {
-	return moveActiveDiffTo('conversation', host, deps, scmService);
+	...commandArgs: unknown[]
+): Promise<SourcesDiffMoveResult> {
+	return moveActiveDiffTo('conversation', host, deps, scmService, undefined, commandArgs);
 }
 
 export async function moveActiveDiffToPreview(
 	host: SourcesDiffMoveHost,
 	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
-): Promise<boolean | 'stale' | undefined> {
-	return moveActiveDiffTo('preview', host, deps, scmService, true);
+	...commandArgs: unknown[]
+): Promise<SourcesDiffMoveResult> {
+	return moveActiveDiffTo('preview', host, deps, scmService, true, commandArgs);
 }
 
 export async function moveActiveDiffToPanel(
 	deps: ISourcesChangeEntryOpenDeps,
 	scmService: ISCMService,
-): Promise<boolean | 'stale' | undefined> {
-	return moveActiveDiffTo('panel', 'editorTitle', deps, scmService);
+	...commandArgs: unknown[]
+): Promise<SourcesDiffMoveResult> {
+	return moveActiveDiffTo('panel', 'editorTitle', deps, scmService, undefined, commandArgs);
 }
