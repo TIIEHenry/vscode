@@ -9,6 +9,10 @@ summary: "第三次fullcompile0，J29/E44/补修6/roster189过、11相关255过1
 
 # 默认编辑器合同与功能缺口续审
 
+## M01最新增量（2026-10-27，方案accepted）
+
+D真实默认编辑器after发现Conversation Pane内“Open Diff in Preview”按钮静默no-op，普通Review新建Beta比较亦复现；Astra裁定为原D1387三owner/Move合同Important。J clean24a祖先核验后仅Git ff到父明确纯docs `4173b3fea640124a50cbdaa6aa7ceb7892274641`，当前src928/native8b4冻结不动，D旧窗口由D收尾，不起第二窗。J已核按钮无参→registered action丢context→global active resolver，写现[方案§3.5/§4.4](../../plans/sources-open-dispatch-and-conversation-target.md#35-m01conversation-pane-的-move-显式来源本轮增量已签收)及SSOT草案，原Astra规则16 C0/I0/M1、native参数Minor已改，独立accepted方案commit后实施；显式来源严格live验证、ref/close统一capture与Pane局部反馈，保留原完成/关闭代数。以下并行表及未freeze等措辞均为先前历史交接，不覆盖当前父已冻结身份，也不表示本M01已通过。J不编译/typecheck/transpile/out/业务测试，D1387 open、PRD不升。
+
 > 当前冻结代码波只含J Sources与E unary恢复；不可变J4d49/Ec2b已分别真三路5373/9209接入，无occupied代码成员。独立peer原件C/I闭合已实读，父授权本wake直接P0–P7；[正式集成记录](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。P0 main明确5df/src7fa、99dirty路径只登记不消费，J/E/merge clean、stash0；P2串行真三路262/208路径保留PASS，src fdca956；完整emit/相关全套待，统一green前不freeze。P5禁push/P6主ff既有拒绝不重试，不提前宣称wave释放。
 
 
