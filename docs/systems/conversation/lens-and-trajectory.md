@@ -107,8 +107,9 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 
 - 对话页：`projectProcessFoldSpans(turns)` — 连续 thinking / tool 成一个 span（同一 turn 的 live reasoning/tool 同 span）；user、assistant、confirmation、question、error、unknown、system 打断。span 内每条 thinking 和每条 tool 各是一行，工具不收进前面的 Thinking；收起 Thinking 只收思考正文。span id = `fold:${firstId}`。L3 `overlay:${blockId}` 与 L2 **零关联**：禁止为保展开去推断对应；overlay 做段首时 id 变成 `fold:overlay:…`，展开重置是合同行为。
 - 轨迹页：`projectTrajectoryProcessFoldSpans(records)` — thinking / tool / subtool 成 span；user、context、system、message、compacted、permission、question、error、unknown 打断，**始终在折外**。
-- live 信号：`ConversationTimelineEntry.streaming` 与 tool `toolStatus` 经 `entryToRenderableTurn` 传到渲染层。执行中详情限高内滚；折叠后只稳定摘要；sticky breadcrumb 仅展开且内容超出可视区时出现。完成后换成完成/失败状态。
+- live 信号：`ConversationTimelineEntry.streaming` 与 tool `toolStatus` 经 `entryToRenderableTurn` 传到渲染层。执行中详情限高内滚；折叠后只稳定摘要；sticky breadcrumb 仅展开且内容超出可视区时出现。结束后保留完成、失败或取消的真实状态。
 - 外层摘要 `summarizeProcessSteps` / `summarizeTrajectoryProcessSteps`：无引擎时必含 `Stub`（PRD-013 验收 4），无假耗时 / loading / live 字样。引擎 live chrome（`showLiveChrome`）才显示 Loading / Running。stub 源永不置 `streaming`。
+- 对话页外层将步骤名与真实 failed / waiting / cancelled 数量分开呈现：名称可省略，状态必要时换行，收起后仍可辨取消；图标按执行中、失败、取消的顺序取优先级，全部完成时外层无状态图标。工具行仅明确 `completed` 时画完成勾，未知状态不借 Stub 补完成。ARIA 与 sticky 摘要仍使用完整文字，不拆成多个操作入口。
 - 步数按单复数写：一步是 `1 step`，多步是 `{0} steps`，带工具名时是 `1 step · read_file` / `2 steps · …`。
 - 思考行摘要就是这条思考自己的文字，不把后面的工具名拼进去。外层摘要仍按步骤列出 thinking 和工具名。披露箭头只画在外层摘要；Thinking 与工具行不画 chevron，有正文时仍可展开。
 - 同一封里的可用思考先画成阅读区思考行，再画正文，再按原顺序画工具名。空白思考不新增空行。思考行在 `showToolInvocationDetails` 关掉后仍在。工具条目上仍可留着 `thinkingText`，但整组交给渲染、且已有同样文字的思考行时，工具 turn 不再带这段，过程折就不会在工具标题下再画一遍。没有思考行时，工具行上的 `thinkingText` 仍画在标题下，工具正文收起时也留着，不拼进工具名或摘要；详情关掉时标题下不留这段，也不留 `file_edit` 的增删统计，工具名和摘要还在。

@@ -16,7 +16,7 @@ import { MarkdownDiffBlockPart, parseUnifiedDiff, type IMarkdownDiffBlockData } 
 import { conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { conversationLensDockSendBusy } from './conversationLensDockStrings.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
-import { ProcessFoldNode, ProcessFoldSpan, countProcessFoldToolStatuses, summarizeProcessSteps, summarizeThinkingTools } from './conversationProcessFoldModel.js';
+import { ProcessFoldNode, ProcessFoldSpan, countProcessFoldToolStatuses, summarizeProcessStepParts, summarizeThinkingTools } from './conversationProcessFoldModel.js';
 
 export const conversationProcessFoldThinkingLabel = localize('conversationProcessFold.thinking', "Thinking");
 export const conversationProcessFoldToolCancel = localize('conversationProcessFold.toolCancel', "Cancel Tool");
@@ -174,6 +174,9 @@ function resolveProcessFoldHeaderIcon(span: ProcessFoldSpan, showLiveChrome: boo
 	if (counts.failed > 0) {
 		return Codicon.error;
 	}
+	if (counts.cancelled > 0) {
+		return Codicon.circleSlash;
+	}
 	return undefined;
 }
 
@@ -214,6 +217,8 @@ export function renderProcessFoldSpan(
 
 	let statusIcon: HTMLElement | undefined;
 	const summary = append(header, $('span.conversation-process-fold-summary'));
+	const statuses = append(header, $('span.conversation-process-fold-statuses'));
+	let summaryText = '';
 	const children = appendProcessFoldPanel(root, 'div.conversation-process-fold-children');
 	const stickyBreadcrumb = append(children, $('div.conversation-process-fold-sticky-breadcrumb'));
 	stickyBreadcrumb.hidden = true;
@@ -233,7 +238,7 @@ export function renderProcessFoldSpan(
 		const scrolled = children.scrollTop > 0;
 		stickyBreadcrumb.hidden = !overflow || !scrolled;
 		if (overflow && scrolled) {
-			stickySummary.textContent = summary.textContent ?? '';
+			stickySummary.textContent = summaryText;
 		}
 	}
 
@@ -252,7 +257,7 @@ export function renderProcessFoldSpan(
 		} else {
 			header.removeAttribute('aria-disabled');
 		}
-		syncProcessFoldOuterAria(header, summary.textContent ?? '', expanded);
+		syncProcessFoldOuterAria(header, summaryText, expanded);
 		setProcessFoldCollapsed(children, !expanded);
 		chevron.classList.toggle('conversation-process-fold-chevron--expanded', expanded);
 	}
@@ -263,7 +268,8 @@ export function renderProcessFoldSpan(
 		const failed = icon === Codicon.error;
 		if (statusIcon) {
 			const same = (loading && statusIcon.classList.contains('codicon-loading'))
-				|| (failed && statusIcon.classList.contains('codicon-error'));
+				|| (failed && statusIcon.classList.contains('codicon-error'))
+				|| (icon === Codicon.circleSlash && statusIcon.classList.contains('codicon-circle-slash'));
 			if (same) {
 				return;
 			}
@@ -275,10 +281,26 @@ export function renderProcessFoldSpan(
 		}
 		const glyph = renderIcon(icon);
 		glyph.classList.add('conversation-process-fold-status', 'ua-motion');
-		glyph.classList.add(loading ? 'conversation-process-fold-status--loading' : 'conversation-process-fold-status--error');
+		if (loading) {
+			glyph.classList.add('conversation-process-fold-status--loading');
+		} else if (failed) {
+			glyph.classList.add('conversation-process-fold-status--error');
+		}
 		glyph.setAttribute('aria-hidden', 'true');
 		chevron.insertAdjacentElement('afterend', glyph);
 		statusIcon = glyph;
+	}
+
+	function syncFoldSummary(next: ProcessFoldSpan): void {
+		const parts = summarizeProcessStepParts(next, { showLiveChrome: options.showLiveChrome });
+		summary.textContent = parts.steps;
+		statuses.replaceChildren(...parts.statuses.map(text => {
+			const count = $('span.conversation-process-fold-status-count');
+			count.textContent = text;
+			return count;
+		}));
+		statuses.hidden = parts.statuses.length === 0;
+		summaryText = [parts.steps, ...parts.statuses].join(' · ');
 	}
 
 	function syncFoldExecuting(next: ProcessFoldSpan): void {
@@ -470,7 +492,7 @@ export function renderProcessFoldSpan(
 		}
 		current = next;
 		root.dataset.foldId = next.id;
-		summary.textContent = summarizeProcessSteps(next, { showLiveChrome: options.showLiveChrome });
+		syncFoldSummary(next);
 		const open = outerPaintedOpen();
 		applyOuterExpanded(open);
 		syncFoldExecuting(next);
@@ -485,7 +507,7 @@ export function renderProcessFoldSpan(
 		syncSticky();
 	}
 
-	summary.textContent = summarizeProcessSteps(current, { showLiveChrome: options.showLiveChrome });
+	syncFoldSummary(current);
 	applyOuterExpanded(outerPaintedOpen());
 	syncFoldExecuting(current);
 	if (outerPaintedOpen()) {
@@ -1054,7 +1076,7 @@ function resolveToolStatusIcon(turn: ConversationStubTurn, options: ProcessFoldD
 		case 'completed':
 			return Codicon.check;
 		default:
-			return options.showLiveChrome ? undefined : Codicon.check;
+			return undefined;
 	}
 }
 

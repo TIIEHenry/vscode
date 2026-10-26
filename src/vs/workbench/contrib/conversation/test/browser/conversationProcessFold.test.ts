@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { getWindow } from '../../../../../base/browser/dom.js';
+import { DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { conversationProcessFoldToolCancel, conversationProcessFoldToolRespond, renderProcessFoldSpan } from '../../browser/conversationProcessFold.js';
 import { cancelToolCall, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
@@ -509,7 +510,7 @@ suite('ConversationProcessFold', () => {
 	});
 
 	test('stub fixture tool row has no cancel control', () => {
-		const turns: ConversationStubTurn[] = [{ id: 'tool1', kind: 'tool', text: 'read' }];
+		const turns: ConversationStubTurn[] = [{ id: 'tool1', kind: 'tool', text: 'read', toolStatus: 'completed' }];
 		const span = projectProcessFoldSpans(turns)[0];
 		assert.ok(span);
 		const disposables = new DisposableStore();
@@ -623,8 +624,8 @@ suite('ConversationProcessFold', () => {
 		assert.ok(button);
 		assert.strictEqual(button.disabled, true);
 		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
-		assert.strictEqual(button.title, 'This session cannot be edited right now.');
 		assert.strictEqual(button.getAttribute('aria-label'), 'Respond. This session cannot be edited right now.');
+		assert.strictEqual(button.title, 'Respond. This session cannot be edited right now.');
 		button.click();
 		assert.deepStrictEqual(calls, []);
 		disposables.dispose();
@@ -866,7 +867,8 @@ suite('ConversationProcessFold', () => {
 			assert.strictEqual(icon?.nextElementSibling?.classList.contains('conversation-process-fold-summary'), true);
 			assert.strictEqual(header.querySelector('.codicon-loading'), null);
 			assert.strictEqual(header.querySelector('.codicon-check'), null);
-			assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, 'Stub · 1 step · read · 1 failed');
+			assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, 'Stub · 1 step · read');
+			assert.strictEqual(header.querySelector('.conversation-process-fold-statuses')?.textContent, '1 failed');
 			const aria = header.getAttribute('aria-label') ?? '';
 			assert.ok(aria.includes('1 failed'));
 			assert.ok(aria.includes(expanded ? 'expanded' : 'collapsed'));
@@ -909,7 +911,8 @@ suite('ConversationProcessFold', () => {
 		const waiting = renderHeaderFold([pending], true, false);
 		const waitingHeader = headerOf(waiting.host);
 		assert.ok(waitingHeader.querySelector('.conversation-process-fold-status.codicon-loading'));
-		assert.strictEqual(waitingHeader.querySelector('.conversation-process-fold-summary')?.textContent, '1 step · write · 1 waiting');
+		assert.strictEqual(waitingHeader.querySelector('.conversation-process-fold-summary')?.textContent, '1 step · write');
+		assert.strictEqual(waitingHeader.querySelector('.conversation-process-fold-statuses')?.textContent, '1 waiting');
 		assert.ok(waitingHeader.getAttribute('aria-label')?.includes('1 waiting'));
 		waiting.disposables.dispose();
 	});
@@ -939,14 +942,16 @@ suite('ConversationProcessFold', () => {
 		const header = headerOf(host);
 		assert.ok(header.querySelector('.conversation-process-fold-status.codicon-loading'));
 		assert.strictEqual(header.querySelector('.codicon-error'), null);
-		assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, '2 steps · read, write · 1 failed');
+		assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, '2 steps · read, write');
+		assert.strictEqual(header.querySelector('.conversation-process-fold-statuses')?.textContent, '1 failed');
 
 		const failedOnly = projectProcessFoldSpans([failed])[0];
 		assert.ok(failedOnly);
 		handle.update(failedOnly);
 		assert.ok(header.querySelector('.conversation-process-fold-status.codicon-error'));
 		assert.strictEqual(header.querySelector('.codicon-loading'), null);
-		assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, '1 step · write · 1 failed');
+		assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, '1 step · write');
+		assert.strictEqual(header.querySelector('.conversation-process-fold-statuses')?.textContent, '1 failed');
 		assert.ok(header.getAttribute('aria-label')?.includes('1 failed'));
 		assert.ok(header.getAttribute('aria-label')?.includes('collapsed'));
 
@@ -958,6 +963,148 @@ suite('ConversationProcessFold', () => {
 		assert.strictEqual(header.querySelector('.conversation-process-fold-summary')?.textContent, '1 step · write');
 		disposables.dispose();
 	});
+
+	test('cancelled fold headers retain a distinct status across expansion and live modes', () => {
+		for (const showLiveChrome of [false, true]) {
+			for (const expanded of [false, true]) {
+				const { host, disposables } = renderHeaderFold([{
+					id: 'cancelled', kind: 'tool', text: 'write', toolName: 'write', toolStatus: 'cancelled',
+				}], showLiveChrome, expanded);
+				const header = headerOf(host);
+				assert.deepStrictEqual({
+					icon: header.querySelector('.conversation-process-fold-status')?.classList.contains('codicon-circle-slash'),
+					counts: header.querySelector('.conversation-process-fold-statuses')?.textContent,
+					spoken: header.getAttribute('aria-label')?.includes('1 cancelled'),
+					expanded: header.getAttribute('aria-expanded'),
+					completion: header.querySelector('.codicon-check'),
+				}, { icon: true, counts: '1 cancelled', spoken: true, expanded: String(expanded), completion: null });
+				disposables.dispose();
+			}
+		}
+	});
+
+	test('fold status updates keep executing and failure priority while retaining cancellation counts', () => {
+		const running: ConversationStubTurn = { id: 'run', kind: 'tool', text: 'read', toolName: 'read', toolStatus: 'running' };
+		const failed: ConversationStubTurn = { id: 'bad', kind: 'tool', text: 'write', toolName: 'write', toolStatus: 'failed' };
+		const cancelled: ConversationStubTurn = { id: 'cancel', kind: 'tool', text: 'edit', toolName: 'edit', toolStatus: 'cancelled' };
+		const pending: ConversationStubTurn = { id: 'wait', kind: 'tool', text: 'delete', toolName: 'delete', toolStatus: 'pending' };
+		const rendered = renderHeaderFold([running, failed, cancelled, pending], true, false);
+		const header = headerOf(rendered.host);
+		const counts = () => [...header.querySelectorAll('.conversation-process-fold-status-count')].map(element => element.textContent);
+		assert.deepStrictEqual({ loading: !!header.querySelector('.codicon-loading'), counts: counts() }, {
+			loading: true, counts: ['1 failed', '1 waiting', '1 cancelled'],
+		});
+		const states: { readonly turns: readonly ConversationStubTurn[]; readonly icon: string | undefined; readonly status: string[] }[] = [
+			{ turns: [failed, cancelled], icon: 'codicon-error', status: ['1 failed', '1 cancelled'] },
+			{ turns: [cancelled], icon: 'codicon-circle-slash', status: ['1 cancelled'] },
+			{ turns: [{ ...cancelled, toolStatus: 'completed' }], icon: undefined, status: [] },
+			{ turns: [{ ...cancelled, toolStatus: undefined }], icon: undefined, status: [] },
+		];
+		for (const state of states) {
+			rendered.handle.update(projectProcessFoldSpans(state.turns)[0]);
+			const icon = header.querySelector('.conversation-process-fold-status');
+			assert.deepStrictEqual({
+				headerPreserved: headerOf(rendered.host) === header,
+				icon: state.icon ? icon?.classList.contains(state.icon) : icon === null,
+				counts: counts(),
+				hidden: (header.querySelector('.conversation-process-fold-statuses') as HTMLElement).hidden,
+				spokenCancellation: header.getAttribute('aria-label')?.includes('cancelled'),
+			}, { headerPreserved: true, icon: true, counts: state.status, hidden: state.status.length === 0, spokenCancellation: state.status.some(text => text.includes('cancelled')) });
+		}
+		rendered.disposables.dispose();
+	});
+
+	test('unknown tools do not acquire completion checks in live or Stub mode', () => {
+		for (const showLiveChrome of [false, true]) {
+			const { host, disposables } = renderHeaderFold([{
+				id: 'unknown', kind: 'tool', text: 'read', toolName: 'read',
+			}], showLiveChrome, true);
+			assert.deepStrictEqual({
+				completed: host.querySelector('.codicon-check'),
+				cancelled: host.querySelector('.codicon-circle-slash'),
+				status: headerOf(host).querySelector('.conversation-process-fold-statuses')?.textContent,
+			}, { completed: null, cancelled: null, status: '' });
+			disposables.dispose();
+		}
+	});
+
+	test('separate status text remains part of the one fold button and its full accessible name', () => {
+		const { host, disposables } = renderHeaderFold([{
+			id: 'cancelled', kind: 'tool', text: 'write', toolName: 'write', toolStatus: 'cancelled',
+		}], true, false);
+		const header = headerOf(host);
+		const status = header.querySelector<HTMLElement>('.conversation-process-fold-status-count')!;
+		status.click();
+		assert.deepStrictEqual({
+			button: header.tagName,
+			headerTabIndex: header.tabIndex,
+			statusTabIndex: status.tabIndex,
+			expanded: header.getAttribute('aria-expanded'),
+			name: header.getAttribute('aria-label'),
+		}, {
+			button: 'BUTTON', headerTabIndex: 0, statusTabIndex: -1, expanded: 'true',
+			name: 'Process steps, 1 step · write · 1 cancelled, expanded',
+		});
+		disposables.dispose();
+	});
+
+	for (const theme of ['vs', 'vs-dark', 'hc-black', 'hc-light']) {
+		test(`production fold CSS keeps mixed status counts visible at narrow widths in ${theme}`, async () => {
+			const store = new DisposableStore();
+			try {
+				const stylesheet = document.createElement('link');
+				stylesheet.rel = 'stylesheet';
+				stylesheet.href = new URL('../../browser/media/conversationLens.css', import.meta.url).href;
+				store.add(toDisposable(() => stylesheet.remove()));
+				await new Promise<void>((resolve, reject) => {
+					stylesheet.onload = () => resolve();
+					stylesheet.onerror = () => reject(new Error('Conversation stylesheet failed to load'));
+					document.head.appendChild(stylesheet);
+				});
+				const workbench = document.createElement('div');
+				workbench.className = `monaco-workbench ${theme}`;
+				workbench.style.fontFamily = 'sans-serif';
+				workbench.style.setProperty('--vscode-foreground', theme === 'vs' || theme === 'hc-light' ? '#292929' : '#FFFFFF');
+				workbench.style.setProperty('--vscode-descriptionForeground', theme === 'vs' || theme === 'hc-light' ? '#616161' : '#CCCCCC');
+				workbench.style.setProperty('--vscode-focusBorder', '#0078D4');
+				workbench.style.setProperty('--vscode-contrastBorder', '#0078D4');
+				const part = document.createElement('div');
+				part.className = 'part conversation';
+				workbench.appendChild(part);
+				document.body.appendChild(workbench);
+				store.add(toDisposable(() => workbench.remove()));
+				const longName = 'read_and_validate_a_very_long_workspace_path_'.repeat(6);
+				const rendered = renderHeaderFold([
+					{ id: 'failed', kind: 'tool', text: longName, toolName: longName, toolStatus: 'failed' },
+					{ id: 'waiting', kind: 'tool', text: 'write', toolName: 'write', toolStatus: 'pending' },
+					{ id: 'cancelled', kind: 'tool', text: 'edit', toolName: 'edit', toolStatus: 'cancelled' },
+				], false, false);
+				store.add(rendered.disposables);
+				part.appendChild(rendered.host);
+				const header = headerOf(rendered.host);
+				const statuses = header.querySelector<HTMLElement>('.conversation-process-fold-statuses')!;
+				const summary = header.querySelector<HTMLElement>('.conversation-process-fold-summary')!;
+				for (const width of [300, 450, 720, 300]) {
+					workbench.style.width = `${width}px`;
+					const bounds = header.getBoundingClientRect();
+					const counts = [...statuses.querySelectorAll<HTMLElement>('.conversation-process-fold-status-count')];
+					assert.deepStrictEqual(counts.map(element => element.textContent), ['1 failed', '1 waiting', '1 cancelled']);
+					for (const count of counts) {
+						const countBounds = count.getBoundingClientRect();
+						assert.ok(countBounds.width > 0 && countBounds.left >= bounds.left && countBounds.right <= bounds.right + 1, `${width}: ${count.textContent} stays inside the header`);
+						assert.ok(count.scrollWidth <= count.clientWidth + 1 && count.scrollHeight <= count.clientHeight + 1, `${width}: ${count.textContent} is not clipped`);
+					}
+					assert.ok(header.scrollWidth <= header.clientWidth + 1, `${width}: header does not overflow`);
+					assert.ok(statuses.scrollWidth <= statuses.clientWidth + 1, `${width}: status group does not overflow`);
+					assert.ok(summary.scrollWidth > summary.clientWidth, `${width}: only the long step names require truncation`);
+					assert.strictEqual(getWindow(summary).getComputedStyle(summary).textOverflow, 'ellipsis');
+					assert.ok(header.getAttribute('aria-label')?.includes('1 failed · 1 waiting · 1 cancelled'));
+				}
+			} finally {
+				store.dispose();
+			}
+		});
+	}
 
 	test('live streaming thinking stays open and does not store the forced expansion', () => {
 		const thinking = { id: 't1', kind: 'thinking' as const, text: 'draft', streaming: true };

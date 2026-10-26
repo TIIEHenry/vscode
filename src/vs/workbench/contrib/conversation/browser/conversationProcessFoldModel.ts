@@ -244,9 +244,10 @@ function collectTurnStepNames(span: ProcessFoldSpan): string[] {
 	return names;
 }
 
-export function countProcessFoldToolStatuses(span: ProcessFoldSpan): { readonly failed: number; readonly waiting: number; readonly executing: number } {
+export function countProcessFoldToolStatuses(span: ProcessFoldSpan): { readonly failed: number; readonly waiting: number; readonly cancelled: number; readonly executing: number } {
 	let failed = 0;
 	let waiting = 0;
+	let cancelled = 0;
 	let executing = 0;
 	for (const node of span.nodes) {
 		const tools = node.kind === 'tool' ? [node.turn] : node.tools;
@@ -258,34 +259,50 @@ export function countProcessFoldToolStatuses(span: ProcessFoldSpan): { readonly 
 				executing++;
 			} else if (tool.toolStatus === 'running') {
 				executing++;
+			} else if (tool.toolStatus === 'cancelled') {
+				cancelled++;
 			}
 		}
 	}
-	return { failed, waiting, executing };
+	return { failed, waiting, cancelled, executing };
 }
 
-function appendFoldStatusCounts(body: string, failed: number, waiting: number): string {
-	let text = body;
+function summarizeFoldStatusCounts(failed: number, waiting: number, cancelled: number): string[] {
+	const statuses: string[] = [];
 	if (failed === 1) {
-		text = localize('conversationProcessFold.summaryOneFailed', "{0} · 1 failed", text);
+		statuses.push(localize('conversationProcessFold.statusOneFailed', "1 failed"));
 	} else if (failed > 1) {
-		text = localize('conversationProcessFold.summaryManyFailed', "{0} · {1} failed", text, failed);
+		statuses.push(localize('conversationProcessFold.statusManyFailed', "{0} failed", failed));
 	}
 	if (waiting === 1) {
-		text = localize('conversationProcessFold.summaryOneWaiting', "{0} · 1 waiting", text);
+		statuses.push(localize('conversationProcessFold.statusOneWaiting', "1 waiting"));
 	} else if (waiting > 1) {
-		text = localize('conversationProcessFold.summaryManyWaiting', "{0} · {1} waiting", text, waiting);
+		statuses.push(localize('conversationProcessFold.statusManyWaiting', "{0} waiting", waiting));
 	}
-	return text;
+	if (cancelled === 1) {
+		statuses.push(localize('conversationProcessFold.statusOneCancelled', "1 cancelled"));
+	} else if (cancelled > 1) {
+		statuses.push(localize('conversationProcessFold.statusManyCancelled', "{0} cancelled", cancelled));
+	}
+	return statuses;
+}
+
+/** Keeps status counts separate so the visual header only truncates step names. */
+export function summarizeProcessStepParts(span: ProcessFoldSpan, options?: { readonly showLiveChrome?: boolean }): { readonly steps: string; readonly statuses: readonly string[] } {
+	const counts = countProcessFoldToolStatuses(span);
+	return {
+		steps: formatFoldStepSummary(span.turnIds.length, formatStepNameCounts(collectTurnStepNames(span)), options?.showLiveChrome === true),
+		statuses: summarizeFoldStatusCounts(counts.failed, counts.waiting, counts.cancelled),
+	};
 }
 
 /** Outer process-fold header summary for conversation turns (must include Stub per PRD-013). */
 export function summarizeProcessSteps(span: ProcessFoldSpan, options?: { readonly showLiveChrome?: boolean }): string {
-	const counts = countProcessFoldToolStatuses(span);
-	return formatFoldStepSummary(span.turnIds.length, formatStepNameCounts(collectTurnStepNames(span)), options?.showLiveChrome === true, counts.failed, counts.waiting);
+	const parts = summarizeProcessStepParts(span, options);
+	return [parts.steps, ...parts.statuses].join(' · ');
 }
 
-function formatFoldStepSummary(stepCount: number, stepSummary: string, showLiveChrome: boolean, failed = 0, waiting = 0): string {
+function formatFoldStepSummary(stepCount: number, stepSummary: string, showLiveChrome: boolean): string {
 	const body = stepSummary.length > 0
 		? (stepCount === 1
 			? localize('conversationProcessFold.oneStepWithNames', "1 step · {0}", stepSummary)
@@ -293,8 +310,7 @@ function formatFoldStepSummary(stepCount: number, stepSummary: string, showLiveC
 		: (stepCount === 1
 			? localize('conversationProcessFold.oneStep', "1 step")
 			: localize('conversationProcessFold.manySteps', "{0} steps", stepCount));
-	const withStatus = appendFoldStatusCounts(body, failed, waiting);
-	return showLiveChrome ? withStatus : `Stub · ${withStatus}`;
+	return showLiveChrome ? body : `Stub · ${body}`;
 }
 
 function collectTrajectoryStepNames(span: TrajectoryProcessFoldSpan): string[] {

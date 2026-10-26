@@ -4,17 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getWindow } from '../../../../../base/browser/dom.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { Pane } from '../../../../../base/browser/ui/splitview/paneview.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { Color, RGBA } from '../../../../../base/common/color.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { FileChangeType, FileChangesEvent, IFileService } from '../../../../../platform/files/common/files.js';
 import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
 import { getSelectionKeyboardEvent, WorkbenchObjectTree } from '../../../../../platform/list/browser/listService.js';
+import { asCssVariableName, getColorRegistry } from '../../../../../platform/theme/common/colorRegistry.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { UniverseAgentConnectionSnapshot, UniverseAgentFileEntry, UniverseAgentListFilesRequest, UniverseAgentListFilesResult, UniverseAgentReadFileRequest, UniverseAgentReadFileResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
@@ -34,6 +38,8 @@ import { buildSourcesEngineLevel, filterSourcesLevelNodes, sourcesDirectoryLabel
 import { ISourcesFileEntry } from '../../common/sourcesFilesModel.js';
 import { SOURCES_EDITOR_OPEN_MODE_SETTING } from '../../../../services/editor/common/editorOpenSlot.js';
 import { isExplorerAutoRevealSuppressed } from '../../../../services/editor/common/explorerAutoRevealGate.js';
+import { ColorThemeData } from '../../../../services/themes/common/colorThemeData.js';
+import { COLOR_THEME_DARK_INITIAL_COLORS, COLOR_THEME_LIGHT_INITIAL_COLORS } from '../../../../services/themes/common/workbenchThemeService.js';
 
 suite('Sources - Files list search', () => {
 
@@ -229,6 +235,146 @@ suite('Sources - Files list search', () => {
 			stack.unshift(...node.children);
 		}
 		return paths;
+	}
+
+	function paintedColor(...layers: string[]): Color {
+		const canvas = document.createElement('canvas');
+		canvas.width = canvas.height = 1;
+		const context = canvas.getContext('2d')!;
+		for (const layer of layers) {
+			context.fillStyle = layer;
+			context.fillRect(0, 0, 1, 1);
+		}
+		const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
+		return new Color(new RGBA(r, g, b, a / 255));
+	}
+
+	const fileListThemes = [
+		{ name: 'Light+', selector: 'vs', colors: {} },
+		{ name: 'UniverseAgentStudio Light', selector: 'vs', colors: COLOR_THEME_LIGHT_INITIAL_COLORS },
+		{ name: 'UniverseAgentStudio Dark', selector: 'vs-dark', colors: COLOR_THEME_DARK_INITIAL_COLORS },
+		{ name: 'High Contrast Dark', selector: 'hc-black', colors: {} },
+		{ name: 'High Contrast Light', selector: 'hc-light', colors: {} },
+	];
+
+	for (const theme of fileListThemes) {
+		test(`${theme.name}: selected engine filenames follow the real tree across focus changes`, async function () {
+			// The Electron unit runner keeps its BrowserWindow hidden. These CSS
+			// focus checks run in the browser runner with an actually focused page.
+			const testWindow = getWindow(document.body);
+			testWindow.focus();
+			await timeout(0);
+			if (!testWindow.document.hasFocus()) {
+				this.skip();
+			}
+
+			for (const relativePath of ['../../browser/media/sourcesFilesList.css', '../../../../browser/parts/sources/media/sourcesPart.css']) {
+				const stylesheet = document.createElement('link');
+				stylesheet.rel = 'stylesheet';
+				stylesheet.href = new URL(relativePath, import.meta.url).href;
+				store.add(toDisposable(() => stylesheet.remove()));
+				await new Promise<void>((resolve, reject) => {
+					stylesheet.onload = () => resolve();
+					stylesheet.onerror = () => reject(new Error(`Sources stylesheet failed to load: ${relativePath}`));
+					document.head.appendChild(stylesheet);
+				});
+			}
+
+			const colorTheme = ColorThemeData.createLoadedEmptyTheme(theme.selector, theme.name);
+			colorTheme.setCustomColors(theme.colors);
+			const workbench = document.createElement('div');
+			const ownerDocument = getWindow(workbench).document;
+			workbench.className = `monaco-workbench ${theme.selector}`;
+			for (const { id } of getColorRegistry().getColors()) {
+				workbench.style.setProperty(asCssVariableName(id), colorTheme.getColor(id)?.toString() ?? 'initial');
+			}
+			workbench.style.color = 'var(--vscode-foreground)';
+			workbench.style.backgroundColor = 'var(--vscode-sideBar-background)';
+			const part = document.createElement('div');
+			part.className = 'part sources';
+			workbench.appendChild(part);
+			document.body.appendChild(workbench);
+			store.add(toDisposable(() => workbench.remove()));
+
+			const mounted = mountList.call(this, {
+				emptyWorkspace: true,
+				workDir: '/engine/proj',
+				sessionId: 'style-session',
+				listFiles: async () => ({
+					entries: ['a.ts', 'b.ts', 'c.ts'].map(name => engineFile(name, `/engine/proj/${name}`)),
+					total: 3,
+				}),
+			});
+			part.appendChild(mounted.host);
+			mounted.host.querySelector<HTMLElement>('.sources-files-list')!.style.height = '160px';
+			const outsideInput = document.createElement('textarea');
+			outsideInput.setAttribute('aria-label', 'Message');
+			workbench.appendChild(outsideInput);
+			await flush(mounted.widget);
+			const tree = await waitForNames(mounted.widget as unknown as { list?: SourcesFilesTree }, ['a.ts', 'b.ts', 'c.ts']);
+			const first = namedFile(tree, 'a.ts');
+			const second = namedFile(tree, 'b.ts');
+			tree.setSelection([first]);
+			tree.setFocus([first]);
+			const list = mounted.host.querySelector<HTMLElement>('.monaco-list')!;
+			const selectedRow = mounted.host.querySelector<HTMLElement>('.monaco-list-row.selected')!;
+			const filename = selectedRow.querySelector<HTMLElement>('.label-name')!;
+			assert.strictEqual(filename.textContent, 'a.ts');
+
+			const assertReadableFilename = (row: HTMLElement, activeSelection?: boolean): void => {
+				const rowStyle = getWindow(row).getComputedStyle(row);
+				const name = row.querySelector<HTMLElement>('.label-name')!;
+				const foreground = paintedColor(getWindow(name).getComputedStyle(name).color);
+				const background = paintedColor(colorTheme.getColor('sideBar.background')!.toString(), rowStyle.backgroundColor);
+				if (activeSelection !== undefined) {
+					const state = activeSelection ? 'activeSelection' : 'inactiveSelection';
+					const expectedForeground = colorTheme.getColor(`list.${state}Foreground`) ?? colorTheme.getColor('foreground')!;
+					const expectedBackground = paintedColor(colorTheme.getColor('sideBar.background')!.toString(), colorTheme.getColor(`list.${state}Background`)?.toString() ?? 'transparent');
+					assert.deepStrictEqual({ rowForeground: paintedColor(rowStyle.color).toString(), rowBackground: background.toString() }, {
+						rowForeground: expectedForeground.toString(), rowBackground: expectedBackground.toString(),
+					}, JSON.stringify({
+						theme: theme.name, state,
+						list: list.className, rowClass: row.className,
+						activeSelectorMatches: row.matches('.monaco-list:focus .monaco-list-row.selected'),
+						filenameSelectorMatches: name.matches('.monaco-workbench .part.sources .sources-files-list .label-name'),
+						filename: getWindow(name).getComputedStyle(name).color,
+						row: { color: rowStyle.color, background: rowStyle.backgroundColor },
+						variables: Object.fromEntries(['foreground', `list-${state}Foreground`, `list-${state}Background`]
+							.map(name => [name, getWindow(row).getComputedStyle(row).getPropertyValue(`--vscode-${name}`)])),
+					}));
+				}
+				assert.deepStrictEqual({
+					color: foreground.toString(),
+					readable: foreground.getContrastRatio(background) >= 4.5,
+				}, { color: paintedColor(rowStyle.color).toString(), readable: true }, `${theme.name}: ${row.textContent}`);
+			};
+
+			for (const focused of [true, false, true]) {
+				getWindow(workbench).focus();
+				(focused ? list : outsideInput).focus();
+				await timeout(0);
+				assert.deepStrictEqual({ documentFocus: ownerDocument.hasFocus(), listFocus: list.matches(':focus') }, {
+					documentFocus: true, listFocus: focused,
+				}, `${theme.name}: the test window must have native focus before measuring tree styles`);
+				assert.strictEqual(ownerDocument.activeElement, focused ? list : outsideInput);
+				assertReadableFilename(selectedRow, focused);
+			}
+
+			// Moving focus to an unselected row must preserve the selected row's
+			// colors and leave the adjacent, unfocused filename at normal foreground.
+			tree.setFocus([second]);
+			const focusedRow = mounted.host.querySelector<HTMLElement>('.monaco-list-row.focused:not(.selected)')!;
+			assert.strictEqual(focusedRow.querySelector('.label-name')?.textContent, 'b.ts');
+			assertReadableFilename(focusedRow);
+			assertReadableFilename(selectedRow, true);
+			const neighbor = [...mounted.host.querySelectorAll<HTMLElement>('.monaco-list-row:not(.selected):not(.focused) .label-name')]
+				.find(label => label.textContent === 'c.ts')!;
+			assert.ok(neighbor);
+			assert.deepStrictEqual({
+				selection: tree.getSelection().map(file => { assert.ok(file); return file.name; }),
+				neighborColor: paintedColor(getWindow(neighbor).getComputedStyle(neighbor).color).toString(),
+			}, { selection: ['a.ts'], neighborColor: colorTheme.getColor('foreground')!.toString() });
+		});
 	}
 
 	async function flush(widget: SourcesFilesList): Promise<void> {

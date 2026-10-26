@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-26T03:25:41.576Z",
+  "transformVersion": "0.27.2",
+  "items": [
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationProcessFold.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationProcessFold.js",
+      "sourceHash": "ca64e263d6ed236f2c605fa5fa96bb449dd9fe767624cd20fe98d8ec70a44459",
+      "outputHash": "593fc3d293b5fd4b2eb368d244d3ceaed5e09142deee586193e4f570123d4995",
+      "outputMtime": "2026-10-26T03:25:41.546Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationProcessFoldModel.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationProcessFoldModel.test.js",
+      "sourceHash": "dca1f3749cc0617a88fb24e087efd0a7e5c984dc3325e0a42265458d22a1ddab",
+      "outputHash": "8ad8f7dccbfa87289b4402593fe29fbcd9fec222200e897dae2a3174bedc16ae",
+      "outputMtime": "2026-10-26T03:25:41.548Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationProcessFoldModel.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationProcessFoldModel.js",
+      "sourceHash": "0df6c4f4259730831b571bc90ff2e85ffbf5f1b3fae2d1e0321d6d77191925db",
+      "outputHash": "1dec9581443449e418b6f6217603b958c37bbd93561149d8c56e27e89479e5f2",
+      "outputMtime": "2026-10-26T03:25:41.549Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationSessionsView.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationSessionsView.test.js",
+      "sourceHash": "3bd1d316a8f790959efdbcdf1dd44f4893a4d842e58517331b761f6fe4d19ad6",
+      "outputHash": "b3ebdbcc9b279e2f7e90ce1ca225259a57e84234a4b4c7e593b1636121dbe16b",
+      "outputMtime": "2026-10-26T03:25:41.551Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineProviderModelSection.js",
+      "sourceHash": "fee0995437c7cf9f69145ae43829f25e02ea3bedff55d70d48fd690e37f193d9",
+      "outputHash": "67739b0ee42ed0c7d31817876e450534c812f2cd4a2d9a5ee0cbe03b702cd23f",
+      "outputMtime": "2026-10-26T03:25:41.556Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "sourceHash": "8c487677373ab3b24e06bc827c7fe738a4460dd6cb52322833d8e6b72adc3e9b",
+      "outputHash": "8c487677373ab3b24e06bc827c7fe738a4460dd6cb52322833d8e6b72adc3e9b",
+      "outputMtime": "2026-10-26T03:25:41.557Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "sourceHash": "f358ee13b7a8429c965675045252c7eed0799ee3bff9bdf0009c43349c2a2a71",
+      "outputHash": "f358ee13b7a8429c965675045252c7eed0799ee3bff9bdf0009c43349c2a2a71",
+      "outputMtime": "2026-10-26T03:25:41.557Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/conversationSessions.css",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/conversationSessions.css",
+      "sourceHash": "e840a1313c1bfd417b74a583126064356acb26259ef40ea5122a8e672f868f6f",
+      "outputHash": "e840a1313c1bfd417b74a583126064356acb26259ef40ea5122a8e672f868f6f",
+      "outputMtime": "2026-10-26T03:25:41.557Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "sourceHash": "c867fc9774ebf16ffe3009f845cbd533f212550b02a55b8a5460c4b28d1c6354",
+      "outputHash": "c867fc9774ebf16ffe3009f845cbd533f212550b02a55b8a5460c4b28d1c6354",
+      "outputMtime": "2026-10-26T03:25:41.557Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationProcessFold.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationProcessFold.test.js",
+      "sourceHash": "bd9b9688fc14f166796525c77bae7ec8264b88e4f3734599fe158e1d4f2685f4",
+      "outputHash": "6c3ab3234586814e998897f0e4c8c1da44717a5d20f1a5c7c9d3eaefb9a862c7",
+      "outputMtime": "2026-10-26T03:25:41.563Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.js",
+      "sourceHash": "ac47e5fe5943f4787a1bad9e9bfbf38cb3a72c6fe64b325efab6c1114866b115",
+      "outputHash": "712734a0c376b0a2ce09afc0e52b64f756f1f703d84c03492eebbfadd5611dc4",
+      "outputMtime": "2026-10-26T03:25:41.567Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css",
+      "output": "out/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css",
+      "sourceHash": "b27b77ce3b524eb52dc6cb6dd0719c44584909f398cea865e265d209dd775ca0",
+      "outputHash": "b27b77ce3b524eb52dc6cb6dd0719c44584909f398cea865e265d209dd775ca0",
+      "outputMtime": "2026-10-26T03:25:41.567Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/test/browser/sourcesFilesList.test.ts",
+      "output": "out/vs/workbench/contrib/sources/test/browser/sourcesFilesList.test.js",
+      "sourceHash": "3a898280a90f3ef8f3c04411fe719a9ded8cba808765528d3805fc152f25eaf7",
+      "outputHash": "8b1b2e8b0f52c9017457a7c26b4ae66282f0aefb70ecbe744084529e89f6e8df",
+      "outputMtime": "2026-10-26T03:25:41.572Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js",
+      "sourceHash": "1cf29ccfed17afee8419375ce2815dff90bcba841d189163890fbc6df1b385a5",
+      "outputHash": "6409cb614dfc0db5593eaa15057d9ce237ff857b5fc577a3c91bdebcda7298ab",
+      "outputMtime": "2026-10-26T03:25:41.575Z"
+    }
+  ]
+}

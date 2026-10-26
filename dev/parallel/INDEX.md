@@ -11,7 +11,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
-| [default-editor-visual-state-followup](active/default-editor-visual-state-followup.md) | **进行中**：默认编辑器五项视觉状态修复与续审；Agents Window 仅作对照 |
+| [default-editor-visual-state-followup](active/default-editor-visual-state-followup.md) | **已完成**：五项视觉状态修复及同根因续审；Electron 350 passing，十四项真实焦点 Chrome 补验全过 |
 | [ui-visual-review-2026-10-26](active/ui-visual-review-2026-10-26.md) | **已完成**：D1368–D1375 范围内行为 / 实拍已验；当前 Sources 0 诊断，全仓仍 160 条 / 58 文件未过 |
 | [session-work-root](active/session-work-root.md) | **进行中**：PRD-029 S1–S4。S5 不做 |
 | [visual-audit-2026-10-05](active/visual-audit-2026-10-05.md) | **已完成**：自有界面八项已确认视觉问题、一项待实测疑点；收口方案已签收，排除 VS Code 原生部分 |

@@ -617,7 +617,7 @@ suite('Engine providers and models sections', () => {
 		assert.strictEqual(toolbar.style.display, 'none');
 	});
 
-	test('provider enabled mark is read-only and does not call a missing provider API', async () => {
+	test('provider enabled status is plain text and does not call a missing provider API', async () => {
 		const connection = createConnectionStub({
 			connected: true,
 			providerSupport: 'SUPPORTED',
@@ -635,15 +635,16 @@ suite('Engine providers and models sections', () => {
 		});
 		const section = mountProviders(connection);
 		await flushMicrotasks();
-		const switchEl = section.getDomNode().querySelector('.engine-provider-switch') as HTMLElement;
-		assert.ok(switchEl);
-		assert.strictEqual(switchEl.getAttribute('role'), null);
-		assert.strictEqual(switchEl.getAttribute('aria-hidden'), 'true');
-		assert.ok(switchEl.classList.contains('is-enabled'));
-		switchEl.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-		switchEl.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', keyCode: 32, bubbles: true, cancelable: true }));
-		assert.ok(switchEl.classList.contains('is-enabled'));
-		assert.strictEqual(section.getDomNode().textContent?.includes('Enabled'), true);
+		const status = section.getDomNode().querySelector<HTMLElement>('.engine-provider-enabled-status');
+		assert.ok(status);
+		status.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+		status.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', keyCode: 32, bubbles: true, cancelable: true }));
+		assert.deepStrictEqual({
+			text: status.textContent,
+			role: status.getAttribute('role'),
+			tabIndex: status.tabIndex,
+			switch: section.getDomNode().querySelector('.engine-provider-switch, [role="switch"]'),
+		}, { text: 'Enabled', role: null, tabIndex: -1, switch: null });
 	});
 
 	test('import control appears only when desktop provider write hooks exist', async () => {

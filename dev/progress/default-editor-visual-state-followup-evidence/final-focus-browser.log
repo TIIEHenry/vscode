@@ -1,0 +1,25 @@
+Failed to load resource: the server responded with a status of 404 (Not Found) []
+
+
+  ConversationSessionsView (browser co-located) - /CHROMIUM-CHROME/
+    ✔ Light+: selected session text follows the real list across focus changes (45ms)
+    ✔ UniverseAgentStudio Light: selected session text follows the real list across focus changes
+    ✔ UniverseAgentStudio Dark: selected session text follows the real list across focus changes
+    ✔ High Contrast Dark: selected session text follows the real list across focus changes
+    ✔ High Contrast Light: selected session text follows the real list across focus changes
+
+  Sources - Files list search - /CHROMIUM-CHROME/
+    ✔ Light+: selected engine filenames follow the real tree across focus changes (45ms)
+    ✔ UniverseAgentStudio Light: selected engine filenames follow the real tree across focus changes
+    ✔ UniverseAgentStudio Dark: selected engine filenames follow the real tree across focus changes
+    ✔ High Contrast Dark: selected engine filenames follow the real tree across focus changes
+    ✔ High Contrast Light: selected engine filenames follow the real tree across focus changes
+
+  Preferences status styles - /CHROMIUM-CHROME/
+    ✔ UniverseAgentStudio Light: writable provider rows preserve names, status and actions at narrow widths (932ms)
+    ✔ UniverseAgentStudio Dark: writable provider rows preserve names, status and actions at narrow widths (912ms)
+    ✔ High Contrast Dark: writable provider rows preserve names, status and actions at narrow widths (912ms)
+    ✔ High Contrast Light: writable provider rows preserve names, status and actions at narrow widths (914ms)
+
+
+  14 passing (4s)

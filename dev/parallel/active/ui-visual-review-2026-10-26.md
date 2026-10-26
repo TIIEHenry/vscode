@@ -143,3 +143,9 @@ Catalog与Terminal补修真实改变生产：Agents body CTA恢复[既有SSOT §
 对齐后门禁：docs-health 529份Markdown、0errors/46既有链接warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/cascade-docs-health.log)）；generated-status与diff-check通过；46对source/output共92个SHA256匹配，mismatch0。
 
 父级 cascade 实证：C / D / J 已安全 fast-forward 到 `15db8586a58`。主工位 `agent-ide` 仍为 `07abbe81504`；对 `15db8586a58` 的 `merge --ff-only` 实际退出 1，因为 `engineProviderModelSection.ts` 与 `engineProviderModelSection.test.ts` 两处在途修改会被覆盖。Git 已终止合入；本轮未暂存、提交、回退或隐藏主工位任何未提交改动。后续仅根据新的已提交快照继续集成，不把本次拒绝写成全工位已同步。
+
+## 新轮默认编辑器视觉源码三路合成
+
+已核对主线 `8252bdfdd5724960664c94aa64cccb5aa9eb550c` 相对07ab的30路径视觉实施与证据，和merge `7ba39cf106a` 真三路合成。Provider两TS自动合并：保留我方删除unused helper与dialog detail正式string收窄，也保留外部managed hover/释放、只读Enabled/Disabled文案与无switch/无RPC断言；未整文件取ours/theirs，模型行为边界不扩。仅plans INDEX/status文档冲突，保留双方计划/历史并采用外部真实implemented状态。Astra已独立核对双方diff支持语义并集，最终交集复核与merge新产物验证尚在途。
+
+825已提交的证据为外部Electron350 passing/14pending、Chrome补验14 passing，九TS九条旧诊断无新增；原始[外部验证](../../progress/default-editor-visual-state-followup-evidence/verification.md)保留，这些不是merge当前新运行。仅默认编辑器产品范围，不开发Agents Window。下一步merge独占锁内最小fresh、定向语义与受影响UI/Provider/catalog回归；旧833项不全重跑，上一轮59/37不冒称本轮新全量。
