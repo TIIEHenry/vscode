@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "D真实J部分after C0/I1：M01按钮no-op，D1387仍open/J重开occupied；accepted增量及原件已接，旧928/native154保留供旧red；E未启动，不重编/push/主ff。"
+summary: "M01候选d046旧928实跑4项均fixture TypeError，业务红0，已退原J；154旧身份/3生产/输出存在性全恢复，codepeer/修订待，不正式合源/compile5/freeze，E未启动。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **M01首轮精确旧产物运行：夹具失败（2026-10-27）**：不可变d046新test仅临时JS配旧src928/native8b4、全局空闲/共享锁实跑4真实Pane入口，0过4败均SourcesChangesModel缺IAgentSessionContext的TypeError，未到Preview/关闭断言，业务旧红0；已退原J精确修夹具，不由merge代改。finally测试JS原不存在现仍无、154旧source/native与额外3生产pair全SHA恢复、HEAD/src/clean不变；原件入库，候选尚未正式合、compile5/新freeze待。[首轮日志/范围](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#m01首轮旧928测试运行夹具失败不计业务旧红)。
 - **D真实J部分after与M01重开（2026-10-27）**：真三路接Astra3f299含M01 C0/I1与方案规则16 C0/I0/M1、D ee189六证据及J最终accepted265b1；257/263/12路径mode/blob/hunk门禁PASS。D14真实UI过/1隔离过/2仅lane连续性/M01按钮两次no-op，250包成员SHA/bytes全核；101采样零RPC、52旧native稳，39JS+1CSS实际loaded/12仅manifest，J18全loaded。D自有句柄已清、E从未启动；D1387 open/J reopened occupied，accepted不当产品通过。当前src928/native154精确保留，未编译/转译/测试/out写入，待原作者候选/peer后唯一lane旧red与compile5。[原件及合并边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#d真实j部分afterm01重开与最终accepted增量纯文档接入)。
 - **D1387 M01 Move增量签收（2026-10-27，J）**：D真实after发现Conversation Pane按钮无来源参数、registered action忽略context、helper只读global active而no-op；普通Review新建Beta也复现。J从clean24a仅Git ff到明确4173，核源码后写[方案§3.5/§4.4](../plans/sources-open-dispatch-and-conversation-target.md#35-m01conversation-pane-的-move-显式来源本轮增量已签收)与SSOT review稿：显式input/group/Pane及注册part快照、ref/close同capture、失效无fallback、关前live复核和局部错误恢复；原false/stale/void/异常关闭代数保留。原Astra规则16 C0/I0/M1、native两形状Minor已改，独立accepted方案后实施；当前不改生产/冻结out、不编译或运行第二窗口；D1387 open。
 - **J/E固定d91合源第四轮正式验证（2026-10-27）**：9cc56真三路/358路径保留及Astra2a1a实际候选C0/I0/M0已闭合，原报告精确接为8b4ddaa/src92801b5；唯一lane第四完整compile0/0TS，154源/native身份不变。J29/E44/补修6/Roster190/外部Queue-Inbox-Skills133/59+2 Node文件880过；完整11相关255过1既有reasoning红，J386凭29项精确连续性复用、未重跑；113TS ESLint0error/132warning。保留107原件、外部Lens CSS及独立队列技能归属，不取主42dirty/不追main；旧ce6/8b4同src两份52项freeze当时真实成立；D本次部分after M01 I1，旧154产物保留待准确red，不push/主ff不重试。[原件与边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第四次实际完整编译与固定d91相关复验)。

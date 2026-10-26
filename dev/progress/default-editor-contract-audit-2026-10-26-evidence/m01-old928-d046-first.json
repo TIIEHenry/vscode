@@ -1,0 +1,86 @@
+{
+  "phase": "M01-new-real-pane-test-on-exact-frozen-old928-production",
+  "candidate": "d04697351413f2e83a4745c3ab2b7fc37a03ea0c",
+  "sourceHead": "f3d2cd0705af0778125879075266104ef9122711",
+  "sourceTree": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+  "nativeProducer": "8b4ddaa99a8cc88ed645407ee42075a8497c4f34",
+  "nativeCompileExit": 0,
+  "startedAtUtc": "2026-10-26T18:59:00.227837+00:00",
+  "globalLaneMatches": [],
+  "sharedLockHeldAcrossTestOnlyTranspileRuntimeFinallyRestore": true,
+  "testSourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffMoveSource.test.ts",
+  "testSourceSha256": "70fc4664a2d93e8ee7b5f9b90779a79a38e93fbc125a30efb90358685d6aa3e5",
+  "temporaryOutputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffMoveSource.test.js",
+  "temporaryOutputBeforeExists": false,
+  "temporaryOutputBeforeSha256": null,
+  "frozenNativeIdentityCount": 154,
+  "production": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "sourceSha256": "d43d4e88d128e57c37398dc6f45570693ed9a2bfe7f8b55784cc542bbf35a5fb",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "outputSha256": "7dc2e95601cef443be410ec0e0fc9c8540746b9db07492c8b60aa03a6380984e",
+      "inOriginal154Manifest": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+      "sourceSha256": "7d9e4cd51d35148b338a6bd8eeb47aef3f13395ec3347aeaaf8252d62b9b541a",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffActions.js",
+      "outputSha256": "75eb5888c47378a6add3a5d0f59a0cfcc9492d7404b196a78e224431d36d704b",
+      "inOriginal154Manifest": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffRefHelpers.ts",
+      "sourceSha256": "ea113a2fde9d826c6dc0c61cf0acb19641818774a5ae9cdeb58a47c8c2d13b21",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffRefHelpers.js",
+      "outputSha256": "8994edb12beca95e62cf6d26aa8424b15f5597b2e81188f6251e050ced51ef5f",
+      "inOriginal154Manifest": false
+    }
+  ],
+  "productionOutNotWritten": true,
+  "sourceNotWritten": true,
+  "rootFilesystemWipNotConsumed": true,
+  "EAfterNeverStarted": true,
+  "temporaryOutputInstalledSha256": "80e9c9ed8208f701f65fa204a90fb83a7aea4bbbcde28347c2eaec0b47ddebd7",
+  "newTypeAliasesErasedNoNewRuntimeExportDependency": true,
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffMoveSource.test.ts",
+    "--grep",
+    "real Pane registered command"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "exitCode": 1,
+  "mochaSummaries": [
+    "0 passing (19ms)",
+    "4 failing"
+  ],
+  "pureBusinessAssertionCount": 0,
+  "hasTimeoutOrLoadApiFailure": true,
+  "validExactOldBusinessRed": false,
+  "temporaryOutputRestoredExistence": true,
+  "temporaryOutputRestoredSha256": null,
+  "all154FrozenSourceNativeHashesRestored": true,
+  "allThreeOldProductionSourceNativeHashesUnchanged": true,
+  "sourceHeadUnchanged": true,
+  "sourceTreeUnchanged": true,
+  "worktreeCleanAfterRestore": true,
+  "newTestSourceStillAbsent": true,
+  "finishedAtUtc": "2026-10-26T18:59:01.639127+00:00"
+}

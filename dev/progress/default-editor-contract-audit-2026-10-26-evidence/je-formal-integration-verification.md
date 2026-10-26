@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "D真实J部分after C0/I1、M01按钮no-op，D1387 open/J重开；3f审查+ee189六证据+265b accepted已真三路保留，旧928/native154不动，E未启动。"
+summary: "M01 d046首轮旧928实跑0过4夹具TypeError、业务红0，已退原J；154旧native/3生产/测试存在性全恢复，产品未正式合/未compile5，新peer/修订待。"
 ---
 
 # J/E 正式集成
@@ -198,3 +198,13 @@ D cleanup原件记录其自有main1643431/Xvfb1643371/子1643372已无proc，379
 §11规则16对b882为C0/I0/M1，最终accepted265b1已落实native toolbar仅groupId、context menu URI先/context后、无index仅明确组、非法不fallback及数字context时间边界。accepted仅签方案，保留原false/stale/void/非leaf异常关闭代数与缺leaf保源例外，尚无M01产品新green。后续原J不可变实施候选/codepeer到位，才由唯一lane按父调度做准确旧red→正式merge/compile5→新green→新freeze/D复验；当前不重编。
 
 [接入前身份](je-m01-docs-integration-preservation-before.json)与[接入后身份](je-m01-docs-integration-preservation-after.json)保留154 source/native及原166 artifacts零差；[status压缩整文](je-m01-status-consolidation.json)保留旧逐字记录，当前账压至195行，明确J occupied/E未跑。所有原merge日志、生成列/diff/health原日志仅追加库存；仍无主ff重试/push、无root WIP/out消费或追随后续main。
+
+## M01首轮旧928测试运行：夹具失败，不计业务旧红
+
+父授权收到原J实施候选 `d04697351413f2e83a4745c3ab2b7fc37a03ea0c`（父最终accepted265b1，10路径），独立codepeer另由原Astra进行。本lane先用Git核作者交付的3生产+新test+旧Panel test五TS SHA全部精确一致，不正式合产品。全局lane扫描为空并独占 `/tmp/vscode-compile.lock`，核旧src928/8b4 native与原154 pair，**只**将不可变新 `sourcesDiffMoveSource.test.ts` 按仓库esbuild选项转为一个临时JS；新context/result别名在产物中已擦除、没有新runtime导出依赖。旧三个生产源/JS均不写，其中原154未列的sourcesDiffRefHelpers另记显式before/after pair，不伪称原manifest含它。
+
+实际官方Electron runner selector `real Pane registered command` 跑4项，**0 passing / 4 failing / exit1，但业务旧红为0**。四项均在夹具创建SourcesChangesModel时抛 `TypeError: Cannot read properties of undefined (reading 'onDidChangeActiveSession')`，位置native `sourcesChangesReadModel.js:60` / 临时test.js:243；真实Pane setup缺IAgentSessionContext，尚未到registered command settle后的Preview/关闭业务断言。不是产品red、不是timeout，不能把4 failing记作新测试准确复现旧M01。已把实际日志/位置交原J精确修订，并同步父/Astra；本lane不改作者夹具。
+
+[实际执行脚本](m01-old928-d046-first.py)、[原始完整log](m01-old928-d046-first.log)、[锁/命令/身份/分类与恢复JSON](m01-old928-d046-first.json)及两份全局进程原记录完整入库。driver退出0仅表示finally恢复和记录成功，业务runner exit1/夹具失败状态明确保留。
+
+finally在共享锁内恢复：新test源从未写入、临时testJS原不存在→现仍不存在；原154 source/native全部SHA恢复、额外三旧生产pair均未变、HEAD f3d2cd/src928/clean前后不变。未消费main FS/WIP，没有新helper/生产overlay，没有完整emit或freeze，也没有启动E。下一步等原J不可变夹具修订后重新做准确旧red；原Astra实际codepeer C/I闭合后才按父调度真三路合源与compile5。M01/D1387仍open。
