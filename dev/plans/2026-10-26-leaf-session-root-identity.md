@@ -66,3 +66,11 @@ merge 是唯一可编译/转译/out 写入者。D 只提交源码/测试和静�
 源ea54727真三路合入328cb823136。旧5cc三生产正文核验一致后，只fresh测试取得11个业务AssertionError；只fresh三生产后新增11绿、完整IdentityStrip40过、相邻Lens绑定/隐藏/身份位置8过。四TS在原project上下文定向0，七TS lint0/0。详见[运行证据](../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md)。
 
 C/D源齐并含C自槽精确补修后，source6f82新波唯一compile-client实际exit1、45诊断/27文件，七改动TS均无诊断；前波3e63的46/28原日志保留。编译后本刀四输出正文与green一致，未重复测试；不等于整out同构建。非作者C真实默认编辑器after仍在做，不能把focus()+click()当实际键盘，本稿accepted、D1386open，PRD不升。
+
+## 8. 独立 after I1 只读箭头补修（待运行复验）
+
+C 非作者真实默认编辑器 after 在 `gamma` / `fresh-gamma` 两个 engine 只读 chip 中发现：chevron.hidden=true，但 computed display:block / visibility:visible、两框均12×12；aria无popup、tabIndex=-1且点击无菜单/checkout，所以这是虚假的展开线索，没有实际误写证据。原截图、DOM与loaded CSS身份来自 C 的 `.build/d1386-independent-after/review.md`、`observations-readonly-details.json`、`shots/51-readonly-chevron-details.png`，不是作者新实拍。
+
+旧生产CSS SHA256 `5c595ca1447e1e6fe5b5ea3b28395c2d8b2baee1d5e5391b55a93987ce521839` 与57cdb48源CSS逐字一致。codicon作者display覆盖UA `[hidden]`，身份条已有hidden优先组却漏了 `.conversation-identity-chip-open[hidden]`。本次只补该scope选择器，落实§2.4已签“引擎branch无chevron”，不改布局/颜色/权限，无新设计。
+
+新增四主题类的真实生产CSS/DOM回归：加载身份条CSS、codicon.css与生产glyph规则，真实Lens local→engine→local，在240/720宽检查只读folder/branch箭头display:none、零尺寸框，同时本地箭头可见且tabIndex保持0。D仅静态lint/diff/docs；旧CSS red、新CSS green与完整套由唯一merge完成，C再在原窗口加载正式新CSS复验。静态stylelint在新旧CSS均报同五条既有变量诊断/九条token建议，虽exit0也不称无诊断。见[补修检查点](../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md)。本稿accepted、D1386open，I1尚未凭运行解除。
