@@ -4,18 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { type SessionViewSnapshot, type TimelineItemSummary, emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/index.js';
-import { IWorkspaceContextService } from '../../../../../platform/workspace/common/workspace.js';
-import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ISCMService } from '../../../scm/common/scm.js';
 import type { IFileMutationRecord } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { IConversationRosterService } from '../../browser/conversationStubService.js';
-import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
 import { ConversationReviewNavService } from '../../browser/conversationReviewNavService.js';
+import { ConversationReviewNavTestHarness } from './conversationReviewNavTestHarness.js';
 import {
 	attachReviewEntries,
 	classifyReviewNavApplyMode,
@@ -217,56 +212,14 @@ suite('conversationReviewEntry (R4b)', () => {
 	});
 
 	test('sidecar retains rows after disconnect', () => {
-		const root = WORKSPACE_ROOT;
-		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
-		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
-		const settleEmitter = store.add(new Emitter<import('../../browser/conversationReviewEntry.js').ITurnSettleSignal>());
-
-		const connection = {
-			isEngineConnected: () => false,
-			getConnectionSnapshot: () => ({
-				transport: 'idle' as const,
-				workDir: root.fsPath,
-				pairingPending: false,
-				channelAlive: false,
-				sharedFsRootSent: false,
-				capabilities: {} as never,
-			}),
-			onDidFileMutation: mutationEmitter.event,
-			onDidChangeConnection: connectionChangeEmitter.event,
-			onDidTurnSettle: settleEmitter.event,
-		} as unknown as IUniverseAgentConnection;
-
-		const roster = {
-			getActiveSessionId: () => 'session-1',
-			onDidChangeActiveSession: Event.None,
-			getSessions: () => [],
-			acquireSessionView: () => { throw new Error('not used'); },
-		} as unknown as IConversationRosterService;
-
-		const workspace = {
-			getWorkspace: () => ({ folders: [{ uri: root, name: 'project', index: 0, toResource: () => root }] }),
-		} as unknown as IWorkspaceContextService;
-
-		const scm = {
-			repositories: [{}],
-		} as unknown as ISCMService;
-
-		const service = store.add(new ConversationReviewNavService(connection, roster, workspace, scm));
-
-		mutationEmitter.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'runtime-1' }));
-		settleEmitter.fire({ sessionId: 'session-1', runtimeTurnId: 'runtime-1', assistantTurnId: 'assistant-1' });
+		const harness = store.add(new ConversationReviewNavTestHarness({ roots: [WORKSPACE_ROOT], connectionWorkDir: WORKSPACE_ROOT.fsPath, legacyContext: true }));
+		const service = harness.service;
+		harness.mutation.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'runtime-1' }));
+		harness.settle.fire({ sessionId: 'session-1', runtimeTurnId: 'runtime-1', assistantTurnId: 'assistant-1' });
 		const beforeDisconnect = service.getReviewNavForSession('session-1');
 		assert.strictEqual(beforeDisconnect.length, 1);
 
-		connectionChangeEmitter.fire({
-			transport: 'idle',
-			workDir: root.fsPath,
-			pairingPending: false,
-			channelAlive: false,
-			sharedFsRootSent: false,
-			capabilities: {} as never,
-		});
+		harness.connectionChanged.fire(harness.snapshot);
 		assert.deepStrictEqual(service.getReviewNavForSession('session-1'), beforeDisconnect);
 	});
 
@@ -277,41 +230,10 @@ suite('conversationReviewEntry (R4b)', () => {
 		workRoot?: IAgentWorkRoot;
 		hasScm?: boolean;
 	}): ConversationReviewNavService {
-		const mutationEmitter = store.add(new Emitter<IFileMutationRecord>());
-		const connectionChangeEmitter = store.add(new Emitter<import('../../../../../platform/universeAgent/common/universeAgentTypes.js').UniverseAgentConnectionSnapshot>());
-		const settleEmitter = store.add(new Emitter<import('../../browser/conversationReviewEntry.js').ITurnSettleSignal>());
-		const connection = {
-			isEngineConnected: () => false,
-			getConnectionSnapshot: () => ({
-				transport: 'idle' as const,
-				workDir: options.connectionWorkDir,
-				pairingPending: false,
-				channelAlive: false,
-				sharedFsRootSent: false,
-				capabilities: {} as never,
-			}),
-			onDidFileMutation: mutationEmitter.event,
-			onDidChangeConnection: connectionChangeEmitter.event,
-			onDidTurnSettle: settleEmitter.event,
-		} as unknown as IUniverseAgentConnection;
-		const roster = {
-			getActiveSessionId: () => 'session-1',
-			onDidChangeActiveSession: Event.None,
-			getSessions: () => [{ id: 'session-1', workDir: options.sessionWorkDir }],
-		} as unknown as IConversationRosterService;
-		const workspace = {
-			getWorkspace: () => ({
-				folders: options.roots.map((uri, index) => ({ uri, name: `root-${index}`, index, toResource: () => uri })),
-			}),
-		} as unknown as IWorkspaceContextService;
-		const scm = { repositories: options.hasScm === false ? [] : [{}] } as unknown as ISCMService;
-		const session = options.workRoot
-			? { getWorkRoot: () => options.workRoot } as IAgentSessionContext
-			: undefined;
-		const service = store.add(new ConversationReviewNavService(connection, roster, workspace, scm, session));
-		mutationEmitter.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'runtime-1' }));
-		settleEmitter.fire({ sessionId: 'session-1', runtimeTurnId: 'runtime-1', assistantTurnId: 'assistant-1' });
-		return service;
+		const harness = store.add(new ConversationReviewNavTestHarness({ ...options, legacyContext: true }));
+		harness.mutation.fire(makeRecord({ path: 'src/a.ts', toolCallId: 'tc-1', turnId: 'runtime-1' }));
+		harness.settle.fire({ sessionId: 'session-1', runtimeTurnId: 'runtime-1', assistantTurnId: 'assistant-1' });
+		return harness.service;
 	}
 
 	test('session workDir wins over the connection workDir when both are workspace roots', () => {

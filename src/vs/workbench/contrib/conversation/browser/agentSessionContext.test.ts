@@ -10,7 +10,7 @@ import type { IConversationSessionViewLease } from '../../../../platform/univers
 import { emptySessionViewSnapshot } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { IWorkspaceContextService, IWorkspaceFolder, IWorkspaceFoldersChangeEvent } from '../../../../platform/workspace/common/workspace.js';
+import { IWorkspaceContextService, IWorkspaceFolder, IWorkspaceFoldersChangeEvent, WorkspaceFolder } from '../../../../platform/workspace/common/workspace.js';
 import { URI } from '../../../../base/common/uri.js';
 import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
 import { ISCMRepository, ISCMService } from '../../scm/common/scm.js';
@@ -145,7 +145,7 @@ suite('AgentSessionContext (browser)', () => {
 		const seen: string[] = [];
 		store.add(context.onDidChangeActiveWorkRoot(root => seen.push(root.access)));
 
-		harness.folders = [{ uri: URI.file('/repo'), name: 'repo', index: 0 }];
+		harness.folders = [new WorkspaceFolder({ uri: URI.file('/repo'), name: 'repo', index: 0 })];
 		harness.fireFolders();
 		assert.strictEqual(context.getActiveWorkRoot().access, 'local');
 		assert.deepStrictEqual(seen, ['local']);
@@ -156,7 +156,7 @@ suite('AgentSessionContext (browser)', () => {
 		harness.setSnapshot({ linkId: 1, engineIdentityId: 'eng', workDir: '/a' });
 		harness.activeSessionId = 'a';
 		harness.sessions = [{ id: 'a', title: 'A', turns: [], workDir: '/a/b' }];
-		harness.folders = [{ uri: URI.file('/a'), name: 'a', index: 0 }];
+		harness.folders = [new WorkspaceFolder({ uri: URI.file('/a'), name: 'a', index: 0 })];
 		const context = harness.create();
 		assert.strictEqual(context.getActiveWorkRoot().access, 'engine');
 		const seen: string[] = [];

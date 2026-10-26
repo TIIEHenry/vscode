@@ -15,6 +15,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
 | [Tunnel 引用所有权与 provider 重试](tunnel-reference-and-provider-retry.md) | `implemented` | D1383；旧生产8项行为失败加1次裸拒绝hook，新生产两套件19 passing，两TS定向语义0。全量55/36未重跑。 |
+| [Conversation 审阅导航随工作根刷新](conversation-review-root-invalidation.md) | `accepted` | D1382；实施已写入，补齐会话/工作区/SCM变化的ReviewNav失效通知；运行及默认编辑器验收交merge，方案仍accepted。 |
 | [Policy definition 提交生命周期](policy-definition-submission-lifecycle.md) | `implemented` | D1379；旧生产11行为red与原裸拒绝hook成立，新生产四完整套件41过，五TS语义0/ESLint0，原拒绝与owner/reference保持。 |
 | [Provider 状态行按内容宽度换行](provider-status-row-layout.md) | `implemented` | D1381；旧八几何red，新49过/4focus Chrome补过；独立32组/192焦点无碰撞零写，Provider窄宽局部增高例外保留。 |
 | [默认编辑器视觉状态修复与续审](default-editor-visual-state-followup.md) | `implemented` | 原阶段运行保留历史，D1380/1381直接缺口已获真实回归及独立after闭合，不升PRD或签全仓绿。 |
