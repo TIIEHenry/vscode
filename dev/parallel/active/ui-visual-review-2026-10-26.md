@@ -141,3 +141,5 @@ Catalog与Terminal补修真实改变生产：Agents body CTA恢复[既有SSOT §
 安全cascade对齐：主工位已提交HEAD `07abbe81504cf54b7c301f00d75f81810d73e278`（前一 `20fe7a560e9`）相对共同基线e244仅12个文档路径变化。merge真三路纳入其committed snapshot，仅方案索引冲突并保留两边方案；外部默认编辑器视觉状态方案仍accepted，待办与审查结论原样保留，不计为本轮实施完成。遵循新AGENTS的默认编辑器产品范围；没有读取/拷入/暂存主工位未提交UI改动。源码/产物46对hash仍一致，故未重复编译或产品测试。由父继续安全ff；若主工位dirty重叠仍阻止，保留现场。
 
 对齐后门禁：docs-health 529份Markdown、0errors/46既有链接warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/cascade-docs-health.log)）；generated-status与diff-check通过；46对source/output共92个SHA256匹配，mismatch0。
+
+父级 cascade 实证：C / D / J 已安全 fast-forward 到 `15db8586a58`。主工位 `agent-ide` 仍为 `07abbe81504`；对 `15db8586a58` 的 `merge --ff-only` 实际退出 1，因为 `engineProviderModelSection.ts` 与 `engineProviderModelSection.test.ts` 两处在途修改会被覆盖。Git 已终止合入；本轮未暂存、提交、回退或隐藏主工位任何未提交改动。后续仅根据新的已提交快照继续集成，不把本次拒绝写成全工位已同步。
