@@ -339,3 +339,23 @@ finally所有163输出存在性/mode/SHA、163源SHA及旧Pane source/native全�
 [第七cache核验](m01-seventh-cache-status.json)对三自有ignored mirror逐entry mode/type/path/uid/gid/bytes/SHA全匹配，原path symlink稳定；当时/home **1,337,892,864 bytes**、/tmp **2,734,157,824 bytes**，全量还原文件需 **1,590,020,186 bytes** 另加512MiB余量，故按父明确授权保留全部symlink，不部分还原耗尽空间、不删未知/其他工位/source/out/evidence。精确三原路径/目标/清单哈希及后续共享锁内验证还原顺序在该JSON/原relocation record，未声称已恢复；这一稳定缓存安排不阻塞后续经授权J UI。
 
 全部318历史artifact逐bytes/SHA保留。D最新r2静态合同为 [5a3原件](m01-eighth-D-freeze-contract.json)：candidate468d/parent64a4/productionRepaira166、39expected/planned ordinal8；旧f765等历史仍在，53模板/3mandatory/runId不变。冻结前仍取D最后明确合同；没有新notice/freeze/UI/E授权，D1387 open，不push/不重试主ff/不追main。父已独立实读§20、新旧反例JSON与5a3合同属于父只读核验，不冒称父业务重跑。
+
+## 第八完整编译与39项新绿
+
+真实producer **`bd1b756066932d524f5de5f6b8fdc247c70d46f5`** / src **`2b5df2b37ca926e38888443e371cf65e2883dba2`** 精确immutable468d，实际第八完整 `npm run compile-client` **exit0 / 0 TS**。全局两scan空/共享锁，完整163 source/native记录，HEAD/src/clean保持；D最后5a3合同先核。[原始完整build log](m01-eighth-native-build.log)、[163身份/命令/时间JSON](m01-eighth-native-build.json)、driver与两进程原件保留，未靠第七compile0延用到新test。
+
+| 第八实际runtime | 结果 | 边界 |
+| --- | --- | --- |
+| [M01 focused](m01-eighth-M01-focused.json) | **39 passing (565ms)，exit0** | 原38/四真实Move及反馈通过；新增三次load ok/两text live、VM count1/2/3与replacement/clear/dispose三释放全部实过，无leak/console/TypeError/timeout |
+| [J focused](m01-eighth-J-focused.json) | 29过，exit0 | 实际重跑 |
+| [完整11 J/Sources](m01-eighth-J-complete-11.json) | **425 passing (1m)，exit0** | 全11实际重跑 |
+| [E response](m01-eighth-E-response-focused.json) / [Roster](m01-eighth-E-roster-full.json) | 44过 / 190过，各exit0 | 两组实际重跑 |
+| [Node wiring](m01-eighth-J-wiring-scan.json) | 23过 / 1败，exit1 | 唯一旧Accept builder排除parseSourcesGitUnifiedDiff断言（native227）；该生产common/sourcesGitHunkPatch.ts SHA仍d69e4dfe…eddb44，新typed Move/双catch扫描通过，原断言保留 |
+
+各组后全部163 native/sourceSHA、HEAD/src/clean精确保持；[逐组raw哈希与明确判定](m01-eighth-runtime-verdict.json)只签新M01及相关浏览器范围，不把Wiring总套写绿或笼统忽略新失败。六changed TS ESLint实际0error/21warning（Panel1/Wiring20），test自身0/0。
+
+[完整163只读后核/连续性](m01-eighth-static-identity.json)持共享锁/全局空，163实际pair全匹配；较第六仅Pane/test两对变、161对精确，UA/conversation Git树未变。61 Node tests+50生产、外部browser133所需pair承接此前实际记录；E11全部11（含补记7）source/native与第六实跑精确连续，**复用实际255过/1既有reasoning败**（actual THINKING vs expected hmm\nthen this），不机械再跑Node880/E11，不冒称本轮重跑。第八E44/Roster190是实际重跑，与连续性分开。
+
+[父只读核验范围](m01-eighth-parent-read-verification.json)为：重算compile8全部163 pair及候选Git tree，418/160路径base/ours/theirs/result mode/type/blob、361原件bytes/SHA，以及六组JSON结果/身份标志；不是父代跑业务或UI。[本轮cache状态](m01-eighth-cache-status.json)三镜像逐entry仍全精确，home **1,298,288,640 bytes** / tmp **2,698,514,432 bytes**，不足1,590,020,186文件bytes+512MiB全恢复余量，按父明确授权保留全部稳定原path symlink，未恢复/未partial restore/未额外删除；精确原路径/目标/清单哈希与后续安全还原步骤见JSON及原relocation record。这一稳定依赖安排不阻塞经授权D J。
+
+全部361已有artifact逐bytes/SHA保留，当前库存391。第七失败、新旧反例和早期历史不回写。下一仅按D最后5a3合同发r2新53共同superset notices与全163freeze，manifest不当renderer loaded；父独核后单独调度J默认编辑器zeroEngineRpc，E须实际J完成及父另授。此记录时尚无新notice/UI/E执行，D1387仍open、不push/不重试主ff。

@@ -1,0 +1,47 @@
+{
+  "phase": "after-compile8-verified-stable-owned-cache-symlinks-retained",
+  "checkedAtUtc": "2026-10-26T20:27:49.500024+00:00",
+  "sourceHead": "bd1b756066932d524f5de5f6b8fdc247c70d46f5",
+  "sharedLockHeld": true,
+  "globalLaneMatches": [],
+  "originalRelocationRecord": "/tmp/vscode-m01-fifth-cache-relocation.json",
+  "originalRelocationRecordSha256": "4ccb3368ddfdda892fe5f817f76be723664f4b0d7ccad46ab6519d1dda1af8ea",
+  "directories": [
+    {
+      "sourceDirectory": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/extensions",
+      "destinationDirectory": "/tmp/vscode-m01-fifth-extensions-m61of5_0/extensions",
+      "originalPathIsSymlink": true,
+      "fullModeTypePathUidGidByteShaInventoryMatches": true,
+      "entryCount": 27147,
+      "fileBytes": 586758778,
+      "inventorySha256": "c7a0f28a4322125c5c7b2200e28f4e21406861bf31cb76f248838b50a1c1ba99"
+    },
+    {
+      "sourceDirectory": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron",
+      "destinationDirectory": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron",
+      "originalPathIsSymlink": true,
+      "fullModeTypePathUidGidByteShaInventoryMatches": true,
+      "entryCount": 79,
+      "fileBytes": 326323956,
+      "inventorySha256": "263b1799900c86ec07ad81e4afcbf7ba746ef9177e5f65b48df39148dd011482"
+    },
+    {
+      "sourceDirectory": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/foundry-local-sdk",
+      "destinationDirectory": "/tmp/vscode-m01-fifth-foundry-local-sdk-d4_hburf/foundry-local-sdk",
+      "originalPathIsSymlink": true,
+      "fullModeTypePathUidGidByteShaInventoryMatches": true,
+      "entryCount": 81,
+      "fileBytes": 676937452,
+      "inventorySha256": "aa272bfd77c5d9949bd69bf39d39e1609604bf567fcddc32f5ae36a3e3d0a4c4"
+    }
+  ],
+  "homeAvailableBytes": 1298288640,
+  "tmpAvailableBytes": 2698514432,
+  "restoreFileBytes": 1590020186,
+  "restoreMarginBytes": 536870912,
+  "restored": false,
+  "reason": "Parent explicitly permits verified stable symlinks when full restore space plus margin is insufficient; no partial restore or unrelated deletion.",
+  "futureRestore": "Under the same shared lock and empty global lane, copy each verified /tmp mirror into a temporary sibling, verify full mode/type/SHA/path inventory, replace only its declared original symlink with the verified directory, verify again, then remove only the verified temporary mirror. No source/out/evidence or other worktree paths are touched.",
+  "sourceOutEvidenceOtherWorktreesNotMovedOrDeleted": true,
+  "outFrozen": false
+}

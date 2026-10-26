@@ -1,0 +1,18 @@
+{
+  "phase": "parent-read-only-verification-of-compile8-source-merge-and-runtime-records",
+  "recordedAtUtc": "2026-10-26T20:29:39.010880+00:00",
+  "reportedBy": "/root",
+  "capturedBy": "/root/baseline_executor",
+  "sourceHead": "bd1b756066932d524f5de5f6b8fdc247c70d46f5",
+  "sourceTree": "2b5df2b37ca926e38888443e371cf65e2883dba2",
+  "actualReadOnlyChecks": [
+    "compile8 actual JSON exit0/zeroTS/two global scans/head-src-clean and all163 source/native recomputed",
+    "bd1b src equals immutable468d src2b5d",
+    "peer418 and source160 rows base/ours/theirs/result mode/type/blob recomputed against actual Git; ours-only/theirs-only preservation verified",
+    "all361 artifact bytes/SHA recomputed",
+    "all six runtime JSON actually read:39/29/425/44/190 exit0 and Wiring23/1; each identity flag true"
+  ],
+  "notParentBusinessReruns": true,
+  "notParentUIAcceptance": true,
+  "newFreezeNotYetIssuedAtThisRecord": true
+}

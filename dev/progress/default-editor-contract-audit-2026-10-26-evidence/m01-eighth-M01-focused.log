@@ -1,0 +1,52 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1914606:1027/042601.605859:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1914621) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1914621) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1914621) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources M01 move source[0m
+  [32m  ✔[0m[90m native toolbar captures the explicit group instead of unrelated global active[0m
+  [32m  ✔[0m[90m native context menu captures the explicit group instead of unrelated global active[0m
+  [32m  ✔[0m[90m native explicit invalid index -1 never falls back[0m
+  [32m  ✔[0m[90m native explicit invalid index 1 never falls back[0m
+  [32m  ✔[0m[90m native explicit invalid index 0.5 never falls back[0m
+  [32m  ✔[0m[90m native explicit invalid index NaN never falls back[0m
+  [32m  ✔[0m[90m native explicit invalid index null never falls back[0m
+  [32m  ✔[0m[90m explicit disposed input cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit replaced member cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit changed pane cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit removed group cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit same id group cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit removed part cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit same key part cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit wrong source kind cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit wrong input type cannot borrow another active editor[0m
+  [32m  ✔[0m[90m await global focus preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m await same URI replacement preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m await pane replacement preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m await group replacement preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m await part replacement preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m await session key change preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m explicit non-leaf rejection retains the existing close algebra[0m
+  [32m  ✔[0m[90m real Pane registered command button empty global moves only B from real Conversation parts[0m[31m (164ms)[0m
+  [32m  ✔[0m[90m real Pane registered command button unrelated global moves only B from real Conversation parts[0m[31m (86ms)[0m
+  [32m  ✔[0m[90m real Pane registered command native toolbar moves only B from real Conversation parts[0m[31m (81ms)[0m
+  [32m  ✔[0m[90m real Pane registered command native context menu moves only B from real Conversation parts[0m[31m (80ms)[0m
+  [32m  ✔[0m[90m real Pane comparison view models release on replacement, clear and dispose[0m
+  [32m  ✔[0m[90m Pane move failure then current success restores only its local move notice[0m
+  [32m  ✔[0m[90m Pane late rejection cannot overwrite a newer move failure[0m
+  [32m  ✔[0m[90m Pane late success cannot overwrite a newer move failure[0m
+  [32m  ✔[0m[90m Pane stale cannot overwrite a newer move failure[0m
+  [32m  ✔[0m[90m Pane clear input suppresses old move error[0m
+  [32m  ✔[0m[90m Pane replace input suppresses old move error[0m
+  [32m  ✔[0m[90m Pane dispose suppresses old move error[0m
+  [32m  ✔[0m[90m explicit missing Conversation leaf preserves the captured source[0m
+  [32m  ✔[0m[90m Pane current false keeps the existing completion meaning[0m
+  [32m  ✔[0m[90m Pane current undefined keeps the existing completion meaning[0m
+  [32m  ✔[0m[90m Pane current stale keeps the existing completion meaning[0m
+
+
+[92m [0m[32m 39 passing[0m[90m (565ms)[0m
+

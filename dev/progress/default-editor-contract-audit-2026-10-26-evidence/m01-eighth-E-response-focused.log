@@ -1,0 +1,57 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1916640:1027/042717.460964:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1916654) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1916654) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1916654) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ConversationEngineRosterService (M6-A2)[0m
+  [32m  ✔[0m[90m response recovery business permission unary false restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery business permission unary reject restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery business question unary false restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery business question unary reject restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery business clientTool unary false restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery business clientTool unary reject restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery shared begin blocks a second leaf and synchronous notification reentry[0m
+  [32m  ✔[0m[90m response recovery same-frame pending false remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery same-frame pending reject remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery same-frame pending accepted remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery same-frame timeline false remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery same-frame timeline reject remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery same-frame timeline accepted remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery authoritative and connection generation changes clear drafts and reject late outcomes[0m
+  [32m  ✔[0m[90m response recovery untracked forwarding never cleans a request that appears before the callback[0m
+  [32m  ✔[0m[90m response recovery review I1 timeline-only clientTool accepted remains blocked after respondable is removed[0m
+  [32m  ✔[0m[90m response recovery review I1 timeline-only clientTool authoritative terminal supersedes late false[0m
+  [32m  ✔[0m[90m response recovery review I1 timeline-only clientTool authoritative terminal supersedes late reject[0m
+  [32m  ✔[0m[90m response recovery review I1 timeline-only clientTool authoritative terminal supersedes late accepted[0m
+  [32m  ✔[0m[90m response recovery review I1 ordinary terminal tool stays untracked on the public response boundary[0m
+  [32m  ✔[0m[90m response recovery review I2 public disconnect closes writes before synchronous scope notice[0m
+  [32m  ✔[0m[90m response recovery review I2 connection disconnect closes writes before synchronous scope notice[0m
+  [32m  ✔[0m[90m response recovery review I2 published identity switch closes writes before synchronous scope notice and preserves cache owners[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question options retires old false while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question options retires old reject while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question options retires old accepted while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question items retires old false while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question items retires old reject while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question items retires old accepted while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline clientTool args retires old false while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline clientTool args retires old reject while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline clientTool args retires old accepted while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 pending-only first baseline materialization preserves the live attempt[0m
+  [32m  ✔[0m[90m response recovery authoritative retryable supersedes a late unary false[0m
+  [32m  ✔[0m[90m response recovery authoritative retryable supersedes a late unary reject[0m
+  [32m  ✔[0m[90m response recovery authoritative retryable supersedes a late unary accepted[0m
+  [32m  ✔[0m[90m response recovery authoritative nonretryable supersedes a late unary false[0m
+  [32m  ✔[0m[90m response recovery authoritative nonretryable supersedes a late unary reject[0m
+  [32m  ✔[0m[90m response recovery authoritative nonretryable supersedes a late unary accepted[0m
+  [32m  ✔[0m[90m response recovery authoritative terminal supersedes a late unary false[0m
+  [32m  ✔[0m[90m response recovery authoritative terminal supersedes a late unary reject[0m
+  [32m  ✔[0m[90m response recovery authoritative terminal supersedes a late unary accepted[0m
+  [32m  ✔[0m[90m response recovery implicit multi-group activation survives failure without auto-submitting on rebuild[0m
+  [32m  ✔[0m[90m response recovery non-retryable stream failure is blocked instead of taking unary forwarding[0m
+
+
+[92m [0m[32m 44 passing[0m[90m (264ms)[0m
+

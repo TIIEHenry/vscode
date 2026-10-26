@@ -1,0 +1,78 @@
+{
+  "phase": "compile8-actual-new-scope-green-with-explicit-two-prior-red-boundaries",
+  "checkedAtUtc": "2026-10-26T20:29:39.010689+00:00",
+  "sourceHead": "bd1b756066932d524f5de5f6b8fdc247c70d46f5",
+  "sourceTree": "2b5df2b37ca926e38888443e371cf65e2883dba2",
+  "nativeCompileOrdinal": 8,
+  "nativeCompileExit": 0,
+  "runs": {
+    "M01-focused": {
+      "recordSha256": "3a13f1d3b408c294a8330e5cbce42ea509838a403eb7a6dd5fec2fec910e68b5",
+      "rawSha256": "8be113528439c6be5e2868de386bb107bd3aed272f988ed374101302bcc5c675",
+      "exitCode": 0,
+      "mochaSummaries": [
+        "  39 passing (565ms)"
+      ],
+      "all163SourceNativeAndHeadTreeCleanUnchanged": true
+    },
+    "J-focused": {
+      "recordSha256": "b3caebbabc2b25c97b5561eac0404d64bf31106735c620ed436230cdb3d8831c",
+      "rawSha256": "331cee421bc817bd553f1641b570977e78441b298322a698ea160f452d0ac639",
+      "exitCode": 0,
+      "mochaSummaries": [
+        "  29 passing (184ms)"
+      ],
+      "all163SourceNativeAndHeadTreeCleanUnchanged": true
+    },
+    "J-complete-11": {
+      "recordSha256": "1ed04b41d389a040c4fc53b0c5845006dd141397447f15dde8d793c220f29e69",
+      "rawSha256": "c20467aa1d24ff8c24afc7bab559c9b80d143297105e401e9abc9412a2238120",
+      "exitCode": 0,
+      "mochaSummaries": [
+        "  425 passing (1m)"
+      ],
+      "all163SourceNativeAndHeadTreeCleanUnchanged": true
+    },
+    "E-response-focused": {
+      "recordSha256": "23e6eeb16cbdabc72a66b1ad59b5790c649c09ad9667405af73470ee76fe9aa6",
+      "rawSha256": "70ba325c6682360d11c134383818d9e5138e61146f0b9a6e2c7b57c87fed541d",
+      "exitCode": 0,
+      "mochaSummaries": [
+        "  44 passing (264ms)"
+      ],
+      "all163SourceNativeAndHeadTreeCleanUnchanged": true
+    },
+    "E-roster-full": {
+      "recordSha256": "9fccd4f8a1c191872648d494030cfe31f06fdb264f815fb4e8b785b4468a869e",
+      "rawSha256": "ea8463f882fa2b911d6692dad1bfd06e0561e905368bad935ff5d4156911be94",
+      "exitCode": 0,
+      "mochaSummaries": [
+        "  190 passing (353ms)"
+      ],
+      "all163SourceNativeAndHeadTreeCleanUnchanged": true
+    },
+    "J-wiring-scan": {
+      "recordSha256": "b1d11f13c128de958f861988a54e28fbde5cada5822c6cb7f64b18fefd5fab30",
+      "rawSha256": "85722f3016ca91aad8a3fb1a927e4d59fd22b8e57545d6a11dea44f2b91012d6",
+      "exitCode": 1,
+      "mochaSummaries": [
+        "  23 passing (10ms)",
+        "  1 failing"
+      ],
+      "onlyFailure": "existing Accept patch builder excludes parseSourcesGitUnifiedDiff assertion; native227",
+      "unchangedProductionPath": "src/vs/workbench/contrib/sources/common/sourcesGitHunkPatch.ts",
+      "unchangedProductionSha256": "d69e4dfe3569ccef6dc7313a9b82a95b5171a530c5a687960c1a77b962eddb44"
+    }
+  },
+  "allNewM01AndRelatedBrowserScopePass": true,
+  "newLifecycleInitialReplacementClearReopenDisposeAssertionsActuallyPassed": true,
+  "existingE11FailureReusedOnlyThroughAll11ExactSourceNativePairs": {
+    "actualPriorSixthRun": "m01-sixth-E-related-full.json",
+    "actualPriorResult": "255 passing / 1 failing, exit1",
+    "failure": "reasoning actual THINKING vs expected hmm\nthen this",
+    "continuityRecordSha256": "6cbc8c86de4476d822cbc9b23c794909cadc744f679d1d41e00f830d5c758226"
+  },
+  "notBlanketIgnoringNewFailures": true,
+  "uiAfterNotRun": true,
+  "outFrozen": false
+}

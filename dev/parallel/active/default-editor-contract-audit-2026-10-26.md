@@ -172,3 +172,5 @@ D b774三路1247bec，旧正式CSS5c595核身份后仅testfresh，四主题真�
 C f9真三路f75，精确旧69ac/57action正文+只fresh真实controller测试，owner hide重复两次得到abort0/release1/ptt_end1真实业务红；仅fresh新action后新项1绿/完整183过，旧A松键不结束B、B350ms正常finalize。Astra同合同裁定+D peer C0/I0/M0，三本次TS原project noEmit0/lint0，stylelint新旧CSS同5变量/9建议。[取消运行](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md)。该检查点D1385当时仍待原假设的默认CopilotChat owner UI证明；现已核宿主关闭、原UI验收未满足并停止，accepted/open，不把fake widget或本real-controller fake I/O单独签整UI，不接Conversation真voice。
 
 后修没有fullcompile；source6f82的唯一45/27失败和旧46/28/55/36原log按字节保留，不替f75估算新计数。新红绿/失败/产物hash/body/mtime分文件落现有证据目录；未写人类/字母槽、未push。J新Sources设计或未提交实现不在此checkpoint，D1382既定通知合同不倒灌。
+
+唯一lane真实第八完整compile producerbd1b/src2b5d精确468d，exit0/0TS；M0139/Jfocused29/完整J425/E44/Roster190实际过，三次load/live/count1/2/3/三dispose全达，无leak/异常。Wiring23/1唯一旧Accept builder红；E11全11与Node61+50生产/外部133精确source/native连续，沿用实际旧reasoning255/1及Node880，不冒称重跑。每组163及HEAD/src/clean保持；361历史全保留现391原件，父只读核范围已记录。三cache全核而/home不足全restore+余量，按父授权保留全symlink。下一53新notice/163freeze，父独核后仅调度J，E仍未授权，D1387 open。

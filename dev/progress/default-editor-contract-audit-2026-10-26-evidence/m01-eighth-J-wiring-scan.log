@@ -1,0 +1,62 @@
+
+
+  Sources - Changes git read - 源码接线扫描
+    ✔ Changes and Review lists read Git when connected; FileDiff is open-time only
+
+  Sources - Changes git write - 源码接线扫描
+    ✔ Changes Stage / Commit write; Unstage stays on git.unstage
+    ✔ Changes list Stage / Unstage / Commit button clicks double-catch onUnexpectedError
+    ✔ Review Accept writes ApplyHunks only with payload; empty reject does not git.stage; Stage stays on Stage
+    ✔ Review pane fire-and-forget voids double-catch onUnexpectedError
+    ✔ Panel Diff write actions share the Review write gate; Accept does not git.stage
+    1) Accept patch builder does not read monaco text or a carried unified diff parse
+
+  Sources - review list model - 源码接线扫描
+    ✔ Review list surfaces git read failure on a status line instead of a silent catch
+    ✔ Review list surfaces open-diff failure on the same status line and does not mark reviewed
+    ✔ review open consumes true false and stale at the call site generation
+    ✔ Changes list does not reference review progress service
+
+  Sources - review progress service - 源码接线扫描
+    ✔ does not import IStorageService
+
+  Sources - files list leftover - 源码接线扫描
+    ✔ Files collect does not swallow fetchChildren throw as empty workspace
+    ✔ Files list scheduler and onDidOpen use double catch
+    ✔ Files tab hosts the explorer and does not register a view container
+
+  Sources - review showForPaths - 源码接线扫描
+    ✔ Open Selected catch surfaces open-diff failure the same way as Review list
+    ✔ Changes and Review leftover onDidOpen skip KEEP pairing-hold leftover as well as list-fail
+
+  Sources - custom UI visual CSS - 源码接线扫描
+    ✔ Accept hover is not covered by secondary button hover
+    ✔ Diff panel actions wrap; review status error tone is throw-only
+    ✔ Changes status has error tone
+    ✔ Sources hide control is a remove glyph; Files leftover status and Diff notices use error tone
+    ✔ Conversation Diff matches original+group and opens beside chat
+    ✔ P7 command id, diff guard, and attribution index stay on their own side of the boundary
+
+  Errors
+    ✔ should not have unexpected errors in tests
+
+
+  23 passing (10ms)
+  1 failing
+
+  1) Sources - Changes git write - 源码接线扫描
+       Accept patch builder does not read monaco text or a carried unified diff parse:
+
+      AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert.ok(!source.includes("parseSourcesGitUnifiedDiff"))
+
+      + expected - actual
+
+      -false
+      +true
+      
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.js:227:12)
+
+
+
