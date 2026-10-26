@@ -11,7 +11,7 @@ summary: "D1387：真实 Git 已证 Preview 漏 API open/diff DTO、Conversation
 
 ## 1. 问题、证据与签收边界
 
-范围是默认编辑器的 Sources Changes / Review → Preview、Conversation、Panel 打开及移动合同（[PRD-005/009](../../docs/product/requirements.md#prd-009-changes-与-diff)、[ADR-005](../decisions/005-changes-diff-owner.md)、[Sources SSOT](../../docs/systems/sources/overview.md)）。不开发 `src/vs/sessions/`。D1387 保持 open，PRD 状态不升；本方案已通过下方规则16，允许单独方案提交后按范围实施；源码切片与回归已写；当前仅有作者静态校验，无运行或修复后验证。
+范围是默认编辑器的 Sources Changes / Review → Preview、Conversation、Panel 打开及移动合同（[PRD-005/009](../../docs/product/requirements.md#prd-009-changes-与-diff)、[ADR-005](../decisions/005-changes-diff-owner.md)、[Sources SSOT](../../docs/systems/sources/overview.md)）。不开发 `src/vs/sessions/`。D1387 保持 open，PRD 状态不升；原方案与本轮§3.2实质澄清均已通过下方规则16。原源码切片与回归已写，但独立实现审查发现两项Important，须按澄清补修并经唯一车道运行与非作者after；本作者没有运行或修复后验证。
 
 [真实 Git before](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before.md) 有两个不同根、同名文件与不同两侧哨兵，真实内置 Git provider，断连、零 Git RPC、fixture HEAD/index/worktree 未变。J 初轮只读审查及 C1–C6 的结果是 before，不能充当作者实现后的 after。
 
@@ -57,9 +57,13 @@ summary: "D1387：真实 Git 已证 Preview 漏 API open/diff DTO、Conversation
 
 slot 仍包住同一个 SCM dispatch；newTab 保留旧预览，replace 在真实新目标打开后替换当前，已开相同 input 可以 reveal。不要用 input 对象是否变化作为成功条件。
 
-SCM void 只说明委托正常完成。其后的 identity/pin/close 是有条件的局部副作用：参考 SCM 已有 `EditorResourceAccessor` primary/secondary 与资源 `sourceUri` / multiDiff URI 的匹配，核对实际 input 与宿主；不能把仍留着的 Beta input 写成 Alpha 的 Sources identity。provider 显式目标列、preserveFocus 或后台打开不得导致 pin/close 当前不相干标签。找不到可核对实际 input 时，不做这些副作用；不因此将任意 custom void 改判失败或二次 dispatch。
+SCM void 只说明委托正常完成。分派后的 identity、pin 新 input、replace 关闭旧 input 都须核对实际比较与宿主；不能把仍留着的 Beta input 写成 Alpha 的 Sources identity。API diff 必须按资源 command DTO 的实际 original / modified 有序双侧匹配，不能用 quickDiff original 或 sourceUri 单侧替代；API open 只匹配相应单资源 input 与 DTO URI，不命中包含同 URI 的另一个 Diff。custom 只依据成对 multiDiff URI 或已记录的同一 scmResource / groupId 可信身份。找不到可核对实际 input 时，不做这些分派后副作用；仍保留合法 void 完成，不二次 dispatch，也不发明可见成功探测器。
 
-API DTO 分支用 context 尊重 provider options；custom 分支保持既有 preserveFocus/await/拒绝与 slot 兼容。测试必须分别覆盖不同资源旧 input、同条 reveal、provider 指定列、背景/保焦点、reject，不能只 stub 一个 activeEditor 变化就宣布真实打开。
+API DTO 分支只用 context 的 pinned 默认值保留 newTab 旧 preview，不预先 pin 当前旧标签；provider 的显式 column、pinned / preserveFocus 等 options 仍优先，包括 pinned:false。provider 另列、后台打开或 reject 不得因 Sources 的预先处理 pin/close 当前不相干标签。相同修改 URI 的 HEAD→worktree 与 index→worktree 是不同比较；先前 active 旧比较不能遮住 provider 在另一组实际打开的新比较。
+
+**custom newTab 保留既有预pin窄例外。** custom.open 只有 preserveFocus 参数和 void 完成合同，不能注入 pinned / column；若先让未固定的新 input 替换旧 preview，事后 pin 无法找回被替换的旧标签。因此仅 custom + newTab 在调用前仍 pin 动作发起组的旧 preview，以维持原有保留语义。custom no-op、reject、另组或外部打开时也可能已 pin 这个旧 preview，这是既有兼容成本，不宣称零 pin 副作用。该例外不适用于 API，不授权分派后凭单侧 URI 写 identity、pin 新 input 或关闭旧 input；custom 的 preserveFocus / await / 拒绝传播与单次调用保持。
+
+测试分别覆盖 API open/diff 与 custom、newTab / replace、不同资源与同 modified 不同 original 的旧 input、同条 reveal、provider 指定列与背景/保焦点、reject。API options 优先级须经过真实官方 handler；custom 预pin成本与没有可信身份时的后置零副作用分别断言，不能只 stub 一个 activeEditor 变化就宣布真实打开。
 
 无 SCM 的直接 Preview diff/file 路径返回 pane/undefined：将 undefined 显式返回 false，不再由 Preview dispatch 无条件 true；用适用于所有 owner 的打开未完成文案，不把它写成 Conversation 载入失败。此规则不外推到 API command/custom void。
 
@@ -108,7 +112,7 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 | 范围 | 必须的 green / 负控 |
 |---|---|
 | SCM dispatch | open/diff 两常量、slot/无 slot、preserveFocus true/false、pinned、provider options 优先级和正确参数位；custom resolve/reject、各一次、无兜底。 |
-| identity / slot | newTab保留旧、replace另一条、同条reveal；不同资源旧input不记新identity、不pin/close；provider列/后台/保焦点；direct undefined false。 |
+| identity / slot | API newTab以默认pinned新input保留旧、provider显式options仍优先；custom newTab保留预pin窄例外并锁定no-op/reject/另组成本；replace另一条、同条reveal；同modified不同original/不同资源旧input不记新identity、不做未核对的后置pin/close；provider列/后台/保焦点；direct undefined false。 |
 | 真实调用方 | Changes/Review 行、Enter、右键另一种、Open Selected、各 move 入口都接 commandService；move 保留缺失 Conversation leaf 不关闭源宿主的既有合同；其他 false/stale 后的既有关闭策略已有测试锁定，本刀不改写为所有失败都保源，不顺手扩独立缺口。 |
 | finder 正例 | 允许 typed chat/review + 当前真实对象/有效数字；准确 part/session/group；已有token；隐藏组恢复与根保留。 |
 | finder 负控 | file、untitled、ChatEditorInput、普通可写Diff × token/对象/id；无目标；错误main；非Conversation excluded；未解析id；移除组；同id伪造/过期对象。 |
@@ -128,6 +132,7 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 
 - P：PRD事实→生成状态→SSOT/证据/本方案；父派独立规则16 reviewer，C/I 核验改入后 accepted，单独方案 commit。规则16已通过，单独方案commit后再实施。
 - I：仅按 accepted 方案改生产、真实依赖和回归；静态复核/文档门禁，独立实现 commit；计划仍 accepted、D1387 open，不报未跑的 green。
+- I 补修：J原实现`23f8701c8d2`经D独立实现审查后，Astra确认API预pin与单侧URI误配两项Important；§3.2的custom预pin窄例外先按规则16澄清、单独文档提交，再补修与增加真实handler/组模型回归。当前澄清签收不代表实现通过。
 - V：唯一 merge 精确旧生产+新测试 red，再新生产 green/完整相关套/必要全量；非作者真实 after；按证据决定 implemented/closed。全量旧失败另记，不重开已闭 D1382/D1386，不升 PRD-008/009/029。
 
 重要新设计点或边界外问题先报父/Astra，不顺手扩展。全量由父提供的运行记录说明；本作者不借其他主题产物给此主题背书。
@@ -136,10 +141,12 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 
 2026-10-26 独立 reviewer C（非 Sources 作者）完整核对正式稿、两轮 Astra、PRD/SSOT实际diff、SCM/slot/finder/状态源码与before机器证据，最终 **Critical 0 / Important 0**。原I1指出helper明确stale与open-status旧代次不能混成一切旧void不mark；作者已拆表并同步PRD/SSOT，reviewer增量复读正式稿SHA `970bac28c99e456d93e0970af0e361a7d802d2ee42bf6632b545fca5f487759d`确认落实。两Minor提醒保留move既有关闭策略、精确报告docs warning delta。见[规则16原报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-plan-peer-review.md)。
 
-作者核验后标accepted；本段是方案审查与文档门禁，不是实现green。生成状态已同步，docs health 0 errors / 73 warnings，新/改D1387文档专项断链0；status 165行。没有编译/typecheck/transpile/out/依赖out测试，独立新产物after仍待。
+作者核验后标accepted；本段是原方案提交时的历史方案审查与文档门禁，不是实现green。原方案工位当时生成状态已同步，docs health 0 errors / 73 warnings，新/改D1387文档专项断链0、status165行；这些不是本轮补修门禁。没有编译/typecheck/transpile/out/依赖out测试，独立新产物after仍待。
+
+2026-10-26，本轮D独立 reviewer `/root/sources_audit` 只读审查§3.2及SSOT实质澄清，结果 **Critical 0 / Important 0**，原报告提交`cbac43bfde8`，见[本轮规则16报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-custom-newtab-plan-review.md)。受审方案SHA256为`9cc2e07b6a638568d0d13dab5e4e25de7fba31e8ca3a85e228ff5c6a55c6cbf8`，SSOT为`be5574b08e00fd1077a29d26bca0fd327b81ded6b157aba5eeab708f2054acc2`；作者已只读核验报告、接受Minor并对齐§1/5/7、恢复accepted，明确旧73warning仅为历史。该审查签收API不预pin、provider options优先、custom newTab预pin兼容成本及完整身份后置gate；不签收未运行源码。PRD-005/009原文没有custom零pin承诺，无需改产品陈述或升状态。
 
 ## 7. 源码检查点（待集成验证）
 
-方案提交 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 后，J 按§3写 Sources 一次API分派/全部真实调用方命令依赖、公开URI匹配后的局部身份副作用、finder准确对象/数字成员判定及局部打开错误恢复。回归包含真实DTO、委托void/reject、公共列表/命令状态恢复，以及真实parts + public findGroup/EditorService/共享slot；pane仅使用既有轻量测试编辑器隔离模型加载，不能作为真实Git两侧通过证据。详见[源码与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)。
+方案提交 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 后，J原实现`23f8701c8d2`写 Sources 一次API分派/全部真实调用方命令依赖、局部身份副作用、finder准确对象/数字成员判定及局部打开错误恢复。D独立实现审查指出预pin和单侧URI匹配仍违反实际目标归属，两项Important须补；本轮按§3.2补修。原回归包含真实DTO、委托void/reject、公共列表/命令状态恢复，以及真实parts + public findGroup/EditorService/共享slot；pane仅使用既有轻量测试编辑器隔离模型加载，不能作为真实Git两侧通过证据。原切片详见[源码与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)，新增API handler/组模型与完整比较身份回归另按本轮实际证据记账。
 
 作者未编译、transpile、typecheck、写out/watch或运行测试；静态结果与独立实现审查后续收录在该检查点。唯一merge的业务旧红/新绿、相关完整套件与非作者三owner真Git after仍待。方案保持accepted、D1387 open，PRD状态不升。
