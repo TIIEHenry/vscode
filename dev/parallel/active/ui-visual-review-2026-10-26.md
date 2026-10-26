@@ -171,3 +171,11 @@ Astra最终Provider源码并集只读审查Critical0/Important0；完整默认�
 独立实拍checkpoint已[入库摘要](../../progress/ui-visual-review-2026-10-26-evidence/825-merge-visual-review.md)，Astra原报告与截图保留本地，Critical0/Important2；其自建Electron/Xvfb已清理。视觉方案回到accepted待两项真实闭合（生成列只支持draft/accepted/implemented），保留原350+14证据不删除。
 
 checkpoint文档门禁：531份Markdown、docs-health0errors/46既有warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/825-merge-docs-health.log)），generated-status/diff-check通过，status145行。
+
+### C / D1381 Provider 内容预算局部修复
+
+C 独占工位以 `dfcb960a147` 为基线；方案 `fec79c4b79a` 经 Astra 规则16只读 Critical0/Important1，已核验并按规则10a先修入 PRD-028/UI 的 Provider 状态行窄宽密度例外。源码只调整状态行的 content/identity、主状态（配置+启用）与完整来源，avatar在身份组内，动作仍直属行尾、22×22且预留空间；宽时24px，窄时按24px轨自然增加高度，本地化可继续折行，无72px上限。未改整pane断点、预设目录、Models、门控或写RPC。
+
+真实生产CSS/Section几何测试已拆出原生focus前提：四主题×只读/可写共八条，pane300→340→720→340→300，含实际左右内衬后的行宽、各兄弟/动作矩形不相交、相邻行占位、来源全文、长状态/来源超过72px可继续增长；四条activeChrome焦点用例检查每颗动作焦点/outline/中心命中及显隐无重排，读/聚焦零写。测试源未运行，旧287+14与旧24px验收记录仅是历史证据，不用作本修复after。
+
+Astra对三份源码/测试草稿静态复核C0/I0，长状态/来源Minor已补。当前仅目标lint：2TS 0errors/2既有selector warnings（HEAD基线复现），CSS stylelint exit0但仍有既有变量/token提示；无编译/转译/类型检查或out写入。最小fresh为Provider源+preferencesStatusStyle测试+生产CSS（2TS/1CSS），唯一merge锁内刷新后跑Provider语义/真实样式，再由Astra做完整主题默认窗口after实拍；详见[局部方案](../../plans/provider-status-row-layout.md)。D1381继续open，不升PRD与整轮视觉状态。

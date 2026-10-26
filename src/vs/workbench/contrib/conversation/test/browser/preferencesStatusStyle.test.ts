@@ -98,6 +98,32 @@ suite('Preferences status styles', () => {
 		return element;
 	}
 
+	async function mountProviderRows(theme: typeof themes[number], writable: boolean) {
+		const workbench = await mountWorkbench(theme);
+		const engine = append(workbench, 'engine-preferences-pane is-narrow');
+		const capabilities = createTestCapabilitySnapshot({ providerConfig: { support: 'SUPPORTED' } });
+		const entries = [
+			{ providerId: 'anthropic-workspace', brand: 'Anthropic enterprise workspace endpoint with a long name', protocol: 'anthropic', configured: true, credentialSource: 'PROVIDER_ENV', hasBaseUrl: true, enabled: true },
+			{ providerId: 'openai-workspace', brand: 'OpenAI enterprise workspace endpoint with a long name', protocol: 'openai', configured: false, credentialSource: 'BUILTIN_ENV', hasBaseUrl: false, enabled: false },
+		];
+		let writes = 0;
+		const service = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getCapabilitySnapshot: () => capabilities,
+			listProviderStatus: async () => ({ providers: entries }),
+			upsertProviderCredentials: writable ? async () => { writes++; return entries[0]; } : undefined,
+			clearProviderCredentials: writable ? async () => { writes++; return entries[0]; } : undefined,
+		});
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, service);
+		const providers = store.add(instantiationService.createInstance(EngineProvidersSection, engine));
+		providers.setSectionActive(true);
+		await timeout(0);
+		const rows = [...providers.getDomNode().querySelectorAll<HTMLElement>('.engine-provider-status-row')];
+		assert.strictEqual(rows.length, entries.length);
+		return { workbench, engine, entries, rows, getWrites: () => writes };
+	}
+
 	for (const theme of themes) {
 		test(`${theme.name}: success and warning text stays readable and semantic indicators survive`, async () => {
 			const workbench = await mountWorkbench(theme);
@@ -164,84 +190,142 @@ suite('Preferences status styles', () => {
 			assert.strictEqual(paintedColor(getWindow(dot).getComputedStyle(dot).backgroundColor).toString(), Color.fromHex(theme.warning).toString());
 		});
 
-		test(`${theme.name}: writable provider rows preserve names, status and actions at narrow widths`, async function () {
+		for (const writable of [false, true]) {
+			test(`${theme.name}: ${writable ? 'writable' : 'read-only'} provider siblings never overlap as the real pane narrows`, async () => {
+				const { workbench, engine, entries, rows, getWrites } = await mountProviderRows(theme, writable);
+				const firstPass = new Map<number, number[]>();
+				for (const width of [300, 340, 720, 340, 300]) {
+					workbench.style.width = `${width}px`;
+					const heights: number[] = [];
+					for (const [index, row] of rows.entries()) {
+						const avatar = row.querySelector<HTMLElement>('.engine-provider-avatar')!;
+						const name = row.querySelector<HTMLElement>('.engine-catalog-name')!;
+						const description = row.querySelector<HTMLElement>('.engine-catalog-description')!;
+						const configured = row.querySelector<HTMLElement>('.engine-provider-pill--success, .engine-provider-pill--warning')!;
+						const source = row.querySelector<HTMLElement>('.engine-provider-pill--muted')!;
+						const enabled = row.querySelector<HTMLElement>('.engine-provider-enabled-status')!;
+						const buttons = [...row.querySelectorAll<HTMLElement>('.engine-catalog-row-actions .monaco-button')];
+						const leaves = [avatar, name, description, configured, enabled, source, ...buttons];
+						const rowBounds = row.getBoundingClientRect();
+						const paneBounds = engine.getBoundingClientRect();
+						const contained = (element: HTMLElement) => {
+							const bounds = element.getBoundingClientRect();
+							return bounds.width > 0 && bounds.height > 0
+								&& bounds.left >= rowBounds.left && bounds.right <= rowBounds.right + 1
+								&& bounds.top >= rowBounds.top && bounds.bottom <= rowBounds.bottom + 1
+								&& bounds.left >= paneBounds.left && bounds.right <= paneBounds.right + 1;
+						};
+						const collisions: string[] = [];
+						for (const [leftIndex, left] of leaves.entries()) {
+							const a = left.getBoundingClientRect();
+							for (const right of leaves.slice(leftIndex + 1)) {
+								const b = right.getBoundingClientRect();
+								if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5
+									&& Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0.5) {
+									collisions.push(`${left.className} / ${right.className}`);
+								}
+							}
+						}
+						assert.deepStrictEqual({
+							// Pane padding is production CSS: the row is narrower than the advertised pane width.
+							paneWidth: paneBounds.width,
+							rowInsidePane: rowBounds.width < paneBounds.width,
+							rowFits: row.scrollWidth <= row.clientWidth + 1,
+							contained: leaves.every(contained),
+							nameReadable: name.getBoundingClientRect().width >= 40,
+							complete: [configured, source, enabled].every(element => element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1),
+							collisions,
+							actions: buttons.length,
+							actionSize: buttons.every(button => button.getBoundingClientRect().width >= 22 && button.getBoundingClientRect().height >= 22),
+							configured: configured.textContent,
+							enabled: enabled.textContent,
+							source: source.textContent,
+						}, {
+							paneWidth: width, rowInsidePane: true, rowFits: true, contained: true, nameReadable: true, complete: true,
+							collisions: [], actions: writable ? 2 : 0, actionSize: true,
+							configured: entries[index].configured ? 'Configured' : 'Not configured',
+							enabled: entries[index].enabled ? 'Enabled' : 'Disabled',
+							source: index === 0 ? 'Provider env' : 'Built-in env',
+						}, `${theme.name} pane ${width}px, actual row ${rowBounds.width}px, ${entries[index].providerId}`);
+						assert.strictEqual(rowBounds.height, width === 720 ? 24 : Math.round(rowBounds.height / 24) * 24, 'wide rows stay single track; narrow tracks retain 24px density');
+						if (index > 0) {
+							assert.ok(rows[index - 1].getBoundingClientRect().bottom <= rowBounds.top, 'growing rows reserve vertical space for their siblings');
+						}
+						heights.push(rowBounds.height);
+					}
+					if (firstPass.has(width)) {
+						assert.deepStrictEqual(heights, firstPass.get(width), 'returning to a width restores its layout');
+					} else {
+						firstPass.set(width, heights);
+					}
+				}
+				// Longer translated labels must grow beyond the usual English tracks without clipping.
+				const row = rows[1];
+				const configured = row.querySelector<HTMLElement>('.engine-provider-pill--warning')!;
+				const enabled = row.querySelector<HTMLElement>('.engine-provider-enabled-status')!;
+				const source = row.querySelector<HTMLElement>('.engine-provider-pill--muted')!;
+				configured.lastElementChild!.textContent = 'Credential configuration has not been completed for this provider';
+				enabled.textContent = 'Disabled until provider configuration is completed';
+				source.textContent = 'Credentials supplied by the configured enterprise environment';
+				const statuses = [configured, enabled, source];
+				const rowBounds = row.getBoundingClientRect();
+				assert.deepStrictEqual({
+					grows: rowBounds.height > 72,
+					fits: row.scrollWidth <= row.clientWidth + 1,
+					complete: statuses.every(element => element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1),
+					contained: statuses.every(element => {
+						const rect = element.getBoundingClientRect();
+						return rect.left >= rowBounds.left && rect.right <= rowBounds.right + 1 && rect.bottom <= rowBounds.bottom + 1;
+					}),
+					separate: statuses.every((element, index) => statuses.slice(index + 1).every(other => {
+						const a = element.getBoundingClientRect();
+						const b = other.getBoundingClientRect();
+						return Math.min(a.right, b.right) - Math.max(a.left, b.left) <= 0.5
+							|| Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) <= 0.5;
+					})),
+				}, { grows: true, fits: true, complete: true, contained: true, separate: true }, 'long status and source copy has no fixed-height ceiling');
+				assert.strictEqual(getWrites(), 0, 'reading provider layout never sends a write');
+			});
+		}
+
+		test(`${theme.name}: provider actions keep focus, hit targets and layout at narrow widths`, async function () {
 			getWindow(document.body).focus();
 			await timeout(0);
-			// The official Electron runner uses show:false; these keyboard checks require
-			// the browser runner's active page and must all run there without pending tests.
+			// The official Electron runner uses show:false; real focus runs in active Chrome.
 			if (!document.hasFocus()) {
 				this.skip();
 			}
-			const workbench = await mountWorkbench(theme);
-			const engine = append(workbench, 'engine-preferences-pane is-narrow');
-			const capabilities = createTestCapabilitySnapshot({ providerConfig: { support: 'SUPPORTED' } });
-			const entries = [
-				{ providerId: 'anthropic-workspace', brand: 'Anthropic enterprise workspace endpoint with a long name', protocol: 'anthropic', configured: true, credentialSource: 'PROVIDER_ENV', hasBaseUrl: true, enabled: true },
-				{ providerId: 'openai-workspace', brand: 'OpenAI enterprise workspace endpoint with a long name', protocol: 'openai', configured: false, credentialSource: 'BUILTIN_ENV', hasBaseUrl: false, enabled: false },
-			];
-			let writes = 0;
-			const service = createConversationConnectionTestStub({
-				isEngineConnected: () => true,
-				getCapabilitySnapshot: () => capabilities,
-				listProviderStatus: async () => ({ providers: entries }),
-				upsertProviderCredentials: async () => { writes++; return entries[0]; },
-				clearProviderCredentials: async () => { writes++; return entries[0]; },
-			});
-			const instantiationService = workbenchInstantiationService(undefined, store);
-			instantiationService.stub(IUniverseAgentConnection, service);
-			const providers = store.add(instantiationService.createInstance(EngineProvidersSection, engine));
-			providers.setSectionActive(true);
-			await timeout(0);
-			const rows = [...providers.getDomNode().querySelectorAll<HTMLElement>('.engine-provider-status-row')];
-			assert.strictEqual(rows.length, entries.length);
-			for (const width of [300, 720, 300]) {
+			const { workbench, rows, getWrites } = await mountProviderRows(theme, true);
+			for (const width of [300, 340, 720, 340, 300]) {
 				workbench.style.width = `${width}px`;
-				for (const [index, row] of rows.entries()) {
-					const name = row.querySelector<HTMLElement>('.engine-catalog-name')!;
-					const configured = row.querySelector<HTMLElement>('.engine-provider-pill--success, .engine-provider-pill--warning')!;
-					const source = row.querySelector<HTMLElement>('.engine-provider-pill--muted')!;
-					const enabled = row.querySelector<HTMLElement>('.engine-provider-enabled-status')!;
-					const actions = row.querySelector<HTMLElement>('.engine-catalog-row-actions')!;
-					const buttons = [...actions.querySelectorAll<HTMLElement>('.monaco-button')];
-					assert.strictEqual(buttons.length, 2, 'edit and clear actions remain available');
-					buttons[0].focus();
-					assert.ok(workbench.ownerDocument.hasFocus(), 'provider action visibility requires an active browser window');
-					assert.ok(buttons[0].matches(':focus'), 'provider action must hold real browser focus');
-					await timeout(150);
-					const rowBounds = row.getBoundingClientRect();
-					const paneBounds = engine.getBoundingClientRect();
-					const workbenchBounds = workbench.getBoundingClientRect();
-					const contained = (element: HTMLElement) => {
-						const bounds = element.getBoundingClientRect();
-						return bounds.left >= rowBounds.left && bounds.right <= rowBounds.right + 1
-							&& bounds.left >= paneBounds.left && bounds.right <= paneBounds.right + 1
-							&& bounds.left >= workbenchBounds.left && bounds.right <= workbenchBounds.right + 1;
-					};
-					assert.deepStrictEqual({
-						rowHeight: rowBounds.height,
-						rowFits: row.scrollWidth <= row.clientWidth + 1,
-						nameReadable: name.getBoundingClientRect().width >= 40,
-						nameContained: contained(name),
-						sourceVisible: source.getBoundingClientRect().width >= 16 && contained(source),
-						configuredComplete: configured.scrollWidth <= configured.clientWidth + 1 && contained(configured),
-						enabledComplete: enabled.scrollWidth <= enabled.clientWidth + 1 && contained(enabled),
-						actionsContained: contained(actions) && buttons.every(contained),
-						actionsVisible: getWindow(actions).getComputedStyle(actions).opacity,
-						configured: configured.textContent,
-						enabled: enabled.textContent,
-					}, {
-						rowHeight: 24, rowFits: true, nameReadable: true, nameContained: true, sourceVisible: true,
-						configuredComplete: true, enabledComplete: true, actionsContained: true, actionsVisible: '1',
-						configured: entries[index].configured ? 'Configured' : 'Not configured',
-						enabled: entries[index].enabled ? 'Enabled' : 'Disabled',
-					}, `${theme.name} ${width}px ${entries[index].providerId}: ${JSON.stringify({
-						rowWidth: rowBounds.width, scrollWidth: row.scrollWidth, nameWidth: name.getBoundingClientRect().width,
-						configuredWidth: configured.getBoundingClientRect().width, sourceWidth: source.getBoundingClientRect().width,
-						enabledWidth: enabled.getBoundingClientRect().width, actionsWidth: actions.getBoundingClientRect().width,
-					})}`);
+				for (const row of rows) {
+					const buttons = [...row.querySelectorAll<HTMLElement>('.engine-catalog-row-actions .monaco-button')];
+					const leaves = [...row.querySelectorAll<HTMLElement>('.engine-catalog-name, .engine-provider-pill, .engine-provider-enabled-status'), ...buttons];
+					const bounds = () => leaves.map(element => {
+						const rect = element.getBoundingClientRect();
+						const rowRect = row.getBoundingClientRect();
+						return [rect.x - rowRect.x, rect.y - rowRect.y, rect.width, rect.height];
+					});
+					const before = bounds();
+					for (const button of buttons) {
+						button.scrollIntoView({ block: 'nearest' });
+						button.focus({ preventScroll: true });
+						const rect = button.getBoundingClientRect();
+						const style = getWindow(button).getComputedStyle(button);
+						const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+						assert.deepStrictEqual({
+							focused: button.matches(':focus'),
+							visible: getWindow(button.parentElement!).getComputedStyle(button.parentElement!).opacity,
+							focusVisible: button.matches(':focus-visible'),
+							outline: style.outlineStyle,
+							outlineWidth: style.outlineWidth,
+							hit: hit !== null && button.contains(hit),
+						}, { focused: true, visible: '1', focusVisible: true, outline: 'solid', outlineWidth: '1px', hit: true });
+					}
+					assert.deepStrictEqual(bounds(), before, 'revealing action buttons never reflows status or names');
 				}
 			}
-			assert.strictEqual(writes, 0, 'reading and focusing provider status never sends a write');
+			assert.strictEqual(getWrites(), 0, 'focusing provider actions never sends a write');
 		});
 
 		test(`${theme.name}: selected utility rows follow focus and remain distinct from hover`, async () => {

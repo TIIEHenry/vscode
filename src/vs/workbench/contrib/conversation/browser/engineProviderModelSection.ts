@@ -446,11 +446,13 @@ export class EngineProvidersSection extends Disposable {
 			}
 			const brandName = provider.brand || provider.providerId;
 
-			const avatar = DOM.append(row, $('.engine-provider-avatar'));
+			const content = DOM.append(row, $('.engine-provider-content'));
+			const identity = DOM.append(content, $('.engine-provider-identity'));
+			const avatar = DOM.append(identity, $('.engine-provider-avatar'));
 			const avatarIcon = DOM.append(avatar, $('span.engine-provider-avatar-icon'));
 			avatarIcon.classList.add(...ThemeIcon.asClassNameArray(getProviderBrandIcon(brandName)));
 
-			const text = DOM.append(row, $('.engine-catalog-text'));
+			const text = DOM.append(identity, $('.engine-catalog-text'));
 			const titleRow = DOM.append(text, $('.engine-provider-title-row'));
 			const name = DOM.append(titleRow, $('.engine-catalog-name'));
 			name.textContent = brandName;
@@ -465,20 +467,22 @@ export class EngineProvidersSection extends Disposable {
 				: localize('ua.engineProviderNoBaseUrl', "no base URL"));
 			DOM.append(text, $('.engine-catalog-description')).textContent = metaParts.join(' · ');
 
-			const badges = DOM.append(row, $('.engine-provider-badges'));
-			const statusPill = DOM.append(badges, $(provider.configured
+			const badges = DOM.append(content, $('.engine-provider-badges'));
+			const state = DOM.append(badges, $('.engine-provider-state'));
+			const statusPill = DOM.append(state, $(provider.configured
 				? '.engine-provider-pill.engine-provider-pill--success'
 				: '.engine-provider-pill.engine-provider-pill--warning'));
 			DOM.append(statusPill, $('.engine-provider-pill-dot'));
 			DOM.append(statusPill, $('span')).textContent = formatProviderConfiguredLabel(provider.configured);
+			DOM.append(state, $('span.engine-provider-enabled-status')).textContent = getModelEnabledLabel(provider.enabled);
 
 			if (provider.credentialSource && provider.credentialSource !== 'NONE') {
-				const sourcePill = DOM.append(badges, $('.engine-provider-pill.engine-provider-pill--muted'));
+				const source = DOM.append(badges, $('.engine-provider-source'));
+				const sourcePill = DOM.append(source, $('.engine-provider-pill.engine-provider-pill--muted'));
 				sourcePill.textContent = formatProviderCredentialSource(provider.credentialSource);
 				this.providerRowHovers.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), sourcePill, sourcePill.textContent));
 			}
 
-			DOM.append(row, $('span.engine-provider-enabled-status')).textContent = getModelEnabledLabel(provider.enabled);
 			row.classList.toggle('engine-provider-status-row--disabled', !provider.enabled);
 
 			if (this.canWriteProviders()) {

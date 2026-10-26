@@ -14,7 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Provider 状态行按内容宽度换行](provider-status-row-layout.md) | `accepted` | Astra C0/I1 已修入 PRD/UI 局部窄宽例外；D1381 状态/来源完整、动作空间稳定，待源实施及唯一 merge 运行。 |
+| [Provider 状态行按内容宽度换行](provider-status-row-layout.md) | `accepted` | 方案 fec79c4 / Astra C0/I1 已修入 PRD/UI 例外；布局与真实几何测试源已补、静态 C0/I0；待唯一 merge fresh/运行/after实拍，D1381 open。 |
 | [默认编辑器视觉状态修复与续审](default-editor-visual-state-followup.md) | `accepted` | 原350+14及合成287+14运行保留；真实窗口新增D1380未知Stub投影/D1381 Provider碰撞open，剩余验收待修，不升PRD。 |
 | [Extension Host 输出通道 PromiseLike 合同](ext-host-output-promise-contract.md) | `implemented` | D1378；Output22+Search4及清理检查27 passing，保留原19项并补3个生命周期屏障；mkdir原拒绝与共享缓存身份保持，命名诊断清零。 |
 | [Sources 编译基线合同修复](sources-compile-contracts.md) | `implemented` | D1375；三类合同修复与 6 条新行为回归已写，目标 ESLint 0 errors；只收 Sources 旧日志 9 条，编译与运行验证留在 merge。 |
