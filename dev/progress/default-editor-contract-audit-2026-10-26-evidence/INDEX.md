@@ -13,7 +13,7 @@ summary: "独立实现审查与最近旧生产业务验证入口；完整迭代�
 
 | 证据 | 范围 |
 | --- | --- |
-| [J/E正式集成与验证](je-formal-integration-verification.md) | J/E真三路与固定d91外部基线358路径保留；第三次compile0、11相关255过1旧红，实际候选peer已闭合、第四轮待 |
+| [J/E正式集成与验证](je-formal-integration-verification.md) | 固定d91真三路358路径保留/实际peer闭合；第四compile0，11相关255过1旧红，J29/E44/Roster190/外部133/Node880过，扩freeze待 |
 | [Conversation响应恢复实现审查](conversation-response-recovery-code-review.md) | 900f原三I与c2b闭合历史；5f280/9e79定向补修C0/I0/M0；固定d91合源9cc56定向peer C0/I0/M0，第四轮复验/D冻结待；保留reasoning旧红 |
 | [E c2b回归配精确旧900f代表红](e-c2b-review-old900f-red-verification.md) | 五项纯业务旧红，非c2b新green |
 | [J/E初版旧业务验证](je-preintegration-old-red-verification.md) | 初版六项响应业务红及Sources宿主旧红的实际落点 |

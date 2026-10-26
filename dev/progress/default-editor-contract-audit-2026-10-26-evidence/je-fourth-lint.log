@@ -1,0 +1,207 @@
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/common/universeAgentCapabilities.ts
+  109:15  warning  Don't use type assertions for creating objects as this can hide type errors  local/code-no-dangerous-type-assertions
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/node/grpcCapabilityProbe.ts
+  397:18  warning  Don't use type assertions for creating objects as this can hide type errors  local/code-no-dangerous-type-assertions
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcAgentHistoryUnaryWire.test.ts
+  115:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcCatalogUnaryWire.test.ts
+  380:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcCheckConnectionUnaryWire.test.ts
+  198:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts
+   83:31  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+   84:31  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  101:32  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  102:32  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcCreateRemoteSessionUnaryWire.test.ts
+  137:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcFetchToolUsageDetailUnaryWire.test.ts
+  91:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcGetConfigUnaryWire.test.ts
+  117:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  118:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  119:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  120:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  121:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcGetRemoteSessionHistoryUnaryWire.test.ts
+  138:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcListConfigsUnaryWire.test.ts
+  113:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  114:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  115:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  116:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  117:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcListLoopSnapshotsUnaryWire.test.ts
+  123:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcListNodesUnaryWire.test.ts
+  182:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcReloadRemoteAgentsUnaryWire.test.ts
+  60:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcRemoteChatStreamWire.test.ts
+  205:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  311:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  334:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  335:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcResolveModelUnaryWire.test.ts
+  151:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  213:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  218:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcSaveConfigUnaryWire.test.ts
+  231:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  268:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcStatusUnaryWire.test.ts
+  201:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  202:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcTestModelProfileUnaryWire.test.ts
+  128:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcUsageUnaryWire.test.ts
+  132:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  133:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  134:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  201:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  202:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  203:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  204:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  249:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  250:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  285:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  286:15  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts
+  1611:3  warning  'orchestrator' is never reassigned. Use 'const' instead        prefer-const
+  1900:3  warning  'trialOrchestrator' is never reassigned. Use 'const' instead   prefer-const
+  1931:3  warning  'formalOrchestrator' is never reassigned. Use 'const' instead  prefer-const
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts
+  14772:37  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/universeAgentConnectionIpcChannel.test.ts
+  269:26  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.ts
+   47:93  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  307:38  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  311:38  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  316:38  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  542:93  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.ts
+  186:25  warning  querySelectorAll should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly  no-restricted-syntax
+  189:19  warning  querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly     no-restricted-syntax
+  190:8   warning  Use DOM.isHTMLElement() and related methods to support multi-window scenarios                                                                no-restricted-syntax
+  193:25  warning  querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly     no-restricted-syntax
+  194:8   warning  Use DOM.isHTMLElement() and related methods to support multi-window scenarios                                                                no-restricted-syntax
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts
+   557:7  warning  Use DOM.isHTMLElement() and related methods to support multi-window scenarios  no-restricted-syntax
+  1000:8  warning  Use DOM.isHTMLElement() and related methods to support multi-window scenarios  no-restricted-syntax
+  1156:9  warning  Use DOM.isHTMLElement() and related methods to support multi-window scenarios  no-restricted-syntax
+  1218:9  warning  Use DOM.isHTMLElement() and related methods to support multi-window scenarios  no-restricted-syntax
+  1385:9  warning  Use DOM.isHTMLElement() and related methods to support multi-window scenarios  no-restricted-syntax
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.ts
+  755:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  756:13  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.ts
+  165:27  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  166:27  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  173:4   warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  188:48  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  505:45  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  511:45  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts
+   24:1  warning  '../../../../base/browser/ui/button/button.js' import is duplicated            no-duplicate-imports
+  260:8  warning  Use DOM.isHTMLElement() and related methods to support multi-window scenarios  no-restricted-syntax
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts
+  2441:7   warning  'connected' is never reassigned. Use 'const' instead                                                                 prefer-const
+  2768:7   warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  2859:7   warning  'connected' is never reassigned. Use 'const' instead                                                                 prefer-const
+  3683:7   warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3684:29  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3684:50  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3684:60  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3684:84  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3685:29  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3685:50  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3685:60  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3685:84  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3688:39  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3693:13  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3694:13  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3699:13  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3700:13  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3707:23  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3707:79  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3711:38  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3715:40  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3716:40  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3718:44  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3718:89  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3719:44  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3719:89  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3720:35  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3723:41  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+  3724:35  warning  Only use double-quoted strings for externalized strings                                                              local/code-no-unexternalized-strings
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts
+  631:7  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesGitDiffContent.test.ts
+  22:1  warning  Suites should include a call to `ensureNoDisposablesAreLeakedInTestSuite()` to ensure no disposables are leaked in tests  local/code-ensure-no-disposables-leak-in-test
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesReviewCommands.test.ts
+  25:1  warning  '../../browser/sourcesReviewCommands.contribution.js' import is duplicated  no-duplicate-imports
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.ts
+   435:7  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+  2472:7  warning  'connected' is never reassigned. Use 'const' instead                                                                 prefer-const
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts
+   72:42  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  138:30  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  139:30  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  197:30  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  237:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  238:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  295:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  306:30  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  362:27  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  391:27  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  401:31  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  406:31  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  503:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  515:30  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  516:30  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  531:28  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  533:27  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  534:27  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  595:27  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  640:27  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+
+✖ 132 problems (0 errors, 132 warnings)
+  0 errors and 4 warnings potentially fixable with the `--fix` option.
+
+{"files":113,"errors":0,"warnings":132}

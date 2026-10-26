@@ -1,0 +1,205 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1631472:1027/014841.237643:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1631492) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1631492) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1631492) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ConversationEngineRosterService (M6-A2)[0m
+  [32m  ✔[0m[90m appendStubEchoAssistant is rejected while engine connected[0m
+  [32m  ✔[0m[90m unconnected path still uses stub frame source with stub echo[0m
+  [32m  ✔[0m[90m connected deleteSession last entry does not refill stub seeds[0m
+  [32m  ✔[0m[90m disconnected after engine deleteSession still avoids stub seed refill[0m
+  [32m  ✔[0m[90m connected deleteSession last entry remote throw rolls back roster and bind-failed empty-state[0m
+  [32m  ✔[0m[90m connected deleteSession last entry persists an empty engine bucket after the unary resolves[0m
+  [32m  ✔[0m[90m connected deleteSession mid-list remote throw restores row index and active[0m
+  [32m  ✔[0m[90m connected deleteSession fires onDidDeleteSession only after that unary resolves[0m
+  [32m  ✔[0m[90m connected deleteSession remote throw does not fire onDidDeleteSession and rolls the row back[0m
+  [32m  ✔[0m[90m disconnected engine-cache deleteSession still fires onDidDeleteSession synchronously[0m
+  [32m  ✔[0m[90m isEngineConnected follows connected phase when platform isEngineConnected is false[0m
+  [32m  ✔[0m[90m list incomplete hides stub seed rows while connected[0m
+  [32m  ✔[0m[90m engine session readiness splits loading from unavailable[0m
+  [32m  ✔[0m[90m roster constructed while the engine is already connected lists sessions without a later connection event[0m
+  [32m  ✔[0m[90m successful list then refresh keeps leftover while listCompleted is briefly false[0m
+  [32m  ✔[0m[90m first catalog refresh without leftover still returns empty getSessions[0m
+  [32m  ✔[0m[90m connected empty list with default mock acquires host lease without roster create[0m
+  [32m  ✔[0m[90m connected empty list defers Create to host lease and adopts clientSessionId on bind[0m
+  [32m  ✔[0m[90m connected listed session switches to engine id without untitled fallback[0m
+  [32m  ✔[0m[90m empty list allocates stable clientSessionId for host lease without roster Create[0m
+  [32m  ✔[0m[90m empty list host lease bind failure shows bind-failed roster row[0m
+  [32m  ✔[0m[90m listed ghost sessions with lease bind failure shows bind-failed roster row[0m
+  [32m  ✔[0m[90m bind-failed getActiveSession does not fall back to untitled stub title[0m
+  [32m  ✔[0m[90m listSessions throw shows bind-failed and does not mint New session[0m
+  [32m  ✔[0m[90m successful list then listSessions throw keeps leftover and does not mint New session[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail renameSession deleteSession and mutators reject and skip unary[0m
+  [32m  ✔[0m[90m listed ghost titled New session with lease bind failure shows bind-failed[0m
+  [32m  ✔[0m[90m connected listed session on first refresh skips create when catalog is non-empty[0m
+  [32m  ✔[0m[90m D13 storage persists engine cache across engine roster restart[0m
+  [32m  ✔[0m[90m getTrajectoryRecords on UA session never merges stub fixture extras[0m
+  [32m  ✔[0m[90m disconnected UA session getTrajectoryRecords stays fixture-free[0m
+  [32m  ✔[0m[90m connected renameSession forwards AgentService.Rename and updates title[0m
+  [32m  ✔[0m[90m engine rejection of respondPermission is reported, not swallowed[0m
+  [32m  ✔[0m[90m engine rejection of renameSession restores the local title[0m
+  [32m  ✔[0m[90m engine rejection of setSessionGoal restores the previous goal[0m
+  [32m  ✔[0m[90m engine rejection of deleteSession re-lists the catalog instead of keeping the row gone[0m
+  [32m  ✔[0m[90m leftover renameSession and deleteSession reject while pairingPending and leave roster unchanged[0m
+  [32m  ✔[0m[90m leftover renameSession and deleteSession reject on production connecting pairing snapshot[0m
+  [32m  ✔[0m[90m leftover-looks-live renameSession and deleteSession reject while pairingPending and skip unary[0m
+  [32m  ✔[0m[90m leftover-looks-live cancelGeneration, setSessionGoal and cancelSessionGoal reject while pairingPending and skip unary[0m
+  [32m  ✔[0m[90m leftover-looks-live forkSubAgent and killSubAgent reject while pairingPending and skip unary[0m
+  [32m  ✔[0m[90m leftover-looks-live cancelToolCall rejects while pairingPending and skips unary[0m
+  [32m  ✔[0m[90m leftover-looks-live queue mutates reject while pairingPending and skip unary[0m
+  [32m  ✔[0m[90m leftover-looks-live retryError, deleteTurn and updateUserTurnText reject while pairingPending and skip unary[0m
+  [32m  ✔[0m[90m leftover-looks-live resolveConfirmation, respondClientTool and respondQuestion reject while pairingPending and skip unary[0m
+  [32m  ✔[0m[90m leftover-looks-live createSession and switchSession skip engine write while pairingPending[0m
+  [32m  ✔[0m[90m leftover-looks-live activateEngineSession skips tree refresh while pairingPending[0m
+  [32m  ✔[0m[90m leftover-looks-live catalog refresh keeps leftover roster and skips listSessions[0m
+  [32m  ✔[0m[90m in-flight listSessions leftover-looks-live keeps leftover roster and skips Create[0m
+  [32m  ✔[0m[90m disconnected after engine renameSession stays local and skips unary[0m
+  [32m  ✔[0m[90m connected renameSession remote throw rolls back title[0m
+  [32m  ✔[0m[90m connected renameSession ok:false rolls back title[0m
+  [32m  ✔[0m[90m connected cancelGeneration forwards AgentService.Cancel[0m
+  [32m  ✔[0m[90m cancelGeneration uses last cached-projection streaming agentId instead of root[0m
+  [32m  ✔[0m[90m cancelGeneration stays root when cached projection has no streaming agent[0m
+  [32m  ✔[0m[90m connected createSession catalogs New session only after host Create/Resume, not acquireLease[0m
+  [32m  ✔[0m[90m connected createSession skips engine ids the restarted allocator would reuse[0m
+  [32m  ✔[0m[90m connected createSession acquireLease ok but Create fail keeps catalog and does not mint New session[0m
+  [32m  ✔[0m[90m connected createSession acquireLease ok but empty engine session_id does not mint New session[0m
+  [32m  ✔[0m[90m bindLiveTreeObservationLease acquireSessionView throw warns without unhandled rejection or half-applied lease[0m
+  [32m  ✔[0m[90m connected createSession bind failure keeps existing catalog session[0m
+  [32m  ✔[0m[90m disconnected after engine createSession skips unary and does not seed stub[0m
+  [32m  ✔[0m[90m connected setSessionGoal forwards PermissionService.SetSessionGoal[0m
+  [32m  ✔[0m[90m connected setSessionGoal remote throw rolls back getSessionGoal[0m
+  [32m  ✔[0m[90m connected setSessionGoal ok:false rolls back prior getSessionGoal[0m
+  [32m  ✔[0m[90m connected cancelSessionGoal remote throw or ok:false restores prior goal[0m
+  [32m  ✔[0m[90m connected forkSubAgent forwards AgentService.Fork[0m
+  [32m  ✔[0m[90m connected forkSubAgent uses last streaming agent as parent[0m
+  [32m  ✔[0m[90m disconnected after engine forkSubAgent skips unary[0m
+  [32m  ✔[0m[90m connected killSubAgent forwards AgentService.Kill[0m
+  [32m  ✔[0m[90m connected killSubAgent does not default empty agent to root[0m
+  [32m  ✔[0m[90m connected killSubAgent uses last streaming agent when omitted and never defaults to root[0m
+  [32m  ✔[0m[90m connected updateUserTurnText forwards AgentService.EditMessage[0m
+  [32m  ✔[0m[90m connected updateUserTurnText uses root when agentId is omitted even if another agent is streaming[0m
+  [32m  ✔[0m[90m connected updateUserTurnText forwards the caller agentId instead of the streaming agent[0m
+  [32m  ✔[0m[90m disconnected after engine updateUserTurnText skips unary[0m
+  [32m  ✔[0m[90m connected cancelToolCall forwards AgentService.CancelToolCall[0m
+  [32m  ✔[0m[90m connected cancelToolCall uses last streaming agent when omitted[0m
+  [32m  ✔[0m[90m connected retryError posts continueGeneration on the held lease and does not open a UI stream[0m
+  [32m  ✔[0m[90m connected retryError uses last streaming agent when omitted[0m
+  [32m  ✔[0m[90m disconnected after engine retryError skips ContinueGeneration[0m
+  [32m  ✔[0m[90m connected resolveConfirmation forwards PermissionService.Respond[0m
+  [32m  ✔[0m[90m connected respondClientTool forwards AgentService.SendClientToolResponse[0m
+  [32m  ✔[0m[90m disconnected after engine respondClientTool skips unary[0m
+  [32m  ✔[0m[90m client-tool accepted cleanup requires an explicit ok:true result[0m
+  [32m  ✔[0m[90m connected respondQuestion forwards AgentService.RespondQuestion[0m
+  [32m  ✔[0m[90m disconnected after engine respondQuestion skips unary[0m
+  [32m  ✔[0m[90m disconnected after engine resolveConfirmation skips unary[0m
+  [32m  ✔[0m[90m response recovery business permission unary false restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery business permission unary reject restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery business question unary false restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery business question unary reject restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery business clientTool unary false restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery business clientTool unary reject restores the actual seat and retries once[0m
+  [32m  ✔[0m[90m response recovery shared begin blocks a second leaf and synchronous notification reentry[0m
+  [32m  ✔[0m[90m response recovery same-frame pending false remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery same-frame pending reject remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery same-frame pending accepted remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery same-frame timeline false remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery same-frame timeline reject remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery same-frame timeline accepted remove/re-add clears draft and busy despite an equal final snapshot[0m
+  [32m  ✔[0m[90m response recovery authoritative and connection generation changes clear drafts and reject late outcomes[0m
+  [32m  ✔[0m[90m response recovery untracked forwarding never cleans a request that appears before the callback[0m
+  [32m  ✔[0m[90m response recovery review I1 timeline-only clientTool accepted remains blocked after respondable is removed[0m
+  [32m  ✔[0m[90m response recovery review I1 timeline-only clientTool authoritative terminal supersedes late false[0m
+  [32m  ✔[0m[90m response recovery review I1 timeline-only clientTool authoritative terminal supersedes late reject[0m
+  [32m  ✔[0m[90m response recovery review I1 timeline-only clientTool authoritative terminal supersedes late accepted[0m
+  [32m  ✔[0m[90m response recovery review I1 ordinary terminal tool stays untracked on the public response boundary[0m
+  [32m  ✔[0m[90m response recovery review I2 public disconnect closes writes before synchronous scope notice[0m
+  [32m  ✔[0m[90m response recovery review I2 connection disconnect closes writes before synchronous scope notice[0m
+  [32m  ✔[0m[90m response recovery review I2 published identity switch closes writes before synchronous scope notice and preserves cache owners[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question options retires old false while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question options retires old reject while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question options retires old accepted while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question items retires old false while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question items retires old reject while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline question items retires old accepted while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline clientTool args retires old false while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline clientTool args retires old reject while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 same-generation baseline clientTool args retires old accepted while pending stays unchanged[0m
+  [32m  ✔[0m[90m response recovery review I3 pending-only first baseline materialization preserves the live attempt[0m
+  [32m  ✔[0m[90m response recovery authoritative retryable supersedes a late unary false[0m
+  [32m  ✔[0m[90m response recovery authoritative retryable supersedes a late unary reject[0m
+  [32m  ✔[0m[90m response recovery authoritative retryable supersedes a late unary accepted[0m
+  [32m  ✔[0m[90m response recovery authoritative nonretryable supersedes a late unary false[0m
+  [32m  ✔[0m[90m response recovery authoritative nonretryable supersedes a late unary reject[0m
+  [32m  ✔[0m[90m response recovery authoritative nonretryable supersedes a late unary accepted[0m
+  [32m  ✔[0m[90m response recovery authoritative terminal supersedes a late unary false[0m
+  [32m  ✔[0m[90m response recovery authoritative terminal supersedes a late unary reject[0m
+  [32m  ✔[0m[90m response recovery authoritative terminal supersedes a late unary accepted[0m
+  [32m  ✔[0m[90m response recovery implicit multi-group activation survives failure without auto-submitting on rebuild[0m
+  [32m  ✔[0m[90m response recovery non-retryable stream failure is blocked instead of taking unary forwarding[0m
+  [32m  ✔[0m[90m accepted engine allow and deny leave the permission decided and not pending[0m
+  [32m  ✔[0m[90m accepted engine question respond leaves an answered row[0m
+  [32m  ✔[0m[90m engine refusal of permission and question leaves the view pending[0m
+  [32m  ✔[0m[90m disconnected after engine cancelToolCall skips unary[0m
+  [32m  ✔[0m[90m connected deleteTurn forwards AgentService.DeleteMessage[0m
+  [32m  ✔[0m[90m connected deleteTurn uses last streaming agent when omitted[0m
+  [32m  ✔[0m[90m connected deleteTurn uses passed agentId without streaming projection[0m
+  [32m  ✔[0m[90m disconnected after engine deleteTurn skips unary[0m
+  [32m  ✔[0m[90m disconnected after engine killSubAgent skips unary[0m
+  [32m  ✔[0m[90m connected createSnapshot forwards AgentService.CreateSnapshot[0m
+  [32m  ✔[0m[90m disconnected after engine createSnapshot skips unary[0m
+  [32m  ✔[0m[90m leftover createSnapshot rejects while pairingPending and leaves roster unchanged[0m
+  [32m  ✔[0m[90m leftover-looks-live createSnapshot rejects while pairingPending and skips unary[0m
+  [32m  ✔[0m[90m disconnected after engine setSessionGoal skips unary[0m
+  [32m  ✔[0m[90m disconnected after engine cancelGeneration skips unary[0m
+  [32m  ✔[0m[90m GetQueue wakes after bind and mutations use actual engine session id[0m
+  [32m  ✔[0m[90m connected MessageQueue mutations forward AgentService queue unaries[0m
+  [32m  ✔[0m[90m connected MessageQueue fixture failed rows stay invisible without GetQueue[0m
+  [32m  ✔[0m[90m connected MessageQueue ok:false reports onDidFailEngineAction even when itemId is set[0m
+  [32m  ✔[0m[90m connected MessageQueue remote throw reports failure without unhandled rejection[0m
+  [32m  ✔[0m[90m connected remaining writes ok:false reports onDidFailEngineAction[0m
+  [32m  ✔[0m[90m connected remaining writes remote throw reports failure without unhandled rejection[0m
+  [32m  ✔[0m[90m whenDispatchedEngineActionSettles waits for connected fork and kill unary[0m
+  [32m  ✔[0m[90m disconnected after engine MessageQueue skips unary and stays empty[0m
+  [32m  ✔[0m[90m connected retryMessageQueueItem forwards RetryQueueItem / RetryQueueItemUpload[0m
+  [32m  ✔[0m[90m never-connected retryMessageQueueItem fails honestly and does not send[0m
+  [32m  ✔[0m[90m connected AutoDrive ignores fixture and stays empty[0m
+  [32m  ✔[0m[90m disconnected after engine AutoDrive stays empty and ignores fixture[0m
+  [32m  ✔[0m[90m bind-failed roster keeps composer post rejected as no_such_session[0m
+  [32m  ✔[0m[90m bind-failed never sends placeholder id to engine createSession, acquireLease, or tree refresh[0m
+  [32m  ✔[0m[90m empty list with pending bind stays incomplete until lease resolves[0m
+  [32m  ✔[0m[90m restored engine cache with empty List defers Create to host lease with fresh clientSessionId[0m
+  [32m  ✔[0m[90m bind-failed persist omits placeholder activeSessionId from roster storage[0m
+  [32m  ✔[0m[90m getTurns and getTrajectoryRecords keep leftover cache while pairingPending then true disconnect falls back[0m
+  [32m  ✔[0m[90m pairingPending first-pull without leftover cache stays empty fallback[0m
+  [32m  ✔[0m[90m getSessionSync keeps leftover engine sync while pairingPending then true disconnect uses stub[0m
+  [32m  ✔[0m[90m getSessionSync demotes leftover live and syncing chrome while pairingPending then true disconnect uses stub[0m
+  [32m  ✔[0m[90m pairingPending first-pull without leftover cache getSessionSync stays stub idle[0m
+  [32m  ✔[0m[90m leftover-looks-live getSessionSync demotes leftover live and syncing chrome[0m
+  [32m  ✔[0m[90m leftover-looks-live first-pull does not flip wasEverConnected or advertise workspace tools[0m
+  [32m  ✔[0m[90m acquireSessionView keeps leftover engine snapshot while pairingPending then true disconnect uses stub[0m
+  [32m  ✔[0m[90m pairingPending first-pull without leftover acquireSessionView stays stub empty[0m
+  [32m  ✔[0m[90m projected engine turns notify roster detail without writing session.turns[0m
+  [32m  ✔[0m[90m catalog refresh prunes sessions the list dropped without firing onDidDeleteSession[0m
+  [32m  ✔[0m[90m listSessions refresh keeps remembered turns on sessions without a live lease[0m
+  [32m  ✔[0m[90m switching sessions keeps the previous session projected turn count[0m
+  [32m  ✔[0m[90m countPendingConfirmations keeps leftover pending while pairingPending then true disconnect uses stub[0m
+  [32m  ✔[0m[90m pairingPending first-pull without leftover cache countPendingConfirmations stays 0[0m
+  [32m  ✔[0m[90m countPendingConfirmations counts permission pending actions and skips question[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when setEngineConnected refreshEngineCatalog catch-path persist throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when onUaConnectionChanged refreshEngineCatalog catch-path persist throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when createSession catch-path fire throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when retryError continueGeneration postIfHeld rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m engine roster fire-and-forget voids double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m persisted engine cache keeps session workDir across list refresh and roster restart[0m
+  [32m  ✔[0m[90m engine cache buckets by engine identity and does not apply another engine or the legacy cache[0m
+  [32m  ✔[0m[90m cold start after disconnect restores keyed roster bucket from lastDisplayedEngineIdentityId[0m
+
+
+[92m [0m[32m 190 passing[0m[90m (377ms)[0m
+

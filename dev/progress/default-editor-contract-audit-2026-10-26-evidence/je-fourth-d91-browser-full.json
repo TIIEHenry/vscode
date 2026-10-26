@@ -1,0 +1,53 @@
+{
+  "label": "d91-browser-full",
+  "sourceHead": "8b4ddaa99a8cc88ed645407ee42075a8497c4f34",
+  "sourceTree": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+  "nativeCompileHead": "8b4ddaa99a8cc88ed645407ee42075a8497c4f34",
+  "nativeCompileExit": 0,
+  "nativeSourceOutputIdentityScope": 154,
+  "nativeOutputsAllExistAndUnchanged": true,
+  "nativeJavaScriptAllWrittenAfterCompileStart": true,
+  "nativeCopiedCssExactSourceBytes": true,
+  "sourceHashesAllMatchCompiledRecord": true,
+  "startedAtUtc": "2026-10-26T17:48:44.609691+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineQueueReader.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationInboxOverlay.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/engineSkillsSection.test.ts"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "sharedLockHeld": true,
+  "globalLaneMatches": [],
+  "outFrozen": false,
+  "testFiles": [
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineQueueReader.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationInboxOverlay.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/engineSkillsSection.test.ts"
+  ],
+  "exitCode": 0,
+  "finishedAtUtc": "2026-10-26T17:48:46.895731+00:00",
+  "mochaSummaries": [
+    "  133 passing (694ms)"
+  ],
+  "outputsUnchangedAfterRun": true,
+  "sourceTreeUnchanged": true
+}

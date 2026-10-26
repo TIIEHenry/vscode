@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "固定d91外部基线358路径保留PASS，实际候选待peer后第四完整编译；旧第三次0及11相关255过1旧红不延伸新src，107原件保留，不freeze。"
+summary: "固定d91实际候选peer闭合；第四完整compile0，J29/E44/补修6/Roster190/外部133/Node880过，11相关255过1既有reasoning红；154身份核、扩freeze待。"
 ---
 
 # J/E 正式集成
@@ -137,3 +137,27 @@ Sources完整10文件386是在000823/src1ee实际跑过；按父要求不机械�
 候选先提交并把实际SHA交原Astra复读，**peer闭合前不启动compile4**。随后唯一lane在全局空闲/共享锁下完整原生编译，并运行Roster、E44/补修6/完整11相关、J29、QueueReader/Inbox/Skills及immutable d91实际修改的59 node test和两补充套；reasoning原生产差异保留，不宣称全套绿。J386仅在刷新source/native连续性后复用。D扩展freeze模板/guard到位前不发通知，J零RPC结束后才授权E fake UDS；不添加GetQueue或技能fake handler。
 
 本候选[docs health](je-formal-main-d91-health.log)、[生成状态](je-formal-main-d91-generated-check.log)及[排除原始log的diff-check](je-formal-main-d91-diff-check.log)通过；缺失的check-merge-both-sides脚本未运行。文档记录及证据追加不改上述合成src，也不改107原artifact字节。
+
+## 第四次实际完整编译与固定d91相关复验
+
+实际候选 `9cc56b5595cdc680020cc832fe390c592a55c25c` 已由原Astra定向复读 **C0/I0/M0**；原件 `2a1a4776e45d101fd2bb5aded8ee195a7f2446db`（含前笔a075固定决策）已真三路接入为 `8b4ddaa99a8cc88ed645407ee42075a8497c4f34`。仅证据INDEX冲突合成，审查报告blob精确incoming，src仍 `92801b513611ed3ae1ba36862a58131c609f6aa2`；[206路径保留](je-formal-d91-peer-merge-identity.json)、[冲突原文](je-formal-d91-peer-conflict-resolutions.json)及[原merge日志](je-formal-d91-peer-merge.log)保留，未把静态peer当运行信用。
+
+随后在两次全局lane空扫描和独占 `/tmp/vscode-compile.lock` 下，实际运行第四次完整 `rtk proxy npm run compile-client`，**exit0 / 0 TS诊断**。[原执行脚本](je-formal-fourth-native-build.py)、[未过滤完整log](je-formal-fourth-native-build.log)、[运行/154 source-native前后身份](je-formal-fourth-native-build.json)精确保留；producer为8b4ddaa/src92801b5，HEAD/src/clean前后不变，`.build/extensions`仍原普通目录，没有缓存路径迁移。
+
+下表均实载第四次native输出，跳过prelaunch并持同一共享锁；[实际runner](je-fourth-runtime.py)与所有逐suite JSON/raw log均追加进[原始库存](je-formal-artifact-inventory.json)。不把分批housekeeping计数合成虚构总数。
+
+| 实际范围 | 结果 | 原件 |
+| --- | --- | --- |
+| J宿主/overlap重点 | 29 passing / exit0 | [JSON](je-fourth-J-focused.json) / [log](je-fourth-J-focused.log) |
+| E response recovery | 44 passing / exit0 | [JSON](je-fourth-E-focused.json) / [log](je-fourth-E-focused.log) |
+| ack/resync/三夹具及负控重点 | 6 passing / exit0 | [JSON](je-fourth-E-rework-focused.json) / [log](je-fourth-E-rework-focused.log) |
+| 合源完整Roster | 190 passing / exit0 | [JSON](je-fourth-E-roster-full.json) / [log](je-fourth-E-roster-full.log) |
+| 完整11个E相关文件 | **255 passing / 1 failing / exit1** | [JSON](je-fourth-E-related-full.json) / [log](je-fourth-E-related-full.log) |
+| 外部QueueReader / InboxOverlay / Skills完整3文件 | 133 passing / exit0 | [JSON](je-fourth-d91-browser-full.json) / [log](je-fourth-d91-browser-full.log) |
+| immutable d91实际59 Node变更测试 + 未改grpcCapabilityProbe/commonRendererSync | 880 passing / exit0，61文件 | [精确Git清单](main-d91-required-tests.json) / [JSON](je-fourth-d91-node-full.json) / [log](je-fourth-d91-node-full.log) |
+
+完整相关唯一失败仍是 `persisted reasoning keeps the joined thinking preview on the reading line`：actual `THINKING`，expected `hmm\nthen this`，与精确旧5df生产原件相同；保留原断言/原失败，不skip、不改expected、不宣称所有相关套绿。未新增本波产品修复。外部133/880只记固定baseline自动复验，不声称50061已升级或队列/技能默认窗E2E已验收。
+
+[第四轮J386连续性](je-fourth-J-suite-continuity.json)实核J18生产、原10test与harness共29 source/native pair与原实际386运行全部同字节，故保留原386结果，**本轮没有重新跑386**。[immutable并集ESLint](je-fourth-lint.json)实际113 TS / 0 errors / 132 warnings；未自动fix或据warning另开范围。
+
+[最终源/native快照](je-fourth-source-native-identity.json)154项SHA全吻合，所有业务前后均不改source/native。原107及候选追加到115的全部artifact字节再次核对保留；本次仅继续追加证据。status中六条重复J/E阶段流水压成一条并链接保留整文的五交集原件，降至195行，为after留位。当前 **未freeze、未发after notice**；等待D新J36/E34依赖模板/guard精确schema与hash，随后只固定原生out与对应source hash。J零RPC阶段完成前不启动E fake UDS；不新增queue/skill fake成功。P5禁push、P6主ff不重试，不宣称wave释放。

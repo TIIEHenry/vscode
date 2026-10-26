@@ -1,0 +1,1027 @@
+
+
+  deviceAuthHandshake SEC-3
+    ✔ observed fingerprint != AuthNonce self-report => fail-closed
+    ✔ prefetchedNonce skips a second GetAuthNonce
+
+  device auth rpc failure classification (ELR-6)
+    ✔ UNAVAILABLE pin text is pin_mismatch and beats the status code
+    ✔ UNAVAILABLE without a certificate reason stays transport_failed
+    ✔ OpenSSL verify failure is pin_mismatch
+    ✔ Connect UNAUTHENTICATED is grant_revoked and GetAuthNonce UNAUTHENTICATED is not
+    ✔ a plain UNAUTHENTICATED string is not grant_revoked
+    ✔ deadline and a plain error are engine_not_serving, not transport_failed
+    ✔ runDeviceAuthHandshake classifies a thrown GetAuthNonce and Connect
+
+  grpc AgentService ContinueGeneration/Regenerate/Resume protobuf server-stream wire
+    ✔ encodeContinueGenerationRequest writes session_id=1 agent_id=2 turn_id=3 message_id=4; omits empty; not JSON
+    ✔ encodeRegenerateRequest shares ContinueGeneration layout; not JSON
+    ✔ encodeResumeRequest writes session_id=1 agent_id=2; omits empty; not JSON
+    ✔ continuation stream wire is ContinueGeneration/Regenerate/Resume only; no JSON.stringify; identifier scan
+    ✔ openContinuationStream/openRegenerateStream/openResumeStream use bytes helper and decodeChatResponse
+    ✔ Connect, ResolveTurn, ResolveAnchor, and Watch use proto bytes
+    ✔ makeServerStreamBytesClient serializes proto bytes; makeServerStreamClient stays JSON
+
+  grpc AgentService History protobuf wire
+    ✔ encodeHistoryRequest writes session_id=1 agent_id=2 limit=3 offset=4; omits empty/0; not JSON
+    ✔ decodeHistoryResponse reads entries=1 HistoryEntry 1-4 total=2; unused unread
+    ✔ history unary wire is AgentService.History only; no JSON.stringify; identifier scan
+    ✔ getAgentHistory uses bytes then existing map
+
+  grpc AgentService Back protobuf wire
+    ✔ encodeBackRequest writes session_id=1 agent_id=2 operation_id=3; omits empty; not JSON
+    ✔ decodeBackResponse reads success=1 message=2 current_turn_id=3; unused unread
+    ✔ back unary wire is AgentService.Back only; no JSON.stringify; identifier scan
+    ✔ back uses bytes then existing map
+
+  grpc AgentService Branch protobuf wire
+    ✔ encodeBranchRequest writes session_id=1 agent_id=2 branch_index=3 turn_id=4; keeps 0 and -1; omits empty turn; not JSON
+    ✔ decodeBranchResponse reads success=1 message=2 current_branch=3 total_branches=4 current_turn_id=5; unused unread
+    ✔ branch unary wire is AgentService.Branch only; no JSON.stringify; identifier scan
+    ✔ branch uses bytes then existing map
+
+  grpc RemoteAgentService CancelRemoteSession protobuf wire
+    ✔ encodeCancelRemoteSessionRequest writes call_id=1 reason=2; omits empty; not JSON
+    ✔ decodeCancelRemoteSessionResponse reads success=1 call_id=2 status=3 message=4; unused unread
+    ✔ decodeCancelRemoteSessionResponse treats omitted/false success as not true
+    ✔ cancel-remote-session unary wire is RemoteAgentService.CancelRemoteSession only; no JSON.stringify; identifier scan
+    ✔ cancelRemoteSession uses bytes then existing map
+
+  grpc catalog unary protobuf wire
+    ✔ empty proto is 0 payload bytes and is still framed as a unary request
+    ✔ encodeProbeRpcRequest is empty proto, not JSON {}
+    ✔ encodeListSessionsRequest writes limit/offset and ALL filter, not JSON
+    ✔ encodeListSessionsRequest with no paging writes SESSION_LIST_FILTER_ALL, not JSON {}
+    ✔ decodeListSessionsResponse reads session_id and total
+    ✔ decode+map ListSessions yields sessionId for roster catalog
+    ✔ encodeListAgentProfilesRequest writes project_path field 1
+    ✔ encodeListAgentProfilesRequest without path is empty proto
+    ✔ decodeListAgentProfilesResponse reads id/name/source
+    ✔ decodeListDevicesResponse reads device_id
+    ✔ encodeListModelsRequest writes include_disabled true, not JSON
+    ✔ decodeListModelsResponse reads ModelEntryProto fields
+    ✔ encodeListAgentsRequest with empty session_id is empty proto, not JSON {}
+    ✔ decodeListAgentsResponse reads agent_id
+    ✔ encodeAgentTreeRequest writes session_id field 1
+    ✔ decodeAgentTreeResponse reads root agent_id
+    ✔ decodeSessionInfoResponse reads work_dir field 7
+    ✔ decodeListAgentProfilesResponse reads model/model_type/max_turns; 0 omitted
+    ✔ SaveAgentProfile proto roundtrip writes fields 17-19 and skips max_turns=0
+    ✔ ProviderStatus decode has no api_key; upsert writes field 2 outbound only
+    ✔ ProjectRule List/Upsert encode scope+session_id only, never work_dir
+    ✔ ListHookPoints and ListTeams decode empty and populated catalogs
+    ✔ encodeDeleteSessionRequest reuses Session.Info session_id field 1, not JSON
+    ✔ encodeSetPermissionModeRequest writes session_id field 1 and mode varint 2
+    ✔ encodeSetPermissionModeRequest omits unspecified mode 0
+    ✔ encodeSetSessionGoalRequest writes session_id field 1 and goal field 2, not JSON
+    ✔ encodeCancelSessionGoalRequest writes session_id field 1, not JSON
+    ✔ encodeRespondPermissionRequest writes fields 1-4; granted false omits field 3
+    ✔ encodeSyncPermissionRuleRequest writes fields 1-5; omits empty and action 0
+    ✔ decodeSyncPermissionRuleResponse reads success=1 rule_id=2 and ignores unknown fields
+    ✔ encodePromotePermissionRuleRequest writes tool_name=1 scope=2 action=3; omits empty and action 0
+    ✔ decodePromotePermissionRuleResponse reads success=1 and ignores unknown fields
+    ✔ encodeGetSessionRulesRequest writes session_id field 1, not JSON
+    ✔ decodeGetSessionRulesResponse maps SessionRule 1-8 then mapper; unknown fields unread
+    ✔ encodeMemberStatusRequest and encodeTaskListRequest write session_id/agent_id fields 1-2
+    ✔ encodeTeamInfoRequest writes session_id/agent_id/team_id fields 1-3
+    ✔ decodeMemberStatusResponse reads MemberInfo fields 1-6; dynamic bool 5 is string
+    ✔ decodeTaskListResponse reads BlackboardTask fields 1-7
+    ✔ decodeTeamInfoResponse reads team_id field 1 and status field 4
+    ✔ encodeSwitchModelRequest writes oneof model_type field 10, not 3
+    ✔ encodeSwitchModelRequest writes oneof model_id field 11, not 4
+    ✔ decodeSwitchModelResponse reads resolved_model_id/provider/level/cost/speed
+    ✔ encodeQueueRefRequest writes session_id=1 op_id=2 and omits empty op_id
+    ✔ encodeQueueItemRefRequest tags item_id=2 op_id=3, not JSON key order
+    ✔ encodeEnqueueQueueItemRequest writes 1-5 and does not invent fields 6/7
+    ✔ encodeInsertQueueItemRequest writes before_item_id=6 and omits 7/8
+    ✔ encodeReorderQueueRequest writes repeated item_ids as field 3
+    ✔ encodeSetQueueItemLockedRequest writes locked=4 only when true
+    ✔ encodeSetQueueItemForkAnchorRequest / Hold / Edit omit empty and do not invent extra fields
+    ✔ decodeQueueMutationResponse reads ok/error/op_id/item_id and ignores field 5
+    ✔ encodeListToolsRequest is empty proto; this client omits category and include_hidden
+    ✔ decodeListToolsResponse reads tools=1 total=2 then mapper; unknown fields unread
+    ✔ encodeListSkillsRequest is empty proto
+    ✔ decodeListSkillsResponse reads skills=1 total=2 then mapper; unknown fields unread
+    ✔ encodeSkillInfoRequest writes skill_name=1, not JSON
+    ✔ decodeSkillInfoResponse reads name/source/content then mapper; unknown fields unread
+    ✔ encodeSetSkillEnabledRequest writes skill_name=1 and omits enabled false
+    ✔ decodeSetSkillEnabledResponse maps status=3 OK=1 to mapper ok; 0 omit / NOT_FOUND / FAILED are not ok
+    ✔ encodeToolInfoRequest writes tool_name=1, not JSON
+    ✔ decodeToolInfoResponse reads 1–7 then mapper; unknown fields unread
+    ✔ encodeListCommandsRequest is empty proto and still framed for sendMessage
+    ✔ decodeListCommandsResponse empty payload maps to empty catalog; source varint uses existing mapper
+    ✔ encodeGetCommandDefRequest writes command_name=1, not JSON
+    ✔ decodeGetCommandDefResponse reads 1–11 then mapper; source varint unchanged
+    ✔ encodeDeleteAgentProfileRequest writes id=1; decode success=1 then mapper
+    ✔ grpcClient snapshots + next known unaries use bytes; listTools/listSkills use bytes; respondQuestion/sendClientToolResponse use bytes
+
+  grpc RemoteAgentService CheckConnection protobuf wire
+    ✔ encodeCheckConnectionRequest writes node_id=1 session_params=2 SessionParams 1-7; omits empty/0; not JSON
+    ✔ decodeCheckConnectionResponse reads reachable=1 authenticated=2 can_create_session=3 latency_ms=4 capabilities=5 errors=6 load=7; unused unread
+    ✔ check-connection unary wire is RemoteAgentService.CheckConnection only; no JSON.stringify; identifier scan
+    ✔ checkConnection uses bytes then existing map
+    ✔ do not lock siblings
+
+  grpc AgentService ClearSessionDemoFake protobuf wire
+    ✔ encodeClearSessionDemoFakeRequest writes session_id=1; omits empty; not JSON
+    ✔ decodeClearSessionDemoFakeResponse reads success=1 message=2 reason_code=3; unused unread
+    ✔ clear-session-demo-fake unary wire is ClearSessionDemoFake only; no JSON.stringify; identifier scan
+    ✔ clearSessionDemoFake uses bytes then existing map
+
+  grpcClientCalls makeClientStreamBytesClient
+    ✔ write Uint8Array proto bytes; decode unary via caller; close-gate/error/end/dispose
+    ✔ makeClientStreamBytesClient exists; serializes proto bytes; JSON makeClientStreamClient stays
+    ✔ resident bidi handle drops data after local dispose but keeps it after a half-close
+    ✔ openUploadAttachmentStream wires makeClientStreamBytesClient
+
+  grpc AgentService Compact protobuf wire
+    ✔ encodeCompactRequest writes session_id=1 agent_id=2; omits empty; not JSON
+    ✔ decodeCompactResponse reads success=1 message=2 tokens 3-4 outcome=5 enum 0-7 reject_reason=6; unused unread
+    ✔ compact unary wire is Compact only; no JSON.stringify; identifier scan
+    ✔ compact uses bytes then existing map
+
+  grpc RemoteAgentService CreateRemoteSession protobuf wire
+    ✔ encodeCreateRemoteSessionRequest writes node_id=1 mode=2 session_params=3 SessionParams 1-7; omits empty/0; not JSON
+    ✔ decodeCreateRemoteSessionResponse reads call_id=1 status=2 created_at=3 expires_at=4; unused unread
+    ✔ decodeCreateRemoteSessionResponse omitted/empty/zero timestamps; lastVarint created_at/expires_at
+    ✔ create-remote-session unary wire is RemoteAgentService.CreateRemoteSession only; no JSON.stringify; identifier scan
+    ✔ createRemoteSession uses bytes then existing map
+
+  grpc RemoteAgentService DeleteConfig protobuf wire
+    ✔ encodeDeleteConfigRequest writes node_id=1; omits empty; not JSON
+    ✔ decodeDeleteConfigResponse reads success=1; unused unread
+    ✔ delete-config unary wire is RemoteAgentService.DeleteConfig only; no JSON.stringify; identifier scan
+    ✔ deleteRemoteAgentConfig uses bytes then existing map
+
+  grpc RemoteAgentService DestroyRemoteSession protobuf wire
+    ✔ encodeDestroyRemoteSessionRequest writes call_id=1; omits empty; not JSON
+    ✔ decodeDestroyRemoteSessionResponse reads success=1 message=2; unused unread
+    ✔ destroy-remote-session unary wire is RemoteAgentService.DestroyRemoteSession only; no JSON.stringify; identifier scan
+    ✔ destroyRemoteSession uses bytes then existing map
+
+  grpc DeviceService PairApprove / PairReject / ListPending / RotateToken protobuf wire
+    ✔ encodePairApproveRequest writes pairing_code=1 display_name=2 role=3; omits empty; not JSON
+    ✔ decodePairApproveResponse reads success=1 device_id=2 message=4; reserved 3 unread
+    ✔ encodePairRejectRequest writes pairing_code=1; omits empty; not JSON
+    ✔ decodePairRejectResponse reads success=1 message=2; unused unread
+    ✔ encodeRevokeRequest writes device_id=1; omits empty; not JSON
+    ✔ decodeRevokeResponse reads success=1 message=2; unused unread
+    ✔ encodeRotateTokenRequest writes device_id=1 only; reserved 2 never encoded
+    ✔ decodeRotateTokenResponse reads success=1 message=3; reserved 2 unread
+    ✔ encodeListPendingRequest is empty proto, not JSON {}
+    ✔ decodeListPendingResponse reads pending=1 nested 1-6 then mapper; unused unread
+    ✔ device pair unary wire source has no JSON.stringify; reserved names absent; no Connect
+    ✔ pairApprove / pairReject / listPending / rotateToken / revoke use bytes then map*; listDevices unchanged
+
+  grpc FileTransferService DownloadAttachment protobuf server-stream wire
+    ✔ encodeDownloadAttachmentRequest writes file_path=1 offset=2 max_bytes=3 session_id=4 artifact_id=5; omits 0/empty; optional artifact omit when undefined; not JSON
+    ✔ decodeDownloadChunk reads offset=1 data=2 total_size=3 is_last=4 checksum_sha256=5 as base64; mapDownloadChunk recovers non-empty data; unknown unread
+    ✔ download-attachment stream wire is FileTransferService.DownloadAttachment only; no JSON.stringify; identifier scan
+    ✔ openDownloadAttachmentStream uses makeServerStreamBytesClient; Upload bytes
+
+  grpc RemoteAgentService ExitMaintenance protobuf wire
+    ✔ encodeExitMaintenanceRequest writes node_id=1; omits empty; not JSON
+    ✔ decodeExitMaintenanceResponse reads success=1; unused unread
+    ✔ exit-maintenance unary wire is RemoteAgentService.ExitMaintenance only; no JSON.stringify; identifier scan
+    ✔ exitMaintenance uses bytes then existing map
+
+  grpc AgentService FetchToolUsageDetail protobuf wire
+    ✔ encodeFetchToolUsageDetailRequest writes session_id=1 tool_call_id=2; omits empty; not JSON
+    ✔ decodeFetchToolUsageDetailResponse reads success=1 tool_call_id=2 context_sources=3 error_message=4; extra unused unread
+    ✔ fetch-tool-usage-detail unary wire is FetchToolUsageDetail only; no JSON.stringify; identifier scan
+    ✔ fetchToolUsageDetail uses bytes then existing map
+
+  grpc AgentService FireTriggerWebhook / InstallSessionDemoFake protobuf wire
+    ✔ encodeFireTriggerWebhookRequest writes session_id=1 trigger_id=2 payload_json=3; omits empty/absent; not JSON
+    ✔ decodeFireTriggerWebhookResponse reads status=1 enum 0-4 event_id=2 reason=3; unused unread
+    ✔ encodeInstallSessionDemoFakeRequest writes session_id=1 queues_payload=2 bytes content_type=3 playbook_id=4; omits empty; not JSON/base64
+    ✔ decodeInstallSessionDemoFakeResponse reads success=1 message=2 reason_code=3; unused unread
+    ✔ fire-trigger-webhook unary wire is FireTriggerWebhook + InstallSessionDemoFake only; no JSON.stringify; identifier scan
+    ✔ fireTriggerWebhook / installSessionDemoFake use bytes then map*
+
+  grpc RemoteAgentService GetConfig protobuf wire
+    ✔ encodeGetConfigRequest writes node_id=1; omits empty; not JSON
+    ✔ decodeGetConfigResponse reads scalars 1-4, 7-9 and nested endpoint=5 auth=6 default_permission_delegate=10 health_check=11
+    ✔ get-config unary wire is RemoteAgentService.GetConfig only; no JSON.stringify; identifier scan
+    ✔ getRemoteAgentConfig uses bytes then existing map
+
+  grpc RemoteAgentService GetNode protobuf wire
+    ✔ encodeGetNodeRequest writes node_id=1; omits empty; not JSON
+    ✔ decodeGetNodeResponse reads id=1 name=2 description=3 status=4 endpoint=5 tags=6 capabilities=7 load=8 last_heartbeat_at=9
+    ✔ get-node unary wire is RemoteAgentService.GetNode only; no JSON.stringify; identifier scan
+    ✔ getNode uses bytes then existing map
+
+  grpc RemoteAgentService GetRemoteSessionHistory protobuf wire
+    ✔ encodeGetRemoteSessionHistoryRequest writes call_id=1 since_version=2 page_size=3; omits empty/0; not JSON
+    ✔ decodeGetRemoteSessionHistoryResponse reads messages=1 version=2 has_more=3 then mapper
+    ✔ decodeGetRemoteSessionHistoryResponse omitted/false/zero; mapper missing messages → []
+    ✔ get-remote-session-history unary wire is RemoteAgentService.GetRemoteSessionHistory only; no JSON.stringify; identifier scan
+    ✔ getRemoteSessionHistory uses bytes then existing map
+
+  grpc RemoteAgentService GetRemoteSessionStatus protobuf wire
+    ✔ encodeGetRemoteSessionStatusRequest writes call_id=1; omits empty; not JSON
+    ✔ decodeGetRemoteSessionStatusResponse reads status=1 call_id=2 progress=3 elapsed_ms=4 expires_at=5 pending_permissions=6 pending_questions=7
+    ✔ get-remote-session-status unary wire is RemoteAgentService.GetRemoteSessionStatus only; no JSON.stringify; identifier scan
+    ✔ getRemoteSessionStatus uses bytes then existing map
+
+  grpc FileTransferService GetUploadProgress protobuf wire
+    ✔ encodeGetUploadProgressRequest writes transfer_id=1 session_id=2; omits empty; not JSON
+    ✔ decodeGetUploadProgressResponse reads exists=1 bytes_received=2 partial_path=3; unused unread
+    ✔ get-upload-progress unary wire is FileTransferService.GetUploadProgress only; no JSON.stringify; identifier scan
+    ✔ getUploadProgress uses bytes then existing map
+    ✔ UploadAttachment/DownloadAttachment streams use bytes; do not lock siblings
+
+  grpc RemoteAgentService ListConfigs protobuf wire
+    ✔ encodeListConfigsRequest is empty proto, not JSON {}
+    ✔ decodeListConfigsResponse reads configs=1 scalars 1-4, 7-9 and nested endpoint=5 auth=6 default_permission_delegate=10 health_check=11
+    ✔ list-configs unary wire is RemoteAgentService.ListConfigs only; no JSON.stringify; identifier scan
+    ✔ listConfigs uses bytes then existing map
+
+  grpc AgentService ListLoopSnapshots protobuf wire
+    ✔ encodeListLoopSnapshotsRequest writes session_id=1 optional loop_id=2; omits empty; not JSON
+    ✔ decodeListLoopSnapshotsResponse reads snapshots=1 LoopSnapshotRecord 1-11; unused unread
+    ✔ listLoopSnapshots unary wire is AgentService.ListLoopSnapshots only; no JSON.stringify; identifier scan
+    ✔ listLoopSnapshots uses bytes then existing map
+
+  grpc RemoteAgentService ListNodes protobuf wire
+    ✔ encodeListNodesRequest writes repeated filter_status=1 filter_tags=2; omits empty; not JSON
+    ✔ decodeListNodesResponse reads nodes=1 RemoteAgentInfo 1-9 including nested capabilities=7 load=8
+    ✔ list-nodes unary wire is RemoteAgentService.ListNodes only; no JSON.stringify; identifier scan
+    ✔ listNodes uses bytes then existing map
+
+  grpc MemoryService Rebuild protobuf server-stream wire
+    ✔ encodeMemoryRebuildRequest writes scope=1 dry_run=2; omits empty/false; not JSON
+    ✔ decodeMemoryRebuildEvent reads phase=1 message=2 progress=3 files_processed=4 files_total=5 then mapMemoryRebuildEvent; unused unread
+    ✔ memory rebuild stream wire is MemoryService.Rebuild only; no JSON.stringify; identifier scan
+    ✔ openRebuildMemoryStream uses makeServerStreamBytesClient; Upload bytes
+
+  grpc ConfigService Get/Set ModelPreferences protobuf wire
+    ✔ encodeGetModelPreferencesRequest writes session_id=1; omits empty; not JSON
+    ✔ decodeGetModelPreferencesResponse reads min_level=1 max_cost=2 min_speed=3 strategy=4; unused unread
+    ✔ encodeSetModelPreferencesRequest writes session_id=1 min_level=2 max_cost=3 min_speed=4 strategy=5; omits empty/0; not JSON
+    ✔ decodeSetModelPreferencesResponse reads nested preferences=1 via encodePresentMessageField; unused unread
+    ✔ model-preferences unary wire is Get+Set ModelPreferences only; no JSON.stringify; identifier scan
+    ✔ getModelPreferences / setModelPreferences use bytes then existing map
+
+  grpc AgentService Pause protobuf wire
+    ✔ encodePauseRequest writes session_id=1 agent_id=2; omits empty; not JSON
+    ✔ decodePauseResponse reads success=1 message=2; unused unread
+    ✔ pause unary wire is AgentService.Pause only; no JSON.stringify; identifier scan
+    ✔ pauseAgent uses bytes then existing map
+
+  grpc AgentService Prune protobuf wire
+    ✔ encodePruneRequest writes session_id=1 agent_id=2; omits empty; not JSON
+    ✔ decodePruneResponse reads success=1 message=2 removed_count=3; 0 omit; unused unread
+    ✔ prune unary wire is Prune only; no JSON.stringify; identifier scan
+    ✔ prune uses bytes then existing map
+
+  Queue readback and skill content protocol
+    ✔ actual client methods send binary tags and decode responses
+    ✔ queue item fields, float and int64 values survive
+    ✔ unknown enums and truncated floats fail closed
+    ✔ GetQueue advertisement and empty-request statuses stay three-state
+
+  grpc RemoteAgentService Reload protobuf wire
+    ✔ encodeReloadRemoteAgentsRequest is empty proto, not JSON {}
+    ✔ decodeReloadRemoteAgentsResponse reads success=1 added=2 removed=3 changed=4 errors=5 duration_ms=6; unused unread
+    ✔ decodeReloadRemoteAgentsResponse omitted/false/empty-string lists; lastVarint duration_ms
+    ✔ reload unary wire is RemoteAgentService.Reload only; no JSON.stringify; identifier scan
+    ✔ reloadRemoteAgents uses bytes then existing map
+
+  grpc RemoteAgentService RemoteChat protobuf server-stream wire
+    ✔ encodeRemoteChatRequest writes call_id=1 task=2 responses=3 override_pending=4; omits empty/false; not JSON
+    ✔ encodeRemoteChatRequest nested RemoteResponse oneof permission / question_answers_json; empty item present
+    ✔ decodeRemoteChatResponse reads result=1 then mapper; pending 6/7 messages 11; unknown unread
+    ✔ decodeRemoteChatResponse reads progress=2 then mapper; empty/zero/unknown unread
+    ✔ remote-chat stream wire is RemoteAgentService.RemoteChat only; no JSON.stringify; identifier scan
+    ✔ openRemoteChatStream uses makeServerStreamBytesClient; Upload bytes
+
+  grpc RemoteAgentService ResetError protobuf wire
+    ✔ encodeResetErrorRequest writes node_id=1; omits empty; not JSON
+    ✔ decodeResetErrorResponse reads success=1; unused unread
+    ✔ reset-error unary wire is RemoteAgentService.ResetError only; no JSON.stringify; identifier scan
+    ✔ resetError uses bytes then existing map
+
+  grpc AgentService Reset protobuf wire
+    ✔ encodeResetRequest writes session_id=1 agent_id=2; clear_profile_only=3 only when true; omits empty/false; not JSON
+    ✔ decodeResetResponse reads success=1 message=2; unused unread
+    ✔ reset unary wire is Reset only; no JSON.stringify; identifier scan
+    ✔ resetAgent uses bytes then existing map
+
+  grpc ConfigService ResolveModel protobuf wire
+    ✔ encodeResolveModelRequest writes session_id=1 type=2; omits empty; not JSON
+    ✔ decodeResolveModelResponse reads selected=1 candidates=2 filtered=3 ModelEntry; mapper non-empty
+    ✔ resolve-model unary wire is ConfigService.ResolveModel only; no JSON.stringify; identifier scan
+    ✔ resolveModel uses bytes then existing map
+    ✔ do not lock GetModelPreferences
+
+  grpc AgentService ResumeLoop protobuf wire
+    ✔ encodeResumeLoopRequest writes session_id=1 agent_id=2; omits empty; not JSON
+    ✔ decodeResumeLoopResponse reads success=1 message=2; unused unread
+    ✔ resumeLoop unary wire is AgentService.ResumeLoop only; no JSON.stringify; identifier scan
+    ✔ resumeLoop uses bytes then existing map
+
+  grpc RemoteAgentService ResumeRemoteSession protobuf wire
+    ✔ encodeResumeRemoteSessionRequest writes call_id=1 node_id=2; omits empty; not JSON
+    ✔ decodeResumeRemoteSessionResponse reads success=1 call_id=2 status=3 message=4 expires_at=5; unused unread
+    ✔ resume-remote-session unary wire is RemoteAgentService.ResumeRemoteSession only; no JSON.stringify; identifier scan
+    ✔ resumeRemoteSession uses bytes then existing map
+
+  grpc AgentService RunToolInBackground protobuf wire
+    ✔ encodeRunToolInBackgroundRequest writes session_id=1 agent_id=2 tool_call_id=3; omits empty; not JSON
+    ✔ decodeRunToolInBackgroundResponse reads success=1 message=2 reason_code=3; unused unread
+    ✔ run-tool-in-background unary wire is RunToolInBackground only; no JSON.stringify; identifier scan
+    ✔ runToolInBackground uses bytes then existing map
+
+  grpc RemoteAgentService SaveConfig protobuf wire
+    ✔ encodeSaveConfigRequest writes nested config scalars 1-4,7-9 and nested 5/6/10/11; omits empty/0/false; not JSON
+    ✔ decodeSaveConfigResponse reads success=1 message=2 connection_test=3 async_test_id=4; mapper connectionTest non-empty from field 3
+    ✔ decodeSaveConfigResponse omitted/false/empty-string; unused unread
+    ✔ save-config unary wire is RemoteAgentService.SaveConfig only; no JSON.stringify; identifier scan
+    ✔ saveRemoteAgentConfig uses bytes then existing map
+
+  grpc AgentService SendShellSessionClientControl protobuf wire
+    ✔ encodeSendShellSessionClientControlRequest writes session_id=1 tool_call_id=2 ref_id=3 control_payload_json=4; omits empty; not JSON
+    ✔ decodeSendShellSessionClientControlResponse reads success=1 error_message=2 error_code=3 debounced=4 delivered_to_subscribe=5; unused unread
+    ✔ send-shell-session-client-control unary wire is AgentService.SendShellSessionClientControl only; no JSON.stringify; identifier scan
+    ✔ sendShellSessionClientControl uses bytes then existing map
+
+  grpc SessionService Prewarm / Shelve / Unshelve / Purge / Export protobuf wire
+    ✔ encodePrewarmSessionsRequest writes repeated session_ids=1; omits empty; not JSON
+    ✔ decodePrewarmSessionsResponse reads entries=1 nested session_id=1 outcome=2 message=3; unused unread
+    ✔ encodeShelveSessionRequest writes session_id=1; omits empty; not JSON
+    ✔ decodeShelveSessionResponse reads success=1 message=2; unused unread
+    ✔ encodeUnshelveSessionRequest writes session_id=1; omits empty; not JSON
+    ✔ decodeUnshelveSessionResponse reads success=1 message=2; unused unread
+    ✔ encodePurgeSessionRequest writes session_id=1; omits empty; not JSON
+    ✔ decodePurgeSessionResponse reads success=1 message=2; unused unread
+    ✔ encodeExportSessionRequest writes session_id=1 format=2; omits empty; not JSON
+    ✔ decodeExportSessionResponse reads content=1 format=2; unused unread
+    ✔ session lifecycle unary wire is five unaries only; no JSON.stringify; identifier scan
+    ✔ prewarmSessions / shelveSession / unshelveSession / purgeSession / exportSession use bytes then map*
+
+  grpc SessionService ResolveTurn/ResolveAnchor protobuf unary wire
+    ✔ encodeResolveTurnRequest writes session_id=1 turn_id=2 current_leaf_turn_id=3; omits empty; not JSON
+    ✔ decodeResolveTurnResponse reads hit/tombstone/expired; empty hit stays hit; maps through mapResolveTurnResponse
+    ✔ encodeResolveAnchorRequest always writes anchor=1; scope=2 omits 0; generation 0 stays; leaf empty omitted; not JSON
+    ✔ decodeResolveAnchorResponse empty message maps to {}; hit {} stays hit
+    ✔ resolve wire is ResolveTurn/ResolveAnchor only; client methods use bytes; Connect is bytes
+
+  grpc RemoteAgentService SetMaintenance protobuf wire
+    ✔ encodeSetMaintenanceRequest writes node_id=1; omits empty; not JSON
+    ✔ decodeSetMaintenanceResponse reads success=1; unused unread
+    ✔ set-maintenance unary wire is RemoteAgentService.SetMaintenance only; no JSON.stringify; identifier scan
+    ✔ setMaintenance uses bytes then existing map
+
+  grpc AgentService Status protobuf wire
+    ✔ encodeStatusRequest writes session_id=1 agent_id=2; omits empty; not JSON
+    ✔ decodeStatusResponse reads agent=1 AgentInfo scalars 1-7; type/status varint; model_info unread
+    ✔ decodeStatusResponse reads nested AgentInfo children=8; maps via mapStatusResponse/mapAgentTreeNode; model_info unread
+    ✔ status unary wire is Status only; no JSON.stringify; identifier scan
+    ✔ getAgentStatus uses bytes then existing map
+
+  grpc AgentService StopLoop protobuf wire
+    ✔ encodeStopLoopRequest writes session_id=1 agent_id=2 detail=3; omits empty; not JSON
+    ✔ decodeStopLoopResponse reads success=1 message=2; unused unread
+    ✔ stopLoop unary wire is AgentService.StopLoop only; no JSON.stringify; identifier scan
+    ✔ stopLoop uses bytes then existing map
+
+  grpc AgentService StopShellTask protobuf wire
+    ✔ encodeStopShellTaskRequest writes session_id=1 task_id=2; omits empty; not JSON
+    ✔ decodeStopShellTaskResponse reads success=1 message=2; unused unread
+    ✔ stop-shell-task unary wire is AgentService.StopShellTask only; no JSON.stringify; identifier scan
+    ✔ stopShellTask uses bytes then existing map
+
+  grpc AgentService SubscribeToolDetail protobuf server-stream wire
+    ✔ encodeSubscribeToolDetailRequest writes fields 1-7; omits empty/0/undefined; not JSON
+    ✔ decodeSubscribeToolDetailChunk reads fields 1-9; mapSubscribeToolDetailChunk non-empty; unused unread
+    ✔ subscribe-tool-detail stream wire is SubscribeToolDetail only; no JSON.stringify; identifier scan
+    ✔ openSubscribeToolDetailStream uses makeServerStreamBytesClient; Upload bytes
+
+  grpc AgentService SuspendLoop protobuf wire
+    ✔ encodeSuspendLoopRequest writes session_id=1 agent_id=2; omits empty; not JSON
+    ✔ decodeSuspendLoopResponse reads success=1 message=2; unused unread
+    ✔ suspend-loop unary wire is AgentService.SuspendLoop only; no JSON.stringify; identifier scan
+    ✔ suspendLoop uses bytes then existing map
+
+  grpc AgentService SwitchWorkDir protobuf wire
+    ✔ encodeSwitchWorkDirRequest writes session_id=1 agent_id=2 new_work_dir=3; omits empty; not JSON
+    ✔ decodeSwitchWorkDirResponse reads success=1 previous_work_dir=2 current_work_dir=3 message=4; unused unread
+    ✔ switch-workdir unary wire is SwitchWorkDir only; no JSON.stringify; identifier scan
+    ✔ switchWorkDir uses bytes then existing map
+
+  grpc AgentService TestModelProfile protobuf wire
+    ✔ encodeTestModelProfileRequest writes provider_id=1 model_id=2 api_key=3 base_url=4 protocol=5 params=6 MapEntry; omits empty; not JSON
+    ✔ decodeTestModelProfileResponse reads success=1 error_message=2; unused unread
+    ✔ test-model-profile unary wire is TestModelProfile only; no JSON.stringify; identifier scan
+    ✔ testModelProfile uses bytes then existing map
+
+  grpc AgentService Todo protobuf wire
+    ✔ encodeTodoRequest writes session_id=1 agent_id=2; omits empty; not JSON
+    ✔ decodeTodoResponse reads repeated items=1; TodoItem 1-6; unused unread
+    ✔ todo unary wire is AgentService.Todo only; no JSON.stringify; identifier scan
+    ✔ getTodo uses bytes then existing map
+
+  grpc TriggerService List/Upsert/Delete/SetEnabled/Fire protobuf wire
+    ✔ encodeListTriggersRequest writes scope=1 scope_id=2 type_filter=3; omits empty; not JSON
+    ✔ decodeListTriggersResponse reads triggers=1 TriggerDto 1-10 then mapper; unused unread
+    ✔ encodeUpsertTriggerRequest writes scope=1 scope_id=2 trigger=3; self empty present; omits empty/0/false
+    ✔ decodeUpsertTriggerResponse reads trigger=1 including empty self oneof; unused unread
+    ✔ encodeDeleteTriggerRequest writes scope=1 scope_id=2 trigger_id=3; omits empty; not JSON
+    ✔ decodeDeleteTriggerResponse is empty then mapper; unused unread
+    ✔ encodeSetTriggerEnabledRequest writes 1-4; omits empty/false; not JSON
+    ✔ decodeSetTriggerEnabledResponse reads trigger=1 then mapper; unused unread
+    ✔ encodeFireTriggerRequest writes scope=1 scope_id=2 trigger_id=3; omits empty; not JSON
+    ✔ decodeFireTriggerResponse reads status=1 event_id=2 reason=3; unused unread
+    ✔ trigger unary wire uses proto bytes; identifier scan
+    ✔ listTriggers / upsertTrigger / deleteTrigger / setTriggerEnabled / fireTrigger use bytes then map*
+
+  grpc FileTransferService UploadAttachment protobuf client-stream wire
+    ✔ encodeUploadChunk writes header=1 nested 1-9, chunk=2 bytes, offset=3; omits empty/0/false; not JSON
+    ✔ encodeUploadChunk writes chunk=2 as proto bytes not JSON/base64; offset=3
+    ✔ encodeUploadChunk rejects header and chunk in one frame
+    ✔ decodeUploadResponse reads 1-5; error_code varint; unused unread; mapUploadResponse
+    ✔ upload-attachment stream wire is FileTransferService.UploadAttachment only; no JSON.stringify; identifier scan
+    ✔ openUploadAttachmentStream / makeClientStreamBytesClient bytes
+
+  grpc AgentService Usage protobuf wire
+    ✔ encodeUsageRequest writes session_id=1 agent_id=2; omits empty; not JSON
+    ✔ decodeUsageResponse reads 1-4, nested context_window=10 session_usage=11, recent_request_spans=12; filled + sparse + omitted
+    ✔ usage unary wire is Usage only; no JSON.stringify; identifier scan
+    ✔ getUsage uses bytes then existing map
+
+  pairingOrchestrator H2
+    ✔ pairing provisional return does not install session token / connected
+    ✔ provisional pairing calls GetAuthNonce only once
+    ✔ provisional Connect with pairing_nonce and empty sas_code uses locally derived SAS
+    ✔ startPairing does not wait for confirmSas
+    ✔ provisional Connect timeout after GetAuthNonce is transport_failed and does not enter recoverTrust
+    ✔ confirmSas and confirmRecoverTrust reject when confirmation hooks are not injected
+    ✔ S4 unexpected session_token enters recoverTrust without install
+    ✔ ready identity confirmRecoverTrust re-observes and writes trust only after a new session_token
+    ✔ recoverTrust re-observe fingerprint is taken from the new leaf bytes
+    ✔ recoverTrust handshake failure does not write trust and keeps the recover session
+    ✔ recoverTrust pairing nonce does not write trust and the next confirmSas does
+    ✔ ticketed recoverTrust renews before re-observe and before the new handshake
+    ✔ unready identity confirmRecoverTrust still writes the seeded leaf without a new dial
+    ✔ cancelled recoverTrust does not re-observe or dial
+    ✔ dispose during recover re-observe does not write trust
+    ✔ observe throw becomes observe_failed instead of rejecting startPairing
+    ✔ ticketed pairing renews before trial and formal dials and does not reuse a servername
+    ✔ direct pairing never renews and reuses the same endpoint
+    ✔ ticketed pairing fails closed when renewal is missing or returns hub_unreachable
+    ✔ a new pairing during renewal returns superseded or stale and does not dial
+    ✔ confirmSas closes the pinned transport when createSigner returns undefined
+    ✔ confirmSas closes the pinned transport when createSigner rejects
+
+  UniverseAgentConnectionService
+    ✔ token + live channel => isEngineConnected === true
+    ✔ a stale AgentService.Tree result does not write the new transport's probe state
+    ✔ successful unary after DEADLINE_EXCEEDED restores connected phase
+    ✔ subscribeSessionEventStream forwards transport onClosed
+    ✔ subscribeSessionEventStream dispose silences later onClosed
+    ✔ UniverseAgentGrpcServices lists Agent.ContinueGeneration
+    ✔ UniverseAgentGrpcServices lists Agent.Regenerate
+    ✔ UniverseAgentGrpcServices lists Agent.Rename
+    ✔ UniverseAgentGrpcServices lists Agent.Cancel
+    ✔ UniverseAgentGrpcServices lists Agent.CancelToolCall
+    ✔ UniverseAgentGrpcServices lists Agent.RunToolInBackground
+    ✔ UniverseAgentGrpcServices lists Agent.StopShellTask
+    ✔ UniverseAgentGrpcServices lists Agent.SendShellSessionClientControl
+    ✔ UniverseAgentGrpcServices lists Agent.FetchToolUsageDetail
+    ✔ UniverseAgentGrpcServices lists Agent.FireTriggerWebhook
+    ✔ UniverseAgentGrpcServices lists Agent.InstallSessionDemoFake
+    ✔ UniverseAgentGrpcServices lists Agent.ClearSessionDemoFake
+    ✔ UniverseAgentGrpcServices lists Agent.SwitchWorkDir
+    ✔ UniverseAgentGrpcServices lists Agent.TestModelProfile
+    ✔ UniverseAgentGrpcServices lists Config.Set
+    ✔ UniverseAgentGrpcServices lists Config.SetModelPreferences
+    ✔ UniverseAgentGrpcServices lists Agent.SubscribeToolDetail
+    ✔ UniverseAgentGrpcServices lists Permission.SetSessionGoal
+    ✔ UniverseAgentGrpcServices lists Permission.Respond
+    ✔ UniverseAgentGrpcServices lists Permission.SyncPermissionRule
+    ✔ UniverseAgentGrpcServices lists Permission.PromotePermissionRule
+    ✔ UniverseAgentGrpcServices lists Permission.GetSessionRules
+    ✔ UniverseAgentGrpcServices lists Permission.SetPermissionMode
+    ✔ UniverseAgentGrpcServices lists Team.TaskUpdate
+    ✔ UniverseAgentGrpcServices lists Team.TaskCancel
+    ✔ UniverseAgentGrpcServices lists Team.MessageMember
+    ✔ UniverseAgentGrpcServices lists Team.CreateTeam
+    ✔ UniverseAgentGrpcServices lists Team.StartMember
+    ✔ UniverseAgentGrpcServices lists Team.KillMember
+    ✔ UniverseAgentGrpcServices lists Team.Abort
+    ✔ UniverseAgentGrpcServices lists Config.Get
+    ✔ UniverseAgentGrpcServices lists Config.SwitchModel
+    ✔ UniverseAgentGrpcServices lists Config.ResolveModel
+    ✔ UniverseAgentGrpcServices lists Config.Watch
+    ✔ UniverseAgentGrpcServices lists Config.SetPermissionPolicy
+    ✔ UniverseAgentGrpcServices lists Config.GetModelPreferences
+    ✔ UniverseAgentGrpcServices lists Agent.InsertQueueItem
+    ✔ UniverseAgentGrpcServices lists Agent.ReorderQueue
+    ✔ UniverseAgentGrpcServices lists Agent.DeleteQueueItem
+    ✔ UniverseAgentGrpcServices lists Agent.RetryQueueItem
+    ✔ UniverseAgentGrpcServices lists Agent.RetryAllFailed
+    ✔ UniverseAgentGrpcServices lists Agent.RetryQueueItemUpload
+    ✔ UniverseAgentGrpcServices lists Agent.PinQueueItem
+    ✔ UniverseAgentGrpcServices lists Agent.SetQueueItemLocked
+    ✔ UniverseAgentGrpcServices lists Agent.InjectQueueItem
+    ✔ UniverseAgentGrpcServices lists Agent.SetQueueItemForkAnchor
+    ✔ UniverseAgentGrpcServices lists Agent.ChatSync
+    ✔ UniverseAgentGrpcServices lists Agent.SyncInputDelivery
+    ✔ UniverseAgentGrpcServices lists Agent queue mutation family
+    ✔ UniverseAgentGrpcServices lists Agent.Fork
+    ✔ UniverseAgentGrpcServices lists Tool.ToolInfo
+    ✔ UniverseAgentGrpcServices lists Tool.ListCommands
+    ✔ UniverseAgentGrpcServices lists Tool.GetCommandDef
+    ✔ UniverseAgentGrpcServices lists File.ListFiles
+    ✔ UniverseAgentGrpcServices lists File.ReadFile
+    ✔ UniverseAgentGrpcServices lists File.GetFileInfo
+    ✔ UniverseAgentGrpcServices lists File.WriteFile
+    ✔ UniverseAgentGrpcServices lists File.ForceWriteFile
+    ✔ UniverseAgentGrpcServices lists File.AgentMerge
+    ✔ UniverseAgentGrpcServices lists Git.ReadGitSummary
+    ✔ UniverseAgentGrpcServices lists Git.ReadGitChanges
+    ✔ UniverseAgentGrpcServices lists Git.ReadGitFileDiff
+    ✔ UniverseAgentGrpcServices lists Git.WriteGitStagePaths
+    ✔ UniverseAgentGrpcServices lists Git.WriteGitCommit
+    ✔ UniverseAgentGrpcServices lists Git.WriteGitApplyHunks
+    ✔ UniverseAgentGrpcServices lists TokenUsage.GetSessionUsage
+    ✔ UniverseAgentGrpcServices lists TokenUsage.GetGlobalUsage
+    ✔ UniverseAgentGrpcServices lists Memory.Save
+    ✔ UniverseAgentGrpcServices lists Memory.Search
+    ✔ UniverseAgentGrpcServices lists Memory.SearchDeep
+    ✔ UniverseAgentGrpcServices lists Memory.Read
+    ✔ UniverseAgentGrpcServices lists Memory.List
+    ✔ UniverseAgentGrpcServices lists Memory.Delete
+    ✔ UniverseAgentGrpcServices lists Memory.Reflect
+    ✔ UniverseAgentGrpcServices lists Memory.Rebuild
+    ✔ UniverseAgentGrpcServices lists Memory.Revert
+    ✔ UniverseAgentGrpcServices lists Memory.History
+    ✔ UniverseAgentGrpcServices lists ContextVariable.List
+    ✔ UniverseAgentGrpcServices lists ContextVariable.Read
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.ListNodes
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.GetNode
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.CheckConnection
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.SetMaintenance
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.ExitMaintenance
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.ListConfigs
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.GetConfig
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.SaveConfig
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.ResetError
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.DeleteConfig
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.Reload
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.RemoteChat
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.CreateRemoteSession
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.DestroyRemoteSession
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.GetRemoteSessionStatus
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.GetRemoteSessionHistory
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.ResumeRemoteSession
+    ✔ UniverseAgentGrpcServices lists RemoteAgent.CancelRemoteSession
+    ✔ UniverseAgentGrpcServices lists FileTransfer.GetUploadProgress
+    ✔ UniverseAgentGrpcServices lists FileTransfer.UploadAttachment
+    ✔ UniverseAgentGrpcServices lists FileTransfer.DownloadAttachment
+    ✔ UniverseAgentGrpcServices lists Pty.PtyStream
+    ✔ UniverseAgentGrpcServices lists System.HealthCheck
+    ✔ UniverseAgentGrpcServices lists System.Doctor
+    ✔ UniverseAgentGrpcServices lists System.Shutdown
+    ✔ UniverseAgentGrpcServices lists Device.ListDevices
+    ✔ UniverseAgentGrpcServices lists Device.PairApprove
+    ✔ UniverseAgentGrpcServices lists Device.PairReject
+    ✔ UniverseAgentGrpcServices lists Device.Revoke
+    ✔ UniverseAgentGrpcServices lists Device.RotateToken
+    ✔ UniverseAgentGrpcServices lists Device.ListPending
+    ✔ UniverseAgentGrpcServices lists Trigger.ListTriggers
+    ✔ UniverseAgentGrpcServices lists Trigger.UpsertTrigger
+    ✔ UniverseAgentGrpcServices lists Trigger.DeleteTrigger
+    ✔ UniverseAgentGrpcServices lists Trigger.SetTriggerEnabled
+    ✔ UniverseAgentGrpcServices lists Trigger.FireTrigger
+    ✔ UniverseAgentGrpcServices lists Clipboard.Write
+    ✔ UniverseAgentGrpcServices lists Clipboard.Read
+    ✔ UniverseAgentGrpcServices lists Clipboard.List
+    ✔ UniverseAgentGrpcServices lists Clipboard.Clear
+    ✔ UniverseAgentGrpcServices lists Agent.Kill
+    ✔ UniverseAgentGrpcServices lists Agent.DeleteMessage
+    ✔ UniverseAgentGrpcServices lists Agent.EditMessage
+    ✔ UniverseAgentGrpcServices lists Agent.RespondQuestion
+    ✔ UniverseAgentGrpcServices lists Agent.SendClientToolResponse
+    ✔ UniverseAgentGrpcServices lists Agent.ListSnapshots
+    ✔ UniverseAgentGrpcServices lists Agent.ListLoopSnapshots
+    ✔ UniverseAgentGrpcServices lists Agent.CreateSnapshot
+    ✔ UniverseAgentGrpcServices lists Agent.RestoreSnapshot
+    ✔ UniverseAgentGrpcServices lists Agent.DeleteSnapshot
+    ✔ UniverseAgentGrpcServices lists Session.Info
+    ✔ UniverseAgentGrpcServices lists Session.Resume
+    ✔ UniverseAgentGrpcServices lists Session.Prewarm
+    ✔ UniverseAgentGrpcServices lists Session.Shelve
+    ✔ UniverseAgentGrpcServices lists Session.Unshelve
+    ✔ UniverseAgentGrpcServices lists Session.Export
+    ✔ UniverseAgentGrpcServices lists Session.ResolveTurn
+    ✔ UniverseAgentGrpcServices lists Agent.Status
+    ✔ UniverseAgentGrpcServices lists Session.Purge
+    ✔ UniverseAgentGrpcServices lists Agent.Todo
+    ✔ UniverseAgentGrpcServices lists Agent.Compact
+    ✔ UniverseAgentGrpcServices lists Session.ResolveAnchor
+    ✔ UniverseAgentGrpcServices lists Agent.Usage
+    ✔ UniverseAgentGrpcServices lists Agent.List
+    ✔ UniverseAgentGrpcServices lists Agent.History
+    ✔ UniverseAgentGrpcServices lists Agent.Pause
+    ✔ UniverseAgentGrpcServices lists Agent.Resume
+    ✔ UniverseAgentGrpcServices lists Agent.Back
+    ✔ UniverseAgentGrpcServices lists Agent.Prune
+    ✔ UniverseAgentGrpcServices lists Agent.SuspendLoop
+    ✔ UniverseAgentGrpcServices lists Agent.ResumeLoop
+    ✔ UniverseAgentGrpcServices lists Agent.StopLoop
+    ✔ UniverseAgentGrpcServices lists Agent.Reset
+    ✔ UniverseAgentGrpcServices lists Agent.Branch
+    ✔ renameSession forwards request and maps result
+    ✔ cancelGeneration forwards request and maps result
+    ✔ cancelToolCall forwards request and maps result
+    ✔ runToolInBackground forwards request and maps result
+    ✔ stopShellTask forwards request and maps result
+    ✔ sendShellSessionClientControl forwards request and maps result
+    ✔ fetchToolUsageDetail forwards request and maps result
+    ✔ fireTriggerWebhook forwards request and maps result
+    ✔ switchWorkDir forwards request and maps result
+    ✔ testModelProfile forwards request and maps result
+    ✔ setConfig forwards request and maps result
+    ✔ setModelPreferences forwards request and maps result
+    ✔ setSessionGoal forwards request and maps result
+    ✔ cancelSessionGoal forwards request and maps result
+    ✔ respondPermission forwards request and maps result
+    ✔ syncPermissionRule forwards request and maps result
+    ✔ promotePermissionRule forwards request and maps result
+    ✔ respondQuestion forwards request and maps result
+    ✔ queue mutations forward request and map result
+    ✔ insertQueueItem forwards request and maps result
+    ✔ reorderQueue forwards request and maps result
+    ✔ deleteQueueItem forwards request and maps result
+    ✔ retryQueueItem forwards request and maps result
+    ✔ retryAllFailed forwards request and maps result
+    ✔ retryQueueItemUpload forwards request and maps result
+    ✔ pinQueueItem forwards request and maps result
+    ✔ setQueueItemLocked forwards request and maps result
+    ✔ injectQueueItem forwards request and maps result
+    ✔ setQueueItemForkAnchor forwards request and maps result
+    ✔ chatSync forwards request and maps result
+    ✔ syncInputDelivery forwards request and maps result
+    ✔ installSessionDemoFake forwards request and maps result
+    ✔ clearSessionDemoFake forwards request and maps result
+    ✔ forkAgent forwards request and maps result
+    ✔ getToolInfo forwards request and maps result
+    ✔ killAgent forwards request and maps result
+    ✔ deleteMessage forwards request and maps result
+    ✔ editMessage forwards request and maps result
+    ✔ sendClientToolResponse forwards request and maps result
+    ✔ listSnapshots forwards request and maps result
+    ✔ listLoopSnapshots forwards request and maps result
+    ✔ createSnapshot forwards request and maps result
+    ✔ createSnapshot forwards turnCount snapshot and empty-title failure
+    ✔ restoreSnapshot forwards request and maps result
+    ✔ getSessionInfo forwards request and maps result
+    ✔ getSessionRules forwards request and maps result
+    ✔ session tool profile and engine trigger forward exact requests and preserve responses
+    ✔ setPermissionMode forwards request and maps result
+    ✔ taskUpdate forwards request and maps result
+    ✔ taskCancel forwards request and maps result
+    ✔ messageMember forwards request and maps result
+    ✔ createTeam forwards request and maps result
+    ✔ getConfig forwards request and maps result
+    ✔ getModelPreferences forwards request and maps result
+    ✔ startMember forwards request and maps result
+    ✔ killMember forwards request and maps result
+    ✔ abort forwards request and maps result
+    ✔ switchModel forwards request and maps result
+    ✔ resolveModel forwards request and maps result
+    ✔ listCommands forwards request and maps result
+    ✔ getCommandDef forwards request and maps result
+    ✔ listFiles forwards request and maps result
+    ✔ readFile forwards request and maps result
+    ✔ getFileInfo forwards request and maps result
+    ✔ writeFile forwards request and maps result
+    ✔ forceWriteFile forwards request and maps result
+    ✔ agentMerge forwards request and maps result
+    ✔ readGitSummary forwards request and maps result
+    ✔ readGitChanges forwards request and maps result
+    ✔ readGitFileDiff forwards request and maps result
+    ✔ writeGitStagePaths forwards request and maps result
+    ✔ writeGitCommit forwards request and maps result
+    ✔ writeGitApplyHunks forwards request and maps result
+    ✔ getSessionUsage forwards request and maps result
+    ✔ getGlobalUsage forwards empty request and maps result
+    ✔ saveMemory forwards request and maps result
+    ✔ searchMemory forwards request and maps result
+    ✔ searchDeepMemory forwards request and maps result
+    ✔ readMemory forwards request and maps result
+    ✔ listMemory forwards request and maps result
+    ✔ deleteMemory forwards request and maps result
+    ✔ reflectMemory forwards request and maps result
+    ✔ revertMemory forwards request and maps result
+    ✔ historyMemory forwards request and maps result
+    ✔ listContextVariable forwards request and maps result
+    ✔ readContextVariable forwards request and maps result
+    ✔ listNodes forwards request and maps result
+    ✔ getNode forwards request and maps result
+    ✔ checkConnection forwards request and maps result
+    ✔ setMaintenance forwards request and maps result
+    ✔ exitMaintenance forwards request and maps result
+    ✔ listConfigs forwards empty request and maps result
+    ✔ getRemoteAgentConfig forwards request and maps result
+    ✔ saveRemoteAgentConfig forwards request and maps result
+    ✔ resetError forwards request and maps result
+    ✔ deleteRemoteAgentConfig forwards request and maps result
+    ✔ reloadRemoteAgents forwards empty request and maps result
+    ✔ createRemoteSession forwards request and maps result
+    ✔ destroyRemoteSession forwards request and maps result
+    ✔ getRemoteSessionStatus forwards request and maps result
+    ✔ getRemoteSessionHistory forwards request and maps result
+    ✔ resumeRemoteSession forwards request and maps result
+    ✔ cancelRemoteSession forwards request and maps result
+    ✔ getUploadProgress forwards request and maps result
+    ✔ healthCheck forwards empty request and maps result
+    ✔ doctor forwards empty request and maps result
+    ✔ shutdown forwards request and maps result
+    ✔ listDevices forwards empty request and maps result
+    ✔ pairApprove forwards request and maps result
+    ✔ pairReject forwards request and maps result
+    ✔ revoke forwards request and maps result
+    ✔ rotateToken forwards request and maps result
+    ✔ listPending forwards empty request and maps result
+    ✔ listTriggers forwards request and maps result
+    ✔ upsertTrigger forwards request and maps result
+    ✔ deleteTrigger forwards request and maps result
+    ✔ setTriggerEnabled forwards request and maps result
+    ✔ fireTrigger forwards request and maps result
+    ✔ writeClipboard forwards request and maps result
+    ✔ readClipboard forwards request and maps result
+    ✔ listClipboard forwards request and maps result
+    ✔ clearClipboard forwards request and maps result
+    ✔ setPermissionPolicy forwards request and maps result
+    ✔ getTodo forwards request and maps result
+    ✔ resolveAnchor forwards request and maps result
+    ✔ getUsage forwards request and maps result
+    ✔ getAgentHistory forwards request and maps result
+    ✔ prune forwards request and maps result
+    ✔ resetAgent forwards request and maps result
+    ✔ branch forwards request and maps result
+    ✔ shelveSession forwards request and maps result
+    ✔ purgeSession forwards request and maps result
+    ✔ deleteSnapshot forwards request and maps result
+    ✔ resumeSession forwards request and maps result
+    ✔ unshelveSession forwards request and maps result
+    ✔ prewarmSessions forwards request and maps result
+    ✔ exportSession forwards request and maps result
+    ✔ resolveTurn forwards request and maps result
+    ✔ getAgentStatus forwards request and maps result
+    ✔ compact forwards request and maps result
+    ✔ listAgents forwards request and maps result
+    ✔ pauseAgent forwards request and maps result
+    ✔ suspendLoop forwards request and maps result
+    ✔ resumeLoop forwards request and maps result
+    ✔ stopLoop forwards request and maps result
+    ✔ back forwards request and maps result
+    ✔ openChatStream forwards transport onClosed
+    ✔ openChatStream dispose silences later onClosed
+    ✔ openContinuationStream forwards request and transport onClosed
+    ✔ openContinuationStream dispose silences later onClosed
+    ✔ openRegenerateStream forwards request and transport onClosed
+    ✔ openRegenerateStream dispose silences later onClosed
+    ✔ openResumeStream forwards request and transport onClosed
+    ✔ openResumeStream dispose silences later onClosed
+    ✔ openSubscribeToolDetailStream forwards request and transport onClosed
+    ✔ openSubscribeToolDetailStream dispose silences later onClosed
+    ✔ openRemoteChatStream forwards request and transport onClosed
+    ✔ openRemoteChatStream dispose silences later onClosed
+    ✔ openRebuildMemoryStream forwards request and transport onClosed
+    ✔ openRebuildMemoryStream dispose silences later onClosed
+    ✔ openWatchConfigStream forwards request and transport onClosed
+    ✔ openWatchConfigStream dispose silences later onClosed
+    ✔ openUploadAttachmentStream forwards writes and transport onClosed
+    ✔ openUploadAttachmentStream dispose silences later onClosed
+    ✔ openDownloadAttachmentStream forwards request and transport onClosed
+    ✔ openDownloadAttachmentStream dispose silences later onClosed
+    ✔ openPtyStream forwards writes, server frames, and transport onClosed
+    ✔ openPtyStream dispose silences later onClosed
+    ✔ pairing-pending => isEngineConnected === false
+    ✔ GrpcCapabilityProbe UNIMPLEMENTED on skills => UNSUPPORTED
+    ✔ SessionService.List advertised + probe OK => sessionList SUPPORTED (not in Overview keys)
+    ✔ SessionService.List not advertised => sessionList UNSUPPORTED without List probe
+    ✔ git write capability is snapshotted beside sessionList and cleared on disconnect
+    ✔ conversation entry capability is snapshotted beside git write and cleared on disconnect
+    ✔ listFiles capability is snapshotted beside conversation entry and cleared on disconnect
+    ✔ SessionService.List advertised + UNIMPLEMENTED probe => sessionList UNSUPPORTED
+    ✔ transport failure => transport failed rather than empty list
+    ✔ onDidFileMutation fires joined records from host
+    ✔ onDidTurnSettle fires from host notifyTurnSettle
+    ✔ agentTree UNIMPLEMENTED probe → UNSUPPORTED capability
+    ✔ AgentService.Tree non-UNIMPLEMENTED failure sets isAgentTreeFetchFailed (D21)
+    ✔ AgentService.Tree UNIMPLEMENTED does not set isAgentTreeFetchFailed
+    ✔ switching profile after AgentService.Tree UNIMPLEMENTED resets probe flag and allows engine B to fetchAgentTree (B1)
+    ✔ _dropPublishedTransport resets capabilities and probe flags (B1, G17)
+    ✔ disconnect clears isAgentTreeFetchFailed (D21)
+    ✔ isAgentTreeFetchFailed flip fires onDidChangeConnection (D21)
+    ✔ idle profile dial broadcasts the connecting phase on the snapshot (ELR-9)
+    ✔ Hub signedIn does not set isEngineConnected (H4a connection-state honesty)
+    ✔ SaveSkillContent advertised + probe OK => saveSkillContent writes via transport
+    ✔ SaveSkillContent UNIMPLEMENTED probe => saveSkillContent absent
+    ✔ ToolService.* wildcard advertises SaveSkillContent and still requires a probe
+    ✔ ToolService.ListSkills alone does not bind saveSkillContent
+    ✔ AgentService.* wildcard advertises FetchToolDetail
+    ✔ fetchToolDetail without an AgentService advertisement is unavailable and does not call the transport
+    ✔ saveSkillContent runtime UNIMPLEMENTED => ok false without throwing
+    ✔ probeEngine without transport reports not connected
+    ✔ probeEngine uses GetAuthNonce with client identity
+
+  UniverseAgentConnectionService probeConnectionProfile (GC-3)
+    ✔ resolver failure code passes through
+    ✔ probe pin text is pin_mismatch and a timeout stays transport_failed
+    ✔ getAuthNonce success leaves phase and live transport unchanged
+    ✔ probe does not write transport or phase and keeps writes made during the probe
+    ✔ pairing_required formal resolve still probes GetAuthNonce via forPairing
+    ✔ probe ticket is not reused by the next resolve without forceNewTicket
+    ✔ pairing_required without a pairing endpoint uses Connect-owned reason
+
+  UniverseAgentConnectionService pairing (GC-1b)
+    ✔ hubDevice without trust returns pairingPending with handshake sasCode
+    ✔ connectProfile returns pairing fields without calling confirmSas
+    ✔ connectProfile fires pairingPending snapshot before startPairing resolves
+    ✔ node idle capability snapshot is not the Web unsupported stub
+    ✔ confirmPairing writes trust; cancelPairing leaves trust null
+    ✔ confirmPairing grant_pending without sas stays pending instead of pairing_required
+    ✔ confirmPairing grant_pending with new sasCode keeps sas for re-prompt
+    ✔ awaiting_sas snapshot without sasCode fails closed instead of ok+pairingPending
+    ✔ recoverTrust snapshot without leaf fingerprint fails closed
+    ✔ S4 recoverTrust branch does not install session token on startPairing
+    ✔ startPairing throw becomes transport_failed instead of hanging reject
+    ✔ pairing consumes the resolved ticket before the orchestrator sees it
+
+  UniverseAgentConnectionService revokeDevice disconnect (GC-2)
+    ✔ revoke of connected hubDevice profile disconnects once
+    ✔ revoke of a different hubDevice does not disconnect
+    ✔ revoke of the same device on another hub does not disconnect
+    ✔ revoke of the same hub identity disconnects once
+
+  UniverseAgentConnectionService reconnect backoff (D408)
+    ✔ transport_lost with active profile schedules connectProfile({ reconnect: true })
+    ✔ backoff doubles then caps at 30000
+    ✔ jitter is ±20% of raw delay
+    ✔ successful reconnect resets attempt count
+    ✔ disconnect cancels pending reconnect
+    ✔ dispose cancels pending reconnect
+    ✔ cancelPairing cancels pending reconnect
+    ✔ pairingPending does not schedule reconnect
+    ✔ pairing_required resolve does not schedule reconnect
+    ✔ unauthenticated transport error does not schedule reconnect
+    ✔ no active profile does not schedule reconnect
+    ✔ reconnect transport_failed still reschedules backoff (D410)
+    ✔ reconnect non-TransportError throw still reschedules backoff (D410)
+    ✔ reconnect pairing_required still does not reschedule (D410)
+    ✔ plaintext reconnect connect() keeps transport_lost (D413)
+    ✔ user reconnect resolver transport_failed reschedules (D413)
+    ✔ user reconnect handshake transport_failed reschedules (D413)
+    ✔ user reconnect handshake pin_mismatch does not reschedule (D413)
+    ✔ user reconnect TLS pin UNAVAILABLE is pin_mismatch and does not reschedule or clear trust
+    ✔ user reconnect Connect UNAUTHENTICATED is grant_revoked and the next connect uses pairing_required
+    ✔ user reconnect deadline and plain handshake errors do not reschedule and keep trust
+    ✔ resolver engine_not_serving during reconnect still rearms
+    ✔ ipv6 resolvedIp is dialed with brackets
+    ✔ resolveHost rejection does not throw out of connectProfile
+    ✔ empty createSigner before handshake stays trust_missing
+    ✔ handshake failure codes stay distinct and do not arm a D408 timer
+    ✔ handshake identity, malformed fingerprint, and signer are not reconnect halt codes
+    ✔ user reconnect pairing_required does not reschedule (D413)
+    ✔ user reconnect connect() non-TransportError throw reschedules (D416)
+    ✔ user Connect after failed transport connect() non-TransportError throw reschedules (D416)
+    ✔ initial connect() non-TransportError throw does not schedule (D416)
+    ✔ user reconnect connect() throw while pairingPending does not schedule (D416)
+    ✔ user reconnect handshake catch non-TransportError throw reschedules (D416)
+    ✔ user reconnect resolve() throw reschedules (D417)
+    ✔ user Connect after failed transport getOrCreateIdentity throw reschedules (D417)
+    ✔ user reconnect createSigner throw reschedules (D417)
+    ✔ initial resolve() throw does not schedule (D417)
+    ✔ user reconnect resolve() throw while pairingPending does not schedule (D417)
+    ✔ profile switch changes linkId and engineIdentityId and clears the previous identity first
+
+  UniverseAgentConnectionService session token link (ELR-1 S1/S2/S4)
+    ✔ TLS handshake installs the token once before the first probe
+    ✔ relay ticket sets the pinned relay flag
+    ✔ plaintext connect does not install a session token
+    ✔ pairing_pending does not install a session token
+    ✔ profile pairing does not install a session token
+    ✔ connecting B does not install A token on B
+    ✔ probe UNAUTHENTICATED stays failed and does not schedule reconnect
+    ✔ grace rejection during reconnect is not rearmed by D410
+    ✔ ordinary transport_failed during reconnect still rearms D410
+    ✔ TLS pin UNAVAILABLE during reconnect does not rearm
+    ✔ Connect UNAUTHENTICATED during reconnect does not rearm
+    ✔ non-UNAVAILABLE handshake throw during reconnect does not rearm
+    ✔ rejection after the grace window detaches and redials with forceNewTicket
+    ✔ grace rejection ignores UNAVAILABLE emitted by close
+    ✔ condemn and closeoutAuthenticatedLink resets capability snapshot to UNKNOWN (B1, G17)
+    ✔ grace condemn and closeoutAuthenticatedLink resets capability snapshot to UNKNOWN (B1, G17)
+    ✔ probe UNAVAILABLE redials with forceNewTicket and is not a grace failure
+    ✔ committed UNAVAILABLE detaches before a late success can restore the link
+    ✔ late UNAVAILABLE from the detached transport does not fail the new link
+    ✔ an event from a transport that is no longer current is ignored
+    ✔ renew pairing dial forces a fresh uncached ticket
+    ✔ pinned dial consumes the relay ticket before opening TLS
+    ✔ in-flight local discovery does not steal a profile dial subscription
+
+  UniverseAgentConnectionService dial generation
+    ✔ stale resolve does not close the later user dial
+    ✔ stale probe does not rewrite the winner capability, session list, or save-skill binding
+    ✔ disconnect during probe leaves phase closed and writes no token
+    ✔ dispose during probe does not publish a connected commit
+    ✔ reconnect is a no-op while a user dial is in resolve and does not bump epoch
+    ✔ superseded reconnect does not schedule after the user dial commits
+    ✔ failed resolve for B leaves A id, token, phase, and transport
+    ✔ same-epoch reconnect into pairing stops before forPairing and leaves the winner
+    ✔ profile plaintext dial opens one transport and probes
+    ✔ plaintext response without a session token fails and does not go pending
+    ✔ startPairing sas_mismatch stays a sas_mismatch failure
+    ✔ startPairing keeps handshake codes that are already ConnectionFailureCode
+    ✔ confirmSas during disconnect does not call connectProfile again
+    ✔ formal pairing_pending clears trust and confirmSas is reachable
+
+  UniverseAgentConnectionService dispose snapshot
+    ✔ dispose broadcasts the disconnected snapshot when leaving connected
+    ✔ dispose broadcasts when leaving connecting
+    ✔ dispose does not broadcast when the phase stays put
+
+  UniverseAgentConnectionService pairing main dialog
+    ✔ confirmSas asks the stubbed dialog and cancel is not approval
+    ✔ confirmSas treats only the first dialog button as approval
+    ✔ confirmSas without a dialog does not auto-approve
+    ✔ a thrown pairing dialog is not user cancellation
+    ✔ confirmRecoverTrust writes trust only when the stubbed dialog approves
+    ✔ confirmRecoverTrust without a dialog does not auto-approve
+    ✔ confirmPairing without in-pane approval still opens the main dialog
+    ✔ confirmPairing userConfirmed skips the main SAS dialog
+    ✔ confirmPairing userConfirmed writes recover trust without the main dialog
+
+  UniverseAgentConnectionIpcChannel
+    ✔ session tool profile and engine trigger requests cross the explicit IPC allowlist unchanged
+    ✔ GetQueue crosses desktop client and host allowlist without losing version precision
+    ✔ allowlist forwards unary calls and blocks host, connect, streams, and extras
+    ✔ connection events pass and the host refresh event does not
+    ✔ team commands hit the nested object and reject a bad team id
+    ✔ hub channel forwards hub calls only
+    ✔ desktop client team is an object of unary IPC calls
+    ✔ registration source keeps the allowlist, hub name, and host token
+
+  grpc capability probe advertisement
+    ✔ new session writes require explicit support even when a proxy method exists
+    ✔ session writes probe only advertised empty requests with method-specific status semantics
+    ✔ FooService.* wildcard counts as advertised for that service method
+    ✔ wildcard TeamService.* + probe OK => team SUPPORTED
+    ✔ no advertisement => team / rules / hooks / provider UNSUPPORTED
+    ✔ ProjectRuleService.* + probe OK => globalRules and projectRules SUPPORTED
+    ✔ ProjectRule List probe sends GLOBAL scope, other probes stay empty
+    ✔ SystemService.* + probe OK => hooksMetadata SUPPORTED
+    ✔ AgentService.ListProviderStatus + probe OK => providerConfig SUPPORTED
+    ✔ advertised provider + UNIMPLEMENTED stays UNSUPPORTED
+    ✔ TriggerService.FireTrigger + probe OK => fireTrigger SUPPORTED
+    ✔ GitService.* + probe OK => readGitChanges SUPPORTED
+    ✔ git write capability stays off Overview keys and probes each write
+    ✔ ClipboardService.Write + probe OK => writeClipboard SUPPORTED and read stays unadvertised
+    ✔ conversation entry capability probes only advertised methods
+    ✔ listFiles capability probes only an advertised ListFiles
+    ✔ catalog paths used by probe match handshake keys
+
+  universeAgentRendererSync
+    ✔ desktop idle snapshot never uses the Web unsupported reason
+    ✔ sanitizeDesktopCapabilitySnapshot strips Web stub pollution
+    ✔ connection cache drops Web stub capability reasons from IPC snapshots
+    ✔ isAdvertisedEngineRpc closes UNSUPPORTED even when the proxy method exists
+    ✔ readCapabilityEntry defaults missing keys to UNKNOWN
+    ✔ asConnectionProfileList rejects a Promise (ProxyChannel shape)
+    ✔ phase connected is the only Engine-open signal
+    ✔ connection cache prefers phase.kind for connected
+    ✔ connection cache does not treat a snapshot missing phase as connected
+    ✔ connection cache reads sessionListCapability from snapshot dedicated field
+    ✔ connection cache reads git write capability from the snapshot field
+    ✔ conversation entry capability closes UNSUPPORTED and keeps UNKNOWN method fallback
+    ✔ sources files list capability closes UNSUPPORTED and keeps UNKNOWN method fallback
+    ✔ applySnapshot copies published link identity and drops a missing or invalid one
+    ✔ hub cache maps a Promise list to empty until a real array arrives
+    ✔ connection channel client finalizes connectProfile pairing fields after IPC
+    ✔ connection channel client rejects pairingPending without sas or recoverTrust
+    ✔ connection channel client keeps confirmPairing grantPending without sas
+    ✔ forwarding proxy does not let an undefined local resumeSession shadow remote
+    ✔ connection channel client resumeSession is a function and hits IPC
+    ✔ forwarding proxy keeps local sync getters and forwards the rest
+    ✔ connection channel client connected phase with pairingPending is not engine connected
+    ✔ connection channel client hydrates sync getters from async IPC
+    ✔ connection channel client hydrate IPC reject keeps pre-hydrate defaults without unhandled rejection
+    ✔ connection channel client applies idle-to-connecting phase from the snapshot without getConnectionPhase
+    ✔ connection channel client does not let a stale hydrate snapshot overwrite connecting
+    ✔ hub channel client hydrates listConnectionProfiles to a real array
+    ✔ hub channel client hydrate IPC reject keeps pre-hydrate defaults without unhandled rejection
+    ✔ hub hydrate keeps auth and directory written by a login event during the flight
+    ✔ hub hydrate does not overwrite a hub URL written by the client setter during the flight
+
+  Errors
+    ✔ should not have unexpected errors in tests
+
+
+  880 passing (406ms)
+

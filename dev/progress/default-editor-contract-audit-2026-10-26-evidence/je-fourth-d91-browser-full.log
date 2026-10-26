@@ -1,0 +1,172 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1631861:1027/014844.841889:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1631875) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1631875) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1631875) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  Conversation engine queue reader[0m
+  [32m  ✔[0m[90m bind gates reads, uses actual engine id and polls after completion[0m
+  [32m  ✔[0m[90m old link, engine and session results cannot paint new scope[0m
+  [32m  ✔[0m[90m failure and version regression preserve snapshot and recover; disconnect and unsupported revoke writes[0m
+  [32m  ✔[0m[90m mutation refresh during poll is not dropped and dispose discards late results[0m
+
+[0m  ConversationInboxOverlay Stop[0m
+  [32m  ✔[0m[90m stub Stop stays disabled and does not cancel[0m
+  [32m  ✔[0m[90m connected streaming Stop forwards cancelGeneration[0m
+  [32m  ✔[0m[90m Stop cancelGeneration false with history shows engine_disconnected[0m
+  [32m  ✔[0m[90m Stop cancelGeneration false without history shows failed[0m
+  [32m  ✔[0m[90m projection streaming without getTurns streaming enables Stop and cancelGeneration[0m
+  [32m  ✔[0m[90m pairing hold keeps Stop disabled even when projection is streaming[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail keeps Stop disabled even when projection is streaming[0m
+
+[0m  ConversationInboxOverlay Goal[0m
+  [32m  ✔[0m[90m stub Goal stays disabled and does not set[0m
+  [32m  ✔[0m[90m connected Goal without setSessionGoal stays disabled[0m
+  [32m  ✔[0m[90m connected Goal forwards setSessionGoal[0m
+  [32m  ✔[0m[90m connected Goal prompt cancel does not set[0m
+  [32m  ✔[0m[90m connected Goal confirm of the same text does not set and does not fail[0m
+  [32m  ✔[0m[90m connected Goal empty confirm cancels an existing goal[0m
+  [32m  ✔[0m[90m connected Goal setSessionGoal false shows failed and does not change goal[0m
+  [32m  ✔[0m[90m connected Goal cancelSessionGoal false shows failed and keeps existing goal[0m
+  [32m  ✔[0m[90m Goal setSessionGoal false after disconnect during prompt shows engine_disconnected[0m
+  [32m  ✔[0m[90m disconnected Goal stays disabled without setSessionGoal[0m
+  [32m  ✔[0m[90m connected Goal input reject does not leak unhandled rejection or show notice[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Goal click catch-path showPostFailure throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Goal click catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m inbox overlay goal and enqueue fire-and-forget voids double-catch onUnexpectedError[0m
+
+[0m  ConversationInboxOverlay context ring[0m
+  [32m  ✔[0m[90m right cluster has Stop and no fake context-usage ring[0m
+  [32m  ✔[0m[90m context ring fills from an admitted contextPct and is omitted without one[0m
+  [32m  ✔[0m[90m context ring stylesheet fills from the admitted percentage variable[0m
+  [32m  ✔[0m[90m engine queue read states distinguish empty success and retain readonly rows on failure[0m
+  [32m  ✔[0m[90m getSessionId shows bound session queue while global active is another session[0m
+  [32m  ✔[0m[90m empty getSessionId does not fall back to the active session queue[0m
+  [32m  ✔[0m[90m bound session leaving active closes the queue panel[0m
+
+[0m  ConversationInboxOverlay list panel host[0m
+  [32m  ✔[0m[90m refreshing the open list ignores a decoy global panel[0m
+  [32m  ✔[0m[90m pairing-hold leftover queue row does not start edit[0m
+
+[0m  ConversationInboxOverlay Enqueue[0m
+  [32m  ✔[0m[90m PRD-015 验收 5: 无 Task 芯片，空队列停在芯片上且不展开死列表[0m
+  [32m  ✔[0m[90m stub Enqueue stays disabled and does not call enqueue[0m
+  [32m  ✔[0m[90m connected Enqueue is disabled and does not call enqueueMessageQueueItem[0m
+  [32m  ✔[0m[90m connected Enqueue prompt cancel does not enqueue[0m
+  [32m  ✔[0m[90m connected Enqueue empty confirm fails honestly and does not add a fake item[0m
+  [32m  ✔[0m[90m connected Enqueue false does not pretend the item landed in the list[0m
+  [32m  ✔[0m[90m Enqueue after disconnect shows engine_disconnected without enqueue[0m
+  [32m  ✔[0m[90m live Enqueue disables when pairingPending[0m
+  [32m  ✔[0m[90m leftover-looks-live Enqueue post-await pairing-hold does not enqueue[0m
+  [32m  ✔[0m[90m disconnected Enqueue stays disabled and forced click reports engine_disconnected[0m
+  [32m  ✔[0m[90m connected Enqueue input reject does not leak unhandled rejection or show notice[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Enqueue click catch-path showPostFailure throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Enqueue click catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m connected Inbox does not pose fixture as the engine queue[0m
+
+[0m  ConversationInboxOverlay Retry[0m
+  [32m  ✔[0m[90m FAILED and UPLOAD_FAILED rows expose Retry; PENDING does not[0m
+  [32m  ✔[0m[90m FAILED and UPLOAD_FAILED rows use distinct DOM classes[0m
+  [32m  ✔[0m[90m row meta follows item status and does not prefix Queued onto failed, upload, sending, or editing rows[0m
+  [32m  ✔[0m[90m stub Retry stays disabled and does not call retryMessageQueueItem[0m
+  [32m  ✔[0m[90m retryMessageQueueItem false shows failed and does not dress the row as retried[0m
+  [32m  ✔[0m[90m hold and retry re-resolve the injected session id at click[0m
+  [32m  ✔[0m[90m connected Inbox does not show fixture FAILED rows as the engine queue[0m
+
+[0m  ConversationInboxOverlay queue headline[0m
+  [32m  ✔[0m[90m paused while processing: chip and list header both say Sending, not paused[0m
+  [32m  ✔[0m[90m queued count is waiting PENDING rows, shared by chip and list header[0m
+  [32m  ✔[0m[90m editing, failed, and uploading queues are not labeled queued[0m
+
+[0m  ConversationInboxOverlay pending click[0m
+  [32m  ✔[0m[90m leftover pending visible while pairingPending does not scroll[0m
+  [32m  ✔[0m[90m connected leftover pending click still scrolls[0m
+  [32m  ✔[0m[90m question-only pending count hides the confirmation button[0m
+  [32m  ✔[0m[90m one permission pending shows the confirmation button[0m
+  [32m  ✔[0m[90m inbox pending target is the confirmation turn, not a question[0m
+
+[0m  ConversationInboxOverlay leftover pairing remaining writes[0m
+  [32m  ✔[0m[90m leftover pairing-hold remaining writes stay gated[0m
+
+[0m  ConversationInboxOverlay leftover-looks-live KEEP-chrome[0m
+  [32m  ✔[0m[90m leftover-looks-live queue uses leftover chrome, not live not-listed[0m
+  [32m  ✔[0m[90m leftover-looks-live empty queue uses leftover copy, not live not-listed[0m
+  [32m  ✔[0m[90m leftover-looks-live Stop does not paint generating[0m
+  [32m  ✔[0m[90m true disconnect+history queue stays not-listed and not generating[0m
+  [32m  ✔[0m[90m true connected without pairing still uses live not-listed[0m
+
+[0m  ConversationInboxOverlay KEEP leftover list-fail writes[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail Goal Stop Enqueue close without reselect and reject before quickInput[0m
+
+[0m  EngineSkillsSection (E1)[0m
+  [32m  ✔[0m[90m Skills: description stays beside the checkbox and the editor stays closed until a skill is selected[0m
+  [32m  ✔[0m[90m skill toggle action names describe the next enablement state[0m
+  [32m  ✔[0m[90m late listSkills after dispose does not paint skill rows[0m
+  [32m  ✔[0m[90m disconnected hides skills section (§8.3 #5 honest empty)[0m
+  [32m  ✔[0m[90m UNSUPPORTED shows honest message without fake skill names (§8.3 #6)[0m
+  [32m  ✔[0m[90m disconnect clears RPC catalog rows (§8.3 #5)[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover catalog and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold writes stay 0 unary[0m
+  [32m  ✔[0m[90m listSkills reject is failed with error status and no leftover catalog[0m
+  [32m  ✔[0m[90m successful load then refresh throw keeps leftover catalog and paints failed[0m
+  [32m  ✔[0m[90m successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m first fetch capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m SUPPORTED connected shows New toolbar and createSkill calls saveSkillContent RPC[0m
+  [32m  ✔[0m[90m disconnected createSkill does not call saveSkillContent RPC[0m
+  [32m  ✔[0m[90m createSkill ok:false paints write-status and does not add a fake row[0m
+  [32m  ✔[0m[90m toggleSkill ok:false paints write-status and keeps catalog[0m
+  [32m  ✔[0m[90m toggleSkill throw paints write-status and keeps catalog[0m
+  [32m  ✔[0m[90m toggleSkill success does not keep toggle-success when subsequent listSkills fails[0m
+  [32m  ✔[0m[90m toggleSkill success still shows toggle-success when subsequent getSkillInfo fails[0m
+  [32m  ✔[0m[90m createSkill success does not keep create-success when subsequent listSkills fails[0m
+  [32m  ✔[0m[90m createSkill throw paints write-status and does not add a fake row[0m
+  [32m  ✔[0m[90m saveSelectedSkillBody ok:false paints write-status and keeps catalog[0m
+  [32m  ✔[0m[90m runtime SaveSkillContent UNIMPLEMENTED closes write chrome after binding disappears[0m
+  [32m  ✔[0m[90m saveSelectedSkillBody throw paints write-status and keeps catalog[0m
+  [32m  ✔[0m[90m saveSelectedSkillBody reads canonical body without refreshing the list[0m
+  [32m  ✔[0m[90m saveSelectedSkillBody reports failure when canonical getSkillInfo fails[0m
+  [32m  ✔[0m[90m SUPPORTED connected saveSelectedSkillBody calls saveSkillContent RPC[0m
+  [32m  ✔[0m[90m save uses raw CAS and preserves typing during canonical readback[0m
+  [32m  ✔[0m[90m late save from old link cannot replace a draft or authorize a new-engine save[0m
+  [32m  ✔[0m[90m explicit refresh recovers CAS baseline after readback failure and keeps dirty draft[0m
+  [32m  ✔[0m[90m explicit Refresh recovers a dirty draft on a new link to the same engine[0m
+  [32m  ✔[0m[90m New dialog cannot create a skill on an engine switched while the dialog was open[0m
+  [32m  ✔[0m[90m Skills: dirty body selection to another skill keeps A and does not save B[0m
+  [32m  ✔[0m[90m Skills: dirty body selection of a group header keeps the skill and the text[0m
+  [32m  ✔[0m[90m Skills: clean body selection of a group header clears the editor[0m
+  [32m  ✔[0m[90m Skills: dirty body reselecting the same skill is not blocked[0m
+  [32m  ✔[0m[90m Skills: clean body selection to another skill still changes selectedSkill[0m
+  [32m  ✔[0m[90m Skills: switching skills clears the previous body and does not save it onto the next skill[0m
+  [32m  ✔[0m[90m bundled skill body is read-only and does not show save toolbar[0m
+  [32m  ✔[0m[90m successful refresh then getSkillInfo throw keeps leftover body and paints load-failed[0m
+  [32m  ✔[0m[90m successful body then list throw then select leftover keeps body text[0m
+  [32m  ✔[0m[90m successful body then capability UNKNOWN then select leftover keeps body text[0m
+  [32m  ✔[0m[90m leftover body stays after pairing re-select, then true disconnect clears[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold loadSkillBody skips extra getSkillInfo[0m
+  [32m  ✔[0m[90m pairing-hold refresh paints leftover body honesty without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh paints leftover body honesty without reselect[0m
+  [32m  ✔[0m[90m pairing-hold refresh closes leftover user body Save chrome without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh closes leftover user body Save chrome without reselect[0m
+  [32m  ✔[0m[90m capability UNKNOWN leftover closes leftover user body Save chrome without reselect[0m
+  [32m  ✔[0m[90m list-fail leftover closes leftover user body Save chrome without reselect[0m
+  [32m  ✔[0m[90m pairing-hold refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m capability UNKNOWN leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m list-fail leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m in-flight getSkillInfo leftover-looks-live keeps leftover and does not paint live[0m
+  [32m  ✔[0m[90m disconnected saveSelectedSkillBody does not call saveSkillContent RPC[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when loadSkillBody catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m New skill opens an input dialog and does not save without a name[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when createSkill catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when saveSelectedSkillBody catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when row toggleSkill catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+
+
+[92m [0m[32m 133 passing[0m[90m (694ms)[0m
+

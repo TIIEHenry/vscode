@@ -1,0 +1,11 @@
+{
+  "candidate": "9cc56b5595cdc680020cc832fe390c592a55c25c",
+  "sourceTree": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+  "peerReportCommit": "2a1a4776e45d101fd2bb5aded8ee195a7f2446db",
+  "peerReportPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md",
+  "critical": 0,
+  "important": 0,
+  "minor": 0,
+  "reportBlobExactIncoming": true,
+  "nativeCreditGranted": false
+}

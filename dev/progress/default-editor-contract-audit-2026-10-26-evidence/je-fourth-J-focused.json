@@ -1,0 +1,49 @@
+{
+  "label": "J-focused",
+  "sourceHead": "8b4ddaa99a8cc88ed645407ee42075a8497c4f34",
+  "sourceTree": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+  "nativeCompileHead": "8b4ddaa99a8cc88ed645407ee42075a8497c4f34",
+  "nativeCompileExit": 0,
+  "nativeSourceOutputIdentityScope": 154,
+  "nativeOutputsAllExistAndUnchanged": true,
+  "nativeJavaScriptAllWrittenAfterCompileStart": true,
+  "nativeCopiedCssExactSourceBytes": true,
+  "sourceHashesAllMatchCompiledRecord": true,
+  "startedAtUtc": "2026-10-26T17:48:36.117206+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+    "--grep",
+    "delegated host|Sources overlap"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "sharedLockHeld": true,
+  "globalLaneMatches": [],
+  "outFrozen": false,
+  "testFiles": [
+    "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts"
+  ],
+  "exitCode": 0,
+  "finishedAtUtc": "2026-10-26T17:48:38.007011+00:00",
+  "mochaSummaries": [
+    "  29 passing (205ms)"
+  ],
+  "outputsUnchangedAfterRun": true,
+  "sourceTreeUnchanged": true
+}
