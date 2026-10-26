@@ -1,0 +1,36 @@
+{
+  "phase": "three-important-review-defects-five-representative-old900f-business-reds",
+  "testRef": "c2b1266006b7c192fbaaf737e80be25726021fc4",
+  "producerRef": "900f772bfd139214651a7c15e82678a1a0ef6f69",
+  "sourceTreeUnchanged": "7fa3c86d152420afeb66c6038bd961bb6d5b8f4b",
+  "artifacts": [
+    {
+      "originalPath": "/tmp/vscode-response-review-old900f-red.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-runner.py",
+      "bytes": 8693,
+      "sha256": "466a3048f01dd103968b00624f05cfeaa96ce508d39370a6b1eb33016ed07885",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-response-review-old900f-red.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red.log",
+      "bytes": 5001,
+      "sha256": "029212ce2efc792127feeaf811336559988772160caa71ed3cda50f1614764e1",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-response-review-old900f-red-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-identity.json",
+      "bytes": 31358,
+      "sha256": "dc48ceaafd316735bd3f14e490ddaa3bbcf1d0d079aa1a3b25a0ea1fad16fba1",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-c2b-review-old900f-docs-health.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-docs-health.log",
+      "bytes": 4384,
+      "sha256": "cb0ecbe5dd93dcb03c9d886067256ba995f689797a0882391afa14d45be3658e",
+      "bytePreservingCopy": true
+    }
+  ]
+}

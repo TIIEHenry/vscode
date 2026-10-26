@@ -4,12 +4,12 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "main5df/src7fa3c86未新emit；J4d49八处listener补修/D静态M1关闭、2纯并发旧红；E900f仍C0/I3 occupied补修，整波未正式集成。"
+summary: "main5df/src7fa3c86未新emit；J4d49静态M1闭合/2纯旧红；E c2b修订5代表精确旧900f纯业务红已留证、Astra复读待，整波未正式集成。"
 ---
 
 # 默认编辑器合同与功能缺口续审
 
-> 当前代码波固定 J Sources + E unary 失败恢复两 coder，J4d49已补8处hasListeners()、D核心C0/I0/M1关闭，两项并发纯旧红完成且模块queued；E900f实现peer C0/I3未过、occupied补修；整波不提前formal合源；D1387 accepted/open。D1385原UI验收停止、accepted/open且退出队列；D1386已closed。本轮再接main明确已提交5df基线，src精确7fa3c86；无新emit、native out仍ad80实际全量compile-client0的身份，待最终三路统一实际编译；未取root/J/E WIP，主工位out未写。
+> 当前代码波固定 J Sources + E unary 失败恢复两 coder，J4d49已补8处hasListeners()、D核心C0/I0/M1关闭，两项并发纯旧红完成且模块queued；E原900f实现peer C0/I3后已交修订c2b，5代表旧900f业务红已验证，Astra复读待、occupied不可formal queued；整波不提前formal合源；D1387 accepted/open。D1385原UI验收停止、accepted/open且退出队列；D1386已closed。本轮再接main明确已提交5df基线，src精确7fa3c86；无新emit、native out仍ad80实际全量compile-client0的身份，待最终三路统一实际编译；未取root/J/E WIP，主工位out未写。
 
 
 ## 当前已提交基线：5df对齐，最终编译待
@@ -18,12 +18,12 @@ summary: "main5df/src7fa3c86未新emit；J4d49八处listener补修/D静态M1关�
 
 ## 当前冻结分工与本次实际验证
 
-最新E900f实现peer C0/I3/M0，原报告尚未入库、仅父转达，E occupied补修；[三I与阶段边界](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md)。J宿主4旧业务红保留，4d49补8调用后只复跑2项same-tuple已纯业务红、listening=false；D原件已入，核心C0/I0/M1关闭。[本次2红/身份/peer](../../progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md)；E真实DOM6旧红（4缺失败提示、2先缺busy）。均仅测试组合、34native身份已恢复，不代表正式新green；[两模块旧业务证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md)。
+最新E已针对原900f C0/I3交c2b修订，原报告尚未入库、Astra复读待，E仍occupied不可formal queued；[精确旧900f五代表业务红](../../progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md)已实际留证、15输出/34native身份恢复；[三I与阶段边界](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md)。J宿主4旧业务红保留，4d49补8调用后只复跑2项same-tuple已纯业务红、listening=false；D原件已入，核心C0/I0/M1关闭。[本次2红/身份/peer](../../progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md)；E真实DOM6旧红（4缺失败提示、2先缺busy）。均仅测试组合、34native身份已恢复，不代表正式新green；[两模块旧业务证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md)。
 
 | 工位 | 书面范围 | 当前阶段 |
 | --- | --- | --- |
 | J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。Astra追加并发I1采纳同service/API完整tuple与custom wildcard重叠sticky歧义门；D两轮报告7c84e0167e3已到，第二轮C0/I0；4d49精确补8处hasListeners()，D原件0aef核心C0/I0/M1关闭；唯一lane精确65d旧helper配修后测试2 overlap纯业务红，宿主4红不重跑；J模块queued、新green/非作者after待 |
-| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | accepted方案已独立提交5dd7d97d45b（受审SHA256 262df24…，C0/I0；blocked Minor已写），900f实现Astra静态peer C0/I3/M0（原报告未入库，仅父转达），timeline-only accepted重复unary、scope通知重入、同generation语义变化三I已退回原作者；occupied补修、不可formal queued，旧DOM6红与最终新green待；方案/代码均未合入本线，不计完成 |
+| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | accepted方案已独立提交5dd7d97d45b（受审SHA256 262df24…，C0/I0；blocked Minor已写），900f实现Astra静态peer C0/I3/M0（原报告未入库，仅父转达），timeline-only accepted重复unary、scope通知重入、同generation语义变化三I已退回原作者；已交c2b修订4TS/18回归，精确旧900f五代表纯业务红已验证；Astra复读待、occupied不可formal queued，完整新green待；方案/代码均未合入本线，不计完成 |
 | D / Sources独立审查与after | 非作者codepeer、正式产物冻结后的默认编辑器真实Git after | 规则16第二轮C0/I0；实现peer原件0aef已读/纯docs接入，核心C0/I0且4d49补修M1关闭；未收到freeze notice，不用混合pack提前窗口after |
 | merge / baseline_executor | 唯一编译、类型、转译、out与串行集成车道 | 当前231b/src7fa3c86对齐明确main5df；无新emit，34native仍ad80已编译身份。J/E正式合源后实际完整编译/测试/after，51份历史原件保留，不复用旧65d身份 |
 

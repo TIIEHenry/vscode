@@ -1,0 +1,124 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1397894:1027/001624.514180:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1397918) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1397918) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1397918) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ConversationEngineRosterService (M6-A2)[0m
+  [31m  1) response recovery review I1 timeline-only clientTool accepted remains blocked after respondable is removed[0m
+  [31m  2) response recovery review I2 public disconnect closes writes before synchronous scope notice[0m
+  [31m  3) response recovery review I2 published identity switch closes writes before synchronous scope notice and preserves cache owners[0m
+  [31m  4) response recovery review I3 same-generation baseline question options retires old false while pending stays unchanged[0m
+  [31m  5) response recovery review I3 same-generation baseline clientTool args retires old accepted while pending stays unchanged[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (63ms)[0m
+[31m  5 failing[0m
+
+[0m  1) ConversationEngineRosterService (M6-A2)
+       response recovery review I1 timeline-only clientTool accepted remains blocked after respondable is removed:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-true[0m
+      [32m+false[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: known accepted timeline-only identity must be blocked instead of forwarded
+  
+  true !== false
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3454:12)
+[0m
+[0m  2) ConversationEngineRosterService (M6-A2)
+       response recovery review I2 public disconnect closes writes before synchronous scope notice:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  true[0m
+      [31m-  true[0m
+      [31m-  true[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: all public response APIs must reject reentry during the real scope notification
+  + actual - expected
+  
+    [
+  +   true,
+  +   true,
+  +   true
+  -   false,
+  -   false,
+  -   false
+    ]
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3520:14)
+[0m
+[0m  3) ConversationEngineRosterService (M6-A2)
+       response recovery review I2 published identity switch closes writes before synchronous scope notice and preserves cache owners:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  true[0m
+      [31m-  true[0m
+      [31m-  true[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: even a same-id cached session under the new owner cannot start a response during adoption
+  + actual - expected
+  
+    [
+  +   true,
+  +   true,
+  +   true
+  -   false,
+  -   false,
+  -   false
+    ]
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3552:12)
+[0m
+[0m  4) ConversationEngineRosterService (M6-A2)
+       response recovery review I3 same-generation baseline question options retires old false while pending stays unchanged:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-true[0m
+      [32m+false[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: a changed materialized row must retire the previous attempt despite the unchanged pending summary
+  
+  'true' !== 'false'
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3587:16)
+[0m
+[0m  5) ConversationEngineRosterService (M6-A2)
+       response recovery review I3 same-generation baseline clientTool args retires old accepted while pending stays unchanged:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-true[0m
+      [32m+false[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: a changed materialized row must retire the previous attempt despite the unchanged pending summary
+  
+  'true' !== 'false'
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3587:16)
+[0m
+
+
