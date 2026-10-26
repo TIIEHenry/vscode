@@ -1,10 +1,10 @@
 ---
 title: "2026-10-26 UI 与权限审查集成看板"
 type: progress
-status: completed
+status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1373–D1375 follow-up 已按真实行为与独立视觉闭合；当前唯一新编译 Sources 0、本轮改动 TS 0，全仓仍 160 条 / 58 文件未通过；Sources 官方 Electron 六套件 171 passing。首轮与本次日志分开保存。"
+summary: "D1373–D1375 follow-up 已按真实行为与独立视觉闭合；当前唯一新编译 Sources 0、本轮改动 TS 0，全仓仍 160 条 / 58 文件未通过；Sources 官方 Electron 六套件 171 passing。首轮与本次日志分开保存。 D1377 终端投递合同源码与 27 条行为回归已补，待 merge 验证。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -22,6 +22,8 @@ summary: "D1373–D1375 follow-up 已按真实行为与独立视觉闭合；当�
 | Astra / 独立视觉复核 | 用真实运行画面复核现有设置页与 responsive UI | 发现 Direct Address 中窄 Host 竖条、Client Settings 窄 Preview 裁切；已交 D 修复 |
 | D / 设置页视觉修复 | D1371 / D1372 局部响应式修复 | `292ec409fc1`，三路合成 `a514ec3d2a5`；最小刷新和行为复验已过，独立视觉 after 已通过 |
 | J / Sources 编译基线 | D1375 正式服务注入、SCM null 结果与测试生命周期 | 基线 `0ea26634bed`；方案 `220db77` 已过 D 槽只读审查，实施 `7dd0c6d` 三路合成 `a4c5e30`；当前 Sources 0 诊断，官方 Electron 六套件 171 passing，D1375 closed |
+
+| C / Terminal 投递合同 | D1377 sendPath / runCommand void 边界、三执行策略与沙箱安装 boolean | 方案 `1bfceca` 过 Astra 只读审查；源码与 27 条行为回归已补，尚未运行；merge 验证前保持 open |
 
 两次源码合入均只有 `status.md` / `deferred-gaps.md` 文档冲突，按三路内容保留 D1368、D1369、D1370 的独立意图。D1369 迁出的 2026-10-11–12 历史仍在 [原归档](../../archive/status-2026-10-11-12-retained-2026-10-26.md)，没有删除。
 
@@ -113,3 +115,11 @@ D1373 只在 `/tmp/vscode-compile.lock` 内刷新新测试 JS 与 `conversationL
 新六项覆盖 TabsHost 注入会话事件的 tab 往返 / dispose 后停止响应、ReviewProgress 双会话工作根隔离与 SCM null/newTab/replace 的四条打开结果。11 TS 文件 targeted ESLint **0 errors / 31 既有 warnings**（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1375-eslint.log)）；D1374 占位夹具修后 ESLint **0 errors**（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-eslint-final.log)）。[当前15文件产物快照](../../progress/ui-visual-review-2026-10-26-evidence/followup-fresh-output.json) 记录全部 follow-up TS / CSS 的 source/output hash、mtime，均晚于本次编译开始；没有用旧 out 跑这些 Sources 验证。未重复上一轮已绿套件，也没有继续改其余 58 文件。
 
 D1375 短方案按范围转 `implemented`，生成索引随源重建；D1373 / D1374 / D1375 均 closed。按文档规则 3c 检索知识层的 D 编号 / 方案名与 Sources 会话上下文合同，未发现需继续翻转的待实施叙述：D1373 的 Conversation 规格、D1374 的 Sessions 概览已随源提交同步；D1375 恢复正式 DI / 空值合同，不改变已接受的 Sources 系统所有权与呈现契约，既有 Sources 总方案和 PRD 状态不翻转。首轮 docs-status 29/28 旧夹具失败保留原证据，本 follow-up 未重复或扩范围修它。
+
+## D1377 终端投递合同待验收
+
+C 仅静态修复 [短方案](../../plans/terminal-delivery-contracts.md) 的四类根因：void 包装消费 boolean；三执行策略等待投递；事件 / public void 入口使用通知出口；沙箱安装抽象声明 boolean 并清理拒绝等待。RunInTerminal 的 1822 / 1886 共用 options：`createTerminal` 返回真实 `ITerminalInstance`，平台 `ISandboxDependencyInstallTerminal.sendText(text, shouldExecute): Promise<boolean>` 对齐后，两条安装 / 修复调用无需加 cast 或修改调用文件。group 测试传正式下标；四个旧 sendText 替身返回 true。
+
+新增 27 条受控行为：TerminalInstance 3（路径 void accepted / dropped、命令 dropped、Ctrl+C dropped）；安装 / 修复各 5 个屏障结果（accepted / dropped / throw / cancelled / disposed）共 10；三执行策略各 dropped / throw 共 6；Basic 清行 2、None 清行 1；Inline Chat accepted / refused 2；MainThread public void 通知 1；RunInTerminal 安装 / 修复拒绝后原命令不执行 2。Astra 只读复核核心实现未发现 Critical / Important；指出 send pending 时取消会释放监听，但方法仍等 send 解决，本文与方案按这个真实边界表述。
+
+C 不编译、不转译、不启动 watch、不写 out、不运行旧产物冒充验证。目标 [ESLint 日志](../../progress/ui-visual-review-2026-10-26-evidence/terminal-delivery-eslint.log) 与 diff-check / docs-health 是静态检查；行为尚未验证，不推算全仓诊断下降。merge 需当前唯一新编译与新产物定向套件：`terminalInstance`、`terminalGroup`、`outputMonitor`、`terminalSandboxService`、`basicExecuteStrategy`、`noneExecuteStrategy`、`richExecuteStrategy`、`terminalExecutionDelivery`、`terminalChatWidget`、`mainThreadTerminalShellIntegration`、`runInTerminalTool`。

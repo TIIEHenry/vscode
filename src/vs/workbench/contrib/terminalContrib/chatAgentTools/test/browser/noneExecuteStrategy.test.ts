@@ -64,11 +64,25 @@ suite('NoneExecuteStrategy', () => {
 		const mockInstance = {
 			xtermReadyPromise: Promise.resolve(mockXterm),
 			onData: onDataEmitter.event,
-			sendText: () => { },
+			sendText: async () => true,
 		} as unknown as ITerminalInstance;
 
 		return { instance: mockInstance, onDataEmitter };
 	}
+
+	test('does not send a command when clearing pending input is dropped', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const { instance } = createMockTerminalAndXterm('', 'user@host:~$ ');
+		const sent: string[] = [];
+		instance.sendText = async text => {
+			sent.push(text);
+			return false;
+		};
+		const strategy = store.add(new NoneExecuteStrategy(instance, () => true, new TestConfigurationService(), createLogService()));
+		const cts = store.add(new CancellationTokenSource());
+
+		await assert.rejects(strategy.execute('echo delivery', cts.token), /could not be delivered/);
+		assert.deepStrictEqual(sent, ['\x15']);
+	}));
 
 	test('should report "Command produced no output" when output is empty', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
 		// Simulate a command that produces no output. Between the start and end markers,

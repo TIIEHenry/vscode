@@ -262,7 +262,7 @@ suite('TerminalGroupService focus restore', () => {
 		group.addInstance(moved.raw);
 		group.setActiveInstanceByIndex(0);
 
-		group.moveInstance(moved.raw, active.raw, 'before');
+		group.moveInstance(moved.raw, 0, 'before');
 
 		strictEqual(group.activeInstance, active.raw);
 		strictEqual(moved.focusCount, 0);

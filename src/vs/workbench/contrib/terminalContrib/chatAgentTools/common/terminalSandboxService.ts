@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { timeout } from '../../../../../base/common/async.js';
+import { disposableTimeout } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { MarkdownString } from '../../../../../base/common/htmlContent.js';
@@ -325,64 +325,68 @@ export class TerminalSandboxService extends Disposable implements ITerminalSandb
 	}
 
 	private async _runSandboxPrerequisiteCommand(command: string, sessionResource: URI | undefined, token: CancellationToken, options: ISandboxDependencyInstallOptions): Promise<ISandboxDependencyInstallResult> {
+		if (token.isCancellationRequested) {
+			return { exitCode: undefined };
+		}
 		const instance = await options.createTerminal();
+		if (token.isCancellationRequested) {
+			return { exitCode: undefined };
+		}
 
-		// Wait for the install command to finish so the chat can proceed automatically.
+		const store = new DisposableStore();
 		let installCommandSent = false;
-		const completionPromise = new Promise<number | undefined>(resolve => {
-			const store = new DisposableStore();
-			let resolved = false;
-			const resolveOnce = (code: number | undefined) => {
-				if (resolved) {
-					return;
-				}
-				resolved = true;
-				store.dispose();
-				resolve(code);
-			};
+		let interrupted = false;
+		try {
+			// Attach before sending: a short command can finish before sendText resolves.
+			const completionPromise = new Promise<number | undefined>(resolve => {
+				let resolved = false;
+				const resolveOnce = (code: number | undefined) => {
+					if (resolved) {
+						return;
+					}
+					resolved = true;
+					resolve(code);
+				};
+				const interrupt = () => {
+					interrupted = true;
+					store.dispose();
+					resolveOnce(undefined);
+				};
+				const attachListener = () => {
+					const detection = instance.capabilities.get(TerminalCapability.CommandDetection);
+					if (detection) {
+						store.add(detection.onCommandFinished(cmd => resolveOnce(cmd.exitCode)));
+					}
+				};
+				attachListener();
+				store.add(instance.capabilities.onDidAddCapability(e => {
+					if (e.id === TerminalCapability.CommandDetection) {
+						attachListener();
+					}
+				}));
+				store.add(instance.onDisposed(interrupt));
+				store.add(token.onCancellationRequested(interrupt));
+				store.add(disposableTimeout(interrupt, 5 * 60 * 1000));
+				store.add(this._createMissingDependencyPasswordPrompt(sessionResource, {
+					focusTerminal: () => options.focusTerminal(instance),
+					onDidInputData: instance.onDidInputData,
+					onDisposed: instance.onDisposed,
+					didSendInstallCommand: () => installCommandSent,
+				}, token));
+			});
 
-			const attachListener = () => {
-				const detection = instance.capabilities.get(TerminalCapability.CommandDetection);
-				if (detection) {
-					store.add(detection.onCommandFinished(cmd => resolveOnce(cmd.exitCode)));
-				}
-			};
-
-			attachListener();
-			store.add(instance.capabilities.onDidAddCapability(e => {
-				if (e.id === TerminalCapability.CommandDetection) {
-					attachListener();
-				}
-			}));
-
-			// Handle terminal disposal
-			store.add(instance.onDisposed(() => resolveOnce(undefined)));
-
-			// Handle cancellation
-			store.add(token.onCancellationRequested(() => resolveOnce(undefined)));
-
-			// Safety timeout — 5 minutes should be enough for package or system-policy remediation.
-			const safetyTimeout = timeout(5 * 60 * 1000);
-			store.add({ dispose: () => safetyTimeout.cancel() });
-			safetyTimeout.then(() => resolveOnce(undefined));
-
-			const passwordPrompt = this._createMissingDependencyPasswordPrompt(sessionResource, {
-				focusTerminal: () => options.focusTerminal(instance),
-				onDidInputData: instance.onDidInputData,
-				onDisposed: instance.onDisposed,
-				didSendInstallCommand: () => installCommandSent,
-			}, token);
-			store.add(passwordPrompt);
-		});
-
-		// Send the command after listeners are attached so we never miss the event.
-		// Set installCommandSent only after sendText completes because sendText
-		// fires onDidInputData internally, and the password-prompt listener would
-		// dismiss the elicitation prematurely if the flag were already true.
-		await instance.sendText(command, true);
-		installCommandSent = true;
-
-		return { exitCode: await completionPromise };
+			// Input events fire inside sendText; mark sent afterwards so the password prompt
+			// does not dismiss itself on the install command's own input event.
+			const delivered = await instance.sendText(command, true);
+			if (!delivered || interrupted || token.isCancellationRequested) {
+				return { exitCode: undefined };
+			}
+			installCommandSent = true;
+			const exitCode = await completionPromise;
+			return { exitCode: interrupted ? undefined : exitCode };
+		} finally {
+			store.dispose();
+		}
 	}
 
 	private _quoteShellArgument(value: string): string {

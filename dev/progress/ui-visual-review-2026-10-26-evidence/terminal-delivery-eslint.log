@@ -1,0 +1,14 @@
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/C/src/vs/workbench/contrib/terminal/test/browser/terminalInstance.test.ts
+  473:36  warning  Type Method name `_handleOnData` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+✖ 1 problem (0 errors, 1 warning)
+
+
+Supplement: RunInTerminalTool electron-browser test double and two rejection regressions were subsequently linted separately: exit 0, 0 errors / 0 warnings. Total changed TypeScript files: 23; combined 0 errors / 1 existing warning.

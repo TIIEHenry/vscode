@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { deepStrictEqual, ok, strictEqual } from 'assert';
+import { deepStrictEqual, ok, rejects, strictEqual } from 'assert';
 import { Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
@@ -344,6 +344,7 @@ suite('Workbench - TerminalInstance', () => {
 			const sentText: unknown[][] = [];
 			instance.sendText = async (...args) => {
 				sentText.push(args);
+				return true;
 			};
 			const runCommandPromise = instance.runCommand('echo test', true);
 
@@ -370,6 +371,7 @@ suite('Workbench - TerminalInstance', () => {
 			const sentText: unknown[][] = [];
 			instance.sendText = async (...args) => {
 				sentText.push(args);
+				return true;
 			};
 			await instance.runCommand('echo test', true);
 
@@ -397,11 +399,49 @@ suite('Workbench - TerminalInstance', () => {
 			const sentText: unknown[][] = [];
 			instance.sendText = async (...args) => {
 				sentText.push(args);
+				return true;
 			};
 			await instance.runCommand('echo test', true);
 
 			ok(!sentText.some(args => args[0] === '\x03'));
 			deepStrictEqual(sentText, [['echo test', true, undefined]]);
+		});
+
+		test('sendPath keeps its void completion on delivery and rejects dropped input', async () => {
+			const instance = await createTerminalInstance();
+			const sentText: Parameters<ITerminalInstance['sendText']>[] = [];
+			const preparedPath = '/path\\ with\\ spaces/script.sh';
+			instance.preparePathForShell = async () => preparedPath;
+			instance.sendText = async (...args) => {
+				sentText.push(args);
+				return true;
+			};
+			strictEqual(await instance.sendPath('/path with spaces/script.sh', true), undefined);
+			deepStrictEqual(sentText, [[preparedPath, true, undefined]]);
+
+			instance.sendText = async () => false;
+			await rejects(instance.sendPath('/path with spaces/script.sh', true), /could not be delivered/);
+		});
+
+		test('runCommand rejects when command delivery is dropped at an empty prompt', async () => {
+			const instance = await createTerminalInstance();
+			await writeP(instance.xterm!.raw, '\x1b]633;A\x07$ \x1b]633;B\x07');
+			instance.sendText = async () => false;
+
+			await rejects(instance.runCommand('echo test', true), /could not be delivered/);
+		});
+
+		test('runCommand does not send the command when clearing prompt input is dropped', async () => {
+			const instance = await createTerminalInstance(undefined, undefined, {}, undefined, 0);
+			await writeP(instance.xterm!.raw, '\x1b]633;A\x07$ \x1b]633;B\x07sleep 999\x1b]633;C\x07');
+			const sentText: Parameters<ITerminalInstance['sendText']>[] = [];
+			instance.sendText = async (...args) => {
+				sentText.push(args);
+				return false;
+			};
+
+			await rejects(instance.runCommand('echo test', true), /could not be delivered/);
+			deepStrictEqual(sentText, [['\x03', false, undefined]]);
 		});
 
 		test('sendText returns false and fires no send events when the process manager drops input', async () => {

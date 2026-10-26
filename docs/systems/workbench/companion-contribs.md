@@ -3,7 +3,7 @@ title: "配套 IDE 设施：files / SCM / terminal / debug"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-25
+updated: 2026-10-26
 summary: "Explorer、SCM/git、Terminal、Debug 是配套设施不是 Conversation；Sources Files 挂资源管理器同一棵树且不占活动栏；Changes/Review 仍是 SCM 列表投影；Review 无写操作、审阅进度不入 SCM；Diff 归属 ADR-005 已裁决（默认 Preview，可移对话窗口/底部 Panel，F1–F3 已落）。Test Explorer 在发现结束后、集合非空且筛选后零可见行时写 No matching tests."
 ---
 
@@ -67,6 +67,10 @@ Activity rail 只切换 Sidebar 容器图标，不是第三套宿主。Auxiliary
 `ViewContainerLocation.Panel` 且 `isDefault: true`：空窗口第一次开 Panel，常先看到 Terminal。实例可再 `move` 到 Sidebar / AuxiliaryBar，或 `TerminalEditor` 进编辑器组。
 
 Desktop ADR-047：Terminal **可 Pin 在 Bottom Panel**；默认座也曾写在 End 上格，换座只经拖拽/菜单。本仓今天没有 End 格，默认座 = `PANEL_PART`，与「底栏准入 Terminal」同向，与「默认在 Preview」不同向。
+
+终端输入的送达与命令执行结果分开：`sendText` 的 true 只表示输入已交给当前进程，false 不发已发送 / 已执行事件。`sendPath` 与 `runCommand` 保持 `Promise<void>`，底层拒绝时以失败结束；运行命令若连清除旧输入也未送达，就不再发新命令。历史、Quick Fix、拖放、Inline Chat 和扩展 shell 命令的 void / 事件入口把失败交给通知服务；Inline Chat 只有送达后才清掉建议。
+
+RunInTerminal 的 Basic / None 等待并检查送达，Rich 等待 `runCommand`；送达前的完成帧不能把拒绝变成成功。沙箱依赖安装与修复也使用同一 boolean 合同，只有送达且得到完成码后才能判断安装结果；拒绝返回未知结果，后续原命令不执行。取消 / 终端关闭会清监听；若当时 send 仍 pending，方法仍等待 send 解决，晚到 true 不复活安装结果。[合同修复与验证边界](../../../dev/plans/terminal-delivery-contracts.md)。
 
 ### 3.4 debug — 侧栏会话面 + 底栏 REPL
 

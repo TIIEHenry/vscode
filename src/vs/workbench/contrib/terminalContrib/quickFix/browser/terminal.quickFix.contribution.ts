@@ -10,6 +10,7 @@ import { localize2 } from '../../../../../nls.js';
 import { InstantiationType, registerSingleton } from '../../../../../platform/instantiation/common/extensions.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { KeybindingWeight } from '../../../../../platform/keybinding/common/keybindingsRegistry.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { ITerminalContribution, ITerminalInstance, IXtermTerminal } from '../../../terminal/browser/terminal.js';
 import { registerActiveInstanceAction } from '../../../terminal/browser/terminalActions.js';
 import { registerTerminalContribution, type ITerminalContributionContext } from '../../../terminal/browser/terminalExtensions.js';
@@ -43,6 +44,7 @@ class TerminalQuickFixContribution extends DisposableStore implements ITerminalC
 	constructor(
 		private readonly _ctx: ITerminalContributionContext,
 		@IInstantiationService private readonly _instantiationService: IInstantiationService,
+		@INotificationService private readonly _notificationService: INotificationService,
 	) {
 		super();
 	}
@@ -53,7 +55,7 @@ class TerminalQuickFixContribution extends DisposableStore implements ITerminalC
 		xterm.raw.loadAddon(this._addon);
 
 		// Hook up listeners
-		this.add(this._addon.onDidRequestRerunCommand((e) => this._ctx.instance.runCommand(e.command, e.shouldExecute || false)));
+		this.add(this._addon.onDidRequestRerunCommand((e) => this._ctx.instance.runCommand(e.command, e.shouldExecute || false).catch(error => this._notificationService.error(error))));
 		this.add(this._addon.onDidUpdateQuickFixes(e => {
 			// Only track the latest command's quick fixes
 			this._quickFixMenuItems.value = e.actions ? xterm.decorationAddon.registerMenuItems(e.command, e.actions) : undefined;

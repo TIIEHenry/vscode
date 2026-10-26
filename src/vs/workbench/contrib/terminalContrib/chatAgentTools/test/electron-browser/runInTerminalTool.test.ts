@@ -180,6 +180,7 @@ suite('RunInTerminalTool', () => {
 					onDataEmitter.fire('\x1b]633;C\x07\x1b]633;A\x07');
 					commandFinishedEmitter.fire({ exitCode: 0, getOutput: () => '' });
 				});
+				return true;
 			},
 			focus: () => { },
 			capabilities: {
@@ -280,8 +281,8 @@ suite('RunInTerminalTool', () => {
 			installMissingSandboxDependencies: async (missingDependencies, _sessionResource, _token, options) => {
 				const terminal = await options.createTerminal();
 				await options.focusTerminal(terminal);
-				await terminal.sendText(`sudo apt install -y ${missingDependencies.join(' ')}`, true);
-				return { exitCode: 0 };
+				const delivered = await terminal.sendText(`sudo apt install -y ${missingDependencies.join(' ')}`, true);
+				return { exitCode: delivered ? 0 : undefined };
 			},
 			runSandboxRemediation: async () => ({ exitCode: 0 }),
 		};
@@ -659,6 +660,34 @@ suite('RunInTerminalTool', () => {
 			strictEqual(createTerminalCallCount, 1, 'Expected only the installation terminal, not original command execution');
 			ok((result.content[0] as { value?: string }).value?.includes('bubblewrap'), 'Expected result to identify the failed bubblewrap verification');
 		});
+
+		for (const prerequisite of ['install', 'remediate'] as const) {
+			test(`does not execute the original command when ${prerequisite} input is dropped`, async () => {
+				sandboxPrereqResult = {
+					enabled: true,
+					sandboxConfigPath: '/tmp/sandbox.json',
+					failedCheck: prerequisite === 'install' ? TerminalSandboxPrerequisiteCheck.Dependencies : TerminalSandboxPrerequisiteCheck.Bubblewrap,
+					missingDependencies: prerequisite === 'install' ? ['bubblewrap'] : undefined,
+					canInstallMissingDependencies: prerequisite === 'install',
+					remediations: prerequisite === 'remediate' ? [TerminalSandboxPreCheckRemediation.DisableUnprivilagedusernamespaceRestriction] : undefined,
+				};
+				const sent: string[] = [];
+				createdTerminalInstance.sendText = async text => {
+					sent.push(text);
+					return false;
+				};
+				terminalSandboxService.runSandboxRemediation = async (_remediation, _session, _token, options) => {
+					const terminal = await options.createTerminal();
+					return { exitCode: await terminal.sendText('sandbox-prerequisite', true) ? 0 : undefined };
+				};
+
+				const result = await invokeToolTest({ command: 'echo must-not-run' }, prerequisite === 'install' ? 'install' : undefined);
+				strictEqual(createTerminalCallCount, 1, 'Only the prerequisite terminal may be created');
+				strictEqual(sent.length, 1);
+				ok(!sent.includes('echo must-not-run'));
+				ok(result.content[0].kind === 'text' && result.content[0].value.includes(prerequisite === 'install' ? 'Could not determine' : 'not supported'));
+			});
+		}
 
 		test('should suggest reloading and retrying if the issue persists after sandbox dependency installation', async () => {
 			terminalSandboxService.checkForSandboxingPrereqs = async forceRefresh => forceRefresh

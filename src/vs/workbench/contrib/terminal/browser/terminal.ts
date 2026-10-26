@@ -1246,8 +1246,10 @@ export interface ITerminalInstance extends IBaseTerminalInstance {
 	 * @param shouldExecute Indicates that the text being sent should be executed rather than just inserted in the terminal.
 	 * The character(s) added are \n or \r\n, depending on the platform. This defaults to `true`.
 	 */
+	/** Rejects when the path could not be delivered to the terminal process. */
 	sendPath(originalPath: string | URI, shouldExecute: boolean): Promise<void>;
 
+	/** Rejects when clearing the prompt or delivering the command fails. */
 	runCommand(command: string, shouldExecute?: boolean, commandId?: string, bracketedPasteMode?: boolean, commandLineForMetadata?: string): Promise<void>;
 
 	/**

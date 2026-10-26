@@ -172,7 +172,7 @@ export class RichExecuteStrategy extends Disposable implements ITerminalExecuteS
 			this._log(`Executing command line \`${commandLine}\``);
 			markerRecreation.dispose();
 			const forceBracketedPasteMode = isMacintosh || isMultilineCommand(commandLine);
-			this._instance.runCommand(commandLine, true, commandId, forceBracketedPasteMode, commandLineForMetadata);
+			await this._instance.runCommand(commandLine, true, commandId, forceBracketedPasteMode, commandLineForMetadata);
 
 			// Wait for the terminal to idle
 			this._log('Waiting for done event');

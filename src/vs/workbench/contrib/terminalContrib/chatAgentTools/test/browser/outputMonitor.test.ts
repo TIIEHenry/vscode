@@ -36,6 +36,7 @@ suite('OutputMonitor', () => {
 				instanceId: 1,
 				sendText: async (text?: string) => {
 					sendTextCalled = true;
+					return true;
 				},
 				onDidInputData: dataEmitter.event,
 				onDisposed: Event.None,

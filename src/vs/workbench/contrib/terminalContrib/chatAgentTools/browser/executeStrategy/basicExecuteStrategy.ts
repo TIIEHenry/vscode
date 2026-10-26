@@ -18,6 +18,7 @@ import { createAltBufferPromise, setupRecreatingStartMarker, stripCommandEchoAnd
 import { TerminalChatAgentToolsSettingId } from '../../common/terminalChatAgentToolsConfiguration.js';
 import { isMacintosh } from '../../../../../../base/common/platform.js';
 import { isMultilineCommand } from '../runInTerminalHelpers.js';
+import { terminalStrings } from '../../../../terminal/common/terminalStrings.js';
 
 function isTerminalLaunchError(value: unknown): value is ITerminalLaunchError {
 	return typeof value === 'object' && value !== null && 'message' in value;
@@ -194,13 +195,17 @@ export class BasicExecuteStrategy extends Disposable implements ITerminalExecute
 				// 130" results for what should be the next, unrelated command.
 				if (this._commandDetection.executingCommandObject !== undefined) {
 					this._log('Previous command still executing with pending input, sending SIGINT before retrying');
-					await this._instance.sendText('\x03', false);
+					if (!await this._instance.sendText('\x03', false)) {
+						throw new Error(terminalStrings.inputDeliveryFailed);
+					}
 					await waitForIdle(this._instance.onData, 100);
 				} else {
 					// Use Ctrl+U (kill line) to clear any pending input on the prompt
 					// without killing any running command. No-op on a clean prompt.
 					this._log('Prompt is idle; clearing pending input with Ctrl+U instead of SIGINT');
-					await this._instance.sendText('\x15', false);
+					if (!await this._instance.sendText('\x15', false)) {
+						throw new Error(terminalStrings.inputDeliveryFailed);
+					}
 					await waitForIdle(this._instance.onData, 100);
 				}
 			}
@@ -216,7 +221,9 @@ export class BasicExecuteStrategy extends Disposable implements ITerminalExecute
 			this._log(`Executing command line \`${commandLine}\``);
 			markerRecreation.dispose();
 			const forceBracketedPasteMode = isMacintosh || isMultilineCommand(commandLine);
-			this._instance.sendText(commandLine, true, forceBracketedPasteMode);
+			if (!await this._instance.sendText(commandLine, true, forceBracketedPasteMode)) {
+				throw new Error(terminalStrings.inputDeliveryFailed);
+			}
 
 			// Wait for the next end execution event - note that this may not correspond to the actual
 			// execution requested
