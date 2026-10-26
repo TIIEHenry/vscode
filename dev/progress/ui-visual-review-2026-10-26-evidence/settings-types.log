@@ -1,0 +1,5 @@
+TypeScript 6.0.3
+src/vs/workbench/contrib/preferences/browser/settingsEditor2.ts(1243,4): error TS2322: Type 'Event<void>' is not assignable to type 'Event<number | undefined>'.
+  Type 'void' is not assignable to type 'number | undefined'.
+
+Targeted semantic diagnostics: 1 in 4 files

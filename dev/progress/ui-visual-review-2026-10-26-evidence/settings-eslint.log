@@ -1,0 +1,8 @@
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/browser/connectionPreferencesPane.ts
+  1100:18  warning  querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly  no-restricted-syntax
+  1101:18  warning  querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly  no-restricted-syntax
+  1795:9   warning  querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly  no-restricted-syntax
+
+✖ 3 problems (0 errors, 3 warnings)
+

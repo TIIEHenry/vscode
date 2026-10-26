@@ -1,0 +1,62 @@
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> code-oss-dev@1.136.0 stylelint
+> node build/stylelint.ts src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css src/vs/workbench/contrib/conversation/browser/media/uaClientSettingsChrome.css
+
+Stylelint: checking 2 CSS files matched by 2 requested paths.
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(19,1): Unknown variable: --ua-conversation-identity-reserved-top
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(20,1): Unknown variable: --ua-conversation-identity-reserved-top
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(81,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(81,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(217,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(217,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(278,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(278,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(355,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(465,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(466,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(491,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(492,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(558,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(672,1): Unknown variable: --ua-ease
+
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css (26 design-token suggestions)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(94,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(95,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(113,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(127,1): [radius] 2px -> var(--vscode-cornerRadius-xSmall)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(165,1): [font-size] 18px -> var(--vscode-fontSize-heading2)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(166,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(214,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(273,1): [spacing] 4px 14px is off the spacing scale -> nearest: 4px 16px (var(--vscode-spacing-size40) var(--vscode-spacing-size160))
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(276,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(319,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(320,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(329,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(373,1): [spacing] 14px 0 is off the spacing scale -> nearest: 16px 0 (var(--vscode-spacing-size160) var(--vscode-spacing-sizeNone))
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(436,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(437,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(529,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(530,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(540,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(541,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(567,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(568,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(649,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(650,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(657,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(669,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(670,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+
+src/vs/workbench/contrib/conversation/browser/media/uaClientSettingsChrome.css (1 design-token suggestion)
+  src/vs/workbench/contrib/conversation/browser/media/uaClientSettingsChrome.css(36,1): [font-size] 18px -> var(--vscode-fontSize-heading2)
+All valid variable names are in `build/lib/stylelint/vscode-known-variables.json`
+To update that file, run `./scripts/test-documentation.sh|bat.`
+
+Design-token suggestions: 27 in 2 files (codicon 0, font-size 10, weight 14, radius 1, spacing 2, stroke 0, deprecated 0)
+Stylelint: checked 2 CSS files in 22ms.

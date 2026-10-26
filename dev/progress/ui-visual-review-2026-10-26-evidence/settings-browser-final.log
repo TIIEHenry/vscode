@@ -1,0 +1,24 @@
+Failed to load resource: the server responded with a status of 404 (Not Found) []
+
+
+  ConnectionPreferencesPane - /CHROMIUM-CHROME/
+    ✔ Direct Address input rows respond to the detail width while checkbox keeps its row
+
+  SettingsEditor2 - /CHROMIUM-CHROME/
+    UA Client responsive scope - /CHROMIUM-CHROME/
+      ✔ narrow Client chrome fits its controls and restores upstream styles when the scope changes
+      ✔ exact Client queries can leave and reenter the compact layout
+      ✔ only Client categories opt in, and mixed ID filters override a Client category
+      ✔ Agents window and ordinary queries retain the upstream layout
+
+  ConnectionPreferencesPane (browser) - /CHROMIUM-CHROME/
+    ✔ late listDevices after dispose does not paint hub device rows
+    ✔ late probeEngine after dispose does not paint test status
+    ✔ narrow navigation returns focus to Back when opening a detail section
+    ✔ resizing from wide navigation returns focus to Back
+[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) [ [length]: 0 ]
+[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) [ [length]: 0 ]
+
+
+  9 passing (151ms)
+

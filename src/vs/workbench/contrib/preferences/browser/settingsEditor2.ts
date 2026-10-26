@@ -1240,7 +1240,7 @@ export class SettingsEditor2 extends EditorPane {
 		}, startingWidth, undefined, true);
 		const editor = this;
 		this.splitView.addView({
-			onDidChange: this.onDidChangeSizeConstraints,
+			onDidChange: Event.map(this.onDidChangeSizeConstraints, () => undefined),
 			element: this.settingsTreeContainer,
 			get minimumSize() { return editor.minimumWidth; },
 			maximumSize: Number.POSITIVE_INFINITY,

@@ -1,0 +1,57 @@
+{
+  "source_base_head": "a514ec3d2a5",
+  "source_state": "source_base_head plus SplitView size-constraints event adapter committed alongside this snapshot",
+  "refresh_start": "2026-10-26T09:46:17+08:00",
+  "out_root": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out",
+  "files": [
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/connectionPreferencesPane.ts",
+      "source_sha256": "e6e5245a16fbfafb81354b14b2930b56fe54cbc8600117673e62463cb28134f0",
+      "output": "out/vs/workbench/contrib/conversation/browser/connectionPreferencesPane.js",
+      "output_sha256": "fe46f42b97ed0183af2f6ad0d3efbfb10f9db07aecb15d101744fcea74e3b4f9",
+      "output_mtime": "2026-10-26T09:46:17.601750+08:00",
+      "fresh_since_settings_refresh_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/connectionPreferencesPane.test.ts",
+      "source_sha256": "2e0a1702a9face99ae713485fbe61d586fab74c89b528a39f636fe3a441e9496",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/connectionPreferencesPane.test.js",
+      "output_sha256": "36321dac12da5e306b4dc9ccbaa3b49a45c97028d5991f5229df8adec12c376b",
+      "output_mtime": "2026-10-26T09:46:17.622751+08:00",
+      "fresh_since_settings_refresh_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/preferences/browser/settingsEditor2.ts",
+      "source_sha256": "bc6a58edfc5752a3bb71da186d15552cf4268695c5667affee1dd41d06e8f3de",
+      "output": "out/vs/workbench/contrib/preferences/browser/settingsEditor2.js",
+      "output_sha256": "9f7269c124668a3c457532559f2f58fe6b1a1993b3a2aedd2c38c88fc47b19d2",
+      "output_mtime": "2026-10-26T09:48:06.564636+08:00",
+      "fresh_since_settings_refresh_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/preferences/test/browser/settingsEditor2.test.ts",
+      "source_sha256": "cec73557fe1fdd55701985c675379dc72c017699bcebad0ea08fff003b379baa",
+      "output": "out/vs/workbench/contrib/preferences/test/browser/settingsEditor2.test.js",
+      "output_sha256": "e02434d739a12273f46de009b587e8a3b554a4324a159f490c3948b7ce7943ce",
+      "output_mtime": "2026-10-26T09:46:17.630751+08:00",
+      "fresh_since_settings_refresh_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "source_sha256": "be12ce1b0ca2c9c3df7598bf106547b1fb6abadda49775138bf8cfb2e1fcc65e",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "output_sha256": "be12ce1b0ca2c9c3df7598bf106547b1fb6abadda49775138bf8cfb2e1fcc65e",
+      "output_mtime": "2026-10-26T09:46:17.630751+08:00",
+      "fresh_since_settings_refresh_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/uaClientSettingsChrome.css",
+      "source_sha256": "2952f3eed61f0cec9b5a6f9e1330c1460497b987058e60a372e45cb158560e74",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/uaClientSettingsChrome.css",
+      "output_sha256": "2952f3eed61f0cec9b5a6f9e1330c1460497b987058e60a372e45cb158560e74",
+      "output_mtime": "2026-10-26T09:46:17.630751+08:00",
+      "fresh_since_settings_refresh_start": true
+    }
+  ],
+  "retired_output_absent": true
+}

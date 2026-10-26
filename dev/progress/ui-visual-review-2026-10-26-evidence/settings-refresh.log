@@ -1,0 +1,7 @@
+refreshed /home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/connectionPreferencesPane.js
+refreshed /home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/connectionPreferencesPane.test.js
+refreshed /home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/preferences/browser/settingsEditor2.js
+refreshed /home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/preferences/test/browser/settingsEditor2.test.js
+copied /home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css
+copied /home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/media/uaClientSettingsChrome.css
+removed retired output /home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/preferences/test/node/settingsUaTocCssScan.test.js

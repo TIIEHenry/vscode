@@ -1,10 +1,10 @@
 ---
 title: "2026-10-26 UI 与权限审查集成看板"
 type: progress
-status: active
+status: completed
 phase: M7
 updated: 2026-10-26
-summary: "D1368–D1370 已三路集成；Node 202 与 browser 32 项通过，新增类型问题已定向修复；D1371/1372 视觉修复待合入。唯一 compile-client 的真实失败与新输出证据分别记录。"
+summary: "D1368–D1372 已三路集成；Node 202、核心 browser 32 与设置页补充 browser 9 项通过，新增类型问题已定向修复；独立视觉 after 已通过；D1373 只登记未实施。唯一 compile-client 的真实失败与新输出证据分别记录。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -18,9 +18,9 @@ summary: "D1368–D1370 已三路集成；Node 202 与 browser 32 项通过，�
 | J / 权限状态审计 | D1368 异步权限评估跨取消与 session 销毁边界 | `3f16bbaeeec`，已在 merge |
 | D / Mobile sheet | D1369 模态键盘边界与关闭生命周期 | `2588e2b8db6`，三路合成 `f6727234fdd` |
 | C / Sessions 响应式 | D1370 Host toolbar、header 与 chips；补正 D1367 context 早于 CSS 的竞态 | `5337c8e`，三路合成 `df7c5b1` |
-| merge / 唯一集成验证 | 保留两边进度和历史归档，修编译诊断与真实测试夹具，统一写出产物和验证 | 本看板所在提交；其后设置页切片另记 |
+| merge / 唯一集成验证 | 保留两边进度和历史归档，修编译诊断与真实测试夹具，统一写出产物和验证 | 核心验证提交 `2fec8eaf636`；其后设置页切片见下节 |
 | Astra / 独立视觉复核 | 用真实运行画面复核现有设置页与 responsive UI | 发现 Direct Address 中窄 Host 竖条、Client Settings 窄 Preview 裁切；已交 D 修复 |
-| D / 设置页视觉修复 | D1371 / D1372 局部响应式修复 | 进行中；待真实 SHA、最小产物刷新与复验 |
+| D / 设置页视觉修复 | D1371 / D1372 局部响应式修复 | `292ec409fc1`，三路合成 `a514ec3d2a5`；最小刷新和行为复验已过，独立视觉 after 已通过 |
 
 两次源码合入均只有 `status.md` / `deferred-gaps.md` 文档冲突，按三路内容保留 D1368、D1369、D1370 的独立意图。D1369 迁出的 2026-10-11–12 历史仍在 [原归档](../../archive/status-2026-10-11-12-retained-2026-10-26.md)，没有删除。
 
@@ -28,7 +28,7 @@ summary: "D1368–D1370 已三路集成；Node 202 与 browser 32 项通过，�
 
 2026-10-26 `09:32:05+08:00`，确认没有现存 compile/watch 且 `out/` 可写后，在 `/tmp/vscode-compile.lock` 下执行本轮唯一一次 `npm run compile-client`。该命令真实进入源码检查并生成新 JS，22 秒后因 TS 检查退出 1，计 176 条诊断、69 个文件；不是旧 EROFS / 权限环境断言。原始 [编译日志](../../progress/ui-visual-review-2026-10-26-evidence/compile-client.log) 保留。
 
-其中改动文件有 7 条诊断，均在本次集成内修正：取消 turn id 在回调前捕获；权限信号的 URI 归一为协议字符串；避免空数组断言把 Ready 数组收窄为 `never[]`；去掉两个只赋值未读取的局部变量；无关 context key 显式采用 boolean。四个文件的 [定向语义检查](../../progress/ui-visual-review-2026-10-26-evidence/target-types.log) 为 0；补正的三份焦点测试 [定向语义检查](../../progress/ui-visual-review-2026-10-26-evidence/focus-test-types.log) 也为 0。没有第二次全仓编译，不以定向通过冒充全仓通过，也不推算未重跑的剩余诊断数。
+其中改动文件有 7 条诊断，均在本次集成内修正：取消 turn id 在回调前捕获；权限信号的 URI 归一为协议字符串；避免空数组断言把 Ready 数组收窄为 `never[]`；去掉两个只赋值未读取的局部变量；无关 context key 显式采用 boolean。四个文件的 TypeScript 6.0.3 API [定向语义检查](../../progress/ui-visual-review-2026-10-26-evidence/target-types.log) 为 0；补正的三份焦点测试 [定向语义检查](../../progress/ui-visual-review-2026-10-26-evidence/focus-test-types.log) 也为 0。没有第二次全仓编译，不以定向通过冒充全仓通过，也不推算未重跑的剩余诊断数。
 
 只对变更过的文件在同一把锁内使用仓库开发编译相同的 esbuild 选项刷新：ES2024、ESM、inline sourcemap、experimentalDecorators、useDefineForClassFields=false。未并行运行 transpile/typecheck 全仓任务。
 
@@ -52,6 +52,26 @@ summary: "D1368–D1370 已三路集成；Node 202 与 browser 32 项通过，�
 
 ## 输出与规格边界
 
-新输出根为 `/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out`；[fresh-output.json](../../progress/ui-visual-review-2026-10-26-evidence/fresh-output.json) 记录 10 个生产/测试文件的源码与 JS 摘要、产物时间，以及均晚于本轮编译开始的检查结果。视觉复核已收到该路径；后续 D1371/1372 最小刷新另补记录。
+新输出根为 `/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out`；[fresh-output.json](../../progress/ui-visual-review-2026-10-26-evidence/fresh-output.json) 记录 10 个生产/测试文件的源码与 JS 摘要、产物时间，以及均晚于本轮编译开始的检查结果。视觉复核已收到该路径；D1371/1372 的六文件最小刷新见下节。
 
 没有修改 `MOBILE.md` / `SESSIONS_LIST.md`：两份就近规格的 change gate 明确把 responsive、control、styling bugfix 留给代码与行为测试；本轮没有改变模型、所有权、导航或跨表面契约。没有新方案文档；设置页视觉修复复用现有 Client / Settings 方案契约。
+
+## D1371 / D1372 设置页后续集成
+
+D 的 `292ec409fc1` 基于 `df7c5b1`，在 merge 的 `2fec8eaf636` 上真三路合成为 `a514ec3d2a5`。只冲突进度文档：保留核心已经完成的真实验证与 closed 状态，同时加入两条新缺陷的待验状态；历史归档保留。设置接入规格的窄宽契约更新已随源提交进入 [Settings SSOT](../../../docs/reference/code-oss-b2/settings-ua-access.md)，不新建方案。
+
+2026-10-26 `09:46:17+08:00`，持同一 `/tmp/vscode-compile.lock` 只刷新四份 TS 与两份 CSS；[刷新日志](../../progress/ui-visual-review-2026-10-26-evidence/settings-refresh.log) 与 [六文件 hash / 时间快照](../../progress/ui-visual-review-2026-10-26-evidence/settings-fresh-output.json) 保留。`settingsUaTocCssScan.test.ts` 已被真实 browser 样式回归替换，同时只删除它退休的 `out/.../settingsUaTocCssScan.test.js`，避免旧输出继续冒充当前测试。没有再跑全仓 compile / transpile / typecheck。
+
+| 验证 | 实际结果 | 证据 |
+|:---|:---|:---|
+| Direct Address 实际 CSS+DOM | 1 passing；同一 pane 详情正文 560 / 480 / 479 / 320 / 560px 往返，Host / Port / Name 对齐、input 保值保焦点、checkbox 行独立 | [最终 browser 日志](../../progress/ui-visual-review-2026-10-26-evidence/settings-browser-final.log) |
+| UA Client scope / chrome | 4 passing；300px 加载上游与 UA 真实 CSS，UA→普通→UA 时控件范围与上游宽度恢复；纯 UA / 混合 ID、TOC 分类、普通查询与 Agents 门控 | 同上 |
+| Connection 就近焦点 / dispose | 4 passing；在新的 Connection 生产 JS 下复验 | 同上 |
+| 本阶段 browser 合计 | 9 passing / 0 failing；其中 4 项与核心阶段重叠，因此本轮共覆盖 37 个不同 browser 用例 | 同上 |
+| 4 文件 scoped semantic check | 初次 1 个新增 Event 契约诊断；SplitView 需要 `Event<number \| undefined>`，尺寸约束事件是 `Event<void>`，现用 `Event.map(..., () => undefined)` 适配；其余 3 文件初次为 0，修后该文件为 0 | [初次](../../progress/ui-visual-review-2026-10-26-evidence/settings-types.log)、[修后](../../progress/ui-visual-review-2026-10-26-evidence/settings-types-final.log)；TypeScript 6.0.3 API，未声称 tsgo 全仓通过 |
+| Targeted ESLint / stylelint | 4 TS 0 errors / 3 既有 warnings；事件适配文件复查 0 errors；2 CSS stylelint exit 0，27 条 token 建议 | [ESLint](../../progress/ui-visual-review-2026-10-26-evidence/settings-eslint.log)、[事件适配](../../progress/ui-visual-review-2026-10-26-evidence/settings-eslint-final.log)、[CSS](../../progress/ui-visual-review-2026-10-26-evidence/settings-stylelint.log) |
+| 文档 | docs-health 0 errors / 46 既有 warnings；generated-status --check 与 diff-check 通过 | [健康日志](../../progress/ui-visual-review-2026-10-26-evidence/settings-docs-health.log) |
+
+本阶段 browser 命令为 `node test/unit/browser/index.js --browser chromium-chrome`，三份 `--run` 分别指向 `conversation/test/browser/connectionPreferencesPane.test.ts`、`preferences/test/browser/settingsEditor2.test.ts` 与 `conversation/browser/connectionPreferencesPane.test.ts`，再以 `--grep 'Direct Address input rows|UA Client responsive scope|ConnectionPreferencesPane \(browser\)'` 聚焦。实际编辑器中的尺寸约束变更、UA↔普通切换与 TOC / 重开由 Astra 独立视觉复核；独立视觉结论已通过，见 [入库视觉报告](../../progress/ui-visual-review-2026-10-26-evidence/visual-review.md)；截图与完整测量按要求留在主线 `.build/visual-review-astra/`，不入 git。
+
+独立 after 已确认：Direct Address 305px 单列、479.19→480.00px 无坏带；UA exact / ordinary / mixed / return / TOC / 300px 叶重开往返通过。D1371 / D1372 已闭合。第三项 `Input needed` 文字低对比仅登记 D1373 open，本轮未扩大实现；覆盖限制与本地截图 / JSON 路径见 [视觉报告](../../progress/ui-visual-review-2026-10-26-evidence/visual-review.md)。
