@@ -150,3 +150,5 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 方案提交 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 后，J原实现`23f8701c8d2`写 Sources 一次API分派/全部真实调用方命令依赖、局部身份副作用、finder准确对象/数字成员判定及局部打开错误恢复。D独立实现审查指出预pin和单侧URI匹配仍违反实际目标归属，两项Important须补；本轮按§3.2补修。原回归包含真实DTO、委托void/reject、公共列表/命令状态恢复，以及真实parts + public findGroup/EditorService/共享slot；pane仅使用既有轻量测试编辑器隔离模型加载，不能作为真实Git两侧通过证据。原切片详见[源码与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)，新增API handler/组模型与完整比较身份回归另按本轮实际证据记账。
 
 作者未编译、transpile、typecheck、写out/watch或运行测试；静态结果与独立实现审查后续收录在该检查点。唯一merge的业务旧红/新绿、相关完整套件与非作者三owner真Git after仍待。方案保持accepted、D1387 open，PRD状态不升。
+
+本轮澄清独立提交`a76d062f297`后，J补修源码只取消API预pin、改DTO有序双侧/单资源类型及custom可信身份匹配，保留custom预pin窄例外；新增28个官方handler/真实组模型/比较身份与custom兼容负控用例源码。仅本轮静态语法0错误、ESLint0错误且测试29警告相对原23f逐项不变；详见同一[源码检查点本轮段](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#本轮独立审查后的补修2026-10-26)。这是源码补修完成线，不是I1/I2运行通过或after签收。

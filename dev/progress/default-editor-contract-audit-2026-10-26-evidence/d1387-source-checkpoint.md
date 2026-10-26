@@ -4,12 +4,26 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "方案133ef4e后两根因与局部状态恢复源码/回归已写；仅作者静态检查，业务旧红新绿、完整相关套与非作者真实Git after均待"
+summary: "J在独立澄清a76d062后补API预pin与完整比较身份，新增28项handler/真实组模型及负控回归源码；仅静态0语法/0lint错误，唯一车道运行与非作者after待"
 ---
 
 # D1387 Sources 打开合同源码检查点
 
 [正式方案](../../plans/sources-open-dispatch-and-conversation-target.md) accepted，独立规则16 C0/I0后于 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 单独提交。[真实Git before/C1–C6](d1387-before.md)与两轮Astra已证两个根因；以下是源码检查点，不是after或运行通过。
+
+## 本轮独立审查后的补修（2026-10-26）
+
+原实现`23f8701c8d2`经D独立审查与Astra裁定，API newTab预pin旧preview及单侧URI误记比较身份两项Important成立；custom newTab保留旧preview的预pin窄例外由D规则16 C0/I0复核后，先单独提交澄清`a76d062f297`。方案§6记录审稿SHA与D原报告提交`cbac43bfde8`。本J执行者没有编译、typecheck、transpile、写out/watch、运行依赖out测试或启动窗口；父报告的merge绿基线只用于开工授权，不作为本补修验证。
+
+- API open/diff不预pin旧标签，只把pinned默认值放在官方context；provider显式options仍优先。custom+newTab保留原预pin成本；replace/无slot不预pin。
+- API diff以DTO实际original/modified的有序双侧匹配，API open只匹配单资源input的DTO URI，支持真实URI组件与open字符串；不拿quickDiff/sourceUri单侧认领旧diff。旧active比较不再遮住另一组可匹配的新比较。custom只用成对multiDiff URI或已记同resource/group身份，缺可信身份仍void完成，分派后不写identity/pin新input/关旧input。
+- `sourcesChangesList.test.ts`新增28个业务用例：API open/diff newTab resolve/reject各自零旧pin/close；直接调用官方handler验证column和provider pinned:false/preserveFocus:false覆盖context；官方handler接真实EditorGroupModel验证默认pin新input保留旧preview，以及provider pinned:false确可替换旧preview；newTab/replace × 同modified不同original的no-op、同双侧reveal、另组背景新比较、当前组新比较；API file不能冒认同URI diff；custom三slot × no-op/reject/未知背景input只留下明确预pin成本；custom实际打开unpin新比较在真实组模型保住旧preview；既有可信身份reveal。
+- 原custom正例改为真实DiffEditorInput与成对metadata，继续证明同条reveal与两slot顺序；没有把单侧URI夹具伪装成可信比较。其余三owner、真实调用方、状态恢复与finder/fence源码范围保持原完整实现。
+- 本轮实际静态检查：两TS的AST语法解析0错误（没有program/typechecker/emit）；定向ESLint helper0错误/0警告、测试0错误/29警告，与`23f8701c8d2`同测试逐项按规则/消息/所在行文本比较，新增0、消失0。`git diff --check`与生成状态`--check`通过，status167行。本轮fresh docs health0errors/74warnings，较澄清link加入前本轮fresh73仅新增D已提交`cbac43bfde8`但本J未合入的同仓规则16报告link；不跨槽复制或以父工位warning数替代。下方原56警告、73warning等均为原23f检查点历史，不替代本轮结果。
+
+唯一merge后续须用原`23f8701c8d2`生产与本补修新测试击中I1/I2业务red，再用本补修生产运行green及完整相关套/语义；非作者D随后核新冻结摘要并做真实Git三owner after。建议本次red选择`API SCM .*newTab (rejects|resolves) without pre-pinning`及`API diff .* (no-op|background comparison) uses the complete DTO comparison identity`，另将官方handler和真实组模型正负控全量运行。当前无任何本补修业务运行结论，方案accepted、D1387 open、PRD不升。
+
+以下各节保留原`23f8701c8d2`源码检查点事实；原“公开URI”匹配的不足已由本段与当前方案§3.2纠正。
 
 ## 生产切片
 

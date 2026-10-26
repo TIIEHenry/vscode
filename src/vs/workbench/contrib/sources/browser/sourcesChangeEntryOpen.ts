@@ -7,11 +7,12 @@ import { IModelService } from '../../../../editor/common/services/model.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
+import { isUriComponents, URI } from '../../../../base/common/uri.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import type { UniverseAgentReadGitFileDiffResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
-import { EditorResourceAccessor, SideBySideEditor } from '../../../common/editor.js';
+import { EditorResourceAccessor, isDiffEditorInput, isSideBySideEditorInput } from '../../../common/editor.js';
 import { isEqual } from '../../../../base/common/resources.js';
 import { API_OPEN_DIFF_EDITOR_COMMAND_ID, API_OPEN_EDITOR_COMMAND_ID } from '../../../browser/parts/editor/editorCommands.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
@@ -37,7 +38,7 @@ import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
 import { readOpenedSourcesConversationComparison } from './conversationDiffReviewPane.js';
 import { ConversationDiffReviewInput } from './conversationDiffReviewInput.js';
 import { sourcesGitDiffContentStore, sourcesGitDiffModelUri } from './sourcesGitDiffContent.js';
-import { rememberSourcesDiffOpenIdentity } from './sourcesDiffOpenIdentity.js';
+import { rememberSourcesDiffOpenIdentity, sourcesDiffOpenIdentity } from './sourcesDiffOpenIdentity.js';
 import { allocateSourcesDiffLoadGeneration, onDidSourcesDiffLoad } from './sourcesDiffLoadSignal.js';
 
 export interface ISourcesChangeEntryOpenOptions {
@@ -157,8 +158,9 @@ async function openSourcesChangeInPreview(
 	if (ref.scmResource) {
 		const group = deps.editorGroupsService?.activeGroup;
 		const previous = group?.activeEditor ?? undefined;
-		// Keep the old preview before the provider opens the next tab.
-		if (options.slot === 'newTab' && previous && group && !group.isPinned(previous)) {
+		// Custom open cannot receive a pinned option, so preserving its old preview needs this pre-pin.
+		// API commands pin the new input through their context, with provider options winning instead.
+		if (!isApiScmOpenCommand(ref.scmResource) && options.slot === 'newTab' && previous && group && !group.isPinned(previous)) {
 			group.pinEditor(previous);
 		}
 
@@ -240,14 +242,40 @@ async function dispatchScmResource(resource: ISCMResource, commandService: IComm
 
 /** Match public resource identities before pin/close or remembering a delegated open. */
 function findOpenedScmResource(ref: ISourcesChangeRef, deps: ISourcesChangeEntryOpenDeps, requestedGroup: IEditorGroup | undefined): { input: EditorInput; group: IEditorGroup | undefined } | undefined {
+	const resource = ref.scmResource;
+	const command = resource?.command;
+	const firstArgument = command?.arguments?.[0];
+	const secondArgument = command?.arguments?.[1];
+	let apiOpenResource: URI | undefined;
+	if (command?.id === API_OPEN_EDITOR_COMMAND_ID) {
+		if (typeof firstArgument === 'string') {
+			apiOpenResource = URI.parse(firstArgument);
+		} else if (isUriComponents(firstArgument)) {
+			apiOpenResource = URI.revive(firstArgument);
+		}
+	}
+	const apiOriginal = command?.id === API_OPEN_DIFF_EDITOR_COMMAND_ID && isUriComponents(firstArgument) ? URI.revive(firstArgument) : undefined;
+	const apiModified = command?.id === API_OPEN_DIFF_EDITOR_COMMAND_ID && isUriComponents(secondArgument) ? URI.revive(secondArgument) : undefined;
 	const matches = (input: EditorInput | undefined): input is EditorInput => {
 		if (!input) {
 			return false;
 		}
-		const primary = EditorResourceAccessor.getOriginalUri(input, { supportSideBySide: SideBySideEditor.PRIMARY });
-		const secondary = EditorResourceAccessor.getOriginalUri(input, { supportSideBySide: SideBySideEditor.SECONDARY });
-		return [ref.modified, ref.scmResource?.sourceUri, ref.scmResource?.multiDiffEditorOriginalUri, ref.scmResource?.multiDiffEditorModifiedUri]
-			.some(uri => !!uri && (isEqual(primary, uri) || isEqual(secondary, uri)));
+		if (command?.id === API_OPEN_EDITOR_COMMAND_ID) {
+			return !!apiOpenResource && !isDiffEditorInput(input) && !isSideBySideEditorInput(input)
+				&& isEqual(EditorResourceAccessor.getOriginalUri(input), apiOpenResource);
+		}
+		if (command?.id === API_OPEN_DIFF_EDITOR_COMMAND_ID) {
+			return !!apiOriginal && !!apiModified && isDiffEditorInput(input)
+				&& isEqual(EditorResourceAccessor.getOriginalUri(input.original), apiOriginal)
+				&& isEqual(EditorResourceAccessor.getOriginalUri(input.modified), apiModified);
+		}
+		if (resource?.multiDiffEditorOriginalUri && resource.multiDiffEditorModifiedUri) {
+			return isDiffEditorInput(input)
+				&& isEqual(EditorResourceAccessor.getOriginalUri(input.original), resource.multiDiffEditorOriginalUri)
+				&& isEqual(EditorResourceAccessor.getOriginalUri(input.modified), resource.multiDiffEditorModifiedUri);
+		}
+		const identity = sourcesDiffOpenIdentity(input);
+		return !!resource && identity?.scmResource === resource && identity.groupId === ref.groupId;
 	};
 	const activePane = deps.editorService.activeEditorPane;
 	if (activePane && matches(activePane.input)) {

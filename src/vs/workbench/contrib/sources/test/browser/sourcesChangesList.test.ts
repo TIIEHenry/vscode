@@ -10,12 +10,14 @@ import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
+import { mock } from '../../../../../base/test/common/mock.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { localize } from '../../../../../nls.js';
 import { EditorOpenSource, IResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { CommandsRegistry, ICommandEvent, ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -26,14 +28,17 @@ import type {
 	UniverseAgentWriteGitWriteResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { TestEditorGroupsService, TestEditorGroupView, TestEditorInput, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { API_OPEN_DIFF_EDITOR_COMMAND_ID, API_OPEN_EDITOR_COMMAND_ID } from '../../../../browser/parts/editor/editorCommands.js';
+import { API_OPEN_DIFF_EDITOR_COMMAND_ID, API_OPEN_EDITOR_COMMAND_ID, setup as setupEditorCommands } from '../../../../browser/parts/editor/editorCommands.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMResource, ISCMResourceGroup, ISCMService } from '../../../scm/common/scm.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
+import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
+import { EditorGroupModel } from '../../../../common/editor/editorGroupModel.js';
+import { EditorsOrder, IUntypedEditorInput, IVisibleEditorPane, isResourceDiffEditorInput, isResourceEditorInput } from '../../../../common/editor.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
-import { IEditorGroupsService, preferredSideBySideGroupDirection } from '../../../../services/editor/common/editorGroupsService.js';
+import { IEditorGroup, IEditorGroupsService, preferredSideBySideGroupDirection } from '../../../../services/editor/common/editorGroupsService.js';
 import { ConversationChatInput, getConversationChatResource, getDefaultConversationChatResource } from '../../../conversation/common/conversationChatInput.js';
 import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
@@ -46,7 +51,7 @@ import { SOURCES_GIT_UNROOTED_SCHEME, sourcesGitDiffOpenFailureMessage, sourcesG
 import { sourcesGitDiffContentStore, sourcesGitDiffModelUri } from '../../browser/sourcesGitDiffContent.js';
 import { sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
-import { sourcesDiffOpenIdentity } from '../../browser/sourcesDiffOpenIdentity.js';
+import { rememberSourcesDiffOpenIdentity, sourcesDiffOpenIdentity } from '../../browser/sourcesDiffOpenIdentity.js';
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
@@ -84,17 +89,31 @@ suite('Sources - Changes list open', () => {
 		};
 	}
 
-	function commandResource(resource: URI, command: ISCMResource['command'], open: ISCMResource['open']): ISCMResource {
+	function commandResource(resource: URI, command: ISCMResource['command'], open: ISCMResource['open'], comparison?: readonly [URI, URI]): ISCMResource {
 		return {
 			get resourceGroup(): ISCMResourceGroup { throw new Error('opening a resource must not inspect its group'); },
 			sourceUri: resource,
 			decorations: {},
 			contextValue: undefined,
 			command,
-			multiDiffEditorOriginalUri: undefined,
-			multiDiffEditorModifiedUri: undefined,
+			multiDiffEditorOriginalUri: comparison?.[0],
+			multiDiffEditorModifiedUri: comparison?.[1],
 			open,
 		};
+	}
+
+	function diffInput(original: URI, modified: URI, editorService: IEditorService): DiffEditorInput {
+		return store.add(new DiffEditorInput(undefined, undefined,
+			store.add(new TestEditorInput(original, 'test.original')),
+			store.add(new TestEditorInput(modified, 'test.modified')),
+			undefined, editorService));
+	}
+
+	function visiblePane(input: EditorInput, group: IEditorGroup): IVisibleEditorPane {
+		return new class extends mock<IVisibleEditorPane>() {
+			override readonly input = input;
+			override readonly group = group;
+		}();
 	}
 
 	for (const commandId of [API_OPEN_EDITOR_COMMAND_ID, API_OPEN_DIFF_EDITOR_COMMAND_ID]) {
@@ -135,6 +154,322 @@ suite('Sources - Changes list open', () => {
 			}
 		}
 	}
+
+	for (const commandId of [API_OPEN_EDITOR_COMMAND_ID, API_OPEN_DIFF_EDITOR_COMMAND_ID]) {
+		for (const rejects of [false, true]) {
+			test(`API SCM ${commandId} newTab ${rejects ? 'rejects' : 'resolves'} without pre-pinning the focused preview`, async () => {
+				const resource = URI.file('/alpha/shared.ts');
+				const previous = store.add(new TestEditorInput(URI.file('/beta/shared.ts'), 'test.beta'));
+				const group = new TestEditorGroupView(45);
+				group.activeEditor = previous;
+				group.editors = [previous];
+				const trace: string[] = [];
+				group.pinEditor = () => { trace.push('pin'); };
+				group.closeEditor = async () => { trace.push('close'); return true; };
+				const editorService = store.add(new TestEditorService());
+				editorService.activeEditor = previous;
+				const providerOptions = [2, { pinned: false, preserveFocus: true }];
+				const args = commandId === API_OPEN_EDITOR_COMMAND_ID
+					? [resource, providerOptions, undefined]
+					: [URI.parse('git:/alpha/shared.ts?index'), resource, undefined, providerOptions];
+				const scmResource = commandResource(resource, { id: commandId, title: '', arguments: args }, async () => { trace.push('resource.open'); });
+				const boom = new Error('provider rejected');
+				const open = () => openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
+					editorService,
+					editorGroupsService: new TestEditorGroupsService([group]),
+					commandService: { ...NullCommandService, executeCommand: async () => {
+						trace.push('command');
+						if (rejects) {
+							throw boom;
+						}
+						return undefined;
+					} },
+				}), { slot: 'newTab', pinned: true, preserveFocus: true });
+				if (rejects) {
+					await assert.rejects(open, error => error === boom);
+				} else {
+					assert.strictEqual(await open(), true);
+				}
+				assert.deepStrictEqual({ trace, identity: sourcesDiffOpenIdentity(previous) }, { trace: ['command'], identity: undefined });
+			});
+		}
+
+		test(`API SCM ${commandId} runs the official handler with provider column and options taking priority`, async () => {
+			if (!CommandsRegistry.getCommand(commandId)) {
+				setupEditorCommands();
+			}
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			const groups = new TestEditorGroupsService([new TestEditorGroupView(46), new TestEditorGroupView(47), new TestEditorGroupView(48)]);
+			const editorService = store.add(new TestEditorService());
+			const opened: { input: EditorInput | IUntypedEditorInput; group: number | undefined }[] = [];
+			editorService.openEditor = async (input, optionsOrGroup) => {
+				opened.push({ input, group: typeof optionsOrGroup === 'number' ? optionsOrGroup : undefined });
+				return undefined;
+			};
+			instantiationService.stub(IEditorService, editorService);
+			instantiationService.stub(IEditorGroupsService, groups);
+			instantiationService.stub(IOpenerService, new class extends mock<IOpenerService>() { }());
+			const resource = URI.file('/alpha/priority.ts');
+			const original = URI.parse('git:/alpha/priority.ts?index');
+			const providerOptions = [2, { pinned: false, preserveFocus: false }];
+			const args = commandId === API_OPEN_EDITOR_COMMAND_ID
+				? [resource, providerOptions, undefined]
+				: [original, resource, 'Priority', providerOptions];
+			const scmResource = commandResource(resource, { id: commandId, title: '', arguments: args }, async () => assert.fail('API DTO must not fall back to resource.open'));
+			const commandService: ICommandService = { ...NullCommandService, executeCommand: async (id, ...commandArgs) => {
+				const command = CommandsRegistry.getCommand(id);
+				assert.ok(command);
+				await instantiationService.invokeFunction(accessor => command.handler(accessor, ...commandArgs));
+				return undefined;
+			} };
+			assert.strictEqual(await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
+				editorService, commandService, editorGroupsService: groups,
+			}), { slot: 'newTab', pinned: true, preserveFocus: true }), true);
+			assert.strictEqual(opened.length, 1);
+			const request = opened[0];
+			assert.ok(!(request.input instanceof EditorInput));
+			assert.deepStrictEqual({ group: request.group, options: request.input.options }, {
+				group: 48, options: { pinned: false, preserveFocus: false, source: EditorOpenSource.USER },
+			});
+			if (commandId === API_OPEN_DIFF_EDITOR_COMMAND_ID) {
+				assert.ok(isResourceDiffEditorInput(request.input));
+				assert.deepStrictEqual([request.input.original.resource.toString(), request.input.modified.resource.toString()], [original.toString(), resource.toString()]);
+			} else {
+				assert.ok(isResourceEditorInput(request.input));
+				assert.strictEqual(request.input.resource?.toString(), resource.toString());
+			}
+		});
+	}
+
+	for (const providerPinned of [undefined, false] as const) {
+		test(`API newTab real group model honors ${providerPinned === false ? 'provider pinned:false' : 'the default pinned input'}`, async () => {
+			if (!CommandsRegistry.getCommand(API_OPEN_EDITOR_COMMAND_ID)) {
+				setupEditorCommands();
+			}
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			const model = store.add(instantiationService.createInstance(EditorGroupModel, undefined));
+			const previous = store.add(new TestEditorInput(URI.file('/beta/preview.ts'), 'test.preview'));
+			const resource = URI.file('/alpha/new.ts');
+			const opened = store.add(new TestEditorInput(resource, 'test.new'));
+			model.openEditor(previous, { pinned: false, active: true });
+			const group = new TestEditorGroupView(49);
+			group.activeEditor = previous;
+			group.editors = [previous];
+			group.pinEditor = () => assert.fail('the API path must not pre-pin the old preview');
+			const groups = new TestEditorGroupsService([group]);
+			const editorService = store.add(new TestEditorService());
+			editorService.openEditor = async input => {
+				assert.ok(!(input instanceof EditorInput));
+				model.openEditor(opened, { pinned: input.options?.pinned, active: true });
+				group.activeEditor = opened;
+				group.editors = model.getEditors(EditorsOrder.SEQUENTIAL);
+				editorService.activeEditor = opened;
+				return undefined;
+			};
+			instantiationService.stub(IEditorService, editorService);
+			instantiationService.stub(IEditorGroupsService, groups);
+			instantiationService.stub(IOpenerService, new class extends mock<IOpenerService>() { }());
+			const scmResource = commandResource(resource, {
+				id: API_OPEN_EDITOR_COMMAND_ID, title: '', arguments: [resource, [0, providerPinned === false ? { pinned: false } : undefined], undefined],
+			}, async () => assert.fail('API DTO must not call resource.open'));
+			const commandService: ICommandService = { ...NullCommandService, executeCommand: async (id, ...args) => {
+				const command = CommandsRegistry.getCommand(id);
+				assert.ok(command);
+				await instantiationService.invokeFunction(accessor => command.handler(accessor, ...args));
+				return undefined;
+			} };
+			await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({ editorService, commandService, editorGroupsService: groups }), { slot: 'newTab' });
+			assert.deepStrictEqual({
+				editors: model.getEditors(EditorsOrder.SEQUENTIAL), preview: model.previewEditor,
+				openedPinned: model.isPinned(opened),
+			}, providerPinned === false
+				? { editors: [opened], preview: opened, openedPinned: false }
+				: { editors: [previous, opened], preview: previous, openedPinned: true });
+		});
+	}
+
+	for (const slot of ['newTab', 'replace'] as const) {
+		for (const result of ['no-op', 'same comparison', 'background comparison', 'current comparison'] as const) {
+			test(`API diff ${slot} ${result} uses the complete DTO comparison identity`, async () => {
+				const modified = URI.file('/alpha/shared.ts');
+				const oldOriginal = URI.parse('git:/alpha/shared.ts?HEAD');
+				const newOriginal = result === 'same comparison' ? oldOriginal : URI.parse('git:/alpha/shared.ts?index');
+				const editorService = store.add(new TestEditorService());
+				const previous = diffInput(oldOriginal, modified, editorService);
+				const opened = result === 'same comparison' ? previous : diffInput(newOriginal, modified, editorService);
+				const group = new TestEditorGroupView(50);
+				group.activeEditor = previous;
+				group.editors = [previous];
+				const background = new TestEditorGroupView(51);
+				const trace: string[] = [];
+				group.pinEditor = () => { trace.push('pin:previous'); };
+				group.closeEditor = async input => { assert.strictEqual(input, previous); trace.push('close:previous'); return true; };
+				background.pinEditor = () => { trace.push('pin:background'); };
+				editorService.activeEditor = previous;
+				editorService.activeEditorPane = visiblePane(previous, group);
+				editorService.visibleEditorPanes = [editorService.activeEditorPane];
+				const oldResource = commandResource(modified, undefined, async () => { });
+				const oldIdentity = { groupId: 'workingTree', scmResource: oldResource };
+				rememberSourcesDiffOpenIdentity(previous, oldIdentity);
+				const scmResource = commandResource(modified, {
+					id: API_OPEN_DIFF_EDITOR_COMMAND_ID, title: '', arguments: [newOriginal.toJSON(), modified.toJSON(), undefined, [1, { preserveFocus: true, pinned: false }]],
+				}, async () => assert.fail('API diff must not use resource.open'));
+				const commandService: ICommandService = { ...NullCommandService, executeCommand: async () => {
+					trace.push('command');
+					if (result === 'background comparison') {
+						background.activeEditor = opened;
+						background.editors = [opened];
+						editorService.visibleEditorPanes = [visiblePane(previous, group), visiblePane(opened, background)];
+					} else if (result === 'current comparison') {
+						group.activeEditor = opened;
+						group.editors = [previous, opened];
+						editorService.activeEditor = opened;
+						editorService.activeEditorPane = visiblePane(opened, group);
+					}
+					return undefined;
+				} };
+				assert.strictEqual(await openSourcesChangeEntry({ ...createEntry(modified, scmResource), groupId: 'index' }, createDeps({
+					editorService, commandService, editorGroupsService: new TestEditorGroupsService([group, background]),
+					// A quickDiff baseline is deliberately different from the provider DTO.
+					quickDiffService: new class extends mock<IQuickDiffService>() {
+						override async getQuickDiffs() { return [{ id: 'git', originalResource: URI.parse('git:/alpha/shared.ts?quickDiff'), label: 'Git', kind: 'primary' as const }]; }
+					}(),
+				}), { slot, preserveFocus: true }), true);
+				const newIdentity = { groupId: 'index', scmResource };
+				assert.deepStrictEqual({
+					previousIdentity: sourcesDiffOpenIdentity(previous),
+					openedIdentity: sourcesDiffOpenIdentity(opened), trace,
+				}, {
+					previousIdentity: result === 'same comparison' ? newIdentity : oldIdentity,
+					openedIdentity: result === 'no-op' ? undefined : newIdentity,
+					trace: slot === 'replace' && result === 'current comparison' ? ['command', 'close:previous'] : ['command'],
+				});
+			});
+		}
+	}
+
+	test('API file void does not claim a diff that merely contains the same modified URI', async () => {
+		const resource = URI.file('/alpha/shared.ts');
+		const editorService = store.add(new TestEditorService());
+		const previous = diffInput(URI.parse('git:/alpha/shared.ts?HEAD'), resource, editorService);
+		const group = new TestEditorGroupView(52);
+		group.activeEditor = previous;
+		group.editors = [previous];
+		group.pinEditor = () => assert.fail('API no-op must not pin a diff');
+		group.closeEditor = async () => assert.fail('API file must not replace an unrelated comparison');
+		editorService.activeEditorPane = visiblePane(previous, group);
+		const oldResource = commandResource(resource, undefined, async () => { });
+		const oldIdentity = { groupId: 'workingTree', scmResource: oldResource };
+		rememberSourcesDiffOpenIdentity(previous, oldIdentity);
+		const scmResource = commandResource(resource, { id: API_OPEN_EDITOR_COMMAND_ID, title: '', arguments: [resource.toString(), [0], undefined] }, async () => assert.fail('API DTO must use commandService'));
+		await openSourcesChangeEntry({ ...createEntry(resource, scmResource), groupId: 'index' }, createDeps({ editorService, editorGroupsService: new TestEditorGroupsService([group]) }), { slot: 'replace' });
+		assert.deepStrictEqual(sourcesDiffOpenIdentity(previous), oldIdentity);
+	});
+
+	for (const slot of [undefined, 'newTab', 'replace'] as const) {
+		for (const result of ['no-op', 'reject', 'unknown background input'] as const) {
+			test(`custom SCM ${slot ?? 'no slot'} ${result} keeps only its documented preview-pin cost`, async () => {
+				const resource = URI.file('/alpha/custom.ts');
+				const oldOriginal = URI.parse('git:/alpha/custom.ts?HEAD');
+				const newOriginal = URI.parse('git:/alpha/custom.ts?index');
+				const editorService = store.add(new TestEditorService());
+				const previous = diffInput(oldOriginal, resource, editorService);
+				const backgroundInput = store.add(new TestEditorInput(resource, 'test.custom-background'));
+				const group = new TestEditorGroupView(53);
+				group.activeEditor = previous;
+				group.editors = [previous];
+				const background = new TestEditorGroupView(54);
+				background.activeEditor = backgroundInput;
+				background.editors = [backgroundInput];
+				const trace: string[] = [];
+				group.pinEditor = input => { assert.strictEqual(input, previous); trace.push('pin:previous'); };
+				group.closeEditor = async () => { trace.push('close:previous'); return true; };
+				background.pinEditor = () => { trace.push('pin:background'); };
+				editorService.activeEditor = previous;
+				editorService.activeEditorPane = visiblePane(previous, group);
+				const oldIdentity = { groupId: 'workingTree', scmResource: commandResource(resource, undefined, async () => { }) };
+				rememberSourcesDiffOpenIdentity(previous, oldIdentity);
+				const boom = new Error('custom rejected');
+				const scmResource = commandResource(resource, { id: 'provider.custom', title: '' }, async preserveFocus => {
+					assert.strictEqual(preserveFocus, true);
+					trace.push('resource.open');
+					if (result === 'reject') {
+						throw boom;
+					}
+					if (result === 'unknown background input') {
+						editorService.visibleEditorPanes = [visiblePane(previous, group), visiblePane(backgroundInput, background)];
+					}
+				}, result === 'unknown background input' ? undefined : [newOriginal, resource]);
+				const open = () => openSourcesChangeEntry({ ...createEntry(resource, scmResource), groupId: 'index' }, createDeps({
+					editorService, editorGroupsService: new TestEditorGroupsService([group, background]),
+					commandService: { ...NullCommandService, executeCommand: async () => { trace.push('command'); return undefined; } },
+				}), { slot, preserveFocus: true });
+				if (result === 'reject') {
+					await assert.rejects(open, error => error === boom);
+				} else {
+					assert.strictEqual(await open(), true);
+				}
+				assert.deepStrictEqual({ trace, previousIdentity: sourcesDiffOpenIdentity(previous), backgroundIdentity: sourcesDiffOpenIdentity(backgroundInput) }, {
+					trace: slot === 'newTab' ? ['pin:previous', 'resource.open'] : ['resource.open'],
+					previousIdentity: oldIdentity, backgroundIdentity: undefined,
+				});
+			});
+		}
+	}
+
+	test('custom newTab pre-pin retains the old preview when the provider really opens an unpinned comparison', async () => {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const model = store.add(instantiationService.createInstance(EditorGroupModel, undefined));
+		const editorService = store.add(new TestEditorService());
+		const previous = store.add(new TestEditorInput(URI.file('/beta/previous.ts'), 'test.custom-previous'));
+		const resource = URI.file('/alpha/custom-new.ts');
+		const original = URI.parse('git:/alpha/custom-new.ts?HEAD');
+		const opened = diffInput(original, resource, editorService);
+		model.openEditor(previous, { pinned: false, active: true });
+		const group = new TestEditorGroupView(55);
+		group.activeEditor = previous;
+		group.editors = [previous];
+		const trace: string[] = [];
+		group.isPinned = input => model.isPinned(input);
+		group.pinEditor = input => {
+			assert.ok(input);
+			trace.push(input === previous ? 'pin:previous' : 'pin:opened');
+			model.pin(input);
+		};
+		group.closeEditor = async () => assert.fail('custom newTab must retain the previous input');
+		const scmResource = commandResource(resource, undefined, async () => {
+			trace.push('resource.open');
+			model.openEditor(opened, { pinned: false, active: true });
+			group.activeEditor = opened;
+			group.editors = model.getEditors(EditorsOrder.SEQUENTIAL);
+			editorService.activeEditor = opened;
+		}, [original, resource]);
+		await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({ editorService, editorGroupsService: new TestEditorGroupsService([group]) }), { slot: 'newTab' });
+		assert.deepStrictEqual({
+			trace, editors: model.getEditors(EditorsOrder.SEQUENTIAL), previousPinned: model.isPinned(previous), openedPinned: model.isPinned(opened),
+			identity: sourcesDiffOpenIdentity(opened),
+		}, {
+			trace: ['pin:previous', 'resource.open', 'pin:opened'], editors: [previous, opened], previousPinned: true, openedPinned: true,
+			identity: { groupId: 'workingTree', scmResource },
+		});
+	});
+
+	test('custom reveal can reuse an already recorded resource and group identity without guessing a URI', async () => {
+		const resource = URI.file('/alpha/trusted-custom.ts');
+		const input = store.add(new TestEditorInput(resource, 'test.custom-trusted'));
+		const group = new TestEditorGroupView(56);
+		group.activeEditor = input;
+		group.editors = [input];
+		group.closeEditor = async () => assert.fail('revealing the trusted input must not close it');
+		const trace: boolean[] = [];
+		const scmResource = commandResource(resource, undefined, async preserveFocus => { trace.push(preserveFocus); });
+		const identity = { groupId: 'workingTree', scmResource };
+		rememberSourcesDiffOpenIdentity(input, identity);
+		await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
+			editorService: store.add(new TestEditorService()), editorGroupsService: new TestEditorGroupsService([group]),
+		}), { slot: 'replace', preserveFocus: true });
+		assert.deepStrictEqual({ trace, identity: sourcesDiffOpenIdentity(input) }, { trace: [true], identity });
+	});
 
 	test('API SCM rejection propagates without a resource.open fallback or unrelated identity', async () => {
 		const resource = URI.file('/alpha/shared.ts');
@@ -182,15 +517,17 @@ suite('Sources - Changes list open', () => {
 
 	test('custom SCM reveal of the same input retains delegated void and the correct identity', async () => {
 		const resource = URI.file('/alpha/shared.ts');
-		const input = store.add(new TestEditorInput(resource, 'test.alpha'));
+		const original = URI.parse('git:/alpha/shared.ts?HEAD');
+		const editorService = store.add(new TestEditorService());
+		const input = diffInput(original, resource, editorService);
 		const group = new TestEditorGroupView(43);
 		group.activeEditor = input;
 		group.editors = [input];
 		group.closeEditor = async () => assert.fail('same input reveal must not close itself');
 		let opens = 0;
-		const scmResource = commandResource(resource, { id: 'provider.customOpen', title: '' }, async preserveFocus => { opens++; assert.strictEqual(preserveFocus, true); });
+		const scmResource = commandResource(resource, { id: 'provider.customOpen', title: '' }, async preserveFocus => { opens++; assert.strictEqual(preserveFocus, true); }, [original, resource]);
 		const opened = await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
-			editorService: store.add(new TestEditorService()),
+			editorService,
 			editorGroupsService: new TestEditorGroupsService([group]),
 			commandService: { ...NullCommandService, executeCommand: async () => assert.fail('custom resource must own its dispatch') },
 		}), { slot: 'replace', preserveFocus: true });
@@ -275,16 +612,18 @@ suite('Sources - Changes list open', () => {
 
 		test(`SCM ${slot} preserves editor order and records the opened identity`, async function () {
 			const resource = toResource.call(this, '/project/src/a.ts');
+			const original = URI.parse('git:/project/src/a.ts?HEAD');
+			const editorService = store.add(new TestEditorService());
 			const previous = store.add(new TestEditorInput(URI.file('/project/previous.ts'), 'test.previous'));
-			const opened = store.add(new TestEditorInput(resource, 'test.opened'));
+			const opened = diffInput(original, resource, editorService);
 			let activeEditor: EditorInput | null = previous;
 			const trace: string[] = [];
-			const scmResource = {
-				open: async (preserveFocus: boolean) => {
+			const scmResource = commandResource(resource, undefined,
+				async preserveFocus => {
 					trace.push(`open:${preserveFocus}`);
 					activeEditor = opened;
 				},
-			} as ISCMResource;
+				[original, resource]);
 			const editorGroupsService = {
 				activeGroup: {
 					get activeEditor() { return activeEditor; },
