@@ -1,5 +1,5 @@
 {
-  "phase": "P2-native-compile0-complete-business-suites-ack-regression-and-old-fixtures",
+  "phase": "P2-ack-and-review-merged-awaiting-fixture-peer-before-final-compile",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -504,6 +504,55 @@
       "bytes": 6590,
       "sha256": "320d983c6ed9ce509246e381e4a69888475817a29424a7e2e76dfa6c77bfe45b",
       "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-ack-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-ack-pre-merge.json",
+      "bytes": 583,
+      "sha256": "4041753aaeacf1bc5fe882c2c2bba7ba488350b57bbe4047a294331c3b20f7f6",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-ack-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-ack-merge.log",
+      "bytes": 160,
+      "sha256": "7b062612663b38695884d4a90668592de957e1ca8045dfcb88e7ab2a56911daf",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-ack-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-ack-merge-identity.json",
+      "bytes": 41959,
+      "sha256": "14184fe83d8b9b00816b43760f33d7819305df4b4e8df487b3ff1445e77f1227",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-runtime-peer-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-runtime-peer-pre-merge.json",
+      "bytes": 477,
+      "sha256": "0cd7ee09c856be9096df71c9c324986e7d4a05b5b18c3421b80580608d2a2763",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-runtime-peer-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-runtime-peer-merge.log",
+      "bytes": 55,
+      "sha256": "b0a553d20817e5980c564f1485d89ea0f776bc5f8ebf0f34a0a4010e2bcb9099",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-runtime-peer-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-runtime-peer-merge-identity.json",
+      "bytes": 38775,
+      "sha256": "754c1537f0c2c101f53159a771fb21d9c3a7b251267725c39ca728b066050482",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-generated-cache-relocation.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-cache-incident-summary.json",
+      "bytes": 1398,
+      "sha256": "9f7ccfd634f1740795c6c4f7e35dd2b9411c3611a9c8b2f2b385551dad1bbf93",
+      "summaryOfVerifiedReversibleIncident": true
     }
   ]
 }

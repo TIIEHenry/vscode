@@ -81,3 +81,11 @@ FrameSource三红必须分别判定：requestResync实际两次lease而旧fixtur
 [merge HEAD外部变化](je-formal-unexpected-merge-ref-observation.json)：验证后发现`71ba410c4f3e00fadf595b2e8c1b123beaac8546`，parents为000823与21162；相对000823仅Lens CSS5行与独立控件证据/status，保留原提交、不reset/revert，不计为本波作者实现。初次旧对照HEAD守卫在写out前退出；随后明确绑定已有000823/1ee native摘要与不可变5df隔离，登记当前HEAD/src5ebb未由该native编译背书，未消费新FS源码。后续最终源必须重新钉不可变HEAD并实际完整编译，当前不freeze。
 
 父此前独立只读核22份artifact SHA零差、J262+E208共470路径四侧Git mode/type/blob无不符；只核Git身份，不扩大为父已重审全部hunk或out。P5仍禁push，P6主工位ff既有拒绝不重试，外部槽同步来源未知，不宣称本波释放。
+
+## 运行后ack补修与独立审查接入
+
+原E的`5f28071f4cafeb850ae014c92ce8bcfab75b1875`已真三路`9c1a26e9170`接入；[原日志](je-formal-E-ack-merge.log)与[69路径保留门禁](je-formal-E-ack-merge-identity.json)全PASS，唯一status冲突完整保留双方运行/外部CSS及作者ack交接。生产只恢复旧双catch；测试旁听process/window、不阻挡runner且保留两次Warn/精确单ack，有界resync夹具两次且无第三次。尚无后修运行green。
+
+Astra不可变`5bbeeb57dbebaf56a3800b8690e9b856436984e3`已实读§5/6并真三路`e1b13a4fb26`接入；[两纯docs原日志](je-formal-E-runtime-peer-merge.log)/[72路径门禁](je-formal-E-runtime-peer-merge-identity.json)全PASS，报告blob精确等于5bbe原件，保留§5原C0/I1及§6 ack C0/I0/M0、旧对照与前三fixture边界。原报告当时只收到临时路径的历史描述保持原件，永久原件在上节链接。当前含外部CSS后src63777d0尚未重新native编译，等待测试夹具不可变/定向peer后统一钉源完整编译；不将旧1ee编译0延伸。
+
+本轮一次`git status`因/home满返回exit128（无遗留index.lock），未启动新编译。随后在全局车道空且持共享锁下，将忽略生成目录.build/extensions完整镜像至/tmp、逐entry mode/type/SHA核同并以符号链接保留访问路径；执行时外部已先释放空间。为避免长期临时路径，立即把原目录完整恢复、再次核同并删除自己已验证的临时镜像。原路径现为普通目录，native86未变；[事件摘要/清单摘要](je-formal-cache-incident-summary.json)保存实时时间、原路径、恢复结果，恢复后/home约2.9GiB。不把外部释放空间归因于本lane，也不新增长期配置或清理他槽/WIP。

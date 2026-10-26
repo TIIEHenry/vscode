@@ -1,0 +1,15 @@
+{
+  "ours": "130087b692411f20365343d170bcb4f3cd7e67ad",
+  "theirs": "5f28071f4cafeb850ae014c92ce8bcfab75b1875",
+  "mergeBase": "de1c958d1f0b036df93d2ad2e3a4bf334cea3f6d",
+  "theirsChangedPaths": [
+    "dev/plans/conversation-unary-response-recovery.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.ts"
+  ],
+  "bothChangedPaths": [
+    "dev/progress/status.md"
+  ],
+  "startedAtUtc": "2026-10-26T17:15:54.944784+00:00"
+}
