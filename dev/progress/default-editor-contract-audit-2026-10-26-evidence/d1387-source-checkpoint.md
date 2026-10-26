@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "M01 fccde生命周期旧跑达释放业务断言但混有缺progress服务异常；J/Astra确认组级fixture缺项，现补完整公开progress并扩核widget依赖，生产/39项expected不变，纯旧red与新运行待"
+summary: "M01 compile7通过、原38项全过，新增生命周期已释放旧VM但seed文本模型在替换时被resolver回收；现只在该case持有两侧公开refs并补三次load/live断言，生产不动，39green待"
 ---
 
 # D1387 Sources 打开合同源码检查点
@@ -86,6 +86,17 @@ J与Astra独立定界为组级fixture缺IEditorProgressService，不是旧泄漏
 在上节顶层model核查之外，本次扩查widget真实构造及异步/子组件：DiffEditorWidget的context/instantiation/codeEditor/accessibilitySignal来自workbench基座，VM唯一DI diffProvider为显式TestDiffProviderFactory；双CodeEditorWidget的theme/notification/accessibility/languageConfig/features/context/codeEditor/command/interaction均由基座或本fixture供应，diff子组件menu/keybinding/language/theme/contextMenu也由基座提供。clipboard仅用于未触发的内联viewzone复制交互，不是当前初始化show栈；不为未运行路径宣称全覆盖，也不堆未用stub。此核查与原Astra独立结论相同，后续仍须实际运行。
 
 本次仅1测试与3行动文档，生产与四真实Move入口代码区逐字同fccde，39项业务expected与leak/unexpected/console门禁不变。唯一TS AST语法0、ESLint0errors/0warnings，相对fccde逐条added=[]、removed=[]；测试SHA256更新为`83653d3619affa62557b4c431cba6000cbe1e329943826c411fd9ca85695f75c`，Pane保持`e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者未compile/typecheck/transpile/out/watch/业务运行/UI；修订peer及唯一lane准确旧0da同selector重跑、新native完整39/相关套与D新freeze真实after待，accepted/open不升。
+
+
+### M01 生命周期 seed 文本模型的夹具保活（2026-10-27）
+
+64a4进度夹具独立peer正式提交`e5c25b4b33853e8d6b9da9476adfbe589e24a0b9`原报告§19为C0/I0/M0，J已git show只读核验。唯一lane以准确旧0da Pane配64a4测试实际0过1纯释放业务AssertionError，无TypeError/加载/API/timeout/afterEach独立失败；随后正式合源srcab952（精确64a4）完整compile7 exit0/0TS。首次新M01实际38passing/1failing，原38（含4真实Move和所有反馈）全部通过，无leak/console/TypeError；新增生命周期firstDispose.calledOnce已过，随后VM创建数预期2实1，clear/dispose未达；完整J11实际424passing/1failing，仍同一计数失败，无其他新业务失败。J已只读`/tmp/vscode-m01-seventh-M01-focused.log`核此准确边界，不将原38通过写成39green。
+
+J/Astra独立读完整setInput/renderDiff、ResourceModelCollection及TextResourceEditorModel确定是生命周期fixture seed寿命，不是观察过早或index gate：setInput本身await完整renderDiff；clearEditors释放两侧最后resolver refs，真实collection异步回收。下一render先await重取original，只能撤销original的待销毁，modified在该await期间被TextResourceEditorModel.dispose强制destroyModel，之后modified无provider不能重建，renderDiff catch false，故第二VM未创建。store.add(seed ITextModel)只登记测试最终dispose，不是resolver引用保活。父接受原Astra判断，限定修fixture而不改生产、不sleep/改计数为1。
+
+本次只在该生命周期case持有两侧真实公开ITextModelService references跨三次open，finally先dispose Pane，再释放夹具references；seed原由外层test store在其后清理。helper仅为传入case专用store的调用在首次open前取得两侧refs并返回，先登记Pane disposer再登记refs，原反馈调用不持额外refs；不访问或代清产品私有VM。原3次VM创建数及替换/clear/dispose释放断言全部保留，另断言每次getComparisonLoadState为ok、每阶段两侧文本模型未dispose，验证Pane释放自己的比较VM同时不销毁夹具仍持有的文本。原4真实入口与其余38场景源码区保持，production完全不变。
+
+唯一改动TS AST语法0、ESLint0errors/0warnings，相对64a4逐条added=[]、removed=[]；测试SHA256 `eb81299cb0e6b170b888aa2e57ee5655d23613236b7a41c2d908c9132524577d`，Pane仍`e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者未compile/typecheck/transpile/out/watch/业务运行/UI；修订peer、唯一lane本fixture身份的准确old0da生命周期red及正式新native完整39/相关套、D新freeze真实after待，accepted/open不升。
 
 ## 宿主观测与 Sources 重叠补修（2026-10-26，J）
 
