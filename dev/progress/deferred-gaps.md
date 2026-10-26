@@ -18,7 +18,7 @@ summary: "D1383已闭合。D1382自动checkpoint仍open、实拍未做。D1384�
 
 | ID | Priority | Gap | Why Deferred | Exit Condition | Track | Status |
 |:---|:---------|:----|:-------------|:---------------|:------|:-------|
-| D1385 | P2 | Copilot Chat 首次连接录音授权未跨过真实 ack/fallback，composer/手势变化可丢失授权边界；不是 Conversation 真语音。 | C 已写 action 生命周期修复、31 条公共场景与 3 条真实 controller 场景；正式规则 16 / 实施静态 peer 均 C0/I0，三 TS ESLint 0/0。仅源已写，未编译/out/运行。[方案](../plans/copilot-chat-cold-voice-authorization.md) accepted。 | merge 公共入口旧生产 red / 新生产 green，真实 controller fake mic 证明 hold 跨准入；无真实设备/网络。验证前不关。 | workbench / Copilot Chat voice | open |
+| D1385 | P2 | Copilot Chat 首次连接录音授权未跨过真实 ack/fallback，composer/手势变化可丢失授权边界；不是 Conversation 真语音。 | C 同合同补修先 discard 后 hold，31 条公共场景保留、真实 controller 增为 4 条，新增真实 owner hide abort/零 release/零 ptt_end 与旧 A 松键不影响 B；本工位未编译/out/运行。[方案](../plans/copilot-chat-cold-voice-authorization.md) accepted。 | merge 固定旧69ac取消顺序只 fresh 测试取 abort/release/end 值 red，再 fresh action 后新场景及两完整套 green；无真实设备/网络。补修验证前不关。 | workbench / Copilot Chat voice | open |
 | D1382 | P2 | ReviewNav未完整转发会话工作目录、工作区目录及SCM根变化；静止活动叶/非活动并列叶可保留旧审阅路径。可选DI与直接相关工作根夹具有静态合同诊断。 | merge 已核对旧生产正文。新行为 3过/7败，新生产 37过，五TS语义0，ESLint 0 errors/4既有warnings。方案仍 accepted。J 静态 after C0/I0。默认编辑器实拍未做。SCM子根与workspace gate未改。 | [方案](../plans/conversation-review-root-invalidation.md)；[自动证据](default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)。独立非作者默认编辑器实拍确认审阅行随根变化后才闭合 | Conversation ReviewNav | open |
 | D1 | P3 | 套件 `dev/loop/overview.md` 引用的 `docs/guides/multi-agent-design-workflow.md` 缺失 | 门禁仅 warning 不阻塞 | 指南落盘且 `check-docs-health` 0 warning | docs | closed |
 | D2 | P2 | 工位池基线未编译验绿 | 编译耗时长；建槽时未跑 | merge 槽 `569ce371`：`npm run compile` 绿；[worktree-pool.md](worktree-pool.md) 已标注 | infra | closed |

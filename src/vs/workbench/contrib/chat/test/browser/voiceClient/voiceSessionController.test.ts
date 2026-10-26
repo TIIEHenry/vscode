@@ -5211,54 +5211,105 @@ suite('VoiceSessionController', () => {
 		assert.strictEqual(mic.pttDownCalls[0].passive, true);
 	});
 
-	test('cold public command ends a short mic turn after a long connection wait', async () => {
-		const voiceClientService = new TestVoiceClientService();
-		let micReleases = 0;
-		const mic = new class extends RecordingMicCaptureService {
-			override pttUp(): void { micReleases++; }
-		}();
-		const owner = new class extends mock<IChatWidget>() {
-			override readonly visible = true;
-			override readonly onDidChangeViewModel = Event.None;
-			override readonly onDidHide = Event.None;
-			override readonly viewModel = new class extends mock<IChatViewModel>() {
-				override readonly sessionResource = URI.parse('chat-session:/cold-command-owner');
+	for (const ending of ['release', 'owner-hidden'] as const) {
+		test(ending === 'release' ? 'cold public command ends a short mic turn after a long connection wait'
+			: 'cold public command discards an admitted owner hide without finalizing and allows a new press', async () => {
+			const voiceClientService = new TestVoiceClientService();
+			let micReleases = 0;
+			let capturing = false;
+			const micStart = store.add(new Emitter<boolean>());
+			const micEnd = store.add(new Emitter<void>());
+			const hidden = store.add(new Emitter<void>());
+			let ownerVisible = true;
+			const mic = new class extends RecordingMicCaptureService {
+				override get isCapturing(): boolean { return capturing; }
+				override readonly onPttStart = micStart.event;
+				override readonly onPttEnd = micEnd.event;
+				override async pttDown(turnId: string, passive?: boolean): Promise<void> {
+					capturing = true;
+					await super.pttDown(turnId, passive);
+					micStart.fire(passive ?? false);
+				}
+				override pttUp(): void { capturing = false; micReleases++; micEnd.fire(); }
+				override abortPtt(): void { capturing = false; super.abortPtt(); }
 			}();
-		}();
-		const widgets = new class extends TestChatWidgetService {
-			override readonly onDidChangeFocusedWidget = Event.None;
-		}([owner]);
-		widgets.lastFocusedWidget = owner;
-		const configuration = new TestConfigurationService({ 'agents.voice.handsFree': false });
-		const commands = new TestCommandService();
-		const controller = createController(voiceClientService, undefined, commands, undefined, mic, configuration,
-			undefined, undefined, undefined, undefined, undefined, undefined, widgets);
-		const hold = new DeferredPromise<void>();
-		const instantiation = workbenchInstantiationService(undefined, store);
-		instantiation.stub(IVoiceSessionController, controller);
-		instantiation.stub(IChatWidgetService, widgets);
-		instantiation.stub(IConfigurationService, configuration);
-		instantiation.stub(ICommandService, commands);
-		instantiation.stub(IKeybindingService, new class extends mock<IKeybindingService>() {
-			override enableKeybindingHoldMode(): Promise<void> { return hold.p; }
+			const owner = new class extends mock<IChatWidget>() {
+				override get visible(): boolean { return ownerVisible; }
+				override readonly onDidChangeViewModel = Event.None;
+				override readonly onDidHide = hidden.event;
+				override readonly viewModel = new class extends mock<IChatViewModel>() {
+					override readonly sessionResource = URI.parse('chat-session:/cold-command-owner');
+				}();
+			}();
+			const widgets = new class extends TestChatWidgetService {
+				override readonly onDidChangeFocusedWidget = Event.None;
+			}([owner]);
+			widgets.lastFocusedWidget = owner;
+			const configuration = new TestConfigurationService({ 'agents.voice.handsFree': false });
+			const commands = new TestCommandService();
+			const controller = createController(voiceClientService, undefined, commands, undefined, mic, configuration,
+				undefined, undefined, undefined, undefined, undefined, undefined, widgets);
+			const hold = new DeferredPromise<void>();
+			let currentHold = hold.p;
+			const instantiation = workbenchInstantiationService(undefined, store);
+			instantiation.stub(IVoiceSessionController, controller);
+			instantiation.stub(IChatWidgetService, widgets);
+			instantiation.stub(IConfigurationService, configuration);
+			instantiation.stub(ICommandService, commands);
+			instantiation.stub(IKeybindingService, new class extends mock<IKeybindingService>() {
+				override enableKeybindingHoldMode(): Promise<void> { return currentHold; }
+			});
+			const command = CommandsRegistry.getCommand('agentsVoice.startVoiceInChat');
+			assert.ok(command);
+			const run = instantiation.invokeFunction(accessor => Promise.resolve(command.handler(accessor, { widget: owner })));
+			await voiceClientService.connectCalled.p;
+			await clock.tickAsync(5_000);
+			assert.strictEqual(mic.pttDownCalls.length, 0);
+			voiceClientService.fireConnectionState(true);
+			await voiceClientService.sessionCommandSent.p;
+			voiceClientService.fireSessionInit();
+			await clock.tickAsync(0);
+			// No virtual time passes between admission and release: a normal pttUp
+			// would toggle this sub-300ms turn on, despite the five-second key hold.
+			if (ending === 'release') {
+				hold.complete();
+			} else {
+				ownerVisible = false;
+				hidden.fire();
+				hidden.fire();
+			}
+			await run;
+			await clock.tickAsync(0);
+			assert.deepStrictEqual({ capturing: mic.isCapturing, turns: mic.pttDownCalls.length, starts: voiceClientService.pttStarts.length, releases: micReleases, aborts: mic.abortCalls, ends: voiceClientService.pttEndCalls, state: controller.voiceState.get() },
+				ending === 'release' ? { capturing: false, turns: 1, starts: 1, releases: 1, aborts: 0, ends: 1, state: 'processing' }
+					: { capturing: false, turns: 1, starts: 1, releases: 0, aborts: 1, ends: 0, state: 'idle' });
+			if (ending === 'owner-hidden') {
+				const nextOwner = new class extends mock<IChatWidget>() {
+					override readonly visible = true;
+					override readonly onDidChangeViewModel = Event.None;
+					override readonly onDidHide = Event.None;
+					override readonly viewModel = new class extends mock<IChatViewModel>() {
+						override readonly sessionResource = URI.parse('chat-session:/new-command-owner');
+					}();
+				}();
+				widgets.lastFocusedWidget = nextOwner;
+				const nextHold = new DeferredPromise<void>();
+				currentHold = nextHold.p;
+				const next = instantiation.invokeFunction(accessor => Promise.resolve(command.handler(accessor, { widget: nextOwner })));
+				await clock.tickAsync(0);
+				hold.complete();
+				await clock.tickAsync(0);
+				assert.deepStrictEqual({ capturing: mic.isCapturing, turns: mic.pttDownCalls.length, starts: voiceClientService.pttStarts.length, releases: micReleases, aborts: mic.abortCalls, ends: voiceClientService.pttEndCalls, state: controller.voiceState.get() },
+					{ capturing: true, turns: 2, starts: 2, releases: 0, aborts: 1, ends: 0, state: 'listening' });
+				assert.strictEqual(controller.targetSession.get()?.toString(), nextOwner.viewModel.sessionResource.toString());
+				await clock.tickAsync(350);
+				nextHold.complete();
+				await next;
+				assert.deepStrictEqual({ capturing: mic.isCapturing, releases: micReleases, aborts: mic.abortCalls, ends: voiceClientService.pttEndCalls, state: controller.voiceState.get() },
+					{ capturing: false, releases: 1, aborts: 1, ends: 1, state: 'processing' });
+			}
 		});
-		const command = CommandsRegistry.getCommand('agentsVoice.startVoiceInChat');
-		assert.ok(command);
-		const run = instantiation.invokeFunction(accessor => Promise.resolve(command.handler(accessor, { widget: owner })));
-		await voiceClientService.connectCalled.p;
-		await clock.tickAsync(5_000);
-		assert.strictEqual(mic.pttDownCalls.length, 0);
-		voiceClientService.fireConnectionState(true);
-		await voiceClientService.sessionCommandSent.p;
-		voiceClientService.fireSessionInit();
-		await clock.tickAsync(0);
-		// No virtual time passes between admission and release: a normal pttUp
-		// would toggle this sub-300ms turn on, despite the five-second key hold.
-		hold.complete();
-		await run;
-		assert.deepStrictEqual({ turns: mic.pttDownCalls.length, releases: micReleases, state: controller.voiceState.get() },
-			{ turns: 1, releases: 1, state: 'processing' });
-	});
+	}
 
 	for (const admission of ['ack', 'fallback'] as const) {
 		test(`cold authorization hold suppresses production ${admission} auto-listen until released`, async () => {

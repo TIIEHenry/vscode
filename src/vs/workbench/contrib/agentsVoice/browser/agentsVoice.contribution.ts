@@ -296,14 +296,18 @@ registerAction2(class extends Action2 {
 				invalid = true;
 				if (gated && this.currentStart === intent) {
 					this.heldController = voiceController;
-					voiceController.setAutoListenHeld(true);
 					if (startedPtt) {
+						// Holding auto-listen normally finalizes a live PTT turn. A
+						// cancelled owner must abort it before taking that hold.
 						voiceController.discardListening();
 					}
-					if (wroteTarget && (resource
-						? isEqual(voiceController.targetSession.get(), resource)
-						: voiceController.hasDraftTarget.get())) {
-						voiceController.setTargetSession(undefined);
+					if (this.currentStart === intent) {
+						voiceController.setAutoListenHeld(true);
+						if (this.currentStart === intent && wroteTarget && (resource
+							? isEqual(voiceController.targetSession.get(), resource)
+							: voiceController.hasDraftTarget.get())) {
+							voiceController.setTargetSession(undefined);
+						}
 					}
 				}
 				listeners.dispose();

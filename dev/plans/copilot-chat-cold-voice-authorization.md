@@ -34,6 +34,8 @@ summary: "D1385：默认编辑器保留的 Copilot Chat 首按授权绑定 compo
 
 取消时保留 held，安静连接可以继续握手。只在该意图仍为当前、且 controller 当前 target/draft 仍对应它所写目标时清其 target；`setTargetSession(undefined)` 会回退活动会话，必须在 held 中执行。旧意图不能清后来 B 的 target。下一次明确按下先建立新 owner/target，再释放该 action 保留的闸；成功后清掉 action 的 gate 所有权。正常 warm 路径不无条件 hold/unhold，避免停止后立即重启。
 
+取消顺序（2026-10-26 同合同补修）：先写 invalid；仅本次已 startedPtt 且仍拥有 gated 意图时，同步 `discardListening()` 后再持 hold，因为 setter 会把尚活跃的 PTT 正常 finalize。两者之间不 await，controller 副作用之后重验当前意图再 hold/清 target；旧监听与 cancelled 始终自行收尾。未开始 PTT 的冷取消维持 hold-only，正常 warm 不增加 discard。
+
 ### 2.3 等待与终止
 
 等待真实 `isConnected`，并观察 `isConnecting` / `isReconnecting` / `voiceState`。初始 `isConnecting=false` 不判失败：连接调用完成前允许 auth/entitlement 阶段。已观察到 connecting/reconnecting 后两者结束且未准入，或调用完成后始终无连接状态、明确 error/断开，结束等待。沿用 controller watchdog/reconnect，不另加重试或超时。
@@ -85,3 +87,7 @@ summary: "D1385：默认编辑器保留的 Copilot Chat 首按授权绑定 compo
 2026-10-26 D 对实际三 TS diff 的独立实施 peer 为 Critical 0 / Important 0；不是运行验收。C 三 TS ESLint `--no-cache` 为 0 errors / 0 warnings；`git diff --check` 通过。文档健康检查 0 errors / 46 既有链接 warnings。C 未编译/typecheck/transpile、未写 out、未跑单测、未启 Electron、未访问真实麦克风/语音网络/系统权限。
 
 唯一 merge 工位先保留并核对旧生产 `agentsVoice.contribution` 对应 `94893edf39b2`（与父 `3e63` 的 action 正文相同），只更新两份测试产物。最小 old-red 选择 `connect resolve does not release|toolbar uses the actual editor|cold hold released before admission|cold public command ends a short mic turn`；这些会以调用/状态断言失败，不需要等待未实现的取消使测试超时。真实 controller 的两条 gate API 测试本来就可在旧 controller 上通过，它们验证既有生产闸，不冒充 action 旧红。再只更新 action 生产，运行完整 agentsVoice contribution 与 VoiceSessionController 套件（含原 warm/停止回归），并对三 TS 做正式项目上下文定向语义检查和 ESLint。旧失败必须与同配置旧生产比较。运行前本方案 accepted、D1385 open，不宣称新 green、完整编译或 Conversation 真语音交付。
+
+后续取消顺序：`69ac16e` 仍先 hold 后 discard，真实 setter 会正常释放而非 abort。Astra 同合同只读裁定允许最小顺序修 bug，不新增 API/锁/连接设计。已写一条真实公共 command→真实 controller→有状态 fake mic/client：cold hold 准入后 owner hide 两次，期待 capturing=false、abort=1、mic pttUp=0、ptt_end=0、idle；旧 hold 在 B 新明确录音后才 resolve，不能改变 B target/capture，B 正常按住 350ms 后仍 finalize 一次。真实 controller 场景由 3 增为 4，31 条 action 保留。唯一 merge 固定 `69ac` 的旧顺序生产、只 fresh 测试，应在 abort/release/end 值红（不能以超时/类型错代替）；只 fresh 新 action 后重跑新场景与两完整套。C 未运行该回归；本段不冒充 red/green。
+
+该补修的实际两 TS 与方案补充已由 D 原生同伴独立只读复审，Critical 0 / Important 0 / Minor 0；核对真实 setter/discard/finish/mic 同步路径与 current 所有权重验。作者核验后提交。两 TS ESLint 0/0、diff / generated status / docs health 门禁通过（46 既有链接 warnings）；运行仍交唯一 merge，不以静态复审代替 red/green。
