@@ -1,0 +1,229 @@
+{
+  "phase": "D1387-production-frozen",
+  "reportedBy": "/root/baseline_executor",
+  "consumer": "/root/sources_audit",
+  "sourceHead": "REPLACE_WITH_FROZEN_IMMUTABLE_HEAD",
+  "sourceTree": "REPLACE_WITH_GIT_SRC_TREE",
+  "outFrozen": false,
+  "outputs": [
+    {
+      "path": "out/vs/workbench/api/browser/mainThreadSCM.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/api/browser/mainThreadSCM.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/browser/parts/editor/editorCommands.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/browser/parts/editor/editorCommands.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/conversation/common/conversationEditorRouting.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesChangesList.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffActions.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesOpenStatus.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesOpenStatus.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesReviewList.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesTabsHost.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/common/sourcesReviewHostService.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/sources/common/sourcesReviewHostService.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/services/editor/browser/editorOpenSlot.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/services/editor/browser/editorOpenSlot.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/services/editor/browser/editorService.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/services/editor/browser/editorService.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/services/editor/common/editorGroupFinder.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/services/editor/common/editorGroupFinder.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEngineQueueReader.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEngineQueueReader.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationMessageQueueModel.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationMessageQueueModel.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLensProjection.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/common/conversationResponseState.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/platform/universeAgent/common/conversationResponseState.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/common/universeAgentCapabilities.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/platform/universeAgent/common/universeAgentCapabilities.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/common/universeAgentRendererSync.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/platform/universeAgent/common/universeAgentRendererSync.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpcCapabilityProbe.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpcCapabilityProbe.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcClient.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcClient.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcProtoCodec.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcProtoCodec.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcQueueSkillWire.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcQueueSkillWire.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcTransport.js",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcTransport.ts",
+      "sourceSha256": "REQUIRED source SHA-256"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "sha256": "REQUIRED native SHA-256",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "sourceSha256": "REQUIRED source SHA-256"
+    }
+  ],
+  "fixedExternalBaselineCommit": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "evidenceScope": "source/native hashes only; runtime loaded evidence is recorded separately by the verifier",
+  "freezeContract": "../e-response-after-preparation-20261027/final-freeze-contract.json"
+}

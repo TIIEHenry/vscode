@@ -1,0 +1,332 @@
+{
+  "phase": "D1387-production-frozen",
+  "reportedBy": "/root/baseline_executor",
+  "consumer": "/root/sources_audit",
+  "sourceHead": "ce6d977a4316c1f903869089638a2cd7262dc7db",
+  "sourceTree": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+  "outFrozen": true,
+  "outputs": [
+    {
+      "path": "out/vs/platform/universeAgent/common/conversationResponseState.js",
+      "sha256": "883b7880dbe44d14f341103e43b3a76fe6d98288ff64e2aefbfd8bbaccc62ef6",
+      "sourcePath": "src/vs/platform/universeAgent/common/conversationResponseState.ts",
+      "sourceSha256": "6f67ab980c21a50f5db2fff41019f5e629dfd52102bb5f7dc4ed1ba9ed837979"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/common/universeAgentCapabilities.js",
+      "sha256": "1111693fe90230bc1a61ad5dc6635382973f039e0b848c358a814b91d1a302f7",
+      "sourcePath": "src/vs/platform/universeAgent/common/universeAgentCapabilities.ts",
+      "sourceSha256": "7d83deb01be7e074d80ace2e980b27f16a5e8f8586e1ad2d90abc005a6e3fb1f"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.js",
+      "sha256": "8c74a6265f9c8eb1d0a89bb8176e1c8d8d387bced9ba39d14fc07b5c3a6de77a",
+      "sourcePath": "src/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.ts",
+      "sourceSha256": "8563d20d4a25f500b8d0cb79b388fdd3621fb96aaf2957151a9e1345f361c306"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/common/universeAgentRendererSync.js",
+      "sha256": "4ec9130658fca5705357e000bc1ac9a1d14448f9d1fcd788774a81f455ff2c0c",
+      "sourcePath": "src/vs/platform/universeAgent/common/universeAgentRendererSync.ts",
+      "sourceSha256": "ec5e178701ffd7e7b40142f0a4a0274e31eb85853e2d6c31fe190d8b861eca93"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/electron-browser/universeAgentSessionViewService.js",
+      "sha256": "7b76704abda2baadcb693172f2d70369b6c77c00a4e120ebe6a626503bbcde96",
+      "sourcePath": "src/vs/platform/universeAgent/electron-browser/universeAgentSessionViewService.ts",
+      "sourceSha256": "cdc8356ce49773e8a0ba7f14d4ec6e15b8006cf0d00a74f0c5f4bc1b7e225718"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/electron-main/universeAgentMainService.js",
+      "sha256": "8782bb79cf13031dfcd214419b50a7676bbaa95e77739bd76a9da7ac0fc7b134",
+      "sourcePath": "src/vs/platform/universeAgent/electron-main/universeAgentMainService.ts",
+      "sourceSha256": "e94ed98a487b28e6f2630e6a86294573eb48604c3502cbeb1c63a49106f0a641"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcClient.js",
+      "sha256": "632cc42600dda6f32f21b78becfa5af93d185cd0fb2732d1b76330893c9186f7",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcClient.ts",
+      "sourceSha256": "1a1fa108d491af63a01daba49acc1a3d93f8df0281a0e0857fdd120d6df92910"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcProtoCodec.js",
+      "sha256": "e66dfe0ba01bf7b9c64360d49fab738ac8afce34d6728d704c44444ff75d1424",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcProtoCodec.ts",
+      "sourceSha256": "306e3646c0d16a560e269c6766f946f8b2f5e06ea4d749b60e7af9535382789e"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcQueueSkillWire.js",
+      "sha256": "c9aa7f1ededf2919643795f97711363dc3529bae025f787065019ca8f0c13948",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcQueueSkillWire.ts",
+      "sourceSha256": "5512e5f9e260b69bf69046b8a9c7b17e884e8684921a7e4f7912c574e4b1f67c"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcSessionAttachWire.js",
+      "sha256": "70fd7825ebf8e692561918433d2e0959cd3b10a2912fab5e48c81d8ff1a55e66",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcSessionAttachWire.ts",
+      "sourceSha256": "7c21429e5e1b04496c1a282774f6dff42cb9822c40df5d1cc81d0dec1e48b113"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpc/grpcTransport.js",
+      "sha256": "4c6920ced68dc3b57716027a2b7846c64bd8bcd5de2aaf8c86b74325be2d6007",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpc/grpcTransport.ts",
+      "sourceSha256": "3f5f556bcc06798ba207e542e4be2e5b863941d7239a36a3770a5c69f557edbc"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/grpcCapabilityProbe.js",
+      "sha256": "8d48c9fe8b6f944c3ccac2e74381507df4d1b4f1d1e474a99590ea9008e8d661",
+      "sourcePath": "src/vs/platform/universeAgent/node/grpcCapabilityProbe.ts",
+      "sourceSha256": "b8113fcd0c9cdcfdf4b50bf864b842ebbe75039ddc93b6235585c0b22aac7fdc"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/localEngineDiscovery.js",
+      "sha256": "e04b37899b7102fda07ec7378ef358427480b5068d21e52df6f1ce343c011804",
+      "sourcePath": "src/vs/platform/universeAgent/node/localEngineDiscovery.ts",
+      "sourceSha256": "bf6d241fc242f09f553121fc7f51f6ef3a60cc8c395df48eb034ed9bb3a511dc"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/sessionStreamDemux.js",
+      "sha256": "a48b0df5a1380f6cdd03695049f7a29de0157a09461bdd8583dae59d91123645",
+      "sourcePath": "src/vs/platform/universeAgent/node/sessionStreamDemux.ts",
+      "sourceSha256": "2d75cb146624b28c56581fb0375607e4ddec3733c93e0b82a6c5c5d2736410ae"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/sessionViewHost.js",
+      "sha256": "13120d84068a6fd547b8e6424f377093fae06e154c15cdef4b96d85bb382a628",
+      "sourcePath": "src/vs/platform/universeAgent/node/sessionViewHost.ts",
+      "sourceSha256": "b865f7437afc642e4cd7af47b3d975f296dc904207f19366bf9e6eb117d5929d"
+    },
+    {
+      "path": "out/vs/platform/universeAgent/node/universeAgentConnectionService.js",
+      "sha256": "03c58f20ba95e31ebfc9e319fa6703dd6f23942a7331667c82fd7ed3993fded8",
+      "sourcePath": "src/vs/platform/universeAgent/node/universeAgentConnectionService.ts",
+      "sourceSha256": "f18a8f71992d9a01869e426796f579e700d48ab6433645509cbe26b71ab61122"
+    },
+    {
+      "path": "out/vs/workbench/api/browser/mainThreadSCM.js",
+      "sha256": "0d7090796738c303a1ce73e5e62549d4888b8a49a557510b4360a3025d475405",
+      "sourcePath": "src/vs/workbench/api/browser/mainThreadSCM.ts",
+      "sourceSha256": "376c2bc20b93185406d83bfe637c2c024a8aed0fcc53f67daf097d138e761331"
+    },
+    {
+      "path": "out/vs/workbench/browser/parts/editor/editorCommands.js",
+      "sha256": "02e00dd973a2aa5a26c17263f2077553e8cabec1112c2d23f3705dcc37d230e6",
+      "sourcePath": "src/vs/workbench/browser/parts/editor/editorCommands.ts",
+      "sourceSha256": "4950ff762bd642e7ebe298f6f28541200a0a9af5ae24d8b4c751a65f27bc7655"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversation.contribution.js",
+      "sha256": "6ef21a60dd86661f38e1f7aa287f8758e03c2e460943ac985a6b4f469ea9bed3",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversation.contribution.ts",
+      "sourceSha256": "25c30516a4f5d05726e56c5f2c212b457c70bf9b229540fe7edbc51694540a19"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.js",
+      "sha256": "572c023253d7ab5f38015598376b911b830e590b8bf83d87742cd69a3d281bb0",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.ts",
+      "sourceSha256": "5b06a7b2dfb31bb18ed139f51c9cf27044c0d916b4a8411f174d52e841db8138"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "sourceSha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.js",
+      "sha256": "a3e5583a29067b4756c4d1e5bd41143b39a7147c282e0e92dc88dc03b739ed3f",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.ts",
+      "sourceSha256": "a3608929d07c7ec5084efca73df622f88fd860dfd9e3d0003c5f83d418490344"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEngineQueueReader.js",
+      "sha256": "bf1a5e4c828dd90fa0b388756629399dd6d0d1d984a24dae316a1813c489ab11",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEngineQueueReader.ts",
+      "sourceSha256": "f90de8802943f6191774675fc9049bfe569db61d8e97afc374a91524ab1b7d51"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.js",
+      "sha256": "0e4d8817f9563c42546db96baa7b9027abf2c052c1e509f8bd9967a87866bf21",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.ts",
+      "sourceSha256": "20c867c00543b56fe57a04c0d4dcd67ba98cf2655f159b36fa922bcf766bf879"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.js",
+      "sha256": "cf555000ce6f85d7582d77164a808088cd3fdcfbd98009bab02c5747614ce18a",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.ts",
+      "sourceSha256": "b0d798c09eaee34a7e2b77307f131f63cc1f06eebd698ca2db19240279507d56"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLensProjection.js",
+      "sha256": "a97abb6e9f688da2e20c29441046c3a6899c1f6b71fef7330d8afe443f7626e4",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+      "sourceSha256": "4260175f51ee8dc1b96973f6c813d10fdad59bb834e9782c42819b7598bd91db"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+      "sha256": "741837400e2b1e13550052c459ce899547b151698ed4abfb29dfacd6fd2a9492",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "sourceSha256": "4d0a4910420ee39dd562a0c83e400786b7e198ab9e66a19c2f19a1d0a08dd206"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.js",
+      "sha256": "4b8b2a6b7efc9dc06dcb491d5303bec83ad424e6aa3206e714e275aed8242557",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts",
+      "sourceSha256": "c1ec5cc15a0f282f2ab2ee3f32f02a316a4f96d8e2df327053452367207bf6e2"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationMessageQueueModel.js",
+      "sha256": "221c864aa9c1dfc5cb4e9916ce55896bee10d4200bb4728e2c7d9720551f2a93",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationMessageQueueModel.ts",
+      "sourceSha256": "42ec460aa145dd985a1a2de25cd8ebf2e2b373b61cb6c4e744ad2b491a104064"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationProcessFold.js",
+      "sha256": "2c858ae0890083412d298774cc5612fe5ce6f0487924c77f1ca46abfd2c6b5ec",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationProcessFold.ts",
+      "sourceSha256": "91820367876bcdd7e547ed257d9ac8e0f01bc626e85d3a94575eafd1e06afaf1"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.js",
+      "sha256": "1220abe90173abdfb8af6446216ba0b47cde69b4058f1cdb68adcbe334afffc2",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.ts",
+      "sourceSha256": "514900d434132c82e904127365b01bf1985e187295d4696a14646d3c4263e64a"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationSessionView.js",
+      "sha256": "c927c3a8e81f884e2bdfad38b3d816e1d85d4b23406c25f424da4e08dba45604",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationSessionView.ts",
+      "sourceSha256": "939d5d5d5c8d2e9cf59e343488f43770ce0ebed7d12b2075b6e271068a753e06"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationStubService.js",
+      "sha256": "282c45c1b17c9932dd7dd8d917ec62dac62d12f862580bdaf232dcc7513853c8",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationStubService.ts",
+      "sourceSha256": "4fdb304df0105fbb16be47aea654aa550dc2bfe6472bce69dd1051aa0970cee9"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationTimelineHost.js",
+      "sha256": "0b558896b5a35ceb6d7fe1d6724442e0cf92256d1041eb8d694fbcd91398b1cb",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+      "sourceSha256": "547b83ae7137224616d9f8f191becb1c8e27e061dd2c5670c7cbf6ec91a7d2a5"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.js",
+      "sha256": "a4c7ef91fb11e156d5226a7d6512a4c119573990d7b3cac2f9636e0df49aac3b",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+      "sourceSha256": "f7e133698a6fff825ae4f0f7e93bbd287612ef19b0a77496ae6ab6f5e528c252"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "sha256": "828212ceaf9d6457edc2de7896c8c801829c6e900c99766ea7106256ba5ce956",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "sourceSha256": "828212ceaf9d6457edc2de7896c8c801829c6e900c99766ea7106256ba5ce956"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+      "sha256": "385f20fa54188fd49f59dc6aacdd4c5df8af4822ac84b57ce9b0c92ea966e32b",
+      "sourcePath": "src/vs/workbench/contrib/conversation/common/conversationEditorRouting.ts",
+      "sourceSha256": "28d3ce87a4f05e0c5485ae5d048551a28e7ddbd1023c1fcaae1c03326a7d7434"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.js",
+      "sha256": "d10aa37922075492507be9010d49836a8c7297f31ee8ddbb539953e0beab5288",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.ts",
+      "sourceSha256": "40f1a7490a58f6c7412fbf252c80aeaf5bd8170bed6c11814ed0992d82b3ca6a"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "sha256": "7dc2e95601cef443be410ec0e0fc9c8540746b9db07492c8b60aa03a6380984e",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "sourceSha256": "d43d4e88d128e57c37398dc6f45570693ed9a2bfe7f8b55784cc542bbf35a5fb"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.js",
+      "sha256": "9deafd10206595dd0c446c598e9804eeec548550ecb0908455e516a65324c35f",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "sourceSha256": "45cf6d831abda7efd46ae2121b520c5f142282caa079f0e913da8312bf73741a"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesChangesList.js",
+      "sha256": "ca270ee24e891579368f2cf789cabf221d556ad9a89c23f2c7b5d9b24f7c2c9c",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts",
+      "sourceSha256": "2c17c135bb7cff89f0c5e252af6425b5daf1387e161836067255e2003a44ad96"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffActions.js",
+      "sha256": "75eb5888c47378a6add3a5d0f59a0cfcc9492d7404b196a78e224431d36d704b",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+      "sourceSha256": "7d9e4cd51d35148b338a6bd8eeb47aef3f13395ec3347aeaaf8252d62b9b541a"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.js",
+      "sha256": "ef708256529df3ef5823a29bbd57bdd2163555ccd4f7db871a61430dfe514b44",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.ts",
+      "sourceSha256": "2a6a4818113ef90ba2ae27cd41d9873ba36a11e2f2620ba996586ecc55fde2a1"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "sha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "sourceSha256": "206fd94d5ecccd109753dd97c394b73801e3f0dd64a846a58203eb906ef9fe46"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesOpenStatus.js",
+      "sha256": "b405a479b13f8a6ccf78f044ce7bb163964dbaa697e89830e3ee3eadfcb4cd70",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesOpenStatus.ts",
+      "sourceSha256": "bbd19d2ba0f3b1fc8bd2a1d6fd733391ee979c9786d77a1ea43954573d20065d"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.js",
+      "sha256": "d9e2ae53b58e547f3dbf930fae007bce5107df020cf8777943195d774461f2e1",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts",
+      "sourceSha256": "3582fc8f50152de866914f56dd4160a028755f15eb3819d4beef7b3763e3389d"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesReviewList.js",
+      "sha256": "89335e5af42cf002dcb2f6e9bc56b500b5bb6f797bf60563022a35bf2d9c498f",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts",
+      "sourceSha256": "f9ceadeb49fddc301f97fb1547343bea488206bb98e00c2652e430bc0326ee84"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesTabsHost.js",
+      "sha256": "9e0ad7fc5abbb59e7827b786df8e3d2e86174575ae0a2a2358c79bb4788c2a2b",
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts",
+      "sourceSha256": "6d3eef6fd067f4b091400c04c6cf5b5c5c0fdc998cd5ff8ede2cb2ff4fb9b101"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/common/sourcesReviewHostService.js",
+      "sha256": "b389ea8488062552ffe21bf05fefcfab816da4ace926243712acc53059116619",
+      "sourcePath": "src/vs/workbench/contrib/sources/common/sourcesReviewHostService.ts",
+      "sourceSha256": "81264faade61be32f77ac2a527245ea74de8da1ae56265ce85660d7d2c04358a"
+    },
+    {
+      "path": "out/vs/workbench/services/editor/browser/editorOpenSlot.js",
+      "sha256": "b3f6366467055edb0f7e51b824e268ddfea19fadb674c2afb0b013194e657e3e",
+      "sourcePath": "src/vs/workbench/services/editor/browser/editorOpenSlot.ts",
+      "sourceSha256": "e23df5b6f138ea8d78bd3655e973e378f5e65ff76d5a34e8d7493ed09571f1a5"
+    },
+    {
+      "path": "out/vs/workbench/services/editor/browser/editorService.js",
+      "sha256": "a2968c29642b436c0a3d77635b95ab8e63dfd469b644010c71a288eef180e2ca",
+      "sourcePath": "src/vs/workbench/services/editor/browser/editorService.ts",
+      "sourceSha256": "ed24d1943efb7e108c92d55000da29fd03f386930f63f4eb629e8347d198817c"
+    },
+    {
+      "path": "out/vs/workbench/services/editor/common/editorGroupFinder.js",
+      "sha256": "2d00aecf07f5db1c469aeaf6aa8d06297fa786b9c448571315958365ddd097a6",
+      "sourcePath": "src/vs/workbench/services/editor/common/editorGroupFinder.ts",
+      "sourceSha256": "97cabfcc040ce8808f4958a3710e9e741790bf05815e09ef4cd646b84abefa35"
+    }
+  ],
+  "fixedExternalBaselineCommit": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "evidenceScope": "source/native hashes only; runtime loaded evidence is recorded separately by the verifier",
+  "freezeContract": "../e-response-after-preparation-20261027/final-freeze-contract.json",
+  "issuedAtUtc": "2026-10-26T17:52:59.729956+00:00",
+  "nativeCompileSourceHead": "8b4ddaa99a8cc88ed645407ee42075a8497c4f34",
+  "nativeCompileExitCode": 0,
+  "nativeCompileIdentityCount": 154,
+  "templateSha256": "7a88a4952b522bc311d9dd3f5947d0cf7613cd9cbeb7d6853b920345a5eba06a",
+  "afterExecutionAuthorization": "root schedules J only first; E requires completed J zeroEngineRpc and a separate root E-after authorization",
+  "knownUnchangedRelatedFailure": "persisted reasoning preview: THINKING != hmm\\nthen this; original old5df failure retained"
+}

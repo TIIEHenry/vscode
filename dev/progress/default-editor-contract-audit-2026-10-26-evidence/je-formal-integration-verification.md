@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "固定d91实际候选peer闭合；第四完整compile0，J29/E44/补修6/Roster190/外部133/Node880过，11相关255过1既有reasoning红；154身份核、扩freeze待。"
+summary: "固定d91实际peer闭合、第四compile0；相关新绿与255/1旧reasoning红原件齐，154身份核、两份52项已freeze；D顺序after待，不push/主ff重试。"
 ---
 
 # J/E 正式集成
@@ -161,3 +161,18 @@ Sources完整10文件386是在000823/src1ee实际跑过；按父要求不机械�
 [第四轮J386连续性](je-fourth-J-suite-continuity.json)实核J18生产、原10test与harness共29 source/native pair与原实际386运行全部同字节，故保留原386结果，**本轮没有重新跑386**。[immutable并集ESLint](je-fourth-lint.json)实际113 TS / 0 errors / 132 warnings；未自动fix或据warning另开范围。
 
 [最终源/native快照](je-fourth-source-native-identity.json)154项SHA全吻合，所有业务前后均不改source/native。原107及候选追加到115的全部artifact字节再次核对保留；本次仅继续追加证据。status中六条重复J/E阶段流水压成一条并链接保留整文的五交集原件，降至195行，为after留位。当前 **未freeze、未发after notice**；等待D新J36/E34依赖模板/guard精确schema与hash，随后只固定原生out与对应source hash。J零RPC阶段完成前不启动E fake UDS；不新增queue/skill fake成功。P5禁push、P6主ff不重试，不宣称wave释放。
+
+## 最终扩展冻结通知
+
+第四轮证据已scoped提交 `ce6d977a4316c1f903869089638a2cd7262dc7db`，这是native producer `8b4ddaa99a8cc88ed645407ee42075a8497c4f34` 的纯文档后继；双方src均为 `92801b513611ed3ae1ba36862a58131c609f6aa2`。在全局活跃编译lane为空并独占共享锁下，重新核原153 artifacts与全部154 source/native pair，无source WIP，d91是冻结sourceHead祖先。未再编译/转译/替换任何out。
+
+D扩充的[原J36模板](je-final-J-freeze-template.json) SHA `7a88a4952b522bc311d9dd3f5947d0cf7613cd9cbeb7d6853b920345a5eba06a`、[原E34模板](je-final-E-freeze-template.json) SHA `7420c27bd6dc5cb1a07f4946bce8e9454ed14db9148f61e4ea8c9528ccb970b2` 已按收到的精确字节核验；保留原J18/E16并包含17JS+LensCSS追加项，合并去重52项。两个真实notice都使用获准52项superset，每项含 `path` / `sha256` / `sourcePath` / `sourceSha256`，顶层含 `fixedExternalBaselineCommit=d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42`、sourceHead=ce6d977、sourceTree=92801b5及 `outFrozen:true`。
+
+| 冻结通知 | SHA256 | D实际消费路径 |
+| --- | --- | --- |
+| [J生产冻结原件](je-final-J-production-frozen.json) | `44372cedc1f7ad94fc335cf0fa89c99961b39aa6fbcaed7a087a2179b410c114` | `/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-after-sources-audit-20261026/fresh-notice.json` |
+| [E生产冻结原件](je-final-E-production-frozen.json) | `54bddec4715d26d37dc13feaea58dc1b633d1aec8845142e99e584e68d7829ee` | `/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-preparation-20261027/e-final-freeze.json` |
+
+[154完整冻结source/native manifest](je-final-source-native-freeze.json)包括外部engineSkillsSection身份；它及node/main资产仅记录manifest，不伪称D实际加载。[全局进程原记录](je-final-freeze-processes.log)保留；原107、候选115与第四轮153项artifact逐层完整，库存只追加。
+
+父与D已收到精确notice路径和hash。**通知只交付冻结身份，不等于E阶段执行授权。** 父独立核验后只先调度J；J实际真实默认编辑器矩阵与zeroEngineRpc完成，再由父另发E-after phase授权。E保持现有精确fake广告/handler，不添加GetQueue、SaveSkillContent或wildcard；在queue unsupported下验证响应链，不授予队列/技能产品验收。唯一lane未启动D窗口/server或运行D脚本；after仍待，保持out稳定。P5禁push、P6主ff不重试，不声称wave完成。

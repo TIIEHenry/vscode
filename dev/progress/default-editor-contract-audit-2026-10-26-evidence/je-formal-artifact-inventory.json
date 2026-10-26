@@ -1,5 +1,5 @@
 {
-  "phase": "fixed-d91-fourth-native-compile0-runtime-complete-known-reasoning-red-not-frozen",
+  "phase": "fixed-d91-final-source-native-frozen-J-after-awaiting-root-E-separate-authorization",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -1068,6 +1068,69 @@
     {
       "originalPath": "/tmp/vscode-je-fourth-checkpoint-health.log",
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-checkpoint-health.log",
+      "bytes": 4384,
+      "sha256": "bacb75c481d69be9cb3ac066adafe157c933993f87f4fd5f3ec3081e9b4c7624",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-final-J-production-frozen.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-J-production-frozen.json",
+      "bytes": 19952,
+      "sha256": "44372cedc1f7ad94fc335cf0fa89c99961b39aa6fbcaed7a087a2179b410c114",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-final-E-production-frozen.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-production-frozen.json",
+      "bytes": 19913,
+      "sha256": "54bddec4715d26d37dc13feaea58dc1b633d1aec8845142e99e584e68d7829ee",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-final-source-native-freeze.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-source-native-freeze.json",
+      "bytes": 58819,
+      "sha256": "e88e10e22719ff23ab820f890013e1bbfeaba2bd053f80f1cda8ae36cb9badbe",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-final-freeze-processes.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-freeze-processes.log",
+      "bytes": 267344,
+      "sha256": "c6cfc11865c2bf7321ffdcab549264105db3be5c8fdd376992c541ffd56b771a",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-after-sources-audit-20261026/fresh-notice.template.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-J-freeze-template.json",
+      "bytes": 10535,
+      "sha256": "7a88a4952b522bc311d9dd3f5947d0cf7613cd9cbeb7d6853b920345a5eba06a",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-preparation-20261027/e-final-freeze.template.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-freeze-template.json",
+      "bytes": 10173,
+      "sha256": "7420c27bd6dc5cb1a07f4946bce8e9454ed14db9148f61e4ea8c9528ccb970b2",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-final-freeze-generated-check.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-freeze-generated-check.log",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-final-freeze-diff-check.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-freeze-diff-check.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-final-freeze-health.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-freeze-health.log",
       "bytes": 4384,
       "sha256": "bacb75c481d69be9cb3ac066adafe157c933993f87f4fd5f3ec3081e9b4c7624",
       "bytePreservingCopy": true
