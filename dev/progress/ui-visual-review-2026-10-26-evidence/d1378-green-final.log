@@ -1,0 +1,62 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3163957:1026/104547.243244:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3163983) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3163983) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3163983) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ExtHostOutputService[0m
+  [32m  ✔[0m[90m normalizes then-only directory creation before initializing an output channel[0m
+  [32m  ✔[0m[90m preserves a then-only directory rejection and retries the next channel[0m
+  [32m  ✔[0m[90m reports a queued output creation failure once and permits a later channel to recover[0m
+  [32m  ✔[0m[90m reports a queued log creation failure once and disposes its cached facade before retry[0m
+[3163908:1026/104548.073852:INFO:CONSOLE:272] "Error: Trying to add a disposable to a DisposableStore that has already been disposed of. The added object will be leaked!
+    at _DisposableStore.add (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:323:22)
+    at ExtHostOutputService.doCreateOutputChannel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/common/extHostOutput.js:165:39)", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+[3163908:1026/104548.073880:INFO:CONSOLE:272] "Error: Trying to add a disposable to a DisposableStore that has already been disposed of. The added object will be leaked!
+    at _DisposableStore.add (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:323:22)
+    at ExtHostOutputService.doCreateOutputChannel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/common/extHostOutput.js:167:24)", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+[3163908:1026/104548.073907:INFO:CONSOLE:272] "Error: Trying to add a disposable to a DisposableStore that has already been disposed of. The added object will be leaked!
+    at _DisposableStore.add (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:323:22)
+    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/common/extHostOutput.js:136:26", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+[3163908:1026/104548.073924:INFO:CONSOLE:272] "Error: Trying to add a disposable to a DisposableStore that has already been disposed of. The added object will be leaked!
+    at _DisposableStore.add (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:323:22)
+    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/common/extHostOutput.js:210:26", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+  [31m  1) releases late output initialization after its facade is disposed[0m
+  [31m  2) "after each" hook for "releases late output initialization after its facade is disposed"[0m
+
+
+[92m [0m[32m 5 passing[0m[90m (31ms)[0m
+[31m  2 failing[0m
+
+[0m  1) ExtHostOutputService
+       releases late output initialization after its facade is disposed:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(predicate())
+
+      at until (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:44:10)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:231:7)
+[0m
+[0m  2) "after each" hook for "releases late output initialization after its facade is disposed":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Error: Unexpected console output in test run. Please ensure no console.[log|error|info|warn] usage in tests or runtime errors.
+      at Context.<anonymous> (renderer.js:340:11)
+[0m

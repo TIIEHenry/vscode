@@ -1,10 +1,10 @@
 ---
 title: "终端命令投递与沙箱安装的送达合同"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "D1377：保留 sendPath/runCommand void API，正确处理 sendText 拒绝；沙箱安装与修复采用 boolean 送达合同并清理失败等待。行为待 merge 新产物验证。"
+summary: "D1377：正式送达/拒绝合同与27项新行为已验证；原11套件加Xterm共512 passing、109既有pending；marker wrapper归属和Delayer Promise补修恢复已有合同，独立审查无阻断。"
 ---
 
 # 终端命令投递与沙箱安装合同
@@ -39,5 +39,13 @@ summary: "D1377：保留 sendPath/runCommand void API，正确处理 sendText �
 
 - [x] 规则 16：Astra / engine_catalog_contract_repair 于 2026-10-26 只读审查：Critical 无；Important 两条已改入（最终失败出口用通知、send pending 期间取消/销毁的晚到 true 不复活）；Minor 两条已改入（accepted 状态、仓外技能仅记来源文字）。Assessment 可进入方案独立提交及实施。
 - [x] 方案独立提交：`1bfceca`。
-- [x] 正式合同、实现与 27 条受控回归已补；C 目标 ESLint、diff-check 与文档静态检查；Astra 只读复核核心实现无 Critical / Important。行为尚未运行。
-- [ ] merge 新编译和新产物行为验证。
+- [x] 正式合同、实现与 27 条受控回归已补；C 目标 ESLint、diff-check 与文档静态检查；Astra 只读复核核心实现无 Critical / Important。实际完整套件与集成补修结果见下节。
+- [x] merge 当前唯一新编译与新产物行为验证：旧映射8条已消失，新增MainThread夹具改用真实DynamicListEventMultiplexer并定向语义0；12套件512 passing / 0 failing、109既有pending，未新增skip。
+
+## 集成真实运行补修
+
+首轮11套件251过/5败，包含hook连带失败。Ctrl+C测试原OSC批次未建立真实非空Execute prompt，现分步解析并先断言状态与非空内容，保留原发送Ctrl+C的强断言。Basic拒绝清行路径发现setupRecreatingStartMarker返回的wrapper未登记owner；将wrapper纳入传入store，修复disposable生命周期。原listener/marker已有清理，不声称此前必然有活listener泄漏。
+
+另两项TerminalInstance真实运行失败来自Xterm的两个@debounce(100)方法：声明Promise却实际返回undefined，调用者.catch会抛。改用注册释放的Delayer<void>(100)，保留100ms合并与原串行链，并让调用者拿到真实共享完成Promise。新增4项回归检验两种refresh的共享Promise与pending销毁取消；因此本次确有生产行为修复，不只更新夹具。它恢复现有异步返回/销毁合同，未引入新终端功能或真实安装器操作。
+
+官方Electron隔离Xvfb在当前产物运行原11套件加xtermTerminal，共512 passing、109既有skip/条件pending；新增27送达场景与4个Delayer场景都执行，未新增skip。Astra静态逐路径核验4个caller catch、CancellationError过滤、body销毁闸、串行与失败恢复以及marker所有权，Critical0/Important0；新增4项运行测试本身不独立证明运行中串行/失败恢复，静态与运行证据不互换。当前唯一fullcompile原始59条/37文件未过，11补修TS定向语义0，没有第二次全量；见[本轮看板](../parallel/active/ui-visual-review-2026-10-26.md)。

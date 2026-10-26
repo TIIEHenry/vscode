@@ -58,7 +58,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 
 ## 2. 渲染模式（六态 @ HEAD）
 
-`engineCatalog.ts` 的 `EngineCatalogPaneMode`：`disconnected` \| `unsupported` \| `loading` \| `failed` \| `empty` \| `ready`。判定自上而下、命中即止（`resolveEngineCatalogPaneMode`）。E2-1 **废止** disconnected 整节隐藏：各节在左栏始终可达；「无 Engine」= 右栏零条目、零写按钮，不是把导航藏掉。断连 CTA **只在页级 banner**：Test Engine 次要 + Open Connection 主要；catalog 节 body **只出文案**（不再各节再画 Open Connection）；页脚 Test Engine **仅已连接**时出现。状态字停在可见的那颗 Test 旁边。
+`engineCatalog.ts` 的 `EngineCatalogPaneMode`：`disconnected` \| `unsupported` \| `loading` \| `failed` \| `empty` \| `ready`。判定自上而下、命中即止（`resolveEngineCatalogPaneMode`）。E2-1 **废止** disconnected 整节隐藏：各节在左栏始终可达；「无 Engine」= 右栏零条目、零写按钮，不是把导航藏掉。断连 CTA **只在页级 banner**：Test Engine 次要 + Open Connection 主要；catalog 节 body **只出文案**（不再各节再画 Open Connection）；Agents的断连与KEEP残留body同样遵守此规则，连接入口仍由EnginePreferencesPane页级banner提供；页脚 Test Engine **仅已连接**时出现。状态字停在可见的那颗 Test 旁边。
 
 | 模式 | 条件 | UI |
 |------|------|-----|

@@ -5217,12 +5217,13 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await flushMicrotasks();
 
 		const add = section.getDomNode().querySelector('[aria-label="Add"]') as HTMLElement | null;
-		const update = section.getDomNode().querySelector('[aria-label="Update"]') as HTMLElement | null;
+		const update = section.getDomNode().querySelector('[aria-label="Update. Select a server first."]') as HTMLElement | null;
 		assert.ok(add);
 		assert.ok(update);
 		assert.strictEqual(add.textContent, '');
 		assert.ok(add.classList.contains('codicon-add'));
 		assert.ok(update.classList.contains('codicon-edit'));
+		assert.strictEqual(update.getAttribute('aria-disabled'), 'true');
 
 		add.click();
 		await flushMicrotasks();
@@ -5238,6 +5239,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(addRequests[0]!.scope, 'global');
 
 		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
+		assert.strictEqual(update.getAttribute('aria-label'), 'Update');
+		assert.strictEqual(update.getAttribute('aria-disabled'), 'false');
 		dialog.input = async () => ({ confirmed: true, values: ['Demo MCP', 'stdio', 'npx', 'http://mcp'] });
 		update.click();
 		await flushMicrotasks();

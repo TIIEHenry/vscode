@@ -122,14 +122,16 @@ class OutputLoggerService extends NullLoggerService {
 class OutputProxy implements MainThreadOutputServiceShape {
 	readonly registeredNames: string[] = [];
 	readonly disposedChannelIds: string[] = [];
+	readonly revealedChannelIds: string[] = [];
+	registerResult: DeferredPromise<string> | undefined;
 
 	async $register(name: string): Promise<string> {
 		this.registeredNames.push(name);
-		return `channel-${this.registeredNames.length}`;
+		return this.registerResult?.p ?? `channel-${this.registeredNames.length}`;
 	}
 
 	async $update(): Promise<void> { }
-	async $reveal(): Promise<void> { }
+	async $reveal(id: string): Promise<void> { this.revealedChannelIds.push(id); }
 	async $close(): Promise<void> { }
 	async $dispose(id: string): Promise<void> {
 		this.disposedChannelIds.push(id);
@@ -273,14 +275,42 @@ suite('ExtHostOutputService', () => {
 			channel.dispose();
 
 			await calls[0].result.complete();
-			await until(() => proxy.disposedChannelIds.length === 1);
-			assert.deepStrictEqual([loggerService.created.length, loggerService.created[0].disposed, registeredChannelCount(service)], [1, true, 0]);
+			await new Promise(resolve => setTimeout(resolve, 0));
+			// A facade closed before mkdir finishes never allocates a logger or remote channel.
+			assert.deepStrictEqual([loggerService.created.length, proxy.disposedChannelIds.length, registeredChannelCount(service)], [0, 0, 0]);
 			assert.deepStrictEqual([...loggerService.getRegisteredLoggers()], []);
 
 			const recovered = store.add(service.createOutputChannel('Alpha', options, nullExtensionDescription));
 			assert.notStrictEqual(recovered, channel);
 			await until(() => registeredChannelCount(service) === 1);
 			assert.strictEqual(calls.length, 1);
+		});
+
+		test(`recreating a ${log ? 'log' : 'plain output'} facade while its disposed predecessor is still initializing keeps the new channel alive`, async () => {
+			const { service, calls, loggerService, proxy } = createHarness(store, true);
+			const options = log ? { log: true as const } : undefined;
+			const previous = store.add(service.createOutputChannel('Alpha', options, nullExtensionDescription));
+			previous.append('discarded');
+			previous.show();
+			previous.dispose();
+			const current = store.add(service.createOutputChannel('Alpha', options, nullExtensionDescription));
+			current.append('kept');
+			assert.notStrictEqual(current, previous);
+			assert.strictEqual(calls.length, 1, 'the successful in-flight mkdir stays shared');
+
+			await calls[0].result.complete();
+			await until(() => registeredChannelCount(service) === 1 && loggerService.created[0]?.messages.length === 1);
+			if (log) {
+				assert.strictEqual(service.createOutputChannel('Alpha', options, nullExtensionDescription), current);
+			}
+			assert.deepStrictEqual({
+				created: loggerService.created.length,
+				disposed: loggerService.created[0].disposed,
+				messages: loggerService.created[0].messages,
+				registeredLoggers: [...loggerService.getRegisteredLoggers()].length,
+				disposedChannelIds: proxy.disposedChannelIds,
+				revealedChannelIds: proxy.revealedChannelIds,
+			}, { created: 1, disposed: false, messages: ['kept'], registeredLoggers: 1, disposedChannelIds: [], revealedChannelIds: [] });
 		});
 
 		test(`reports ${log ? 'log' : 'output'} operation errors after successful initialization`, async () => {
@@ -298,6 +328,42 @@ suite('ExtHostOutputService', () => {
 			});
 		});
 	}
+
+	test('disposal during remote registration releases the logger immediately and the late channel when its id arrives', async () => {
+		const { service, calls, loggerService, proxy } = createHarness(store, true);
+		const registration = new DeferredPromise<string>();
+		proxy.registerResult = registration;
+		const channel = store.add(service.createOutputChannel('Alpha', undefined, nullExtensionDescription));
+		channel.append('discarded');
+		channel.show();
+		await calls[0].result.complete();
+		await until(() => proxy.registeredNames.length === 1);
+		const previousFile = [...loggerService.getRegisteredLoggers()][0].resource.toString();
+		channel.dispose();
+		assert.deepStrictEqual({ disposed: loggerService.created[0].disposed, loggers: [...loggerService.getRegisteredLoggers()] }, { disposed: true, loggers: [] });
+
+		proxy.registerResult = undefined;
+		const current = store.add(service.createOutputChannel('Alpha', undefined, nullExtensionDescription));
+		current.append('new channel');
+		await until(() => registeredChannelCount(service) === 1 && loggerService.created[1]?.messages.length === 1);
+		assert.notStrictEqual([...loggerService.getRegisteredLoggers()][0].resource.toString(), previousFile);
+		await registration.complete('channel-1');
+		await until(() => proxy.disposedChannelIds.length === 1);
+		assert.deepStrictEqual({
+			channelIds: proxy.disposedChannelIds,
+			registered: registeredChannelCount(service),
+			messages: loggerService.created[0].messages,
+			newMessages: loggerService.created[1].messages,
+			revealed: proxy.revealedChannelIds,
+		}, { channelIds: ['channel-1'], registered: 1, messages: [], newMessages: ['new channel'], revealed: [] });
+		current.append('still live');
+		await until(() => loggerService.created[1].messages.length === 2);
+		current.dispose();
+		await until(() => proxy.disposedChannelIds.length === 2);
+		assert.deepStrictEqual({ ids: proxy.disposedChannelIds, registered: registeredChannelCount(service), loggers: [...loggerService.getRegisteredLoggers()] }, {
+			ids: ['channel-1', 'channel-2'], registered: 0, loggers: [],
+		});
+	});
 
 	test('creates the output directory again after the first attempt fails', async () => {
 		const { service, calls } = createHarness(store);

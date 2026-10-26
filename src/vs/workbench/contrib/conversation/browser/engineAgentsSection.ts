@@ -14,7 +14,6 @@ import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
-import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -61,7 +60,6 @@ import {
 	summaryToProfileDetail,
 	toolEnablementPendingKey,
 } from './engineToolProfile.js';
-import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 
 const $ = DOM.$;
@@ -324,7 +322,6 @@ export class EngineAgentsSection extends Disposable {
 		parent: HTMLElement,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
 		@IInstantiationService instantiationService: IInstantiationService,
-		@ICommandService private readonly commandService: ICommandService,
 		@IContextViewService private readonly contextViewService: IContextViewService,
 		@IDialogService private readonly dialogService: IDialogService,
 		@IAgentSessionContext private readonly sessionContext: IAgentSessionContext,
@@ -1235,7 +1232,6 @@ export class EngineAgentsSection extends Disposable {
 			this.modelStatus.render({
 				mode: 'disconnected',
 				featureLabel: AGENT_MODEL_FEATURE,
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 		} else {
 			this.modelStatus.hide();
@@ -1343,7 +1339,6 @@ export class EngineAgentsSection extends Disposable {
 			this.toolsStatus.render({
 				mode: 'disconnected',
 				featureLabel: AGENT_TOOLS_FEATURE,
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
 			});
 		} else if (this.agentToolsLoadFailed !== undefined) {
 			this.toolsStatus.render({
@@ -1362,9 +1357,6 @@ export class EngineAgentsSection extends Disposable {
 				mode: disconnectedChrome ? 'disconnected' : 'empty',
 				featureLabel: AGENT_TOOLS_FEATURE,
 				emptyCopy: localize('ua.engineAgentsToolsEmpty', "No engine tools to enable for this profile."),
-				onOpenConnection: disconnectedChrome
-					? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
-					: undefined,
 			});
 			return;
 		} else {
@@ -1610,9 +1602,6 @@ export class EngineAgentsSection extends Disposable {
 			reason: options?.reason,
 			loadingKind: options?.loadingKind,
 			onRetry: options?.onRetry,
-			onOpenConnection: this.mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
-				: undefined,
 		});
 		this.applyListViewport();
 	}

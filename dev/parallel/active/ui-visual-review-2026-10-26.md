@@ -1,15 +1,15 @@
 ---
 title: "2026-10-26 UI 与权限审查集成看板"
 type: progress
-status: active
+status: completed
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1376 Catalog、D1377 Terminal、D1378 Output 三槽源提交齐，待 merge 当前新编译/运行；前轮结果仅保留历史，默认编辑器是本阶段产品验收范围。"
+summary: "D1376–D1378定向闭合：Catalog294、Terminal512/109既有pending、Output/Search27过；唯一全量59/37未过，11补修语义0。默认编辑器为产品范围，历史记录保留。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
 
-本看板按 [文档规则 15](../../../docs/DOCUMENTATION.md#规则-15并行看板) 记录本轮工位、提交与实际验证，不继承旧波次状态。当前主线基线为 `974e2fb5bc5`；只在仓外 `vscode-WorkTrees/merge` 集成与写入 `out/`，不推进主线、不 push。
+本看板按 [文档规则 15](../../../docs/DOCUMENTATION.md#规则-15并行看板) 记录本轮工位、提交与实际验证，不继承旧波次状态。首轮主线基线为 `974e2fb5bc5`；只在仓外 `vscode-WorkTrees/merge` 集成与写入 `out/`，不推进主线、不 push。
 
 ## 分工与提交
 
@@ -23,7 +23,7 @@ summary: "2026-10-26：D1376 Catalog、D1377 Terminal、D1378 Output 三槽源�
 | D / 设置页视觉修复 | D1371 / D1372 局部响应式修复 | `292ec409fc1`，三路合成 `a514ec3d2a5`；最小刷新和行为复验已过，独立视觉 after 已通过 |
 | J / Sources 编译基线 | D1375 正式服务注入、SCM null 结果与测试生命周期 | 基线 `0ea26634bed`；方案 `220db77` 已过 D 槽只读审查，实施 `7dd0c6d` 三路合成 `a4c5e30`；当前 Sources 0 诊断，官方 Electron 六套件 171 passing，D1375 closed |
 
-| C / Terminal 投递合同 | D1377 sendPath / runCommand void 边界、三执行策略与沙箱安装 boolean | 方案 `1bfceca` 过 Astra 只读审查；源码与 27 条行为回归已补，尚未运行；merge 验证前保持 open |
+| C / Terminal 投递合同 | D1377 sendPath / runCommand void 边界、三执行策略与沙箱安装 boolean | 方案 `1bfceca` 过 Astra 只读审查；实施 `0ab1d16` 已合入；最终官方Electron512 passing/109既有pending，见本轮末节 |
 
 两次源码合入均只有 `status.md` / `deferred-gaps.md` 文档冲突，按三路内容保留 D1368、D1369、D1370 的独立意图。D1369 迁出的 2026-10-11–12 历史仍在 [原归档](../../archive/status-2026-10-11-12-retained-2026-10-26.md)，没有删除。
 
@@ -116,22 +116,24 @@ D1373 只在 `/tmp/vscode-compile.lock` 内刷新新测试 JS 与 `conversationL
 
 D1375 短方案按范围转 `implemented`，生成索引随源重建；D1373 / D1374 / D1375 均 closed。按文档规则 3c 检索知识层的 D 编号 / 方案名与 Sources 会话上下文合同，未发现需继续翻转的待实施叙述：D1373 的 Conversation 规格、D1374 的 Sessions 概览已随源提交同步；D1375 恢复正式 DI / 空值合同，不改变已接受的 Sources 系统所有权与呈现契约，既有 Sources 总方案和 PRD 状态不翻转。首轮 docs-status 29/28 旧夹具失败保留原证据，本 follow-up 未重复或扩范围修它。
 
-## D1378 Extension Host 输出通道合同
+## 本轮合同收口 D1376–D1378
 
-本切片基线 `e2442d8b3ec`，J 方案 `2f04745` 已经 Astra 独立只读审查（Critical / Important 无），实施只覆盖 ExtHostOutput 与相邻 Search 配置夹具。普通输出目录用原生 Promise 吸收正式文件系统 Thenable；普通与 extension log 的 mkdir 原拒绝及 FileExists 例外保留。初始化错误集中报告一次，派生排队链不再扩散未处理拒绝，操作自身错误仍报告；日志句柄缓存释放不再依赖初始化成功。
+本轮共同基线 `e2442d8b3ec`。按当前产品范围，只验收默认编辑器；前节 Sessions 是保留的上游对照历史，不作为产品界面交付。J 方案 `2f04745d213` / 实施 `8210d3a01d0`、D 方案 `b8ef18a4041` / `1c4f891bc32` / 实施 `483f772c02e`、C 方案 `1bfceca0620` / 实施 `0ab1d166937` 均已纳入 merge，三路合成 `9c91eecaa77` / `72532cd0e81`。只合并文档冲突并保留所有槽意图；[2026-10-16十二批归档](../../archive/status-wave-2026-10-16-retained-2026-10-26.md)及索引保留，未推进主线或push。
 
-3 个改动 TS 文件目标 ESLint `--no-cache` 0 errors / 0 warnings，diff-check 通过。新增输出回归 8 条，原 11 条保留；Search 原 4 条不改断言。仅 `.then` 夹具的链式返回也只有 `.then`，旧实现会先抛 `.catch` 缺失 TypeError；失败回归要求原始 mkdir 错误、恢复、一次报告、dispose 后同名重试与晚到资源释放，并用运行器观察 detached 未处理拒绝。错误 handler 在 finally 恢复。
+| 范围 | 真实运行与结论 | 当前证据 |
+|:---|:---|:---|
+| D1378 Output / Search | 新测试先对经正文/摘要核对的e244旧生产跑最小red：0 passing/3 failing（两项Thenable缺.catch及hook原始拒绝）；独立进程退出后刷新生产。最终Output22+Search4+清理检查27 passing；原19场景保留，新增3个旧pending→dispose→同名新建/晚RPC屏障 | [test-only刷新](../../progress/ui-visual-review-2026-10-26-evidence/d1378-test-refresh.log)、[red](../../progress/ui-visual-review-2026-10-26-evidence/d1378-red.log)、[最终green](../../progress/ui-visual-review-2026-10-26-evidence/d1378-green-complete-final.log) |
+| D1376 Catalog十套件 | 首次287过/7败；恢复SSOT规定的Agents页级唯一CTA，修实际disabled标签与Triggers夹具。最终294 passing/0 failing，MCP20全执行且原14场景保留，无skip/旧form API | [首轮](../../progress/ui-visual-review-2026-10-26-evidence/d1376-electron.log)、[最终](../../progress/ui-visual-review-2026-10-26-evidence/d1376-electron-final.log)、[场景映射](../../progress/ui-visual-review-2026-10-26-evidence/d1376-catalog-contracts.md) |
+| D1377 Terminal十二套件 | 首次251过/5败；补真实OSC夹具、marker返回wrapper所有权及两个Xterm刷新方法的Promise合同。最终512 passing/109既有skip或条件pending，未新增skip；27个投递和4个Delayer新场景全部执行 | [首轮](../../progress/ui-visual-review-2026-10-26-evidence/d1377-electron.log)、[最终](../../progress/ui-visual-review-2026-10-26-evidence/d1377-electron-final.log) |
+| 唯一全量编译 | 源到齐、确认无live编译/watch后，flock锁内只跑一次compile-client：exit1，59诊断/37文件。Catalog映射85与Output/Search7条不再出现；本轮新MainThread夹具1条已改真实DynamicListEventMultiplexer。没有第二次全量，不把定向0冒充全仓通过 | [原始59/37日志](../../progress/ui-visual-review-2026-10-26-evidence/contracts-compile-client.log)、[摘要/文件余量](../../progress/ui-visual-review-2026-10-26-evidence/contracts-compile-summary.json) |
+| 补修定向语义与lint | 11个补修TS语义0；本轮46TS ESLint 0errors/60warnings。全量之后只在锁内最小刷新补修文件，全部46个改动TS产物晚于本次编译开始 | [定向语义](../../progress/ui-visual-review-2026-10-26-evidence/contracts-target-types.log)、[最终ESLint](../../progress/ui-visual-review-2026-10-26-evidence/contracts-eslint-final.log)、[refresh](../../progress/ui-visual-review-2026-10-26-evidence/contracts-target-refresh.log)、[产物hash/mtime](../../progress/ui-visual-review-2026-10-26-evidence/contracts-fresh-output.json) |
 
-J 没有编译、转译、watch、typecheck 或写 `out/`。merge 需以旧生产加新测试证明 red，再用新生产证明 green，并在统一新编译核对旧日志的 6 条输出诊断与 1 条 Search 夹具诊断；这些数目不是新编译结果。目标套件为 `src/vs/workbench/api/test/common/extHostOutput.test.ts`（19 条）与 `src/vs/workbench/api/test/node/extHostSearchNumThreads.test.ts`（4 条）；官方测试运行器会将未处理拒绝记为失败。尚未运行前 D1378 open、方案 accepted，不提升其他 D 项或 PRD。
-## D1376 Engine Catalog 合同基线
+Output真实运行进一步发现缓存命中前分配空store、disposed store不接管晚资源、旧登记晚到等生命周期根因；集成用缓存查找前置、模块局部ownOrDispose、mkdir成功后取消闸、RPC前登记unregister及map身份检查修复。mkdir原始失败先传播，保留重试/一次报告与共享缓存身份。早期green失败日志保留为同目录 `d1378-green*.log`，不是仅保留最后一次成功；最后一项失败是测试过早断言异步TestRPC释放，改等待明确两次释放条件后全绿。
 
-D 工位以 `e2442d8b3ec` 开工，范围为当前 Engine Catalog 旧表单、连接 snapshot 事件与 readonly 能力构造、列表能力 namespace、工作根、对话框及回调断言类型；[短方案](../../plans/engine-catalog-test-contracts.md) 已获 J 独立只读审查（Critical 0 / Important 0）；方案 `b8ef18a4041` / 签收修稿 `1c4f891bc32`。D 不编译/转译/watch/写 out；最终编译与行为结果由 merge 统一记录，当前不宣称清零。
+Catalog与Terminal补修真实改变生产：Agents body CTA恢复[既有SSOT §2](../../../docs/systems/workbench/engine-catalog.md)，Xterm恢复已有Promise/100ms合并/串行合同，marker修返回wrapper所有权；不称为纯夹具更新。C/D补修曾在merge直接写入，父要求停笔后所有WIP保留并由集成统一持有，未reset/覆盖，后续仍各槽scoped提交再合入。Astra独立逐路径只读复核三处生产修正 **Critical0/Important0**；检查4个Xterm caller的catch/CancellationError过滤、销毁闸与串行失败恢复，以及页级banner仍在。4项新Delayer测试只运行证明同批共享Promise和pending销毁取消；运行中串行/失败恢复为静态证据，不混写成新增测试覆盖。marker原listener/marker已有清理，不声称此前必然有活listener泄漏。
 
-D1376 源码已按当前合同迁移，MCP 旧 14 项保留并扩展至预期 20 项，包含真实共享 BrowserDialogHandler DOM 生命周期与确认跨断连/选择变化；完整[场景映射/静态结果](../../progress/ui-visual-review-2026-10-26-evidence/d1376-catalog-contracts.md)。D 工位只执行 ESLint 与文档检查，统一编译和实际行为结果尚未产生，D1376 保持 open。status 超出的 2026-10-16 十二批历史已整体移入[归档](../../archive/status-wave-2026-10-16-retained-2026-10-26.md)，没有删除。
-## D1377 终端投递合同待验收
+运行使用官方 `VSCODE_SKIP_PRELAUNCH=1 timeout … xvfb-run -a ./scripts/test.sh --no-sandbox --disable-gpu --run …`，隔离Electron并为新异常用例设超时；没有产品sandbox设置变化、真实安装器或终端外部写入。唯一产物根为 `/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out`。本轮三计划转implemented、D1376–1378 closed，仅闭其合同与定向证据；前轮160/58及docs-status 29/28夹具失败保留历史，不复跑/扩修。已同步相应三份SSOT，生成列按源重建。
 
-C 仅静态修复 [短方案](../../plans/terminal-delivery-contracts.md) 的四类根因：void 包装消费 boolean；三执行策略等待投递；事件 / public void 入口使用通知出口；沙箱安装抽象声明 boolean 并清理拒绝等待。RunInTerminal 的 1822 / 1886 共用 options：`createTerminal` 返回真实 `ITerminalInstance`，平台 `ISandboxDependencyInstallTerminal.sendText(text, shouldExecute): Promise<boolean>` 对齐后，两条安装 / 修复调用无需加 cast 或修改调用文件。group 测试传正式下标；四个旧 sendText 替身返回 true。
+收尾门禁：docs-health 0errors/46既有链接warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/contracts-docs-health.log)），generated-status --check与diff-check通过；status144行。产物清单46/46均fresh且收尾hash复核一致；本流水线无残留compile/watch/Electron测试/Xvfb子进程。系统既有Xvfb :98（PID46561）非本轮创建，保留。
 
-新增 27 条受控行为：TerminalInstance 3（路径 void accepted / dropped、命令 dropped、Ctrl+C dropped）；安装 / 修复各 5 个屏障结果（accepted / dropped / throw / cancelled / disposed）共 10；三执行策略各 dropped / throw 共 6；Basic 清行 2、None 清行 1；Inline Chat accepted / refused 2；MainThread public void 通知 1；RunInTerminal 安装 / 修复拒绝后原命令不执行 2。Astra 只读复核核心实现未发现 Critical / Important；指出 send pending 时取消会释放监听，但方法仍等 send 解决，本文与方案按这个真实边界表述。
-
-C 不编译、不转译、不启动 watch、不写 out、不运行旧产物冒充验证。目标 [ESLint 日志](../../progress/ui-visual-review-2026-10-26-evidence/terminal-delivery-eslint.log) 与 diff-check / docs-health 是静态检查；行为尚未验证，不推算全仓诊断下降。merge 需当前唯一新编译与新产物定向套件：`terminalInstance`、`terminalGroup`、`outputMonitor`、`terminalSandboxService`、`basicExecuteStrategy`、`noneExecuteStrategy`、`richExecuteStrategy`、`terminalExecutionDelivery`、`terminalChatWidget`、`mainThreadTerminalShellIntegration`、`runInTerminalTool`。
+入库日志只规范化行尾空白与末尾空行以通过diff-check，运行结果/错误/调用栈均保留；未规范化的原始文件仍在 `/tmp/vscode-ui-wave-20261026-*.log`。

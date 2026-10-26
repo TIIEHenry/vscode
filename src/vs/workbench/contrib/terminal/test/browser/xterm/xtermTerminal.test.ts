@@ -4,9 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { Terminal } from '@xterm/xterm';
-import { deepStrictEqual, ok, strictEqual } from 'assert';
+import { deepStrictEqual, ok, rejects, strictEqual } from 'assert';
 import { importAMDNodeModule } from '../../../../../../amdX.js';
 import { timeout } from '../../../../../../base/common/async.js';
+import { isCancellationError } from '../../../../../../base/common/errors.js';
+import { runWithFakedTimers } from '../../../../../../base/test/common/timeTravelScheduler.js';
 import { Color, RGBA } from '../../../../../../base/common/color.js';
 import { Emitter } from '../../../../../../base/common/event.js';
 import { toDisposable } from '../../../../../../base/common/lifecycle.js';
@@ -119,6 +121,23 @@ suite('XtermTerminal', () => {
 		TestWebglAddon.isEnabled = false;
 		TestWebglAddon.customGlyphOptions.length = 0;
 	});
+
+	for (const refresh of ['_refreshLigaturesAddon', '_refreshImageAddon'] as const) {
+		test(`${refresh} returns a shared completion for a burst of refresh requests`, () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+			const first = xterm[refresh]();
+			const second = xterm[refresh]();
+			strictEqual(typeof first?.then, 'function');
+			strictEqual(first, second);
+			await first;
+		}));
+
+		test(`${refresh} cancels a pending refresh when the terminal is disposed`, async () => {
+			const pending = xterm[refresh]();
+			const cancelled = rejects(pending, isCancellationError);
+			xterm.dispose();
+			await cancelled;
+		});
+	}
 
 	test('should use fallback dimensions of 80x30', () => {
 		strictEqual(xterm.raw.cols, 80);

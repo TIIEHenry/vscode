@@ -6,7 +6,7 @@
 import { deepStrictEqual, strictEqual } from 'assert';
 import { timeout } from '../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../base/common/errors.js';
-import { Event } from '../../../../base/common/event.js';
+import { DynamicListEventMultiplexer, Event } from '../../../../base/common/event.js';
 import { mock } from '../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
@@ -32,7 +32,7 @@ suite('MainThreadTerminalShellIntegration delivery', () => {
 		instantiation.stub(ITerminalService, {
 			instances: [],
 			getInstanceFromId: id => id === 42 ? instance : undefined,
-			createOnInstanceEvent: () => ({ event: Event.None, dispose: () => { } }),
+			createOnInstanceEvent: <T>(getEvent: (terminal: ITerminalInstance) => Event<T>) => new DynamicListEventMultiplexer<ITerminalInstance, T>([], Event.None, Event.None, getEvent),
 			createOnInstanceCapabilityEvent: () => ({ event: Event.None, dispose: () => { } }),
 			onDidDisposeInstance: Event.None,
 		});

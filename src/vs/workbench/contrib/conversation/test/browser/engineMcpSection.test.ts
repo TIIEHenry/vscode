@@ -73,7 +73,7 @@ suite('EngineMcpSection', () => {
 
 	function findToolbarButton(root: HTMLElement, label: string): HTMLButtonElement | undefined {
 		return [...root.querySelectorAll('.engine-catalog-write-toolbar .monaco-button')]
-			.find(button => button.getAttribute('aria-label') === label) as HTMLButtonElement | undefined;
+			.find(button => button.getAttribute('aria-label') === label || button.getAttribute('aria-label') === `${label}. Select a server first.`) as HTMLButtonElement | undefined;
 	}
 
 	test('addServer with complete config succeeds', async () => {
@@ -298,6 +298,10 @@ suite('EngineMcpSection', () => {
 	test('Clicking toolbar Update without selection does not open input or write', async () => {
 		const h = createDialogHarness();
 		await flushMicrotasks();
+		const update = findToolbarButton(h.section.getDomNode(), 'Update');
+		assert.ok(update);
+		assert.strictEqual(update.getAttribute('aria-label'), 'Update. Select a server first.');
+		assert.strictEqual(update.getAttribute('aria-disabled'), 'true');
 		h.open('Update');
 		assert.deepStrictEqual({ dialogs: h.dialog.requests.length, writes: h.updateRequests.length }, { dialogs: 0, writes: 0 });
 	});

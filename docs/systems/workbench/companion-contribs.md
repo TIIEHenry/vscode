@@ -72,6 +72,8 @@ Desktop ADR-047：Terminal **可 Pin 在 Bottom Panel**；默认座也曾写在 
 
 RunInTerminal 的 Basic / None 等待并检查送达，Rich 等待 `runCommand`；送达前的完成帧不能把拒绝变成成功。沙箱依赖安装与修复也使用同一 boolean 合同，只有送达且得到完成码后才能判断安装结果；拒绝返回未知结果，后续原命令不执行。取消 / 终端关闭会清监听；若当时 send 仍 pending，方法仍等待 send 解决，晚到 true 不复活安装结果。[合同修复与验证边界](../../../dev/plans/terminal-delivery-contracts.md)。
 
+Xterm的ligatures/image刷新保持100ms合并与串行，但调用方取得真实Promise；终端销毁会取消未触发的批次，已运行的异步import仍由原body销毁闸拦截晚加载。执行策略的marker-recreation停止wrapper归属同一DisposableStore，拒绝投递时也进入既有清理路径；这恢复已有Promise与资源所有权合同。
+
 ### 3.4 debug — 侧栏会话面 + 底栏 REPL
 
 Run and Debug 是 Sidebar 容器；Debug Console 是独立 Panel 容器。断点/当前行画在已打开的文件编辑器上；反汇编才是单独 `EditorPane`。调试是配套运行时设施，时间线工具卡若「打开落到已有 Terminal / File」，应对到这些既有面，**卡本身不是 L1**。

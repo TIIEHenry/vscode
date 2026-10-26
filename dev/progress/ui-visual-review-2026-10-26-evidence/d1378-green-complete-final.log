@@ -1,0 +1,43 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3183467:1026/105540.382722:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3183491) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3183491) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3183491) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ExtHostOutputService[0m
+  [32m  ✔[0m[90m normalizes then-only directory creation before initializing an output channel[0m
+  [32m  ✔[0m[90m preserves a then-only directory rejection and retries the next channel[0m
+  [32m  ✔[0m[90m reports a queued output creation failure once and permits a later channel to recover[0m
+  [32m  ✔[0m[90m reports a queued log creation failure once and disposes its cached facade before retry[0m
+  [32m  ✔[0m[90m releases late output initialization after its facade is disposed[0m
+  [32m  ✔[0m[90m recreating a plain output facade while its disposed predecessor is still initializing keeps the new channel alive[0m
+  [32m  ✔[0m[90m reports output operation errors after successful initialization[0m
+  [32m  ✔[0m[90m releases late log initialization after its facade is disposed[0m
+  [32m  ✔[0m[90m recreating a log facade while its disposed predecessor is still initializing keeps the new channel alive[0m
+  [32m  ✔[0m[90m reports log operation errors after successful initialization[0m
+  [32m  ✔[0m[90m disposal during remote registration releases the logger immediately and the late channel when its id arrives[0m
+  [32m  ✔[0m[90m creates the output directory again after the first attempt fails[0m
+  [32m  ✔[0m[90m in-flight output channels share one directory creation[0m
+  [32m  ✔[0m[90m does not create the output directory again after it succeeds[0m
+  [32m  ✔[0m[90m an older output directory rejection does not drop a newer attempt[0m
+  [32m  ✔[0m[90m createOutputChannel shares one output directory and does not create it again after success[0m
+  [32m  ✔[0m[90m creates an extension log directory again after a non-FileExists failure[0m
+  [32m  ✔[0m[90m in-flight extension log directories share one creation[0m
+  [32m  ✔[0m[90m does not create an extension log directory again after it succeeds[0m
+  [32m  ✔[0m[90m treats FileExists as success and caches the extension log directory[0m
+  [32m  ✔[0m[90m an older extension log directory rejection does not drop a newer attempt[0m
+  [32m  ✔[0m[90m createOutputChannel treats FileExists as a cached extension log directory[0m
+
+[0m  NativeExtHostSearch getNumThreadsCached[0m
+  [32m  ✔[0m[90m reads ripgrep.maxThreads again after the first read fails[0m
+  [32m  ✔[0m[90m reads ripgrep.maxThreads once while the read is in flight[0m
+  [32m  ✔[0m[90m does not read ripgrep.maxThreads again after success when configuration is unchanged[0m
+  [32m  ✔[0m[90m reads ripgrep.maxThreads again after search configuration changes[0m
+
+
+[92m [0m[32m 27 passing[0m[90m (23ms)[0m

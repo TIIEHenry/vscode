@@ -1,0 +1,376 @@
+{
+  "source_base_head": "72532cd0e815812f750638377a5fb407bf19d1b5",
+  "source_state": "all three slice heads plus integration fixes committed with this snapshot",
+  "compile_start": "2026-10-26T10:56:08+08:00",
+  "out_root": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out",
+  "files": [
+    {
+      "source": "src/vs/platform/dialogs/test/common/testDialogService.ts",
+      "source_sha256": "07220155df494de0dbc2399a2d6e82c4e0d2e1433071f0ccd2df034466c5c337",
+      "output": "out/vs/platform/dialogs/test/common/testDialogService.js",
+      "output_sha256": "7d1d06fe973bfedfd24d09cfb9a2ed772c69f6b5d04621a0a666fee4f4b605a3",
+      "output_mtime": "2026-10-26T10:56:27.240425+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/platform/sandbox/common/terminalSandboxService.ts",
+      "source_sha256": "c34949e3c04441ee1dceddd69f5e1feff5d39f7aca3f76ff5b602bddbc1335d5",
+      "output": "out/vs/platform/sandbox/common/terminalSandboxService.js",
+      "output_sha256": "956e3e68359e00bcd1129c4bb9d16a945cb868ca2fda173937c811095026ee4b",
+      "output_mtime": "2026-10-26T10:56:24.801896+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/api/browser/mainThreadTerminalShellIntegration.ts",
+      "source_sha256": "5d1741750456c983d8a4c792da347d2cd801775a3ebfece4fb454cfefd2f5100",
+      "output": "out/vs/workbench/api/browser/mainThreadTerminalShellIntegration.js",
+      "output_sha256": "d811ad5ce7befc1f37682672b6209338ee62d743d1e119b3a727aae181262afa",
+      "output_mtime": "2026-10-26T10:56:23.604129+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/api/common/extHostOutput.ts",
+      "source_sha256": "cd794027eaf203ceb18dbddfd3b3b72b6b783df22e9671bb2921ea4464ef1591",
+      "output": "out/vs/workbench/api/common/extHostOutput.js",
+      "output_sha256": "c32a7c2baae3366781d6c536fc0c0978edd23cb4874f228df73f9fc7e99d8695",
+      "output_mtime": "2026-10-26T10:56:23.506148+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/api/test/browser/mainThreadTerminalShellIntegration.test.ts",
+      "source_sha256": "ad4b0760edb3b1e3fea671567c6e42df4b9a1219c7401eee03260103d033ecfa",
+      "output": "out/vs/workbench/api/test/browser/mainThreadTerminalShellIntegration.test.js",
+      "output_sha256": "94f4b80621ad40643a233338b4556982c09316c9479cd380df414d28ec327850",
+      "output_mtime": "2026-10-26T11:06:32.701452+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/api/test/common/extHostOutput.test.ts",
+      "source_sha256": "bf03529c5d8c32fb59dc84f3c7aa969e9846a088f765f7c2181684f8a137da72",
+      "output": "out/vs/workbench/api/test/common/extHostOutput.test.js",
+      "output_sha256": "3bc10486831d9ac41ee6305ad74906b5ebe6955b2d0f9e052b86e34f8eca3219",
+      "output_mtime": "2026-10-26T10:56:25.194820+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/api/test/node/extHostSearchNumThreads.test.ts",
+      "source_sha256": "b26b1a651cd22d2f89d2eb551c5e896d5cddd078975d998c42ceddd36576dcfb",
+      "output": "out/vs/workbench/api/test/node/extHostSearchNumThreads.test.js",
+      "output_sha256": "5f14a543846e5e42d62f12fe31b2613915ccee94bcfaa3f4e01d56e136d625a8",
+      "output_mtime": "2026-10-26T10:56:25.196819+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineAgentsSection.ts",
+      "source_sha256": "711fb900818c72fcfdb92147a1030d81978686812feee5621412fe22f176519f",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineAgentsSection.js",
+      "output_sha256": "10c75468f52b3355770eef88915ef0c32b879ced508a2282a79851e6f83f2f90",
+      "output_mtime": "2026-10-26T11:06:32.710452+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineClipboardSection.test.ts",
+      "source_sha256": "1b94d679d1142c8e90092933d68e83ff344117af19f55ad4ef977f50cfd8acca",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineClipboardSection.test.js",
+      "output_sha256": "0d43515ea0354e2f988babc5fb8cc141e6d10863d5edf08c5ad92c35a736f6e8",
+      "output_mtime": "2026-10-26T10:56:27.044462+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineClipboardSection.ts",
+      "source_sha256": "0731f36860cbcf38bb39c5ea94b04da78d4bdd24723eaa71f8fcb854a98616d7",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineClipboardSection.js",
+      "output_sha256": "7ace7b59f0e0cf23a9c228a6598aa1173f79f07654c36b1925a5b4d95f9ca8f2",
+      "output_mtime": "2026-10-26T10:56:27.044462+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineContextVariableSection.test.ts",
+      "source_sha256": "8fd74cce2551e87c1f5d3ff86e5d256d032b3dce7f74b57058beecfc04b971b3",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineContextVariableSection.test.js",
+      "output_sha256": "b931111ce63c5fe2bed4f954c30001f7a28b19adaeeab51d72ba3e77cc437d91",
+      "output_mtime": "2026-10-26T10:56:27.044462+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineContextVariableSection.ts",
+      "source_sha256": "94432ccf7c8ea72469cbfaeb42a9ade5c4f7e0b07a32b96bf921cd1af26ab2f9",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineContextVariableSection.js",
+      "output_sha256": "a4ac99c827026eaf3571ebf840239bc0bc83dd31db04d7b87e67baa8ff56d93c",
+      "output_mtime": "2026-10-26T10:56:27.044462+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts",
+      "source_sha256": "bb8fbfddca1af7ad2fa005f5ba0ec2a6ecbd3517525b1a5b09b39755281f8df6",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineProviderModelSection.js",
+      "output_sha256": "fb4723b09700eb57bc414aecb9b4a1b2ded6aba2228ae4abf9bb96fc1fc0bea8",
+      "output_mtime": "2026-10-26T10:56:27.046462+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineToolsSection.test.ts",
+      "source_sha256": "0f6cc67163b06ec833c6a47741cbadd8c995dfa82c56776fb585b088216b1343",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineToolsSection.test.js",
+      "output_sha256": "9346708119f9885abee32c8608c455b388d40675211a68a810ae769367ab2331",
+      "output_mtime": "2026-10-26T10:56:27.047462+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineTriggersSection.test.ts",
+      "source_sha256": "8de313b37c5f3159af651eb12e33154d56441d1306a3a75bbba0ab942121cec7",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineTriggersSection.test.js",
+      "output_sha256": "3ee6a0d1d6291c86b1461fef53655352cac95a710cf2355d4733e0c37a9aa1f0",
+      "output_mtime": "2026-10-26T10:56:27.047462+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineTriggersSection.ts",
+      "source_sha256": "19ba802b43663a99a1e28d5fc1ca50c12c10c078f2a1447c45acb690ec3e3c3b",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineTriggersSection.js",
+      "output_sha256": "f8abae699b7235e902aef32b6cbf915f112d09fba17c4344ca46f8ca3ed2f7dc",
+      "output_mtime": "2026-10-26T10:56:27.047462+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.ts",
+      "source_sha256": "2e51b335065b7d9ea4f1888ba1b5515cfd4023caf1bfb0afa790f66c3f3f84fd",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.js",
+      "output_sha256": "1acef2d8013c00fd3c8308b77c3021f82d2fb8d9eccf5ed8c8de33302d4b1ac3",
+      "output_mtime": "2026-10-26T11:06:32.727452+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/engineClipboardSection.test.ts",
+      "source_sha256": "611e40cb293e33be1594a66d846784294adb276c654234b372447340a6b33373",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/engineClipboardSection.test.js",
+      "output_sha256": "05963b6aae7bfb06062c07c135051de4dd2e897e6d5bdb1e9866a23d7a96e2a0",
+      "output_mtime": "2026-10-26T10:56:27.425389+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/engineMcpSection.test.ts",
+      "source_sha256": "81d975b82cff2aef7a1130aeafa81d438dd15968d366cc084eb526f8d58cf18d",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/engineMcpSection.test.js",
+      "output_sha256": "c99e8a7af10727df387e5d9f948d2e30e811fd8a40becf76aa3392da36b393b3",
+      "output_mtime": "2026-10-26T11:06:32.729452+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+      "source_sha256": "4019dbea65fb392bdcedd2beea9468a1b780bad00668c33705059a473e92dcea",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.js",
+      "output_sha256": "3c5f396bece937d20be1809c5e2cbbfce84a3f2e17f5cc4763b715ba6113909e",
+      "output_mtime": "2026-10-26T10:56:27.427389+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/engineToolsSection.test.ts",
+      "source_sha256": "9923f04e6ce82346db74428d969520eb95fe3a88754448082d39cb821439b1b2",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/engineToolsSection.test.js",
+      "output_sha256": "a87a60ecd5d1489470f280af49381fda6c85d4a5f31fcc2031328612b3b0da73",
+      "output_mtime": "2026-10-26T10:56:27.428389+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/engineTriggersSection.test.ts",
+      "source_sha256": "102be5bdbd1eebf72932870965ba80e855c7f77f8a61e5f29846f0cac2504eeb",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/engineTriggersSection.test.js",
+      "output_sha256": "363c25ffbf7ec78112547e22a1b3fc23d1424e3575ff6e9a3977dc6d19192361",
+      "output_mtime": "2026-10-26T11:06:32.737452+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/common/engineCatalogTestFixtures.ts",
+      "source_sha256": "3e3df7e61fd5ea626c4a75de2724b392869f509508e719ebfa5c451d7606f701",
+      "output": "out/vs/workbench/contrib/conversation/test/common/engineCatalogTestFixtures.js",
+      "output_sha256": "78dbb4f09c13a9c56a3d13ad45e2453be5044d6b31b5f5a1105daaa955854171",
+      "output_mtime": "2026-10-26T10:56:27.404393+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminal/browser/terminal.ts",
+      "source_sha256": "6104ecb667d4beab541c22521ea7b865aa99dd3e960c8c4b643dc7f903eca793",
+      "output": "out/vs/workbench/contrib/terminal/browser/terminal.js",
+      "output_sha256": "4c3e93682cb14a0ed0e6caa00f8bd0021ffc387b002177d5b3a65ef226e811ad",
+      "output_mtime": "2026-10-26T10:56:27.115449+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminal/browser/terminalInstance.ts",
+      "source_sha256": "b72d5a7a8a6e63e50a3ef601d09d6a41c2b06199ab8d21bbe4a7d332c15036e5",
+      "output": "out/vs/workbench/contrib/terminal/browser/terminalInstance.js",
+      "output_sha256": "3ad40ed8e6c33fbbaf7e347750a12074e91c6897f5b6a97f5b79203a1f72767b",
+      "output_mtime": "2026-10-26T10:56:27.119448+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminal/browser/terminalTabsList.ts",
+      "source_sha256": "b5c5403365885b71981a5552b6acc604d9757d8dbbbf9b02dc3723a80cb66a70",
+      "output": "out/vs/workbench/contrib/terminal/browser/terminalTabsList.js",
+      "output_sha256": "3f3be794b51b3ebccad615dd296e03da92cf7582bdfa58759fc38a63d79908c3",
+      "output_mtime": "2026-10-26T10:56:27.119448+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminal/browser/xterm/xtermTerminal.ts",
+      "source_sha256": "b8c3848d27a4bf1a04f1da677ead5b08c047948d20bdb3d5d0ee1b5adfad983a",
+      "output": "out/vs/workbench/contrib/terminal/browser/xterm/xtermTerminal.js",
+      "output_sha256": "fbe7446e7b12af54c61844abd49bb1d0c5d6182305737c40dfb39d7d36e16897",
+      "output_mtime": "2026-10-26T11:06:32.744452+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminal/common/terminalStrings.ts",
+      "source_sha256": "b32e55ef4c2ec39125ea9a82336622bbba127d01abb9a3458c02d8fa8c9c86d4",
+      "output": "out/vs/workbench/contrib/terminal/common/terminalStrings.js",
+      "output_sha256": "79ba574e5afa0cce3fec847dcc2b7c142be680901d0d3ada4ad6998d0acfaf47",
+      "output_mtime": "2026-10-26T10:56:27.114449+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminal/test/browser/terminalGroup.test.ts",
+      "source_sha256": "ea0ea00563f8d9d6c0fe9210b670a3a418e753eb311b81d5b75ea24733ef0834",
+      "output": "out/vs/workbench/contrib/terminal/test/browser/terminalGroup.test.js",
+      "output_sha256": "9fde242f43ad33b231b1b37d6ff15c32d32f020c7bab6c6c75b72bccfeb3fba9",
+      "output_mtime": "2026-10-26T10:56:27.500375+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminal/test/browser/terminalInstance.test.ts",
+      "source_sha256": "28bff4b4f0151b5f4431f76cfb28bd673afa3e1ec78ee339b45ed987c9628ee7",
+      "output": "out/vs/workbench/contrib/terminal/test/browser/terminalInstance.test.js",
+      "output_sha256": "5930b997b4355a9762786393ec4e07af12e5bc5e966930e48882922faa042ea1",
+      "output_mtime": "2026-10-26T11:06:32.750451+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminal/test/browser/xterm/xtermTerminal.test.ts",
+      "source_sha256": "85be5e0a19232118f139449e9f06c0d4834910b0bf5d4d7bf90d313eed99d150",
+      "output": "out/vs/workbench/contrib/terminal/test/browser/xterm/xtermTerminal.test.js",
+      "output_sha256": "182dc7a238bf1c77d4b7dff1f6108c7c0821e2fe673af51447f24b8e0a40fbe3",
+      "output_mtime": "2026-10-26T11:06:32.753451+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chat/browser/terminalChatWidget.ts",
+      "source_sha256": "7208a05d1603593f7d6fd400757eb4e8410878175a8393e2980fe0a6caa686b7",
+      "output": "out/vs/workbench/contrib/terminalContrib/chat/browser/terminalChatWidget.js",
+      "output_sha256": "419cf320e000bda2c8a05e51489184d43f02d796288829c01b83fa68c79d3ec6",
+      "output_mtime": "2026-10-26T10:56:27.511373+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chat/test/browser/terminalChatWidget.test.ts",
+      "source_sha256": "f65eebc87b672cab55538c7f2bafffb76d348d0e95adc82f621b73add21020e3",
+      "output": "out/vs/workbench/contrib/terminalContrib/chat/test/browser/terminalChatWidget.test.js",
+      "output_sha256": "72b9e4c9fccdaea47b408c97d11f74358e66900f5b502d1d9afd005b51cfc807",
+      "output_mtime": "2026-10-26T10:56:27.655345+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/basicExecuteStrategy.ts",
+      "source_sha256": "5156d568853814642524cc2debdcba257907a0332d3833091e1983bf2caace71",
+      "output": "out/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/basicExecuteStrategy.js",
+      "output_sha256": "abf3307b8e072a47466e4831b0a8523af00131fc947ade943680e11641ee10ef",
+      "output_mtime": "2026-10-26T10:56:27.656345+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/noneExecuteStrategy.ts",
+      "source_sha256": "bff05e555fbdcadbc9905e587d7c5dc4cf0af68986ac249fcb89b7489c651452",
+      "output": "out/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/noneExecuteStrategy.js",
+      "output_sha256": "6ecfc37b268222e62ff6193ee7b03349b4753f21f974e7ab38dab7e2243360b6",
+      "output_mtime": "2026-10-26T10:56:27.656345+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/richExecuteStrategy.ts",
+      "source_sha256": "7148a2fbcdc81b71df3dffcd83f92c2cae32ad91b025985cc8075558a8fab23c",
+      "output": "out/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/richExecuteStrategy.js",
+      "output_sha256": "2189985949ca25d831a1fe574ae984245d4f599b60d118acd86956e82840b8d2",
+      "output_mtime": "2026-10-26T10:56:27.657345+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/strategyHelpers.ts",
+      "source_sha256": "e282a919e5e8a21512cbd970c327799106ca6bb8247340955a766f74c59be85c",
+      "output": "out/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/strategyHelpers.js",
+      "output_sha256": "cdfa5dd3603ff0b851ecf205e8cdbce13d71d82afbac32610ef1e484bfbd3d6f",
+      "output_mtime": "2026-10-26T11:06:32.754451+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chatAgentTools/common/terminalSandboxService.ts",
+      "source_sha256": "fcc7773f1f6fc23527eb7ec749e85a832cd53d9e43504da425529638156c3240",
+      "output": "out/vs/workbench/contrib/terminalContrib/chatAgentTools/common/terminalSandboxService.js",
+      "output_sha256": "393097a34f6a097aec1d1148f8e20391cb9abf1099726c59f6a5a2071bc52a29",
+      "output_mtime": "2026-10-26T10:56:27.512373+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/basicExecuteStrategy.test.ts",
+      "source_sha256": "28fbb5cbf00cae285ff5bbedd77a0b61dbdc02c19ddf213ba31f63c1cfb0a202",
+      "output": "out/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/basicExecuteStrategy.test.js",
+      "output_sha256": "4aa97039f5cedaa92413612bd175a8b9c2522c71d3ad9037da58cafd23c34300",
+      "output_mtime": "2026-10-26T10:56:27.660344+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/noneExecuteStrategy.test.ts",
+      "source_sha256": "6c9d6d4691551617ee1861668b69332671c6d3a1392932cc01d67a2673d55378",
+      "output": "out/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/noneExecuteStrategy.test.js",
+      "output_sha256": "ab6b370ff701d162ae295a0bcac25a7fbe253715c3fa03fb91052a8b7f2d0f01",
+      "output_mtime": "2026-10-26T10:56:27.662344+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/outputMonitor.test.ts",
+      "source_sha256": "3fc2f8283801131d15cf68156bdd6cc375ce83101608d2684194618484efae92",
+      "output": "out/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/outputMonitor.test.js",
+      "output_sha256": "cea9e0ca0e77d37092ec49bdeed4bbbfea38a6b1a4132d8ed92de22ed5750d78",
+      "output_mtime": "2026-10-26T10:56:27.662344+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/terminalExecutionDelivery.test.ts",
+      "source_sha256": "f78d740f55dc38b6abbcb5857700c5e89a7fc81c451e6c992a2380fae22a8798",
+      "output": "out/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/terminalExecutionDelivery.test.js",
+      "output_sha256": "0d19f71ac5513c5ae3a63d607af03a87312e7d5d261e00aa64aaf586a0964c3b",
+      "output_mtime": "2026-10-26T10:56:27.663344+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/terminalSandboxService.test.ts",
+      "source_sha256": "380ebbcee201a3e7fae93044d7246a305e7495ce7d1a32faa672d4b9ea3bf4dd",
+      "output": "out/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/terminalSandboxService.test.js",
+      "output_sha256": "763b792d1ba7bdac25a2c8b356d61f92242d5b229208b10c1617c4b9df04715f",
+      "output_mtime": "2026-10-26T10:56:27.665343+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/chatAgentTools/test/electron-browser/runInTerminalTool.test.ts",
+      "source_sha256": "eaaacc7a2868241bb348c0152f01b90e4b6939ee45811bdea8e81a4ce87af272",
+      "output": "out/vs/workbench/contrib/terminalContrib/chatAgentTools/test/electron-browser/runInTerminalTool.test.js",
+      "output_sha256": "435ed017b9bb6a6258301bd9b4e94422166d9c344fb4f49c979ad356032d17b9",
+      "output_mtime": "2026-10-26T10:56:27.667343+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/history/browser/terminalRunRecentQuickPick.ts",
+      "source_sha256": "ca5b4db6a6f239431c31b233ebd4ff730a06febd58725b8bb69d9945bdae1128",
+      "output": "out/vs/workbench/contrib/terminalContrib/history/browser/terminalRunRecentQuickPick.js",
+      "output_sha256": "b4d9fffc80ed111f2ff64e28d2557efb9c1b38e380476be7f39f6daaf93b2b16",
+      "output_mtime": "2026-10-26T10:56:27.514372+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/terminalContrib/quickFix/browser/terminal.quickFix.contribution.ts",
+      "source_sha256": "9949c517fa4250e261f34af4806cea1cd27fc104346d2ae5a111acaab25e8fba",
+      "output": "out/vs/workbench/contrib/terminalContrib/quickFix/browser/terminal.quickFix.contribution.js",
+      "output_sha256": "0fbc623c126600a31bc6a05699e34c8a49885363a5e6a3a682056592f51ba474",
+      "output_mtime": "2026-10-26T10:56:27.517372+08:00",
+      "fresh_since_compile_start": true
+    }
+  ]
+}

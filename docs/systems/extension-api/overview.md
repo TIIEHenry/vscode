@@ -114,4 +114,4 @@ Renderer 侧 class 用 `@extHostNamedCustomer(MainContext.…)` 登记到 `ExtHo
 
 普通输出目录失败拒绝本次创建；扩展日志目录仅把 `FileExists` 当成功，其他失败同样拒绝。失败缓存只在仍指向该次尝试时失效，进行中和成功结果继续共享。初始化错误由登记链报告一次，排队的追加、显示与日志操作消费这次已报告的创建拒绝，操作自身抛错仍报告；原始创建 Promise 保留拒绝。
 
-日志句柄按文件复用，缓存由同步句柄的释放容器持有：即使初始化失败，dispose 也会清掉自己的缓存，同名新句柄可重新尝试。初始化前已 dispose 的句柄仍负责释放晚到 logger 与通道。该恢复合同不把 mkdir 失败伪装成创建成功；回归入口为 `api/test/common/extHostOutput.test.ts`，本轮验收状态见 [D1378 方案](../../../dev/plans/ext-host-output-promise-contract.md)。
+日志句柄按文件复用，缓存由同步句柄的释放容器持有：即使初始化失败，dispose 也会清掉自己的缓存，同名新句柄可重新尝试。缓存查询先于新释放容器分配；mkdir成功后若句柄已关闭，不再分配logger/RPC。登记RPC已开始时，logger注销先归属释放容器，晚到通道按原身份释放；关闭句柄的排队操作不再运行。同步释放清缓存核对身份，允许旧mkdir未完成时立即同名重建。该恢复合同不把 mkdir 失败伪装成创建成功；回归入口为 `api/test/common/extHostOutput.test.ts`，本轮验收状态见 [D1378 方案](../../../dev/plans/ext-host-output-promise-contract.md)。

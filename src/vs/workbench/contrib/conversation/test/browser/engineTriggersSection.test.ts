@@ -1138,11 +1138,15 @@ suite('EngineTriggersSection', () => {
 		enable.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(setCalls, []);
-		assert.strictEqual(pane.getDomNode().querySelector('.engine-triggers-enabled-status'), null);
+		const status = pane.getDomNode().querySelector<HTMLElement>('.engine-triggers-enabled-status');
+		assert.ok(status);
+		assert.strictEqual(status.style.display, 'none');
+		assert.strictEqual(status.textContent, '');
 		pane.getDomNode().parentElement?.remove();
 	});
 
 	test('SetTriggerEnabled tone is error when returned enabled does not match the request', async () => {
+		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
 		const trigger = emptyTrigger({
 			triggerId: 'trig-1',
 			name: 'Nightly',
@@ -1154,15 +1158,18 @@ suite('EngineTriggersSection', () => {
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
 			listTriggers: async (): Promise<UniverseAgentListTriggersResult> => ({ triggers: [trigger] }),
-			setTriggerEnabled: async request => ({
-				trigger: emptyTrigger({
-					triggerId: request.triggerId,
-					name: 'Nightly',
-					type: 'cron',
-					target: { kind: 'self' },
-					enabled: !request.enabled,
-				}),
-			}),
+			setTriggerEnabled: async request => {
+				setCalls.push(request);
+				return {
+					trigger: emptyTrigger({
+						triggerId: request.triggerId,
+						name: 'Nightly',
+						type: 'cron',
+						target: { kind: 'self' },
+						enabled: !request.enabled,
+					}),
+				};
+			},
 		}));
 		await flushMicrotasks();
 		const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
@@ -1172,6 +1179,7 @@ suite('EngineTriggersSection', () => {
 		assert.ok(disable);
 		disable.click();
 		await flushMicrotasks();
+		assert.deepStrictEqual(setCalls, [{ scope: '', scopeId: '', triggerId: 'trig-1', enabled: false }]);
 		const status = pane.getDomNode().querySelector('.engine-triggers-enabled-status') as HTMLElement | null;
 		assert.ok(status);
 		assert.strictEqual(status.textContent, `${formatEngineTriggerListLabel(emptyTrigger({
@@ -1179,8 +1187,8 @@ suite('EngineTriggersSection', () => {
 			name: 'Nightly',
 			type: 'cron',
 			target: { kind: 'self' },
-			enabled: false,
-		}))} — false`);
+			enabled: true,
+		}))} — true`);
 		assert.ok(!status.classList.contains('is-success'));
 		assert.ok(status.classList.contains('is-error'));
 		pane.getDomNode().parentElement?.remove();
@@ -2208,13 +2216,17 @@ suite('EngineTriggersSection', () => {
 	});
 
 	test('does not leak unhandled rejection when handleSetEnabled catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
+		const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
 		await assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows({
 			buttonLabel: ENGINE_TRIGGER_ENABLE_LABEL,
 			statusSelector: '.engine-triggers-enabled-status',
-			setTriggerEnabled: async () => {
+			initialTriggers: [emptyTrigger({ triggerId: 'disabled-trigger', enabled: false })],
+			setTriggerEnabled: async request => {
+				setCalls.push(request);
 				throw new Error('setEnabled boom');
 			},
 		});
+		assert.deepStrictEqual(setCalls, [{ scope: '', scopeId: '', triggerId: 'disabled-trigger', enabled: true }]);
 	});
 
 	test('does not leak unhandled rejection when handleDelete catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {

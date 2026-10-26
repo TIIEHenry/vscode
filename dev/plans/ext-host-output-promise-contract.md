@@ -1,10 +1,10 @@
 ---
 title: "Extension Host 输出通道的 PromiseLike 与失败生命周期合同"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "D1378：在文件系统 Thenable 边界归一原生 Promise，保留两类 mkdir 拒绝边界；公开句柄集中报告初始化失败、消费派生拒绝并正确释放失败缓存；merge 统一编译与运行。"
+summary: "D1378：旧生产Thenable最小red成立；补缓存命中/早释放/晚RPC资源所有权后Output22+Search4及清理检查27 passing，mkdir原拒绝与共享身份保持，命名诊断清零。"
 ---
 
 # Extension Host 输出通道的 PromiseLike 与失败生命周期合同
@@ -39,4 +39,12 @@ summary: "D1378：在文件系统 Thenable 边界归一原生 Promise，保留�
 - [x] Astra / `engine_catalog_contract_repair` 于 2026-10-26 完成规则 16 只读审查（未改 J 文件）：Strengths 为 Thenable 边界归一、原失败边界、同步句柄持有释放与一次初始化报告；Critical / Important 无；Assessment 可独立提交后实施。Minor 已采纳：无未处理拒绝的承诺限于正常错误报告器；自定义错误处理器自身抛错不在本次范围，测试替换 handler 必须 finally 恢复。
 - [x] 独立方案提交 `2f04745`。
 - [x] 实施与静态检查：3 个 TS 文件 ESLint 0 errors / 0 warnings；diff-check 通过。新增 8 条输出行为，原 11 条保留；Search 原 4 条不变，只迁移 typed 配置夹具。status / D1378 与知识层已同步。
-- [ ] merge 新编译与 red/green 行为验收。
+- [x] merge 新编译与red/green：旧e244生产正文验明一致后最小red 0过/3败（含unexpected-error hook）；最终Output22+Search4+清理检查27过，当前全仓59条/37文件原始记录与补修定向0分别保存。
+
+## 集成发现与修复
+
+真实运行先揭示缓存命中早退遗失新建空DisposableStore，现先查询已有log facade再分配store，保留身份断言、不释放共享已有通道。随后早dispose场景证明本仓DisposableStore.add并不负责释放晚到资源，集成仅在此模块引入ownOrDispose，logger注销在await登记RPC前纳入owner，channels登记加disposed闸、删除核对身份，队列操作与日志级别回调执行前复核disposed。
+
+mkdir成功await后、分配logger前若facade已关闭，按取消结束，不新建资源；目录失败仍由await先原样拒绝，未改错误身份/重试或FileExists例外。早mkdir场景强化为零logger/零RPC，晚RPC场景另以真实登记屏障验证已建logger立即注销、旧id晚回复只释放旧通道、新通道可继续写。原19场景完整保留，新增普通/log两条立即同名重建及旧RPC晚于新通道一条，共22Output；Search原4条保持。
+
+所有真实失败日志均保留；曾因TestRPC异步$dispose传递而在同步断言中得到26过/1败，改为等待明确回复条件，保留最终身份/零注册断言。最终官方Electron27 passing（含清理检查）。Astra核验log稳定身份与output唯一登记id两个阶段无Critical/Important；原mkdir拒绝及异常报告边界保持。生产/测试同主题补修随最终集成提交，未改全局DisposableStore。

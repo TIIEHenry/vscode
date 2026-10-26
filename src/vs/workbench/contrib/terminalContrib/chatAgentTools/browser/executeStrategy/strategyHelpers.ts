@@ -48,7 +48,7 @@ export function setupRecreatingStartMarker(
 	// the current marker. Callers should dispose this before sending a
 	// command so that prompt re-renders (e.g. PSReadLine transient prompts)
 	// don't move the start marker past the command output.
-	return toDisposable(() => markerListener.dispose());
+	return store.add(toDisposable(() => markerListener.dispose()));
 }
 
 export function createAltBufferPromise(

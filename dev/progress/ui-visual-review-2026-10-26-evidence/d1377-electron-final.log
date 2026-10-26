@@ -1,0 +1,896 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3224017:1026/110633.046297:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3224053) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3224053) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3224053) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  QueryBuilder[0m
+  [32m  ✔[0m[90m simple text pattern[0m
+  [32m  ✔[0m[90m normalize literal newlines[0m
+  [32m  ✔[0m[90m splits include pattern when expandPatterns enabled[0m
+  [32m  ✔[0m[90m does not split include pattern when expandPatterns disabled[0m
+  [32m  ✔[0m[90m includePattern array[0m
+  [32m  ✔[0m[90m includePattern array with expandPatterns[0m
+  [32m  ✔[0m[90m folderResources[0m
+  [32m  ✔[0m[90m simple exclude setting[0m
+  [32m  ✔[0m[90m simple include[0m
+  [32m  ✔[0m[90m simple include with ./ syntax[0m
+  [32m  ✔[0m[90m exclude setting and searchPath[0m
+  [32m  ✔[0m[90m multiroot exclude settings[0m
+  [32m  ✔[0m[90m simple exclude input pattern[0m
+  [32m  ✔[0m[90m file pattern trimming[0m
+  [32m  ✔[0m[90m exclude ./ syntax[0m
+  [32m  ✔[0m[90m extraFileResources[0m
+[0m    parseSearchPaths 1[0m
+    [32m  ✔[0m[90m simple includes[0m
+    [32m  ✔[0m[90m absolute includes[0m
+    [32m  ✔[0m[90m relative includes w/single root folder[0m
+    [32m  ✔[0m[90m relative includes w/two root folders[0m
+    [32m  ✔[0m[90m include ./foldername[0m
+    [32m  ✔[0m[90m folder with slash in the name[0m
+    [32m  ✔[0m[90m relative includes w/multiple ambiguous root folders[0m
+[0m    parseSearchPaths 2[0m
+    [32m  ✔[0m[90m includes with tilde[0m
+[0m    smartCase[0m
+    [32m  ✔[0m[90m no flags -> no change[0m
+    [32m  ✔[0m[90m maintains isCaseSensitive when smartCase not set[0m
+    [32m  ✔[0m[90m maintains isCaseSensitive when smartCase set[0m
+    [32m  ✔[0m[90m smartCase determines not case sensitive[0m
+    [32m  ✔[0m[90m smartCase determines case sensitive[0m
+    [32m  ✔[0m[90m smartCase determines not case sensitive (regex)[0m
+    [32m  ✔[0m[90m smartCase determines case sensitive (regex)[0m
+[0m    file[0m
+    [32m  ✔[0m[90m simple file query[0m
+[0m    pattern processing[0m
+    [32m  ✔[0m[90m text query with comma-separated includes with no workspace[0m
+    [32m  ✔[0m[90m text query with comma-separated includes with workspace[0m
+    [32m  ✔[0m[90m text query with comma-separated excludes globally[0m
+    [32m  ✔[0m[90m text query with comma-separated excludes globally in a workspace[0m
+    [36m  - text query with multiple comma-separated excludes[0m
+    [36m  - text query with base URI on exclud[0m
+
+[0m  Workbench - TerminalInstance[0m
+[0m    TerminalInstance[0m
+    [32m  ✔[0m[90m should create an instance of TerminalInstance with env from default profile[0m[31m (141ms)[0m
+    [32m  ✔[0m[90m marked remote resolver terminal bypasses workspace trust request[0m
+    [32m  ✔[0m[90m unmarked terminal requests workspace trust[0m
+    [32m  ✔[0m[90m should not create a process when workspace trust is denied[0m[31m (105ms)[0m
+    [32m  ✔[0m[90m should not create a process with an unexpected cwd in an empty workspace[0m[31m (108ms)[0m
+    [32m  ✔[0m[90m should preserve title for task terminals[0m
+    [32m  ✔[0m[90m should preserve agent shell type detected from sequence until the parent shell returns[0m
+    [32m  ✔[0m[90m should detect Command Code agent shell type from its OSC title[0m
+    [32m  ✔[0m[90m runCommand should wait for prompt input when command detection already exists[0m
+    [32m  ✔[0m[90m runCommand should send Ctrl+C before command when execute state has non-empty prompt value[0m[31m (110ms)[0m
+    [32m  ✔[0m[90m runCommand should not send Ctrl+C when command finished cleared prompt value before next input[0m
+    [32m  ✔[0m[90m sendPath keeps its void completion on delivery and rejects dropped input[0m
+    [32m  ✔[0m[90m runCommand rejects when command delivery is dropped at an empty prompt[0m
+    [32m  ✔[0m[90m runCommand does not send the command when clearing prompt input is dropped[0m
+    [32m  ✔[0m[90m sendText returns false and fires no send events when the process manager drops input[0m
+    [32m  ✔[0m[90m _handleOnData does not fire input data when the process manager drops input[0m
+    [32m  ✔[0m[90m should fire onWillDispose before xterm disposal and onDisposed after xterm disposal[0m
+    [32m  ✔[0m[90m should dispose contribution-owned xterm addons before xterm disposal[0m
+    [32m  ✔[0m[90m custom key event handler should handle commands in DEFAULT_COMMANDS_TO_SKIP_SHELL in VS Code and not xterm when sendKeybindingsToShell is disabled[0m
+    [32m  ✔[0m[90m custom key event handler should intercept Meta-modified keys that resolve to a command when sendKeybindingsToShell is disabled[0m
+[0m    DEFAULT_COMMANDS_TO_SKIP_SHELL[0m
+    [32m  ✔[0m[90m should include zoom commands so they are not consumed by kitty keyboard protocol[0m
+[0m    parseExitResult[0m
+    [32m  ✔[0m[90m should return no message for exit code = undefined[0m
+    [32m  ✔[0m[90m should return no message for exit code = 0[0m
+    [32m  ✔[0m[90m should return friendly message when executable is specified for non-zero exit codes[0m
+    [32m  ✔[0m[90m should return friendly message when executable and args are specified for non-zero exit codes[0m
+    [32m  ✔[0m[90m should return friendly message when executable and arguments are omitted for non-zero exit codes[0m
+    [32m  ✔[0m[90m should ignore pty host-related errors[0m
+    [32m  ✔[0m[90m should format conpty failure code 5[0m
+    [32m  ✔[0m[90m should format conpty failure code 267[0m
+    [32m  ✔[0m[90m should format conpty failure code 1260[0m
+    [32m  ✔[0m[90m should format conpty launch failure[0m
+    [32m  ✔[0m[90m should format generic failures[0m
+[0m    TerminalLabelComputer[0m
+    [32m  ✔[0m[90m should resolve to "" when the template variables are empty[0m
+    [32m  ✔[0m[90m should resolve cwd when outside of userHome[0m
+    [32m  ✔[0m[90m should resolve cwd when under userHome[0m
+    [32m  ✔[0m[90m should resolve cwd when exactly at userHome[0m
+    [32m  ✔[0m[90m should not shorten cwd on Windows[0m
+    [32m  ✔[0m[90m should resolve workspaceFolder[0m
+    [32m  ✔[0m[90m should resolve local[0m
+    [32m  ✔[0m[90m should resolve process[0m
+    [32m  ✔[0m[90m should resolve sequence[0m
+    [32m  ✔[0m[90m should resolve empty sequence to process name[0m
+    [32m  ✔[0m[90m should resolve task[0m
+    [32m  ✔[0m[90m should resolve separator[0m
+    [32m  ✔[0m[90m should always return static title when specified[0m
+    [32m  ✔[0m[90m should use shellLaunchConfig.titleTemplate as template when set[0m
+    [32m  ✔[0m[90m should use ${sequence} for agent CLI shell types[0m
+    [32m  ✔[0m[90m should use ${sequence} for Gemini agent CLI shell type[0m
+    [32m  ✔[0m[90m should use ${sequence} for Command Code agent CLI shell type[0m
+    [32m  ✔[0m[90m should prefer shellLaunchConfig.titleTemplate over agent CLI shell type override[0m
+    [32m  ✔[0m[90m should fall back to configured title when allowAgentCliTitle is disabled[0m
+    [32m  ✔[0m[90m should provide cwdFolder for all cwds only when in multi-root[0m
+    [32m  ✔[0m[90m should hide cwdFolder in single folder workspaces when cwd matches the workspace's default cwd even when slashes differ[0m
+[0m    getCwdResource[0m
+    [32m  ✔[0m[90m should return undefined when no CwdDetection capability[0m
+    [32m  ✔[0m[90m should return undefined when CwdDetection capability returns no cwd[0m
+    [32m  ✔[0m[90m should return URI.file for local terminal when file exists[0m
+    [32m  ✔[0m[90m should return undefined when file does not exist[0m
+    [32m  ✔[0m[90m should use pathService.fileURI for remote terminal[0m
+    [32m  ✔[0m[90m should handle Windows paths correctly[0m
+    [32m  ✔[0m[90m should handle empty cwd string[0m
+    [32m  ✔[0m[90m should return undefined when fileService cannot handle the resource (VS Code web ENOPRO scenario)[0m
+
+[0m  TerminalGroup[0m
+  [32m  ✔[0m[90m should not focus next instance when active instance hadFocusOnExit is false[0m
+  [32m  ✔[0m[90m should focus next instance with force=true when active instance hadFocusOnExit is true[0m
+  [32m  ✔[0m[90m should not focus next instance when hadFocusOnExit is false even if hasFocus is true[0m
+
+[0m  TerminalGroupService focus restore[0m
+  [32m  ✔[0m[90m unsplitInstance focuses the instance that had focus after its new group is active[0m
+  [32m  ✔[0m[90m unsplitInstance does not focus when hasFocus was false[0m
+  [32m  ✔[0m[90m cross-group moveInstance focuses the moved instance and not the one left behind[0m
+  [32m  ✔[0m[90m same-group moveInstance focuses the moved instance after rearrange[0m
+  [32m  ✔[0m[90m same-group moveInstance keeps the active instance when an unfocused instance moves before it[0m
+  [32m  ✔[0m[90m joinInstances focuses only the moved instance that had focus[0m
+
+[0m  OutputMonitor[0m
+  [32m  ✔[0m[90m startMonitoring returns immediately when polling succeeds[0m
+  [32m  ✔[0m[90m startMonitoring returns cancelled when token is cancelled[0m
+  [32m  ✔[0m[90m startMonitoring returns idle when isActive is false[0m
+  [32m  ✔[0m[90m startMonitoring works when isActive is undefined[0m
+  [32m  ✔[0m[90m non-interactive help completes without prompting[0m
+  [32m  ✔[0m[90m monitor can be disposed twice without error[0m
+  [32m  ✔[0m[90m timeout prompt unanswered → continues polling and completes when idle[0m
+  [32m  ✔[0m[90m press any key fires onDidDetectInputNeeded and stops polling[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded fires for input-required patterns in foreground mode[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded fires for newline-terminated input-required patterns in foreground mode[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded does not fire for non-input output[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded does NOT fire for log lines ending in colon-space (regression for #315476 Family 1)[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded does NOT fire for lines ending in question-mark-space (regression for #315476 Family 1)[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded does NOT fire for oh-my-zsh git-aware shell prompts (regression for #315476 Family 2)[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded DOES fire for broad-pattern lines when execution is active (issue #315476 review feedback)[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded does NOT fire if user types during the isActive() await (TOCTOU regression)[0m
+  [32m  ✔[0m[90m sensitive prompt fires onDidDetectSensitiveInputNeeded and not onDidDetectInputNeeded[0m
+  [32m  ✔[0m[90m sudo -S password prompt fires onDidDetectInputNeeded and not onDidDetectSensitiveInputNeeded[0m
+  [32m  ✔[0m[90m plain sudo password prompt still fires onDidDetectSensitiveInputNeeded[0m
+  [32m  ✔[0m[90m detectsSensitiveInputPrompt matches common secret prompts[0m
+  [32m  ✔[0m[90m extended timeout with isActive fires onDidDetectInputNeeded[0m
+  [32m  ✔[0m[90m non-interactive help on the last line stops monitoring before custom polling[0m
+  [32m  ✔[0m[90m non-interactive help on a non-final line does not stop custom polling[0m
+[0m    getLastLine[0m
+    [32m  ✔[0m[90m trims trailing line breaks before returning the last line[0m
+    [32m  ✔[0m[90m preserves the final visual line across bare carriage returns[0m
+[0m    detectsInputRequiredPattern[0m
+    [32m  ✔[0m[90m detects yes/no confirmation prompts (pairs and variants)[0m
+    [32m  ✔[0m[90m detects PowerShell multi-option confirmation line[0m
+    [32m  ✔[0m[90m PowerShell regex does not cause catastrophic backtracking (ReDoS)[0m
+    [32m  ✔[0m[90m Line ends with colon (strict path)[0m
+    [32m  ✔[0m[90m detects prompts with parenthesized default values[0m
+    [32m  ✔[0m[90m does NOT match git-aware shell prompts (regression for #315476)[0m
+    [32m  ✔[0m[90m detects chevron prompts from prompts/enquirer/inquirer libraries[0m
+    [32m  ✔[0m[90m trailing questions (strict path does not match bare `?` prompts)[0m
+    [32m  ✔[0m[90m detects press any key prompts[0m
+    [32m  ✔[0m[90m detects non-interactive help prompts without treating them as input[0m
+    [32m  ✔[0m[90m delegates to detectsHighConfidenceInputPattern (strict-set parity)[0m
+[0m    detectsLikelyInputRequiredPattern[0m
+    [32m  ✔[0m[90m matches the same prompts the strict path matches[0m
+    [32m  ✔[0m[90m matches bare colon and question-mark prompts the strict path skips[0m
+    [32m  ✔[0m[90m still rejects clear non-prompt shapes[0m
+    [32m  ✔[0m[90m documents known false positives on log-shaped output (caller-side guard required)[0m
+[0m    detectsHighConfidenceInputPattern[0m
+    [32m  ✔[0m[90m matches y/n and PowerShell prompts[0m
+    [32m  ✔[0m[90m matches password and press-any-key prompts[0m
+    [32m  ✔[0m[90m matches parenthesized defaults[0m
+    [32m  ✔[0m[90m does NOT match git-aware shell prompts (regression: oh-my-zsh, bash __git_ps1)[0m
+    [32m  ✔[0m[90m matches (END) pager[0m
+    [32m  ✔[0m[90m does NOT match bare colon prompts (too broad for fast-path)[0m
+    [32m  ✔[0m[90m does NOT match bare question prompts (too broad for fast-path)[0m
+[0m    matchTerminalPromptOption[0m
+    [32m  ✔[0m[90m matches suggested option case-insensitively[0m
+    [32m  ✔[0m[90m strips quotes and trailing punctuation[0m
+    [32m  ✔[0m[90m handles bracketed options like [Y][0m
+    [32m  ✔[0m[90m handles default suffixes by using first token[0m
+[0m    detectsVSCodeTaskFinishMessage[0m
+    [32m  ✔[0m[90m detects VS Code task completion messages[0m
+    [32m  ✔[0m[90m does not match generic press any key messages[0m
+    [32m  ✔[0m[90m does not match other prompts[0m
+[0m    disposable leak regression[0m
+    [32m  ✔[0m[90m disposing before timeout(0) fires does not leak idle input listener[0m
+    [32m  ✔[0m[90m disposing after monitoring completes does not leak idle input listener[0m
+    [32m  ✔[0m[90m disposing while monitoring is in-flight still resolves onDidFinishCommand[0m
+[0m    detectsGenericPressAnyKeyPattern[0m
+    [32m  ✔[0m[90m detects generic press any key prompts from scripts[0m
+    [32m  ✔[0m[90m does not match VS Code task finish messages[0m
+    [32m  ✔[0m[90m does not match other prompts[0m
+
+[0m  TerminalSandboxService - network domains[0m
+  [32m  ✔[0m[90m dependency checks should not be called for isEnabled[0m
+  [32m  ✔[0m[90m should report enabled when configured to allow network[0m
+  [32m  ✔[0m[90m should report dependency prereq failures[0m
+  [32m  ✔[0m[90m should report the repair action when bubblewrap is unusable[0m
+  [32m  ✔[0m[90m should install sandbox dependencies with the detected package manager[0m
+  [32m  ✔[0m[90m install requires accepted delivery before using an early completion (accepted)[0m
+  [32m  ✔[0m[90m install requires accepted delivery before using an early completion (dropped)[0m
+  [32m  ✔[0m[90m install requires accepted delivery before using an early completion (throw)[0m
+  [32m  ✔[0m[90m install requires accepted delivery before using an early completion (cancelled)[0m
+  [32m  ✔[0m[90m install requires accepted delivery before using an early completion (disposed)[0m
+  [32m  ✔[0m[90m remediate requires accepted delivery before using an early completion (accepted)[0m
+  [32m  ✔[0m[90m remediate requires accepted delivery before using an early completion (dropped)[0m
+  [32m  ✔[0m[90m remediate requires accepted delivery before using an early completion (throw)[0m
+  [32m  ✔[0m[90m remediate requires accepted delivery before using an early completion (cancelled)[0m
+  [32m  ✔[0m[90m remediate requires accepted delivery before using an early completion (disposed)[0m
+  [32m  ✔[0m[90m should install sandbox dependencies with the remote host package manager[0m
+  [32m  ✔[0m[90m should not create a terminal without a supported package manager[0m
+  [32m  ✔[0m[90m should run the approved bubblewrap remediation command[0m
+  [32m  ✔[0m[90m should report successful sandbox prereq checks[0m
+  [32m  ✔[0m[90m should preserve configured network domains[0m
+  [32m  ✔[0m[90m should disable runtime network config when configured to allow network[0m
+  [32m  ✔[0m[90m should write configured runtime values to sandbox config root[0m
+  [32m  ✔[0m[90m should add command-specific runtime values for standalone git commands[0m
+  [32m  ✔[0m[90m should skip command-specific runtime values when rule condition is false[0m
+  [32m  ✔[0m[90m should add GnuPG runtime values for chains without Docker commands[0m
+  [32m  ✔[0m[90m should skip GnuPG runtime values for chains with Docker-related commands[0m
+  [32m  ✔[0m[90m should preserve user runtime settings over command-specific runtime values[0m
+  [32m  ✔[0m[90m should rewrite sandbox config when command-specific runtime values change[0m
+  [32m  ✔[0m[90m should omit runtime root-level entries when runtime setting is empty[0m
+  [32m  ✔[0m[90m should rewrite sandbox config when runtime setting changes[0m
+  [32m  ✔[0m[90m should not override schema-defined network and filesystem config with runtime settings[0m
+  [32m  ✔[0m[90m should deny home reads while reallowing writable paths for reads[0m
+  [32m  ✔[0m[90m should allow reads and writes from workspace storage[0m
+  [32m  ✔[0m[90m should only add command-specific allow-list paths for the current command details[0m
+  [32m  ✔[0m[90m should apply command-detail read and write allow-list rules[0m
+  [32m  ✔[0m[90m should add SSH read allow-list paths only for supported commands on Linux and macOS[0m
+  [32m  ✔[0m[90m should add GnuPG read allow-list paths for gpg command keywords[0m
+  [32m  ✔[0m[90m should not rewrite sandbox config when the parsed command details produce unchanged allow-lists[0m
+  [32m  ✔[0m[90m should expand home paths in linux filesystem sandbox config paths[0m
+  [32m  ✔[0m[90m should deny home reads while reallowing writable paths for reads on macOS[0m
+  [32m  ✔[0m[90m should allow Git commands to read the GitHub CLI config on macOS[0m
+  [32m  ✔[0m[90m should not expand home paths in macOS filesystem sandbox config paths[0m
+  [32m  ✔[0m[90m should refresh allowWrite paths when workspace folders change[0m
+  [32m  ✔[0m[90m should create sandbox temp dir under the server data folder[0m
+  [32m  ✔[0m[90m should delete sandbox temp dir on shutdown[0m
+  [32m  ✔[0m[90m should add ripgrep bin directory to PATH when wrapping command[0m
+  [32m  ✔[0m[90m should launch Linux sandbox runtime from temp dir while preserving the command cwd[0m
+  [32m  ✔[0m[90m should apply ELECTRON_RUN_AS_NODE to the sandbox runtime after the Linux temp-dir cd[0m
+  [32m  ✔[0m[90m should preserve TMPDIR when unsandboxed execution is requested[0m
+  [32m  ✔[0m[90m should keep commands sandboxed when unsandboxed execution is requested but disabled[0m
+  [32m  ✔[0m[90m should preserve TMPDIR for piped unsandboxed commands[0m
+  [32m  ✔[0m[90m should preserve trailing backslashes for unsandboxed commands[0m
+  [32m  ✔[0m[90m should use fish-compatible wrapping for unsandboxed commands[0m
+  [32m  ✔[0m[90m should switch to unsandboxed execution when a domain is not allowlisted[0m
+  [32m  ✔[0m[90m should request network-enabled sandbox execution for a non-allowlisted domain when enabled[0m
+  [32m  ✔[0m[90m should request network-enabled sandbox execution even when unsandboxed commands are disabled[0m
+  [32m  ✔[0m[90m should keep blocked-domain commands sandboxed when unsandboxed commands are disabled[0m
+  [32m  ✔[0m[90m should allow exact allowlisted domains[0m
+  [32m  ✔[0m[90m should allow wildcard domains[0m
+  [32m  ✔[0m[90m should give denied domains precedence over allowlisted domains[0m
+  [32m  ✔[0m[90m should allow confirmed sandboxed network override for explicitly denied domains when enabled[0m
+  [32m  ✔[0m[90m should skip domain checks when configured to allow network[0m
+  [32m  ✔[0m[90m should match uppercase hostnames when checking allowlisted domains[0m
+  [32m  ✔[0m[90m should ignore malformed URL authorities with trailing punctuation[0m
+  [32m  ✔[0m[90m should ignore file-extension suffixes that look like domains[0m
+  [32m  ✔[0m[90m should ignore bare dotted values with unknown domain suffixes[0m
+  [32m  ✔[0m[90m should still detect bare hosts with well-known domain suffixes[0m
+  [32m  ✔[0m[90m should still treat URL authorities with file-like suffixes as domains[0m
+  [32m  ✔[0m[90m should still treat URL authorities with unknown suffixes as domains[0m
+  [32m  ✔[0m[90m should still treat ssh remotes with file-like suffixes as domains[0m
+  [32m  ✔[0m[90m should not treat filenames in commands as domains[0m
+  [32m  ✔[0m[90m should detect ssh style remotes as domains[0m
+  [32m  ✔[0m[90m should pass wrapped command as a single quoted argument[0m
+  [32m  ✔[0m[90m should keep variable and command substitution payloads literal[0m
+  [32m  ✔[0m[90m should detect blocked domains inside command substitutions[0m
+  [32m  ✔[0m[90m should escape single-quote breakout payloads in wrapped command argument[0m
+  [32m  ✔[0m[90m should escape embedded single quotes in wrapped command argument[0m
+  [32m  ✔[0m[90m should prefix wrapped command with ELECTRON_RUN_AS_NODE=1 when no remote env is available[0m
+  [32m  ✔[0m[90m should omit ELECTRON_RUN_AS_NODE=1 prefix when a remote env is available[0m
+  [32m  ✔[0m[90m should route remote Windows sandbox commands through MXC[0m
+  [32m  ✔[0m[90m should keep remote Windows sandbox disabled unless Windows sandbox setting is enabled[0m
+  [32m  ✔[0m[90m should place sandbox temp dir under the local data folder when no remote env is available[0m
+  [32m  ✔[0m[90m reads the remote environment again after the first getEnvironment rejects[0m
+  [32m  ✔[0m[90m shares one in-flight getEnvironment and does not call again after it settles[0m
+  [32m  ✔[0m[90m does not read the remote environment again after getEnvironment resolves to null[0m
+
+[0m  BasicExecuteStrategy[0m
+  [32m  ✔[0m[90m completes when terminal process exits without shell integration sequences[0m[31m (1002ms)[0m
+  [32m  ✔[0m[90m does not send a command when clearing pending input is dropped (executing=false)[0m
+  [32m  ✔[0m[90m does not send a command when clearing pending input is dropped (executing=true)[0m
+  [32m  ✔[0m[90m rejects when pty has already exited before execute()[0m
+  [32m  ✔[0m[90m throws "The terminal was closed" when instance is already disposed before execute()[0m
+
+[0m  NoneExecuteStrategy[0m
+  [32m  ✔[0m[90m does not send a command when clearing pending input is dropped[0m
+  [32m  ✔[0m[90m should report "Command produced no output" when output is empty[0m
+  [32m  ✔[0m[90m should not leak sandbox command echo as output when command produces no output[0m
+
+[0m  RichExecuteStrategy[0m
+  [32m  ✔[0m[90m passes separate command line metadata when running a wrapped command[0m
+  [32m  ✔[0m[90m completes when terminal process exits without shell integration sequences[0m
+  [32m  ✔[0m[90m handles ITerminalLaunchError on process exit[0m
+  [32m  ✔[0m[90m rejects when pty has already exited before execute()[0m
+  [32m  ✔[0m[90m throws "The terminal was closed" when instance is already disposed before execute()[0m
+
+[0m  Terminal execution delivery[0m
+  [32m  ✔[0m[90m basic rejects dropped delivery even after an early success frame[0m
+  [32m  ✔[0m[90m basic rejects throw delivery even after an early success frame[0m
+  [32m  ✔[0m[90m none rejects dropped delivery even after an early success frame[0m
+  [32m  ✔[0m[90m none rejects throw delivery even after an early success frame[0m
+  [32m  ✔[0m[90m rich rejects dropped delivery even after an early success frame[0m
+  [32m  ✔[0m[90m rich rejects throw delivery even after an early success frame[0m
+
+[0m  TerminalChatWidget command delivery[0m
+  [32m  ✔[0m[90m keeps the suggestion until delivery completes (accepted=true)[0m
+  [32m  ✔[0m[90m keeps the suggestion until delivery completes (accepted=false)[0m
+
+[0m  MainThreadTerminalShellIntegration delivery[0m
+  [32m  ✔[0m[90m public void command entry reports rejection through notifications[0m
+
+[0m  RunInTerminalTool[0m
+  [32m  ✔[0m[90m ignores background completion events for a different command[0m
+  [32m  ✔[0m[90m should preserve conversation context for background completion notifications[0m
+  [32m  ✔[0m[90m should preserve contributed session auto-attach opt-out for background completion notifications[0m
+  [32m  ✔[0m[90m should dedupe rapid repeated background input-needed notifications[0m
+  [32m  ✔[0m[90m should suppress input-needed after disposal and omit successful exit code from terminal-exited notice[0m
+  [32m  ✔[0m[90m should suppress redundant input-needed notification for output already returned via foreground inputNeeded[0m
+  [32m  ✔[0m[90m should preserve session terminal association after inputNeeded so fg terminal is reused[0m
+[0m    sandbox invocation messaging[0m
+    [32m  ✔[0m[90m should instruct models to use $TMPDIR instead of /tmp when sandboxed[0m
+    [32m  ✔[0m[90m should include sandbox escalation requests in schema when sandbox is enabled[0m
+    [32m  ✔[0m[90m should omit unsandboxed execution requests from schema when unsandboxed commands are disabled[0m
+    [32m  ✔[0m[90m should not recommend allow-network requests in model description when per-command network access is disabled[0m
+    [32m  ✔[0m[90m should not include requestUnsandboxedExecution in schema when sandbox is disabled[0m
+    [32m  ✔[0m[90m should reflect sandbox setting changes in tool data[0m
+    [32m  ✔[0m[90m should show confirmation to install missing sandbox dependencies when prereq check fails[0m[33m (43ms)[0m
+    [32m  ✔[0m[90m should request manual installation when no supported package manager is available[0m
+    [32m  ✔[0m[90m should automatically schedule AppArmor remediation without a repair prompt[0m
+    [32m  ✔[0m[90m should recheck bubblewrap after dependency installation and not execute when it remains unavailable[0m
+    [32m  ✔[0m[90m does not execute the original command when install input is dropped[0m
+    [32m  ✔[0m[90m does not execute the original command when remediate input is dropped[0m
+    [32m  ✔[0m[90m should suggest reloading and retrying if the issue persists after sandbox dependency installation[0m
+    [32m  ✔[0m[90m should automatically repair AppArmor, probe again, and execute[0m[31m (3223ms)[0m
+    [32m  ✔[0m[90m should report sandboxing unsupported when bubblewrap repair execution fails or is indeterminate[0m[33m (46ms)[0m
+    [32m  ✔[0m[90m should not execute when bubblewrap is unusable and no supported remediation is available[0m
+    [32m  ✔[0m[90m should include allowed and denied network domains in model description[0m
+    [32m  ✔[0m[90m should exclude denied domains from effective allowed list[0m
+    [32m  ✔[0m[90m should use sandbox labels when command is sandbox wrapped[0m
+    [32m  ✔[0m[90m should enable sandboxing when chat permission level is default[0m
+    [32m  ✔[0m[90m should disable sandboxing when chat permission level is elevated[0m
+    [32m  ✔[0m[90m should use request permission level before current widget permission level[0m
+    [32m  ✔[0m[90m should not show sandbox wrapper in chat when sandboxed async command is detached[0m
+[0m    automatic sandbox retry[0m
+    [32m  ✔[0m[90m should retry completed foreground sandbox commands when output indicates sandbox block[0m
+    [32m  ✔[0m[90m should detect bubblewrap host restrictions across wrapped output lines[0m
+    [32m  ✔[0m[90m should direct the user to disable sandboxing when bubblewrap is restricted by the host[0m
+    [32m  ✔[0m[90m should not retry when unsandboxed commands are disabled[0m
+    [32m  ✔[0m[90m should not retry when the command is already unsandboxed[0m
+    [32m  ✔[0m[90m should not automatically retry outside the sandbox for apparent network failures[0m
+    [32m  ✔[0m[90m should retry in the sandbox by allowing network for apparent network failures[0m
+    [32m  ✔[0m[90m should not retry with allow-network when disabled or already requested[0m
+    [32m  ✔[0m[90m should not retry background, timed-out, successful, or non-sandbox-blocked results[0m
+    [32m  ✔[0m[90m should show retry elicitation when prepared invocation was auto-approved[0m
+    [32m  ✔[0m[90m should auto-retry without elicitation when session is in auto-approve permission level[0m
+    [32m  ✔[0m[90m should show retry elicitation when prepared invocation required confirmation[0m
+    [32m  ✔[0m[90m should use retry confirmation title without sandbox link[0m
+    [32m  ✔[0m[90m should use retry confirmation title without sandbox link for blocked domains[0m
+    [32m  ✔[0m[90m should use allow-network retry confirmation title without sandbox link[0m
+    [32m  ✔[0m[90m should use allow-network retry confirmation title without sandbox link for blocked domains[0m
+    [32m  ✔[0m[90m should show allow-network retry elicitation with sandbox-preserving title[0m
+    [32m  ✔[0m[90m should show retry elicitation when a sandboxed command is auto-approved only by the sandbox setting[0m
+[0m    default auto-approve rules[0m
+[0m      auto approved[0m
+      [36m  - echo abc[0m
+      [36m  - echo "abc"[0m
+      [36m  - echo 'abc'[0m
+      [36m  - ls -la[0m
+      [36m  - dir[0m
+      [36m  - pwd[0m
+      [36m  - cat file.txt[0m
+      [36m  - head -n 10 file.txt[0m
+      [36m  - tail -f log.txt[0m
+      [36m  - findstr pattern file.txt[0m
+      [36m  - wc -l file.txt[0m
+      [36m  - tr a-z A-Z[0m
+      [36m  - cut -d: -f1[0m
+      [36m  - cmp file1 file2[0m
+      [36m  - which node[0m
+      [36m  - basename /path/to/file[0m
+      [36m  - dirname /path/to/file[0m
+      [36m  - realpath .[0m
+      [36m  - readlink symlink[0m
+      [36m  - stat file.txt[0m
+      [36m  - file document.pdf[0m
+      [36m  - du -sh folder[0m
+      [36m  - df -h[0m
+      [36m  - sleep 5[0m
+      [36m  - cd /home/user[0m
+      [36m  - nl -ba path/to/file.txt[0m
+      [36m  - git status[0m
+      [36m  - git log --oneline[0m
+      [36m  - git show HEAD[0m
+      [36m  - git show --format=%B HEAD[0m
+      [36m  - git show --output-format=text HEAD[0m
+      [36m  - git diff main[0m
+      [36m  - git grep "TODO"[0m
+      [36m  - Get-ChildItem[0m
+      [36m  - Get-Date[0m
+      [36m  - Get-Random[0m
+      [36m  - Get-Location[0m
+      [36m  - Set-Location C:\Users\test[0m
+      [36m  - Write-Host "Hello"[0m
+      [36m  - Write-Output "Test"[0m
+      [36m  - Out-String[0m
+      [36m  - Split-Path C:\Users\test[0m
+      [36m  - Join-Path C:\Users test[0m
+      [36m  - Start-Sleep 2[0m
+      [36m  - Select-Object Name[0m
+      [36m  - Measure-Object Length[0m
+      [36m  - Compare-Object $a $b[0m
+      [36m  - Format-Table[0m
+      [36m  - Sort-Object Name[0m
+      [36m  - column data.txt[0m
+      [36m  - date +%Y-%m-%d[0m
+      [36m  - find . -name "*.txt"[0m
+      [36m  - grep pattern file.txt[0m
+      [36m  - rg pattern file.txt[0m
+      [36m  - rg --json pattern .[0m
+      [36m  - rg -i --color=never "TODO" src/[0m
+      [36m  - sed "s/foo/bar/g"[0m
+      [36m  - sed -n "1,10p" file.txt[0m
+      [36m  - sed -n '45,80p' /foo/bar/Example.java[0m
+      [36m  - sed -n '45,80p' extensions/markdown-language-features/src/test/copyFile.test.ts[0m
+      [36m  - sort file.txt[0m
+      [36m  - tree directory[0m
+      [36m  - od somefile[0m
+      [36m  - od -A x somefile[0m
+      [36m  - xxd[0m
+      [36m  - xxd somefile[0m
+      [36m  - xxd -l100 somefile[0m
+      [36m  - xxd -r somefile[0m
+      [36m  - xxd -rp somefile[0m
+      [36m  - docker ps[0m
+      [36m  - docker ps -a[0m
+      [36m  - docker images[0m
+      [36m  - docker info[0m
+      [36m  - docker version[0m
+      [36m  - docker inspect mycontainer[0m
+      [36m  - docker logs mycontainer[0m
+      [36m  - docker top mycontainer[0m
+      [36m  - docker stats[0m
+      [36m  - docker port mycontainer[0m
+      [36m  - docker diff mycontainer[0m
+      [36m  - docker search nginx[0m
+      [36m  - docker events[0m
+      [36m  - docker container ls[0m
+      [36m  - docker container ps[0m
+      [36m  - docker container inspect mycontainer[0m
+      [36m  - docker image ls[0m
+      [36m  - docker image history myimage[0m
+      [36m  - docker image inspect myimage[0m
+      [36m  - docker network ls[0m
+      [36m  - docker network inspect mynetwork[0m
+      [36m  - docker volume ls[0m
+      [36m  - docker volume inspect myvolume[0m
+      [36m  - docker context ls[0m
+      [36m  - docker context inspect mycontext[0m
+      [36m  - docker context show[0m
+      [36m  - docker system df[0m
+      [36m  - docker system info[0m
+      [36m  - docker compose ps[0m
+      [36m  - docker compose ls[0m
+      [36m  - docker compose top[0m
+      [36m  - docker compose logs[0m
+      [36m  - docker compose images[0m
+      [36m  - docker compose config[0m
+      [36m  - docker compose version[0m
+      [36m  - docker compose port[0m
+      [36m  - docker compose events[0m
+[0m      confirmation required[0m
+      [32m  ✔[0m[90m git log --output=log.txt[0m
+      [32m  ✔[0m[90m git show --format=%B --output=message.txt HEAD[0m
+      [32m  ✔[0m[90m git show --output message.txt HEAD[0m
+      [32m  ✔[0m[90m rm README.md[0m
+      [32m  ✔[0m[90m rmdir folder[0m
+      [32m  ✔[0m[90m del file.txt[0m
+      [32m  ✔[0m[90m Remove-Item file.txt[0m
+      [32m  ✔[0m[90m ri file.txt[0m
+      [32m  ✔[0m[90m rd folder[0m
+      [32m  ✔[0m[90m erase file.txt[0m
+      [32m  ✔[0m[90m dd if=/dev/zero of=file[0m
+      [32m  ✔[0m[90m kill 1234[0m
+      [32m  ✔[0m[90m ps aux[0m
+      [32m  ✔[0m[90m top[0m
+      [32m  ✔[0m[90m Stop-Process -Id 1234[0m
+      [32m  ✔[0m[90m spps notepad[0m
+      [32m  ✔[0m[90m taskkill /f /im notepad.exe[0m
+      [32m  ✔[0m[90m taskkill.exe /f /im cmd.exe[0m
+      [32m  ✔[0m[90m curl https://example.com[0m
+      [32m  ✔[0m[90m wget https://example.com/file[0m
+      [32m  ✔[0m[90m Invoke-RestMethod https://api.example.com[0m
+      [32m  ✔[0m[90m Invoke-WebRequest https://example.com[0m
+      [32m  ✔[0m[90m irm https://example.com[0m
+      [32m  ✔[0m[90m iwr https://example.com[0m
+      [32m  ✔[0m[90m chmod 755 file.sh[0m
+      [32m  ✔[0m[90m chown user:group file.txt[0m
+      [32m  ✔[0m[90m Set-ItemProperty file.txt IsReadOnly $true[0m
+      [32m  ✔[0m[90m sp file.txt IsReadOnly $true[0m
+      [32m  ✔[0m[90m Set-Acl file.txt $acl[0m
+      [32m  ✔[0m[90m jq '.name' file.json[0m
+      [32m  ✔[0m[90m xargs rm[0m
+      [32m  ✔[0m[90m eval "echo hello"[0m
+      [32m  ✔[0m[90m Invoke-Expression "Get-Date"[0m
+      [32m  ✔[0m[90m iex "Write-Host test"[0m
+      [32m  ✔[0m[90m Select-Custom[0m
+      [32m  ✔[0m[90m Measure-Command[0m
+      [32m  ✔[0m[90m Compare-Custom[0m
+      [32m  ✔[0m[90m Format-Hex[0m
+      [32m  ✔[0m[90m Sort-Custom[0m
+      [32m  ✔[0m[90m column -c 10000 file.txt[0m
+      [32m  ✔[0m[90m date --set="2023-01-01"[0m
+      [32m  ✔[0m[90m find . -delete[0m
+      [32m  ✔[0m[90m find . -exec rm {} \;[0m
+      [32m  ✔[0m[90m find . -execdir rm {} \;[0m
+      [32m  ✔[0m[90m find . -fprint output.txt[0m
+      [32m  ✔[0m[90m rg --pre cat pattern .[0m
+      [32m  ✔[0m[90m rg --hostname-bin hostname pattern .[0m
+      [32m  ✔[0m[90m sed --in-place "s/foo/bar/" file.txt[0m
+      [32m  ✔[0m[90m sed -e "s/a/b/" file.txt[0m
+      [32m  ✔[0m[90m sed -f script.sed file.txt[0m
+      [32m  ✔[0m[90m sed --expression "s/a/b/" file.txt[0m
+      [32m  ✔[0m[90m sed --file script.sed file.txt[0m
+      [32m  ✔[0m[90m sed "s/foo/bar/e" file.txt[0m
+      [32m  ✔[0m[90m sed "s/foo/bar/w output.txt" file.txt[0m
+      [32m  ✔[0m[90m sed ";W output.txt" file.txt[0m
+      [32m  ✔[0m[90m sort -o /etc/passwd file.txt[0m
+      [32m  ✔[0m[90m sort -S 100G file.txt[0m
+      [32m  ✔[0m[90m tree -o output.txt[0m
+      [32m  ✔[0m[90m ls="test" curl https://api.example.com[0m
+      [32m  ✔[0m[90m API_KEY=secret curl https://api.example.com[0m
+      [32m  ✔[0m[90m HTTP_PROXY=proxy:8080 wget https://example.com[0m
+      [32m  ✔[0m[90m VAR1=value1 VAR2=value2 echo test[0m
+      [32m  ✔[0m[90m A=1 B=2 C=3 ./script.sh[0m
+      [32m  ✔[0m[90m xxd infile outfile[0m
+      [32m  ✔[0m[90m xxd -l 100 somefile[0m
+      [32m  ✔[0m[90m docker run nginx[0m
+      [32m  ✔[0m[90m docker exec mycontainer bash[0m
+      [32m  ✔[0m[90m docker rm mycontainer[0m
+      [32m  ✔[0m[90m docker rmi myimage[0m
+      [32m  ✔[0m[90m docker build .[0m
+      [32m  ✔[0m[90m docker push myimage[0m
+      [32m  ✔[0m[90m docker pull nginx[0m
+      [32m  ✔[0m[90m docker compose up[0m
+      [32m  ✔[0m[90m docker compose down[0m
+[0m    retry outside sandbox[0m
+    [32m  ✔[0m[90m should mention denied domains when sandbox denies network access explicitly[0m
+    [32m  ✔[0m[90m should force confirmation for explicit sandboxed allow-network requests[0m
+    [32m  ✔[0m[90m should use allow-network confirmation for blocked domains selected before execution[0m
+    [32m  ✔[0m[90m should reject explicit allow-network requests when per-command network access is disabled[0m
+    [32m  ✔[0m[90m should not create a terminal when sandbox file access is denied[0m
+    [32m  ✔[0m[90m should force confirmation for explicit unsandboxed execution requests[0m
+    [32m  ✔[0m[90m should reject explicit unsandboxed execution requests when unsandboxed commands are disabled[0m
+    [32m  ✔[0m[90m should reject explicit unsandboxed execution requests when allow argument is false[0m
+    [32m  ✔[0m[90m should not create a terminal for rejected explicit unsandboxed execution requests[0m
+    [32m  ✔[0m[90m should auto-approve sandboxed commands when sandbox auto approve is enabled[0m
+    [32m  ✔[0m[90m should use existing approval flow for sandboxed commands when sandbox auto approve is disabled[0m
+    [32m  ✔[0m[90m should require confirmation for sandboxed commands when sandbox auto approve is disabled and auto approve is enabled[0m
+[0m    prepareToolInvocation - auto approval behavior[0m
+    [32m  ✔[0m[90m should auto-approve commands in allow list[0m
+    [32m  ✔[0m[90m should require confirmation for commands not in allow list[0m
+    [32m  ✔[0m[90m should require confirmation for commands in deny list even if in allow list[0m
+    [32m  ✔[0m[90m should handle background commands with confirmation[0m
+    [32m  ✔[0m[90m should support legacy isBackground input as async mode[0m
+    [32m  ✔[0m[90m should auto-approve background commands in allow list[0m
+    [32m  ✔[0m[90m should include auto-approve info for background commands[0m
+    [32m  ✔[0m[90m should handle regex patterns in allow list[0m
+    [32m  ✔[0m[90m should handle complex command chains with sub-commands[0m
+    [32m  ✔[0m[90m should require confirmation when one sub-command is not approved[0m
+    [32m  ✔[0m[90m should handle empty command strings[0m
+    [32m  ✔[0m[90m should handle matchCommandLine: true patterns[0m[33m (41ms)[0m
+    [32m  ✔[0m[90m should only approve when neither sub-commands or command lines are denied[0m[33m (39ms)[0m
+[0m    confirmation title with presentation overrides[0m
+    [32m  ✔[0m[90m should use withoutLanguage title when presenter returns no languageDisplayName[0m
+    [32m  ✔[0m[90m should use withoutLanguage background title when presenter returns no languageDisplayName[0m
+    [32m  ✔[0m[90m should use withLanguage title when presenter returns languageDisplayName[0m
+    [32m  ✔[0m[90m should use withLanguage background title when presenter returns languageDisplayName[0m
+    [32m  ✔[0m[90m should use withoutLanguage inDirectory title when presenter returns no languageDisplayName with cd prefix[0m
+    [32m  ✔[0m[90m should not show undefined in confirmation message when explanation and goal are missing[0m
+    [32m  ✔[0m[90m should use withLanguage inDirectory title when presenter returns languageDisplayName with cd prefix[0m
+[0m    prepareToolInvocation - custom actions for dropdown[0m
+    [32m  ✔[0m[90m should generate custom actions for non-auto-approved commands[0m
+    [32m  ✔[0m[90m should generate custom actions for single word commands[0m
+    [32m  ✔[0m[90m should not generate custom actions for auto-approved commands[0m
+    [32m  ✔[0m[90m should only generate configure action for explicitly denied commands[0m
+    [32m  ✔[0m[90m should handle && in command line labels with proper mnemonic escaping[0m
+    [32m  ✔[0m[90m should not show approved commands in custom actions dropdown[0m
+    [32m  ✔[0m[90m should not show any command-specific actions when all sub-commands are approved[0m
+    [32m  ✔[0m[90m should handle mixed approved and unapproved commands correctly[0m
+    [32m  ✔[0m[90m should suggest subcommand for git commands[0m
+    [32m  ✔[0m[90m should suggest subcommand for npm commands[0m
+    [32m  ✔[0m[90m should suggest 3-part subcommand for npm run commands[0m
+    [32m  ✔[0m[90m should suggest 3-part subcommand for yarn run commands[0m
+    [32m  ✔[0m[90m should not suggest subcommand for commands with flags[0m
+    [32m  ✔[0m[90m should not suggest subcommand for npm run with flags[0m
+    [32m  ✔[0m[90m should handle mixed npm run and other commands[0m
+    [32m  ✔[0m[90m should suggest mixed subcommands and base commands[0m
+    [32m  ✔[0m[90m should suggest subcommands for multiple git commands[0m
+    [32m  ✔[0m[90m should suggest base command for non-subcommand tools[0m
+    [32m  ✔[0m[90m should handle single word commands from subcommand-aware tools[0m
+    [32m  ✔[0m[90m should deduplicate identical subcommand suggestions[0m
+    [32m  ✔[0m[90m should handle flags differently than subcommands for suggestion logic[0m
+    [32m  ✔[0m[90m should not suggest overly permissive subcommand rules[0m
+    [32m  ✔[0m[90m should not show command line option when it's rejected[0m
+    [32m  ✔[0m[90m should prevent auto approval when writing to a file outside the workspace[0m
+[0m    chat session disposal cleanup[0m
+    [32m  ✔[0m[90m should restore all terminals into the session terminal map and dispose them when archived[0m
+    [32m  ✔[0m[90m should dispose all terminals associated with a single chat session when archived[0m
+    [32m  ✔[0m[90m should not access agent sessions model when initializing archive listener[0m
+    [32m  ✔[0m[90m should dispose all terminals associated with a single chat session[0m
+    [32m  ✔[0m[90m should dispose associated terminals when chat session is disposed[0m
+    [32m  ✔[0m[90m should not affect other sessions when one session is disposed[0m
+    [32m  ✔[0m[90m should not dispose user-revealed terminals when chat session is disposed[0m
+    [32m  ✔[0m[90m should preserve terminals when output location is terminal[0m
+    [32m  ✔[0m[90m should handle disposal of non-existent session gracefully[0m
+    [32m  ✔[0m[90m should not reuse a disposed cached terminal[0m
+[0m    auto approve warning acceptance mechanism[0m
+    [32m  ✔[0m[90m should require confirmation for auto-approvable commands when warning not accepted[0m
+    [32m  ✔[0m[90m should include autoApproveInfo when command would be auto-approved but warning not accepted[0m
+    [32m  ✔[0m[90m should auto-approve commands when both auto-approve enabled and warning accepted[0m
+    [32m  ✔[0m[90m should require confirmation when auto-approve disabled regardless of warning acceptance[0m
+[0m    input-needed steering text[0m
+    [32m  ✔[0m[90m none mode does not mention timeout, idle silence, or kill_terminal[0m
+    [32m  ✔[0m[90m timeout mode advertises kill_terminal and mentions timeout[0m
+    [32m  ✔[0m[90m idleSilence mode advertises kill_terminal without saying "timeout"[0m
+[0m    unique rules deduplication[0m
+    [32m  ✔[0m[90m should properly deduplicate rules with same sourceText in auto-approve info[0m
+[0m    session auto approval[0m
+    [32m  ✔[0m[90m should auto approve all commands when session has auto approval enabled[0m
+    [32m  ✔[0m[90m should bypass terminal auto-approve feature in Autopilot mode[0m
+    [32m  ✔[0m[90m should bypass terminal auto-approve feature in Bypass Approvals mode[0m
+[0m    remote OS backend[0m
+    [32m  ✔[0m[90m RunInTerminalTool reads getEnvironment again after rejection and then caches success[0m
+    [32m  ✔[0m[90m TerminalProfileFetcher reads getEnvironment again after rejection and then caches success[0m
+[0m    TerminalProfileFetcher[0m
+[0m      getCopilotProfile[0m
+      [36m  - should return custom profile when configured[0m
+Access denied: Path '/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/usr/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/usr/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/sh' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/sh' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+      [32m  ✔[0m[90m should fall back to default shell when no custom profile is configured[0m
+[0m    denial info in disclaimers[0m
+    [32m  ✔[0m[90m should include denial reason in disclaimer when command is denied by rule[0m
+    [32m  ✔[0m[90m should include link to settings in denial disclaimer[0m
+    [32m  ✔[0m[90m should include denial reason for multiple denied sub-commands[0m
+    [32m  ✔[0m[90m should not include denial info when auto-approve is disabled[0m
+    [32m  ✔[0m[90m should not include denial info for commands that are simply not approved[0m
+[0m    ConfirmTerminalCommandTool[0m
+    [32m  ✔[0m[90m should require confirmation when sandbox is enabled but sandbox rewriting is disabled[0m
+    [32m  ✔[0m[90m should require confirmation when sandbox is disabled[0m
+    [32m  ✔[0m[90m should surface a sandbox-bypass title and reason when sandboxBypass is set, even with sandbox disabled[0m
+    [32m  ✔[0m[90m should force a sandbox-bypass confirmation even when the command would be auto-approved[0m
+
+[0m  ChatAgentToolsContribution - tool registration refresh[0m
+Access denied: Path '/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/usr/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/usr/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/sh' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/sh' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+  [32m  ✔[0m[90m should register run_in_terminal tool on construction[0m
+Access denied: Path '/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/usr/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/usr/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/sh' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/sh' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/usr/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/usr/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/sh' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/sh' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+  [32m  ✔[0m[90m should refresh run_in_terminal tool data when sandbox setting changes[0m
+Access denied: Path '/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/usr/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/usr/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/sh' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/sh' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/usr/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/usr/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/sh' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/sh' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+  [32m  ✔[0m[90m should refresh run_in_terminal tool data when unsandboxed command allowance changes[0m
+Access denied: Path '/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/usr/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/usr/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/sh' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/sh' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/usr/bin/bash' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/usr/bin/bash' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+Access denied: Path '/bin/sh' is outside the project root
+Error occurred in handler for 'vscode:statFile': Error: Access denied: Path '/bin/sh' is outside the project root
+    at validatePathWithinProject (/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:286:18)
+    at /home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js:306:3
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:118184)
+    at Session.emit (node:events:509:28)
+  [32m  ✔[0m[90m should refresh run_in_terminal tool data when sandbox network setting changes[0m
+
+[0m  XtermTerminal[0m
+  [32m  ✔[0m[90m _refreshLigaturesAddon returns a shared completion for a burst of refresh requests[0m
+  [32m  ✔[0m[90m _refreshLigaturesAddon cancels a pending refresh when the terminal is disposed[0m
+  [32m  ✔[0m[90m _refreshImageAddon returns a shared completion for a burst of refresh requests[0m
+  [32m  ✔[0m[90m _refreshImageAddon cancels a pending refresh when the terminal is disposed[0m
+  [32m  ✔[0m[90m should use fallback dimensions of 80x30[0m
+  [32m  ✔[0m[90m detached terminals do not register decoration shutdown listeners[0m
+  [32m  ✔[0m[90m disables custom glyphs when moved into an auxiliary window[0m
+  [32m  ✔[0m[90m does not load stale custom glyph settings when moved during addon import[0m
+[0m    getContentsAsText[0m
+    [32m  ✔[0m[90m should return all buffer contents when no markers provided[0m
+    [32m  ✔[0m[90m should return contents from start marker to end[0m
+    [32m  ✔[0m[90m should return contents from start to end marker[0m
+    [32m  ✔[0m[90m should return single line when start and end markers are the same[0m
+    [32m  ✔[0m[90m should return empty string when start marker is beyond end marker[0m
+    [32m  ✔[0m[90m should handle empty buffer[0m
+    [32m  ✔[0m[90m should handle mixed content with spaces and special characters[0m
+    [32m  ✔[0m[90m should fall back to line 0 when startMarker is disposed (line === -1)[0m
+    [32m  ✔[0m[90m should throw error when endMarker is disposed (line === -1)[0m
+    [32m  ✔[0m[90m should handle markers at buffer boundaries[0m
+    [32m  ✔[0m[90m should handle terminal escape sequences properly[0m
+[0m    getBufferReverseIterator[0m
+    [32m  ✔[0m[90m should get text properly within scrollback limit[0m
+    [32m  ✔[0m[90m should get text properly when exceed scrollback limit[0m
+[0m    theme[0m
+    [32m  ✔[0m[90m should apply correct background color based on getBackgroundColor[0m
+    [32m  ✔[0m[90m should react to and apply theme changes[0m
+
+
+[92m [0m[32m 512 passing[0m[90m (10s)[0m
+[36m [0m[36m 109 pending[0m

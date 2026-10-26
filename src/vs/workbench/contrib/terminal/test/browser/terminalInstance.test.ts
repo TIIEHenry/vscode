@@ -433,7 +433,15 @@ suite('Workbench - TerminalInstance', () => {
 
 		test('runCommand does not send the command when clearing prompt input is dropped', async () => {
 			const instance = await createTerminalInstance(undefined, undefined, {}, undefined, 0);
-			await writeP(instance.xterm!.raw, '\x1b]633;A\x07$ \x1b]633;B\x07sleep 999\x1b]633;C\x07');
+			await writeP(instance.xterm!.raw, '\x1b]633;A\x07');
+			await writeP(instance.xterm!.raw, '$ ');
+			await writeP(instance.xterm!.raw, '\x1b]633;B\x07');
+			await writeP(instance.xterm!.raw, 'sleep 999');
+			await writeP(instance.xterm!.raw, '\x1b]633;C\x07');
+			await Promise.resolve();
+			const commandDetection = instance.capabilities.get(TerminalCapability.CommandDetection);
+			strictEqual(commandDetection?.promptInputModel.state, PromptInputState.Execute);
+			ok((commandDetection?.promptInputModel.value.length ?? 0) > 0);
 			const sentText: Parameters<ITerminalInstance['sendText']>[] = [];
 			instance.sendText = async (...args) => {
 				sentText.push(args);

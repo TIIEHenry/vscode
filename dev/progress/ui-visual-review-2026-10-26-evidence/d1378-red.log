@@ -1,0 +1,66 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3155813:1026/104152.019925:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3155828) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3155828) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3155828) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ExtHostOutputService[0m
+  [31m  1) normalizes then-only directory creation before initializing an output channel[0m
+  [31m  2) preserves a then-only directory rejection and retries the next channel[0m
+[3155762:1026/104152.898773:INFO:CONSOLE:272] "Error: Test run should not have unexpected errors:
+then-only mkdir failed
+Error: then-only mkdir failed
+    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:159:21)
+    at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    at Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+    at Runner.runTest (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14857:12)
+    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14980:14
+    at next (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14772:16)
+    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14782:9
+    at next (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14665:16)
+    at cbHookRun (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14730:9)
+    at done (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13257:7)", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+  [31m  3) "after each" hook for "preserves a then-only directory rejection and retries the next channel"[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (7ms)[0m
+[31m  3 failing[0m
+
+[0m  1) ExtHostOutputService
+       normalizes then-only directory creation before initializing an output channel:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  TypeError: promise.catch is not a function
+      at ExtHostOutputService.doCreateOutputChannel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/common/extHostOutput.js:157:20)
+      at doCreateOutputChannel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:19:17)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:151:21)
+[0m
+[0m  2) ExtHostOutputService
+       preserves a then-only directory rejection and retries the next channel:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  TypeError: promise.catch is not a function
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:162:5)
+[0m
+[0m  3) "after each" hook for "preserves a then-only directory rejection and retries the next channel":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Error: Test run should not have unexpected errors:
+  then-only mkdir failed
+  Error: then-only mkdir failed
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:159:21)
+      at Context.<anonymous> (renderer.js:351:11)
+[0m

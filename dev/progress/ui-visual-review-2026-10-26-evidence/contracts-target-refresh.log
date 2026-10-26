@@ -1,0 +1,9 @@
+vs/workbench/api/test/browser/mainThreadTerminalShellIntegration.test.ts
+vs/workbench/contrib/conversation/browser/engineAgentsSection.ts
+vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.ts
+vs/workbench/contrib/conversation/test/browser/engineMcpSection.test.ts
+vs/workbench/contrib/conversation/test/browser/engineTriggersSection.test.ts
+vs/workbench/contrib/terminal/browser/xterm/xtermTerminal.ts
+vs/workbench/contrib/terminal/test/browser/terminalInstance.test.ts
+vs/workbench/contrib/terminal/test/browser/xterm/xtermTerminal.test.ts
+vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/strategyHelpers.ts

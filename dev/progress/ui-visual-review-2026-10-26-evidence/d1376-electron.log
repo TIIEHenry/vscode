@@ -1,0 +1,432 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3200118:1026/105810.115000:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3200159) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3200159) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3200159) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  EngineClipboardSection (browser)[0m
+  [32m  ✔[0m[90m late listClipboard after dispose does not paint clipboard rows[0m
+  [32m  ✔[0m[90m late clipboard actions after pairing hold do not paint success[0m
+  [32m  ✔[0m[90m late clipboard write after disconnect does not paint success[0m
+  [32m  ✔[0m[90m late clipboard write error after list failure does not paint error[0m
+  [32m  ✔[0m[90m live clipboard write keeps success after its own refresh[0m
+
+[0m  EngineContextVariableSection (browser)[0m
+  [32m  ✔[0m[90m late listContextVariable after dispose does not paint context variable rows[0m
+  [32m  ✔[0m[90m late context read after pairing hold does not paint success[0m
+
+[0m  EngineTriggersSection (browser)[0m
+  [32m  ✔[0m[90m late listTriggers after dispose does not paint trigger rows[0m
+  [32m  ✔[0m[90m set enabled is one stateful action for the selected trigger[0m
+  [32m  ✔[0m[90m late trigger actions after pairing hold do not paint success[0m
+
+[0m  EngineToolsSection (browser)[0m
+  [32m  ✔[0m[90m late listTools after dispose does not paint tool rows[0m
+  [32m  ✔[0m[90m group header renders group item count in .engine-catalog-group-count (S9)[0m
+
+[0m  Engine catalog sections (Agents / MCP / Tools)[0m
+  [32m  ✔[0m[90m canPerformCatalogWrite is false when disconnected or unsupported[0m
+  [32m  ✔[0m[90m canPerformCatalogWriteLive refuses pairing-hold leftover-looks-live[0m
+  [32m  ✔[0m[90m Agents: disconnected hides section (§4 honest empty)[0m
+  [32m  ✔[0m[90m Agents: UNSUPPORTED shows honest message without fake rows[0m
+  [32m  ✔[0m[90m MCP: disconnected hides section (§4 honest empty)[0m
+  [32m  ✔[0m[90m MCP: UNSUPPORTED shows honest message without fake rows[0m
+  [32m  ✔[0m[90m Tools: disconnected hides section (§4 honest empty)[0m
+  [32m  ✔[0m[90m Tools: UNSUPPORTED shows honest message without fake rows[0m
+  [32m  ✔[0m[90m Tools: connected phase with pairingPending keeps leftover catalog and paints not-connected[0m
+  [32m  ✔[0m[90m Tools: connecting phase with pairingPending keeps leftover catalog and engine is not live[0m
+  [32m  ✔[0m[90m Agents: connected phase with pairingPending keeps leftover catalog and paints not-connected[0m
+  [32m  ✔[0m[90m Agents: name-only rows stay one line tall and a wide column keeps the editor beside the list[0m
+  [32m  ✔[0m[90m Agents: a narrow column stacks the editor under whole profile rows[0m
+  [32m  ✔[0m[90m Agents: Delete asks before removing a user profile[0m
+  [32m  ✔[0m[90m MCP: connected phase with pairingPending keeps leftover catalog and paints not-connected[0m
+  [32m  ✔[0m[90m MCP: leftover + pairingPending write buttons stay 0 unary[0m
+  [32m  ✔[0m[90m MCP: leftover-looks-live pairing-hold writes stay 0 unary[0m
+  [32m  ✔[0m[90m MCP: pairing-hold refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m MCP: leftover-looks-live refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m MCP: leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m Skills: leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m Tools: leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m Plugins: leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live pairing-hold writes stay 0 unary[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live Tools tab skips extra listTools with empty agentTools[0m
+  [31m  1) Agents: leftover-looks-live empty tools paints disconnected KEEP-chrome, not empty-as-live[0m
+  [32m  ✔[0m[90m Agents: true connected without pairing empty tools still paints empty[0m
+  [32m  ✔[0m[90m Agents: true disconnect empty tools still paints disconnected KEEP-chrome[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live pairing-hold Instructions skips extra saveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: true connected without pairing shows listed AGENTS.md and does not saveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: pairing-hold refresh paints leftover editor honesty without reselect[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live refresh paints leftover editor honesty without reselect[0m
+  [32m  ✔[0m[90m Agents: pairing-hold refresh closes leftover user AGENTS.md Save chrome without reselect[0m
+  [32m  ✔[0m[90m Agents: leftover-looks-live refresh closes leftover user AGENTS.md Save chrome without reselect[0m
+  [32m  ✔[0m[90m Agents: pairing-hold leftover built_in AGENTS.md stays read-only without reselect[0m
+  [32m  ✔[0m[90m Agents: capability UNKNOWN leftover closes leftover user AGENTS.md Save chrome without reselect[0m
+  [32m  ✔[0m[90m Agents: list-fail leftover closes leftover user AGENTS.md Save chrome without reselect[0m
+  [32m  ✔[0m[90m Agents: capability UNKNOWN leftover closes leftover Tools page chrome without reselect[0m
+  [32m  ✔[0m[90m Agents: list-fail leftover closes leftover Tools page chrome without reselect[0m
+  [32m  ✔[0m[90m Tools: leftover-looks-live pairing-hold writes stay 0 unary[0m
+  [32m  ✔[0m[90m Tools: pairing-hold refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m Tools: leftover-looks-live refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m MCP: connected leftover still writes[0m
+  [31m  2) Agents: disconnected status is copy-only without Open Connection[0m
+  [32m  ✔[0m[90m Agents: SUPPORTED loads RPC catalog[0m
+  [32m  ✔[0m[90m Agents: SUPPORTED createProfile calls saveAgentProfile RPC[0m
+  [32m  ✔[0m[90m Agents: disconnected createProfile is no-op[0m
+  [32m  ✔[0m[90m Agents: connected saveAgentsMarkdown persists body via SaveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: removing AGENTS.md frontmatter fields clears them instead of writing the list values back[0m
+  [32m  ✔[0m[90m Agents: a prompt that starts with --- still shows separate profile fields and an unedited save keeps both[0m
+  [32m  ✔[0m[90m Agents: disconnected saveAgentsMarkdown does not call Save[0m
+  [32m  ✔[0m[90m MCP: write RPC stubs reachable when connected (no SetToolEnabled)[0m
+  [32m  ✔[0m[90m MCP: disconnected addMcpServer not invoked from stub when engine off[0m
+  [32m  ✔[0m[90m Tools: toggleTool via saveAgentProfile when section mounted with empty catalog[0m
+  [32m  ✔[0m[90m Tools: disconnected saveAgentProfile not called from section[0m
+  [32m  ✔[0m[90m Tools: selecting a row loads ToolInfo detail without a schema editor[0m
+  [32m  ✔[0m[90m Tools: successful refresh then getToolInfo throw keeps leftover detail and paints failed[0m
+  [32m  ✔[0m[90m Tools: missing getToolInfo hook explains the detail API is unavailable[0m
+  [32m  ✔[0m[90m Tools: live paint then missing getToolInfo keeps leftover detail and paints unavailable[0m
+  [32m  ✔[0m[90m Tools: listTools reject is failed with error status and no fake catalog[0m
+  [32m  ✔[0m[90m Tools: listAgentProfiles reject is failed with error status and no fake catalog[0m
+  [32m  ✔[0m[90m Agents: listAgentProfiles reject is failed with error status and no fake catalog[0m
+  [32m  ✔[0m[90m MCP: listMcpServers reject is failed with error status and no fake catalog[0m
+  [32m  ✔[0m[90m Tools: successful load then listTools throw keeps leftover catalog and paints failed[0m
+  [32m  ✔[0m[90m Tools: successful load then listAgentProfiles throw keeps leftover catalog and paints failed[0m
+  [32m  ✔[0m[90m Tools: savePendingEnablement / toggleTool empty id paints write-status and keeps catalog rows[0m
+  [32m  ✔[0m[90m Tools: savePendingEnablement / toggleTool throw paints write-status and keeps catalog rows[0m
+  [32m  ✔[0m[90m Tools: successful reconnect refresh clears pending enablement and keeps catalog ready[0m
+  [32m  ✔[0m[90m Agents: successful load then listAgentProfiles throw keeps leftover catalog and paints failed[0m
+  [32m  ✔[0m[90m Agents: create/delete/reset ok:false paints write-status and keeps catalog rows[0m
+  [32m  ✔[0m[90m Agents: create/delete/reset throw paints write-status and keeps catalog rows[0m
+  [32m  ✔[0m[90m Agents: saveAgentsMarkdown throw paints editor-status and keeps catalog rows[0m
+  [32m  ✔[0m[90m Agents: dirty AGENTS.md selection to another profile keeps A and does not saveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: dirty AGENTS.md reselecting the same profile is not blocked[0m
+  [32m  ✔[0m[90m Agents: clean AGENTS.md selection to another profile still changes selectedProfile[0m
+  [32m  ✔[0m[90m Agents: Model tab writes model fields and keeps loaded AGENTS.md and tools[0m
+  [32m  ✔[0m[90m Agents: built-in Model tab is read-only and does not save[0m
+  [32m  ✔[0m[90m Agents: invalid max turns does not call saveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: dirty Model tab keeps the selected profile and does not probe-save[0m
+  [32m  ✔[0m[90m Agents: pairing-hold locks Model tab Save without another saveAgentProfile[0m
+  [32m  ✔[0m[90m Agents: capability UNKNOWN locks leftover Model tab Save without reselect[0m
+  [32m  ✔[0m[90m Agents: createProfile ok does not keep create-success when subsequent listAgentProfiles fails[0m
+  [32m  ✔[0m[90m Agents: deleteSelectedProfile ok does not keep delete-success when subsequent listAgentProfiles fails[0m
+  [32m  ✔[0m[90m Agents: resetSelectedProfile ok does not keep reset-success when subsequent listAgentProfiles fails[0m
+  [32m  ✔[0m[90m Agents: saveSelectedProfile ok does not keep save-success when subsequent listAgentProfiles fails[0m
+  [32m  ✔[0m[90m Agents: saveAgentsMarkdown ok does not keep save-success when subsequent listAgentProfiles fails[0m
+  [32m  ✔[0m[90m Agents: tools tab listTools throw paints failed toolsStatus[0m
+  [32m  ✔[0m[90m Agents: tools tab reconnect listTools throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m Agents: successful reconnect refresh clears agent tool pending and keeps catalog ready[0m
+  [32m  ✔[0m[90m Agents: tools tab first-pull capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m Agents: tools tab successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m Agents: instructions refresh keeps listed AGENTS.md and does not saveAgentProfile[0m
+  [32m  ✔[0m[90m MCP: successful load then listMcpServers throw keeps leftover catalog and paints failed[0m
+  [32m  ✔[0m[90m MCP: list-fail leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m MCP: successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m MCP: capability UNKNOWN leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m MCP: first-pull capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m Agents: first-pull capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m Agents: successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m Agents: successful markdown load then list throw then select leftover keeps editor value[0m
+  [32m  ✔[0m[90m Agents: successful markdown load then capability UNKNOWN then select leftover keeps editor value[0m
+  [32m  ✔[0m[90m Agents: successful tools panel then list throw then select leftover keeps tools panel[0m
+  [32m  ✔[0m[90m Agents: successful tools panel then capability UNKNOWN then select leftover keeps tools panel[0m
+  [32m  ✔[0m[90m Agents: leftover markdown and tools stay after pairing re-select and tab, then true disconnect clears[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when Agents refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m Agents: New opens an input dialog and does not save without a name[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when createProfile catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m Tools: first-pull capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m Tools: successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m Tools: successful info then list throw then select leftover keeps detail[0m
+  [32m  ✔[0m[90m Tools: successful info then capability UNKNOWN then select leftover keeps detail[0m
+  [32m  ✔[0m[90m Tools: leftover info stays after pairing re-select, then true disconnect clears[0m
+  [32m  ✔[0m[90m Tools: leftover-looks-live pairing-hold loadToolInfo skips extra getToolInfo[0m
+  [32m  ✔[0m[90m Tools: in-flight getToolInfo leftover-looks-live keeps leftover and does not paint live[0m
+  [32m  ✔[0m[90m MCP: updateSelectedServer without override sends listed command args env url[0m
+  [32m  ✔[0m[90m MCP: add/update/remove ok:false shows write-failure status and keeps catalog rows[0m
+  [32m  ✔[0m[90m MCP: add/update/remove throw shows write-failure status and keeps catalog rows[0m
+  [32m  ✔[0m[90m MCP: addServer without complete config does not invent echo/mcp-stub and does not send RPC[0m
+  [31m  3) MCP: Add and Update open an input dialog before writing[0m
+  [32m  ✔[0m[90m MCP: addMcpServer ok does not keep add-success when subsequent listMcpServers fails[0m
+  [32m  ✔[0m[90m MCP: updateMcpServer ok does not keep update-success when subsequent listMcpServers fails[0m
+  [32m  ✔[0m[90m MCP: removeMcpServer ok does not keep remove-success when subsequent listMcpServers fails[0m
+  [32m  ✔[0m[90m MCP: toggleServer ok does not keep toggle-success when subsequent listMcpServers fails[0m
+  [32m  ✔[0m[90m MCP: toggleServer ok:false shows write-failure status and keeps catalog rows[0m
+  [32m  ✔[0m[90m MCP: toggleServer throw shows write-failure status and keeps catalog rows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when removeSelectedServer catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when toggleServer catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+
+[0m  EngineClipboardSection[0m
+  [32m  ✔[0m[90m ListClipboard does not send when listClipboard capability is UNKNOWN[0m
+  [32m  ✔[0m[90m ListClipboard success then capability becomes UNKNOWN keeps leftover rows and does not call list[0m
+  [32m  ✔[0m[90m List does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m List sends empty sessionId as-is when connected[0m
+  [32m  ✔[0m[90m UNSUPPORTED clipboard list does not send when the proxy method exists[0m
+  [32m  ✔[0m[90m List empty entries[] is honest empty[0m
+  [32m  ✔[0m[90m List first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m List success then throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m List success then hook missing keeps leftover rows and paints unsupported[0m
+  [32m  ✔[0m[90m List success then disconnect clears leftover rows[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover rows and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold write buttons stay 0 unary and skip extra list[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold Read stays 0 unary and skip extra list[0m
+  [32m  ✔[0m[90m leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m list-fail leftover closes write chrome without reselect[0m
+  [32m  ✔[0m[90m Write Read and Clear stay off when proxy methods exist but the snapshot is UNSUPPORTED[0m
+  [32m  ✔[0m[90m Read does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m Read sends empty ids as-is when connected with no selection[0m
+  [32m  ✔[0m[90m Read sends selected clipId without inventing defaults[0m
+  [32m  ✔[0m[90m Write does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m Write does not send when content is blank[0m
+  [32m  ✔[0m[90m Write sends dialog label and content and keeps empty ids[0m
+  [32m  ✔[0m[90m Write sends the dialog text and ignores the selected row[0m
+  [32m  ✔[0m[90m WriteClipboard success refreshes so the written row appears[0m
+  [32m  ✔[0m[90m WriteClipboard success does not keep write-success when subsequent ListClipboard fails[0m
+  [32m  ✔[0m[90m WriteClipboard leftover list-fail keeps leftover rows and hides write-success[0m
+  [32m  ✔[0m[90m WriteClipboard throw paints write-status and leaves the row[0m
+  [32m  ✔[0m[90m Clear does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m Clear sends empty sessionId as-is when connected[0m
+  [32m  ✔[0m[90m ClearClipboard success refreshes so the cleared row is gone[0m
+  [32m  ✔[0m[90m ClearClipboard success does not keep clear-success when subsequent ListClipboard fails[0m
+  [32m  ✔[0m[90m ClearClipboard throw paints clear-status and leaves the row[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh listClipboard rejects and status render throws[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when ClearClipboard rejects and clear-status paint throws[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when ReadClipboard rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m row is focusable and arrow keys do not fire[0m
+
+[0m  EngineMcpSection[0m
+  [32m  ✔[0m[90m addServer with complete config succeeds[0m
+  [32m  ✔[0m[90m updateSelectedServer with partial config succeeds[0m
+  [32m  ✔[0m[90m sessionWorkDir locks to sessionContext.getActiveWorkRoot().workDir[0m
+  [32m  ✔[0m[90m Clicking toolbar Add opens empty shared input without calling addMcpServer[0m
+  [32m  ✔[0m[90m Shared input validates stdio empty command and defensive confirmation does not add[0m
+  [32m  ✔[0m[90m Shared input with valid name and command calls addMcpServer once[0m
+  [32m  ✔[0m[90m Shared input validates sse URL before adding[0m
+  [32m  ✔[0m[90m Shared input validates streamable_http URL before adding[0m
+  [31m  4) Clicking toolbar Update without selection does not open input or write[0m
+  [32m  ✔[0m[90m Clicking toolbar Update with selection pre-fills all shared input fields[0m
+  [32m  ✔[0m[90m Submitting unchanged shared input does not call updateMcpServer[0m
+  [32m  ✔[0m[90m Submitting modified name updates once preserving hidden and blank fields[0m
+  [32m  ✔[0m[90m Unknown transport pre-fills empty and requires an explicit valid transport[0m
+  [32m  ✔[0m[90m Cancelling shared input does not write and a new Add starts empty[0m
+  [32m  ✔[0m[90m Shared input rejects missing names and malformed environment before RPC[0m
+  [32m  ✔[0m[90m Shared input sends arguments and environment and editing arguments alone writes[0m
+  [32m  ✔[0m[90m Shared browser dialog keeps invalid input open, closes accepted input, and cancels without writing[0m
+  [32m  ✔[0m[90m Confirmation after disconnect does not add[0m
+  [32m  ✔[0m[90m Confirmation after selected server changes does not update either server[0m
+  [32m  ✔[0m[90m Active work root change automatically triggers refresh and passes new workDir[0m
+
+[0m  Engine providers and models sections[0m
+  [32m  ✔[0m[90m successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m first-pull capability UNKNOWN is empty with capability loading and does not list[0m
+  [32m  ✔[0m[90m listModels first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m listModels success then throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover models and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold keeps leftover models and skips listModels[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold paints provider group disconnected, not capability/unsupported-as-live[0m
+  [32m  ✔[0m[90m leftover-looks-live UNKNOWN provider capability still paints disconnected, not capability loading[0m
+  [32m  ✔[0m[90m true connected without pairing keeps provider capability/unsupported fold[0m
+  [32m  ✔[0m[90m true connected UNKNOWN provider capability still paints capability loading[0m
+  [32m  ✔[0m[90m true disconnect still paints provider group disconnected[0m
+  [32m  ✔[0m[90m listProviderStatus paints read-only rows and never shows api_key[0m
+  [32m  ✔[0m[90m provider enabled mark is read-only and does not call a missing provider API[0m
+  [32m  ✔[0m[90m import control appears only when desktop provider write hooks exist[0m
+  [32m  ✔[0m[90m add provider opens an input dialog and does not paint credential fields[0m
+  [32m  ✔[0m[90m provider action feedback clears when capability becomes UNKNOWN[0m
+  [32m  ✔[0m[90m built-in presets render without a cloud method and the filter hides rows[0m
+  [32m  ✔[0m[90m a filter with no preset hits says so only after the cloud catalog settles[0m
+  [32m  ✔[0m[90m an unavailable cloud catalog keeps its status beside a filter miss[0m
+  [32m  ✔[0m[90m desktop cloud catalog renders a cloud row and refresh asks for a fresh copy[0m
+  [32m  ✔[0m[90m adding a built-in preset opens the credential dialog with id, protocol, and base URL[0m
+  [32m  ✔[0m[90m a cloud catalog failure keeps the built-in list and shows the error[0m
+  [32m  ✔[0m[90m model add and row actions appear only when registry write hooks exist[0m
+  [32m  ✔[0m[90m delete model confirms in a popover and does not open a native dialog[0m
+  [32m  ✔[0m[90m edit model keeps a blank description and sends typed cost and speed[0m
+  [32m  ✔[0m[90m add model sends empty description, cost, and speed when those fields are blank[0m
+  [32m  ✔[0m[90m listProviderStatus first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m listProviderStatus success then throw keeps leftover rows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refreshProviders catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refreshModels catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+
+[0m  EngineToolsSection leftover info tone (D414)[0m
+  [32m  ✔[0m[90m tool name stays on the checkbox line[0m
+  [32m  ✔[0m[90m leftover getToolInfo throw keeps detail and paints info-status error[0m
+  [32m  ✔[0m[90m leftover pairing-hold keeps detail and paints info-status error[0m
+  [32m  ✔[0m[90m pairing-hold refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m pairing-hold refresh paints leftover info honesty without reselect[0m
+  [32m  ✔[0m[90m leftover-looks-live refresh paints leftover info honesty without reselect[0m
+  [32m  ✔[0m[90m leftover missing getToolInfo keeps detail and paints info-status error[0m
+  [32m  ✔[0m[90m first-pull capability UNKNOWN is empty with capability loading[0m
+  [32m  ✔[0m[90m capability UNKNOWN leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m list-fail leftover closes leftover row toggle chrome without reselect[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when loadToolInfo catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when savePendingEnablement catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m switching active session or work root triggers list refresh with projectPath[0m
+
+[0m  EngineTriggersSection[0m
+  [32m  ✔[0m[90m ListTriggers does not send when listTriggers capability is UNKNOWN[0m
+  [32m  ✔[0m[90m ListTriggers success then capability becomes UNKNOWN keeps leftover rows and does not call list[0m
+  [32m  ✔[0m[90m ListTriggers does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m ListTriggers sends empty scope / scopeId / typeFilter as-is when connected[0m
+  [32m  ✔[0m[90m ListTriggers empty triggers[] is honest empty[0m
+  [32m  ✔[0m[90m ListTriggers first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m ListTriggers success then throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m ListTriggers success then hook missing keeps leftover rows and paints unsupported[0m
+  [32m  ✔[0m[90m ListTriggers success then disconnect clears leftover rows[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover rows and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold write buttons stay 0 unary and skip extra list[0m
+  [32m  ✔[0m[90m leftover-looks-live first-pull pairing without leftover stays empty and skips list[0m
+  [32m  ✔[0m[90m list-fail leftover closes write chrome without reselect[0m
+  [32m  ✔[0m[90m FireTrigger does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m write buttons stay off when proxy methods exist but the snapshot is UNSUPPORTED[0m
+  [32m  ✔[0m[90m write buttons stay disabled with hover hints when capability is UNKNOWN[0m
+  [32m  ✔[0m[90m FireTrigger sends empty ids as-is when connected with no selection[0m
+  [32m  ✔[0m[90m FireTrigger sends selected trigger_id without inventing defaults[0m
+  [32m  ✔[0m[90m FireTrigger resolve stays neutral and keeps status, eventId, and reason[0m
+  [32m  ✔[0m[90m FireTrigger throw stays error tone[0m
+  [32m  ✔[0m[90m FireTrigger non-empty status renders neutral regardless of status words or reason[0m
+  [32m  ✔[0m[90m SetTriggerEnabled stays disabled when disconnected or hook missing[0m
+  [31m  5) SetTriggerEnabled stays disabled when connected with no selection[0m
+  [31m  6) SetTriggerEnabled tone is error when returned enabled does not match the request[0m
+  [32m  ✔[0m[90m SetTriggerEnabled sends selected trigger_id and enabled without inventing defaults[0m
+  [32m  ✔[0m[90m DeleteTrigger does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m DeleteTrigger sends empty ids as-is when connected with no selection[0m
+  [32m  ✔[0m[90m DeleteTrigger sends selected trigger_id without inventing defaults[0m
+  [32m  ✔[0m[90m DeleteTrigger success refreshes so the deleted row is gone[0m
+  [32m  ✔[0m[90m DeleteTrigger success does not keep delete-success when subsequent ListTriggers fails[0m
+  [32m  ✔[0m[90m DeleteTrigger throw paints delete-status and leaves the row[0m
+  [32m  ✔[0m[90m UpsertTrigger does not send when disconnected or hook missing[0m
+  [32m  ✔[0m[90m UpsertTrigger Add does not send when the form has no name or type[0m
+  [32m  ✔[0m[90m UpsertTrigger Add does not send when type is blank[0m
+  [32m  ✔[0m[90m UpsertTrigger Add does not send when interval or target is invalid[0m
+  [32m  ✔[0m[90m UpsertTrigger Edit does not send when nothing is selected[0m
+  [32m  ✔[0m[90m UpsertTrigger Edit does not resend the selected trigger when the dialog is empty[0m
+  [32m  ✔[0m[90m UpsertTrigger Add sends the dialog draft and does not copy the selected row[0m
+  [32m  ✔[0m[90m UpsertTrigger Add sends blanks as empty fields and enabled false when the checkbox is omitted[0m
+  [32m  ✔[0m[90m UpsertTrigger Edit sends dialog values and keeps fields the form left blank[0m
+  [32m  ✔[0m[90m UpsertTrigger Edit replaces non-blank fields and does not keep enabled from the row[0m
+  [32m  ✔[0m[90m UpsertTrigger dialog is prefilled for edit and empty for add[0m
+  [32m  ✔[0m[90m UpsertTrigger Edit success refreshes so the updated row appears[0m
+  [32m  ✔[0m[90m UpsertTrigger success does not keep upsert-success when subsequent ListTriggers fails[0m
+  [32m  ✔[0m[90m UpsertTrigger throw paints upsert-status and leaves the row[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when handleUpsert catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when handleFire catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [31m  7) does not leak unhandled rejection when handleSetEnabled catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when handleDelete catch-path paint throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m row is focusable and arrow keys do not fire[0m
+
+
+[92m [0m[32m 287 passing[0m[90m (1s)[0m
+[31m  7 failing[0m
+
+[0m  1) Engine catalog sections (Agents / MCP / Tools)
+       Agents: leftover-looks-live empty tools paints disconnected KEEP-chrome, not empty-as-live:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + HTMLAnchorElement {}
+  - undefined
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.js:1143:12)
+[0m
+[0m  2) Engine catalog sections (Agents / MCP / Tools)
+       Agents: disconnected status is copy-only without Open Connection:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + HTMLAnchorElement {}
+  - undefined
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.js:1929:12)
+[0m
+[0m  3) Engine catalog sections (Agents / MCP / Tools)
+       MCP: Add and Update open an input dialog before writing:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(update)
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.js:4663:12)
+[0m
+[0m  4) EngineMcpSection
+       Clicking toolbar Update without selection does not open input or write:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(button)
+
+      at Object.open (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineMcpSection.test.js:209:16)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineMcpSection.test.js:273:7)
+[0m
+[0m  5) EngineTriggersSection
+       SetTriggerEnabled stays disabled when connected with no selection:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + HTMLDivElement {}
+  - null
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineTriggersSection.test.js:1045:12)
+[0m
+[0m  6) EngineTriggersSection
+       SetTriggerEnabled tone is error when returned enabled does not match the request:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-Nightly — cron — trig-1 — true[0m
+      [32m+Nightly — cron — trig-1 — false[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'Nightly — cron — trig-1 — true'
+  - 'Nightly — cron — trig-1 — false'
+                               ^
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineTriggersSection.test.js:1080:12)
+[0m
+[0m  7) EngineTriggersSection
+       does not leak unhandled rejection when handleSetEnabled catch-path paint throws and onUnexpectedError warn-then-rethrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "unexpectedWarns": [][0m
+      [32m+  "unexpectedWarns": [[0m
+      [32m+    {}[0m
+      [32m+    [Circular][0m
+      [32m+  ][0m
+         "unhandledRejections": []
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    {
+  +   unexpectedWarns: [],
+  -   unexpectedWarns: [
+  -     Error: paint boom
+  -         at assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineTriggersSection.test.js:1990:23)
+  -         at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineTriggersSection.test.js:2070:11)
+  -     Error: paint boom
+  -         at assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineTriggersSection.test.js:1990:23)
+  -         at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineTriggersSection.test.js:2070:11)
+  -   ],
+      unhandledRejections: []
+    }
+
+      at assertWriteClickDoesNotLeakWhenCatchPathPaintWarnThenRethrows (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineTriggersSection.test.js:2033:14)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/engineTriggersSection.test.js:2070:5)
+[0m

@@ -36,7 +36,7 @@ import { ITelemetryService } from '../../../../../platform/telemetry/common/tele
 import { IContextKey, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { TerminalContextKeys } from '../../common/terminalContextKey.js';
 import { IClipboardService } from '../../../../../platform/clipboard/common/clipboardService.js';
-import { debounce } from '../../../../../base/common/decorators.js';
+import { Delayer } from '../../../../../base/common/async.js';
 import { MouseWheelClassifier } from '../../../../../base/browser/ui/scrollbar/scrollableElement.js';
 import { IMouseWheelEvent, StandardWheelEvent } from '../../../../../base/browser/mouseEvent.js';
 import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
@@ -155,6 +155,8 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 	private _imageAddon?: ImageAddonType;
 	private readonly _ligaturesAddon: MutableDisposable<LigaturesAddonType> = this._register(new MutableDisposable());
 	private _ligaturesAddonConfig?: ILigatureOptions;
+	private readonly _refreshLigaturesAddonDelayer = this._register(new Delayer<void>(100));
+	private readonly _refreshImageAddonDelayer = this._register(new Delayer<void>(100));
 	private _refreshLigaturesAddonChain: Promise<void> = Promise.resolve();
 	private _refreshImageAddonChain: Promise<void> = Promise.resolve();
 
@@ -985,11 +987,12 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		return this._terminalConfigurationService.config.customGlyphs && this.raw.element?.ownerDocument === this._mainDocument;
 	}
 
-	@debounce(100)
-	private async _refreshLigaturesAddon(): Promise<void> {
-		const run = this._refreshLigaturesAddonChain.then(() => this._refreshLigaturesAddonBody());
-		this._refreshLigaturesAddonChain = run.then(() => undefined, () => undefined);
-		return run;
+	private _refreshLigaturesAddon(): Promise<void> {
+		return this._refreshLigaturesAddonDelayer.trigger(() => {
+			const run = this._refreshLigaturesAddonChain.then(() => this._refreshLigaturesAddonBody());
+			this._refreshLigaturesAddonChain = run.then(() => undefined, () => undefined);
+			return run;
+		});
 	}
 
 	private async _refreshLigaturesAddonBody(): Promise<void> {
@@ -1034,11 +1037,12 @@ export class XtermTerminal extends Disposable implements IXtermTerminal, IDetach
 		}
 	}
 
-	@debounce(100)
-	private async _refreshImageAddon(): Promise<void> {
-		const run = this._refreshImageAddonChain.then(() => this._refreshImageAddonBody());
-		this._refreshImageAddonChain = run.then(() => undefined, () => undefined);
-		return run;
+	private _refreshImageAddon(): Promise<void> {
+		return this._refreshImageAddonDelayer.trigger(() => {
+			const run = this._refreshImageAddonChain.then(() => this._refreshImageAddonBody());
+			this._refreshImageAddonChain = run.then(() => undefined, () => undefined);
+			return run;
+		});
 	}
 
 	private async _refreshImageAddonBody(): Promise<void> {

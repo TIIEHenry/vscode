@@ -14,7 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Extension Host 输出通道 PromiseLike 合同](ext-host-output-promise-contract.md) | `accepted` | D1378；PromiseLike 边界与失败句柄释放已修，新增 8 条行为 / 保留 11 条，3 文件 ESLint 0 errors / warnings；merge 新编译和 red/green 未跑，保持 accepted。 |
+| [Extension Host 输出通道 PromiseLike 合同](ext-host-output-promise-contract.md) | `implemented` | D1378；PromiseLike 边界与失败句柄释放已修，新增 8 条行为 / 保留 11 条，3 文件 ESLint 0 errors / warnings；merge 新编译和 red/green 未跑，保持 accepted。 |
 | [Sources 编译基线合同修复](sources-compile-contracts.md) | `implemented` | D1375；三类合同修复与 6 条新行为回归已写，目标 ESLint 0 errors；只收 Sources 旧日志 9 条，编译与运行验证留在 merge。 |
 | [会话就绪度单一判定、删除会话确认与会话列表排序](session-availability-and-delete-confirm.md) | `accepted` | 2026-10-24 设计评审：删除会话先确认；会话就绪度由一个只依赖 roster 的判定给出，原因只由门闩写一次，控件按未连接 / 未就绪 / 引擎不支持三分；门闩回到错误态样式；会话列表组内按访问时间排序。已过只读审查。 |
 | [架构设计审查 2026-10-16](review-2026-10-16-architecture.md) | `draft` | 六路只读架构审查。根因是派生状态与判断规则没有唯一所有者。B1–B4、B6、B7 与文档偏差 D1–D4 已随 concrete 全面落地（4fa4f3eab56 等）。Q1–Q7、A1–A5、B5 待确认。发现稿保持 draft。 |
@@ -22,7 +22,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [架构审查 2026-10-16：可单独实施的缺陷](architecture-2026-10-16-concrete.md) | `implemented` | 换 profile 复位 agent tree 探测，diff URI 带会话，设置列表跟活动工作根刷新，路径键只统一盘符。扫描测试与 chat 边界按真实路径判定。Q1–Q7 与 B5 不在本稿。§1–§6 已全部落地合入（4fa4f3eab56、99bd6829c11、1a4c4295b45、83ef402a254、68308db93b5、cc6e17a9d8f）。不升 PRD。 |
 | [Composer：不能切换的 Agent 控件改为只读](composer-agent-picker.md) | `implemented` | switchAgent 没有握手方法，选择会立刻滚回。不可用时底栏只显示现有不可用文案。底栏的 agentIndex 不进发送载荷。已于 2e785907611 落地。不升 PRD。 |
 | [对话动作失败、未归因变更与空任务列表](conversation-failure-and-mutation.md) | `implemented` | §1、§2、§4 为明确不做改动/行为验证通过（explicit no-op decisions/verifications）；§3（缺字段的 file_mutation 累加 unattributedDropCount 计数）已于 83ef402a254 落地。不升 PRD。 |
-| [Engine Catalog 测试合同基线](engine-catalog-test-contracts.md) | `accepted` | D1376；旧表单覆盖迁真实共享对话框，补连接与工作根夹具；merge 统一验证。 |
+| [Engine Catalog 测试合同基线](engine-catalog-test-contracts.md) | `implemented` | D1376；旧表单覆盖迁真实共享对话框，补连接与工作根夹具；merge 统一验证。 |
 | [MCP 定义：Add / Update 先有表单](engine-mcp-definition-form.md) | `implemented` | 工具栏 Add 只展开表单，无配置不发 addMcpServer。工具栏 Update 在无改动时不写回。表单只收集已有配置字段里的必填项。已于 05a17c38879 落地。不升 PRD。 |
 | [Triggers 与 Clipboard：空载荷不发，未知能力不拉列表](engine-trigger-clipboard-actions.md) | `implemented` | Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 status 为空时画错误。三节列表在能力未知时不调用。已于 05a17c38879 与 1a4c4295b45 落地。不升 PRD。 |
 | [功能缺口 2026-10-16：已有方案与维持传输层](feature-gaps-2026-10-16-boundary.md) | `implemented` | G1、G2、G5、G10、G19、G20 指向已实施方案。G7、G11 与协议面已写明只进传输的入口不新开产品面。D2 与 D3 文档偏差已于 cc6e17a9d8f 落地合入。不升 PRD。 |
@@ -298,6 +298,6 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [方案 r15：copilot](review-2026-10-24-r15-copilot-plan.md) | `implemented` | hold 5。Cloud 仓库与基线、未知文件权限、补丁 requestId 与笔记本取消已修。105 passing。 |
 | [审查 r16：extensions-entry](review-2026-10-24-r16-extensions-entry.md) | `draft` | 3 条；回环登录 nonce 失败、无账户会话核对失败、Git IPC 注销删错键。 |
 | [方案 r16：extensions-entry](review-2026-10-24-r16-extensions-entry-plan.md) | `implemented` | hold 3 已实施。nonce 失败拒绝登录 Promise；身份核对失败不交出会话且只删明确 401，网络失败保留钥匙串；IPC 注销删除注册键。`github-authentication` 67 passing，`git` 76 passing。 |
-| [终端命令投递与沙箱安装的送达合同](terminal-delivery-contracts.md) | `accepted` | D1377：命令投递 void 边界、三策略与安装/修复 boolean 合同；行为待 merge 验证。 |
+| [终端命令投递与沙箱安装的送达合同](terminal-delivery-contracts.md) | `implemented` | D1377：命令投递 void 边界、三策略与安装/修复 boolean 合同；行为待 merge 验证。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

@@ -1,0 +1,420 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3200119:1026/105810.114224:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3200150) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3200150) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3200150) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  QueryBuilder[0m
+  [32m  ✔[0m[90m simple text pattern[0m
+  [32m  ✔[0m[90m normalize literal newlines[0m
+  [32m  ✔[0m[90m splits include pattern when expandPatterns enabled[0m
+  [32m  ✔[0m[90m does not split include pattern when expandPatterns disabled[0m
+  [32m  ✔[0m[90m includePattern array[0m
+  [32m  ✔[0m[90m includePattern array with expandPatterns[0m
+  [32m  ✔[0m[90m folderResources[0m
+  [32m  ✔[0m[90m simple exclude setting[0m
+  [32m  ✔[0m[90m simple include[0m
+  [32m  ✔[0m[90m simple include with ./ syntax[0m
+  [32m  ✔[0m[90m exclude setting and searchPath[0m
+  [32m  ✔[0m[90m multiroot exclude settings[0m
+  [32m  ✔[0m[90m simple exclude input pattern[0m
+  [32m  ✔[0m[90m file pattern trimming[0m
+  [32m  ✔[0m[90m exclude ./ syntax[0m
+  [32m  ✔[0m[90m extraFileResources[0m
+[0m    parseSearchPaths 1[0m
+    [32m  ✔[0m[90m simple includes[0m
+    [32m  ✔[0m[90m absolute includes[0m
+    [32m  ✔[0m[90m relative includes w/single root folder[0m
+    [32m  ✔[0m[90m relative includes w/two root folders[0m
+    [32m  ✔[0m[90m include ./foldername[0m
+    [32m  ✔[0m[90m folder with slash in the name[0m
+    [32m  ✔[0m[90m relative includes w/multiple ambiguous root folders[0m
+[0m    parseSearchPaths 2[0m
+    [32m  ✔[0m[90m includes with tilde[0m
+[0m    smartCase[0m
+    [32m  ✔[0m[90m no flags -> no change[0m
+    [32m  ✔[0m[90m maintains isCaseSensitive when smartCase not set[0m
+    [32m  ✔[0m[90m maintains isCaseSensitive when smartCase set[0m
+    [32m  ✔[0m[90m smartCase determines not case sensitive[0m
+    [32m  ✔[0m[90m smartCase determines case sensitive[0m
+    [32m  ✔[0m[90m smartCase determines not case sensitive (regex)[0m
+    [32m  ✔[0m[90m smartCase determines case sensitive (regex)[0m
+[0m    file[0m
+    [32m  ✔[0m[90m simple file query[0m
+[0m    pattern processing[0m
+    [32m  ✔[0m[90m text query with comma-separated includes with no workspace[0m
+    [32m  ✔[0m[90m text query with comma-separated includes with workspace[0m
+    [32m  ✔[0m[90m text query with comma-separated excludes globally[0m
+    [32m  ✔[0m[90m text query with comma-separated excludes globally in a workspace[0m
+    [36m  - text query with multiple comma-separated excludes[0m
+    [36m  - text query with base URI on exclud[0m
+
+[0m  Workbench - TerminalInstance[0m
+[0m    TerminalInstance[0m
+    [32m  ✔[0m[90m should create an instance of TerminalInstance with env from default profile[0m[31m (134ms)[0m
+    [32m  ✔[0m[90m marked remote resolver terminal bypasses workspace trust request[0m
+    [32m  ✔[0m[90m unmarked terminal requests workspace trust[0m
+    [32m  ✔[0m[90m should not create a process when workspace trust is denied[0m[31m (105ms)[0m
+    [32m  ✔[0m[90m should not create a process with an unexpected cwd in an empty workspace[0m[31m (105ms)[0m
+    [32m  ✔[0m[90m should preserve title for task terminals[0m
+    [32m  ✔[0m[90m should preserve agent shell type detected from sequence until the parent shell returns[0m
+    [32m  ✔[0m[90m should detect Command Code agent shell type from its OSC title[0m
+    [32m  ✔[0m[90m runCommand should wait for prompt input when command detection already exists[0m
+    [32m  ✔[0m[90m runCommand should send Ctrl+C before command when execute state has non-empty prompt value[0m[31m (108ms)[0m
+    [32m  ✔[0m[90m runCommand should not send Ctrl+C when command finished cleared prompt value before next input[0m
+    [32m  ✔[0m[90m sendPath keeps its void completion on delivery and rejects dropped input[0m
+    [32m  ✔[0m[90m runCommand rejects when command delivery is dropped at an empty prompt[0m
+    [31m  1) runCommand does not send the command when clearing prompt input is dropped[0m
+    [32m  ✔[0m[90m sendText returns false and fires no send events when the process manager drops input[0m
+    [32m  ✔[0m[90m _handleOnData does not fire input data when the process manager drops input[0m
+    [32m  ✔[0m[90m should fire onWillDispose before xterm disposal and onDisposed after xterm disposal[0m
+    [32m  ✔[0m[90m should dispose contribution-owned xterm addons before xterm disposal[0m
+    [31m  2) custom key event handler should handle commands in DEFAULT_COMMANDS_TO_SKIP_SHELL in VS Code and not xterm when sendKeybindingsToShell is disabled[0m
+    [31m  3) custom key event handler should intercept Meta-modified keys that resolve to a command when sendKeybindingsToShell is disabled[0m
+[0m    DEFAULT_COMMANDS_TO_SKIP_SHELL[0m
+    [32m  ✔[0m[90m should include zoom commands so they are not consumed by kitty keyboard protocol[0m
+[0m    parseExitResult[0m
+    [32m  ✔[0m[90m should return no message for exit code = undefined[0m
+    [32m  ✔[0m[90m should return no message for exit code = 0[0m
+    [32m  ✔[0m[90m should return friendly message when executable is specified for non-zero exit codes[0m
+    [32m  ✔[0m[90m should return friendly message when executable and args are specified for non-zero exit codes[0m
+    [32m  ✔[0m[90m should return friendly message when executable and arguments are omitted for non-zero exit codes[0m
+    [32m  ✔[0m[90m should ignore pty host-related errors[0m
+    [32m  ✔[0m[90m should format conpty failure code 5[0m
+    [32m  ✔[0m[90m should format conpty failure code 267[0m
+    [32m  ✔[0m[90m should format conpty failure code 1260[0m
+    [32m  ✔[0m[90m should format conpty launch failure[0m
+    [32m  ✔[0m[90m should format generic failures[0m
+[0m    TerminalLabelComputer[0m
+    [32m  ✔[0m[90m should resolve to "" when the template variables are empty[0m
+    [32m  ✔[0m[90m should resolve cwd when outside of userHome[0m
+    [32m  ✔[0m[90m should resolve cwd when under userHome[0m
+    [32m  ✔[0m[90m should resolve cwd when exactly at userHome[0m
+    [32m  ✔[0m[90m should not shorten cwd on Windows[0m
+    [32m  ✔[0m[90m should resolve workspaceFolder[0m
+    [32m  ✔[0m[90m should resolve local[0m
+    [32m  ✔[0m[90m should resolve process[0m
+    [32m  ✔[0m[90m should resolve sequence[0m
+    [32m  ✔[0m[90m should resolve empty sequence to process name[0m
+    [32m  ✔[0m[90m should resolve task[0m
+    [32m  ✔[0m[90m should resolve separator[0m
+    [32m  ✔[0m[90m should always return static title when specified[0m
+    [32m  ✔[0m[90m should use shellLaunchConfig.titleTemplate as template when set[0m
+    [32m  ✔[0m[90m should use ${sequence} for agent CLI shell types[0m
+    [32m  ✔[0m[90m should use ${sequence} for Gemini agent CLI shell type[0m
+    [32m  ✔[0m[90m should use ${sequence} for Command Code agent CLI shell type[0m
+    [32m  ✔[0m[90m should prefer shellLaunchConfig.titleTemplate over agent CLI shell type override[0m
+    [32m  ✔[0m[90m should fall back to configured title when allowAgentCliTitle is disabled[0m
+    [32m  ✔[0m[90m should provide cwdFolder for all cwds only when in multi-root[0m
+    [32m  ✔[0m[90m should hide cwdFolder in single folder workspaces when cwd matches the workspace's default cwd even when slashes differ[0m
+[0m    getCwdResource[0m
+    [32m  ✔[0m[90m should return undefined when no CwdDetection capability[0m
+    [32m  ✔[0m[90m should return undefined when CwdDetection capability returns no cwd[0m
+    [32m  ✔[0m[90m should return URI.file for local terminal when file exists[0m
+    [32m  ✔[0m[90m should return undefined when file does not exist[0m
+    [32m  ✔[0m[90m should use pathService.fileURI for remote terminal[0m
+    [32m  ✔[0m[90m should handle Windows paths correctly[0m
+    [32m  ✔[0m[90m should handle empty cwd string[0m
+    [32m  ✔[0m[90m should return undefined when fileService cannot handle the resource (VS Code web ENOPRO scenario)[0m
+
+[0m  TerminalGroup[0m
+  [32m  ✔[0m[90m should not focus next instance when active instance hadFocusOnExit is false[0m
+  [32m  ✔[0m[90m should focus next instance with force=true when active instance hadFocusOnExit is true[0m
+  [32m  ✔[0m[90m should not focus next instance when hadFocusOnExit is false even if hasFocus is true[0m
+
+[0m  TerminalGroupService focus restore[0m
+  [32m  ✔[0m[90m unsplitInstance focuses the instance that had focus after its new group is active[0m
+  [32m  ✔[0m[90m unsplitInstance does not focus when hasFocus was false[0m
+  [32m  ✔[0m[90m cross-group moveInstance focuses the moved instance and not the one left behind[0m
+  [32m  ✔[0m[90m same-group moveInstance focuses the moved instance after rearrange[0m
+  [32m  ✔[0m[90m same-group moveInstance keeps the active instance when an unfocused instance moves before it[0m
+  [32m  ✔[0m[90m joinInstances focuses only the moved instance that had focus[0m
+
+[0m  OutputMonitor[0m
+  [32m  ✔[0m[90m startMonitoring returns immediately when polling succeeds[0m
+  [32m  ✔[0m[90m startMonitoring returns cancelled when token is cancelled[0m
+  [32m  ✔[0m[90m startMonitoring returns idle when isActive is false[0m
+  [32m  ✔[0m[90m startMonitoring works when isActive is undefined[0m
+  [32m  ✔[0m[90m non-interactive help completes without prompting[0m
+  [32m  ✔[0m[90m monitor can be disposed twice without error[0m
+  [32m  ✔[0m[90m timeout prompt unanswered → continues polling and completes when idle[0m
+  [32m  ✔[0m[90m press any key fires onDidDetectInputNeeded and stops polling[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded fires for input-required patterns in foreground mode[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded fires for newline-terminated input-required patterns in foreground mode[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded does not fire for non-input output[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded does NOT fire for log lines ending in colon-space (regression for #315476 Family 1)[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded does NOT fire for lines ending in question-mark-space (regression for #315476 Family 1)[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded does NOT fire for oh-my-zsh git-aware shell prompts (regression for #315476 Family 2)[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded DOES fire for broad-pattern lines when execution is active (issue #315476 review feedback)[0m
+  [32m  ✔[0m[90m onDidDetectInputNeeded does NOT fire if user types during the isActive() await (TOCTOU regression)[0m
+  [32m  ✔[0m[90m sensitive prompt fires onDidDetectSensitiveInputNeeded and not onDidDetectInputNeeded[0m
+  [32m  ✔[0m[90m sudo -S password prompt fires onDidDetectInputNeeded and not onDidDetectSensitiveInputNeeded[0m
+  [32m  ✔[0m[90m plain sudo password prompt still fires onDidDetectSensitiveInputNeeded[0m
+  [32m  ✔[0m[90m detectsSensitiveInputPrompt matches common secret prompts[0m
+  [32m  ✔[0m[90m extended timeout with isActive fires onDidDetectInputNeeded[0m
+  [32m  ✔[0m[90m non-interactive help on the last line stops monitoring before custom polling[0m
+  [32m  ✔[0m[90m non-interactive help on a non-final line does not stop custom polling[0m
+[0m    getLastLine[0m
+    [32m  ✔[0m[90m trims trailing line breaks before returning the last line[0m
+    [32m  ✔[0m[90m preserves the final visual line across bare carriage returns[0m
+[0m    detectsInputRequiredPattern[0m
+    [32m  ✔[0m[90m detects yes/no confirmation prompts (pairs and variants)[0m
+    [32m  ✔[0m[90m detects PowerShell multi-option confirmation line[0m
+    [32m  ✔[0m[90m PowerShell regex does not cause catastrophic backtracking (ReDoS)[0m
+    [32m  ✔[0m[90m Line ends with colon (strict path)[0m
+    [32m  ✔[0m[90m detects prompts with parenthesized default values[0m
+    [32m  ✔[0m[90m does NOT match git-aware shell prompts (regression for #315476)[0m
+    [32m  ✔[0m[90m detects chevron prompts from prompts/enquirer/inquirer libraries[0m
+    [32m  ✔[0m[90m trailing questions (strict path does not match bare `?` prompts)[0m
+    [32m  ✔[0m[90m detects press any key prompts[0m
+    [32m  ✔[0m[90m detects non-interactive help prompts without treating them as input[0m
+    [32m  ✔[0m[90m delegates to detectsHighConfidenceInputPattern (strict-set parity)[0m
+[0m    detectsLikelyInputRequiredPattern[0m
+    [32m  ✔[0m[90m matches the same prompts the strict path matches[0m
+    [32m  ✔[0m[90m matches bare colon and question-mark prompts the strict path skips[0m
+    [32m  ✔[0m[90m still rejects clear non-prompt shapes[0m
+    [32m  ✔[0m[90m documents known false positives on log-shaped output (caller-side guard required)[0m
+[0m    detectsHighConfidenceInputPattern[0m
+    [32m  ✔[0m[90m matches y/n and PowerShell prompts[0m
+    [32m  ✔[0m[90m matches password and press-any-key prompts[0m
+    [32m  ✔[0m[90m matches parenthesized defaults[0m
+    [32m  ✔[0m[90m does NOT match git-aware shell prompts (regression: oh-my-zsh, bash __git_ps1)[0m
+    [32m  ✔[0m[90m matches (END) pager[0m
+    [32m  ✔[0m[90m does NOT match bare colon prompts (too broad for fast-path)[0m
+    [32m  ✔[0m[90m does NOT match bare question prompts (too broad for fast-path)[0m
+[0m    matchTerminalPromptOption[0m
+    [32m  ✔[0m[90m matches suggested option case-insensitively[0m
+    [32m  ✔[0m[90m strips quotes and trailing punctuation[0m
+    [32m  ✔[0m[90m handles bracketed options like [Y][0m
+    [32m  ✔[0m[90m handles default suffixes by using first token[0m
+[0m    detectsVSCodeTaskFinishMessage[0m
+    [32m  ✔[0m[90m detects VS Code task completion messages[0m
+    [32m  ✔[0m[90m does not match generic press any key messages[0m
+    [32m  ✔[0m[90m does not match other prompts[0m
+[0m    disposable leak regression[0m
+    [32m  ✔[0m[90m disposing before timeout(0) fires does not leak idle input listener[0m
+    [32m  ✔[0m[90m disposing after monitoring completes does not leak idle input listener[0m
+    [32m  ✔[0m[90m disposing while monitoring is in-flight still resolves onDidFinishCommand[0m
+[0m    detectsGenericPressAnyKeyPattern[0m
+    [32m  ✔[0m[90m detects generic press any key prompts from scripts[0m
+    [32m  ✔[0m[90m does not match VS Code task finish messages[0m
+    [32m  ✔[0m[90m does not match other prompts[0m
+
+[0m  TerminalSandboxService - network domains[0m
+  [32m  ✔[0m[90m dependency checks should not be called for isEnabled[0m
+  [32m  ✔[0m[90m should report enabled when configured to allow network[0m
+  [32m  ✔[0m[90m should report dependency prereq failures[0m
+  [32m  ✔[0m[90m should report the repair action when bubblewrap is unusable[0m
+  [32m  ✔[0m[90m should install sandbox dependencies with the detected package manager[0m
+  [32m  ✔[0m[90m install requires accepted delivery before using an early completion (accepted)[0m
+  [32m  ✔[0m[90m install requires accepted delivery before using an early completion (dropped)[0m
+  [32m  ✔[0m[90m install requires accepted delivery before using an early completion (throw)[0m
+  [32m  ✔[0m[90m install requires accepted delivery before using an early completion (cancelled)[0m
+  [32m  ✔[0m[90m install requires accepted delivery before using an early completion (disposed)[0m
+  [32m  ✔[0m[90m remediate requires accepted delivery before using an early completion (accepted)[0m
+  [32m  ✔[0m[90m remediate requires accepted delivery before using an early completion (dropped)[0m
+  [32m  ✔[0m[90m remediate requires accepted delivery before using an early completion (throw)[0m
+  [32m  ✔[0m[90m remediate requires accepted delivery before using an early completion (cancelled)[0m
+  [32m  ✔[0m[90m remediate requires accepted delivery before using an early completion (disposed)[0m
+  [32m  ✔[0m[90m should install sandbox dependencies with the remote host package manager[0m
+  [32m  ✔[0m[90m should not create a terminal without a supported package manager[0m
+  [32m  ✔[0m[90m should run the approved bubblewrap remediation command[0m
+  [32m  ✔[0m[90m should report successful sandbox prereq checks[0m
+  [32m  ✔[0m[90m should preserve configured network domains[0m
+  [32m  ✔[0m[90m should disable runtime network config when configured to allow network[0m
+  [32m  ✔[0m[90m should write configured runtime values to sandbox config root[0m
+  [32m  ✔[0m[90m should add command-specific runtime values for standalone git commands[0m
+  [32m  ✔[0m[90m should skip command-specific runtime values when rule condition is false[0m
+  [32m  ✔[0m[90m should add GnuPG runtime values for chains without Docker commands[0m
+  [32m  ✔[0m[90m should skip GnuPG runtime values for chains with Docker-related commands[0m
+  [32m  ✔[0m[90m should preserve user runtime settings over command-specific runtime values[0m
+  [32m  ✔[0m[90m should rewrite sandbox config when command-specific runtime values change[0m
+  [32m  ✔[0m[90m should omit runtime root-level entries when runtime setting is empty[0m
+  [32m  ✔[0m[90m should rewrite sandbox config when runtime setting changes[0m
+  [32m  ✔[0m[90m should not override schema-defined network and filesystem config with runtime settings[0m
+  [32m  ✔[0m[90m should deny home reads while reallowing writable paths for reads[0m
+  [32m  ✔[0m[90m should allow reads and writes from workspace storage[0m
+  [32m  ✔[0m[90m should only add command-specific allow-list paths for the current command details[0m
+  [32m  ✔[0m[90m should apply command-detail read and write allow-list rules[0m
+  [32m  ✔[0m[90m should add SSH read allow-list paths only for supported commands on Linux and macOS[0m
+  [32m  ✔[0m[90m should add GnuPG read allow-list paths for gpg command keywords[0m
+  [32m  ✔[0m[90m should not rewrite sandbox config when the parsed command details produce unchanged allow-lists[0m
+  [32m  ✔[0m[90m should expand home paths in linux filesystem sandbox config paths[0m
+  [32m  ✔[0m[90m should deny home reads while reallowing writable paths for reads on macOS[0m
+  [32m  ✔[0m[90m should allow Git commands to read the GitHub CLI config on macOS[0m
+  [32m  ✔[0m[90m should not expand home paths in macOS filesystem sandbox config paths[0m
+  [32m  ✔[0m[90m should refresh allowWrite paths when workspace folders change[0m
+  [32m  ✔[0m[90m should create sandbox temp dir under the server data folder[0m
+  [32m  ✔[0m[90m should delete sandbox temp dir on shutdown[0m
+  [32m  ✔[0m[90m should add ripgrep bin directory to PATH when wrapping command[0m
+  [32m  ✔[0m[90m should launch Linux sandbox runtime from temp dir while preserving the command cwd[0m
+  [32m  ✔[0m[90m should apply ELECTRON_RUN_AS_NODE to the sandbox runtime after the Linux temp-dir cd[0m
+  [32m  ✔[0m[90m should preserve TMPDIR when unsandboxed execution is requested[0m
+  [32m  ✔[0m[90m should keep commands sandboxed when unsandboxed execution is requested but disabled[0m
+  [32m  ✔[0m[90m should preserve TMPDIR for piped unsandboxed commands[0m
+  [32m  ✔[0m[90m should preserve trailing backslashes for unsandboxed commands[0m
+  [32m  ✔[0m[90m should use fish-compatible wrapping for unsandboxed commands[0m
+  [32m  ✔[0m[90m should switch to unsandboxed execution when a domain is not allowlisted[0m
+  [32m  ✔[0m[90m should request network-enabled sandbox execution for a non-allowlisted domain when enabled[0m
+  [32m  ✔[0m[90m should request network-enabled sandbox execution even when unsandboxed commands are disabled[0m
+  [32m  ✔[0m[90m should keep blocked-domain commands sandboxed when unsandboxed commands are disabled[0m
+  [32m  ✔[0m[90m should allow exact allowlisted domains[0m
+  [32m  ✔[0m[90m should allow wildcard domains[0m
+  [32m  ✔[0m[90m should give denied domains precedence over allowlisted domains[0m
+  [32m  ✔[0m[90m should allow confirmed sandboxed network override for explicitly denied domains when enabled[0m
+  [32m  ✔[0m[90m should skip domain checks when configured to allow network[0m
+  [32m  ✔[0m[90m should match uppercase hostnames when checking allowlisted domains[0m
+  [32m  ✔[0m[90m should ignore malformed URL authorities with trailing punctuation[0m
+  [32m  ✔[0m[90m should ignore file-extension suffixes that look like domains[0m
+  [32m  ✔[0m[90m should ignore bare dotted values with unknown domain suffixes[0m
+  [32m  ✔[0m[90m should still detect bare hosts with well-known domain suffixes[0m
+  [32m  ✔[0m[90m should still treat URL authorities with file-like suffixes as domains[0m
+  [32m  ✔[0m[90m should still treat URL authorities with unknown suffixes as domains[0m
+  [32m  ✔[0m[90m should still treat ssh remotes with file-like suffixes as domains[0m
+  [32m  ✔[0m[90m should not treat filenames in commands as domains[0m
+  [32m  ✔[0m[90m should detect ssh style remotes as domains[0m
+  [32m  ✔[0m[90m should pass wrapped command as a single quoted argument[0m
+  [32m  ✔[0m[90m should keep variable and command substitution payloads literal[0m
+  [32m  ✔[0m[90m should detect blocked domains inside command substitutions[0m
+  [32m  ✔[0m[90m should escape single-quote breakout payloads in wrapped command argument[0m
+  [32m  ✔[0m[90m should escape embedded single quotes in wrapped command argument[0m
+  [32m  ✔[0m[90m should prefix wrapped command with ELECTRON_RUN_AS_NODE=1 when no remote env is available[0m
+  [32m  ✔[0m[90m should omit ELECTRON_RUN_AS_NODE=1 prefix when a remote env is available[0m
+  [32m  ✔[0m[90m should route remote Windows sandbox commands through MXC[0m
+  [32m  ✔[0m[90m should keep remote Windows sandbox disabled unless Windows sandbox setting is enabled[0m
+  [32m  ✔[0m[90m should place sandbox temp dir under the local data folder when no remote env is available[0m
+  [32m  ✔[0m[90m reads the remote environment again after the first getEnvironment rejects[0m
+  [32m  ✔[0m[90m shares one in-flight getEnvironment and does not call again after it settles[0m
+  [32m  ✔[0m[90m does not read the remote environment again after getEnvironment resolves to null[0m
+
+[0m  BasicExecuteStrategy[0m
+  [32m  ✔[0m[90m completes when terminal process exits without shell integration sequences[0m[31m (1001ms)[0m
+  [32m  ✔[0m[90m does not send a command when clearing pending input is dropped (executing=false)[0m
+[3200053:1026/105813.829032:INFO:CONSOLE:272] "
+
+
+==================== Leaking disposable 1/1: FunctionDisposable ====================
+(shared with 1/1 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/1 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/1 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 1/1 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 1/1 leaks) at setupRecreatingStartMarker (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/strategyHelpers.js:28:10)
+(shared with 1/1 leaks) at BasicExecuteStrategy.execute (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/basicExecuteStrategy.js:114:32)
+(shared with 1/1 leaks) at async waitForActual (node:assert:646:5)
+(shared with 1/1 leaks) at async rejects (node:assert:769:25)
+(shared with 1/1 leaks) at async file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/basicExecuteStrategy.test.js:80:7
+(shared with 1/1 leaks) at async runWithFakedTimers (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/test/common/virtualScheduling/runWithFakedTimers.js:38:14)
+============================================================
+
+", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+  [31m  4) "after each" hook for "does not send a command when clearing pending input is dropped (executing=false)"[0m
+  [31m  5) "after each" hook for "does not send a command when clearing pending input is dropped (executing=false)"[0m
+
+
+[92m [0m[32m 251 passing[0m[90m (2s)[0m
+[36m [0m[36m 2 pending[0m
+[31m  5 failing[0m
+
+[0m  1) Workbench - TerminalInstance
+       TerminalInstance
+         runCommand does not send the command when clearing prompt input is dropped:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+         [
+      [31m-    "echo test"[0m
+      [31m-    true[0m
+      [32m+    "\u0003"[0m
+      [32m+    false[0m
+           "[undefined]"
+         ]
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+      [
+  +     'echo test',
+  +     true,
+  -     '\x03',
+  -     false,
+        undefined
+      ]
+    ]
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminal/test/browser/terminalInstance.test.js:376:7)
+[0m
+[0m  2) Workbench - TerminalInstance
+       TerminalInstance
+         custom key event handler should handle commands in DEFAULT_COMMANDS_TO_SKIP_SHELL in VS Code and not xterm when sendKeybindingsToShell is disabled:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  TypeError: Cannot read properties of undefined (reading 'catch')
+      at XtermTerminal.attachToElement (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminal/browser/xterm/xtermTerminal.js:442:34)
+      at TerminalInstance._open (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminal/browser/terminalInstance.js:1000:33)
+      at TerminalInstance.setVisible (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminal/browser/terminalInstance.js:1234:12)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminal/test/browser/terminalInstance.test.js:450:16)
+[0m
+[0m  3) Workbench - TerminalInstance
+       TerminalInstance
+         custom key event handler should intercept Meta-modified keys that resolve to a command when sendKeybindingsToShell is disabled:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  TypeError: Cannot read properties of undefined (reading 'catch')
+      at XtermTerminal.attachToElement (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminal/browser/xterm/xtermTerminal.js:442:34)
+      at TerminalInstance._open (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminal/browser/terminalInstance.js:1000:33)
+      at TerminalInstance.setVisible (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminal/browser/terminalInstance.js:1234:12)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminal/test/browser/terminalInstance.test.js:475:16)
+[0m
+[0m  4) BasicExecuteStrategy
+       "after each" hook for "does not send a command when clearing pending input is dropped (executing=false)":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  Error: There are 1 undisposed disposables!
+
+
+  ==================== Leaking disposable 1/1: FunctionDisposable ====================
+  (shared with 1/1 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/1 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/1 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 1/1 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 1/1 leaks) at setupRecreatingStartMarker (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/strategyHelpers.js:28:10)
+  (shared with 1/1 leaks) at BasicExecuteStrategy.execute (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/basicExecuteStrategy.js:114:32)
+  (shared with 1/1 leaks) at async waitForActual (node:assert:646:5)
+  (shared with 1/1 leaks) at async rejects (node:assert:769:25)
+  (shared with 1/1 leaks) at async file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/terminalContrib/chatAgentTools/test/browser/basicExecuteStrategy.test.js:80:7
+  (shared with 1/1 leaks) at async runWithFakedTimers (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/test/common/virtualScheduling/runWithFakedTimers.js:38:14)
+  ============================================================
+
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/test/common/utils.js:45:15)
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js:469:17
+[0m
+[0m  5) "after each" hook for "does not send a command when clearing pending input is dropped (executing=false)":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Error: Unexpected console output in test run. Please ensure no console.[log|error|info|warn] usage in tests or runtime errors.
+      at Context.<anonymous> (renderer.js:340:11)
+[0m

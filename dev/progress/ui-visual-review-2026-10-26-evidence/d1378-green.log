@@ -1,0 +1,72 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3156858:1026/104205.587388:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3156877) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3156877) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3156877) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ExtHostOutputService[0m
+  [32m  ✔[0m[90m normalizes then-only directory creation before initializing an output channel[0m
+  [32m  ✔[0m[90m preserves a then-only directory rejection and retries the next channel[0m
+  [32m  ✔[0m[90m reports a queued output creation failure once and permits a later channel to recover[0m
+  [32m  ✔[0m[90m reports a queued log creation failure once and disposes its cached facade before retry[0m
+[3156824:1026/104206.562946:INFO:CONSOLE:272] "
+
+
+==================== Leaking disposable 1/1: _DisposableStore ====================
+(shared with 1/1 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/1 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/1 leaks) at new _DisposableStore (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:276:5)
+(shared with 1/1 leaks) at ExtHostOutputService.createOutputChannel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/common/extHostOutput.js:117:32)
+(shared with 1/1 leaks) at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:210:34
+(shared with 1/1 leaks) at async withReportedErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:140:5)
+(shared with 1/1 leaks) at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:194:5)
+============================================================
+
+", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+  [31m  1) "after each" hook for "reports a queued log creation failure once and disposes its cached facade before retry"[0m
+  [31m  2) "after each" hook for "reports a queued log creation failure once and disposes its cached facade before retry"[0m
+
+
+[92m [0m[32m 5 passing[0m[90m (7ms)[0m
+[31m  2 failing[0m
+
+[0m  1) ExtHostOutputService
+       "after each" hook for "reports a queued log creation failure once and disposes its cached facade before retry":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  Error: There are 1 undisposed disposables!
+
+
+  ==================== Leaking disposable 1/1: _DisposableStore ====================
+  (shared with 1/1 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/1 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/1 leaks) at new _DisposableStore (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:276:5)
+  (shared with 1/1 leaks) at ExtHostOutputService.createOutputChannel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/common/extHostOutput.js:117:32)
+  (shared with 1/1 leaks) at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:210:34
+  (shared with 1/1 leaks) at async withReportedErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:140:5)
+  (shared with 1/1 leaks) at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/api/test/common/extHostOutput.test.js:194:5)
+  ============================================================
+
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/test/common/utils.js:45:15)
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js:469:17
+[0m
+[0m  2) "after each" hook for "reports a queued log creation failure once and disposes its cached facade before retry":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Error: Unexpected console output in test run. Please ensure no console.[log|error|info|warn] usage in tests or runtime errors.
+      at Context.<anonymous> (renderer.js:340:11)
+[0m
