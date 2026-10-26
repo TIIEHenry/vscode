@@ -1,0 +1,32 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[42275:1026/165654.887560:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:42288) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `exe --trace-warnings ...` to show where the warning was created)
+(node:42288) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(node:42288) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:42288) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+(node:42240) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `universe-agent-studio --trace-warnings ...` to show where the warning was created)
+[0m[0m
+[0m  WorkspaceConfigurationService - Remote Folder[0m
+  [32m  [32m✔[39m[0m[90m remote machine settings override globals[0m
+  [32m  [32m✔[39m[0m[90m remote machine settings override globals after remote provider is registered on activation[0m
+  [32m  [32m✔[39m[0m[90m remote machine settings override globals after remote environment is resolved[0m
+  [32m  [32m✔[39m[0m[90m remote settings override globals after remote provider is registered on activation and remote environment is resolved[0m
+  [32m  [32m✔[39m[0m[90m machine settings in local user settings does not override defaults[0m
+  [32m  [32m✔[39m[0m[90m remote application machine settings override globals[0m
+  [32m  [32m✔[39m[0m[90m remote application machine settings override globals after remote provider is registered on activation[0m
+  [32m  [32m✔[39m[0m[90m remote application machine settings override globals after remote environment is resolved[0m
+  [32m  [32m✔[39m[0m[90m remote application machine settings override globals after remote provider is registered on activation and remote environment is resolved[0m
+  [32m  [32m✔[39m[0m[90m application machine settings in local user settings does not override defaults[0m
+  [32m  [32m✔[39m[0m[90m machine overridable settings in local user settings does not override defaults[0m
+  [32m  [32m✔[39m[0m[90m non machine setting is written in local settings[0m
+  [32m  [32m✔[39m[0m[90m machine setting is written in remote settings[0m
+  [32m  [32m✔[39m[0m[90m application machine setting is written in remote settings[0m
+  [32m  [32m✔[39m[0m[90m machine overridable setting is written in remote settings[0m
+  [32m  [32m✔[39m[0m[90m machine settings in local user settings does not override defaults after defalts are registered [0m
+  [32m  [32m✔[39m[0m[90m machine overridable settings in local user settings does not override defaults after defaults are registered [0m
+
+
+[92m [0m[32m 17 passing[0m[90m (153ms)[0m

@@ -1,0 +1,209 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[39093:1026/165544.675543:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:39108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `exe --trace-warnings ...` to show where the warning was created)
+(node:39108) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(node:39108) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:39108) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+(node:39060) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `universe-agent-studio --trace-warnings ...` to show where the warning was created)
+[0m[0m
+[0m  RemoteUserConfiguration[0m
+  [31m  1) preserves undefined as an initial and shared retry rejection[0m
+  [31m  2) preserves null as an initial and shared retry rejection[0m
+  [31m  3) a delayed old waiter cannot clear or consume a newer attempt failure[0m
+  [31m  4) reload recovers file initialization failure and reads subsequent remote content[0m
+  [31m  5) dispose while environment is pending handles late success without publishing[0m
+  [31m  6) dispose while environment is pending handles late rejection without publishing[0m
+  [31m  7) dispose while file is pending handles late success without publishing[0m
+  [31m  8) dispose while file is pending handles late rejection without publishing[0m
+  [31m  9) disposed initial background work neither publishes nor reports its late rejection[0m
+  [32m  [32m✔[39m[0m[90m a missing environment remains a cached terminal result[0m
+
+
+[92m [0m[32m 1 passing[0m[90m (13ms)[0m
+[31m  9 failing[0m
+
+[0m  1) RemoteUserConfiguration
+       preserves undefined as an initial and shared retry rejection:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+         {
+           "error": "[undefined]"
+         }
+      [31m-  2[0m
+      [32m+  1[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  [
+  [39m    {
+  [39m      error: undefined
+  [39m    },
+  [32m+[39m   2
+  [31m-[39m   1
+  [39m  ]
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:167:14
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  2) RemoteUserConfiguration
+       preserves null as an initial and shared retry rejection:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+         {
+           "error": [null]
+         }
+      [31m-  2[0m
+      [32m+  1[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  [
+  [39m    {
+  [39m      error: null
+  [39m    },
+  [32m+[39m   2
+  [31m-[39m   1
+  [39m  ]
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:167:14
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  3) RemoteUserConfiguration
+       a delayed old waiter cannot clear or consume a newer attempt failure:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be reference-equal to "expected":
+  [32m+ actual[39m [31m- expected[39m
+
+  [32m+[39m [Error: old waiter must reject]
+  [31m-[39m [Error: old retry failure]
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:205:12
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  4) RemoteUserConfiguration
+       reload recovers file initialization failure and reads subsequent remote content:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-cached[0m
+      [32m+remote[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'cached' !== 'remote'
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:223:12
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  5) RemoteUserConfiguration
+       dispose while environment is pending handles late success without publishing:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+2[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: reload must start the explicit retry
+
+  1 !== 2
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:251:16
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  6) RemoteUserConfiguration
+       dispose while environment is pending handles late rejection without publishing:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+2[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: reload must start the explicit retry
+
+  1 !== 2
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:251:16
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  7) RemoteUserConfiguration
+       dispose while file is pending handles late success without publishing:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+2[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: reload must start the explicit retry
+
+  1 !== 2
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:251:16
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  8) RemoteUserConfiguration
+       dispose while file is pending handles late rejection without publishing:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+2[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: reload must start the explicit retry
+
+  1 !== 2
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:251:16
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  9) RemoteUserConfiguration
+       disposed initial background work neither publishes nor reports its late rejection:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [[0m
+      [31m-    {}[0m
+      [31m-  ][0m
+      [32m+  [][0m
+         0
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  [
+  [32m+[39m   [
+  [32m+[39m     Error: late initial failure
+  [32m+[39m         at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:276:29
+  [32m+[39m         at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+  [32m+[39m   ],
+  [31m-[39m   [],
+  [39m    0
+  [39m  ]
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:278:12
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m

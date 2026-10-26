@@ -1,0 +1,73 @@
+{
+  "kind": "post-compile minimal esbuild fresh of the four D1384 outputs",
+  "esbuildVersion": "0.27.2",
+  "note": "compile-client emit recorded in compileEmit*, then replaced. This is not a second full compile.",
+  "compileEmit": [
+    {
+      "path": "out/vs/workbench/services/configuration/browser/configuration.js",
+      "compileEmitSha256": "780c90743f303d58b580cb98e2b6afe674f4644a9fedd9adc014e09c3cd91cc7",
+      "compileEmitBytes": 149199,
+      "compileEmitMtime": "2026-10-26T09:01:49.813Z"
+    },
+    {
+      "path": "out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js",
+      "compileEmitSha256": "e06c02a751f670158311f0b83361af4a77732d040c46600329dff88cb4fd7982",
+      "compileEmitBytes": 60436,
+      "compileEmitMtime": "2026-10-26T09:01:50.473Z"
+    },
+    {
+      "path": "out/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScan.test.js",
+      "compileEmitSha256": "f249437b0e8a3800a994fa2b5776dc1dd68fb0c3eba8017f0945d0b7f84152ad",
+      "compileEmitBytes": 28078,
+      "compileEmitMtime": "2026-10-26T09:01:50.474Z"
+    },
+    {
+      "path": "out/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.js",
+      "compileEmitSha256": "982858e2784d2aeee8cdf7bd9a743cf8de0c194dc57d0e1e188d0af584f91650",
+      "compileEmitBytes": 53667,
+      "compileEmitMtime": "2026-10-26T09:01:50.474Z"
+    }
+  ],
+  "fresh": [
+    {
+      "source": "src/vs/workbench/services/configuration/browser/configuration.ts",
+      "output": "out/vs/workbench/services/configuration/browser/configuration.js",
+      "sourceSha256": "c49baef44a7b675bc4c8f5b1bf87c2948643ebb1fc1c8bc9951a2ddda51fe9e6",
+      "sourceMtime": "2026-10-26T08:50:14.845Z",
+      "outputSha256": "f85b24a1bc4369e17cee0cc490ba4829f851fabef7eaf65b779a6aa805c53b3f",
+      "bodySha256": "da67db2c0fc97e1f3320bb758bd0ce67c19709c837cebd48225708606f4601ca",
+      "outputMtime": "2026-10-26T09:04:46.865Z",
+      "outputBytes": 76200
+    },
+    {
+      "source": "src/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.ts",
+      "output": "out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js",
+      "sourceSha256": "80ec3545cede61e9d427ffa52511f11c96dfa1670df836fb4ea5b4b6c6075163",
+      "sourceMtime": "2026-10-26T08:50:14.845Z",
+      "outputSha256": "be16bd4b5bed6ffddb10f62a0a9af107ac3c2a4d2b32d93f2198d65d0f76f7fb",
+      "bodySha256": "666a84e8efbb1b86b96f8caa9947b9e5c5f58d19c4699f1110592c42a0c1e701",
+      "outputMtime": "2026-10-26T09:04:46.868Z",
+      "outputBytes": 33696
+    },
+    {
+      "source": "src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScan.test.ts",
+      "output": "out/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScan.test.js",
+      "sourceSha256": "1c323c07494388cc88213ed7758c957dab6220f513f242dadae114db4a0c99a1",
+      "sourceMtime": "2026-10-26T08:50:14.846Z",
+      "outputSha256": "18517294bbc8614c59eeb076582ca01b1581b41bef8d5c7ccb6ec36adae7afa5",
+      "bodySha256": "15c9ff4fdbb526c98b866222ce8fa697a35c608666892b9d5af56bf20b065179",
+      "outputMtime": "2026-10-26T09:04:46.870Z",
+      "outputBytes": 14306
+    },
+    {
+      "source": "src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.ts",
+      "output": "out/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.js",
+      "sourceSha256": "ab8ff11a94dfa61b08437788f8e71ee9296f9f869ba28761a0dce09e67994da3",
+      "sourceMtime": "2026-10-26T08:50:14.848Z",
+      "outputSha256": "67e3d785664a021a765c883c4bfdd9c9b65facebd9b0d2ef1b1984dff5a78c33",
+      "bodySha256": "6946768fc53274b86a395674ef1137bf044b6a27543248cbb78be7d5662215d9",
+      "outputMtime": "2026-10-26T09:04:46.871Z",
+      "outputBytes": 29051
+    }
+  ]
+}

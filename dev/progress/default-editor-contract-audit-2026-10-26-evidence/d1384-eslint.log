@@ -1,0 +1,15 @@
+(node:43671) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[0m
+[4m/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScan.test.ts[24m
+  [2m102:29[22m  [33mwarning[39m  Only use double-quoted strings for externalized strings  [2mlocal/code-no-unexternalized-strings[22m
+  [2m110:29[22m  [33mwarning[39m  Only use double-quoted strings for externalized strings  [2mlocal/code-no-unexternalized-strings[22m
+  [2m118:29[22m  [33mwarning[39m  Only use double-quoted strings for externalized strings  [2mlocal/code-no-unexternalized-strings[22m
+  [2m125:29[22m  [33mwarning[39m  Only use double-quoted strings for externalized strings  [2mlocal/code-no-unexternalized-strings[22m
+  [2m133:29[22m  [33mwarning[39m  Only use double-quoted strings for externalized strings  [2mlocal/code-no-unexternalized-strings[22m
+
+[4m/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.ts[24m
+  [2m162:36[22m  [33mwarning[39m  Only use double-quoted strings for externalized strings  [2mlocal/code-no-unexternalized-strings[22m
+
+[33m[1m✖ 6 problems (0 errors, 6 warnings)[22m[39m
+[0m

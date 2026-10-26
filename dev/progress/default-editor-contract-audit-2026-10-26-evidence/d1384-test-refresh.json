@@ -1,0 +1,50 @@
+{
+  "kind": "test-only",
+  "esbuildVersion": "0.27.2",
+  "productionUnchangedSha256": "e204bdb9a6f67173ecc51a98c72ac34451edae772d5832fdea42706c1385c6b9",
+  "productionMtime": "2026-10-26T08:54:26.644Z",
+  "files": [
+    {
+      "source": "src/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.ts",
+      "sourceSha256": "80ec3545cede61e9d427ffa52511f11c96dfa1670df836fb4ea5b4b6c6075163",
+      "sourceMtime": "2026-10-26T08:50:14.845Z",
+      "output": "out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js",
+      "outputBefore": {
+        "sha256": "a2a658ca7f3be348837b6daa6c6dd27789c5d63a914f6d354dc2c256cd1106c3",
+        "mtime": "2026-10-26T04:06:47.260Z",
+        "bytes": 21492
+      },
+      "outputSha256": "be16bd4b5bed6ffddb10f62a0a9af107ac3c2a4d2b32d93f2198d65d0f76f7fb",
+      "outputMtime": "2026-10-26T08:54:47.884Z",
+      "outputBytes": 33696
+    },
+    {
+      "source": "src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScan.test.ts",
+      "sourceSha256": "1c323c07494388cc88213ed7758c957dab6220f513f242dadae114db4a0c99a1",
+      "sourceMtime": "2026-10-26T08:50:14.846Z",
+      "output": "out/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScan.test.js",
+      "outputBefore": {
+        "sha256": "042b7d1c0fce8317b8e40690895c1428cb4daa7c876033be165e1332325b3fa3",
+        "mtime": "2026-10-26T04:06:47.260Z",
+        "bytes": 31305
+      },
+      "outputSha256": "18517294bbc8614c59eeb076582ca01b1581b41bef8d5c7ccb6ec36adae7afa5",
+      "outputMtime": "2026-10-26T08:54:47.886Z",
+      "outputBytes": 14306
+    },
+    {
+      "source": "src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.ts",
+      "sourceSha256": "ab8ff11a94dfa61b08437788f8e71ee9296f9f869ba28761a0dce09e67994da3",
+      "sourceMtime": "2026-10-26T08:50:14.848Z",
+      "output": "out/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.js",
+      "outputBefore": {
+        "sha256": "e163da7084893019a80712b7ea3be18749c958701438013a349ee580ac46d0ea",
+        "mtime": "2026-10-26T04:06:47.260Z",
+        "bytes": 53620
+      },
+      "outputSha256": "67e3d785664a021a765c883c4bfdd9c9b65facebd9b0d2ef1b1984dff5a78c33",
+      "outputMtime": "2026-10-26T08:54:47.888Z",
+      "outputBytes": 29051
+    }
+  ]
+}

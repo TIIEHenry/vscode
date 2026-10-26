@@ -1,10 +1,10 @@
 ---
 title: "远端用户配置初始化与重试合同"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "D1384；实施已写入首次缓存、共享重试与销毁边界。静态检查后仍 accepted，统一运行前不升 implemented。"
+summary: "D1384；旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。四TS与本轮11TS语义0。"
 ---
 
 # 远端用户配置初始化与重试合同
@@ -68,4 +68,12 @@ J 禁止编译、typecheck、transpile、写 `out/` 或启动 watch。仅静态�
 - [x] Astra 独立只读审查；初审 C0/I3：attempt 身份、falsy 拒绝、取消/原拒绝优先三项已改稿，复核 C0/I0/M0，可签收。
 - [x] 方案独立提交 `f3006a5f30e`。
 - [x] 实施与 21 条公共屏障已写入。本工位只做静态检查，未跑依赖 `out/` 的测试。
-- [ ] merge old-production red/new-production green、完整目标套件、语义诊断和独立 after。
+- [x] merge old-production red / new-production green、远端套件、两份 scan、四 TS 与本轮 11 TS 定向语义 0。独立静态 after 为 Critical 0 / Important 0，两条 Minor 不阻断。见 [证据](../progress/default-editor-contract-audit-2026-10-26-evidence/d1384-verification.md)。
+
+## 落地
+
+merge 在 `3e63f9e6f40e3c3c3dca1a55f47a978ddb02ed1a` 保留首次缓存快返和 `null` 终态。已观察失败后，`initialize` 与 `reload` 共享一轮尝试和原始拒绝；`undefined` / `null` 靠失败记录保留。旧 waiter 不消费新 attempt。candidate 成功提交后才订阅外发。销毁把晚到成功变成 `CancellationError`，保留依赖的原始拒绝，已销毁的首次尝试不后台报告。
+
+旧生产行为失败是 16 项断言。空缓存、有内容缓存、`initialize + initialize` 成功共享，以及 `null` 终态这 4 条在 496 同配置转译上已经通过。同步环境抛出的 15000ms 超时不计为 red。`afterEach` 裸拒绝停过第一进程，剩余用例另次跑完。新生产 `RemoteUserConfiguration` 21 passing，`WorkspaceConfigurationService - Remote Folder` 17 passing。两份 scan 15 passing，只锁源结构。
+
+本轮唯一 `compile-client` exit 1，46 诊断 / 28 文件，绑定 source HEAD `3e63f9e6`。相对未改的旧 55/36 日志，消失 9 条、新增 0 条，其中包括原先的 `configuration.ts:534` 与 `remoteUserConfiguration.test.ts:162`。没有为全绿改 `src/vs/sessions` 或 `src/tsconfig.json`。D747 仍只退役一个远端环境 pin，其余六项保留。D827 仍只改必要 import。两条 Minor 留在证据里，不另开方案。

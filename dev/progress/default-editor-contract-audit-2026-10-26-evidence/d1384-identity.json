@@ -1,0 +1,31 @@
+{
+  "esbuildVersion": "0.27.2",
+  "options": {
+    "loader": "ts",
+    "format": "esm",
+    "target": "es2024",
+    "sourcemap": "inline",
+    "sourcesContent": false,
+    "tsconfigRaw": "{\"compilerOptions\":{\"experimentalDecorators\":true,\"useDefineForClassFields\":false}}"
+  },
+  "baselineRev": "4963799b1e95101cc267615cb01b4ebee6939c70",
+  "baselineSourceSha256": "273e2bb3522d07d8fa299d4e0ad60ce2e41aa2f830b83a30de4b878ea1d14e59",
+  "currentSourceSha256": "c49baef44a7b675bc4c8f5b1bf87c2948643ebb1fc1c8bc9951a2ddda51fe9e6",
+  "currentSourceEqualsBaseline": false,
+  "currentSourceMtime": "2026-10-26T08:50:14.845Z",
+  "existingOutSha256": "e44252c5a808d99eb4d96ff39ecfe91ce53f4fef9604da1dafcdd926b8ec36e8",
+  "existingOutMtime": "2026-10-26T04:06:44.983Z",
+  "existingOutBytes": 151970,
+  "transpiledBytes": 77707,
+  "bodyMatch": false,
+  "existingBodySha256": "391b5980e1c5a4211a51b41c175c337cf17bc5acd6a9c5a73f26280636f1c610",
+  "transpiledBodySha256": "2ccf7508e852fa956602c279d216f6f7bbac39b51220fc59bb4218542667f662",
+  "fullFileShaEqual": false,
+  "firstDiff": {
+    "at": 1688,
+    "existingLen": 44934,
+    "transpiledLen": 44851,
+    "existingSlice": "DefaultConfiguration as BaseDefaultConfiguration } from \"../../../../platform/configuration/common/configurations.js\";\nconst _DefaultConfiguration = class _DefaultConfiguration extends BaseDefaultConfiguration {\n  constructor(cacheScope, co",
+    "transpiledSlice": "DefaultConfiguration as BaseDefaultConfiguration } from \"../../../../platform/configuration/common/configurations.js\";\nclass DefaultConfiguration extends BaseDefaultConfiguration {\n  constructor(cacheScope, configurationCache, environmentSe"
+  }
+}

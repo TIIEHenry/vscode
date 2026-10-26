@@ -1,0 +1,36 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[41550:1026/165639.675770:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:41568) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `exe --trace-warnings ...` to show where the warning was created)
+(node:41568) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(node:41568) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:41568) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+(node:41514) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `universe-agent-studio --trace-warnings ...` to show where the warning was created)
+[0m[0m
+[0m  RemoteUserConfiguration[0m
+  [32m  [32m✔[39m[0m[90m first environment read permits startup with empty cache[0m
+  [32m  [32m✔[39m[0m[90m first environment read permits startup with populated cache[0m
+  [32m  [32m✔[39m[0m[90m initialize and reload wait once remote file initialization has started[0m
+  [32m  [32m✔[39m[0m[90m first background rejection is reported once and observed before the next attempt[0m
+  [32m  [32m✔[39m[0m[90m a synchronous environment throw is observed once and reload can recover[0m
+  [32m  [32m✔[39m[0m[90m initialize + initialize share a successful explicit retry[0m
+  [32m  [32m✔[39m[0m[90m initialize + initialize share the original explicit retry rejection[0m
+  [32m  [32m✔[39m[0m[90m initialize + reload share a successful explicit retry[0m
+  [32m  [32m✔[39m[0m[90m initialize + reload share the original explicit retry rejection[0m
+  [32m  [32m✔[39m[0m[90m reload + reload share a successful explicit retry[0m
+  [32m  [32m✔[39m[0m[90m reload + reload share the original explicit retry rejection[0m
+  [32m  [32m✔[39m[0m[90m preserves undefined as an initial and shared retry rejection[0m
+  [32m  [32m✔[39m[0m[90m preserves null as an initial and shared retry rejection[0m
+  [32m  [32m✔[39m[0m[90m a delayed old waiter cannot clear or consume a newer attempt failure[0m
+  [32m  [32m✔[39m[0m[90m reload recovers file initialization failure and reads subsequent remote content[0m
+  [32m  [32m✔[39m[0m[90m dispose while environment is pending handles late success without publishing[0m
+  [32m  [32m✔[39m[0m[90m dispose while environment is pending handles late rejection without publishing[0m
+  [32m  [32m✔[39m[0m[90m dispose while file is pending handles late success without publishing[0m
+  [32m  [32m✔[39m[0m[90m dispose while file is pending handles late rejection without publishing[0m
+  [32m  [32m✔[39m[0m[90m disposed initial background work neither publishes nor reports its late rejection[0m
+  [32m  [32m✔[39m[0m[90m a missing environment remains a cached terminal result[0m
+
+
+[92m [0m[32m 21 passing[0m[90m (21ms)[0m

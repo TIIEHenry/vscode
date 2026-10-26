@@ -14,9 +14,9 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Tunnel 引用所有权与 provider 重试](tunnel-reference-and-provider-retry.md) | `implemented` | D1383；旧生产8项行为失败加1次裸拒绝hook，新生产两套件19 passing，两TS定向语义0。全量55/36未重跑。 |
-| [Conversation 审阅导航随工作根刷新](conversation-review-root-invalidation.md) | `accepted` | D1382；旧生产新行为3过/7败，新生产37过，五TS语义0。方案仍accepted。默认编辑器实拍未做。全量55/36未重跑。 |
-| [远端用户配置初始化与重试合同](remote-user-configuration-attempts.md) | `accepted` | D1384；实施已写入首次缓存、共享重试与销毁边界。静态检查后仍 accepted，统一运行前不升 implemented。 |
+| [Tunnel 引用所有权与 provider 重试](tunnel-reference-and-provider-retry.md) | `implemented` | D1383；旧生产8项行为失败加1次裸拒绝hook，新生产两套件19 passing，两TS定向语义0。该闭合当时未跑全量。 |
+| [Conversation 审阅导航随工作根刷新](conversation-review-root-invalidation.md) | `accepted` | D1382；旧生产新行为3过/7败，新生产37过，五TS语义0。方案仍accepted。默认编辑器实拍未做。 |
+| [远端用户配置初始化与重试合同](remote-user-configuration-attempts.md) | `implemented` | D1384；旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。四TS与11TS语义0。 |
 | [Policy definition 提交生命周期](policy-definition-submission-lifecycle.md) | `implemented` | D1379；旧生产11行为red与原裸拒绝hook成立，新生产四完整套件41过，五TS语义0/ESLint0，原拒绝与owner/reference保持。 |
 | [Provider 状态行按内容宽度换行](provider-status-row-layout.md) | `implemented` | D1381；旧八几何red，新49过/4focus Chrome补过；独立32组/192焦点无碰撞零写，Provider窄宽局部增高例外保留。 |
 | [默认编辑器视觉状态修复与续审](default-editor-visual-state-followup.md) | `implemented` | 原阶段运行保留历史，D1380/1381直接缺口已获真实回归及独立after闭合，不升PRD或签全仓绿。 |

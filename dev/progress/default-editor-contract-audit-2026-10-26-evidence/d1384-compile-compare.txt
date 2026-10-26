@@ -1,0 +1,20 @@
+prior_log: dev/progress/ui-visual-review-2026-10-26-evidence/policy-visual-compile-client.log
+prior_errors: 55
+prior_files: 36
+current_log: d1384-compile-client.log
+current_source_head: 3e63f9e6f40e3c3c3dca1a55f47a978ddb02ed1a
+current_exit: 1
+current_errors: 46
+current_files: 28
+disappeared: 9
+added: 0
+disappeared_keys:
+src/vs/platform/tunnel/test/common/tunnelOpenRetry.test.ts:24:TS2352
+src/vs/workbench/contrib/conversation/browser/agentSessionContext.test.ts:148:TS2741
+src/vs/workbench/contrib/conversation/browser/agentSessionContext.test.ts:159:TS2741
+src/vs/workbench/contrib/conversation/browser/conversationReviewNav.contribution.ts:10:TS2345
+src/vs/workbench/contrib/conversation/browser/conversationRosterStorage.ts:210:TS7006
+src/vs/workbench/contrib/conversation/test/browser/conversationReviewEntry.test.ts:309:TS2352
+src/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.ts:105:TS2352
+src/vs/workbench/services/configuration/browser/configuration.ts:534:TS2339
+src/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.ts:162:TS2352

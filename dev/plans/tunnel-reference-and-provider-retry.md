@@ -4,7 +4,7 @@ type: plan
 status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "D1383已实现：旧生产8项行为失败加1次裸拒绝hook，新生产两套件19 passing，两TS定向语义0。empty/string清理候选未改。全量55/36未重跑。"
+summary: "D1383已实现：旧生产8项行为失败加1次裸拒绝hook，新生产两套件19 passing，两TS定向语义0。empty/string清理候选未改。该闭合当时未跑全量。"
 ---
 
 # Tunnel 引用所有权与 provider 重试

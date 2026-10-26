@@ -45,4 +45,4 @@ esbuild 0.27.2，与 `build/next/transpile.ts` 相同：ES2024、ESM、inline so
 
 ## 未验证
 
-没有第二次全量 `compile-client`。写这段时 D1382、D1384 的源没有在本轮合入或运行。没有界面实拍；本项没有可见 UI 变化。没有 push，也没有快进人类工位。D1382 后来的自动回归另记在 [d1382-verification.md](d1382-verification.md)，该 checkpoint 仍未实拍、未闭合。
+没有第二次全量 `compile-client`。写这段时 D1382、D1384 的源没有在本轮合入或运行。没有界面实拍；本项没有可见 UI 变化。没有 push，也没有快进人类工位。D1382 后来的自动回归另记在 [d1382-verification.md](d1382-verification.md)，该 checkpoint 仍未实拍、未闭合。D1384 的运行证据另记在 [d1384-verification.md](d1384-verification.md)。

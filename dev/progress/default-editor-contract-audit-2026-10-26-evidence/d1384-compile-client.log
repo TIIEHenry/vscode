@@ -1,0 +1,341 @@
+SOURCE_HEAD=3e63f9e6f40e3c3c3dca1a55f47a978ddb02ed1a
+START=2026-10-26T09:01:25Z
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> code-oss-dev@1.136.0 compile-client
+> npm run gulp compile
+
+npm warn Unknown env config "ms-build-id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown env config "build-from-source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown env config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown env config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown env config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown env config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> code-oss-dev@1.136.0 gulp
+> node --experimental-strip-types --max-old-space-size=8192 ./node_modules/gulp/bin/gulp.js compile
+
+(node:53554) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[17:01:27] Using gulpfile ~/Projects/Agents/vscode-WorkTrees/merge/gulpfile.mjs
+[17:01:27] Starting 'compile'...
+[17:01:27] Starting [36mmonaco-typecheck[39m ...
+[17:01:27] Starting [36mclean-out[39m ...
+[17:01:27] Starting [36mclean-extension-configuration-editing[39m ...
+[17:01:27] Starting [36mclean-extension-css-language-features-client[39m ...
+[17:01:27] Starting [36mclean-extension-css-language-features-server[39m ...
+[17:01:27] Starting [36mclean-extension-debug-auto-launch[39m ...
+[17:01:27] Starting [36mclean-extension-debug-server-ready[39m ...
+[17:01:27] Starting [36mclean-extension-emmet[39m ...
+[17:01:27] Starting [36mclean-extension-extension-editing[39m ...
+[17:01:27] Starting [36mclean-extension-git[39m ...
+[17:01:27] Starting [36mclean-extension-git-base[39m ...
+[17:01:27] Starting [36mclean-extension-github[39m ...
+[17:01:27] Starting [36mclean-extension-github-authentication[39m ...
+[17:01:27] Starting [36mclean-extension-grunt[39m ...
+[17:01:27] Starting [36mclean-extension-gulp[39m ...
+[17:01:27] Starting [36mclean-extension-html-language-features-client[39m ...
+[17:01:27] Starting [36mclean-extension-html-language-features-server[39m ...
+[17:01:27] Starting [36mclean-extension-ipynb[39m ...
+[17:01:27] Starting [36mclean-extension-jake[39m ...
+[17:01:27] Starting [36mclean-extension-json-language-features-client[39m ...
+[17:01:27] Starting [36mclean-extension-json-language-features-server[39m ...
+[17:01:27] Starting [36mclean-extension-markdown-language-features[39m ...
+[17:01:27] Starting [36mclean-extension-markdown-math[39m ...
+[17:01:27] Starting [36mclean-extension-media-preview[39m ...
+[17:01:27] Starting [36mclean-extension-merge-conflict[39m ...
+[17:01:27] Starting [36mclean-extension-mermaid-markdown-features[39m ...
+[17:01:27] Starting [36mclean-extension-terminal-suggest[39m ...
+[17:01:27] Starting [36mclean-extension-microsoft-authentication[39m ...
+[17:01:27] Starting [36mclean-extension-notebook-renderers[39m ...
+[17:01:27] Starting [36mclean-extension-npm[39m ...
+[17:01:27] Starting [36mclean-extension-php-language-features[39m ...
+[17:01:27] Starting [36mclean-extension-references-view[39m ...
+[17:01:27] Starting [36mclean-extension-search-result[39m ...
+[17:01:27] Starting [36mclean-extension-simple-browser[39m ...
+[17:01:27] Starting [36mclean-extension-tunnel-forwarding[39m ...
+[17:01:27] Starting [36mclean-extension-typescript-language-features-web[39m ...
+[17:01:27] Starting [36mclean-extension-typescript-language-features[39m ...
+[17:01:27] Starting [36mclean-extension-vscode-api-tests[39m ...
+[17:01:27] Starting [36mclean-extension-vscode-colorize-tests[39m ...
+[17:01:27] Starting [36mclean-extension-vscode-colorize-perf-tests[39m ...
+[17:01:27] Starting [36mclean-extension-vscode-test-resolver[39m ...
+[17:01:27] Starting [36mclean-extension-vscode-selfhost-test-provider[39m ...
+[17:01:27] Starting [36mclean-extension-vscode-selfhost-import-aid[39m ...
+[17:01:27] Starting [36mclean-extension-vscode-extras[39m ...
+[17:01:27] Starting [36mclean-extension-vscode-pr-pinger[39m ...
+[17:01:27] Starting [36mcompile-extension-media[39m ...
+[17:01:27] Finished [32mesbuilding extension media[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/ipynb/esbuild.notebook.mts with 0 errors.
+[17:01:27] Finished [32mesbuilding extension media[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/markdown-language-features/esbuild.webview.mts with 0 errors.
+[17:01:27] Finished [32mesbuilding extension media[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/simple-browser/esbuild.webview.mts with 0 errors.
+[17:01:27] Finished [32mesbuilding extension media[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/notebook-renderers/esbuild.notebook.mts with 0 errors.
+[17:01:27] Finished [36mclean-extension-debug-auto-launch[39m after [35m183 ms[39m
+[17:01:27] Starting [36mcompile-extension:debug-auto-launch[39m ...
+[17:01:27] Finished [36mclean-extension-debug-server-ready[39m after [35m223 ms[39m
+[17:01:27] Starting [36mcompile-extension:debug-server-ready[39m ...
+[17:01:27] Finished [36mclean-extension-gulp[39m after [35m240 ms[39m
+[17:01:27] Starting [36mcompile-extension:gulp[39m ...
+[17:01:27] Finished [36mclean-extension-extension-editing[39m after [35m255 ms[39m
+[17:01:27] Starting [36mcompile-extension:extension-editing[39m ...
+[17:01:27] Finished [36mclean-extension-grunt[39m after [35m298 ms[39m
+[17:01:27] Starting [36mcompile-extension:grunt[39m ...
+[17:01:27] Finished [36mclean-extension-merge-conflict[39m after [35m319 ms[39m
+[17:01:27] Starting [36mcompile-extension:merge-conflict[39m ...
+[17:01:27] Finished [36mclean-extension-jake[39m after [35m336 ms[39m
+[17:01:27] Starting [36mcompile-extension:jake[39m ...
+[17:01:27] Finished [36mclean-extension-simple-browser[39m after [35m356 ms[39m
+[17:01:27] Starting [36mcompile-extension:simple-browser[39m ...
+[17:01:27] Finished [36mclean-extension-tunnel-forwarding[39m after [35m369 ms[39m
+[17:01:27] Starting [36mcompile-extension:tunnel-forwarding[39m ...
+[17:01:27] Finished [36mclean-extension-markdown-math[39m after [35m404 ms[39m
+[17:01:27] Starting [36mcompile-extension:markdown-math[39m ...
+[17:01:27] Finished [36mclean-extension-vscode-colorize-tests[39m after [35m423 ms[39m
+[17:01:27] Starting [36mcompile-extension:vscode-colorize-tests[39m ...
+[17:01:27] Finished [36mclean-extension-vscode-colorize-perf-tests[39m after [35m434 ms[39m
+[17:01:27] Starting [36mcompile-extension:vscode-colorize-perf-tests[39m ...
+[17:01:27] Finished [36mclean-extension-vscode-selfhost-test-provider[39m after [35m445 ms[39m
+[17:01:27] Starting [36mcompile-extension:vscode-selfhost-test-provider[39m ...
+[17:01:27] Finished [36mclean-extension-vscode-selfhost-import-aid[39m after [35m474 ms[39m
+[17:01:27] Starting [36mcompile-extension:vscode-selfhost-import-aid[39m ...
+[17:01:27] Finished [36mclean-extension-vscode-extras[39m after [35m485 ms[39m
+[17:01:27] Starting [36mcompile-extension:vscode-extras[39m ...
+[17:01:27] Finished [36mclean-extension-vscode-pr-pinger[39m after [35m496 ms[39m
+[17:01:27] Starting [36mcompile-extension:vscode-pr-pinger[39m ...
+[17:01:28] Finished [32mtypechecking extension media (tsgo)[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/ipynb/notebook-src/tsconfig.json with 0 errors.
+[17:01:28] Finished [32mtypechecking extension media (tsgo)[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/markdown-language-features/notebook/tsconfig.json with 0 errors.
+[17:01:28] Finished [32mtypechecking extension media (tsgo)[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/markdown-language-features/preview-src/tsconfig.json with 0 errors.
+[17:01:28] Finished [32mtypechecking extension media (tsgo)[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/markdown-language-features/markdown-editor-src/tsconfig.json with 0 errors.
+[17:01:28] Finished [32mtypechecking extension media (tsgo)[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/markdown-math/notebook/tsconfig.json with 0 errors.
+[17:01:28] Finished [32mtypechecking extension media (tsgo)[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/mermaid-markdown-features/preview-src/tsconfig.json with 0 errors.
+[17:01:28] Finished [32mtypechecking extension media (tsgo)[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/notebook-renderers/tsconfig.json with 0 errors.
+[17:01:28] Finished [32mtypechecking extension media (tsgo)[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/simple-browser/preview-src/tsconfig.json with 0 errors.
+[17:01:28] Finished [32mesbuilding extension media[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/markdown-language-features/esbuild.notebook.mts with 0 errors.
+[17:01:28] Finished [32mesbuilding extension media[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/markdown-math/esbuild.notebook.mts with 0 errors.
+[17:01:28] Finished [36mclean-extension-typescript-language-features-web[39m after [35m675 ms[39m
+[17:01:28] Starting [36mcompile-extension:typescript-language-features-web[39m ...
+[17:01:28] Finished [36mclean-extension-css-language-features-client[39m after [35m869 ms[39m
+[17:01:28] Starting [36mcompile-extension:css-language-features-client[39m ...
+[17:01:28] Finished [36mclean-extension-configuration-editing[39m after [35m936 ms[39m
+[17:01:28] Starting [36mcompile-extension:configuration-editing[39m ...
+[17:01:28] Finished [36mclean-extension-emmet[39m after [35m952 ms[39m
+[17:01:28] Starting [36mcompile-extension:emmet[39m ...
+[17:01:28] Finished [36mclean-extension-git-base[39m after [35m960 ms[39m
+[17:01:28] Starting [36mcompile-extension:git-base[39m ...
+[17:01:28] Finished [36mclean-extension-git[39m after [35m990 ms[39m
+[17:01:28] Starting [36mcompile-extension:git[39m ...
+[17:01:28] Finished [36mclean-extension-html-language-features-client[39m after [35m1076 ms[39m
+[17:01:28] Starting [36mcompile-extension:html-language-features-client[39m ...
+[17:01:28] Finished [36mclean-extension-json-language-features-client[39m after [35m1130 ms[39m
+[17:01:28] Starting [36mcompile-extension:json-language-features-client[39m ...
+[17:01:28] Finished [36mclean-extension-json-language-features-server[39m after [35m1160 ms[39m
+[17:01:28] Starting [36mcompile-extension:json-language-features-server[39m ...
+[17:01:28] Finished [36mclean-extension-ipynb[39m after [35m1214 ms[39m
+[17:01:28] Starting [36mcompile-extension:ipynb[39m ...
+[17:01:28] Finished [36mclean-extension-media-preview[39m after [35m1228 ms[39m
+[17:01:28] Starting [36mcompile-extension:media-preview[39m ...
+[17:01:28] Finished [36mclean-extension-css-language-features-server[39m after [35m1259 ms[39m
+[17:01:28] Starting [36mcompile-extension:css-language-features-server[39m ...
+[17:01:28] Finished [36mclean-extension-mermaid-markdown-features[39m after [35m1315 ms[39m
+[17:01:28] Starting [36mcompile-extension:mermaid-markdown-features[39m ...
+[17:01:28] Finished [36mclean-extension-notebook-renderers[39m after [35m1331 ms[39m
+[17:01:28] Starting [36mcompile-extension:notebook-renderers[39m ...
+[17:01:28] Finished [36mclean-extension-npm[39m after [35m1347 ms[39m
+[17:01:28] Starting [36mcompile-extension:npm[39m ...
+[17:01:28] Finished [36mclean-extension-references-view[39m after [35m1372 ms[39m
+[17:01:28] Starting [36mcompile-extension:references-view[39m ...
+[17:01:28] Finished [36mclean-extension-github[39m after [35m1401 ms[39m
+[17:01:28] Starting [36mcompile-extension:github[39m ...
+[17:01:28] Finished [36mclean-extension-search-result[39m after [35m1421 ms[39m
+[17:01:28] Starting [36mcompile-extension:search-result[39m ...
+[17:01:28] Finished [36mclean-extension-vscode-api-tests[39m after [35m1456 ms[39m
+[17:01:28] Starting [36mcompile-extension:vscode-api-tests[39m ...
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/debug-auto-launch/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/debug-server-ready/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/gulp/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/extension-editing/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/grunt/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/merge-conflict/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/jake/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/simple-browser/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/tunnel-forwarding/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/markdown-math/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/vscode-colorize-tests/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/vscode-colorize-perf-tests/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/typescript-language-features/web/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/git-base/tsconfig.json with 0 errors.
+[17:01:29] Finished [36mclean-extension-vscode-test-resolver[39m after [35m1724 ms[39m
+[17:01:29] Starting [36mcompile-extension:vscode-test-resolver[39m ...
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/.vscode/extensions/vscode-selfhost-test-provider/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/.vscode/extensions/vscode-selfhost-import-aid/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/.vscode/extensions/vscode-extras/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/emmet/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/media-preview/tsconfig.json with 0 errors.
+[17:01:29] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/mermaid-markdown-features/tsconfig.json with 0 errors.
+[17:01:29] Finished [36mclean-extension-github-authentication[39m after [35m2499 ms[39m
+[17:01:29] Starting [36mcompile-extension:github-authentication[39m ...
+[17:01:30] Finished [36mclean-extension-markdown-language-features[39m after [35m2545 ms[39m
+[17:01:30] Starting [36mcompile-extension:markdown-language-features[39m ...
+[17:01:30] Finished [36mclean-extension-microsoft-authentication[39m after [35m2638 ms[39m
+[17:01:30] Starting [36mcompile-extension:microsoft-authentication[39m ...
+[17:01:30] Finished [36mclean-extension-typescript-language-features[39m after [35m2682 ms[39m
+[17:01:30] Starting [36mcompile-extension:typescript-language-features[39m ...
+[17:01:30] Finished [36mclean-extension-php-language-features[39m after [35m2738 ms[39m
+[17:01:30] Starting [36mcompile-extension:php-language-features[39m ...
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/.vscode/extensions/vscode-pr-pinger/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/css-language-features/client/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/git/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/html-language-features/client/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/json-language-features/client/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/json-language-features/server/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/css-language-features/server/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/notebook-renderers/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/npm/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/references-view/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/github/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/search-result/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/vscode-api-tests/tsconfig.json with 0 errors.
+[17:01:30] Finished [36mcompile-extension:debug-auto-launch[39m after [35m2845 ms[39m
+[17:01:30] Finished [36mcompile-extension:debug-server-ready[39m after [35m2809 ms[39m
+[17:01:30] Finished [36mcompile-extension:gulp[39m after [35m2792 ms[39m
+[17:01:30] Finished [36mcompile-extension:grunt[39m after [35m2737 ms[39m
+[17:01:30] Finished [36mcompile-extension:jake[39m after [35m2708 ms[39m
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/ipynb/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/vscode-test-resolver/tsconfig.json with 0 errors.
+[17:01:30] Finished [36mcompile-extension:markdown-math[39m after [35m2661 ms[39m
+[17:01:30] Finished [36mcompile-extension:vscode-selfhost-import-aid[39m after [35m2600 ms[39m
+[17:01:30] Finished [36mcompile-extension:vscode-extras[39m after [35m2591 ms[39m
+[17:01:30] Finished [36mcompile-extension:vscode-pr-pinger[39m after [35m2579 ms[39m
+[17:01:30] Finished [36mclean-extension-terminal-suggest[39m after [35m3339 ms[39m
+[17:01:30] Starting [36mcompile-extension:terminal-suggest[39m ...
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/configuration-editing/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/github-authentication/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/markdown-language-features/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/microsoft-authentication/tsconfig.json with 0 errors.
+[17:01:30] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/php-language-features/tsconfig.json with 0 errors.
+[17:01:31] Finished [36mcompile-extension:tunnel-forwarding[39m after [35m3346 ms[39m
+[17:01:31] Finished [36mcompile-extension:vscode-colorize-tests[39m after [35m3294 ms[39m
+[17:01:31] Finished [36mcompile-extension:vscode-colorize-perf-tests[39m after [35m3284 ms[39m
+[17:01:31] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/typescript-language-features/tsconfig.json with 0 errors.
+[17:01:31] Finished [32mesbuilding extension media[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/markdown-language-features/esbuild.markdownEditor.mts with 0 errors.
+[17:01:31] Finished [36mclean-extension-html-language-features-server[39m after [35m3756 ms[39m
+[17:01:31] Starting [36mcompile-extension:html-language-features-server[39m ...
+[17:01:31] Finished [36mcompile-extension:simple-browser[39m after [35m3673 ms[39m
+[17:01:31] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/terminal-suggest/tsconfig.json with 0 errors.
+[17:01:31] Finished [36mcompile-extension:vscode-test-resolver[39m after [35m2335 ms[39m
+[17:01:31] Finished [32mesbuilding extension media[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/mermaid-markdown-features/esbuild.webview.mts with 0 errors.
+[17:01:31] Finished [36mcompile-extension-media[39m after [35m4061 ms[39m
+[17:01:31] Finished [36mcompile-extension:search-result[39m after [35m2645 ms[39m
+[17:01:31] Finished [36mcompile-extension:extension-editing[39m after [35m3815 ms[39m
+[17:01:31] Finished [36mcompile-extension:html-language-features-client[39m after [35m3004 ms[39m
+[17:01:31] Finished [36mcompile-extension:json-language-features-client[39m after [35m2951 ms[39m
+[17:01:31] Finished [36mcompile-extension:mermaid-markdown-features[39m after [35m2770 ms[39m
+[17:01:31] Finished [36mcompile-extension:css-language-features-client[39m after [35m3218 ms[39m
+[17:01:31] Finished [36mcompile-extension:configuration-editing[39m after [35m3151 ms[39m
+[17:01:31] Finished [36mcompile-extension:json-language-features-server[39m after [35m2925 ms[39m
+[17:01:31] Finished [36mclean-out[39m after [35m4090 ms[39m
+[17:01:31] Starting [36mcopy-codicons[39m ...
+[17:01:31] Finished [36mcopy-codicons[39m after [35m1 ms[39m
+[17:01:31] Starting [36mcompile-api-proposal-names[39m ...
+[17:01:31] Starting [32mcompilation[39m[34m api-proposal-names[39m...
+[17:01:31] Finished [36mcompile-extension:merge-conflict[39m after [35m3780 ms[39m
+[17:01:31] Finished [36mcompile-extension:typescript-language-features-web[39m after [35m3425 ms[39m
+[17:01:31] Finished [36mcompile-extension:git-base[39m after [35m3143 ms[39m
+[17:01:31] Finished [36mcompile-extension:php-language-features[39m after [35m1366 ms[39m
+[17:01:31] Finished [36mcompile-extension:media-preview[39m after [35m2877 ms[39m
+[17:01:31] Finished [36mcompile-extension:references-view[39m after [35m2732 ms[39m
+[17:01:31] Finished [32mextensions[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/html-language-features/server/tsconfig.json with 0 errors.
+[17:01:31] Finished [36mcompile-extension:notebook-renderers[39m after [35m2776 ms[39m
+[17:01:31] Finished [36mcompile-extension:npm[39m after [35m2764 ms[39m
+[17:01:31] Finished [36mcompile-extension:css-language-features-server[39m after [35m2854 ms[39m
+[17:01:31] Finished [36mcompile-extension:vscode-selfhost-test-provider[39m after [35m3667 ms[39m
+[17:01:31] Finished [36mcompile-extension:github[39m after [35m2717 ms[39m
+[17:01:31] Finished [36mcompile-extension:ipynb[39m after [35m2905 ms[39m
+[17:01:31] Finished [36mcompile-extension:microsoft-authentication[39m after [35m1481 ms[39m
+[17:01:31] Finished [36mcompile-extension:github-authentication[39m after [35m1633 ms[39m
+[17:01:31] Finished [36mcompile-extension:emmet[39m after [35m3187 ms[39m
+[17:01:31] Finished [36mcompile-extension:vscode-api-tests[39m after [35m2683 ms[39m
+[17:01:31] Finished [36mcompile-extension:html-language-features-server[39m after [35m392 ms[39m
+[17:01:31] Finished [36mcompile-extension:git[39m after [35m3159 ms[39m
+[17:01:31] Finished [36mcompile-extension:markdown-language-features[39m after [35m1608 ms[39m
+[17:01:31] Finished [36mcompile-extension:typescript-language-features[39m after [35m1467 ms[39m
+[17:01:31] Finished [32mcompilation[39m[34m api-proposal-names[39m with 0 errors after [35m78 ms[39m
+[17:01:31] Finished [36mcompile-api-proposal-names[39m after [35m80 ms[39m
+[17:01:31] Starting [36mcompile-extension-point-names[39m ...
+[17:01:31] Starting [32mcompilation[39m[34m extension-point-names[39m...
+[17:01:31] Finished [36mcompile-extension:terminal-suggest[39m after [35m846 ms[39m
+[17:01:31] Starting [36mcompile-extensions[39m ...
+[17:01:31] Finished [36mcompile-extensions[39m after [35m0 ms[39m
+[17:01:32] Finished [32mcompilation[39m[34m extension-point-names[39m with 0 errors after [35m946 ms[39m
+[17:01:32] Finished [36mcompile-extension-point-names[39m after [35m946 ms[39m
+[17:01:32] Starting [36mcompile-src[39m ...
+[17:01:39] Starting [32mcompilation[39m...
+(node:53554) [DEP0180] DeprecationWarning: fs.Stats constructor is deprecated.
+[17:01:45] Finished [36mmonaco-typecheck[39m after [35m17983 ms[39m
+[17:01:50] Finished [32mcompilation[39m with 0 errors after [35m11694 ms[39m
+[17:01:55] Finished [32mcompile-src[39m /home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/tsconfig.json with 46 errors.
+[17:01:55] src/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts(75,36): error TS2339: Property 'url' does not exist on type 'never'.
+[17:01:55] src/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts(49,9): error TS2352: Conversion of type '{ getKeyMap: () => { KeyA: { value: string; withShift: string; withAltGr: string; withShiftAltGr: string; }; }; getCurrentKeyboardLayout: () => { model: string; group: number; layout: string; variant: string; options: string; rules: string; }; onDidChangeKeyboardLayout: (callback: () => void) => void; isISOKeyboard:...' to type 'typeof import("/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/native-keymap/index")' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+[17:01:55] src/vs/platform/universeAgent/test/common/respondCleanup.test.ts(57,199): error TS2339: Property 'status' does not exist on type 'TimelineItemSummary'.
+[17:01:55] src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts(246,13): error TS7006: Parameter 'data' implicitly has an 'any' type.
+[17:01:55] src/vs/sessions/contrib/changes/browser/changesActions.ts(589,67): error TS2345: Argument of type 'URI | undefined' is not assignable to parameter of type 'URI'.
+[17:01:55] src/vs/sessions/contrib/changes/browser/changesetReviewActions.ts(52,62): error TS2345: Argument of type 'URI | undefined' is not assignable to parameter of type 'URI'.
+[17:01:55] src/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts(169,40): error TS2554: Expected 3 arguments, but got 2.
+[17:01:55] src/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts(371,6): error TS2740: Type '{ sessionId: string; }' is missing the following properties from type 'IActiveSession': activeChat, isCreated, sticky, openChats, and 25 more.
+[17:01:55] src/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts(13,68): error TS2459: Module '"../../../../../../platform/actionWidget/browser/actionList.js"' declares 'IListAccessibilityProvider' locally, but it is not exported.
+[17:01:55] src/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts(185,53): error TS2740: Type 'HTMLElement' is missing the following properties from type 'HTMLButtonElement': command, commandForElement, disabled, form, and 17 more.
+[17:01:55] src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts(8,23): error TS2307: Cannot find module '../../../../../base/common/path.js' or its corresponding type declarations.
+[17:01:55] src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts(10,57): error TS2307: Cannot find module '../../../../../base/test/common/utils.js' or its corresponding type declarations.
+[17:01:55] src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts(8,23): error TS2307: Cannot find module '../../../../../base/common/path.js' or its corresponding type declarations.
+[17:01:55] src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts(10,57): error TS2307: Cannot find module '../../../../../base/test/common/utils.js' or its corresponding type declarations.
+[17:01:55] src/vs/sessions/test/browser/sessionsSetUpService.test.ts(11,10): error TS6133: 'ILogService' is declared but its value is never read.
+[17:01:55] src/vs/sessions/test/browser/sessionsSetUpService.test.ts(114,11): error TS2511: Cannot create an instance of an abstract class.
+[17:01:55] src/vs/workbench/contrib/agentsVoice/browser/agentsVoiceWidget.ts(893,20): error TS2314: Generic type 'Event<T>' requires 1 type argument(s).
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts(223,91): error TS2741: Property 'alignment' is missing in type '{ ariaLabel: string; getItemDetail: (index: number) => "5 messages" | undefined; }' but required in type 'IComposerPickerOptions'.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts(3639,25): error TS2352: Conversion of type 'IUniverseAgentConnection' to type '{ switchModel: (request: { sessionId: string; modelId: string; }) => Promise<{ resolvedModelId: string; }>; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts(3676,25): error TS2352: Conversion of type 'IUniverseAgentConnection' to type '{ switchModel: (request: { sessionId: string; modelId: string; }) => Promise<{ resolvedModelId: string; }>; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts(3710,25): error TS2352: Conversion of type 'IUniverseAgentConnection' to type '{ switchModel: (request: { sessionId: string; modelId: string; }) => Promise<{ resolvedModelId: string; }>; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts(3780,25): error TS2352: Conversion of type 'IUniverseAgentConnection' to type '{ switchModel: (request: { sessionId: string; modelId: string; }) => Promise<{ resolvedModelId: string; }>; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts(144,39): error TS2339: Property 'getId' does not exist on type 'IConversationEditorPart'.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts(145,32): error TS2339: Property 'getId' does not exist on type 'IConversationEditorPart'.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts(146,42): error TS2339: Property 'getId' does not exist on type 'IConversationEditorPart'.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts(146,61): error TS2339: Property 'getId' does not exist on type 'IConversationEditorPart'.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts(168,11): error TS2554: Expected 4-5 arguments, but got 3.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts(175,35): error TS2339: Property 'getId' does not exist on type 'IConversationEditorPart'.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts(255,53): error TS2345: Argument of type 'IEditorGroup | Promise<[IEditorGroup, EditorActivation | undefined]>' is not assignable to parameter of type 'number | IEditorGroup'.
+[17:01:55] src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts(256,53): error TS2345: Argument of type 'IEditorGroup | Promise<[IEditorGroup, EditorActivation | undefined]>' is not assignable to parameter of type 'number | IEditorGroup'.
+[17:01:55] src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts(356,66): error TS2353: Object literal may only specify known properties, and 'program' does not exist in type 'IConfig'.
+[17:01:55] src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts(370,66): error TS2353: Object literal may only specify known properties, and 'program' does not exist in type 'IConfig'.
+[17:01:55] src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts(384,66): error TS2353: Object literal may only specify known properties, and 'program' does not exist in type 'IConfig'.
+[17:01:55] src/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts(828,64): error TS7006: Parameter 'message' implicitly has an 'any' type.
+[17:01:55] src/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts(852,15): error TS7006: Parameter 'message' implicitly has an 'any' type.
+[17:01:55] src/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts(49,4): error TS2352: Conversion of type '{ getModel: () => TextModel; }' to type 'IModelService' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+[17:01:55] src/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts(185,33): error TS7006: Parameter 'update' implicitly has an 'any' type.
+[17:01:55] src/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts(140,98): error TS2352: Conversion of type '{ type: McpServerTransportType.Stdio; command: string; args: never[]; env: {}; }' to type 'McpServerLaunch' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+[17:01:55] src/vs/workbench/contrib/output/test/browser/outputServices.test.ts(100,41): error TS2345: Argument of type 'never[]' is not assignable to parameter of type 'never'.
+[17:01:55] src/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts(86,72): error TS2339: Property 'identifier' does not exist on type 'never'.
+[17:01:55] src/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts(150,67): error TS2345: Argument of type 'Pick<DisposableStore, "add">' is not assignable to parameter of type 'IDisposable[] | DisposableStore | undefined'.
+[17:01:55] src/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts(164,54): error TS2352: Conversion of type '{ affectsConfiguration: (key: string) => key is "chat.mcp.gallery.serviceUrl"; }' to type 'IConfigurationChangeEvent' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+[17:01:55] src/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts(171,54): error TS2352: Conversion of type '{ affectsConfiguration: () => false; }' to type 'IConfigurationChangeEvent' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+[17:01:55] src/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts(37,12): error TS2352: Conversion of type '{ $init: () => Promise<void>; $acceptTheme: () => Promise<void>; }' to type 'Proxied<TextMateTokenizationWorker>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+[17:01:55] src/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts(70,7): error TS2420: Class 'FixtureChangesViewService' incorrectly implements interface 'IChangesViewService'.
+[17:01:55] src/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts(398,44): error TS2741: Property 'setSessionChangesetFilesReviewState' is missing in type 'FixtureChangesViewService' but required in type 'IChangesViewService'.
+[17:01:55] 'compile' errored after 28 s
+[17:01:55] Error: tsgo exited with code 1
+    at ChildProcess.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsgo.ts:73:12)
+    at ChildProcess.emit (node:events:514:20)
+    at ChildProcess.emit (node:domain:536:15)
+    at ChildProcess._handle.onexit (node:internal/child_process:294:12)
+    at Process.callbackTrampoline (node:internal/async_hooks:132:14)
+COMPILE_EXIT:1
+END=2026-10-26T09:01:55Z

@@ -53,7 +53,7 @@ summary: "workbench/services 与 contrib 的边界；代表目录职责；远端
 - 首次后台失败记成带 `error` 的记录，`undefined` 和 `null` 拒绝按原值保留。第一个公共入口消费这次失败。之后的 `initialize()` 与 `reload()` 开启一轮共享重试，并发调用等待同一个结果。
 - 服务已销毁时，晚到的成功以 `CancellationError` 结束，晚到的拒绝保持原错误。已销毁的服务不再发布这次结果，也不再把它报成后台错误。销毁之后的新调用直接取消。
 
-尝试身份、资源归属和回归映射见 [远端用户配置初始化与重试合同](../../../dev/plans/remote-user-configuration-attempts.md)。统一运行证据回来前，该方案保持 `accepted`。
+尝试身份、资源归属和回归映射见 [远端用户配置初始化与重试合同](../../../dev/plans/remote-user-configuration-attempts.md)。该方案已 `implemented`。运行证据见 [D1384](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1384-verification.md)。
 
 ## 抽样目录（15–25）
 

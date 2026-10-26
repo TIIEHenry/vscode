@@ -1,0 +1,10 @@
+{
+  "equal": false,
+  "firstDiff": 5274,
+  "existingSlice": "      await this.configurationCache.remove(this.cacheKey);\n      }\n    } catch (error) {\n    }\n  }\n};\nclass ApplicationConfiguration extends UserSettings {\n  constructor(userDataProfilesService, fileService, uriIdentityService, logService) {\n    super(userData",
+  "transpiledSlice": "      await this.configurationCache.remove(this.cacheKey);\n      }\n    } catch (error) {\n    }\n  }\n}\nclass ApplicationConfiguration extends UserSettings {\n  constructor(userDataProfilesService, fileService, uriIdentityService, logService) {\n    super(userDataP",
+  "normalizedExistingSha": "d4345f7d6cd4185289048678bdd578a5c17d8f421a1cf74f2c7871c07332d5d5",
+  "normalizedTranspiledSha": "6d5f1160dc9ac6031b03e7946fcf17df777da8881be09940e009cf4864175025",
+  "existingLen": 44760,
+  "transpiledLen": 44759
+}

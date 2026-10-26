@@ -1,0 +1,325 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[37012:1026/165456.368738:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:37032) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `exe --trace-warnings ...` to show where the warning was created)
+(node:37032) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(node:37032) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:37032) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+(node:36979) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `universe-agent-studio --trace-warnings ...` to show where the warning was created)
+[0m[0m
+[0m  RemoteUserConfiguration[0m
+  [32m  [32m✔[39m[0m[90m first environment read permits startup with empty cache[0m
+  [32m  [32m✔[39m[0m[90m first environment read permits startup with populated cache[0m
+  [31m  1) initialize and reload wait once remote file initialization has started[0m
+  [31m  2) first background rejection is reported once and observed before the next attempt[0m
+  [31m  3) a synchronous environment throw is observed once and reload can recover[0m
+  [32m  [32m✔[39m[0m[90m initialize + initialize share a successful explicit retry[0m
+  [31m  4) initialize + initialize share the original explicit retry rejection[0m
+  [31m  5) initialize + reload share a successful explicit retry[0m
+  [31m  6) initialize + reload share the original explicit retry rejection[0m
+  [31m  7) reload + reload share a successful explicit retry[0m
+  [31m  8) reload + reload share the original explicit retry rejection[0m
+[36979:1026/165512.736346:INFO:CONSOLE:272] "Error: Test run should not have unexpected errors:
+retry connection unavailable
+Error: retry connection unavailable
+    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:146:26
+    at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+  [31m  9) "after each" hook for "reload + reload share the original explicit retry rejection"[0m
+
+
+[92m [0m[32m 3 passing[0m[90m (15s)[0m
+[31m  9 failing[0m
+
+[0m  1) RemoteUserConfiguration
+       initialize and reload wait once remote file initialization has started:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+         "remote"
+      [31m-  "cached"[0m
+      [32m+  "remote"[0m
+         2
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  [
+  [39m    'remote',
+  [32m+[39m   'cached',
+  [31m-[39m   'remote',
+  [39m    2
+  [39m  ]
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:98:12)
+[0m
+[0m  2) RemoteUserConfiguration
+       first background rejection is reported once and observed before the next attempt:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+         2
+         [
+           {}
+      [31m-    [Circular][0m
+         ]
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  [
+  [39m    2,
+  [39m    [
+  [39m      Error: remote environment unavailable
+  [39m          at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:102:19
+  [39m          at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5),
+  [32m+[39m     Error: remote environment unavailable
+  [32m+[39m         at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:102:19
+  [32m+[39m         at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+  [39m    ]
+  [39m  ]
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:110:12
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  3) RemoteUserConfiguration
+       a synchronous environment throw is observed once and reload can recover:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  Error: Timeout of 15000ms exceeded. For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves. (vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test)
+[0m
+[0m  4) RemoteUserConfiguration
+       initialize + initialize share the original explicit retry rejection:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+         {
+           "error": {}
+         }
+         {
+      [31m-    "error": {}[0m
+      [32m+    "error": [Circular][0m
+         }
+         2
+         [
+           {}
+      [31m-    [Circular][0m
+         ]
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  [
+  [39m    {
+  [39m      error: Error: retry connection unavailable
+  [39m          at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:146:26
+  [39m          at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+  [39m    },
+  [39m    {
+  [32m+[39m     error: Error: expected rejection
+  [32m+[39m         at promise.then.error.error (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:346:39)
+  [31m-[39m     error: Error: retry connection unavailable
+  [31m-[39m         at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:146:26
+  [31m-[39m         at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+  [39m    },
+  [39m    2,
+  [39m    [
+  [39m      Error: initial connection unavailable
+  [39m          at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:145:28
+  [39m          at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5),
+  [32m+[39m     Error: retry connection unavailable
+  [32m+[39m         at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:146:26
+  [32m+[39m         at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+  [39m    ]
+  [39m  ]
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:154:14
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  5) RemoteUserConfiguration
+       initialize + reload share a successful explicit retry:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+         "remote"
+      [31m-  "cached"[0m
+      [32m+  "remote"[0m
+         2
+         1
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  [
+  [39m    'remote',
+  [32m+[39m   'cached',
+  [31m-[39m   'remote',
+  [39m    2,
+  [39m    1
+  [39m  ]
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:138:14
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  6) RemoteUserConfiguration
+       initialize + reload share the original explicit retry rejection:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+         {
+           "error": {}
+         }
+         {
+      [31m-    "error": {}[0m
+      [32m+    "error": [Circular][0m
+         }
+         2
+         [
+           {}
+      [31m-    [Circular][0m
+         ]
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  [
+  [39m    {
+  [39m      error: Error: retry connection unavailable
+  [39m          at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:146:26
+  [39m          at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+  [39m    },
+  [39m    {
+  [32m+[39m     error: Error: expected rejection
+  [32m+[39m         at promise.then.error.error (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:346:39)
+  [31m-[39m     error: Error: retry connection unavailable
+  [31m-[39m         at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:146:26
+  [31m-[39m         at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+  [39m    },
+  [39m    2,
+  [39m    [
+  [39m      Error: initial connection unavailable
+  [39m          at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:145:28
+  [39m          at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5),
+  [32m+[39m     Error: retry connection unavailable
+  [32m+[39m         at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:146:26
+  [32m+[39m         at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+  [39m    ]
+  [39m  ]
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:154:14
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  7) RemoteUserConfiguration
+       reload + reload share a successful explicit retry:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  "cached"[0m
+      [31m-  "cached"[0m
+      [32m+  "remote"[0m
+      [32m+  "remote"[0m
+      [32m+  2[0m
+         1
+      [31m-  0[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  [
+  [32m+[39m   'cached',
+  [32m+[39m   'cached',
+  [31m-[39m   'remote',
+  [31m-[39m   'remote',
+  [31m-[39m   2,
+  [39m    1,
+  [32m+[39m   0
+  [39m  ]
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:138:14
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  8) RemoteUserConfiguration
+       reload + reload share the original explicit retry rejection:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+         {
+           "error": {}
+         }
+         {
+      [31m-    "error": {}[0m
+      [32m+    "error": [Circular][0m
+         }
+      [31m-  1[0m
+      [32m+  2[0m
+         [
+           {}
+         ]
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  [
+  [39m    {
+  [32m+[39m     error: Error: expected rejection
+  [32m+[39m         at promise.then.error.error (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:346:39)
+  [32m+[39m         at async file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:154:31
+  [31m-[39m     error: Error: retry connection unavailable
+  [31m-[39m         at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:146:26
+  [39m          at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+  [39m    },
+  [39m    {
+  [32m+[39m     error: Error: expected rejection
+  [32m+[39m         at promise.then.error.error (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:346:39)
+  [31m-[39m     error: Error: retry connection unavailable
+  [31m-[39m         at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:146:26
+  [31m-[39m         at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+  [39m    },
+  [32m+[39m   1,
+  [31m-[39m   2,
+  [39m    [
+  [39m      Error: initial connection unavailable
+  [39m          at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:145:28
+  [39m          at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+  [39m    ]
+
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:154:14
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+[0m
+[0m  9) "after each" hook for "reload + reload share the original explicit retry rejection":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Error: Test run should not have unexpected errors:
+  retry connection unavailable
+  Error: retry connection unavailable
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:146:26
+      at async withReportedRemoteErrors (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js:359:5)
+      at Context.<anonymous> (renderer.js:351:11)
+[0m

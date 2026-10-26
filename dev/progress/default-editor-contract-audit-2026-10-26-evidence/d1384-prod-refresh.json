@@ -1,0 +1,16 @@
+{
+  "kind": "production-only",
+  "esbuildVersion": "0.27.2",
+  "previousProductionSha256": "e204bdb9a6f67173ecc51a98c72ac34451edae772d5832fdea42706c1385c6b9",
+  "productionSourceSha256": "c49baef44a7b675bc4c8f5b1bf87c2948643ebb1fc1c8bc9951a2ddda51fe9e6",
+  "productionSourceMtime": "2026-10-26T08:50:14.845Z",
+  "productionOutputSha256": "f85b24a1bc4369e17cee0cc490ba4829f851fabef7eaf65b779a6aa805c53b3f",
+  "productionOutputMtime": "2026-10-26T08:56:32.681Z",
+  "productionOutputBytes": 76200,
+  "productionBodySha256": "da67db2c0fc97e1f3320bb758bd0ce67c19709c837cebd48225708606f4601ca",
+  "testOutputsUnchanged": {
+    "out/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.js": "be16bd4b5bed6ffddb10f62a0a9af107ac3c2a4d2b32d93f2198d65d0f76f7fb",
+    "out/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScan.test.js": "18517294bbc8614c59eeb076582ca01b1581b41bef8d5c7ccb6ec36adae7afa5",
+    "out/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.js": "67e3d785664a021a765c883c4bfdd9c9b65facebd9b0d2ef1b1984dff5a78c33"
+  }
+}

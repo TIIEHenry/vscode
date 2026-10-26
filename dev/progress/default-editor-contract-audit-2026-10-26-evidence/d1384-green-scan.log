@@ -1,0 +1,27 @@
+(node:42216) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[0m[0m
+[0m  workbench/services/configuration leftover Promise fire-and-forget catch scan (D747)[0m
+  [32m  [32m✔[39m[0m[90m onUnexpectedError returns undefined so a lone catch still leaks when the handler warn-then-rethrows[0m
+  [32m  [32m✔[39m[0m[90m six remaining fire-and-forget sites retain their Promise double-chain guards[0m
+  [32m  [32m✔[39m[0m[90m leftover ApplicationConfiguration / UserConfiguration scheduler thens are Promise double-chain[0m
+  [32m  [32m✔[39m[0m[90m leftover FileServiceBasedRemoteUserConfiguration reload scheduler then is Promise double-chain[0m
+  [32m  [32m✔[39m[0m[90m leftover FolderConfiguration whenProviderRegistered then is Promise double-chain[0m
+  [32m  [32m✔[39m[0m[90m leftover WorkspaceService onWorkspaceConfigurationChanged then is Promise double-chain[0m
+  [32m  [32m✔[39m[0m[90m leftover RegisterConfigurationSchemasContribution whenInstalledExtensionsRegistered then is Promise double-chain[0m
+  [32m  [32m✔[39m[0m[90m assigned then / opener / D145 / Connect / Watch / Resolve / Pty stay skipped[0m
+
+[0m  leftover remaining unused after D821 moved to configuration leftover remaining Promise fire-and-forget catch scan (D827)[0m
+  [32m  [32m✔[39m[0m[90m onUnexpectedError returns undefined so a lone catch still leaks when the handler warn-then-rethrows[0m
+  [32m  [32m✔[39m[0m[90m leftover remaining unused after D821 had fewer than four legal unused leftover sites so this knife moved[0m
+  [32m  [32m✔[39m[0m[90m this knife covers seven leftover Promise double-chain sites after leftover remaining unused after D821 moved[0m
+  [32m  [32m✔[39m[0m[90m configuration leftover remaining updateCache / updateCachedConfigurationDefaultsOverrides / waitAndInitialize leftover void promises are Promise/async + double-chain[0m
+  [32m  [32m✔[39m[0m[90m opener / Action2.run / assigned then / two-arg then / returned Promise / already-double / Resolve / Pty / Connect / Watch / D145 stay skipped[0m
+  [32m  [32m✔[39m[0m[90m D821 accountPolicy already-double stays already-double; owned leftover modules stay untouched; leftover remaining unused leftover stays leftover remaining unused[0m
+
+[0m  Errors[0m
+  [32m  [32m✔[39m[0m[90m should not have unexpected errors in tests[0m
+
+
+[92m [0m[32m 15 passing[0m[90m (9ms)[0m

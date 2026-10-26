@@ -1,0 +1,27 @@
+{
+  "typescriptVersion": "6.0.3",
+  "sourceHead": "3e63f9e6f40e3c3c3dca1a55f47a978ddb02ed1a",
+  "scope": "Unmodified src/tsconfig project context; one program; per-target semantic and syntactic only; noEmit. Not a second full compile.",
+  "config": "src/tsconfig.json",
+  "fourFiles": [
+    "src/vs/workbench/services/configuration/browser/configuration.ts",
+    "src/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.ts",
+    "src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScan.test.ts",
+    "src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.ts"
+  ],
+  "elevenFiles": [
+    "src/vs/platform/tunnel/common/tunnel.ts",
+    "src/vs/platform/tunnel/test/common/tunnelOpenRetry.test.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationReviewNavService.ts",
+    "src/vs/workbench/contrib/conversation/browser/agentSessionContext.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationReviewEntry.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationReviewNavTestHarness.ts",
+    "src/vs/workbench/services/configuration/browser/configuration.ts",
+    "src/vs/workbench/services/configuration/test/browser/remoteUserConfiguration.test.ts",
+    "src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScan.test.ts",
+    "src/vs/workbench/services/configuration/test/node/configurationLeftoverPromiseCatchScanD827.test.ts"
+  ],
+  "fourDiagnostics": [],
+  "elevenDiagnostics": []
+}

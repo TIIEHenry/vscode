@@ -13,7 +13,9 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
-| [D1383 Tunnel 验证](default-editor-contract-audit-2026-10-26-evidence/verification.md) | 旧生产 red、新生产 19 passing、两 TS 定向语义 0；全量 55/36 未重跑 |
+| [D1383 Tunnel 验证](default-editor-contract-audit-2026-10-26-evidence/verification.md) | 旧生产 red、新生产 19 passing、两 TS 定向语义 0。该证据写入时全量未跑 |
+| [D1382 ReviewNav 自动回归](default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md) | 旧生产 3 过 / 7 败，新生产 37 过。方案仍 accepted，默认编辑器实拍未做 |
+| [D1384 远端配置验证](default-editor-contract-audit-2026-10-26-evidence/d1384-verification.md) | 旧生产 16 项断言失败、4 项旧通过、1 项超时不计；新生产 21 过、远端 17 过。全量 46/28 |
 | [review-docs-loop.md](review-docs-loop.md) | 15m 审查循环日志（文档漂移 / 未闭缺口） |
 | [health-gates.md](health-gates.md) | Loop 集成门禁命令（本仓） |
 | [deferred-gaps.md](deferred-gaps.md) | Loop 延期缺口 SSOT |

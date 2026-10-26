@@ -1,0 +1,12 @@
+{
+  "action": "install-496-same-config-transpile",
+  "reason": "On-disk configuration.js did not byte-match current esbuild 0.27.2. The difference is the older class emit: const _DefaultConfiguration = class, a let alias, and the static field assigned after the class. After normalizing that emit, one semicolon remains. The installed file is the 496 source transpiled with build/next/transpile.ts options.",
+  "esbuildVersion": "0.27.2",
+  "diskSha256": "e44252c5a808d99eb4d96ff39ecfe91ce53f4fef9604da1dafcdd926b8ec36e8",
+  "diskMtime": "2026-10-26T04:06:44.983Z",
+  "installedSha256": "e204bdb9a6f67173ecc51a98c72ac34451edae772d5832fdea42706c1385c6b9",
+  "installedBodySha256": "2ccf7508e852fa956602c279d216f6f7bbac39b51220fc59bb4218542667f662",
+  "installedMtime": "2026-10-26T08:54:26.644Z",
+  "installedBytes": 77707,
+  "baselineSourceSha256": "273e2bb3522d07d8fa299d4e0ad60ce2e41aa2f830b83a30de4b878ea1d14e59"
+}
