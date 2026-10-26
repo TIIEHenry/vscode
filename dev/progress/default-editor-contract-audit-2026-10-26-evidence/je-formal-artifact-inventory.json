@@ -1,5 +1,5 @@
 {
-  "phase": "E93-source-only-integrated-after-actual-old4919-3pass7-business-red-and-163-restore-extra4-old-native-qualified-compile9-pending",
+  "phase": "E93-actual-full-compile9-FAIL-six-TS2352-test-fixture-diagnostics-native253-partial-failed-build-preserved-no-newgreen-freeze-or-after",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -3387,6 +3387,55 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationSessionReadiness.ts.log",
       "bytes": 2306,
       "sha256": "3394a715b46f4b93a2583273283c7db8265ea56d3792aeb39fbb891ced72e828",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-ninth-native-build.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-ninth-native-build.py",
+      "bytes": 7834,
+      "sha256": "4cb32c4df42998ad418df8f9cd8fb78a6d3e7a42e2ba03a826f8d9746fa3a570",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-ninth-native-build.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-ninth-native-build.json",
+      "bytes": 212284,
+      "sha256": "8b4bcaef5de7a1ecb1ace664a617aa2cd599aae3e44980b0fb4e85177ae1a9b8",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-ninth-native-build.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-ninth-native-build.log",
+      "bytes": 32392,
+      "sha256": "6cdea5d414e1efb633367a2bbf96b8bb464f1d2b3057845d25a4380f48df15cd",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-ninth-native-build.candidate-membership.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-ninth-native-build.candidate-membership.json",
+      "bytes": 417511,
+      "sha256": "d60740b12e75d256b77043bf3760cf77ed27fe76a983c92846d5daa962ae00e5",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-ninth-native-build.processes-before.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-ninth-native-build.processes-before.log",
+      "bytes": 248790,
+      "sha256": "44b0c5cf8362640a072f4e9bd6610c83303dcc966de4cb7542e5a05b6c532bc7",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-ninth-native-build.processes-under-lock.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-ninth-native-build.processes-under-lock.log",
+      "bytes": 248785,
+      "sha256": "9d0b61bdb6e262c8e31bf2b9c54d3a4f849f295f5a0728808532b6cbb7be5539",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-ninth-native-preservation.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-ninth-native-preservation.json",
+      "bytes": 107226,
+      "sha256": "664ef7c507a9456df39d6a3fe27a0be99d497e7d4f0293767cf6cd772ddf72ee",
       "bytePreservingCopy": true
     }
   ]
