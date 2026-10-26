@@ -1,15 +1,17 @@
 ---
 title: "Sources 打开分派与准确 Conversation 目标"
 type: plan
-status: accepted
+status: draft
 phase: M7
-updated: 2026-10-26
-summary: "D1387：bf50独立方案后已写宿主候选/真实成员核对与Sources重叠歧义保护，新增29项回归源码；静态0语法/0lint错误，唯一车道运行与新源码peer/真实after待"
+updated: 2026-10-27
+summary: "D1387 M01增量待规则16：Conversation真实Pane按钮丢来源导致Move no-op；拟显式input/group/Pane来源与注册part快照、关闭前复核及局部错误恢复，保留原完成/关闭代数"
 ---
 
 # Sources 打开分派与准确 Conversation 目标
 
 ## 1. 问题、证据与签收边界
+
+**2026-10-27 M01增量审查边界**：原accepted范围与已签收实现历史保留；本轮仅新增§3.5/§4.4及对应SSOT说明，frontmatter暂置draft等待原Astra规则16（plan生成器只接受draft/accepted/implemented）。父明确冻结验证source tree `92801b513611ed3ae1ba36862a58131c609f6aa2`、native producer `8b4ddaa`，当前纯docs后继`4173b3fea640124a50cbdaa6aa7ceb7892274641`；J从clean且祖先成立的`24a3850`仅Git fast-forward至该后继，没有复制或刷新out。D真实默认编辑器after发现Conversation内真实“Open Diff in Preview”按钮无操作，普通Review直接创建的Beta shared比较同样复现；这不是仅move生成input的特殊情况。D报告当时全局activeEditor为空、全局group0，而真实Conversation comparison11仍在、Preview为空、无UI错误。原件在D自有`.build/d1387-after-sources-audit-20261026/steps/M01-*`，J仅按父转交事实与当前源码核对，没有复跑窗口或更改D材料。Astra已将其裁定为原三owner/Move合同内Important，必须定向补修；本稿不宣称M01或其余after已全闭合。
 
 范围是默认编辑器的 Sources Changes / Review → Preview、Conversation、Panel 打开及移动合同（[PRD-005/009](../../docs/product/requirements.md#prd-009-changes-与-diff)、[ADR-005](../decisions/005-changes-diff-owner.md)、[Sources SSOT](../../docs/systems/sources/overview.md)）。不开发 `src/vs/sessions/`。D1387 保持 open，PRD 状态不升；原方案与custom预pin澄清已有下方规则16，本轮§3.2同tuple宿主/并发歧义澄清也经D规则16 C0/I0签收，独立方案`bf50c66`后新边界源码及29项回归已写。原两项Important补修`89f3e5a6a17`与测试harness`4f7e49d`/`65d2288`已交唯一车道；D/Astra后确认的同tuple另组后台宿主与并发归因补修仍须唯一车道运行、新源码独立peer及非作者after。本作者没有运行或修复后验证。
 
@@ -111,6 +113,28 @@ finder 保留已选的准确 group，不重新选第一叶/最近叶，不新增
 | helper 明确返回 stale | 不标审阅、不写打开状态，维持已有结果门。 |
 | 旧 open-status generation | 只阻止旧操作写较新的打开状态；不从该代次自行推广成一切旧 void 委托都不标。Review 仍按捕获 entry 与既有 write/pairing 门处理委托完成，不新增 session pin 或通用取消保证。 |
 
+### 3.5 M01：Conversation Pane 的 Move 显式来源（本轮增量，待规则16）
+
+#### 已核源码与问题边界
+
+`conversationDiffReviewPane.ts:198–200`的真实按钮无参数调用`sources.diff.moveToPreview`；`sourcesDiffActions.ts::registerHostedDiffMove.run`忽略命令上下文；`sourcesDiffRefHelpers.ts::resolveMoveHostRef('editorTitle')`只读全局`editorService.activeEditor`，`captureMoveHostClose`又独立读一次全局input/pane/group。`EditorParts.getGloballyAggregatedParts/activePart`明确排除Conversation part，因而真实按钮虽在comparison Pane内，命令可看到空全局active或另一个Preview。现有把Conversation input直接放到mock全局active的测试仍有价值，却不能证明真实Pane入口。
+
+本轮修调用来源和来源存活验证，不改Conversation全局聚合、finder授权、目标owner/slot选择或SCM委托观测。Panel→Preview、Preview→Conversation、Panel→Conversation已由D报告真实正例；这些与既有viewTitle语义须保留。SCM group字符串`ref.groupId`、内容的`ref.sessionId`、Conversation宿主`part.sessionKey`是三种不同身份，不得互换。PRD-005/009既有三owner/Move合同不变，不新增需求或升产品状态。
+
+#### 单次来源捕获与关闭
+
+1. **Pane发明确来源**：按钮在点击时从真实`this.input`与`this.group`同步取得来源；只接受`ConversationDiffReviewInput`，以窄typed来源kind连同原input对象、原`IEditorGroup`对象及原Pane对象交给现有registered command。Pane已有公开`input/group`，不能把资源URI、数字id或“最近活动Conversation”代替实际来源。该本地typed参数与可序列化的上游`IEditorCommandsContext`分开，不把Pane对象塞入后者或发到extension host。
+2. **命令转交而非丢弃上下文**：`registerHostedDiffMove`把该明确来源传给公共helper；同一入口同步解析ref与关闭目标，得到一次内部capture，不能两次读global active来拼来源。若从原生EditorTitle/EditorTitleContext进入，按真实`IEditorCommandsContext`的groupId/editorIndex在入口解析被点击编辑器一次，再捕获实际input/group对象；保留原生context可序列化合同，不复用会按URI/全局active/最近列表兜底的通用resolver。无显式参数的既有程序调用可保留原global来源兼容路径；一旦提供明确上下文却无效，必须直接无目标返回，不再fallback到global、其他叶或Panel。
+3. **Conversation存活身份**：入口从当前`editorGroupsService.conversationParts`中查到确实含原group对象的注册part，捕获该part对象及当时`sessionKey`；要求`getGroup(group.id) === group`、part仍为真实注册成员、`part.groups`确含同一group、input未dispose且`group.editors.includes(input)`。Pane来源还要求`pane.group === group`、`pane.input === input`且该group的实际active Pane就是原Pane，禁止伪造同id group、同URI/matches的另一input或过期Pane。用严格对象成员判定，不从excluded旗、相同tuple或内容sessionId推断宿主。
+4. **ref与close共用capture**：从上述实际input调用既有`resolveSourcesChangeRefFromEditor`，保留完整URI、准确SCM资源/组及内容身份。capture同时绑定原input/group/part/sessionKey及必要Pane身份；成功分派后的全局焦点改变或另一个叶变active不能改写该关闭目标。close前再次核验真实part/同sessionKey、同group对象、未dispose的严格input成员，以及Pane仍指同input；来源失效则只跳这次关闭，不关闭同id重建组、同URI的新input、别叶或全局active。优先对已核原group调用公开`closeEditor(originalInput)`；若继续用editorService，须先证明它解析的仍是这一group，不能仅按id关闭。
+5. **失效与既有完成代数分开**：入口明确来源无效时零dispatch/零close/零pin/零identity，不借此制造新的失败后关闭策略。合法capture已分派后，继续保留现有helper的boolean/`'stale'`/undefined及API/custom委托void语义：open-before-close，原true/false/`'stale'`完成后的关闭规则不改，缺Conversation leaf异常仍保源，其他异常仍按既有规则尝试关捕获源；只是每次close受上述来源仍live的复核约束。不得改成所有失败都保源，也不增加串行、全局cancel、session重选或新服务。Panel viewTitle的既有ref/clear策略不在本增量重设计。
+
+#### Pane局部反馈
+
+Pane按钮的async操作捕获自己input/组、当前render代次及局部move尝试代次；registered action对这个内部来源透传既有helper结果，使Pane能区分当前true/false/`'stale'`/无目标，不将合法API/custom void resolve当失败。当前true只清自己上次move错误；当前false或可归属的无目标用既有通用“打开未完成”信息，reject用既有打开失败信息。仅原Pane仍存活、同input/组/render代次且尝试仍当前时可更新该Pane notice；`'stale'`、旧attempt、clearInput/dispose/换input后不写新Pane，错误也不被归到另叶或当前Preview。不得顺带清比较载入、读/写失败或其他notice；局部错误所有权沿用现有状态通道，必要时加局部来源标记，不引入全局状态服务。
+
+已有EditorTitle/ViewTitle通知策略继续保留，内部Pane的错误在本Pane显示，不新增重复toast。仍处理catch-path自身抛错，不能删掉已有“无unhandled rejection”负控；该负控可改接真实失败路径，但不能只靠`onUnexpectedError`代表用户可见反馈。
+
 ## 4. 精确 red / green 与验证责任
 
 J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typecheck/写 out/watch/跑依赖 out 的测试**。父安排唯一 merge 车道按不可变 commit 串行执行；以下均是待执行清单，不计通过。
@@ -145,6 +169,20 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 4. 失败后正常成功清旧打开错误；stale不覆盖新错误；没有新的假已审阅。无引擎0 RPC，fixture HEAD/index/worktree前后相同。不能以命令参数、getter或DOM个数代内容验收。
 5. 迟到/切换此前夹具失败仍是未覆盖；若本波补，用真实公共服务取得依赖后的受控Promise/加载事件，不跨await保留ServicesAccessor、不改Sources私有状态。未跑不宣称异步总合同已闭。
 
+### 4.4 M01增量验证映射（待运行）
+
+| 边界 | 必须的行为证据 |
+|---|---|
+| 真实入口旧red | 新回归必须点击真实`ConversationDiffReviewPane`按钮，经真实registered command→公共helper→真实默认EditorParts/Conversation part/group；全局active为空时仍应打开该Pane的准确比较到Preview并只关闭源比较。旧冻结src928的生产必须在未dispatch/Preview缺失/源未关闭的业务断言red，不能以stub command记录参数或把Convo塞进global active替代。 |
+| 全局干扰与多叶 | global active为无关Preview，A/B两个Conversation owner含同名或同完整tuple、独立input/SCM身份；点击B只移动B，A及无关Preview身份、根tab与组不变。原生EditorTitle和EditorTitleContext显式group/index也覆盖被点来源，已有viewTitle Panel正例不变。 |
+| 入口失效负控 | disposed input、Pane已clear/换input、input不再是严格组成员、group移除/同id重建、part注销/同sessionKey另part、来源kind与input类型不符，均不能fallback到global或另一叶；零额外open/close/pin/metadata。明确上下文失效与无上下文兼容路径分别断言。 |
+| await后关闭复核 | 通过公开command/open依赖受控Promise，在目标已合法开始打开后移组/注销part、替换原input、同URI新input、源Pane换input；目标结果按原合同返回，失效源不被close。只改变global焦点/激活另一叶而原来源仍live时仍关闭原捕获比较，不能误关新active。 |
+| 完成/错误/恢复 | 分别锁原true/false/`'stale'`、缺leaf异常保源、其他reject既有关闭及API/custom void完成语义；新增检查局部错误当前失败→当前成功恢复，旧失败/旧成功不覆盖新attempt或换input后的Pane，不清其他读写/载入notice，无unhandled rejection。不得用“全部失败保源”取巧。 |
+| 既有覆盖与产物 | 保留J原29项、完整386/原R1/R2与三owner/slot/finder/错误恢复相关套及当前已有source-scan；source scan不作M01业务red。作者只源码/AST/lint/docs，唯一lane在正式不可变实施SHA上最小旧红→新绿、完整相关套/必要全编译，再发更新freeze；旧src928/native8b4保持冻结到父调度，不让作者写out。 |
+| 非作者真实after | D在新freeze复看M01：普通Review直接建的Beta比较及move创建的Conversation比较各点真实按钮，记录两侧全文/完整URI、源/目标part/group/sessionKey、准确SCM组/resource、只关源比较/根保留、Preview内容与错误恢复；补A/B同tuple隔离。原已过方向按需要连续性核验，不用命令参数或getter替代真实diff。 |
+
+实施候选路径限`conversationDiffReviewPane.ts`、`sourcesDiffActions.ts`、`sourcesDiffRefHelpers.ts`及对应`Sources - Diff panel`/`Sources - Diff ref helpers`公共回归，必要时复用现有真实Conversation harness；若需超出此边界先报父/Astra。写完本增量即交原Astra只读规则16，C/I核验改入并独立方案commit之后才改生产。
+
 ## 5. 顺序、审查与状态
 
 - P（原方案历史检查点）：PRD事实→生成状态→SSOT/证据/本方案；父派独立规则16 reviewer，C/I 核验改入后 accepted，单独方案 commit。规则16已通过，单独方案commit后再实施。
@@ -156,6 +194,8 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 重要新设计点或边界外问题先报父/Astra，不顺手扩展。全量由父提供的运行记录说明；本作者不借其他主题产物给此主题背书。
 
 ## 6. 规则16记录
+
+2026-10-27 M01增量首稿：§3.5/§4.4与SSOT待原Astra只读规则16，尚无本增量C/I结论，禁止开生产切片。J实际文档门禁health 0errors/73warnings，与同步4173后的fresh基线逐条added=[]、removed=[]；generated-status与diff通过，status197行。初次生成器因plan状态review不在draft/accepted/implemented闭集中exit1，已改draft后重新生成并验证通过；未改生成器或手写生成列。HEAD:src仍精确`92801b513611ed3ae1ba36862a58131c609f6aa2`，本次仅文档，没有编译/typecheck/transpile/out/业务测试/窗口运行。以下规则16结论均为原实现边界历史，不签本增量。
 
 2026-10-26，本轮同tuple宿主候选观测首稿经D只读审查为C0/I1，并发归因Important经Astra确认must-fix；作者补入同service Sources重叠sticky ambiguity、custom wildcard、同步捕获DTO与外部并发非保证边界后，D增量规则16为 **Critical 0 / Important 0**。正式两轮报告提交`7c84e0167e3f5fef3db1e7dea5cd6f96ca3393c4`，见[宿主观测规则16报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md)。第一稿plan/SSOT SHA256为`8de7de8c0b8cacaab65d44525851bc0b8d94d761f857033b1d0593889b464e70` / `fd67b9a7a5545ff38f6664cc7dca762c979cf8a8f7dcc5de383c94edda95f61e`；最终受审稿为`7f1d87afc2c5058105afe91125175b5556d915ef00ab387bad97ddc2ff8ea45f` / `07fcba33bd8da9f9dc46e4d56b487056e1ddfe7f89fa63033bab2cfbc4dd6f59`。作者已只读核验报告，并实改两Minor：actual对event的matches方向、旧accepted/规则16措辞的历史归属；恢复accepted后以`bf50c66`单独提交方案，再实施。此前审查不替代本轮签收，本轮也不签源码/运行/after；方案签收时生产仍为`89f3e5a6a17`。 该次作者文档门禁为health 0errors/75warnings，较受审稿fresh74仅新增D已提交但J尚未合入的同仓宿主报告链接；不跨槽复制。生成状态与diff检查通过，status170行；原73/74及D报告46为各自历史/工位结果，不替代本次实施记录。
 
