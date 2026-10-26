@@ -113,3 +113,7 @@ D1373 只在 `/tmp/vscode-compile.lock` 内刷新新测试 JS 与 `conversationL
 新六项覆盖 TabsHost 注入会话事件的 tab 往返 / dispose 后停止响应、ReviewProgress 双会话工作根隔离与 SCM null/newTab/replace 的四条打开结果。11 TS 文件 targeted ESLint **0 errors / 31 既有 warnings**（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1375-eslint.log)）；D1374 占位夹具修后 ESLint **0 errors**（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-eslint-final.log)）。[当前15文件产物快照](../../progress/ui-visual-review-2026-10-26-evidence/followup-fresh-output.json) 记录全部 follow-up TS / CSS 的 source/output hash、mtime，均晚于本次编译开始；没有用旧 out 跑这些 Sources 验证。未重复上一轮已绿套件，也没有继续改其余 58 文件。
 
 D1375 短方案按范围转 `implemented`，生成索引随源重建；D1373 / D1374 / D1375 均 closed。按文档规则 3c 检索知识层的 D 编号 / 方案名与 Sources 会话上下文合同，未发现需继续翻转的待实施叙述：D1373 的 Conversation 规格、D1374 的 Sessions 概览已随源提交同步；D1375 恢复正式 DI / 空值合同，不改变已接受的 Sources 系统所有权与呈现契约，既有 Sources 总方案和 PRD 状态不翻转。首轮 docs-status 29/28 旧夹具失败保留原证据，本 follow-up 未重复或扩范围修它。
+
+## D1376 Engine Catalog 合同基线
+
+D 工位以 `e2442d8b3ec` 开工，范围为当前 Engine Catalog 旧表单、连接事件与 readonly hooks、能力键、工作根、对话框及回调断言类型；[短方案](../../plans/engine-catalog-test-contracts.md) 待独立只读审查。D 不编译/转译/watch/写 out；最终编译与行为结果由 merge 统一记录，当前不宣称清零。
