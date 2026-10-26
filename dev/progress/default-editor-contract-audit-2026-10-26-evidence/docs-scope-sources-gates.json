@@ -1,0 +1,37 @@
+{
+  "generate": {
+    "exit": 0,
+    "log": "docs-scope-sources-generate.log"
+  },
+  "generated-check": {
+    "exit": 0,
+    "log": "docs-scope-sources-generated-check.log"
+  },
+  "diff-check": {
+    "exit": 0,
+    "log": "docs-scope-sources-diff-check.log"
+  },
+  "newOrChangedMarkdownLinks": {
+    "paths": 23,
+    "newBrokenLinks": [],
+    "inheritedBrokenLinks": [
+      {
+        "path": "docs/product/requirements.md",
+        "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md"
+      }
+    ],
+    "allCurrentWarningFindingsEqualBase": true
+  },
+  "health": {
+    "exit": 0,
+    "errors": 0,
+    "warnings": 46,
+    "markdownChecked": 563,
+    "baselineWarnings": 46,
+    "warningDelta": 0,
+    "JOriginalEnvironmentWarnings": 73,
+    "J73NotUsedAsMergeBaseline": true
+  },
+  "statusLines": 167,
+  "noNewRuntimeRuns": true
+}

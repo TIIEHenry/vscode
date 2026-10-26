@@ -13,7 +13,8 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
-| [D1387 Sources 打开 before 与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md) | 两真实Git库、Preview no-op与Conversation具体组路由；C1–C6/实际Debugger五模块、Astra两轮裁定；正式方案待规则16，未修复after |
+| [D1385范围纠正与D1387方案纯文档集成](default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-integration.md) | 两ref真实三路、共享PRD与完整历史保留，源/out/原编译日志不变；D1387为当前产品执行队列，D1385停止原UI验收/open、D1386closed |
+| [D1387 Sources 打开 before 与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md) | 两真实Git库、Preview no-op与Conversation具体组路由；C1–C6/实际Debugger五模块、Astra两轮裁定；正式方案规则16已通过C0/I0，未修复after |
 | [D1386 只读箭头补修检查点](default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md) | 非作者after I1的既有合同CSS补修；四主题computed/bounds回归已写，等待旧CSS red/新CSS green与正式新CSS同窗after |
 | [D1386 叶级身份条](default-editor-contract-audit-2026-10-26-evidence/d1386-source-checkpoint.md) / [原运行](default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md) / [CSS后修](default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md) / [独立after](default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md) | 原11红/40+Lens8绿，CSS4红/完整44绿，非作者真实after C0/I0/M0；范围内implemented/closed，限制保留 |
 | [D1385 原运行](default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md) / [取消顺序后修](default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md) | 原5红/182绿、取消旧红/完整183绿；默认宿主前提已撤回，原UI验收未满足并停止，accepted/open；[范围裁定](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md) / [独立入口核验](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md) / [勘误只读审查](default-editor-contract-audit-2026-10-26-evidence/d1385-scope-erratum-peer.md) |

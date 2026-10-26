@@ -1,0 +1,583 @@
+{
+  "base": "d4725424a23f863d72d6b8015a86eb00dea0c2bc",
+  "capturedUtc": "2026-10-26T12:21:56.278260+00:00",
+  "inputs": {
+    "C": {
+      "ref": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "parents": "d4725424a23f863d72d6b8015a86eb00dea0c2bc",
+      "paths": [
+        "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+        "dev/plans/INDEX.md",
+        "dev/plans/copilot-chat-cold-voice-authorization.md",
+        "dev/progress/INDEX.md",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-scope-erratum-peer.md",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-cleanup-verification.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-final-gates.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-open-view-correction.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-probe.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/voice-dom-event-verification.md",
+        "dev/progress/deferred-gaps.md",
+        "dev/progress/status.md",
+        "docs/product/requirements.md",
+        "docs/systems/conversation/composer-and-inbox.md"
+      ]
+    },
+    "J": {
+      "ref": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "parents": "d4725424a23f863d72d6b8015a86eb00dea0c2bc",
+      "paths": [
+        "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+        "dev/plans/INDEX.md",
+        "dev/plans/sources-open-dispatch-and-conversation-target.md",
+        "dev/progress/INDEX.md",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-astra-design-decision.md",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before-shots/changes-alpha-retains-beta.png",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before-shots/conversation-empty-replace-fails.png",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before-shots/conversation-public-no-slot-beta.png",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before-shots/panel-alpha-positive.png",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before-shots/preview-alpha-noop.png",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before.md",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-fixture-before-after.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-owner-slot-before.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-owner-slot-cleanup.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-owner-slot-source-manifest.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-owner-slot-trace.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-owner-slot-wide-control.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-plan-peer-review.md",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preview-changes-before.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preview-resource-before.json",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preview-source-manifest.json",
+        "dev/progress/deferred-gaps.md",
+        "dev/progress/status.md",
+        "docs/product/requirements.md",
+        "docs/reference/code-oss-b2/diff-footprint.md",
+        "docs/systems/sources/INDEX.md",
+        "docs/systems/sources/overview.md",
+        "docs/systems/workbench/editor-part-tabs.md"
+      ]
+    }
+  },
+  "baselineOtherRootEntries": [
+    "040000 tree 9ac05a8910ae6cf2b0a2c78f4cccc86ffe8f9cb0\t.agents",
+    "040000 tree 71195ba7af6874c0de88204a44a96cbed35a92d9\t.config",
+    "040000 tree 1af830487e4a7d5ea7c57a909d31a64de19aa48f\t.cursor",
+    "040000 tree 034602581ad8ed0ba00dc97c4e6d37cad2c3ca46\t.devcontainer",
+    "100644 blob e7e99b5bcb5209057e262ff462c94a87800cc5f0\t.editorconfig",
+    "100644 blob 4ca6ff790efd738f18a9f12478ab74699d9be0ca\t.eslint-allowed-javascript-files",
+    "100644 blob e8720b8e9838fcc88a9f43765fe2c9f511e023b2\t.eslint-ignore",
+    "040000 tree 35fc0970a5b7ed2955353dba5fe88e7ff16a53b3\t.eslint-plugin-local",
+    "100644 blob 203e213b629a3f21cf13bc99f056800d94d69058\t.git-blame-ignore-revs",
+    "100644 blob f6263094d01a2de129ccec850512c503ef9e25ae\t.gitattributes",
+    "040000 tree b840c07ab17236eb311c8c29a5455a53e5c1c6de\t.github",
+    "100644 blob 79287d84fc20a2857808d796efa399fe7cedf2f1\t.gitignore",
+    "100644 blob b9fd35ce96bfb986ebe883df09642f9117ce7e64\t.gitmodules",
+    "040000 tree e5a36f927f0b48d4293a624f67ecf000d5072384\t.idea",
+    "100644 blob 5b992e89ca8b2b6be4d6d9acdd9dfb29caea0728\t.lsifrc.json",
+    "100644 blob 9c4139cbdd3d2b1547f1d11f8ad27598af823e09\t.mailmap",
+    "100644 blob ea1a170775a7c2778f2ff80e1232147cf62d911e\t.mention-bot",
+    "100644 blob da649877931abe0272a71cf37923800810a67a4c\t.npmrc",
+    "100644 blob ca5c350055ccb6dacb495a786f60c8232abed8f2\t.nvmrc",
+    "100644 blob 7cdb29fc7c639c93aa122419d1ac4985866208d5\t.vscode-test.js",
+    "040000 tree c459561ecbcbcfd482bdb35e2130168129e368a5\t.vscode",
+    "100644 blob 62c5e096e5f09ea96bd5000c5727df79962db7bd\tAGENTS.md",
+    "100644 blob aaabf35fa32e0754555b1d4249688ab1a653c78c\tCONTRIBUTING.md",
+    "100644 blob ca99d172935b66da0d304be3f4e6ffc0869dcb12\tCodeQL.yml",
+    "100644 blob 0ac28ee234d232ac0691f39cebf95bf6b2a763a5\tLICENSE.txt",
+    "100644 blob b7770cecdd10433d6e7f072a3e2adf2f41bbedc2\tREADME.md",
+    "100644 blob 656f79188d699a791511a7591ca22179d4f43c78\tSECURITY.md",
+    "100644 blob 4cdc10eda419f011c630c5fae48371a7102f6bad\tThirdPartyNotices.txt",
+    "040000 tree e74211fc473cf2ebbe2a2c25d95a8763290ce134\tbuild",
+    "100644 blob fab28867d222bd5cbeb3a7344f20d793fe6ce66e\tcglicenses.json",
+    "100644 blob 50d7db088bac2757ec7aebd0a512cad26a5b94aa\tcgmanifest.json",
+    "040000 tree 7a0b6b42c25c234fb2419d285caf271f1c86a65e\tcli",
+    "100644 blob 502a24491e6165499a106d1152349217bec82fc4\teslint.config.js",
+    "040000 tree b6681413816f58bed1296d23da9d5f6e5d5c987a\textensions",
+    "100644 blob 5acdbee578a2e7170207951030f36d9e7a1327bc\tgulpfile.mjs",
+    "100644 blob 87dd10c0eebac1f31607b6f4a847563a444113c8\tpackage-lock.json",
+    "100644 blob 8df6d3476edb5e2ea51f8e9088375af2827ff090\tpackage.json",
+    "100644 blob c04a22768204ad2db1b3be60af74007c73aae8bd\tproduct.json",
+    "040000 tree b5d8646caae2cf27e5ab17400b90e72f24c15405\tremote",
+    "040000 tree 6fb0365387e582e0baa220667815a2376285d80b\tresources",
+    "040000 tree 1c77490ffda9f183d8f226e9ac71cb06745cfaa8\tscreenshots",
+    "040000 tree 8eb7b86f98689e58e7dd5ae5266cff880a7c15e4\tscripts",
+    "040000 tree 4173904de91b61a95d2404a4900afa2960e56c9f\tsrc",
+    "040000 tree 4d19847169c58cbe9490ff831d72bd4b102382ba\ttest",
+    "100644 blob 741eb1e55278c59f948d49bc1ac4ef390f5fb32b\ttsfmt.json"
+  ],
+  "outputsBefore": [
+    {
+      "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js",
+      "sha256": "8668ea87d321488bbdec3e4b193ad6984d914a3b9b9bd139e4ebf213c13633bc",
+      "bytes": 55908,
+      "mtimeNs": 1793014644179437542
+    },
+    {
+      "path": "out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js",
+      "sha256": "73c412eaab24e644f9dbfeb82eac156708329c44c675f79145a04c21c674d731",
+      "bytes": 433580,
+      "mtimeNs": 1793014603505489340
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css",
+      "sha256": "dee625a2a7c5a5ebbc10020c236f73409b927fb5939f9a3a8f262b8dcd0b8083",
+      "bytes": 5671,
+      "mtimeNs": 1793014470987992787
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js",
+      "sha256": "9b6366eaf149c4956b0c025485712c3d9713a8e208d29d5665142218cf7d3834",
+      "bytes": 126172,
+      "mtimeNs": 1793014443084598861
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js",
+      "sha256": "bf004fbac0305c9cb9aaa06dd08f16dac14f2f4816aed19ced22eb0ad3dd892d",
+      "bytes": 97907,
+      "mtimeNs": 1793012588099017700
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+      "sha256": "b9894ce411e486a72923b1e27406fb3f3940695523a46110abcab0f8aba9fa08",
+      "bytes": 91573,
+      "mtimeNs": 1793012588117019220
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+      "sha256": "a0dda7894e377fe0944af36dbfbe294014ab453a5f92c7e2715340e3e7725bb3",
+      "bytes": 41891,
+      "mtimeNs": 1793012588148021838
+    },
+    {
+      "path": "out/vs/workbench/contrib/chat/browser/voiceClient/voiceSessionController.js",
+      "sha256": "691dfab95e8346717b3a06eb810c2a5640f02e0a388f493a04138c3766902645",
+      "bytes": 929754,
+      "mtimeNs": 1793012588713069553
+    }
+  ],
+  "baselineHealthExit": 0,
+  "baselineHealthLogSha256": "a38fd8d2690584619356d8e4643d51e11fcf7cded6c9beb4994c2665e89b28e5",
+  "integrationHeadBeforeMetadata": "6ecd5cf6f2809cadbd151dbb95c2877a74f61124",
+  "merges": {
+    "C": "d17d01c3284016cb8f134cc0e2a204c608bc9e5e",
+    "J": "6ecd5cf6f2809cadbd151dbb95c2877a74f61124"
+  },
+  "verifiedUtc": "2026-10-26T12:26:44.416876+00:00",
+  "allOtherRootEntriesEqualBase": true,
+  "outputsAfter": [
+    {
+      "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js",
+      "sha256": "8668ea87d321488bbdec3e4b193ad6984d914a3b9b9bd139e4ebf213c13633bc",
+      "bytes": 55908,
+      "mtimeNs": 1793014644179437542,
+      "unchangedFromBefore": true
+    },
+    {
+      "path": "out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js",
+      "sha256": "73c412eaab24e644f9dbfeb82eac156708329c44c675f79145a04c21c674d731",
+      "bytes": 433580,
+      "mtimeNs": 1793014603505489340,
+      "unchangedFromBefore": true
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/media/conversationIdentityStrip.css",
+      "sha256": "dee625a2a7c5a5ebbc10020c236f73409b927fb5939f9a3a8f262b8dcd0b8083",
+      "bytes": 5671,
+      "mtimeNs": 1793014470987992787,
+      "unchangedFromBefore": true
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js",
+      "sha256": "9b6366eaf149c4956b0c025485712c3d9713a8e208d29d5665142218cf7d3834",
+      "bytes": 126172,
+      "mtimeNs": 1793014443084598861,
+      "unchangedFromBefore": true
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js",
+      "sha256": "bf004fbac0305c9cb9aaa06dd08f16dac14f2f4816aed19ced22eb0ad3dd892d",
+      "bytes": 97907,
+      "mtimeNs": 1793012588099017700,
+      "unchangedFromBefore": true
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+      "sha256": "b9894ce411e486a72923b1e27406fb3f3940695523a46110abcab0f8aba9fa08",
+      "bytes": 91573,
+      "mtimeNs": 1793012588117019220,
+      "unchangedFromBefore": true
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+      "sha256": "a0dda7894e377fe0944af36dbfbe294014ab453a5f92c7e2715340e3e7725bb3",
+      "bytes": 41891,
+      "mtimeNs": 1793012588148021838,
+      "unchangedFromBefore": true
+    },
+    {
+      "path": "out/vs/workbench/contrib/chat/browser/voiceClient/voiceSessionController.js",
+      "sha256": "691dfab95e8346717b3a06eb810c2a5640f02e0a388f493a04138c3766902645",
+      "bytes": 929754,
+      "mtimeNs": 1793012588713069553,
+      "unchangedFromBefore": true
+    }
+  ],
+  "plans": {
+    "C": {
+      "path": "dev/plans/copilot-chat-cold-voice-authorization.md",
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sha256": "8b52fa2d1622093184c99afe011739d10b2a22e810deb8a10400b441c8e13ffc",
+      "byteEqual": true
+    },
+    "J": {
+      "path": "dev/plans/sources-open-dispatch-and-conversation-target.md",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "c9092dfc3e9611fa3103578897c83b2c80b65347b4ca0e4308ccf07b3d487640",
+      "byteEqual": true
+    }
+  },
+  "sharedRequirements": {
+    "PRD-005": {
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sectionSha256": "79d1a2f27ce0a6a6a33b8af7e50bd64dead40854389b56cced0aef82b6f2908b",
+      "byteEqual": true
+    },
+    "PRD-009": {
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sectionSha256": "ab742b32143411703c90f1f5f7fcf2e0cff39cc464eb20bdac0de0dc2b33e05f",
+      "byteEqual": true
+    },
+    "PRD-015": {
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sectionSha256": "25af9a10b7311777596afe1f0899b69fc41aef6c788ab7efc062d9534c569f41",
+      "byteEqual": true
+    }
+  },
+  "m5AndD1386PlanByteEqualBase": true,
+  "D1386HistoricalPathsByteEqualBase": [
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-d1386-followup-snapshot.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-after-artifacts.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-after-cleanup.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-after-loaded-final.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-after-observations-compact-final.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-after-observations-css-after.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-after-observations.json.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-after-style-refresh.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-after-styles-after.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-css-refresh.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-green-full-run.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-green-full.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-green-full.raw.log.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-green-run.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-green.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-green.raw.log.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-red-run.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-red.raw.log.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-stylelint-compare.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-stylelint-new.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-stylelint-old.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-test-refresh.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-green-full-run.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-green-full.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-green-full.raw.log.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-green-lens-run.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-green-lens.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-green-lens.raw.log.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-green-new-run.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-green-new.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-green-new.raw.log.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-prod-refresh.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-red-run.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-red.raw.log.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-source-checkpoint.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-test-refresh.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md"
+  ],
+  "authorEvidenceBytesPreserved": [
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md",
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sha256": "4ded6db0b960872daf58170de6dc81b0b219069e31aea2f953e2a33301e16f0a",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md",
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sha256": "dd1e37ac27d5a8dfcb0d5c080bbb3f82e6f61052ca5e130f2bd1c37751fd7ca6",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md",
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sha256": "d804c7263bb49b62af5d61fa3c200f586777acb0c1b03c62327d0d1e6612a3dd",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-scope-erratum-peer.md",
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sha256": "3c292646fbccfbce4ee0fdd073ed564c2f1c9c2c00504e55a3acc90c59269fcc",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-cleanup-verification.json",
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sha256": "6d91b3ec14b03568cfd5deafabb177b78a0a181eca0774088c9bcb139056d445",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-final-gates.json",
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sha256": "81a8d67aeffdad73e253652b4e534c7fe12e6cc01594b765581b0981ef73f769",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-open-view-correction.json",
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sha256": "69412f6a11c04a783f18ce887945d93f3cf77bd2c347cc10f9b0274edba0dba9",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-probe.json",
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sha256": "992ebc96e51a8a553953c6ea98ad829b088e356ce5a192d7357ef45c83095722",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md",
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sha256": "75a8cd7f0a7b7033005e832c896877a9f291ad9c3d9db89c4b94337129b7e41b",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/voice-dom-event-verification.md",
+      "authorRef": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "sha256": "427d5421624cb3ba39d7aac8a1c0c744d5787154be97ced20af155cccea079be",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-astra-design-decision.md",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "766c8b81304341b132cfcd22815b9e9b8ca6eef35b6a0155c7832bec78060017",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before-shots/changes-alpha-retains-beta.png",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "a6e6337b3cad339e0cf49cc9890334677356cd8807a303477b4fa3109f88d1f9",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before-shots/conversation-empty-replace-fails.png",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "90c3d1cf7296d7abe5e7b6b22b9e49817ed5737934ea69bacc1aa7ef7a7f7c4d",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before-shots/conversation-public-no-slot-beta.png",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "4dc3b6f24553987340070c18a57fe6eba0dcde9d27132a244d06aa0e7696a686",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before-shots/panel-alpha-positive.png",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "f927bbca55f42edb97cfdd4a07e9b308472b0f1560c7e40c88610e720b40c2ca",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before-shots/preview-alpha-noop.png",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "f414d61d7b2a55844753eecf4ba39c6d66cacba109c4aed61077a8328e36d3ad",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-fixture-before-after.json",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "5f264400a5d79c4d5301b69b4e4e89157e47eeeff77f9566755fae32a4e12249",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-owner-slot-before.json",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "b258e9b891cdaaf8c7f580e5a25de355f7984ba2a1e7786921031c340490c0a7",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-owner-slot-cleanup.json",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "deede3e746b4e409b45154aaf2ed00e0796ed7739c55f6a345113dbee90be4ce",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-owner-slot-source-manifest.json",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "70b3b986f8f45029f04ac379ca9423d03eb9b87a8d135e13b81563496289e4af",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-owner-slot-trace.json",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "f738d87255c9c437ebc33c0ca584c959caa8076de7e549fffde5f5ea8a58934f",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-owner-slot-wide-control.json",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "5a3ce62617a3e37f1d0274e40280b21237909fb2e65d900d509946e280da580a",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-plan-peer-review.md",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "c869a58eb162b7cac585247ec02fdc60c7a59c65b0fb60230cdb8194f8b177d5",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preview-changes-before.json",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "07c6334ac70f26ec309e9849f726e5dce175f9b6ef89aa61aa14853918c8f380",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preview-resource-before.json",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "e4f3d6583d87785a4bdc59697560d103ef6e6c6837af7a3b5ec8dd58e4f98530",
+      "byteEqual": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preview-source-manifest.json",
+      "authorRef": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "sha256": "f0370dea6e30275843965e5190d88a1b76cfec0499e555198f557962eda6a168",
+      "byteEqual": true
+    }
+  ],
+  "priorFullCompileLogs": [
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-d1386-compile-client.log",
+      "sha256": "59b0b4d43c275048e00b47c5c32300bed4fedc47f4ef32e328bdc462a65149f2",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1384-compile-client.log",
+      "sha256": "4be48bb97b23e319fb7ae7d8b22bf5b1ae2fdd15baf6be314b8c09f1fbd0f25c",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/policy-visual-compile-client.log",
+      "sha256": "3940450cfcca15e286aa29da6f51f930d0e44c4a464de613c1f17c66cee1d03d",
+      "unchanged": true
+    }
+  ],
+  "newRuntimeRuns": [],
+  "newCompileTypecheckTranspileOutWrites": false,
+  "lastFullCompile": {
+    "source": "6f82fe5b05210fd72852abc5df729a70b68b4401",
+    "exit": 1,
+    "diagnostics": 45,
+    "files": 27
+  },
+  "priorFollowupOnly": {
+    "targetTs": 3,
+    "noEmitDiagnostics": 0,
+    "testRuns": "183/44 are prior evidence, not rerun"
+  },
+  "states": {
+    "D1385": "accepted/open; original UI prerequisite invalid, acceptance stopped, removed from active product queue",
+    "D1386": "implemented/closed, actual scoped after retained",
+    "D1387": "accepted/open; current product queue, source/red-green/after pending"
+  },
+  "mergeQa": {
+    "initialImportant": "Conflict script truncated three ledger tails; fixed using complete immutable C blobs plus J unique new rows before final metadata.",
+    "finalCritical": 0,
+    "finalImportant": 0,
+    "independentReviewer": "/root/finalize_review_checkpoint/docs_merge_review",
+    "exactCBlobPlusJLineChecksBeforeMetadata": {
+      "deferredLines": 1339,
+      "statusLines": 166,
+      "parallelLines": 107
+    }
+  },
+  "ledgerIntegrityProof": [
+    {
+      "path": "dev/progress/deferred-gaps.md",
+      "Cref": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "CblobSha256": "c58c1761b11e477916a7e2e01e67650e1a5aff1cc5d125d5ada2f8541f8e9dbd",
+      "CblobLines": 1338,
+      "Jref": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "Jaddition": "| D1387 | P2 | Sources真实Git默认Preview漏API open/diff DTO，no-op却标Review；Conversation准确具体组在空组/newTab/reveal被finder改投主组拒绝。 | 两库真实before与C1–C6公共正负对照、Debugger组9/10→main0及五模块embedded源一致；无slot/typed replace/Panel通过不是修复after。 | [方案](../plans/sources-open-dispatch-and-conversation-target.md) accepted，规则16 C0/I0；源码实施待做；[before与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md)。三owner/slot/void边界，修复/旧红新绿/非作者after均未执行，不提前关。 | Sources open / editor routing | open |\n",
+      "JadditionSha256": "0acd8e5e08baebd99770b28528fcbc821978d5d932fb5676b68cb1a0d8a92cbd",
+      "intermediateBadTree": "6ecd5cf6f2809cadbd151dbb95c2877a74f61124",
+      "intermediateBadLines": 22,
+      "intermediateBadSha256": "6182e66fea88b509d51f6fcc639b85ae129caf19e477291b4d0e9a8e06213dfd",
+      "reconstructedFullSha256": "55bce0b5b3257015f04cf5d010cba3ec2906fe27a170b860d72599832502634d",
+      "reconstructedFullLines": 1339,
+      "removeJAdditionByteEqualC": true,
+      "finalSha256": "55bce0b5b3257015f04cf5d010cba3ec2906fe27a170b860d72599832502634d",
+      "finalLines": 1339,
+      "onlyDocumentedMetadataBeyondReconstruction": [],
+      "fullExpectedFinalByteEqual": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "Cref": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "CblobSha256": "566abe832d6bf1a25b5cbc83c7a87d287495e3288702e7766428eb7e947fcbb5",
+      "CblobLines": 165,
+      "Jref": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "Jaddition": "- **D1387 正式方案编写（2026-10-26，J）**：从clean4fb仅ff已验证基线d472，真实Git审计已证Preview漏API open/diff DTO与Conversation具体组路由两独立机制。PRD005/009事实、Sources/编辑器SSOT与[方案](../plans/sources-open-dispatch-and-conversation-target.md)已写，已过独立规则16 C0/I0，stale/status代次文案I1已改入并复读；[before/五模块加载身份/两轮Astra裁定](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md)入库。未实施/未编译/typecheck/transpile/out/运行测试，方案accepted、缺口open；既有D1385/1386与全量记录不改。\n",
+      "JadditionSha256": "eef2b29b71a8b2a1945eb1edb71013c9b59938ff101cdbf2a85c92ae83f17d78",
+      "intermediateBadTree": "6ecd5cf6f2809cadbd151dbb95c2877a74f61124",
+      "intermediateBadLines": 16,
+      "intermediateBadSha256": "d3082a9e07ecf0e0470bc42f5663c780b0870824f6080619fb610d8d3d21e810",
+      "reconstructedFullSha256": "a2d40fce762f939288b496971b1e7bc88db2ca6815def6e5e2f6ac87a39cf6d3",
+      "reconstructedFullLines": 166,
+      "removeJAdditionByteEqualC": true,
+      "finalSha256": "20f852ef79fad156f88e9ee4d75578b410f8ac03ca7c26cc06fabd03fc4bd2fa",
+      "finalLines": 167,
+      "onlyDocumentedMetadataBeyondReconstruction": [
+        {
+          "kind": "summary",
+          "old": "summary: \"D1386范围内闭合；D1385共享兼容183绿保留，默认产品宿主前提失效，原UI验收未满足并停止，accepted/open且移出当前产品执行队列；本轮仅文档纠正。\"",
+          "new": "summary: \"纯文档合入D1385范围纠正与D1387 accepted方案；当前产品执行队列仅D1387，D1385前提失效停止原UI验收并保持open，D1386closed；源码/out未改，无新运行。\""
+        },
+        {
+          "kind": "currentSessionAddition",
+          "text": "- **纯文档集成检查点（2026-10-26）**：C4ed462→d17d01、J133ef4→6ecd5c真三路合入，保留PRD005/009与015各自条款及两plan原文。当前产品执行队列仅D1387（accepted/open，待源码与红绿/非作者after），D1385原UI前提失效、停止并退出队列但仍accepted/open；D1386已closed。源码/配置等根树与d472一致，现有产物hash/mtime复核不变；本轮未编译/typecheck/transpile/out或复跑183/44。末次全量仍source6f82的45/27、exit1，后修仅3TS0。[集成证据](default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-integration.md)。\n"
+        }
+      ],
+      "fullExpectedFinalByteEqual": true
+    },
+    {
+      "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "Cref": "4ed46252e41a87b9ca4cc8c436f14fa4069cc8dd",
+      "CblobSha256": "c867b92d9b2a088f435be4ec80252f4032292ac23fc121ab079820ff05d832c4",
+      "CblobLines": 106,
+      "Jref": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+      "Jaddition": "| J / review_sources_real_git_audit（作者） | D1387：Sources三owner/slot打开合同，两独立机制 | 已从4fb ff d472；真Git/C1–C6 before与Astra最终落点已到，正式plan accepted、规则16 C0/I0且I1改入；单独方案commit后实施，未改生产/编译/out/测试 |\n",
+      "JadditionSha256": "4c1036fd9c4d955578fbffde10e7cc7e88f09909a41b44c8c3491debf423184d",
+      "intermediateBadTree": "6ecd5cf6f2809cadbd151dbb95c2877a74f61124",
+      "intermediateBadLines": 36,
+      "intermediateBadSha256": "eba5082b79afa85c0de7f416a540db700976dbf14c57ecb9b39c22a7d46c9ff1",
+      "reconstructedFullSha256": "f34569cc4f78159f6be10ebd46b33e60afe93d74de26b109c75888f7a888ee1f",
+      "reconstructedFullLines": 107,
+      "removeJAdditionByteEqualC": true,
+      "finalSha256": "a17ba187707027547da1ce5f3a63aa48cc02a6e078d009de8fc098b4324bab67",
+      "finalLines": 110,
+      "onlyDocumentedMetadataBeyondReconstruction": [
+        {
+          "kind": "currentScopeAddition",
+          "text": "\n\n> 当前产品执行队列仅D1387（accepted/open，待唯一merge接正式源码）；D1385默认宿主前提失效、原UI验收停止且退出队列，保留accepted/open与183兼容证据；D1386已closed。此检查点纯文档，源/out不变，无新运行。\n"
+        }
+      ],
+      "fullExpectedFinalByteEqual": true
+    }
+  ]
+}

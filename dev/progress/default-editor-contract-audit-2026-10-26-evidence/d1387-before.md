@@ -9,6 +9,8 @@ summary: "两本地真Git库证Preview漏DTO，C1–C6及五实际模块证Conve
 
 # D1387 before 与设计来源
 
+> 当前集成说明（2026-10-26）：正式方案已独立规则16复读通过C0/I0、标accepted；下文“仍须规则16”保留为审前记录。源码实现、红绿与非作者新产物after尚未交付，本报告仍只作before。
+
 这是修复前取证，不是实现后的验证。正式方案见 [Sources 打开分派与准确 Conversation 目标](../../plans/sources-open-dispatch-and-conversation-target.md)；[Astra 两轮裁定原文](d1387-astra-design-decision.md)已入库，正式稿仍须规则16。D1387 open，不升 PRD，不倒灌已闭 D1382/D1386。
 
 ## 已执行事实
