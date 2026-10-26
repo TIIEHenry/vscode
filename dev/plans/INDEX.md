@@ -296,5 +296,6 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [方案 r15：copilot](review-2026-10-24-r15-copilot-plan.md) | `implemented` | hold 5。Cloud 仓库与基线、未知文件权限、补丁 requestId 与笔记本取消已修。105 passing。 |
 | [审查 r16：extensions-entry](review-2026-10-24-r16-extensions-entry.md) | `draft` | 3 条；回环登录 nonce 失败、无账户会话核对失败、Git IPC 注销删错键。 |
 | [方案 r16：extensions-entry](review-2026-10-24-r16-extensions-entry-plan.md) | `implemented` | hold 3 已实施。nonce 失败拒绝登录 Promise；身份核对失败不交出会话且只删明确 401，网络失败保留钥匙串；IPC 注销删除注册键。`github-authentication` 67 passing，`git` 76 passing。 |
+| [终端命令投递与沙箱安装的送达合同](terminal-delivery-contracts.md) | `accepted` | D1377：命令投递 void 边界、三策略与安装/修复 boolean 合同；行为待 merge 验证。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。
