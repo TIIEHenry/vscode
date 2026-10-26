@@ -1,0 +1,288 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[4187248:1026/164011.104651:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:4187265) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `exe --trace-warnings ...` to show where the warning was created)
+(node:4187265) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(node:4187265) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:4187265) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+(node:4187212) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `universe-agent-studio --trace-warnings ...` to show where the warning was created)
+[0m[0m
+[0m  ConversationReviewNavService[0m
+  [31m  1) notifies bound non-active sessions when their workDir changes[0m
+  [31m  2) notifies bound sessions when workspace folders add[0m
+  [31m  3) notifies a non-active bound session when SCM repositories add[0m
+  [31m  4) notifies bound sessions when workspace folders remove[0m
+  [31m  5) notifies a non-active bound session when SCM repositories remove[0m
+  [32m  [32m✔[39m[0m[90m connection notifications expose committed roots with direct Context and active binding[0m
+  [32m  [32m✔[39m[0m[90m connection notifications expose committed roots with direct Context and non-active binding[0m
+  [31m  6) connection notifications expose committed roots with delayed DI and active binding[0m
+  [31m  7) connection notifications expose committed roots with delayed DI and non-active binding[0m
+  [32m  [32m✔[39m[0m[90m dispose releases session, workspace and SCM invalidation subscriptions[0m
+
+
+[92m [0m[32m 3 passing[0m[90m (14ms)[0m
+[31m  7 failing[0m
+
+[0m  1) ConversationReviewNavService
+       notifies bound non-active sessions when their workDir changes:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "active": "active-other"
+      [31m-  "seen": [][0m
+      [32m+  "seen": [[0m
+      [32m+    [[0m
+      [32m+      [[0m
+      [32m+        "file:///home/test/other/src/a.ts"[0m
+      [32m+      ][0m
+      [32m+    ][0m
+      [32m+  ][0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [39m    active: 'active-other',
+  [32m+[39m   seen: []
+  [31m-[39m   seen: [
+  [31m-[39m     [
+  [31m-[39m       [
+  [31m-[39m         'file:///home/test/other/src/a.ts'
+  [31m-[39m       ]
+  [31m-[39m     ]
+  [31m-[39m   ]
+  [39m  }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.js:61:12)
+[0m
+[0m  2) ConversationReviewNavService
+       notifies bound sessions when workspace folders add:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "before": []
+      [31m-  "seen": [][0m
+      [32m+  "seen": [[0m
+      [32m+    [[0m
+      [32m+      [[0m
+      [32m+        "file:///home/test/project/src/a.ts"[0m
+      [32m+      ][0m
+      [32m+    ][0m
+      [32m+  ][0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [39m    before: [],
+  [32m+[39m   seen: []
+  [31m-[39m   seen: [
+  [31m-[39m     [
+  [31m-[39m       [
+  [31m-[39m         'file:///home/test/project/src/a.ts'
+  [31m-[39m       ]
+  [31m-[39m     ]
+  [31m-[39m   ]
+  [39m  }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.js:77:14)
+[0m
+[0m  3) ConversationReviewNavService
+       notifies a non-active bound session when SCM repositories add:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+           [
+             "sources-git-unrooted:/src/a.ts"
+           ]
+         ]
+      [31m-  "seen": [][0m
+      [32m+  "seen": [[0m
+      [32m+    [[0m
+      [32m+      [[0m
+      [32m+        "file:///home/test/other/src/a.ts"[0m
+      [32m+      ][0m
+      [32m+    ][0m
+      [32m+  ][0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [39m    active: 'session-1',
+  [39m    before: [
+  [39m      [
+  [39m        'sources-git-unrooted:/src/a.ts'
+  [39m      ]
+  [39m    ],
+  [32m+[39m   seen: []
+  [31m-[39m   seen: [
+  [31m-[39m     [
+  [31m-[39m       [
+  [31m-[39m         'file:///home/test/other/src/a.ts'
+  [31m-[39m       ]
+  [31m-[39m     ]
+  [31m-[39m   ]
+  [39m  }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.js:93:14)
+[0m
+[0m  4) ConversationReviewNavService
+       notifies bound sessions when workspace folders remove:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+           [
+             "file:///home/test/project/src/a.ts"
+           ]
+         ]
+      [31m-  "seen": [][0m
+      [32m+  "seen": [[0m
+      [32m+    [][0m
+      [32m+  ][0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [39m    before: [
+  [39m      [
+  [39m        'file:///home/test/project/src/a.ts'
+  [39m      ]
+  [39m    ],
+  [32m+[39m   seen: []
+  [31m-[39m   seen: [
+  [31m-[39m     []
+  [31m-[39m   ]
+  [39m  }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.js:77:14)
+[0m
+[0m  5) ConversationReviewNavService
+       notifies a non-active bound session when SCM repositories remove:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+           [
+             "file:///home/test/other/src/a.ts"
+           ]
+         ]
+      [31m-  "seen": [][0m
+      [32m+  "seen": [[0m
+      [32m+    [[0m
+      [32m+      [[0m
+      [32m+        "sources-git-unrooted:/src/a.ts"[0m
+      [32m+      ][0m
+      [32m+    ][0m
+      [32m+  ][0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+
+  [39m  {
+  [39m    active: 'session-1',
+  [39m    before: [
+  [39m      [
+  [39m        'file:///home/test/other/src/a.ts'
+  [39m      ]
+  [39m    ],
+  [32m+[39m   seen: []
+  [31m-[39m   seen: [
+  [31m-[39m     [
+  [31m-[39m       [
+  [31m-[39m         'sources-git-unrooted:/src/a.ts'
+  [31m-[39m       ]
+  [31m-[39m     ]
+  [31m-[39m   ]
+  [39m  }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.js:93:14)
+[0m
+[0m  6) ConversationReviewNavService
+       connection notifications expose committed roots with delayed DI and active binding:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+         ]
+         "seen": [
+           [
+             [
+      [31m-        "file:///home/test/project/src/a.ts"[0m
+      [32m+        "file:///home/test/other/src/a.ts"[0m
+             ]
+           ]
+         ]
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+  ... Skipped lines
+
+  [39m  {
+  [39m    before: [
+  [39m      [
+  [39m        'file:///home/test/project/src/a.ts'
+  [39m      ]
+  [34m...[39m
+  [39m        [
+  [32m+[39m         'file:///home/test/project/src/a.ts'
+  [31m-[39m         'file:///home/test/other/src/a.ts'
+  [39m        ]
+  [39m      ]
+  [39m    ]
+  [39m  }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.js:110:16)
+[0m
+[0m  7) ConversationReviewNavService
+       connection notifications expose committed roots with delayed DI and non-active binding:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+         ]
+         "seen": [
+           [
+             [
+      [31m-        "file:///home/test/project/src/a.ts"[0m
+      [32m+        "file:///home/test/other/src/a.ts"[0m
+             ]
+           ]
+         ]
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  [32m+ actual[39m [31m- expected[39m
+  ... Skipped lines
+
+  [39m  {
+  [39m    before: [
+  [39m      [
+  [39m        'file:///home/test/project/src/a.ts'
+  [39m      ]
+  [34m...[39m
+  [39m        [
+  [32m+[39m         'file:///home/test/project/src/a.ts'
+  [31m-[39m         'file:///home/test/other/src/a.ts'
+  [39m        ]
+  [39m      ]
+  [39m    ]
+  [39m  }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.js:110:16)
+[0m

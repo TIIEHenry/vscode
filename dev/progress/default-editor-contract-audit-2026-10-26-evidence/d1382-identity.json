@@ -1,0 +1,25 @@
+{
+  "esbuildVersion": "0.27.2",
+  "options": {
+    "loader": "ts",
+    "format": "esm",
+    "target": "es2024",
+    "sourcemap": "inline",
+    "sourcesContent": false,
+    "tsconfigRaw": "{\"compilerOptions\":{\"experimentalDecorators\":true,\"useDefineForClassFields\":false}}"
+  },
+  "baselineRev": "4963799b1e95101cc267615cb01b4ebee6939c70",
+  "baselineSourceSha256": "a0d7aa95c545e587fe80abaa6c937ba09c1d10aa22a971a3492968c26118f3b3",
+  "currentSourceSha256": "8fb2ac3053f844f0458c9b3c9213602300de8fd12a048c2c5d6ceb5766aab4dd",
+  "currentSourceEqualsBaseline": false,
+  "currentSourceMtime": "2026-10-26T08:35:00.055Z",
+  "existingOutSha256": "8fa8fbd8f1f8135065c75bff117f87771733d52f9a4da133bfcfd61e81c0a361",
+  "existingOutMtime": "2026-10-26T04:06:46.113Z",
+  "existingOutBytes": 16360,
+  "transpiledBytes": 8748,
+  "bodyMatch": true,
+  "existingBodySha256": "7366bfc47b5159e4a3db7f3bab07e11d04a4433aaa543bcdfe1be4994247b8ce",
+  "transpiledBodySha256": "7366bfc47b5159e4a3db7f3bab07e11d04a4433aaa543bcdfe1be4994247b8ce",
+  "fullFileShaEqual": false,
+  "firstDiff": null
+}

@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: N/A
 updated: 2026-10-26
-summary: "D1382：ReviewNav 保留单一工作根解析与现有归因规则，补齐会话、工作区及 SCM 变更的投影失效通知；必需 DI 与正式测试替身一并收口。运行及默认编辑器界面验证交 merge 串行执行。"
+summary: "D1382：ReviewNav 随会话、工作区及 SCM 变化失效。merge 自动回归已完成，方案仍 accepted；默认编辑器实拍未做，不闭合。"
 ---
 
 # Conversation 审阅导航随工作根刷新
@@ -15,7 +15,7 @@ summary: "D1382：ReviewNav 保留单一工作根解析与现有归因规则，�
 
 `ConversationReviewNavService` 是 delayed singleton。默认 `ConversationLens` 构造时订阅其 `onDidChange`，回调通过 `applySessionViewTimeline(..., { sidecarOnly: true })` 重算已绑定会话的审阅行。服务 getter 每次读 `IAgentSessionContext.getWorkRoot`，但现有通知只有 mutation、settle、活动会话和连接变化。
 
-`AgentSessionContext.getWorkRoot` 即时读 roster、workspace 与 SCM 根；`onDidChangeSession`、工作区目录变化和仓库增减都能改变结果。透镜自己的 roster session 通知只刷新标题、Inbox、门闩及轨迹，不重算 Conversation 的审阅 sidecar；工作区与 SCM 通知也没有上层重建透镜。因此静止的活动叶或非活动并列叶会保留旧审阅路径或旧行，直到另一次无关通知发生。这里是源码可达链分析，运行 red 仍待 merge 验证。
+`AgentSessionContext.getWorkRoot` 即时读 roster、workspace 与 SCM 根；`onDidChangeSession`、工作区目录变化和仓库增减都能改变结果。透镜自己的 roster session 通知只刷新标题、Inbox、门闩及轨迹，不重算 Conversation 的审阅 sidecar；工作区与 SCM 通知也没有上层重建透镜。因此静止的活动叶或非活动并列叶会保留旧审阅路径或旧行，直到另一次无关通知发生。这是合入前的源码可达链。merge 随后对旧生产得到 7 项路径断言失败，刷新生产后通过，见[自动证据](../progress/default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)。
 
 原 [compile 日志](../progress/ui-visual-review-2026-10-26-evidence/policy-visual-compile-client.log) 中本域还有 18 条当前静态诊断；本稿只覆盖 ReviewNav 的可选 DI 参数、ReviewNav/ReviewEntry 工作根替身及 AgentSessionContext 的两个 WorkspaceFolder 替身。其余 ComposerPicker、Lens switchModel、SessionSplit API 漂移留给各自内聚合同，不由类型错误推断运行故障。
 
@@ -61,3 +61,5 @@ C 工位只做静态 diff、ESLint 与文档检查，禁止编译、transpile、
 ## 实施记录
 
 2026-10-26 C 已按上文写入生产 `conversationReviewNavService.ts`、正式替身 `conversationReviewNavTestHarness.ts`，以及 ReviewNav、ReviewEntry、AgentSessionContext 三套直接测试。delayed 回归先 `createInstance(ConversationReviewNavService)`，再对 Context 做一次非事件读取：ReviewNav 若未在连接订阅前解析 `getWorkRoot`，Context 的连接监听会排在后面，回调仍读到旧根。方案保持 `accepted`，D1382 保持 open。本工位未编译、未跑测试、未做默认编辑器实拍。
+
+2026-10-26 merge 将 `37aa2956b77` 三路合入 `b5f69d4`。旧生产正文对齐 `4963799b1e95` 后，新行为为 3 passing / 7 failing；只刷新生产后三套直接测试加相邻审阅挂载共 37 passing。五份改动 TS 在未改的 `src/tsconfig` 上定向语义 0。J 的静态 after 为 Critical 0 / Important 0。默认编辑器实拍仍未做，方案不升 `implemented`，D1382 不闭合。全量 compile-client 未跑。

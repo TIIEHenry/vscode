@@ -1,0 +1,17 @@
+{
+  "kind": "production-only",
+  "esbuildVersion": "0.27.2",
+  "previousProductionSha256": "8fa8fbd8f1f8135065c75bff117f87771733d52f9a4da133bfcfd61e81c0a361",
+  "productionSourceSha256": "8fb2ac3053f844f0458c9b3c9213602300de8fd12a048c2c5d6ceb5766aab4dd",
+  "productionSourceMtime": "2026-10-26T08:35:00.055Z",
+  "productionOutputSha256": "27704b8313bfffc6e03a373f02b4cdf46289b25bc7a56cfbb7ab046840270701",
+  "productionOutputMtime": "2026-10-26T08:41:10.798Z",
+  "productionOutputBytes": 9560,
+  "productionBodySha256": "14942b9c1ccaaa3d059963b14afd17a996376f9f6405b82c7b839ec5fbb5fe5a",
+  "testOutputsUnchanged": {
+    "out/vs/workbench/contrib/conversation/browser/agentSessionContext.test.js": "f8995be73dfe85ca23ff0ed89e72af76ae9e834a7b4b5827112b26094bec468d",
+    "out/vs/workbench/contrib/conversation/test/browser/conversationReviewEntry.test.js": "f7529cb1d4596c93aa351ad80e61f703f72a67b4925bf951175e480d0f9efba4",
+    "out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.js": "5381a57d753a026d1ee1044471cdd68f4a5b5bc0d4ef2983003c66ecccdbb581",
+    "out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavTestHarness.js": "b3ced651370b8e809e115b6126a76a2690a378c5af2daa24830e912bc9ea0945"
+  }
+}

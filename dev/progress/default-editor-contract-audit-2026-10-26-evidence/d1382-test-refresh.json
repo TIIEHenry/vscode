@@ -1,0 +1,60 @@
+{
+  "kind": "test-only",
+  "esbuildVersion": "0.27.2",
+  "productionUnchangedSha256": "8fa8fbd8f1f8135065c75bff117f87771733d52f9a4da133bfcfd61e81c0a361",
+  "productionMtime": "2026-10-26T04:06:46.113Z",
+  "files": [
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/agentSessionContext.test.ts",
+      "sourceSha256": "b9a3664dd5d27916881169aa3dedb69fd9ea7119dd2be3d5b1e674be8bbf09b3",
+      "sourceMtime": "2026-10-26T08:35:00.055Z",
+      "output": "out/vs/workbench/contrib/conversation/browser/agentSessionContext.test.js",
+      "outputBefore": {
+        "sha256": "0c82b322d035a3a69a5fd71e7d127d6217833ff005a6e2dbfb9fdbd6e835865d",
+        "mtime": "2026-10-26T04:06:46.053Z",
+        "bytes": 35223
+      },
+      "outputSha256": "f8995be73dfe85ca23ff0ed89e72af76ae9e834a7b4b5827112b26094bec468d",
+      "outputMtime": "2026-10-26T08:39:57.822Z",
+      "outputBytes": 18934
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationReviewEntry.test.ts",
+      "sourceSha256": "709a9bf4b3c364327ed7257659f662f484037f75e7c83f3a83feea832d965449",
+      "sourceMtime": "2026-10-26T08:35:00.055Z",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationReviewEntry.test.js",
+      "outputBefore": {
+        "sha256": "ab3d22118f9abc4ed12ec68190b9cb242f14f1f1329391d4febea1e90e9ea636",
+        "mtime": "2026-10-26T04:06:47.362Z",
+        "bytes": 48851
+      },
+      "outputSha256": "f7529cb1d4596c93aa351ad80e61f703f72a67b4925bf951175e480d0f9efba4",
+      "outputMtime": "2026-10-26T08:39:57.825Z",
+      "outputBytes": 21527
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.ts",
+      "sourceSha256": "f52204192977026c49faa69c093376ab6865a4ef1f3f34366e3783c1d3d814b2",
+      "sourceMtime": "2026-10-26T08:35:00.056Z",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.js",
+      "outputBefore": {
+        "sha256": "eef04f01bae6ffd036e3c00f0d13ad224044ce80e44a41881f3f9a0d0c465b57",
+        "mtime": "2026-10-26T04:06:47.362Z",
+        "bytes": 16788
+      },
+      "outputSha256": "5381a57d753a026d1ee1044471cdd68f4a5b5bc0d4ef2983003c66ecccdbb581",
+      "outputMtime": "2026-10-26T08:39:57.826Z",
+      "outputBytes": 15495
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationReviewNavTestHarness.ts",
+      "sourceSha256": "de0d553f23ea59581515fcb6ee790f4b98a06ebeb0d73cf9439dc57d6c466637",
+      "sourceMtime": "2026-10-26T08:35:00.056Z",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationReviewNavTestHarness.js",
+      "outputBefore": null,
+      "outputSha256": "b3ced651370b8e809e115b6126a76a2690a378c5af2daa24830e912bc9ea0945",
+      "outputMtime": "2026-10-26T08:39:57.828Z",
+      "outputBytes": 11465
+    }
+  ]
+}

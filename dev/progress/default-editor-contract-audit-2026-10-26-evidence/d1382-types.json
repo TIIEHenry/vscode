@@ -1,0 +1,14 @@
+{
+  "typescriptVersion": "6.0.3",
+  "sourceHead": "b5f69d4d608445bc12df653c8b013141fff61a4f",
+  "scope": "Unmodified src/tsconfig project context; per-target semantic/syntactic only; noEmit",
+  "config": "src/tsconfig.json",
+  "files": [
+    "src/vs/workbench/contrib/conversation/browser/conversationReviewNavService.ts",
+    "src/vs/workbench/contrib/conversation/browser/agentSessionContext.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationReviewEntry.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationReviewNavService.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationReviewNavTestHarness.ts"
+  ],
+  "diagnostics": []
+}

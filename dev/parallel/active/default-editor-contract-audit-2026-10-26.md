@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1383已按旧生产red与新生产19 passing闭合。C会话导航与J配置初始化仍待merge运行。唯一全量仍是先前55/36失败。"
+summary: "D1383已闭合。D1382自动回归checkpoint为旧生产7败、新生产37过，方案仍accepted，实拍未做。D1384未合入。全量仍是先前55/36失败。"
 ---
 
 # 默认编辑器合同与功能缺口续审
@@ -17,10 +17,10 @@ summary: "D1383已按旧生产red与新生产19 passing闭合。C会话导航与
 
 | 工位 / 子代理 | 整体模块与审查目标 | 当前阶段 |
 | --- | --- | --- |
-| C / conversation_navigation_contracts | D1382：默认编辑器 ReviewNav 工作根变化失效与正式 Context/DI 合同 | 方案 `27a9087c1a7` 经 Astra 只读 C0/I0，已进入实施；运行/实拍待验 |
+| C / conversation_navigation_contracts | D1382：默认编辑器 ReviewNav 工作根变化失效与正式 Context/DI 合同 | 源 `37aa2956b77` 已三路合入 `b5f69d4`。旧生产新行为 3过/7败，新生产 37过，五TS语义0。方案仍 accepted，缺口仍 open。J 静态 after C0/I0。默认编辑器实拍未做 |
 | D / tunnel_retry_contracts（Astra） | D1383：Tunnel 引用身份、getExisting 所有权与 provider 失败后重试；同时审查 C/J 方案 | 方案 `e451d5da071` / 实施 `22386bcf3ae` 已合入；merge 旧生产 red / 新生产 19 passing、定向语义 0，范围内 closed |
 | J / configuration_initialization_contracts | D1384：RemoteUserConfiguration 显式重试共有等待、reload 及销毁边界 | 方案 `f3006a5f30e` 经 Astra 复核 C0/I0/M0，已进入实施；首次缓存快返保留 |
-| merge / 集成者（待源提交） | 串行合入、旧生产身份核验、受控 red/green、唯一编译与必要真实界面复验 | D1383范围内验证已完成；C/J源未齐，未全量编译 |
+| merge / 集成者（待源提交） | 串行合入、旧生产身份核验、受控 red/green、唯一编译与必要真实界面复验 | D1383已闭合。D1382自动回归checkpoint已写入，实拍未做，未闭合。J源未合入，未全量编译 |
 
 ## 工作约束与验收
 
@@ -36,7 +36,7 @@ D 没有采用泛化 test subclass 才能构造的 empty/string 三代 pending �
 
 J 保留首次远端环境 pending 时读取缓存，以及无远端环境的终态；仅失败后的显式重试让所有参与者共同等待同一次结果，reload 参加重试。Astra 的三项 Important 已纳入：attempt 身份归属、用显式错误记录保留 undefined/null 原拒绝、销毁取消与原始失败的优先规则。D747 一个远端实现源码字符串 pin 的替代必须映射真实公共行为回归，其他六项与历史证据保留。
 
-以上是合入前的方案与源码审计结论。D1383 随后已按该边界完成范围内运行并闭合。C/J 仍未经 merge 运行，不记 closed，也不把它们的 accepted 方案写成落地证明。
+以上是合入前的方案与源码审计结论。D1383 随后已按该边界完成范围内运行并闭合。D1382 源码已合入，merge 自动回归见[证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)；没有默认编辑器实拍，不记 closed。J 仍未经 merge 运行。accepted 方案在实拍完成前不写成落地证明。
 
 D1383源码合入只发生status文档冲突，保留父当前分工/同步记录及D实施事实。验证完成后方案为 implemented、缺口 closed。新产物由 merge 锁内顺序刷新：先钉 496 旧生产正文，再 test-only red，记录原始结果后才刷新生产。详情见[证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/verification.md)。
 
