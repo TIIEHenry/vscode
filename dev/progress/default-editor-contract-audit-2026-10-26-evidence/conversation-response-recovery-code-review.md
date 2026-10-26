@@ -960,3 +960,52 @@ reviewer另只读D r3 v4静态准备：`static-preparation-manifest.json` SHA256
 本review只写原报告与证据INDEX，没有编译、typecheck、transpile、写out、启动UI/引擎或运行业务。compile10已通过的新10与原484/4只属于当时身份；最终两测试的新green、逐文件产物资格与非作者默认编辑器after仍由唯一lane完成。§25断连假Allowed原FAIL、§24生命周期Important候选、clientTool焦点Minor候选、timeline-only BOUNDARY、全生命周期trace表述及reasoning旧红继续保留，不据此关闭wave。
 
 本次B文档门禁：592份Markdown，0 errors / 46条既有断链warnings；diff whitespace检查通过。提交范围仅本报告与证据INDEX，旧报告完整字节前缀保留。
+
+
+## 29. 两套实际314/3失败留存与e7c246夹具补修独立复审（2026-10-27）
+
+**固定候选 `e7c246315db77aa8277775338522bb9a1cb8ff84`：Critical 0 / Important 0 / Minor 0，可交唯一lane更新两个测试产物并重新运行。** §28对2fd206的静态C0/I0原文保留；该复审未识别KEEP旧helper的真实Node依赖，以及新事件测试把会合法变化的外层chrome当作不变正文的错误。随后实际314 passing / 3 failing使这些遗漏具体暴露，不能以“当时未运行”淡化，也不能将尚未到达的徽章断言计为通过。
+
+### 唯一lane实际身份、运行与未达边界
+
+reviewer独立读取 `/tmp/vscode-e-final-two-tests-r2.json`、mixed-pairs、emitter记录、完整两套raw log及failure-checkpoint。实际tested HEAD为 `a064cd8a8997a028239b279bb50e03212645be60`，src `792ebb57bb1e48fa4b2ee00752c5e81c10a85ff6`，即2fd206源码身份。source/native集合254项＝252个compile10延续产物＋2个fresh测试；`fullCompileOfFinalSourceTree=false`，没有把这轮定向emit称为完整编译。
+
+语义检查记录以完整src项目10316 roots建程序，但诊断范围仅两个改动测试，config/syntactic/semantic均0、noEmit；不能外推为整个项目全量语义0。ESLint0 errors/1条既有duplicate-import warning。第一次emitter实际exit1，`ERR_STREAM_PREMATURE_CLOSE`属于lane legacy-stream adapter，只有Lens.test部分输出、没有运行业务；该历史不删。第二次按仓库createCompile及util.streamToPromise、精确两个gulp输入emit exit0后才运行完整两测试文件，未使用grep/skip。
+
+| 原始证据（`/tmp/`） | SHA256 / 实际结果 |
+| --- | --- |
+| `vscode-e-final-two-tests-r2.full-lens-suites.log` | `56df7129b5116e90808c6a71a429976cd4f0821c9a680af1510b73c2108e31cd`；exit1，314过/3败 |
+| `vscode-e-final-two-tests-r2.json` | `2d8697d0884cf88faacca48ab8d62b4e57b7a66a7a102a13c181d0ef8c58fcf2` |
+| `vscode-e-final-two-tests-r2-mixed-pairs.json` | `8ee12640b50062cf009c1077df65c55150909ebe948d0053c7dad3d490cb1670` |
+| `vscode-e-final-two-tests-r2-emitter.json` | `13af5805921aed688f5f883574247c10c89323f84456bfa2cce68b38cba101e2` |
+| `vscode-e-final-two-tests-failure-checkpoint.json` | `472a4c0be20b525fdf843d95aa3c37aeb59cede91c1e0cc1f52f69a63f02a18e` |
+
+两完整套分项为DisposeGate168过/1败、Lens145过/2败，另global meta1过。先前草稿上下文、clientTool早拒绝/roster内晚断连、真实gateRow错误文案修订本次已实际通过；不把三个仍失败的用例混入通过。lane记录254 source/native/mode前后守卫、12554个out文件中其他文件metadata不变、只有两个测试输出路径写入、HEAD/src/clean及三个cache symlink保持。reviewer又独立重算当时当前254对source/native SHA与mode，0 mismatch；没有执行编译、业务或写out。该守卫证明本次运行使用的混合产物身份，不是新freeze/UI证据。
+
+1. **KEEP原后半出现TypeError。** 去掉旧source pin后，运行首次到真实`updateConversationPhase`的`readingColumn.insertBefore(host.identityStrip.element, host.readingColumn.firstChild)`；readingColumn是真div而identityStrip.element是`{}`，native156/source252抛“parameter 1 is not of type Node”。之前同lease/entries断言已达；updateSyncChrome、后续closed text/title/aria及末尾手动lifetime.dispose未达。reviewer独立核Projection完整源在4919/c3/2fd/a064/e7均相同，SHA256 `4260175f51ee8dc1b96973f6c813d10fdad59bb834e9782c42819b7598bd91db`；checkpoint所指helper也保持旧4919字节。这是旧夹具隐藏在前置source pin失败之后的问题，不归因生产新改动；没有另跑旧版测试。
+2. **roster与UA两个新用例的observer过宽。** 两者均已达到指定事件精确计数、same lease/snapshot、原sync live及same lastAttachedEntries；随后`slots.timeline.textContent`全文相等失败。实际前缀合法变为`Waiting for pairing`及`Showing snapshot from before disconnect: Pairing required`，期待前缀仍为`Engine · Loopback`，原正文仍在。外层timeline包含身份条、stale banner等状态，不等于一条turn的正文。后续badge.hidden、closed text/title/aria、SessionBar无Session live均未执行，不能凭日志文字或静态实现倒称这些断言通过。
+
+### 最小修订与独立连续性
+
+候选实际parent为 `2fd206e74d846052ca0083ee27d8046c91b348ac`，src `a2c34649ee88df907c03b70c9ec3235cb1b4a9d9`；四路径仅Lens/DisposeGate两测试、原方案§9.8及status。全部生产browser tree仍 `fc073478b35e20c1fd63378ec93ecc54bea7a6de`，没有生产补丁、契约或范围扩张。
+
+DisposeGate只改`pairingSyncChromeHost`的六个DOM槽：dock、prefirstHero、dockRoot、gateRow、identityStrip.element与inboxOverlay.element都是真div。hero初始实际持有identity和gate，dockRoot实际持有inbox作为insertBefore参考节点，因此phase转active时两次真实搬移均满足Node及parent关系；空内容保持prefirst的其他用例也能正常使用真实append。没有设置phase来跳过路径，没有新增noop，也没有把生产DOM方法替成假方法。reviewer将helper区间从父/候选全文分别去除后，剩余DisposeGate整文件逐字相同；整个KEEP测试正文，包括phase/sync调用及所有原断言，逐字保留。
+
+Lens只改两事件参数化block中的正文观察面：捕获`appendUserTurn`实际返回的turn并assert存在；用其id定位实际user行，事件前核data-turn-id和`.conversation-lens-turn-body`精确文本`Keep live content during pairing`。事件后重新查询实际DOM行/body，核相同turn id与精确正文，而非读取事件前已脱离的旧节点。没有强求Node对象恒同；真实`refreshPresentation`可合法render(full)，内容身份由turn id和正文共同验证。same lease/snapshot/entries继续约束读模型保持，外层pairing/stale状态则允许正常更新。
+
+reviewer独立核Lens在该block外全文逐字不变；block内原27条非observer断言逐条原文保留：初始actual live，静默fixture变化后仍live/两事件0，各自public事件1/0，同lease/snapshot/entries、原sync live，closed徽章text/title/aria及无Session live都在。没有手调phase/sync，没有新增any/unknown/Partial、宽cast、skip或only。既有helper整体cast保留，不把本次真实DOM补充误说成消除了旧cast。
+
+| 最终候选测试 | SHA256 / 连续性 |
+| --- | --- |
+| `conversationLens.test.ts` | `b8e34e375e0e0bac58a33754bec01e0e6d6bf0d5a1ef3ef4c8f280aad0fbfa94` |
+| `conversationLensDisposeGate.test.ts` | `2c8cff7b8f79804d6a8e187bd602ee2dc6fa4f6c0103589ce29481d2f1f48318` |
+| Roster整文件 | 保持父；`468b553d859af929633d73ae885160250136641414374578bdaff9ddd66d9647`，新10/旧160未改 |
+| Projection reasoning整文件 | 保持父与旧4919；`5d172565767dd64c154321f0ec4eda254533a9199510ad6ba2b96c16d8a6d49e`，旧期待未改 |
+
+### Assessment
+
+Critical 0 / Important 0 / Minor 0仅针对e7本次固定补修。两类夹具问题在源码设计上有直接、最小的对应修正，测试仍能发现KEEP破坏、正文丢失和连接事件后徽章不降级；尚须实际fresh emit及两套运行证实。E自报2TS parse0（无checker/emit）、lint0 errors/1既有warning；reviewer只读固定Git与原件，独立diff whitespace通过，不冒称执行作者静态工具或业务。
+
+方案§9.8与行动层保留314/3及徽章未达事实，状态继续accepted。本review只追加原报告与更新证据INDEX，§§1–28（包括初次静态意见和分类纠正）完整字节前缀不改。后续由唯一lane接入e7和本报告，更新两个测试的逐文件producer身份、运行最小必要校验；当前没有e7新green/freeze/UI after，也不关闭原E after FAIL、§24生命周期候选、焦点Minor候选、timeline-only BOUNDARY或reasoning旧红。
+
+本次B文档门禁：592份Markdown，0 errors / 46条既有断链warnings；diff whitespace检查通过，提交范围仅本报告与证据INDEX。
