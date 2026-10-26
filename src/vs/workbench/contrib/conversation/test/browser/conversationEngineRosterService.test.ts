@@ -3640,7 +3640,8 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			recoveryAction(host, 'clientTool').click();
 			const row = lease.snapshot.timeline.find(item => String(item.id) === 'call-ask')!;
 			if (row.summary.kind !== 'tool') { assert.fail('client tool row required'); }
-			sessionView.emitPatches('ua-only', [{ op: 'upsertTimelineItem', item: { ...row, summary: { ...row.summary, status: 'failed', respondable: false, resultPreview: 'authoritative result' } } }]);
+			const { respondable: _respondable, ...terminalSummary } = row.summary;
+			sessionView.emitPatches('ua-only', [{ op: 'upsertTimelineItem', item: { ...row, summary: { ...terminalSummary, status: 'failed', resultPreview: 'authoritative result' } } }]);
 			const terminal = JSON.stringify(lease.snapshot);
 			assert.strictEqual(service.respondClientTool('ua-only', 'call-ask', { content: 'duplicate' }), false, 'authoritative terminal must close a previously known timeline-only client response');
 			if (oldOutcome === 'reject') { await pending.error(new Error('stale client transport')); }

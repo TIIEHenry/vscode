@@ -224,3 +224,5 @@ accepted 方案提交 `5dd7d97` 后在 E 实施，未取 root 外部视觉/协�
 先在唯一lane以修订测试JS+精确旧900f生产做上述代表性业务red，再统一最终生产跑 `response recovery`、完整roster及§8全部相关套、必要compile与独立默认编辑器after。missing API/module、type、timeout不计业务red。E未编译/typecheck/transpile、未写out、未跑依赖out测试。
 
 本轮静态门禁：4个改动TS `createSourceFile` parse为0语法诊断（无checker/emit）；ESLint 0 errors / 5既有warnings，原始JSON `/tmp/vscode-response-recovery-E-review-fixes-eslint.json`；`git diff --check`通过。生成状态核对OK；docs health为0 errors / 73既有warnings，对上一实现检查新增0/移除0，原始JSON `/tmp/vscode-response-recovery-E-review-fixes-docs-health.json`；status173行。最终不可变身份随提交交接给出；方案仍accepted，不升PRD/不关闭旧D项。
+
+2026-10-27，父转达正式J/E三路集成 `24a3850`（src `fdca9564`）后唯一baseline首轮full `compile-client` 实际exit1，仅一条诊断：本文件回归夹具所发terminal summary在test:3643把 `respondable` 写成false，而正式领域合同为 `respondable?: true`。原日志/身份由baseline保留于 `/tmp/vscode-je-formal-native-build.log` / `.json`，不以本段代运行证据。E仅将夹具改为解构省略respondable，准确模拟权威终态移除标记；全部18项与原断言保留，无宽cast或领域类型放宽。该trivial类型修正由唯一lane复验，E不编译/typecheck/transpile/out/跑业务。
