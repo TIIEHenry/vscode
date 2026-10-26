@@ -1,0 +1,69 @@
+{
+  "scope": "New-wave logs only; prior46/28 and55/36 logs untouched. Byte-exact originals gzip-preserved for files requiring whitespace-normalized display copies.",
+  "logs": [
+    {
+      "displayLog": "d1385-fixed-green-full.log",
+      "rawArchive": "d1385-fixed-green-full.raw.log.gz",
+      "rawSha256": "b588d3eb2dda76934ecec7f9cc57618940ac1e6a0919bb4d83fb440558b329d4",
+      "rawBytes": 18308,
+      "displaySha256": "7e7e8782b5b8df70c28896bb03aec444b172c9578d1f49514bce0e5b90252184",
+      "normalization": "Remove line-ending spaces/tabs/CR and extra blank EOF lines only; retain all diagnostic text and ANSI sequences."
+    },
+    {
+      "displayLog": "d1385-fixed-red.log",
+      "rawArchive": "d1385-fixed-red.raw.log.gz",
+      "rawSha256": "41cf2378cfce873f307192155ca5e680948f4af2df90a0ff3c8f4048cbd0d088",
+      "rawBytes": 5744,
+      "displaySha256": "528142fe35a4eb1597d2267a2ec318a38b1ec330eeb027505f099b34fdd7c284",
+      "normalization": "Remove line-ending spaces/tabs/CR and extra blank EOF lines only; retain all diagnostic text and ANSI sequences."
+    },
+    {
+      "displayLog": "d1385-green-full.log",
+      "rawArchive": "d1385-green-full.raw.log.gz",
+      "rawSha256": "25224d3a502b9d7417b140b70d097c79ce0b885979165bbef80ea3dc95a8be03",
+      "rawBytes": 56697,
+      "displaySha256": "823635259d68b3f14632aff7739feb0c7705919f72d21ad019541fbde25b9d0a",
+      "normalization": "Remove line-ending spaces/tabs/CR and extra blank EOF lines only; retain all diagnostic text and ANSI sequences."
+    },
+    {
+      "displayLog": "d1385-red.log",
+      "rawArchive": "d1385-red.raw.log.gz",
+      "rawSha256": "c82c4fb22d4c1e4abc491abe7efddaa5b9ae0a539b359874a691b4ece2d2a6a4",
+      "rawBytes": 5744,
+      "displaySha256": "f1831fb994c9cb4b7a336f24d6a2cf17c2192ea71051a470bba82131962ed535",
+      "normalization": "Remove line-ending spaces/tabs/CR and extra blank EOF lines only; retain all diagnostic text and ANSI sequences."
+    },
+    {
+      "displayLog": "d1386-green-full.log",
+      "rawArchive": "d1386-green-full.raw.log.gz",
+      "rawSha256": "4ffebec21f4979b1e0ed170cb14bce0af83919ab059b269843de0e95ce2bb72c",
+      "rawBytes": 4952,
+      "displaySha256": "d51a618e387ae7a0c12765f0ea2e622df4acd630945c7d8bca5670734b8dcf98",
+      "normalization": "Remove line-ending spaces/tabs/CR and extra blank EOF lines only; retain all diagnostic text and ANSI sequences."
+    },
+    {
+      "displayLog": "d1386-green-lens.log",
+      "rawArchive": "d1386-green-lens.raw.log.gz",
+      "rawSha256": "020a090891a4979428a3022e32d91c8d71bcb39a3cfafc088a9f949aede5f80a",
+      "rawBytes": 1569,
+      "displaySha256": "50591c3bbafbf4f98ae30acf3330d7cd915decc37964046fa46ef191ec0fdbee",
+      "normalization": "Remove line-ending spaces/tabs/CR and extra blank EOF lines only; retain all diagnostic text and ANSI sequences."
+    },
+    {
+      "displayLog": "d1386-green-new.log",
+      "rawArchive": "d1386-green-new.raw.log.gz",
+      "rawSha256": "db5992c1669907893ea5ef608ba4dda758da3693296c60f879400deae83a2f0f",
+      "rawBytes": 1986,
+      "displaySha256": "7fb744494cbd4c0828c634f83e447d74bfd5dcbcac36b04a354864168e8d8ce3",
+      "normalization": "Remove line-ending spaces/tabs/CR and extra blank EOF lines only; retain all diagnostic text and ANSI sequences."
+    },
+    {
+      "displayLog": "d1386-red.log",
+      "rawArchive": "d1386-red.raw.log.gz",
+      "rawSha256": "1fa082b737c9bc995dfbff5787650b06578e111c3f2bb2e210bb313534b9053f",
+      "rawBytes": 7868,
+      "displaySha256": "49445e9ba9ad08abcea5c0acdd9b1bc2fb54a920bf69d9f4d34399a3910b10c1",
+      "normalization": "Remove line-ending spaces/tabs/CR and extra blank EOF lines only; retain all diagnostic text and ANSI sequences."
+    }
+  ]
+}

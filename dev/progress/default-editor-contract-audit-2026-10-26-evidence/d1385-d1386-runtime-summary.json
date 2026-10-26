@@ -1,0 +1,85 @@
+{
+  "sourceHead": "6f82fe5b05210fd72852abc5df729a70b68b4401",
+  "d1386": {
+    "oldBaseline": "5cc987d8ea50ca73af88452a0164386889587988",
+    "red": {
+      "passing": 0,
+      "failing": 11,
+      "allAssertionErrors": true,
+      "log": "d1386-red.log"
+    },
+    "newGrep": {
+      "passing": 11,
+      "failing": 0
+    },
+    "identityFull": {
+      "passing": 40,
+      "failing": 0,
+      "includesGlobalCleanCheck": true
+    },
+    "lensBindingSelection": {
+      "passing": 8,
+      "failing": 0
+    },
+    "independentDefaultEditorAfter": "pending",
+    "independentAfterFeedback": "C in-progress UI review reports readonly chevrons visible despite hidden attribute; source/CSS fix and final after not part of this checkpoint."
+  },
+  "d1385": {
+    "initialGreenAttempt": {
+      "passing": 151,
+      "failing": 31,
+      "reason": "test fixture compared Emitter.hasListeners method as a boolean property",
+      "log": "d1385-green-full.log"
+    },
+    "firstNoEmit": {
+      "diagnostics": 3,
+      "log": "d1385-d1386-types-first.json",
+      "authorFixes": [
+        "e48f88b4ac0e9f025797495c690b83526a8a7aff",
+        "69ac16e02777e45980e2c55a8389fe928d5c474d"
+      ]
+    },
+    "finalOldBaseline": "94893edf39b2f1b9ffdfd9e11b597c65bf6e1ba6",
+    "fixedRed": {
+      "passing": 0,
+      "failing": 5,
+      "allBusinessAssertions": true,
+      "noCleanupLoadOrTimeoutFailure": true,
+      "log": "d1385-fixed-red.log"
+    },
+    "fixedGreen": {
+      "passing": 182,
+      "failing": 0,
+      "suiteCheckCounts": {
+        "Tests are using suiteSetup and setup correctly": 1,
+        "AgentsVoiceContribution - default window Command Palette": 1,
+        "AgentsVoiceContribution - startVoiceInChat": 31,
+        "VoiceSessionController": 142,
+        "VoiceSessionController live transcription": 7
+      },
+      "log": "d1385-fixed-green-full.log"
+    },
+    "pendingIndependentEvidence": [
+      "post-fix independent review",
+      "actual retained CopilotChat pane/editor toolbar and keybinding owner routing; no real mic/backend"
+    ]
+  },
+  "finalSevenTargetNoEmitDiagnostics": 0,
+  "finalSevenTargetEslintErrors": 0,
+  "finalSevenTargetEslintWarnings": 0,
+  "newWaveFullcompile": {
+    "actualSource": "6f82fe5b05210fd72852abc5df729a70b68b4401",
+    "exit": 1,
+    "diagnostics": 45,
+    "files": 27,
+    "changedFileDiagnostics": 0,
+    "runs": 1
+  },
+  "priorWaveFullcompile": {
+    "source": "3e63f9e6f40e3c3c3dca1a55f47a978ddb02ed1a",
+    "exit": 1,
+    "diagnostics": 46,
+    "files": 28,
+    "untouched": true
+  }
+}

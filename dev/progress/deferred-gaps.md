@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1382独立默认编辑器after通过并闭合，D1383/1384已闭合；D1385语音功能与D1386叶身份归属open。Event单行类型修复已验证，不算语音功能修复。唯一全量仍46/28。"
+summary: "D1382/3/4closed；D1385修后5业务红/完整182绿、D1386旧11业务红/完整40+Lens8绿；七TS语义/lint0，新波45/27失败。最终独立复审与真实after待到，D1385/6仍open。"
 
 
 
@@ -18,8 +18,8 @@ summary: "D1382独立默认编辑器after通过并闭合，D1383/1384已闭合�
 
 | ID | Priority | Gap | Why Deferred | Exit Condition | Track | Status |
 |:---|:---------|:----|:-------------|:---------------|:------|:-------|
-| D1385 | P2 | 默认编辑器保留 Copilot Chat 的 `agentsVoice.startVoiceInChat` 首次录音授权未覆盖 connect resolve 到真实准入的完整窗口，composer离开/更换后可能自动开录。controller在connecting时可随焦点改target，pane桥也不代表任意editor发起者。 | [正式方案](../plans/copilot-chat-cold-voice-authorization.md)已独立提交并经规则16 C0/I0，accepted；源8619bc47已交付action生命周期、31公共场景/3真实controller场景；实施静态peer C0/I0、三TS ESLint0/0，运行未完成。94893edf39b只修DOM Event注解，单TS noEmit 0且转译正文等价，不构成功能修复。未真实开麦或连接后端。 | 真实owner/代次/hold跨准入、取消与旧晚返回隔离；公共命令red/green及真实controller+fake mic回归；默认Conversation真语音/浮窗挂载不在本刀。 | agentsVoice / Copilot Chat | open |
-| D1386 | P2 | 并列叶Session folder/branch身份读全局活动根，非活动叶可显示别的会话根，分支读取/checkout目标同受影响；Astra判Important，无实际错误checkout证据。 | D1382独立after发现，独立于ReviewNav合同。[正式叶绑定方案](../plans/2026-10-26-leaf-session-root-identity.md)已独立提交并经规则16 C0/I0，accepted；源ea54727已交付三生产TS/11条真实Lens DOM回归；方案/实施静态peer C0/I0、四TS ESLint0/0，运行/实拍未完成。PRD-029总体仍proposed，不顺带签收S5。 | 身份/aria/分支与菜单目标统一读取叶绑定根、覆盖重绑/非活动变化/晚返回；全局addFolders与mount offer边界保留，真实两叶与命令参数验证；[源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1386-source-checkpoint.md)。 | Conversation identity strip | open |
+| D1385 | P2 | Copilot Chat首次连接录音授权未跨完整准入的原缺陷；pane/editor真实owner与手势代次边界。 | 源8619及C自槽e48/69ac精确补修已三路接入6f82。修后重新钉948旧生产5业务断言红，新action完整两套182过；七TS语义/lint0。保留初轮夹具错误/3诊断，不计Conversation真语音。 | [方案](../plans/copilot-chat-cold-voice-authorization.md) accepted；[运行证据](default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md)。补修最终独立复审及实际CopilotChat pane/editor工具栏/快捷键owner路由证明待到，验收前不关；无真实设备/网络。 | agentsVoice / Copilot Chat | open |
+| D1386 | P2 | 并列叶Session folder/branch身份与动作读取全局活动根的原Important归属缺陷。 | 源ea54727已三路合入328cb823；旧5cc三生产正文确认后11业务断言红，新11绿、完整IdentityStrip40过、Lens绑定8过，四TS语义0。不是D1382 ReviewNav缺陷。 | [方案](../plans/2026-10-26-leaf-session-root-identity.md) accepted；[运行证据](default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md)。非作者默认编辑器after未签收，审查中已反馈只读chevron被CSS显示，作者补修待接；真实键盘/commandURI等按最终报告，不静态代签，PRD029总体仍proposed。 | Conversation identity strip | open |
 | D1382 | P2 | **closed** ReviewNav会话/工作区目录/SCM变化通知与必需Context/DI合同已补齐，静止活动叶和非活动并列叶同步重读根。 | 旧生产新行为3过/7败，新生产37过，五TS语义0；J静态after C0/I0，D独立默认编辑器after C0/I0，真实行/根失效/并列叶及click/Enter参数通过。 | [方案](../plans/conversation-review-root-invalidation.md) implemented；[自动证据](default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)；[独立after](default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)。无真实git diff、未折叠后再根失效、未独立720px；SCM子根/workspace gate未改，芯片另记D1386。 | Conversation ReviewNav | closed |
 | D1 | P3 | 套件 `dev/loop/overview.md` 引用的 `docs/guides/multi-agent-design-workflow.md` 缺失 | 门禁仅 warning 不阻塞 | 指南落盘且 `check-docs-health` 0 warning | docs | closed |
 | D2 | P2 | 工位池基线未编译验绿 | 编译耗时长；建槽时未跑 | merge 槽 `569ce371`：`npm run compile` 绿；[worktree-pool.md](worktree-pool.md) 已标注 | infra | closed |

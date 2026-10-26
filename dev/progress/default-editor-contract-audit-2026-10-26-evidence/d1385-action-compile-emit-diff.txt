@@ -1,0 +1,72 @@
+--- compile-client emit body
+
++++ same-source tested esbuild body
+
+@@ -56,4 +56,7 @@
+
+ const VOICE_ACTIVE_ON_SURFACE = ContextKeyExpr.or(IsSessionsWindowContext.negate(), AGENTS_VOICE_INITIATED_HERE);
+ let AgentsVoiceEntitlementKeyContribution = class extends Disposable {
++  static {
++    this.ID = "workbench.contrib.agentsVoiceEntitlementKey";
++  }
+   constructor(chatEntitlementService, contextKeyService) {
+     super();
+@@ -64,5 +67,4 @@
+
+   }
+ };
+-AgentsVoiceEntitlementKeyContribution.ID = "workbench.contrib.agentsVoiceEntitlementKey";
+ AgentsVoiceEntitlementKeyContribution = __decorateClass([
+   __decorateParam(0, IChatEntitlementService),
+@@ -71,4 +73,7 @@
+
+ registerWorkbenchContribution2(AgentsVoiceEntitlementKeyContribution.ID, AgentsVoiceEntitlementKeyContribution, WorkbenchPhase.AfterRestored);
+ let AgentsVoiceConnectedKeyContribution = class extends Disposable {
++  static {
++    this.ID = "workbench.contrib.agentsVoiceConnectedKey";
++  }
+   constructor(voiceSessionController, contextKeyService) {
+     super();
+@@ -85,5 +90,4 @@
+
+   }
+ };
+-AgentsVoiceConnectedKeyContribution.ID = "workbench.contrib.agentsVoiceConnectedKey";
+ AgentsVoiceConnectedKeyContribution = __decorateClass([
+   __decorateParam(0, IVoiceSessionController),
+@@ -92,4 +96,10 @@
+
+ registerWorkbenchContribution2(AgentsVoiceConnectedKeyContribution.ID, AgentsVoiceConnectedKeyContribution, WorkbenchPhase.Eventually);
+ let AgentsVoiceTelemetryContribution = class extends Disposable {
++  static {
++    this.ID = "workbench.contrib.agentsVoiceTelemetry";
++  }
++  static {
++    this._ENABLED_AT_KEY = "agents.voice.enabledAtMs";
++  }
+   constructor(configurationService, telemetryService, storageService) {
+     super();
+@@ -110,6 +120,4 @@
+
+   }
+ };
+-AgentsVoiceTelemetryContribution.ID = "workbench.contrib.agentsVoiceTelemetry";
+-AgentsVoiceTelemetryContribution._ENABLED_AT_KEY = "agents.voice.enabledAtMs";
+ AgentsVoiceTelemetryContribution = __decorateClass([
+   __decorateParam(0, IConfigurationService),
+@@ -119,4 +127,7 @@
+
+ registerWorkbenchContribution2(AgentsVoiceTelemetryContribution.ID, AgentsVoiceTelemetryContribution, WorkbenchPhase.AfterRestored);
+ let AgentsVoiceOnboardingContribution = class extends Disposable {
++  static {
++    this.ID = "workbench.contrib.agentsVoiceOnboarding";
++  }
+   constructor(voiceSessionController, voiceModeOnboardingService) {
+     super();
+@@ -128,5 +139,4 @@
+
+   }
+ };
+-AgentsVoiceOnboardingContribution.ID = "workbench.contrib.agentsVoiceOnboarding";
+ AgentsVoiceOnboardingContribution = __decorateClass([
+   __decorateParam(0, IVoiceSessionController),

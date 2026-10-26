@@ -1,0 +1,66 @@
+{
+  "sourceHead": "d941c9458548d989ac548fb01a4b6c7861475e99",
+  "typescriptVersion": "6.0.3",
+  "scope": "Original unmodified src/tsconfig project context; per-target syntactic+semantic diagnostics; noEmit. Not fullcompile.",
+  "files": [
+    {
+      "path": "src/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.ts",
+      "sha256": "46bf1f67393892cd04a02bd16aa4dbe694321d1efc05c3fb9bd33674d0c50f55",
+      "diagnostics": [
+        {
+          "file": "src/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.ts",
+          "line": 301,
+          "column": 23,
+          "code": "TS2339",
+          "message": "Property 'discardRecording' does not exist on type 'IVoiceSessionController'."
+        }
+      ]
+    },
+    {
+      "path": "src/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.ts",
+      "sha256": "d7a5618042c2c17d2bfdbe7f71917ba1aae4ec6ccc5c835611ba3ec3266e797e",
+      "diagnostics": [
+        {
+          "file": "src/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.ts",
+          "line": 160,
+          "column": 12,
+          "code": "TS4113",
+          "message": "This member cannot have an 'override' modifier because it is not declared in the base class 'IVoiceSessionController'."
+        },
+        {
+          "file": "src/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.ts",
+          "line": 214,
+          "column": 70,
+          "code": "TS2345",
+          "message": "Argument of type 'IChatWidget' is not assignable to parameter of type 'Composer'.\n  Type 'IChatWidget' is missing the following properties from type 'Composer': changed, hidden, model, showSession"
+        }
+      ]
+    },
+    {
+      "path": "src/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.ts",
+      "sha256": "012a0610a8ed4819686c6ea373b283ea69a9b50e6e5722e7b86b6d4b62a65b71",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.ts",
+      "sha256": "f38790e848f49f015de0a0c1a76fbccb65e4073dba6a6927c6a9d387d8d6aa9f",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLens.ts",
+      "sha256": "bb1e6108f5a17ebbc8d902dabbd59c856a15c3a86477f94b36dc30c7147e0dbd",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "sha256": "492eb3a3fb06b921499bb5da62ec5b996828375555ae5f9825889431407f7cc2",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.ts",
+      "sha256": "e147020de1a2e91fc63998fd93e2366e71c6973d139b338cdddb1c6b4c57d414",
+      "diagnostics": []
+    }
+  ],
+  "totalDiagnostics": 3
+}

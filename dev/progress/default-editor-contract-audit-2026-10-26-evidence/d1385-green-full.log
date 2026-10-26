@@ -1,0 +1,1479 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[365451:1026/185853.969668:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:365464) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:365464) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:365464) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  AgentsVoiceContribution - default window Command Palette[0m
+  [32m  ✔[0m[90m Voice F1 commands stay in Command Palette for Agents Window only[0m
+
+[0m  AgentsVoiceContribution - startVoiceInChat[0m
+  [31m  1) connect resolve does not release the hands-free gate before admission[0m
+  [31m  2) composer departure cancels once: before-connect-resolve[0m
+  [31m  3) composer departure cancels once: after-connect-resolve[0m
+  [31m  4) composer departure cancels once: return-to-A[0m
+  [31m  5) owner lifecycle cancels admission: view-model[0m
+  [31m  6) owner lifecycle cancels admission: draft-materialized[0m
+  [31m  7) owner lifecycle cancels admission: hidden[0m
+  [31m  8) owner lifecycle cancels admission: removed[0m
+  [31m  9) toolbar uses the actual pane widget rather than the pane bridge[0m
+  [31m  10) toolbar uses the actual editor widget rather than the pane bridge[0m
+  [31m  11) pane session change cancels while a different editor is last focused[0m
+  [31m  12) legacy async revalidation keeps the gate while owner changes after admission[0m
+  [31m  13) unidentifiable legacy owner stays silent: async () => void 0[0m
+  [31m  14) unidentifiable legacy owner stays silent: async () => "chat-session:/not-open"[0m
+  [31m  15) unidentifiable legacy owner stays silent: async () => {
+    throw new Error("missing bridge");
+  }[0m
+  [31m  16) a cancelled late legacy lookup cannot clear or release the new editor intent[0m
+  [31m  17) late connect failure is observed after cancellation and does not affect a new intent[0m
+  [31m  18) cold manual toolbar click only connects[0m
+  [31m  19) an explicit press after a cancelled admission restores the quiet connected session for B[0m
+  [31m  20) cold hold released before admission never records (handsFree=false)[0m
+  [31m  21) cold hold released before admission never records (handsFree=true)[0m
+  [31m  22) cold manual hold release force-finishes even immediately after delayed admission[0m
+  [31m  23) a replaced cold hold release cannot finish a newer warm press[0m
+  [31m  24) terminal connection settles the command and its listeners: early-return[0m
+  [31m  25) terminal connection settles the command and its listeners: failed[0m
+  [31m  26) terminal connection settles the command and its listeners: reconnect-ended[0m
+  [31m  27) terminal connection settles the command and its listeners: rejected[0m
+  [31m  28) initial connecting=false is not an early failure during an async connection request[0m
+  [31m  29) disconnect after a cold hold admission cancels its pending release[0m
+  [31m  30) warm toolbar tap and second tap keep PTT toggling without a hold/unhold restart[0m
+  [31m  31) warm hold keeps the original tap/hold decision in the controller[0m
+
+[0m  VoiceSessionController[0m
+  [32m  ✔[0m[90m reports whether a coding session is in progress when each voice request starts[0m
+  [32m  ✔[0m[90m does not connect without a paid Copilot entitlement[0m
+  [32m  ✔[0m[90m disconnects when the paid Copilot entitlement is lost[0m
+  [32m  ✔[0m[90m stays connected across a paid-to-paid entitlement transition[0m
+  [32m  ✔[0m[90m restricts Voice Mode for external Enterprise users but allows internal staff[0m
+  [32m  ✔[0m[90m includes response errors in the summary sent to the voice backend[0m
+  [32m  ✔[0m[90m does not narrate a summary for a cancelled turn[0m
+  [32m  ✔[0m[90m does not finish connecting after voice instructions resolve for a stale attempt[0m
+  [32m  ✔[0m[90m warms hands-free capture before starting or resuming the backend session[0m
+  [32m  ✔[0m[90m keeps microphone acquisition lazy when hands-free mode is disabled[0m
+  [32m  ✔[0m[90m setMuted gates outgoing audio while keeping the session connected[0m
+  [32m  ✔[0m[90m hands-free warm-up failure returns to idle and allows retry[0m
+  [32m  ✔[0m[90m hands-free permission denial does not add a generic connection notification[0m
+  [32m  ✔[0m[90m connect watchdog covers a stalled hands-free warm-up[0m
+  [32m  ✔[0m[90m clean socket close during acquisition aborts initialization and allows explicit retry[0m
+  [32m  ✔[0m[90m transient socket drop during acquisition retries warm-up before starting the session[0m
+  [32m  ✔[0m[90m narrates visible questionnaire prompts and choices immediately without internal ids[0m
+  [32m  ✔[0m[90m extracts visible runtime askQuestions data before carousel persistence[0m
+  [32m  ✔[0m[90m defers runtime askQuestions narration until visible parameters populate[0m
+  [32m  ✔[0m[90m carries questionnaire type in session context and clears it when resolved[0m
+  [32m  ✔[0m[90m routes structured pending responses to the same action that is narrated[0m
+  [32m  ✔[0m[90m flushes exact typed context before fresh and changed confirmation narration[0m
+  [32m  ✔[0m[90m assigns occurrence ids to same-text generic confirmations[0m
+  [32m  ✔[0m[90m replaces an in-flight tool approval with the next identical approval[0m
+  [32m  ✔[0m[90m narrates three approvals when one tool invocation is re-armed[0m
+  [32m  ✔[0m[90m confirmation watchdog narrates a sequential approval missed by the transition path[0m
+  [32m  ✔[0m[90m same confirmation text with a new type is not deduplicated[0m
+  [32m  ✔[0m[90m reconnect replays only confirmations matching current text and type[0m
+  [32m  ✔[0m[90m busy confirmation retries only when current text and type still match[0m
+  [32m  ✔[0m[90m auto-approve ignores questionnaire backing tools[0m
+  [32m  ✔[0m[90m handles freeform and defers empty questionnaire data[0m
+  [32m  ✔[0m[90m bounds questionnaire questions and options with omission counts[0m
+  [32m  ✔[0m[90m distinguishes plan, elicitation, and tool approval using visible text[0m
+  [32m  ✔[0m[90m uses visible tool confirmation messages instead of hidden parameters[0m
+  [32m  ✔[0m[90m narrates authentication using the visible server name without hidden server metadata[0m
+  [32m  ✔[0m[90m does not watch progress when agent progress is not enabled[0m
+  [32m  ✔[0m[90m marks voice requests only when agent progress is enabled[0m
+  [32m  ✔[0m[90m delays, coalesces, and preserves throttled voice progress for the shown request[0m
+  [32m  ✔[0m[90m sends the first semantic checkpoint after five seconds without prior speech[0m
+  [32m  ✔[0m[90m schedules all five semantic stages once at the existing cadence[0m
+  [32m  ✔[0m[90m final response cancels pending voice progress[0m
+  [32m  ✔[0m[90m confirmation cancels pending voice progress[0m
+  [32m  ✔[0m[90m request cancellation and disconnect cancel pending voice progress[0m
+  [32m  ✔[0m[90m transient disconnect retains the latest pending checkpoint until reconnect[0m
+  [32m  ✔[0m[90m a new voice request cancels only the shown session checkpoint[0m
+  [32m  ✔[0m[90m barge-in and a new explicit voice request cancel pending voice progress[0m
+  [32m  ✔[0m[90m busy, invalid, and legacy suppressed checkpoints are never retried[0m
+  [32m  ✔[0m[90m active checkpoint playback is preempted when final response audio starts[0m
+  [32m  ✔[0m[90m empty final response does not preempt active checkpoint playback[0m
+  [32m  ✔[0m[90m completed checkpoint playback acknowledges the correlated playback id[0m
+  [32m  ✔[0m[90m dropped re-narration does not preempt active checkpoint playback[0m
+  [32m  ✔[0m[90m active checkpoint playback is preempted by confirmation[0m
+  [32m  ✔[0m[90m direct substantive audio preempts active checkpoint playback[0m
+  [32m  ✔[0m[90m cross-session substantive audio stays deferred while another session owns voice[0m
+  [32m  ✔[0m[90m newer checkpoint preempts active older checkpoint and discards stale chunks[0m
+  [32m  ✔[0m[90m cross-session checkpoint stays deferred while another session owns voice[0m
+  [32m  ✔[0m[90m pre-decode checkpoint preemption does not poison replacement completion[0m
+  [32m  ✔[0m[90m scheduled newer checkpoint replaces active checkpoint at the cadence boundary[0m
+  [32m  ✔[0m[90m request cancellation preempts active checkpoint playback and discards trailing chunks[0m
+  [32m  ✔[0m[90m explicit PTT retires checkpoint tracking before clearing playback correlation[0m
+  [32m  ✔[0m[90m barge-in stops active checkpoint playback and discards trailing chunks[0m
+  [32m  ✔[0m[90m backend interruption stops only the matching active checkpoint[0m
+  [32m  ✔[0m[90m late backend interruption does not stop a replacement checkpoint[0m
+  [32m  ✔[0m[90m checkpoint sequence restarts for the next chat request[0m
+  [32m  ✔[0m[90m first-and-final empty checkpoint clears without acknowledging playback[0m
+  [32m  ✔[0m[90m empty checkpoint terminal without playback id clears without acknowledgement[0m
+  [32m  ✔[0m[90m checkpoint audio prefix followed by empty failure final acknowledges after playback drains[0m
+  [32m  ✔[0m[90m explicit disconnect clears routing target and pending confirmations and the tracker cannot repopulate them before reconnect[0m
+  [32m  ✔[0m[90m switching through a draft keeps voice in its original session until the user returns[0m
+  [32m  ✔[0m[90m switching away mid-response defers the remaining audio until the voice session returns[0m
+  [32m  ✔[0m[90m draft voice ownership survives navigation and promotes only when that draft is created[0m
+  [32m  ✔[0m[90m untagged solicited narration dropped after retargeting retries when its session returns[0m
+  [32m  ✔[0m[90m switching away interrupts active owner playback and defers queued audio[0m
+  [32m  ✔[0m[90m reports only genuine approvals as approvals[0m
+  [32m  ✔[0m[90m publishes a question form as a structured pending payload[0m
+  [32m  ✔[0m[90m does not publish a question form that has already been answered[0m
+  [32m  ✔[0m[90m selects the oldest still-open pending part, not the newest[0m
+  [32m  ✔[0m[90m moves on once the oldest pending part is resolved[0m
+  [32m  ✔[0m[90m an executing tool does not shadow the form it opened[0m
+  [32m  ✔[0m[90m keeps publishing the older form when a second one arrives[0m
+  [32m  ✔[0m[90m payload and spoken detail name the same form when two are open[0m
+  [32m  ✔[0m[90m a late retired approval does not mask the final response[0m
+  [32m  ✔[0m[90m sends each agent session label so two waiting sessions can be told apart[0m
+  [32m  ✔[0m[90m omits the label for an unlabelled agent session rather than sending an empty one[0m
+  [32m  ✔[0m[90m sends the agent session label once its model is resident too[0m
+  [32m  ✔[0m[90m focus transfers voice ownership and narrates a pending background response[0m
+  [32m  ✔[0m[90m materializing an untitled chat preserves Voice Mode ownership[0m
+  [32m  ✔[0m[90m stops tracking a removed chat widget[0m
+  [32m  ✔[0m[90m grounds the active session with its selected model and attachment names[0m
+  [32m  ✔[0m[90m an older tool confirmation holds the turn ahead of a newer form[0m
+  [32m  ✔[0m[90m an older confirmation suppresses a newer form payload but still speaks[0m
+  [32m  ✔[0m[90m a newer form answered by mouse leaves the focused form untouched[0m
+  [32m  ✔[0m[90m fatal disconnect clears routing target and pending confirmations and the tracker cannot repopulate them before reconnect[0m
+  [32m  ✔[0m[90m barge-in drops delayed audio from the interrupted turn before playing the follow-up[0m
+  [32m  ✔[0m[90m speech-started alone interrupts playback and accepts the scoped passive turn[0m
+  [32m  ✔[0m[90m stale interrupted audio does not consume follow-up latency telemetry[0m
+  [32m  ✔[0m[90m barge-in purges deferred audio before the interrupted session is focused[0m
+  [32m  ✔[0m[90m speech-started keeps an interrupted solicited narration retryable[0m
+  [32m  ✔[0m[90m explicit PTT drops stale first chunks before the backend barge-in arrives[0m
+  [32m  ✔[0m[90m manual PTT promotes passive hands-free capture without replaying stale audio[0m
+  [32m  ✔[0m[90m forced pttDown cancels pending toggle mode and keeps the turn recording instead of finishing it[0m
+  [32m  ✔[0m[90m forced pttUp finishes a sub-threshold turn instead of entering toggle mode[0m
+  [32m  ✔[0m[90m restores idle state when solicited narration never starts returning audio[0m
+  [32m  ✔[0m[90m stops the audio-start watchdog once audio arrives and does not time out the stream[0m
+  [32m  ✔[0m[90m does not restore state while another solicited narration is still awaiting audio[0m
+  [32m  ✔[0m[90m does not restore state while a direct reply is still awaited[0m
+  [32m  ✔[0m[90m auto-listen opens a passive mic turn so the backend does not latch user_is_speaking[0m
+  [32m  ✔[0m[90m cold public command ends a short mic turn after a long connection wait[0m
+  [32m  ✔[0m[90m cold authorization hold suppresses production ack auto-listen until released[0m
+  [32m  ✔[0m[90m cold authorization hold suppresses production fallback auto-listen until released[0m
+  [32m  ✔[0m[90m connect only arms listening automatically in hands-free mode[0m
+  [32m  ✔[0m[90m stopping listening in manual mode submits the transcript[0m
+  [32m  ✔[0m[90m send_to_chat with new_session routes the text to the freshly created session[0m
+  [32m  ✔[0m[90m send_to_chat with new_session and no text creates and targets a session without sending[0m
+  [32m  ✔[0m[90m send_to_chat without new_session keeps the request in the current session[0m
+  [32m  ✔[0m[90m send_to_chat reports an error and clears awaiting reply when pane delivery fails[0m
+  [32m  ✔[0m[90m send_to_chat with new_session keeps the created session alive when no pane adopts it[0m
+  [32m  ✔[0m[90m newSessionAsTarget releases an unadopted session on retarget[0m
+  [32m  ✔[0m[90m newSessionAsTarget releases an unadopted session on disconnect[0m
+  [32m  ✔[0m[90m send_to_chat with new_session releases the reference once a pane adopts the session[0m
+  [32m  ✔[0m[90m send_to_chat with new_session outranks a pinned submit session[0m
+  [32m  ✔[0m[90m auto-listen is skipped when window does not have focus (multi-window hands-free)[0m
+  [32m  ✔[0m[90m window blur aborts an open passive turn so the background window stops recording[0m
+  [32m  ✔[0m[90m window blur does not abort a deliberate (non-passive) turn[0m
+  [32m  ✔[0m[90m window focus re-arms hands-free auto-listen in the focused window[0m
+  [32m  ✔[0m[90m window focus does not re-arm auto-listen when hands-free is disabled[0m
+  [32m  ✔[0m[90m a deliberate user press opens a non-passive mic turn[0m
+  [32m  ✔[0m[90m a deliberate press awaiting narration is preserved so its ptt_end clears the backend latch[0m
+  [32m  ✔[0m[90m a passive open-mic turn is torn down for playback since it never latched[0m
+  [32m  ✔[0m[90m a held deliberate press keeps buffered narration deferred instead of playing over the press[0m
+  [32m  ✔[0m[90m a buffered reply retained under a held press is not re-narrated (no duplicate on release)[0m
+  [32m  ✔[0m[90m a different pending reply is still narrated when an unrelated buffer is retained under a held press[0m
+  [32m  ✔[0m[90m promoting a passive barge-in listen clears the passive flag so playback preserves the press[0m
+  [32m  ✔[0m[90m names the cause when the account is not permitted[0m
+  [32m  ✔[0m[90m treats an idle timeout as expected rather than an error[0m
+  [32m  ✔[0m[90m falls back to the server reason for a code this build does not know[0m
+  [32m  ✔[0m[90m never leaves Reconnecting displayed after a terminal close[0m
+  [32m  ✔[0m[90m does not offer an action when no configurable backend URL is available[0m
+  [32m  ✔[0m[90m an immediate fatal close after open does not activate the microphone[0m
+  [32m  ✔[0m[90m the connect watchdog does not tear down a scheduled reconnect[0m
+  [32m  ✔[0m[90m an open socket is not reported as connected until the backend acks[0m
+  [32m  ✔[0m[90m a known transient code keeps its localized message despite a backend reason[0m
+
+[0m  VoiceSessionController live transcription[0m
+  [32m  ✔[0m[90m replaces cumulative partials and final exactly once[0m
+  [32m  ✔[0m[90m ignores a scoped event for another turn[0m
+  [32m  ✔[0m[90m accepts the final after auto-end[0m
+  [32m  ✔[0m[90m a new turn resets revision tracking[0m
+  [32m  ✔[0m[90m unscoped legacy events retain replacement and persistence behavior[0m
+  [32m  ✔[0m[90m barge-in and reconnect clear scoped turn tracking[0m
+  [32m  ✔[0m[90m skips live partials when live transcript is disabled but keeps the final[0m
+
+
+[92m [0m[32m 151 passing[0m[90m (224ms)[0m
+[31m  31 failing[0m
+
+[0m  1) AgentsVoiceContribution - startVoiceInChat
+       connect resolve does not release the hands-free gate before admission:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:243:7)
+[0m
+[0m  2) AgentsVoiceContribution - startVoiceInChat
+       composer departure cancels once: before-connect-resolve:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:268:9)
+[0m
+[0m  3) AgentsVoiceContribution - startVoiceInChat
+       composer departure cancels once: after-connect-resolve:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:268:9)
+[0m
+[0m  4) AgentsVoiceContribution - startVoiceInChat
+       composer departure cancels once: return-to-A:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:268:9)
+[0m
+[0m  5) AgentsVoiceContribution - startVoiceInChat
+       owner lifecycle cancels admission: view-model:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:287:9)
+[0m
+[0m  6) AgentsVoiceContribution - startVoiceInChat
+       owner lifecycle cancels admission: draft-materialized:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:287:9)
+[0m
+[0m  7) AgentsVoiceContribution - startVoiceInChat
+       owner lifecycle cancels admission: hidden:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:287:9)
+[0m
+[0m  8) AgentsVoiceContribution - startVoiceInChat
+       owner lifecycle cancels admission: removed:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:287:9)
+[0m
+[0m  9) AgentsVoiceContribution - startVoiceInChat
+       toolbar uses the actual pane widget rather than the pane bridge:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:300:9)
+[0m
+[0m  10) AgentsVoiceContribution - startVoiceInChat
+       toolbar uses the actual editor widget rather than the pane bridge:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:300:9)
+[0m
+[0m  11) AgentsVoiceContribution - startVoiceInChat
+       pane session change cancels while a different editor is last focused:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:312:7)
+[0m
+[0m  12) AgentsVoiceContribution - startVoiceInChat
+       legacy async revalidation keeps the gate while owner changes after admission:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:328:7)
+[0m
+[0m  13) AgentsVoiceContribution - startVoiceInChat
+       unidentifiable legacy owner stays silent: async () => void 0:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:337:9)
+[0m
+[0m  14) AgentsVoiceContribution - startVoiceInChat
+       unidentifiable legacy owner stays silent: async () => "chat-session:/not-open":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:337:9)
+[0m
+[0m  15) AgentsVoiceContribution - startVoiceInChat
+       unidentifiable legacy owner stays silent: async () => {
+    throw new Error("missing bridge");
+  }:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:337:9)
+[0m
+[0m  16) AgentsVoiceContribution - startVoiceInChat
+       a cancelled late legacy lookup cannot clear or release the new editor intent:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:353:7)
+[0m
+[0m  17) AgentsVoiceContribution - startVoiceInChat
+       late connect failure is observed after cancellation and does not affect a new intent:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:373:7)
+[0m
+[0m  18) AgentsVoiceContribution - startVoiceInChat
+       cold manual toolbar click only connects:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:382:7)
+[0m
+[0m  19) AgentsVoiceContribution - startVoiceInChat
+       an explicit press after a cancelled admission restores the quiet connected session for B:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:397:7)
+[0m
+[0m  20) AgentsVoiceContribution - startVoiceInChat
+       cold hold released before admission never records (handsFree=false):
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:409:9)
+[0m
+[0m  21) AgentsVoiceContribution - startVoiceInChat
+       cold hold released before admission never records (handsFree=true):
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:409:9)
+[0m
+[0m  22) AgentsVoiceContribution - startVoiceInChat
+       cold manual hold release force-finishes even immediately after delayed admission:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:424:7)
+[0m
+[0m  23) AgentsVoiceContribution - startVoiceInChat
+       a replaced cold hold release cannot finish a newer warm press:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:443:7)
+[0m
+[0m  24) AgentsVoiceContribution - startVoiceInChat
+       terminal connection settles the command and its listeners: early-return:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:471:9)
+[0m
+[0m  25) AgentsVoiceContribution - startVoiceInChat
+       terminal connection settles the command and its listeners: failed:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:471:9)
+[0m
+[0m  26) AgentsVoiceContribution - startVoiceInChat
+       terminal connection settles the command and its listeners: reconnect-ended:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:471:9)
+[0m
+[0m  27) AgentsVoiceContribution - startVoiceInChat
+       terminal connection settles the command and its listeners: rejected:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:471:9)
+[0m
+[0m  28) AgentsVoiceContribution - startVoiceInChat
+       initial connecting=false is not an early failure during an async connection request:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + [Function: hasListeners]
+  - true
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:484:12)
+[0m
+[0m  29) AgentsVoiceContribution - startVoiceInChat
+       disconnect after a cold hold admission cancels its pending release:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:503:7)
+[0m
+[0m  30) AgentsVoiceContribution - startVoiceInChat
+       warm toolbar tap and second tap keep PTT toggling without a hold/unhold restart:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:516:7)
+[0m
+[0m  31) AgentsVoiceContribution - startVoiceInChat
+       warm hold keeps the original tap/hold decision in the controller:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [31m-  [null][0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+      [32m+  false[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners],
+  +   [Function: hasListeners]
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false,
+  -   false
+    ]
+
+      at Object.assertReleased (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:219:36)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:526:7)
+[0m

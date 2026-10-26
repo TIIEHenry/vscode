@@ -1,0 +1,184 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[363686:1026/185816.520524:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:363709) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:363709) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:363709) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  AgentsVoiceContribution - startVoiceInChat[0m
+  [31m  1) connect resolve does not release the hands-free gate before admission[0m
+  [31m  2) toolbar uses the actual editor widget rather than the pane bridge[0m
+  [31m  3) cold hold released before admission never records (handsFree=false)[0m
+  [31m  4) cold hold released before admission never records (handsFree=true)[0m
+
+[0m  VoiceSessionController[0m
+  [31m  5) cold public command ends a short mic turn after a long connection wait[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (37ms)[0m
+[31m  5 failing[0m
+
+[0m  1) AgentsVoiceContribution - startVoiceInChat
+       connect resolve does not release the hands-free gate before admission:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "down": 1[0m
+      [31m-  "held": false[0m
+      [31m-  "ups": [[0m
+      [31m-    {[0m
+      [31m-      "forceFinish": "[undefined]"[0m
+      [31m-      "source": "[undefined]"[0m
+      [31m-    }[0m
+      [31m-  ][0m
+      [32m+  "down": 0[0m
+      [32m+  "held": true[0m
+      [32m+  "ups": [][0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    {
+  +   down: 1,
+  +   held: false,
+  +   ups: [
+  +     {
+  +       forceFinish: undefined,
+  +       source: undefined
+  +     }
+  +   ]
+  -   down: 0,
+  -   held: true,
+  -   ups: []
+    }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:239:12)
+[0m
+[0m  2) AgentsVoiceContribution - startVoiceInChat
+       toolbar uses the actual editor widget rather than the pane bridge:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-chat-session://workspace/folder/session-a[0m
+      [32m+chat-session://workspace/folder/session-b[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'chat-session://workspace/folder/session-a'
+  - 'chat-session://workspace/folder/session-b'
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:296:14)
+[0m
+[0m  3) AgentsVoiceContribution - startVoiceInChat
+       cold hold released before admission never records (handsFree=false):
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  1[0m
+      [31m-  [[0m
+      [31m-    {[0m
+      [31m-      "forceFinish": "[undefined]"[0m
+      [31m-      "source": "[undefined]"[0m
+      [31m-    }[0m
+      [31m-  ][0m
+      [31m-  false[0m
+      [32m+  0[0m
+      [32m+  [][0m
+      [32m+  true[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   1,
+  +   [
+  +     {
+  +       forceFinish: undefined,
+  +       source: undefined
+  +     }
+  +   ],
+  +   false
+  -   0,
+  -   [],
+  -   true
+    ]
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:408:14)
+[0m
+[0m  4) AgentsVoiceContribution - startVoiceInChat
+       cold hold released before admission never records (handsFree=true):
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  1[0m
+      [31m-  [[0m
+      [31m-    {[0m
+      [31m-      "forceFinish": "[undefined]"[0m
+      [31m-      "source": "[undefined]"[0m
+      [31m-    }[0m
+      [31m-  ][0m
+      [31m-  false[0m
+      [32m+  0[0m
+      [32m+  [][0m
+      [32m+  true[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   1,
+  +   [
+  +     {
+  +       forceFinish: undefined,
+  +       source: undefined
+  +     }
+  +   ],
+  +   false
+  -   0,
+  -   [],
+  -   true
+    ]
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js:408:14)
+[0m
+[0m  5) VoiceSessionController
+       cold public command ends a short mic turn after a long connection wait:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "releases": 0[0m
+      [31m-  "state": "idle"[0m
+      [31m-  "turns": 0[0m
+      [32m+  "releases": 1[0m
+      [32m+  "state": "processing"[0m
+      [32m+  "turns": 1[0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    {
+  +   releases: 0,
+  +   state: 'idle',
+  +   turns: 0
+  -   releases: 1,
+  -   state: 'processing',
+  -   turns: 1
+    }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js:4800:12)
+[0m

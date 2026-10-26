@@ -14,8 +14,8 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Conversation 叶级会话工作根身份条](2026-10-26-leaf-session-root-identity.md) | `accepted` | D1386；绑定叶的 folder/aria/branch/menu/checkout 与 mount offer 同根代次，窗口 addFolders 保持全局；方案/实施静态peer C0/I0，源码已写，等待 merge red/green 与独立默认编辑器 after。 |
-| [Copilot Chat 首次连接录音授权](copilot-chat-cold-voice-authorization.md) | `accepted` | D1385；action 与 31 条公共场景、3 条真实 controller 场景已写。独立静态 peer C0/I0，运行待唯一 merge，未接 Conversation 真语音。 |
+| [Conversation 叶级会话工作根身份条](2026-10-26-leaf-session-root-identity.md) | `accepted` | D1386；11新项业务旧红/新绿、完整IdentityStrip40过、Lens绑定8过；四TS语义0，等待独立默认编辑器after，accepted/open。 |
+| [Copilot Chat 首次连接录音授权](copilot-chat-cold-voice-authorization.md) | `accepted` | D1385；C自槽修正清理断言/API，修后测试5项业务旧红、新action完整182过；七TS语义0，独立最终复审待核验，不接Conversation真语音。 |
 | [Tunnel 引用所有权与 provider 重试](tunnel-reference-and-provider-retry.md) | `implemented` | D1383；旧生产8项行为失败加1次裸拒绝hook，新生产两套件19 passing，两TS定向语义0。该闭合当时未跑全量。 |
 | [Conversation 审阅导航随工作根刷新](conversation-review-root-invalidation.md) | `implemented` | D1382；旧生产新行为3过/7败，新生产37过，五TS语义0；独立默认编辑器after C0/I0，真实行/根失效/并列叶/命令参数通过，限制见证据。 |
 | [远端用户配置初始化与重试合同](remote-user-configuration-attempts.md) | `implemented` | D1384；旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。四TS与11TS语义0。 |

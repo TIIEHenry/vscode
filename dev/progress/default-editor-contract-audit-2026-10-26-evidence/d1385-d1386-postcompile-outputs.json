@@ -1,0 +1,231 @@
+{
+  "sourceHead": "6f82fe5b05210fd72852abc5df729a70b68b4401",
+  "esbuildVersion": "0.27.2",
+  "scope": "Seven changed outputs only. Preserve compile-emitted metadata, refresh only mismatching bodies with the already-tested same configuration. No second fullcompile, no repeated tests.",
+  "items": [
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.ts",
+        "sha256": "f38790e848f49f015de0a0c1a76fbccb65e4073dba6a6927c6a9d387d8d6aa9f",
+        "bodySha256": "f5606ffe13abe922bc584fe7af3d51cfb98cbb327c49653ce55754712c5b7fb9",
+        "bytes": 31784,
+        "mtime": "2026-10-26T10:54:21.540Z"
+      },
+      "greenOutput": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js",
+        "sha256": "3b44d830db3b2f91e31850466e2ea71ea3754be4434d607a5ffc54879e80bb99",
+        "bodySha256": "27af36a5d723fea90c0ebff77fae27d228fcf3957f8881c1a51a34c370707e43",
+        "bytes": 52415,
+        "mtime": "2026-10-26T10:56:13.194Z"
+      },
+      "compileEmit": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js",
+        "sha256": "bf004fbac0305c9cb9aaa06dd08f16dac14f2f4816aed19ced22eb0ad3dd892d",
+        "bodySha256": "27af36a5d723fea90c0ebff77fae27d228fcf3957f8881c1a51a34c370707e43",
+        "bytes": 97907,
+        "mtime": "2026-10-26T11:03:08.099Z"
+      },
+      "compileEmitBodyEqualGreen": true,
+      "minimalRefreshed": false,
+      "finalOutput": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js",
+        "sha256": "bf004fbac0305c9cb9aaa06dd08f16dac14f2f4816aed19ced22eb0ad3dd892d",
+        "bodySha256": "27af36a5d723fea90c0ebff77fae27d228fcf3957f8881c1a51a34c370707e43",
+        "bytes": 97907,
+        "mtime": "2026-10-26T11:03:08.099Z"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/conversation/browser/conversationLens.ts",
+        "sha256": "bb1e6108f5a17ebbc8d902dabbd59c856a15c3a86477f94b36dc30c7147e0dbd",
+        "bodySha256": "c5cb49532727201e4776a4424f54fa1c53121f64ef7f6de2886939e018c6a9e1",
+        "bytes": 32037,
+        "mtime": "2026-10-26T10:54:21.540Z"
+      },
+      "greenOutput": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+        "sha256": "92dc2a4d52abc5d3e947cceb20c71c35bfe1d08b21a00152b04637c35ba92aad",
+        "bodySha256": "9413b4211c76c9bb11f5603c0158d5c057b6ba47ec5660399f72d4e9a727830f",
+        "bytes": 45845,
+        "mtime": "2026-10-26T10:56:13.197Z"
+      },
+      "compileEmit": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+        "sha256": "b9894ce411e486a72923b1e27406fb3f3940695523a46110abcab0f8aba9fa08",
+        "bodySha256": "9413b4211c76c9bb11f5603c0158d5c057b6ba47ec5660399f72d4e9a727830f",
+        "bytes": 91573,
+        "mtime": "2026-10-26T11:03:08.117Z"
+      },
+      "compileEmitBodyEqualGreen": true,
+      "minimalRefreshed": false,
+      "finalOutput": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+        "sha256": "b9894ce411e486a72923b1e27406fb3f3940695523a46110abcab0f8aba9fa08",
+        "bodySha256": "9413b4211c76c9bb11f5603c0158d5c057b6ba47ec5660399f72d4e9a727830f",
+        "bytes": 91573,
+        "mtime": "2026-10-26T11:03:08.117Z"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+        "sha256": "492eb3a3fb06b921499bb5da62ec5b996828375555ae5f9825889431407f7cc2",
+        "bodySha256": "3bf7a906d1a3769910c26213263678ce8c763e142f5cb4010b9ccf5c658cdd54",
+        "bytes": 16931,
+        "mtime": "2026-10-26T10:54:21.540Z"
+      },
+      "greenOutput": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+        "sha256": "ac75816ed0a27747b3e7e09d6086301f23361043223bb1a9bd091b0eb16f1565",
+        "bodySha256": "424582d7af937cc1d1df6c1b961a64ca055517310015cbe20cd700c1a01fdc21",
+        "bytes": 18171,
+        "mtime": "2026-10-26T10:56:13.199Z"
+      },
+      "compileEmit": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+        "sha256": "a0dda7894e377fe0944af36dbfbe294014ab453a5f92c7e2715340e3e7725bb3",
+        "bodySha256": "424582d7af937cc1d1df6c1b961a64ca055517310015cbe20cd700c1a01fdc21",
+        "bytes": 41891,
+        "mtime": "2026-10-26T11:03:08.148Z"
+      },
+      "compileEmitBodyEqualGreen": true,
+      "minimalRefreshed": false,
+      "finalOutput": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+        "sha256": "a0dda7894e377fe0944af36dbfbe294014ab453a5f92c7e2715340e3e7725bb3",
+        "bodySha256": "424582d7af937cc1d1df6c1b961a64ca055517310015cbe20cd700c1a01fdc21",
+        "bytes": 41891,
+        "mtime": "2026-10-26T11:03:08.148Z"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.ts",
+        "sha256": "e147020de1a2e91fc63998fd93e2366e71c6973d139b338cdddb1c6b4c57d414",
+        "bodySha256": "6fe1a86ff51350a07b3c147c25fa14083ce65b4cc2e9d2abceffbf9fe40425e6",
+        "bytes": 70181,
+        "mtime": "2026-10-26T10:54:21.540Z"
+      },
+      "greenOutput": {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js",
+        "sha256": "623fbbce8bae858e2ae681e504a610c65aef96fa3c352c481fef6229239abbf7",
+        "bodySha256": "6916f1bb998c7939697825655c5ed8b00b137176964506e1030a957f823a51c3",
+        "bytes": 119416,
+        "mtime": "2026-10-26T10:55:34.459Z"
+      },
+      "compileEmit": {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js",
+        "sha256": "d76a863a26332bb417abf2f9bb0f99486a009b7df6b5e37e68411b73f2d778e5",
+        "bodySha256": "6916f1bb998c7939697825655c5ed8b00b137176964506e1030a957f823a51c3",
+        "bytes": 218592,
+        "mtime": "2026-10-26T11:03:08.747Z"
+      },
+      "compileEmitBodyEqualGreen": true,
+      "minimalRefreshed": false,
+      "finalOutput": {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js",
+        "sha256": "d76a863a26332bb417abf2f9bb0f99486a009b7df6b5e37e68411b73f2d778e5",
+        "bodySha256": "6916f1bb998c7939697825655c5ed8b00b137176964506e1030a957f823a51c3",
+        "bytes": 218592,
+        "mtime": "2026-10-26T11:03:08.747Z"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.ts",
+        "sha256": "630f0d30b2b2ba809bb9951fbb77923d68fae31e326b423d0f751a213c10f098",
+        "bodySha256": "228326a37ee22b49413df8bc5a5619dc7717f6a7bebc97153d55035b349e0ad1",
+        "bytes": 37314,
+        "mtime": "2026-10-26T11:01:43.819Z"
+      },
+      "greenOutput": {
+        "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js",
+        "sha256": "26cd7c36dad55beab1f3c642bd3dd1347b6de428227996d6115db1f3742de992",
+        "bodySha256": "c039623ccb2bbffc5ae57584ea1084ab8cf811868d98b0df3bf9c3e8aed3f6ae",
+        "bytes": 55734,
+        "mtime": "2026-10-26T11:01:53.165Z"
+      },
+      "compileEmit": {
+        "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js",
+        "sha256": "b4f8fd54f29230932922d024dc66a36d688efc726fdc54530d269f4041083459",
+        "bodySha256": "27d70ddd35c9245841d3577d63e2252092138de8648424553e8867ddf716967c",
+        "bytes": 109680,
+        "mtime": "2026-10-26T11:03:07.450Z"
+      },
+      "compileEmitBodyEqualGreen": false,
+      "minimalRefreshed": true,
+      "finalOutput": {
+        "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js",
+        "sha256": "26cd7c36dad55beab1f3c642bd3dd1347b6de428227996d6115db1f3742de992",
+        "bodySha256": "c039623ccb2bbffc5ae57584ea1084ab8cf811868d98b0df3bf9c3e8aed3f6ae",
+        "bytes": 55734,
+        "mtime": "2026-10-26T11:04:56.994Z"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.ts",
+        "sha256": "70e42be84e4456b453d738c4ecd7ca185a5ff6cf5bb8f28d45ec1a217c0943f3",
+        "bodySha256": "a867452db5175550acd7bde43c12294b2e4d4395d4faefd8b30347dad0816c16",
+        "bytes": 21530,
+        "mtime": "2026-10-26T11:01:43.819Z"
+      },
+      "greenOutput": {
+        "path": "out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js",
+        "sha256": "42bb34323179d4f5f68c2663d9fc78b42eaeabbc4b8497e9149cf975c9cf15ac",
+        "bodySha256": "d68e86975bcc73f7976a9f4226d718c4743f3fe6902d7304a318db347a8e92b3",
+        "bytes": 39037,
+        "mtime": "2026-10-26T11:01:44.294Z"
+      },
+      "compileEmit": {
+        "path": "out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js",
+        "sha256": "57f78fe075b3c8d9164e849bb2fbb77a95cc0b49ccf18820641b2c61c50e01f8",
+        "bodySha256": "d68e86975bcc73f7976a9f4226d718c4743f3fe6902d7304a318db347a8e92b3",
+        "bytes": 69805,
+        "mtime": "2026-10-26T11:03:08.673Z"
+      },
+      "compileEmitBodyEqualGreen": true,
+      "minimalRefreshed": false,
+      "finalOutput": {
+        "path": "out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js",
+        "sha256": "57f78fe075b3c8d9164e849bb2fbb77a95cc0b49ccf18820641b2c61c50e01f8",
+        "bodySha256": "d68e86975bcc73f7976a9f4226d718c4743f3fe6902d7304a318db347a8e92b3",
+        "bytes": 69805,
+        "mtime": "2026-10-26T11:03:08.673Z"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.ts",
+        "sha256": "012a0610a8ed4819686c6ea373b283ea69a9b50e6e5722e7b86b6d4b62a65b71",
+        "bodySha256": "2388f466dcd13d5fe72df4c55086c1374069db328d6f85fa9e88099f1af31f08",
+        "bytes": 264661,
+        "mtime": "2026-10-26T10:57:08.620Z"
+      },
+      "greenOutput": {
+        "path": "out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js",
+        "sha256": "8a82ceff0a95636c4002d1978c314a2efbaccb4b310df174a5a568969c56594a",
+        "bodySha256": "3e4029b0a41c9ed5c8208390269f13f6e06b4e08c7e1f3450bac7d88fc36c3b8",
+        "bytes": 427616,
+        "mtime": "2026-10-26T11:01:44.310Z"
+      },
+      "compileEmit": {
+        "path": "out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js",
+        "sha256": "d640eef33e239e15703a58e24108fba1cb4b91b0b118c7ad26c11c85a53369f5",
+        "bodySha256": "3e4029b0a41c9ed5c8208390269f13f6e06b4e08c7e1f3450bac7d88fc36c3b8",
+        "bytes": 806956,
+        "mtime": "2026-10-26T11:03:08.911Z"
+      },
+      "compileEmitBodyEqualGreen": true,
+      "minimalRefreshed": false,
+      "finalOutput": {
+        "path": "out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js",
+        "sha256": "d640eef33e239e15703a58e24108fba1cb4b91b0b118c7ad26c11c85a53369f5",
+        "bodySha256": "3e4029b0a41c9ed5c8208390269f13f6e06b4e08c7e1f3450bac7d88fc36c3b8",
+        "bytes": 806956,
+        "mtime": "2026-10-26T11:03:08.911Z"
+      }
+    }
+  ]
+}

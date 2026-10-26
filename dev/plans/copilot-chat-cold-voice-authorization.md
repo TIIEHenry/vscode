@@ -85,3 +85,12 @@ summary: "D1385：默认编辑器保留的 Copilot Chat 首按授权绑定 compo
 2026-10-26 D 对实际三 TS diff 的独立实施 peer 为 Critical 0 / Important 0；不是运行验收。C 三 TS ESLint `--no-cache` 为 0 errors / 0 warnings；`git diff --check` 通过。文档健康检查 0 errors / 46 既有链接 warnings。C 未编译/typecheck/transpile、未写 out、未跑单测、未启 Electron、未访问真实麦克风/语音网络/系统权限。
 
 唯一 merge 工位先保留并核对旧生产 `agentsVoice.contribution` 对应 `94893edf39b2`（与父 `3e63` 的 action 正文相同），只更新两份测试产物。最小 old-red 选择 `connect resolve does not release|toolbar uses the actual editor|cold hold released before admission|cold public command ends a short mic turn`；这些会以调用/状态断言失败，不需要等待未实现的取消使测试超时。真实 controller 的两条 gate API 测试本来就可在旧 controller 上通过，它们验证既有生产闸，不冒充 action 旧红。再只更新 action 生产，运行完整 agentsVoice contribution 与 VoiceSessionController 套件（含原 warm/停止回归），并对三 TS 做正式项目上下文定向语义检查和 ESLint。旧失败必须与同配置旧生产比较。运行前本方案 accepted、D1385 open，不宣称新 green、完整编译或 Conversation 真语音交付。
+
+
+## 7. merge 运行与作者自槽补修
+
+源8619bc47真三路合入d941c945854；首轮完整运行151过/31败均暴露新测试hasListeners属性误用，定向检查另有生产调用不存在discardRecording、fake同名override与集合参数类型3诊断。merge精确反馈后，C在自己槽提交e48f88（调用hasListeners()）、69ac16（复用既有discardListening和正式IChatWidget[]），真三路接入6f82fe5b；未扩controller接口、未强cast、未在merge悄改。
+
+修后测试重新钉旧948 action同配置基线，5个最小场景全部业务AssertionError，无cleanup/load/timeout混入；仅fresh新action后完整Contrib+Controller182过，含31公共action/原palette1/controller149（含3新增）及注册表清理1。最终七TS原project noEmit0、lint0/0；新波唯一compile-client实际45诊断/27文件、exit1，七改动TS无诊断，前波46/28不覆盖。类静态字段emit风格差异只最小fresh一个action JS回已测正文。详见[运行证据](../progress/default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md)。
+
+本运行检查点仍待C两次补修的独立复审核验，以及实际保留CopilotChat pane/editor工具栏/快捷键传入owner的公开controller spy路由证明（无真实麦克风/后端）；公共命令fake widget上下文不能单独代替这条UI来源证明。不把真实设备/网络或Conversation真语音列为已交付；当前accepted/open。

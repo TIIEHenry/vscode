@@ -1,0 +1,198 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[358037:1026/185549.437592:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:358061) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:358061) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:358061) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ConversationIdentityStrip[0m
+  [31m  1) D1386 bound local and engine leaves keep their own folder aria and branch when global focus changes[0m
+  [31m  2) D1386 each local leaf checks its own workspace folder and checks out its own repository[0m
+  [31m  3) D1386 engine resolve from before A to B to A binding cannot repaint the new branch[0m
+  [31m  4) D1386 engine reject from before A to B to A binding cannot repaint the new branch[0m
+  [31m  5) D1386 same-session root change closes branch menu and invalidates old checkout delegate[0m
+  [31m  6) D1386 late refs from an old binding do not open a menu on the rebound local leaf[0m
+  [31m  7) D1386 cancelled recents cannot overtake the next request on the same root[0m
+  [31m  8) D1386 old Add button cannot accept a replaced global offer even before a repaint[0m
+  [31m  9) D1386 bound leaf does not borrow a window root when its root API is absent[0m
+  [31m  10) D1386 workspace SCM and connection changes refresh a nonactive leaf without borrowing active root[0m
+  [31m  11) D1386 disposed leaf closes its menu and ignores later engine and recents responses[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (1s)[0m
+[31m  11 failing[0m
+
+[0m  1) ConversationIdentityStrip
+       D1386 bound local and engine leaves keep their own folder aria and branch when global focus changes:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-alpha[0m
+      [32m+beta[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'alpha' !== 'beta'
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1070:12)
+[0m
+[0m  2) ConversationIdentityStrip
+       D1386 each local leaf checks its own workspace folder and checks out its own repository:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  "alpha"[0m
+      [32m+  "beta"[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+  +   'alpha'
+  -   'beta'
+    ]
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1109:14)
+[0m
+[0m  3) ConversationIdentityStrip
+       D1386 engine resolve from before A to B to A binding cannot repaint the new branch:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-alpha[0m
+      [32m+beta[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'alpha' !== 'beta'
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1128:14)
+[0m
+[0m  4) ConversationIdentityStrip
+       D1386 engine reject from before A to B to A binding cannot repaint the new branch:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-alpha[0m
+      [32m+beta[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'alpha' !== 'beta'
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1128:14)
+[0m
+[0m  5) ConversationIdentityStrip
+       D1386 same-session root change closes branch menu and invalidates old checkout delegate:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-true[0m
+      [32m+false[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1153:12)
+[0m
+[0m  6) ConversationIdentityStrip
+       D1386 late refs from an old binding do not open a menu on the rebound local leaf:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-alpha-head[0m
+      [32m+beta-head[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'alpha-head'
+  - 'beta-head'
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1179:12)
+[0m
+[0m  7) ConversationIdentityStrip
+       D1386 cancelled recents cannot overtake the next request on the same root:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  1 !== 0
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1192:12)
+[0m
+[0m  8) ConversationIdentityStrip
+       D1386 old Add button cannot accept a replaced global offer even before a repaint:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  false !== true
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1219:12)
+[0m
+[0m  9) ConversationIdentityStrip
+       D1386 bound leaf does not borrow a window root when its root API is absent:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  false !== true
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1244:12)
+[0m
+[0m  10) ConversationIdentityStrip
+       D1386 workspace SCM and connection changes refresh a nonactive leaf without borrowing active root:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-alpha[0m
+      [32m+beta[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'alpha' !== 'beta'
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1273:12)
+[0m
+[0m  11) ConversationIdentityStrip
+       D1386 disposed leaf closes its menu and ignores later engine and recents responses:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-true[0m
+      [32m+false[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js:1317:12)
+[0m

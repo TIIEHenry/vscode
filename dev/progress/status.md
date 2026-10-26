@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1382独立默认编辑器after C0/I0并闭合，D1383/1384已闭合；单行DOM Event类型修复单TS语义0、运行正文等价。D1385/D1386正式方案均accepted、功能open；唯一全量仍46/28。"
+summary: "D1385修后业务5红/完整182绿，D1386业务11红/完整40+Lens8绿；七TS语义/lint0。新波唯一fullcompile实际45/27失败，旧46/28保留；D1385最终复审/D1386真实after待到。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **D1385/D1386 新波统一运行（2026-10-26）**：D源ea54727→328cb823，旧5cc三JS正文核对后11条业务断言红，新三生产11绿/完整IdentityStrip40过/Lens绑定8过；C源8619bc→d941c945，初轮151过31败因新清理断言误用hasListeners，另3类型诊断，已精确退C自槽e48/69ac补修→6f82。修后重新钉948旧action，5业务断言红，无cleanup/load/timeout；新action完整两套182过。最终7TS原project noEmit0、ESLint0/0。source6f82本波唯一compile-client实际exit1、45诊断/27文件，七目标无诊断，较旧3e63的46/28仅Event错消失；不是推算/全绿，旧日志全保留。编译后六输出正文等green，仅action静态字段emit差异最小fresh回green。D1385补修独立复审/实际CopilotChat toolbar与快捷键owner路由证明待到；D1386非作者真实after未签收，审查中反馈只读chevron被CSS显示、补修待接。两plan仍accepted/缺口open。[语音证据](default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md) / [叶身份证据](default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md)。
 - **叶级身份条源码检查点（2026-10-26，D1386）**：方案 `ab142cd` 后三生产 TS 统一原始叶绑定、folder/title/aria/分支/菜单/checkout 与根代次，Add 重验同一 offer/URI；11条真实 Lens DOM + AgentSessionContext 回归已写。方案与实施独立静态peer C0/I0，四TS ESLint 0/0、diff check通过。未编译/out/单测/本刀实拍，保持 accepted/open，等待唯一 merge red/green 与独立默认编辑器 after；见[检查点](default-editor-contract-audit-2026-10-26-evidence/d1386-source-checkpoint.md)。
 - **最新代码/验证同步**：父复核旧11对共22个摘要、新语音源/产物两个摘要及两篇方案与作者提交一致后，已安全ff人类agent-ide与J到checkpoint2049a6d39e3c，与merge三处clean，未push。D1382真实after已闭合；D1385/1386仍open、正式方案accepted，原生C/D继续实施，未验证实现不在此次同步。Grok后续启动402未执行，已由原生子代理接班；唯一merge编译车道不变，完整编译仍原46/28失败。见[收口来源摘要](default-editor-contract-audit-2026-10-26-evidence/close-final-state.json)、[续审看板](../parallel/active/default-editor-contract-audit-2026-10-26.md)。
 - **D1385/D1386 正式方案接入（2026-10-26）**：只三路合入已独立提交/互评C0/I0的C方案3d291db→09ac7dbefd8与D方案ab142cd→a2fbb411cda；保留PRD-015语音条款和身份条款、PRD-029仍proposed。两plan均accepted、两缺口open。作者在各自槽实施，未取未提交WIP；本次无新运行源码，无新编译/测试/out刷新。见[语音方案](../plans/copilot-chat-cold-voice-authorization.md)、[叶身份方案](../plans/2026-10-26-leaf-session-root-identity.md)。

@@ -1,0 +1,64 @@
+{
+  "sourceHead": "d941c9458548d989ac548fb01a4b6c7861475e99",
+  "oldSourceHead": "94893edf39b2f1b9ffdfd9e11b597c65bf6e1ba6",
+  "oldActionEqual3e63": true,
+  "esbuildVersion": "0.27.2",
+  "oldSourceSha256": "1d6813e41ab7c9525949e6844cc6fd9b1694a614ab946b5bf17ed5ea175b099c",
+  "currentSource": {
+    "path": "src/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.ts",
+    "sha256": "46bf1f67393892cd04a02bd16aa4dbe694321d1efc05c3fb9bd33674d0c50f55",
+    "bodySha256": "a1bc40ae41f30fb40609a0d02b492cdefd3b9a74e36629aca68871dd97fc6de6",
+    "bytes": 37314,
+    "mtime": "2026-10-26T10:57:08.619Z"
+  },
+  "originalDisk": {
+    "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js",
+    "sha256": "a3b927fe1397a27fb37281756e01b7ffb7f265a4da821d6c460159b7486c7aeb",
+    "bodySha256": "04abcd880bb4146cd71eea259560348455649751c0b3f0556602a832000cc68c",
+    "bytes": 94939,
+    "mtime": "2026-10-26T09:01:48.283Z"
+  },
+  "oldTranspileSha256": "577f0c05f5ed262efc0caf6d1b944fd9305fc2b91a3f74958ceb7dc350242159",
+  "oldTranspileBodySha256": "781f53fe6cb66fc9c02826577386a18e73af8cec3e768c2f55f00c7556c72b48",
+  "originalDiskBodyMatchesOld": false,
+  "installedExactOldBaseline": true,
+  "redProduction": {
+    "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js",
+    "sha256": "577f0c05f5ed262efc0caf6d1b944fd9305fc2b91a3f74958ceb7dc350242159",
+    "bodySha256": "781f53fe6cb66fc9c02826577386a18e73af8cec3e768c2f55f00c7556c72b48",
+    "bytes": 46465,
+    "mtime": "2026-10-26T10:58:16.005Z"
+  },
+  "testsBefore": [
+    {
+      "path": "out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js",
+      "sha256": "4892eeac60e5235229ce8bbe9025b96d413b83d7ca6f46f202aa050811b1d734",
+      "bodySha256": "33bdc3050de24218d8af428962603eef58d56902a679e4d34856bd969eaa454a",
+      "bytes": 20302,
+      "mtime": "2026-10-26T09:01:50.253Z"
+    },
+    {
+      "path": "out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js",
+      "sha256": "c983a57e8c6c9c91fb6dd1b8afaf7c640d9c544486941ea724b9adb2f984c637",
+      "bodySha256": "28dd8c23ff3c68b83aa3009a120cb3acb6b21940e8317b4ff18d63c2df93aaf1",
+      "bytes": 792883,
+      "mtime": "2026-10-26T09:01:50.565Z"
+    }
+  ],
+  "unchangedController": {
+    "source": {
+      "path": "src/vs/workbench/contrib/chat/browser/voiceClient/voiceSessionController.ts",
+      "sha256": "51ce328ab83cdbec47dbadfbdd70e4630edcfdd271bcb4e5d2883ffeb721ca62",
+      "bodySha256": "801c7b7d9b8269a68893785050347ab66b3f575b8403165c84abcfd8b61b1198",
+      "bytes": 345216,
+      "mtime": "2026-09-17T17:05:46.299Z"
+    },
+    "output": {
+      "path": "out/vs/workbench/contrib/chat/browser/voiceClient/voiceSessionController.js",
+      "sha256": "691dfab95e8346717b3a06eb810c2a5640f02e0a388f493a04138c3766902645",
+      "bodySha256": "ded89f731db071ef78735b8cfac88f666f6b0469fb84f61b71f108adfd942e3c",
+      "bytes": 929754,
+      "mtime": "2026-10-26T09:01:50.347Z"
+    }
+  }
+}

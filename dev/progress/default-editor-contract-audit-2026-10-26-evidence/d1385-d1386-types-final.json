@@ -1,0 +1,43 @@
+{
+  "sourceHead": "6f82fe5b05210fd72852abc5df729a70b68b4401",
+  "typescriptVersion": "6.0.3",
+  "scope": "Original unmodified src/tsconfig project context; per-target syntactic+semantic diagnostics; noEmit. Not fullcompile.",
+  "files": [
+    {
+      "path": "src/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.ts",
+      "sha256": "630f0d30b2b2ba809bb9951fbb77923d68fae31e326b423d0f751a213c10f098",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.ts",
+      "sha256": "70e42be84e4456b453d738c4ecd7ca185a5ff6cf5bb8f28d45ec1a217c0943f3",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.ts",
+      "sha256": "012a0610a8ed4819686c6ea373b283ea69a9b50e6e5722e7b86b6d4b62a65b71",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.ts",
+      "sha256": "f38790e848f49f015de0a0c1a76fbccb65e4073dba6a6927c6a9d387d8d6aa9f",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLens.ts",
+      "sha256": "bb1e6108f5a17ebbc8d902dabbd59c856a15c3a86477f94b36dc30c7147e0dbd",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "sha256": "492eb3a3fb06b921499bb5da62ec5b996828375555ae5f9825889431407f7cc2",
+      "diagnostics": []
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.ts",
+      "sha256": "e147020de1a2e91fc63998fd93e2366e71c6973d139b338cdddb1c6b4c57d414",
+      "diagnostics": []
+    }
+  ],
+  "totalDiagnostics": 0
+}

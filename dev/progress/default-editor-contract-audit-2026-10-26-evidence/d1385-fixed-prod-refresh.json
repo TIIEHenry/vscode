@@ -1,0 +1,46 @@
+{
+  "sourceHead": "6f82fe5b05210fd72852abc5df729a70b68b4401",
+  "kind": "production",
+  "esbuildVersion": "0.27.2",
+  "fresh": [
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.ts",
+        "sha256": "630f0d30b2b2ba809bb9951fbb77923d68fae31e326b423d0f751a213c10f098",
+        "bodySha256": "228326a37ee22b49413df8bc5a5619dc7717f6a7bebc97153d55035b349e0ad1",
+        "bytes": 37314,
+        "mtime": "2026-10-26T11:01:43.819Z"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/agentsVoice/browser/agentsVoice.contribution.js",
+        "sha256": "26cd7c36dad55beab1f3c642bd3dd1347b6de428227996d6115db1f3742de992",
+        "bodySha256": "c039623ccb2bbffc5ae57584ea1084ab8cf811868d98b0df3bf9c3e8aed3f6ae",
+        "bytes": 55734,
+        "mtime": "2026-10-26T11:01:53.165Z"
+      }
+    }
+  ],
+  "testsUnchanged": [
+    {
+      "path": "out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js",
+      "sha256": "42bb34323179d4f5f68c2663d9fc78b42eaeabbc4b8497e9149cf975c9cf15ac",
+      "bodySha256": "d68e86975bcc73f7976a9f4226d718c4743f3fe6902d7304a318db347a8e92b3",
+      "bytes": 39037,
+      "mtime": "2026-10-26T11:01:44.294Z"
+    },
+    {
+      "path": "out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js",
+      "sha256": "8a82ceff0a95636c4002d1978c314a2efbaccb4b310df174a5a568969c56594a",
+      "bodySha256": "3e4029b0a41c9ed5c8208390269f13f6e06b4e08c7e1f3450bac7d88fc36c3b8",
+      "bytes": 427616,
+      "mtime": "2026-10-26T11:01:44.310Z"
+    }
+  ],
+  "controllerOutputUnchanged": {
+    "path": "out/vs/workbench/contrib/chat/browser/voiceClient/voiceSessionController.js",
+    "sha256": "691dfab95e8346717b3a06eb810c2a5640f02e0a388f493a04138c3766902645",
+    "bodySha256": "ded89f731db071ef78735b8cfac88f666f6b0469fb84f61b71f108adfd942e3c",
+    "bytes": 929754,
+    "mtime": "2026-10-26T09:01:50.347Z"
+  }
+}

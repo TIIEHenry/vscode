@@ -1,0 +1,30 @@
+{
+  "sourceHead": "328cb823136c89f134b7d7f94653dee9f9c22bcf",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "20s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+    "--grep",
+    "two leaves bound|connection change rebinds|bound leaf closes|hidden leaf release|switching session closes|switching sessions keeps|PreFirst: centered composer|Active: first message restores"
+  ],
+  "environment": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "started": "2026-10-26T10:56:37.906806+00:00",
+  "ended": "2026-10-26T10:56:40.406407+00:00",
+  "exit": 0,
+  "scope": "Official Electron test runner with isolated Xvfb. No compile; prelaunch explicitly skipped."
+}

@@ -1,0 +1,338 @@
+{
+  "sourceHead": "6f82fe5b05210fd72852abc5df729a70b68b4401",
+  "rawExit": 1,
+  "diagnosticCount": 45,
+  "fileCount": 27,
+  "diagnostics": [
+    {
+      "file": "src/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts",
+      "line": 75,
+      "column": 36,
+      "code": "TS2339",
+      "message": "Property 'url' does not exist on type 'never'."
+    },
+    {
+      "file": "src/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts",
+      "line": 49,
+      "column": 9,
+      "code": "TS2352",
+      "message": "Conversion of type '{ getKeyMap: () => { KeyA: { value: string; withShift: string; withAltGr: string; withShiftAltGr: string; }; }; getCurrentKeyboardLayout: () => { model: string; group: number; layout: string; variant: string; options: string; rules: string; }; onDidChangeKeyboardLayout: (callback: () => void) => void; isISOKeyboard:...' to type 'typeof import(\"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/native-keymap/index\")' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "src/vs/platform/universeAgent/test/common/respondCleanup.test.ts",
+      "line": 57,
+      "column": 199,
+      "code": "TS2339",
+      "message": "Property 'status' does not exist on type 'TimelineItemSummary'."
+    },
+    {
+      "file": "src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+      "line": 246,
+      "column": 13,
+      "code": "TS7006",
+      "message": "Parameter 'data' implicitly has an 'any' type."
+    },
+    {
+      "file": "src/vs/sessions/contrib/changes/browser/changesActions.ts",
+      "line": 589,
+      "column": 67,
+      "code": "TS2345",
+      "message": "Argument of type 'URI | undefined' is not assignable to parameter of type 'URI'."
+    },
+    {
+      "file": "src/vs/sessions/contrib/changes/browser/changesetReviewActions.ts",
+      "line": 52,
+      "column": 62,
+      "code": "TS2345",
+      "message": "Argument of type 'URI | undefined' is not assignable to parameter of type 'URI'."
+    },
+    {
+      "file": "src/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts",
+      "line": 169,
+      "column": 40,
+      "code": "TS2554",
+      "message": "Expected 3 arguments, but got 2."
+    },
+    {
+      "file": "src/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts",
+      "line": 371,
+      "column": 6,
+      "code": "TS2740",
+      "message": "Type '{ sessionId: string; }' is missing the following properties from type 'IActiveSession': activeChat, isCreated, sticky, openChats, and 25 more."
+    },
+    {
+      "file": "src/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts",
+      "line": 13,
+      "column": 68,
+      "code": "TS2459",
+      "message": "Module '\"../../../../../../platform/actionWidget/browser/actionList.js\"' declares 'IListAccessibilityProvider' locally, but it is not exported."
+    },
+    {
+      "file": "src/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts",
+      "line": 185,
+      "column": 53,
+      "code": "TS2740",
+      "message": "Type 'HTMLElement' is missing the following properties from type 'HTMLButtonElement': command, commandForElement, disabled, form, and 17 more."
+    },
+    {
+      "file": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+      "line": 8,
+      "column": 23,
+      "code": "TS2307",
+      "message": "Cannot find module '../../../../../base/common/path.js' or its corresponding type declarations."
+    },
+    {
+      "file": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+      "line": 10,
+      "column": 57,
+      "code": "TS2307",
+      "message": "Cannot find module '../../../../../base/test/common/utils.js' or its corresponding type declarations."
+    },
+    {
+      "file": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+      "line": 8,
+      "column": 23,
+      "code": "TS2307",
+      "message": "Cannot find module '../../../../../base/common/path.js' or its corresponding type declarations."
+    },
+    {
+      "file": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+      "line": 10,
+      "column": 57,
+      "code": "TS2307",
+      "message": "Cannot find module '../../../../../base/test/common/utils.js' or its corresponding type declarations."
+    },
+    {
+      "file": "src/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+      "line": 11,
+      "column": 10,
+      "code": "TS6133",
+      "message": "'ILogService' is declared but its value is never read."
+    },
+    {
+      "file": "src/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+      "line": 114,
+      "column": 11,
+      "code": "TS2511",
+      "message": "Cannot create an instance of an abstract class."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts",
+      "line": 223,
+      "column": 91,
+      "code": "TS2741",
+      "message": "Property 'alignment' is missing in type '{ ariaLabel: string; getItemDetail: (index: number) => \"5 messages\" | undefined; }' but required in type 'IComposerPickerOptions'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "line": 3639,
+      "column": 25,
+      "code": "TS2352",
+      "message": "Conversion of type 'IUniverseAgentConnection' to type '{ switchModel: (request: { sessionId: string; modelId: string; }) => Promise<{ resolvedModelId: string; }>; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "line": 3676,
+      "column": 25,
+      "code": "TS2352",
+      "message": "Conversion of type 'IUniverseAgentConnection' to type '{ switchModel: (request: { sessionId: string; modelId: string; }) => Promise<{ resolvedModelId: string; }>; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "line": 3710,
+      "column": 25,
+      "code": "TS2352",
+      "message": "Conversion of type 'IUniverseAgentConnection' to type '{ switchModel: (request: { sessionId: string; modelId: string; }) => Promise<{ resolvedModelId: string; }>; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "line": 3780,
+      "column": 25,
+      "code": "TS2352",
+      "message": "Conversion of type 'IUniverseAgentConnection' to type '{ switchModel: (request: { sessionId: string; modelId: string; }) => Promise<{ resolvedModelId: string; }>; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+      "line": 144,
+      "column": 39,
+      "code": "TS2339",
+      "message": "Property 'getId' does not exist on type 'IConversationEditorPart'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+      "line": 145,
+      "column": 32,
+      "code": "TS2339",
+      "message": "Property 'getId' does not exist on type 'IConversationEditorPart'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+      "line": 146,
+      "column": 42,
+      "code": "TS2339",
+      "message": "Property 'getId' does not exist on type 'IConversationEditorPart'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+      "line": 146,
+      "column": 61,
+      "code": "TS2339",
+      "message": "Property 'getId' does not exist on type 'IConversationEditorPart'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+      "line": 168,
+      "column": 11,
+      "code": "TS2554",
+      "message": "Expected 4-5 arguments, but got 3."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+      "line": 175,
+      "column": 35,
+      "code": "TS2339",
+      "message": "Property 'getId' does not exist on type 'IConversationEditorPart'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+      "line": 255,
+      "column": 53,
+      "code": "TS2345",
+      "message": "Argument of type 'IEditorGroup | Promise<[IEditorGroup, EditorActivation | undefined]>' is not assignable to parameter of type 'number | IEditorGroup'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+      "line": 256,
+      "column": 53,
+      "code": "TS2345",
+      "message": "Argument of type 'IEditorGroup | Promise<[IEditorGroup, EditorActivation | undefined]>' is not assignable to parameter of type 'number | IEditorGroup'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+      "line": 356,
+      "column": 66,
+      "code": "TS2353",
+      "message": "Object literal may only specify known properties, and 'program' does not exist in type 'IConfig'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+      "line": 370,
+      "column": 66,
+      "code": "TS2353",
+      "message": "Object literal may only specify known properties, and 'program' does not exist in type 'IConfig'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+      "line": 384,
+      "column": 66,
+      "code": "TS2353",
+      "message": "Object literal may only specify known properties, and 'program' does not exist in type 'IConfig'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+      "line": 828,
+      "column": 64,
+      "code": "TS7006",
+      "message": "Parameter 'message' implicitly has an 'any' type."
+    },
+    {
+      "file": "src/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+      "line": 852,
+      "column": 15,
+      "code": "TS7006",
+      "message": "Parameter 'message' implicitly has an 'any' type."
+    },
+    {
+      "file": "src/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts",
+      "line": 49,
+      "column": 4,
+      "code": "TS2352",
+      "message": "Conversion of type '{ getModel: () => TextModel; }' to type 'IModelService' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "src/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts",
+      "line": 185,
+      "column": 33,
+      "code": "TS7006",
+      "message": "Parameter 'update' implicitly has an 'any' type."
+    },
+    {
+      "file": "src/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts",
+      "line": 140,
+      "column": 98,
+      "code": "TS2352",
+      "message": "Conversion of type '{ type: McpServerTransportType.Stdio; command: string; args: never[]; env: {}; }' to type 'McpServerLaunch' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "src/vs/workbench/contrib/output/test/browser/outputServices.test.ts",
+      "line": 100,
+      "column": 41,
+      "code": "TS2345",
+      "message": "Argument of type 'never[]' is not assignable to parameter of type 'never'."
+    },
+    {
+      "file": "src/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts",
+      "line": 86,
+      "column": 72,
+      "code": "TS2339",
+      "message": "Property 'identifier' does not exist on type 'never'."
+    },
+    {
+      "file": "src/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts",
+      "line": 150,
+      "column": 67,
+      "code": "TS2345",
+      "message": "Argument of type 'Pick<DisposableStore, \"add\">' is not assignable to parameter of type 'IDisposable[] | DisposableStore | undefined'."
+    },
+    {
+      "file": "src/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+      "line": 164,
+      "column": 54,
+      "code": "TS2352",
+      "message": "Conversion of type '{ affectsConfiguration: (key: string) => key is \"chat.mcp.gallery.serviceUrl\"; }' to type 'IConfigurationChangeEvent' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "src/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+      "line": 171,
+      "column": 54,
+      "code": "TS2352",
+      "message": "Conversion of type '{ affectsConfiguration: () => false; }' to type 'IConfigurationChangeEvent' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "src/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts",
+      "line": 37,
+      "column": 12,
+      "code": "TS2352",
+      "message": "Conversion of type '{ $init: () => Promise<void>; $acceptTheme: () => Promise<void>; }' to type 'Proxied<TextMateTokenizationWorker>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first."
+    },
+    {
+      "file": "src/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts",
+      "line": 70,
+      "column": 7,
+      "code": "TS2420",
+      "message": "Class 'FixtureChangesViewService' incorrectly implements interface 'IChangesViewService'."
+    },
+    {
+      "file": "src/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts",
+      "line": 398,
+      "column": 44,
+      "code": "TS2741",
+      "message": "Property 'setSessionChangesetFilesReviewState' is missing in type 'FixtureChangesViewService' but required in type 'IChangesViewService'."
+    }
+  ],
+  "changedFileDiagnostics": [],
+  "comparisonToPrior3e63": {
+    "priorDiagnosticCount": 46,
+    "priorFileCount": 28,
+    "new": [],
+    "removed": [
+      {
+        "file": "src/vs/workbench/contrib/agentsVoice/browser/agentsVoiceWidget.ts",
+        "code": "TS2314",
+        "message": "Generic type 'Event<T>' requires 1 type argument(s).",
+        "count": 1
+      }
+    ]
+  },
+  "scope": "Actual new-wave compile-client log; prior source3e63 log retained unchanged. No full green claim."
+}

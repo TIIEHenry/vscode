@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-26
-summary: "D1386：绑定叶统一 folder/aria/branch/menu/checkout 的工作根与失效代次；全局添加目录和 mount offer 合同保持。方案与实施静态peer C0/I0；源码已写，等待 merge red/green 与独立默认编辑器 after。"
+summary: "D1386：绑定叶统一 folder/aria/branch/menu/checkout 的工作根与失效代次；全局添加目录和 mount offer 合同保持。方案与实施静态peer C0/I0；merge旧生产11断言红、新11绿/完整40过/Lens8过，四TS语义0；等待独立默认编辑器after。"
 ---
 
 # Conversation 叶级会话工作根身份条
@@ -59,3 +59,10 @@ merge 是唯一可编译/转译/out 写入者。D 只提交源码/测试和静�
 方案单独提交 `ab142cd` 后，三生产 TS 已接入原始绑定、统一解析/根代次、非活动会话刷新、菜单请求代次与旧 delegate 失效；Add 同时保存 offer 对象和 URI 快照并在点击重验。新增 11 条 D1386 公共行为回归使用真实 Lens DOM + `AgentSessionContext`，控制 roster/workspace/SCM/connection 输入，不镜像解析器。覆盖两叶不同根、各自菜单当前项/checkout 参数、非活动更新、A→B→A 晚到成功/失败、旧 refs/recents、过期 offer、无根与旧无 API 兼容、dispose/重建。
 
 实施独立只读 peer（C 原生执行者）C0/I0；Minor 的新 checkout 宽 cast 已改为 mount harness 正式 recorder 字段。`.focus()` + `.click()` 只证明 DOM 聚焦与动作参数，未冒充 Enter/Space；真实键盘必须在独立 after 做。四 TS ESLint 0 errors/0 warnings、`git diff --check` 通过；文档门禁见[源码检查点](../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-source-checkpoint.md)。未编译/typecheck/transpile/写 out，未运行单测、旧生产 red/新生产 green 或本刀真实界面，不改 accepted/open。
+
+
+## 7. merge 运行检查点（独立 after 待到）
+
+源ea54727真三路合入328cb823136。旧5cc三生产正文核验一致后，只fresh测试取得11个业务AssertionError；只fresh三生产后新增11绿、完整IdentityStrip40过、相邻Lens绑定/隐藏/身份位置8过。四TS在原project上下文定向0，七TS lint0/0。详见[运行证据](../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md)。
+
+C/D源齐并含C自槽精确补修后，source6f82新波唯一compile-client实际exit1、45诊断/27文件，七改动TS均无诊断；前波3e63的46/28原日志保留。编译后本刀四输出正文与green一致，未重复测试；不等于整out同构建。非作者C真实默认编辑器after仍在做，不能把focus()+click()当实际键盘，本稿accepted、D1386open，PRD不升。

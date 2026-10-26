@@ -1,0 +1,30 @@
+{
+  "sourceHead": "6f82fe5b05210fd72852abc5df729a70b68b4401",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "20s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.ts"
+  ],
+  "environment": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "started": "2026-10-26T11:01:53.279625+00:00",
+  "ended": "2026-10-26T11:01:54.974400+00:00",
+  "exit": 0,
+  "scope": "Official Electron test runner with isolated Xvfb. No compile; prelaunch explicitly skipped."
+}

@@ -1,0 +1,103 @@
+{
+  "sourceHead": "328cb823136c89f134b7d7f94653dee9f9c22bcf",
+  "oldSourceHead": "5cc987d8ea50ca73af88452a0164386889587988",
+  "oldSourcesEqual4fb": true,
+  "esbuildVersion": "0.27.2",
+  "scope": "Only three production modules; original disk identity recorded before any test fresh. Mismatching disk body, if any, replaced by exact old-source same-config transform before red.",
+  "entries": [
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.ts",
+      "oldSourceSha256": "a1ac3c344605f0501acacb98164fe7f841ca4b5db8bd7b89894595866f5dc714",
+      "currentSource": {
+        "path": "src/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.ts",
+        "sha256": "f38790e848f49f015de0a0c1a76fbccb65e4073dba6a6927c6a9d387d8d6aa9f",
+        "bodySha256": "f5606ffe13abe922bc584fe7af3d51cfb98cbb327c49653ce55754712c5b7fb9",
+        "bytes": 31784,
+        "mtime": "2026-10-26T10:54:21.540Z"
+      },
+      "originalDisk": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js",
+        "sha256": "34b30ecbc96e7093b01c76333f354e405c51568c50f5bc36149eca0d5e09c0dc",
+        "bodySha256": "680a90cf0138cc2c7d3720d9bef7f1b83ccdc30c2f96f2cf03921ebff147453f",
+        "bytes": 87316,
+        "mtime": "2026-10-26T09:01:48.910Z"
+      },
+      "oldTranspileSha256": "850fc2554a1326f10a34f2146a821d123f6b5b62efeb4d73169636d1b7c335f1",
+      "oldTranspileBodySha256": "680a90cf0138cc2c7d3720d9bef7f1b83ccdc30c2f96f2cf03921ebff147453f",
+      "originalDiskBodyMatchesOld": true,
+      "installedExactOldBaseline": false,
+      "redProduction": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js",
+        "sha256": "34b30ecbc96e7093b01c76333f354e405c51568c50f5bc36149eca0d5e09c0dc",
+        "bodySha256": "680a90cf0138cc2c7d3720d9bef7f1b83ccdc30c2f96f2cf03921ebff147453f",
+        "bytes": 87316,
+        "mtime": "2026-10-26T09:01:48.910Z"
+      }
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLens.ts",
+      "oldSourceSha256": "73bb11182e1eb6ffb892aa3f092f2d036bbf1dce2bddf8c85b51206b98e50eeb",
+      "currentSource": {
+        "path": "src/vs/workbench/contrib/conversation/browser/conversationLens.ts",
+        "sha256": "bb1e6108f5a17ebbc8d902dabbd59c856a15c3a86477f94b36dc30c7147e0dbd",
+        "bodySha256": "c5cb49532727201e4776a4424f54fa1c53121f64ef7f6de2886939e018c6a9e1",
+        "bytes": 32037,
+        "mtime": "2026-10-26T10:54:21.540Z"
+      },
+      "originalDisk": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+        "sha256": "d80b46d85e1dd8e76cde170907450f685f504de19dade34b5458daca3c49aa74",
+        "bodySha256": "382ca2035c35f90694c98a0268be89dbc7114c3355dcdf95265009f1c8a92cc5",
+        "bytes": 91425,
+        "mtime": "2026-10-26T09:01:48.911Z"
+      },
+      "oldTranspileSha256": "cac2723caddb321a9e3d06c5bef1b1917e4d9164b95263f9c0898bcea7340f33",
+      "oldTranspileBodySha256": "382ca2035c35f90694c98a0268be89dbc7114c3355dcdf95265009f1c8a92cc5",
+      "originalDiskBodyMatchesOld": true,
+      "installedExactOldBaseline": false,
+      "redProduction": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationLens.js",
+        "sha256": "d80b46d85e1dd8e76cde170907450f685f504de19dade34b5458daca3c49aa74",
+        "bodySha256": "382ca2035c35f90694c98a0268be89dbc7114c3355dcdf95265009f1c8a92cc5",
+        "bytes": 91425,
+        "mtime": "2026-10-26T09:01:48.911Z"
+      }
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "oldSourceSha256": "e3d135c0b414c4b897a7d00db4a3b981d061d40536d76b7adbf01f92647b642f",
+      "currentSource": {
+        "path": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+        "sha256": "492eb3a3fb06b921499bb5da62ec5b996828375555ae5f9825889431407f7cc2",
+        "bodySha256": "3bf7a906d1a3769910c26213263678ce8c763e142f5cb4010b9ccf5c658cdd54",
+        "bytes": 16931,
+        "mtime": "2026-10-26T10:54:21.540Z"
+      },
+      "originalDisk": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+        "sha256": "ac57cda9d184f86c8c4594d64fcd954f448a4230a6768258851f8e9b8bee1090",
+        "bodySha256": "3c47b70674429de85d263332b413dc71f8f1febfaad28e4cb94efe3d0b736e74",
+        "bytes": 41762,
+        "mtime": "2026-10-26T09:01:48.914Z"
+      },
+      "oldTranspileSha256": "52dccc5e46f63dfc818b151d3f985270e16b35339bb3450db21e8998fb200009",
+      "oldTranspileBodySha256": "3c47b70674429de85d263332b413dc71f8f1febfaad28e4cb94efe3d0b736e74",
+      "originalDiskBodyMatchesOld": true,
+      "installedExactOldBaseline": false,
+      "redProduction": {
+        "path": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+        "sha256": "ac57cda9d184f86c8c4594d64fcd954f448a4230a6768258851f8e9b8bee1090",
+        "bodySha256": "3c47b70674429de85d263332b413dc71f8f1febfaad28e4cb94efe3d0b736e74",
+        "bytes": 41762,
+        "mtime": "2026-10-26T09:01:48.914Z"
+      }
+    }
+  ],
+  "testBefore": {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.js",
+    "sha256": "1b8c068e9e029e07f7805a15a726eae5022c1a86ba44f52d17da200a89016931",
+    "bodySha256": "d9c83b39f9a68c3908b62842fab6bf0b99fe1caf57d5e6da02adc388dfea6eb5",
+    "bytes": 160280,
+    "mtime": "2026-10-26T09:01:50.358Z"
+  }
+}

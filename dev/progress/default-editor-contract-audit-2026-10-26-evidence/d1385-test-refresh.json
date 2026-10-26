@@ -1,0 +1,46 @@
+{
+  "sourceHead": "d941c9458548d989ac548fb01a4b6c7861475e99",
+  "kind": "test",
+  "esbuildVersion": "0.27.2",
+  "fresh": [
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.ts",
+        "sha256": "d7a5618042c2c17d2bfdbe7f71917ba1aae4ec6ccc5c835611ba3ec3266e797e",
+        "bodySha256": "9f06932cff3403aa9d3e8845730032559633efe2de7d629bbc4b7625ac409814",
+        "bytes": 21501,
+        "mtime": "2026-10-26T10:57:08.619Z"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/agentsVoice/test/browser/agentsVoice.contribution.test.js",
+        "sha256": "73df8a4c08c4aa159008abbe6f5d50e82f1653201b0f9e2b40b6049708ee68ac",
+        "bodySha256": "82380e968a7d24fc0609e47a1eff515dc81f6d9fb5943f2e0f60e4423942e555",
+        "bytes": 38975,
+        "mtime": "2026-10-26T10:58:16.153Z"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.ts",
+        "sha256": "012a0610a8ed4819686c6ea373b283ea69a9b50e6e5722e7b86b6d4b62a65b71",
+        "bodySha256": "2388f466dcd13d5fe72df4c55086c1374069db328d6f85fa9e88099f1af31f08",
+        "bytes": 264661,
+        "mtime": "2026-10-26T10:57:08.620Z"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/chat/test/browser/voiceClient/voiceSessionController.test.js",
+        "sha256": "8a82ceff0a95636c4002d1978c314a2efbaccb4b310df174a5a568969c56594a",
+        "bodySha256": "3e4029b0a41c9ed5c8208390269f13f6e06b4e08c7e1f3450bac7d88fc36c3b8",
+        "bytes": 427616,
+        "mtime": "2026-10-26T10:58:16.167Z"
+      }
+    }
+  ],
+  "controllerOutputUnchanged": {
+    "path": "out/vs/workbench/contrib/chat/browser/voiceClient/voiceSessionController.js",
+    "sha256": "691dfab95e8346717b3a06eb810c2a5640f02e0a388f493a04138c3766902645",
+    "bodySha256": "ded89f731db071ef78735b8cfac88f666f6b0469fb84f61b71f108adfd942e3c",
+    "bytes": 929754,
+    "mtime": "2026-10-26T09:01:50.347Z"
+  }
+}

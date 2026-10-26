@@ -1,0 +1,20 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[359972:1026/185638.121084:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:359993) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:359993) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:359993) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ConversationLens[0m
+  [32m  ✔[0m[90m PreFirst: centered composer cluster hides dock inbox and moves identity above composer[0m[33m (63ms)[0m
+  [32m  ✔[0m[90m Active: first message restores dock inbox row and identity at reading column top[0m
+  [32m  ✔[0m[90m two leaves bound to different sessionKeys render their own sessions[0m[31m (94ms)[0m
+  [32m  ✔[0m[90m connection change rebinds the bound leaf and not the roster active session[0m[33m (49ms)[0m
+  [32m  ✔[0m[90m bound leaf closes inner overlays when the roster active session leaves[0m
+  [32m  ✔[0m[90m hidden leaf release ignores connection churn until bindSessionView restores[0m
+  [32m  ✔[0m[90m switching session closes History, Snapshots, and Visualize overlays[0m
+  [32m  ✔[0m[90m switching sessions keeps the active lens tab[0m[31m (228ms)[0m
+
+
+[92m [0m[32m 8 passing[0m[90m (1s)[0m

@@ -4,16 +4,16 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1382独立默认编辑器after C0/I0并闭合，D1383/1384已闭合；DOM Event单行类型修复已验证。D1385首次录音/D1386叶身份正式方案accepted、功能open；唯一全量仍46/28。"
+summary: "D1385修后5业务红/完整182绿、D1386旧11业务红/完整40+Lens8绿；七TS语义/lint0，新波真实fullcompile45/27失败，旧46/28保留。D1385最终复审/D1386真实after待到。"
 ---
 
 # 默认编辑器合同与功能缺口续审
 
-## 最新安全同步
+## 此前安全同步（4fb检查点）
 
 父已复核 `2049a6d39e3c6dbd56854c9450eee1cfa43ad15c`：相对前 checkpoint `5cc987d8` 的运行源码仅一行 DOM Event 注解；原 11 对源码/产物共 22 个摘要与快照一致，新增语音源/产物两个摘要一致，两篇 accepted 方案与各自作者提交逐字一致。随后安全 ff 人类 `agent-ide` 与 J 到该代码/验证 checkpoint；与 merge 三处 clean，未 push。C/D 下一轮实施不在此次同步中，父未覆盖或强行 ff 在用工位。
 
-D1382/1383/1384 按各自证据 closed。D1385/1386 仍 open、正式方案 accepted，由原生 C/D 子代理继续实施。此前 Grok 真实完成了已留证的审计/验证，后续启动返回 402 余额耗尽且没有执行新任务，现已由正常运行的原生子代理接班；不把失败调用当已实施。唯一 merge 编译车道不变，最后一次完整编译仍为 source `3e63f9e` 的 exit 1、46 条 / 28 文件；之后仅单文件类型检查与最小刷新，没有新的全量结果。
+D1382/1383/1384 按各自证据 closed。D1385/1386 仍 open、正式方案 accepted，由原生 C/D 子代理继续实施。此前 Grok 真实完成了已留证的审计/验证，后续启动返回 402 余额耗尽且没有执行新任务，现已由正常运行的原生子代理接班；不把失败调用当已实施。该同步阶段唯一 merge 编译车道不变，当时最后一次完整编译为 source `3e63f9e` 的 exit 1、46 条 / 28 文件；之后仅单文件类型检查与最小刷新，没有新的全量结果。
 
 前轮 [UI 与权限看板](ui-visual-review-2026-10-26.md) 的 D1379–D1381 已有范围内验证。本轮重新检查当前实现，不从旧进度枚举推断没有可执行项目。产品范围仅默认编辑器；`src/vs/sessions/` 保留作上游对照。
 
@@ -26,9 +26,9 @@ D1382/1383/1384 按各自证据 closed。D1385/1386 仍 open、正式方案 acce
 | C / conversation_navigation_contracts | D1382：默认编辑器 ReviewNav 工作根变化失效与正式 Context/DI 合同 | 源 `37aa2956b77` 已三路合入 `b5f69d4`。旧生产新行为 3过/7败，新生产 37过，五TS语义0。方案 implemented、缺口 closed。J 静态 after 与 D 独立默认编辑器 after 均 C0/I0；真实行/根失效/并列叶/命令参数通过，限制见入库报告 |
 | D / tunnel_retry_contracts（Astra） | D1383：Tunnel 引用身份、getExisting 所有权与 provider 失败后重试；同时审查 C/J 方案 | 方案 `e451d5da071` / 实施 `22386bcf3ae` 已合入；merge 旧生产 red / 新生产 19 passing、定向语义 0，范围内 closed |
 | J / configuration_initialization_contracts | D1384：RemoteUserConfiguration 显式重试共有等待、reload 及销毁边界 | 源 `c4b9332` 已三路合入 `3e63f9e`。旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。方案 implemented，缺口 closed。C 静态 after C0/I0，两条 Minor 不阻断 |
-| C / voice_cold_start | D1385：保留Copilot Chat首次连接录音授权 | 方案3d291db已三路合入09ac7dbefd8，规则16 C0/I0、accepted；作者各槽实施WIP未接入，功能open |
-| D / leaf_root_identity（原生接班） | D1386：叶会话根身份、分支读取/checkout、菜单与 mount offer 代次 | 方案 `ab142cd` 后三生产TS/11条真实Lens DOM公共回归已写；规则16与实施静态peer均C0/I0，四TS ESLint0/0。未编译/out/运行/本刀实拍；accepted/open交唯一merge与独立默认编辑器after |
-| merge / 唯一集成者 | 串行合入、旧生产身份核验、受控 red/green、唯一编译与必要真实界面复验 | D1382/1383/1384按范围已闭合。948单行Event注解已真三路合入，单TS noEmit 0、转译正文等价；D1385/1386功能仍open。本轮唯一全量 exit1、46/28 |
+| C / voice_cold_start | D1385：保留Copilot Chat首次连接录音授权 | 源8619及自槽e48/69ac已三路合入6f82；修后测试精确旧948五业务红，新action完整182过，三TS语义0；最终独立复审核验待到，accepted/open |
+| D / leaf_root_identity（原生接班） | D1386：叶根身份、菜单/checkout与mount offer代次 | ea54727三路到328cb823；旧三生产正文核对后11业务红，新11绿、完整IdentityStrip40过、Lens8过，四TS语义0；C非作者默认编辑器after正在做，accepted/open |
+| merge / 唯一集成者 | 串行源码/旧生产身份/red-green、唯一编译、类型/lint与真实after证据 | 两源及C补修均已合；七TS noEmit0/lint0。本波唯一compile-client source6f82实际exit1、45/27，旧3e63 46/28不覆盖；六输出正文等green，仅action最小fresh回green；最终独立复审/after待到 |
 
 ## 工作约束与验收
 
@@ -77,3 +77,15 @@ C的94893edf39b已真实三路合入53ad4b1e5a，唯一变化是agentsVoiceWidge
 当前after/type主题证据提交为a5fdcf326df，随后只取不可变的C方案 `3d291dbda96db621e9034ab03a9c99951e91a2f0` 真三路合入 `09ac7dbefd8`，D方案 `ab142cdef4629ba0b7dc082d63ed0b2f9d9f8e62` 真三路合入 `a2fbb411cda`。两份正文与作者提交逐字节相同，均有独立规则16 C0/I0审查记录；[语音](../../plans/copilot-chat-cold-voice-authorization.md)与[叶身份](../../plans/2026-10-26-leaf-session-root-identity.md)均accepted，D1385/D1386仍open。延期账各ID仅一行，合并Event类型已验事实与正式方案门槛。
 
 冲突只在计划索引、延期账与status；保留当前D1382 closed/真实after、D1384全量失败及父同步记录。PRD-015验收7的Copilot Chat边界与验收9的叶身份边界均保留，PRD-029总体仍proposed；生成列由脚本核对。没有合作者未提交实现，没有任何新增TS/CSS源码，也没有新编译、测试或out写入。最终source/产物和方案来源见[摘要](../../progress/default-editor-contract-audit-2026-10-26-evidence/close-final-state.json)，最终文档门禁见[health](../../progress/default-editor-contract-audit-2026-10-26-evidence/plans-close-docs-health.log)与[生成列](../../progress/default-editor-contract-audit-2026-10-26-evidence/plans-close-generated-check.log)。人类工位安全ff仍由父完成，本槽未push。
+
+
+## D1385/D1386 新波真实运行
+
+源328cb823（D）与d941c945（C）、C自槽e48/69ac补修真三路到6f82。D旧5cc三生产正文身份成立，测试仅fresh后11条全AssertionError红；新三生产11绿、完整身份条40过、Lens绑定8过。C首轮151过31败与三诊断原证据保留；修后测试重新精确旧948基线5业务红（非cleanup/load/timeout），新action完整182过。七目标TS原project noEmit0、ESLint0/0。详见[叶身份](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md)、[语音](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md)。
+
+本波source6f82唯一compile-client在11:02:48–11:03:12Z真实exit1、45诊断/27文件，七改动TS无诊断；较前波3e63的46/28新增0、仅Event TS2314消失。两原日志独立保留，不把45/27写成此前推算或全绿。编译后六输出正文延续green，action因静态字段类后赋值/static block风格差异仅最小fresh此一JS；[产物摘要](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1385-d1386-postcompile-outputs.json)保存原emit/最终hash与mtime。未二次全量、未重跑已过套件、未写人类/字母槽/未push；实际键盘和界面不由单测代签。
+
+D1385最终独立复审、D1386非作者C的真实默认编辑器after待到，两plan此刻仍accepted、两缺口open。J真实Git审计另归其实际报告，不把新旁支问题倒灌D1382限定通知合同或伪称已验证整个Sources/Preview。
+
+
+本可审runtime checkpoint不等待未知报告、未接后续实施WIP：D1385补修独立复审及实际保留CopilotChat pane/editor toolbar/快捷键owner路由证明待父安排（无真实mic/后端），fake widget上下文不签整条UI。D1386 C审查中反馈只读chevron hidden仍被CSS显示，最终报告与作者补修待后续独立交付；本次仍accepted/open。J新Sources问题也不在此checkpoint接入。

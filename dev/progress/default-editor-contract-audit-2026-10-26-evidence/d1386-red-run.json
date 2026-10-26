@@ -1,0 +1,30 @@
+{
+  "sourceHead": "328cb823136c89f134b7d7f94653dee9f9c22bcf",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "20s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationIdentityStrip.test.ts",
+    "--grep",
+    "D1386"
+  ],
+  "environment": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "started": "2026-10-26T10:55:49.188662+00:00",
+  "ended": "2026-10-26T10:55:51.868789+00:00",
+  "exit": 1,
+  "scope": "Official Electron test runner with isolated Xvfb. No compile; prelaunch explicitly skipped."
+}
