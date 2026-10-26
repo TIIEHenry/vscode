@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -413,8 +414,12 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 		// when the handler warn-then-rethrows.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
+		const windowUnhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		const onWindowUnhandledRejection = (event: PromiseRejectionEvent) => windowUnhandledRejections.push(event.reason);
 		process.on('unhandledRejection', onUnhandledRejection);
+		// Observe Chromium too, without replacing or stopping the runner's handler.
+		mainWindow.addEventListener('unhandledrejection', onWindowUnhandledRejection);
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
@@ -427,13 +432,15 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 			await timeout(0);
 			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
 			await new Promise<void>(resolve => setImmediate(() => resolve()));
-			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+			assert.deepStrictEqual({ unhandledRejections, windowUnhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
+				windowUnhandledRejections: [],
 				unexpectedWarns: [paintBoom, paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
+			mainWindow.removeEventListener('unhandledrejection', onWindowUnhandledRejection);
 		}
 	}
 
@@ -572,7 +579,10 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 			});
 			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
 			await new Promise<void>(resolve => setImmediate(() => resolve()));
-			assert.deepStrictEqual(sessionView.requestResyncCalls, ['lease:sess-resync-reject']);
+			assert.deepStrictEqual(sessionView.requestResyncCalls, ['lease:sess-resync-reject', 'lease:sess-resync-reject'], 'a failed request gets exactly one automatic follow-up');
+			await timeout(0);
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.strictEqual(sessionView.requestResyncCalls.length, 2, 'a failed follow-up without a new gap must not start a third request');
 			assert.deepStrictEqual(unhandledRejections, []);
 			assert.strictEqual(applied.length, appliedBefore);
 			assert.strictEqual(sessionView.acknowledgeCalls.length, ackBefore);
@@ -620,6 +630,7 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 		store.add(lease.onDidApplyFrame(e => applied.push(e)));
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		const appliedBefore = applied.length;
+		const ackBefore = sessionView.acknowledgeCalls.length;
 		assert.ok(appliedBefore >= 2);
 		sessionView.acknowledgeFn = () => Promise.reject(paintBoom);
 		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
@@ -640,6 +651,7 @@ suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
 			});
 		});
 		assert.ok(applied.length > appliedBefore);
+		assert.deepStrictEqual(sessionView.acknowledgeCalls.slice(ackBefore), [{ leaseId: 'lease:sess-ack-warn-rethrow', generation: 1, frameId: 3, appliedVersion: 3 }]);
 		assert.deepStrictEqual(lease.snapshot.sync, { kind: 'live' });
 	});
 

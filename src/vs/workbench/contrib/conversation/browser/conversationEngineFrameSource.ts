@@ -622,7 +622,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		if (acknowledge && this.leaseId && this.cursor) {
 			void this.sessionView.acknowledge(this.leaseId, {
 				generation: this.cursor.generation, frameId: this.cursor.frameId, appliedVersion: this.cursor.version,
-			}).catch(onUnexpectedError);
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
 		}
 	}
 

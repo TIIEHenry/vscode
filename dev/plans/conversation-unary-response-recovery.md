@@ -226,3 +226,13 @@ accepted 方案提交 `5dd7d97` 后在 E 实施，未取 root 外部视觉/协�
 本轮静态门禁：4个改动TS `createSourceFile` parse为0语法诊断（无checker/emit）；ESLint 0 errors / 5既有warnings，原始JSON `/tmp/vscode-response-recovery-E-review-fixes-eslint.json`；`git diff --check`通过。生成状态核对OK；docs health为0 errors / 73既有warnings，对上一实现检查新增0/移除0，原始JSON `/tmp/vscode-response-recovery-E-review-fixes-docs-health.json`；status173行。最终不可变身份随提交交接给出；方案仍accepted，不升PRD/不关闭旧D项。
 
 2026-10-27，父转达正式J/E三路集成 `24a3850`（src `fdca9564`）后唯一baseline首轮full `compile-client` 实际exit1，仅一条诊断：本文件回归夹具所发terminal summary在test:3643把 `respondable` 写成false，而正式领域合同为 `respondable?: true`。原日志/身份由baseline保留于 `/tmp/vscode-je-formal-native-build.log` / `.json`，不以本段代运行证据。E仅将夹具改为解构省略respondable，准确模拟权威终态移除标记；全部18项与原断言保留，无宽cast或领域类型放宽。该trivial类型修正由唯一lane复验，E不编译/typecheck/transpile/out/跑业务。
+
+### 9.2 正式native回归发现的ack隔离修复
+
+后续fixture提交 `de1c958` 的实际Git parent为 `24a3850`；E本次从该clean HEAD补修，没有重新取main/WIP。父转达唯一lane第二次full `compile-client` 实际exit0/0TS，随后E-related批20过/3败，原运行留在 `/tmp/vscode-je-formal-E-related-full.log`；这些是baseline执行，E没有本地运行或以静态检查代green。
+
+Astra独立比较5df/900f/c2b/正式源，确认E900f把旧 `onHostFrame` ack搬进 `notifyApplied` 时遗漏第二层 `.catch(onUnexpectedError)`，导致warn-then-rethrow首handler抛出后形成Chromium未处理拒绝；这是E生产回归。修订仅恢复旧双层正式错误隔离，保持notify顺序、ack cursor/payload和response sidecar规则。既有 `does not leak unhandled rejection when acknowledge rejects and onUnexpectedError warn-then-rethrows` 继续断言原两次unexpectedWarns，helper加window与process双通道旁听；不覆盖/阻挡runner handler，不preventDefault，不压异常或跳测试，另精确断言坏ack前该帧仍只发送一次正确ack。
+
+另一个resync的2次实际值对旧1次夹具期望并非本次生产回归。父转达Astra比对四版本生产块同SHA `bcfc736085a4f3ceb49949206f4e5fda3b2d9f271712914fdb42649b66e2a0b6`，且[既有r08-4合同](review-2026-10-08-r08-conversation-session-plan.md#r08-4hold低)明确首败自动跟进一次、跟进再败且无新缺口不第三次。本次按该合同仅修现有 `requestResync reject does not leave an unhandled rejection or apply a bad frame` 夹具：断言恰好2次，再经过额外事件循环仍2；坏帧不应用、无ack、snapshot不变和无未处理拒绝全部保留，生产requestResync逻辑不改。ack修订和resync夹具纠正分别记因，原失败日志保留；待同一Astra复读及唯一lane实际复验，不提前freeze或升方案/PRD状态。
+
+E静态检查仅2个TS的无checker/emit parse，0语法诊断；ESLint 0 errors / 7既有warnings（FrameSource5、既有测试`in`操作2），JSON `/tmp/vscode-response-recovery-E-ack-fix-eslint.json`；diff check与生成状态核对通过；docs health 0 errors / 73 warnings，JSON `/tmp/vscode-response-recovery-E-ack-fix-docs-health.json`；status196行。E未做编译/typecheck/transpile/out/业务执行。
