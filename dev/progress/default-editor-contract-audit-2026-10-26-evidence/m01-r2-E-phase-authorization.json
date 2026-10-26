@@ -1,0 +1,12 @@
+{
+  "runId": "sources-m01-after-20261027-r2",
+  "sourceHead": "800d383ba65fdefb36da324b380941c7574c4bf3",
+  "sourceTree": "2b5df2b37ca926e38888443e371cf65e2883dba2",
+  "freezeNoticeSha256": "cacee49ecc452d69fbf6dd33557a6363b32ad269626f0d4aec9a444f80d38098",
+  "frozenOutputsSha256": "f9dd6bc5f3923a4bd57f6b70ab01ac5070bcbd991c67cbef667d8cbfcbfc23d6",
+  "jFreezeNoticeSha256": "671cb3c8d944cd785772b8c8326415f0c2263c29e47cc0bfc991f2454e62479b",
+  "jPhaseCompleteSha256": "9c874a5ebacda7dad026db5c16c72d8cc3f6d8dfc77f3c566b62c4f8f2783d3e",
+  "authorizedBy": "/root",
+  "phase": "E-after",
+  "allowControlledFakeUds": true
+}

@@ -637,3 +637,41 @@ D补充`css-glyph-cssom-observation.json`：同一冻结href的enabled sheet有6
 
 
 D随后提供`cssom-complete-reference-comparison.json`（SHA256 `01048ff59b3be02de790f2317e64e4d133b164f6b269c6772d973e611331f398`）。reviewer独立读取并比较其保存的actual/reference两组683条`cssText`数组，全部逐字符串相等；记录的两组摘要同为`f34471034a242c1876d7f00db7879e16e23188fca16b73eb67a71a181b5136ac`。D记录reference为冻结UTF-8正文经detached CSSStyleSheet解析、未adopt也未插DOM，不改变产品样式；这是D的浏览器执行证据及reviewer对原件的离线复核，不能写成reviewer自己重做解析。它补强有效规则一致性，不替代全文字节来源证明，也不让原raw equality断言翻绿。已请D将实际采集表达式随原件归档，避免仅靠JSON声明描述采集步骤。
+
+
+## 23. 已授权E-after的wire与真实UI证据边界（2026-10-27，执行中）
+
+父确认进入正式E阶段后，本reviewer只读D `e-response-after-m01-20261027-r2/` 的matrix、fake、driver与必要冻结生产wire/core/公开入口；未启动fake、UI或引擎，未改源码/out/D文件，未运行编译或业务测试。执行中matrix的`NOT_RUN`是准备状态，不作为实际失败。父报告当前merge `0ec286` / src `2b5df2b37ca926e38888443e371cf65e2883dba2`，E独立授权与已封存J分别绑定原始SHA256 `cf91e5ca34215228be7ae9b8c9a381ba653f29e8b841e330da98c314c9348661`、`9c874a5ebacda7dad026db5c16c72d8cc3f6d8dfc77f3c566b62c4f8f2783d3e`，reviewer实读并核算这两份SHA。J封存不回写；E实际结果尚待D完成，以下不是完整E通过结论。
+
+### 首轮fixture协议错误与最小补修
+
+旧fake将`SessionEventStream`注册为`false,true`并读`call.request`，而冻结`grpcClient.ts:2124`调用`makeResidentBidiBytesHandleClient`，open后write握手；这是fake协议前置错误，不能将尚未执行的九项业务称作red。D将旧版本/启动/IO/cause保留在`fixture-revisions/v1-server-stream-mismatch/`；旧fake SHA256 `8ae4054345a3d127843c0331dfe38f13081ac3e6f9fd1d14b59ffcbebc1c022f`。
+
+独立逐字diff显示新fake仅将此handler改为`true,true`，在`call.once('data',request=>...)`中进行原session校验、记录requestHex、注册stream并发原hello+overlay；新SHA256 `c745b799c436c40f8f32f5d9abb150c3b54f0829afc73a5017001fc6edae3095`。与冻结`grpcSessionAttachWire.ts:431`一致：握手field1=sessionId、field3=major、field4=minor；D新IO中`0a1c442d452d61667465722d636f6e74726f6c6c65642d73657373696f6e1802`为正确fixture session与major2，minor0省略，并有真实订阅记录。reviewer只是读取D原件，未亲自订阅。
+
+hello outer field10的version1/head0/epoch1/lastMutated0分别对decoder内1/2/3/4；overlay outer44的epoch1、repeated pending6对冻结decoder；pending request1/kind2/name3/description4/agent5/questions7/args8与实际生产字段一致。原false/reject/success保持通过三真实unary，success后等待本地cleanup观察、再显式publish权威overlay，避免提前发布掩盖本地恢复。
+
+### 广告与handlers的准确范围
+
+读时12条广告为HealthCheck、Session List/Info/Resume/Create/GetHistory/SessionEventStream、Agent Chat/Tree、Permission Respond、Agent RespondQuestion/SendClientToolResponse。13个handler是这12项另加握手`SystemService.Connect`；bidi补修没有增加方法。不存在GetQueue、SaveSkillContent、`AgentService.*`或通配兜底。公开queue返回UNSUPPORTED与fake transcript零GetQueue/SaveSkillContent一起构成共存证据，不能将unsupported当队列空成功，也不领取queue/skills验收credit。`driver.queue`若调用公开getQueue，应只证明capability fail-fast；该调用本身不是fake新增RPC许可。
+
+### timeline-only的精确BOUNDARY
+
+读时matrix SHA256 `145ca24ce0b8c3392155b83fc013d1bff0da9f694bc9e8f24c42f76884d6ab65`要求“public canonical envelope tool-call fixture rather than pending seat”。沿实际wire追踪：`decodeMessageEnvelope/decodeBlock`只保留tool_call_block的id/name/arguments等；`sessionStreamDemux.mapToolCall`映射普通`arm:'tool'`与`status:'running'`；`stream-event-to-view-patch.toolItemFromBody`不授予`respondable`。而ProcessFold的Respond CTA必须`turn.respondable===true`。因此这个canonical envelope路径不能直接生成要求的timeline-only可响应clientTool。
+
+另一条公开`client_tool_call` event52会由`foldDomainStreamEvent`同时upsert timeline和pending；当前fake只发overlay44，构造的是pending轴。这两者都不能换名为本项所要求的timeline-only。现有core定向测试`conversationEngineRosterService.test.ts:3624`用真实frame snapshot保留respondable timeline并主动滤掉pending，验证host真实CTA、accepted后去respondable/terminal、公开repeat返回false及单次unary；它提供状态机/host范围证据，不提供当前wire→真实编辑器UI的可达证明，也不是本reviewer新执行。
+
+**父决定保持原matrix边界：本项BOUNDARY、未获UI credit，不阻塞其余矩阵执行；禁止pending换名或改生产补造。** 此判断精确限于已审canonical-envelope夹具，不夸为所有可能wire时序都不可达：event52后同epoch空overlay在静态代码中可能仅移除pending、保留timeline，但包含权威pending撤回语义；父明确不在本轮临时引入该新时序以追求UI计数。
+
+### 同session双叶busy与观察器要求
+
+读时driver SHA256 `ae26082c7d80c61196ea137e21d370ac05ca7bcb6d9602b25cc3c8be56a7245e`调用真实roster、window service、commands和UI locator，snapshot使用data-descriptor投影、临时public lease读取后dispose；没有直接改生产response state。但`parts`数组与全局`seats`数组尚不足以单独证明每个座位属于哪一个Pane，需实际leaf祖先/容器绑定或可复核的几何与截图对应。
+
+双叶信用要求：两个实际可见且不同的Pane/group，分别记录input/resource并明确同一个session绑定（input对象可以合法共享）；hold未settle时两叶都显示busy且响应控件disabled/aria-disabled；第二叶真实用户操作不可再产生unary，fake日志在同一hold区间exactly one；false/reject后两叶均解除busy并显示所属请求失败、同参数retry后两叶清理。原始payload/requestHex及question选项+custom文本须跨失败/重试保持。额外public repeat返回false只能补充核心去重，不能替代真实第二叶UI；不要用force click绕过disabled后宣称真实用户路径通过。无匹配元素、第二次click因disabled不可执行应按实际记录，结合控件状态和fake计数即可，不需改DOM。
+
+`conversationSessionWindowService.ts:222`以sessionKey为`leaves`键，`openSessionBeside(sameSession)`遇已有leaf会直接return；因此driver的同名操作本身不创建第二个同session叶。D应通过现有受支持真实editor split/open入口并核实两个Pane身份；若公开入口去重而无法满足，应单列双叶UI边界，不能改leaves map、伪造Pane，或用两个lease/两份相同frame代替。当前这里只标明执行风险，未预判后续公开split操作结果。实际八项执行与是否出现产品Important仍待D原件；reviewer不据准备状态或该风险提前判失败。
+
+
+后续独立追踪确认合法nested editor split路径：公开`workbench.action.splitEditorRight`接受标准`{ groupId, editorIndex }`。`resolveCommandsContext`取显式上下文；`EditorParts.getGroup`遍历所有parts，`addGroup`定位源group所属part；`splitEditor`copy非Singleton input。`ConversationChatInput`只追加CannotClose而非Singleton，且基础`EditorInput.copy()`返回`this`，所以两个Pane可以共享同一input对象；审查初期要求“不同input实例”过强，已纠正为不同Pane/group及准确resource绑定。无参命令的global active排除Conversation，不能依赖它碰巧命中；`splitEditorInGroup`的side-by-side包装也不是这里的两个nested group路径。
+
+独立读取D `steps/09-E-explicit-public-split.json`（SHA256 `cf94daa703bdd74c51534613589663e87949c67cc17cad165f40ff3108b1fb17`）：实际command args为group11/editorIndex0，随后同controlled-session part拥有group11、13的两个`workbench.editor.conversationChat`，resource同为该session/default；两个permission seat的x分别666.5、886.5，宽186，Allow均ariaDisabled=false，uiErrors=[]。因此同session两个真实nested Pane可达的风险已由D实际原件解除，不能把顶层window-service去重当作终局UI不可达；busy、第二次操作抑制与恢复仍待后续原件。reviewer没有执行此命令，也未把这一步算作八项业务通过。

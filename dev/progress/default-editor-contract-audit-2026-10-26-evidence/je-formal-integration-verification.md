@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "r2冻结保持；§21/22独立observer/CSS报告真三路500路径保留，attempt1错误与CSS原507/1不改写；J正式封存PENDING，E未授权。"
+summary: "J r2已封存且父核510/0，E已明确授权运行中；§23独立边界报告真三路504路径保留，canonical-only timeline无UI credit、双Pane已证/busy八项待，源码与163native冻结。"
 ---
 
 # J/E 正式集成
@@ -390,3 +390,15 @@ finally所有163输出存在性/mode/SHA、163源SHA及旧Pane source/native全�
 §22保留原CSS guard **507通过/1 raw mismatch失败**，`matchesFrozenNativeBytes:false`不改写。实际CDP全文逐字符精确等于冻结native字节的确定性windows-1252解码结果，256单字节表可逆恢复原175386字节/SHA；这闭合来源，不是CDP Unicode文本UTF-8回编码与native raw相同。实际CSSOM目标content为正确 **✓**，无匹配元素故不称visible glyph验收；其完整683条cssText与detached UTF-8冻结参考逐字符串相等，detached reference未adopt/未插DOM。不能从CDP源码表示差异登记未经实证的产品glyph缺陷，不声称具体Chromium内部解码机制已动态定位。40JS actual raw-match、1CSS解码来源/规则一致、12 manifest-only分别保留，不能升级整out loaded。
 
 父已实际读§22完整增量与CSSOM原件，接受既有冻结合同下该typed来源证明；不是父重跑UI或原raw失败转绿。D正在封存J final，**J正式完成仍PENDING，E未授权/未run**；不能从独审接入翻plan/PRD/whole wave。原400 artifacts逐bytes/SHA全保留，新增四份三路证明后库存404，source/out/依赖缓存继续绝对冻结，等待D正式不可变证据。
+
+## E运行中边界独立报告的纯文档接入
+
+本lane实际读原Astra不可变 **`bf1b829ef3565dc76fb2b183e1894b98a3aa51dc`** 的§23完整diff；旧报告§1–22在incoming中逐字为原前缀，正式真三路consume。[504路径Git mode/type/blob门禁](je-formal-E-execution-boundary-peer-merge-identity.json)PASS，原报告blob精确incoming，仅INDEX冲突，[双方全文与合成理由](je-formal-E-execution-boundary-peer-conflict-resolutions.json)保留本lane完整历史/冻结导航和incoming执行边界。此为纯docs切片，不新模块、不编译/转译/测试或写out，不取main WIP、不ff/push。
+
+当前阶段已前进，前节“J封存pending/E未授权”是当时历史，不回写：[J r2正式completion原件](m01-r2-J-phase-complete.json)SHA256 **`9c874a5ebacda7dad026db5c16c72d8cc3f6d8dfc77f3c566b62c4f8f2783d3e`**，D已封存、父已核 **510 assertions / 0 failures**；其中18矩阵为15真实UI+2 lane provenance+1隔离，不扩成18 UI。后续[父明确E授权原件](m01-r2-E-phase-authorization.json)SHA256 **`cf91e5ca34215228be7ae9b8c9a381ba653f29e8b841e330da98c314c9348661`**，同runId/冻结800d/src2b5d/两notice共同canonical身份。两JSON由本lane实际只读并重算SHA后字节复制；没有在本切片展开J包或代跑UI。父报告E运行中仍用同main **1931833**，自有fake v2新PID **1988687**；这不是E结果。
+
+§23把bidi自有fixture修订与产品业务分开：v1把SessionEventStream错注册为server-stream，未到业务前置，不计九项业务red；v2仅纠正bidi handler、首data真实握手及原hello/overlay，12条真实广告/13 handlers（含Connect）不扩张，没有GetQueue/SaveSkillContent/通配兜底。公开queue **UNSUPPORTED**是能力fail-fast/共存边界，不是空队列成功或queue/skills验收credit。
+
+canonical-envelope-only fixture未授respondable，不能生成所要求timeline-only clientTool CTA；该项维持 **BOUNDARY、无UI credit**，不把pending换名、不改生产或临时造新wire时序。真实nested split路径已经D `09-E-explicit-public-split`原件证明：标准显式groupId/editorIndex上下文，同session两个不同Pane/group可合法共享同一input；不能把window-service去重误写终局不可达。该步骤只解除双Pane身份前置风险，**busy、第二叶真实操作抑制、失败恢复/同参数retry及八项业务结果仍待D完成**。reviewer只读边界审查，既不判准备状态失败，也不签E通过。本lane不把这些步骤写成E整体通过或领取额外UI credit，不翻plan/PRD/whole wave。
+
+[本次只读冻结核验](m01-E-boundary-docs-native-check.json)持共享锁对完整163项当前native、FS source、当前Git source逐SHA与冻结清单核准，src仍 **`2b5df2b37ca926e38888443e371cf65e2883dba2`**；没有任何source/out/依赖缓存写入。三原cache symlink路径/目标仍稳定，当时home **1,016,971,264 bytes**不足全还原文件1,590,020,186 bytes+512MiB余量，按父授权保留全部symlink，未部分还原或额外删除；本E期间不机械重做镜像全文哈希。原404 artifacts全部bytes/SHA保留，新增四三路证明、只读native检查与两个阶段原件后现411。继续保持冻结，本切片立即收尾，不等待D后续、也不追新main。

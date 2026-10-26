@@ -1,0 +1,8 @@
+{
+  "phase": "before-real-three-way-independent-E-execution-boundary-review",
+  "ours": "0ec28617b4bb1e9b3f929fd872e2312f94f71a5a",
+  "theirs": "bf1b829ef3565dc76fb2b183e1894b98a3aa51dc",
+  "mergeBase": "0560ad52621183a4cc89f62630e3c0792042b41a",
+  "recordedAtUtc": "2026-10-26T21:18:41.231883+00:00",
+  "existingReportSections1Through22ExactPrefixPreserved": true
+}
