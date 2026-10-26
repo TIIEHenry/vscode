@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留E/合源与D真实M01失败历史；方案增量后d046实现peer C0/I2/M0：旧扫描未适配、真实入口夹具缺依赖；原J补修与新验证待。"
+summary: "保留E/合源、D真实M01和d046两I历史；a222两测试补修定向peer C0/I0/M0，源码问题闭合，实际旧红新绿与新after待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -400,3 +400,17 @@ lane报告本轮finally已恢复154 native、3份旧生产与test输出存在性
 ### Assessment
 
 **d046当前C0/I2/M0，退原J补修，不签green。** 本轮未发现额外确定生产合同缺陷，但生产静态合理不能代替可运行回归。两项先发父/原J/唯一lane；修订须保留真实旧红→新native最小及完整相关套→重新freeze→D真实M01/受影响Move复验的顺序。§10原产品Important、D1387与新after继续open；此前D旧after的其他有效结果保留，不借本次peer或作者AST/lint把它们扩成新修复验证。
+
+
+## 13. M01两项测试补修定向复读（2026-10-27）
+
+受审修订 `a22237822e4a9feff58a89a0d78fd12669a65ca4`，父 `d04697351413f2e83a4745c3ab2b7fc37a03ea0c`，src `8e6e9bb4b63ae2b65cf6e023fa99ad48fae9ed88`。reviewer已独立Git核身份、完整5路径diff、公开IAgentSessionContext、scan切片函数与生产runMoveToPreview；2测试+3行动文档之外无变更。3生产文件与既有 `sourcesDiffPanel.test.ts` no-unhandled负控blob逐一与父相同，§12生产静态范围不扩展，也未改旧AcceptPatchbuilder扫描或原失败预期。
+
+**Critical 0 / Important 0 / Minor 0（两I源码补修范围）。**
+
+- **I1源码闭合。** node scan改为精确要求按钮runMoveToPreview双catch；既有sliceSourcesPrivate先断言方法存在，再截到下一个private方法，限定核原input捕获、instanceof守卫、typed source中的input/group/Pane原对象和实际await command携source委托。新增裸runMove调用排除并保留旧裸executeCommand排除、其余动作双catch与Accept扫描。不是删断言或放宽为不依赖生产的恒真检查；实际node运行仍归唯一lane。
+- **I2源码闭合。** 4个真实入口在createInstance(SourcesChangesModel)之前注册IAgentSessionContext，提供全部必需公开成员：active session、engine readiness、pairing、两事件及显式拒绝未用lease入口；与真实model构造器订阅匹配。只加5行stub，不换掉真实SourcesChangesModel、EditorParts/Conversation parts、Pane、CommandsRegistry handler，也不改入口选择、business expected、等待或结果断言；未绕到direct helper。此处只证明已修已知缺依赖，是否出现下一层运行问题须实际重跑，不推定4业务旧红已经成立。
+
+测试SHA256独立核对：MoveSource `3e559440a02345efa67593097b98f2ee5b1e8b9ef76d553209f8f1cb82786c88`；WiringScan `bfe051c197f7e17df0dcefca79996fc8365afbb6700fd0e4f3fc70b77dea6753`。3份作者行动文档明确首跑为4 fixture TypeError、业务旧红0，并撤回“旧src必到业务断言”的先行断言；§12及lane `2df7ff7` 原件保留不改。
+
+**Assessment：允许唯一lane继续准确旧928+新4入口实际重跑；静态两I已闭，不等于测试green或M01产品闭合。** 后续新38/完整相关套、实际编译及重新freeze/D真实after仍按父调度。此次未运行AST/lint或业务，不把作者AST0/lint无新增告警变成本reviewer结果；未compile/typecheck/transpile/out/UI。B起点clean `88910e7b5da02d75df09dceacc9f3ea54e7e0486`，src fdca不变，只写原报告和INDEX；先行短结论已交父与唯一lane。
