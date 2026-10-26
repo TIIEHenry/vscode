@@ -1,0 +1,262 @@
+{
+  "mergeCommit": "0dd2a0775d3893341d9c4a7131c5b14ba9088f7b",
+  "parents": [
+    "de22f51cdfa8563af77fb56084c35586ace7d039",
+    "c6648a16a00d9aecf270cf29b4e2dddcf7c03d2a"
+  ],
+  "base": "c968c0627e76b9d94dd0c179b96f8dd1634e54c9",
+  "gate": "repository has no scripts/check-merge-both-sides.sh; equivalent merge-base per-path blob comparison",
+  "pass": true,
+  "paths": [
+    {
+      "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/plans/current-typescript-contract-baseline.md",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-docs-health.log",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron-command.json",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron.log",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-eslint.log",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red-identity.json",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red.log",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-final-identity.json",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-green.log",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.json",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-grpcClientCalls.test.log",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-manageRemoteAgentHostsCatchScanD1328.test.log",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-mobileHostFilterFocusScan.test.log",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-repair-1.log",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-implementation-peer-review.md",
+      "side": "theirs",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/deferred-gaps.md",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/common/respondCleanup.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/changes/browser/changesActions.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/changes/browser/changesetReviewActions.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/output/test/browser/outputServices.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts",
+      "side": "ours",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts",
+      "side": "ours",
+      "pass": true
+    }
+  ],
+  "sourceTreeUnchanged": "932031c34525449d4010265f914f7074abad2c05",
+  "parentVerifiedSourceTree": "932031c34525449d4010265f914f7074abad2c05",
+  "humanSync": {
+    "from": "c968c0627e7",
+    "to": "de22f51cdfa",
+    "method": "merge --ff-only",
+    "beforeStatus": "clean",
+    "result": "success",
+    "branch": "agent-ide"
+  }
+}
