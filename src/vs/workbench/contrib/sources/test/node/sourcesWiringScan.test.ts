@@ -189,11 +189,17 @@ suite('Sources - Changes git write - 源码接线扫描', () => {
 		assert.ok(source.includes(`void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND)${doubleCatch}`));
 		assert.ok(source.includes(`void this.runStage()${doubleCatch}`));
 		assert.ok(source.includes(`void this.runAccept()${doubleCatch}`));
-		assert.ok(source.includes(`void this.commandService.executeCommand('sources.diff.moveToPreview')${doubleCatch}`));
+		assert.ok(source.includes(`void this.runMoveToPreview()${doubleCatch}`));
+		const runMove = sliceSourcesPrivate(source, 'private async runMoveToPreview(');
+		assert.ok(runMove.includes('const input = this.input;'));
+		assert.ok(runMove.includes('if (!(input instanceof ConversationDiffReviewInput))'));
+		assert.ok(runMove.includes(`const source: ISourcesConversationDiffMoveSource = { kind: 'conversationPane', editor: input, group: this.group, pane: this };`));
+		assert.ok(runMove.includes(`await this.commandService.executeCommand<SourcesDiffMoveResult>('sources.diff.moveToPreview', source)`));
 		assert.ok(!source.includes('void this.runGitAction(SOURCES_GIT_CLEAN_COMMAND);'));
 		assert.ok(!source.includes('void this.runGitAction(SOURCES_GIT_UNSTAGE_COMMAND);'));
 		assert.ok(!source.includes('void this.runStage();'));
 		assert.ok(!source.includes('void this.runAccept();'));
+		assert.ok(!source.includes('void this.runMoveToPreview();'));
 		assert.ok(!source.includes("void this.commandService.executeCommand('sources.diff.moveToPreview');"));
 	});
 	test('Panel Diff write actions share the Review write gate; Accept does not git.stage', () => {

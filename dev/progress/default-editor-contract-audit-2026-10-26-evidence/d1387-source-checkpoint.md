@@ -17,7 +17,7 @@ summary: "J在独立accepted方案265b1fe后写M01显式Move来源及Pane局部�
 
 - `sourcesDiffRefHelpers.ts`：typed Pane携原input/group/Pane对象；native从完整args识别明确group/index，缺index仅取该组当时active，非法index/失效显式来源不fallback全局/别叶。入口捕获注册Conversation part对象/sessionKey、严格group/input/Pane成员，ref与close共用此capture；await后关前重核原对象/成员，global焦点改变仍关原live源，替代input/同id组/同key新part不误关。legacy无参global路径及Panel viewTitle clear保留；boolean/stale/void、缺leaf保源和其他异常关闭代数不改。
 - `sourcesDiffActions.ts`：实际registered command转交完整参数并透传既有helper结果，不修改官方context位置。`conversationDiffReviewPane.ts`：真实按钮发送来源对象，按input/render/move尝试代次处理局部反馈；move notice复用既有样式但独立节点，不清比较载入或读写notice，clearInput/setInput/dispose失效旧attempt，catch自身异常仍有双catch无unhandled保护。
-- 新独立`sourcesDiffMoveSource.test.ts`承载38项业务场景源码，便于唯一lane单独选择，不导入新runtime export：4项真实默认EditorParts/Conversation part、真实Pane按钮/registered command/helper链（global空、无关Preview、native toolbar、URI先行context菜单），A/B同tuple独立input/SCM组隔离、准确两侧与源/根保留；2 native公共helper正控、5非法index、9显式来源负控、6 await关闭复核、非leaf reject及缺leaf异常代数，另10项Pane局部错误/当前成功恢复/旧结果与clear/换input/dispose隔离、false/undefined/stale完成语义。新typed context/result仅type-only import，旧src928能加载并到业务断言；真实入口等待原registered command实际settle，旧no-op不等待目标open屏障。真实两侧内容与实际按钮修复仍由D新freeze after证明。
+- 新独立`sourcesDiffMoveSource.test.ts`承载38项业务场景源码，便于唯一lane单独选择，不导入新runtime export：4项真实默认EditorParts/Conversation part、真实Pane按钮/registered command/helper链（global空、无关Preview、native toolbar、URI先行context菜单），A/B同tuple独立input/SCM组隔离、准确两侧与源/根保留；2 native公共helper正控、5非法index、9显式来源负控、6 await关闭复核、非leaf reject及缺leaf异常代数，另10项Pane局部错误/当前成功恢复/旧结果与clear/换input/dispose隔离、false/undefined/stale完成语义。新typed context/result仅type-only import；旧src928是否到业务断言以唯一lane实际重跑为准，首跑夹具失败见下节；真实入口等待原registered command实际settle，旧no-op不等待目标open屏障。真实两侧内容与实际按钮修复仍由D新freeze after证明。
 - 既有`sourcesDiffPanel.test.ts`的Preview无unhandled负控适配为命令拒绝后的局部notice绘制异常，仍验证warn-then-rethrow两级catch；临时DOM setter用finally恢复，不污染teardown。原J29项与完整相关套、R1/R2、三owner/slot/finder/既有状态和关闭代数全部保留。
 
 作者实际仅5TS `createSourceFile` AST解析0诊断、ESLint0errors/1既有warning；按rule/message/所在行文本与accepted基线4个既有文件逐条比较added=[]、removed=[]，新测试0warning。`git diff --check`通过；无编译、typecheck、transpile、写out/watch、业务测试或第二窗口。本次fresh文档门禁health 0errors/73warnings，相对同工位accepted方案基线逐条added=[]、removed=[]；generated-status --check与diff通过，status197行。源码SHA256：
@@ -31,6 +31,15 @@ summary: "J在独立accepted方案265b1fe后写M01显式Move来源及Pane局部�
 | sourcesDiffPanel.test.ts | `bc55199a234cccf409073f9b76138d350196b29bc129e358ba7dd8ae76e91663` |
 
 唯一baseline须先用冻结src928旧生产（三文件不变）配本轮新测试，selector `real Pane registered command`，4种入口均在未移动B/Preview缺失的业务断言red，加载/类型/夹具/timeout不计。新生产后运行整个`Sources M01 move source`套及既有Sources相关完整套/必要全编译；原29项与386套连续性不得丢。正式源码peer与D新freeze真实M01 after待，方案accepted、D1387/M01 open、PRD不升。
+
+
+### M01 真实入口夹具与 wiring 扫描补修（2026-10-27）
+
+不可变实施候选为`d04697351413f2e83a4745c3ab2b7fc37a03ea0c`。唯一lane实际旧src928配新测试首跑0passing/4failing，四项均在真实SourcesChangesModel构造缺IAgentSessionContext、读取onDidChangeActiveSession时TypeError，未到Preview或关闭业务断言；本次业务旧红为0。J已只读原`/tmp/vscode-m01-old928-red.log`，不将夹具失败计作产品red。Astra正式源码peer提交`88910e7b5da02d75df09dceacc9f3ea54e7e0486`的原报告§12为C0/I2/M0：I1是既有node扫描仍精确要求旧无参command表达式，I2是上述session夹具遗漏；3生产未发现额外确定缺陷。J已git show只读核验该正式报告§12，永久首跑原件在lane提交2df7ff7eda332de5aa8d5edf94e715a5fab78148；不复制他槽报告，本修订正式复读与运行待。
+
+本次仅在4项真实入口构造SourcesChangesModel前stub完整公开IAgentSessionContext（session id、readiness、pairing及两公开事件，未使用的lease入口显式拒绝），仍实际构造真实model、两真实Conversation parts、Pane、注册命令与helper，不换为direct helper。node扫描精确检查按钮runMoveToPreview的双catch、方法捕获原input/严格input类型、窄typed来源的原input/group/Pane与实际command携source委托，并同时保留新方法/旧命令naked-call排除；浏览器unhandled负控、原AcceptPatchbuilder扫描和38项业务场景均保留。3生产和既有Panel测试未修改。
+
+作者实际只做两测试TS的createSourceFile AST语法解析0诊断、ESLint0errors/20既有warnings；相对d046同两文件按rule/message/行文本逐条added=[]、removed=[]。测试SHA256更新为MoveSource `3e559440a02345efa67593097b98f2ee5b1e8b9ef76d553209f8f1cb82786c88`、WiringScan `bfe051c197f7e17df0dcefca79996fc8365afbb6700fd0e4f3fc70b77dea6753`；3生产仍为上节摘要。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。未compile/typecheck/transpile/out/watch/业务运行/第二窗口；唯一lane须先重跑同selector的4项旧入口，再新38及原完整覆盖，Astra定向复读与D新freeze真实M01 after待，accepted/open不升。
 
 ## 宿主观测与 Sources 重叠补修（2026-10-26，J）
 
