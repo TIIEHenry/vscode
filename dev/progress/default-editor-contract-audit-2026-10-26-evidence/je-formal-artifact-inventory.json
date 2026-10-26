@@ -1,5 +1,5 @@
 {
-  "phase": "compile10-actual0-0TS-new10-actual10-0-full484-4-old4919-fourselectors1-3-classified-and253-restored-before-fixture-only-fix",
+  "phase": "final-2fd-test-only-source-merged-compile10-history-preserved-before-targeted-validation",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -3716,6 +3716,27 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c3-four-failure-classification-checkpoint.json",
       "bytes": 2968,
       "sha256": "1573c8005aa847164a9b8ff90913b9095e1ff54abcb331d32fb40e946e320af6",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-two-tests-source-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-two-tests-source-pre-merge.json",
+      "bytes": 492,
+      "sha256": "5b05a801c5ce9343c249574eae34c00a8611810a8bb7dd6ec3c2fd723651aa6b",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-two-tests-source-conflict-resolutions.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-two-tests-source-conflict-resolutions.json",
+      "bytes": 418809,
+      "sha256": "fca7217575b9b525f10d815a3610ec9857b8fea47749e523d9614ec334f5c7e7",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-two-tests-source-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-two-tests-source-merge-identity.json",
+      "bytes": 483308,
+      "sha256": "831a6a555f0adeaaeedf027004d4b5344a884778f57e21e4eb881f8a47c198b7",
       "bytePreservingCopy": true
     }
   ]

@@ -505,3 +505,9 @@ finally **完整253当前native存在/mode/bytes/SHA及source全部恢复compile
 [六TS独立ESLint](e-c3-six-ts-eslint.json)实际 **0 errors / 0 warnings**；[历史精确pair连续性](e-c3-historical-pair-continuity.json)核旧163中160源/native同compile8→10，明确排除Reading/Binding/Roster变3。J39/425所有测试与Sources/editorOpenSlot owned共28pair精确同，只在原断言scope复用历史，不新跑或冒称新src默认编辑器after。旧Node test61/61、external browser3/3、E11 test11/11同，但旧production50只有48同，**不称整个依赖域未变**；改变的门与直接消费者由本次实际新10及10相关suite覆盖。旧reasoning255/1、Accept23/1与`hmm\nthen this`原预期保持，不机械重跑880或E11、不翻旧红绿。
 
 原504 artifact对象逐项序列化前缀与全部bytes/SHA/路径保持，新增27原件后现 **531**，status200。这一检查点在任何后续fixture-only修订前单独落账，保留compile10成功、actual10/0、full484/4、old1/3与六TS lint原貌。等待原E两个既有测试文件/行动文档的固定SHA与Astra peer，生产c3保持不动；此时不再编译、没有签freeze/UI或把plan/PRD/旧D/整波升级。后续若只刷新测试native，须逐文件标明新的source/emitter，不能把最终源码树称整树compile10或把新测试标成compile10原出品。
+
+## 最终 test-only 候选正式合源（两测试定向校验待执行）
+
+固定 2fd206e74d846052ca0083ee27d8046c91b348ac（含 c683f0e）按真实三路合并，父已读原 Astra fbee68cf12ad7f0b8771367f7ca8774d913b62b5 §28 C0/I0/M0 并授权唯一 lane；单句分类次序纠正 fcc2a8212a282c04e3096e5b31d51c5a3e2dda4a 将单独接入。两份测试与 plan 精确 incoming，生产 browser tree 与 c3 相同；124 路径 mode/type/blob/hunk 门禁全过。status 原双方整文入冲突证明，全部 ours 进度条目与 incoming 最终作者条目逐字保留，200 行。
+
+此时未运行 checker、emit 或业务测试，未生成新 freeze/UI；compile10 的 253 项 source/native/mode 在合源前全核。后续仅真实 src 项目上下文内两测试 semantic/syntactic/noEmit、两测试原编译选项定向 emit，再完整 LensDisposeGate 与 Lens；最终身份预期 254 项（252 compile10 连续 + 2 fresh tests），不得把 fresh tests 冒称 compile10 原件。旧 531 原件、compile10 0/0TS、新10 10/0、完整相关484/4与精确旧四 selector1/3均保留。

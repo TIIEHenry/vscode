@@ -1,0 +1,11 @@
+{
+  "ours": "74b9c68c5a7916532553b68d5e4312335870d6f4",
+  "theirs": "2fd206e74d846052ca0083ee27d8046c91b348ac",
+  "mergeBase": "c3f9fd04f9eb46c74170aa06e65054b80ac974b9",
+  "checkedAtUtc": "2026-10-26T22:57:36.537300+00:00",
+  "all253Compile10SourceNativeModeExactBefore": true,
+  "priorArtifactsCount": 531,
+  "finalCandidate": "2fd206e74d846052ca0083ee27d8046c91b348ac",
+  "peer": "fbee68cf12ad7f0b8771367f7ca8774d913b62b5",
+  "peerCorrection": "fcc2a8212a282c04e3096e5b31d51c5a3e2dda4a"
+}
