@@ -116,7 +116,8 @@ export function encodeDouble(field: number, value: number | undefined): Buffer {
 export type ProtoField =
 	| { readonly field: number; readonly wireType: 0; readonly varint: bigint }
 	| { readonly field: number; readonly wireType: 1; readonly fixed64: Uint8Array }
-	| { readonly field: number; readonly wireType: 2; readonly bytes: Uint8Array };
+	| { readonly field: number; readonly wireType: 2; readonly bytes: Uint8Array }
+	| { readonly field: number; readonly wireType: 5; readonly fixed32: Uint8Array };
 
 export function readProtoFields(bytes: Uint8Array): ProtoField[] {
 	const fields: ProtoField[] = [];
@@ -153,7 +154,10 @@ export function readProtoFields(bytes: Uint8Array): ProtoField[] {
 			continue;
 		}
 		if (wireType === 5) {
-			offset += 4;
+			const end = offset + 4;
+			if (end > bytes.length) { throw new Error('truncated protobuf fixed32 field'); }
+			fields.push({ field, wireType: 5, fixed32: bytes.subarray(offset, end) });
+			offset = end;
 			continue;
 		}
 		throw new Error(`unsupported protobuf wire type ${wireType}`);

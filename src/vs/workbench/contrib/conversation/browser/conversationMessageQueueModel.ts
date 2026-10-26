@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/** Aligns with Singularity message-queue-bar.md §3.2 — local stub only until PRD-008. */
+/** Queue item projection shared by engine snapshots and local fixtures. */
 export type ConversationQueueItemStatus = 'UPLOADING' | 'UPLOAD_FAILED' | 'PENDING' | 'SENDING' | 'FAILED';
 
 export type ConversationQueueItemHoldReason = 'EDITING';
@@ -21,6 +21,10 @@ export interface ConversationMessageQueueItem {
 }
 
 export interface ConversationMessageQueueState {
+	/** Undefined only for local fixtures. Engine reads never imply empty success. */
+	readonly readState?: 'loading' | 'ready' | 'error' | 'unsupported' | 'stale';
+	readonly readError?: string;
+	readonly version?: string;
 	readonly items: readonly ConversationMessageQueueItem[];
 	readonly isPaused: boolean;
 	readonly isProcessing: boolean;

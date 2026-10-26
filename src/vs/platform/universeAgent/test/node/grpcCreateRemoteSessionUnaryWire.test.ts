@@ -219,7 +219,7 @@ suite('grpc RemoteAgentService CreateRemoteSession protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('createRemoteSession uses bytes then existing map; SaveSkillContent stays JSON', () => {
+	test('createRemoteSession uses bytes then existing map', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const create = extractAsyncMethod(source, 'createRemoteSession');
 		assert.ok(create.includes('makeUnaryBytesClient'), 'createRemoteSession must use makeUnaryBytesClient');
@@ -234,7 +234,6 @@ suite('grpc RemoteAgentService CreateRemoteSession protobuf wire', () => {
 		assert.ok(!/\bResolveTurn\b/.test(create));
 		assert.ok(!/\bResolveAnchor\b/.test(create));
 
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));

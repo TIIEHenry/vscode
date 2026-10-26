@@ -54,7 +54,6 @@ import {
 	ConversationMessageQueueItem,
 	ConversationMessageQueueState,
 	conversationMessageQueueHeadline,
-	createEmptyMessageQueueState,
 } from './conversationMessageQueueModel.js';
 import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -255,16 +254,13 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private displayQueueState(sessionId: string): ConversationMessageQueueState {
-		if (this.isEngineQueueUnlisted()) {
-			return createEmptyMessageQueueState();
-		}
 		return this.stubService.getMessageQueueState(sessionId);
 	}
 
 	private queueEmptyCopy(): string {
-		return this.isEngineQueueUnlisted()
-			? conversationLensDockInboxQueueNotListed
-			: conversationLensDockInboxNoQueue;
+		return this.stubService.getMessageQueueState(this.resolveSessionId()).readState === 'ready'
+			? conversationLensDockInboxNoQueue
+			: this.isEngineQueueUnlisted() ? conversationLensDockInboxQueueNotListed : conversationLensDockInboxNoQueue;
 	}
 
 	private renderQueueChip(queueState: ConversationMessageQueueState): void {
@@ -299,9 +295,7 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private isEnqueueOffered(): boolean {
-		return !isConversationPairingHold(this.uaConnection)
-			&& !this.isKeepLeftoverListFailWrite()
-			&& (!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory());
+		return false; // Enqueue stays closed until generation-time queue admission is verified.
 	}
 
 	/** KEEP leftover list-fail (D451): connected but roster not ready is not a live Inbox write surface. */
@@ -562,8 +556,9 @@ export class ConversationInboxOverlay extends Disposable {
 			summary.classList.add('conversation-lens-inbox-list-empty');
 		}
 
+		if (state.readError) { summary.title = state.readError; }
 		const actions = append(header, $('.queue-bar-header-actions'));
-		if (state.items.length > 0) {
+		if (state.items.length > 0 && state.readState !== 'unsupported') {
 			if (state.isPaused) {
 				const resumeButton = append(actions, $('button.queue-bar-action')) as HTMLButtonElement;
 				resumeButton.type = 'button';
@@ -582,7 +577,7 @@ export class ConversationInboxOverlay extends Disposable {
 			this.bindLeftoverQueueWrite(clearButton, () => this.stubService.clearMessageQueue(this.resolveSessionId()));
 		}
 
-		this.renderEnqueueAction(actions);
+		if (state.readState === undefined) { this.renderEnqueueAction(actions); }
 
 		if (state.items.length === 0) {
 			return;
@@ -598,10 +593,13 @@ export class ConversationInboxOverlay extends Disposable {
 	private isLeftoverQueueWriteLive(): boolean {
 		return !isConversationPairingHold(this.uaConnection)
 			&& this.stubService.isEngineConnected()
-			&& !this.isKeepLeftoverListFailWrite();
+			&& !this.isKeepLeftoverListFailWrite()
+			&& (this.displayQueueState(this.resolveSessionId()).readState === 'ready' || this.displayQueueState(this.resolveSessionId()).readState === undefined);
 	}
 
 	private leftoverQueueWriteHoldReason(): string {
+		const state = this.displayQueueState(this.resolveSessionId());
+		if (state.readState && state.readState !== 'ready') { return this.formatQueueHeadline(state, 'summary'); }
 		return conversationSessionHoldReason(
 			isConversationPairingHold(this.uaConnection),
 			getConversationSessionReadiness(this.stubService),
@@ -685,6 +683,12 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private formatQueueHeadline(state: ConversationMessageQueueState, surface: 'chip' | 'summary'): string {
+		switch (state.readState) {
+			case 'loading': return localize('conversationLens.queueLoading', "Loading queue…");
+			case 'error': return localize('conversationLens.queueFailed', "Queue unavailable");
+			case 'unsupported': return localize('conversationLens.queueUnsupported', "Queue not supported");
+			case 'stale': return localize('conversationLens.queueDisconnected', "Queue disconnected");
+		}
 		const headline = conversationMessageQueueHeadline(state);
 		switch (headline.kind) {
 			case 'empty':
@@ -729,7 +733,10 @@ export class ConversationInboxOverlay extends Disposable {
 	private renderQueueItem(item: ConversationMessageQueueItem): HTMLElement {
 		const row = $('div.queue-item');
 		row.setAttribute('role', 'listitem');
-		row.tabIndex = 0;
+		// Engine editing stays closed until composer awaits accepted Edit + Release in order.
+		const writable = this.displayQueueState(this.resolveSessionId()).readState === undefined;
+		row.tabIndex = writable ? 0 : -1;
+		row.setAttribute('aria-disabled', String(!writable));
 		row.setAttribute('data-item-id', item.id);
 		if (item.hold === 'EDITING') {
 			row.classList.add('hold-editing');
@@ -781,7 +788,9 @@ export class ConversationInboxOverlay extends Disposable {
 			meta.classList.add('failed');
 			appendMetaSep();
 			meta.appendChild(document.createTextNode(`✗ ${item.lastError ?? conversationLensInboxQueueFailedTag}`));
-			row.appendChild(this.renderQueueRetryAction(item));
+			if (this.displayQueueState(this.resolveSessionId()).readState !== 'unsupported') {
+				row.appendChild(this.renderQueueRetryAction(item));
+			}
 		}
 		const accessibleState: string[] = [];
 		if (item.status === 'PENDING' && item.hold !== 'EDITING') {
@@ -803,7 +812,7 @@ export class ConversationInboxOverlay extends Disposable {
 		row.setAttribute('aria-label', [accessibleName, ...accessibleState].join(', '));
 
 		const holdItem = () => {
-			if (isConversationPairingHold(this.uaConnection) || item.hold === 'EDITING') {
+			if (!writable || (this.displayQueueState(this.resolveSessionId()).readState !== undefined && !this.isLeftoverQueueWriteLive()) || isConversationPairingHold(this.uaConnection) || item.hold === 'EDITING') {
 				return;
 			}
 			this.stubService.holdMessageQueueItem(this.resolveSessionId(), item.id, 'EDITING');
@@ -828,7 +837,7 @@ export class ConversationInboxOverlay extends Disposable {
 		const retryButton = $('button.queue-bar-action.conversation-lens-inbox-queue-retry') as HTMLButtonElement;
 		retryButton.type = 'button';
 		retryButton.textContent = conversationLensInboxQueueRetry;
-		const connected = !isConversationPairingHold(this.uaConnection) && this.stubService.isEngineConnected();
+		const connected = this.isLeftoverQueueWriteLive();
 		retryButton.disabled = !connected;
 		retryButton.setAttribute('aria-disabled', String(!connected));
 		retryButton.title = connected ? conversationLensInboxQueueRetry : conversationLensInboxQueueRetryUnavailable;
@@ -841,7 +850,7 @@ export class ConversationInboxOverlay extends Disposable {
 	}
 
 	private onQueueRetryClicked(sessionId: string, item: ConversationMessageQueueItem): void {
-		if (isConversationPairingHold(this.uaConnection) || !this.stubService.isEngineConnected()) {
+		if (!this.isLeftoverQueueWriteLive()) {
 			return;
 		}
 		const retried = this.stubService.retryMessageQueueItem(sessionId, item.id, {

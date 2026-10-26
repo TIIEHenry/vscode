@@ -1396,9 +1396,6 @@ suite('grpc catalog unary protobuf wire', () => {
 			assert.ok(body.includes(mapper), `${name} must call ${mapper}`);
 			assert.ok(!body.includes('makeUnaryClient<'), `${name} must not use JSON makeUnaryClient`);
 		}
-		const saveSkill = extractAsyncMethod(source, 'saveSkillContent');
-		assert.ok(saveSkill.includes('makeUnaryClient<'), 'saveSkillContent must stay JSON; J tool_service.proto has no SaveSkillContent RPC');
-		assert.ok(!saveSkill.includes('makeUnaryBytesClient'), 'saveSkillContent must not use makeUnaryBytesClient');
 		const questionTool: Array<{ name: string; encoder: string; decoder: string }> = [
 			{ name: 'respondQuestion', encoder: 'encodeRespondQuestionRequest', decoder: 'decodeRespondQuestionResponse' },
 			{ name: 'sendClientToolResponse', encoder: 'encodeSendClientToolResponseRequest', decoder: 'decodeSendClientToolResponseResponse' },

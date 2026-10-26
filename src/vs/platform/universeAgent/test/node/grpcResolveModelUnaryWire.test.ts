@@ -252,7 +252,7 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('resolveModel uses bytes then existing map; SaveSkillContent stays JSON', () => {
+	test('resolveModel uses bytes then existing map', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const resolve = extractMethod(source, 'resolveModel');
 		assert.ok(resolve.includes('makeUnaryBytesClient'), 'resolveModel must use makeUnaryBytesClient');
@@ -269,9 +269,8 @@ suite('grpc ConfigService ResolveModel protobuf wire', () => {
 		assert.ok(!/\bResolveAnchor\b/.test(resolve));
 	});
 
-	test('SaveSkillContent stays JSON; do not lock GetModelPreferences', () => {
+	test('do not lock GetModelPreferences', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 		assert.ok(extractMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));

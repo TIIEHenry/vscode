@@ -291,7 +291,6 @@ suite('grpc DeviceService PairApprove / PairReject / ListPending / RotateToken p
 		assert.ok(devices.includes('decodeListDevicesResponse'), 'listDevices must keep decodeListDevicesResponse');
 		assert.ok(devices.includes('mapListDevicesResponse'), 'listDevices must keep mapListDevicesResponse');
 		assert.ok(source.includes('grpcDevicePairUnaryWire'));
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 	});
 });
 

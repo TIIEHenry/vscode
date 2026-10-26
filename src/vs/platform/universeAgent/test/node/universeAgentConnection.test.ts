@@ -934,6 +934,7 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	readonly editCalls: UniverseAgentEditQueueItemRequest[] = [];
 	queueResult: UniverseAgentQueueMutationResult = { ok: true };
 
+	async getQueue() { return { items: [], isPaused: false, isProcessing: false, pauseReason: 'NONE' as const, version: '0' }; }
 	async enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
 		this.enqueueCalls.push(request);
 		return this.queueResult;
@@ -11356,9 +11357,10 @@ suite('UniverseAgentConnectionService', () => {
 		const result = await connection.saveSkillContent!({
 			skillName: 'demo-skill',
 			content: '# Demo',
+			create: true,
 		});
 		assert.strictEqual(result.ok, true);
-		assert.deepStrictEqual(saved, { skillName: 'demo-skill', content: '# Demo' });
+		assert.deepStrictEqual(saved, { skillName: 'demo-skill', content: '# Demo', create: true });
 		service.dispose();
 	});
 
@@ -11517,6 +11519,7 @@ suite('UniverseAgentConnectionService', () => {
 		const result = await connection.saveSkillContent!({
 			skillName: 'demo-skill',
 			content: '# Demo',
+			create: true,
 		});
 		assert.strictEqual(result.ok, false);
 		assert.strictEqual(result.reason, 'UNIMPLEMENTED');

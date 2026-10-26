@@ -182,7 +182,7 @@ suite('grpc AgentService SubscribeToolDetail protobuf server-stream wire', () =>
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openSubscribeToolDetailStream uses makeServerStreamBytesClient; Upload bytes; SaveSkillContent stays JSON', () => {
+	test('openSubscribeToolDetailStream uses makeServerStreamBytesClient; Upload bytes', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const body = extractMethod(source, 'openSubscribeToolDetailStream');
 		assert.ok(body.includes('makeServerStreamBytesClient'), 'openSubscribeToolDetailStream must use makeServerStreamBytesClient');
@@ -193,8 +193,6 @@ suite('grpc AgentService SubscribeToolDetail protobuf server-stream wire', () =>
 		assert.ok(!body.includes('JSON.stringify'), 'openSubscribeToolDetailStream itself must not JSON.stringify');
 		assert.ok(source.includes('grpcSubscribeToolDetailStreamWire'));
 
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(source, 'connect').includes('makeUnaryClient<'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));

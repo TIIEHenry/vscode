@@ -345,7 +345,7 @@ suite('grpc FileTransferService UploadAttachment protobuf client-stream wire', (
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openUploadAttachmentStream / makeClientStreamBytesClient bytes; SaveSkillContent stays JSON', () => {
+	test('openUploadAttachmentStream / makeClientStreamBytesClient bytes', () => {
 		const client = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const upload = extractMethod(client, 'openUploadAttachmentStream');
 		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
@@ -361,8 +361,6 @@ suite('grpc FileTransferService UploadAttachment protobuf client-stream wire', (
 		assert.ok(!/\bResolveTurn\b/.test(upload));
 		assert.ok(!/\bResolveAnchor\b/.test(upload));
 
-		assert.ok(!extractAsyncMethod(client, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(client, 'saveSkillContent').includes('makeUnaryClient<'));
 		assert.ok(extractAsyncMethod(client, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(client, 'connect').includes('makeUnaryClient<'));
 		assert.ok(extractAsyncMethod(client, 'resolveTurn').includes('makeUnaryBytesClient'));

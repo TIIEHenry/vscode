@@ -3,7 +3,7 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "PRD-001–029：2026-10-25 PRD-015 身份条文件夹与分支搜索落空分别写 No matching folders. / No matching branches.，状态仍 accepted。2026-10-24 PRD-002 增补会话列表组内排序与删除确认，PRD-007 增补加载中 / 不可用 / 空三分；PRD-029 会话工作根与 Workbench 状态跟随会话（2026-10-11 新增，proposed，方案 draft；2026-10-24 用户改为多根工作区随时扩展、本机工作目录切会话自动加入，改写验收 8、增补 10–11）；PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案仍 accepted；对话框与引导页遮罩、向 Cursor 靠齐均已 implemented；2026-10-21 用户选定 ChatGPT 为主参照，方案 draft）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，P2 组归属与显隐 2026-10-05 已落，P3 未做）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
@@ -187,6 +187,8 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   9. 文件夹芯片和分支芯片打开锚定列表，当前项打勾，再点同一芯片关掉。身份条的文件夹、分支、读屏名、菜单当前项与分支切换目标属于所在叶绑定的会话；并列另一叶或全局活动会话变化不改变这个归属。文件夹列表加入目录仍作用于当前窗口工作区（PRD-029 验收 10）。搜索去掉空白后仍非空且一条动作都看不见时，文件夹写 “No matching folders.”，分支写 “No matching branches.”；空白查询、仍有条目或列表还在打开时不写。引擎芯片打开 Preferences，不打开文件夹或分支列表。
 - **依赖或未决**：活队列 / 路由策略 / AgentProfile 数据依赖 PRD-008。无引擎时 Agent 用诚实空；Route 省略，不假装已接到引擎策略表。MessageQueue 列表 UI SSOT = Singularity [message-queue-bar](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md)（槽位仍以本仓 Inbox 为准）。方案见 [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md)。D194：假麦克风与假 Route 已删。**2026-10-21：** 验收 2 的「+」是加上下文，无底幽灵钮（PRD-028 验收 8），不是浅底圆。它列出可引用的会话并写成引用芯片。文件上传不在消息格式里，不画。Tool options 是旁边另一颗 `tools` 图标。发送仍是唯一实心圆。
 
+2026-10-27 队列补充验收：只有活动会话绑定完成且 GetQueue 快照成功后，暂停、恢复、清空、重试才可写。加载、失败、断连与缺能力分别呈现；失败保留最后快照但撤销写入。真实引擎行编辑暂不开放，待 Hold → Edit → Release 按明确接受顺序执行且失败保留草稿；生成中 Send / Enqueue 仍关闭。
+
 ### PRD-016 Conversation session 窗口与 chat tab
 
 - **状态**：`accepted`
@@ -363,6 +365,8 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   6. Skills / Agents / Tools 已有编辑状态迁入新宿主后不丢选择、未保存内容或能力门控。
   7. Providers 的启用状态用可见的 Enabled / Disabled 文字只读呈现，不画可切换开关，也不增加启用 RPC（2026-10-26 视觉审查修复）。
 - **依赖或未决**：UI 不等待所有 RPC；缺能力先交付完整 unsupported/failed 状态，真实数据接线后只替换数据源。实施见 [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted` @2026-09-02）。**引擎面核对（2026-10-19，[protocol-surface §1b](../reference/universe-agent/engine-protocol-surface.md) 与 [engine-catalog](../systems/workbench/engine-catalog.md)）**：Models 仍没有「上下文上限 / 能力标签」。会话级 `SwitchModel` 属 Composer，不在本条。桌面 Providers 走 `UpsertProviderCredentials` / `ClearProviderCredentials`，并可从本地 harness 导入；内置预设在本地，桌面云端目录走 `listProviderPresetCatalog?`（models.dev，不是引擎 RPC）。桌面 Models 走 `UpsertModel` / `DeleteModel` / `SetModelEnabled`，Test 走已有 `TestModelProfile`。密钥不回显、不进 `settings.json`。网页不实现这些写方法。Rules 的 Upsert/Delete 已进桌面 connection（G-ENG-2），网页不实现；Hooks 仍只读（G-ENG-3）。无 hook 时 Hooks 仍以 unsupported 完整态满足。没有用户可观察的产品验证，本条保持 `accepted`。
+
+2026-10-27 Skills 补充验收：New 使用正式创建协议，已有技能不覆盖；Save 携带已加载来源与原文作比较写入。失败保留草稿，成功读回规范化正文作下次比较基线，保存期间继续输入不被覆盖。读回失败或同引擎重连后可显式 Refresh skills 恢复，异引擎不自动采用旧草稿。真实默认窗口联调未签收，PRD-025 仍 accepted。
 
 ### PRD-026 Client 设置完整性
 

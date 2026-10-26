@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "第三次完整编译0；J29/E44/补修6/roster189过，11相关255过1既有红、386身份复用；main外部d91待独立基线裁定，90产物已核不freeze。"
+summary: "固定d91外部基线358路径保留PASS，实际候选待peer后第四完整编译；旧第三次0及11相关255过1旧红不延伸新src，107原件保留，不freeze。"
 ---
 
 # J/E 正式集成
@@ -117,3 +117,23 @@ Sources完整10文件386是在000823/src1ee实际跑过；按父要求不机械�
 [不可变外部main观察](je-final-external-main-observation.json)显示5df→d91只有一个正式queue snapshots/skill save独立提交，含RosterService/其test与协议队列技能路径，不能当纯文档或隐式算进本轮green。父已另交Astra只读判断与E写门/scope交互，倾向after前只吸收这个明确d91作为外部基线对齐；后续main漂移另轮，不无限追逐。精确执行边界未给出前，当前source/out保持，未合d91/未编译d91、不发D freeze。
 
 [当前90源/native检查点](je-third-source-native-identity.json)全部摘要吻合，明确outFrozen=false/afterNoticeIssued=false；只有已有08b127/srcf19实际编译身份。接下来依父及Astra明确边界执行，不能拿本次0或255/1背书尚未吸收的d91。
+
+## 固定d91外部基线对齐候选
+
+父明确授权仅合已提交不可变 `d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42`，作为**外部基线对齐**而非本波新模块；从 clean `5f180399790eb57c8eb68692f379caa8033c4d4f` 真三方合入，merge-base `5df17cb7273f490ccd59818dccba479fa80848dc`。不读取主工位42 dirty路径内容，不追随后续 main、不重试主ff、不push。[预盘点](je-formal-main-d91-pre-merge.json)与[原merge日志](je-formal-main-d91-merge.log)保存固定89条incoming路径及5交集。
+
+[实际mode/type/blob门禁](je-formal-main-d91-merge-identity.json)覆盖双方全部 **358路径，全部PASS**；合成源码树 `92801b513611ed3ae1ba36862a58131c609f6aa2`。源码/测试无文本冲突，只有两文档冲突；[五交集原文、双方patch及结果逐hunk证明](je-formal-main-d91-conflict-resolutions.json)保留完整 base/ours/theirs/result，不把自动合并当语义批准：
+
+| 双改路径 | 保留与合成 |
+| --- | --- |
+| plans INDEX | 保留E响应恢复 accepted行；队列技能 implemented列由incoming plan源生成，不升级E/产品 |
+| progress/status | 保留双方全部历史记录；顶层当前摘要改为固定d91候选待peer，200行；原摘要/整文均保存在证明 |
+| deferred-gaps | 原累计账完整保留；incoming D1388真实队列行编辑仍open，不放开Send/Enqueue |
+| Roster生产 | 保留E提前写门、真实断连覆盖、身份transition屏障及begin后的current检查；保留d91 bound lease撤销/成功设置、全scope/epoch/explicit-ok队列路径 |
+| Roster测试 | E响应/重入/换身份全保留，合入d91真实engine-id/bind唤醒/readback/unsupported与错误回归；不skip或弱化断言 |
+
+[原107 artifacts及90份第三次native字节保留](je-formal-main-d91-preservation.json)均核SHA通过；新证明只追加库存。当前out仍由 `08b1272fc3cb7ad2fdc256be60262818b92f4a20` / src `f19df7bd512b99d0485355c84708498781e37e56` 的第三次完整编译产生，不与新src混用。旧结果compile0、J29/E44/补修6/roster189、11相关255过1 reasoning既有红及J386精确连续性仍只属旧src。
+
+候选先提交并把实际SHA交原Astra复读，**peer闭合前不启动compile4**。随后唯一lane在全局空闲/共享锁下完整原生编译，并运行Roster、E44/补修6/完整11相关、J29、QueueReader/Inbox/Skills及immutable d91实际修改的59 node test和两补充套；reasoning原生产差异保留，不宣称全套绿。J386仅在刷新source/native连续性后复用。D扩展freeze模板/guard到位前不发通知，J零RPC结束后才授权E fake UDS；不添加GetQueue或技能fake handler。
+
+本候选[docs health](je-formal-main-d91-health.log)、[生成状态](je-formal-main-d91-generated-check.log)及[排除原始log的diff-check](je-formal-main-d91-diff-check.log)通过；缺失的check-merge-both-sides脚本未运行。文档记录及证据追加不改上述合成src，也不改107原artifact字节。

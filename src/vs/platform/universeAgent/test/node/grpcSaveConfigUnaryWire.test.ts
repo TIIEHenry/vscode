@@ -344,7 +344,7 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('saveRemoteAgentConfig uses bytes then existing map; SaveSkillContent stays JSON', () => {
+	test('saveRemoteAgentConfig uses bytes then existing map', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const save = extractAsyncMethod(source, 'saveRemoteAgentConfig');
 		assert.ok(save.includes('makeUnaryBytesClient'), 'saveRemoteAgentConfig must use makeUnaryBytesClient');
@@ -359,7 +359,6 @@ suite('grpc RemoteAgentService SaveConfig protobuf wire', () => {
 		assert.ok(!/\bResolveTurn\b/.test(save));
 		assert.ok(!/\bResolveAnchor\b/.test(save));
 
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));

@@ -183,7 +183,7 @@ suite('grpc AgentService History protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('getAgentHistory uses bytes then existing map; SaveSkillContent stays JSON', () => {
+	test('getAgentHistory uses bytes then existing map', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const agentHistory = extractAsyncMethod(source, 'getAgentHistory');
 		assert.ok(agentHistory.includes('makeUnaryBytesClient'), 'getAgentHistory must use makeUnaryBytesClient');
@@ -201,7 +201,6 @@ suite('grpc AgentService History protobuf wire', () => {
 		assert.ok(!sessionHistory.includes('encodeHistoryRequest'));
 		assert.ok(!sessionHistory.includes('decodeHistoryResponse'));
 
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 		const watchStart = source.indexOf('\topenWatchConfigStream(');

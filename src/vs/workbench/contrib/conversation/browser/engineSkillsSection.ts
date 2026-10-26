@@ -20,7 +20,7 @@ import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
@@ -218,6 +218,10 @@ export class EngineSkillsSection extends Disposable {
 	private loadedBodySkillName: string | undefined;
 	private bodyDirty = false;
 	private bodyLoadGeneration = 0;
+	private bodyEditRevision = 0;
+	private bodySaveInFlight = false;
+	private bodyBaselineNeedsReload = false;
+	private loadedBodyWriteLink: { engineIdentityId: string; linkId: number } | undefined;
 	private refreshGeneration = 0;
 	private sectionActive = false;
 
@@ -250,6 +254,8 @@ export class EngineSkillsSection extends Disposable {
 		this.writeToolbar.style.display = 'none';
 		const newButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineSkillsNew', "New skill"), Codicon.add));
 		this._register(newButton.onDidClick(() => void this.promptNewSkill().catch(onUnexpectedError).catch(onUnexpectedError)));
+		const refreshButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineSkillsRefresh', "Refresh skills"), Codicon.refresh));
+		this._register(refreshButton.onDidClick(() => void this.refresh(true).catch(onUnexpectedError).catch(onUnexpectedError)));
 
 		this.writeStatus = DOM.append(this.container, $('.engine-skill-write-status'));
 		this.writeStatus.setAttribute('role', 'status');
@@ -275,6 +281,7 @@ export class EngineSkillsSection extends Disposable {
 		}));
 		this.bodyInput.element.classList.add('engine-skill-body-input');
 		this._register(DOM.addDisposableListener(this.bodyInput.inputElement, 'input', () => {
+			this.bodyEditRevision++;
 			this.bodyDirty = isSkillBodyDirty(this.bodyInput.value, this.loadedBodyText);
 		}));
 
@@ -393,10 +400,24 @@ export class EngineSkillsSection extends Disposable {
 		}
 	}
 
+	private captureWriteLink(): { engineIdentityId: string; linkId: number } | undefined {
+		const snapshot = this.connection.getConnectionSnapshot();
+		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
+		const linkId = readPublishedLinkId(snapshot);
+		return this.canWrite() && engineIdentityId && linkId ? { engineIdentityId, linkId } : undefined;
+	}
+
+	private sameWriteLink(link: { engineIdentityId: string; linkId: number }): boolean {
+		const current = this.captureWriteLink();
+		return !this._store.isDisposed && current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+	}
+
 	private async promptNewSkill(): Promise<void> {
 		if (!this.canWrite() || !this.connection.saveSkillContent) {
 			return;
 		}
+		const link = this.captureWriteLink();
+		if (!link) { return; }
 		const required = localize('ua.engineSkillNameRequired', "Skill name is required.");
 		const result = await this.dialogService.input({
 			type: 'question',
@@ -412,7 +433,7 @@ export class EngineSkillsSection extends Disposable {
 			],
 			validate: values => (values[0] ?? '').trim() ? undefined : required,
 		});
-		if (!result.confirmed || !result.values || !this.canWrite() || !this.connection.saveSkillContent) {
+		if (!result.confirmed || !result.values || !this.sameWriteLink(link) || !this.connection.saveSkillContent) {
 			return;
 		}
 		const skillName = (result.values[0] ?? '').trim();
@@ -428,64 +449,74 @@ export class EngineSkillsSection extends Disposable {
 		if (!this.canWrite() || !this.connection.saveSkillContent) {
 			return false;
 		}
+		const link = this.captureWriteLink();
+		if (!link) { return false; }
 		const skillName = options?.skillName ?? getDefaultNewSkillName();
 		const content = options?.content ?? getDefaultNewSkillContent(skillName);
 		try {
-			const result = await this.connection.saveSkillContent({ skillName, content });
+			const result = await this.connection.saveSkillContent({ skillName, content, create: true });
+			if (!this.sameWriteLink(link)) { return false; }
 			if (!result.ok) {
 				this.paintSkillCreateFailed();
 				this.closeWriteChromeWhenApiDisappears();
 				return false;
 			}
-			await this.restoreWriteSuccessAfterRefresh(() => this.paintSkillCreateSucceeded());
-			if (!this.canWrite()) {
-				return false;
-			}
+			await this.restoreWriteSuccessAfterRefresh(() => { if (this.sameWriteLink(link)) { this.paintSkillCreateSucceeded(); } });
+			if (!this.sameWriteLink(link)) { return false; }
 			this.selectSkillForTest(skillName);
 			return true;
 		} catch {
+			if (!this.sameWriteLink(link)) { return false; }
 			this.paintSkillCreateFailed();
 			return false;
 		}
 	}
 
 	async saveSelectedSkillBody(content?: string): Promise<boolean> {
-		if (!this.canWrite() || !this.selectedSkill || !this.connection.saveSkillContent) {
-			return false;
-		}
+		const link = this.captureWriteLink();
+		if (!link || this.bodySaveInFlight || !this.selectedSkill || !this.connection.saveSkillContent) { return false; }
 		const skillName = this.selectedSkill.name;
-		// Refuse until SkillInfo for this skill has landed. An in-flight switch must not save the previous body.
-		if (this.loadedBodySkillName !== skillName) {
+		const source = this.loadedBodySource;
+		const expectedContent = this.loadedBodyText;
+		if (!this.loadedBodyWriteLink || !this.sameWriteLink(this.loadedBodyWriteLink)) {
+			this.showBodyStatus(localize('ua.engineSkillBodyOldConnection', "This draft belongs to a previous connection. Reconnect to the original engine and use Refresh skills to keep editing it."), 'error');
 			return false;
 		}
-		if (!canEditSkillBody(this.loadedBodySource ?? this.selectedSkill.source)) {
-			return false;
-		}
+		if (this.bodyBaselineNeedsReload) { return false; }
+		if (this.loadedBodySkillName !== skillName || expectedContent === undefined || (source !== 'user' && source !== 'project')) { return false; }
 		const generation = this.bodyLoadGeneration;
+		const revision = this.bodyEditRevision;
 		const payload = content ?? this.bodyInput.value;
+		const stillCurrent = () => this.sameWriteLink(link) && generation === this.bodyLoadGeneration && this.selectedSkill?.name === skillName;
+		this.bodySaveInFlight = true;
+		this.bodyBaselineNeedsReload = true;
 		try {
-			const result = await this.connection.saveSkillContent({
-				skillName,
-				content: payload,
-			});
+			const result = await this.connection.saveSkillContent({ skillName, content: payload, create: false, expectedSource: source, expectedContent });
+			if (!stillCurrent()) { return false; }
 			if (!result.ok) {
 				this.paintSkillSaveFailed();
 				this.closeWriteChromeWhenApiDisappears();
 				return false;
 			}
-			if (this._store.isDisposed || generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skillName) {
-				return false;
-			}
+			// Read the canonical raw content for the next CAS; never replace newer typing.
+			const info = await this.connection.getSkillInfo({ skillName });
+			if (!stillCurrent()) { return false; }
+			if (info.name !== skillName || info.source !== source) { throw new Error('Skill source changed'); }
+			this.loadedBodyText = info.content;
+			this.bodyBaselineNeedsReload = false;
+			this.loadedBodySource = info.source;
+			if (revision === this.bodyEditRevision) { this.bodyInput.value = info.content; }
+			this.bodyDirty = isSkillBodyDirty(this.bodyInput.value, info.content);
 			this.hideBodyStatus();
-			this.loadedBodyText = payload;
-			this.loadedBodySkillName = skillName;
-			this.bodyDirty = false;
-			await this.restoreWriteSuccessAfterRefresh(() => this.paintSkillSaveSucceeded());
+			this.paintSkillSaveSucceeded();
 			return true;
 		} catch {
-			this.paintSkillSaveFailed();
+			if (stillCurrent()) {
+				this.paintSkillSaveFailed();
+				this.showBodyStatus(localize('ua.engineSkillBodyReloadRequired', "Save could not be verified. Refresh to reload the saved version; your draft will be kept."), 'error');
+			}
 			return false;
-		}
+		} finally { this.bodySaveInFlight = false; }
 	}
 
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
@@ -548,7 +579,7 @@ export class EngineSkillsSection extends Disposable {
 		return false;
 	}
 
-	private async refresh(): Promise<boolean> {
+	private async refresh(recoverDirtyBody = false): Promise<boolean> {
 		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
@@ -608,8 +639,10 @@ export class EngineSkillsSection extends Disposable {
 			this.bodyEditor.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.syncBodyFieldVisibility();
 			this.renderStatus();
-			if (this.selectedSkill && !this.bodyDirty) {
-				void this.loadSkillBody(this.selectedSkill).catch(onUnexpectedError).catch(onUnexpectedError);
+			const sameEngine = this.loadedBodyWriteLink?.engineIdentityId === readPublishedEngineIdentityId(this.connection.getConnectionSnapshot());
+			const recoverBaseline = recoverDirtyBody && sameEngine && !!this.loadedBodyWriteLink && (this.bodyBaselineNeedsReload || !this.sameWriteLink(this.loadedBodyWriteLink));
+			if (this.selectedSkill && !this.bodySaveInFlight && (!this.bodyDirty || recoverBaseline)) {
+				void this.loadSkillBody(this.selectedSkill, recoverBaseline).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			return true;
 		} catch (error) {
@@ -717,6 +750,7 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private clearBodyEditor(): void {
+		this.bodyBaselineNeedsReload = false;
 		this.bodyInput.value = '';
 		this.bodyInput.inputElement.readOnly = true;
 		this.bodyToolbar.style.display = 'none';
@@ -892,7 +926,7 @@ export class EngineSkillsSection extends Disposable {
 		}
 	}
 
-	private async loadSkillBody(skill: UniverseAgentSkillSummary): Promise<void> {
+	private async loadSkillBody(skill: UniverseAgentSkillSummary, preserveDraft = false): Promise<void> {
 		// D376 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
 		if (isConversationPairingHold(this.connection)) {
 			const hasLeftoverBody = this.hasLeftoverSkillBody();
@@ -921,11 +955,13 @@ export class EngineSkillsSection extends Disposable {
 			}
 			return;
 		}
-		if (this.bodyDirty && this.selectedSkill?.name === skill.name) {
+		if (this.bodyDirty && !preserveDraft && this.selectedSkill?.name === skill.name) {
 			this.updateBodyEditorChrome(this.loadedBodySource ?? skill.source);
 			return;
 		}
 		const generation = ++this.bodyLoadGeneration;
+		const readLink = this.connection.getConnectionSnapshot();
+		const revision = this.bodyEditRevision;
 		// Same-skill reload keeps the body already shown (D275). Another skill's
 		// text is not leftover: Save would write it under the new name, and the
 		// field would disagree with the loading status.
@@ -942,7 +978,7 @@ export class EngineSkillsSection extends Disposable {
 		this.showBodyStatus(getCatalogListLoadingCopy());
 		try {
 			const info = await this.connection.getSkillInfo({ skillName: skill.name });
-			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name) {
+			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name || readPublishedEngineIdentityId(readLink) !== readPublishedEngineIdentityId(this.connection.getConnectionSnapshot()) || readPublishedLinkId(readLink) !== readPublishedLinkId(this.connection.getConnectionSnapshot())) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection)
@@ -953,15 +989,18 @@ export class EngineSkillsSection extends Disposable {
 				}
 				return;
 			}
+			if (info.name !== skill.name || (preserveDraft && info.source !== this.loadedBodySource)) { throw new Error('Skill source changed'); }
+			this.loadedBodyWriteLink = this.captureWriteLink();
 			this.loadedBodySource = info.source;
 			this.loadedBodyText = info.content;
 			this.loadedBodySkillName = skill.name;
-			this.bodyInput.value = info.content;
-			this.bodyDirty = false;
+			if (!preserveDraft && revision === this.bodyEditRevision) { this.bodyInput.value = info.content; }
+			this.bodyBaselineNeedsReload = false;
+			this.bodyDirty = isSkillBodyDirty(this.bodyInput.value, info.content);
 			this.hideBodyStatus();
 			this.updateBodyEditorChrome(info.source);
 		} catch {
-			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name) {
+			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name || readPublishedEngineIdentityId(readLink) !== readPublishedEngineIdentityId(this.connection.getConnectionSnapshot()) || readPublishedLinkId(readLink) !== readPublishedLinkId(this.connection.getConnectionSnapshot())) {
 				return;
 			}
 			if (!keepVisibleBody) {

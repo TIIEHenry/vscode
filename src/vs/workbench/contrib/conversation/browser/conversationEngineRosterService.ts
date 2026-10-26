@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ConversationEngineQueueReader } from './conversationEngineQueueReader.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { toErrorMessage } from '../../../../base/common/errorMessage.js';
 import type { ConversationResponseKind } from '../../../../platform/universeAgent/common/conversationResponseState.js';
@@ -13,7 +14,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { readPublishedEngineIdentityId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { isConversationEngineLive, isConversationPairingHold, shouldKeepLiveTreeLeaseWhilePairing, shouldRebindLiveTreeLeaseWhilePairing } from './conversationSessionStatus.js';
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -39,7 +40,6 @@ import {
 	type ILiveAgentTreeChangeEvent,
 } from './conversationStubService.js';
 import {
-	createEmptyMessageQueueState,
 	type ConversationMessageQueueState,
 	type ConversationQueueItemHoldReason,
 } from './conversationMessageQueueModel.js';
@@ -71,6 +71,8 @@ export function isEngineRosterPlaceholderSessionId(sessionId: string | undefined
  */
 export class ConversationEngineRosterService extends ConversationStubService implements IConversationRosterService {
 
+	private readonly queueReader: ConversationEngineQueueReader;
+	private queueBoundLease: IConversationSessionViewLease | undefined;
 	private readonly engineFrameSource: ConversationEngineFrameSource;
 	private readonly liveTreeObservationStore = this._register(new DisposableStore());
 	private liveTreeObservationLease: IConversationSessionViewLease | undefined;
@@ -124,6 +126,10 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	) {
 		super(storageService, configurationService);
 		this.engineFrameSource = this._register(new ConversationEngineFrameSource(sessionView));
+		this.queueReader = this._register(new ConversationEngineQueueReader(
+			engineSessionId => this.uaConnection.getQueue!({ sessionId: engineSessionId }),
+			sessionId => this._onDidChangeSession.fire(sessionId),
+		));
 		const snapshot = uaConnection.getConnectionSnapshot();
 		const published = readPublishedEngineIdentityId(snapshot);
 		if (published !== undefined) {
@@ -651,7 +657,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	override getMessageQueueState(sessionId: string): ConversationMessageQueueState {
 		if (this.isEngineConnected() || this.wasEverConnected) {
-			return createEmptyMessageQueueState();
+			return this.queueReader.getState(sessionId);
 		}
 		return super.getMessageQueueState(sessionId);
 	}
@@ -692,7 +698,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return;
 		}
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueRef(sessionId, 'pauseQueue', true, () => this.uaConnection.pauseQueue({ sessionId }));
+			this.forwardEngineQueueRef(sessionId, 'pauseQueue', true, engineSessionId => this.uaConnection.pauseQueue({ sessionId: engineSessionId }));
 			return;
 		}
 		if (!this.wasEverConnected) {
@@ -708,7 +714,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return;
 		}
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueRef(sessionId, 'resumeQueue', true, () => this.uaConnection.resumeQueue({ sessionId }));
+			this.forwardEngineQueueRef(sessionId, 'resumeQueue', true, engineSessionId => this.uaConnection.resumeQueue({ sessionId: engineSessionId }));
 			return;
 		}
 		if (!this.wasEverConnected) {
@@ -724,7 +730,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return;
 		}
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueRef(sessionId, 'clearQueue', true, () => this.uaConnection.clearQueue({ sessionId }));
+			this.forwardEngineQueueRef(sessionId, 'clearQueue', true, engineSessionId => this.uaConnection.clearQueue({ sessionId: engineSessionId }));
 			return;
 		}
 		if (!this.wasEverConnected) {
@@ -740,8 +746,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return;
 		}
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueItem(sessionId, itemId, 'holdQueueItem', true, id => this.uaConnection.holdQueueItem({
-				sessionId,
+			this.forwardEngineQueueItem(sessionId, itemId, 'holdQueueItem', true, (id, engineSessionId) => this.uaConnection.holdQueueItem({
+				sessionId: engineSessionId,
 				itemId: id,
 				reason: hold,
 			}));
@@ -760,8 +766,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return;
 		}
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueItem(sessionId, itemId, 'releaseQueueItemHold', true, id => this.uaConnection.releaseQueueItemHold({
-				sessionId,
+			this.forwardEngineQueueItem(sessionId, itemId, 'releaseQueueItemHold', true, (id, engineSessionId) => this.uaConnection.releaseQueueItemHold({
+				sessionId: engineSessionId,
 				itemId: id,
 			}));
 			return;
@@ -1440,8 +1446,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 
 	/**
 	 * Writes that resolve `{ ok }` without throwing. `ok:false` is still a
-	 * refusal — same as {@link setEngineSessionGoal}. Queue `itemId` is not
-	 * applied locally: there is no GetQueue / ListQueue.
+	 * refusal — same as {@link setEngineSessionGoal}. Queue snapshots are refreshed
+	 * after the authoritative mutation response; item ids are never invented locally.
 	 * `onAccepted` runs only after the engine accepts, in this same turn, so a
 	 * refusal still rejects before any local cleanup.
 	 */
@@ -1458,19 +1464,33 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		};
 	}
 
-	private forwardEngineQueueRef(sessionId: string, action: string, callRemote: boolean, send: () => Promise<unknown>): boolean {
+	private dispatchQueueMutation(sessionId: string, action: string, send: () => Promise<unknown>): void {
+		const epoch = this.queueReader.captureEpoch();
+		const pending = this.wrapEngineQueueMutation(action, send, undefined, true)().then(() => true, error => {
+			if (this.queueReader.isCurrent(epoch)) { this._onDidFailEngineAction.fire({ sessionId, action, error }); }
+			return false;
+		}).then(ok => {
+			if (this.queueReader.isCurrent(epoch)) { this.queueReader.refresh(sessionId); }
+			return ok;
+		});
+		this.lastDispatchedEngineAction = pending;
+	}
+
+	private forwardEngineQueueRef(sessionId: string, action: string, callRemote: boolean, send: (engineSessionId: string) => Promise<unknown>): boolean {
 		if (!this.engineSessions.some(session => session.id === sessionId)) {
 			return false;
 		}
 		if (callRemote) {
-			this.dispatchEngineAction(sessionId, action, this.wrapEngineQueueMutation(action, send));
+			const engineSessionId = this.queueReader.readyEngineSessionId(sessionId);
+			if (!engineSessionId) { return false; }
+			this.dispatchQueueMutation(sessionId, action, () => send(engineSessionId));
 			this._onDidChangeSession.fire(sessionId);
 			return true;
 		}
 		return false;
 	}
 
-	private forwardEngineQueueItem(sessionId: string, itemId: string, action: string, callRemote: boolean, send: (itemId: string) => Promise<unknown>): boolean {
+	private forwardEngineQueueItem(sessionId: string, itemId: string, action: string, callRemote: boolean, send: (itemId: string, engineSessionId: string) => Promise<unknown>): boolean {
 		const trimmedId = itemId.trim();
 		if (!trimmedId) {
 			return false;
@@ -1479,7 +1499,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return false;
 		}
 		if (callRemote) {
-			this.dispatchEngineAction(sessionId, action, this.wrapEngineQueueMutation(action, () => send(trimmedId)));
+			const engineSessionId = this.queueReader.readyEngineSessionId(sessionId);
+			if (!engineSessionId) { return false; }
+			this.dispatchQueueMutation(sessionId, action, () => send(trimmedId, engineSessionId));
 			this._onDidChangeSession.fire(sessionId);
 			return true;
 		}
@@ -1497,8 +1519,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return false;
 		}
 		const opId = options?.opId?.trim();
-		return this.forwardEngineQueueRef(sessionId, 'enqueueQueueItem', callRemote, () => this.uaConnection.enqueueQueueItem({
-			sessionId,
+		return this.forwardEngineQueueRef(sessionId, 'enqueueQueueItem', callRemote, engineSessionId => this.uaConnection.enqueueQueueItem({
+			sessionId: engineSessionId,
 			text: trimmed,
 			...(options?.priority ? { priority: options.priority } : {}),
 			...(opId ? { opId } : {}),
@@ -1510,54 +1532,21 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (!trimmed) {
 			return false;
 		}
-		return this.forwardEngineQueueItem(sessionId, itemId, 'editQueueItem', callRemote, id => this.uaConnection.editQueueItem({
-			sessionId,
+		return this.forwardEngineQueueItem(sessionId, itemId, 'editQueueItem', callRemote, (id, engineSessionId) => this.uaConnection.editQueueItem({
+			sessionId: engineSessionId,
 			itemId: id,
 			text: trimmed,
 		}));
 	}
 
-	private retryEngineQueueItem(
-		sessionId: string,
-		itemId: string,
-		options: { upload?: boolean } | undefined,
-		callRemote: boolean,
-	): boolean {
-		const trimmedId = itemId.trim();
-		if (!trimmedId) {
-			return false;
-		}
-		if (!this.engineSessions.some(session => session.id === sessionId)) {
-			return false;
-		}
-		if (callRemote) {
-			if (options?.upload === true) {
-				if (!this.uaConnection.retryQueueItemUpload) {
-					return false;
-				}
-				this.dispatchEngineAction(sessionId, 'retryQueueItemUpload', this.wrapEngineQueueMutation(
-					'retryQueueItemUpload',
-					() => this.uaConnection.retryQueueItemUpload!({
-						sessionId,
-						itemId: trimmedId,
-					}),
-				));
-			} else {
-				if (!this.uaConnection.retryQueueItem) {
-					return false;
-				}
-				this.dispatchEngineAction(sessionId, 'retryQueueItem', this.wrapEngineQueueMutation(
-					'retryQueueItem',
-					() => this.uaConnection.retryQueueItem!({
-						sessionId,
-						itemId: trimmedId,
-					}),
-				));
-			}
-			this._onDidChangeSession.fire(sessionId);
-			return true;
-		}
-		return false;
+	private retryEngineQueueItem(sessionId: string, itemId: string, options: { upload?: boolean } | undefined, callRemote: boolean): boolean {
+		const send = options?.upload ? this.uaConnection.retryQueueItemUpload : this.uaConnection.retryQueueItem;
+		if (!send) { return false; }
+		return this.forwardEngineQueueItem(sessionId, itemId, options?.upload ? 'retryQueueItemUpload' : 'retryQueueItem', callRemote,
+			(id, engineSessionId) => {
+				const request = { sessionId: engineSessionId, itemId: id };
+				return options?.upload ? this.uaConnection.retryQueueItemUpload!(request) : this.uaConnection.retryQueueItem!(request);
+			});
 	}
 
 	private editEngineMessage(sessionId: string, turnId: string, text: string, callRemote: boolean, agentId?: string): boolean {
@@ -1778,12 +1767,27 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			this.engineFrameSource.resetResponseScopes();
 		}
 		this.bindLiveTreeObservationLease();
+		this.syncQueueReader();
+	}
+
+	private syncQueueReader(): void {
+		const snapshot = this.uaConnection.getConnectionSnapshot();
+		const lease = this.queueBoundLease;
+		this.queueReader.update({
+			engineIdentityId: readPublishedEngineIdentityId(snapshot), linkId: readPublishedLinkId(snapshot),
+			leaseGeneration: this.listedBindMonitorGeneration, localSessionId: this.getActiveSessionId(),
+			engineSessionId: this.isEngineSessionReady() && lease?.sessionId === this.getActiveSessionId() ? this.engineFrameSource.boundEngineSessionId(lease) : undefined,
+			live: this.isEngineLiveChrome(),
+			support: this.uaConnection.getQueue ? snapshot.conversationEntryCapability?.getQueue ?? 'UNKNOWN' : 'UNSUPPORTED',
+		});
 	}
 
 	private bindLiveTreeObservationLease(): void {
 		if (this._store.isDisposed || this.suppressBindLiveTreeObservationLease) {
 			return;
 		}
+		this.queueBoundLease = undefined;
+		this.syncQueueReader();
 		const sessionId = this.pendingEngineBindSessionId || this.getActiveSessionId();
 		if (!this.isEngineConnected()) {
 			const leaseSessionId = this.liveTreeObservationLease?.sessionId;
@@ -1851,6 +1855,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}
 		if (ok) {
 			this.engineBoundSessionIds.add(sessionId);
+			this.queueBoundLease = lease;
+			this.syncQueueReader();
 			return;
 		}
 		if (this.engineBoundSessionIds.size > 0) {
@@ -1887,6 +1893,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			} finally {
 				this.suppressBindLiveTreeObservationLease = false;
 			}
+			this.queueBoundLease = lease;
+			this.syncQueueReader();
 			return;
 		}
 		if (this.engineBoundSessionIds.size === 0) {

@@ -1,0 +1,19 @@
+{
+  "phase": "fixed-d91-external-baseline-candidate-before-peer",
+  "checkedAtUtc": "2026-10-26T17:43:36.427893+00:00",
+  "mergeSourceTree": "985c6809acdac486ab2a24e4eeca01c5a832b2f1",
+  "mergeSrcTree": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+  "historicalArtifactCount": 107,
+  "all107HistoricalArtifactHashesPreserved": true,
+  "nativeProducerHead": "08b1272fc3cb7ad2fdc256be60262818b92f4a20",
+  "nativeProducerSourceTree": "f19df7bd512b99d0485355c84708498781e37e56",
+  "all90ThirdCompileNativeOutputHashesUnchanged": true,
+  "compile4Started": false,
+  "outFrozen": false,
+  "afterNoticeIssued": false,
+  "fixedExternalMain": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "rootWipContentNotRead": true,
+  "rootOutNotWritten": true,
+  "laterMainNotFollowed": true,
+  "actualCandidatePeerRequiredBeforeCompile4": true
+}

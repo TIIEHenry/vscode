@@ -176,7 +176,7 @@ suite('grpc SessionService ResolveTurn/ResolveAnchor protobuf unary wire', () =>
 		});
 	});
 
-	test('resolve wire is ResolveTurn/ResolveAnchor only; client methods use bytes; SaveSkillContent stays JSON; Connect is bytes', () => {
+	test('resolve wire is ResolveTurn/ResolveAnchor only; client methods use bytes; Connect is bytes', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcSessionResolveUnaryWire.ts'), 'utf8');
 		assert.ok(!source.includes('JSON.stringify'));
 		assert.ok(/\bencodeResolveTurnRequest\b/.test(source));
@@ -206,9 +206,6 @@ suite('grpc SessionService ResolveTurn/ResolveAnchor protobuf unary wire', () =>
 		const connect = extractAsyncMethod(client, 'connect');
 		assert.ok(connect.includes('makeUnaryBytesClient'));
 		assert.ok(!connect.includes('makeUnaryClient<'));
-		const saveSkill = extractAsyncMethod(client, 'saveSkillContent');
-		assert.ok(saveSkill.includes('makeUnaryClient<'));
-		assert.ok(!saveSkill.includes('makeUnaryBytesClient'));
 
 		const pty = extractMethod(client, 'openPtyStream');
 		assert.ok(pty.includes('makeResidentBidiBytesHandleClient'));

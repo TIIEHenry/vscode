@@ -171,7 +171,7 @@ suite('grpc MemoryService Rebuild protobuf server-stream wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openRebuildMemoryStream uses makeServerStreamBytesClient; Upload bytes; SaveSkillContent stays JSON', () => {
+	test('openRebuildMemoryStream uses makeServerStreamBytesClient; Upload bytes', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const rebuild = extractMethod(source, 'openRebuildMemoryStream');
 		assert.ok(rebuild.includes('makeServerStreamBytesClient'), 'openRebuildMemoryStream must use makeServerStreamBytesClient');
@@ -182,8 +182,6 @@ suite('grpc MemoryService Rebuild protobuf server-stream wire', () => {
 		assert.ok(!rebuild.includes('JSON.stringify'), 'openRebuildMemoryStream itself must not JSON.stringify');
 		assert.ok(source.includes('grpcMemoryRebuildStreamWire'));
 
-		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(extractMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
 		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryClient<'));
 		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));

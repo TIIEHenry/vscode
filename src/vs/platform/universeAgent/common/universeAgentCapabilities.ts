@@ -96,6 +96,7 @@ export const UNIVERSE_AGENT_CONVERSATION_ENTRY_KEYS = [
 	'setPermissionMode',
 	'setClientToolProfile',
 	'registerSessionEngineTrigger',
+	'getQueue',
 	'switchModel',
 	'switchAgent',
 ] as const satisfies readonly (keyof UniverseAgentConversationEntryCapability)[];
@@ -140,6 +141,7 @@ export function readConversationEntryCapability(snapshot: { readonly conversatio
 		setPermissionMode: normalizeCapabilitySupport(raw?.setPermissionMode),
 		setClientToolProfile: normalizeCapabilitySupport(raw?.setClientToolProfile),
 		registerSessionEngineTrigger: normalizeCapabilitySupport(raw?.registerSessionEngineTrigger),
+		getQueue: normalizeCapabilitySupport(raw?.getQueue),
 		switchModel: normalizeCapabilitySupport(raw?.switchModel),
 		switchAgent: normalizeCapabilitySupport(raw?.switchAgent),
 	};

@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { DeferredPromise } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -45,6 +47,7 @@ suite('EngineSkillsSection (E1)', () => {
 		saveSkillContent?: (request: UniverseAgentSaveSkillContentRequest) => Promise<{ ok: boolean }>;
 		setSkillEnabled?: (request: { skillName: string; enabled: boolean }) => Promise<{ ok: boolean }>;
 	} = {}): IUniverseAgentConnection & {
+		setPublishedLink(identity: string, link: number): void;
 		setConnected(value: boolean): void;
 		setPairingPending(value: boolean): void;
 		setPairingPendingQuiet(value: boolean): void;
@@ -64,13 +67,15 @@ suite('EngineSkillsSection (E1)', () => {
 		let looksLive = options.looksLive ?? false;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
+		let engineIdentityId = 'engine-test';
+		let linkId = 1;
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: connected ? 'ok' : 'idle',
 			authenticated: connected,
 			pairingPending,
 			channelAlive: connected,
 			sharedFsRootSent: false,
-			capabilities,
+			capabilities, engineIdentityId, linkId,
 		});
 
 		return {
@@ -142,6 +147,7 @@ suite('EngineSkillsSection (E1)', () => {
 			listTools: async () => ({ tools: [] }),
 			listModels: async () => ({ models: [] }),
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
+			setPublishedLink(identity: string, link: number) { engineIdentityId = identity; linkId = link; onDidChangeConnection.fire(snapshot()); },
 			setConnected(value: boolean) {
 				connected = value;
 				onDidChangeConnection.fire(snapshot());
@@ -163,11 +169,12 @@ suite('EngineSkillsSection (E1)', () => {
 		};
 	}
 
-	function mountSection(connection: IUniverseAgentConnection): EngineSkillsSection {
+	function mountSection(connection: IUniverseAgentConnection, dialog?: IDialogService): EngineSkillsSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		if (dialog) { instantiationService.stub(IDialogService, dialog); }
 		const section = store.add(instantiationService.createInstance(EngineSkillsSection, parent));
 		section.layout(640, 400);
 		return section;
@@ -281,9 +288,7 @@ suite('EngineSkillsSection (E1)', () => {
 
 		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')] as HTMLElement[];
 		const heights = rows.map(row => row.style.height);
-		assert.ok(heights.includes('44px'));
-		assert.ok(heights.includes('28px'));
-		assert.ok(!heights.includes('48px'));
+		assert.ok(heights.every(height => height === '24px'));
 		for (const row of rows) {
 			assert.notStrictEqual(row.style.lineHeight, '48px');
 		}
@@ -324,9 +329,10 @@ suite('EngineSkillsSection (E1)', () => {
 		section.setSectionActive(true);
 		await flushMicrotasks();
 
+		section.layout(640, 400);
 		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')];
-		const enabledToggle = rows.find(row => row.textContent?.includes('enabled-skill'))?.querySelector('.monaco-custom-toggle');
-		const disabledToggle = rows.find(row => row.textContent?.includes('disabled-skill'))?.querySelector('.monaco-custom-toggle');
+		const enabledToggle = rows.find(row => row.querySelector('.engine-skill-name')?.textContent === 'enabled-skill')?.querySelector('[role=checkbox]');
+		const disabledToggle = rows.find(row => row.querySelector('.engine-skill-name')?.textContent === 'disabled-skill')?.querySelector('[role=checkbox]');
 		assert.ok(enabledToggle);
 		assert.ok(disabledToggle);
 		assert.strictEqual(enabledToggle?.getAttribute('aria-label'), 'Disable enabled-skill');
@@ -1053,13 +1059,13 @@ suite('EngineSkillsSection (E1)', () => {
 		const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
 		assert.ok(bodyStatus);
 		assert.notStrictEqual(bodyStatus.style.display, 'none');
-		assert.ok(bodyStatus.textContent?.includes(saveFailed));
+		assert.ok(bodyStatus.textContent?.includes('Refresh to reload'));
 		assert.ok(writeStatus);
 		assert.notStrictEqual(writeStatus.style.display, 'none');
 		assert.ok(writeStatus.textContent?.includes(saveFailed));
 	});
 
-	test('saveSelectedSkillBody success does not keep save-success when subsequent listSkills fails', async () => {
+	test('saveSelectedSkillBody reads canonical body without refreshing the list', async () => {
 		let listSkillsCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1096,21 +1102,21 @@ suite('EngineSkillsSection (E1)', () => {
 			const ok = await section.saveSelectedSkillBody('# Updated body');
 			await flushMicrotasks();
 			assert.strictEqual(ok, true);
-			assert.ok(listSkillsCalls >= 2);
+			assert.strictEqual(listSkillsCalls, 1);
 
 			const saveSuccess = localize('ua.engineSkillBodySaveSuccess', "Saved.");
 			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
 			assert.ok(writeStatus);
-			assert.ok(!(writeStatus.textContent ?? '').includes(saveSuccess));
+			assert.ok(writeStatus.textContent?.includes(saveSuccess));
 
-			assertSkillsLeftoverFailedHonesty(section, 'listSkills exploded', 1);
+			assert.strictEqual(section.getMode(), 'ready');
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
 
-	test('saveSelectedSkillBody success still shows save-success when subsequent getSkillInfo fails', async () => {
+	test('saveSelectedSkillBody reports failure when canonical getSkillInfo fails', async () => {
 		let getSkillInfoCalls = 0;
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1147,14 +1153,14 @@ suite('EngineSkillsSection (E1)', () => {
 
 			const ok = await section.saveSelectedSkillBody('# Updated body');
 			await flushMicrotasks();
-			assert.strictEqual(ok, true);
+			assert.strictEqual(ok, false);
 			assert.ok(getSkillInfoCalls >= 2);
 
 			const saveSuccess = localize('ua.engineSkillBodySaveSuccess', "Saved.");
 			const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
 			assert.ok(writeStatus);
 			assert.notStrictEqual(writeStatus.style.display, 'none');
-			assert.ok(writeStatus.textContent?.includes(saveSuccess));
+			assert.ok(!writeStatus.textContent?.includes(saveSuccess));
 			assert.strictEqual(section.getMode(), 'ready');
 			assert.strictEqual(section.getListEntryCount(), 1);
 			assert.deepStrictEqual(unhandledRejections, []);
@@ -1204,6 +1210,112 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.ok(saveCalled);
 		assert.strictEqual(savedContent, '# Updated body');
 		assert.strictEqual(ok, true);
+	});
+
+	test('save uses raw CAS and preserves typing during canonical readback', async () => {
+		const gate = new DeferredPromise<{ ok: boolean }>();
+		const requests: UniverseAgentSaveSkillContentRequest[] = [];
+		let body = '';
+		const connection = createConnectionStub({
+			connected: true, skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({ skills: [{ name: 'user-skill', source: 'user', enabled: true }] }),
+			getSkillInfo: async () => ({ name: 'user-skill', content: body, source: 'user', enabled: true }),
+			saveSkillContent: async request => { requests.push(request); return requests.length === 1 ? gate.p : { ok: false }; },
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks(); section.selectSkillForTest('user-skill'); await flushMicrotasks();
+		const textarea = section.getDomNode().querySelector('textarea') as HTMLTextAreaElement;
+		textarea.value = '# First'; textarea.dispatchEvent(new mainWindow.Event('input'));
+		const saving = section.saveSelectedSkillBody();
+		textarea.value = '# Newer draft'; textarea.dispatchEvent(new mainWindow.Event('input'));
+		body = '---\nname: user-skill\n---\n# First';
+		await gate.complete({ ok: true });
+		assert.strictEqual(await saving, true);
+		assert.strictEqual(textarea.value, '# Newer draft');
+		assert.deepStrictEqual(requests[0], { skillName: 'user-skill', content: '# First', create: false, expectedSource: 'user', expectedContent: '' });
+		assert.strictEqual(await section.saveSelectedSkillBody(), false);
+		assert.deepStrictEqual(requests[1], { skillName: 'user-skill', content: '# Newer draft', create: false, expectedSource: 'user', expectedContent: body });
+		assert.strictEqual(textarea.value, '# Newer draft');
+	});
+
+	test('late save from old link cannot replace a draft or authorize a new-engine save', async () => {
+		const gate = new DeferredPromise<{ ok: boolean }>();
+		let saves = 0;
+		const connection = createConnectionStub({
+			connected: true, skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({ skills: [{ name: 'user-skill', source: 'user', enabled: true }] }),
+			getSkillInfo: async () => ({ name: 'user-skill', content: '# Original', source: 'user', enabled: true }),
+			saveSkillContent: async () => { saves++; return gate.p; },
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks(); section.selectSkillForTest('user-skill'); await flushMicrotasks();
+		const textarea = section.getDomNode().querySelector('textarea') as HTMLTextAreaElement;
+		textarea.value = '# Draft'; textarea.dispatchEvent(new mainWindow.Event('input'));
+		const saving = section.saveSelectedSkillBody();
+		connection.setPublishedLink('other-engine', 2); await flushMicrotasks();
+		await gate.complete({ ok: true });
+		assert.strictEqual(await saving, false);
+		assert.strictEqual(textarea.value, '# Draft');
+		assert.strictEqual(await section.saveSelectedSkillBody(), false);
+		assert.strictEqual(saves, 1);
+	});
+
+	test('explicit refresh recovers CAS baseline after readback failure and keeps dirty draft', async () => {
+		let body = '# Original'; let failReadback = false;
+		const requests: UniverseAgentSaveSkillContentRequest[] = [];
+		const connection = createConnectionStub({
+			connected: true, skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({ skills: [{ name: 'user-skill', source: 'user', enabled: true }] }),
+			getSkillInfo: async () => { if (failReadback) { throw new Error('lost readback'); } return { name: 'user-skill', content: body, source: 'user', enabled: true }; },
+			saveSkillContent: async request => { requests.push(request); body = request.content; return { ok: true }; },
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks(); section.selectSkillForTest('user-skill'); await flushMicrotasks();
+		const textarea = section.getDomNode().querySelector('textarea') as HTMLTextAreaElement;
+		textarea.value = '# Draft'; textarea.dispatchEvent(new mainWindow.Event('input'));
+		failReadback = true;
+		assert.strictEqual(await section.saveSelectedSkillBody(), false);
+		textarea.value = '# Newer draft'; textarea.dispatchEvent(new mainWindow.Event('input'));
+		assert.strictEqual(await section.saveSelectedSkillBody(), false);
+		assert.strictEqual(requests.length, 1);
+		failReadback = false;
+		(section.getDomNode().querySelector('[aria-label="Refresh skills"]') as HTMLElement).click();
+		await flushMicrotasks();
+		assert.strictEqual(textarea.value, '# Newer draft');
+		assert.strictEqual(await section.saveSelectedSkillBody(), true);
+		assert.deepStrictEqual(requests[1], { skillName: 'user-skill', content: '# Newer draft', create: false, expectedSource: 'user', expectedContent: '# Draft' });
+	});
+
+	test('explicit Refresh recovers a dirty draft on a new link to the same engine', async () => {
+		let request: UniverseAgentSaveSkillContentRequest | undefined;
+		const connection = createConnectionStub({
+			connected: true, skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({ skills: [{ name: 'user-skill', source: 'user', enabled: true }] }),
+			getSkillInfo: async () => ({ name: 'user-skill', content: '# Original', source: 'user', enabled: true }),
+			saveSkillContent: async value => { request = value; return { ok: true }; },
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks(); section.selectSkillForTest('user-skill'); await flushMicrotasks();
+		const textarea = section.getDomNode().querySelector('textarea') as HTMLTextAreaElement;
+		textarea.value = '# Draft'; textarea.dispatchEvent(new mainWindow.Event('input'));
+		connection.setPublishedLink('engine-test', 2); await flushMicrotasks();
+		assert.strictEqual(await section.saveSelectedSkillBody(), false);
+		(section.getDomNode().querySelector('[aria-label="Refresh skills"]') as HTMLElement).click(); await flushMicrotasks();
+		assert.strictEqual(textarea.value, '# Draft');
+		assert.strictEqual(await section.saveSelectedSkillBody(), true);
+		assert.deepStrictEqual(request, { skillName: 'user-skill', content: '# Draft', create: false, expectedSource: 'user', expectedContent: '# Original' });
+	});
+
+	test('New dialog cannot create a skill on an engine switched while the dialog was open', async () => {
+		const gate = new DeferredPromise<Awaited<ReturnType<IDialogService['input']>>>();
+		let saves = 0;
+		const connection = createConnectionStub({ connected: true, skillsSupport: 'SUPPORTED', saveSkillContent: async () => { saves++; return { ok: true }; } });
+		const dialog = new TestDialogService(); dialog.input = () => gate.p;
+		const section = mountSection(connection, dialog); await flushMicrotasks();
+		(section.getDomNode().querySelector('[aria-label="New skill"]') as HTMLElement).click();
+		connection.setPublishedLink('other-engine', 2);
+		await gate.complete({ confirmed: true, values: ['fresh'] }); await flushMicrotasks();
+		assert.strictEqual(saves, 0);
 	});
 
 	test('Skills: dirty body selection to another skill keeps A and does not save B', async () => {

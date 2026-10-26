@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内置预设与 models.dev 云端目录；筛选两边都空时写 No matching providers.，云目录还在读时不写；Models 可增删改与测试，对话框在 level 后有 Description、Cost、Speed；Token Usage 无参读全局用量；Memory 只做 global 的列出、搜索、保存和删除，无 searchMemory 的查询不把旧列表当命中，零条搜索不是空库；Rules 桌面可增删改，网页不实现；Hooks 仍只读；产品验证未做"
 ---
 
@@ -179,3 +179,10 @@ UI 可先交付 unsupported/failed，不等待全部 RPC；没有真实数据与
 ## 相关
 
 - [engine-protocol-surface](../../reference/universe-agent/engine-protocol-surface.md) · [customizations-engine](../../../dev/plans/customizations-engine.md) · [stub-and-fixtures §6](../conversation/stub-and-fixtures.md)（诚实降级）
+
+
+## 2026-10-27 Skills 正文保存
+
+桌面 Skills New/Save 已消费正式 protobuf SaveSkillContent。New发create=true；Save发create=false、loaded source与原文（包括空串presence）；user/project可写，bundled只读。引擎按目录实际路径保存且保留逻辑名称与manifest flags，冲突/来源变化/损坏manifest/路径或链接问题拒写。详见[现行协议增量](../../reference/universe-agent/engine-protocol-surface.md#2026-10-27-队列读回与技能正文正式协议)。
+
+保存期间可继续输入；canonical读回更新CAS基线，只有没有继续编辑才替换显示。失败保持草稿，读回失败不能显示已验证保存成功。工具栏增加幽灵图标 Refresh skills，用于显式重读目录元数据及恢复失败后的基线；同引擎新link可恢复，异引擎旧稿不自动重设基线，提示回原引擎。旧引擎UNIMPLEMENTED继续收起New/Save；本轮未替换50061或签收PRD-025真实产品验收。

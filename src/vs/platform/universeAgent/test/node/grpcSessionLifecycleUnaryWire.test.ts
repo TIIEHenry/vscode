@@ -267,7 +267,6 @@ suite('grpc SessionService Prewarm / Shelve / Unshelve / Purge / Export protobuf
 			assert.ok(!body.includes('JSON.stringify'), `${name} must not JSON.stringify`);
 		}
 		assert.ok(source.includes('grpcSessionLifecycleUnaryWire'));
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});
