@@ -1135,6 +1135,7 @@ suite('Engine providers and models sections', () => {
 		assert.strictEqual(dialog.lastInput?.inputs[6]?.placeholder, 'Speed');
 		assert.strictEqual(dialog.lastInput?.inputs[6]?.value, 'old-speed');
 		const detail = dialog.lastInput?.detail ?? '';
+		assert.ok(typeof detail === 'string');
 		assert.ok(detail.includes('Leave it blank to keep the current level.'));
 		assert.ok(detail.includes('A blank description, cost, or speed keeps the current value.'));
 		assert.ok(detail.includes('On add, a blank description, cost, or speed is saved as empty.'));

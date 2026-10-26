@@ -8,7 +8,6 @@ import { timeout } from '../../../../base/common/async.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentListToolsResult,

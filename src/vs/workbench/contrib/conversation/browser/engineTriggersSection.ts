@@ -15,7 +15,7 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
-import { conversationEntryHookPresent, isAdvertisedEngineRpc, readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentTrigger, UniverseAgentTriggerDeliveryTarget } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';

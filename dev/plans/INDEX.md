@@ -22,6 +22,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [架构审查 2026-10-16：可单独实施的缺陷](architecture-2026-10-16-concrete.md) | `implemented` | 换 profile 复位 agent tree 探测，diff URI 带会话，设置列表跟活动工作根刷新，路径键只统一盘符。扫描测试与 chat 边界按真实路径判定。Q1–Q7 与 B5 不在本稿。§1–§6 已全部落地合入（4fa4f3eab56、99bd6829c11、1a4c4295b45、83ef402a254、68308db93b5、cc6e17a9d8f）。不升 PRD。 |
 | [Composer：不能切换的 Agent 控件改为只读](composer-agent-picker.md) | `implemented` | switchAgent 没有握手方法，选择会立刻滚回。不可用时底栏只显示现有不可用文案。底栏的 agentIndex 不进发送载荷。已于 2e785907611 落地。不升 PRD。 |
 | [对话动作失败、未归因变更与空任务列表](conversation-failure-and-mutation.md) | `implemented` | §1、§2、§4 为明确不做改动/行为验证通过（explicit no-op decisions/verifications）；§3（缺字段的 file_mutation 累加 unattributedDropCount 计数）已于 83ef402a254 落地。不升 PRD。 |
+| [Engine Catalog 测试合同基线](engine-catalog-test-contracts.md) | `accepted` | D1376；旧表单覆盖迁真实共享对话框，补连接与工作根夹具；merge 统一验证。 |
 | [MCP 定义：Add / Update 先有表单](engine-mcp-definition-form.md) | `implemented` | 工具栏 Add 只展开表单，无配置不发 addMcpServer。工具栏 Update 在无改动时不写回。表单只收集已有配置字段里的必填项。已于 05a17c38879 落地。不升 PRD。 |
 | [Triggers 与 Clipboard：空载荷不发，未知能力不拉列表](engine-trigger-clipboard-actions.md) | `implemented` | Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 status 为空时画错误。三节列表在能力未知时不调用。已于 05a17c38879 与 1a4c4295b45 落地。不升 PRD。 |
 | [功能缺口 2026-10-16：已有方案与维持传输层](feature-gaps-2026-10-16-boundary.md) | `implemented` | G1、G2、G5、G10、G19、G20 指向已实施方案。G7、G11 与协议面已写明只进传输的入口不新开产品面。D2 与 D3 文档偏差已于 cc6e17a9d8f 落地合入。不升 PRD。 |

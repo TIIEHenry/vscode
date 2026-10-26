@@ -4,15 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { createCatalogSessionContext, createCatalogWorkRoot } from '../common/engineCatalogTestFixtures.js';
+import { IDialogService, IInput, IInputResult } from '../../../../../platform/dialogs/common/dialogs.js';
+import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
+import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
+import { BrowserDialogHandler } from '../../../../browser/parts/dialogs/dialogHandler.js';
 import { timeout } from '../../../../../base/common/async.js';
-import { Emitter, Event } from '../../../../../base/common/event.js';
+import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentAddMcpServerRequest,
-	UniverseAgentConnectionSnapshot,
 	UniverseAgentListMcpServersRequest,
-	UniverseAgentListMcpServersResult,
 	UniverseAgentMcpServerSummary,
 	UniverseAgentRemoveMcpServerRequest,
 	UniverseAgentToggleMcpServerRequest,
@@ -20,7 +24,7 @@ import type {
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineMcpSection } from '../../browser/engineMcpSection.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
@@ -43,30 +47,20 @@ suite('EngineMcpSection', () => {
 		};
 	}
 
-	function createSessionContextStub(overrides: Partial<IAgentSessionContext> = {}): IAgentSessionContext {
-		return {
-			_serviceBrand: undefined,
-			getActiveSessionId: () => 'sess-1',
-			isEngineSessionReady: () => true,
-			isPairingHold: () => false,
-			getActiveWorkRoot: () => ({ workDir: '' }),
-			onDidChangeActiveSession: Event.None,
-			onDidChangeSession: Event.None,
-			acquireSessionView: () => ({ snapshot: {} as any, attribution: new Map(), dispose: () => { } }),
-			...overrides,
-		} as IAgentSessionContext;
-	}
-
 	function mountMcpSection(
 		connection: IUniverseAgentConnection,
 		sessionContext?: IAgentSessionContext,
+		dialog?: TestDialogService,
 	): EngineMcpSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		store.add({ dispose: () => parent.remove() });
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
-		instantiationService.stub(IAgentSessionContext, sessionContext ?? createSessionContextStub());
+		instantiationService.stub(IAgentSessionContext, sessionContext ?? createCatalogSessionContext());
+		if (dialog) {
+			instantiationService.stub(IDialogService, dialog);
+		}
 		const section = store.add(instantiationService.createInstance(EngineMcpSection, parent));
 		section.setSectionActive(true);
 		section.layout(640, 200);
@@ -79,7 +73,7 @@ suite('EngineMcpSection', () => {
 
 	function findToolbarButton(root: HTMLElement, label: string): HTMLButtonElement | undefined {
 		return [...root.querySelectorAll('.engine-catalog-write-toolbar .monaco-button')]
-			.find(button => button.textContent?.trim() === label) as HTMLButtonElement | undefined;
+			.find(button => button.getAttribute('aria-label') === label) as HTMLButtonElement | undefined;
 	}
 
 	test('addServer with complete config succeeds', async () => {
@@ -173,8 +167,8 @@ suite('EngineMcpSection', () => {
 				return { ok: true };
 			},
 		});
-		const sessionContext = createSessionContextStub({
-			getActiveWorkRoot: () => ({ workDir: '/repo/root' }),
+		const sessionContext = createCatalogSessionContext({
+			getActiveWorkRoot: () => createCatalogWorkRoot('/repo/root'),
 		});
 
 		const section = mountMcpSection(connection, sessionContext);
@@ -201,357 +195,304 @@ suite('EngineMcpSection', () => {
 		assert.strictEqual(removeRequests[0].workDir, '/repo/root');
 	});
 
-	test('Clicking toolbar Add expands empty form without calling addMcpServer', async () => {
-		let addCalls = 0;
-		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
-			listMcpServers: async () => ({ servers: [demoMcpServer()] }),
-			addMcpServer: async () => {
-				addCalls++;
-				return { ok: true };
-			},
-		});
-		const section = mountMcpSection(connection);
-		await flushMicrotasks();
+	class ControlledInputDialog extends TestDialogService {
+		readonly requests: IInput[] = [];
+		private resolveInput: ((result: IInputResult) => void) | undefined;
 
-		assert.strictEqual(section.isFormVisible(), false);
-		const addButton = findToolbarButton(section.getDomNode(), 'Add');
-		assert.ok(addButton);
-		addButton.click();
-		await flushMicrotasks();
+		override input(input: IInput): Promise<IInputResult> {
+			assert.strictEqual(this.resolveInput, undefined, 'one active input dialog');
+			this.requests.push(input);
+			return new Promise(resolve => { this.resolveInput = resolve; });
+		}
 
-		assert.strictEqual(section.isFormVisible(), true);
-		assert.strictEqual(section.getFormMode(), 'add');
-		assert.deepStrictEqual(section.getFormValues(), {
-			name: '',
-			transport: 'stdio',
-			command: '',
-			url: '',
-		});
-		assert.strictEqual(addCalls, 0);
-	});
+		complete(result: IInputResult): void {
+			const resolve = this.resolveInput;
+			assert.ok(resolve, 'toolbar opened the shared input dialog');
+			this.resolveInput = undefined;
+			resolve(result);
+		}
+	}
 
-	test('Form submit with stdio and empty command does not call addMcpServer', async () => {
-		let addCalls = 0;
-		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
-			listMcpServers: async () => ({ servers: [demoMcpServer()] }),
-			addMcpServer: async () => {
-				addCalls++;
-				return { ok: true };
-			},
-		});
-		const section = mountMcpSection(connection);
-		await flushMicrotasks();
-
-		const addButton = findToolbarButton(section.getDomNode(), 'Add');
-		assert.ok(addButton);
-		addButton.click();
-
-		section.setFormValues({ name: 'test-mcp', transport: 'stdio', command: '   ' });
-		const submitted = await section.submitFormForTest();
-		assert.strictEqual(submitted, false);
-		assert.strictEqual(addCalls, 0);
-		assert.strictEqual(section.isFormVisible(), true);
-	});
-
-	test('Form submit with valid name and command calls addMcpServer once and closes form', async () => {
+	function createDialogHarness(server = demoMcpServer()) {
 		const addRequests: UniverseAgentAddMcpServerRequest[] = [];
-		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
-			listMcpServers: async () => ({ servers: [demoMcpServer()] }),
-			addMcpServer: async request => {
-				addRequests.push(request);
-				return { ok: true };
-			},
-		});
-		const section = mountMcpSection(connection);
-		await flushMicrotasks();
-
-		const addButton = findToolbarButton(section.getDomNode(), 'Add');
-		assert.ok(addButton);
-		addButton.click();
-
-		section.setFormValues({ name: 'my-server', transport: 'stdio', command: 'node index.js' });
-		const submitted = await section.submitFormForTest();
-		assert.strictEqual(submitted, true);
-		assert.strictEqual(addRequests.length, 1);
-		assert.strictEqual(addRequests[0].config.name, 'my-server');
-		assert.strictEqual(addRequests[0].config.transport, 'stdio');
-		assert.strictEqual(addRequests[0].config.command, 'node index.js');
-		assert.strictEqual(addRequests[0].scope, 'global');
-		assert.strictEqual(section.isFormVisible(), false);
-	});
-
-	test('Form submit with sse/streamable_http validates url', async () => {
-		const addRequests: UniverseAgentAddMcpServerRequest[] = [];
-		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
-			listMcpServers: async () => ({ servers: [demoMcpServer()] }),
-			addMcpServer: async request => {
-				addRequests.push(request);
-				return { ok: true };
-			},
-		});
-		const section = mountMcpSection(connection);
-		await flushMicrotasks();
-
-		const addButton = findToolbarButton(section.getDomNode(), 'Add');
-		assert.ok(addButton);
-		addButton.click();
-
-		section.setFormValues({ name: 'sse-server', transport: 'sse', url: '   ' });
-		assert.strictEqual(await section.submitFormForTest(), false);
-		assert.strictEqual(addRequests.length, 0);
-
-		section.setFormValues({ url: 'https://example.com/sse' });
-		assert.strictEqual(await section.submitFormForTest(), true);
-		assert.strictEqual(addRequests.length, 1);
-		assert.strictEqual(addRequests[0].config.name, 'sse-server');
-		assert.strictEqual(addRequests[0].config.transport, 'sse');
-		assert.strictEqual(addRequests[0].config.url, 'https://example.com/sse');
-		assert.strictEqual(section.isFormVisible(), false);
-	});
-
-	test('Clicking toolbar Update with no selection does not open form and does not call updateMcpServer', async () => {
-		let updateCalls = 0;
-		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
-			listMcpServers: async () => ({ servers: [demoMcpServer()] }),
-			updateMcpServer: async () => {
-				updateCalls++;
-				return { ok: true };
-			},
-		});
-		const section = mountMcpSection(connection);
-		await flushMicrotasks();
-
-		const updateButton = findToolbarButton(section.getDomNode(), 'Update');
-		assert.ok(updateButton);
-		updateButton.click();
-		await flushMicrotasks();
-
-		assert.strictEqual(section.isFormVisible(), false);
-		assert.strictEqual(updateCalls, 0);
-	});
-
-	test('Clicking toolbar Update with selection pre-fills form fields', async () => {
-		const server = demoMcpServer({
-			id: 'stdio-demo',
-			name: 'Demo MCP',
-			transport: 'stdio',
-			command: 'npx',
-		});
-		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
-			listMcpServers: async () => ({ servers: [server] }),
-		});
-		const section = mountMcpSection(connection);
-		await flushMicrotasks();
-
-		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
-		const updateButton = findToolbarButton(section.getDomNode(), 'Update');
-		assert.ok(updateButton);
-		updateButton.click();
-		await flushMicrotasks();
-
-		assert.strictEqual(section.isFormVisible(), true);
-		assert.strictEqual(section.getFormMode(), 'update');
-		assert.strictEqual(section.getFormValues().name, 'Demo MCP');
-		assert.strictEqual(section.getFormValues().transport, 'stdio');
-		assert.strictEqual(section.getFormValues().command, 'npx');
-	});
-
-	test('Submitting unchanged form values does not call updateMcpServer', async () => {
-		let updateCalls = 0;
-		const server = demoMcpServer({
-			id: 'stdio-demo',
-			name: 'Demo MCP',
-			transport: 'stdio',
-			command: 'npx',
-		});
-		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
-			listMcpServers: async () => ({ servers: [server] }),
-			updateMcpServer: async () => {
-				updateCalls++;
-				return { ok: true };
-			},
-		});
-		const section = mountMcpSection(connection);
-		await flushMicrotasks();
-
-		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
-		const updateButton = findToolbarButton(section.getDomNode(), 'Update');
-		assert.ok(updateButton);
-		updateButton.click();
-
-		const submitted = await section.submitFormForTest();
-		assert.strictEqual(submitted, false);
-		assert.strictEqual(updateCalls, 0);
-		assert.strictEqual(section.isFormVisible(), true);
-	});
-
-	test('Submitting modified name calls updateMcpServer once preserving other fields', async () => {
 		const updateRequests: UniverseAgentUpdateMcpServerRequest[] = [];
-		const server = demoMcpServer({
-			id: 'stdio-demo',
-			name: 'Demo MCP',
-			transport: 'stdio',
-			command: 'npx',
-			args: ['-y', 'mcp-demo'],
-			env: { TOKEN: 'secret' },
-			url: undefined,
-			enabled: true,
-		});
+		let connected = true;
 		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
-			listMcpServers: async () => ({ servers: [server] }),
-			updateMcpServer: async request => {
-				updateRequests.push(request);
-				return { ok: true };
-			},
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
+			getCapabilitySnapshot: () => ({ ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' } }),
+			listMcpServers: async () => ({ servers: [server, demoMcpServer({ id: 'other', name: 'Other' })] }),
+			addMcpServer: async request => { addRequests.push(request); return { ok: true }; },
+			updateMcpServer: async request => { updateRequests.push(request); return { ok: true }; },
 		});
-		const section = mountMcpSection(connection);
+		const dialog = new ControlledInputDialog();
+		const section = mountMcpSection(connection, undefined, dialog);
+		return {
+			section, dialog, addRequests, updateRequests,
+			disconnect: () => { connected = false; },
+			open: (label: 'Add' | 'Update') => {
+				const button = findToolbarButton(section.getDomNode(), label);
+				assert.ok(button);
+				button.click();
+			},
+		};
+	}
+
+	test('Clicking toolbar Add opens empty shared input without calling addMcpServer', async () => {
+		const h = createDialogHarness();
 		await flushMicrotasks();
-
-		assert.strictEqual(section.selectServerByIdForTest('stdio-demo'), true);
-		const updateButton = findToolbarButton(section.getDomNode(), 'Update');
-		assert.ok(updateButton);
-		updateButton.click();
-
-		section.setFormValues({ name: 'Renamed MCP' });
-		const submitted = await section.submitFormForTest();
-		assert.strictEqual(submitted, true);
-		assert.strictEqual(updateRequests.length, 1);
-		assert.strictEqual(updateRequests[0].serverId, 'stdio-demo');
-		assert.strictEqual(updateRequests[0].config.name, 'Renamed MCP');
-		assert.strictEqual(updateRequests[0].config.transport, 'stdio');
-		assert.strictEqual(updateRequests[0].config.command, 'npx');
-		assert.deepStrictEqual(updateRequests[0].config.args, ['-y', 'mcp-demo']);
-		assert.deepStrictEqual(updateRequests[0].config.env, { TOKEN: 'secret' });
-		assert.strictEqual(updateRequests[0].config.enabled, true);
-		assert.strictEqual(section.isFormVisible(), false);
+		h.open('Add');
+		assert.strictEqual(h.dialog.requests.length, 1);
+		assert.strictEqual(h.dialog.requests[0].message, 'Add MCP server');
+		assert.deepStrictEqual(h.dialog.requests[0].inputs.map(input => ({ label: input.label, value: input.value ?? '' })), [
+			{ label: 'Name', value: '' }, { label: 'Transport', value: '' },
+			{ label: 'Command', value: '' }, { label: 'URL', value: '' },
+			{ label: 'Arguments — one argument per line', value: '' }, { label: 'Environment — one KEY=VALUE per line', value: '' },
+		]);
+		assert.strictEqual(h.addRequests.length, 0);
+		h.dialog.complete({ confirmed: false });
+		await flushMicrotasks();
 	});
 
-	test('Update form with unknown transport requires changing to valid transport', async () => {
-		const updateRequests: UniverseAgentUpdateMcpServerRequest[] = [];
-		const server = demoMcpServer({
-			id: 'unknown-demo',
-			name: 'Unknown MCP',
-			transport: 'unknown' as any,
-		});
-		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
-			listMcpServers: async () => ({ servers: [server] }),
-			updateMcpServer: async request => {
-				updateRequests.push(request);
-				return { ok: true };
-			},
-		});
-		const section = mountMcpSection(connection);
+	test('Shared input validates stdio empty command and defensive confirmation does not add', async () => {
+		const h = createDialogHarness();
 		await flushMicrotasks();
-
-		assert.strictEqual(section.selectServerByIdForTest('unknown-demo'), true);
-		const updateButton = findToolbarButton(section.getDomNode(), 'Update');
-		assert.ok(updateButton);
-		updateButton.click();
-
-		assert.strictEqual(section.getFormValues().transport, 'unknown');
-		assert.strictEqual(await section.submitFormForTest(), false);
-		assert.strictEqual(updateRequests.length, 0);
-
-		section.setFormValues({ name: 'Changed Name' });
-		assert.strictEqual(await section.submitFormForTest(), false);
-		assert.strictEqual(updateRequests.length, 0);
-
-		section.setFormValues({ transport: 'stdio', command: 'my-cmd' });
-		assert.strictEqual(await section.submitFormForTest(), true);
-		assert.strictEqual(updateRequests.length, 1);
-		assert.strictEqual(updateRequests[0].config.name, 'Changed Name');
-		assert.strictEqual(updateRequests[0].config.transport, 'stdio');
-		assert.strictEqual(updateRequests[0].config.command, 'my-cmd');
+		h.open('Add');
+		const values = ['test-mcp', 'stdio', '   ', ''];
+		assert.strictEqual(h.dialog.requests[0].validate?.(values), 'Name, transport, and a command or URL are required.');
+		h.dialog.complete({ confirmed: true, values });
+		await flushMicrotasks();
+		assert.strictEqual(h.addRequests.length, 0);
 	});
 
-	test('Form cancel button closes form and resets form mode', async () => {
+	test('Shared input with valid name and command calls addMcpServer once', async () => {
+		const h = createDialogHarness();
+		await flushMicrotasks();
+		h.open('Add');
+		const values = [' my-server ', 'stdio', ' node index.js ', ''];
+		assert.strictEqual(h.dialog.requests[0].validate?.(values), undefined);
+		h.dialog.complete({ confirmed: true, values });
+		await flushMicrotasks();
+		assert.deepStrictEqual(h.addRequests, [{ config: { name: 'my-server', transport: 'stdio', command: 'node index.js' }, scope: 'global' }]);
+	});
+
+	for (const transport of ['sse', 'streamable_http'] as const) {
+		test(`Shared input validates ${transport} URL before adding`, async () => {
+			const h = createDialogHarness();
+			await flushMicrotasks();
+			h.open('Add');
+			assert.strictEqual(h.dialog.requests[0].validate?.(['remote', transport, '', '   ']), 'Name, transport, and a command or URL are required.');
+			h.dialog.complete({ confirmed: true, values: ['remote', transport, '', '   '] });
+			await flushMicrotasks();
+			assert.strictEqual(h.addRequests.length, 0);
+			h.open('Add');
+			const values = ['remote', transport, '', ' https://example.com/mcp '];
+			assert.strictEqual(h.dialog.requests[1].validate?.(values), undefined);
+			h.dialog.complete({ confirmed: true, values });
+			await flushMicrotasks();
+			assert.strictEqual(h.addRequests.length, 1);
+			assert.deepStrictEqual(h.addRequests[0].config, { name: 'remote', transport, url: 'https://example.com/mcp' });
+		});
+	}
+
+	test('Clicking toolbar Update without selection does not open input or write', async () => {
+		const h = createDialogHarness();
+		await flushMicrotasks();
+		h.open('Update');
+		assert.deepStrictEqual({ dialogs: h.dialog.requests.length, writes: h.updateRequests.length }, { dialogs: 0, writes: 0 });
+	});
+
+	test('Clicking toolbar Update with selection pre-fills all shared input fields', async () => {
+		const h = createDialogHarness();
+		await flushMicrotasks();
+		assert.ok(h.section.selectServerByIdForTest('stdio-demo'));
+		h.open('Update');
+		assert.strictEqual(h.dialog.requests[0].message, 'Edit MCP server');
+		assert.deepStrictEqual(h.dialog.requests[0].inputs.map(input => input.value), ['Demo MCP', 'stdio', 'npx', '', '-y\nmcp-demo', 'TOKEN=secret']);
+		h.dialog.complete({ confirmed: false });
+		await flushMicrotasks();
+	});
+
+	test('Submitting unchanged shared input does not call updateMcpServer', async () => {
+		const h = createDialogHarness();
+		await flushMicrotasks();
+		assert.ok(h.section.selectServerByIdForTest('stdio-demo'));
+		h.open('Update');
+		h.dialog.complete({ confirmed: true, values: [' Demo MCP ', 'stdio', ' npx ', '', '', ''] });
+		await flushMicrotasks();
+		assert.strictEqual(h.updateRequests.length, 0);
+	});
+
+	test('Submitting modified name updates once preserving hidden and blank fields', async () => {
+		const h = createDialogHarness();
+		await flushMicrotasks();
+		assert.ok(h.section.selectServerByIdForTest('stdio-demo'));
+		h.open('Update');
+		h.dialog.complete({ confirmed: true, values: ['Renamed MCP', 'stdio', 'npx', '', '', ''] });
+		await flushMicrotasks();
+		assert.strictEqual(h.updateRequests.length, 1);
+		assert.strictEqual(h.updateRequests[0].serverId, 'stdio-demo');
+		assert.deepStrictEqual(h.updateRequests[0].config, {
+			id: 'stdio-demo', name: 'Renamed MCP', transport: 'stdio', command: 'npx', args: ['-y', 'mcp-demo'],
+			env: { TOKEN: 'secret' }, url: undefined, enabled: true,
+		});
+	});
+
+	test('Unknown transport pre-fills empty and requires an explicit valid transport', async () => {
+		const h = createDialogHarness(demoMcpServer({ transport: 'unknown' }));
+		await flushMicrotasks();
+		assert.ok(h.section.selectServerByIdForTest('stdio-demo'));
+		h.open('Update');
+		assert.strictEqual(h.dialog.requests[0].inputs[1].value, '');
+		assert.strictEqual(h.dialog.requests[0].validate?.(['Changed Name', '', 'npx', '']), 'Transport must be stdio, sse, or streamable_http.');
+		h.dialog.complete({ confirmed: true, values: ['Changed Name', '', 'npx', ''] });
+		await flushMicrotasks();
+		assert.strictEqual(h.updateRequests.length, 0);
+		h.open('Update');
+		h.dialog.complete({ confirmed: true, values: ['Changed Name', 'stdio', 'my-cmd', ''] });
+		await flushMicrotasks();
+		assert.strictEqual(h.updateRequests.length, 1);
+		assert.deepStrictEqual({ name: h.updateRequests[0].config.name, transport: h.updateRequests[0].config.transport, command: h.updateRequests[0].config.command }, { name: 'Changed Name', transport: 'stdio', command: 'my-cmd' });
+	});
+
+	test('Cancelling shared input does not write and a new Add starts empty', async () => {
+		const h = createDialogHarness();
+		await flushMicrotasks();
+		h.open('Add');
+		h.dialog.complete({ confirmed: false, values: ['Discard', 'stdio', 'npx', ''] });
+		await flushMicrotasks();
+		assert.strictEqual(h.addRequests.length, 0);
+		h.open('Add');
+		assert.deepStrictEqual(h.dialog.requests[1].inputs.map(input => input.value ?? ''), ['', '', '', '', '', '']);
+		h.dialog.complete({ confirmed: false });
+		await flushMicrotasks();
+	});
+
+	test('Shared input rejects missing names and malformed environment before RPC', async () => {
+		const h = createDialogHarness();
+		await flushMicrotasks();
+		for (const values of [
+			['', 'stdio', 'npx', '', '', ''],
+			['Added', 'stdio', 'npx', '', '', 'TOKEN'],
+			['Added', 'stdio', 'npx', '', '', '=value'],
+		]) {
+			h.open('Add');
+			const input = h.dialog.requests[h.dialog.requests.length - 1];
+			assert.ok(input.validate?.(values));
+			h.dialog.complete({ confirmed: true, values });
+			await flushMicrotasks();
+			assert.strictEqual(h.addRequests.length, 0);
+		}
+	});
+
+	test('Shared input sends arguments and environment and editing arguments alone writes', async () => {
+		const h = createDialogHarness();
+		await flushMicrotasks();
+		h.open('Add');
+		h.dialog.complete({ confirmed: true, values: ['Added', 'stdio', 'npx', '', '-y\nnew-package', 'TOKEN=new-secret'] });
+		await flushMicrotasks();
+		assert.strictEqual(h.addRequests.length, 1);
+		assert.deepStrictEqual(h.addRequests[0].config, { name: 'Added', transport: 'stdio', command: 'npx', args: ['-y', 'new-package'], env: { TOKEN: 'new-secret' } });
+		assert.ok(h.section.selectServerByIdForTest('stdio-demo'));
+		h.open('Update');
+		h.dialog.complete({ confirmed: true, values: ['Demo MCP', 'stdio', 'npx', '', '-y\nchanged-package', ''] });
+		await flushMicrotasks();
+		assert.strictEqual(h.updateRequests.length, 1);
+		assert.deepStrictEqual(h.updateRequests[0].config.args, ['-y', 'changed-package']);
+		assert.deepStrictEqual(h.updateRequests[0].config.env, { TOKEN: 'secret' });
+	});
+
+	test('Shared browser dialog keeps invalid input open, closes accepted input, and cancels without writing', async () => {
+		const host = document.createElement('div');
+		document.body.appendChild(host);
+		store.add({ dispose: () => host.remove() });
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const layout = new TestLayoutService();
+		layout.activeContainer = host;
+		instantiationService.stub(ILayoutService, layout);
+		const handler = instantiationService.createInstance(BrowserDialogHandler);
+		const cancellation = new CancellationTokenSource();
+		store.add({ dispose: () => cancellation.dispose(true) });
+		const dialog = new class extends TestDialogService {
+			override input(input: IInput): Promise<IInputResult> {
+				return handler.input({ ...input, token: cancellation.token });
+			}
+		};
+		const requests: UniverseAgentAddMcpServerRequest[] = [];
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
-			listMcpServers: async () => ({ servers: [demoMcpServer()] }),
+			getCapabilitySnapshot: () => ({ ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' } }),
+			addMcpServer: async request => { requests.push(request); return { ok: true }; },
 		});
-		const section = mountMcpSection(connection);
+		const section = mountMcpSection(connection, undefined, dialog);
 		await flushMicrotasks();
+		const add = findToolbarButton(section.getDomNode(), 'Add');
+		assert.ok(add);
+		const clickDialogButton = (label: string) => {
+			const button = [...host.querySelectorAll<HTMLElement>('.dialog-buttons .monaco-button')]
+				.find(button => button.textContent?.trim() === label);
+			assert.ok(button, `${label} is visible in the shared dialog`);
+			button.click();
+		};
+		add.click();
+		await flushMicrotasks();
+		const inputs = [...host.querySelectorAll<HTMLInputElement>('.dialog-message-container input')];
+		assert.strictEqual(inputs.length, 6);
+		inputs[0].value = 'Real dialog';
+		inputs[1].value = 'stdio';
+		clickDialogButton('Add');
+		await flushMicrotasks();
+		assert.ok(host.querySelector('.monaco-dialog-box'));
+		assert.strictEqual(host.querySelector('[role="alert"]')?.textContent, 'Name, transport, and a command or URL are required.');
+		assert.strictEqual(requests.length, 0);
+		inputs[2].value = 'npx';
+		clickDialogButton('Add');
+		await flushMicrotasks();
+		assert.strictEqual(host.querySelector('.monaco-dialog-box'), null);
+		assert.strictEqual(requests.length, 1);
+		assert.deepStrictEqual(requests[0].config, { name: 'Real dialog', transport: 'stdio', command: 'npx' });
+		add.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual([...host.querySelectorAll<HTMLInputElement>('.dialog-message-container input')].map(input => input.value), ['', '', '', '', '', '']);
+		clickDialogButton('Cancel');
+		await flushMicrotasks();
+		assert.strictEqual(host.querySelector('.monaco-dialog-box'), null);
+		assert.strictEqual(requests.length, 1);
+	});
 
-		const addButton = findToolbarButton(section.getDomNode(), 'Add');
-		assert.ok(addButton);
-		addButton.click();
-		assert.strictEqual(section.isFormVisible(), true);
+	test('Confirmation after disconnect does not add', async () => {
+		const h = createDialogHarness();
+		await flushMicrotasks();
+		h.open('Add');
+		h.disconnect();
+		h.dialog.complete({ confirmed: true, values: ['Late', 'stdio', 'npx', ''] });
+		await flushMicrotasks();
+		assert.strictEqual(h.addRequests.length, 0);
+	});
 
-		const cancelButton = section.getDomNode().querySelector('.engine-mcp-form-cancel') as HTMLElement | null;
-		assert.ok(cancelButton);
-		cancelButton.click();
-		assert.strictEqual(section.isFormVisible(), false);
-		assert.strictEqual(section.getFormMode(), undefined);
+	test('Confirmation after selected server changes does not update either server', async () => {
+		const h = createDialogHarness();
+		await flushMicrotasks();
+		assert.ok(h.section.selectServerByIdForTest('stdio-demo'));
+		h.open('Update');
+		assert.ok(h.section.selectServerByIdForTest('other'));
+		h.dialog.complete({ confirmed: true, values: ['Late', 'stdio', 'npx', ''] });
+		await flushMicrotasks();
+		assert.strictEqual(h.updateRequests.length, 0);
 	});
 
 	test('Active work root change automatically triggers refresh and passes new workDir', async () => {
 		const listRequests: UniverseAgentListMcpServersRequest[] = [];
 		let currentWorkDir = '/workspace/dir-a';
+		let currentSessionId = 'sess-1';
 
 		const onDidChangeActiveSession = store.add(new Emitter<string>());
 		const onDidChangeActiveWorkRoot = store.add(new Emitter<IAgentWorkRoot>());
 
-		const sessionContext = createSessionContextStub({
-			getActiveWorkRoot: () => ({ workDir: currentWorkDir }),
+		const sessionContext = createCatalogSessionContext({
+			getActiveSessionId: () => currentSessionId,
+			getActiveWorkRoot: () => createCatalogWorkRoot(currentWorkDir, currentSessionId),
 			onDidChangeActiveSession: onDidChangeActiveSession.event,
 			onDidChangeActiveWorkRoot: onDidChangeActiveWorkRoot.event,
 		});
@@ -576,6 +517,7 @@ suite('EngineMcpSection', () => {
 		assert.strictEqual(listRequests[0].workDir, '/workspace/dir-a');
 
 		currentWorkDir = '/workspace/dir-b';
+		currentSessionId = 'sess-2';
 		onDidChangeActiveSession.fire('sess-2');
 		await flushMicrotasks();
 
@@ -583,7 +525,7 @@ suite('EngineMcpSection', () => {
 		assert.strictEqual(listRequests[listRequests.length - 1].workDir, '/workspace/dir-b');
 
 		currentWorkDir = '/workspace/dir-c';
-		onDidChangeActiveWorkRoot.fire({ workDir: '/workspace/dir-c' });
+		onDidChangeActiveWorkRoot.fire(createCatalogWorkRoot('/workspace/dir-c', currentSessionId));
 		await flushMicrotasks();
 
 		assert.strictEqual(listRequests.length >= 3, true);

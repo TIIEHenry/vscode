@@ -10,6 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
+	UniverseAgentConnectionSnapshot,
 	UniverseAgentClearClipboardResult,
 	UniverseAgentListClipboardResult,
 	UniverseAgentReadClipboardResult,
@@ -19,7 +20,7 @@ import { workbenchInstantiationService } from '../../../test/browser/workbenchTe
 import { formatEngineClipboardListLabel, formatEngineClipboardWriteLabel } from './engineClipboardList.js';
 import { EngineClipboardSection } from './engineClipboardSection.js';
 import { createUnknownConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
 
 suite('EngineClipboardSection (browser)', () => {
 
@@ -77,12 +78,13 @@ suite('EngineClipboardSection (browser)', () => {
 		let releaseRead: ((value: UniverseAgentReadClipboardResult) => void) | undefined;
 		let releaseClear: ((value: UniverseAgentClearClipboardResult) => void) | undefined;
 		let releaseWrite: ((value: UniverseAgentWriteClipboardResult) => void) | undefined;
-		const connectionChanged = new Emitter<void>();
+		const connectionChanged = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const entry = { clipId: 'clip-1', label: 'Clip', type: 'CLIPBOARD_TEXT' as const, createdBy: '', createdAt: 0 };
-		const capabilities = createEmptyTestCapabilitySnapshot();
-		capabilities.readClipboard = { support: 'SUPPORTED' };
-		capabilities.clearClipboard = { support: 'SUPPORTED' };
-		capabilities.writeClipboard = { support: 'SUPPORTED' };
+		const capabilities = createTestCapabilitySnapshot({
+			readClipboard: { support: 'SUPPORTED' },
+			clearClipboard: { support: 'SUPPORTED' },
+			writeClipboard: { support: 'SUPPORTED' },
+		});
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
@@ -117,12 +119,12 @@ suite('EngineClipboardSection (browser)', () => {
 		};
 		const enterPairing = async (): Promise<void> => {
 			pairingPending = true;
-			connectionChanged.fire();
+			connectionChanged.fire(connection.getConnectionSnapshot());
 			await timeout(0);
 		};
 		const leavePairing = async (): Promise<void> => {
 			pairingPending = false;
-			connectionChanged.fire();
+			connectionChanged.fire(connection.getConnectionSnapshot());
 			await timeout(0);
 		};
 
@@ -151,9 +153,10 @@ suite('EngineClipboardSection (browser)', () => {
 	test('late clipboard write after disconnect does not paint success', async () => {
 		let connected = true;
 		let releaseWrite: ((value: UniverseAgentWriteClipboardResult) => void) | undefined;
-		const connectionChanged = new Emitter<void>();
-		const capabilities = createEmptyTestCapabilitySnapshot();
-		capabilities.writeClipboard = { support: 'SUPPORTED' };
+		const connectionChanged = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const capabilities = createTestCapabilitySnapshot({
+			writeClipboard: { support: 'SUPPORTED' },
+		});
 		const entry = { clipId: 'clip-1', label: 'Clip', type: 'CLIPBOARD_TEXT' as const, createdBy: '', createdAt: 0 };
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => connected,
@@ -181,7 +184,7 @@ suite('EngineClipboardSection (browser)', () => {
 		const writePromise = (section as unknown as { handleWrite(): Promise<void> }).handleWrite();
 		await timeout(0);
 		connected = false;
-		connectionChanged.fire();
+		connectionChanged.fire(connection.getConnectionSnapshot());
 		await timeout(0);
 		releaseWrite?.({ clipId: 'late-write' });
 		await writePromise;
@@ -191,9 +194,10 @@ suite('EngineClipboardSection (browser)', () => {
 	test('late clipboard write error after list failure does not paint error', async () => {
 		let listFailed = false;
 		let rejectWrite: ((reason?: unknown) => void) | undefined;
-		const connectionChanged = new Emitter<void>();
-		const capabilities = createEmptyTestCapabilitySnapshot();
-		capabilities.writeClipboard = { support: 'SUPPORTED' };
+		const connectionChanged = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const capabilities = createTestCapabilitySnapshot({
+			writeClipboard: { support: 'SUPPORTED' },
+		});
 		const entry = { clipId: 'clip-1', label: 'Clip', type: 'CLIPBOARD_TEXT' as const, createdBy: '', createdAt: 0 };
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -226,7 +230,7 @@ suite('EngineClipboardSection (browser)', () => {
 		const writePromise = (section as unknown as { handleWrite(): Promise<void> }).handleWrite();
 		await timeout(0);
 		listFailed = true;
-		connectionChanged.fire();
+		connectionChanged.fire(connection.getConnectionSnapshot());
 		await timeout(0);
 		rejectWrite?.(new Error('late write failure'));
 		await writePromise;
@@ -234,8 +238,9 @@ suite('EngineClipboardSection (browser)', () => {
 	});
 
 	test('live clipboard write keeps success after its own refresh', async () => {
-		const capabilities = createEmptyTestCapabilitySnapshot();
-		capabilities.writeClipboard = { support: 'SUPPORTED' };
+		const capabilities = createTestCapabilitySnapshot({
+			writeClipboard: { support: 'SUPPORTED' },
+		});
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),

@@ -23,7 +23,7 @@ import { TestDialogService } from '../../../../../platform/dialogs/test/common/t
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getCatalogFailedCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
-import { ENGINE_CLIPBOARD_CLEAR_LABEL, ENGINE_CLIPBOARD_LIST_EMPTY_COPY, ENGINE_CLIPBOARD_LIST_FEATURE, ENGINE_CLIPBOARD_READ_LABEL, ENGINE_CLIPBOARD_WRITE_LABEL, engineClipboardWriteRequest, formatEngineClipboardClearLabel, formatEngineClipboardListLabel, formatEngineClipboardWriteLabel } from '../../browser/engineClipboardList.js';
+import { ENGINE_CLIPBOARD_CLEAR_LABEL, ENGINE_CLIPBOARD_LIST_EMPTY_COPY, ENGINE_CLIPBOARD_LIST_FEATURE, ENGINE_CLIPBOARD_READ_LABEL, ENGINE_CLIPBOARD_WRITE_LABEL, formatEngineClipboardClearLabel, formatEngineClipboardListLabel, formatEngineClipboardWriteLabel } from '../../browser/engineClipboardList.js';
 import { EngineClipboardSection } from '../../browser/engineClipboardSection.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { createConversationConnectionTestStub as baseCreateConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
@@ -1054,7 +1054,7 @@ suite('EngineClipboardSection', () => {
 		write.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(writeCalls, []);
-		assert.strictEqual(pane.getDomNode().querySelector('.engine-clipboard-write-status')?.style.display, 'none');
+		assert.strictEqual(pane.getDomNode().querySelector<HTMLElement>('.engine-clipboard-write-status')?.style.display, 'none');
 		write.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(writeCalls, []);

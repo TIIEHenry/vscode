@@ -14,7 +14,7 @@ import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
-import { conversationEntryHookPresent, isAdvertisedEngineRpc, readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { isAdvertisedEngineRpc, readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentClipboardEntrySummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';

@@ -5226,7 +5226,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 		add.click();
 		await flushMicrotasks();
-		assert.deepStrictEqual(addRequests, []);
+		assert.strictEqual(addRequests.length, 0);
 		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
 		assert.ok(writeStatus.textContent?.includes('Name, transport, and a command or URL are required.'));
 
@@ -5241,7 +5241,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		dialog.input = async () => ({ confirmed: true, values: ['Demo MCP', 'stdio', 'npx', 'http://mcp'] });
 		update.click();
 		await flushMicrotasks();
-		assert.deepStrictEqual(updateCalls, []);
+		assert.strictEqual(updateCalls.length, 0);
 
 		dialog.input = async () => ({ confirmed: true, values: ['Renamed', 'stdio', 'npx', 'http://mcp'] });
 		update.click();
