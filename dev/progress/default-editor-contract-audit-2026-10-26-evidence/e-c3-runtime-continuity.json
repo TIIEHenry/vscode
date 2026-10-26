@@ -1,0 +1,68 @@
+{
+  "phase": "c3-type-only-runtime-body-exact-continuity-no-business-rerun",
+  "oldCandidate": "93e36abc7ad915608d546f0bcd17b8b2e221dacf",
+  "candidate": "c3f9fd04f9eb46c74170aa06e65054b80ac974b9",
+  "checkedAtUtc": "2026-10-26T22:28:23.231430+00:00",
+  "newTestSourceSha256": "468b553d859af929633d73ae885160250136641414374578bdaff9ddd66d9647",
+  "oldActualRedTestFullJsSha256": "12b9fe19296c83678e990ed16b3890d6d7cf25708fed7d9ce7c71246af781a21",
+  "newTestFullJsSha256": "9f51bb738c11a9667612cca6c041afc65250375e504a6afd442ebd530868df31",
+  "officialSourceMapTrailerOnlyPattern": "(?m)^//# sourceMappingURL=data:application/json;base64,[A-Za-z0-9+/=]+\\n?\\Z",
+  "oldOfficialTrailerSha256": "fb72926bdc7fe378e8541d0ebd698432a43c9f1c95cb488255177fac45d44627",
+  "newOfficialTrailerSha256": "5fdeb222bcc7e42d02c1178410436727f0e0e0654f7cfc290cddd9da1ae1e293",
+  "exactRuntimeBodyBytes": 297457,
+  "exactRuntimeBodySha256": "1655c94a0a1fe19452b3a1dc6a69177c96de2509c822dca46abdd3ae7c8831d4",
+  "newRuntimeBodyByteExactTo93ActualOldRedJs": true,
+  "noWhitespaceIdentifierOrOtherNormalization": true,
+  "oldRedActualCounts": {
+    "pass": 3,
+    "businessAssertionFailures": 7
+  },
+  "oldRedExactRuntimeContinuityReuseNotNewRun": true,
+  "newMissingRuntimeImports": false,
+  "twoProductionTypeOnlyWholeFileInverses": [
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensComposer.ts",
+      "oldSourceSha256": "b5b806f91551f71c616f1a1ad269da5f6ef598b320b9365820c4b28f92d5c1ca",
+      "newSourceSha256": "5478d3a75c5193278ca2670d550afa24c5287c80efa906d49d5ff35b4af1efdf",
+      "exactTypeOnlyInverseProducesEntireOldFile": true,
+      "removedOnlyOneDocumentedTypeAliasAndNHostParameterTypes": 1,
+      "allFunctionBodiesAndRuntimeImportsExact": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts",
+      "oldSourceSha256": "cd1b9c9a9f626755b8376c9c4d076f5aa139dcdb62b09567f00879d23ca9df5e",
+      "newSourceSha256": "e992b1129e44f152534c5012aa870aa647aa3a6a8888b63aa9f3248b0fff7ff5",
+      "exactTypeOnlyInverseProducesEntireOldFile": true,
+      "removedOnlyOneDocumentedTypeAliasAndNHostParameterTypes": 4,
+      "allFunctionBodiesAndRuntimeImportsExact": true
+    }
+  ],
+  "testWholeFileExactWhitelistOnlyTypesAnnotationAndSixCasts": true,
+  "old160AndNew10BusinessAssertionsPreserved": true,
+  "unchangedOtherGateTestsAndReasoning": [
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "sha256": "0184f48d12e01cdbe026ee020fe4313471e199dc5cfb11b8ea1a1dcfe33f551b",
+      "wholeFileByteExact93": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationSessionAvailability.ts",
+      "sha256": "265ceba2f24fd49f025e05d7dfc01f42e6e6592927bd17ffc65906b646919446",
+      "wholeFileByteExact93": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLensReadingColumn.test.ts",
+      "sha256": "f250cfa3d846a604feee59756f697e1230d8237870f65ae97d9dab0595d07a37",
+      "wholeFileByteExact93": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+      "sha256": "5d172565767dd64c154321f0ec4eda254533a9199510ad6ba2b96c16d8a6d49e",
+      "wholeFileByteExact93": true
+    }
+  ],
+  "all253FailedCompile9NativeAndCurrentSourcesUnchanged": true,
+  "onlyTmpProofCopiesAndStdoutTransformNoOutWrites": true,
+  "transformOptionsJavascript": "import{transform}from'esbuild';let text='';for await(const c of process.stdin){text+=c;}const r=await transform(text,{loader:'ts',format:'esm',target:'es2024',sourcemap:'inline',sourcesContent:false,sourcefile:process.argv[1],tsconfigRaw:{compilerOptions:{experimentalDecorators:true,useDefineForClassFields:false}}});process.stdout.write(r.code.replaceAll('.ts?esm','.js?esm'));",
+  "businessTestsRun": false
+}

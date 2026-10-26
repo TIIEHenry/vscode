@@ -13,7 +13,7 @@ import { StorageScope, StorageTarget } from '../../../../../platform/storage/com
 import { createUnknownConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
-import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { ClientActionRequestId, PendingActionView, SessionId, SessionViewSnapshot, SyncChrome, TimelineItemId, ViewLeaseId, ViewPatch } from '../../../../../platform/universeAgent/common/sessionView/types.js';
 import type {
 	UniverseAgentConnectionSnapshot,
@@ -24,8 +24,8 @@ import type {
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';
 import { setConversationStubNextTurnId } from '../../browser/conversationStubModel.js';
-import { postBound, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
-import { resolveConfirmation, resolveQuestion, respondClientTool, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import { postBound, type IConversationLensPostHost } from '../../browser/conversationLensComposer.js';
+import { resolveConfirmation, resolveQuestion, respondClientTool, type IConversationLensResponseHost } from '../../browser/conversationLensSessionBinding.js';
 import { isReadingColumnWritesEnabled } from '../../browser/conversationLensReadingColumn.js';
 import type { ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { CONVERSATION_ROSTER_STORAGE_KEY, type ConversationRosterStorageV1 } from '../../browser/conversationRosterStorage.js';
@@ -742,7 +742,7 @@ function responseSeatRoute(
 	const failures: ConversationComposerPostFailureReason[] = [];
 	const posted: ConversationWriteMessage[] = [];
 	const focused: string[] = [];
-	const route = {
+	const route: IConversationLensPostHost & IConversationLensResponseHost & { sessionViewLease: IConversationSessionViewLease } = {
 		isDisposed: false,
 		stubService: service,
 		uaConnection: connection,
@@ -750,12 +750,12 @@ function responseSeatRoute(
 		getBoundSessionId: () => initialLease.sessionId,
 		showPostFailure: (reason: ConversationComposerPostFailureReason) => failures.push(reason),
 		focusTimelineRecord: (id: string) => focused.push(id),
-		postBound: (message: ConversationWriteMessage): ReturnType<typeof postBound> => {
+		postBound: (message: ConversationWriteMessage): Promise<PostOutcome> => {
 			posted.push(message);
-			return postBound(route as IConversationLensComposerHost, message);
+			return postBound(route, message);
 		},
 	};
-	const binding = route as IConversationLensSessionBindingHost;
+	const binding = route;
 	let settled = Promise.resolve();
 	const instantiation = workbenchInstantiationService(undefined, store);
 	instantiation.stub(IWebviewService, {
@@ -3591,7 +3591,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 					: { kind: 'clientToolRespond', requestId: 'call-ask', resultJson: '{}' };
 			const before = JSON.stringify([service.getTurns('ua-only'), cachedLease.snapshot]);
 			for (const captured of [undefined, cachedLease]) {
-				const outcome = await postBound(pane.route as IConversationLensComposerHost, message, captured);
+				const outcome = await postBound(pane.route, message, captured);
 				assert.strictEqual(JSON.stringify([service.getTurns('ua-only'), cachedLease.snapshot]), before, 'the final post door must not mutate or clear a cached request');
 				assert.deepStrictEqual(outcome, { accepted: false, reason: 'no_such_session' });
 			}
@@ -3650,7 +3650,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.deepStrictEqual(pane.failures, []);
 		const next = service.appendConfirmationTurn(sessionId, 'Local captured permission');
 		assert.ok(next);
-		const outcome = await postBound(pane.route as IConversationLensComposerHost, { kind: 'permissionRespond', requestId: next.id, decision: 'deny' }, lease);
+		const outcome = await postBound(pane.route, { kind: 'permissionRespond', requestId: next.id, decision: 'deny' }, lease);
 		assert.strictEqual(outcome.accepted, true);
 		assert.strictEqual(service.getTurns(sessionId).find(turn => turn.id === next.id)?.status, 'skipped');
 		assert.strictEqual(connection.respondPermissionCalls.length, 0);
@@ -3663,7 +3663,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		await resolveConfirmation(pane.binding, 'req-allow', 'allowed');
 		assert.strictEqual(isReadingColumnWritesEnabled(pane.route), false);
 		assert.deepStrictEqual(pane.failures, ['engine_disconnected']);
-		assert.deepStrictEqual(await postBound(pane.route as IConversationLensComposerHost, { kind: 'permissionRespond', requestId: 'req-allow', decision: 'allow' }, lease), { accepted: false, reason: 'no_such_session' });
+		assert.deepStrictEqual(await postBound(pane.route, { kind: 'permissionRespond', requestId: 'req-allow', decision: 'allow' }, lease), { accepted: false, reason: 'no_such_session' });
 		connection.listSessionsError = new Error('list unavailable');
 		connection.setPairingPending(false);
 		await awaitEngineCatalogRefresh(service);
@@ -3672,7 +3672,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		await resolveConfirmation(pane.binding, 'req-allow', 'allowed');
 		assert.strictEqual(isReadingColumnWritesEnabled(pane.route), false);
 		assert.deepStrictEqual(pane.failures, ['engine_disconnected', 'session_not_ready']);
-		assert.deepStrictEqual(await postBound(pane.route as IConversationLensComposerHost, { kind: 'permissionRespond', requestId: 'req-allow', decision: 'allow' }, lease), { accepted: false, reason: 'no_such_session' });
+		assert.deepStrictEqual(await postBound(pane.route, { kind: 'permissionRespond', requestId: 'req-allow', decision: 'allow' }, lease), { accepted: false, reason: 'no_such_session' });
 		assert.deepStrictEqual(pane.posted, []);
 		assert.strictEqual(connection.respondPermissionCalls.length, 0);
 		assert.ok(lease.snapshot.pendingActions.some(action => action.requestId === 'req-allow'));

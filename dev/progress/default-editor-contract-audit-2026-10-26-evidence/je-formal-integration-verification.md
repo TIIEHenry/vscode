@@ -464,3 +464,11 @@ D提供的[不可变字节快照静态ASTmembership](e93-ninth-native-build.cand
 实际完整读取明确交付Astra不可变 **`f3f9b17a3e25a7a6ba9c08aaa7de0d7fadc3b85a`**（父b024，仅report§27/INDEX）及c3五路径diff后，真正三路接入。[597路径mode/type/blob门禁](je-formal-E-c3-types-peer-merge-identity.json)PASS；report精确incoming、旧§1–26正文为逐字前缀，INDEX双方全文与理由见[证明](je-formal-E-c3-types-peer-conflict-resolutions.json)。原491 artifacts逐bytes/SHA全保，加四merge证明现495，status200，src仍2e04，native仍失败compile9的253精确身份，无新运行或freeze。
 
 §27固定 **c3f9fd04f9eb46c74170aa06e65054b80ac974b9 / src58b3f3e8d69e2177eefe0a7dd7c0a74b0a7a1c4c** 的C0/I0/M0只读审查：正式Composer四字段Pick/Binding七字段Pick，fixture显式交集与实际lease，移除六整体cast，不用unknown/any/Partial，不放松既有服务契约。两生产仅types/参数、运行body不变，十业务断言/旧160/reasoning保持。真实compile9六错与此前3/7业务红都保留，静态审查不替代checker或green。父已再次独核额外4旧native/map与deterministic/Git旧源精确相等，准确限定补核在oldred后/新emit前，不倒称父重编或全闭包旧guard。下一步仅stdout→tmp验证新testJS运行正文是否与93实际旧红JS完全一致，再按条件合源与唯一完整compile10；失败即保留partial身份退原作者，不freeze/UI或关闭波。
+
+## c3运行正文精确连续与正式类型源码合并
+
+在完整failedcompile9的253 native/current source只读守卫稳定下，本lane按相同esbuild选项仅stdout→tmp转换不可变c3 Roster测试，新源码SHA `468b553d859af929633d73ae885160250136641414374578bdaff9ddd66d9647`。与93实际旧红时永久保存的testJS（完整SHA按旧运行记录逐字核准）比较时，**只剥除官方sourceMappingURL inline trailer一行**，无其它空白/标识/AST归一，运行正文逐bytes全同：body SHA **`1655c94a0a1fe19452b3a1dc6a69177c96de2509c822dca46abdd3ae7c8831d4`**。[机器证明/精确白名单](e-c3-runtime-continuity.json)、[driver](e-c3-runtime-continuity.py)、新TS/完整JS/正文JS原件完整保留。新typeimports不变为runtimeimports；旧3 passing/7业务AssertionError因此按精确运行正文连续性沿用，**不是本轮重跑**，原未达到的后续断言边界保持。
+
+两生产Composer/Binding分别仅删除新增Pick alias注释/声明及还原限定1/4个host类型后，**整文件与93逐字同**，所以所有function body/运行期import/顺序不变；Roster全文按明确typeimports/route注解/返回类型/六cast去除白名单变换后与c3全同。另ReadingColumn、Availability、ReadingColumn.test与reasoning整文件同93；旧160与新增10的业务判断不改，不放松原`hmm\nthen this`或旧Accept预期。
+
+资格闭合后真正三路consume **`c3f9fd04f9eb46c74170aa06e65054b80ac974b9`**，actual base93，只有明确5路径（3TS、plan§9.5与status）。[89路径mode/type/blob门禁](je-formal-E-c3-types-source-merge-identity.json)PASS；三个TS与plan精确incoming，唯一status交集保留当前failed9、旧after FAIL、方案accepted/wave active和新source-only待验，[双方全文与理由](je-formal-E-c3-types-source-conflict-resolutions.json)保留。新src精确 **`58b3f3e8d69e2177eefe0a7dd7c0a74b0a7a1c4c`**，此刻native仍失败compile9身份，未借旧0或签新freeze。原495 artifacts逐bytes/SHA全保，加五连续性原件及四merge证明现 **504**，status200；下一步只执行一次完整compile10，成功后实际新10/完整Roster/Reading及选定相关suite，暂不UI/冻结/升级plan/关闭波。

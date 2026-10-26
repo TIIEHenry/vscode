@@ -4,13 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "E93旧3过7业务红与compile9六TS失败保留；c3正式Pick类型补修§27独审C0/I0/M0已三路接入，495原件，精确runtime连续性/compile10待。"
+summary: "c3正式窄宿主类型补修已合源；新test运行正文精确连续旧3/7业务结果，compile9六TS失败保留；新src58b3/完整compile10待。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **E写门完整compile9实际FAIL/6TS（2026-10-27）**：93旧4919/compile8实跑3pass/7业务AssertionError，首普通click真实model pending→allowed；无设施错且163/source/mode全finally恢复，额外4旧native在新emit前按旧源/真实options完整bytes/map精确补核。已审93真三路9path合为fd693/src2e04，原160/reasoning不改；唯一完整compile9实跑exit1，新增Roster route casts六处TS2352，已退原E/Astra。253实际source/native（D静态246+相关test7）全emit/6变，但属失败产物，禁止借旧0；新10/fullRoster/Reading/相关suite、freeze/UI均未执行。旧E after FAIL、J510/0历史、原方案accepted/wave active与候选边界保持，f3 §27 c3类型补修独审C0/I0/M0真三路597路径/report与旧§1–26连续；495原件/status200，精确正文连续性与唯一compile10待，cache3稳定不还原。[原log与身份](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#e93第九次实际完整构建失败六处测试夹具类型诊断)。
+- **E正式窄宿主c3类型补修合源（2026-10-27）**：f3 §27 C0/I0/M0已三路接，compile9六TS2352失败/253产物历史保留；c3新testJS仅去官方map trailer的正文与93actual旧红JS逐bytes同，两生产type-only逆变换全文同93、另两门/Reading.test/reasoning整字节同，故旧3pass/7业务red准确沿用而非新跑。已真三路接c3明确5paths（3TS+plan/status），新src58b3，原10/160/reasoning与FAIL/accepted/wave active不变；新完整compile10/green待。旧E after FAIL、J510/0旧身份及§24/BODY/timeline边界保留，504原件/status200，三cache稳定不部分还原。[运行连续性与合源](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#c3运行正文精确连续与正式类型源码合并)。
 - **第五完整compile实际4TS失败（2026-10-27）**：精确34a4/src8e6、全局空/共享锁实跑compile-client exit1：action缺返回/helper object.kind/命令桩泛型return及void结果4TS，原log已交J修订。156native均emit/6变，现out属失败compile5，不借旧第四0；新green/新freeze未跑。最初309MiB预检无emit与后续真实TS分开；仅自有ignored三cache核全后/tmp镜像+原路径symlink临时保留，source/out/evidence不迁，待修订编译窗口结束核全恢复。本次6TS lint0error/21warning，238原件保留、D新r2仅静态53模板，E未授权。[原件/边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第五次实际完整编译失败4条typescript诊断)。
 - **M01旧红成立与正式合源（2026-10-27）**：a222新4真实Pane入口配精确旧928/8b4实跑0过4纯业务AssertionError（Preview未开），无load/API/timeout；后续close/metadata断言未达不越报。finally旧154+helper=155pair及新test原不存在性全恢复；首轮4fixture败/业务红0原件保留。已实读原Astra04ea含d046两I/a222 C0/I0/M0，真三路接a222全11路径（6TS/5docs），源码无冲突且3生产/3test精确incoming。新src8e6/旧native928身份分明，第五完整compile/新green/新freeze待，D1387 open/E未启动。[原件与边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#m01修订四纯业务旧红与正式真三路合源)。
 - **M01首轮精确旧产物运行：夹具失败（2026-10-27）**：不可变d046新test仅临时JS配旧src928/native8b4、全局空闲/共享锁实跑4真实Pane入口，0过4败均SourcesChangesModel缺IAgentSessionContext的TypeError，未到Preview/关闭断言，业务旧红0；已退原J精确修夹具，不由merge代改。finally测试JS原不存在现仍无、154旧source/native与额外3生产pair全SHA恢复、HEAD/src/clean不变；原件入库，候选尚未正式合、compile5/新freeze待。[首轮日志/范围](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#m01首轮旧928测试运行夹具失败不计业务旧红)。

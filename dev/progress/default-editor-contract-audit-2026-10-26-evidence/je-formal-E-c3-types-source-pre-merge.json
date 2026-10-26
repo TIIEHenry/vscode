@@ -1,0 +1,17 @@
+{
+  "phase": "before-real-three-way-explicit-c3-type-only-source-after-exact-runtime-continuity",
+  "ours": "aa8508770f6541c65ce9ede2db92bccc6f3af4a9",
+  "theirs": "c3f9fd04f9eb46c74170aa06e65054b80ac974b9",
+  "mergeBase": "93e36abc7ad915608d546f0bcd17b8b2e221dacf",
+  "incomingParent": "93e36abc7ad915608d546f0bcd17b8b2e221dacf",
+  "recordedAtUtc": "2026-10-26T22:28:50.140508+00:00",
+  "incomingNetChangedPaths": [
+    "dev/plans/conversation-unary-response-recovery.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensComposer.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts"
+  ],
+  "onlyExplicitFivePaths": true,
+  "runtimeContinuityProof": "/tmp/vscode-e-c3-runtime-continuity.json"
+}

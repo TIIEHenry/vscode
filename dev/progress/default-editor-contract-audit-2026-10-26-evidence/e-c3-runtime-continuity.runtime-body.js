@@ -1,0 +1,5571 @@
+import assert from "assert";
+import { DeferredPromise, timeout } from "../../../../../base/common/async.js";
+import { errorHandler, setUnexpectedErrorHandler } from "../../../../../base/common/errors.js";
+import { Emitter, Event } from "../../../../../base/common/event.js";
+import { Disposable, DisposableStore, toDisposable } from "../../../../../base/common/lifecycle.js";
+import { ensureNoDisposablesAreLeakedInTestSuite } from "../../../../../base/test/common/utils.js";
+import { StorageScope, StorageTarget } from "../../../../../platform/storage/common/storage.js";
+import { createUnknownConversationEntryCapability } from "../../../../../platform/universeAgent/common/universeAgentCapabilities.js";
+import { TestStorageService } from "../../../../test/common/workbenchTestServices.js";
+import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from "../../browser/conversationEngineRosterService.js";
+import { setConversationStubNextTurnId } from "../../browser/conversationStubModel.js";
+import { postBound } from "../../browser/conversationLensComposer.js";
+import { resolveConfirmation, resolveQuestion, respondClientTool } from "../../browser/conversationLensSessionBinding.js";
+import { isReadingColumnWritesEnabled } from "../../browser/conversationLensReadingColumn.js";
+import { CONVERSATION_ROSTER_STORAGE_KEY } from "../../browser/conversationRosterStorage.js";
+import { createConversationProjectionCache, projectSnapshotToEntries, stubTurnsToSnapshot } from "../../browser/conversationSessionView.js";
+import { isConversationEngineLive, isConversationPairingHold } from "../../browser/conversationSessionStatus.js";
+import { workbenchInstantiationService } from "../../../../test/browser/workbenchTestServices.js";
+import { IWebviewService } from "../../../webview/browser/webview.js";
+import { ConversationTimelineHost } from "../../browser/conversationTimelineHost.js";
+class MockUniverseAgentConnection extends Disposable {
+  constructor() {
+    super(...arguments);
+    this.onDidFileMutation = Event.None;
+    this.onDidTurnSettle = Event.None;
+    this.onDidChangeTeamRuntime = Event.None;
+    this.team = {
+      memberStatus: async () => [],
+      taskList: async () => [],
+      teamInfo: async () => void 0
+    };
+    this.connected = false;
+    this.pairingPending = false;
+    this.sessions = [];
+    this._onDidChangeConnection = new Emitter();
+    this.onDidChangeConnection = this._onDidChangeConnection.event;
+    this.getQueueCalls = [];
+    this.listSessionsCalls = [];
+    this.renameCalls = [];
+    this.createCalls = [];
+    this.createSessionResult = { sessionId: "ua-new" };
+    this.treeRefreshCalls = [];
+    this.deleteCalls = [];
+    this.renameResult = { ok: true };
+    this.cancelCalls = [];
+    this.writeResult = { ok: true };
+    this.setGoalCalls = [];
+    this.setGoalResult = { ok: true };
+    this.cancelGoalCalls = [];
+    this.cancelGoalResult = { ok: true };
+    this.forkCalls = [];
+    this.killCalls = [];
+    this.createSnapshotCalls = [];
+    this.editMessageCalls = [];
+    this.cancelToolCallCalls = [];
+    this.continuationOpens = [];
+    this.deleteMessageCalls = [];
+    this.respondPermissionCalls = [];
+    this.sendClientToolResponseCalls = [];
+    this.respondQuestionCalls = [];
+    this.enqueueCalls = [];
+    this.queueResult = { ok: true };
+    this.pauseQueueCalls = [];
+    this.resumeQueueCalls = [];
+    this.clearQueueCalls = [];
+    this.holdQueueCalls = [];
+    this.releaseQueueCalls = [];
+    this.editQueueCalls = [];
+    this.retryQueueItemCalls = [];
+    this.retryQueueItemUploadCalls = [];
+  }
+  enableQueueReadback(fetch) {
+    this.publishedEngineIdentityId = "queue-engine";
+    this.publishedLinkId = 1;
+    this.getQueue = async (request) => {
+      this.getQueueCalls.push(request.sessionId);
+      return fetch ? fetch(request.sessionId) : { items: [], isPaused: false, isProcessing: false, pauseReason: "NONE", version: "0" };
+    };
+  }
+  setConnected(value) {
+    this.connected = value;
+    if (value) {
+      this.explicitPhase = void 0;
+    }
+    this._onDidChangeConnection.fire(this.getConnectionSnapshot());
+  }
+  /** One snapshot: identity, link id, and connected flag change together. */
+  setPublishedLink(engineIdentityId, linkId, connected) {
+    this.publishedEngineIdentityId = engineIdentityId && engineIdentityId.length > 0 ? engineIdentityId : void 0;
+    this.publishedLinkId = typeof linkId === "number" && linkId > 0 ? linkId : void 0;
+    this.connected = connected;
+    this._onDidChangeConnection.fire(this.getConnectionSnapshot());
+  }
+  setPairingPending(value) {
+    this.pairingPending = value;
+    if (!value) {
+      this.explicitPhase = void 0;
+    }
+    this._onDidChangeConnection.fire(this.getConnectionSnapshot());
+  }
+  /** Production pairing snapshot: connecting phase + pairingPending, not engine-connected. */
+  setPairingConnectingPhase(reason = "initial") {
+    this.pairingPending = true;
+    this.connected = false;
+    this.explicitPhase = { kind: "connecting", reason };
+    this._onDidChangeConnection.fire(this.getConnectionSnapshot());
+  }
+  setListSessions(sessions) {
+    this.sessions = sessions;
+  }
+  isEngineConnected() {
+    return this.connected && !this.pairingPending;
+  }
+  getTransportState() {
+    return "ok";
+  }
+  getConnectionPhase() {
+    if (this.explicitPhase) {
+      return this.explicitPhase;
+    }
+    return this.connected ? { kind: "connected", path: "loopback" } : { kind: "disconnected" };
+  }
+  getConnectionSnapshot() {
+    return {
+      transport: "ok",
+      authenticated: this.connected,
+      pairingPending: this.pairingPending,
+      channelAlive: this.connected,
+      sharedFsRootSent: false,
+      capabilities: {},
+      ...this.getQueue ? { conversationEntryCapability: { ...createUnknownConversationEntryCapability(), getQueue: "SUPPORTED" } } : {},
+      ...this.publishedEngineIdentityId ? { engineIdentityId: this.publishedEngineIdentityId } : {},
+      ...this.publishedLinkId !== void 0 ? { linkId: this.publishedLinkId } : {}
+    };
+  }
+  getCapabilitySnapshot() {
+    return this.getConnectionSnapshot().capabilities;
+  }
+  requestAgentTreeRefresh(sessionId) {
+    this.treeRefreshCalls.push(sessionId ?? "");
+  }
+  getNavigatorCapability() {
+    return "UNKNOWN";
+  }
+  isAgentTreeFetchFailed() {
+    return false;
+  }
+  async connect() {
+    return { methods: [], events: [], sessionToken: "tok" };
+  }
+  async connectProfile() {
+    return { ok: false, code: "transport_failed", reason: "stub" };
+  }
+  async confirmPairing() {
+    return { ok: false, code: "transport_failed", reason: "stub" };
+  }
+  async cancelPairing() {
+  }
+  async probeConnectionProfile() {
+    return { ok: false, code: "transport_failed", reason: "stub" };
+  }
+  async disconnect() {
+    this.setConnected(false);
+  }
+  async listSessions() {
+    this.listSessionsCalls.push({});
+    if (this.listSessionsError) {
+      throw this.listSessionsError;
+    }
+    return {
+      sessions: this.sessions.map((s) => ({
+        sessionId: s.sessionId,
+        title: s.title,
+        ...s.workDir ? { workDir: s.workDir } : {}
+      }))
+    };
+  }
+  async createSession(request) {
+    this.createCalls.push({ title: request.title, clientSessionId: request.clientSessionId });
+    if (this.createSessionError) {
+      throw this.createSessionError;
+    }
+    return this.createSessionResult;
+  }
+  async deleteSession(request) {
+    this.deleteCalls.push({ sessionId: request.sessionId });
+    if (this.deleteSessionGate) {
+      await this.deleteSessionGate;
+    }
+    if (this.deleteError) {
+      throw this.deleteError;
+    }
+  }
+  async renameSession(request) {
+    this.renameCalls.push({ sessionId: request.sessionId, title: request.title });
+    if (this.renameError) {
+      throw this.renameError;
+    }
+    return this.renameResult;
+  }
+  async resolveWriteResult(success) {
+    if (this.writePending) {
+      return this.writePending;
+    }
+    if (this.writeError) {
+      throw this.writeError;
+    }
+    if (this.writeResult.ok === false) {
+      return this.writeResult;
+    }
+    return success;
+  }
+  async cancelGeneration(request) {
+    this.cancelCalls.push({ sessionId: request.sessionId, agentId: request.agentId });
+    return this.resolveWriteResult({ ok: true });
+  }
+  async setSessionGoal(request) {
+    this.setGoalCalls.push({ sessionId: request.sessionId, goal: request.goal });
+    if (this.setGoalError) {
+      throw this.setGoalError;
+    }
+    return this.setGoalResult;
+  }
+  async cancelSessionGoal(request) {
+    this.cancelGoalCalls.push({ sessionId: request.sessionId });
+    if (this.cancelGoalError) {
+      throw this.cancelGoalError;
+    }
+    return this.cancelGoalResult;
+  }
+  async forkAgent(request) {
+    this.forkCalls.push({
+      sessionId: request.sessionId,
+      parentAgentId: request.parentAgentId,
+      name: request.name,
+      task: request.task
+    });
+    return this.resolveWriteResult({ ok: true, agentId: "sub:reviewer" });
+  }
+  async createSnapshot(request) {
+    this.createSnapshotCalls.push({
+      sessionId: request.sessionId,
+      title: request.title,
+      description: request.description
+    });
+    return this.resolveWriteResult({ ok: true });
+  }
+  async killAgent(request) {
+    this.killCalls.push({
+      sessionId: request.sessionId,
+      agentId: request.agentId,
+      force: request.force
+    });
+    return this.resolveWriteResult({ ok: true });
+  }
+  async editMessage(request) {
+    this.editMessageCalls.push({
+      sessionId: request.sessionId,
+      turnId: request.turnId,
+      newContent: request.newContent,
+      agentId: request.agentId
+    });
+    return this.resolveWriteResult({ ok: true });
+  }
+  async cancelToolCall(request) {
+    this.cancelToolCallCalls.push({
+      sessionId: request.sessionId,
+      agentId: request.agentId,
+      toolCallId: request.toolCallId
+    });
+    return this.resolveWriteResult({ ok: true });
+  }
+  openContinuationStream(request) {
+    this.continuationOpens.push({
+      sessionId: request.sessionId,
+      agentId: request.agentId,
+      turnId: request.turnId,
+      messageId: request.messageId
+    });
+    return { dispose: () => {
+    } };
+  }
+  async deleteMessage(request) {
+    this.deleteMessageCalls.push({
+      sessionId: request.sessionId,
+      turnId: request.turnId,
+      agentId: request.agentId
+    });
+    return this.resolveWriteResult({ ok: true });
+  }
+  async respondPermission(request) {
+    this.respondPermissionCalls.push({
+      sessionId: request.sessionId,
+      requestId: request.requestId,
+      granted: request.granted
+    });
+    return this.resolveWriteResult({ ok: true });
+  }
+  async sendClientToolResponse(request) {
+    this.sendClientToolResponseCalls.push({
+      sessionId: request.sessionId,
+      callId: request.callId,
+      content: request.content,
+      isError: request.isError,
+      metadataJson: request.metadataJson
+    });
+    return this.resolveWriteResult({ ok: true });
+  }
+  async respondQuestion(request) {
+    this.respondQuestionCalls.push({
+      sessionId: request.sessionId,
+      questionId: request.questionId,
+      answers: request.answers,
+      customText: request.customText
+    });
+    return this.resolveWriteResult({ ok: true });
+  }
+  async resolveQueueMutation() {
+    if (this.queueError) {
+      throw this.queueError;
+    }
+    return this.queueResult;
+  }
+  async enqueueQueueItem(request) {
+    this.enqueueCalls.push({
+      sessionId: request.sessionId,
+      text: request.text,
+      priority: request.priority,
+      opId: request.opId
+    });
+    return this.resolveQueueMutation();
+  }
+  async pauseQueue(request) {
+    this.pauseQueueCalls.push({ sessionId: request.sessionId });
+    return this.resolveQueueMutation();
+  }
+  async resumeQueue(request) {
+    this.resumeQueueCalls.push({ sessionId: request.sessionId });
+    return this.resolveQueueMutation();
+  }
+  async clearQueue(request) {
+    this.clearQueueCalls.push({ sessionId: request.sessionId });
+    return this.resolveQueueMutation();
+  }
+  async holdQueueItem(request) {
+    this.holdQueueCalls.push({ sessionId: request.sessionId, itemId: request.itemId, reason: request.reason });
+    return this.resolveQueueMutation();
+  }
+  async releaseQueueItemHold(request) {
+    this.releaseQueueCalls.push({ sessionId: request.sessionId, itemId: request.itemId });
+    return this.resolveQueueMutation();
+  }
+  async editQueueItem(request) {
+    this.editQueueCalls.push({ sessionId: request.sessionId, itemId: request.itemId, text: request.text });
+    return this.resolveQueueMutation();
+  }
+  async retryQueueItem(request) {
+    this.retryQueueItemCalls.push({ sessionId: request.sessionId, itemId: request.itemId });
+    return this.resolveQueueMutation();
+  }
+  async retryQueueItemUpload(request) {
+    this.retryQueueItemUploadCalls.push({ sessionId: request.sessionId, itemId: request.itemId });
+    return this.resolveQueueMutation();
+  }
+  async getHistory() {
+    return { envelopes: [] };
+  }
+  subscribeSessionEventStream(_sessionId, _listener, _onClosed) {
+    return { dispose: () => {
+    } };
+  }
+  async chat() {
+  }
+  async listSkills() {
+    return { skills: [] };
+  }
+  async setSkillEnabled() {
+    return { ok: true };
+  }
+  async getSkillInfo() {
+    return { name: "", content: "", source: "unknown", enabled: false };
+  }
+  async listAgentProfiles() {
+    return { profiles: [] };
+  }
+  async saveAgentProfile(request) {
+    return { profile: request.profile };
+  }
+  async deleteAgentProfile() {
+    return { ok: true };
+  }
+  async resetAgentProfile() {
+    return { ok: true };
+  }
+  async listMcpServers() {
+    return { servers: [] };
+  }
+  async getMcpServerStatuses() {
+    return { statuses: [] };
+  }
+  async getMcpServerTools() {
+    return { tools: [] };
+  }
+  async listPlugins() {
+    return { plugins: [] };
+  }
+  async getPluginInfo() {
+    return { summary: { id: "", displayName: "", version: "", source: "", hookCount: 0, status: "unknown" }, hooks: [] };
+  }
+  async enablePlugin() {
+    return { plugin: { id: "", displayName: "", version: "", source: "", hookCount: 0, status: "unknown" } };
+  }
+  async reloadPlugin() {
+    return { plugin: { id: "", displayName: "", version: "", source: "", hookCount: 0, status: "unknown" } };
+  }
+  async unloadPlugin() {
+    return { removedHookCount: 0 };
+  }
+  async scanNewPlugins() {
+    return { newPlugins: [], skippedCount: 0 };
+  }
+  async toggleMcpServer() {
+    return { ok: true };
+  }
+  async addMcpServer() {
+    return { ok: true };
+  }
+  async updateMcpServer() {
+    return { ok: true };
+  }
+  async removeMcpServer() {
+    return { ok: true };
+  }
+  async listTools() {
+    return { tools: [] };
+  }
+  async listModels() {
+    return { models: [] };
+  }
+  async probeEngine() {
+    return { ok: false, reason: "stub" };
+  }
+}
+class MockUniverseAgentSessionView {
+  constructor() {
+    this.postCalls = [];
+  }
+  onDynamicDidApplyFrame(_leaseId) {
+    return Event.None;
+  }
+  async acquireLease(sessionId) {
+    return `lease:${sessionId}`;
+  }
+  async whenEngineSessionReady(sessionId) {
+    return sessionId;
+  }
+  async releaseLease() {
+  }
+  async post(leaseId, msg) {
+    this.postCalls.push({ leaseId, msg });
+    return { accepted: true, correlation: { id: "mock" } };
+  }
+  async requestResync() {
+  }
+  async acknowledge() {
+  }
+  async requestDetail() {
+    return { ok: false, reason: "unavailable" };
+  }
+}
+const LEFTOVER_CACHE_TURN_TEXT = "leftover-cached-turn";
+const LEFTOVER_PENDING_REQUEST_ID = "p-leftover";
+const LEFTOVER_ENGINE_SYNC = { kind: "closed", reason: "leftover-engine-sync" };
+class LeftoverProjectionSessionView extends Disposable {
+  constructor(leftoverSync = { kind: "idle" }) {
+    super();
+    this.leftoverSync = leftoverSync;
+    this.postCalls = [];
+    this.leaseSeq = 0;
+    this.leaseSessions = /* @__PURE__ */ new Map();
+    this.emitters = /* @__PURE__ */ new Map();
+  }
+  onDynamicDidApplyFrame(leaseId) {
+    let emitter = this.emitters.get(leaseId);
+    if (!emitter) {
+      emitter = this._register(new Emitter({
+        onDidAddFirstListener: () => {
+          queueMicrotask(() => this.emitLeftover(leaseId));
+        }
+      }));
+      this.emitters.set(leaseId, emitter);
+    }
+    return emitter.event;
+  }
+  async acquireLease(sessionId) {
+    const leaseId = `lease:${sessionId}:${++this.leaseSeq}`;
+    this.leaseSessions.set(leaseId, sessionId);
+    return leaseId;
+  }
+  async whenEngineSessionReady(sessionId) {
+    return sessionId;
+  }
+  async releaseLease() {
+  }
+  async post(leaseId, msg) {
+    this.postCalls.push({ leaseId, msg });
+    return { accepted: true, correlation: { id: "mock" } };
+  }
+  async requestResync() {
+  }
+  async acknowledge() {
+  }
+  async requestDetail() {
+    return { ok: false, reason: "unavailable" };
+  }
+  emitLeftover(leaseId) {
+    const emitter = this.emitters.get(leaseId);
+    if (!emitter) {
+      return;
+    }
+    const sessionId = this.leaseSessions.get(leaseId) ?? (leaseId.startsWith("lease:") ? leaseId.slice("lease:".length) : leaseId);
+    const projection = stubTurnsToSnapshot(sessionId, [
+      { id: "u-leftover", kind: "user", text: LEFTOVER_CACHE_TURN_TEXT },
+      { id: LEFTOVER_PENDING_REQUEST_ID, kind: "confirmation", text: "leftover-pending", status: "pending" }
+    ]);
+    emitter.fire({
+      leaseId,
+      sessionId,
+      applied: { kind: "baseline" },
+      frame: {
+        frame: {
+          leaseId,
+          generation: 1,
+          frameId: 1,
+          version: 1,
+          body: { kind: "baseline", snapshot: { ...projection.snapshot, sync: this.leftoverSync } }
+        },
+        attribution: [...projection.attribution.entries()].map(([itemId, attribution]) => ({
+          op: "upsertAttribution",
+          itemId,
+          attribution
+        }))
+      }
+    });
+  }
+}
+class BaselineProjectionSessionView extends Disposable {
+  constructor(snapshotFor) {
+    super();
+    this.snapshotFor = snapshotFor;
+    this.postCalls = [];
+    this.acknowledgeCalls = [];
+    this.frameCursors = /* @__PURE__ */ new Map();
+    this.leaseSeq = 0;
+    this.leaseSessions = /* @__PURE__ */ new Map();
+    this.emitters = /* @__PURE__ */ new Map();
+  }
+  onDynamicDidApplyFrame(leaseId) {
+    let emitter = this.emitters.get(leaseId);
+    if (!emitter) {
+      emitter = this._register(new Emitter({
+        onDidAddFirstListener: () => {
+          queueMicrotask(() => this.emitBaseline(leaseId));
+        }
+      }));
+      this.emitters.set(leaseId, emitter);
+    }
+    return emitter.event;
+  }
+  async acquireLease(sessionId) {
+    const leaseId = `lease:${sessionId}:${++this.leaseSeq}`;
+    this.leaseSessions.set(leaseId, sessionId);
+    return leaseId;
+  }
+  async whenEngineSessionReady(sessionId) {
+    return sessionId;
+  }
+  async releaseLease() {
+  }
+  async post(leaseId, msg) {
+    this.postCalls.push({ leaseId, msg });
+    return { accepted: true, correlation: { id: "mock" } };
+  }
+  async requestResync() {
+  }
+  async acknowledge(_leaseId, ack) {
+    this.acknowledgeCalls.push(ack);
+  }
+  async requestDetail() {
+    return { ok: false, reason: "unavailable" };
+  }
+  emitPatches(sessionId, patches) {
+    for (const [leaseId, heldSessionId] of this.leaseSessions) {
+      const cursor = this.frameCursors.get(leaseId);
+      if (heldSessionId !== sessionId || !cursor) {
+        continue;
+      }
+      cursor.frameId++;
+      cursor.version++;
+      this.emitters.get(leaseId)?.fire({
+        leaseId,
+        sessionId,
+        applied: { kind: "patches", changedIds: /* @__PURE__ */ new Set(["sync"]) },
+        frame: { frame: { leaseId, ...cursor, body: { kind: "patches", patches } } }
+      });
+    }
+  }
+  emitGeneration(snapshot, generation) {
+    for (const [leaseId, sessionId] of this.leaseSessions) {
+      if (sessionId !== String(snapshot.sessionId)) {
+        continue;
+      }
+      const previous = this.frameCursors.get(leaseId);
+      const cursor = { generation, frameId: previous?.generation === generation ? previous.frameId + 1 : 1, version: previous?.generation === generation ? previous.version + 1 : 1 };
+      this.frameCursors.set(leaseId, cursor);
+      this.emitters.get(leaseId)?.fire({
+        leaseId,
+        sessionId,
+        applied: { kind: "baseline" },
+        frame: { frame: { leaseId, ...cursor, body: { kind: "baseline", snapshot } } }
+      });
+    }
+  }
+  emitBaseline(leaseId) {
+    const emitter = this.emitters.get(leaseId);
+    if (!emitter) {
+      return;
+    }
+    const sessionId = this.leaseSessions.get(leaseId) ?? "ua-only";
+    this.frameCursors.set(leaseId, { generation: 1, frameId: 1, version: 1 });
+    emitter.fire({
+      leaseId,
+      sessionId,
+      applied: { kind: "baseline" },
+      frame: {
+        frame: {
+          leaseId,
+          generation: 1,
+          frameId: 1,
+          version: 1,
+          body: { kind: "baseline", snapshot: this.snapshotFor(sessionId) }
+        }
+      }
+    });
+  }
+}
+function permissionAwaitingDecision(id, title) {
+  const requestId = id;
+  const summary = { kind: "permission", title, permissionKind: "shell" };
+  return {
+    item: {
+      id: requestId,
+      orderKey: id,
+      summary
+    },
+    pending: { requestId, summary }
+  };
+}
+function enginePermissionSnapshot(sessionId) {
+  const allow = permissionAwaitingDecision("req-allow", "Run tests?");
+  const deny = permissionAwaitingDecision("req-deny", "Delete build?");
+  return {
+    sessionId,
+    sync: { kind: "idle" },
+    timeline: [allow.item, deny.item],
+    overlay: { blocks: [] },
+    pendingActions: [allow.pending, deny.pending],
+    localPendingSends: []
+  };
+}
+function engineQuestionSnapshot(sessionId) {
+  const requestId = "q-ask";
+  return {
+    sessionId,
+    sync: { kind: "idle" },
+    timeline: [],
+    overlay: { blocks: [] },
+    pendingActions: [{
+      requestId,
+      summary: {
+        kind: "question",
+        title: "Pick one",
+        items: [{ id: "itemA", title: "A", optionsPreview: ["yes", "no"] }],
+        answerKeysValid: true,
+        optionsPreview: ["yes", "no"]
+      }
+    }],
+    localPendingSends: []
+  };
+}
+async function acquireEngineBaseline(store, snapshotFor, setConnectedOverride = true, storage) {
+  const connection = store.add(new MockUniverseAgentConnection());
+  const sessionView = store.add(new BaselineProjectionSessionView(snapshotFor));
+  connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+  const service = store.add(createService(connection, storage, sessionView));
+  connection.setConnected(true);
+  if (setConnectedOverride) {
+    service.setEngineConnected(true);
+  }
+  await awaitEngineCatalogRefresh(service);
+  const lease = store.add(service.acquireSessionView("ua-only"));
+  assert.ok(await lease.whenBindReady?.());
+  await timeout(0);
+  return { service, connection, sessionView, lease };
+}
+function responseRecoverySnapshot(sessionId) {
+  const permission = enginePermissionSnapshot(sessionId);
+  const question = {
+    requestId: "q-ask",
+    summary: { kind: "question", title: "Pick answers", answerKeysValid: true, items: [
+      { id: "radio", title: "Choice", optionsPreview: ["first", "second"] },
+      { id: "checks", title: "Several", optionsPreview: ["x", "y"], multiSelect: true },
+      { id: "custom", title: "Details", optionsPreview: [], allowCustom: true }
+    ] }
+  };
+  const tool = {
+    requestId: "call-ask",
+    summary: { kind: "tool", title: "Client response", toolName: "client-answer", status: "pending", respondable: true, argPreview: "{}" }
+  };
+  return {
+    ...permission,
+    timeline: [
+      ...permission.timeline,
+      { id: "q-ask:row", orderKey: "q", summary: question.summary },
+      { id: "call-ask", orderKey: "z", summary: tool.summary }
+    ],
+    pendingActions: [...permission.pendingActions, question, tool]
+  };
+}
+function responseRecoveryHost(store, service, lease) {
+  const instantiation = workbenchInstantiationService(void 0, store);
+  instantiation.stub(IWebviewService, {
+    _serviceBrand: void 0,
+    activeWebview: void 0,
+    webviews: [],
+    onDidChangeActiveWebview: Event.None,
+    createWebviewOverlay: () => {
+      throw new Error("No webview in response recovery");
+    },
+    createWebviewElement: () => {
+      throw new Error("No webview in response recovery");
+    }
+  });
+  const parent = document.createElement("div");
+  document.body.appendChild(parent);
+  store.add(toDisposable(() => parent.remove()));
+  const host = store.add(instantiation.createInstance(ConversationTimelineHost, parent, {
+    getResponseProjection: () => lease.responseProjection,
+    onResolveConfirmation: (id, status) => service.resolveConfirmation(lease.sessionId, id, status),
+    onQuestionRespond: (_id, requestId, answers, customText) => service.respondQuestion(lease.sessionId, requestId, answers, customText),
+    onRespondClientTool: (turn) => service.respondClientTool(lease.sessionId, turn.id, { content: "client result" }),
+    contentAdapter: { renderTurnBody: (turn, container) => {
+      container.textContent = turn.text;
+      return Disposable.None;
+    } },
+    showLiveChrome: () => true
+  }));
+  const cache = createConversationProjectionCache();
+  const apply = (event) => host.applyEntries(projectSnapshotToEntries(
+    lease.snapshot,
+    lease.attribution,
+    lease.details,
+    void 0,
+    cache,
+    lease.respondFailures,
+    { responseProjection: lease.responseProjection }
+  ), event);
+  store.add(lease.onDidApplyFrame(apply));
+  apply({ kind: "baseline" });
+  host.revealTurn("call-ask");
+  return host;
+}
+function recoveryAction(host, kind) {
+  const selector = kind === "permission" ? '[data-turn-id="req-allow"] .conversation-lens-confirmation-actions .monaco-button' : kind === "question" ? '[data-turn-id="q-ask:row"] .conversation-lens-question-actions .monaco-button' : ".conversation-process-fold-tool-respond";
+  const action = host.domNode.querySelector(selector);
+  assert.ok(action, `${kind} response control must exist`);
+  return action;
+}
+function responseSeatRoute(store, service, connection, initialLease) {
+  const failures = [];
+  const posted = [];
+  const focused = [];
+  const route = {
+    isDisposed: false,
+    stubService: service,
+    uaConnection: connection,
+    sessionViewLease: initialLease,
+    getBoundSessionId: () => initialLease.sessionId,
+    showPostFailure: (reason) => failures.push(reason),
+    focusTimelineRecord: (id) => focused.push(id),
+    postBound: (message) => {
+      posted.push(message);
+      return postBound(route, message);
+    }
+  };
+  const binding = route;
+  let settled = Promise.resolve();
+  const instantiation = workbenchInstantiationService(void 0, store);
+  instantiation.stub(IWebviewService, {
+    _serviceBrand: void 0,
+    activeWebview: void 0,
+    webviews: [],
+    onDidChangeActiveWebview: Event.None,
+    createWebviewOverlay: () => {
+      throw new Error("No webview in response seat route");
+    },
+    createWebviewElement: () => {
+      throw new Error("No webview in response seat route");
+    }
+  });
+  const parent = document.createElement("div");
+  document.body.appendChild(parent);
+  store.add(toDisposable(() => parent.remove()));
+  const timeline = store.add(instantiation.createInstance(ConversationTimelineHost, parent, {
+    getResponseProjection: () => route.sessionViewLease.responseProjection,
+    writesEnabled: () => isReadingColumnWritesEnabled(route),
+    showLiveChrome: () => service.isEngineConnected(),
+    onResolveConfirmation: (id, status) => {
+      settled = resolveConfirmation(binding, id, status);
+    },
+    onQuestionRespond: (id, requestId, answers, customText) => {
+      settled = resolveQuestion(binding, id, requestId, answers, customText);
+    },
+    onRespondClientTool: (turn) => respondClientTool(binding, turn),
+    contentAdapter: { renderTurnBody: (turn, container) => {
+      container.textContent = turn.text;
+      return Disposable.None;
+    } }
+  }));
+  const lifetime = store.add(new DisposableStore());
+  const apply = (event) => {
+    const lease = route.sessionViewLease;
+    timeline.applyEntries(projectSnapshotToEntries(
+      lease.snapshot,
+      lease.attribution,
+      lease.details,
+      void 0,
+      void 0,
+      lease.respondFailures,
+      { responseProjection: lease.responseProjection }
+    ), event);
+  };
+  const rebind = (lease, paint = true) => {
+    lifetime.clear();
+    route.sessionViewLease = lease;
+    lifetime.add(lease.onDidApplyFrame(apply));
+    if (paint) {
+      apply({ kind: "baseline" });
+      timeline.refreshPresentation();
+    }
+  };
+  rebind(initialLease);
+  return { timeline, route, binding, failures, posted, focused, rebind, whenSettled: () => settled };
+}
+async function disconnectedResponseSeat(store) {
+  const live = await acquireEngineBaseline(store, responseRecoverySnapshot, false, store.add(new TestStorageService()));
+  live.connection.setConnected(false);
+  assert.strictEqual(live.service.isEngineConnected(), false);
+  assert.strictEqual(live.service.hasEngineConnectionHistory(), true);
+  assert.strictEqual(live.service.getSessionSource("ua-only"), "engine-cache");
+  const cachedLease = store.add(live.service.acquireSessionView("ua-only"));
+  assert.ok(cachedLease.snapshot.pendingActions.some((action) => action.requestId === "req-allow"));
+  assert.strictEqual(live.service.getTurns("ua-only").find((turn) => turn.id === "req-allow")?.status, "pending");
+  return { ...live, cachedLease };
+}
+function chooseRecoveryAnswers(host) {
+  host.domNode.querySelectorAll('[data-turn-id="q-ask:row"] [role="radio"]')[1].click();
+  host.domNode.querySelectorAll('[data-turn-id="q-ask:row"] [role="checkbox"]')[1].click();
+  const input = host.domNode.querySelector(".conversation-lens-question-custom");
+  assert.ok(input);
+  input.value = "keep this answer";
+  input.dispatchEvent(new UIEvent("input", { bubbles: true }));
+}
+function createSessionViewMock(overrides = {}) {
+  return {
+    _serviceBrand: void 0,
+    onDynamicDidApplyFrame: () => Event.None,
+    acquireLease: async (sessionId) => `lease:${sessionId}`,
+    whenEngineSessionReady: async (sessionId) => sessionId,
+    releaseLease: async () => {
+    },
+    post: async () => ({ accepted: true, correlation: { id: "mock" } }),
+    requestResync: async () => {
+    },
+    acknowledge: async () => {
+    },
+    requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+    ...overrides
+  };
+}
+function createService(connection, storage, sessionView = new MockUniverseAgentSessionView()) {
+  const workspaceToolsGate = {
+    _serviceBrand: void 0,
+    shouldAdvertise: () => true
+  };
+  return new ConversationEngineRosterService(
+    connection,
+    sessionView,
+    workspaceToolsGate,
+    storage
+  );
+}
+async function awaitEngineCatalogRefresh(service) {
+  await service.whenEngineCatalogRefreshComplete();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+function stubCachedProjection(service, sessionId, projection) {
+  const frameSource = service.engineFrameSource;
+  const original = frameSource.getCachedProjection.bind(frameSource);
+  frameSource.getCachedProjection = (id) => id === sessionId ? projection : original(id);
+}
+function projectionWithStreamingAgent(sessionId, agentId) {
+  const base = stubTurnsToSnapshot(sessionId, [
+    { id: "u1", kind: "user", text: "hi" },
+    { id: "a-old", kind: "assistant", text: "old stream" },
+    { id: "a-live", kind: "assistant", text: "live stream" }
+  ]);
+  return {
+    snapshot: {
+      ...base.snapshot,
+      timeline: base.snapshot.timeline.map((item) => {
+        if (item.summary.kind !== "text" || String(item.id) !== "a-old" && String(item.id) !== "a-live") {
+          return item;
+        }
+        return { ...item, summary: { ...item.summary, streaming: true } };
+      })
+    },
+    attribution: /* @__PURE__ */ new Map([
+      ["u1", { role: "user" }],
+      ["a-old", { role: "assistant", agentId: "sub:old" }],
+      ["a-live", { role: "assistant", agentId }]
+    ]),
+    details: base.details
+  };
+}
+async function assertWarnThenRethrowDoesNotLeak(paintBoom, run) {
+  const unexpectedWarns = [];
+  const unhandledRejections = [];
+  const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+  process.on("unhandledRejection", onUnhandledRejection);
+  const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+  setUnexpectedErrorHandler((error) => {
+    unexpectedWarns.push(error);
+    if (unexpectedWarns.length === 1) {
+      throw error;
+    }
+  });
+  try {
+    await run();
+    await timeout(0);
+    assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+      unhandledRejections: [],
+      unexpectedWarns: [paintBoom, paintBoom]
+    });
+  } finally {
+    setUnexpectedErrorHandler(originalErrorHandler);
+    process.off("unhandledRejection", onUnhandledRejection);
+  }
+}
+suite("ConversationEngineRosterService (M6-A2)", () => {
+  const store = ensureNoDisposablesAreLeakedInTestSuite();
+  test("appendStubEchoAssistant is rejected while engine connected", () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const service = store.add(createService(connection));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    assert.throws(
+      () => service.appendStubEchoAssistant("ua-1", "nope"),
+      /appendStubEchoAssistant is forbidden/
+    );
+  });
+  test("unconnected path still uses stub frame source with stub echo", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const service = store.add(createService(connection));
+    const sessionId = service.getActiveSessionId();
+    const lease = store.add(service.acquireSessionView(sessionId));
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.ok(service.getTurns(sessionId).length > 0, "never-connected seed turns stay readable");
+    const before = service.getTurns(sessionId).length;
+    const outcome = await lease.post({ kind: "submitInput", text: "hello stub" });
+    assert.strictEqual(outcome.accepted, true);
+    assert.ok(service.getSessions().some((s) => s.id === "untitled"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.ok(service.getTurns(sessionId).length > before);
+    assert.ok(service.getTurns(sessionId).some((turn) => turn.text === "hello stub"));
+  });
+  test("connected deleteSession last entry does not refill stub seeds", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.getSessions().length, 1);
+    assert.strictEqual(service.getSessions()[0].id, "ua-only");
+    assert.strictEqual(service.deleteSession("ua-only"), true);
+    assert.strictEqual(service.getSessions().length, 1);
+    assert.strictEqual(service.getSessions()[0].id, ENGINE_BIND_FAILED_SESSION_ID);
+    assert.ok(!service.getSessions().some((s) => s.id === "untitled" || s.id === "visualize"));
+    assert.strictEqual(service.isEngineSessionReady(), false);
+  });
+  test("disconnected after engine deleteSession still avoids stub seed refill", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    service.switchSession("ua-a");
+    assert.strictEqual(service.deleteSession("ua-a"), true);
+    assert.strictEqual(service.deleteSession("ua-b"), true);
+    assert.strictEqual(service.getSessions().length, 0);
+    assert.ok(!service.getSessions().some((s) => s.id === "untitled"));
+  });
+  test("connected deleteSession last entry remote throw rolls back roster and bind-failed empty-state", async () => {
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const storage = store.add(new TestStorageService());
+      const connection = store.add(new MockUniverseAgentConnection());
+      connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+      const service = store.add(createService(connection, storage));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.setSessionGoal("ua-only", "Keep this goal"), true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.getSessionGoal("ua-only"), "Keep this goal");
+      assert.strictEqual(service.getActiveSessionId(), "ua-only");
+      connection.deleteError = new Error("boom");
+      assert.strictEqual(service.deleteSession("ua-only"), true);
+      assert.strictEqual(service.getSessions()[0].id, ENGINE_BIND_FAILED_SESSION_ID);
+      assert.strictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+      assert.strictEqual(service.getSessionGoal("ua-only"), void 0);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.getSessions().length, 1);
+      assert.strictEqual(service.getSessions()[0].id, "ua-only");
+      assert.strictEqual(service.getSessions()[0].title, "Only UA");
+      assert.strictEqual(service.getActiveSessionId(), "ua-only");
+      assert.strictEqual(service.getSessionGoal("ua-only"), "Keep this goal");
+      assert.strictEqual(service.isEngineSessionReady(), true);
+      const stored = JSON.parse(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? "{}");
+      assert.ok(stored.engineCache?.sessions.some((session) => session.id === "ua-only"));
+      assert.deepStrictEqual(unhandledRejections, []);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("connected deleteSession last entry persists an empty engine bucket after the unary resolves", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = store.add(new LeftoverProjectionSessionView());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    connection.setPublishedLink("engine-gone", 7, true);
+    const service = store.add(createService(connection, storage, sessionView));
+    await awaitEngineCatalogRefresh(service);
+    const lease = store.add(service.acquireSessionView("ua-only"));
+    assert.ok(await lease.whenBindReady?.());
+    await timeout(0);
+    assert.ok(service.getTurns("ua-only").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    service.switchSession("ua-only");
+    const readBucket = () => {
+      const stored = JSON.parse(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? "{}");
+      return stored.engineCaches?.["engine-gone"];
+    };
+    const before = readBucket();
+    assert.strictEqual(before?.sessions[0]?.id, "ua-only");
+    assert.ok(JSON.stringify(before).includes(LEFTOVER_CACHE_TURN_TEXT));
+    let releaseDelete;
+    connection.deleteSessionGate = new Promise((resolve) => {
+      releaseDelete = resolve;
+    });
+    assert.strictEqual(service.deleteSession("ua-only"), true);
+    assert.strictEqual(service.getSessions()[0]?.id, ENGINE_BIND_FAILED_SESSION_ID);
+    assert.strictEqual(readBucket()?.sessions[0]?.id, "ua-only");
+    releaseDelete();
+    await timeout(0);
+    assert.deepStrictEqual(readBucket()?.sessions, []);
+    const coldConnection = store.add(new MockUniverseAgentConnection());
+    const cold = store.add(createService(coldConnection, storage));
+    assert.ok(!cold.getSessions().some((session) => session.id === "ua-only"));
+    assert.ok(!cold.getTurns("ua-only").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    coldConnection.setPublishedLink("engine-other", 8, false);
+    assert.ok(!cold.getSessions().some((session) => session.id === "ua-only"));
+    assert.ok(!cold.getTurns("ua-only").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    coldConnection.setPublishedLink("engine-gone", 7, false);
+    assert.ok(!cold.getSessions().some((session) => session.id === "ua-only"));
+    assert.ok(!cold.getTurns("ua-only").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    assert.deepStrictEqual(readBucket()?.sessions, []);
+  });
+  test("connected deleteSession mid-list remote throw restores row index and active", async () => {
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const storage = store.add(new TestStorageService());
+      const connection = store.add(new MockUniverseAgentConnection());
+      connection.setListSessions([
+        { sessionId: "ua-a", title: "A" },
+        { sessionId: "ua-b", title: "B" },
+        { sessionId: "ua-c", title: "C" }
+      ]);
+      const service = store.add(createService(connection, storage));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      service.switchSession("ua-b");
+      assert.strictEqual(service.setSessionGoal("ua-b", "Mid goal"), true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.getActiveSessionId(), "ua-b");
+      assert.strictEqual(service.getSessionGoal("ua-b"), "Mid goal");
+      connection.deleteError = new Error("boom");
+      assert.strictEqual(service.deleteSession("ua-b"), true);
+      assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-c"]);
+      assert.strictEqual(service.getActiveSessionId(), "ua-c");
+      assert.strictEqual(service.getSessionGoal("ua-b"), void 0);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-b", "ua-c"]);
+      assert.strictEqual(service.getSessions()[1].title, "B");
+      assert.strictEqual(service.getActiveSessionId(), "ua-b");
+      assert.strictEqual(service.getSessionGoal("ua-b"), "Mid goal");
+      assert.deepStrictEqual(unhandledRejections, []);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("connected deleteSession fires onDidDeleteSession only after that unary resolves", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    let releaseDelete;
+    connection.deleteSessionGate = new Promise((resolve) => {
+      releaseDelete = resolve;
+    });
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" },
+      { sessionId: "ua-c", title: "C" }
+    ]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await timeout(0);
+    const deleted = [];
+    store.add(service.onDidDeleteSession((id) => deleted.push(id)));
+    service.switchSession("ua-b");
+    let stealActiveChange = false;
+    store.add(service.onDidChangeActiveSession(() => {
+      if (!stealActiveChange) {
+        return;
+      }
+      stealActiveChange = false;
+      service.renameSession("ua-a", "Steal");
+    }));
+    stealActiveChange = true;
+    assert.strictEqual(service.deleteSession("ua-b"), true);
+    assert.deepStrictEqual(deleted, []);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-c"]);
+    assert.strictEqual(service.getSessions().find((session) => session.id === "ua-a")?.title, "Steal");
+    assert.strictEqual(connection.deleteCalls.length, 1);
+    assert.strictEqual(connection.renameCalls.length, 1);
+    await timeout(0);
+    assert.deepStrictEqual(deleted, []);
+    releaseDelete();
+    await timeout(0);
+    assert.deepStrictEqual(deleted, ["ua-b"]);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-c"]);
+  });
+  test("connected deleteSession remote throw does not fire onDidDeleteSession and rolls the row back", async () => {
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const storage = store.add(new TestStorageService());
+      const connection = store.add(new MockUniverseAgentConnection());
+      connection.setListSessions([
+        { sessionId: "ua-a", title: "A" },
+        { sessionId: "ua-b", title: "B" },
+        { sessionId: "ua-c", title: "C" }
+      ]);
+      const service = store.add(createService(connection, storage));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await timeout(0);
+      const deleted = [];
+      store.add(service.onDidDeleteSession((id) => deleted.push(id)));
+      service.switchSession("ua-b");
+      assert.strictEqual(service.setSessionGoal("ua-b", "Mid goal"), true);
+      await timeout(0);
+      connection.deleteError = new Error("boom");
+      assert.strictEqual(service.deleteSession("ua-b"), true);
+      assert.deepStrictEqual(deleted, []);
+      assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-c"]);
+      assert.strictEqual(service.getActiveSessionId(), "ua-c");
+      assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+      assert.deepStrictEqual(deleted, []);
+      assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-b", "ua-c"]);
+      assert.strictEqual(service.getSessions()[1].title, "B");
+      assert.strictEqual(service.getActiveSessionId(), "ua-b");
+      assert.strictEqual(service.getSessionGoal("ua-b"), "Mid goal");
+      await timeout(0);
+      assert.deepStrictEqual(deleted, []);
+      assert.deepStrictEqual(unhandledRejections, []);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("disconnected engine-cache deleteSession still fires onDidDeleteSession synchronously", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await timeout(0);
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    const deleted = [];
+    store.add(service.onDidDeleteSession((id) => deleted.push(id)));
+    assert.strictEqual(service.deleteSession("ua-a"), true);
+    assert.deepStrictEqual(deleted, ["ua-a"]);
+    assert.deepStrictEqual(connection.deleteCalls, []);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-b"]);
+  });
+  test("isEngineConnected follows connected phase when platform isEngineConnected is false", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const service = store.add(createService(connection));
+    connection.setConnected(false);
+    connection.getConnectionPhase = () => ({ kind: "connected", path: "direct" });
+    const snapshot = connection.getConnectionSnapshot();
+    connection.getConnectionSnapshot = () => ({
+      ...snapshot,
+      pairingPending: false,
+      channelAlive: true,
+      authenticated: true
+    });
+    connection._onDidChangeConnection.fire(connection.getConnectionSnapshot());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.isEngineConnected(), true);
+  });
+  test("list incomplete hides stub seed rows while connected", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const service = store.add(createService(connection));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.getSessions().length, 0);
+    assert.ok(!service.getSessions().some((s) => s.id === "untitled"));
+    assert.strictEqual(service.getActiveSessionId(), "");
+    assert.strictEqual(service.isEngineSessionReady(), false);
+  });
+  test("engine session readiness splits loading from unavailable", () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const service = store.add(createService(connection));
+    const internals = service;
+    assert.strictEqual(service.getEngineSessionReadiness(), "ready");
+    assert.strictEqual(service.isEngineSessionReady(), true);
+    internals.testEngineConnected = true;
+    internals.engineSessionBindFailed = true;
+    internals.listCompleted = false;
+    assert.strictEqual(service.getEngineSessionReadiness(), "unavailable");
+    internals.engineSessionBindFailed = false;
+    assert.strictEqual(service.getEngineSessionReadiness(), "loading");
+    assert.strictEqual(service.isEngineSessionReady(), false);
+    internals.listCompleted = true;
+    internals.pendingEngineBindSessionId = "pending";
+    assert.strictEqual(service.getEngineSessionReadiness(), "loading");
+    internals.pendingEngineBindSessionId = void 0;
+    internals.activeEngineSessionId = void 0;
+    internals.engineSessions = [];
+    assert.strictEqual(service.getEngineSessionReadiness(), "unavailable");
+    internals.activeEngineSessionId = "missing";
+    assert.strictEqual(service.getEngineSessionReadiness(), "unavailable");
+    internals.engineSessions = [{ id: "missing", title: "There", turns: [] }];
+    assert.strictEqual(service.getEngineSessionReadiness(), "ready");
+    assert.strictEqual(service.isEngineSessionReady(), true);
+  });
+  test("roster constructed while the engine is already connected lists sessions without a later connection event", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "session-101", title: "Already there" }]);
+    connection.setConnected(true);
+    const service = store.add(createService(connection));
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(service.isEngineSessionReady(), false);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(connection.listSessionsCalls.length, 1);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["session-101"]);
+    assert.strictEqual(service.getActiveSessionId(), "session-101");
+    assert.strictEqual(service.isEngineSessionReady(), true);
+  });
+  test("successful list then refresh keeps leftover while listCompleted is briefly false", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-b"]);
+    let releaseSecondList;
+    const secondListHeld = new Promise((resolve) => {
+      releaseSecondList = resolve;
+    });
+    connection.listSessions = async () => secondListHeld;
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-b"]);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.title), ["A", "B"]);
+    assert.ok(!service.getSessions().some((session) => session.id === "untitled"));
+    releaseSecondList({
+      sessions: [
+        { sessionId: "ua-a", title: "A" },
+        { sessionId: "ua-b", title: "B" }
+      ]
+    });
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-b"]);
+  });
+  test("first catalog refresh without leftover still returns empty getSessions", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    let releaseFirstList;
+    const firstListHeld = new Promise((resolve) => {
+      releaseFirstList = resolve;
+    });
+    connection.listSessions = async () => firstListHeld;
+    const service = store.add(createService(connection));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.getSessions().length, 0);
+    assert.ok(!service.getSessions().some((session) => session.id === "untitled"));
+    assert.strictEqual(service.isEngineSessionReady(), false);
+    releaseFirstList({ sessions: [] });
+    await awaitEngineCatalogRefresh(service);
+  });
+  test("connected empty list with default mock acquires host lease without roster create", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([]);
+    const service = store.add(createService(connection));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(connection.createCalls.length, 0);
+    assert.ok(service.getSessions().length > 0);
+    assert.strictEqual(service.isEngineSessionReady(), true);
+  });
+  test("connected empty list defers Create to host lease and adopts clientSessionId on bind", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([]);
+    const acquireLeaseCalls = [];
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async (sessionId) => {
+        acquireLeaseCalls.push(sessionId);
+        return `lease:${sessionId}`;
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: true, correlation: { id: "mock" } }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate
+    ));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(connection.createCalls.length, 0, "roster must not call SessionService.Create");
+    assert.ok(acquireLeaseCalls.length >= 1, "host lease must be acquired exactly once");
+    const boundSessionId = acquireLeaseCalls[acquireLeaseCalls.length - 1];
+    assert.ok(boundSessionId.startsWith("session-"));
+    assert.strictEqual(service.getActiveSessionId(), boundSessionId);
+    assert.ok(service.getSessions().some((session) => session.id === boundSessionId));
+    assert.strictEqual(service.isEngineSessionReady(), true);
+    assert.ok(!service.getSessions().some((session) => session.id === "untitled"));
+  });
+  test("connected listed session switches to engine id without untitled fallback", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-listed", title: "Listed UA" }]);
+    const service = store.add(createService(connection));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.getActiveSessionId(), "ua-listed");
+    assert.strictEqual(connection.createCalls.length, 0);
+    assert.strictEqual(service.isEngineSessionReady(), true);
+    assert.ok(!service.getSessions().some((session) => session.id === "untitled"));
+  });
+  test("empty list allocates stable clientSessionId for host lease without roster Create", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    let listCalls = 0;
+    connection.listSessions = async () => {
+      listCalls++;
+      return { sessions: [] };
+    };
+    const acquireLeaseCalls = [];
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async (sessionId) => {
+        acquireLeaseCalls.push(sessionId);
+        return `lease:${sessionId}`;
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: true, correlation: { id: "mock" } }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate
+    ));
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(connection.createCalls.length, 0);
+    assert.strictEqual(listCalls, 1);
+    assert.strictEqual(acquireLeaseCalls.length, 1);
+    const clientSessionId = acquireLeaseCalls[0];
+    assert.ok(clientSessionId?.startsWith("session-"));
+    assert.notStrictEqual(clientSessionId, ENGINE_BIND_FAILED_SESSION_ID);
+    assert.strictEqual(service.getActiveSessionId(), clientSessionId);
+  });
+  test("empty list host lease bind failure shows bind-failed roster row", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([]);
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async () => {
+        throw new Error("session not found");
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: false, reason: "no_such_session" }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate
+    ));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(connection.createCalls.length, 0);
+    assert.strictEqual(service.isEngineSessionReady(), false);
+    assert.strictEqual(service.getSessions().length, 1);
+    assert.strictEqual(service.getSessions()[0]?.id, ENGINE_BIND_FAILED_SESSION_ID);
+    assert.ok(service.getSessions()[0]?.title.includes("bind failed"));
+    assert.strictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+    assert.ok(!service.getSessions().some((session) => session.title === "New session"));
+    assert.ok(!service.getSessions().some((session) => session.id === "untitled"));
+    assert.strictEqual(service.getTurns("untitled").length, 0);
+    assert.strictEqual(service.getTurns(ENGINE_BIND_FAILED_SESSION_ID).length, 0);
+  });
+  test("listed ghost sessions with lease bind failure shows bind-failed roster row", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "session-100", title: "Ghost 100" },
+      { sessionId: "session-101", title: "Ghost 101" }
+    ]);
+    const acquireLeaseCalls = [];
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async (sessionId) => {
+        acquireLeaseCalls.push(sessionId);
+        throw new Error("session not found");
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: false, reason: "no_such_session" }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate
+    ));
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(connection.createCalls.length, 0);
+    assert.ok(acquireLeaseCalls.includes("session-100"));
+    assert.strictEqual(acquireLeaseCalls.filter((id) => id === "session-100").length, acquireLeaseCalls.length);
+    assert.strictEqual(service.isEngineSessionReady(), false);
+    assert.strictEqual(service.getSessions().length, 1);
+    assert.strictEqual(service.getSessions()[0]?.id, ENGINE_BIND_FAILED_SESSION_ID);
+    assert.ok(service.getSessions()[0]?.title.includes("bind failed"));
+    assert.strictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+    assert.ok(!service.getSessions().some((session) => session.title === "New session"));
+    assert.ok(!service.getSessions().some((session) => session.id === "session-100"));
+    assert.ok(!service.getSessions().some((session) => session.id === "session-101"));
+  });
+  test("bind-failed getActiveSession does not fall back to untitled stub title", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([]);
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async () => {
+        throw new Error("session not found");
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: false, reason: "no_such_session" }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate
+    ));
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.ok(!service.getActiveSession().title.includes("Untitled session"));
+    assert.ok(service.getActiveSession().title.includes("bind failed"));
+  });
+  test("listSessions throw shows bind-failed and does not mint New session", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.listSessionsError = new Error("Query does not return results");
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async () => {
+        throw new Error("session not found");
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: false, reason: "no_such_session" }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate
+    ));
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(connection.createCalls.length, 0);
+    assert.strictEqual(service.isEngineSessionReady(), false);
+    assert.strictEqual(service.getSessions().length, 1);
+    assert.strictEqual(service.getSessions()[0]?.id, ENGINE_BIND_FAILED_SESSION_ID);
+    assert.ok(service.getSessions()[0]?.title.includes("bind failed"));
+    assert.strictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+    assert.ok(service.getActiveSession().title.includes("bind failed"));
+    assert.ok(!service.getActiveSession().title.includes("Untitled session"));
+    assert.ok(!service.getSessions().some((session) => session.title === "New session"));
+    assert.ok(!service.getSessions().some((session) => session.id === "untitled"));
+  });
+  test("successful list then listSessions throw keeps leftover and does not mint New session", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-b"]);
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    const treeRefreshAfterLive = connection.treeRefreshCalls.length;
+    const createAfterLive = connection.createCalls.length;
+    connection.listSessionsError = new Error("Query does not return results");
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-b"]);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.title), ["A", "B"]);
+    assert.ok(!service.getSessions().some((session) => session.id === ENGINE_BIND_FAILED_SESSION_ID));
+    assert.ok(!service.getSessions().some((session) => session.title === "New session"));
+    assert.ok(!service.getSessions().some((session) => session.id === "untitled"));
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    assert.strictEqual(service.getActiveSession().id, "ua-a");
+    assert.strictEqual(service.isEngineSessionReady(), false);
+    assert.strictEqual(service.createSession(), "");
+    service.switchSession("ua-b");
+    assert.strictEqual(service.getActiveSessionId(), "ua-b");
+    assert.strictEqual(connection.createCalls.length, createAfterLive);
+    assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshAfterLive);
+  });
+  test("KEEP leftover list-fail renameSession deleteSession and mutators reject and skip unary", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-b"]);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    const renameAfterLive = connection.renameCalls.length;
+    const deleteAfterLive = connection.deleteCalls.length;
+    const cancelAfterLive = connection.cancelCalls.length;
+    const setGoalAfterLive = connection.setGoalCalls.length;
+    const cancelGoalAfterLive = connection.cancelGoalCalls.length;
+    const forkAfterLive = connection.forkCalls.length;
+    const killAfterLive = connection.killCalls.length;
+    const snapshotAfterLive = connection.createSnapshotCalls.length;
+    const cancelToolAfterLive = connection.cancelToolCallCalls.length;
+    const enqueueAfterLive = connection.enqueueCalls.length;
+    const retryQueueAfterLive = connection.retryQueueItemCalls.length;
+    const pauseAfterLive = connection.pauseQueueCalls.length;
+    const resumeAfterLive = connection.resumeQueueCalls.length;
+    const clearAfterLive = connection.clearQueueCalls.length;
+    const holdAfterLive = connection.holdQueueCalls.length;
+    const releaseAfterLive = connection.releaseQueueCalls.length;
+    const editQueueAfterLive = connection.editQueueCalls.length;
+    const deleteMessageAfterLive = connection.deleteMessageCalls.length;
+    const editMessageAfterLive = connection.editMessageCalls.length;
+    const permissionAfterLive = connection.respondPermissionCalls.length;
+    const clientToolAfterLive = connection.sendClientToolResponseCalls.length;
+    const questionAfterLive = connection.respondQuestionCalls.length;
+    const createAfterLive = connection.createCalls.length;
+    connection.listSessionsError = new Error("Query does not return results");
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineSessionReady(), false);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-b"]);
+    const titlesBefore = service.getSessions().map((session) => session.title);
+    const idsBefore = service.getSessions().map((session) => session.id);
+    assert.strictEqual(service.renameSession("ua-a", "Leftover title"), false);
+    assert.strictEqual(service.deleteSession("ua-a"), false);
+    assert.strictEqual(service.cancelGeneration("ua-a"), false);
+    assert.strictEqual(service.setSessionGoal("ua-a", "Leftover goal"), false);
+    assert.strictEqual(service.cancelSessionGoal("ua-a"), false);
+    assert.strictEqual(service.forkSubAgent("ua-a", { name: "leftover-fork" }), false);
+    assert.strictEqual(service.killSubAgent("ua-a", { agentId: "sub:leftover" }), false);
+    assert.strictEqual(service.createSnapshot("ua-a", { title: "Leftover snapshot" }), false);
+    assert.strictEqual(service.cancelToolCall("ua-a", { toolCallId: "tc-leftover" }), false);
+    assert.strictEqual(service.retryError("ua-a", { messageId: "msg-leftover" }), false);
+    assert.strictEqual(service.deleteTurn("ua-a", "turn-leftover"), false);
+    assert.strictEqual(service.updateUserTurnText("ua-a", "turn-leftover", "leftover edit"), false);
+    assert.strictEqual(service.enqueueMessageQueueItem("ua-a", "leftover item"), false);
+    assert.strictEqual(service.retryMessageQueueItem("ua-a", "q-leftover"), false);
+    service.pauseMessageQueue("ua-a");
+    service.resumeMessageQueue("ua-a");
+    service.clearMessageQueue("ua-a");
+    service.holdMessageQueueItem("ua-a", "q-leftover", "EDITING");
+    service.releaseMessageQueueItemHold("ua-a", "q-leftover");
+    assert.strictEqual(service.updateMessageQueueItemContent("ua-a", "q-leftover", "leftover edit"), false);
+    assert.strictEqual(service.resolveConfirmation("ua-a", "req-leftover", "allowed"), false);
+    assert.strictEqual(service.respondClientTool("ua-a", "call-leftover", { content: "{}" }), false);
+    assert.strictEqual(service.respondQuestion("ua-a", "q-leftover"), false);
+    assert.strictEqual(service.createSession(), "");
+    assert.strictEqual(connection.renameCalls.length, renameAfterLive);
+    assert.strictEqual(connection.deleteCalls.length, deleteAfterLive);
+    assert.strictEqual(connection.cancelCalls.length, cancelAfterLive);
+    assert.strictEqual(connection.setGoalCalls.length, setGoalAfterLive);
+    assert.strictEqual(connection.cancelGoalCalls.length, cancelGoalAfterLive);
+    assert.strictEqual(connection.forkCalls.length, forkAfterLive);
+    assert.strictEqual(connection.killCalls.length, killAfterLive);
+    assert.strictEqual(connection.createSnapshotCalls.length, snapshotAfterLive);
+    assert.strictEqual(connection.cancelToolCallCalls.length, cancelToolAfterLive);
+    assert.strictEqual(connection.enqueueCalls.length, enqueueAfterLive);
+    assert.strictEqual(connection.retryQueueItemCalls.length, retryQueueAfterLive);
+    assert.strictEqual(connection.pauseQueueCalls.length, pauseAfterLive);
+    assert.strictEqual(connection.resumeQueueCalls.length, resumeAfterLive);
+    assert.strictEqual(connection.clearQueueCalls.length, clearAfterLive);
+    assert.strictEqual(connection.holdQueueCalls.length, holdAfterLive);
+    assert.strictEqual(connection.releaseQueueCalls.length, releaseAfterLive);
+    assert.strictEqual(connection.editQueueCalls.length, editQueueAfterLive);
+    assert.strictEqual(connection.deleteMessageCalls.length, deleteMessageAfterLive);
+    assert.strictEqual(connection.editMessageCalls.length, editMessageAfterLive);
+    assert.strictEqual(connection.respondPermissionCalls.length, permissionAfterLive);
+    assert.strictEqual(connection.sendClientToolResponseCalls.length, clientToolAfterLive);
+    assert.strictEqual(connection.respondQuestionCalls.length, questionAfterLive);
+    assert.strictEqual(connection.createCalls.length, createAfterLive);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.title), titlesBefore);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), idsBefore);
+  });
+  test("listed ghost titled New session with lease bind failure shows bind-failed", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "session-ghost", title: "New session" }]);
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async () => {
+        throw new Error("session not found");
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: false, reason: "no_such_session" }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate
+    ));
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(connection.createCalls.length, 0);
+    assert.strictEqual(service.getSessions().length, 1);
+    assert.strictEqual(service.getSessions()[0]?.id, ENGINE_BIND_FAILED_SESSION_ID);
+    assert.ok(service.getSessions()[0]?.title.includes("bind failed"));
+    assert.ok(service.getActiveSession().title.includes("bind failed"));
+    assert.ok(!service.getSessions().some((session) => session.title === "New session"));
+    assert.ok(!service.getSessions().some((session) => session.id === "session-ghost"));
+  });
+  test("connected listed session on first refresh skips create when catalog is non-empty", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-existing", title: "New session" }]);
+    const service = store.add(createService(connection));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.getActiveSessionId(), "ua-existing");
+    assert.strictEqual(service.isEngineSessionReady(), true);
+    assert.strictEqual(connection.createCalls.length, 0);
+  });
+  test("D13 storage persists engine cache across engine roster restart", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-persist", title: "Persisted UA" }]);
+    const first = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    first.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(first.getSessions()[0]?.id, "ua-persist");
+    first.switchSession("ua-persist");
+    const second = store.add(createService(store.add(new MockUniverseAgentConnection()), storage));
+    assert.ok(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE)?.includes("ua-persist"));
+    assert.strictEqual(second.getActiveSessionId(), "ua-persist");
+  });
+  test("getTrajectoryRecords on UA session never merges stub fixture extras", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    service.switchSession("ua-only");
+    const records = service.getTrajectoryRecords("ua-only");
+    assert.ok(!records.some((record) => record.text.includes("Stub")));
+    assert.ok(!records.some((record) => record.kind === "system"));
+  });
+  test("disconnected UA session getTrajectoryRecords stays fixture-free", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    const records = service.getTrajectoryRecords("ua-only");
+    assert.ok(!records.some((record) => record.kind === "system" && record.text.includes("Stub")));
+  });
+  test("connected renameSession forwards AgentService.Rename and updates title", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    let fired = "";
+    store.add(service.onDidChangeSession((id) => {
+      fired = id;
+    }));
+    assert.strictEqual(service.renameSession("ua-only", "  Renamed UA  "), true);
+    assert.strictEqual(service.getSessions()[0]?.title, "Renamed UA");
+    assert.strictEqual(fired, "ua-only");
+    assert.deepStrictEqual(connection.renameCalls, [{ sessionId: "ua-only", title: "Renamed UA" }]);
+    assert.strictEqual(service.renameSession("ua-only", "Renamed UA"), false);
+    assert.strictEqual(service.renameSession("ua-only", "   "), false);
+    assert.strictEqual(service.renameSession("missing", "Nope"), false);
+    assert.strictEqual(connection.renameCalls.length, 1);
+  });
+  test("engine rejection of respondPermission is reported, not swallowed", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const refused = new Error("engine refused");
+    connection.respondPermission = async () => {
+      throw refused;
+    };
+    const failures = [];
+    store.add(service.onDidFailEngineAction((failure) => failures.push(failure)));
+    assert.strictEqual(service.resolveConfirmation("ua-only", "req-1", "allowed"), true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepStrictEqual(failures, [{ sessionId: "ua-only", action: "respondPermission", error: refused }]);
+  });
+  test("engine rejection of renameSession restores the local title", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.renameSession = async () => {
+      throw new Error("engine refused");
+    };
+    const actions = [];
+    store.add(service.onDidFailEngineAction((failure) => actions.push(failure.action)));
+    assert.strictEqual(service.renameSession("ua-only", "Renamed UA"), true);
+    assert.strictEqual(service.getSessions()[0]?.title, "Renamed UA");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepStrictEqual(actions, ["renameSession"]);
+    assert.strictEqual(service.getSessions()[0]?.title, "Only UA");
+  });
+  test("engine rejection of setSessionGoal restores the previous goal", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.setSessionGoal("ua-only", "first goal"), true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.getSessionGoal("ua-only"), "first goal");
+    connection.setSessionGoal = async () => {
+      throw new Error("engine refused");
+    };
+    assert.strictEqual(service.setSessionGoal("ua-only", "second goal"), true);
+    assert.strictEqual(service.getSessionGoal("ua-only"), "second goal");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.getSessionGoal("ua-only"), "first goal");
+  });
+  test("engine rejection of deleteSession re-lists the catalog instead of keeping the row gone", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.deleteSession = async () => {
+      throw new Error("engine refused");
+    };
+    const actions = [];
+    store.add(service.onDidFailEngineAction((failure) => actions.push(failure.action)));
+    assert.strictEqual(service.deleteSession("ua-a"), true);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), ["ua-b"]);
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(actions, ["deleteSession"]);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), ["ua-a", "ua-b"]);
+  });
+  test("leftover renameSession and deleteSession reject while pairingPending and leave roster unchanged", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.renameSession("ua-a", "Connected A"), true);
+    assert.strictEqual(service.getSessions().find((s) => s.id === "ua-a")?.title, "Connected A");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setPairingPending(true);
+    assert.strictEqual(connection.isEngineConnected(), false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    const titlesBefore = service.getSessions().map((s) => s.title);
+    const idsBefore = service.getSessions().map((s) => s.id);
+    assert.strictEqual(service.renameSession("ua-a", "Pairing title"), false);
+    assert.strictEqual(service.deleteSession("ua-a"), false);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.title), titlesBefore);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), idsBefore);
+    assert.strictEqual(connection.renameCalls.filter((call) => call.title === "Pairing title").length, 0);
+    connection.setPairingPending(false);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.renameSession("ua-a", "Live again"), true);
+    assert.strictEqual(service.getSessions().find((s) => s.id === "ua-a")?.title, "Live again");
+  });
+  test("leftover renameSession and deleteSession reject on production connecting pairing snapshot", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.renameSession("ua-a", "Connected A"), true);
+    connection.setPairingConnectingPhase("initial");
+    assert.strictEqual(connection.getConnectionPhase().kind, "connecting");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(isConversationEngineLive(connection.getConnectionPhase(), connection.getConnectionSnapshot().pairingPending), false);
+    assert.strictEqual(connection.isEngineConnected(), false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    const titlesBefore = service.getSessions().map((s) => s.title);
+    const idsBefore = service.getSessions().map((s) => s.id);
+    assert.strictEqual(service.renameSession("ua-a", "Pairing title"), false);
+    assert.strictEqual(service.deleteSession("ua-a"), false);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.title), titlesBefore);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), idsBefore);
+  });
+  test("leftover-looks-live renameSession and deleteSession reject while pairingPending and skip unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.renameSession("ua-only", "Live title"), true);
+    assert.strictEqual(connection.renameCalls.length, 1);
+    assert.strictEqual(connection.deleteCalls.length, 0);
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    const titlesBefore = service.getSessions().map((s) => s.title);
+    const idsBefore = service.getSessions().map((s) => s.id);
+    assert.strictEqual(service.renameSession("ua-only", "Looks-live title"), false);
+    assert.strictEqual(service.deleteSession("ua-only"), false);
+    assert.strictEqual(connection.renameCalls.length, 1);
+    assert.strictEqual(connection.deleteCalls.length, 0);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.title), titlesBefore);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), idsBefore);
+  });
+  test("leftover-looks-live cancelGeneration, setSessionGoal and cancelSessionGoal reject while pairingPending and skip unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.setSessionGoal("ua-only", "Live goal"), true);
+    assert.strictEqual(service.cancelGeneration("ua-only"), true);
+    assert.strictEqual(connection.setGoalCalls.length, 1);
+    assert.strictEqual(connection.cancelCalls.length, 1);
+    assert.strictEqual(connection.cancelGoalCalls.length, 0);
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.cancelGeneration("ua-only"), false);
+    assert.strictEqual(service.setSessionGoal("ua-only", "Looks-live goal"), false);
+    assert.strictEqual(service.cancelSessionGoal("ua-only"), false);
+    assert.strictEqual(connection.cancelCalls.length, 1);
+    assert.strictEqual(connection.setGoalCalls.length, 1);
+    assert.strictEqual(connection.cancelGoalCalls.length, 0);
+    assert.strictEqual(service.getSessionGoal("ua-only"), "Live goal");
+    connection.setPairingPending(false);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.setSessionGoal("ua-only", "Live again"), true);
+    assert.strictEqual(service.cancelGeneration("ua-only"), true);
+    assert.strictEqual(service.cancelSessionGoal("ua-only"), true);
+    assert.strictEqual(connection.setGoalCalls.length, 2);
+    assert.strictEqual(connection.cancelCalls.length, 2);
+    assert.strictEqual(connection.cancelGoalCalls.length, 1);
+    assert.strictEqual(service.getSessionGoal("ua-only"), void 0);
+  });
+  test("leftover-looks-live forkSubAgent and killSubAgent reject while pairingPending and skip unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.forkSubAgent("ua-only", { name: "reviewer" }), true);
+    assert.strictEqual(service.killSubAgent("ua-only", { agentId: "sub:reviewer" }), true);
+    assert.strictEqual(connection.forkCalls.length, 1);
+    assert.strictEqual(connection.killCalls.length, 1);
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.forkSubAgent("ua-only", { name: "Looks-live fork" }), false);
+    assert.strictEqual(service.killSubAgent("ua-only", { agentId: "sub:looks-live" }), false);
+    assert.strictEqual(connection.forkCalls.length, 1);
+    assert.strictEqual(connection.killCalls.length, 1);
+    connection.setPairingPending(false);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.forkSubAgent("ua-only", { name: "Live again" }), true);
+    assert.strictEqual(service.killSubAgent("ua-only", { agentId: "sub:again" }), true);
+    assert.strictEqual(connection.forkCalls.length, 2);
+    assert.strictEqual(connection.killCalls.length, 2);
+  });
+  test("leftover-looks-live cancelToolCall rejects while pairingPending and skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.cancelToolCall("ua-only", { toolCallId: "tc-live" }), true);
+    assert.strictEqual(connection.cancelToolCallCalls.length, 1);
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.cancelToolCall("ua-only", { toolCallId: "tc-looks-live" }), false);
+    assert.strictEqual(connection.cancelToolCallCalls.length, 1);
+    connection.setPairingPending(false);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.cancelToolCall("ua-only", { toolCallId: "tc-again" }), true);
+    assert.strictEqual(connection.cancelToolCallCalls.length, 2);
+  });
+  test("leftover-looks-live queue mutates reject while pairingPending and skip unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.enableQueueReadback();
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.enqueueMessageQueueItem("ua-only", "live item"), false);
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "q-live"), true);
+    service.pauseMessageQueue("ua-only");
+    service.resumeMessageQueue("ua-only");
+    service.clearMessageQueue("ua-only");
+    service.holdMessageQueueItem("ua-only", "q-live", "EDITING");
+    service.releaseMessageQueueItemHold("ua-only", "q-live");
+    assert.strictEqual(service.updateMessageQueueItemContent("ua-only", "q-live", "live edit"), true);
+    assert.strictEqual(connection.enqueueCalls.length, 0);
+    assert.strictEqual(connection.retryQueueItemCalls.length, 1);
+    assert.strictEqual(connection.pauseQueueCalls.length, 1);
+    assert.strictEqual(connection.resumeQueueCalls.length, 1);
+    assert.strictEqual(connection.clearQueueCalls.length, 1);
+    assert.strictEqual(connection.holdQueueCalls.length, 1);
+    assert.strictEqual(connection.releaseQueueCalls.length, 1);
+    assert.strictEqual(connection.editQueueCalls.length, 1);
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.enqueueMessageQueueItem("ua-only", "looks-live item"), false);
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "q-looks-live"), false);
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "q-looks-live", { upload: true }), false);
+    service.pauseMessageQueue("ua-only");
+    service.resumeMessageQueue("ua-only");
+    service.clearMessageQueue("ua-only");
+    service.holdMessageQueueItem("ua-only", "q-looks-live", "EDITING");
+    service.releaseMessageQueueItemHold("ua-only", "q-looks-live");
+    assert.strictEqual(service.updateMessageQueueItemContent("ua-only", "q-looks-live", "looks-live edit"), false);
+    assert.strictEqual(connection.enqueueCalls.length, 0);
+    assert.strictEqual(connection.retryQueueItemCalls.length, 1);
+    assert.strictEqual(connection.retryQueueItemUploadCalls.length, 0);
+    assert.strictEqual(connection.pauseQueueCalls.length, 1);
+    assert.strictEqual(connection.resumeQueueCalls.length, 1);
+    assert.strictEqual(connection.clearQueueCalls.length, 1);
+    assert.strictEqual(connection.holdQueueCalls.length, 1);
+    assert.strictEqual(connection.releaseQueueCalls.length, 1);
+    assert.strictEqual(connection.editQueueCalls.length, 1);
+    connection.setPairingPending(false);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.enqueueMessageQueueItem("ua-only", "live again"), false);
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "q-again"), true);
+    service.pauseMessageQueue("ua-only");
+    service.resumeMessageQueue("ua-only");
+    service.clearMessageQueue("ua-only");
+    service.holdMessageQueueItem("ua-only", "q-again", "EDITING");
+    service.releaseMessageQueueItemHold("ua-only", "q-again");
+    assert.strictEqual(service.updateMessageQueueItemContent("ua-only", "q-again", "live again"), true);
+    assert.strictEqual(connection.enqueueCalls.length, 0);
+    assert.strictEqual(connection.retryQueueItemCalls.length, 2);
+    assert.strictEqual(connection.retryQueueItemUploadCalls.length, 0);
+    assert.strictEqual(connection.pauseQueueCalls.length, 2);
+    assert.strictEqual(connection.resumeQueueCalls.length, 2);
+    assert.strictEqual(connection.clearQueueCalls.length, 2);
+    assert.strictEqual(connection.holdQueueCalls.length, 2);
+    assert.strictEqual(connection.releaseQueueCalls.length, 2);
+    assert.strictEqual(connection.editQueueCalls.length, 2);
+  });
+  test("leftover-looks-live retryError, deleteTurn and updateUserTurnText reject while pairingPending and skip unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = new MockUniverseAgentSessionView();
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage, sessionView));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const viewLease = store.add(service.acquireSessionView("ua-only"));
+    assert.ok(await viewLease.whenBindReady?.());
+    assert.strictEqual(service.retryError("ua-only", { messageId: "msg-live" }), true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.deleteTurn("ua-only", "turn-live"), true);
+    assert.strictEqual(service.updateUserTurnText("ua-only", "turn-live", "live edit"), true);
+    assert.strictEqual(sessionView.postCalls.length, 1);
+    assert.strictEqual(connection.continuationOpens.length, 0);
+    assert.strictEqual(connection.deleteMessageCalls.length, 1);
+    assert.strictEqual(connection.editMessageCalls.length, 1);
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.retryError("ua-only", { messageId: "msg-looks-live" }), false);
+    assert.strictEqual(service.deleteTurn("ua-only", "turn-looks-live"), false);
+    assert.strictEqual(service.updateUserTurnText("ua-only", "turn-looks-live", "looks-live edit"), false);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(sessionView.postCalls.length, 1);
+    assert.strictEqual(connection.continuationOpens.length, 0);
+    assert.strictEqual(connection.deleteMessageCalls.length, 1);
+    assert.strictEqual(connection.editMessageCalls.length, 1);
+    connection.setPairingPending(false);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.retryError("ua-only", { messageId: "msg-again" }), true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.deleteTurn("ua-only", "turn-again"), true);
+    assert.strictEqual(service.updateUserTurnText("ua-only", "turn-again", "live again"), true);
+    assert.strictEqual(sessionView.postCalls.length, 2);
+    assert.strictEqual(connection.continuationOpens.length, 0);
+    assert.strictEqual(connection.deleteMessageCalls.length, 2);
+    assert.strictEqual(connection.editMessageCalls.length, 2);
+  });
+  test("leftover-looks-live resolveConfirmation, respondClientTool and respondQuestion reject while pairingPending and skip unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.resolveConfirmation("ua-only", "req-live", "allowed"), true);
+    assert.strictEqual(service.respondClientTool("ua-only", "call-live", { content: "{}" }), true);
+    assert.strictEqual(service.respondQuestion("ua-only", "q-live"), true);
+    assert.strictEqual(connection.respondPermissionCalls.length, 1);
+    assert.strictEqual(connection.sendClientToolResponseCalls.length, 1);
+    assert.strictEqual(connection.respondQuestionCalls.length, 1);
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.resolveConfirmation("ua-only", "req-looks-live", "allowed"), false);
+    assert.strictEqual(service.respondClientTool("ua-only", "call-looks-live", { content: "{}" }), false);
+    assert.strictEqual(service.respondQuestion("ua-only", "q-looks-live"), false);
+    assert.strictEqual(connection.respondPermissionCalls.length, 1);
+    assert.strictEqual(connection.sendClientToolResponseCalls.length, 1);
+    assert.strictEqual(connection.respondQuestionCalls.length, 1);
+    connection.setPairingPending(false);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.resolveConfirmation("ua-only", "req-again", "skipped"), true);
+    assert.strictEqual(service.respondClientTool("ua-only", "call-again", { content: "{}" }), true);
+    assert.strictEqual(service.respondQuestion("ua-only", "q-again"), true);
+    assert.strictEqual(connection.respondPermissionCalls.length, 2);
+    assert.strictEqual(connection.sendClientToolResponseCalls.length, 2);
+    assert.strictEqual(connection.respondQuestionCalls.length, 2);
+  });
+  test("leftover-looks-live createSession and switchSession skip engine write while pairingPending", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    const acquireLeaseCalls = [];
+    const sessionView = createSessionViewMock({
+      acquireLease: async (sessionId) => {
+        acquireLeaseCalls.push(sessionId);
+        return `lease:${sessionId}`;
+      }
+    });
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate,
+      storage
+    ));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    service.switchSession("ua-b");
+    assert.strictEqual(service.getActiveSessionId(), "ua-b");
+    assert.ok(connection.treeRefreshCalls.includes("ua-b"));
+    const treeRefreshBeforePairing = connection.treeRefreshCalls.length;
+    const createCallsBefore = connection.createCalls.length;
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.createSession(), "");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(connection.createCalls.length, createCallsBefore);
+    assert.strictEqual(acquireLeaseCalls.filter((id) => id.startsWith("session-")).length, 0);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), ["ua-a", "ua-b"]);
+    assert.ok(!service.getSessions().some((s) => s.title === "New session"));
+    assert.strictEqual(service.getActiveSessionId(), "ua-b");
+    const treeRefreshAtPairing = connection.treeRefreshCalls.length;
+    service.switchSession("ua-a");
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshAtPairing);
+    assert.ok(treeRefreshAtPairing >= treeRefreshBeforePairing);
+    connection.setPairingPending(false);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    service.switchSession("ua-b");
+    assert.strictEqual(service.getActiveSessionId(), "ua-b");
+    assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshAtPairing + 1);
+    assert.strictEqual(connection.treeRefreshCalls.at(-1), "ua-b");
+    assert.strictEqual(service.createSession(), "");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(acquireLeaseCalls.filter((id) => id.startsWith("session-")).length, 1);
+  });
+  test("leftover-looks-live activateEngineSession skips tree refresh while pairingPending", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    const treeRefreshBeforePairing = connection.treeRefreshCalls.length;
+    assert.ok(treeRefreshBeforePairing > 0);
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), ["ua-a", "ua-b"]);
+    assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshBeforePairing);
+    connection.setListSessions([{ sessionId: "ua-b", title: "B" }]);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), ["ua-a", "ua-b"]);
+    assert.strictEqual(connection.treeRefreshCalls.length, treeRefreshBeforePairing);
+  });
+  test("leftover-looks-live catalog refresh keeps leftover roster and skips listSessions", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), ["ua-a", "ua-b"]);
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    const listsAfterLoad = connection.listSessionsCalls.length;
+    const createCallsAfterLoad = connection.createCalls.length;
+    assert.ok(listsAfterLoad > 0);
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(connection.listSessionsCalls.length, listsAfterLoad, "leftover-looks-live must not extra listSessions");
+    assert.strictEqual(connection.createCalls.length, createCallsAfterLoad, "leftover-looks-live must not ensureEngineSession");
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), ["ua-a", "ua-b"]);
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    connection.setListSessions([{ sessionId: "ua-live", title: "Live" }]);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(connection.listSessionsCalls.length, listsAfterLoad, "leftover-looks-live must not re-list leftover as live");
+    assert.strictEqual(connection.createCalls.length, createCallsAfterLoad);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), ["ua-a", "ua-b"]);
+    assert.ok(!service.getSessions().some((s) => s.id === "ua-live"));
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    connection.setPairingPending(false);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    await awaitEngineCatalogRefresh(service);
+    assert.ok(connection.listSessionsCalls.length > listsAfterLoad, "connected leftover must still refresh");
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), ["ua-live"]);
+    assert.strictEqual(service.getActiveSessionId(), "ua-live");
+  });
+  test("in-flight listSessions leftover-looks-live keeps leftover roster and skips Create", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    const acquireLeaseCalls = [];
+    const sessionView = createSessionViewMock({
+      acquireLease: async (sessionId) => {
+        acquireLeaseCalls.push(sessionId);
+        return `lease:${sessionId}`;
+      }
+    });
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate,
+      storage
+    ));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), ["ua-a", "ua-b"]);
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    const createCallsAfterLoad = connection.createCalls.length;
+    const acquireAfterLoad = acquireLeaseCalls.length;
+    assert.strictEqual(acquireLeaseCalls.filter((id) => id.startsWith("session-")).length, 0);
+    let releaseSecondList;
+    let secondStarted;
+    const secondEntered = new Promise((resolve) => {
+      secondStarted = resolve;
+    });
+    const secondListHeld = new Promise((resolve) => {
+      releaseSecondList = resolve;
+    });
+    connection.listSessions = async () => {
+      connection.listSessionsCalls.push({});
+      secondStarted?.();
+      return secondListHeld;
+    };
+    service.setEngineConnected(true);
+    await secondEntered;
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true, "leftover-looks-live fixture must keep isEngineConnected()===true");
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    releaseSecondList({ sessions: [] });
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), true, "leftover-looks-live fixture must keep isEngineConnected()===true");
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(connection.createCalls.length, createCallsAfterLoad, "in-flight leftover-looks-live must not Create");
+    assert.strictEqual(acquireLeaseCalls.filter((id) => id.startsWith("session-")).length, 0, "in-flight leftover-looks-live must not ensureEngineSession");
+    assert.strictEqual(acquireLeaseCalls.length, acquireAfterLoad);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), ["ua-a", "ua-b"]);
+    assert.ok(!service.getSessions().some((s) => s.id === "ua-live" || s.title === "New session"));
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+  });
+  test("disconnected after engine renameSession stays local and skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.renameSession("ua-only", "Cached title"), true);
+    assert.strictEqual(service.getSessions()[0]?.title, "Cached title");
+    assert.strictEqual(connection.renameCalls.length, 0);
+  });
+  test("connected renameSession remote throw rolls back title", async () => {
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const storage = store.add(new TestStorageService());
+      const connection = store.add(new MockUniverseAgentConnection());
+      connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+      const service = store.add(createService(connection, storage));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      connection.renameError = new Error("boom");
+      assert.strictEqual(service.renameSession("ua-only", "Renamed UA"), true);
+      assert.strictEqual(service.getSessions()[0]?.title, "Renamed UA");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.getSessions()[0]?.title, "Only UA");
+      assert.deepStrictEqual(unhandledRejections, []);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("connected renameSession ok:false rolls back title", async () => {
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const storage = store.add(new TestStorageService());
+      const connection = store.add(new MockUniverseAgentConnection());
+      connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+      const service = store.add(createService(connection, storage));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      connection.renameResult = { ok: false, message: "denied" };
+      assert.strictEqual(service.renameSession("ua-only", "Renamed UA"), true);
+      assert.strictEqual(service.getSessions()[0]?.title, "Renamed UA");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.getSessions()[0]?.title, "Only UA");
+      assert.deepStrictEqual(unhandledRejections, []);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("connected cancelGeneration forwards AgentService.Cancel", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.cancelGeneration("ua-only", "  sub:a  "), true);
+    assert.deepStrictEqual(connection.cancelCalls, [{ sessionId: "ua-only", agentId: "sub:a" }]);
+    assert.strictEqual(service.cancelGeneration("ua-only", "sub:a"), true);
+    assert.deepStrictEqual(connection.cancelCalls[1], { sessionId: "ua-only", agentId: "sub:a" });
+    assert.strictEqual(service.cancelGeneration("ua-only"), true);
+    assert.deepStrictEqual(connection.cancelCalls[2], { sessionId: "ua-only", agentId: "root" });
+    assert.strictEqual(service.cancelGeneration("missing"), false);
+    assert.strictEqual(service.cancelGeneration("missing", "root"), false);
+    assert.strictEqual(connection.cancelCalls.length, 3);
+  });
+  test("cancelGeneration uses last cached-projection streaming agentId instead of root", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    stubCachedProjection(service, "ua-only", projectionWithStreamingAgent("ua-only", "sub:live"));
+    assert.ok(!service.getTurns("ua-only").some((turn) => turn.streaming));
+    assert.strictEqual(service.cancelGeneration("ua-only"), true);
+    assert.deepStrictEqual(connection.cancelCalls, [{ sessionId: "ua-only", agentId: "sub:live" }]);
+  });
+  test("cancelGeneration stays root when cached projection has no streaming agent", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    stubCachedProjection(service, "ua-only", stubTurnsToSnapshot("ua-only", [
+      { id: "u1", kind: "user", text: "hi" },
+      { id: "a1", kind: "assistant", text: "settled" }
+    ]));
+    assert.strictEqual(service.cancelGeneration("ua-only"), true);
+    assert.deepStrictEqual(connection.cancelCalls, [{ sessionId: "ua-only", agentId: "root" }]);
+  });
+  test("connected createSession catalogs New session only after host Create/Resume, not acquireLease", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const acquireLeaseCalls = [];
+    let resolveReady;
+    const sessionView = createSessionViewMock({
+      acquireLease: async (sessionId) => {
+        acquireLeaseCalls.push(sessionId);
+        return `lease:${sessionId}`;
+      },
+      whenEngineSessionReady: (sessionId) => {
+        if (sessionId === "ua-only") {
+          return Promise.resolve(sessionId);
+        }
+        return new Promise((resolve) => {
+          resolveReady = () => resolve(sessionId);
+        });
+      }
+    });
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate,
+      storage
+    ));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const previous = service.getActiveSessionId();
+    let fired = "";
+    store.add(service.onDidChangeActiveSession((id) => {
+      fired = id;
+    }));
+    assert.strictEqual(service.createSession(), "");
+    assert.strictEqual(service.getActiveSessionId(), previous);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(connection.createCalls.length, 0);
+    const newSessionCalls = acquireLeaseCalls.filter((id) => id.startsWith("session-"));
+    assert.strictEqual(newSessionCalls.length, 1);
+    const newSessionId = newSessionCalls[0];
+    assert.ok(newSessionId.startsWith("session-"));
+    assert.notStrictEqual(newSessionId, "ua-only");
+    assert.ok(!service.getSessions().some((session) => session.id === newSessionId));
+    assert.ok(!service.getSessions().some((session) => session.title === "New session"));
+    assert.strictEqual(service.getActiveSessionId(), previous);
+    assert.strictEqual(fired, "");
+    resolveReady?.();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.ok(service.getSessions().some((session) => session.id === newSessionId));
+    assert.strictEqual(service.getSessions().find((session) => session.id === newSessionId)?.title, "New session");
+    assert.strictEqual(service.getActiveSessionId(), newSessionId);
+    assert.strictEqual(fired, newSessionId);
+    assert.ok(!service.getSessions().some((session) => session.id === "untitled"));
+  });
+  test("connected createSession skips engine ids the restarted allocator would reuse", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "session-100", title: "Existing 100" },
+      { sessionId: "session-101", title: "Existing 101" }
+    ]);
+    const acquireLeaseCalls = [];
+    let resolveReady;
+    const sessionView = createSessionViewMock({
+      acquireLease: async (sessionId) => {
+        acquireLeaseCalls.push(sessionId);
+        return `lease:${sessionId}`;
+      },
+      whenEngineSessionReady: (sessionId) => {
+        if (sessionId === "session-100" || sessionId === "session-101") {
+          return Promise.resolve(sessionId);
+        }
+        return new Promise((resolve) => {
+          resolveReady = () => resolve(sessionId);
+        });
+      }
+    });
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate,
+      storage
+    ));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    setConversationStubNextTurnId(100);
+    const previous = service.getActiveSessionId();
+    assert.strictEqual(service.createSession(), "");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(connection.createCalls.length, 0);
+    const fresh = acquireLeaseCalls.filter((id) => id !== "session-100" && id !== "session-101");
+    assert.deepStrictEqual(fresh, ["session-102"]);
+    assert.ok(!service.getSessions().some((session) => session.id === "session-102"));
+    assert.strictEqual(service.getActiveSessionId(), previous);
+    assert.ok(service.getSessions().some((session) => session.id === "session-100"));
+    assert.ok(service.getSessions().some((session) => session.id === "session-101"));
+    resolveReady?.();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.getSessions().find((session) => session.id === "session-102")?.title, "New session");
+    assert.strictEqual(service.getActiveSessionId(), "session-102");
+    assert.strictEqual(service.getSessions().length, 3);
+  });
+  test("connected createSession acquireLease ok but Create fail keeps catalog and does not mint New session", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const sessionView = createSessionViewMock({
+      whenEngineSessionReady: async (sessionId) => {
+        if (sessionId === "ua-only") {
+          return sessionId;
+        }
+        throw new Error("CreateSession returned empty session_id");
+      }
+    });
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate,
+      storage
+    ));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.createSession(), "");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(connection.createCalls.length, 0);
+    assert.strictEqual(service.getSessions().length, 1);
+    assert.strictEqual(service.getSessions()[0]?.id, "ua-only");
+    assert.strictEqual(service.getSessions()[0]?.title, "Only UA");
+    assert.ok(!service.getSessions().some((session) => session.title === "New session"));
+    assert.strictEqual(service.getActiveSessionId(), "ua-only");
+  });
+  test("connected createSession acquireLease ok but empty engine session_id does not mint New session", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const sessionView = createSessionViewMock({
+      whenEngineSessionReady: async (sessionId) => {
+        if (sessionId === "ua-only") {
+          return sessionId;
+        }
+        return "";
+      }
+    });
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate,
+      storage
+    ));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.createSession(), "");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.getSessions().length, 1);
+    assert.strictEqual(service.getSessions()[0]?.id, "ua-only");
+    assert.ok(!service.getSessions().some((session) => session.title === "New session"));
+  });
+  test("bindLiveTreeObservationLease acquireSessionView throw warns without unhandled rejection or half-applied lease", async () => {
+    const boom = new Error("acquireSessionView: session pending is not engine-bound");
+    class AcquireThrowsRoster extends ConversationEngineRosterService {
+      acquireSessionView(_sessionId) {
+        throw boom;
+      }
+    }
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const failures = [];
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const service = store.add(new AcquireThrowsRoster(
+        connection,
+        createSessionViewMock(),
+        workspaceToolsGate,
+        storage
+      ));
+      store.add(service.onDidFailEngineAction((failure) => {
+        failures.push({ sessionId: failure.sessionId, action: failure.action });
+      }));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await awaitEngineCatalogRefresh(service);
+      assert.strictEqual(service.createSession(), "");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.ok(failures.some((failure) => failure.action === "acquireSessionView"));
+      assert.strictEqual(service.getSessions().length, 1);
+      assert.strictEqual(service.getSessions()[0]?.id, "ua-only");
+      assert.ok(!service.getSessions().some((session) => session.title === "New session"));
+      assert.deepStrictEqual(unhandledRejections, []);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("connected createSession bind failure keeps existing catalog session", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async (sessionId) => {
+        if (sessionId === "ua-only") {
+          return `lease:${sessionId}`;
+        }
+        throw new Error("session not found");
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: true, correlation: { id: "mock" } }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate,
+      storage
+    ));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.createSession(), "");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(connection.createCalls.length, 0);
+    assert.strictEqual(service.getSessions().length, 1);
+    assert.strictEqual(service.getSessions()[0]?.id, "ua-only");
+  });
+  test("disconnected after engine createSession skips unary and does not seed stub", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.createSession(), "");
+    assert.strictEqual(connection.createCalls.length, 0);
+    assert.strictEqual(service.getSessions().length, 1);
+    assert.strictEqual(service.getSessions()[0]?.id, "ua-only");
+    assert.ok(!service.getSessions().some((session) => session.id === "untitled"));
+  });
+  test("connected setSessionGoal forwards PermissionService.SetSessionGoal", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    let fired = "";
+    store.add(service.onDidChangeSession((id) => {
+      fired = id;
+    }));
+    assert.strictEqual(service.setSessionGoal("ua-only", "  Ship the slice  "), true);
+    assert.strictEqual(service.getSessionGoal("ua-only"), "Ship the slice");
+    assert.strictEqual(fired, "ua-only");
+    assert.deepStrictEqual(connection.setGoalCalls, [{ sessionId: "ua-only", goal: "Ship the slice" }]);
+    assert.strictEqual(service.setSessionGoal("ua-only", "Ship the slice"), false);
+    assert.strictEqual(service.setSessionGoal("ua-only", "   "), false);
+    assert.strictEqual(service.setSessionGoal("missing", "Nope"), false);
+    assert.strictEqual(connection.setGoalCalls.length, 1);
+    assert.strictEqual(service.cancelSessionGoal("ua-only"), true);
+    assert.strictEqual(service.getSessionGoal("ua-only"), void 0);
+    assert.deepStrictEqual(connection.cancelGoalCalls, [{ sessionId: "ua-only" }]);
+    assert.strictEqual(service.cancelSessionGoal("missing"), false);
+    assert.strictEqual(connection.cancelGoalCalls.length, 1);
+  });
+  test("connected setSessionGoal remote throw rolls back getSessionGoal", async () => {
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const storage = store.add(new TestStorageService());
+      const connection = store.add(new MockUniverseAgentConnection());
+      connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+      const service = store.add(createService(connection, storage));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      connection.setGoalError = new Error("boom");
+      assert.strictEqual(service.setSessionGoal("ua-only", "Ship the slice"), true);
+      assert.strictEqual(service.getSessionGoal("ua-only"), "Ship the slice");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.getSessionGoal("ua-only"), void 0);
+      assert.deepStrictEqual(unhandledRejections, []);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("connected setSessionGoal ok:false rolls back prior getSessionGoal", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.setSessionGoal("ua-only", "Prior goal"), true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.getSessionGoal("ua-only"), "Prior goal");
+    connection.setGoalResult = { ok: false, message: "denied" };
+    assert.strictEqual(service.setSessionGoal("ua-only", "Next goal"), true);
+    assert.strictEqual(service.getSessionGoal("ua-only"), "Next goal");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.getSessionGoal("ua-only"), "Prior goal");
+  });
+  test("connected cancelSessionGoal remote throw or ok:false restores prior goal", async () => {
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const storage = store.add(new TestStorageService());
+      const connection = store.add(new MockUniverseAgentConnection());
+      connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+      const service = store.add(createService(connection, storage));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.setSessionGoal("ua-only", "Prior goal"), true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.getSessionGoal("ua-only"), "Prior goal");
+      connection.cancelGoalError = new Error("boom");
+      assert.strictEqual(service.cancelSessionGoal("ua-only"), true);
+      assert.strictEqual(service.getSessionGoal("ua-only"), void 0);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.getSessionGoal("ua-only"), "Prior goal");
+      assert.deepStrictEqual(unhandledRejections, []);
+      connection.cancelGoalError = void 0;
+      connection.cancelGoalResult = { ok: false, message: "denied" };
+      assert.strictEqual(service.cancelSessionGoal("ua-only"), true);
+      assert.strictEqual(service.getSessionGoal("ua-only"), void 0);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.getSessionGoal("ua-only"), "Prior goal");
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("connected forkSubAgent forwards AgentService.Fork", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.forkSubAgent("ua-only", { name: "  reviewer  ", task: "  Review the diff  " }), true);
+    assert.deepStrictEqual(connection.forkCalls, [{
+      sessionId: "ua-only",
+      parentAgentId: "root",
+      name: "reviewer",
+      task: "Review the diff"
+    }]);
+    assert.strictEqual(service.forkSubAgent("ua-only", { parentAgentId: "  sub:a  " }), true);
+    assert.strictEqual(connection.forkCalls[1]?.parentAgentId, "sub:a");
+    assert.strictEqual(service.forkSubAgent("missing", { name: "Nope" }), false);
+    assert.strictEqual(connection.forkCalls.length, 2);
+  });
+  test("connected forkSubAgent uses last streaming agent as parent", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const originalGetTurns = service.getTurns.bind(service);
+    service.getTurns = (sessionId) => {
+      if (sessionId === "ua-only") {
+        return [{ id: "a1", kind: "assistant", text: "live", streaming: true, agentId: "sub:live" }];
+      }
+      return originalGetTurns(sessionId);
+    };
+    assert.strictEqual(service.forkSubAgent("ua-only"), true);
+    assert.strictEqual(connection.forkCalls[0]?.parentAgentId, "sub:live");
+  });
+  test("disconnected after engine forkSubAgent skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.forkSubAgent("ua-only", { name: "reviewer" }), false);
+    assert.strictEqual(connection.forkCalls.length, 0);
+  });
+  test("connected killSubAgent forwards AgentService.Kill", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.killSubAgent("ua-only", { agentId: "  sub:reviewer  ", force: true }), true);
+    assert.deepStrictEqual(connection.killCalls, [{
+      sessionId: "ua-only",
+      agentId: "sub:reviewer",
+      force: true
+    }]);
+    assert.strictEqual(service.killSubAgent("ua-only"), true);
+    assert.notStrictEqual(connection.killCalls[1]?.agentId, "root");
+    assert.strictEqual(connection.killCalls[1]?.agentId, "");
+    assert.strictEqual(connection.killCalls[1]?.force, void 0);
+    assert.strictEqual(service.killSubAgent("ua-only", { agentId: "   " }), true);
+    assert.notStrictEqual(connection.killCalls[2]?.agentId, "root");
+    assert.strictEqual(connection.killCalls[2]?.agentId, "");
+    assert.strictEqual(service.killSubAgent("missing", { agentId: "sub:a" }), false);
+    assert.strictEqual(connection.killCalls.length, 3);
+  });
+  test("connected killSubAgent does not default empty agent to root", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.killSubAgent("ua-only"), true);
+    assert.notStrictEqual(connection.killCalls[0]?.agentId, "root");
+    assert.strictEqual(connection.killCalls[0]?.agentId, "");
+  });
+  test("connected killSubAgent uses last streaming agent when omitted and never defaults to root", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.killSubAgent("ua-only"), true);
+    assert.notStrictEqual(connection.killCalls[0]?.agentId, "root");
+    assert.strictEqual(connection.killCalls[0]?.agentId, "");
+    const originalGetTurns = service.getTurns.bind(service);
+    service.getTurns = (sessionId) => {
+      if (sessionId === "ua-only") {
+        return [{ id: "a1", kind: "assistant", text: "live", streaming: true, agentId: "sub:live" }];
+      }
+      return originalGetTurns(sessionId);
+    };
+    assert.strictEqual(service.killSubAgent("ua-only"), true);
+    assert.strictEqual(connection.killCalls[1]?.agentId, "sub:live");
+  });
+  test("connected updateUserTurnText forwards AgentService.EditMessage", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.updateUserTurnText("ua-only", "  turn-1  ", "  later  "), true);
+    assert.deepStrictEqual(connection.editMessageCalls, [{
+      sessionId: "ua-only",
+      turnId: "turn-1",
+      newContent: "later",
+      agentId: "root"
+    }]);
+    assert.strictEqual(service.updateUserTurnText("ua-only", "   ", "Nope"), false);
+    assert.strictEqual(service.updateUserTurnText("ua-only", "turn-2", "   "), false);
+    assert.strictEqual(service.updateUserTurnText("missing", "turn-2", "Nope"), false);
+    assert.strictEqual(connection.editMessageCalls.length, 1);
+    connection.editMessage = void 0;
+    assert.strictEqual(service.updateUserTurnText("ua-only", "turn-3", "Nope"), false);
+    assert.strictEqual(connection.editMessageCalls.length, 1);
+  });
+  test("connected updateUserTurnText uses root when agentId is omitted even if another agent is streaming", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    stubCachedProjection(service, "ua-only", projectionWithStreamingAgent("ua-only", "sub:live"));
+    const originalGetTurns = service.getTurns.bind(service);
+    service.getTurns = (sessionId) => {
+      if (sessionId === "ua-only") {
+        return [{ id: "a1", kind: "assistant", text: "live", streaming: true, agentId: "sub:live" }];
+      }
+      return originalGetTurns(sessionId);
+    };
+    assert.strictEqual(service.updateUserTurnText("ua-only", "turn-live", "revised"), true);
+    assert.strictEqual(connection.editMessageCalls[0]?.agentId, "root");
+    assert.strictEqual(connection.editMessageCalls[0]?.turnId, "turn-live");
+    assert.strictEqual(connection.editMessageCalls[0]?.newContent, "revised");
+  });
+  test("connected updateUserTurnText forwards the caller agentId instead of the streaming agent", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    stubCachedProjection(service, "ua-only", projectionWithStreamingAgent("ua-only", "sub:live"));
+    const originalGetTurns = service.getTurns.bind(service);
+    service.getTurns = (sessionId) => {
+      if (sessionId === "ua-only") {
+        return [{ id: "a1", kind: "assistant", text: "live", streaming: true, agentId: "sub:live" }];
+      }
+      return originalGetTurns(sessionId);
+    };
+    assert.strictEqual(service.updateUserTurnText("ua-only", "turn-live", "revised", "coder"), true);
+    assert.strictEqual(connection.editMessageCalls[0]?.agentId, "coder");
+    assert.strictEqual(connection.editMessageCalls[0]?.turnId, "turn-live");
+    assert.strictEqual(service.updateUserTurnText("ua-only", "turn-live", "again", "   "), true);
+    assert.strictEqual(connection.editMessageCalls[1]?.agentId, "root");
+  });
+  test("disconnected after engine updateUserTurnText skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.updateUserTurnText("ua-only", "turn-1", "later"), false);
+    assert.strictEqual(connection.editMessageCalls.length, 0);
+  });
+  test("connected cancelToolCall forwards AgentService.CancelToolCall", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.cancelToolCall("ua-only", { toolCallId: "  tc-1  ", agentId: "  sub:a  " }), true);
+    assert.deepStrictEqual(connection.cancelToolCallCalls, [{
+      sessionId: "ua-only",
+      agentId: "sub:a",
+      toolCallId: "tc-1"
+    }]);
+    assert.strictEqual(service.cancelToolCall("ua-only", { toolCallId: "tc-2" }), true);
+    assert.deepStrictEqual(connection.cancelToolCallCalls[1], {
+      sessionId: "ua-only",
+      agentId: "root",
+      toolCallId: "tc-2"
+    });
+    assert.strictEqual(service.cancelToolCall("ua-only", { toolCallId: "   " }), false);
+    assert.strictEqual(service.cancelToolCall("missing", { toolCallId: "tc-3" }), false);
+    assert.strictEqual(connection.cancelToolCallCalls.length, 2);
+  });
+  test("connected cancelToolCall uses last streaming agent when omitted", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const originalGetTurns = service.getTurns.bind(service);
+    service.getTurns = (sessionId) => {
+      if (sessionId === "ua-only") {
+        return [{ id: "a1", kind: "assistant", text: "live", streaming: true, agentId: "sub:live" }];
+      }
+      return originalGetTurns(sessionId);
+    };
+    assert.strictEqual(service.cancelToolCall("ua-only", { toolCallId: "tc-live" }), true);
+    assert.strictEqual(connection.cancelToolCallCalls[0]?.agentId, "sub:live");
+    assert.strictEqual(connection.cancelToolCallCalls[0]?.toolCallId, "tc-live");
+  });
+  test("connected retryError posts continueGeneration on the held lease and does not open a UI stream", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = new MockUniverseAgentSessionView();
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage, sessionView));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const viewLease = store.add(service.acquireSessionView("ua-only"));
+    assert.ok(await viewLease.whenBindReady?.());
+    assert.strictEqual(service.retryError("ua-only", { messageId: "  msg-1  ", turnId: "  turn-1  ", agentId: "  sub:a  " }), true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepStrictEqual(sessionView.postCalls.map((call) => call.msg), [{
+      kind: "continueGeneration",
+      agentId: "sub:a",
+      turnId: "turn-1",
+      messageId: "msg-1"
+    }]);
+    assert.deepStrictEqual(connection.continuationOpens, []);
+    assert.strictEqual(service.retryError("ua-only", { messageId: "msg-2" }), true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepStrictEqual(sessionView.postCalls[1]?.msg, {
+      kind: "continueGeneration",
+      agentId: "root",
+      turnId: "msg-2",
+      messageId: "msg-2"
+    });
+    assert.strictEqual(service.retryError("ua-only", { messageId: "   " }), false);
+    assert.strictEqual(service.retryError("missing", { messageId: "msg-3" }), false);
+    assert.strictEqual(sessionView.postCalls.length, 2);
+    connection.openContinuationStream = void 0;
+    assert.strictEqual(service.retryError("ua-only", { messageId: "msg-4" }), true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(sessionView.postCalls.length, 3);
+    assert.deepStrictEqual(connection.continuationOpens, []);
+  });
+  test("connected retryError uses last streaming agent when omitted", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = new MockUniverseAgentSessionView();
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage, sessionView));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const viewLease = store.add(service.acquireSessionView("ua-only"));
+    assert.ok(await viewLease.whenBindReady?.());
+    const originalGetTurns = service.getTurns.bind(service);
+    service.getTurns = (sessionId) => {
+      if (sessionId === "ua-only") {
+        return [{ id: "a1", kind: "assistant", text: "live", streaming: true, agentId: "sub:live" }];
+      }
+      return originalGetTurns(sessionId);
+    };
+    assert.strictEqual(service.retryError("ua-only", { messageId: "msg-live", turnId: "turn-live" }), true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepStrictEqual(sessionView.postCalls[0]?.msg, {
+      kind: "continueGeneration",
+      agentId: "sub:live",
+      turnId: "turn-live",
+      messageId: "msg-live"
+    });
+    assert.deepStrictEqual(connection.continuationOpens, []);
+  });
+  test("disconnected after engine retryError skips ContinueGeneration", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = new MockUniverseAgentSessionView();
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage, sessionView));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.retryError("ua-only", { messageId: "msg-1" }), false);
+    assert.strictEqual(connection.continuationOpens.length, 0);
+    assert.deepStrictEqual(sessionView.postCalls, []);
+  });
+  test("connected resolveConfirmation forwards PermissionService.Respond", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.resolveConfirmation("ua-only", "  req-1  ", "allowed"), true);
+    assert.deepStrictEqual(connection.respondPermissionCalls, [{
+      sessionId: "ua-only",
+      requestId: "req-1",
+      granted: true
+    }]);
+    assert.strictEqual(service.resolveConfirmation("ua-only", "req-2", "skipped"), true);
+    assert.deepStrictEqual(connection.respondPermissionCalls[1], {
+      sessionId: "ua-only",
+      requestId: "req-2",
+      granted: false
+    });
+    assert.strictEqual(service.resolveConfirmation("ua-only", "   ", "allowed"), false);
+    assert.strictEqual(service.resolveConfirmation("missing", "req-3", "allowed"), false);
+    assert.strictEqual(connection.respondPermissionCalls.length, 2);
+    connection.respondPermission = void 0;
+    assert.strictEqual(service.resolveConfirmation("ua-only", "req-4", "allowed"), false);
+    assert.strictEqual(connection.respondPermissionCalls.length, 2);
+  });
+  test("connected respondClientTool forwards AgentService.SendClientToolResponse", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.respondClientTool("ua-only", "  call-1  ", { content: '{"ok":true}', isError: false }), true);
+    assert.deepStrictEqual(connection.sendClientToolResponseCalls, [{
+      sessionId: "ua-only",
+      callId: "call-1",
+      content: '{"ok":true}',
+      isError: void 0,
+      metadataJson: void 0
+    }]);
+    assert.strictEqual(service.respondClientTool("ua-only", "call-2", { content: "boom", isError: true, metadataJson: '{"src":"ide"}' }), true);
+    assert.deepStrictEqual(connection.sendClientToolResponseCalls[1], {
+      sessionId: "ua-only",
+      callId: "call-2",
+      content: "boom",
+      isError: true,
+      metadataJson: '{"src":"ide"}'
+    });
+    assert.strictEqual(service.respondClientTool("ua-only", "   ", { content: "Nope" }), false);
+    assert.strictEqual(service.respondClientTool("missing", "call-3", { content: "Nope" }), false);
+    assert.strictEqual(connection.sendClientToolResponseCalls.length, 2);
+    connection.sendClientToolResponse = void 0;
+    assert.strictEqual(service.respondClientTool("ua-only", "call-4", { content: "Nope" }), false);
+    assert.strictEqual(connection.sendClientToolResponseCalls.length, 2);
+  });
+  test("disconnected after engine respondClientTool skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.respondClientTool("ua-only", "call-1", { content: "{}" }), false);
+    assert.strictEqual(connection.sendClientToolResponseCalls.length, 0);
+  });
+  test("client-tool accepted cleanup requires an explicit ok:true result", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.sendClientToolResponse = async () => void 0;
+    assert.strictEqual(service.respondClientTool("ua-only", "call-malformed", { content: "late" }), true);
+    assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+    connection.sendClientToolResponse = async () => ({ ok: 1 });
+    assert.strictEqual(service.respondClientTool("ua-only", "call-malformed-2", { content: "late" }), true);
+    assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+  });
+  test("connected respondQuestion forwards AgentService.RespondQuestion", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.respondQuestion("ua-only", "  q-1  ", { itemA: { selectedLabels: ["yes"] } }, "other"), true);
+    assert.deepStrictEqual(connection.respondQuestionCalls, [{
+      sessionId: "ua-only",
+      questionId: "q-1",
+      answers: { itemA: { selectedLabels: ["yes"] } },
+      customText: "other"
+    }]);
+    assert.strictEqual(service.respondQuestion("ua-only", "q-2"), true);
+    assert.deepStrictEqual(connection.respondQuestionCalls[1], {
+      sessionId: "ua-only",
+      questionId: "q-2",
+      answers: void 0,
+      customText: void 0
+    });
+    assert.strictEqual(service.respondQuestion("ua-only", "   ", { itemA: { selectedLabels: ["yes"] } }), false);
+    assert.strictEqual(service.respondQuestion("missing", "q-3"), false);
+    assert.strictEqual(connection.respondQuestionCalls.length, 2);
+    connection.respondQuestion = void 0;
+    assert.strictEqual(service.respondQuestion("ua-only", "q-4"), false);
+    assert.strictEqual(connection.respondQuestionCalls.length, 2);
+  });
+  test("disconnected after engine respondQuestion skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.respondQuestion("ua-only", "q-1", { itemA: { selectedLabels: ["yes"] } }), false);
+    assert.strictEqual(connection.respondQuestionCalls.length, 0);
+  });
+  test("disconnected after engine resolveConfirmation skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.resolveConfirmation("ua-only", "req-1", "allowed"), false);
+    assert.strictEqual(connection.respondPermissionCalls.length, 0);
+  });
+  test("response recovery disconnected seat normal permission clicks keep both cached panes pending and the model unchanged", async () => {
+    const { service, connection, sessionView, cachedLease } = await disconnectedResponseSeat(store);
+    const otherLease = store.add(service.acquireSessionView("ua-only"));
+    const first = responseSeatRoute(store, service, connection, cachedLease);
+    const second = responseSeatRoute(store, service, connection, otherLease);
+    const modelBefore = JSON.stringify(service.getTurns("ua-only"));
+    const pendingBefore = JSON.stringify(cachedLease.snapshot.pendingActions);
+    second.timeline.hide();
+    recoveryAction(first.timeline, "permission").click();
+    await first.whenSettled();
+    assert.strictEqual(JSON.stringify(service.getTurns("ua-only")), modelBefore, "a disconnected click must not authorize the cached model");
+    assert.strictEqual(JSON.stringify(cachedLease.snapshot.pendingActions), pendingBefore, "the real cached lease must retain its pending requests");
+    second.timeline.show();
+    recoveryAction(second.timeline, "permission").click();
+    await second.whenSettled();
+    for (const pane of [first, second]) {
+      assert.strictEqual(pane.timeline.getTimelineRowElement("req-allow")?.textContent?.includes("Allowed"), false);
+      assert.strictEqual(recoveryAction(pane.timeline, "permission").getAttribute("aria-disabled"), "true");
+      assert.deepStrictEqual(pane.posted, []);
+      assert.deepStrictEqual(pane.focused, []);
+    }
+    assert.strictEqual(JSON.stringify(otherLease.snapshot.pendingActions), pendingBefore);
+    assert.strictEqual(connection.respondPermissionCalls.length, 0);
+    assert.strictEqual(sessionView.postCalls.length, 0);
+  });
+  for (const kind of ["permission", "question", "clientTool"]) {
+    test(`response recovery disconnected seat ${kind} callback rejects before the cached stub route`, async () => {
+      const { service, connection, sessionView, cachedLease } = await disconnectedResponseSeat(store);
+      const pane = responseSeatRoute(store, service, connection, cachedLease);
+      const before = JSON.stringify([service.getTurns("ua-only"), cachedLease.snapshot]);
+      if (kind === "permission") {
+        await resolveConfirmation(pane.binding, "req-allow", "allowed");
+      } else if (kind === "question") {
+        await resolveQuestion(pane.binding, "q-ask:row", "q-ask", { radio: { selectedLabels: ["first"] } });
+      } else {
+        respondClientTool(pane.binding, { id: "call-ask" });
+      }
+      assert.strictEqual(JSON.stringify([service.getTurns("ua-only"), cachedLease.snapshot]), before, "a late response callback must leave the actual cached model and pending requests untouched");
+      assert.deepStrictEqual(pane.failures, ["engine_disconnected"]);
+      assert.deepStrictEqual(pane.posted, []);
+      assert.deepStrictEqual(pane.focused, []);
+      assert.strictEqual(connection.respondPermissionCalls.length + connection.respondQuestionCalls.length + connection.sendClientToolResponseCalls.length, 0);
+      assert.strictEqual(sessionView.postCalls.length, 0);
+    });
+    test(`response recovery disconnected seat ${kind} postBound rejects implicit and captured cached leases`, async () => {
+      const { service, connection, sessionView, cachedLease } = await disconnectedResponseSeat(store);
+      const pane = responseSeatRoute(store, service, connection, cachedLease);
+      const message = kind === "permission" ? { kind: "permissionRespond", requestId: "req-allow", decision: "allow" } : kind === "question" ? { kind: "questionRespond", requestId: "q-ask", answers: { radio: { selectedLabels: ["first"] } } } : { kind: "clientToolRespond", requestId: "call-ask", resultJson: "{}" };
+      const before = JSON.stringify([service.getTurns("ua-only"), cachedLease.snapshot]);
+      for (const captured of [void 0, cachedLease]) {
+        const outcome = await postBound(pane.route, message, captured);
+        assert.strictEqual(JSON.stringify([service.getTurns("ua-only"), cachedLease.snapshot]), before, "the final post door must not mutate or clear a cached request");
+        assert.deepStrictEqual(outcome, { accepted: false, reason: "no_such_session" });
+      }
+      assert.deepStrictEqual(pane.failures, [], "the final transport door leaves UI notices to the response callback");
+      assert.strictEqual(connection.respondPermissionCalls.length + connection.respondQuestionCalls.length + connection.sendClientToolResponseCalls.length, 0);
+      assert.strictEqual(sessionView.postCalls.length, 0);
+    });
+  }
+  test("response recovery disconnected seat reconnect restores the real permission route in both panes", async () => {
+    const { service, connection, sessionView, cachedLease } = await disconnectedResponseSeat(store);
+    const first = responseSeatRoute(store, service, connection, cachedLease);
+    const second = responseSeatRoute(store, service, connection, store.add(service.acquireSessionView("ua-only")));
+    assert.strictEqual(recoveryAction(first.timeline, "permission").getAttribute("aria-disabled"), "true");
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const firstLive = store.add(service.acquireSessionView("ua-only"));
+    const secondLive = store.add(service.acquireSessionView("ua-only"));
+    sessionView.emitGeneration(responseRecoverySnapshot("ua-only"), 2);
+    await timeout(0);
+    first.rebind(firstLive);
+    second.rebind(secondLive);
+    assert.strictEqual(recoveryAction(first.timeline, "permission").getAttribute("aria-disabled"), "false");
+    assert.strictEqual(recoveryAction(second.timeline, "permission").getAttribute("aria-disabled"), "false");
+    recoveryAction(first.timeline, "permission").click();
+    await first.whenSettled();
+    assert.strictEqual(await service.whenDispatchedEngineActionSettles(), true);
+    assert.deepStrictEqual(connection.respondPermissionCalls, [{ sessionId: "ua-only", requestId: "req-allow", granted: true }]);
+    for (const pane of [first, second]) {
+      assert.ok(pane.timeline.getTimelineRowElement("req-allow")?.textContent?.includes("Allowed"));
+      assert.deepStrictEqual(pane.posted, []);
+      assert.deepStrictEqual(pane.failures, []);
+      assert.ok(!pane.route.sessionViewLease.snapshot.pendingActions.some((action) => action.requestId === "req-allow"));
+    }
+    assert.strictEqual(sessionView.postCalls.length, 0);
+  });
+  test("response recovery disconnected seat never-connected local stub still authorizes through the real callback and captured lease", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const service = store.add(createService(connection));
+    const sessionId = service.getActiveSessionId();
+    const request = service.appendConfirmationTurn(sessionId, "Local permission");
+    assert.ok(request);
+    const lease = store.add(service.acquireSessionView(sessionId));
+    const pane = responseSeatRoute(store, service, connection, lease);
+    pane.timeline.revealTurn(request.id);
+    assert.strictEqual(service.hasEngineConnectionHistory(), false);
+    assert.strictEqual(service.getSessionSource(sessionId), "local");
+    const allow = pane.timeline.getTimelineRowElement(request.id)?.querySelector(".conversation-lens-confirmation-actions .monaco-button");
+    assert.ok(allow);
+    assert.strictEqual(allow.getAttribute("aria-disabled"), "false");
+    allow.click();
+    await pane.whenSettled();
+    assert.strictEqual(service.getTurns(sessionId).find((turn) => turn.id === request.id)?.status, "allowed");
+    assert.ok(!lease.snapshot.pendingActions.some((action) => action.requestId === request.id));
+    assert.deepStrictEqual(pane.failures, []);
+    const next = service.appendConfirmationTurn(sessionId, "Local captured permission");
+    assert.ok(next);
+    const outcome = await postBound(pane.route, { kind: "permissionRespond", requestId: next.id, decision: "deny" }, lease);
+    assert.strictEqual(outcome.accepted, true);
+    assert.strictEqual(service.getTurns(sessionId).find((turn) => turn.id === next.id)?.status, "skipped");
+    assert.strictEqual(connection.respondPermissionCalls.length, 0);
+  });
+  test("response recovery disconnected seat keeps pairing and connected-not-ready response gates", async () => {
+    const { service, connection, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot, false);
+    const pane = responseSeatRoute(store, service, connection, lease);
+    connection.setPairingPending(true);
+    await resolveConfirmation(pane.binding, "req-allow", "allowed");
+    assert.strictEqual(isReadingColumnWritesEnabled(pane.route), false);
+    assert.deepStrictEqual(pane.failures, ["engine_disconnected"]);
+    assert.deepStrictEqual(await postBound(pane.route, { kind: "permissionRespond", requestId: "req-allow", decision: "allow" }, lease), { accepted: false, reason: "no_such_session" });
+    connection.listSessionsError = new Error("list unavailable");
+    connection.setPairingPending(false);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(service.isEngineSessionReady(), false);
+    await resolveConfirmation(pane.binding, "req-allow", "allowed");
+    assert.strictEqual(isReadingColumnWritesEnabled(pane.route), false);
+    assert.deepStrictEqual(pane.failures, ["engine_disconnected", "session_not_ready"]);
+    assert.deepStrictEqual(await postBound(pane.route, { kind: "permissionRespond", requestId: "req-allow", decision: "allow" }, lease), { accepted: false, reason: "no_such_session" });
+    assert.deepStrictEqual(pane.posted, []);
+    assert.strictEqual(connection.respondPermissionCalls.length, 0);
+    assert.ok(lease.snapshot.pendingActions.some((action) => action.requestId === "req-allow"));
+  });
+  for (const kind of ["permission", "question", "clientTool"]) {
+    for (const outcome of ["false", "reject"]) {
+      test(`response recovery business ${kind} unary ${outcome} restores the actual seat and retries once`, async () => {
+        const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+        const host = responseRecoveryHost(store, service, lease);
+        const pending = new DeferredPromise();
+        connection.writePending = pending.p;
+        const original = JSON.stringify([lease.snapshot.timeline, lease.snapshot.pendingActions]);
+        const acknowledgements = sessionView.acknowledgeCalls.length;
+        if (kind === "question") {
+          chooseRecoveryAnswers(host);
+          host.domNode.querySelector(".conversation-lens-question-custom").dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+        } else {
+          recoveryAction(host, kind).click();
+        }
+        assert.strictEqual(recoveryAction(host, kind).getAttribute("aria-disabled"), "true", "all real response paths must show the shared busy hold");
+        if (outcome === "false") {
+          await pending.complete({ ok: false, message: "wire refused" });
+        } else {
+          await pending.error(new Error("wire rejected"));
+        }
+        assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+        assert.ok(host.domNode.textContent?.includes(outcome === "false" ? "wire refused" : "wire rejected"), "unary failure must reach the actual seat without a stream failure");
+        assert.strictEqual(recoveryAction(host, kind).getAttribute("aria-disabled"), "false");
+        assert.strictEqual(JSON.stringify([lease.snapshot.timeline, lease.snapshot.pendingActions]), original, "failure is a sidecar-only change");
+        assert.strictEqual(sessionView.acknowledgeCalls.length, acknowledgements, "local busy/failure must not acknowledge the host");
+        if (kind === "question") {
+          assert.deepStrictEqual({
+            radio: host.domNode.querySelectorAll('[role="radio"]')[1].getAttribute("aria-checked"),
+            check: host.domNode.querySelectorAll('[role="checkbox"]')[1].getAttribute("aria-checked"),
+            custom: host.domNode.querySelector(".conversation-lens-question-custom")?.value
+          }, { radio: "true", check: "true", custom: "keep this answer" });
+        }
+        const retry = new DeferredPromise();
+        connection.writePending = retry.p;
+        recoveryAction(host, kind).click();
+        sessionView.emitPatches("ua-only", [{ op: "setSyncChrome", sync: { kind: "live" } }]);
+        assert.strictEqual(recoveryAction(host, kind).getAttribute("aria-disabled"), "true", "unrelated redraw cannot release the retry hold");
+        recoveryAction(host, kind).click();
+        const calls = kind === "permission" ? connection.respondPermissionCalls : kind === "question" ? connection.respondQuestionCalls : connection.sendClientToolResponseCalls;
+        assert.strictEqual(calls.length, 2, "one original and one retry unary");
+        if (kind === "question") {
+          assert.deepStrictEqual(connection.respondQuestionCalls.map((call) => ({ answers: call.answers, customText: call.customText })), [0, 1].map(() => ({
+            answers: { radio: { selectedLabels: ["second"] }, checks: { selectedLabels: ["y"] }, custom: { selectedLabels: [] } },
+            customText: "keep this answer"
+          })));
+        }
+        await retry.complete({ ok: true });
+        assert.strictEqual(await service.whenDispatchedEngineActionSettles(), true);
+        const repeated = kind === "permission" ? service.resolveConfirmation("ua-only", "req-allow", "allowed") : kind === "question" ? service.respondQuestion("ua-only", "q-ask", {}) : service.respondClientTool("ua-only", "call-ask", { content: "again" });
+        assert.strictEqual(repeated, false, "an accepted terminal request is blocked, never untracked forwarding");
+        assert.strictEqual(calls.length, 2);
+        assert.deepStrictEqual(sessionView.postCalls, [], "unary response never adds a Chat/post write");
+        assert.ok(lease.snapshot.pendingActions.some((action) => String(action.requestId) === "req-deny"), "another request stays pending");
+      });
+    }
+  }
+  test("response recovery shared begin blocks a second leaf and synchronous notification reentry", async () => {
+    const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+    const second = store.add(service.acquireSessionView("ua-only"));
+    await timeout(0);
+    const firstHost = responseRecoveryHost(store, service, lease);
+    const secondHost = responseRecoveryHost(store, service, second);
+    const pending = new DeferredPromise();
+    connection.writePending = pending.p;
+    const failures = [];
+    store.add(service.onDidFailEngineAction((event) => failures.push(event.action)));
+    let reentered = false;
+    store.add(lease.onDidApplyFrame(() => {
+      if (!reentered) {
+        reentered = true;
+        assert.strictEqual(lease.responseProjection, second.responseProjection, "all consumers install the same state before the first listener");
+        secondHost.domNode.querySelector('[data-turn-id="req-allow"] .monaco-button').click();
+        assert.strictEqual(service.resolveConfirmation("ua-only", "req-allow", "skipped"), true);
+      }
+    }));
+    recoveryAction(firstHost, "permission").click();
+    assert.deepStrictEqual({ calls: connection.respondPermissionCalls.length, reentered, failures }, { calls: 1, reentered: true, failures: [] });
+    assert.strictEqual(recoveryAction(secondHost, "permission").getAttribute("aria-disabled"), "true");
+    await pending.complete({ ok: false, message: "shared refusal" });
+    await service.whenDispatchedEngineActionSettles();
+    assert.ok(firstHost.domNode.textContent?.includes("shared refusal"));
+    assert.ok(secondHost.domNode.textContent?.includes("shared refusal"));
+    const late = store.add(service.acquireSessionView("ua-only"));
+    await timeout(0);
+    const lateHost = responseRecoveryHost(store, service, late);
+    assert.ok(lateHost.domNode.textContent?.includes("shared refusal"));
+    assert.deepStrictEqual(sessionView.postCalls, []);
+  });
+  for (const removed of ["pending", "timeline"]) {
+    for (const oldOutcome of ["false", "reject", "accepted"]) {
+      test(`response recovery same-frame ${removed} ${oldOutcome} remove/re-add clears draft and busy despite an equal final snapshot`, async () => {
+        const questionOnly = (sessionId) => {
+          const base = responseRecoverySnapshot(sessionId);
+          return { ...base, timeline: base.timeline.filter((row) => row.summary.kind === "question"), pendingActions: base.pendingActions.filter((action) => action.summary.kind === "question") };
+        };
+        const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, questionOnly);
+        const host = responseRecoveryHost(store, service, lease);
+        chooseRecoveryAnswers(host);
+        const pending = new DeferredPromise();
+        connection.writePending = pending.p;
+        recoveryAction(host, "question").click();
+        const original = JSON.stringify(lease.snapshot);
+        const notifications = [];
+        store.add(lease.onDidApplyFrame((event) => {
+          if (event.kind === "patches") {
+            notifications.push([...event.changedIds]);
+          }
+        }));
+        const patches = removed === "pending" ? [{ op: "removePendingAction", requestId: lease.snapshot.pendingActions[0].requestId }, { op: "upsertPendingAction", action: lease.snapshot.pendingActions[0] }] : [{ op: "removeTimelineItem", itemId: lease.snapshot.timeline[0].id }, { op: "upsertTimelineItem", item: lease.snapshot.timeline[0] }];
+        sessionView.emitPatches("ua-only", patches);
+        assert.strictEqual(JSON.stringify(lease.snapshot), original);
+        assert.ok(notifications.some((ids) => ids.includes("q-ask:row") && ids.includes("pending:q-ask")));
+        assert.deepStrictEqual({
+          custom: host.domNode.querySelector(".conversation-lens-question-custom")?.value,
+          checked: host.domNode.querySelectorAll('[role="checkbox"][aria-checked="true"]').length,
+          busy: recoveryAction(host, "question").getAttribute("aria-disabled")
+        }, { custom: "", checked: 0, busy: "false" });
+        if (oldOutcome === "reject") {
+          await pending.error(new Error("stale transport"));
+        } else {
+          await pending.complete({ ok: oldOutcome === "accepted" });
+        }
+        await service.whenDispatchedEngineActionSettles();
+        assert.ok(lease.snapshot.pendingActions.some((action) => String(action.requestId) === "q-ask"));
+        assert.ok(!host.domNode.textContent?.includes("Couldn't send this response"), "old incarnation outcome cannot alter the replacement");
+        assert.strictEqual(connection.respondQuestionCalls.length, 1);
+      });
+    }
+  }
+  test("response recovery authoritative and connection generation changes clear drafts and reject late outcomes", async () => {
+    const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+    const host = responseRecoveryHost(store, service, lease);
+    chooseRecoveryAnswers(host);
+    const pending = new DeferredPromise();
+    connection.writePending = pending.p;
+    recoveryAction(host, "question").click();
+    sessionView.emitPatches("ua-only", [{ op: "setSyncChrome", sync: { kind: "live" } }]);
+    sessionView.emitGeneration(lease.snapshot, 1);
+    assert.strictEqual(host.domNode.querySelector(".conversation-lens-question-custom")?.value, "keep this answer");
+    assert.strictEqual(recoveryAction(host, "question").getAttribute("aria-disabled"), "true", "same-generation same-request baseline preserves busy and draft");
+    sessionView.emitGeneration(lease.snapshot, 2);
+    assert.strictEqual(host.domNode.querySelector(".conversation-lens-question-custom")?.value, "");
+    assert.strictEqual(recoveryAction(host, "question").getAttribute("aria-disabled"), "false");
+    await pending.complete({ ok: true });
+    await service.whenDispatchedEngineActionSettles();
+    assert.ok(lease.snapshot.pendingActions.some((action) => String(action.requestId) === "q-ask"), "old accepted response cannot settle a new generation");
+    chooseRecoveryAnswers(host);
+    service.setEngineConnected(false);
+    assert.strictEqual(host.domNode.querySelector(".conversation-lens-question-custom")?.value, "");
+    assert.strictEqual(service.respondQuestion("ua-only", "q-ask", {}), false);
+    assert.strictEqual(connection.respondQuestionCalls.length, 1);
+  });
+  test("response recovery untracked forwarding never cleans a request that appears before the callback", async () => {
+    const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+    const pending = new DeferredPromise();
+    connection.writePending = pending.p;
+    assert.strictEqual(service.respondQuestion("ua-only", "new-q", { item: { selectedLabels: ["yes"] } }), true);
+    const question = { requestId: "new-q", summary: {
+      kind: "question",
+      title: "New incarnation",
+      answerKeysValid: true,
+      items: [{ id: "item", title: "Pick", optionsPreview: ["yes", "no"] }]
+    } };
+    sessionView.emitPatches("ua-only", [{ op: "upsertPendingAction", action: question }]);
+    await pending.complete({ ok: true });
+    await service.whenDispatchedEngineActionSettles();
+    assert.ok(lease.snapshot.pendingActions.some((action) => String(action.requestId) === "new-q"));
+    assert.ok([...lease.responseProjection.byRequest.values()].filter((state) => state.identity.requestId === "new-q").every((state) => !state.inFlight && !state.failure));
+    assert.deepStrictEqual(sessionView.postCalls, []);
+  });
+  test("response recovery review I1 timeline-only clientTool accepted remains blocked after respondable is removed", async () => {
+    const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, (sessionId) => {
+      const snapshot = responseRecoverySnapshot(sessionId);
+      return {
+        ...snapshot,
+        timeline: snapshot.timeline.map((row2) => String(row2.id) === "call-ask" && row2.summary.kind === "tool" ? { ...row2, summary: { ...row2.summary, toolCallId: "call-ask", toolCallIds: ["call-ask"] } } : row2),
+        pendingActions: snapshot.pendingActions.filter((action) => String(action.requestId) !== "call-ask")
+      };
+    });
+    const host = responseRecoveryHost(store, service, lease);
+    const pending = new DeferredPromise();
+    connection.writePending = pending.p;
+    recoveryAction(host, "clientTool").click();
+    assert.strictEqual(recoveryAction(host, "clientTool").getAttribute("aria-disabled"), "true");
+    await pending.complete({ ok: true });
+    assert.strictEqual(await service.whenDispatchedEngineActionSettles(), true);
+    const row = lease.snapshot.timeline.find((item) => String(item.id) === "call-ask");
+    assert.ok(row?.summary.kind === "tool" && row.summary.status === "completed" && row.summary.respondable !== true);
+    assert.strictEqual(service.respondClientTool("ua-only", "call-ask", { content: "duplicate" }), false, "known accepted timeline-only identity must be blocked instead of forwarded");
+    assert.strictEqual(connection.sendClientToolResponseCalls.length, 1, "accepted cleanup cannot reopen unary forwarding");
+    assert.deepStrictEqual(sessionView.postCalls, []);
+  });
+  for (const oldOutcome of ["false", "reject", "accepted"]) {
+    test(`response recovery review I1 timeline-only clientTool authoritative terminal supersedes late ${oldOutcome}`, async () => {
+      const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, (sessionId) => {
+        const snapshot = responseRecoverySnapshot(sessionId);
+        return { ...snapshot, pendingActions: snapshot.pendingActions.filter((action) => String(action.requestId) !== "call-ask") };
+      });
+      const host = responseRecoveryHost(store, service, lease);
+      const pending = new DeferredPromise();
+      connection.writePending = pending.p;
+      recoveryAction(host, "clientTool").click();
+      const row = lease.snapshot.timeline.find((item) => String(item.id) === "call-ask");
+      if (row.summary.kind !== "tool") {
+        assert.fail("client tool row required");
+      }
+      const { respondable: _respondable, ...terminalSummary } = row.summary;
+      sessionView.emitPatches("ua-only", [{ op: "upsertTimelineItem", item: { ...row, summary: { ...terminalSummary, status: "failed", resultPreview: "authoritative result" } } }]);
+      const terminal = JSON.stringify(lease.snapshot);
+      assert.strictEqual(service.respondClientTool("ua-only", "call-ask", { content: "duplicate" }), false, "authoritative terminal must close a previously known timeline-only client response");
+      if (oldOutcome === "reject") {
+        await pending.error(new Error("stale client transport"));
+      } else {
+        await pending.complete({ ok: oldOutcome === "accepted", message: "stale client transport" });
+      }
+      await service.whenDispatchedEngineActionSettles();
+      assert.strictEqual(JSON.stringify(lease.snapshot), terminal, "late unary cannot overwrite the authoritative terminal result");
+      assert.strictEqual(service.respondClientTool("ua-only", "call-ask", { content: "duplicate after late result" }), false);
+      assert.strictEqual(connection.sendClientToolResponseCalls.length, 1);
+      assert.ok(!host.domNode.textContent?.includes("stale client transport"));
+      assert.deepStrictEqual(sessionView.postCalls, []);
+    });
+  }
+  test("response recovery review I1 ordinary terminal tool stays untracked on the public response boundary", async () => {
+    const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, (sessionId) => {
+      const snapshot = responseRecoverySnapshot(sessionId);
+      return { ...snapshot, timeline: [...snapshot.timeline, { id: "server-tool", orderKey: "ordinary", summary: { kind: "tool", title: "Server result", toolName: "server", status: "completed" } }] };
+    });
+    const before = JSON.stringify(lease.snapshot);
+    assert.strictEqual(service.respondClientTool("ua-only", "server-tool", { content: "compatibility forwarding" }), true, "an ordinary terminal tool is not a known closed client response");
+    await service.whenDispatchedEngineActionSettles();
+    assert.strictEqual(connection.sendClientToolResponseCalls.length, 1);
+    assert.strictEqual(JSON.stringify(lease.snapshot), before, "untracked forwarding owns no local cleanup");
+    assert.ok(!lease.responseProjection?.byRow.has("server-tool"));
+    assert.deepStrictEqual(sessionView.postCalls, []);
+  });
+  for (const transition of ["public disconnect", "connection disconnect"]) {
+    test(`response recovery review I2 ${transition} closes writes before synchronous scope notice`, async () => {
+      const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot, transition === "public disconnect");
+      const scope = lease.responseProjection.scope;
+      let attempts;
+      store.add(lease.onDidApplyFrame(() => {
+        if (attempts || lease.responseProjection.scope === scope) {
+          return;
+        }
+        attempts = [];
+        attempts.push(service.resolveConfirmation("ua-only", "req-allow", "allowed"));
+        attempts.push(service.respondQuestion("ua-only", "q-ask", { radio: { selectedLabels: ["second"] } }));
+        attempts.push(service.respondClientTool("ua-only", "call-ask", { content: "scope reentry" }));
+      }));
+      if (transition === "public disconnect") {
+        service.setEngineConnected(false);
+      } else {
+        connection.setConnected(false);
+      }
+      assert.deepStrictEqual(attempts, [false, false, false], "all public response APIs must reject reentry during the real scope notification");
+      assert.deepStrictEqual([connection.respondPermissionCalls.length, connection.respondQuestionCalls.length, connection.sendClientToolResponseCalls.length], [0, 0, 0], "scope reentry must not start any unary");
+      assert.ok([...lease.responseProjection.byRequest.values()].every((state) => !state.inFlight));
+      assert.deepStrictEqual(sessionView.postCalls, []);
+    });
+  }
+  test("response recovery review I2 published identity switch closes writes before synchronous scope notice and preserves cache owners", async () => {
+    const storage = store.add(new TestStorageService());
+    const cached = (title) => ({ activeSessionId: "ua-only", sessions: [{ id: "ua-only", title, turns: [], source: "engine-cache" }] });
+    storage.store(CONVERSATION_ROSTER_STORAGE_KEY, JSON.stringify({ version: 1, wasEverConnected: true, activeSessionId: "ua-only", nextTurnId: 1, localSessions: [], engineCaches: { "engine-a": cached("Cached A"), "engine-b": cached("Cached B") } }), StorageScope.WORKSPACE, StorageTarget.USER);
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Live A" }]);
+    connection.setPublishedLink("engine-a", 1, true);
+    const sessionView = store.add(new BaselineProjectionSessionView(responseRecoverySnapshot));
+    const service = store.add(createService(connection, storage, sessionView));
+    await awaitEngineCatalogRefresh(service);
+    const lease = store.add(service.acquireSessionView("ua-only"));
+    assert.ok(await lease.whenBindReady?.());
+    await timeout(0);
+    const scope = lease.responseProjection.scope;
+    let attempts;
+    store.add(lease.onDidApplyFrame(() => {
+      if (attempts || lease.responseProjection.scope === scope) {
+        return;
+      }
+      attempts = [];
+      attempts.push(service.resolveConfirmation("ua-only", "req-allow", "allowed"));
+      attempts.push(service.respondQuestion("ua-only", "q-ask", { radio: { selectedLabels: ["second"] } }));
+      attempts.push(service.respondClientTool("ua-only", "call-ask", { content: "identity reentry" }));
+    }));
+    connection.setListSessions([{ sessionId: "ua-only", title: "Live B" }]);
+    connection.setPublishedLink("engine-b", 2, true);
+    assert.deepStrictEqual(attempts, [false, false, false], "even a same-id cached session under the new owner cannot start a response during adoption");
+    assert.deepStrictEqual([connection.respondPermissionCalls.length, connection.respondQuestionCalls.length, connection.sendClientToolResponseCalls.length], [0, 0, 0]);
+    const saved = JSON.parse(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? "{}");
+    assert.deepStrictEqual([saved.engineCaches?.["engine-a"]?.sessions[0]?.title, saved.engineCaches?.["engine-b"]?.sessions[0]?.title], ["Live A", "Cached B"], "capture must persist the old catalog under its old identity");
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(sessionView.postCalls, []);
+  });
+  for (const changed of ["question options", "question items", "clientTool args"]) {
+    for (const oldOutcome of ["false", "reject", "accepted"]) {
+      test(`response recovery review I3 same-generation baseline ${changed} retires old ${oldOutcome} while pending stays unchanged`, async () => {
+        const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+        const host = responseRecoveryHost(store, service, lease);
+        const kind = changed === "clientTool args" ? "clientTool" : "question";
+        const old = new DeferredPromise();
+        connection.writePending = old.p;
+        if (kind === "question") {
+          chooseRecoveryAnswers(host);
+        }
+        recoveryAction(host, kind).click();
+        const oldSettles = service.whenDispatchedEngineActionSettles();
+        const pendingActions = lease.snapshot.pendingActions;
+        sessionView.emitGeneration(lease.snapshot, 1);
+        assert.strictEqual(recoveryAction(host, kind).getAttribute("aria-disabled"), "true", "same semantic baseline replay preserves the live attempt");
+        const timeline = lease.snapshot.timeline.map((row) => {
+          if (kind === "clientTool" && String(row.id) === "call-ask" && row.summary.kind === "tool") {
+            return { ...row, summary: { ...row.summary, argPreview: '{"replacement":true}' } };
+          }
+          if (kind === "question" && String(row.id) === "q-ask:row" && row.summary.kind === "question") {
+            const items = row.summary.items?.map((item, index) => index !== 0 ? item : changed === "question options" ? { ...item, optionsPreview: ["new first", "new second"] } : { ...item, id: "replacement-radio", title: "Replacement choice" });
+            return { ...row, summary: { ...row.summary, items } };
+          }
+          return row;
+        });
+        sessionView.emitGeneration({ ...lease.snapshot, timeline }, 1);
+        assert.strictEqual(lease.snapshot.pendingActions, pendingActions, "only the existing timeline interaction changed");
+        assert.strictEqual(recoveryAction(host, kind).getAttribute("aria-disabled"), "false", "a changed materialized row must retire the previous attempt despite the unchanged pending summary");
+        if (kind === "question") {
+          assert.strictEqual(host.domNode.querySelector(".conversation-lens-question-custom")?.value, "", "replacement question discards the old draft");
+          chooseRecoveryAnswers(host);
+        }
+        const retry = new DeferredPromise();
+        connection.writePending = retry.p;
+        recoveryAction(host, kind).click();
+        assert.strictEqual(recoveryAction(host, kind).getAttribute("aria-disabled"), "true");
+        const replacement = JSON.stringify(lease.snapshot);
+        if (oldOutcome === "reject") {
+          await old.error(new Error("stale baseline response"));
+        } else {
+          await old.complete({ ok: oldOutcome === "accepted", message: "stale baseline response" });
+        }
+        await oldSettles;
+        assert.strictEqual(JSON.stringify(lease.snapshot), replacement, "old accepted callback cannot clean the replacement interaction");
+        assert.strictEqual(recoveryAction(host, kind).getAttribute("aria-disabled"), "true", "old failure cannot end the replacement attempt");
+        assert.ok(!host.domNode.textContent?.includes("stale baseline response"));
+        assert.strictEqual((kind === "question" ? connection.respondQuestionCalls : connection.sendClientToolResponseCalls).length, 2);
+        await retry.complete({ ok: false, message: "replacement response refusal" });
+        await service.whenDispatchedEngineActionSettles();
+        assert.ok(host.domNode.textContent?.includes("replacement response refusal"), "the current incarnation still receives its own completion");
+        assert.deepStrictEqual(sessionView.postCalls, []);
+      });
+    }
+  }
+  test("response recovery review I3 pending-only first baseline materialization preserves the live attempt", async () => {
+    const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, (sessionId) => {
+      const snapshot = responseRecoverySnapshot(sessionId);
+      return { ...snapshot, timeline: snapshot.timeline.filter((row) => String(row.id) !== "q-ask:row") };
+    });
+    const host = responseRecoveryHost(store, service, lease);
+    const pending = new DeferredPromise();
+    connection.writePending = pending.p;
+    assert.strictEqual(service.respondQuestion("ua-only", "q-ask", { radio: { selectedLabels: ["second"] } }), true);
+    const question = lease.snapshot.pendingActions.find((action) => String(action.requestId) === "q-ask");
+    sessionView.emitGeneration({ ...lease.snapshot, timeline: [...lease.snapshot.timeline, { id: "q-ask:row", orderKey: "q", summary: question.summary }] }, 1);
+    assert.strictEqual(recoveryAction(host, "question").getAttribute("aria-disabled"), "true", "first materialization is the same pending request");
+    assert.strictEqual(service.respondQuestion("ua-only", "q-ask", {}), true);
+    assert.strictEqual(connection.respondQuestionCalls.length, 1, "materialization cannot create a second attempt");
+    await pending.complete({ ok: false, message: "materialized response refusal" });
+    await service.whenDispatchedEngineActionSettles();
+    assert.ok(host.domNode.textContent?.includes("materialized response refusal"));
+    assert.strictEqual(recoveryAction(host, "question").getAttribute("aria-disabled"), "false");
+    assert.deepStrictEqual(sessionView.postCalls, []);
+  });
+  for (const authoritative of ["retryable", "nonretryable", "terminal"]) {
+    for (const oldOutcome of ["false", "reject", "accepted"]) {
+      test(`response recovery authoritative ${authoritative} supersedes a late unary ${oldOutcome}`, async () => {
+        const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+        const host = responseRecoveryHost(store, service, lease);
+        const old = new DeferredPromise();
+        connection.writePending = old.p;
+        recoveryAction(host, "permission").click();
+        const oldSettles = service.whenDispatchedEngineActionSettles();
+        const original = JSON.stringify(lease.snapshot);
+        if (authoritative === "terminal") {
+          const row = lease.snapshot.timeline.find((item) => String(item.id) === "req-allow");
+          if (row.summary.kind !== "permission") {
+            assert.fail("permission row required");
+          }
+          sessionView.emitPatches("ua-only", [{ op: "upsertTimelineItem", item: { ...row, summary: { ...row.summary, decision: "deny" } } }, { op: "removePendingAction", requestId: "req-allow" }]);
+        } else {
+          sessionView.emitPatches("ua-only", [{ op: "pendingRespondFailed", requestId: "req-allow", cause: "hostWriteFailed", retryable: authoritative === "retryable", error: "authoritative refusal" }]);
+          assert.strictEqual(JSON.stringify(lease.snapshot), original, "failure-only host patch must still revoke the old attempt");
+          assert.ok(host.domNode.textContent?.includes("authoritative refusal"));
+        }
+        const retry = new DeferredPromise();
+        if (authoritative === "retryable") {
+          connection.writePending = retry.p;
+          recoveryAction(host, "permission").click();
+        } else {
+          assert.strictEqual(service.resolveConfirmation("ua-only", "req-allow", "allowed"), false);
+        }
+        if (oldOutcome === "reject") {
+          await old.error(new Error("stale unary rejection"));
+        } else {
+          await old.complete({ ok: oldOutcome === "accepted", message: "stale unary refusal" });
+        }
+        await oldSettles;
+        if (authoritative === "retryable") {
+          assert.strictEqual(recoveryAction(host, "permission").getAttribute("aria-disabled"), "true", "old callback cannot end a newer retry");
+          await retry.complete({ ok: false, message: "current retry refusal" });
+          await service.whenDispatchedEngineActionSettles();
+          assert.ok(host.domNode.textContent?.includes("current retry refusal"));
+          assert.strictEqual(connection.respondPermissionCalls.length, 2);
+        } else if (authoritative === "nonretryable") {
+          assert.ok(host.domNode.textContent?.includes("authoritative refusal"));
+          assert.strictEqual(service.resolveConfirmation("ua-only", "req-allow", "allowed"), false);
+          assert.strictEqual(connection.respondPermissionCalls.length, 1);
+        } else {
+          const row = lease.snapshot.timeline.find((item) => String(item.id) === "req-allow");
+          assert.ok(row?.summary.kind === "permission" && row.summary.decision === "deny", "the actual terminal decision must win over any unary outcome");
+          assert.strictEqual(connection.respondPermissionCalls.length, 1);
+        }
+        assert.ok(!host.domNode.textContent?.includes("stale unary"));
+        assert.deepStrictEqual(sessionView.postCalls, []);
+      });
+    }
+  }
+  test("response recovery implicit multi-group activation survives failure without auto-submitting on rebuild", async () => {
+    const snapshotFor = (sessionId) => {
+      const base = engineQuestionSnapshot(sessionId);
+      return { ...base, pendingActions: [{ ...base.pendingActions[0], summary: {
+        kind: "question",
+        title: "Choose both",
+        answerKeysValid: true,
+        items: [{ id: "one", title: "First", optionsPreview: ["a", "b"] }, { id: "two", title: "Second", optionsPreview: ["c", "d"] }]
+      } }] };
+    };
+    const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, snapshotFor);
+    const host = responseRecoveryHost(store, service, lease);
+    const pending = new DeferredPromise();
+    connection.writePending = pending.p;
+    const radios = host.domNode.querySelectorAll('[role="radio"]');
+    radios[1].click();
+    assert.strictEqual(connection.respondQuestionCalls.length, 0, "a roving default in another group is not an activated answer");
+    radios[3].dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", keyCode: 13, bubbles: true }));
+    assert.strictEqual(connection.respondQuestionCalls.length, 1);
+    await pending.complete({ ok: false });
+    await service.whenDispatchedEngineActionSettles();
+    assert.strictEqual(connection.respondQuestionCalls.length, 1, "draft restore cannot submit on its own");
+    assert.deepStrictEqual([...host.domNode.querySelectorAll('[role="radio"]')].map((radio) => radio.getAttribute("aria-checked")), ["false", "true", "false", "true"]);
+    connection.writePending = void 0;
+    host.domNode.querySelectorAll('[role="radio"]')[2].click();
+    await service.whenDispatchedEngineActionSettles();
+    assert.deepStrictEqual(connection.respondQuestionCalls[1].answers, { one: { selectedLabels: ["b"] }, two: { selectedLabels: ["c"] } });
+    assert.deepStrictEqual(sessionView.postCalls, []);
+  });
+  test("response recovery non-retryable stream failure is blocked instead of taking unary forwarding", async () => {
+    const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+    const host = responseRecoveryHost(store, service, lease);
+    sessionView.emitPatches("ua-only", [{ op: "pendingRespondFailed", requestId: "req-allow", cause: "hostWriteFailed", retryable: false, error: "request expired" }]);
+    assert.ok(host.domNode.textContent?.includes("request expired"));
+    assert.strictEqual(service.resolveConfirmation("ua-only", "req-allow", "allowed"), false);
+    assert.strictEqual(connection.respondPermissionCalls.length, 0);
+    service.setEngineConnected(false);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.resolveConfirmation("ua-only", "req-allow", "allowed"), false, "reconnection cannot erase an authoritative non-retryable failure");
+    const row = lease.snapshot.timeline.find((item) => String(item.id) === "req-deny");
+    assert.strictEqual(row.summary.kind, "permission");
+    if (row.summary.kind !== "permission") {
+      return;
+    }
+    sessionView.emitPatches("ua-only", [{ op: "upsertTimelineItem", item: { ...row, summary: { ...row.summary, decision: "deny" } } }, { op: "removePendingAction", requestId: "req-deny" }]);
+    assert.strictEqual(service.resolveConfirmation("ua-only", "req-deny", "allowed"), false);
+    assert.strictEqual(connection.respondPermissionCalls.length, 0);
+  });
+  test("accepted engine allow and deny leave the permission decided and not pending", async () => {
+    const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, enginePermissionSnapshot);
+    assert.strictEqual(service.countPendingConfirmations("ua-only"), 2);
+    const applied = [];
+    store.add(lease.onDidApplyFrame((event) => {
+      if (event.kind === "patches") {
+        applied.push([...event.changedIds]);
+      }
+    }));
+    assert.strictEqual(service.resolveConfirmation("ua-only", "  req-allow  ", "allowed"), true);
+    await timeout(0);
+    assert.deepStrictEqual(connection.respondPermissionCalls, [{
+      sessionId: "ua-only",
+      requestId: "req-allow",
+      granted: true
+    }]);
+    assert.deepStrictEqual(sessionView.postCalls, []);
+    const allowItem = lease.snapshot.timeline.find((item) => String(item.id) === "req-allow");
+    assert.ok(allowItem && allowItem.summary.kind === "permission");
+    if (allowItem?.summary.kind === "permission") {
+      assert.strictEqual(allowItem.summary.decision, "allow");
+    }
+    assert.ok(!lease.snapshot.pendingActions.some((action) => String(action.requestId) === "req-allow"));
+    assert.ok(lease.snapshot.pendingActions.some((action) => String(action.requestId) === "req-deny"));
+    const denyBefore = lease.snapshot.timeline.find((item) => String(item.id) === "req-deny");
+    assert.ok(denyBefore && denyBefore.summary.kind === "permission" && denyBefore.summary.decision === void 0);
+    assert.strictEqual(service.countPendingConfirmations("ua-only"), 1);
+    const allowEntry = projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details).find((entry) => entry.id === "req-allow");
+    assert.strictEqual(allowEntry?.kind, "confirmation");
+    assert.strictEqual(allowEntry?.status, "allowed");
+    assert.strictEqual(allowEntry?.text, "Run tests?");
+    assert.ok(applied.some((ids) => ids.includes("req-allow") && ids.includes("pending:req-allow")));
+    assert.strictEqual(service.resolveConfirmation("ua-only", "req-deny", "skipped"), true);
+    await timeout(0);
+    assert.deepStrictEqual(connection.respondPermissionCalls[1], {
+      sessionId: "ua-only",
+      requestId: "req-deny",
+      granted: false
+    });
+    assert.deepStrictEqual(sessionView.postCalls, []);
+    const denyItem = lease.snapshot.timeline.find((item) => String(item.id) === "req-deny");
+    assert.ok(denyItem && denyItem.summary.kind === "permission");
+    if (denyItem?.summary.kind === "permission") {
+      assert.strictEqual(denyItem.summary.decision, "deny");
+    }
+    assert.strictEqual(lease.snapshot.pendingActions.length, 0);
+    assert.strictEqual(service.countPendingConfirmations("ua-only"), 0);
+    const denyEntry = projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details).find((entry) => entry.id === "req-deny");
+    assert.strictEqual(denyEntry?.kind, "confirmation");
+    assert.strictEqual(denyEntry?.status, "skipped");
+    assert.strictEqual(denyEntry?.text, "Delete build?");
+  });
+  test("accepted engine question respond leaves an answered row", async () => {
+    const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, engineQuestionSnapshot);
+    const before = projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details).filter((entry) => entry.kind === "question");
+    assert.strictEqual(before.length, 1);
+    assert.strictEqual(before[0]?.status, "pending");
+    assert.strictEqual(before[0]?.text, "Pick one");
+    assert.strictEqual(service.hasPendingAttentionSeat("ua-only"), true);
+    assert.strictEqual(service.respondQuestion("ua-only", "  q-ask  ", { itemA: { selectedLabels: ["yes"] } }, "other"), true);
+    await timeout(0);
+    assert.deepStrictEqual(connection.respondQuestionCalls, [{
+      sessionId: "ua-only",
+      questionId: "q-ask",
+      answers: { itemA: { selectedLabels: ["yes"] } },
+      customText: "other"
+    }]);
+    assert.deepStrictEqual(sessionView.postCalls, []);
+    assert.strictEqual(lease.snapshot.pendingActions.length, 0);
+    const item = lease.snapshot.timeline.find((row) => String(row.id) === "q-ask");
+    assert.ok(item && item.summary.kind === "question");
+    if (item?.summary.kind === "question") {
+      assert.strictEqual(item.summary.answered, true);
+      assert.strictEqual(item.summary.title, "Pick one");
+      assert.deepStrictEqual(item.summary.items.map((question) => question.id), ["itemA"]);
+    }
+    const after = projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details).filter((entry) => entry.kind === "question");
+    assert.strictEqual(after.length, 1);
+    assert.strictEqual(after[0]?.id, "q-ask");
+    assert.strictEqual(after[0]?.status, "allowed");
+    assert.strictEqual(after[0]?.text, "Pick one");
+    assert.strictEqual(service.hasPendingAttentionSeat("ua-only"), false);
+  });
+  test("engine refusal of permission and question leaves the view pending", async () => {
+    const allowed = await acquireEngineBaseline(store, enginePermissionSnapshot);
+    allowed.connection.writeResult = { ok: false, message: "denied" };
+    const failures = [];
+    store.add(allowed.service.onDidFailEngineAction((failure) => failures.push(failure.action)));
+    assert.strictEqual(allowed.service.resolveConfirmation("ua-only", "req-allow", "allowed"), true);
+    await timeout(0);
+    assert.deepStrictEqual(failures, ["respondPermission"]);
+    assert.strictEqual(allowed.connection.respondPermissionCalls.length, 1);
+    assert.deepStrictEqual(allowed.sessionView.postCalls, []);
+    const allowItem = allowed.lease.snapshot.timeline.find((item) => String(item.id) === "req-allow");
+    assert.ok(allowItem && allowItem.summary.kind === "permission" && allowItem.summary.decision === void 0);
+    assert.ok(allowed.lease.snapshot.pendingActions.some((action) => String(action.requestId) === "req-allow"));
+    assert.strictEqual(allowed.service.countPendingConfirmations("ua-only"), 2);
+    const asked = await acquireEngineBaseline(store, engineQuestionSnapshot);
+    asked.connection.writeResult = { ok: false, message: "denied" };
+    assert.strictEqual(asked.service.respondQuestion("ua-only", "q-ask", { itemA: { selectedLabels: ["yes"] } }), true);
+    await timeout(0);
+    assert.strictEqual(asked.connection.respondQuestionCalls.length, 1);
+    assert.deepStrictEqual(asked.sessionView.postCalls, []);
+    assert.strictEqual(asked.lease.snapshot.timeline.length, 0);
+    assert.strictEqual(asked.lease.snapshot.pendingActions.length, 1);
+    const stillPending = projectSnapshotToEntries(asked.lease.snapshot, asked.lease.attribution, asked.lease.details).filter((entry) => entry.kind === "question");
+    assert.strictEqual(stillPending.length, 1);
+    assert.strictEqual(stillPending[0]?.status, "pending");
+  });
+  test("disconnected after engine cancelToolCall skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.cancelToolCall("ua-only", { toolCallId: "tc-1" }), false);
+    assert.strictEqual(connection.cancelToolCallCalls.length, 0);
+  });
+  test("connected deleteTurn forwards AgentService.DeleteMessage", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.deleteTurn("ua-only", "  turn-1  "), true);
+    assert.deepStrictEqual(connection.deleteMessageCalls, [{
+      sessionId: "ua-only",
+      turnId: "turn-1",
+      agentId: "root"
+    }]);
+    assert.strictEqual(service.deleteTurn("ua-only", "   "), false);
+    assert.strictEqual(service.deleteTurn("missing", "turn-2"), false);
+    assert.strictEqual(connection.deleteMessageCalls.length, 1);
+    connection.deleteMessage = void 0;
+    assert.strictEqual(service.deleteTurn("ua-only", "turn-3"), false);
+    assert.strictEqual(connection.deleteMessageCalls.length, 1);
+  });
+  test("connected deleteTurn uses last streaming agent when omitted", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const originalGetTurns = service.getTurns.bind(service);
+    service.getTurns = (sessionId) => {
+      if (sessionId === "ua-only") {
+        return [{ id: "a1", kind: "assistant", text: "live", streaming: true, agentId: "sub:live" }];
+      }
+      return originalGetTurns(sessionId);
+    };
+    assert.strictEqual(service.deleteTurn("ua-only", "turn-live"), true);
+    assert.strictEqual(connection.deleteMessageCalls[0]?.agentId, "sub:live");
+    assert.strictEqual(connection.deleteMessageCalls[0]?.turnId, "turn-live");
+  });
+  test("connected deleteTurn uses passed agentId without streaming projection", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.deleteTurn("ua-only", "turn-sub", "sub:a"), true);
+    assert.strictEqual(connection.deleteMessageCalls[0]?.agentId, "sub:a");
+    assert.strictEqual(connection.deleteMessageCalls[0]?.turnId, "turn-sub");
+    assert.strictEqual(service.deleteTurn("ua-only", "turn-blank", "   "), true);
+    assert.strictEqual(connection.deleteMessageCalls[1]?.agentId, "root");
+    assert.strictEqual(connection.deleteMessageCalls[1]?.turnId, "turn-blank");
+  });
+  test("disconnected after engine deleteTurn skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.deleteTurn("ua-only", "turn-1"), false);
+    assert.strictEqual(connection.deleteMessageCalls.length, 0);
+  });
+  test("disconnected after engine killSubAgent skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.killSubAgent("ua-only", { agentId: "sub:reviewer" }), false);
+    assert.strictEqual(connection.killCalls.length, 0);
+  });
+  test("connected createSnapshot forwards AgentService.CreateSnapshot", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.createSnapshot("ua-only", { title: "Before refactor", description: "checkpoint" }), true);
+    assert.deepStrictEqual(connection.createSnapshotCalls, [{
+      sessionId: "ua-only",
+      title: "Before refactor",
+      description: "checkpoint"
+    }]);
+    assert.strictEqual(service.createSnapshot("ua-only"), true);
+    assert.strictEqual(connection.createSnapshotCalls[1]?.title, "Snapshot");
+    assert.strictEqual(connection.createSnapshotCalls[1]?.description, void 0);
+    assert.strictEqual(service.createSnapshot("ua-only", { title: "" }), true);
+    assert.strictEqual(connection.createSnapshotCalls[2]?.title, "");
+    assert.strictEqual(service.createSnapshot("   ", { title: "Nope" }), false);
+    assert.strictEqual(service.createSnapshot("", { title: "Nope" }), false);
+    assert.strictEqual(service.createSnapshot("missing", { title: "Nope" }), false);
+    assert.strictEqual(connection.createSnapshotCalls.length, 3);
+    connection.createSnapshot = void 0;
+    assert.strictEqual(service.createSnapshot("ua-only", { title: "Nope" }), false);
+    assert.strictEqual(connection.createSnapshotCalls.length, 3);
+  });
+  test("disconnected after engine createSnapshot skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.createSnapshot("ua-only", { title: "Before refactor" }), false);
+    assert.strictEqual(connection.createSnapshotCalls.length, 0);
+  });
+  test("leftover createSnapshot rejects while pairingPending and leaves roster unchanged", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.createSnapshot("ua-a", { title: "Live checkpoint" }), true);
+    assert.strictEqual(connection.createSnapshotCalls.length, 1);
+    connection.setPairingPending(true);
+    assert.strictEqual(connection.isEngineConnected(), false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    const titlesBefore = service.getSessions().map((s) => s.title);
+    const idsBefore = service.getSessions().map((s) => s.id);
+    assert.strictEqual(service.createSnapshot("ua-a", { title: "Pairing checkpoint" }), false);
+    assert.strictEqual(connection.createSnapshotCalls.length, 1);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.title), titlesBefore);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), idsBefore);
+    connection.setPairingPending(false);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.createSnapshot("ua-a", { title: "Live again" }), true);
+    assert.strictEqual(connection.createSnapshotCalls.length, 2);
+    assert.strictEqual(connection.createSnapshotCalls[1]?.title, "Live again");
+  });
+  test("leftover-looks-live createSnapshot rejects while pairingPending and skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.createSnapshot("ua-only", { title: "Live checkpoint" }), true);
+    assert.strictEqual(connection.createSnapshotCalls.length, 1);
+    connection.setPairingPending(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    const titlesBefore = service.getSessions().map((s) => s.title);
+    const idsBefore = service.getSessions().map((s) => s.id);
+    assert.strictEqual(service.createSnapshot("ua-only", { title: "Looks-live checkpoint" }), false);
+    assert.strictEqual(connection.createSnapshotCalls.length, 1);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.title), titlesBefore);
+    assert.deepStrictEqual(service.getSessions().map((s) => s.id), idsBefore);
+  });
+  test("disconnected after engine setSessionGoal skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.setSessionGoal("ua-only", "Cached goal"), false);
+    assert.strictEqual(service.cancelSessionGoal("ua-only"), false);
+    assert.strictEqual(service.getSessionGoal("ua-only"), void 0);
+    assert.strictEqual(connection.setGoalCalls.length, 0);
+    assert.strictEqual(connection.cancelGoalCalls.length, 0);
+  });
+  test("disconnected after engine cancelGeneration skips unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.cancelGeneration("ua-only"), false);
+    assert.strictEqual(service.cancelGeneration("ua-only", "root"), false);
+    assert.strictEqual(connection.cancelCalls.length, 0);
+  });
+  test("GetQueue wakes after bind and mutations use actual engine session id", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const binding = new DeferredPromise();
+    connection.enableQueueReadback();
+    connection.setListSessions([{ sessionId: "ua-only", title: "Local roster id" }]);
+    const service = store.add(createService(connection, void 0, createSessionViewMock({ whenEngineSessionReady: () => binding.p })));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(connection.getQueueCalls, []);
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "q"), false);
+    await binding.complete("engine-real");
+    await timeout(0);
+    assert.deepStrictEqual(connection.getQueueCalls, ["engine-real"]);
+    assert.strictEqual(service.getMessageQueueState("ua-only").readState, "ready");
+    service.pauseMessageQueue("ua-only");
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "q"), true);
+    assert.deepStrictEqual(connection.pauseQueueCalls, [{ sessionId: "engine-real" }]);
+    assert.deepStrictEqual(connection.retryQueueItemCalls, [{ sessionId: "engine-real", itemId: "q" }]);
+    await timeout(0);
+    assert.ok(connection.getQueueCalls.length > 1);
+  });
+  test("connected MessageQueue mutations forward AgentService queue unaries", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.enableQueueReadback();
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const failures = [];
+    store.add(service.onDidFailEngineAction((failure) => failures.push(failure.action)));
+    service.setMessageQueueFixture("ua-only", {
+      items: [{
+        id: "q1",
+        content: "fixture",
+        status: "PENDING",
+        hold: void 0,
+        uploadProgress: void 0,
+        retryCount: 0,
+        lastError: void 0,
+        locked: false,
+        pinned: false
+      }],
+      isPaused: false,
+      isProcessing: false
+    });
+    assert.deepStrictEqual(service.getMessageQueueState("ua-only"), {
+      items: [],
+      isPaused: false,
+      isProcessing: false,
+      readState: "ready",
+      version: "0"
+    });
+    assert.strictEqual(service.enqueueMessageQueueItem("ua-only", "  later  ", { priority: "HIGH", opId: "  op-1  " }), false);
+    service.pauseMessageQueue("ua-only");
+    service.resumeMessageQueue("ua-only");
+    service.clearMessageQueue("ua-only");
+    service.holdMessageQueueItem("ua-only", "  q1  ", "EDITING");
+    service.releaseMessageQueueItemHold("ua-only", "  q1  ");
+    assert.strictEqual(service.updateMessageQueueItemContent("ua-only", "  q1  ", "  later  "), true);
+    assert.deepStrictEqual(connection.enqueueCalls, []);
+    assert.deepStrictEqual(connection.pauseQueueCalls, [{ sessionId: "ua-only" }]);
+    assert.deepStrictEqual(connection.resumeQueueCalls, [{ sessionId: "ua-only" }]);
+    assert.deepStrictEqual(connection.clearQueueCalls, [{ sessionId: "ua-only" }]);
+    assert.deepStrictEqual(connection.holdQueueCalls, [{ sessionId: "ua-only", itemId: "q1", reason: "EDITING" }]);
+    assert.deepStrictEqual(connection.releaseQueueCalls, [{ sessionId: "ua-only", itemId: "q1" }]);
+    assert.deepStrictEqual(connection.editQueueCalls, [{ sessionId: "ua-only", itemId: "q1", text: "later" }]);
+    assert.strictEqual(service.enqueueMessageQueueItem("ua-only", "   "), false);
+    assert.strictEqual(service.enqueueMessageQueueItem("missing", "Nope"), false);
+    service.pauseMessageQueue("missing");
+    service.holdMessageQueueItem("ua-only", "   ", "EDITING");
+    service.releaseMessageQueueItemHold("missing", "q1");
+    assert.strictEqual(service.updateMessageQueueItemContent("ua-only", "q1", "   "), false);
+    assert.strictEqual(service.updateMessageQueueItemContent("missing", "q1", "Nope"), false);
+    assert.strictEqual(connection.enqueueCalls.length, 0);
+    assert.strictEqual(connection.pauseQueueCalls.length, 1);
+    assert.strictEqual(connection.holdQueueCalls.length, 1);
+    assert.strictEqual(connection.releaseQueueCalls.length, 1);
+    assert.strictEqual(connection.editQueueCalls.length, 1);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepStrictEqual(failures, []);
+  });
+  test("connected MessageQueue fixture failed rows stay invisible without GetQueue", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    service.setMessageQueueFixture("ua-only", {
+      items: [{
+        id: "q-fail",
+        content: "fixture failed",
+        status: "FAILED",
+        hold: void 0,
+        uploadProgress: void 0,
+        retryCount: 1,
+        lastError: "send rejected",
+        locked: false,
+        pinned: false
+      }],
+      isPaused: false,
+      isProcessing: false
+    });
+    assert.deepStrictEqual(service.getMessageQueueState("ua-only"), {
+      items: [],
+      isPaused: false,
+      isProcessing: false,
+      readState: "unsupported",
+      readError: void 0
+    });
+    assert.strictEqual(connection.getQueue, void 0);
+    assert.strictEqual(connection.listQueue, void 0);
+    assert.strictEqual(connection.GetQueue, void 0);
+    assert.strictEqual(connection.ListQueue, void 0);
+  });
+  test("connected MessageQueue ok:false reports onDidFailEngineAction even when itemId is set", async () => {
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const storage = store.add(new TestStorageService());
+      const connection = store.add(new MockUniverseAgentConnection());
+      connection.enableQueueReadback();
+      connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+      const service = store.add(createService(connection, storage));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const failures = [];
+      store.add(service.onDidFailEngineAction((failure) => failures.push({
+        action: failure.action,
+        message: failure.error instanceof Error ? failure.error.message : String(failure.error)
+      })));
+      connection.queueResult = { ok: false, error: "denied", itemId: "q-new" };
+      assert.strictEqual(service.enqueueMessageQueueItem("ua-only", "later"), false);
+      service.pauseMessageQueue("ua-only");
+      service.resumeMessageQueue("ua-only");
+      service.clearMessageQueue("ua-only");
+      service.holdMessageQueueItem("ua-only", "q1", "EDITING");
+      service.releaseMessageQueueItemHold("ua-only", "q1");
+      assert.strictEqual(service.updateMessageQueueItemContent("ua-only", "q1", "later"), true);
+      assert.strictEqual(service.retryMessageQueueItem("ua-only", "q1"), true);
+      assert.strictEqual(service.retryMessageQueueItem("ua-only", "q1", { upload: true }), true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.deepStrictEqual(failures, [
+        { action: "pauseQueue", message: "denied" },
+        { action: "resumeQueue", message: "denied" },
+        { action: "clearQueue", message: "denied" },
+        { action: "holdQueueItem", message: "denied" },
+        { action: "releaseQueueItemHold", message: "denied" },
+        { action: "editQueueItem", message: "denied" },
+        { action: "retryQueueItem", message: "denied" },
+        { action: "retryQueueItemUpload", message: "denied" }
+      ]);
+      assert.deepStrictEqual(service.getMessageQueueState("ua-only").items, []);
+      assert.ok(connection.getQueueCalls.length > 0);
+      assert.strictEqual(connection.listQueue, void 0);
+      assert.deepStrictEqual(unhandledRejections, []);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("connected MessageQueue remote throw reports failure without unhandled rejection", async () => {
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const storage = store.add(new TestStorageService());
+      const connection = store.add(new MockUniverseAgentConnection());
+      connection.enableQueueReadback();
+      connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+      const service = store.add(createService(connection, storage));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const boom = new Error("boom");
+      connection.queueError = boom;
+      const failures = [];
+      store.add(service.onDidFailEngineAction((failure) => failures.push({
+        action: failure.action,
+        error: failure.error
+      })));
+      assert.strictEqual(service.enqueueMessageQueueItem("ua-only", "later"), false);
+      service.pauseMessageQueue("ua-only");
+      assert.strictEqual(service.retryMessageQueueItem("ua-only", "q1"), true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.deepStrictEqual(failures, [
+        { action: "pauseQueue", error: boom },
+        { action: "retryQueueItem", error: boom }
+      ]);
+      assert.deepStrictEqual(service.getMessageQueueState("ua-only").items, []);
+      assert.ok(connection.getQueueCalls.length > 0);
+      assert.strictEqual(connection.listQueue, void 0);
+      assert.deepStrictEqual(unhandledRejections, []);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("connected remaining writes ok:false reports onDidFailEngineAction", async () => {
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const storage = store.add(new TestStorageService());
+      const connection = store.add(new MockUniverseAgentConnection());
+      connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+      const service = store.add(createService(connection, storage));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const failures = [];
+      store.add(service.onDidFailEngineAction((failure) => failures.push({
+        action: failure.action,
+        message: failure.error instanceof Error ? failure.error.message : String(failure.error)
+      })));
+      connection.writeResult = { ok: false, message: "denied" };
+      assert.strictEqual(service.forkSubAgent("ua-only", { name: "reviewer" }), true);
+      assert.strictEqual(service.killSubAgent("ua-only", { agentId: "sub:reviewer" }), true);
+      assert.strictEqual(service.createSnapshot("ua-only", { title: "checkpoint" }), true);
+      assert.strictEqual(service.cancelGeneration("ua-only"), true);
+      assert.strictEqual(service.cancelToolCall("ua-only", { toolCallId: "tc-1" }), true);
+      assert.strictEqual(service.deleteTurn("ua-only", "turn-1"), true);
+      assert.strictEqual(service.updateUserTurnText("ua-only", "turn-1", "later"), true);
+      assert.strictEqual(service.resolveConfirmation("ua-only", "req-1", "allowed"), true);
+      assert.strictEqual(service.respondQuestion("ua-only", "q-1"), true);
+      assert.strictEqual(service.respondClientTool("ua-only", "call-1", { content: "{}" }), true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.deepStrictEqual(failures, [
+        { action: "forkAgent", message: "denied" },
+        { action: "killAgent", message: "denied" },
+        { action: "createSnapshot", message: "denied" },
+        { action: "cancelGeneration", message: "denied" },
+        { action: "cancelToolCall", message: "denied" },
+        { action: "deleteMessage", message: "denied" },
+        { action: "editMessage", message: "denied" },
+        { action: "respondPermission", message: "denied" },
+        { action: "respondQuestion", message: "denied" },
+        { action: "sendClientToolResponse", message: "denied" }
+      ]);
+      assert.deepStrictEqual(unhandledRejections, []);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("connected remaining writes remote throw reports failure without unhandled rejection", async () => {
+    const unhandledRejections = [];
+    const onUnhandledRejection = (reason) => unhandledRejections.push(reason);
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const storage = store.add(new TestStorageService());
+      const connection = store.add(new MockUniverseAgentConnection());
+      connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+      const service = store.add(createService(connection, storage));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const boom = new Error("boom");
+      connection.writeError = boom;
+      const failures = [];
+      store.add(service.onDidFailEngineAction((failure) => failures.push({
+        action: failure.action,
+        error: failure.error
+      })));
+      assert.strictEqual(service.forkSubAgent("ua-only", { name: "reviewer" }), true);
+      assert.strictEqual(service.killSubAgent("ua-only", { agentId: "sub:reviewer" }), true);
+      assert.strictEqual(service.createSnapshot("ua-only", { title: "checkpoint" }), true);
+      assert.strictEqual(service.cancelGeneration("ua-only"), true);
+      assert.strictEqual(service.cancelToolCall("ua-only", { toolCallId: "tc-1" }), true);
+      assert.strictEqual(service.deleteTurn("ua-only", "turn-1"), true);
+      assert.strictEqual(service.updateUserTurnText("ua-only", "turn-1", "later"), true);
+      assert.strictEqual(service.resolveConfirmation("ua-only", "req-1", "allowed"), true);
+      assert.strictEqual(service.respondQuestion("ua-only", "q-1"), true);
+      assert.strictEqual(service.respondClientTool("ua-only", "call-1", { content: "{}" }), true);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.deepStrictEqual(failures, [
+        { action: "forkAgent", error: boom },
+        { action: "killAgent", error: boom },
+        { action: "createSnapshot", error: boom },
+        { action: "cancelGeneration", error: boom },
+        { action: "cancelToolCall", error: boom },
+        { action: "deleteMessage", error: boom },
+        { action: "editMessage", error: boom },
+        { action: "respondPermission", error: boom },
+        { action: "respondQuestion", error: boom },
+        { action: "sendClientToolResponse", error: boom }
+      ]);
+      assert.deepStrictEqual(unhandledRejections, []);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+  test("whenDispatchedEngineActionSettles waits for connected fork and kill unary", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.forkSubAgent("ua-only", { name: "reviewer" }), true);
+    assert.strictEqual(await service.whenDispatchedEngineActionSettles(), true);
+    connection.writeResult = { ok: false, message: "denied" };
+    assert.strictEqual(service.forkSubAgent("ua-only", { name: "reviewer" }), true);
+    assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+    assert.strictEqual(service.killSubAgent("ua-only", { agentId: "sub:reviewer" }), true);
+    assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+    connection.writeResult = { ok: true };
+    connection.writeError = new Error("boom");
+    assert.strictEqual(service.forkSubAgent("ua-only", { name: "reviewer" }), true);
+    assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+  });
+  test("disconnected after engine MessageQueue skips unary and stays empty", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    assert.strictEqual(service.hasEngineConnectionHistory(), false);
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    assert.strictEqual(service.hasEngineConnectionHistory(), true);
+    assert.strictEqual(service.enqueueMessageQueueItem("ua-only", "later"), false);
+    service.pauseMessageQueue("ua-only");
+    service.resumeMessageQueue("ua-only");
+    service.clearMessageQueue("ua-only");
+    service.holdMessageQueueItem("ua-only", "q1", "EDITING");
+    service.releaseMessageQueueItemHold("ua-only", "q1");
+    assert.strictEqual(service.updateMessageQueueItemContent("ua-only", "q1", "later"), false);
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "q1"), false);
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "q1", { upload: true }), false);
+    assert.deepStrictEqual(service.getMessageQueueState("ua-only").items, []);
+    assert.strictEqual(connection.enqueueCalls.length, 0);
+    assert.strictEqual(connection.pauseQueueCalls.length, 0);
+    assert.strictEqual(connection.resumeQueueCalls.length, 0);
+    assert.strictEqual(connection.clearQueueCalls.length, 0);
+    assert.strictEqual(connection.holdQueueCalls.length, 0);
+    assert.strictEqual(connection.releaseQueueCalls.length, 0);
+    assert.strictEqual(connection.editQueueCalls.length, 0);
+    assert.strictEqual(connection.retryQueueItemCalls.length, 0);
+    assert.strictEqual(connection.retryQueueItemUploadCalls.length, 0);
+    assert.strictEqual(connection.continuationOpens.length, 0);
+  });
+  test("connected retryMessageQueueItem forwards RetryQueueItem / RetryQueueItemUpload", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.enableQueueReadback();
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "  q-fail  "), true);
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "  q-upload  ", { upload: false }), true);
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "  q-up  ", { upload: true }), true);
+    assert.deepStrictEqual(connection.retryQueueItemCalls, [
+      { sessionId: "ua-only", itemId: "q-fail" },
+      { sessionId: "ua-only", itemId: "q-upload" }
+    ]);
+    assert.deepStrictEqual(connection.retryQueueItemUploadCalls, [
+      { sessionId: "ua-only", itemId: "q-up" }
+    ]);
+    assert.strictEqual(connection.continuationOpens.length, 0);
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "   "), false);
+    assert.strictEqual(service.retryMessageQueueItem("missing", "q-fail"), false);
+    assert.strictEqual(connection.retryQueueItemCalls.length, 2);
+    assert.strictEqual(connection.retryQueueItemUploadCalls.length, 1);
+    connection.retryQueueItem = void 0;
+    connection.retryQueueItemUpload = void 0;
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "q-fail"), false);
+    assert.strictEqual(service.retryMessageQueueItem("ua-only", "q-up", { upload: true }), false);
+    assert.strictEqual(connection.retryQueueItemCalls.length, 2);
+    assert.strictEqual(connection.retryQueueItemUploadCalls.length, 1);
+    assert.strictEqual(connection.continuationOpens.length, 0);
+  });
+  test("never-connected retryMessageQueueItem fails honestly and does not send", () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const service = store.add(createService(connection));
+    const sessionId = service.getActiveSessionId();
+    assert.strictEqual(service.retryMessageQueueItem(sessionId, "q-fail"), false);
+    assert.strictEqual(service.retryMessageQueueItem(sessionId, "q-fail", { upload: true }), false);
+    assert.strictEqual(connection.retryQueueItemCalls.length, 0);
+    assert.strictEqual(connection.retryQueueItemUploadCalls.length, 0);
+    assert.strictEqual(connection.continuationOpens.length, 0);
+  });
+  test("connected AutoDrive ignores fixture and stays empty", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    service.setAutoDriveTaskFixture("ua-only", ["Fix lint", "Ship"]);
+    assert.deepStrictEqual(service.getAutoDriveTasks("ua-only"), []);
+    assert.strictEqual(service.getAutoDriveTaskCount("ua-only"), 0);
+  });
+  test("disconnected after engine AutoDrive stays empty and ignores fixture", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    connection.setConnected(false);
+    service.setEngineConnected(false);
+    service.setAutoDriveTaskFixture("ua-only", ["Fix lint"]);
+    assert.deepStrictEqual(service.getAutoDriveTasks("ua-only"), []);
+    assert.strictEqual(service.getAutoDriveTaskCount("ua-only"), 0);
+  });
+  test("bind-failed roster keeps composer post rejected as no_such_session", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([]);
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async () => {
+        throw new Error("session not found");
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: false, reason: "no_such_session" }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate
+    ));
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const outcome = await postBound(
+      { stubService: service, sessionViewLease: void 0 },
+      { kind: "submitInput", text: "hello" }
+    );
+    assert.strictEqual(outcome.accepted, false);
+    if (!outcome.accepted) {
+      assert.strictEqual(outcome.reason, "no_such_session");
+    }
+  });
+  test("bind-failed never sends placeholder id to engine createSession, acquireLease, or tree refresh", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([]);
+    const acquireLeaseCalls = [];
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async (sessionId) => {
+        acquireLeaseCalls.push(sessionId);
+        throw new Error("session not found");
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: true, correlation: { id: "mock" } }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate
+    ));
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+    assert.ok(isEngineRosterPlaceholderSessionId(ENGINE_BIND_FAILED_SESSION_ID));
+    assert.strictEqual(connection.createCalls.length, 0);
+    for (const call of acquireLeaseCalls) {
+      assert.notStrictEqual(call, ENGINE_BIND_FAILED_SESSION_ID);
+    }
+    assert.ok(!connection.treeRefreshCalls.includes(ENGINE_BIND_FAILED_SESSION_ID));
+    assert.throws(
+      () => service.acquireSessionView(ENGINE_BIND_FAILED_SESSION_ID),
+      /not engine-bound/
+    );
+    assert.strictEqual(acquireLeaseCalls.length, 1);
+    assert.ok(acquireLeaseCalls[0]?.startsWith("session-"));
+  });
+  test("empty list with pending bind stays incomplete until lease resolves", async () => {
+    let resolveLease;
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([]);
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async (sessionId) => new Promise((resolve) => {
+        resolveLease = () => resolve(`lease:${sessionId}`);
+      }),
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: true, correlation: { id: "mock" } }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate
+    ));
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.getSessions().length, 0);
+    assert.strictEqual(service.isEngineSessionReady(), false);
+    assert.notStrictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+    assert.strictEqual(service.getActiveSession().title, "");
+    assert.ok(!service.getActiveSession().title.includes("Untitled session"));
+    assert.ok(service.getActiveSession().title !== "New session");
+    resolveLease?.();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.isEngineSessionReady(), true);
+    assert.ok(service.getSessions().length > 0);
+  });
+  test("restored engine cache with empty List defers Create to host lease with fresh clientSessionId", async () => {
+    const cachedUuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+    const storage = store.add(new TestStorageService());
+    storage.store(
+      CONVERSATION_ROSTER_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        wasEverConnected: true,
+        activeSessionId: cachedUuid,
+        nextTurnId: 100,
+        localSessions: [],
+        engineCache: {
+          activeSessionId: cachedUuid,
+          sessions: [{
+            id: cachedUuid,
+            title: "Cached UA",
+            turns: [],
+            source: "engine-cache"
+          }]
+        }
+      }),
+      StorageScope.WORKSPACE,
+      StorageTarget.USER
+    );
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([]);
+    const acquireLeaseCalls = [];
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async (sessionId) => {
+        acquireLeaseCalls.push(sessionId);
+        return `lease:${sessionId}`;
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: true, correlation: { id: "mock" } }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate,
+      storage
+    ));
+    assert.strictEqual(service.getActiveSessionId(), cachedUuid);
+    assert.strictEqual(service.getSessions()[0]?.id, cachedUuid);
+    assert.strictEqual(service.isEngineSessionReady(), true);
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(connection.createCalls.length, 0);
+    assert.strictEqual(acquireLeaseCalls.length, 1);
+    const clientSessionId = acquireLeaseCalls[0];
+    assert.ok(clientSessionId?.startsWith("session-"));
+    assert.notStrictEqual(clientSessionId, cachedUuid);
+    assert.notStrictEqual(clientSessionId, ENGINE_BIND_FAILED_SESSION_ID);
+    assert.strictEqual(service.getActiveSessionId(), clientSessionId);
+    assert.ok(service.getSessions().some((session) => session.id === clientSessionId));
+    assert.ok(!service.getSessions().some((session) => session.id === cachedUuid));
+  });
+  test("bind-failed persist omits placeholder activeSessionId from roster storage", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([]);
+    const sessionView = {
+      _serviceBrand: void 0,
+      onDynamicDidApplyFrame: () => Event.None,
+      acquireLease: async () => {
+        throw new Error("session not found");
+      },
+      releaseLease: async () => {
+      },
+      post: async () => ({ accepted: false, reason: "no_such_session" }),
+      requestResync: async () => {
+      },
+      acknowledge: async () => {
+      },
+      requestDetail: async () => ({ ok: false, reason: "unavailable" }),
+      whenEngineSessionReady: async (sessionId) => sessionId
+    };
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      sessionView,
+      workspaceToolsGate,
+      storage
+    ));
+    service.setEngineConnected(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.getActiveSessionId(), ENGINE_BIND_FAILED_SESSION_ID);
+    const raw = storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? "";
+    assert.ok(!raw.includes(ENGINE_BIND_FAILED_SESSION_ID));
+  });
+  test("getTurns and getTrajectoryRecords keep leftover cache while pairingPending then true disconnect falls back", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = store.add(new LeftoverProjectionSessionView());
+    connection.setListSessions([{ sessionId: "ua-cache", title: "Cached UA" }]);
+    const service = store.add(createService(connection, void 0, sessionView));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const lease = store.add(service.acquireSessionView("ua-cache"));
+    assert.ok(await lease.whenBindReady?.());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.ok(lease.snapshot.timeline.some((item) => item.summary.kind === "text" && item.summary.preview === LEFTOVER_CACHE_TURN_TEXT));
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.ok(service.getTurns("ua-cache").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    assert.ok(service.getTrajectoryRecords("ua-cache").some((record) => record.text.includes(LEFTOVER_CACHE_TURN_TEXT)));
+    connection.setPairingPending(true);
+    assert.strictEqual(connection.isEngineConnected(), false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.ok(service.getTurns("ua-cache").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    assert.ok(service.getTrajectoryRecords("ua-cache").some((record) => record.text.includes(LEFTOVER_CACHE_TURN_TEXT)));
+    connection.setPairingPending(false);
+    connection.setConnected(false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "disconnected");
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.ok(!service.getTurns("ua-cache").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    assert.ok(!service.getTrajectoryRecords("ua-cache").some((record) => record.text.includes(LEFTOVER_CACHE_TURN_TEXT)));
+  });
+  test("pairingPending first-pull without leftover cache stays empty fallback", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-empty", title: "Empty UA" }]);
+    const service = store.add(createService(connection));
+    connection.setPairingPending(true);
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.getTurns("ua-empty").length, 0);
+    assert.ok(!service.getTrajectoryRecords("ua-empty").some((record) => record.text.includes(LEFTOVER_CACHE_TURN_TEXT)));
+  });
+  test("getSessionSync keeps leftover engine sync while pairingPending then true disconnect uses stub", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = store.add(new LeftoverProjectionSessionView(LEFTOVER_ENGINE_SYNC));
+    connection.setListSessions([{ sessionId: "ua-cache", title: "Cached UA" }]);
+    const service = store.add(createService(connection, void 0, sessionView));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const lease = store.add(service.acquireSessionView("ua-cache"));
+    assert.ok(await lease.whenBindReady?.());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.deepStrictEqual(service.getSessionSync("ua-cache"), LEFTOVER_ENGINE_SYNC);
+    connection.setPairingPending(true);
+    assert.strictEqual(connection.isEngineConnected(), false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.deepStrictEqual(service.getSessionSync("ua-cache"), LEFTOVER_ENGINE_SYNC);
+    connection.setPairingPending(false);
+    connection.setConnected(false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "disconnected");
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    const disconnected = service.getSessionSync("ua-cache");
+    assert.notDeepStrictEqual(disconnected, LEFTOVER_ENGINE_SYNC);
+    assert.deepStrictEqual(disconnected, { kind: "idle" });
+  });
+  test("getSessionSync demotes leftover live and syncing chrome while pairingPending then true disconnect uses stub", async () => {
+    for (const leftover of [{ kind: "live" }, { kind: "syncing" }]) {
+      const connection = store.add(new MockUniverseAgentConnection());
+      const sessionView = store.add(new LeftoverProjectionSessionView(leftover));
+      connection.setListSessions([{ sessionId: "ua-cache", title: "Cached UA" }]);
+      const service = store.add(createService(connection, void 0, sessionView));
+      connection.setConnected(true);
+      await awaitEngineCatalogRefresh(service);
+      const lease = store.add(service.acquireSessionView("ua-cache"));
+      assert.ok(await lease.whenBindReady?.());
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.isEngineConnected(), true);
+      assert.strictEqual(isConversationPairingHold(connection), false);
+      assert.deepStrictEqual(service.getSessionSync("ua-cache"), leftover);
+      connection.setPairingPending(true);
+      assert.strictEqual(connection.isEngineConnected(), false);
+      assert.strictEqual(service.isEngineConnected(), false);
+      assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+      assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+      assert.strictEqual(isConversationPairingHold(connection), true);
+      const pairing = service.getSessionSync("ua-cache");
+      assert.notStrictEqual(pairing.kind, "live");
+      assert.notStrictEqual(pairing.kind, "syncing");
+      assert.strictEqual(pairing.kind, "closed");
+      connection.setPairingPending(false);
+      connection.setConnected(false);
+      assert.strictEqual(service.isEngineConnected(), false);
+      assert.strictEqual(connection.getConnectionPhase().kind, "disconnected");
+      assert.strictEqual(isConversationPairingHold(connection), false);
+      assert.deepStrictEqual(service.getSessionSync("ua-cache"), { kind: "idle" });
+    }
+  });
+  test("pairingPending first-pull without leftover cache getSessionSync stays stub idle", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-empty", title: "Empty UA" }]);
+    const service = store.add(createService(connection));
+    connection.setPairingPending(true);
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.deepStrictEqual(service.getSessionSync("ua-empty"), { kind: "idle" });
+  });
+  test("leftover-looks-live getSessionSync demotes leftover live and syncing chrome", async () => {
+    for (const leftover of [{ kind: "live" }, { kind: "syncing" }]) {
+      const connection = store.add(new MockUniverseAgentConnection());
+      const sessionView = store.add(new LeftoverProjectionSessionView(leftover));
+      connection.setListSessions([{ sessionId: "ua-cache", title: "Cached UA" }]);
+      const service = store.add(createService(connection, void 0, sessionView));
+      connection.setConnected(true);
+      service.setEngineConnected(true);
+      await awaitEngineCatalogRefresh(service);
+      const lease = store.add(service.acquireSessionView("ua-cache"));
+      assert.ok(await lease.whenBindReady?.());
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      assert.strictEqual(service.isEngineConnected(), true);
+      assert.strictEqual(isConversationPairingHold(connection), false);
+      assert.deepStrictEqual(service.getSessionSync("ua-cache"), leftover);
+      assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), true);
+      assert.strictEqual(service.hasEngineConnectionHistory(), true);
+      connection.setPairingPending(true);
+      service.setEngineConnected(true);
+      assert.strictEqual(service.isEngineConnected(), true, "leftover-looks-live fixture must keep isEngineConnected()===true");
+      assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+      assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+      assert.strictEqual(isConversationPairingHold(connection), true);
+      const pairing = service.getSessionSync("ua-cache");
+      assert.notStrictEqual(pairing.kind, "live");
+      assert.notStrictEqual(pairing.kind, "syncing");
+      assert.strictEqual(pairing.kind, "closed");
+      assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), false, "leftover-looks-live must not advertise workspace tools");
+      assert.strictEqual(service.hasEngineConnectionHistory(), true, "leftover-looks-live after live connect keeps wasEverConnected");
+    }
+  });
+  test("leftover-looks-live first-pull does not flip wasEverConnected or advertise workspace tools", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-empty", title: "Empty UA" }]);
+    const service = store.add(createService(connection));
+    assert.strictEqual(service.hasEngineConnectionHistory(), false);
+    assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), false);
+    connection.setPairingPending(true);
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), true, "leftover-looks-live fixture must keep isEngineConnected()===true");
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.hasEngineConnectionHistory(), false, "leftover-looks-live first-pull must not flip wasEverConnected");
+    assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), false, "leftover-looks-live must not advertise workspace tools");
+    assert.deepStrictEqual(service.getSessionSync("ua-empty"), { kind: "idle" });
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    assert.strictEqual(service.isEngineConnected(), true, "leftover-looks-live fixture must keep isEngineConnected()===true");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.hasEngineConnectionHistory(), false, "leftover-looks-live first-pull onUaConnectionChanged must not flip wasEverConnected");
+    assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), false);
+    connection.setPairingPending(false);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.hasEngineConnectionHistory(), true, "true connect no pairing still flips wasEverConnected");
+    assert.strictEqual(service.shouldAdvertiseClientWorkspaceTools(), true);
+  });
+  test("acquireSessionView keeps leftover engine snapshot while pairingPending then true disconnect uses stub", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = store.add(new LeftoverProjectionSessionView());
+    connection.setListSessions([{ sessionId: "ua-cache", title: "Cached UA" }]);
+    const service = store.add(createService(connection, void 0, sessionView));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const seed = service.acquireSessionView("ua-cache");
+    assert.ok(await seed.whenBindReady?.());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.ok(seed.snapshot.timeline.some((item) => item.summary.kind === "text" && item.summary.preview === LEFTOVER_CACHE_TURN_TEXT));
+    assert.ok(seed.snapshot.pendingActions.some((action) => String(action.requestId) === LEFTOVER_PENDING_REQUEST_ID));
+    seed.dispose();
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    connection.setPairingPending(true);
+    assert.strictEqual(connection.isEngineConnected(), false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    const pairingLease = store.add(service.acquireSessionView("ua-cache"));
+    assert.ok(await pairingLease.whenBindReady?.());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.ok(pairingLease.snapshot.timeline.some((item) => item.summary.kind === "text" && item.summary.preview === LEFTOVER_CACHE_TURN_TEXT));
+    assert.ok(pairingLease.snapshot.pendingActions.some((action) => String(action.requestId) === LEFTOVER_PENDING_REQUEST_ID));
+    const placeholderLease = store.add(service.acquireSessionView(ENGINE_BIND_FAILED_SESSION_ID));
+    assert.ok(!placeholderLease.snapshot.timeline.some((item) => item.summary.kind === "text" && item.summary.preview === LEFTOVER_CACHE_TURN_TEXT));
+    const unboundLease = store.add(service.acquireSessionView("not-engine-bound"));
+    assert.ok(!unboundLease.snapshot.timeline.some((item) => item.summary.kind === "text" && item.summary.preview === LEFTOVER_CACHE_TURN_TEXT));
+    connection.setPairingPending(false);
+    connection.setConnected(false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "disconnected");
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    const disconnectedLease = store.add(service.acquireSessionView("ua-cache"));
+    assert.ok(!disconnectedLease.snapshot.timeline.some((item) => item.summary.kind === "text" && item.summary.preview === LEFTOVER_CACHE_TURN_TEXT));
+    assert.strictEqual(disconnectedLease.snapshot.pendingActions.length, 0);
+  });
+  test("pairingPending first-pull without leftover acquireSessionView stays stub empty", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = store.add(new LeftoverProjectionSessionView());
+    connection.setListSessions([{ sessionId: "ua-empty", title: "Empty UA" }]);
+    const service = store.add(createService(connection, void 0, sessionView));
+    connection.setPairingPending(true);
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    const lease = store.add(service.acquireSessionView("ua-empty"));
+    assert.ok(!lease.snapshot.timeline.some((item) => item.summary.kind === "text" && item.summary.preview === LEFTOVER_CACHE_TURN_TEXT));
+    assert.strictEqual(lease.snapshot.pendingActions.length, 0);
+  });
+  test("projected engine turns notify roster detail without writing session.turns", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = store.add(new LeftoverProjectionSessionView());
+    connection.setListSessions([{ sessionId: "ua-cache", title: "Cached UA" }]);
+    const service = store.add(createService(connection, void 0, sessionView));
+    const detailIds = [];
+    store.add(service.onDidChangeSessionRosterDetail((id) => detailIds.push(id)));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const session = service.getSessions().find((item) => item.id === "ua-cache");
+    assert.ok(session);
+    assert.strictEqual(session.turns.length, 0, "roster object stays empty while the projection is live");
+    assert.ok(service.getTurns("ua-cache").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    assert.ok(detailIds.includes("ua-cache"), `roster detail listeners: ${detailIds.join(",")}`);
+  });
+  test("catalog refresh prunes sessions the list dropped without firing onDidDeleteSession", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-a", "ua-b"]);
+    assert.strictEqual(service.getActiveSessionId(), "ua-a");
+    const deleted = [];
+    const pruned = [];
+    store.add(service.onDidDeleteSession((id) => deleted.push(id)));
+    store.add(service.onDidPruneEngineSessions((ids) => pruned.push([...ids])));
+    connection.setListSessions([{ sessionId: "ua-b", title: "B" }]);
+    await service.refreshEngineCatalog();
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["ua-b"]);
+    assert.strictEqual(service.getActiveSessionId(), "ua-b");
+    assert.deepStrictEqual(pruned, [["ua-a"]]);
+    assert.deepStrictEqual(deleted, []);
+    await service.refreshEngineCatalog();
+    await awaitEngineCatalogRefresh(service);
+    assert.deepStrictEqual(pruned, [["ua-a"]]);
+    assert.deepStrictEqual(deleted, []);
+  });
+  test("listSessions refresh keeps remembered turns on sessions without a live lease", async () => {
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = store.add(new LeftoverProjectionSessionView());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection, storage, sessionView));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.ok(service.getTurns("ua-a").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    service.switchSession("ua-b");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const remembered = service.getSessions().find((session) => session.id === "ua-a");
+    assert.ok(remembered);
+    assert.ok(remembered.turns.some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    assert.strictEqual(service.getSessions().find((session) => session.id === "ua-b").turns.length, 0);
+    await service.refreshEngineCatalog();
+    await awaitEngineCatalogRefresh(service);
+    const rowAfterRefresh = service.getSessions().find((session) => session.id === "ua-a");
+    assert.ok(rowAfterRefresh);
+    assert.ok(rowAfterRefresh.turns.some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    assert.ok(service.getTurns("ua-b").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    const raw = storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? "";
+    assert.ok(raw.includes(LEFTOVER_CACHE_TURN_TEXT), `persisted roster should keep ua-a turns: ${raw}`);
+  });
+  test("switching sessions keeps the previous session projected turn count", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = store.add(new LeftoverProjectionSessionView());
+    connection.setListSessions([
+      { sessionId: "ua-a", title: "A" },
+      { sessionId: "ua-b", title: "B" }
+    ]);
+    const service = store.add(createService(connection, void 0, sessionView));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.ok(service.getTurns("ua-a").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+    assert.strictEqual(service.getSessions().find((item) => item.id === "ua-a").turns.length, 0);
+    service.switchSession("ua-b");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const kept = service.getTurns("ua-a");
+    assert.ok(kept.some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT), "leaving the session must not wipe its message count");
+    assert.ok(service.getTurns("ua-b").some((turn) => turn.text === LEFTOVER_CACHE_TURN_TEXT));
+  });
+  test("countPendingConfirmations keeps leftover pending while pairingPending then true disconnect uses stub", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    const sessionView = store.add(new LeftoverProjectionSessionView());
+    connection.setListSessions([{ sessionId: "ua-cache", title: "Cached UA" }]);
+    const service = store.add(createService(connection, void 0, sessionView));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const lease = store.add(service.acquireSessionView("ua-cache"));
+    assert.ok(await lease.whenBindReady?.());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.strictEqual(service.isEngineConnected(), true);
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    const leftoverPending = service.countPendingConfirmations("ua-cache");
+    assert.ok(leftoverPending > 0);
+    connection.setPairingPending(true);
+    assert.strictEqual(connection.isEngineConnected(), false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.countPendingConfirmations("ua-cache"), leftoverPending);
+    connection.setPairingPending(false);
+    connection.setConnected(false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "disconnected");
+    assert.strictEqual(isConversationPairingHold(connection), false);
+    assert.strictEqual(service.countPendingConfirmations("ua-cache"), 0);
+  });
+  test("pairingPending first-pull without leftover cache countPendingConfirmations stays 0", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-empty", title: "Empty UA" }]);
+    const service = store.add(createService(connection));
+    connection.setPairingPending(true);
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.strictEqual(connection.getConnectionPhase().kind, "connected");
+    assert.strictEqual(isConversationPairingHold(connection), true);
+    assert.strictEqual(service.countPendingConfirmations("ua-empty"), 0);
+  });
+  test("countPendingConfirmations counts permission pending actions and skips question", async () => {
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const question = {
+      requestId: "q-1",
+      summary: {
+        kind: "question",
+        title: "Pick",
+        items: [{ id: "q", title: "Q", optionsPreview: ["a"] }],
+        answerKeysValid: true
+      }
+    };
+    const permission = {
+      requestId: "p-1",
+      summary: { kind: "permission", title: "Allow", permissionKind: "shell" }
+    };
+    const withPending = (pendingActions) => {
+      const base = stubTurnsToSnapshot("ua-only", []);
+      return { ...base, snapshot: { ...base.snapshot, pendingActions } };
+    };
+    stubCachedProjection(service, "ua-only", withPending([question]));
+    assert.strictEqual(service.countPendingConfirmations("ua-only"), 0);
+    assert.strictEqual(service.hasPendingAttentionSeat("ua-only"), true);
+    stubCachedProjection(service, "ua-only", withPending([permission, question]));
+    assert.strictEqual(service.countPendingConfirmations("ua-only"), 1);
+    assert.strictEqual(service.hasPendingAttentionSeat("ua-only"), true);
+    const tool = {
+      requestId: "t-1",
+      summary: { kind: "tool", title: "Run", toolName: "shell", status: "running", respondable: true }
+    };
+    stubCachedProjection(service, "ua-only", withPending([tool]));
+    assert.strictEqual(service.countPendingConfirmations("ua-only"), 0);
+    assert.strictEqual(service.hasPendingAttentionSeat("ua-only"), false);
+    stubCachedProjection(service, "ua-only", withPending([]));
+    assert.strictEqual(service.countPendingConfirmations("ua-only"), 0);
+    assert.strictEqual(service.hasPendingAttentionSeat("ua-only"), false);
+  });
+  test("does not leak unhandled rejection when setEngineConnected refreshEngineCatalog catch-path persist throws and onUnexpectedError warn-then-rethrows", async () => {
+    const paintBoom = new Error("paint boom");
+    class CatchPathSaveRoster extends ConversationEngineRosterService {
+      saveRosterStorage(_state) {
+        throw paintBoom;
+      }
+    }
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.listSessionsError = new Error("Query does not return results");
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new CatchPathSaveRoster(
+      connection,
+      new MockUniverseAgentSessionView(),
+      workspaceToolsGate,
+      storage
+    ));
+    await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+      service.setEngineConnected(true);
+    });
+  });
+  test("does not leak unhandled rejection when onUaConnectionChanged refreshEngineCatalog catch-path persist throws and onUnexpectedError warn-then-rethrows", async () => {
+    const paintBoom = new Error("paint boom");
+    class CatchPathSaveRoster extends ConversationEngineRosterService {
+      saveRosterStorage(_state) {
+        throw paintBoom;
+      }
+    }
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.listSessionsError = new Error("Query does not return results");
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    store.add(new CatchPathSaveRoster(
+      connection,
+      new MockUniverseAgentSessionView(),
+      workspaceToolsGate,
+      storage
+    ));
+    await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+      connection.setConnected(true);
+    });
+  });
+  test("does not leak unhandled rejection when createSession catch-path fire throws and onUnexpectedError warn-then-rethrows", async () => {
+    const paintBoom = new Error("paint boom");
+    class CreateSessionCatchRoster extends ConversationEngineRosterService {
+      constructor() {
+        super(...arguments);
+        this.throwOnAcquire = false;
+      }
+      acquireSessionView(sessionId) {
+        if (this.throwOnAcquire) {
+          throw new Error("acquire boom");
+        }
+        return super.acquireSessionView(sessionId);
+      }
+    }
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const workspaceToolsGate = { _serviceBrand: void 0, shouldAdvertise: () => true };
+    const service = store.add(new CreateSessionCatchRoster(
+      connection,
+      createSessionViewMock(),
+      workspaceToolsGate,
+      storage
+    ));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    service._onDidFailEngineAction.fire = () => {
+      throw paintBoom;
+    };
+    service.throwOnAcquire = true;
+    await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+      assert.strictEqual(service.createSession(), "");
+    });
+  });
+  test("does not leak unhandled rejection when retryError continueGeneration postIfHeld rejects and onUnexpectedError warn-then-rethrows", async () => {
+    const paintBoom = new Error("paint boom");
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-only", title: "Only UA" }]);
+    const service = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    service.setEngineConnected(true);
+    await awaitEngineCatalogRefresh(service);
+    const frameSource = service.engineFrameSource;
+    frameSource.postIfHeld = () => Promise.reject(paintBoom);
+    await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+      assert.strictEqual(service.retryError("ua-only", { messageId: "msg-1" }), true);
+    });
+  });
+  test("engine roster fire-and-forget voids double-catch onUnexpectedError", async () => {
+    const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.ts`);
+    const doubleCatch = ".catch(onUnexpectedError).catch(onUnexpectedError)";
+    assert.ok(source.includes(`void this.refreshEngineCatalog()${doubleCatch}`));
+    assert.ok(source.includes(`void this.ensureEngineSession().then(() => {`));
+    assert.ok(source.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
+    assert.ok(/void this\.ensureEngineSession\(\)\.then\(\(\) => \{\s*this\.bindLiveTreeObservationLease\(\);\s*\}\)\.catch\(error => \{[\s\S]*?\}\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/.test(source));
+    assert.ok(source.includes(`void this.monitorPendingEngineSessionBind(sessionId, lease)${doubleCatch}`));
+    assert.ok(source.includes(`void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration)${doubleCatch}`));
+    assert.ok(source.includes(`void pending${doubleCatch}`));
+    assert.ok(!source.includes("void this.refreshEngineCatalog();"));
+    assert.ok(!source.includes("void this.monitorPendingEngineSessionBind(sessionId, lease);"));
+    assert.ok(!source.includes("void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration);"));
+    assert.ok(!source.includes("void pending;"));
+    assert.ok(source.includes("void this.engineSessionEnsure.finally(() => {"));
+    assert.strictEqual((source.match(/void this\.refreshEngineCatalog\(\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\);/g) ?? []).length, 2);
+  });
+  test("persisted engine cache keeps session workDir across list refresh and roster restart", async () => {
+    const workDir = "/tmp/r08-session-workdir";
+    const storage = store.add(new TestStorageService());
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setListSessions([{ sessionId: "ua-wd", title: "Workdir UA", workDir }]);
+    const first = store.add(createService(connection, storage));
+    connection.setConnected(true);
+    await awaitEngineCatalogRefresh(first);
+    assert.strictEqual(first.getSessions().find((session) => session.id === "ua-wd")?.workDir, workDir);
+    first.switchSession("ua-wd");
+    const rawAfterSwitch = storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? "";
+    assert.ok(rawAfterSwitch.includes(workDir));
+    connection.setListSessions([{ sessionId: "ua-wd", title: "Workdir UA refreshed", workDir }]);
+    await first.refreshEngineCatalog();
+    await awaitEngineCatalogRefresh(first);
+    const rawAfterList = storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? "";
+    assert.ok(rawAfterList.includes(workDir));
+    const second = store.add(createService(store.add(new MockUniverseAgentConnection()), storage));
+    assert.strictEqual(second.getSessions().find((session) => session.id === "ua-wd")?.workDir, workDir);
+  });
+  test("engine cache buckets by engine identity and does not apply another engine or the legacy cache", async () => {
+    const cached = (id, title) => ({
+      id,
+      title,
+      turns: [],
+      source: "engine-cache"
+    });
+    const storage = store.add(new TestStorageService());
+    storage.store(
+      CONVERSATION_ROSTER_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        wasEverConnected: true,
+        activeSessionId: "session-legacy",
+        nextTurnId: 100,
+        localSessions: [],
+        engineCache: {
+          activeSessionId: "session-legacy",
+          sessions: [cached("session-legacy", "Legacy")]
+        },
+        engineCaches: {
+          "engine-a": {
+            activeSessionId: "session-a",
+            sessions: [cached("session-a", "Engine A")]
+          },
+          "engine-b": {
+            activeSessionId: "session-b",
+            sessions: [cached("session-b", "Engine B")]
+          }
+        }
+      }),
+      StorageScope.WORKSPACE,
+      StorageTarget.USER
+    );
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setPublishedLink("engine-a", 1, true);
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      createSessionViewMock(),
+      { _serviceBrand: void 0, shouldAdvertise: () => true },
+      storage
+    ));
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["session-a"]);
+    connection.listSessionsError = new Error("list down");
+    connection.setPublishedLink("engine-b", 2, true);
+    await service.whenEngineCatalogRefreshComplete();
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["session-b"]);
+    const afterSwitch = JSON.parse(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? "{}");
+    assert.deepStrictEqual(afterSwitch.engineCache?.sessions?.map((session) => session.id), ["session-legacy"]);
+    assert.deepStrictEqual(afterSwitch.engineCaches?.["engine-a"]?.sessions?.map((session) => session.id), ["session-a"]);
+    assert.deepStrictEqual(afterSwitch.engineCaches?.["engine-b"]?.sessions?.map((session) => session.id), ["session-b"]);
+    connection.listSessionsError = void 0;
+    connection.setPublishedLink(void 0, void 0, false);
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["session-b"]);
+    const afterClear = JSON.parse(storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) ?? "{}");
+    assert.deepStrictEqual(afterClear.engineCache?.sessions?.map((session) => session.id), ["session-legacy"]);
+    assert.deepStrictEqual(afterClear.engineCaches?.["engine-a"]?.sessions?.map((session) => session.id), ["session-a"]);
+    assert.deepStrictEqual(afterClear.engineCaches?.["engine-b"]?.sessions?.map((session) => session.id), ["session-b"]);
+  });
+  test("cold start after disconnect restores keyed roster bucket from lastDisplayedEngineIdentityId", () => {
+    const cached = (id, title) => ({
+      id,
+      title,
+      turns: [],
+      source: "engine-cache"
+    });
+    const storage = store.add(new TestStorageService());
+    storage.store(
+      CONVERSATION_ROSTER_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        wasEverConnected: true,
+        activeSessionId: "session-keyed",
+        nextTurnId: 100,
+        localSessions: [],
+        lastDisplayedEngineIdentityId: "engine-keyed",
+        engineCache: {
+          activeSessionId: "session-legacy",
+          sessions: [cached("session-legacy", "Legacy")]
+        },
+        engineCaches: {
+          "engine-keyed": {
+            activeSessionId: "session-keyed",
+            sessions: [cached("session-keyed", "Keyed cold start")]
+          }
+        }
+      }),
+      StorageScope.WORKSPACE,
+      StorageTarget.USER
+    );
+    const connection = store.add(new MockUniverseAgentConnection());
+    connection.setPublishedLink(void 0, void 0, false);
+    assert.strictEqual(connection.getConnectionSnapshot().engineIdentityId, void 0);
+    const service = store.add(new ConversationEngineRosterService(
+      connection,
+      createSessionViewMock(),
+      { _serviceBrand: void 0, shouldAdvertise: () => true },
+      storage
+    ));
+    assert.strictEqual(service.isEngineConnected(), false);
+    assert.deepStrictEqual(service.getSessions().map((session) => session.id), ["session-keyed"]);
+    assert.ok(!service.getSessions().some((session) => session.id === "session-legacy"));
+  });
+});
+export {
+  MockUniverseAgentConnection
+};

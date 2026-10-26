@@ -76,6 +76,10 @@ export interface IConversationLensComposerHost {
 	updateConversationPhase(): void;
 }
 
+/** The final post door needs the bound lease and the existing engine write authority. */
+export type IConversationLensPostHost = Pick<IConversationLensComposerHost,
+	'uaConnection' | 'stubService' | 'getBoundSessionId' | 'sessionViewLease'>;
+
 export function refreshComposerCatalogs(host: IConversationLensComposerHost): void {
 
 		const generation = ++host.composerCatalogGeneration;
@@ -327,7 +331,7 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 }
 
 export function postBound(
-	host: IConversationLensComposerHost,
+	host: IConversationLensPostHost,
 	msg: ConversationWriteMessage,
 	sessionViewLease?: IConversationSessionViewLease,
 ): Promise<PostOutcome> {
