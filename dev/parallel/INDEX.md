@@ -7,6 +7,9 @@ updated: 2026-10-26
 summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查、自有界面视觉审查、十六路方案审查、缺陷扫描、验证治理与 M7 GC fanout"
 ---
 
+[队列与技能跨仓](active/engine-queue-and-skill-contracts.md)：review。
+
+
 # 并行看板
 
 | 看板 | 状态 |

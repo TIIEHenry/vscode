@@ -10,6 +10,7 @@ summary: "当前编译合同基线已修：全量compile-client45→3→0，Elec
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **队列与技能跨仓方案（2026-10-26）**：用户已明确两仓范围；独立只读评估的锁覆盖、fresh原文CAS、bind唤醒与保存中新草稿保持已改入[方案](../plans/engine-queue-and-skill-contracts.md)。先方案commit，再实施；保留生成中Send/Enqueue闸与其他WIP。
 - **引擎协议消费修复（2026-10-26）**：补Create/Info/Fork/Provider/Profile字段、两条正式RPC与IPC/能力闸，maxRewinds显式0在正文/模型/工具保存中保持。原8业务red转绿；Node203+498、Profile编辑器3过，原project native tsc通过，MCP一既有mapper失败单独复现。跨仓队列/技能获授权，另续方案，不升产品状态。见[方案](../plans/engine-protocol-consumption-closeout.md)。
 - **控件细节精修（2026-10-26）**：四CSS收敛Sources工具栏命中区/页签按压、Navigator筛选焦点/清除对齐、Connection与Engine返回按钮；四主题16组基本控件、8组本地工具栏、4组禁用ActionBar验证通过，独立源码复读C0/I0/M0。局部CSS刷新，无全量编译；本地根/禁用fixture与既有JS边界见[证据](control-detail-polish-evidence/verification.md)。
 - **对话行内编辑与会话菜单（2026-10-26）**：用户回合把同一张 Composer 放进该行（Exit、输入、发送留在行内，底栏不跟进去）；加上下文和会话切换用标题加消息数区分同名项，空会话写 No messages，种子标题改为 Visualize；展开输入用 expand-all / collapse-all，文案 Expand input / Shrink input，提示在按钮上方。未开窗口验收。规格见 [composer-and-inbox](../../docs/systems/conversation/composer-and-inbox.md)。
