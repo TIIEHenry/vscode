@@ -1,0 +1,106 @@
+{
+  "sourceHead": "330b68911b5a5d11fbac276c90ad3180bec69397",
+  "outRoot": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out",
+  "start": "2026-10-26T03:35:56.876Z",
+  "esbuildVersion": "0.27.2",
+  "items": [
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationProcessFold.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationProcessFold.js",
+      "sourceHash": "ca64e263d6ed236f2c605fa5fa96bb449dd9fe767624cd20fe98d8ec70a44459",
+      "outputHash": "7a91fa04f1c09947aa2ab97fd7b1ddeaee22cccd55258d2557163fc5084eeafc",
+      "outputMtime": "2026-10-26T03:35:56.922Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationProcessFoldModel.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationProcessFoldModel.test.js",
+      "sourceHash": "dca1f3749cc0617a88fb24e087efd0a7e5c984dc3325e0a42265458d22a1ddab",
+      "outputHash": "9f83531dacdbe596b8b22a4d62a73deb4cf1ecd149c3568b66dd3e2972ef6f4f",
+      "outputMtime": "2026-10-26T03:35:56.925Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationProcessFoldModel.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationProcessFoldModel.js",
+      "sourceHash": "0df6c4f4259730831b571bc90ff2e85ffbf5f1b3fae2d1e0321d6d77191925db",
+      "outputHash": "92ad43c3317bd99146b3c58edf8a6218dd5ad8e367b98f13d71984d7ac8cf59d",
+      "outputMtime": "2026-10-26T03:35:56.928Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationSessionsView.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationSessionsView.test.js",
+      "sourceHash": "3bd1d316a8f790959efdbcdf1dd44f4893a4d842e58517331b761f6fe4d19ad6",
+      "outputHash": "253a2264fd25eec56f812733db2f8eb6772c86cf01daba369eaf9e25f01c51ad",
+      "outputMtime": "2026-10-26T03:35:56.932Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineProviderModelSection.js",
+      "sourceHash": "36b662e8e3b2b0500d35e122ba455381469b4814e1fdb8306e1f2bcb77cb6bd7",
+      "outputHash": "4af6286a8d6dd612089251efe5951a9e7afa916a80dba7dc9a4af2c73b856180",
+      "outputMtime": "2026-10-26T03:35:56.940Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "sourceHash": "8c487677373ab3b24e06bc827c7fe738a4460dd6cb52322833d8e6b72adc3e9b",
+      "outputHash": "8c487677373ab3b24e06bc827c7fe738a4460dd6cb52322833d8e6b72adc3e9b",
+      "outputMtime": "2026-10-26T03:35:56.941Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "sourceHash": "f358ee13b7a8429c965675045252c7eed0799ee3bff9bdf0009c43349c2a2a71",
+      "outputHash": "f358ee13b7a8429c965675045252c7eed0799ee3bff9bdf0009c43349c2a2a71",
+      "outputMtime": "2026-10-26T03:35:56.942Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/conversationSessions.css",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/conversationSessions.css",
+      "sourceHash": "e840a1313c1bfd417b74a583126064356acb26259ef40ea5122a8e672f868f6f",
+      "outputHash": "e840a1313c1bfd417b74a583126064356acb26259ef40ea5122a8e672f868f6f",
+      "outputMtime": "2026-10-26T03:35:56.943Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "sourceHash": "c867fc9774ebf16ffe3009f845cbd533f212550b02a55b8a5460c4b28d1c6354",
+      "outputHash": "c867fc9774ebf16ffe3009f845cbd533f212550b02a55b8a5460c4b28d1c6354",
+      "outputMtime": "2026-10-26T03:35:56.943Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationProcessFold.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationProcessFold.test.js",
+      "sourceHash": "bd9b9688fc14f166796525c77bae7ec8264b88e4f3734599fe158e1d4f2685f4",
+      "outputHash": "da3eb01fa1a474f0cc28dd7bfd4b036ff215b774490f17bb7943056b1fa25527",
+      "outputMtime": "2026-10-26T03:35:56.951Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.js",
+      "sourceHash": "61ea333d733d09edeaedb79c3e8fa637f31edb5706a050826d77d27cf7364282",
+      "outputHash": "c0a66089927b0e2b1652f9d63bf6589b900e4ffde0c33b6aa25794ab026b7809",
+      "outputMtime": "2026-10-26T03:35:56.958Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css",
+      "output": "out/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css",
+      "sourceHash": "b27b77ce3b524eb52dc6cb6dd0719c44584909f398cea865e265d209dd775ca0",
+      "outputHash": "b27b77ce3b524eb52dc6cb6dd0719c44584909f398cea865e265d209dd775ca0",
+      "outputMtime": "2026-10-26T03:35:56.961Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/sources/test/browser/sourcesFilesList.test.ts",
+      "output": "out/vs/workbench/contrib/sources/test/browser/sourcesFilesList.test.js",
+      "sourceHash": "3a898280a90f3ef8f3c04411fe719a9ded8cba808765528d3805fc152f25eaf7",
+      "outputHash": "5704464f257b1f40acb69ed231faa3a661281ce0670a37423af0da1fb61daf79",
+      "outputMtime": "2026-10-26T03:35:56.968Z"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.ts",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js",
+      "sourceHash": "1cf29ccfed17afee8419375ce2815dff90bcba841d189163890fbc6df1b385a5",
+      "outputHash": "95241cdb1ae1f62ac20d80329901798dac0d168202569c6a3bde75730f5e8571",
+      "outputMtime": "2026-10-26T03:35:56.973Z"
+    }
+  ]
+}

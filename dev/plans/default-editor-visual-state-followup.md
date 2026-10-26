@@ -1,10 +1,10 @@
 ---
 title: "默认编辑器视觉状态修复与续审"
 type: plan
-status: implemented
+status: accepted
 phase: M7
 updated: 2026-10-26
-summary: "五项视觉修复与同根因续审已落地；Electron 350 passing，十四项原生焦点/窄宽 Chrome 回归全过；定向类型无新增诊断，不升 PRD 总体状态。"
+summary: "五项视觉修复已提交并有原运行证据；三路合成后真实窗口发现D1380未知Stub投影、D1381 Provider窄行碰撞，剩余边界待修，当前不宣称整轮视觉通过。"
 ---
 
 # 默认编辑器视觉状态修复与续审
@@ -44,3 +44,7 @@ summary: "五项视觉修复与同根因续审已落地；Electron 350 passing�
 - [x] 最终独立只读复核：`timeline_visual_audit` 确认代码/文档边界与验证数量一致，Critical / Important 无；Minor 已收窄 Back 焦点环仅条件核对的证据措辞。
 
 协作与最终证据统一记入 [本轮看板](../parallel/active/default-editor-visual-state-followup.md)。不提升 PRD-025 / PRD-028 总体状态。
+
+## 合成后独立实拍续审
+
+原825提交的350+14与上述完成勾选是当时组件/主题夹具证据，保留不改写。source330b689的merge聚焦287+14与九TS语义0之后，真实默认窗口又证实D1380未知Stub投影及D1381 Provider兄弟badge碰撞；两项与V4/V5原验收直接相关，当前状态回到accepted（方案生成列闭集不支持in_progress，已接受方案但剩余边界尚待实施/复验）。父已分别委派D/C独立根因修，方案与最终复验见[当前集成看板](../parallel/active/ui-visual-review-2026-10-26.md#新轮默认编辑器视觉源码三路合成)；未修前不宣布整轮视觉通过，旧测试与实拍证据不互换。

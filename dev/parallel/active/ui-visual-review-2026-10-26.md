@@ -1,10 +1,10 @@
 ---
 title: "2026-10-26 UI 与权限审查集成看板"
 type: progress
-status: completed
+status: in_progress
 phase: M7
 updated: 2026-10-26
-summary: "D1376–D1378定向闭合：Catalog294、Terminal512/109既有pending、Output/Search27过；唯一全量59/37未过，11补修语义0。默认编辑器为产品范围，历史记录保留。"
+summary: "source330b689安全三路合成：当前287+14通过、九TS语义0；实拍发现D1380/D1381两Important open，D/C独立修，J Policy并行。旧全量59/37仅保留历史。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -149,3 +149,25 @@ Catalog与Terminal补修真实改变生产：Agents body CTA恢复[既有SSOT §
 已核对主线 `8252bdfdd5724960664c94aa64cccb5aa9eb550c` 相对07ab的30路径视觉实施与证据，和merge `7ba39cf106a` 真三路合成。Provider两TS自动合并：保留我方删除unused helper与dialog detail正式string收窄，也保留外部managed hover/释放、只读Enabled/Disabled文案与无switch/无RPC断言；未整文件取ours/theirs，模型行为边界不扩。仅plans INDEX/status文档冲突，保留双方计划/历史并采用外部真实implemented状态。Astra已独立核对双方diff支持语义并集，最终交集复核与merge新产物验证尚在途。
 
 825已提交的证据为外部Electron350 passing/14pending、Chrome补验14 passing，九TS九条旧诊断无新增；原始[外部验证](../../progress/default-editor-visual-state-followup-evidence/verification.md)保留，这些不是merge当前新运行。仅默认编辑器产品范围，不开发Agents Window。下一步merge独占锁内最小fresh、定向语义与受影响UI/Provider/catalog回归；旧833项不全重跑，上一轮59/37不冒称本轮新全量。
+
+### merge当前验证与安全同步
+
+source base `330b68911b5a5d11fbac276c90ad3180bec69397`，父已安全ff人类agent-ide和C/D/J到该提交并确认clean，旧07ab主线/WIP阻塞已解除；先前阻塞段落仅为历史。不拷入主工位working tree，未替父ff或push。新一轮Policy等后续模块不计入本轮已完成。
+
+- 锁内最小刷新9TS/5CSS，共14项；[摘要/mtime清单](../../progress/ui-visual-review-2026-10-26-evidence/825-merge-fresh.json)绑定source330b689与merge/out，复核source/output摘要均一致。Astra已收到fresh就绪通知。
+- 官方隔离Electron聚焦十份文件 **287 passing / 14原生焦点pending**（[日志](../../progress/ui-visual-review-2026-10-26-evidence/825-merge-electron.log)）。包含默认Session/Sources、ProcessFold/Model、Provider、真实preferences样式、两个co-located pane及Catalog/MCP交集；pane采用3/4项聚焦套件而非外部27/191项套件，所以不与外部350直接作数量差比较。MCP20及Catalog129均执行，未删除断言或新增skip。
+- 官方Chrome补验相同十四个真实焦点/Provider窄宽用例 **14 passing / 0pending**（[日志](../../progress/ui-visual-review-2026-10-26-evidence/825-merge-focus.log)）。隐藏Electron与原生焦点前提分别记，不把pending算运行通过。
+- TypeScript6.0.3以未修改src/tsconfig完整项目上下文，仅收九目标TS的syntactic/semantic诊断 **0**，noEmit（[JSON](../../progress/ui-visual-review-2026-10-26-evidence/825-merge-types-final.json)）；外部九旧诊断在当前合成的unused/shared-dialog/detail修正后不再出现。首次默认4GB堆检查OOM退出；减少root的尝试缺Node环境、不能作为生产诊断结论，故恢复正式完整上下文并使用8GB上限成功。未改产品类型或断言来压错误，原失败尝试记录仍在/tmp。
+- 九TS targeted ESLint **0errors/25warnings**（[日志](../../progress/ui-visual-review-2026-10-26-evidence/825-merge-eslint.log)）。CSS字节与825一致，沿用其stylelint原证据，当前生产CSS由上述DOM/主题/焦点用例实际加载。未重跑global compile、Terminal/Output或旧833测试；59/37仍只是上一轮全量原始结果，本轮无新的全仓余量结论。
+
+Astra最终Provider源码并集只读审查Critical0/Important0；完整默认编辑器窗口实拍又发现下述独立Important，不能把局部代码审查0问题扩成视觉全通过。
+
+真实窗口续审发现：`conversationSessionView.ts:247` 的Stub投影仍把缺失toolStatus默认completed，默认Stub经现有测试帧源refresh后未知工具仍出现完成勾；本地截图 `/home/clarence/Projects/Agents/vscode/.build/visual-review-astra/followup825/fold-light-300-unknown-expanded.png`，不入git。该路径与825方案明确的live/Stub未知状态无勾要求有交集，Important未闭合；直接renderer测试通过不等于该投影链通过。`entriesToLegacyTurns:1414`又省略明确completed，正式ToolSummaryStatus为必填五态无unknown，需要保留历史roundtrip/缓存语义的局部根因修，不能一行undefined/cast或抹除断言。本轮目前未改该投影源码，等待父分配该边界，后续视觉结论另记。
+
+另一个实拍Important登记D1381：Provider真实340px行的badge父容器被压到66/48px，子pill内容88/109px溢入Enabled/Disabled兄弟。现有样式测试只验整行边界/单元素scrollWidth，没有兄弟碰撞断言，所以仍可green；本地证据 `/home/clarence/Projects/Agents/vscode/.build/visual-review-astra/followup825/provider-overlap.json`、`provider-light-340-overlap.png`、`provider-dark-760.png`，截图不入git。Astra使用真实EngineProvidersSection、现有应用DI和完整主题，仅替连接数据，无样式override、未执行写动作。
+
+父已裁定本轮继续D1380（D独占、先方案规则16，保留五态与历史缓存兼容）及D1381（C独占）；两项均open，当前checkpoint不宣布视觉全通过，也不声称已有根因修复。merge无source WIP，只提交287+14/九TS0与当前Important证据，释放工位后续由同一唯一流水线接收三槽提交。主工位已实读HEAD330b689且clean；没有新的主线WIP阻塞。
+
+独立实拍checkpoint已[入库摘要](../../progress/ui-visual-review-2026-10-26-evidence/825-merge-visual-review.md)，Astra原报告与截图保留本地，Critical0/Important2；其自建Electron/Xvfb已清理。视觉方案回到accepted待两项真实闭合（生成列只支持draft/accepted/implemented），保留原350+14证据不删除。
+
+checkpoint文档门禁：531份Markdown、docs-health0errors/46既有warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/825-merge-docs-health.log)），generated-status/diff-check通过，status145行。

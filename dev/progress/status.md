@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：合同修复与默认编辑器视觉修复源码三路合成，双方既有证据保留；merge交集新产物验证在途，全量59/37仅为上一轮结果。"
+summary: "2026-10-26 默认编辑器三路交集：source330b689，Electron287过/14焦点Chrome补过、九TS语义0；父已安全同步主工位与C/D/J，旧阻塞解除；未重跑全量。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **默认编辑器交集安全集成（2026-10-26）**：主线视觉实施 `8252bdf` 已与合同修复真三路合成 `330b689`，Provider保留双方unused/dialog正式修正与只读文本/hover所有权。父已将人类工位与C/D/J安全ff到330b689并clean，旧07ab/WIP阻塞解除。merge锁内最小fresh14项，聚焦Electron287 passing/14原生焦点pending，Chrome补验14全过；九目标TS原project上下文定向语义0、ESLint0errors/25warnings。外部350+14是其原证据，本次套件范围不同；未重复833项或全量编译，独立实拍发现D1380 Stub缺失状态默认completed与D1381 Provider窄行badge碰撞两项Important，均open，分别由D/C工位独立修复；不把DOM测试绿宣称视觉全通过。见[当前集成记录](../parallel/active/ui-visual-review-2026-10-26.md#新轮默认编辑器视觉源码三路合成)。
 - **默认编辑器视觉状态修复与续审（2026-10-26）**：原五项已修，同根因补齐 Sources 引擎文件名选择色、高对比根类、选中行过渡低对比及过程折状态截断/未知完成勾。八套件 Electron 350 passing；十四项原生焦点/Provider 窄宽在 Chrome 全过，零 pending。九份 TS 与 HEAD 同为九条既有诊断，无新增；未做完整产品实拍、不升 PRD。见 [方案](../plans/default-editor-visual-state-followup.md) / [证据](default-editor-visual-state-followup-evidence/verification.md)。
 - **终端投递合同（2026-10-26，D1377）**：C 方案 `1bfceca` / 实施 `0ab1d16` 已三路合入；保留 sendPath/runCommand void 与扩展 public void，false 受控拒绝、三策略等待送达、通知出口与安装清理。真实运行后补正 Ctrl+C 夹具、marker 返回 wrapper 所有权及 Xterm 两个100ms刷新方法的真实 Promise；27条投递与4条 Delayer 新回归执行。官方 Electron 12套件 **512 passing / 109既有pending**，未新增skip；Astra补修只读 Critical0/Important0。D1377 closed，见[本轮看板](../parallel/active/ui-visual-review-2026-10-26.md)。
 - **Extension Host 输出通道合同（2026-10-26，D1378）**：J 方案 `2f04745` / 实施 `8210d3a` 已合入；合法 Thenable 归一且保留 mkdir 原拒绝，一次报告与失败缓存恢复。真实 red 暴露旧生产；集成补缓存命中前分配泄漏、晚到资源 ownOrDispose、关闭后排队闸与同名立即重建隔离。原19场景保留并补3屏障；Output22 + Search4 +清理检查 **27 passing**。D1378 closed；初次失败与最终日志见[本轮看板](../parallel/active/ui-visual-review-2026-10-26.md)。
