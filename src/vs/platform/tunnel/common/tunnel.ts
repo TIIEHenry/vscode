@@ -344,7 +344,8 @@ export abstract class AbstractTunnelService extends Disposable implements ITunne
 		const existing = this.getTunnelFromMap(remoteHost, remotePort);
 		if (existing) {
 			++existing.refcount;
-			return existing.value;
+			const tunnel = await existing.value;
+			return tunnel && typeof tunnel !== 'string' ? this.makeTunnel(tunnel, existing.value) : tunnel;
 		}
 		return undefined;
 	}
@@ -386,7 +387,7 @@ export abstract class AbstractTunnelService extends Disposable implements ITunne
 				return tunnel;
 			}
 			this.logService.trace('ForwardedPorts: (TunnelService) New tunnel established.');
-			const newTunnel = this.makeTunnel(tunnel);
+			const newTunnel = this.makeTunnel(tunnel, resolvedTunnel);
 			if (tunnel.tunnelRemoteHost !== remoteHost || tunnel.tunnelRemotePort !== remotePort) {
 				this.logService.warn('ForwardedPorts: (TunnelService) Created tunnel does not match requirements of requested tunnel. Host or port mismatch.');
 			}
@@ -398,7 +399,8 @@ export abstract class AbstractTunnelService extends Disposable implements ITunne
 		});
 	}
 
-	private makeTunnel(tunnel: RemoteTunnel): RemoteTunnel {
+	private makeTunnel(tunnel: RemoteTunnel, value: Promise<RemoteTunnel | string | undefined>): RemoteTunnel {
+		let released = false;
 		return {
 			tunnelRemotePort: tunnel.tunnelRemotePort,
 			tunnelRemoteHost: tunnel.tunnelRemoteHost,
@@ -407,11 +409,15 @@ export abstract class AbstractTunnelService extends Disposable implements ITunne
 			privacy: tunnel.privacy,
 			protocol: tunnel.protocol,
 			dispose: async () => {
+				if (released) {
+					return;
+				}
+				released = true;
 				this.logService.trace(`ForwardedPorts: (TunnelService) dispose request for ${tunnel.tunnelRemoteHost}:${tunnel.tunnelRemotePort} `);
 				const existingHost = this._tunnels.get(tunnel.tunnelRemoteHost);
 				if (existingHost) {
 					const existing = existingHost.get(tunnel.tunnelRemotePort);
-					if (existing) {
+					if (existing?.value === value) {
 						existing.refcount--;
 						await this.tryDisposeTunnel(tunnel.tunnelRemoteHost, tunnel.tunnelRemotePort, existing);
 					}
@@ -517,13 +523,20 @@ export abstract class AbstractTunnelService extends Disposable implements ITunne
 		const preferredLocalPort = localPort === undefined ? remotePort : localPort;
 		const creationInfo = { elevationRequired: elevateIfNeeded ? this.isPortPrivileged(preferredLocalPort) : false };
 		const tunnelOptions: TunnelOptions = { remoteAddress: { host: remoteHost, port: remotePort }, localAddressPort: localPort, privacy, public: privacy ? (privacy !== TunnelPrivacyId.Private) : undefined, protocol };
-		const tunnel = tunnelProvider.forwardPort(tunnelOptions, creationInfo);
+		let tunnel: ReturnType<ITunnelProvider['forwardPort']>;
+		try {
+			tunnel = tunnelProvider.forwardPort(tunnelOptions, creationInfo);
+		} catch (error) {
+			this._factoryInProgress.delete(key);
+			throw error;
+		}
 		if (tunnel) {
 			this.addTunnelToMap(remoteHost, remotePort, tunnel);
-			tunnel.finally(() => {
+			const onSettled = () => {
 				this.logService.trace('ForwardedPorts: (TunnelService) Tunnel created by provider.');
 				this._factoryInProgress.delete(key);
-			});
+			};
+			void tunnel.then(onSettled, onSettled);
 		} else {
 			this._factoryInProgress.delete(key);
 		}

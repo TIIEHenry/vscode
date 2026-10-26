@@ -147,6 +147,8 @@ registerSingleton(IUriIdentityService, UriIdentityService, InstantiationType.Del
 
 ### 其他常用 platform 服务
 
+`ITunnelService.openTunnel` 和 `getExistingTunnel` 成功获取的句柄各持有一份引用，释放幂等，最后一个持有者才关闭底层连接。`closeTunnel` 强制关闭当下条目；旧句柄随后释放不能影响同地址重开的条目。localhost / all-interface 查找沿用既有顺序；`getExistingTunnel` 不新增 opened 事件，失败仍返回原 empty/string 或原拒绝。provider 的同步抛错与异步拒绝均释放创建门禁，下次显式 open 可重试；在途同端口 provider 重入仍被忽略。此合同服务默认编辑器外部 URI 映射等消费者，独立于 `agentHost` relay。实施与待集成验证见 [D1383 方案](../../../dev/plans/tunnel-reference-and-provider-retry.md)。
+
 `IThemeService`、`INotificationService`、`IDialogService`、`IProgressService`、`IQuickInputService`、`IOpenerService`、`ITelemetryService`、`IExtensionManagementService`、`IRemoteAuthorityResolverService`、`IUserDataSyncService`、`IUserDataProfilesService`、`ISecretStorageService`、`IPolicyService`、`IRequestService`、`IPtyService` 等。完整目录一览见 [INDEX](INDEX.md)。
 
 更高层（`workbench/services`、`sessions`）会再实现或包装这些接口；不要在 platform 里寻找 Chat 面板或 Agents Window 的 UI。

@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-26
-summary: "D1383：公共 open/getExisting/close/reopen 的引用身份与 provider 失败重试；候选 empty/string 清理竞态未证实，不改。"
+summary: "D1383：open/getExisting 引用身份与 provider 重试已写；两 TS ESLint 0/0，正式类型与 red/green 待 merge。empty/string 清理候选未证实不改。"
 ---
 
 # Tunnel 引用所有权与 provider 重试
@@ -50,12 +50,22 @@ summary: "D1383：公共 open/getExisting/close/reopen 的引用身份与 provid
 ## 4. 文档与完成线
 
 - [x] 本方案独立只读审查，Critical/Important 为 0；方案单独 commit。
-- [ ] `common/tunnel.ts` 与 `test/common/tunnelOpenRetry.test.ts` 实施，知识层 `docs/modules/platform/overview.md` 简述引用/失败语义，status 记录实际 diff。
-- [ ] 工位仅运行针对性 ESLint、diff 检查与 docs health；不编译、不 typecheck、不 transpile、不写 out、不启动 watcher。
-- [ ] merge 集成者完成正式类型检查、旧生产 red / 新生产 green 并回填原日志；之前方案保持 in_progress，D1383 不闭合。
+- [x] `common/tunnel.ts` 与 `test/common/tunnelOpenRetry.test.ts` 实施，知识层 `docs/modules/platform/overview.md` 简述引用/失败语义，status 记录实际 diff。
+- [x] 工位仅运行针对性 ESLint、diff 检查与 docs health；不编译、不 typecheck、不 transpile、不写 out、不启动 watcher。
+- [ ] merge 集成者完成正式类型检查、旧生产 red / 新生产 green 并回填原日志；之前方案保持 accepted，D1383 不闭合。
 
 不改 Agents Window、`platform/agentHost` tunnel relay、IPC 字段或 URI 归因；不处理 `dispose()` 总服务失败遍历、provider registration 替换句柄等其他独立合同。
 
 ## 5. 只读审查
 
 2026-10-26，独立 J reviewer（`configuration_initialization_contracts`）只读核对方案、`tunnel.ts` 及默认编辑器 `window.ts` 调用：Strengths 为真实公共触发、局部 Promise 身份与幂等释放、getExisting 所有权一致、两类 provider 失败分离及候选排除；Critical 0、Important 0。Minor 两项已纳入 §3：all-interface 原槽通过 localhost alias 获取仍释放原 value；pending A 的旧 close 允许发一次 closed，而 wrapper 不得额外发事件。Assessment：可按方案实施。
+
+实施后 J 再只读核验两 TS 实际 diff 与回归：Critical 0、Important 0。确认 `released` 在等待前设置、原 Promise 身份传递、getExisting 不发 opened、provider 同步/异步结算及 alias/pending/recursion 公共覆盖；未运行，不代替 merge 正式 red/green。
+
+## 6. 实施证据与集成入口
+
+方案提交 `e451d5d` 后生产改动仅 `getExistingTunnel`、`makeTunnel`、`createWithProvider`。原三个 retry 场景保留，其中 map replacement 改为公共 close/reopen 屏障；新增 14 个测试实例（含参数化 host/获取方式/失败返回值），总计 17 项。尚未运行，不把数量当通过证据。
+
+工位实际执行 `rtk proxy node ./node_modules/eslint/bin/eslint.js src/vs/platform/tunnel/common/tunnel.ts src/vs/platform/tunnel/test/common/tunnelOpenRetry.test.ts`，exit 0、0 errors / 0 warnings；`rtk git diff --check` 通过；文档生成无漂移，docs health 0 errors / 46 既有链接 warnings。没有运行任何编译、转译、typecheck、测试或 out 写入。
+
+merge 先核旧生产正文仍对应基线 `4963799b1e95`，只刷新测试取得真实行为 red（旧重复释放、旧句柄、getExisting 所有权和同步 provider throw 必须失败；原裸 finally 可能另触发 harness 未处理拒绝，须单列）。再仅刷新生产，运行 `rtk scripts/test.sh --runGlob '**/platform/tunnel/test/common/*.test.js'` 完整公共套件，核实 17 项全部执行且无裸拒绝；正式项目语义检查需确认旧 ILogService 诊断消失。记录 source/output 身份、原始 red/green 日志，结果回填前 D1383 保持 open。
