@@ -310,6 +310,8 @@ suite('Preferences status styles', () => {
 					for (const button of buttons) {
 						button.scrollIntoView({ block: 'nearest' });
 						button.focus({ preventScroll: true });
+						// Let the existing 100ms action fade finish before checking visibility and hit targets.
+						await timeout(150);
 						const rect = button.getBoundingClientRect();
 						const style = getWindow(button).getComputedStyle(button);
 						const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
