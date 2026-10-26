@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留E与固定d91合源复读历史；D真实J after发现Conversation按钮来源丢失Important，归原J补现plan并独立审查，未签全after。"
+summary: "保留E/合源与D真实M01失败历史；b882e8f5方案增量规则16 C0/I0/M1，原生标题参数细化后独立accepted提交，生产/新after待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -341,3 +341,36 @@ D目录 `/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-after-so
 - **结果与恢复：** 公共handler的throw/拒绝、当前重试成功、旧完成晚到与多pane错误隔离；保留旧false/stale/void与缺leaf例外的独立测试，不用新的expected抹掉旧行为。保留其余Preview/Panel move正例、SCM参数/pin/identity与Sources重叠歧义回归。更新旧wiring-scan的无参字符串断言去核新的真实context传递，不能只删scan换绿。
 
 顺序为原J方案增量→独立只读审查→原J实现/公共回归→唯一lane准确旧红与新native必要测试/身份重新freeze→D重跑M01及受影响Move/Panel/错误恢复，保留本次真实失败原件。不得用正在进行的D旧产物after直接签新修复。reviewer本轮仅报告与INDEX写入，不改作者方案/产品/tests/out，不执行编译/typecheck/transpile、业务或UI。
+
+
+## 11. M01显式来源方案增量规则16（2026-10-27）
+
+### 受审身份与范围
+
+不可变受审提交 `b882e8f5ce40336b457d972f7af04be4e637ab06`，父 `4173b3fea640124a50cbdaa6aa7ceb7892274641`，仅5文档，src仍 `92801b513611ed3ae1ba36862a58131c609f6aa2`。直接读取完整diff、重点方案§3.5/§4.4及Sources SSOT新M01段，并核对当前公开EditorTabsControl、IEditorCommandsContext与旧move实现。方案SHA256为 `e08503f6ddb42170a50012b1e24585e07aa516a4d52ef1c8a26a0c485795bd23`；SSOT为 `f58434b9c83c455de553bfb9ebe98bc13f0eccde9a9800c4add28067f01f3606`，与交付一致。draft仅表达本轮增量待审，原accepted/实现/运行历史没有被抹掉。
+
+本reviewer还读取D永久证据提交 `ee1892ee8cd3499ec9af0b1fd8ca66124524fb0c` 中的 `d1387-j-partial-after-2026-10-27.md`（SHA256 `914eb41e05ec0ee723965377157d25ab461fbbefc32d345dab538d973746df6f`）。其报告明确实际consumer `ce6d977a4316c1f903869089638a2cd7262dc7db`、native producer `8b4ddaa99a8cc88ed645407ee42075a8497c4f34`、同src928；14实际UI过、1隔离过、2仅车道连续性、M01部分失败；101采样零引擎、自有句柄已清、E未启动。此永久报告补足§10临时证据的身份来源，不把其矩阵/tar的D自校验宣称成reviewer逐包重验，也不把已经真实成立的旧freeze改写为从未冻结。
+
+B本轮开始clean `7b63babf11ac58b1095f05030f1f5e985aaaa5b9` / src `fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1`；只读方案/产品/已提交证据，写集仍仅本报告与INDEX。
+
+### Strengths
+
+- Pane本地typed来源与可序列化上游IEditorCommandsContext分开；真实input/group/Pane对象进入registered command，禁止把Pane对象塞进扩展宿主上下文。ref与close共用一次捕获，不拼两次global active。
+- 注册Conversation part/sessionKey、group对象、精确input成员与Pane对应关系均有入口及关闭前的真实校验；显式无效来源不fallback。SCM组、内容session与宿主sessionKey区分清楚，多叶同tuple不凭URI或matches认领。
+- await后正常焦点变化与来源替换分开；精确原对象仍live可关原来源，原group/part/input/Pane失效时不关替代对象。未改全局聚合、finder围栏、目标slot或provider优先级。
+- 原true/false/stale/void与非leaf异常关闭策略、缺leaf保源例外逐项保留；不借修来源把所有Move改成失败保源。Pane局部反馈绑定input/group/render与move尝试代次，只清自己的move错误，其他加载/读写notice保留；旧完成不污染新Pane，catch自身异常与无unhandled负控保留。
+- 回归明确真实默认EditorParts/Conversation part、真实pane按钮、registered command与公共helper链，包含global空/无关Preview、多叶同tuple、源替换/失效、两类成功/错误恢复及原M01真Git重验；旧mock全局active不再充当真实入口覆盖。
+
+### Critical 0 / Important 0 / Minor 1
+
+**M1：原生标题上下文需补足真实参数形状与可证明的时间边界。** 本增量同步覆盖现有EditorTitle/EditorTitleContext入口是合理的：它们已经挂同一Move命令，不能只修pane按钮而让显式被点tab被global抢走。但实现不能把“groupId/editorIndex”理解为固定第一参数或index必填。当前 `editorTabsControl.ts` 的标题toolbar context是 `{ groupId }`；EditorTitleContext在617–619行用 `menuActionOptions.arg`先给资源URI，再forward `{ groupId, editorIndex }`。`IEditorCommandsContext.editorIndex`本来可选，原类型须保持。
+
+独立accepted方案提交前将以下兼容细化写入§3.5/§4.4及必要SSOT说明：从受支持的命令参数形状取得native context，不改官方位置、不把资源URI当对象来源；无index只同步取**该明确group**当时的active input，显式非法/越界index直接无目标，不能fallback全局或列表。获得input/group对象后与其余来源一样只用这份capture。native序列化数字只能表达handler入口时的对象解析，不能证明命令入队前的原对象代次；不得把“传groupId”宣传为与typed Pane原对象同等的跨时间身份保证。capture后仍须严格对象/成员复验，两种native形状均须有公共handler回归。无需新增服务、统一resolver或修改上游context接口。
+
+该项是现方案已承诺原生兼容的精确化，未发现需阻断其主体设计的C/I。后续实现peer重点检查真实参数位置、无index与非法index分支，不能只根据计划文字签代码。
+
+### Assessment
+
+**规则16结论C0/I0/M1：可签收主体方案；原J核验并补M1后独立提交accepted文档，再按父调度实施。** 本次不签任何产品修复、旧红新绿或新after；§10产品Important仍open，直到实际源码、唯一lane验证和D新freeze复验闭合。单独accepted提交可以引用本报告并明确M1已落实；如果另改失败关闭代数、扩大上下文resolver或跨模块架构，须重新定向审查。
+
+审查已先发短结论给父与原J。不可变文档diff-check通过；reviewer未改方案/产品/测试/D文件，未编译/typecheck/transpile/out/业务/UI。
