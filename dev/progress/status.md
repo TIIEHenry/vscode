@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "180fc已提交UI基线真三路接入ad80，src030def完整compile-client0；65d旧pack非live；J/E已queued且旧业务red留证，J夹具/最终peer与正式新绿待。"
+summary: "明确main5df真三路231b/src7fa3c86，119路径保留；未新emit，out仍ad80身份；J/E已queued/旧red留证，补修/最终peer/正式新绿待。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **main已提交5df协议基线接入（2026-10-26）**：只取明确5df（含7cf协议源码/后续方案），从clean02261真三路231b7bb7529，119路径全PASS；status双方原记录逐字保留，result:src精确7fa3c86=5df。无本轮compile/typecheck/transpile/out写入，34native仍ad80身份，旧compile0不延伸到新src。J/E未formal合，最终peer/作者补修后统一实际完整emit；无主ff重试/root WIP/out/push。[源与保留门禁](default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md)。
 - **队列与技能跨仓方案（2026-10-26）**：用户已明确两仓范围；独立只读评估的锁覆盖、fresh原文CAS、bind唤醒与保存中新草稿保持已改入[方案](../plans/engine-queue-and-skill-contracts.md)。先方案commit，再实施；保留生成中Send/Enqueue闸与其他WIP。
 - **引擎协议消费修复（2026-10-26）**：补Create/Info/Fork/Provider/Profile字段、两条正式RPC与IPC/能力闸，maxRewinds显式0在正文/模型/工具保存中保持。原8业务red转绿；Node203+498、Profile编辑器3过，原project native tsc通过，MCP一既有mapper失败单独复现。跨仓队列/技能获授权，另续方案，不升产品状态。见[方案](../plans/engine-protocol-consumption-closeout.md)。
 - **对话行内编辑与会话菜单（2026-10-26）**：用户回合把同一张 Composer 放进该行（Exit、输入、发送留在行内，底栏不跟进去）；加上下文和会话切换用标题加消息数区分同名项，空会话写 No messages，种子标题改为 Visualize；展开输入用 expand-all / collapse-all，文案 Expand input / Shrink input，提示在按钮上方。未开窗口验收。规格见 [composer-and-inbox](../../docs/systems/conversation/composer-and-inbox.md)。

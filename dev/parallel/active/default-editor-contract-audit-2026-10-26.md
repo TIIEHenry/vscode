@@ -4,17 +4,17 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "180fc基线ad80/src030def真实compile-client0；65d旧pack非live；J1ac/E900f已queued且旧业务red留证；J夹具补修/peer待，正式源集成与after待。"
+summary: "main5df基线231b/src7fa3c86已保留接入，无新emit/out仍ad80；J1ac/E900f已queued且旧red留证；J夹具/peer/正式新绿与after待。"
 ---
 
 # 默认编辑器合同与功能缺口续审
 
-> 当前代码波固定 J Sources + E unary 失败恢复两 coder，J1ac/E900f均已queued、待最终peer及J夹具补修后由唯一merge串行正式合源；D1387 accepted/open。D1385原UI验收停止、accepted/open且退出队列；D1386已closed。本轮另接main已提交180fc基线，src精确030def、实际全量compile-client0，native emit已替换65d虚拟pack；未取root/J/E WIP，主工位out未写。
+> 当前代码波固定 J Sources + E unary 失败恢复两 coder，J1ac/E900f均已queued、待最终peer及J夹具补修后由唯一merge串行正式合源；D1387 accepted/open。D1385原UI验收停止、accepted/open且退出队列；D1386已closed。本轮再接main明确已提交5df基线，src精确7fa3c86；无新emit、native out仍ad80实际全量compile-client0的身份，待最终三路统一实际编译；未取root/J/E WIP，主工位out未写。
 
 
-## 当前已提交基线：180fc对齐
+## 当前已提交基线：5df对齐，最终编译待
 
-从54c53只取main不可变180fc真三路接入ad80c9fe1cf，78路径保留门禁全PASS（含status双改合成）；result:src逐字等180fc的030def。全局compile/typecheck/transpile进程空闲后实际fullcompile-client exit0、0TS诊断，HEAD/src/clean前后不变。原生emit已改写30旧pack JS+4CSS，旧65d身份非live，下面357仅历史采样；不是J/E正式P2，不重试主ff、不写rootout、不freeze。[实际源/输出与门禁](../../progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md)。
+此前ad80/src030def对齐180fc已实际fullcompile-client0，原生emit替换旧65d pack。后续只取明确main5df真三路231b，119路径保留门禁全PASS（status原字节+main三行）；当前src精确7fa3c86=5df，无新emit且34native采样仍ad80身份，不将旧compile0延伸到当前src。J/E正式三路待最终peer/补修，之后一次完整编译/相关全套/after；不重试主ff、不写rootout、不freeze。[当前源/边界与门禁](../../progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md)。
 
 ## 当前冻结分工与本次实际验证
 
@@ -25,7 +25,7 @@ summary: "180fc基线ad80/src030def真实compile-client0；65d旧pack非live；J
 | J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。Astra追加并发I1采纳同service/API完整tuple与custom wildcard重叠sticky歧义门；D两轮报告7c84e0167e3已到，第二轮C0/I0；J完整宿主候选1ac已queued；唯一lane宿主4旧业务红，并发2夹具hasListeners须原作者补修，最终peer/新green/非作者after待 |
 | E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | accepted方案已独立提交5dd7d97d45b（受审SHA256 262df24…，C0/I0；blocked Minor已写），完整候选900f已queued且独立peer待；唯一lane旧链真实DOM6红，准确request/连接代次/答案与processFold busy新green待；方案/代码均未合入本线，不计完成 |
 | D / Sources独立审查与after | 非作者codepeer、正式产物冻结后的默认编辑器真实Git after | 两轮宿主规则16报告7c84e0167e3第二轮C0/I0；尚未收到freeze notice，不消费当前虚拟pack冒称最终after |
-| merge / baseline_executor | 唯一编译、类型、转译、out与串行集成车道 | 当前ad80/src030def对齐180fc并实际compile-client0；51份历史原始证据保留，65d旧pack已非live。J/E正式合源后仍实际重新编译/测试/after，不复用旧pack身份 |
+| merge / baseline_executor | 唯一编译、类型、转译、out与串行集成车道 | 当前231b/src7fa3c86对齐明确main5df；无新emit，34native仍ad80已编译身份。J/E正式合源后实际完整编译/测试/after，51份历史原件保留，不复用旧65d身份 |
 
 本次Sources完整验证为357过/0败；wiring23过/1既有红（精确09f6已复现），lint0错误/56警告且4f7→65d无新增。89f类型6红、官方setup生命周期红与4f7 move夹具红全部留证，作者在65d补修后复验；原325/3编译基线与D17不被此结果覆盖。[完整证据与51份原始清单](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)。不升级产品状态，不发freeze，不提前formal合J。
 

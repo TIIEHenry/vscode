@@ -1,0 +1,44 @@
+{
+  "phase": "committed-main-5df-source-alignment-no-new-emission",
+  "resultHead": "231b7bb7529dcebd3faccf6aac0b13bf4f8460c8",
+  "resultSourceTree": "7fa3c86d152420afeb66c6038bd961bb6d5b8f4b",
+  "nativeOutputCompileSource": "ad80c9fe1cfaaa250ea0eac9e05de6d780f984c2",
+  "native34Mismatches": [],
+  "artifacts": [
+    {
+      "originalPath": "/tmp/vscode-main-5df-baseline-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-pre-merge.json",
+      "bytes": 11520,
+      "sha256": "adb43a3291bedae12606e4451b09b91352700b9dc207789e696cd78d956bd3a5",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-main-5df-baseline-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge.log",
+      "bytes": 160,
+      "sha256": "7b062612663b38695884d4a90668592de957e1ca8045dfcb88e7ab2a56911daf",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-main-5df-baseline-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge-identity.json",
+      "bytes": 70458,
+      "sha256": "b1e913224051b4d2539489d0803b4f767d118cf9769c79926fca1765504e3cb8",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-main-5df-baseline-merge-docs-health.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge-docs-health.log",
+      "bytes": 4384,
+      "sha256": "56df5f2e1d2659d22094a3a3600884cb053eb125df0656ab344c00fbf8fa2f06",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-main-5df-final-docs-health.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-final-docs-health.log",
+      "bytes": 4384,
+      "sha256": "18732d254ec9f9e9cfaa569e5f9a90a12ead3d76f5e2a1f03ed6eea0d45f3558",
+      "bytePreservingCopy": true
+    }
+  ]
+}
