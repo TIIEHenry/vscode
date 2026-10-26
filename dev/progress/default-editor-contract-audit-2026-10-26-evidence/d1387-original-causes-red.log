@@ -1,0 +1,240 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1072354:1026/221059.334113:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1072367) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1072367) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1072367) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources - Changes list open[0m
+  [31m  1) API SCM _workbench.open no slot preserveFocus=false dispatches its DTO once[0m
+  [31m  2) API SCM _workbench.open no slot preserveFocus=true dispatches its DTO once[0m
+  [31m  3) API SCM _workbench.open newTab preserveFocus=false dispatches its DTO once[0m
+  [31m  4) API SCM _workbench.open newTab preserveFocus=true dispatches its DTO once[0m
+  [31m  5) API SCM _workbench.open replace preserveFocus=false dispatches its DTO once[0m
+  [31m  6) API SCM _workbench.open replace preserveFocus=true dispatches its DTO once[0m
+  [31m  7) API SCM _workbench.diff no slot preserveFocus=false dispatches its DTO once[0m
+  [31m  8) API SCM _workbench.diff no slot preserveFocus=true dispatches its DTO once[0m
+  [31m  9) API SCM _workbench.diff newTab preserveFocus=false dispatches its DTO once[0m
+  [31m  10) API SCM _workbench.diff newTab preserveFocus=true dispatches its DTO once[0m
+  [31m  11) API SCM _workbench.diff replace preserveFocus=false dispatches its DTO once[0m
+  [31m  12) API SCM _workbench.diff replace preserveFocus=true dispatches its DTO once[0m
+
+[0m  Conversation editor fence[0m
+  [31m  13) public finder and EditorService retain the exact typed Conversation object target[0m
+  [31m  14) public finder and EditorService retain the exact typed Conversation id target[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (3s)[0m
+[31m  14 failing[0m
+
+[0m  1) Sources - Changes list open
+       API SCM _workbench.open no slot preserveFocus=false dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  2) Sources - Changes list open
+       API SCM _workbench.open no slot preserveFocus=true dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  3) Sources - Changes list open
+       API SCM _workbench.open newTab preserveFocus=false dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  4) Sources - Changes list open
+       API SCM _workbench.open newTab preserveFocus=true dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  5) Sources - Changes list open
+       API SCM _workbench.open replace preserveFocus=false dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  6) Sources - Changes list open
+       API SCM _workbench.open replace preserveFocus=true dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  7) Sources - Changes list open
+       API SCM _workbench.diff no slot preserveFocus=false dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  8) Sources - Changes list open
+       API SCM _workbench.diff no slot preserveFocus=true dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  9) Sources - Changes list open
+       API SCM _workbench.diff newTab preserveFocus=false dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  10) Sources - Changes list open
+       API SCM _workbench.diff newTab preserveFocus=true dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  11) Sources - Changes list open
+       API SCM _workbench.diff replace preserveFocus=false dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  12) Sources - Changes list open
+       API SCM _workbench.diff replace preserveFocus=true dispatches its DTO once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-1[0m
+      [32m+0[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:109:18)
+[0m
+[0m  13) Conversation editor fence
+       public finder and EditorService retain the exact typed Conversation object target:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  Error: Conversation chat input requires CONVERSATION_GROUP or a conversation editor group
+      at handleGroupResult (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/common/editorGroupFinder.js:33:13)
+      at findGroup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/common/editorGroupFinder.js:19:10)
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.js:122:79
+      at TestInstantiationService.invokeFunction (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:78:14)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.js:122:50)
+[0m
+[0m  14) Conversation editor fence
+       public finder and EditorService retain the exact typed Conversation id target:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  Error: Conversation chat input requires CONVERSATION_GROUP or a conversation editor group
+      at handleGroupResult (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/common/editorGroupFinder.js:33:13)
+      at findGroup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/common/editorGroupFinder.js:19:10)
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.js:122:79
+      at TestInstantiationService.invokeFunction (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:78:14)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.js:122:50)
+[0m
+
+

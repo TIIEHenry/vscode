@@ -12,7 +12,13 @@ summary: "唯一merge编译合同修复全量0；Electron325过3既有红与Node
 > 当前产品执行队列仅D1387（accepted/open，待唯一merge接正式源码）；D1385默认宿主前提失效、原UI验收停止且退出队列，保留accepted/open与183兼容证据；D1386已closed。此检查点纯文档，源/out不变，无新运行。
 
 
+## 下一独立模块发现（源码实核，未在本Sources波编码）
+
+Astra已核PRD-004验收5：respondPermission/respondQuestion/sendClientToolResponse的unary `{ok:false}`/reject仅发session/action/error通用失败，缺requestId与respondFailures投影；renderer/questionSeat已设inflight/submitted，只等respondFailure/终态解除，因此pending仍在却不可重试。源码链为conversationQuestionSeat 173–202、TimelineRenderer 248–264/609–641、EngineRoster 1246/1288/1326与1030–1043、Stub75。既有D1356 accepted cleanup和D1359 client-tool in-flight/stream respondFailure仍保留原范围；后续完整模块应补准确request/连接代次失败恢复并保留question答案。此处仅记录父转达的源码发现与下一执行，不依文档完成状态取消任务，不新增重复gap、不在本Sources波顺手编码。
+
 ## 当前编译基线恢复（2026-10-26）
+
+D1387原两机制已按555c旧生产+不可变J23f两新测试实际0过14红（12DTO业务断言/2准确组业务拒绝），五core生产out前后未变；仅两测试out混合scope。D cbac增量规则16报告另真三路接入，路径保留门禁PASS，不等同源码I1/I2已闭。[业务红](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md)。
 
 父实核54SHA/src树后，主工位clean仅ff de22；独立D peer不可变c664真三路入0dd2、逐路径保留门禁PASS，仅文档。J原23f完整实现经peer C0/I2，Astra裁定newTab预pin/成对比较身份合同，J补修中；唯一merge先做原两根因精确旧生产test-only red，不提前合J生产。见[接入记录](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md)。
 

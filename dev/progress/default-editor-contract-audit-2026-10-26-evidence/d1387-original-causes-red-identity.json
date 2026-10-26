@@ -1,0 +1,107 @@
+{
+  "sourceHead": "555c41e8da6aa8ae19db361d81e88680875722ed",
+  "oldSourceRefs": [
+    "c968c0627e7",
+    "133ef4e5cfa"
+  ],
+  "testSourceRef": "23f8701c8d2a6bd4b47c2e098c62a5bb89649c84",
+  "scope": "test-only mixed scope; no J production/source merged",
+  "production": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "sourceSha256": "fea0aec79f26aeac4c8ff16d4b1ebacf48e86a3bdc9d2d4b1287b9f54b5e04b4",
+      "equalToRefs": {
+        "c968c0627e7": true,
+        "133ef4e5cfa": true
+      },
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.js",
+      "outputSha256": "fb5b7d7fb0bd690a0b974f4fa1d61938f9be8e29278732509b18d88d1eb2d319",
+      "outputMtimeUtc": "2026-10-26T13:59:56.663122+00:00"
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/common/editorGroupFinder.ts",
+      "sourceSha256": "4cbbdc596d62e0f4a82702c355ce8ee922a08dd1d048557158c55398a3ca2b2e",
+      "equalToRefs": {
+        "c968c0627e7": true,
+        "133ef4e5cfa": true
+      },
+      "outputPath": "out/vs/workbench/services/editor/common/editorGroupFinder.js",
+      "outputSha256": "a02770c54b513be593582fb937f804030e26cf6e540494e85b2a2154687594a0",
+      "outputMtimeUtc": "2026-10-26T13:59:56.234099+00:00"
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/browser/editorOpenSlot.ts",
+      "sourceSha256": "e23df5b6f138ea8d78bd3655e973e378f5e65ff76d5a34e8d7493ed09571f1a5",
+      "equalToRefs": {
+        "c968c0627e7": true,
+        "133ef4e5cfa": true
+      },
+      "outputPath": "out/vs/workbench/services/editor/browser/editorOpenSlot.js",
+      "outputSha256": "b3f6366467055edb0f7e51b824e268ddfea19fadb674c2afb0b013194e657e3e",
+      "outputMtimeUtc": "2026-10-26T13:59:55.616066+00:00"
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/browser/editorService.ts",
+      "sourceSha256": "ed24d1943efb7e108c92d55000da29fd03f386930f63f4eb629e8347d198817c",
+      "equalToRefs": {
+        "c968c0627e7": true,
+        "133ef4e5cfa": true
+      },
+      "outputPath": "out/vs/workbench/services/editor/browser/editorService.js",
+      "outputSha256": "a2968c29642b436c0a3d77635b95ab8e63dfd469b644010c71a288eef180e2ca",
+      "outputMtimeUtc": "2026-10-26T13:59:56.234099+00:00"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/common/conversationEditorRouting.ts",
+      "sourceSha256": "28d3ce87a4f05e0c5485ae5d048551a28e7ddbd1023c1fcaae1c03326a7d7434",
+      "equalToRefs": {
+        "c968c0627e7": true,
+        "133ef4e5cfa": true
+      },
+      "outputPath": "out/vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+      "outputSha256": "385f20fa54188fd49f59dc6aacdd4c5df8af4822ac84b57ce9b0c92ea966e32b",
+      "outputMtimeUtc": "2026-10-26T13:59:56.591118+00:00"
+    }
+  ],
+  "tests": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+      "sourceSha256": "3428b5558a28d6205b3e33089923fe6e015f15e3857746523f7e13e8e4d3150a",
+      "sourceRef": "23f8701c8d2a6bd4b47c2e098c62a5bb89649c84",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js",
+      "beforeOutputSha256": "261b491f7d670e703932e84048b146b3b7ee4bb8e7e7304423efdd16ffb1c270",
+      "newOutputSha256": "2f225a3db5c824641134fb75972a91ea4facce587bf4c7bc3d906a73e7f44e6e",
+      "backupPath": "/tmp/vscode-d1387-original-tests/sourcesChangesList.test.js"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+      "sourceSha256": "d20c24e854fc15ebb11782beb626b23a0ef7ca98c89ad7d67fac6dc35a45d28d",
+      "sourceRef": "23f8701c8d2a6bd4b47c2e098c62a5bb89649c84",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.js",
+      "beforeOutputSha256": "0434f386ea1ea4c0f213513786c66d19ef2687d24fef40dd667e4362e7ba3ce2",
+      "newOutputSha256": "85d541a0a4b54b7c5b44d3c869da4b239214c05f4a548e607f7c08addc33b258",
+      "backupPath": "/tmp/vscode-d1387-original-tests/conversationEditorFence.test.js"
+    }
+  ],
+  "command": [
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "150s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+    "--grep",
+    "API SCM .*dispatches its DTO once|public finder and EditorService retain the exact typed Conversation"
+  ],
+  "exitCode": 1
+}
