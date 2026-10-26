@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "M01 a166的Pane VM所有权peer C0/I0；新增生命周期旧跑因共享SCM夹具缺事件TypeError、业务红0，现仅补完整空仓ISCMService并核剩余反馈依赖，生产及39项expected不变，运行待"
+summary: "M01 fccde生命周期旧跑达释放业务断言但混有缺progress服务异常；J/Astra确认组级fixture缺项，现补完整公开progress并扩核widget依赖，生产/39项expected不变，纯旧red与新运行待"
 ---
 
 # D1387 Sources 打开合同源码检查点
@@ -75,6 +75,17 @@ a166局部VM所有权独立peer正式提交`d31d4265bb4d9cb37bbd5105d8c4a2fc666d
 作者系统读取共享feedbackPane余下依赖与SourcesChangesModel完整refresh、Pane订阅/写事实路径：既有connection helper提供phase/snapshot/connected/capabilities及连接事件；session提供active/pairing/readiness/两事件，workspace.getWorkspace由基座TestContextService提供，模型/解析器由基座提供并用真实inmemory模型，diffProvider与interaction已有正式测试服务。空repo不触发provider监听，断开连接且无read hook不调用engine RPC/lease。该核查与原Astra独立核对一致，正式18828520a95670cc4aa212552fb01cbc0929ed49原报告§17（SCM夹具C0/I1）已git show只读核验；未用source阅读宣称剩余反馈用例已运行。
 
 本次唯一测试TS的createSourceFile AST语法解析0诊断、ESLint0errors/0warnings，相对a166按rule/message/行文本逐条added=[]、removed=[]；测试SHA256 `2011e14ecdd055a745f403e480afd00ffb9abfd799d3e9c6b5f249dfcee49df6`，Pane仍`e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者未compile/typecheck/transpile/out/watch/业务运行/UI；唯一lane须以准确旧0da Pane配修正test重跑同生命周期selector，实际业务旧红成立后新native及完整39/原相关套；修订peer、freeze和D真实after待，accepted/open不升。
+
+
+### M01 直接创建 Pane 的组级 progress 夹具补齐（2026-10-27）
+
+fccde完整SCM夹具独立peer提交`1d30f1ff5c67b0717a108a11a5a466665dbc50df`原件§18为C0/I0/M0，J已git show只读核验。随后唯一lane准确旧0da Pane配fccde新测试实际0passing/2failing：已到`replacing input must release its comparison view model`真实业务AssertionError（false !== true），同时DiffEditorWidget初始化报`Cannot read properties of undefined (reading 'show')`，另一afterEach为unexpected gate失败；尚未到clear/dispose。J只读`/tmp/vscode-m01-old0da-fccde4afb3ee-lifecycle.log`核完整栈，本次是1业务断言加1夹具异常的混合red，不签干净纯业务旧红；163身份恢复及永久原件由唯一lane记录，旧复合失败完整保留。
+
+J与Astra独立定界为组级fixture缺IEditorProgressService，不是旧泄漏VM在widget销毁后的次生callback：widget TS404的初始化autorun在setDiffModel transaction中读取构造注入的_editorProgressService.show；真实EditorGroupView在scoped子服务明确注册EditorProgressIndicator，而反馈helper直接实例化Pane没有经过该组scope。未发现可导出复用的Null/TestEditorProgressService，基座TestProgressService属于不同IProgressService；不导入整个standalone注册副作用。本次仅补完整satisfies IEditorProgressService literal，show复用正式emptyProgressRunner，showWhile实际await传入Promise并传播原reject。不关progress autorun、不压unexpected/console、不改生产或expected。
+
+在上节顶层model核查之外，本次扩查widget真实构造及异步/子组件：DiffEditorWidget的context/instantiation/codeEditor/accessibilitySignal来自workbench基座，VM唯一DI diffProvider为显式TestDiffProviderFactory；双CodeEditorWidget的theme/notification/accessibility/languageConfig/features/context/codeEditor/command/interaction均由基座或本fixture供应，diff子组件menu/keybinding/language/theme/contextMenu也由基座提供。clipboard仅用于未触发的内联viewzone复制交互，不是当前初始化show栈；不为未运行路径宣称全覆盖，也不堆未用stub。此核查与原Astra独立结论相同，后续仍须实际运行。
+
+本次仅1测试与3行动文档，生产与四真实Move入口代码区逐字同fccde，39项业务expected与leak/unexpected/console门禁不变。唯一TS AST语法0、ESLint0errors/0warnings，相对fccde逐条added=[]、removed=[]；测试SHA256更新为`83653d3619affa62557b4c431cba6000cbe1e329943826c411fd9ca85695f75c`，Pane保持`e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者未compile/typecheck/transpile/out/watch/业务运行/UI；修订peer及唯一lane准确旧0da同selector重跑、新native完整39/相关套与D新freeze真实after待，accepted/open不升。
 
 ## 宿主观测与 Sources 重叠补修（2026-10-26，J）
 

@@ -16,6 +16,7 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { emptyProgressRunner, IEditorProgressService } from '../../../../../platform/progress/common/progress.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IUserInteractionService, MockUserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionService.js';
 import { StorageScope } from '../../../../../platform/storage/common/storage.js';
@@ -279,6 +280,11 @@ suite('Sources M01 move source', () => {
 
 	async function feedbackPane(compare = false) {
 		const instantiation = workbenchInstantiationService(undefined, store);
+		instantiation.stub(IEditorProgressService, {
+			_serviceBrand: undefined,
+			show: () => emptyProgressRunner,
+			showWhile: async promise => { await promise; },
+		} satisfies IEditorProgressService);
 		instantiation.stub(IDiffProviderFactoryService, new TestDiffProviderFactoryService());
 		instantiation.stub(IUserInteractionService, new MockUserInteractionService());
 		const connection = createConversationConnectionTestStub();
