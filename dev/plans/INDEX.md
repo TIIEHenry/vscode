@@ -14,6 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [Conversation 叶级会话工作根身份条](2026-10-26-leaf-session-root-identity.md) | `accepted` | D1386；绑定叶的 folder/aria/branch/menu/checkout 与 mount offer 同根代次，窗口 addFolders 保持全局；规则16 C0/I0，等待实施与 merge 运行。 |
 | [Copilot Chat 首次连接录音授权](copilot-chat-cold-voice-authorization.md) | `accepted` | D1385；保留入口的 owner/手势授权跨过 ack/fallback；不接 Conversation 真语音。正式规则 16 C0/I0，未实施。 |
 | [Tunnel 引用所有权与 provider 重试](tunnel-reference-and-provider-retry.md) | `implemented` | D1383；旧生产8项行为失败加1次裸拒绝hook，新生产两套件19 passing，两TS定向语义0。该闭合当时未跑全量。 |
 | [Conversation 审阅导航随工作根刷新](conversation-review-root-invalidation.md) | `implemented` | D1382；旧生产新行为3过/7败，新生产37过，五TS语义0；独立默认编辑器after C0/I0，真实行/根失效/并列叶/命令参数通过，限制见证据。 |
