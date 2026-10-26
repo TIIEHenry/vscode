@@ -296,3 +296,13 @@ postBound与三种响应函数及断连guard只更换参数的静态宿主类型
 没有新增any/unknown/Partial或宽cast；本次未碰4生产门、旧10回归、旧160声明、reasoning整文件或39M01。知识规格无需改动：这轮只修测试上下文和加强既有行为断言，原accepted运行合同保持。待固定候选的原Astra独立复审与唯一baseline后续编译/运行，方案仍accepted、不freeze、不关闭wave。
 
 本轮静态检查：2个改动TS parse 0语法诊断（无checker/emit），ESLint 0 errors / 1条既有duplicate-import warning（Lens原有SessionView重复import，本轮未改import）。KEEP后半原文SHA-256 `749fb415d177f57c846733a5a1a52b8e39721b8f1d04e267aea9d4e0c4d9d202`、失败文案全部assert及live SessionBar测试正文均与c3逐字相同；原roster新10/旧160与Projection reasoning整文件不变，生产diff为空，新增行无any/unknown/Partial。diff check、生成状态核对通过，docs-health 0 errors / 73 warnings，status200行。静态JSON `/tmp/vscode-e-four-fixture-corrections-{static,eslint,docs-health}.json`；E没有编译/typecheck/transpile/watch/out写入或运行依赖out业务，不据此宣称四失败已转绿。
+
+### 9.7 原Astra I1：真实连接事件驱动的同步徽章降级覆盖
+
+原Astra对 `c683f0eb11160b6d985f31150616c5b592f5783b` 的只读复审提出Important I1：去掉源码字符串pin后，§9.6的真实连接事件用例只证明lease/内容行为；DisposeGate保留的KEEP后半仍手动调用phase/sync，尚未证明实际listener能将同步徽章从live降为closed。父已采纳并授权仅补测试；唯一baseline尚未消费c683，本轮不改生产。
+
+在既有 `mountLens` 连接测试旁新增roster与UA两个独立参数化实例。真实StubService及TestConversationFrameSource先构造live snapshot/lease与已绘制正文，核真实SessionBar徽章的text/title/aria均为 `Session live`。仅切换公开fixture getter所读的pairingPending闭包，使UA保持connected loopback phase但pairing hold、roster断连且getSessionSync为closed；切换不刷新frame或发session/连接事件，事件前再次核徽章仍live及两类连接事件计数均0。随后每个实例只触发自己指定的public roster `setEngineConnected(false)` 或UA emitter事件，分别核事件计数精确1/0、lease/snapshot/lastAttachedEntries引用与正文全文不变、lease原sync仍live，而真实徽章text/title/aria全为 `Session disconnected: Pairing required` 且SessionBar无 `Session live`。没有手调phase/sync、私有字段/方法操作、源码字符串替身或新增宽cast。
+
+§9.6四项修订及断言全部保留：从当前Lens测试删除本次唯一新增block后与c683整文件逐字一致，DisposeGate整文件不变；原roster新10/旧160、Projection reasoning与生产browser树也未改。仅补测试和行动记录，无新的用户行为/契约，知识规格无需同步；方案继续accepted，不作freeze/green/wave关闭或新UI after结论。
+
+本轮静态检查：1个改动TS parse 0语法诊断（无checker/emit），ESLint 0 errors / 1条既有line82 duplicate-import warning；新增行无any/unknown/Partial及除as const外的类型断言，生产diff为空。diff check、生成状态核对通过，docs-health 0 errors / 73条既有warnings，status200行。静态证据 `/tmp/vscode-e-connection-chrome-event-{static,eslint,docs-health}.json`。E未compile/typecheck/transpile/watch、未写out或运行依赖out的测试；固定候选仍待原Astra复审和唯一baseline实际验证，不将静态证据当作I1业务已转绿。

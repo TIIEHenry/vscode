@@ -2228,6 +2228,83 @@ suite('ConversationLens', () => {
 		assert.ok(!timeline.textContent?.includes('Beta must not replace the bound leaf'));
 	});
 
+	for (const eventSource of ['roster', 'UA'] as const) {
+		test(`pairing-hold ${eventSource} connection event demotes the live badge while keeping the same lease and content`, async () => {
+			let pairingPending = false;
+			const stubService = store.add(new class extends ConversationStubService {
+				override isEngineConnected(): boolean {
+					return !pairingPending && super.isEngineConnected();
+				}
+				override getSessionSync(sessionId: string): ReturnType<ConversationStubService['getSessionSync']> {
+					return pairingPending ? { kind: 'closed', reason: 'Pairing required' } : super.getSessionSync(sessionId);
+				}
+			}());
+			stubService.setEngineConnected(true);
+			const sessionId = stubService.getActiveSessionId();
+			stubService.appendUserTurn(sessionId, 'Keep live content during pairing');
+			const { model, onSessionChanged } = stubService.createTestFrameSourceCallback();
+			const testSource = store.add(new TestConversationFrameSource(model, onSessionChanged));
+			stubService.wireTestFrameSource(testSource);
+			testSource.setSessionSync(sessionId, { kind: 'live' });
+			const connectionEmitter = store.add(new Emitter<ReturnType<IUniverseAgentConnection['getConnectionSnapshot']>>());
+			const base = createConversationConnectionTestStub();
+			const connection = createConversationConnectionTestStub({
+				isEngineConnected: () => !pairingPending,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ ...base.getConnectionSnapshot(), transport: 'ok', channelAlive: true, pairingPending }),
+				onDidChangeConnection: connectionEmitter.event,
+			});
+			const connectionEvents = { roster: 0, UA: 0 };
+			store.add(stubService.onDidChangeEngineConnection(() => { connectionEvents.roster++; }));
+			store.add(connection.onDidChangeConnection(() => { connectionEvents.UA++; }));
+			const { part, lens, layoutReadingColumn } = mountLens({ stubService, sessionKey: sessionId, connection });
+			await flushProjectedTimeline(layoutReadingColumn);
+			const slots = getLensSlots(part);
+			const badge = slots.sessionBar!.querySelector<HTMLElement>('.conversation-lens-session-sync-badge');
+			assert.ok(badge);
+			assert.strictEqual(badge.hidden, false);
+			assert.strictEqual(badge.textContent, 'Session live');
+			assert.strictEqual(badge.title, 'Session live');
+			assert.strictEqual(badge.getAttribute('aria-label'), 'Session live');
+			const lease = lens.sessionViewLease;
+			assert.ok(lease);
+			assert.strictEqual(lease.sessionId, sessionId);
+			const snapshot = lease.snapshot;
+			assert.strictEqual(snapshot.sync.kind, 'live');
+			const entries = lens.lastAttachedEntries;
+			assert.ok(entries.length > 0);
+			const paintedContent = slots.timeline.textContent;
+			assert.ok(paintedContent?.includes('Keep live content during pairing'));
+
+			pairingPending = true;
+			assert.strictEqual(stubService.isEngineConnected(), false);
+			assert.strictEqual(stubService.getSessionSync(sessionId).kind, 'closed');
+			assert.strictEqual(connection.getConnectionPhase()?.kind, 'connected');
+			assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+			assert.deepStrictEqual(connectionEvents, { roster: 0, UA: 0 });
+			assert.strictEqual(badge.textContent, 'Session live', 'the silent fixture transition must not repaint chrome');
+			assert.strictEqual(badge.title, 'Session live');
+			assert.strictEqual(badge.getAttribute('aria-label'), 'Session live');
+			if (eventSource === 'roster') {
+				stubService.setEngineConnected(false);
+			} else {
+				connectionEmitter.fire(connection.getConnectionSnapshot());
+			}
+
+			assert.deepStrictEqual(connectionEvents, { roster: eventSource === 'roster' ? 1 : 0, UA: eventSource === 'UA' ? 1 : 0 });
+			assert.strictEqual(lens.sessionViewLease, lease);
+			assert.strictEqual(lease.snapshot, snapshot);
+			assert.strictEqual(lease.snapshot.sync.kind, 'live');
+			assert.strictEqual(lens.lastAttachedEntries, entries);
+			assert.strictEqual(slots.timeline.textContent, paintedContent);
+			assert.strictEqual(badge.hidden, false);
+			assert.strictEqual(badge.textContent, 'Session disconnected: Pairing required');
+			assert.strictEqual(badge.title, 'Session disconnected: Pairing required');
+			assert.strictEqual(badge.getAttribute('aria-label'), 'Session disconnected: Pairing required');
+			assert.ok(!slots.sessionBar!.textContent?.includes('Session live'));
+		});
+	}
+
 	test('bound leaf closes inner overlays when the roster active session leaves', () => {
 		const stubService = store.add(new ConversationStubService());
 		const sessionA = stubService.getActiveSessionId();
