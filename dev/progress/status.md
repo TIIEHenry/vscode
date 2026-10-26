@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "当前编译合同基线已修：全量compile-client45→3→0，Electron325过3既有红、Node10过；D1387已有J实现正在独立补修，未合入；D1385范围纠正保留。"
+summary: "编译基线全量0、325/3既有红保留；D1387虚拟65d noEmit0/Electron357过，未正式合源/after；J宿主Important待修，E unary draft规则16改稿。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **D1387 不可变源码叠加验证（2026-10-26）**：65d虚拟完整Program noEmit0、官方十文件Electron357过/exit0，wiring23过1已精确09f6复现的Acceptpatch既有红，lint0错误/56警告且4f7→65d无新增。R1/R2精确23f各0过4业务红，89f类型6红、setup泄漏与4f7夹具红均保留并由作者补修；51份raw/命令/source-out身份当轮落库。src仍09f6/de22绿树，仅merge out虚拟叠加；同tuple多宿主Important规则16/生产补修待，J+E两coder冻结，E unary方案draft/规则16改稿且occupied，不formal合源/不发after freeze/不计产品完成。[完整证据](default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)。
 - **D1387 原两机制业务红（2026-10-26）**：主/merge已同clean555c，只有merge取不可变J23f两新测试JS；五core源逐字等c968/133ef、生产JS前后SHA不变。官方Electron0过14败：12DTO在resource.open实际1/期望0断言红，准确对象/id两项被旧finder业务拒绝，无加载/类型/timeout。明确test-only混合scope，最终J补修green/完整套/after待；D cbac规则16custom窄例外报告另真三路接入，逐路径保留门禁PASS。[红与身份](default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md)。
 - **编译基线安全同步与D1387 peer接入（2026-10-26）**：父实核54个source/out SHA与src树后，主工位clean agent-ide仅ff de22成功；D不可变c664独立报告真三路合入0dd2，两边保留等价逐路径门禁PASS、src/out未变、无新编译。J原23f实现已独立审C0/I2，newTab预pin与单侧URI身份误配由Astra裁定、J补修中，尚未合生产或宣告after。[接入证据](default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md)。
 - **当前编译合同范围完成（2026-10-26）**：方案33922独立提交后修27文件，Astra源码审查C0/I0；唯一merge全量`compile-client`真实45→3→0、exit0。20文件Electron325过/3既有红，精确c968旧测试已复现同三红并恢复当前测试JS原SHA；Node三份10过，ESLint0errors/20warnings，D17保持open。src子树和27组source/out身份见[证据](default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md)。不改Sources实现，不升产品PRD；J D1387独立补修由父调度。

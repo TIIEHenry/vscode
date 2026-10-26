@@ -1,0 +1,327 @@
+{
+  "phase": "virtual-theme-output-not-formally-merged",
+  "baseHead": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+  "baseSourceTree": "932031c34525449d4010265f914f7074abad2c05",
+  "themeRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+  "changedSourcePaths": [
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts",
+    "src/vs/workbench/contrib/sources/common/sourcesReviewHostService.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffRefHelpers.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesGitDiffContent.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesReviewCommands.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesReviewShowForPaths.test.ts",
+    "src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts",
+    "src/vs/workbench/services/editor/common/editorGroupFinder.ts"
+  ],
+  "modules": [
+    {
+      "sourcePath": "src/vs/workbench/api/browser/mainThreadSCM.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "376c2bc20b93185406d83bfe637c2c024a8aed0fcc53f67daf097d138e761331",
+      "baseSourceSha256": "376c2bc20b93185406d83bfe637c2c024a8aed0fcc53f67daf097d138e761331",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/api/browser/mainThreadSCM.js",
+      "beforeOutputSha256": "43aacd25578b224a1f62733184bd2cb7b53d0fa3c1aa6796f6c40d84a03e3622",
+      "outputSha256": "43aacd25578b224a1f62733184bd2cb7b53d0fa3c1aa6796f6c40d84a03e3622"
+    },
+    {
+      "sourcePath": "src/vs/workbench/browser/parts/editor/editorCommands.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "4950ff762bd642e7ebe298f6f28541200a0a9af5ae24d8b4c751a65f27bc7655",
+      "baseSourceSha256": "4950ff762bd642e7ebe298f6f28541200a0a9af5ae24d8b4c751a65f27bc7655",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/browser/parts/editor/editorCommands.js",
+      "beforeOutputSha256": "4ec4f8a4bd84db87b1a56279c7cfe12ec76472bac7b27cb3725b3acee45252ef",
+      "outputSha256": "4ec4f8a4bd84db87b1a56279c7cfe12ec76472bac7b27cb3725b3acee45252ef"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/common/conversationEditorRouting.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "28d3ce87a4f05e0c5485ae5d048551a28e7ddbd1023c1fcaae1c03326a7d7434",
+      "baseSourceSha256": "28d3ce87a4f05e0c5485ae5d048551a28e7ddbd1023c1fcaae1c03326a7d7434",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+      "beforeOutputSha256": "5a10d03c3b19a3224e92aee87c43a3729e461ff93f15bd84d464ec7ac04f8038",
+      "outputSha256": "5a10d03c3b19a3224e92aee87c43a3729e461ff93f15bd84d464ec7ac04f8038"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "7f06632ed7257940e2e11265eaa262e5421c6248f3d44069528244a8ffec9bbb",
+      "baseSourceSha256": "9030694df0897f25ea56cd8d0f1fcd9e3af54e06af255a2d302179ffe4fac26e",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.js",
+      "beforeOutputSha256": "85d541a0a4b54b7c5b44d3c869da4b239214c05f4a548e607f7c08addc33b258",
+      "outputSha256": "d9e7c4c7578cfc5c955c2e737532af5bab3329be9d8c38a91292cad86722c4df"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "40f1a7490a58f6c7412fbf252c80aeaf5bd8170bed6c11814ed0992d82b3ca6a",
+      "baseSourceSha256": "40f1a7490a58f6c7412fbf252c80aeaf5bd8170bed6c11814ed0992d82b3ca6a",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.js",
+      "beforeOutputSha256": "b5bf3f060156979177f5d0215fd39686826e3d7294aef50808a2e4b4f9525307",
+      "outputSha256": "b5bf3f060156979177f5d0215fd39686826e3d7294aef50808a2e4b4f9525307"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "d43d4e88d128e57c37398dc6f45570693ed9a2bfe7f8b55784cc542bbf35a5fb",
+      "baseSourceSha256": "d43d4e88d128e57c37398dc6f45570693ed9a2bfe7f8b55784cc542bbf35a5fb",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "beforeOutputSha256": "609a58871c0232fcb88ae23db54ede5bdc17d60afabb63212b86960c17ba0ead",
+      "outputSha256": "609a58871c0232fcb88ae23db54ede5bdc17d60afabb63212b86960c17ba0ead"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "f13693e1de22a0a2b60e966ced1bcdef0d79a9257195b8637fa2cc474bccad37",
+      "baseSourceSha256": "fea0aec79f26aeac4c8ff16d4b1ebacf48e86a3bdc9d2d4b1287b9f54b5e04b4",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.js",
+      "beforeOutputSha256": "7a50e09457d826806d48b1d6db71eab57c052e61489d44d386f83636d8fa2977",
+      "outputSha256": "7a50e09457d826806d48b1d6db71eab57c052e61489d44d386f83636d8fa2977"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "2c17c135bb7cff89f0c5e252af6425b5daf1387e161836067255e2003a44ad96",
+      "baseSourceSha256": "c79939ddfcbcb70cb9b8729752e141cf483475999c1cc5c845b28eee778e9480",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesChangesList.js",
+      "beforeOutputSha256": "3c897f8ac0a498636b41d903948822f8c3606a7cf96e22e5ebb331fb1af2ca5c",
+      "outputSha256": "3c897f8ac0a498636b41d903948822f8c3606a7cf96e22e5ebb331fb1af2ca5c"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "7d9e4cd51d35148b338a6bd8eeb47aef3f13395ec3347aeaaf8252d62b9b541a",
+      "baseSourceSha256": "2eb0969cd1b6def44342313a3d890c6aa0e3e4e9cc7f8f93248f8850d4537c55",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffActions.js",
+      "beforeOutputSha256": "fbe1a572bf6f0a511a8469c5b22b74b9fd5e718f90fac8ddf5b9981e5e9b9b8c",
+      "outputSha256": "fbe1a572bf6f0a511a8469c5b22b74b9fd5e718f90fac8ddf5b9981e5e9b9b8c"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "2a6a4818113ef90ba2ae27cd41d9873ba36a11e2f2620ba996586ecc55fde2a1",
+      "baseSourceSha256": "2a6a4818113ef90ba2ae27cd41d9873ba36a11e2f2620ba996586ecc55fde2a1",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.js",
+      "beforeOutputSha256": "0f55249ffe38b08640f6b1a54cfb87c89268d79e7d636b49e895b18186d96506",
+      "outputSha256": "0f55249ffe38b08640f6b1a54cfb87c89268d79e7d636b49e895b18186d96506"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "206fd94d5ecccd109753dd97c394b73801e3f0dd64a846a58203eb906ef9fe46",
+      "baseSourceSha256": "206fd94d5ecccd109753dd97c394b73801e3f0dd64a846a58203eb906ef9fe46",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "beforeOutputSha256": "92ebdeae8d9c5d54ddda171a0a7077d12ce1310eec73b6ecf54cb775a4887121",
+      "outputSha256": "92ebdeae8d9c5d54ddda171a0a7077d12ce1310eec73b6ecf54cb775a4887121"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesOpenStatus.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "bbd19d2ba0f3b1fc8bd2a1d6fd733391ee979c9786d77a1ea43954573d20065d",
+      "baseSourceSha256": "bbd19d2ba0f3b1fc8bd2a1d6fd733391ee979c9786d77a1ea43954573d20065d",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesOpenStatus.js",
+      "beforeOutputSha256": "7c219228c2a5a50e77e8dd4312aa7dc8b4b2cde373abfc88eebfde6b3d8f4469",
+      "outputSha256": "7c219228c2a5a50e77e8dd4312aa7dc8b4b2cde373abfc88eebfde6b3d8f4469"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "3582fc8f50152de866914f56dd4160a028755f15eb3819d4beef7b3763e3389d",
+      "baseSourceSha256": "6057149fedd424f8eb6b4796b6115069e7978efac2e508ec9f2ba46d09941dbc",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.js",
+      "beforeOutputSha256": "4320af44fe515674760184c8955f9e621e33eda0b7e520aaafbdd18ce3b8076f",
+      "outputSha256": "4320af44fe515674760184c8955f9e621e33eda0b7e520aaafbdd18ce3b8076f"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "f9ceadeb49fddc301f97fb1547343bea488206bb98e00c2652e430bc0326ee84",
+      "baseSourceSha256": "740517387a3b2eaa35a12ec000538e63c0308a5b4f5c412355d78cbdb57cd466",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesReviewList.js",
+      "beforeOutputSha256": "7835cfcef0433eae619ba827d0fe413d6cbd67350a340052e5c1f0a30e021fa5",
+      "outputSha256": "7835cfcef0433eae619ba827d0fe413d6cbd67350a340052e5c1f0a30e021fa5"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "6d3eef6fd067f4b091400c04c6cf5b5c5c0fdc998cd5ff8ede2cb2ff4fb9b101",
+      "baseSourceSha256": "5215126180b53de3035872ff24ec7127c918a30353023d67d767acd325d28e56",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesTabsHost.js",
+      "beforeOutputSha256": "54242bcb128061256262d6e747656729a70ef6b8f6c393f2e342a95c71331b96",
+      "outputSha256": "54242bcb128061256262d6e747656729a70ef6b8f6c393f2e342a95c71331b96"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/common/sourcesReviewHostService.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "81264faade61be32f77ac2a527245ea74de8da1ae56265ce85660d7d2c04358a",
+      "baseSourceSha256": "59a81942620eddb5ffcf1de67b648b2c92f99e114281b410bc583ec4d5e21fa4",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/common/sourcesReviewHostService.js",
+      "beforeOutputSha256": "5b13759e980430ecfdbad543c5892001e3ea2eb586acfbe5cb827e217c7c0763",
+      "outputSha256": "5b13759e980430ecfdbad543c5892001e3ea2eb586acfbe5cb827e217c7c0763"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "c3a6311d0d6da287d9ba23d92dfc29a6fafae7ac5cc19fcc35bd5f2202595de0",
+      "baseSourceSha256": "4a920ab8f6463b8d04dfcab64d708577cd8158336e7c67d8bdaa76e26a651785",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js",
+      "beforeOutputSha256": "336b26ef333c698633b0cec37dc95bc5b1e981952298c31a91348667870f784b",
+      "outputSha256": "51efff4b93ef0e23baa29dd29a00508c9955a0ff2c334b7e2e68f9dd441c2192"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesConversationOpenHarness.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "341c386dfc3449d607d4c7e0adf596ce64577d7cfe4359414b9c1226263d99f5",
+      "baseSourceSha256": "341c386dfc3449d607d4c7e0adf596ce64577d7cfe4359414b9c1226263d99f5",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesConversationOpenHarness.js",
+      "beforeOutputSha256": "e6817f742c978dfc02a07dfddd55adefa319b7c7af11a58d5e1c67044e12f6ea",
+      "outputSha256": "e6817f742c978dfc02a07dfddd55adefa319b7c7af11a58d5e1c67044e12f6ea"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "42b49c589422ad27604bbdb2542bd93926d769c4c0c41b9734a329a98a7837cc",
+      "baseSourceSha256": "859fc713a4d086b77906303258cede7f1aef8ccfbe37dde7b28b069166176c8c",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "beforeOutputSha256": "9a113898299ca7fc8d903e6cd5463cef23bf722fe29a0f4fc8682071c5f0b926",
+      "outputSha256": "9a113898299ca7fc8d903e6cd5463cef23bf722fe29a0f4fc8682071c5f0b926"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffRefHelpers.test.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "272fb38ccd25c825255bf32db780bf375f62d473ec93253ad5e4b96fd1623eb3",
+      "baseSourceSha256": "6059fc48c5ef493783484c561f6c39d903327c701c2ae32320b9437fd76da17e",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffRefHelpers.test.js",
+      "beforeOutputSha256": "d2e3dda1ab0c098bfe9499fefbf7a8173e5d1c170e45113edd4f02e34a0b2d61",
+      "outputSha256": "313ad8c3dde7a6c54129baa156b7a6de3f1f606243721c62d25b5ddac2c6e692"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesGitDiffContent.test.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "c380eceac34c12652f74ae42289abe04f67f02e090cc97c33778b0f126f6c87a",
+      "baseSourceSha256": "7c3291294d66a81d7cd7078f2caad2f41e2a7cbe13a009c6b2df4598d7a36768",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesGitDiffContent.test.js",
+      "beforeOutputSha256": "1d21cb451105287ffc36443342c1bbc780581b5eae502238b73edf942becf26a",
+      "outputSha256": "1d21cb451105287ffc36443342c1bbc780581b5eae502238b73edf942becf26a"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesReviewCommands.test.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "5c27ecc006a8f977c63903ac75829ab7a9bb2372b392dfe1cd046fa832ea0ea4",
+      "baseSourceSha256": "90237a408dd39cd8f4329bec95bd2241a3a95795019c012659f806b4df1ddd60",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesReviewCommands.test.js",
+      "beforeOutputSha256": "2b3588dd5f74dd85584c53a28296a624e3497400e5f3ac382eb96f5a75eefba0",
+      "outputSha256": "2b3588dd5f74dd85584c53a28296a624e3497400e5f3ac382eb96f5a75eefba0"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "522c33be46903e2b95157d2e3dcd4631e57b3ec6c2f4bb40b7f95430cd826b63",
+      "baseSourceSha256": "188b2f81622d8359979bd15d6cd9289f725cccf2ddee669336f12afc6aa1e08d",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.js",
+      "beforeOutputSha256": "a928a487d9ab13085b6843b9296cf2c019d567058a23a8c535e5442ffb6c81ac",
+      "outputSha256": "07ee81bbcca415cbe5e0ed24366b3d77bd9271094c544095d7b144e5ab5575c9"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesReviewShowForPaths.test.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "ce8363548d903013239d6df77a99585e51aa495434f45b296bef484c366b7a81",
+      "baseSourceSha256": "126f4eb86c18547f46a459fe3cc53d6fbdd11bc01cea178f06c3896a8a4a62d7",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesReviewShowForPaths.test.js",
+      "beforeOutputSha256": "a56a8ca4b659d4488f5110580d457901987e2f3e3dee6715951a39dffa92866b",
+      "outputSha256": "a56a8ca4b659d4488f5110580d457901987e2f3e3dee6715951a39dffa92866b"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "2704e02800a9e7d6745a5e1698b69c8281c4c0f0df673fa2b2061186c8bae402",
+      "baseSourceSha256": "722cc34b323b383af9821667a1a6bf47ef2671197a488ea106d40850fd224bc8",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.js",
+      "beforeOutputSha256": "ddbac72e202645d80551d901e00989d02948bab7b6848e9c1e6ff67761ceaf1e",
+      "outputSha256": "2ce248ad4b0b7d0cd68d87174f5353f9e7d3c54903101c1090e425c6708bd120"
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/browser/editorOpenSlot.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "e23df5b6f138ea8d78bd3655e973e378f5e65ff76d5a34e8d7493ed09571f1a5",
+      "baseSourceSha256": "e23df5b6f138ea8d78bd3655e973e378f5e65ff76d5a34e8d7493ed09571f1a5",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/services/editor/browser/editorOpenSlot.js",
+      "beforeOutputSha256": "99fee96531fcb437f49b58070d9468f3b6a8f430b6f126c37a0bc74fba5c3a10",
+      "outputSha256": "99fee96531fcb437f49b58070d9468f3b6a8f430b6f126c37a0bc74fba5c3a10"
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/browser/editorService.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "ed24d1943efb7e108c92d55000da29fd03f386930f63f4eb629e8347d198817c",
+      "baseSourceSha256": "ed24d1943efb7e108c92d55000da29fd03f386930f63f4eb629e8347d198817c",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/services/editor/browser/editorService.js",
+      "beforeOutputSha256": "5986f30408d90875aa35915a03ffe77ed15f6f342a7b5f8258fb101377cf2958",
+      "outputSha256": "5986f30408d90875aa35915a03ffe77ed15f6f342a7b5f8258fb101377cf2958"
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/common/editorGroupFinder.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "97cabfcc040ce8808f4958a3710e9e741790bf05815e09ef4cd646b84abefa35",
+      "baseSourceSha256": "4cbbdc596d62e0f4a82702c355ce8ee922a08dd1d048557158c55398a3ca2b2e",
+      "changedSource": true,
+      "outputPath": "out/vs/workbench/services/editor/common/editorGroupFinder.js",
+      "beforeOutputSha256": "18b7817eee8e53a0a354380abd95296b1b039509d7ebf66ec1a8047d58ee7edf",
+      "outputSha256": "18b7817eee8e53a0a354380abd95296b1b039509d7ebf66ec1a8047d58ee7edf"
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/test/browser/editorService.test.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "e31a9003ab93c95d8902ac3f99c2e80ea11e780ac5cc59bc257e31a5fe8f7b5a",
+      "baseSourceSha256": "e31a9003ab93c95d8902ac3f99c2e80ea11e780ac5cc59bc257e31a5fe8f7b5a",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/services/editor/test/browser/editorService.test.js",
+      "beforeOutputSha256": "cd3354d8c0227cdcdf21938c728ea1c40e463838bef8a7e44a9f385c0cbf31b2",
+      "outputSha256": "cd3354d8c0227cdcdf21938c728ea1c40e463838bef8a7e44a9f385c0cbf31b2"
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/test/common/editorOpenSlot.test.ts",
+      "sourceRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sourceSha256": "5261b8e9be6c93d2495571a9ac5283223ec2a7ba66262d24caf2298c41331c3f",
+      "baseSourceSha256": "5261b8e9be6c93d2495571a9ac5283223ec2a7ba66262d24caf2298c41331c3f",
+      "changedSource": false,
+      "outputPath": "out/vs/workbench/services/editor/test/common/editorOpenSlot.test.js",
+      "beforeOutputSha256": "f35fffb63f867b6c58fe977531b6cb6004237336c33b140d81dfc0a20f747803",
+      "outputSha256": "f35fffb63f867b6c58fe977531b6cb6004237336c33b140d81dfc0a20f747803"
+    }
+  ]
+}

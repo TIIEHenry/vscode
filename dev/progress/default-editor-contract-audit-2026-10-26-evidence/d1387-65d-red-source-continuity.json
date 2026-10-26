@@ -1,0 +1,67 @@
+{
+  "phase": "no-repeat-red-source-proof",
+  "redBodies": [
+    {
+      "case": "R1",
+      "oldTestsRef": "89f3e5a6a1782b928bb0bdc2c90c5fec8f7fdc68",
+      "currentTestsRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "rangeStart": "test(`API SCM ${commandId} newTab",
+      "rangeEnd": "test(`API SCM ${commandId} runs the official handler",
+      "sameSourceBytes": true,
+      "sha256": "8cfc3557a64c1b0a48e9625c7e9a14e052e003e54a1920662439a57a8c5b3671"
+    },
+    {
+      "case": "R2",
+      "oldTestsRef": "4f7e49d357a8a5f9e89de373c4e6a5759505c051",
+      "currentTestsRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "rangeStart": "for (const slot of ['newTab', 'replace'] as const) {",
+      "rangeEnd": "test('API file void does not claim",
+      "sameSourceBytes": true,
+      "sha256": "3780a467843eb49b41baa5ec7154f8d19a3f759fc63e69863040ab5bc3cb8f6b"
+    }
+  ],
+  "unchangedProduction": [
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "same89f65dBytes": true,
+      "sha256": "f13693e1de22a0a2b60e966ced1bcdef0d79a9257195b8637fa2cc474bccad37"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts",
+      "same89f65dBytes": true,
+      "sha256": "2c17c135bb7cff89f0c5e252af6425b5daf1387e161836067255e2003a44ad96"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+      "same89f65dBytes": true,
+      "sha256": "7d9e4cd51d35148b338a6bd8eeb47aef3f13395ec3347aeaaf8252d62b9b541a"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts",
+      "same89f65dBytes": true,
+      "sha256": "3582fc8f50152de866914f56dd4160a028755f15eb3819d4beef7b3763e3389d"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts",
+      "same89f65dBytes": true,
+      "sha256": "f9ceadeb49fddc301f97fb1547343bea488206bb98e00c2652e430bc0326ee84"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts",
+      "same89f65dBytes": true,
+      "sha256": "6d3eef6fd067f4b091400c04c6cf5b5c5c0fdc998cd5ff8ede2cb2ff4fb9b101"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesReviewHostService.ts",
+      "same89f65dBytes": true,
+      "sha256": "81264faade61be32f77ac2a527245ea74de8da1ae56265ce85660d7d2c04358a"
+    },
+    {
+      "path": "src/vs/workbench/services/editor/common/editorGroupFinder.ts",
+      "same89f65dBytes": true,
+      "sha256": "97cabfcc040ce8808f4958a3710e9e741790bf05815e09ef4cd646b84abefa35"
+    }
+  ],
+  "productionCount": 8,
+  "conversationTypeOnlyDiff": "diff --git a/src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts b/src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts\nindex 905843788ff..5f7798a8fe4 100644\n--- a/src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts\n+++ b/src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts\n@@ -146,7 +146,7 @@ suite('Conversation editor fence', () => {\n \t\t\tconst review = store.add(new RoutingReviewInput(URI.file('/alpha/shared.ts'), URI.parse('git:/alpha/shared.ts?baseline')));\n \t\t\tconst [found] = await instantiationService.invokeFunction(accessor => findGroup(accessor, review, target));\n \t\t\tassert.strictEqual(found, side);\n-\t\t\tassert.strictEqual(parts.getPart(found), conversationPart);\n+\t\t\tassert.strictEqual(parts.getPart(found.id), conversationPart);\n \t\t\tassert.strictEqual(conversationPart.sessionKey, 'session-a');\n \t\t\tconst pane = await editorService.openEditor(review, { pinned: true, preserveFocus: true }, target);\n \t\t\tassert.ok(pane);\n@@ -166,13 +166,14 @@ suite('Conversation editor fence', () => {\n \t\t\tconst { parts, conversationPart, editorService } = await createHarness();\n \t\t\tconst rootGroup = conversationPart.activeGroup;\n \t\t\tconst root = rootGroup.activeEditor;\n+\t\t\tassert.ok(root instanceof ConversationChatInput);\n \t\t\tconst side = conversationPart.addGroup(rootGroup, GroupDirection.RIGHT);\n \t\t\tconst first = store.add(new RoutingReviewInput(URI.file('/alpha/shared.ts'), URI.parse('git:/alpha/shared.ts?baseline')));\n \t\t\tconst pane = await openEditorInSlot(editorService, parts, first, slot, { preserveFocus: true }, side);\n \t\t\tassert.ok(pane);\n \t\t\tassert.strictEqual(pane.input, first);\n \t\t\tassert.strictEqual(pane.group, side);\n-\t\t\tassert.strictEqual(parts.getPart(side), conversationPart);\n+\t\t\tassert.strictEqual(parts.getPart(side.id), conversationPart);\n \t\t\tassert.strictEqual(conversationPart.groups.length, 2);\n \t\t\tconst revealed = await openEditorInSlot(editorService, parts, first, slot, { preserveFocus: true }, side);\n \t\t\tassert.ok(revealed);\n@@ -201,7 +202,7 @@ suite('Conversation editor fence', () => {\n \t\tfor (const input of [file, untitled, chat, diff]) {\n \t\t\tfor (const target of [CONVERSATION_GROUP, conversationPart.activeGroup, conversationPart.activeGroup.id]) {\n \t\t\t\tconst [found] = await instantiationService.invokeFunction(accessor => findGroup(accessor, input, target));\n-\t\t\t\tassert.strictEqual(parts.getPart(found), parts.mainPart);\n+\t\t\t\tassert.strictEqual(parts.getPart(found.id), parts.mainPart);\n \t\t\t}\n \t\t}\n \t});\n"
+}

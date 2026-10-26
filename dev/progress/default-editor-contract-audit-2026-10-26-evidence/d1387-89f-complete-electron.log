@@ -1,0 +1,621 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1148329:1026/223412.106679:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1148342) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1148342) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1148342) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  Sources - Changes list open[0m
+  [32m  ✔[0m[90m API SCM _workbench.open no slot preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open no slot preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open newTab preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open newTab preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open replace preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open replace preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff no slot preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff no slot preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff newTab preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff newTab preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff replace preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff replace preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open newTab resolves without pre-pinning the focused preview[0m
+  [32m  ✔[0m[90m API SCM _workbench.open newTab rejects without pre-pinning the focused preview[0m
+  [32m  ✔[0m[90m API SCM _workbench.open runs the official handler with provider column and options taking priority[0m
+[1148296:1026/223413.436531:INFO:CONSOLE:272] "
+
+
+==================== Leaking disposable 1/46: FunctionDisposable ====================
+(shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+(shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+(shared with 1/46 leaks) at registerEditorMoveCopyCommand (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:141:23)
+    - stacktraces of 1 other leaks continue with registerEditorMoveCopyCommand (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:159:23)
+(shared with 2/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+    - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+    - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+    - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+(shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+(shared with 39/46 leaks) at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    - stacktraces of 7 other leaks continue with Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+============================================================
+
+
+
+
+==================== Leaking disposable 2/46: FunctionDisposable ====================
+(shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+(shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+(shared with 1/46 leaks) at registerEditorMoveCopyCommand (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:159:23)
+    - stacktraces of 1 other leaks continue with registerEditorMoveCopyCommand (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:141:23)
+(shared with 2/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+    - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+    - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+    - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+(shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+(shared with 39/46 leaks) at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    - stacktraces of 7 other leaks continue with Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+============================================================
+
+
+
+
+==================== Leaking disposable 3/46: FunctionDisposable ====================
+(shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+(shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+(shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+(shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+    - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+    - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+    - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+    - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+(shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+(shared with 39/46 leaks) at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    - stacktraces of 7 other leaks continue with Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+============================================================
+
+
+
+
+==================== Leaking disposable 4/46: FunctionDisposable ====================
+(shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+(shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+(shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+(shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+    - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+    - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+    - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+    - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+(shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+(shared with 39/46 leaks) at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    - stacktraces of 7 other leaks continue with Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+============================================================
+
+
+
+
+==================== Leaking disposable 5/46: FunctionDisposable ====================
+(shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+(shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+(shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+(shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+    - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+    - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+    - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+    - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+(shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+(shared with 39/46 leaks) at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    - stacktraces of 7 other leaks continue with Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+============================================================
+
+
+
+
+==================== Leaking disposable 6/46: FunctionDisposable ====================
+(shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+(shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+(shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+(shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+    - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+    - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+    - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+    - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+(shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+(shared with 39/46 leaks) at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    - stacktraces of 7 other leaks continue with Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+============================================================
+
+
+
+
+==================== Leaking disposable 7/46: FunctionDisposable ====================
+(shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+(shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+(shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+(shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+    - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+    - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+    - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+    - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+(shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+(shared with 39/46 leaks) at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    - stacktraces of 7 other leaks continue with Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+============================================================
+
+
+
+
+==================== Leaking disposable 8/46: FunctionDisposable ====================
+(shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+(shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+(shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+(shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+    - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+    - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+    - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+    - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+(shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+(shared with 39/46 leaks) at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    - stacktraces of 7 other leaks continue with Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+============================================================
+
+
+
+
+==================== Leaking disposable 9/46: FunctionDisposable ====================
+(shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+(shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+(shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+(shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+    - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+    - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+    - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+    - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+(shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+(shared with 39/46 leaks) at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    - stacktraces of 7 other leaks continue with Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+============================================================
+
+
+
+
+==================== Leaking disposable 10/46: FunctionDisposable ====================
+(shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+(shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+(shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+    - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+(shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+    - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+    - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+    - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+    - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+    - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+(shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+(shared with 39/46 leaks) at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    - stacktraces of 7 other leaks continue with Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+============================================================
+
+
+
+
+... and 36 more leaking disposables
+
+", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+  [31m  1) "after each" hook for "API SCM _workbench.open runs the official handler with provider column and options taking priority"[0m
+  [31m  2) "after each" hook for "API SCM _workbench.open runs the official handler with provider column and options taking priority"[0m
+
+
+[92m [0m[32m 16 passing[0m[90m (29ms)[0m
+[31m  2 failing[0m
+
+[0m  1) Sources - Changes list open
+       "after each" hook for "API SCM _workbench.open runs the official handler with provider column and options taking priority":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  Error: There are 46 undisposed disposables!
+  
+  
+  ==================== Leaking disposable 1/46: FunctionDisposable ====================
+  (shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+  (shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+  (shared with 1/46 leaks) at registerEditorMoveCopyCommand (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:141:23)
+      - stacktraces of 1 other leaks continue with registerEditorMoveCopyCommand (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:159:23)
+  (shared with 2/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+      - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+      - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+      - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+  (shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 2/46: FunctionDisposable ====================
+  (shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+  (shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+  (shared with 1/46 leaks) at registerEditorMoveCopyCommand (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:159:23)
+      - stacktraces of 1 other leaks continue with registerEditorMoveCopyCommand (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:141:23)
+  (shared with 2/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+      - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+      - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+      - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+  (shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 3/46: FunctionDisposable ====================
+  (shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+  (shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+  (shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+  (shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+      - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+      - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+      - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+      - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+  (shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 4/46: FunctionDisposable ====================
+  (shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+  (shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+  (shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+  (shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+      - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+      - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+      - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+      - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+  (shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 5/46: FunctionDisposable ====================
+  (shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+  (shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+  (shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+  (shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+      - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+      - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+      - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+      - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+  (shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 6/46: FunctionDisposable ====================
+  (shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+  (shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+  (shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+  (shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+      - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+      - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+      - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+      - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+  (shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 7/46: FunctionDisposable ====================
+  (shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+  (shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+  (shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+  (shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+      - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+      - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+      - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+      - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+  (shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 8/46: FunctionDisposable ====================
+  (shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+  (shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+  (shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+  (shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+      - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+      - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+      - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+      - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+  (shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 9/46: FunctionDisposable ====================
+  (shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+  (shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+  (shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+  (shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+      - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+      - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+      - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+      - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+  (shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 10/46: FunctionDisposable ====================
+  (shared with 1/46 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 1/46 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 1/46 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 1/46 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 1/46 leaks) at combinedDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:247:18)
+  (shared with 1/46 leaks) at KeybindingsRegistryImpl.registerCommandAndKeybindingRule (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/keybinding/common/keybindingsRegistry.js:90:12)
+  (shared with 1/46 leaks) at registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:86:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:93:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:79:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:72:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:65:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:58:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:45:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:32:23)
+      - stacktraces of 1 other leaks continue with registerDiffEditorCommands (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/diffEditorCommands.js:19:23)
+  (shared with 9/46 leaks) at setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1425:3)
+      - stacktraces of 7 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1432:3)
+      - stacktraces of 4 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1429:3)
+      - stacktraces of 8 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1428:3)
+      - stacktraces of 9 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1427:3)
+      - stacktraces of 2 other leaks continue with setup (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/browser/parts/editor/editorCommands.js:1423:3)
+  (shared with 39/46 leaks) at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:190:9)
+  ============================================================
+  
+  
+  
+  
+  ... and 36 more leaking disposables
+  
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/test/common/utils.js:45:15)
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js:469:17
+[0m
+[0m  2) "after each" hook for "API SCM _workbench.open runs the official handler with provider column and options taking priority":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Error: Unexpected console output in test run. Please ensure no console.[log|error|info|warn] usage in tests or runtime errors.
+      at Context.<anonymous> (renderer.js:340:11)
+[0m
+
+

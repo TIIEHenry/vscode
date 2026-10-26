@@ -1,0 +1,24 @@
+{
+  "command": [
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "180s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+    "--grep",
+    "API SCM .*newTab (rejects|resolves) without pre-pinning|API diff .* (no-op|background comparison) uses the complete DTO comparison identity|API SCM .*dispatches its DTO once|public finder and EditorService retain the exact typed Conversation"
+  ],
+  "exitCode": 0,
+  "pack": "/tmp/vscode-d1387-89f-pack/manifest.json"
+}

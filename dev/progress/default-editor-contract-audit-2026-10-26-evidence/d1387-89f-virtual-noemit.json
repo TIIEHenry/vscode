@@ -1,0 +1,72 @@
+{
+  "phase": "immutable-virtual-program-noEmit-not-compile-client",
+  "baseHead": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+  "baseSourceTree": "932031c34525449d4010265f914f7074abad2c05",
+  "themeRef": "89f3e5a6a1782b928bb0bdc2c90c5fec8f7fdc68",
+  "overlayFiles": [
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/common/sourcesReviewHostService.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesDiffRefHelpers.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesGitDiffContent.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesReviewCommands.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesReviewShowForPaths.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/services/editor/common/editorGroupFinder.ts"
+  ],
+  "started": "2026-10-26T14:35:12.522Z",
+  "finished": "2026-10-26T14:36:37.420Z",
+  "diagnostics": [
+    {
+      "code": 2769,
+      "category": 1,
+      "file": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+      "message": "No overload matches this call.\n  Overload 1 of 2, '(group: number | IEditorGroupView): EditorPart', gave the following error.\n    Argument of type 'IEditorGroup' is not assignable to parameter of type 'number | IEditorGroupView'.\n      Type 'IEditorGroup' is missing the following properties from type 'IEditorGroupView': onDidFocus, onWillOpenEditor, onDidOpenEditorFail, groupsView, and 16 more.\n  Overload 2 of 2, '(element: HTMLElement): EditorPart', gave the following error.\n    Argument of type 'IEditorGroup' is not assignable to parameter of type 'HTMLElement'.\n      Type 'IEditorGroup' is missing the following properties from type 'HTMLElement': accessKey, accessKeyLabel, autocapitalize, autocorrect, and 314 more.",
+      "start": 8449
+    },
+    {
+      "code": 2769,
+      "category": 1,
+      "file": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+      "message": "No overload matches this call.\n  Overload 1 of 2, '(group: number | IEditorGroupView): EditorPart', gave the following error.\n    Argument of type 'IEditorGroup' is not assignable to parameter of type 'number | IEditorGroupView'.\n      Type 'IEditorGroup' is missing the following properties from type 'IEditorGroupView': onDidFocus, onWillOpenEditor, onDidOpenEditorFail, groupsView, and 16 more.\n  Overload 2 of 2, '(element: HTMLElement): EditorPart', gave the following error.\n    Argument of type 'IEditorGroup' is not assignable to parameter of type 'HTMLElement'.\n      Type 'IEditorGroup' is missing the following properties from type 'HTMLElement': accessKey, accessKeyLabel, autocapitalize, autocorrect, and 314 more.",
+      "start": 10032
+    },
+    {
+      "code": 2345,
+      "category": 1,
+      "file": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+      "message": "Argument of type 'EditorInput | null' is not assignable to parameter of type 'EditorInput'.\n  Type 'null' is not assignable to type 'EditorInput'.",
+      "start": 10894
+    },
+    {
+      "code": 2769,
+      "category": 1,
+      "file": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+      "message": "No overload matches this call.\n  Overload 1 of 2, '(group: number | IEditorGroupView): EditorPart', gave the following error.\n    Argument of type 'IEditorGroup' is not assignable to parameter of type 'number | IEditorGroupView'.\n      Type 'IEditorGroup' is missing the following properties from type 'IEditorGroupView': onDidFocus, onWillOpenEditor, onDidOpenEditorFail, groupsView, and 16 more.\n  Overload 2 of 2, '(element: HTMLElement): EditorPart', gave the following error.\n    Argument of type 'IEditorGroup' is not assignable to parameter of type 'HTMLElement'.\n      Type 'IEditorGroup' is missing the following properties from type 'HTMLElement': accessKey, accessKeyLabel, autocapitalize, autocorrect, and 314 more.",
+      "start": 12099
+    },
+    {
+      "code": 18048,
+      "category": 1,
+      "file": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+      "message": "'request.input.original.resource' is possibly 'undefined'.",
+      "start": 13994
+    },
+    {
+      "code": 18048,
+      "category": 1,
+      "file": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+      "message": "'request.input.modified.resource' is possibly 'undefined'.",
+      "start": 14038
+    }
+  ],
+  "exitCode": 1
+}

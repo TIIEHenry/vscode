@@ -1,0 +1,211 @@
+{
+  "phase": "immutable-virtual-wiring-source-root",
+  "baseHead": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+  "themeRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+  "sources": [
+    {
+      "path": "eslint.config.js",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "a231e9ca6a2625cb8f53e6f342b93aeb6011269c281f3ec5c37120fe8037cf96"
+    },
+    {
+      "path": "src/vs/workbench/browser/parts/conversation/partRegionHideControl.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "424627a295adcfa1b1d7e33008ed6fcdc02f34774c7ae1f7bafb4e5f906092a8"
+    },
+    {
+      "path": "src/vs/workbench/common/editor/conversationDiffReviewInput.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "bba82eea1c225e3f2f5aab6a2b77de97ae42dc34c52dc80cfecd6407fcb59aa4"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/agentSessionContext.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "3de402c7aaebe63e35ceb324748372d7cdcd9c799167f9a58e468099a1560fbb"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversation.contribution.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "25c30516a4f5d05726e56c5f2c212b457c70bf9b229540fe7edbc51694540a19"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "492eb3a3fb06b921499bb5da62ec5b996828375555ae5f9825889431407f7cc2"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationNavigationService.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "d824e1f51ff38b6e9b3595f1fac41e71ab25dd3c6ece43dbdfcba5273633a085"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/common/conversationEditorRouting.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "28d3ce87a4f05e0c5485ae5d048551a28e7ddbd1023c1fcaae1c03326a7d7434"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "40f1a7490a58f6c7412fbf252c80aeaf5bd8170bed6c11814ed0992d82b3ca6a"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "d43d4e88d128e57c37398dc6f45570693ed9a2bfe7f8b55784cc542bbf35a5fb"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/media/conversationDiffReviewPane.css",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "8f52503e6b859a43a4a0680a5f229ddf60badca710150952aa72aa9e36a3c371"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/media/sourcesChangesList.css",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "6c000d80982472be61b555760150259d516dad2a9755d22f8647a6721f5e0391"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/media/sourcesDiffPanel.css",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "1e65849098de2ef67ab5d502763b5d070b5ac6d2ff2ea21f39752752d46f1754"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "b27b77ce3b524eb52dc6cb6dd0719c44584909f398cea865e265d209dd775ca0"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/media/sourcesReviewList.css",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "1ba58af12dfe3a541a4435e6942d44cc600b767c83ddca2e5abb5d83553ee688"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sources.contribution.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "fc6806b239c6aa84bdcfd358c0ff963948e51932b34f60d7667093854b1ab34f"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "ref": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sha256": "f13693e1de22a0a2b60e966ced1bcdef0d79a9257195b8637fa2cc474bccad37"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts",
+      "ref": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sha256": "2c17c135bb7cff89f0c5e252af6425b5daf1387e161836067255e2003a44ad96"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+      "ref": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sha256": "7d9e4cd51d35148b338a6bd8eeb47aef3f13395ec3347aeaaf8252d62b9b541a"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "2a6a4818113ef90ba2ae27cd41d9873ba36a11e2f2620ba996586ecc55fde2a1"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "206fd94d5ecccd109753dd97c394b73801e3f0dd64a846a58203eb906ef9fe46"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffRefHelpers.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "ea113a2fde9d826c6dc0c61cf0acb19641818774a5ae9cdeb58a47c8c2d13b21"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesFilesExplorer.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "f0cd90baf438f8698e60c45f12c6a57fd1e197d136cb69dd30edb85a31ad10d7"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesFilesList.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "129acdb3cd5441f4e5e84949fd8654acc012bae274473f5fbe2c1628f5c5f319"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesOpenStatus.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "bbd19d2ba0f3b1fc8bd2a1d6fd733391ee979c9786d77a1ea43954573d20065d"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReviewAttributionService.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "923ecdda1f866b01a5c80a91622ac74fa485d049a23b34aba388cf781676ed82"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts",
+      "ref": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sha256": "3582fc8f50152de866914f56dd4160a028755f15eb3819d4beef7b3763e3389d"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts",
+      "ref": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sha256": "f9ceadeb49fddc301f97fb1547343bea488206bb98e00c2652e430bc0326ee84"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReviewProgressService.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "b1b45134ed6ca7b840cf4e0d31e09e2328c9a3683c986daf352a1a79cc92c7a8"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts",
+      "ref": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sha256": "6d3eef6fd067f4b091400c04c6cf5b5c5c0fdc998cd5ff8ede2cb2ff4fb9b101"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/conversationDiffReviewInput.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "7e41bed7f578766c6393890803931ee2b755fdc7f450225aa36e0688251ab64d"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesChangesReadModel.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "6269f07b18bc88a2dac82bd507b84be7806552ad915767a159144215260ae912"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesDiffConfiguration.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "57f68c42b948a84732d28882766ca18645005424a811a7a43857fdd4ddaa7e42"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesFilesListMode.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "d1c1b8e6d5435b65d41d55740240e1cc78bddf29956eb5dcecbb08fd3269e543"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesFilesModel.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "8a92b02d3ccc0bc9d47f67f88f4865299552f0ac299077200f7f55087e24f9fe"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesGitHunkPatch.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "d69e4dfe3569ccef6dc7313a9b82a95b5171a530c5a687960c1a77b962eddb44"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesReviewAttribution.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "20dabeffb46ff27f2bf084e209744ca6be8dab569f6ab0ff27d9a3a24a6d39e5"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesReviewListModel.ts",
+      "ref": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "sha256": "25e2158e026f2a9ca46cabecb3ccb2de10f289b7f99963b71ae683a881d84daf"
+    },
+    {
+      "path": "src/vs/workbench/services/editor/common/editorGroupFinder.ts",
+      "ref": "65d2288036fdad74ab607e231d3db758fa397aa8",
+      "sha256": "97cabfcc040ce8808f4958a3710e9e741790bf05815e09ef4cd646b84abefa35"
+    }
+  ],
+  "output": {
+    "path": "out/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.js",
+    "sha256": "2ce248ad4b0b7d0cd68d87174f5353f9e7d3c54903101c1090e425c6708bd120"
+  }
+}

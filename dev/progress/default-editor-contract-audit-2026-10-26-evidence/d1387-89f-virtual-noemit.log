@@ -1,0 +1,48 @@
+[96msrc/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts[0m:[93m149[0m:[93m37[0m - [91merror[0m[90m TS2769: [0mNo overload matches this call.
+  Overload 1 of 2, '(group: number | IEditorGroupView): EditorPart', gave the following error.
+    Argument of type 'IEditorGroup' is not assignable to parameter of type 'number | IEditorGroupView'.
+      Type 'IEditorGroup' is missing the following properties from type 'IEditorGroupView': onDidFocus, onWillOpenEditor, onDidOpenEditorFail, groupsView, and 16 more.
+  Overload 2 of 2, '(element: HTMLElement): EditorPart', gave the following error.
+    Argument of type 'IEditorGroup' is not assignable to parameter of type 'HTMLElement'.
+      Type 'IEditorGroup' is missing the following properties from type 'HTMLElement': accessKey, accessKeyLabel, autocapitalize, autocorrect, and 314 more.
+
+[7m149[0m    assert.strictEqual(parts.getPart(found), conversationPart);
+[7m   [0m [91m                                    ~~~~~[0m
+
+[96msrc/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts[0m:[93m175[0m:[93m37[0m - [91merror[0m[90m TS2769: [0mNo overload matches this call.
+  Overload 1 of 2, '(group: number | IEditorGroupView): EditorPart', gave the following error.
+    Argument of type 'IEditorGroup' is not assignable to parameter of type 'number | IEditorGroupView'.
+      Type 'IEditorGroup' is missing the following properties from type 'IEditorGroupView': onDidFocus, onWillOpenEditor, onDidOpenEditorFail, groupsView, and 16 more.
+  Overload 2 of 2, '(element: HTMLElement): EditorPart', gave the following error.
+    Argument of type 'IEditorGroup' is not assignable to parameter of type 'HTMLElement'.
+      Type 'IEditorGroup' is missing the following properties from type 'HTMLElement': accessKey, accessKeyLabel, autocapitalize, autocorrect, and 314 more.
+
+[7m175[0m    assert.strictEqual(parts.getPart(side), conversationPart);
+[7m   [0m [91m                                    ~~~~[0m
+
+[96msrc/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts[0m:[93m189[0m:[93m41[0m - [91merror[0m[90m TS2345: [0mArgument of type 'EditorInput | null' is not assignable to parameter of type 'EditorInput'.
+  Type 'null' is not assignable to type 'EditorInput'.
+
+[7m189[0m    assert.ok(rootGroup.editors.includes(root));
+[7m   [0m [91m                                        ~~~~[0m
+[96msrc/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts[0m:[93m204[0m:[93m38[0m - [91merror[0m[90m TS2769: [0mNo overload matches this call.
+  Overload 1 of 2, '(group: number | IEditorGroupView): EditorPart', gave the following error.
+    Argument of type 'IEditorGroup' is not assignable to parameter of type 'number | IEditorGroupView'.
+      Type 'IEditorGroup' is missing the following properties from type 'IEditorGroupView': onDidFocus, onWillOpenEditor, onDidOpenEditorFail, groupsView, and 16 more.
+  Overload 2 of 2, '(element: HTMLElement): EditorPart', gave the following error.
+    Argument of type 'IEditorGroup' is not assignable to parameter of type 'HTMLElement'.
+      Type 'IEditorGroup' is missing the following properties from type 'HTMLElement': accessKey, accessKeyLabel, autocapitalize, autocorrect, and 314 more.
+
+[7m204[0m     assert.strictEqual(parts.getPart(found), parts.mainPart);
+[7m   [0m [91m                                     ~~~~~[0m
+
+[96msrc/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts[0m:[93m236[0m:[93m29[0m - [91merror[0m[90m TS18048: [0m'request.input.original.resource' is possibly 'undefined'.
+
+[7m236[0m     assert.deepStrictEqual([request.input.original.resource.toString(), request.input.modified.resource.toString()], [original.toString(), resource.toString()]);
+[7m   [0m [91m                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts[0m:[93m236[0m:[93m73[0m - [91merror[0m[90m TS18048: [0m'request.input.modified.resource' is possibly 'undefined'.
+
+[7m236[0m     assert.deepStrictEqual([request.input.original.resource.toString(), request.input.modified.resource.toString()], [original.toString(), resource.toString()]);
+[7m   [0m [91m                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+{"diagnostics":6,"exitCode":1}

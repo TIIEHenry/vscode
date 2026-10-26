@@ -1,0 +1,187 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1167640:1026/224003.131133:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1167653) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1167653) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1167653) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources - Changes list open[0m
+  [31m  1) API diff newTab no-op uses the complete DTO comparison identity[0m
+  [31m  2) API diff newTab background comparison uses the complete DTO comparison identity[0m
+  [31m  3) API diff replace no-op uses the complete DTO comparison identity[0m
+  [31m  4) API diff replace background comparison uses the complete DTO comparison identity[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (10ms)[0m
+[31m  4 failing[0m
+
+[0m  1) Sources - Changes list open
+       API diff newTab no-op uses the complete DTO comparison identity:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "openedIdentity": "[undefined]"
+         "previousIdentity": {
+      [31m-    "groupId": "index"[0m
+      [31m-    "sameResource": false[0m
+      [32m+    "groupId": "workingTree"[0m
+      [32m+    "sameResource": true[0m
+         }
+         "trace": [
+      [31m-    "pin:previous"[0m
+           "command"
+         ]
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      openedIdentity: undefined,
+      previousIdentity: {
+  +     groupId: 'index',
+  +     sameResource: false
+  -     groupId: 'workingTree',
+  -     sameResource: true
+      },
+      trace: [
+  +     'pin:previous',
+        'command'
+      ]
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:349:16)
+[0m
+[0m  2) Sources - Changes list open
+       API diff newTab background comparison uses the complete DTO comparison identity:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "openedIdentity": "[undefined]"[0m
+      [31m-  "previousIdentity": {[0m
+      [32m+  "openedIdentity": {[0m
+           "groupId": "index"
+      [31m-    "sameResource": false[0m
+      [32m+    "sameResource": true[0m
+         }
+      [32m+  "previousIdentity": {[0m
+      [32m+    "groupId": "workingTree"[0m
+      [32m+    "sameResource": true[0m
+      [32m+  }[0m
+         "trace": [
+      [31m-    "pin:previous"[0m
+           "command"
+         ]
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   openedIdentity: undefined,
+  +   previousIdentity: {
+  -   openedIdentity: {
+        groupId: 'index',
+  +     sameResource: false
+  -     sameResource: true
+      },
+  -   previousIdentity: {
+  -     groupId: 'workingTree',
+  -     sameResource: true
+  -   },
+      trace: [
+  +     'pin:previous',
+        'command'
+      ]
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:349:16)
+[0m
+[0m  3) Sources - Changes list open
+       API diff replace no-op uses the complete DTO comparison identity:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "openedIdentity": "[undefined]"
+         "previousIdentity": {
+      [31m-    "groupId": "index"[0m
+      [31m-    "sameResource": false[0m
+      [32m+    "groupId": "workingTree"[0m
+      [32m+    "sameResource": true[0m
+         }
+         "trace": [
+           "command"
+         ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      openedIdentity: undefined,
+      previousIdentity: {
+  +     groupId: 'index',
+  +     sameResource: false
+  -     groupId: 'workingTree',
+  -     sameResource: true
+      },
+      trace: [
+        'command'
+      ]
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:349:16)
+[0m
+[0m  4) Sources - Changes list open
+       API diff replace background comparison uses the complete DTO comparison identity:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "openedIdentity": "[undefined]"[0m
+      [31m-  "previousIdentity": {[0m
+      [32m+  "openedIdentity": {[0m
+           "groupId": "index"
+      [31m-    "sameResource": false[0m
+      [32m+    "sameResource": true[0m
+         }
+      [32m+  "previousIdentity": {[0m
+      [32m+    "groupId": "workingTree"[0m
+      [32m+    "sameResource": true[0m
+      [32m+  }[0m
+         "trace": [
+           "command"
+         ]
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   openedIdentity: undefined,
+  +   previousIdentity: {
+  -   openedIdentity: {
+        groupId: 'index',
+  +     sameResource: false
+  -     sameResource: true
+      },
+  -   previousIdentity: {
+  -     groupId: 'workingTree',
+  -     sameResource: true
+  -   },
+      trace: [
+        'command'
+      ]
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:349:16)
+[0m
+
+

@@ -1,0 +1,13 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1126395:1026/222857.782817:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1126419) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1126419) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1126419) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources - Changes list open[0m
+  [31m  1) API SCM _workbench.open newTab resolves without pre-pinning the focused preview[0m
+  [31m  2) API SCM _workbench.open newTab rejects without pre-pinning the focused preview[0m
+  [31m  3) API SCM _workbench.diff newTab resolves without pre-pinning the focused preview[0m
+  [31m  4) API SCM _workbench.diff newTab rejects without pre-pinning the focused preview[0m

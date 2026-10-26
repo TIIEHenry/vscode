@@ -1,0 +1,37 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1146336:1026/223337.529035:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1146353) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1146353) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1146353) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources - Changes list open[0m
+  [32m  ✔[0m[90m API SCM _workbench.open no slot preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open no slot preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open newTab preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open newTab preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open replace preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open replace preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff no slot preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff no slot preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff newTab preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff newTab preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff replace preserveFocus=false dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff replace preserveFocus=true dispatches its DTO once[0m
+  [32m  ✔[0m[90m API SCM _workbench.open newTab resolves without pre-pinning the focused preview[0m
+  [32m  ✔[0m[90m API SCM _workbench.open newTab rejects without pre-pinning the focused preview[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff newTab resolves without pre-pinning the focused preview[0m
+  [32m  ✔[0m[90m API SCM _workbench.diff newTab rejects without pre-pinning the focused preview[0m
+  [32m  ✔[0m[90m API diff newTab no-op uses the complete DTO comparison identity[0m
+  [32m  ✔[0m[90m API diff newTab background comparison uses the complete DTO comparison identity[0m
+  [32m  ✔[0m[90m API diff replace no-op uses the complete DTO comparison identity[0m
+  [32m  ✔[0m[90m API diff replace background comparison uses the complete DTO comparison identity[0m
+
+[0m  Conversation editor fence[0m
+  [32m  ✔[0m[90m public finder and EditorService retain the exact typed Conversation object target[0m[33m (72ms)[0m
+  [32m  ✔[0m[90m public finder and EditorService retain the exact typed Conversation id target[0m
+
+
+[92m [0m[32m 22 passing[0m[90m (3s)[0m
+

@@ -1,0 +1,8 @@
+{
+  "command": [
+    "node",
+    "/tmp/vscode-d1387-65d-lint-immutable.mjs"
+  ],
+  "exitCode": 0,
+  "pack": "/tmp/vscode-d1387-65d-pack/manifest.json"
+}

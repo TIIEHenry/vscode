@@ -1,0 +1,128 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1142522:1026/223245.620303:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1142537) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1142537) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1142537) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources - Changes list open[0m
+  [31m  1) API SCM _workbench.open newTab resolves without pre-pinning the focused preview[0m
+  [31m  2) API SCM _workbench.open newTab rejects without pre-pinning the focused preview[0m
+  [31m  3) API SCM _workbench.diff newTab resolves without pre-pinning the focused preview[0m
+  [31m  4) API SCM _workbench.diff newTab rejects without pre-pinning the focused preview[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (6ms)[0m
+[31m  4 failing[0m
+
+[0m  1) Sources - Changes list open
+       API SCM _workbench.open newTab resolves without pre-pinning the focused preview:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "identity": "[undefined]"
+         "trace": [
+      [31m-    "pin"[0m
+           "command"
+         ]
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      identity: undefined,
+      trace: [
+  +     'pin',
+        'command'
+      ]
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:185:16)
+[0m
+[0m  2) Sources - Changes list open
+       API SCM _workbench.open newTab rejects without pre-pinning the focused preview:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "identity": "[undefined]"
+         "trace": [
+      [31m-    "pin"[0m
+           "command"
+         ]
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      identity: undefined,
+      trace: [
+  +     'pin',
+        'command'
+      ]
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:185:16)
+[0m
+[0m  3) Sources - Changes list open
+       API SCM _workbench.diff newTab resolves without pre-pinning the focused preview:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "identity": "[undefined]"
+         "trace": [
+      [31m-    "pin"[0m
+           "command"
+         ]
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      identity: undefined,
+      trace: [
+  +     'pin',
+        'command'
+      ]
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:185:16)
+[0m
+[0m  4) Sources - Changes list open
+       API SCM _workbench.diff newTab rejects without pre-pinning the focused preview:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "identity": "[undefined]"
+         "trace": [
+      [31m-    "pin"[0m
+           "command"
+         ]
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      identity: undefined,
+      trace: [
+  +     'pin',
+        'command'
+      ]
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js:185:16)
+[0m
+
+

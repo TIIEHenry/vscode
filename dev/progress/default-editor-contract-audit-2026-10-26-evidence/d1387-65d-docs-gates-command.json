@@ -1,0 +1,28 @@
+{
+  "phase": "documentation-only-checkpoint-gates",
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "scripts/check-docs-health.py"
+      ],
+      "exitCode": 0,
+      "errors": 0,
+      "linkWarnings": 46,
+      "log": "d1387-65d-docs-health.log"
+    },
+    {
+      "command": [
+        "python3",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "exitCode": 0,
+      "result": "generated status: OK",
+      "log": "d1387-65d-generated-status-check.log"
+    }
+  ],
+  "statusLines": 172,
+  "sourceTreeUnchanged": "932031c34525449d4010265f914f7074abad2c05",
+  "rawLogWhitespacePreserved": true
+}

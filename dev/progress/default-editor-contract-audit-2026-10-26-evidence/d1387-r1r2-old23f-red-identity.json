@@ -1,0 +1,45 @@
+{
+  "phase": "old23f-production-with-new-immutable-tests",
+  "sourceHead": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+  "testRef": "89f3e5a6a1782b928bb0bdc2c90c5fec8f7fdc68",
+  "producerRef": "23f8701c8d2a6bd4b47c2e098c62a5bb89649c84",
+  "modules": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "sourceRef": "23f8701c8d2a6bd4b47c2e098c62a5bb89649c84",
+      "sourceSha256": "f72b3e6043fb90df3641e5e13cb877280e1eb49596940ebc362217bcf4c61208",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.js",
+      "beforeOutputSha256": "fb5b7d7fb0bd690a0b974f4fa1d61938f9be8e29278732509b18d88d1eb2d319",
+      "installedOutputSha256": "ba5eb4763b44d708df9e3fdf0f723368e5789976298ba82ceb081a15bae37d56",
+      "restoredOutputSha256": "fb5b7d7fb0bd690a0b974f4fa1d61938f9be8e29278732509b18d88d1eb2d319"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+      "sourceRef": "89f3e5a6a1782b928bb0bdc2c90c5fec8f7fdc68",
+      "sourceSha256": "418d9f2fff2bc3b90387b19f79dd8b12a53e968f525746d25540493803cd8693",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js",
+      "beforeOutputSha256": "2f225a3db5c824641134fb75972a91ea4facce587bf4c7bc3d906a73e7f44e6e",
+      "installedOutputSha256": "1ec7671e10a7b47fd805e2aa23508f4df58f913876b179be1abb75f90c48b16d",
+      "restoredOutputSha256": "2f225a3db5c824641134fb75972a91ea4facce587bf4c7bc3d906a73e7f44e6e"
+    }
+  ],
+  "command": [
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "180s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+    "--grep",
+    "API SCM .*newTab (rejects|resolves) without pre-pinning|API diff .* (no-op|background comparison) uses the complete DTO comparison identity"
+  ],
+  "exitCode": 124
+}

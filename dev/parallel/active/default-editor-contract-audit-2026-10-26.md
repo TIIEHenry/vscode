@@ -4,13 +4,24 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "唯一merge编译合同修复全量0；Electron325过3既有红与Node10过；J D1387独立补修中，尚未接入；D1385/1386范围结论保留。"
+summary: "J+E两coder冻结；Sources65d虚拟noEmit0/Electron357过，宿主Important待规则16/补修；E unary draft规则16改稿；唯一merge未formal合源/after。"
 ---
 
 # 默认编辑器合同与功能缺口续审
 
-> 当前产品执行队列仅D1387（accepted/open，待唯一merge接正式源码）；D1385默认宿主前提失效、原UI验收停止且退出队列，保留accepted/open与183兼容证据；D1386已closed。此检查点纯文档，源/out不变，无新运行。
+> 当前代码波固定 J Sources + E unary 失败恢复两 coder，正式合源等两模块 queued / 书面范围后由唯一 merge 串行；D1387 accepted/open，E 当前 draft / 规则16改稿。D1385原UI验收停止、accepted/open且退出队列；D1386已closed。本检查点只提交文档/证据，src仍09f6；merge out是明确虚拟叠加，主工位out未写。
 
+
+## 当前冻结分工与本次实际验证
+
+| 工位 | 书面范围 | 当前阶段 |
+| --- | --- | --- |
+| J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。same tuple多宿主Important的澄清稿在D规则16审查，尚无该边界生产补修；未正式合源/非作者after |
+| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | 独立工位以09f6只读事实写方案，当前draft/规则16意见改稿、occupied；准确request/连接代次并保留question答案，不与Sources混写，不计完成 |
+| D / Sources独立审查与after | 非作者codepeer、正式产物冻结后的默认编辑器真实Git after | 新宿主边界规则16审查中；尚未收到freeze notice，不消费当前虚拟pack冒称最终after |
+| merge / baseline_executor | 唯一编译、类型、转译、out与串行集成车道 | 本阶段只取不可变Git内容做虚拟覆盖，src仍09f6/de22绿树。51份原始证据与命令/SHA入库；全量正式compile-client待两模块合源后实际跑，不复用pack身份 |
+
+本次Sources完整验证为357过/0败；wiring23过/1既有红（精确09f6已复现），lint0错误/56警告且4f7→65d无新增。89f类型6红、官方setup生命周期红与4f7 move夹具红全部留证，作者在65d补修后复验；原325/3编译基线与D17不被此结果覆盖。[完整证据与51份原始清单](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)。不升级产品状态，不发freeze，不提前formal合J。
 
 ## 下一独立模块发现（源码实核，未在本Sources波编码）
 
@@ -24,7 +35,7 @@ D1387原两机制已按555c旧生产+不可变J23f两新测试实际0过14红（
 
 完成检查点：27文件合同修复后，顺序fullcompile45→3→0，末次exit0；Electron325过3既有红、精确c968旧测试同三红，Node10过，ESLint0errors/20warnings。Astra源码C0/I0。[源树/产物与完整验证](../../progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md)保留所有失败，不升产品PRD/D17。下述初始红基线为历史起点；D/J后续实现须独立集成验证。
 
-本轮父 agent 仅调度。merge / baseline_executor 独占编译、类型检查、转译与 out 写入，并负责记录行动文档；D / Sources 独立只读核查已有 J 提交，Astra 只读整体核查和设计决策，其余工位不写本轮代码。主分支实际为 `agent-ide`，不以 Microsoft origin/main 替换基线、不 push、不丢 WIP。
+本轮父 agent 仅调度。merge / baseline_executor 独占编译、类型检查、转译与 out 写入，并负责记录行动文档；J与E按上表分别实施各自模块，D / Sources 独立只读核查已有 J 提交，Astra 只读整体核查和设计决策，其余工位不写本轮代码。主分支实际为 `agent-ide`，不以 Microsoft origin/main 替换基线、不 push、不丢 WIP。
 
 c968 最新全量已实际 exit1、45诊断/27文件，见[原始本次日志](../../progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log)。先在 merge 按[当前基线方案](../../plans/current-typescript-contract-baseline.md)修复正式类型合同，恢复绿基线后再开展字母槽实施。D1387已有J实现提交由独立审查者核查，不在本次基线中提前合入或重复实现。
 
@@ -40,7 +51,7 @@ D1382/1383/1384 按各自证据 closed。D1385/1386 仍 open、正式方案 acce
 
 前轮 [UI 与权限看板](ui-visual-review-2026-10-26.md) 的 D1379–D1381 已有范围内验证。本轮重新检查当前实现，不从旧进度枚举推断没有可执行项目。产品范围仅默认编辑器；`src/vs/sessions/` 保留作上游对照。
 
-## 基线与分工
+## 基线与分工（以下为历史检查点）
 
 起始基线实读：人类工位 `agent-ide` 与 merge、C、D、J 均为 `4963799b1e95101cc267615cb01b4ebee6939c70`，当时五处均无未提交改动。人类工位已完成用户要求的安全同步，未 push。后续仅将经过验证的提交安全 ff 到人类工位，遇到其他 WIP 保留并重新核对。
 

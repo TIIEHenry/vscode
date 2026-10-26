@@ -1,0 +1,29 @@
+{
+  "phase": "immutable-virtual-program-noEmit-not-compile-client",
+  "baseHead": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+  "baseSourceTree": "932031c34525449d4010265f914f7074abad2c05",
+  "themeRef": "65d2288036fdad74ab607e231d3db758fa397aa8",
+  "overlayFiles": [
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/common/sourcesReviewHostService.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesDiffRefHelpers.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesGitDiffContent.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesReviewCommands.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/browser/sourcesReviewShowForPaths.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/services/editor/common/editorGroupFinder.ts"
+  ],
+  "started": "2026-10-26T14:54:13.069Z",
+  "finished": "2026-10-26T14:55:24.379Z",
+  "diagnostics": [],
+  "exitCode": 0
+}

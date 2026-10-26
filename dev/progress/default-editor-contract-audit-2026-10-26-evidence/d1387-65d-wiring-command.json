@@ -1,0 +1,16 @@
+{
+  "command": [
+    "timeout",
+    "--foreground",
+    "-k",
+    "5s",
+    "60s",
+    "node",
+    "test/unit/node/index.js",
+    "--run",
+    "/tmp/vscode-d1387-65d-virtual-wiring/out/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.js"
+  ],
+  "exitCode": 1,
+  "pack": "/tmp/vscode-d1387-65d-pack/manifest.json",
+  "virtualRootManifest": "/tmp/vscode-d1387-65d-virtual-wiring/manifest.json"
+}

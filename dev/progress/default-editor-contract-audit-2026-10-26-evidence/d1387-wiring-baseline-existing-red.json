@@ -1,0 +1,20 @@
+{
+  "sourceHead": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+  "sourcePath": "src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts",
+  "sourceSha256": "722cc34b323b383af9821667a1a6bf47ef2671197a488ea106d40850fd224bc8",
+  "beforeOutputSha256": "ddbac72e202645d80551d901e00989d02948bab7b6848e9c1e6ff67761ceaf1e",
+  "installedOutputSha256": "f3b2513fa02dc4bf717e83405a00b5be8b67449e023e5a858d4b90e1e7005074",
+  "command": [
+    "timeout",
+    "--foreground",
+    "-k",
+    "5s",
+    "60s",
+    "node",
+    "test/unit/node/index.js",
+    "--run",
+    "src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts"
+  ],
+  "exitCode": 1,
+  "restoredOutputSha256": "ddbac72e202645d80551d901e00989d02948bab7b6848e9c1e6ff67761ceaf1e"
+}
