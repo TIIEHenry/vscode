@@ -1,0 +1,3 @@
+{"baseline":"dfcb960a147","source":"src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts","output":"out/vs/workbench/contrib/conversation/browser/engineProviderModelSection.js","equal":true,"hash":"4af6286a8d6dd612089251efe5951a9e7afa916a80dba7dc9a4af2c73b856180","mtime":"2026-10-26T03:35:56.940Z"}
+{"baseline":"dfcb960a147","source":"src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css","output":"out/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css","equal":true,"hash":"c867fc9774ebf16ffe3009f845cbd533f212550b02a55b8a5460c4b28d1c6354","mtime":"2026-10-26T03:35:56.943Z"}
+test-only fresh src/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.ts

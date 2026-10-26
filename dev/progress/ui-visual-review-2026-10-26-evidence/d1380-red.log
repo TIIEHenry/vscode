@@ -1,0 +1,135 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3429293:1026/120612.505640:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3429308) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3429308) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3429308) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  conversationSessionView (S1)[0m
+  [31m  1) local missing tool status survives the complete projection and fold without a completion check[0m
+  [31m  2) all five explicit tool outcomes survive local and live snapshot projection and completed round-trip[0m
+  [32m  ✔[0m[90m local tool sidecar requires both tool attribution and the stub boundary[0m
+
+[0m  ConversationStubFrameSource[0m
+  [31m  3) same tool id switches unknown to known to unknown through real diff frames without stale sidecars[0m
+
+[0m  conversationRosterStorage (browser)[0m
+  [31m  4) new storage and actual service restoration preserve unknown and every explicit tool status[0m
+  [31m  5) legacy completed omission migrates all buckets before a partial update stamps explicit encoding[0m
+
+
+[92m [0m[32m 1 passing[0m[90m (13ms)[0m
+[31m  5 failing[0m
+
+[0m  1) conversationSessionView (S1)
+       local missing tool status survives the complete projection and fold without a completion check:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-tool[0m
+      [32m+text[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: do not fabricate a session-core tool status
+
+  'tool' !== 'text'
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionView.test.js:123:12)
+[0m
+[0m  2) conversationSessionView (S1)
+       all five explicit tool outcomes survive local and live snapshot projection and completed round-trip:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+           "id": "completed"
+           "kind": "tool"
+           "text": "completed"
+           "toolName": "read"
+      [32m+    "toolStatus": "completed"[0m
+         }
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+      {
+        id: 'completed',
+        kind: 'tool',
+        text: 'completed',
+        toolName: 'read',
+  -     toolStatus: 'completed'
+      }
+    ]
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionView.test.js:170:14)
+[0m
+[0m  3) ConversationStubFrameSource
+       same tool id switches unknown to known to unknown through real diff frames without stale sidecars:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-tool[0m
+      [32m+call[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  'tool' !== 'call'
+
+      at assertTurn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationStubFrameSource.test.js:22:14)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationStubFrameSource.test.js:24:5)
+[0m
+[0m  4) conversationRosterStorage (browser)
+       new storage and actual service restoration preserve unknown and every explicit tool status:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-[undefined][0m
+      [32m+explicit[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + undefined
+  - 'explicit'
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationRosterStorage.test.js:32:12)
+[0m
+[0m  5) conversationRosterStorage (browser)
+       legacy completed omission migrates all buckets before a partial update stamps explicit encoding:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+           "id": "old-completed"
+           "kind": "tool"
+           "text": "Old completed"
+           "toolName": "read"
+      [32m+    "toolStatus": "completed"[0m
+         }
+         {
+           "id": "text"
+           "kind": "assistant"
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+    [
+      {
+        id: 'old-completed',
+        kind: 'tool',
+        text: 'Old completed',
+        toolName: 'read',
+  -     toolStatus: 'completed'
+      },
+      {
+        id: 'text',
+        kind: 'assistant',
+        text: 'Ordinary text'
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationRosterStorage.test.js:54:14)
+[0m

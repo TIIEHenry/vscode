@@ -1,10 +1,10 @@
 ---
 title: "2026-10-26 UI 与权限审查集成看板"
 type: progress
-status: in_progress
+status: completed
 phase: M7
 updated: 2026-10-26
-summary: "source330b689安全三路合成：当前287+14通过、九TS语义0；实拍发现D1380/D1381两Important open，D/C独立修，J Policy并行。旧全量59/37仅保留历史。"
+summary: "D1379–81按范围闭合：Policy41、投影138、Provider49+Chrome4过，独立after C0/I0；唯一全量原55/36未过、补修后14TS语义0。main已安全同步source7b6，等元数据cascade。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -184,7 +184,7 @@ Astra最终Provider源码并集只读审查Critical0/Important0；完整默认�
 
 checkpoint文档门禁：531份Markdown、docs-health0errors/46既有warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/825-merge-docs-health.log)），generated-status/diff-check通过，status145行。
 
-D1379当前源码合入：方案ed5a136/实施8a7d81d真三路进入merge；冲突只为文档，保留dfcb对D1380/D1381的open和视觉方案accepted，J既有实现与11测试当前未运行。按旧330生产身份→test-only red→production green顺序验证，不把旧输出当新生产。
+D1379当前源码合入：方案ed5a136/实施8a7d81d真三路进入merge；冲突只为文档，保留dfcb对D1380/D1381的open和视觉方案accepted，J交付时既有实现与11测试尚未运行；其后结果见下节。按旧330生产身份→test-only red→production green顺序验证，不把旧输出当新生产。
 
 ## D1379当前运行证据
 
@@ -203,3 +203,23 @@ Astra对三份源码/测试草稿静态复核C0/I0，长状态/来源Minor已补
 ## D1380 本地工具状态投影补修（验证在途）
 
 真实默认编辑器 source `330b689` 的未知工具在完整 Stub→frame→view 路径仍画完成勾。D 方案 `e127b730d69` 经 J 规则16只读 Critical0/Important0 后实施：缺失状态以 text summary + 严格本地 attribution sidecar投影为工具，已知五态原样；新缓存显式保存completed，历史省略只在三桶load边界兼容。未改session-core协议、Provider或Sources。新增六条受控回归覆盖真实frame同ID往返和真实服务恢复，详见[方案](../../plans/conversation-tool-status-projection.md)。D只做目标lint（0 errors / 5 warnings）与文档/diff门禁；尚未运行新测试、未编译、未写out。唯一merge负责旧生产red、新产物green与语义；另一独立reviewer负责真实窗口after，D1380仍open。
+
+## D1379–D1381最终收口
+
+当前source `7b6e87af7981a40991504fa7afe122cd4fe97aa0`：J方案ed5a136/实施8a7d81d；D方案e127b73/实施57b81bf/类型补修bfe492；C方案fec79c4/实施4e21eb8/焦点测试补修f275429，均各自工位真实提交后在merge真三路合入。无source冲突，文档冲突保留三槽意图与历史；不让owner写merge、不reset/stash/覆盖。父已安全ff人类agent-ide及C/D/J到source7b6且clean，旧07ab/WIP阻塞已解除；本提交仅验证元数据待父后续cascade，未替父ff/push。
+
+| 范围 | 真实对照与最终运行 | 证据 |
+| --- | --- | --- |
+| D1379 Policy | 先核验330两旧生产正文，再仅fresh三测试red0过12败（11行为+旧裸拒绝hook，0超时/加载异常）；仅fresh两生产后三完整套件+FilePolicyService41 passing，原错误/owner/reference保留 | [red](../../progress/ui-visual-review-2026-10-26-evidence/d1379-red.log)、[green](../../progress/ui-visual-review-2026-10-26-evidence/d1379-green.log) |
+| D1380 projection/cache/trajectory | 核验330四旧生产正文，三测试red1 passing/5 failing，negativeguard原即通过；新生产七完整套件138 passing，六新增全执行。D类型补修JS正文逐字等同，保留该行为证据，不无谓复跑 | [身份](../../progress/ui-visual-review-2026-10-26-evidence/d1380-test-refresh.log)、[red](../../progress/ui-visual-review-2026-10-26-evidence/d1380-red.log)、[green](../../progress/ui-visual-review-2026-10-26-evidence/d1380-green.log)、[类型补修等价](../../progress/ui-visual-review-2026-10-26-evidence/d1380-typefix-refresh.log) |
+| D1381 Provider | 核验dfcb旧JS正文/CSS字节后新八几何全red，真实碰撞/全文失败；新样式+原Provider语义49 passing/4原生焦点pending。Chrome初0过4败是新测试同步读取原100ms淡入，C恢复旧150ms等待且不改生产/强断言/skip，再仅fresh测试四项全过；22样式场景最终均执行 | [身份](../../progress/ui-visual-review-2026-10-26-evidence/d1381-test-refresh.log)、[red](../../progress/ui-visual-review-2026-10-26-evidence/d1381-red.log)、[Electron](../../progress/ui-visual-review-2026-10-26-evidence/d1381-green.log)、[焦点首败](../../progress/ui-visual-review-2026-10-26-evidence/d1381-focus.log)、[最终Chrome4过](../../progress/ui-visual-review-2026-10-26-evidence/d1381-focus-final.log) |
+
+全源到齐且red进程退出、确认无live compile/watch后，flock `/tmp/vscode-compile.lock` 本轮唯一 `npm run compile-client` 绑定source8b6，原始 **exit1，55诊断/36文件**。旧59中Policy4和上轮已修MainThread1消失，新RosterStorage map回调TS7006一条由D独立bfe492显式类型修复；之后没有第二次全量。最终14目标TS在未修改src/tsconfig完整上下文定向syntactic/semantic **0**，noEmit；原日志除此项外54诊断/35文件是未触子集，不冒充当前重编译余量或全仓通过。[原始日志](../../progress/ui-visual-review-2026-10-26-evidence/policy-visual-compile-client.log)、[计数/文件余量及后修说明](../../progress/ui-visual-review-2026-10-26-evidence/policy-visual-compile-summary.json)、[14TS定向](../../progress/ui-visual-review-2026-10-26-evidence/policy-visual-types.json)。
+
+全量fresh后只锁内刷新一个类型补修JS与一个焦点测试JS，CSS锁内字节同步。最终[15项source/out摘要及时间](../../progress/ui-visual-review-2026-10-26-evidence/policy-visual-fresh-output.json)绑定source7b6与merge/out；[全量时快照](../../progress/ui-visual-review-2026-10-26-evidence/policy-visual-fresh-at-compile.json)保留source8b6身份，类型补修去sourcemap正文等同。14 TS targeted ESLint0errors/7warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/policy-visual-eslint.log)）；1CSS stylelint exit0/37token建议及既有变量提示（[日志](../../progress/ui-visual-review-2026-10-26-evidence/policy-visual-stylelint.log)）。没有重跑833或前阶段287+14，未改其它诊断模块。
+
+独立非作者reviewer最终 **Critical0/Important0**：Provider四主题32组/96行、192次22×22焦点/命中，兄弟/相邻行零碰撞且零写；原row340为48px、宽row734恢复24px。工具四主题×两真实叶宽×五状态路径40组，unknown无勾/明确completed有勾、取消与混合摘要完整、稳定Tool ID及实际Inspector预览保留。覆盖、截图绝对路径、partial淡入采样与本地fixture/非在线Engine/旧三桶自动测试等限制见[durable after摘要](../../progress/ui-visual-review-2026-10-26-evidence/policy-visual-review.md)。自建Electron3439185/Xvfb3439120(:185)及fixtures/lease已清理；仅系统既有Xvfb:98保留。静态审查、自动测试与实拍分开记录。
+
+D1379/D1380/D1381 closed，三局部计划及原视觉方案按范围implemented；Provider窄行自然增高的兼容/密度代价与旧缓存历史未知不可恢复代价均保留。既有SSOT已同步；规则3c只核对相关平台概览/过程折与Engine catalog叙述，将“待运行验证”改为当前证据，不增新文档树/ADR/范围，也不升PRD025/028总体状态。历史归档、原失败和外部350+14证据全部保留。
+
+最终门禁：docs-health535份Markdown、0errors/46既有链接warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/policy-visual-docs-health.log)），generated-status/diff-check通过，status150行。15项source/output共30个SHA256复核一致；无本流水线compile/watch/测试进程残留，独立reviewer自建Electron/Xvfb已停，仅系统既有Xvfb:98保留。最后只读主工位HEAD7b6e87且clean，不代父处理其后状态。入库日志仅规范化行尾空白，原始/tmp日志保留。

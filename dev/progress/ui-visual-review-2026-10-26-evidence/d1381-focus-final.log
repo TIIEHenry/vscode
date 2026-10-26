@@ -1,0 +1,11 @@
+Failed to load resource: the server responded with a status of 404 (Not Found) []
+
+
+  Preferences status styles - /CHROMIUM-CHROME/
+    ✔ UniverseAgentStudio Light: provider actions keep focus, hit targets and layout at narrow widths (3059ms)
+    ✔ UniverseAgentStudio Dark: provider actions keep focus, hit targets and layout at narrow widths (3028ms)
+    ✔ High Contrast Dark: provider actions keep focus, hit targets and layout at narrow widths (3028ms)
+    ✔ High Contrast Light: provider actions keep focus, hit targets and layout at narrow widths (3030ms)
+
+
+  4 passing (12s)

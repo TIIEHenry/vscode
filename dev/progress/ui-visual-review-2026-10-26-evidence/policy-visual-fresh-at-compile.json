@@ -1,0 +1,127 @@
+{
+  "source_head": "8b6f3188342a51e0529e1f9dead23f95d7214dd0",
+  "out_root": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out",
+  "compile_start": "2026-10-26T12:06:21+08:00",
+  "items": [
+    {
+      "source": "src/vs/platform/configuration/common/configurations.ts",
+      "source_sha256": "1a90c51965eaa0f5dd5690e5b2754cb6a4995831bc8f84cb17e16a48e3b3107f",
+      "output": "out/vs/platform/configuration/common/configurations.js",
+      "output_sha256": "3653f11f7b09ff05fe96f9866d412667a3a9fe9e2bc80bdd9e32f3dbabeb5e10",
+      "output_mtime": "2026-10-26T04:06:43.087708+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/platform/configuration/test/common/policyConfiguration.test.ts",
+      "source_sha256": "5e65fcb3ed05e9a819bb0bc732cd2a7121b524a48fbe0f585d87df7aaf81d752",
+      "output": "out/vs/platform/configuration/test/common/policyConfiguration.test.js",
+      "output_sha256": "8818e6aef778e67282bec162bc5c0afabc5d10edfa5aab3fb742899e26febc66",
+      "output_mtime": "2026-10-26T04:06:47.144870+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/platform/policy/common/policy.ts",
+      "source_sha256": "e2fb6e3dfc16ff91a71c42ad22083c3b61885fa5d0ada6baf11c83d5e61275b5",
+      "output": "out/vs/platform/policy/common/policy.js",
+      "output_sha256": "abd9860834d5afd2a9a6b6e9855a0c395d35ef7680c2c26575f3b00e10550e5e",
+      "output_mtime": "2026-10-26T04:06:43.465723+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/platform/policy/test/common/policy.test.ts",
+      "source_sha256": "fb27999c613c122a241413399f49b290585ea9520ea8900d1359dd26a087527e",
+      "output": "out/vs/platform/policy/test/common/policy.test.js",
+      "output_sha256": "4329d36b76f224a08d801454001ce3b04f98bc032a6180c90fc592c4cde550ad",
+      "output_mtime": "2026-10-26T04:06:47.161870+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/platform/policy/test/common/policyIpc.test.ts",
+      "source_sha256": "5988e7a64387eedac223c4cdbef27b30a5c5f68727f7f584d7518c45a04861f5",
+      "output": "out/vs/platform/policy/test/common/policyIpc.test.js",
+      "output_sha256": "e99da8be85ccb2d12beccc0b7eb87dddad7038e230ebc47d13271dd438cd9021",
+      "output_mtime": "2026-10-26T04:06:47.162870+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/platform/universeAgent/common/conversationViewFrame.ts",
+      "source_sha256": "ffd8551c2d08bc7cc592cef9e7edf560dad422662d5039544c076c555479298d",
+      "output": "out/vs/platform/universeAgent/common/conversationViewFrame.js",
+      "output_sha256": "581773e808b4b120cb89a9bfdf37ef033d17a382ad8f10a7dad4b0459dacf6dd",
+      "output_mtime": "2026-10-26T04:06:43.681731+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationRosterStorage.test.ts",
+      "source_sha256": "550d2b135eae5c56431770ceba900558d97049f7ce5c0887dc3d466f9123aea5",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationRosterStorage.test.js",
+      "output_sha256": "5e5e8c085367c7ea0816341394ac937c204839dd692b3317868a1aa2e2ab8f60",
+      "output_mtime": "2026-10-26T04:06:46.113828+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationRosterStorage.ts",
+      "source_sha256": "b30c386f4d5f86b9431982812c8bd91a21efbdbb18bdf4a2f185969c31c729b4",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationRosterStorage.js",
+      "output_sha256": "7d31a37a9bbd48e05abea54e58220e99ccd1dae6a26f3040284236fe7f2f4cec",
+      "output_mtime": "2026-10-26T04:06:46.113828+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationSessionView.ts",
+      "source_sha256": "b66a7512c3f0974e6a4e6a5db7f99d11e3702e1621ed30fe3f72114d6afcefd6",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationSessionView.js",
+      "output_sha256": "9fdc372155d01a834cd61027e04eb4844f618f226ff525a445a526029a658e8f",
+      "output_mtime": "2026-10-26T04:06:46.122829+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationTrajectoryModel.ts",
+      "source_sha256": "01701eae6d754f86f7ea61aab70a27a4a549aa294a9c0c2a81a9b6f41483930e",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationTrajectoryModel.js",
+      "output_sha256": "1a961a13a1ac58a432fe4dee7f58e9ea63aff3d047edac7c9c770db5cd03e853",
+      "output_mtime": "2026-10-26T04:06:46.142830+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts",
+      "source_sha256": "47ed2330b75545bd5a4093509a7a512e149e8df78a0225414fc05f7a9c4574d3",
+      "output": "out/vs/workbench/contrib/conversation/browser/engineProviderModelSection.js",
+      "output_sha256": "07c5d17a17ea04eb3d90101dac4a26308e66da471e1129a693975d0a1bec2459",
+      "output_mtime": "2026-10-26T04:06:46.238833+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "source_sha256": "67884039312b6cb1e65c0876916d255c271da00e7b00109f6820c582a7d7a068",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "output_sha256": "67884039312b6cb1e65c0876916d255c271da00e7b00109f6820c582a7d7a068",
+      "output_mtime": "2026-10-26T04:07:16.040018+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionView.test.ts",
+      "source_sha256": "c9402f75a73c9b1d4d25b18873aa99da0b594157de74b825d38a8ceead4d59e8",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionView.test.js",
+      "output_sha256": "988a46697fe19955326a327df1a07b9388504c8930b88e167014a0037256863b",
+      "output_mtime": "2026-10-26T04:06:47.362878+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationStubFrameSource.test.ts",
+      "source_sha256": "947f3aba4a57ba2fdd61f1435f1014f9c697932482fdd75f26fc514cd2489e51",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationStubFrameSource.test.js",
+      "output_sha256": "e45bdfde35d83dc5b4f9e1e721cabe216a0995abea68b850d0855d2a7fa1961d",
+      "output_mtime": "2026-10-26T04:06:47.363878+00:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.ts",
+      "source_sha256": "975895b2b2704f24421c1889f6624f6ed6949229f3b5068f3e12773844a5ca8e",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js",
+      "output_sha256": "08711745ca515a78f1c6734ad6fa7c5d14ccf7def043939186880a0f64745af7",
+      "output_mtime": "2026-10-26T04:06:47.371879+00:00",
+      "fresh_since_compile_start": true
+    }
+  ]
+}

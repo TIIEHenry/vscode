@@ -1,0 +1,7 @@
+{"baseline":"330b68911b5","source":"src/vs/platform/universeAgent/common/conversationViewFrame.ts","output":"out/vs/platform/universeAgent/common/conversationViewFrame.js","equal":true,"hash":"91d624de151ef360fd073cbd5cd6a20564abfef4d57f42ac0fff0ffd56545b5a","mtime":"2026-10-26T02:56:24.892Z"}
+{"baseline":"330b68911b5","source":"src/vs/workbench/contrib/conversation/browser/conversationSessionView.ts","output":"out/vs/workbench/contrib/conversation/browser/conversationSessionView.js","equal":true,"hash":"d72b904896acb18b5941a7a78645bb60facb22e7c07886fa0dde8fdfc28e0c85","mtime":"2026-10-26T02:56:27.039Z"}
+{"baseline":"330b68911b5","source":"src/vs/workbench/contrib/conversation/browser/conversationRosterStorage.ts","output":"out/vs/workbench/contrib/conversation/browser/conversationRosterStorage.js","equal":true,"hash":"7e5c2a905235511384c835a638891fc9b48979a2cc4e21e660023104918d2f22","mtime":"2026-10-26T02:56:27.038Z"}
+{"baseline":"330b68911b5","source":"src/vs/workbench/contrib/conversation/browser/conversationTrajectoryModel.ts","output":"out/vs/workbench/contrib/conversation/browser/conversationTrajectoryModel.js","equal":true,"hash":"95535afff44e69a0527ad00a351c40e5e4621009737b794ea153e1cb33c4af49","mtime":"2026-10-26T02:56:27.042Z"}
+test-only fresh src/vs/workbench/contrib/conversation/test/browser/conversationSessionView.test.ts
+test-only fresh src/vs/workbench/contrib/conversation/test/browser/conversationStubFrameSource.test.ts
+test-only fresh src/vs/workbench/contrib/conversation/browser/conversationRosterStorage.test.ts

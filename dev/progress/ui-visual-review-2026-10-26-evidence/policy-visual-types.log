@@ -1,0 +1,7 @@
+{
+  "source_head": "7b6e87af7981a40991504fa7afe122cd4fe97aa0",
+  "typescript": "6.0.3",
+  "scope": "Unmodified src/tsconfig project context; only 14 changed targets; noEmit",
+  "files": 14,
+  "diagnostics": []
+}

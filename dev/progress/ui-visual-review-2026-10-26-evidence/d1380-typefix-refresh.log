@@ -1,0 +1,9 @@
+{
+  "sourceHead": "7b74fa1b803f18d0d307e6b2f409194e157b9d47",
+  "source": "src/vs/workbench/contrib/conversation/browser/conversationRosterStorage.ts",
+  "output": "out/vs/workbench/contrib/conversation/browser/conversationRosterStorage.js",
+  "jsBodyEqualBeforeAfter": true,
+  "source_sha256": "cf5d841b300614a788caec1584fe3eafed2e5b89348c2ad272b05064e06f789e",
+  "output_sha256": "4839a9e2919e0a1664f508b335bb3be005d56ba9192bdf88f6d20980b6d9c0d1",
+  "mtime": "2026-10-26T04:12:49.176Z"
+}

@@ -1,10 +1,10 @@
 ---
 title: "Provider 状态行按内容宽度换行"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "D1381：Astra只读C0/I1已修入PRD/UI窄宽例外；仅Provider状态行按内容预算换轨，主状态与来源完整、动作预留；待实施与merge验证。"
+summary: "D1381：旧生产八几何全red；新生产样式/Provider49过，四焦点恢复既有淡入等待后Chrome全过；独立四主题32组/192焦点零碰撞零写，closed。"
 ---
 
 # Provider 状态行按内容宽度换行
@@ -38,6 +38,12 @@ Astra 同轮正式只读审查：Strengths 为局部内容预算、固定动作�
 
 方案提交 `fec79c4b79a`。三份源码/测试的实施草稿再次由 Astra 只读复核 Critical 0 / Important 0；Minor 建议加长状态与来源文案预算验证，已补入同一真实几何用例，避免只有英文长姓名。
 
-实际已运行：两份目标 TS ESLint **0 errors / 2 warnings**，命令因 warning 退出 1；用 ESLint `lintText` 对方案 HEAD 的 Provider 源文作只读基线，仍是同两条既有 `querySelectorAll` warning（原 505/1178 行，当前移到 509/1182）。更新后的样式测试单独 ESLint exit 0。目标 CSS stylelint exit 0，仍报告原文件已有变量与 token 提示。没有 compile / transpile / typecheck / watch / out 写入，也没有浏览器测试或 after 实拍结果。
+C交付时静态记录：两份目标 TS ESLint **0 errors / 2 warnings**，命令因 warning 退出 1；用 ESLint `lintText` 对方案 HEAD 的 Provider 源文作只读基线，仍是同两条既有 `querySelectorAll` warning（原 505/1178 行，当前移到 509/1182）。更新后的样式测试单独 ESLint exit 0。目标 CSS stylelint exit 0，仍报告原文件已有变量与 token 提示。没有 compile / transpile / typecheck / watch / out 写入，也没有浏览器测试或 after 实拍结果。
 
 唯一 merge 的最小 fresh 集为 `engineProviderModelSection.ts`、`preferencesStatusStyle.test.ts` 与 `browser/media/enginePreferencesPane.css`（2 TS + 1 CSS）；按锁内既有开发选项刷新并记 source/out 摘要。最小运行是 `Engine providers and models sections` 语义回归与 `Preferences status styles` 全套，Chrome 必须执行四条 `provider actions keep focus, hit targets and layout at narrow widths`，不得把隐藏 Electron 的 focus pending 算作通过。再由独立 reviewer 在完整默认窗口与完整浅深/HC主题，以真实 pane 的 300/340/720px 内容预算检查与操作 hover/Tab，保存 after 截图及兄弟几何；全部完成前计划仍 accepted、D1381 仍 open。
+
+## merge与独立after最终结果
+
+方案fec79c4/实施4e21eb8三路纳入merge；先核对dfcb旧Provider JS正文与CSS字节，再仅fresh新样式测试，八几何用例0 passing/8 failing，真实兄弟碰撞/全文断言失败。新产物样式+Provider语义49 passing/4原生焦点pending；Chrome四focus最初0过4败，发现拆分时漏等原有100ms opacity淡入。C独立f275429恢复旧150ms等待，保留visibility/focus/outline/hit/不重排强断言与原skip前提，仅fresh该测试后四项Chrome全过。14改动TS定向语义0、ESLint0errors/7warnings，stylelint exit0/37token建议。
+
+独立完整主题默认窗口32组/96行、192次焦点命中、兄弟与相邻行零碰撞、0写尝试，原row340无覆盖，宽row734恢复24px；D1381 closed，本计划implemented。[最终记录](../parallel/active/ui-visual-review-2026-10-26.md#d1379d1381最终收口)分开自动测试/静态/实拍边界；不提升PRD总体状态，不把唯一全量原始55/36未过写成全绿。

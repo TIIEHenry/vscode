@@ -1,0 +1,15 @@
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/browser/conversationRosterStorage.test.ts
+  6:20  warning  Imports violates 'vs/base/{common,browser}/** or vs/base/parts/*/{common,browser}/** or vs/platform/*/{common,browser}/** or vs/editor/{common,browser}/** or vs/editor/contrib/*/{common,browser}/** or vs/workbench/{common,browser}/** or vs/workbench/services/*/{common,browser}/** or vs/workbench/contrib/*/{common,browser}/** or vs/workbench/contrib/terminal/terminalContribChatExports* or vs/workbench/contrib/terminal/terminalContribExports* or vscode-notebook-renderer or @vscode/tree-sitter-wasm or @xterm/xterm or @xterm/addon-* or vscode-textmate or vs/nls.js or vs/amdX.js' restrictions. See https://github.com/microsoft/vscode/wiki/Source-Code-Organization  local/code-import-patterns
+  7:57  warning  Imports violates 'vs/base/{common,browser}/** or vs/base/parts/*/{common,browser}/** or vs/platform/*/{common,browser}/** or vs/editor/{common,browser}/** or vs/editor/contrib/*/{common,browser}/** or vs/workbench/{common,browser}/** or vs/workbench/services/*/{common,browser}/** or vs/workbench/contrib/*/{common,browser}/** or vs/workbench/contrib/terminal/terminalContribChatExports* or vs/workbench/contrib/terminal/terminalContribExports* or vscode-notebook-renderer or @vscode/tree-sitter-wasm or @xterm/xterm or @xterm/addon-* or vscode-textmate or vs/nls.js or vs/amdX.js' restrictions. See https://github.com/microsoft/vscode/wiki/Source-Code-Organization  local/code-import-patterns
+  9:36  warning  Imports violates 'vs/base/{common,browser}/** or vs/base/parts/*/{common,browser}/** or vs/platform/*/{common,browser}/** or vs/editor/{common,browser}/** or vs/editor/contrib/*/{common,browser}/** or vs/workbench/{common,browser}/** or vs/workbench/services/*/{common,browser}/** or vs/workbench/contrib/*/{common,browser}/** or vs/workbench/contrib/terminal/terminalContribChatExports* or vs/workbench/contrib/terminal/terminalContribExports* or vscode-notebook-renderer or @vscode/tree-sitter-wasm or @xterm/xterm or @xterm/addon-* or vscode-textmate or vs/nls.js or vs/amdX.js' restrictions. See https://github.com/microsoft/vscode/wiki/Source-Code-Organization  local/code-import-patterns
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts
+   509:22  warning  querySelectorAll should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly  no-restricted-syntax
+  1182:22  warning  querySelectorAll should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly  no-restricted-syntax
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionView.test.ts
+  607:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  608:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+
+✖ 7 problems (0 errors, 7 warnings)

@@ -1,0 +1,414 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3415091:1026/120502.687371:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3415107) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3415107) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3415107) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Preferences status styles[0m
+  [31m  1) UniverseAgentStudio Light: read-only provider siblings never overlap as the real pane narrows[0m
+  [31m  2) UniverseAgentStudio Light: writable provider siblings never overlap as the real pane narrows[0m
+  [31m  3) UniverseAgentStudio Dark: read-only provider siblings never overlap as the real pane narrows[0m
+  [31m  4) UniverseAgentStudio Dark: writable provider siblings never overlap as the real pane narrows[0m
+  [31m  5) High Contrast Dark: read-only provider siblings never overlap as the real pane narrows[0m
+  [31m  6) High Contrast Dark: writable provider siblings never overlap as the real pane narrows[0m
+  [31m  7) High Contrast Light: read-only provider siblings never overlap as the real pane narrows[0m
+  [31m  8) High Contrast Light: writable provider siblings never overlap as the real pane narrows[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (89ms)[0m
+[31m  8 failing[0m
+
+[0m  1) Preferences status styles
+       UniverseAgentStudio Light: read-only provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "actionSize": true
+         "actions": 0
+      [31m-  "collisions": [[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status"[0m
+      [31m-  ][0m
+      [31m-  "complete": false[0m
+      [32m+  "collisions": [][0m
+      [32m+  "complete": true[0m
+         "configured": "Configured"
+      [31m-  "contained": false[0m
+      [32m+  "contained": true[0m
+         "enabled": "Enabled"
+         "nameReadable": true
+         "paneWidth": 300
+      [31m-  "rowFits": false[0m
+      [32m+  "rowFits": true[0m
+         "rowInsidePane": true
+         "source": "Provider env"
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: UniverseAgentStudio Light pane 300px, actual row 260px, anthropic-workspace
+  + actual - expected
+
+    {
+      actionSize: true,
+      actions: 0,
+  +   collisions: [
+  +     'engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status'
+  +   ],
+  +   complete: false,
+  -   collisions: [],
+  -   complete: true,
+      configured: 'Configured',
+  +   contained: false,
+  -   contained: true,
+      enabled: 'Enabled',
+      nameReadable: true,
+      paneWidth: 300,
+  +   rowFits: false,
+  -   rowFits: true,
+      rowInsidePane: true,
+      source: 'Provider env'
+    }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:216:20)
+[0m
+[0m  2) Preferences status styles
+       UniverseAgentStudio Light: writable provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "actionSize": true
+         "actions": 2
+      [31m-  "collisions": [[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status"[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / monaco-button codicon codicon-edit"[0m
+      [31m-    "engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-edit"[0m
+      [31m-  ][0m
+      [31m-  "complete": false[0m
+      [32m+  "collisions": [][0m
+      [32m+  "complete": true[0m
+         "configured": "Configured"
+         "contained": true
+         "enabled": "Enabled"
+         "nameReadable": true
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: UniverseAgentStudio Light pane 300px, actual row 260px, anthropic-workspace
+  + actual - expected
+
+    {
+      actionSize: true,
+      actions: 2,
+  +   collisions: [
+  +     'engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status',
+  +     'engine-provider-pill engine-provider-pill--success / monaco-button codicon codicon-edit',
+  +     'engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-edit'
+  +   ],
+  +   complete: false,
+  -   collisions: [],
+  -   complete: true,
+      configured: 'Configured',
+      contained: true,
+      enabled: 'Enabled',
+      nameReadable: true,
+      paneWidth: 300,
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:216:20)
+[0m
+[0m  3) Preferences status styles
+       UniverseAgentStudio Dark: read-only provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "actionSize": true
+         "actions": 0
+      [31m-  "collisions": [[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status"[0m
+      [31m-  ][0m
+      [31m-  "complete": false[0m
+      [32m+  "collisions": [][0m
+      [32m+  "complete": true[0m
+         "configured": "Configured"
+      [31m-  "contained": false[0m
+      [32m+  "contained": true[0m
+         "enabled": "Enabled"
+         "nameReadable": true
+         "paneWidth": 300
+      [31m-  "rowFits": false[0m
+      [32m+  "rowFits": true[0m
+         "rowInsidePane": true
+         "source": "Provider env"
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: UniverseAgentStudio Dark pane 300px, actual row 260px, anthropic-workspace
+  + actual - expected
+
+    {
+      actionSize: true,
+      actions: 0,
+  +   collisions: [
+  +     'engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status'
+  +   ],
+  +   complete: false,
+  -   collisions: [],
+  -   complete: true,
+      configured: 'Configured',
+  +   contained: false,
+  -   contained: true,
+      enabled: 'Enabled',
+      nameReadable: true,
+      paneWidth: 300,
+  +   rowFits: false,
+  -   rowFits: true,
+      rowInsidePane: true,
+      source: 'Provider env'
+    }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:216:20)
+[0m
+[0m  4) Preferences status styles
+       UniverseAgentStudio Dark: writable provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "actionSize": true
+         "actions": 2
+      [31m-  "collisions": [[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status"[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / monaco-button codicon codicon-edit"[0m
+      [31m-    "engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-edit"[0m
+      [31m-  ][0m
+      [31m-  "complete": false[0m
+      [32m+  "collisions": [][0m
+      [32m+  "complete": true[0m
+         "configured": "Configured"
+         "contained": true
+         "enabled": "Enabled"
+         "nameReadable": true
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: UniverseAgentStudio Dark pane 300px, actual row 260px, anthropic-workspace
+  + actual - expected
+
+    {
+      actionSize: true,
+      actions: 2,
+  +   collisions: [
+  +     'engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status',
+  +     'engine-provider-pill engine-provider-pill--success / monaco-button codicon codicon-edit',
+  +     'engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-edit'
+  +   ],
+  +   complete: false,
+  -   collisions: [],
+  -   complete: true,
+      configured: 'Configured',
+      contained: true,
+      enabled: 'Enabled',
+      nameReadable: true,
+      paneWidth: 300,
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:216:20)
+[0m
+[0m  5) Preferences status styles
+       High Contrast Dark: read-only provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "actionSize": true
+         "actions": 0
+      [31m-  "collisions": [[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status"[0m
+      [31m-  ][0m
+      [31m-  "complete": false[0m
+      [32m+  "collisions": [][0m
+      [32m+  "complete": true[0m
+         "configured": "Configured"
+      [31m-  "contained": false[0m
+      [32m+  "contained": true[0m
+         "enabled": "Enabled"
+         "nameReadable": true
+         "paneWidth": 300
+      [31m-  "rowFits": false[0m
+      [32m+  "rowFits": true[0m
+         "rowInsidePane": true
+         "source": "Provider env"
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: High Contrast Dark pane 300px, actual row 260px, anthropic-workspace
+  + actual - expected
+
+    {
+      actionSize: true,
+      actions: 0,
+  +   collisions: [
+  +     'engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status'
+  +   ],
+  +   complete: false,
+  -   collisions: [],
+  -   complete: true,
+      configured: 'Configured',
+  +   contained: false,
+  -   contained: true,
+      enabled: 'Enabled',
+      nameReadable: true,
+      paneWidth: 300,
+  +   rowFits: false,
+  -   rowFits: true,
+      rowInsidePane: true,
+      source: 'Provider env'
+    }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:216:20)
+[0m
+[0m  6) Preferences status styles
+       High Contrast Dark: writable provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "actionSize": true
+         "actions": 2
+      [31m-  "collisions": [[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status"[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / monaco-button codicon codicon-edit"[0m
+      [31m-    "engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-edit"[0m
+      [31m-    "engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-clear-all is-danger"[0m
+      [31m-  ][0m
+      [31m-  "complete": false[0m
+      [32m+  "collisions": [][0m
+      [32m+  "complete": true[0m
+         "configured": "Configured"
+         "contained": true
+         "enabled": "Enabled"
+         "nameReadable": true
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: High Contrast Dark pane 300px, actual row 260px, anthropic-workspace
+  + actual - expected
+
+    {
+      actionSize: true,
+      actions: 2,
+  +   collisions: [
+  +     'engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status',
+  +     'engine-provider-pill engine-provider-pill--success / monaco-button codicon codicon-edit',
+  +     'engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-edit',
+  +     'engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-clear-all is-danger'
+  +   ],
+  +   complete: false,
+  -   collisions: [],
+  -   complete: true,
+      configured: 'Configured',
+      contained: true,
+      enabled: 'Enabled',
+      nameReadable: true,
+      paneWidth: 300,
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:216:20)
+[0m
+[0m  7) Preferences status styles
+       High Contrast Light: read-only provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "actionSize": true
+         "actions": 0
+      [31m-  "collisions": [[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status"[0m
+      [31m-  ][0m
+      [31m-  "complete": false[0m
+      [32m+  "collisions": [][0m
+      [32m+  "complete": true[0m
+         "configured": "Configured"
+      [31m-  "contained": false[0m
+      [32m+  "contained": true[0m
+         "enabled": "Enabled"
+         "nameReadable": true
+         "paneWidth": 300
+      [31m-  "rowFits": false[0m
+      [32m+  "rowFits": true[0m
+         "rowInsidePane": true
+         "source": "Provider env"
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: High Contrast Light pane 300px, actual row 260px, anthropic-workspace
+  + actual - expected
+
+    {
+      actionSize: true,
+      actions: 0,
+  +   collisions: [
+  +     'engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status'
+  +   ],
+  +   complete: false,
+  -   collisions: [],
+  -   complete: true,
+      configured: 'Configured',
+  +   contained: false,
+  -   contained: true,
+      enabled: 'Enabled',
+      nameReadable: true,
+      paneWidth: 300,
+  +   rowFits: false,
+  -   rowFits: true,
+      rowInsidePane: true,
+      source: 'Provider env'
+    }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:216:20)
+[0m
+[0m  8) Preferences status styles
+       High Contrast Light: writable provider siblings never overlap as the real pane narrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "actionSize": true
+         "actions": 2
+      [31m-  "collisions": [[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status"[0m
+      [31m-    "engine-provider-pill engine-provider-pill--success / monaco-button codicon codicon-edit"[0m
+      [31m-    "engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-edit"[0m
+      [31m-    "engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-clear-all is-danger"[0m
+      [31m-  ][0m
+      [31m-  "complete": false[0m
+      [32m+  "collisions": [][0m
+      [32m+  "complete": true[0m
+         "configured": "Configured"
+         "contained": true
+         "enabled": "Enabled"
+         "nameReadable": true
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: High Contrast Light pane 300px, actual row 260px, anthropic-workspace
+  + actual - expected
+
+    {
+      actionSize: true,
+      actions: 2,
+  +   collisions: [
+  +     'engine-provider-pill engine-provider-pill--success / engine-provider-enabled-status',
+  +     'engine-provider-pill engine-provider-pill--success / monaco-button codicon codicon-edit',
+  +     'engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-edit',
+  +     'engine-provider-pill engine-provider-pill--muted / monaco-button codicon codicon-clear-all is-danger'
+  +   ],
+  +   complete: false,
+  -   collisions: [],
+  -   complete: true,
+      configured: 'Configured',
+      contained: true,
+      enabled: 'Enabled',
+      nameReadable: true,
+      paneWidth: 300,
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/preferencesStatusStyle.test.js:216:20)
+[0m

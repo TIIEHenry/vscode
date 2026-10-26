@@ -1,0 +1,73 @@
+Stylelint: checking 1 CSS file matched by 1 requested path.
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(55,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(55,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(92,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(98,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(142,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(142,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(294,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(294,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(431,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(437,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(578,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(578,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(656,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(711,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(821,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(821,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(846,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(981,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(991,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(997,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1007,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1055,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1055,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1086,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1152,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1255,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1326,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1326,1): Unknown variable: --ua-ease
+
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css (37 design-token suggestions)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(141,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(171,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(172,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(180,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(181,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(185,1): [spacing] 1px 7px is off the spacing scale -> nearest: 2px 8px (var(--vscode-spacing-size20) var(--vscode-spacing-size80))
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(186,1): [radius] 9999px -> var(--vscode-cornerRadius-circle)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(197,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(205,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(215,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(272,1): [font-size] 18px -> var(--vscode-fontSize-heading2)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(273,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(731,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(810,1): [spacing] 14px is off the spacing scale -> nearest: 16px (var(--vscode-spacing-size160))
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(882,1): [radius] 8px -> var(--vscode-cornerRadius-large)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(917,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(926,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(969,1): [radius] 9999px -> var(--vscode-cornerRadius-circle)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(970,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(971,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(990,1): [radius] 9999px -> var(--vscode-cornerRadius-circle)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1006,1): [radius] 9999px -> var(--vscode-cornerRadius-circle)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1018,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1043,1): [spacing] 10px 0 14px is off the spacing scale -> nearest: 10px 0 16px (var(--vscode-spacing-size100) var(--vscode-spacing-sizeNone) var(--vscode-spacing-size160))
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1044,1): [spacing] 0 14px 0 36px is off the spacing scale -> nearest: 0 16px 0 36px (var(--vscode-spacing-sizeNone) var(--vscode-spacing-size160) var(--vscode-spacing-sizeNone) var(--vscode-spacing-size360))
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1045,1): [radius] 8px -> var(--vscode-cornerRadius-large)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1047,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1099,1): [radius] 8px -> var(--vscode-cornerRadius-large)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1114,1): [spacing] 14px is off the spacing scale -> nearest: 16px (var(--vscode-spacing-size160))
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1181,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1223,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1250,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1270,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1312,1): [stroke] border: 1px solid transparent -> use var(--vscode-strokeThickness) for the 1px width
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1324,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1412,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1421,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+All valid variable names are in `build/lib/stylelint/vscode-known-variables.json`
+To update that file, run `./scripts/test-documentation.sh|bat.`
+
+Design-token suggestions: 37 in 1 file (codicon 0, font-size 8, weight 14, radius 9, spacing 5, stroke 1, deprecated 0)
+Stylelint: checked 1 CSS file in 21ms.

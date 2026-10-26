@@ -1,0 +1,70 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3439936:1026/120818.696195:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3439955) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3439955) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3439955) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  Preferences status styles[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Light: success and warning text stays readable and semantic indicators survive[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Light: read-only provider siblings never overlap as the real pane narrows[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Light: writable provider siblings never overlap as the real pane narrows[0m
+  [36m  - UniverseAgentStudio Light: provider actions keep focus, hit targets and layout at narrow widths[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Light: selected utility rows follow focus and remain distinct from hover[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Dark: success and warning text stays readable and semantic indicators survive[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Dark: read-only provider siblings never overlap as the real pane narrows[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Dark: writable provider siblings never overlap as the real pane narrows[0m
+  [36m  - UniverseAgentStudio Dark: provider actions keep focus, hit targets and layout at narrow widths[0m
+  [32m  ✔[0m[90m UniverseAgentStudio Dark: selected utility rows follow focus and remain distinct from hover[0m
+  [32m  ✔[0m[90m High Contrast Dark: success and warning text stays readable and semantic indicators survive[0m
+  [32m  ✔[0m[90m High Contrast Dark: read-only provider siblings never overlap as the real pane narrows[0m
+  [32m  ✔[0m[90m High Contrast Dark: writable provider siblings never overlap as the real pane narrows[0m
+  [36m  - High Contrast Dark: provider actions keep focus, hit targets and layout at narrow widths[0m
+  [32m  ✔[0m[90m High Contrast Dark: selected utility rows follow focus and remain distinct from hover[0m
+  [32m  ✔[0m[90m High Contrast Dark: Back, input and action boundaries match the real workbench theme root[0m
+  [32m  ✔[0m[90m High Contrast Light: success and warning text stays readable and semantic indicators survive[0m
+  [32m  ✔[0m[90m High Contrast Light: read-only provider siblings never overlap as the real pane narrows[0m
+  [32m  ✔[0m[90m High Contrast Light: writable provider siblings never overlap as the real pane narrows[0m
+  [36m  - High Contrast Light: provider actions keep focus, hit targets and layout at narrow widths[0m
+  [32m  ✔[0m[90m High Contrast Light: selected utility rows follow focus and remain distinct from hover[0m
+  [32m  ✔[0m[90m High Contrast Light: Back, input and action boundaries match the real workbench theme root[0m
+
+[0m  Engine providers and models sections[0m
+  [32m  ✔[0m[90m successful load then capability UNKNOWN keeps leftover rows and paints capability loading[0m
+  [32m  ✔[0m[90m first-pull capability UNKNOWN is empty with capability loading and does not list[0m
+  [32m  ✔[0m[90m listModels first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m listModels success then throw keeps leftover rows and paints failed[0m
+  [32m  ✔[0m[90m connected phase with pairingPending keeps leftover models and paints not-connected[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold keeps leftover models and skips listModels[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold paints provider group disconnected, not capability/unsupported-as-live[0m
+  [32m  ✔[0m[90m leftover-looks-live UNKNOWN provider capability still paints disconnected, not capability loading[0m
+  [32m  ✔[0m[90m true connected without pairing keeps provider capability/unsupported fold[0m
+  [32m  ✔[0m[90m true connected UNKNOWN provider capability still paints capability loading[0m
+  [32m  ✔[0m[90m true disconnect still paints provider group disconnected[0m
+  [32m  ✔[0m[90m listProviderStatus paints read-only rows and never shows api_key[0m
+  [32m  ✔[0m[90m provider enabled status is plain text and does not call a missing provider API[0m
+  [32m  ✔[0m[90m import control appears only when desktop provider write hooks exist[0m
+  [32m  ✔[0m[90m add provider opens an input dialog and does not paint credential fields[0m
+  [32m  ✔[0m[90m provider action feedback clears when capability becomes UNKNOWN[0m
+  [32m  ✔[0m[90m built-in presets render without a cloud method and the filter hides rows[0m
+  [32m  ✔[0m[90m a filter with no preset hits says so only after the cloud catalog settles[0m
+  [32m  ✔[0m[90m an unavailable cloud catalog keeps its status beside a filter miss[0m
+  [32m  ✔[0m[90m desktop cloud catalog renders a cloud row and refresh asks for a fresh copy[0m
+  [32m  ✔[0m[90m adding a built-in preset opens the credential dialog with id, protocol, and base URL[0m
+  [32m  ✔[0m[90m a cloud catalog failure keeps the built-in list and shows the error[0m
+  [32m  ✔[0m[90m model add and row actions appear only when registry write hooks exist[0m
+  [32m  ✔[0m[90m delete model confirms in a popover and does not open a native dialog[0m
+  [32m  ✔[0m[90m edit model keeps a blank description and sends typed cost and speed[0m
+  [32m  ✔[0m[90m add model sends empty description, cost, and speed when those fields are blank[0m
+  [32m  ✔[0m[90m listProviderStatus first-pull throw is failed with no leftover rows[0m
+  [32m  ✔[0m[90m listProviderStatus success then throw keeps leftover rows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refreshProviders catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when refreshModels catch-path render throws and onUnexpectedError warn-then-rethrows[0m
+
+
+[92m [0m[32m 49 passing[0m[90m (274ms)[0m
+[36m [0m[36m 4 pending[0m

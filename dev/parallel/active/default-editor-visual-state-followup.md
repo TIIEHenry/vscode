@@ -23,3 +23,5 @@ V2b 续审定位：`sourcesFilesExplorer.ts` 的引擎目录入口仍现行可�
 ## 验证与续审
 
 规则 16 独立只读审查已完成，两项 Important 已改入方案并实施。父 agent 持锁刷新七份基线生产，再仅刷新十四份最终改动产物；原始 red / 排障日志留在本地 `.build/default-editor-visual-state-followup/`。最终日志、摘要与覆盖限制已收敛到 [验证证据](../../progress/default-editor-visual-state-followup-evidence/verification.md)。沿用已有全仓编译红基线的事实，不把最小刷新或定向测试写成全仓通过。
+
+后续真实窗口发现的D1380/D1381已由独立局部方案/工位提交修复，并经merge受控red/green、14TS语义0与独立四主题after闭合；本方案恢复implemented。Provider原24px单行要求按先获PRD/UI接受的窄宽自然增高例外取代。范围/原始失败/after限制见[统一最终记录](ui-visual-review-2026-10-26.md#d1379d1381最终收口)，不把原350+14夹具证据冒充全部实拍或全仓通过。

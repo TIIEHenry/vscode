@@ -1,10 +1,10 @@
 ---
 title: "本地工具状态投影与缓存兼容"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "D1380：完整默认窗口发现缺失工具状态被Stub投影补为completed；保留正式五态协议，用本地sidecar承载缺失状态工具，并迁移旧completed省略缓存。"
+summary: "D1380：旧生产red1过5败；新投影/三桶兼容七套138过，回调类型正式补修后14TS语义0；独立四主题40组真实状态/轨迹after通过，closed。"
 ---
 
 # 本地工具状态投影与缓存兼容
@@ -34,5 +34,5 @@ summary: "D1380：完整默认窗口发现缺失工具状态被Stub投影补为c
 
 - [x] J于2026-10-26只读技术审查：Critical 0 / Important 0。两项Minor已纳入：同ID状态往返与伪sidecar负向；旧三桶迁移后局部更新的编码标记保护。可独立提交方案并实施。
 - [x] merge技术peer对最终七份TS只读复核Critical 0 / Important 0；直接轨迹消费者使用共用guard。已知tool轨迹的callId仍沿用原attribution/item-id回退，本地未知用sidecar callId，往返测试显式记录此既有边界；本次不改已知tool协议映射。
-- [x] 本地投影/codec实现与六条受控回归已落；D目标七份TS ESLint 0 errors / 5 warnings，diff-check通过。未编译、未运行新测试；合入后由唯一merge流水线先red再fresh green。
-- [ ] merge新产物行为/类型与独立窗口复验后关闭。
+- [x] 本地投影/codec实现与六条受控回归已落；D目标七份TS ESLint 0 errors / 5 warnings，diff-check通过。此为D交付时静态记录，当时未编译/运行；其后merge真实结果如下。
+- [x] merge先核验旧330四生产正文，再仅fresh三测试red1 passing/5 failing；唯一全量后七完整套件138 passing，六新增全执行。新RosterStorage回调TS7006由D独立bfe492正式类型补修，JS正文无行为变化，14改动TS定向语义0。独立四主题/两叶宽40组未知/完成/返回/取消/混合及实际轨迹Inspector通过，D1380 closed；[最终证据](../parallel/active/ui-visual-review-2026-10-26.md#d1379d1381最终收口)。原55/36全量失败与后修定向0分开保留，不宣称全仓通过。
