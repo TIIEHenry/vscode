@@ -2203,12 +2203,27 @@ suite('ConversationLens', () => {
 		assert.strictEqual(mounted.lens.sessionViewLease?.sessionId, sessionA);
 
 		stubService.switchSession(sessionB);
+		const beforeEngineEvent = mounted.lens.sessionViewLease;
+		assert.ok(beforeEngineEvent);
+		stubService.setEngineConnected(true);
+		const afterEngineEvent = mounted.lens.sessionViewLease;
+		assert.ok(afterEngineEvent);
+		assert.notStrictEqual(afterEngineEvent, beforeEngineEvent, 'the roster connection event must acquire a new lease');
+		assert.strictEqual(afterEngineEvent.sessionId, sessionA);
+		await revealVisualizeTurn(mounted.lens, mounted.layoutReadingColumn, alphaTurn.id);
+		assert.strictEqual(stubService.getActiveSessionId(), sessionB);
+		const timeline = getLensSlots(mounted.part).timeline;
+		assert.ok(timeline.textContent?.includes('Alpha stays on the bound leaf'));
+		assert.ok(!timeline.textContent?.includes('Beta must not replace the bound leaf'));
+
 		connectionEmitter.fire(connection.getConnectionSnapshot());
+		const afterUaEvent = mounted.lens.sessionViewLease;
+		assert.ok(afterUaEvent);
+		assert.notStrictEqual(afterUaEvent, afterEngineEvent, 'the UA connection event must independently acquire a new lease');
 		await revealVisualizeTurn(mounted.lens, mounted.layoutReadingColumn, alphaTurn.id);
 
 		assert.strictEqual(stubService.getActiveSessionId(), sessionB);
-		assert.strictEqual(mounted.lens.sessionViewLease?.sessionId, sessionA);
-		const timeline = getLensSlots(mounted.part).timeline;
+		assert.strictEqual(afterUaEvent.sessionId, sessionA);
 		assert.ok(timeline.textContent?.includes('Alpha stays on the bound leaf'));
 		assert.ok(!timeline.textContent?.includes('Beta must not replace the bound leaf'));
 	});
@@ -2260,24 +2275,37 @@ suite('ConversationLens', () => {
 	test('hidden leaf release ignores connection churn until bindSessionView restores', () => {
 		const stubService = store.add(new ConversationStubService());
 		const sessionA = stubService.getActiveSessionId();
+		const sessionB = stubService.createSession();
+		stubService.switchSession(sessionA);
 		const connectionEmitter = store.add(new Emitter<ReturnType<IUniverseAgentConnection['getConnectionSnapshot']>>());
 		const connection = createConversationConnectionTestStub({
 			onDidChangeConnection: connectionEmitter.event,
 		});
 		const { lens } = mountLens({ stubService, sessionKey: sessionA, connection });
-		assert.ok(lens.sessionViewLease);
+		const readSessionViewLease = (): ConversationLens['sessionViewLease'] => lens.sessionViewLease;
+		const beforeRelease = readSessionViewLease();
+		assert.ok(beforeRelease);
+		stubService.switchSession(sessionB);
 
 		lens.releaseSessionViewLeaseForHiddenLeaf();
 		assert.strictEqual(lens.sessionViewLease, undefined);
 
 		stubService.setEngineConnected(true);
+		assert.strictEqual(lens.sessionViewLease, undefined, 'the roster event cannot re-acquire a hidden leaf lease');
 		connectionEmitter.fire(connection.getConnectionSnapshot());
-		assert.strictEqual(lens.sessionViewLease, undefined);
+		assert.strictEqual(lens.sessionViewLease, undefined, 'the UA event cannot re-acquire a hidden leaf lease');
 
 		lens.bindSessionView(sessionA);
-		const readSessionViewLease = (): ConversationLens['sessionViewLease'] => lens.sessionViewLease;
-		assert.ok(readSessionViewLease());
-		assert.strictEqual(readSessionViewLease()?.sessionId, sessionA);
+		const restored = readSessionViewLease();
+		assert.ok(restored);
+		assert.notStrictEqual(restored, beforeRelease);
+		assert.strictEqual(restored.sessionId, sessionA);
+		assert.strictEqual(stubService.getActiveSessionId(), sessionB);
+		connectionEmitter.fire(connection.getConnectionSnapshot());
+		const rebound = readSessionViewLease();
+		assert.ok(rebound);
+		assert.notStrictEqual(rebound, restored, 'public bind must restore subsequent connection-event binding');
+		assert.strictEqual(rebound.sessionId, sessionA);
 	});
 
 	test('pinned lens does not write the shared lens id', () => {

@@ -280,3 +280,19 @@ postBound与三种响应函数及断连guard只更换参数的静态宿主类型
 本次仅类型补修与行动记录，方案仍accepted，不freeze/不关wave。待原Astra对新不可变候选复读、唯一baseline重新完整native与green/相关套，之后按新产物身份做非作者after；E仍只做无checker/emit parse、lint、diff/docs静态核对。
 
 本轮静态证据：3个改动TS parse 0诊断（无checker/emit），ESLint 0 errors / 0 warnings；AST源文逐块核对Composer/Binding全部生产function body与93同字节，ReadingColumn/Availability整文件不变。测试整文件精确白名单比对仅获准type-import、宿主注解和六cast移除；旧4919的160个test声明逐字全保，Projection reasoning整文件不变。diff check、生成状态核对通过；docs-health 0 errors / 73 warnings，status200行。原始静态JSON `/tmp/vscode-response-route-typed-host-E-{static,eslint,docs-health}.json`。E未compile/typecheck/transpile/watch/out写入或运行任何依赖out的测试，不以静态证据宣称六诊断已被实际checker验证。
+
+
+### 9.6 唯一lane完整相关套发现的四处测试/夹具补修
+
+本次从clean `c3f9fd04f9eb46c74170aa06e65054b80ac974b9` 继续，仅改两份测试及行动记录，不改生产或扩展需求。唯一lane相关套原日志 `/tmp/vscode-e-c3-related-full.log` 实读为484过/4败；父转达后续精确old4919最小selector实跑，原日志 `/tmp/vscode-e-c3-old4919-four-failure-classification.log` 实读1过/3败：source-text pin、undefined draft、fake classList.toggle均旧版复现，旧roster-call=1测试则通过。前三项不归因新写门；第四项需按新入站门合同拆清两种时序，不能把原call=1直接改空而丢失晚断连分支。原失败记录保持，不以本次静态修改宣称全绿。
+
+按原Astra与父明确边界补修：
+
+- DisposeGate `pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live` 仅去前半源码字符串实现pin，不换成新helper字符串pin。后半真实bindSessionView KEEP、frame不重取、不重画、phase/sync closed-chrome的原断言逐字保留。`conversationLens.test.ts` 既有 `connection change rebinds the bound leaf and not the roster active session` 在bound A/active B分别触发public roster连接事件和UA事件，每步核实际lease换新对象、session仍A、内容不混B；既有 `hidden leaf release ignores connection churn until bindSessionView restores` 在每类事件后分别核lease仍undefined，public bind恢复后再次用真实事件核可重新绑定。未改private方法/字段，不作source includes替身。
+- `sessionBarHandlerHost` 补真实compose policy及与live draft不同的snapshot哨兵，保留 `leftover draft` 的原期待，确保读取compose正文而不是缺失上下文或误选snapshot；原live测试正文/断言不改。
+- client-tool分为独立early-disconnected与connected-at-entry→roster方法内同步disconnect/false两个测试。通过既有public test factory初始化engine-cache model，真实StubService子类保留完整roster类型并计数，实际lease带pending；前者明确0 roster，后者先断言live入站并保留原准确一次sessionId/callId/content payload断言。两者都固定engine_disconnected、model及pending逐字不变、post0/focus0。该fixture不是新增真实引擎接入或EditorPane after证据。
+- `showPostFailure failed uses retry copy not disconnected` 用真实div+span替掉不完整fake gateRow/classList；原failed、disconnected、no-session、empty-title全部文案及状态断言保留。
+
+没有新增any/unknown/Partial或宽cast；本次未碰4生产门、旧10回归、旧160声明、reasoning整文件或39M01。知识规格无需改动：这轮只修测试上下文和加强既有行为断言，原accepted运行合同保持。待固定候选的原Astra独立复审与唯一baseline后续编译/运行，方案仍accepted、不freeze、不关闭wave。
+
+本轮静态检查：2个改动TS parse 0语法诊断（无checker/emit），ESLint 0 errors / 1条既有duplicate-import warning（Lens原有SessionView重复import，本轮未改import）。KEEP后半原文SHA-256 `749fb415d177f57c846733a5a1a52b8e39721b8f1d04e267aea9d4e0c4d9d202`、失败文案全部assert及live SessionBar测试正文均与c3逐字相同；原roster新10/旧160与Projection reasoning整文件不变，生产diff为空，新增行无any/unknown/Partial。diff check、生成状态核对通过，docs-health 0 errors / 73 warnings，status200行。静态JSON `/tmp/vscode-e-four-fixture-corrections-{static,eslint,docs-health}.json`；E没有编译/typecheck/transpile/watch/out写入或运行依赖out业务，不据此宣称四失败已转绿。

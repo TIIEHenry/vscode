@@ -58,15 +58,17 @@ import {
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensSessionBarTitleEmpty } from '../../browser/conversationLensSessionBarStrings.js';
 import { ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../../common/uaPreferencesPanes.js';
-import { applyActiveSession, bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, respondClientTool, retryError, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import { applyActiveSession, bindSessionView, cancelToolCall, copyTurn, deleteTurn, resolveConfirmation, resolveQuestion, respondClientTool, retryError, type IConversationLensResponseHost, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
 import { isConversationEngineLive, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { ConversationStubService } from '../../browser/conversationStubService.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 
 declare function __readFileInTests(path: string): Promise<string>;
 
 suite('conversation lens dispose gate', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const suiteStore = ensureNoDisposablesAreLeakedInTestSuite();
 
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
 		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
@@ -864,24 +866,7 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(host.staleBanner.textContent, '');
 	});
 
-	test('pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live', async () => {
-		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLens.ts`);
-		const engineStart = source.indexOf('this.stubService.onDidChangeEngineConnection(() => {');
-		const uaStart = source.indexOf('this.uaConnection.onDidChangeConnection(() => {');
-		assert.ok(engineStart >= 0 && uaStart > engineStart);
-		const engineBlock = source.slice(engineStart, source.indexOf('}));', engineStart));
-		const uaBlock = source.slice(uaStart, source.indexOf('}));', uaStart));
-		assert.ok(engineBlock.includes('this.bindSessionView(this.getBoundSessionId());'));
-		assert.ok(engineBlock.includes('this.updateConversationPhase();'));
-		assert.ok(engineBlock.includes('this.updateSyncChrome();'));
-		assert.ok(engineBlock.indexOf('this.bindSessionView(this.getBoundSessionId());') < engineBlock.indexOf('this.updateConversationPhase();'));
-		assert.ok(engineBlock.indexOf('this.updateConversationPhase();') < engineBlock.indexOf('this.updateSyncChrome();'));
-		assert.ok(uaBlock.includes('this.bindSessionView(this.getBoundSessionId());'));
-		assert.ok(uaBlock.includes('this.updateConversationPhase();'));
-		assert.ok(uaBlock.includes('this.updateSyncChrome();'));
-		assert.ok(uaBlock.indexOf('this.bindSessionView(this.getBoundSessionId());') < uaBlock.indexOf('this.updateConversationPhase();'));
-		assert.ok(uaBlock.indexOf('this.updateConversationPhase();') < uaBlock.indexOf('this.updateSyncChrome();'));
-
+	test('pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live', () => {
 		const demoted: SyncChrome = { kind: 'closed', reason: 'Cached snapshot (read-only)' };
 		const leftover: ConversationTimelineEntry[] = [
 			{ id: 't1', kind: 'user', text: '' },
@@ -2921,6 +2906,8 @@ suite('conversation lens dispose gate', () => {
 			sessionTitleEditing: false,
 			sessionTitleEditSnapshot: 'A',
 			dialogService: { confirm: () => Promise.resolve({ confirmed: true }) },
+			composerPolicy: 'compose',
+			composeDraftSnapshot: 'Saved compose snapshot must not replace the live draft',
 			dockTextarea: { value: 'leftover draft' },
 			getBoundSessionId: () => 'ua-a',
 			writeComposerDraft: (_sessionId: string, text: string) => {
@@ -5372,28 +5359,70 @@ suite('conversation lens dispose gate', () => {
 		assert.deepStrictEqual(failures, ['session_not_ready']);
 	});
 
-	test('respondClientTool roster false after disconnect shows engine_disconnected', () => {
+	function clientToolDisconnectHost(connectedAtEntry: boolean) {
 		const failures: ConversationComposerPostFailureReason[] = [];
-		const calls: { sessionId: string; callId: string; options?: { content?: string } }[] = [];
-		const host = {
+		const calls: { sessionId: string; callId: string; options?: Parameters<ConversationStubService['respondClientTool']>[2] }[] = [];
+		const state = { posted: 0, focused: 0 };
+		const service = suiteStore.add(new class extends ConversationStubService {
+			override hasEngineConnectionHistory(): boolean { return true; }
+			override respondClientTool(sessionId: string, callId: string, options?: Parameters<ConversationStubService['respondClientTool']>[2]): boolean {
+				calls.push({ sessionId, callId, options });
+				this.setEngineConnected(false);
+				return false;
+			}
+		}());
+		service.setEngineConnected(connectedAtEntry);
+		service.createTestFrameSourceCallback().model.upsertCachedSession({
+			id: 'sess-1', title: 'Cached response', source: 'engine-cache', turns: [
+				{ id: 'call-1', kind: 'tool', text: 'Pending client response', toolName: 'client-response', toolStatus: 'pending', respondable: true },
+				{ id: 'permission-1', kind: 'confirmation', text: 'Pending permission', status: 'pending' },
+			],
+		});
+		const lease = suiteStore.add(service.acquireSessionView('sess-1'));
+		const host: IConversationLensResponseHost = {
+			isDisposed: false,
 			getBoundSessionId: () => 'sess-1',
-			stubService: {
-				respondClientTool: (sessionId: string, callId: string, options?: { content?: string }) => {
-					calls.push({ sessionId, callId, options });
-					return false;
-				},
-				isEngineConnected: () => false,
-				hasEngineConnectionHistory: () => true,
+			stubService: service,
+			uaConnection: createConversationConnectionTestStub(),
+			postBound: async (): Promise<PostOutcome> => {
+				state.posted++;
+				return { accepted: true, correlation: { id: 'unexpected-post' } };
 			},
+			focusTimelineRecord: () => { state.focused++; },
 			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
 				failures.push(reason);
 			},
-		} as unknown as IConversationLensSessionBindingHost;
+		};
+		return { host, service, lease, state, calls, failures };
+	}
 
-		respondClientTool(host, { id: 'call-1' });
+	test('respondClientTool already disconnected rejects before roster and preserves cached model and pending', () => {
+		const fixture = clientToolDisconnectHost(false);
+		assert.strictEqual(fixture.service.isEngineConnected(), false);
+		assert.strictEqual(fixture.service.getSessionSource('sess-1'), 'engine-cache');
+		assert.ok(fixture.lease.snapshot.pendingActions.some(action => action.requestId === 'permission-1'));
+		const modelBefore = JSON.stringify(fixture.service.getTurns('sess-1'));
+		const pendingBefore = JSON.stringify(fixture.lease.snapshot.pendingActions);
+		respondClientTool(fixture.host, { id: 'call-1' });
+		assert.deepStrictEqual(fixture.calls, []);
+		assert.deepStrictEqual(fixture.failures, ['engine_disconnected']);
+		assert.strictEqual(JSON.stringify(fixture.service.getTurns('sess-1')), modelBefore);
+		assert.strictEqual(JSON.stringify(fixture.lease.snapshot.pendingActions), pendingBefore);
+		assert.deepStrictEqual(fixture.state, { posted: 0, focused: 0 });
+	});
 
-		assert.deepStrictEqual(calls, [{ sessionId: 'sess-1', callId: 'call-1', options: { content: '' } }]);
-		assert.deepStrictEqual(failures, ['engine_disconnected']);
+	test('respondClientTool roster false after disconnect shows engine_disconnected', () => {
+		const fixture = clientToolDisconnectHost(true);
+		assert.strictEqual(fixture.service.isEngineConnected(), true, 'the response must enter the live roster before its synchronous disconnect');
+		const modelBefore = JSON.stringify(fixture.service.getTurns('sess-1'));
+		const pendingBefore = JSON.stringify(fixture.lease.snapshot.pendingActions);
+		respondClientTool(fixture.host, { id: 'call-1' });
+		assert.deepStrictEqual(fixture.calls, [{ sessionId: 'sess-1', callId: 'call-1', options: { content: '' } }]);
+		assert.strictEqual(fixture.service.isEngineConnected(), false);
+		assert.deepStrictEqual(fixture.failures, ['engine_disconnected']);
+		assert.strictEqual(JSON.stringify(fixture.service.getTurns('sess-1')), modelBefore);
+		assert.strictEqual(JSON.stringify(fixture.lease.snapshot.pendingActions), pendingBefore);
+		assert.deepStrictEqual(fixture.state, { posted: 0, focused: 0 });
 	});
 
 	test('respondClientTool roster false without connection history shows failed', () => {
@@ -5440,19 +5469,10 @@ suite('conversation lens dispose gate', () => {
 	});
 
 	test('showPostFailure failed uses retry copy not disconnected', () => {
-		const gateRow = {
-			hidden: true,
-			classList: {
-				add() { },
-				remove() { },
-			},
-			setAttribute: () => { },
-			removeAttribute: () => { },
-		};
-		const gateLabel = {
-			textContent: '',
-			removeAttribute() { },
-		};
+		const gateRow = document.createElement('div');
+		gateRow.hidden = true;
+		const gateLabel = document.createElement('span');
+		gateRow.appendChild(gateLabel);
 		const host = {
 			postFailureVisible: false,
 			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
