@@ -39,3 +39,9 @@ summary: "两不可变docs提交真实三路合入；D1385前提失效停止原U
 见[基线健康检查](docs-scope-sources-health-before.log)、[最终健康检查](docs-scope-sources-health-after.json)与[门禁汇总](docs-scope-sources-gates.json)。J原工位报告73 warnings仅属原环境，本merge实际基线46；按实际新改文档链接检查与未改警告集合比对，不将73笼统称既有。生成状态由脚本刷新和check；status不超过200行。
 
 本merge最终实际563份Markdown，0 errors / 46 warnings，与基线完整警告(path,message及重复次数)集合相等；23份新增/改动Markdown新增断链0，其中requirements继承一条既有外仓链接警告，未将其误记为本轮新引入。generated/check/diff门禁均exit0，status167行。详见机器门禁，不引用J原环境73作为本merge基线。
+
+## 人类工位同步回执
+
+父调度独立复核后，已将最终检查点 `61aadabda7e1b0fd1496dc0201b60f720f91aced` 以 `merge --ff-only` 同步到人类工位 `agent-ide` 与空闲 D；两处和 merge 均 clean。C 自行对齐同一检查点。复核包括两正式方案与作者提交逐字节相等、三进度账剔除已记录的 J 新增及元数据后与 C 完整 blob 相等、八项产物 SHA/字节/mtime 未变。截断历史的中间版本未同步到人类工位。
+
+J 仍在 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 之上独立实现 D1387；其未提交改动完整保留，未取入本次同步。未执行 reset/stash/clean，未 push。此回执仅记录已完成的同步，不增加编译、运行或产品验收结论。
