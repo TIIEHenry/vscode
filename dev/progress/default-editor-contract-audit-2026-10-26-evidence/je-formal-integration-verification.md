@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "第二次原生完整编译0；J386/roster189/新29与44绿，相关套ack新回归已退作者，5处旧夹具/既有红实证；外部HEAD漂移保留，未freeze。"
+summary: "第三次完整编译0；J29/E44/补修6/roster189过，11相关255过1既有红、386身份复用；main外部d91待独立基线裁定，90产物已核不freeze。"
 ---
 
 # J/E 正式集成
@@ -89,3 +89,31 @@ FrameSource三红必须分别判定：requestResync实际两次lease而旧fixtur
 Astra不可变`5bbeeb57dbebaf56a3800b8690e9b856436984e3`已实读§5/6并真三路`e1b13a4fb26`接入；[两纯docs原日志](je-formal-E-runtime-peer-merge.log)/[72路径门禁](je-formal-E-runtime-peer-merge-identity.json)全PASS，报告blob精确等于5bbe原件，保留§5原C0/I1及§6 ack C0/I0/M0、旧对照与前三fixture边界。原报告当时只收到临时路径的历史描述保持原件，永久原件在上节链接。当前含外部CSS后src63777d0尚未重新native编译，等待测试夹具不可变/定向peer后统一钉源完整编译；不将旧1ee编译0延伸。
 
 本轮一次`git status`因/home满返回exit128（无遗留index.lock），未启动新编译。随后在全局车道空且持共享锁下，将忽略生成目录.build/extensions完整镜像至/tmp、逐entry mode/type/SHA核同并以符号链接保留访问路径；执行时外部已先释放空间。为避免长期临时路径，立即把原目录完整恢复、再次核同并删除自己已验证的临时镜像。原路径现为普通目录，native86未变；[事件摘要/清单摘要](je-formal-cache-incident-summary.json)保存实时时间、原路径、恢复结果，恢复后/home约2.9GiB。不把外部释放空间归因于本lane，也不新增长期配置或清理他槽/WIP。
+
+## 第三次正式编译与完整相关覆盖：d91对齐裁定前检查点
+
+9e79三旧fixture经Astra不可变5042§7 C0/I0/M0原件实读后，分别真三路`d3c0083d037`（[79路径门禁](je-formal-E-old-fixtures-merge-identity.json)）与`08b1272fc3c`（[82路径门禁](je-formal-E-fixtures-peer-merge-identity.json)）。只有status一块共享文档冲突，保留双方事实，重复queued/合源摘要已由本报告完整历史承载；status197行。审查原blob精确5042，不改其历史临时路径措辞。
+
+钉明确源码HEAD `08b1272fc3cb7ad2fdc256be60262818b92f4a20` / src `f19df7bd512b99d0485355c84708498781e37e56`，磁盘超过2GiB、生成缓存已完全恢复后，全局两次空扫描并独占共享锁，第三次实际完整`rtk proxy npm run compile-client` **exit0 / 0 TS诊断**；[原日志](je-formal-third-native-build.log)/[源与90输出身份](je-formal-third-native-build.json)记录HEAD/src/clean前后不变，包含J18/E16、外部Lens CSS和三旧fixture。首次1TS及第二次0的原件均保留。
+
+| 第三次native上的实际运行 | 结果 | 原件 |
+| --- | --- | --- |
+| J宿主/overlap | 29 passing / exit0 | [JSON](je-final-J-focused.json) / [log](je-final-J-focused.log) |
+| E response recovery | 44 passing / exit0 | [JSON](je-final-E-focused.json) / [log](je-final-E-focused.log) |
+| ack/resync、三fixture及fallback负控定向 | 6 passing / exit0 | [JSON](je-final-E-rework-focused.json) / [log](je-final-E-rework-focused.log) |
+| E完整roster | 189 passing / exit0 | [JSON](je-final-E-roster-full.json) / [log](je-final-E-roster-full.log) |
+| E完整11相关文件（含完整FrameSource、此前hook后未执行部分） | 255 passing / **1 failing / exit1** | [JSON](je-final-E-related-full.json) / [log](je-final-E-related-full.log) |
+
+本次11文件实际完整覆盖，唯一失败为原`persisted reasoning keeps the joined thinking preview on the reading line`，THINKING与hmm\nthen this不符；旧5df已同红、原测试/预期/失败保持，payload正文未丢但摘要存在独立既有差异。不称全部相关全绿，前三fixture与真实ack回归均已实际新过。父允许本冻结波保留此独立旧红，不新增产品模块修reasoning。每组实际运行都持共享锁并核90源/输出前后不变。
+
+Sources完整10文件386是在000823/src1ee实际跑过；按父要求不机械重跑。[连续性证明](je-final-J-suite-continuity.json)核J18生产、10测试JS及harness共29项源/最终native逐字等于该实际386产物，全部PASS；当前29focused又实际通过。这里只复用该明确范围，不虚称386曾在08b127重跑。
+
+[37TS实际ESLint](je-final-lint.json)0 errors / 79 warnings；原34路径每文件警告数均保持73，新增检查范围三旧测试计6警告。Sources wiring之前23/1的Accept builder旧红及精确09f6输入证明继续适用，没有改该扫描断言。
+
+## 最终P0/P7观察与新的明确main边界（尚无freeze）
+
+[只读盘点](je-final-P0-P7-boundaries.json)：merge08b127 clean；J/D在24a、E9e79、B5042均clean；共享stash0，P3无条目/P4 skipped-no-stash-commits。main现外部前进`d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42`、42 dirty路径，只读取Git HEAD/src/status路径，未读其FS源码/未commit他人WIP/未写root out。P5禁push，P6主工位既有ff拒绝不重试，不称wave释放或全池同SHA。
+
+[不可变外部main观察](je-final-external-main-observation.json)显示5df→d91只有一个正式queue snapshots/skill save独立提交，含RosterService/其test与协议队列技能路径，不能当纯文档或隐式算进本轮green。父已另交Astra只读判断与E写门/scope交互，倾向after前只吸收这个明确d91作为外部基线对齐；后续main漂移另轮，不无限追逐。精确执行边界未给出前，当前source/out保持，未合d91/未编译d91、不发D freeze。
+
+[当前90源/native检查点](je-third-source-native-identity.json)全部摘要吻合，明确outFrozen=false/afterNoticeIssued=false；只有已有08b127/srcf19实际编译身份。接下来依父及Astra明确边界执行，不能拿本次0或255/1背书尚未吸收的d91。

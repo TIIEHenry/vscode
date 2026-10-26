@@ -1,0 +1,52 @@
+{
+  "label": "E-rework-focused",
+  "sourceHead": "08b1272fc3cb7ad2fdc256be60262818b92f4a20",
+  "sourceTree": "f19df7bd512b99d0485355c84708498781e37e56",
+  "nativeCompileHead": "08b1272fc3cb7ad2fdc256be60262818b92f4a20",
+  "nativeCompileExit": 0,
+  "nativeSourceOutputIdentityScope": 90,
+  "nativeOutputsAllExistAndUnchanged": true,
+  "nativeJavaScriptAllWrittenAfterCompileStart": true,
+  "nativeCopiedCssExactSourceBytes": true,
+  "sourceHashesAllMatchCompiledRecord": true,
+  "startedAtUtc": "2026-10-26T17:29:09.030642+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationStreamScripts.test.ts",
+    "--grep",
+    "requestResync reject does not leave|acknowledge rejects and onUnexpectedError warn-then-rethrows|pending removal changes the confirmation entry status|repainting a respondable client tool|standalone respondable client-tool fallback|question-valid-flag-without-options-is-not-submit-safe"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "sharedLockHeld": true,
+  "globalLaneMatches": [],
+  "outFrozen": false,
+  "exitCode": 0,
+  "finishedAtUtc": "2026-10-26T17:29:10.615183+00:00",
+  "mochaSummaries": [
+    "  6 passing (49ms)"
+  ],
+  "outputsUnchangedAfterRun": true,
+  "sourceTreeUnchanged": true
+}

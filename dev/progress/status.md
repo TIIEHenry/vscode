@@ -4,13 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J/E第二次完整编译0，Sources386/roster189/新29与44绿；相关ack新回归退作者、5处旧红已精确复现，外部HEAD保留，未freeze/禁push/主ff不重试。"
+summary: "J/E第三次完整编译0，J29/E44/补修6/roster189过、11相关255过1既有红；main外部d91基线裁定待，90身份已核、不freeze/禁push/主ff不重试。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **J/E第二次编译与完整套实际边界（2026-10-27）**：de1c精确夹具真三路000823/src1ee09f，fullcompile0；J新29/完整10共386、E新44/完整roster189均绿。相关批FrameSource20/3提前停，后10各自跑完另4红；精确旧5df resync同红、ack旧绿，另Projection/Renderer/Scripts四处同旧红，86native临时输出全恢复。ack真回归退E；reasoning独立既有问题不混为新机制红。外部71ba/src5ebb仅只读登记并保留，旧compile不延伸，未freeze。[逐套原日志/旧对照/外部ref](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第二次原生编译与正式完整运行未freeze)。
+- **J/E正式编译与完整运行当前边界（2026-10-27）**：已合ack5f280/夹具9e79与Astra原件5042，钉08b127/srcf19完整compile0；J29/E44/补修6/roster189过，完整11相关255过1原reasoning红（旧5df已复现、原断言不改），J386由29项源/native精确连续性复用。首轮1TS、F1 20/3及所有旧对照原件保留。main外部d91含Roster/协议队列技能，42dirty仅登记，父/Astra基线裁定待；当前90身份吻合但不freeze、不背书d91，不push/主ff重试。[全部原件与边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第三次正式编译与完整相关覆盖d91对齐裁定前检查点)。
 - **只读 Agent 箭头压字修复（2026-10-27）**：只读状态隐藏继承的下拉伪元素，真实选择器保留；真实浅色 before/after 尺寸不变，实际宿主下四主题×700/420px DOM fixture 8项通过。非完整会话/窄叶键盘验收；未改TS、未全量构建。独立worktree提交，证据与边界见[控件验证](control-detail-polish-evidence/verification.md#只读-agent-箭头补修2026-10-27)。
 - **E旧相关套三夹具纠正（2026-10-27）**：父转达精确旧5df完整复现Projection15过2败/Renderer29过1败/StreamScripts32过1败，Astra已定界三旧夹具与独立reasoning生产差异；本次仅测试改permission pending→undecided→明确allow及终态优先负控、question真实pend/无pend负控、Renderer正式process-fold CTA及fallback无CTA负控。reasoning原测试与`hmm\nthen this`预期/失败原件保留，不改THINKING、不改产品，待冻结波后独立处理。[范围/断言](../plans/conversation-unary-response-recovery.md#93-旧相关套夹具纠正与reasoning既有问题边界)。前笔ack5f280已获原AstraC0/I0/M0，唯一lane新运行待；本次静态检查外未compile/typecheck/transpile/out/业务执行，待原Astra定向复读/唯一lane复验，不宣称三套全绿。
 - **E正式ack隔离回归补修（2026-10-27）**：从实际parent为24a的clean `de1c958`补修。父转达第二次fullcompile0/0TS后E-related20过3败，Astra已核E900f搬迁notify时漏ack第二catch是真生产回归；本次恢复旧双层隔离，原两次unexpectedWarns不降，helper旁听process/window且不挡runner，精确ack payload/帧应用断言保留。resync生产四版同字节，依既有r08-4合同仅改旧夹具为有界2次且无第三次，坏帧/noack/no-unhandled全保留；两原因分记，原log保留。[补修记录](../plans/conversation-unary-response-recovery.md#92-正式native回归发现的ack隔离修复)。未compile/typecheck/transpile/out/业务测试，原Astra复读/唯一lane复验待，不freeze/升产品状态。

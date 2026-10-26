@@ -1,0 +1,17 @@
+{
+  "ours": "8f51ce80b5cf897a800f38568748802f8a6e0430",
+  "theirs": "9e79c26ad11156d691f25a64be8164205ebb475f",
+  "mergeBase": "5f28071f4cafeb850ae014c92ce8bcfab75b1875",
+  "theirsChangedPaths": [
+    "dev/plans/conversation-unary-response-recovery.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/streamScripts.ts"
+  ],
+  "bothChangedPaths": [
+    "dev/progress/status.md"
+  ],
+  "preparedAtUtc": "2026-10-26T17:26:10.348104+00:00",
+  "homeAvailableBefore": 3087052800
+}
