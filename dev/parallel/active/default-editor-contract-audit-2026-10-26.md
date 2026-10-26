@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1382独立默认编辑器after C0/I0并闭合，D1383/1384已闭合；DOM Event单行类型修复已验证。D1385首次录音/D1386叶身份open；唯一全量仍46/28。"
+summary: "D1382独立默认编辑器after C0/I0并闭合，D1383/1384已闭合；DOM Event单行类型修复已验证。D1385首次录音/D1386叶身份正式方案accepted、功能open；唯一全量仍46/28。"
 ---
 
 # 默认编辑器合同与功能缺口续审
@@ -20,6 +20,8 @@ summary: "D1382独立默认编辑器after C0/I0并闭合，D1383/1384已闭合�
 | C / conversation_navigation_contracts | D1382：默认编辑器 ReviewNav 工作根变化失效与正式 Context/DI 合同 | 源 `37aa2956b77` 已三路合入 `b5f69d4`。旧生产新行为 3过/7败，新生产 37过，五TS语义0。方案 implemented、缺口 closed。J 静态 after 与 D 独立默认编辑器 after 均 C0/I0；真实行/根失效/并列叶/命令参数通过，限制见入库报告 |
 | D / tunnel_retry_contracts（Astra） | D1383：Tunnel 引用身份、getExisting 所有权与 provider 失败后重试；同时审查 C/J 方案 | 方案 `e451d5da071` / 实施 `22386bcf3ae` 已合入；merge 旧生产 red / 新生产 19 passing、定向语义 0，范围内 closed |
 | J / configuration_initialization_contracts | D1384：RemoteUserConfiguration 显式重试共有等待、reload 及销毁边界 | 源 `c4b9332` 已三路合入 `3e63f9e`。旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。方案 implemented，缺口 closed。C 静态 after C0/I0，两条 Minor 不阻断 |
+| C / voice_cold_start | D1385：保留Copilot Chat首次连接录音授权 | 方案3d291db已三路合入09ac7dbefd8，规则16 C0/I0、accepted；作者各槽实施WIP未接入，功能open |
+| D / leaf_root_identity | D1386：叶绑定工作根身份及动作目标 | 方案ab142cd已三路合入a2fbb411cda，规则16 C0/I0、accepted；作者各槽实施WIP未接入，Important/open |
 | merge / 唯一集成者 | 串行合入、旧生产身份核验、受控 red/green、唯一编译与必要真实界面复验 | D1382/1383/1384按范围已闭合。948单行Event注解已真三路合入，单TS noEmit 0、转译正文等价；D1385/1386功能仍open。本轮唯一全量 exit1、46/28 |
 
 ## 工作约束与验收
@@ -61,4 +63,11 @@ D1383 验证元数据提交为 `0345517385bbc7938d2f82f01d538a880ec04b77`。父�
 
 C的94893edf39b已真实三路合入53ad4b1e5a，唯一变化是agentsVoiceWidget.ts的DOM Event注解。单TS原project noEmit 0；旧3e63与新源同配置转译正文相等，盘上旧正文也相同，仅fresh此JS并记hash/mtime，11对先前source/out摘要未变。详见[类型验证](../../progress/default-editor-contract-audit-2026-10-26-evidence/voice-dom-event-verification.md)。未重跑19/37/21+17+15；本轮唯一fullcompile仍3e63 exit1、46/28，不报告45/27推算。
 
-D1385功能与D1386叶身份归属均open，正式方案由独立作者后续交付，不能将未提交WIP写成已审或已实现。语音维护是默认窗保留Copilot Chat入口，不是Conversation真语音；pane桥不等于editor当前发起者，controller connecting焦点会改变target。首按授权必须保持到真实连接准入并以owner/代次撤销；完整功能验收待正式方案与实施。身份条须以叶绑定根解析文字/aria/branch/checkout，窗口addFolders仍全局；不改ReviewNav、Sources活动跟随或扩展mount策略。
+本after/type检查点时D1385功能与D1386叶身份归属均open、正式方案待交付；后续仅文档接入见下段，未提交实施WIP仍不能写成已审或已实现。语音维护是默认窗保留Copilot Chat入口，不是Conversation真语音；pane桥不等于editor当前发起者，controller connecting焦点会改变target。首按授权必须保持到真实连接准入并以owner/代次撤销；完整功能验收待正式方案与实施。身份条须以叶绑定根解析文字/aria/branch/checkout，窗口addFolders仍全局；不改ReviewNav、Sources活动跟随或扩展mount策略。
+
+
+## 两份正式方案仅文档接入
+
+当前after/type主题证据提交为a5fdcf326df，随后只取不可变的C方案 `3d291dbda96db621e9034ab03a9c99951e91a2f0` 真三路合入 `09ac7dbefd8`，D方案 `ab142cdef4629ba0b7dc082d63ed0b2f9d9f8e62` 真三路合入 `a2fbb411cda`。两份正文与作者提交逐字节相同，均有独立规则16 C0/I0审查记录；[语音](../../plans/copilot-chat-cold-voice-authorization.md)与[叶身份](../../plans/2026-10-26-leaf-session-root-identity.md)均accepted，D1385/D1386仍open。延期账各ID仅一行，合并Event类型已验事实与正式方案门槛。
+
+冲突只在计划索引、延期账与status；保留当前D1382 closed/真实after、D1384全量失败及父同步记录。PRD-015验收7的Copilot Chat边界与验收9的叶身份边界均保留，PRD-029总体仍proposed；生成列由脚本核对。没有合作者未提交实现，没有任何新增TS/CSS源码，也没有新编译、测试或out写入。最终source/产物和方案来源见[摘要](../../progress/default-editor-contract-audit-2026-10-26-evidence/close-final-state.json)，最终文档门禁见[health](../../progress/default-editor-contract-audit-2026-10-26-evidence/plans-close-docs-health.log)与[生成列](../../progress/default-editor-contract-audit-2026-10-26-evidence/plans-close-generated-check.log)。人类工位安全ff仍由父完成，本槽未push。

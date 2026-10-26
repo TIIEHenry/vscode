@@ -33,3 +33,7 @@ C 作者提交 `94893edf39b2f1b9ffdfd9e11b597c65bf6e1ba6`，父为 `3e63f9e6f40e
 ## 文档门禁
 
 [状态生成](close-generated-status.log)、[生成列检查](close-generated-status-check.log)均exit0；[docs-health](close-docs-health.log)为0 errors / 46既有链接warnings，status156行，diff-check通过。旧阶段的未实拍/accepted记录保留并标明时序，知识层审阅通知叙述已对齐D1382闭合。
+
+## 后续方案文档接入
+
+上述a5fdcf326df检查点之后，仅三路合入正式方案3d291db与ab142cd（merge09ac7dbefd8、a2fbb411cda）。两份均accepted/规则16 C0/I0，D1385/D1386功能仍open；上文“待交付”保留为当阶段事实。没有合入运行实现、再次类型检查、编译、测试或out刷新。最终状态与两篇方案原文摘要见[来源核对](close-final-state.json)。

@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1382独立默认编辑器after C0/I0并闭合，D1383/1384已闭合；单行DOM Event类型修复单TS语义0、运行正文等价。D1385功能/D1386身份open；唯一全量仍46/28。"
+summary: "D1382独立默认编辑器after C0/I0并闭合，D1383/1384已闭合；单行DOM Event类型修复单TS语义0、运行正文等价。D1385/D1386正式方案均accepted、功能open；唯一全量仍46/28。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **D1385/D1386 正式方案接入（2026-10-26）**：只三路合入已独立提交/互评C0/I0的C方案3d291db→09ac7dbefd8与D方案ab142cd→a2fbb411cda；保留PRD-015语音条款和身份条款、PRD-029仍proposed。两plan均accepted、两缺口open。作者在各自槽实施，未取未提交WIP；本次无新运行源码，无新编译/测试/out刷新。见[语音方案](../plans/copilot-chat-cold-voice-authorization.md)、[叶身份方案](../plans/2026-10-26-leaf-session-root-identity.md)。
 - **D1385 首次连接录音授权（2026-10-26，C）**：只维护默认编辑器保留的 Copilot Chat 命令；PRD-015 / 系统规格已明确不计 Conversation 真语音。正式方案规则 16 C0/I0，accepted、未实施。94893edf39b2 只有 Event 类型注解。本工位不编译、不写 out；方案/缺口在统一验证前不升完成。见[方案](../plans/copilot-chat-cold-voice-authorization.md)。
 - **D1382 独立 after 与当前检查点闭合（2026-10-26）**：非作者 D 已完成隔离默认编辑器真实 Review 行、workspace/SCM增删、连接回退、非活动并列叶与click/Enter命令参数，ReviewNav合同C0/I0；四主题225/226px并列叶与612px单叶有DOM/截图。[原报告/三份observations/本地图片入口](default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)已落库，D1382closed、方案implemented。加载JS与后续磁盘整文件不同，去map正文14942…相同；不称全out同构建。无真实git diff、未折叠后再失效、无独立720px、仅浅色对比。旁支芯片归属按Astra判D1386 Important/open，1 files仍Minor。
 - **语音DOM类型trivial修复（2026-10-26）**：94893edf39b真实三路合入53ad4b1e5a；仅e:globalThis.Event。原src/tsconfig单TS noEmit语义/语法0；旧3e63与新源同配置转译正文相等，仅fresh该JS，先前11对source/out摘要未变。D1385首次录音归属功能仍open；保留Copilot Chat范围、pane/editor身份与controller connecting焦点纠正，不写成Conversation语音交付。[证据](default-editor-contract-audit-2026-10-26-evidence/voice-dom-event-verification.md)。未重跑19/37/21+17+15，唯一fullcompile仍source3e63的exit1、46/28，不报推算新计数。
