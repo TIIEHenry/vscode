@@ -1296,6 +1296,16 @@ export class AgentSideEffects extends Disposable {
 		const autoApproval = e.managedApprovalRequired || forbiddenSnapshotWrite
 			? undefined
 			: await this._permissionManager.getAutoApproval(approvalEvent, sessionKey);
+		// Permission evaluation can cross an async filesystem or shell-policy
+		// boundary. The turn/session may be cancelled or disposed while it is
+		// suspended; never publish a ready action for that stale request.
+		if (this._isCancelledTurnToolCall(e.chat, sessionKey, e.state.toolCallId) || !this._stateManager.getSessionState(sessionKey)) {
+			this._logService.trace(`[AgentSideEffects] Denying late confirmation after async permission evaluation for ${e.state.toolCallId}`);
+			this._toolCallAgents.delete(toolCallKey);
+			this._managedApprovalToolCalls.delete(toolCallKey);
+			agent.respondToPermissionRequest(e.state.toolCallId, false);
+			return;
+		}
 		const part = this._stateManager.getSessionState(sessionKey)?.activeTurn?.responseParts.find(part => part.kind === ResponsePartKind.ToolCall && part.toolCall.toolCallId === e.state.toolCallId);
 		const toolCall = part?.kind === ResponsePartKind.ToolCall ? part.toolCall : undefined;
 		if (toolCall

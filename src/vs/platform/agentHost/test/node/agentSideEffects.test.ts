@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { stub } from 'sinon';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { DeferredPromise, timeout } from '../../../../base/common/async.js';
 import { Event } from '../../../../base/common/event.js';
@@ -57,6 +58,7 @@ import { AgentHostLocalCommands, IAgentHostLocalCommands } from '../../node/loca
 import { IAgentHostTerminalManager } from '../../node/agentHostTerminalManager.js';
 import { SessionDatabase } from '../../node/sessionDatabase.js';
 import { AgentHostStateManager, IAgentHostStateManager } from '../../node/agentHostStateManager.js';
+import { SessionPermissionManager } from '../../node/sessionPermissions.js';
 import { withChatSurfaceMeta } from '../../common/meta/agentChatSurfaceMeta.js';
 import { ChatInputRequestPurpose, withChatInputRequestPurpose } from '../../common/meta/agentChatInputRequestMeta.js';
 import { AgentHostCustomizationEnablementService, IAgentHostCustomizationEnablementService } from '../../node/agentHostCustomizationEnablementService.js';
@@ -4868,6 +4870,76 @@ suite('AgentSideEffects', () => {
 				{ requestId: 'tc-cancelled', approved: false },
 			]);
 		});
+
+		for (const scenario of ['cancelled-auto-approve', 'cancelled-confirmation', 'removed-session', 'hook-continuation'] as const) {
+			test(`permission evaluation settling after ${scenario} preserves the request lifecycle`, async () => {
+				setupSession(URI.file('/workspace').toString());
+				const continuation = scenario === 'hook-continuation';
+				const turnId = continuation ? '' : 'turn-1';
+				if (!continuation) {
+					startTurn(turnId);
+				}
+				disposables.add(sideEffects.registerProgressListener(agent));
+
+				const approval = new DeferredPromise<ToolCallConfirmationReason | undefined>();
+				const evaluate = stub(SessionPermissionManager.prototype, 'getAutoApproval').returns(approval.p);
+				disposables.add(toDisposable(() => evaluate.restore()));
+				const answered = new DeferredPromise<void>();
+				const respond = agent.respondToPermissionRequest.bind(agent);
+				agent.respondToPermissionRequest = (requestId, approved) => {
+					respond(requestId, approved);
+					void answered.complete();
+				};
+				const ready: ActionEnvelope[] = [];
+				disposables.add(stateManager.onDidEmitEnvelope(envelope => {
+					if (envelope.action.type === ActionType.ChatToolCallReady) {
+						ready.push(envelope);
+					}
+				}));
+
+				agent.fireProgress({
+					kind: 'action', resource: URI.parse(defaultChatUri),
+					action: {
+						type: ActionType.ChatToolCallStart, turnId,
+						toolCallId: 'tc-async', toolName: 'view', displayName: 'Read',
+						contributor: undefined,
+						_meta: { toolKind: undefined, language: undefined },
+					},
+				});
+				agent.fireProgress({
+					kind: 'pending_confirmation', chat: URI.parse(defaultChatUri),
+					state: {
+						status: ToolCallStatus.PendingConfirmation,
+						toolCallId: 'tc-async', toolName: 'view', displayName: 'Read',
+						invocationMessage: 'Reading file.ts', toolInput: '{"path":"file.ts"}',
+						confirmationTitle: 'Read file', edits: undefined,
+					},
+					permissionKind: 'read', permissionPath: '/workspace/file.ts',
+				});
+				assert.strictEqual(evaluate.callCount, 1, 'evaluation must be suspended before invalidation');
+				assert.deepStrictEqual(agent.respondToPermissionCalls, []);
+				assert.deepStrictEqual(ready, []);
+
+				if (scenario.startsWith('cancelled-')) {
+					stateManager.dispatchServerAction(defaultChatUri, {
+						type: ActionType.ChatTurnCancelled, turnId, duration: 1000,
+					});
+				} else if (scenario === 'removed-session') {
+					stateManager.removeSession(sessionUri.toString());
+				}
+				await approval.complete(scenario === 'cancelled-confirmation' ? undefined : ToolCallConfirmationReason.NotNeeded);
+				await answered.p;
+
+				assert.deepStrictEqual(agent.respondToPermissionCalls, [
+					{ requestId: 'tc-async', approved: continuation },
+				], 'expired requests are denied exactly once; hook continuations still auto-approve');
+				assert.strictEqual(ready.length, continuation ? 1 : 0, 'expired requests must not publish Ready');
+				if (continuation) {
+					assert.strictEqual(stateManager.getActiveTurnId(defaultChatUri), undefined);
+					assert.strictEqual(ready[0].rejectionReason, undefined);
+				}
+			});
+		}
 	});
 
 	// ---- ChatToolCallComplete routing -----------------------------------

@@ -4,8 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1367 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
-
+summary: "2026-10-26：D1332–D1368 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron/Node 测试仍受本机环境限制待复验。"
 
 ---
 
@@ -13,6 +12,7 @@ summary: "2026-10-26：D1332–D1367 已落盘，D467 回收证据已闭合；�
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Permission 评估晚到取消闸（2026-10-26，D1368，权限/Agent Host 状态审计）**：`pending_confirmation` 进入异步路径策略评估后，turn/session 可能已取消或销毁；原逻辑只在 await 前检查取消，晚到结果仍可派发 `ChatToolCallReady` 或留下 SDK 权限等待。现 await 后复核 cancelled tool 与 session state，过期请求立即拒绝并清理跟踪；可控评估屏障回归覆盖取消后的两种评估结果、session 移除及 hook continuation，断言答复次数与 Ready 公告。目标文件 ESLint `--no-cache` 0 errors，Node 测试交 merge 工位统一验证，未跑 full compile/转译。见 [D1368](deferred-gaps.md)。
 - **SessionsView 响应式控件重建（2026-10-26，D1367，会话列表/窄宽审计）**：SessionsView 原只在首次布局创建桌面 header toolbar 或移动端 filter chips；运行时跨 phone breakpoint 后，工作台虽更新 `.phone-layout` 与 `IsPhoneLayoutContext`，控件却不切换。现保留可切换的 chips slot，监听 phone-layout context，在桌面与手机控件间安全 dispose/recreate；新增源码回归锁定初始与运行时共用重建路径。目标文件 ESLint 通过；定向 Electron 测试受本机 sandbox 限制，未跑 full compile。见 [D1367](deferred-gaps.md)。
 - **Preferences 宽转窄焦点迁移（2026-10-26，D1366，本波响应式 UI/键盘焦点审计）**：Engine 与 Connection Preferences 从宽布局缩到窄布局时，原逻辑隐藏导航却保留导航行焦点，键盘用户会停在 `display:none` 节点。现仅当缩窄前焦点在导航宿主内时，在窄详情布局完成后的微任务中把焦点移到可见 Back 按钮；补 Engine/Connection 两份 browser 回归，不抢程序化缩窄或导航外焦点。目标 ESLint 0 errors，定向 Electron 测试受本机 sandbox 限制，未跑 full compile。见 [D1366](deferred-gaps.md)。
 - **SessionHeader 标题重命名能力 hydration（2026-10-26，D1365，会话生命周期审计）**：标题可编辑性原在标题 autorun 中用未追踪的 `capabilities.get()`，提供方动态开放/收回 `supportsRename` 时键盘/ARIA 重命名入口不更新。现通过 reader 订阅能力 observable，并补能力切换回归；目标文件 ESLint 通过，浏览器测试受本机 `listen EPERM` 限制，未跑 full compile。见 [D1365](deferred-gaps.md)。
