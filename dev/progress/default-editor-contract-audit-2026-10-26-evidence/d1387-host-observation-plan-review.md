@@ -82,6 +82,8 @@ summary: "两轮规则16：首稿C0/I1指出will无操作关联；Astra采纳后
 
 第二轮 **C0 / I0**，可接受这版具体实施边界；作者核验后可按规则16完成方案记录、单独文档提交，再实施。仍需新源码独立审查、唯一 merge 车道精确业务 red/green 与完整相关套、最终编译/产物冻结及非作者真实默认编辑器 after。三 owner、两 slot、全部真实入口与 move、Review 完成/错误和 Conversation 围栏范围保持；D1387 不凭方案审查关闭，PRD 状态不升。
 
+后续：作者核验改入两Minor并以`bf50c66`单独提交方案后，`1ac1fdc`实现已另经[宿主观测源码独立审查](d1387-host-observation-code-review.md)，核心静态C0/I0可进入唯一车道formalqueued，另有监听断言漏方法调用的测试M1待原作者修；不追改本节受审SHA与当时Minor，也不代表运行/after通过。
+
 ## 4. 本报告文档门禁
 
 仅新增本报告，并由先前源码审查追加后续审查入口；不更改 J 的受审稿、plan 状态或父维护的状态/索引账。D 的文档健康检查新增报告前后均 exit 0、0 errors / 46 warnings，warning 集合不变；本报告及所改旧报告的 frontmatter/本地链接新增问题为 0，`git diff --check` 通过。此门禁不是编译、类型或产品运行验证。
