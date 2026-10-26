@@ -18,9 +18,9 @@ summary: "从4963799b1e95干净基线分派C会话导航、D Tunnel重试、J配
 | 工位 / 子代理 | 整体模块与审查目标 | 当前阶段 |
 | --- | --- | --- |
 | C / conversation_navigation_contracts | D1382：默认编辑器 ReviewNav 工作根变化失效与正式 Context/DI 合同 | 方案 `27a9087c1a7` 经 Astra 只读 C0/I0，已进入实施；运行/实拍待验 |
-| D / tunnel_retry_contracts（Astra） | D1383：Tunnel 引用身份、getExisting 所有权与 provider 失败后重试；同时审查 C/J 方案 | 方案 `e451d5da071` 经 J 独立只读 C0/I0，Minor 已纳入，已进入实施 |
+| D / tunnel_retry_contracts（Astra） | D1383：Tunnel 引用身份、getExisting 所有权与 provider 失败后重试；同时审查 C/J 方案 | 方案 `e451d5da071` / 实施 `22386bcf3ae` 已到齐，经J独立方案/实施只读C0/I0；merge三路合入，尚待当前行为/类型验证 |
 | J / configuration_initialization_contracts | D1384：RemoteUserConfiguration 显式重试共有等待、reload 及销毁边界 | 方案 `f3006a5f30e` 经 Astra 复核 C0/I0/M0，已进入实施；首次缓存快返保留 |
-| merge / 集成者（待源提交） | 串行合入、旧生产身份核验、受控 red/green、唯一编译与必要真实界面复验 | 尚未启动新编译或写出产物 |
+| merge / 集成者（待源提交） | 串行合入、旧生产身份核验、受控 red/green、唯一编译与必要真实界面复验 | 已正式启动D1383受控red/green流程，未全量编译 |
 
 ## 工作约束与验收
 
@@ -37,3 +37,5 @@ D 没有采用泛化 test subclass 才能构造的 empty/string 三代 pending �
 J 保留首次远端环境 pending 时读取缓存，以及无远端环境的终态；仅失败后的显式重试让所有参与者共同等待同一次结果，reload 参加重试。Astra 的三项 Important 已纳入：attempt 身份归属、用显式错误记录保留 undefined/null 原拒绝、销毁取消与原始失败的优先规则。D747 一个远端实现源码字符串 pin 的替代必须映射真实公共行为回归，其他六项与历史证据保留。
 
 以上是已审方案与源码审计结论，未经 merge 实际运行及必要实拍不记 closed，不把 accepted 方案写成落地证明。
+
+D1383源码合入只发生status文档冲突，保留父当前分工/同步记录及D实施事实；本阶段保持方案accepted、缺口open。新产物仅由merge锁内顺序刷新，先钉496旧生产正文再test-only red，记录原始结果后才刷新生产。
