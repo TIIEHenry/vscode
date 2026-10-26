@@ -8,12 +8,12 @@ import { timeout } from '../../../../base/common/async.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentContextVariableListResult, UniverseAgentContextVariableReadResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentConnectionSnapshot, UniverseAgentContextVariableListResult, UniverseAgentContextVariableReadResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
 import { formatEngineContextVariableListLabel } from './engineContextVariableList.js';
 import { EngineContextVariableSection } from './engineContextVariableSection.js';
 import { createUnknownConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
-import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot, createTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
 
 suite('EngineContextVariableSection (browser)', () => {
 
@@ -69,10 +69,11 @@ suite('EngineContextVariableSection (browser)', () => {
 	test('late context read after pairing hold does not paint success', async () => {
 		let pairingPending = false;
 		let releaseRead: ((value: UniverseAgentContextVariableReadResult) => void) | undefined;
-		const connectionChanged = new Emitter<void>();
+		const connectionChanged = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const entry = { name: 'mode', scope: 'VARIABLE_GLOBAL' as const, updatedBy: '', updatedAt: 0, contentPreview: 'live' };
-		const capabilities = createEmptyTestCapabilitySnapshot();
-		capabilities.readContextVariable = { support: 'SUPPORTED' };
+		const capabilities = createTestCapabilitySnapshot({
+			readContextVariable: { support: 'SUPPORTED' },
+		});
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
@@ -96,7 +97,7 @@ suite('EngineContextVariableSection (browser)', () => {
 		parent.querySelector('.engine-context-variable-row')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		const readPromise = (section as unknown as { handleRead(): Promise<void> }).handleRead();
 		pairingPending = true;
-		connectionChanged.fire();
+		connectionChanged.fire(connection.getConnectionSnapshot());
 		await timeout(0);
 		releaseRead?.({ entry: { name: 'mode', content: 'late', scope: 'VARIABLE_GLOBAL', updatedBy: '', updatedAt: 0 } });
 		await readPromise;

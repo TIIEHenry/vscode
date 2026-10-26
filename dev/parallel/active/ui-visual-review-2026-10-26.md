@@ -1,10 +1,10 @@
 ---
 title: "2026-10-26 UI 与权限审查集成看板"
 type: progress
-status: completed
+status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1373–D1375 follow-up 已按真实行为与独立视觉闭合；当前唯一新编译 Sources 0、本轮改动 TS 0，全仓仍 160 条 / 58 文件未通过；Sources 官方 Electron 六套件 171 passing。首轮与本次日志分开保存。"
+summary: "D1376 Engine Catalog 合同已实施待 merge 验证；D1373–D1375 follow-up 已按真实行为与独立视觉闭合；当前唯一新编译 Sources 0、本轮改动 TS 0，全仓仍 160 条 / 58 文件未通过；Sources 官方 Electron 六套件 171 passing。首轮与本次日志分开保存。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -116,4 +116,6 @@ D1375 短方案按范围转 `implemented`，生成索引随源重建；D1373 / D
 
 ## D1376 Engine Catalog 合同基线
 
-D 工位以 `e2442d8b3ec` 开工，范围为当前 Engine Catalog 旧表单、连接事件与 readonly hooks、能力键、工作根、对话框及回调断言类型；[短方案](../../plans/engine-catalog-test-contracts.md) 待独立只读审查。D 不编译/转译/watch/写 out；最终编译与行为结果由 merge 统一记录，当前不宣称清零。
+D 工位以 `e2442d8b3ec` 开工，范围为当前 Engine Catalog 旧表单、连接 snapshot 事件与 readonly 能力构造、列表能力 namespace、工作根、对话框及回调断言类型；[短方案](../../plans/engine-catalog-test-contracts.md) 已获 J 独立只读审查（Critical 0 / Important 0）；方案 `b8ef18a4041` / 签收修稿 `1c4f891bc32`。D 不编译/转译/watch/写 out；最终编译与行为结果由 merge 统一记录，当前不宣称清零。
+
+D1376 源码已按当前合同迁移，MCP 旧 14 项保留并扩展至预期 20 项，包含真实共享 BrowserDialogHandler DOM 生命周期与确认跨断连/选择变化；完整[场景映射/静态结果](../../progress/ui-visual-review-2026-10-26-evidence/d1376-catalog-contracts.md)。D 工位只执行 ESLint 与文档检查，统一编译和实际行为结果尚未产生，D1376 保持 open。status 超出的 2026-10-16 十二批历史已整体移入[归档](../../archive/status-wave-2026-10-16-retained-2026-10-26.md)，没有删除。

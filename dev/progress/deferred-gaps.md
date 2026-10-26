@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "2026-10-26：D1373 四主题真实实拍、D1374 导航屏障及 D1375 Sources 合同范围内验收已闭合；当前新 compile-client Sources 0 诊断，全仓仍 160 条 TS / 58 文件，构建未通过；其余 D 项状态与历史失败证据保留。"
+summary: "D1376 Engine Catalog 合同已实施待 merge 验证；2026-10-26：D1373 四主题真实实拍、D1374 导航屏障及 D1375 Sources 合同范围内验收已闭合；当前新 compile-client Sources 0 诊断，全仓仍 160 条 TS / 58 文件，构建未通过；其余 D 项状态与历史失败证据保留。"
 
 
 
@@ -1325,3 +1325,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1373 | P2 | **closed** 独立 fresh Electron 视觉审查确认 `Input needed` 把 `badge.background` 当文字色，并以同色 16% 铺底：默认浅色约 1.42:1、深色约 2.17:1，等待处理标签呈禁用观感。源码为 `conversationLens.css` 的 `.conversation-lens-input-needed`（本轮 2832 起），截图与测色路径见 [本轮视觉证据](ui-visual-review-2026-10-26-evidence/visual-review.md)。 | D 工位源码已改为正常 foreground + 12% 中性淡底、8% 细边，高对比采用 contrastBorder，保持体积；同语义提问的 badge 前景/背景已配对，未改。新输出四主题真实 CSS + Seat DOM browser 4 项通过；独立四主题×三宽度 after 对比 7.75 / 9.06 / 16.48 / 11.55，键盘与体积保持，已按真实证据闭合 | 浅色、深色与高对比下标签文字可读，等待处理语义可辨，不以低对比表示状态；真实四主题×三宽度截图、测色与键盘复验已通过 | conversation / input-needed-contrast | closed |
 | D1374 | P2 | **closed** Sessions 的显式分屏聚焦、关闭当前与关闭全部原未取消较早的异步打开 / 窗口恢复；资源解析晚到后会重新激活目标，覆盖用户刚选的分屏或关闭结果。现这些入口取消旧导航；关闭无关分屏保留正在打开的目标，正常打开产生的同会话 focus echo 不自取消。 | 仅恢复最新明确导航意图的优先级，不改 provider 资源解析、后端会话生命周期、聊天内容或布局；14 条受控屏障 browser 行为测试已补，目标 ESLint 0 errors，merge 验明旧生产对应 0ea 后 red 3 过 / 11 败；刷新生产并纠正空 composer 占位夹具后 green 14 过，定向语义 0 | openSession / openChat 在新聚焦、active close、all-close 后的晚到结果不再改活动会话；empty-grid all-close 仍取消；无关 close 与正常 focus echo 继续完成；restore 同样服从显式导航 | sessions / navigation-cancellation | closed |
 | D1375 | P2 | **closed** 已按 [短方案](../plans/sources-compile-contracts.md) 修三个 `IAgentSessionContext` 装饰参数的 optional/union、SCM 空编辑器结果及 list-mode disposable store；TabsHost dispose 使用原注入 ReviewHost。正式 session 夹具覆盖全部直接构造/缺服务测试，新增会话 tab 往返/释放、双会话工作根与 SCM null/newTab/replace 6 项。merge 当前新编译 Sources 0、本轮改动 TS 0；原映射 9 条均消失，全仓仍 160 条 / 58 文件未过。官方 Electron 六套件 171 passing（含清理检查），新增 6 项全过；目标 11 TS ESLint 0 errors / 31 既有 warnings。 | 只修 Sources 正式注入、空值归一及会话 / 生命周期夹具；旧日志 6+2+1 共 9 条已逐点映射到修正源码，不据此推算剩余全仓诊断；无 any / 压制 / 删测 | merge 唯一新编译无本轮合同诊断；新产物定向回归覆盖会话 tab 往返/释放、工作根审阅隔离、SCM null/newTab/replace 与 filter 释放；真实日志与产物摘要已落本轮看板；仅闭合这三类合同根因，不宣称全仓构建通过 | sources / compile-contracts | closed |
+| D1376 | P2 | **Engine Catalog 测试合同基线**：MCP 旧内联 form API、能力快照 readonly/event、列表能力 namespace、完整 workroot、dialog 参数、空数组断言 never 与 unused | D 已实施并静态检查；按单编译约束只由 merge 新编译与行为验证 | [短方案](../plans/engine-catalog-test-contracts.md)；原 14 个 MCP 场景迁当前公共交互并扩至预期 20 项，真实对话框 DOM/各 Engine 套件与统一新编译验收；[映射与验证](ui-visual-review-2026-10-26-evidence/d1376-catalog-contracts.md)，不删测试/skip/复活旧UI | M7 Engine Catalog | open |

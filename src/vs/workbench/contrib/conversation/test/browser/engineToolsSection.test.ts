@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { createCatalogSessionContext, createCatalogWorkRoot } from '../common/engineCatalogTestFixtures.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -181,21 +182,6 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		};
 	}
 
-	function createSessionContextStub(overrides: Partial<IAgentSessionContext> = {}): IAgentSessionContext {
-		return {
-			_serviceBrand: undefined,
-			getActiveSessionId: () => 'sess-1',
-			isEngineSessionReady: () => true,
-			isPairingHold: () => false,
-			getActiveWorkRoot: () => ({ workDir: '' }),
-			onDidChangeActiveSession: Event.None,
-			onDidChangeSession: Event.None,
-			onDidChangeActiveWorkRoot: Event.None,
-			acquireSessionView: () => ({ snapshot: {} as any, attribution: new Map(), dispose: () => { } }),
-			...overrides,
-		} as IAgentSessionContext;
-	}
-
 	function mountSection(
 		connection: IUniverseAgentConnection,
 		sessionContext?: IAgentSessionContext,
@@ -204,7 +190,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
-		instantiationService.stub(IAgentSessionContext, sessionContext ?? createSessionContextStub());
+		instantiationService.stub(IAgentSessionContext, sessionContext ?? createCatalogSessionContext());
 		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
 		section.setSectionActive(true);
 		section.layout(640, 160);
@@ -738,9 +724,10 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		const onDidChangeActiveSession = store.add(new Emitter<string>());
 		const onDidChangeActiveWorkRoot = store.add(new Emitter<IAgentWorkRoot>());
 
-		let currentWorkRoot: IAgentWorkRoot = { workDir: '/workspace/initial' };
+		let currentWorkRoot: IAgentWorkRoot = createCatalogWorkRoot('/workspace/initial');
 
-		const sessionContext = createSessionContextStub({
+		const sessionContext = createCatalogSessionContext({
+			getActiveSessionId: () => currentWorkRoot.sessionId,
 			getActiveWorkRoot: () => currentWorkRoot,
 			onDidChangeActiveSession: onDidChangeActiveSession.event,
 			onDidChangeActiveWorkRoot: onDidChangeActiveWorkRoot.event,
@@ -766,7 +753,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.deepStrictEqual(listProfilesRequests[0], { projectPath: '/workspace/initial' });
 
 		// 1. Change active session
-		currentWorkRoot = { workDir: '/workspace/session-2' };
+		currentWorkRoot = createCatalogWorkRoot('/workspace/session-2', 'sess-2');
 		onDidChangeActiveSession.fire('sess-2');
 		await flushMicrotasks();
 
@@ -776,7 +763,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.deepStrictEqual(listProfilesRequests[1], { projectPath: '/workspace/session-2' });
 
 		// 2. Change active work root
-		currentWorkRoot = { workDir: '/workspace/workroot-change' };
+		currentWorkRoot = createCatalogWorkRoot('/workspace/workroot-change', 'sess-2');
 		onDidChangeActiveWorkRoot.fire(currentWorkRoot);
 		await flushMicrotasks();
 
@@ -786,7 +773,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.deepStrictEqual(listProfilesRequests[2], { projectPath: '/workspace/workroot-change' });
 
 		// 3. Change work root to empty
-		currentWorkRoot = { workDir: '' };
+		currentWorkRoot = createCatalogWorkRoot('', 'sess-2');
 		onDidChangeActiveWorkRoot.fire(currentWorkRoot);
 		await flushMicrotasks();
 

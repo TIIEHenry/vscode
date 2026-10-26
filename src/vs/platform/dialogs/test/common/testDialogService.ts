@@ -5,7 +5,7 @@
 
 import { Event } from '../../../../base/common/event.js';
 import Severity from '../../../../base/common/severity.js';
-import { IConfirmation, IConfirmationResult, IDialogService, IInputResult, IPrompt, IPromptBaseButton, IPromptResult, IPromptResultWithCancel, IPromptWithCustomCancel, IPromptWithDefaultCancel } from '../../common/dialogs.js';
+import { IConfirmation, IConfirmationResult, IDialogService, IInput, IInputResult, IPrompt, IPromptBaseButton, IPromptResult, IPromptResultWithCancel, IPromptWithCustomCancel, IPromptWithDefaultCancel } from '../../common/dialogs.js';
 
 export class TestDialogService implements IDialogService {
 
@@ -66,7 +66,7 @@ export class TestDialogService implements IDialogService {
 	async error(message: string, detail?: string): Promise<void> {
 		await this.prompt({ type: Severity.Error, message, detail });
 	}
-	async input(): Promise<IInputResult> {
+	async input(_input?: IInput): Promise<IInputResult> {
 		if (this.inputResult) {
 			const inputResult = this.inputResult;
 			this.inputResult = undefined;

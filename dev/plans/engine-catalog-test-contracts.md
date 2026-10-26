@@ -33,3 +33,7 @@ D 仅静态读码、目标 ESLint、diff/docs 检查，不编译/转译/watch/�
 ## 只读审查
 
 J 于 2026-10-26 对照生产 MCP/Dialogs/Triggers 只读审查：Critical 0、Important 0。采纳三项 Minor：未知 transport 预填为空；补等待确认期间断连或选中变化拒绝写入；本次初稿已独立提交，审查修稿再独立提交后实施。方案文案已校准 snapshot readonly 与列表能力命名空间。
+
+## 实施进度
+
+2026-10-26 源码已按上述边界迁移；MCP 基线 14 项场景全部映射，当前预期注册 20 项（未运行），其中真实 BrowserDialogHandler 验证旧可见性断言的共享所有者。`TestDialogService.input(_input?: IInput)` 保持旧无参调用兼容。目标 ESLint 0 errors / 57 warnings，未编译、转译或写 out。方案保持 accepted、D1376 open，待 merge 统一新编译与真实套件；[详细映射](../progress/ui-visual-review-2026-10-26-evidence/d1376-catalog-contracts.md)。

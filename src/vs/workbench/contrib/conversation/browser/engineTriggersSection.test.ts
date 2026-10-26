@@ -10,6 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
+	UniverseAgentConnectionSnapshot,
 	UniverseAgentDeleteTriggerResult,
 	UniverseAgentFireTriggerResult,
 	UniverseAgentListTriggersResult,
@@ -92,7 +93,6 @@ suite('EngineTriggersSection (browser)', () => {
 			runAtEpochMs: 0,
 		};
 		const capabilities = createTestCapabilitySnapshot({
-			listTriggers: { support: 'SUPPORTED' },
 			setTriggerEnabled: { support: 'SUPPORTED' },
 		});
 		const connection = createConversationConnectionTestStub({
@@ -136,13 +136,13 @@ suite('EngineTriggersSection (browser)', () => {
 		let releaseFire: ((value: UniverseAgentFireTriggerResult) => void) | undefined;
 		let releaseDelete: ((value: UniverseAgentDeleteTriggerResult) => void) | undefined;
 		let releaseUpsert: ((value: UniverseAgentUpsertTriggerResult) => void) | undefined;
-		const connectionChanged = new Emitter<void>();
+		const connectionChanged = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const trigger: UniverseAgentTrigger = {
 			triggerId: 'nightly', name: 'Nightly build', type: 'cron', promptTemplate: 'run checks', enabled: true,
 			pauseReason: '', target: { kind: 'self' }, intervalMs: 0, cronExpression: '0 0 * * *', runAtEpochMs: 0,
 		};
 		const capabilities = createTestCapabilitySnapshot({
-			listTriggers: { support: 'SUPPORTED' }, fireTrigger: { support: 'SUPPORTED' },
+			fireTrigger: { support: 'SUPPORTED' },
 			deleteTrigger: { support: 'SUPPORTED' }, upsertTrigger: { support: 'SUPPORTED' },
 		});
 		const connection = createConversationConnectionTestStub({
@@ -170,8 +170,8 @@ suite('EngineTriggersSection (browser)', () => {
 		await timeout(0);
 		parent.querySelector('.engine-triggers-row')?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 		const internals = section as unknown as { handleFire(): Promise<void>; handleDelete(): Promise<void>; handleUpsert(mode: 'add' | 'edit'): Promise<void> };
-		const enterPairing = async (): Promise<void> => { pairingPending = true; connectionChanged.fire(); await timeout(0); };
-		const leavePairing = async (): Promise<void> => { pairingPending = false; connectionChanged.fire(); await timeout(0); };
+		const enterPairing = async (): Promise<void> => { pairingPending = true; connectionChanged.fire(connection.getConnectionSnapshot()); await timeout(0); };
+		const leavePairing = async (): Promise<void> => { pairingPending = false; connectionChanged.fire(connection.getConnectionSnapshot()); await timeout(0); };
 
 		const firePromise = internals.handleFire();
 		await enterPairing(); releaseFire?.({ status: 'fired', eventId: 'late', reason: '' }); await firePromise;

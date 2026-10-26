@@ -127,20 +127,6 @@ function presetHost(url: string): string {
 	}
 }
 
-function formatProviderRowSummary(provider: UniverseAgentProviderStatus): string {
-	const parts: string[] = [
-		provider.providerId,
-		provider.protocol,
-		formatProviderConfiguredLabel(provider.configured),
-		formatProviderCredentialSource(provider.credentialSource),
-		provider.hasBaseUrl
-			? localize('ua.engineProviderHasBaseUrl', "base URL set")
-			: localize('ua.engineProviderNoBaseUrl', "no base URL"),
-		getModelEnabledLabel(provider.enabled),
-	];
-	return parts.filter(part => part.length > 0).join(' · ');
-}
-
 function formatModelRowSummary(model: UniverseAgentModelEntry): string {
 	const parts: string[] = [model.type, model.modelId, String(model.level)];
 	if (model.cost) {
