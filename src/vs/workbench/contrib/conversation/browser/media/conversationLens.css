@@ -4081,6 +4081,11 @@
 	opacity: 0.65;
 }
 
+/* Read-only agent text has no picker; the inherited chevron overlaps its label. */
+.monaco-workbench .part.conversation .conversation-lens-dock-bottom-bar .conversation-lens-dock-agent:has(.conversation-lens-dock-agent-readonly):after {
+	display: none;
+}
+
 .monaco-workbench .part.conversation .conversation-lens-dock-bottom-bar .conversation-lens-dock-permission[aria-disabled="true"]:after,
 .monaco-workbench .part.conversation .conversation-lens-dock-bottom-bar .conversation-lens-dock-agent[aria-disabled="true"]:after,
 .monaco-workbench .part.conversation .conversation-lens-dock-bottom-bar .conversation-lens-dock-model[aria-disabled="true"]:after {
