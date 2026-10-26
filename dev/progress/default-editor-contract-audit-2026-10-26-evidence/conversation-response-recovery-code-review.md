@@ -855,3 +855,41 @@ reviewer逐条追踪了旧失败路径与新门的位置：原旧renderer可用�
 原方案§9.4、知识文档与行动层已记录真实70失败、公开判定、local正控及未运行边界，未将accepted改implemented。E自报六TS无checker/emit parse与lint通过属于作者静态证据；reviewer仅独立做源码/测试/文档审查及Git diff whitespace检查，不称已重新执行这些工具或业务。
 
 **可进入唯一lane，不能直接签收产品。** 顺序保持：用新测试JS配精确旧4919/compile8生产验证代表性假Allowed/clear业务red并保留原件；正式合入已审源码后完整native编译、相关target/套与必要校验；发新source/native冻结身份，再做独立默认编辑器J/E after。任何missing API、模块加载、类型或timeout不冒充业务red。旧800d的J/E封存、§25的after FAIL与原观察器失败均不回写；最终断连必须同时核禁止本地假成功与零远端写入，不能再只数RPC。
+
+
+## 27. compile9六TS2352留存与正式窄宿主c3f9fd独立复读（2026-10-27）
+
+**固定类型补修候选：Critical 0 / Important 0 / Minor 0，可交唯一lane完整重编译及运行验证。** 这是原E断连写门合同内的类型修正，不是新的产品行为、green或after完成。§26当时的C0/I0源码审查记录原样保留；其静态复审未识别测试route整体断言的兼容性问题，不能用当时“未做checker”淡化随后实际compile9失败。
+
+### 实际失败与旧红分开记
+
+reviewer读取唯一lane durable commit `7148fa2799e6c5527c4b8a46626ace22fb7870eb`的构建记录，以及`/tmp/vscode-e93-ninth-native-build.log`原件：完整`compile-client`在正式合源`fd693f34da180a8fbfbabaa641bb0cb3ccae3680` / src `2e04cd45ef6d2861785fadda42e488fd20cbf965`上exit1，tsgo报六条TS2352。五处route向完整ComposerHost转换位于755:21、3594:37、3653:35、3666:42、3675:42；758:18转完整BindingHost。原始log SHA256 `6cdea5d414e1efb633367a2bbf96b8bb464f1d2b3057845d25a4380f48df15cd`。emit阶段显示0错误不能覆盖后续checker失败；253个已emit source/native pair属于失败compile9身份，不是可签收freeze，也不能继承compile8的exit0。
+
+旧业务red在此前已实际成立：reviewer从同durable Git对象读取`e93-old4919-compile8.json/.log`，log SHA256 `c7b9fc3ce711946953d19f718bfb974dbf9d03615b5d9f44ff8088d65b00cba8`，实际3 passing / 7 failing，七项均进入AssertionError。首项明确命中`a disconnected click must not authorize the cached model`，不是missing API/module/timeout；clientTool原callback、never-connected local与pairing/not-ready三项已过。该运行使用93测试JS配精确旧4919/compile8生产，运行producer为`bd1b756066932d524f5de5f6b8fdc247c70d46f5`，当时source tree仍`2b5df2…`。lane记录finally原163存在性/mode/bytes/SHA恢复，以及新emit前额外四native/map精确旧源补证；父已复核。reviewer没有再次运行旧红或恢复产物，也不把后来的253扩集倒称旧红前完整闭包。
+
+### 固定候选与正式类型设计
+
+| 项 | 身份 / 范围 |
+| --- | --- |
+| 候选 | `c3f9fd04f9eb46c74170aa06e65054b80ac974b9` |
+| 实际parent | `93e36abc7ad915608d546f0bcd17b8b2e221dacf` |
+| src tree | `58b3f3e8d69e2177eefe0a7dd7c0a74b0a7a1c4c` |
+| 路径 | 5：Composer/Binding两生产类型调整、Roster测试、原方案§9.5、行动进度 |
+
+reviewer在读取诊断与实际函数依赖后批准正式窄接口，避免为完整UI宿主构造无关假widget：`IConversationLensPostHost`精确Pick原ComposerHost的uaConnection/stubService/getBoundSessionId/sessionViewLease四字段；`IConversationLensResponseHost`精确Pick原BindingHost的isDisposed/stubService/uaConnection/getBoundSessionId/showPostFailure/focusTimelineRecord/postBound七字段。原字段的完整服务类型、必需性、只读修饰、参数与返回值由Pick保留；没有Partial、any、unknown、双重cast或新optional放松。原完整生产host仍结构满足子合同。
+
+postBound只改静态host参数；三种响应函数与断连guard同样只改参数类型。fixture显式构造两Pick交集，加真实非undefined lease，回调返回`Promise<PostOutcome>`，六处整体断言全部消失，`binding=route`无需cast。新的alias只type-import，不新增旧生产对照所需的运行期export；真实TimelineHost→Binding→postBound→cached stub lease链和全部模型/pending/accepted断言仍在。该修正表达真实函数依赖，没有给测试另开绕过产品写门的入口。
+
+### Strengths与精确连续性
+
+reviewer独立从固定Git对象作完整文本对照：删除新增两条type alias及其注释、把限定函数参数类型还原后，Composer和Binding整文件均与93逐字相同，故所有运行body、执行顺序、调用与运行期import均保留。ReadingColumn、Availability及ReadingColumn测试整文件也与93一致。
+
+Roster测试按明确白名单做全文变换：增加PostOutcome type import、更换两个宿主type import、route显式注解、回调返回类型注解、移除六个整体cast；变换结果与候选全文精确相等。候选测试SHA256 `468b553d859af929633d73ae885160250136641414374578bdaff9ddd66d9647`。因此10项业务断言没有删除、移动判定目标或放松；结合§26的原suite逐字证明，旧160声明保持。reasoning所在Projection整文件仍同93/4919，原`hmm\nthen this`预期不变。
+
+### Critical / Important / Minor / Assessment
+
+Critical 0 / Important 0 / Minor 0（仅本次固定补修）。所需字段可由显式fixture完整满足，完整roster与connection仍受原接口约束；未发现需要退回作者的新增类型/行为设计问题。源码检查不能替代checker，这里只确认六个违规cast已按准确正式合同消除，不宣称六诊断已经实际验证为零。
+
+E自报三TS无checker/emit parse与lint通过；reviewer只读Git、日志与文本差异，独立`git diff --check`通过，未执行编译/typecheck/transpile、未写out、未运行业务。§9.5与行动层已保留3/7旧红和compile9失败事实，方案仍accepted；本次无需另开plan或改PRD/D状态。
+
+后续须按父授权由唯一lane接入固定补修，重新完整native compile；成功后再运行10项及相关套，发新source/native冻结身份并安排独立J/E after。compile9失败产物、旧J/E stage FAIL、§24生命周期候选、焦点Minor候选、timeline-only BOUNDARY与reasoning旧红继续保留，不能用本次type-only审查代替新运行或洗掉旧失败。

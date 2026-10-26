@@ -458,3 +458,9 @@ D提供的[不可变字节快照静态ASTmembership](e93-ninth-native-build.cand
 本次资源预检只读：home当时652,673,024 bytes，fullcompile仅按已有任务重建merge自有out；编译后652,189,696 bytes。三已授cache稳定symlink全部保留，无partial restore、无额外删除、未触他方cache/证据或main WIP/out。旧红只在原163与新emit前额外4旧native完整字节补核的准确范围内成立，不把新82闭包的本轮产物倒称旧红前guard。
 
 条件授权要求compile非0即停，所以新10 green、完整Roster/ReadingColumn、Composer/Binding/Availability相关suite与静态lint均**未执行**；JSON列出的10个相关test路径只是按受影响postBound/真实Binding门的直接import选择的后续计划，不是已运行矩阵。原reasoning `hmm\nthen this` 与旧Accept红保持，新源码上的J/E after也未运行。原484 artifacts逐bytes/SHA全保，新增六份构建原件与一份253守卫后现 **491**，status200。E旧after仍FAIL、原方案accepted，旧D/PRD/整波均未关闭，等待原E不可变类型补修及独立peer明确交付后继续唯一lane。
+
+## c3正式窄宿主类型补修独审§27接入
+
+实际完整读取明确交付Astra不可变 **`f3f9b17a3e25a7a6ba9c08aaa7de0d7fadc3b85a`**（父b024，仅report§27/INDEX）及c3五路径diff后，真正三路接入。[597路径mode/type/blob门禁](je-formal-E-c3-types-peer-merge-identity.json)PASS；report精确incoming、旧§1–26正文为逐字前缀，INDEX双方全文与理由见[证明](je-formal-E-c3-types-peer-conflict-resolutions.json)。原491 artifacts逐bytes/SHA全保，加四merge证明现495，status200，src仍2e04，native仍失败compile9的253精确身份，无新运行或freeze。
+
+§27固定 **c3f9fd04f9eb46c74170aa06e65054b80ac974b9 / src58b3f3e8d69e2177eefe0a7dd7c0a74b0a7a1c4c** 的C0/I0/M0只读审查：正式Composer四字段Pick/Binding七字段Pick，fixture显式交集与实际lease，移除六整体cast，不用unknown/any/Partial，不放松既有服务契约。两生产仅types/参数、运行body不变，十业务断言/旧160/reasoning保持。真实compile9六错与此前3/7业务红都保留，静态审查不替代checker或green。父已再次独核额外4旧native/map与deterministic/Git旧源精确相等，准确限定补核在oldred后/新emit前，不倒称父重编或全闭包旧guard。下一步仅stdout→tmp验证新testJS运行正文是否与93实际旧红JS完全一致，再按条件合源与唯一完整compile10；失败即保留partial身份退原作者，不freeze/UI或关闭波。

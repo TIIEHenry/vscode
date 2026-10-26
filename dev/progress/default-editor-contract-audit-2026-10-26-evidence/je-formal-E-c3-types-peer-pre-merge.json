@@ -1,0 +1,12 @@
+{
+  "phase": "before-real-three-way-explicit-c3-type-only-independent-peer",
+  "ours": "7148fa2799e6c5527c4b8a46626ace22fb7870eb",
+  "theirs": "f3f9b17a3e25a7a6ba9c08aaa7de0d7fadc3b85a",
+  "mergeBase": "b024d6b7d137eea3f3bdad63c18a988e8d285c75",
+  "incomingParent": "b024d6b7d137eea3f3bdad63c18a988e8d285c75",
+  "recordedAtUtc": "2026-10-26T22:27:23.773089+00:00",
+  "incomingNetChangedPaths": [
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md"
+  ]
+}

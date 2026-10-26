@@ -1,5 +1,5 @@
 {
-  "phase": "E93-actual-full-compile9-FAIL-six-TS2352-test-fixture-diagnostics-native253-partial-failed-build-preserved-no-newgreen-freeze-or-after",
+  "phase": "c3-type-only-independent-peer-integrated-C0-I0-M0-failedcompile9-retained-continuity-and-compile10-pending",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -3436,6 +3436,34 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-ninth-native-preservation.json",
       "bytes": 107226,
       "sha256": "664ef7c507a9456df39d6a3fe27a0be99d497e7d4f0293767cf6cd772ddf72ee",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-c3-types-peer-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-c3-types-peer-pre-merge.json",
+      "bytes": 596,
+      "sha256": "8b870884ea6173458c1e218ae0c895c01a63e3eac528363a0e45542cea9f62b9",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-c3-types-peer-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-c3-types-peer-merge.log",
+      "bytes": 258,
+      "sha256": "e79030392ad87cbb4f1060ef97eb0a084b9d33d459e71a66a29df17eccb1ae25",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-c3-types-peer-conflict-resolutions.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-c3-types-peer-conflict-resolutions.json",
+      "bytes": 12154,
+      "sha256": "224f62b0a6be430532f8b4fb4c9851620c5c08d85d4bf1e4dbdda73deb175130",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-c3-types-peer-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-c3-types-peer-merge-identity.json",
+      "bytes": 331077,
+      "sha256": "d3e3a63b4487b4f697d0db58967fb52d4ac0db995a9685181a6aa70fe30a537b",
       "bytePreservingCopy": true
     }
   ]
