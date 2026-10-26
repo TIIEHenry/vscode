@@ -3,7 +3,7 @@ title: "Agents 交互测试配置"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-10-09
+updated: 2026-10-26
 summary: "「启动 / 启动一下」复用 ~/.universe-agent-studio-test，用 --new-window 开编辑器窗口。不要加 --agents，否则会恢复上次的 Agents 窗口。IDE 与钉死引擎共用 UNIVERSE_AGENT_HOME。"
 ---
 
@@ -28,6 +28,8 @@ summary: "「启动 / 启动一下」复用 ~/.universe-agent-studio-test，用 
 ## 2. 启动
 
 用户说「启动」或「启动一下」时走本节，打开默认编辑器窗口。命令里带 `--new-window`，不要加 `--agents`。用户明确说打开 Agents 时，才去掉 `--new-window` 并追加 `--agents`。不要改用 `launch.sh`，也不要改用 `~/.vscode-oss-dev` 或 `~/.universe-agent-studio`。
+
+Agents Window 仅作上游对照，不属于本项目使用、UI 审查或交付验收范围（[产品愿景](../product/vision.md)）。上面的 `--agents` 分支只供用户明确要求查看对照界面时使用。
 
 `scripts/code.sh` 放在参数最前面的 `.` 是开发用的 Electron 应用目录，解析时会被去掉，不会当成要打开的文件夹。这份测试配置如果上次停在 Agents 窗口，不带路径、也不带 `--new-window` 时，会按窗口恢复把 `agent-sessions.code-workspace` 再打开，加载的是 Sessions 壳。`--new-window` 在没有文件夹参数时新开一扇空的编辑器窗口。
 

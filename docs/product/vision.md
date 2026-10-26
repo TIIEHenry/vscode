@@ -3,7 +3,7 @@ title: "Agent IDE 产品愿景"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-21
+updated: 2026-10-26
 summary: "本仓 Agent IDE：主流程在 Conversation，配套按完整 IDE 配齐；视觉以 ChatGPT 为主参照、Cursor 作 IDE 布局参照、密度参考 IntelliJ IDEA（2026-10-21）；当前范围是无引擎默认窗产品壳"
 ---
 
@@ -32,7 +32,7 @@ summary: "本仓 Agent IDE：主流程在 Conversation，配套按完整 IDE 配
 
 本产品是 **Agent IDE**：IDE 多功能区保留；**主工作流程在 Conversation**。原 IDE 在编辑器里完成的主工作，现在在对话里完成。Preview、Sources、导航、终端等是配套设施，按完整 IDE 配齐，但不是主工作区。
 
-默认入口是 **默认桌面窗口**，不是 Agents Window。Agents Window 只作对照参考，不是用户打开产品时的主窗口。
+本项目只使用 **默认桌面窗口（默认编辑器窗口）**。Agents Window（`src/vs/sessions/`）仅作上游界面与实现对照，不属于本项目的产品使用、UI 审查或交付验收范围。保留其实现规格和历史记录供参考，不据此安排本项目的界面开发与验收；用户明确要求对照时才查看该窗口。
 
 ## 体验原则
 
