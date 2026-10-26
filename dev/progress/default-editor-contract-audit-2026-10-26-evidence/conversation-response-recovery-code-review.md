@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留M01修订历史；compile6实际通过但新运行暴露Pane自有diff view model缺失I1，24/2与410/2非green；局部生命周期补修待。"
+summary: "保留VM/SCM失败与fccde混合旧红；64a4完整组级progress夹具定向C0/I0/M0，准确生命周期旧红/compile7及39项、新freeze待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -456,3 +456,76 @@ Pane、Panel no-unhandled负控、WiringScan三blob逐一与父相同；旧Accep
 父已明确接受上述判定并授权原J局部实施；**仍属原M01生命周期补修，不新增产品契约、resolver/服务或全局DiffEditorWidget改造，无需另开方案/重复规则16。** 若实现扩大到全局widget引用计数或跨Pane共享owner，则超出本判定，须重新审查。禁止关闭leak检查、压console、mark singleton、测试手工释放产品私有VM、用超时碰运气，或删真实parts/Pane覆盖。
 
 原J不可变补修尚待；后续peer需核创建/异常/代际及清理顺序，唯一lane再实际验证首真实入口无泄漏并完成其余14及相关套。§14 C0/I0仅静态类型补修，不抹掉本轮新实际Important；M01/D1387仍open。reviewer本轮仅报告+INDEX，未运行native、未改产品/tests/D或out。
+
+
+## 16. Pane自有diff view model补修定向peer（2026-10-27）
+
+受审不可变 `a166d422747b1e123109d0f7cec527821c06b04c`，父 `0da326c052fdaac3d6ff9e2118ba95b001868f1f`，src `1ec396de28fa1b72295648f08366056d5a2119ca`。仅Pane、MoveSource test及3行动文档，未扩大到全局widget。reviewer独立核父/src、完整代码diff、创建/清理上下文、测试fixture与dispose观察；Pane SHA256 `e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`，test `5c0012d0814870c9aff596a764ae3cd0b4029c7d6192766347e3285558ab4f3b`，与作者交付同。
+
+### Critical 0 / Important 0 / Minor 0
+
+**§15 I1源码实质闭合。** Pane注册自己的MutableDisposable<IDiffEditorViewModel>，公开createViewModel所得真实对象先登记，再setModel(viewModel)，不再丢失raw model隐式创建的VM。clearEditors保留先清cursor监听、detach widgets、清widgets，随后清Pane自有VM，最后清原/改text references；setInput换入、clearInput、dispose共用此入口。MutableDisposable在正常清理后为空，super.dispose不会再次释放同一个已清VM。
+
+**异步与模型边界保持。** 两次await取得text references后的disposed/input/token/renderGeneration检查逐字不变，失效/解析失败只清此次局部refs并返回，不写VM字段。guard后创建并登记VM至widget.setModel之间没有新await，未引入旧完成覆盖新VM的窗口。无original的modified-only路径仍只用CodeEditorWidget，不创建VM；既有失败路径也不虚造VM。DiffEditorViewModel持有模型供计算而不负责dispose原/改文本，Pane先detach再清VM与最后释放各自reference，不将同tuple两Pane合成一个共享VM owner，关B不主动销毁A的文本。创建成功后若setModel等同步步骤抛出，VM已经登记给Pane，仍可由既有clear/dispose收回，未形成无主返回值。
+
+**新增回归是观察产品释放，不是测试补释放。** `real Pane comparison view models release on replacement, clear and dispose`用真实Pane与真实双侧model；spy公开createViewModel取得实际返回VM，再spy其公开dispose，依次要求换input、clearInput、Pane.dispose各调用原VM.dispose一次，并核clear后无control。sinon.spy保留原方法执行，测试没有直接调用VM.dispose、mark singleton、关闭leak或吞console；finally只恢复spy。fixture compare参数默认false，原反馈用例仍为原modified-only设置；原4入口与其余38场景expected不改，新增1场景使作者源码集合为39，不代表39已运行。
+
+Actions、Helper、全局DiffEditorWidget、Panel no-unhandled负控和WiringScan blob均逐一与父相同；Move完成/关闭代数及旧Accept扫描不变。作者AST/lint和文档门禁属其声明，本reviewer未重跑AST/lint/编译/native/UI；本次不可变diff-check通过。
+
+### Assessment
+
+**定向C0/I0/M0允许继续父调度的验证；不签运行green。** 原始24/2与410/2泄漏失败及23/1旧scan边界完整保留于§15。新增生命周期测试应由唯一lane配精确旧0da Pane实际验证旧释放断言失败，再对新src实际完整编译与39项、完整相关套复验；原4入口业务旧红来自各自原harness身份，不能混作新生命周期旧红。实际无泄漏、余14及新freeze/D after仍待。
+
+B起点clean `5972836d932ff0cbde50c970b672743e0eee8563`，src fdca不变；只写原报告+INDEX，短C/I已交父/原J/唯一lane。本补修保持§15父授权局部生命周期范围，不需要新的方案或全局架构设计。
+
+
+## 17. a166生命周期旧跑的SCM夹具失败与依赖复核（2026-10-27）
+
+§15三个第六轮raw/JSON现已永久落入唯一lane提交 `fb214e7e06c7e23ede11003bfdb1d5b4f86a7db8` 的同证据目录。reviewer独立Git读取其中 `m01-sixth-M01-focused.log`、`m01-sixth-J-complete-11.log`、`m01-sixth-J-wiring-scan.log`，三SHA256均与§15所列完全相同；长期原件以该提交为准。
+
+随后唯一lane以精确旧0da Pane及a166新增生命周期test实际执行selector `real Pane comparison view models release`，**0 passing / 1 failing，生命周期业务旧红0**。reviewer已读 `/tmp/vscode-m01-old0da-a166-lifecycle.log` 及JSON，raw SHA256 `51ce0aea9498f185b9853269bba12235ae0f686f4ad3757000c461a408c44f43`；失败为 `this.scmService.onDidAddRepository is not a function`，native SourcesChangesReadModel.js:62→feedbackPane test.js:400→case:439，尚未创建VM或到replacement disposal断言。不是释放行为旧红；clear/dispose后续断言也未到达。
+
+**本轮新增C0/I1/M0，I1限定测试夹具依赖。** feedbackPane将ISCMService覆写为只提供repositories=[]的mock，而真实SourcesChangesModel构造器必调onDidAddRepository和onDidRemoveRepository。此前38项运行在首真实入口的afterEach即abort，后面的反馈helper尚未执行；不能把24已过扩成此helper已经可运行，也不能用§16限定VM源码peer推导夹具通过。§16生产所有权静态结论保留，此运行问题必须由原J补。
+
+独立读完整SourcesChangesModel、connection helper、session stub、Pane构造及workbench基座后，最小建议为同一SCM stub补两个公开Event.None事件，并保留repositories=[]和真实model/scheduler。空repo不触发provider的资源/组订阅；connection helper已提供连接事件、phase/snapshot/isEngineConnected/capabilities，session有active/pairing/readiness及两事件；workspace.getWorkspace、model/resolver由基座提供，diffProvider已显式stub。当前断开连接/无read hook路径不调用engine RPC或acquireSessionView。未发现第二个确定缺失依赖，但此静态核对不保证后续运行全过；不得删除真实model、绕过refresh、屏蔽leak/console或补产品私有dispose。
+
+lane JSON记录source `fb214e7e06c7e23ede11003bfdb1d5b4f86a7db8` / src d5eca，current compile6的163输出存在性/mode/SHA、对应source及旧Pane均已finally恢复，HEAD/src/clean不变；此为其执行声明，不是reviewer逐产物复跑。a166未合、第七次完整编译未开始、未freeze/UI。已将两事件与完整依赖检查建议交原J/父；待新immutable修订定向peer后由唯一lane再跑，所有旧失败原件保留。
+
+
+## 18. 完整空仓SCM夹具修订定向复读（2026-10-27）
+
+受审不可变 `fccde4afb3eeca0b9264b732efef6b5e31e4b380`，父 `a166d422747b1e123109d0f7cec527821c06b04c`，src `898787fffa49d6aa28e67eb917b8f899d95d5a8c`。4路径仅1测试及3行动文档；独立Git核src变更列表仅MoveSource test，全部生产与a166相同。test SHA256 `2011e14ecdd055a745f403e480afd00ffb9abfd799d3e9c6b5f249dfcee49df6`，Pane仍 `e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`。
+
+**Critical 0 / Important 0 / Minor 0（§17夹具I1源码闭合）。** feedbackPane用完整空仓literal并satisfies ISCMService替换不完整mock：必需onDidAddRepository/onDidRemoveRepository均Event.None，repositories=[]、repositoryCount=0、两个getRepository输入形状皆返回undefined；未用registerSCMProvider显式抛错，不伪造成功。直接与当前公开接口逐项核对，没有broad cast把缺成员藏起来。真实SourcesChangesModel构造与scheduler/refresh、真实Pane与VM仍运行；未删真实依赖、吞构造错误、关闭leak/console或代替产品dispose。
+
+构造所需connection/session事件与两SCM事件齐备；空仓refresh读取空repositories、基座workspace folders以及已有连接/session facts，仍遵循§17已独立读过的真实路径。原connection stub断开、无read hook，不触发engine RPC/lease；模型resolver、diffProvider和interaction由原fixture/基座提供。未发现另一确定依赖遗漏；这是静态依赖核查，未到达的实际运行仍须执行，不能预先保证39项通过。
+
+原4真实Move入口之前的完整源码区与a166逐字一致；从新增生命周期test开始直至文件末的完整区也逐字一致，全部39场景expected、replacement/clear/dispose观察、finally恢复spy和反馈负控未改。Pane所有权补修与Move关闭代数不受此次fixture修订影响，§16生产静态结论继续有效。
+
+§17生命周期首轮夹具失败现有永久原件 `65cf42e3dfebd6cead138669c2c2762ca12dc3cb`。reviewer直接Git核其中 `m01-old0da-a166-lifecycle.log` SHA256 `51ce0aea9498f185b9853269bba12235ae0f686f4ad3757000c461a408c44f43` 与§17临时raw相同；其0 passing/1 TypeError、生命周期业务红0历史保留，不改成通过。
+
+**Assessment：允许唯一lane用本次test配精确旧0da Pane重新验证生命周期业务旧红，再按父调度第七次实际完整编译和39项/完整相关套。** 新运行结果未到时，不把原Move四红当生命周期旧红，不把完整fixture静态合同当运行green；新freeze/D after仍待。作者AST/lint未由reviewer重跑；B起点clean `18828520a95670cc4aa212552fb01cbc0929ed49`、src fdca不变，仅原报告+INDEX，无compile/typecheck/transpile/out/native/UI。
+
+
+## 19. 生命周期混合旧红的进度服务定界与补修复读（2026-10-27）
+
+### fccde实际结果：已达业务断言，但夹具仍有独立错误
+
+唯一lane以fccde新test配精确旧0da Pane实跑0 passing / 2 failing。reviewer直接读 `/tmp/vscode-m01-old0da-fccde4afb3ee-lifecycle.log` 与JSON，raw SHA256 `5f10852bcf649322992f992cacfa06a54d38409177a304ded066b12894dfd213`；source为 `65cf42e3dfebd6cead138669c2c2762ca12dc3cb` / src d5eca。首失败准确为 `replacing input must release its comparison view model`（false !== true），已经创建VM并到替换释放业务断言；第二afterEach失败为unexpected TypeError读undefined.show，clear/dispose后续断言未达。应记录**1条真实业务AssertionError与独立夹具错误并存，非干净纯业务旧红**；JSON的保守lifecycleOldBusinessRed=false不代表业务断言从未到达，也不能把mixed结果包装成满足门禁的纯红。
+
+独立读恢复后的native与不可变TS确认：native DiffEditorWidget.js:350对应TS:404 `_editorProgressService.show(true, 1000)`，位于新model初始化的isInitializingDiff autorun，从setDiffModel事务触发；这是缺IEditorProgressService，**不是旧悬置VM在widget销毁后异步回调的次生错误**。真实EditorGroupView:222通过child ServiceCollection提供组级EditorProgressIndicator，原4真实入口有此组级DI；feedbackPane直接createInstance(ConversationDiffReviewPane)没有真实组级注入，而workbench基座注册的IProgressService是另一接口，不能替代它。§18闭合SCM接口的静态结论保留，此新增运行事实不得隐藏。
+
+扩展静态依赖复核覆盖DiffEditorWidget、DiffEditorViewModel、双CodeEditorWidget与diff子组件：context/instantiation/codeEditor/accessibilitySignal、VM diffProvider、theme/notification/accessibility/language config/features、interaction、menu/keybinding/contextMenu等由基座或显式fixture提供；未发现当前生命周期路径另一确定缺口。clipboard仅作为内联viewzone交互参数，本case未触发复制，不据此承诺所有未执行交互都通过。未找到可导出的正式Null/TestEditorProgressService；standalone同名职责类不导出且不宜为fixture导入其全局注册。既有chat CodeBlockPart:745采用完整局部IEditorProgressService实现，show返回公共emptyProgressRunner，showWhile await原promise，可沿此模式补fixture。
+
+**本次新增C0/I1/M0，I1限定组级progress夹具。** 最小补齐完整公开接口，保留真实widget/model、业务expected及unexpected/leak门禁；showWhile要真实等待并保留reject，不能吞错误。父已授权原J本地补修，仍无新产品合同/方案；补后由唯一lane再以旧0da实际重跑，未合fccde或启动compile7，不为让旧producer“干净”而删测试/关检查。当前163输出恢复声明由lane保管，reviewer不代跑native或逐产物恢复。
+
+
+### 64a4进度接口修订：Critical 0 / Important 0 / Minor 0
+
+受审不可变 `64a4e46b5fa27d48920789aa4b66e7340dfa833b`，父 `fccde4afb3eeca0b9264b732efef6b5e31e4b380`，src `ab952ce1fc0bd279754f747460bea9a8dc97f216`，仅1test+3行动docs。reviewer独立读完整test diff并核父/src/hash。新增6行仅导入公开progress模块并在direct feedbackPane注册完整satisfies IEditorProgressService：brand、show返回正式emptyProgressRunner、showWhile async await原promise。没有catch吞拒绝，没有禁用diff autorun、伪造diff完成或屏蔽unexpected；公共空runner覆盖total/worked/done，足以支持真实widget进度清理，不是返回undefined的新空mock。
+
+**本节progress夹具I1源码闭合。** 此变更提供真实编辑器组在产品中本已提供的组级依赖，不改全局注册或生产，也未引入standalone模块副作用。§19上半部扩展依赖核查仍适用，未发现当前路径另一确定缺失接口；实际尚未走到的行为继续由lane验证，不能仅凭补齐DI签完整green。
+
+受改test SHA256 `83653d3619affa62557b4c431cba6000cbe1e329943826c411fd9ca85695f75c`；Pane仍 `e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`，src路径diff证实全production不变。真实4 Move入口区及从lifecycle test至文件末分别与fccde逐字一致，39项expected、Spy原方法执行及finally恢复、leak/unexpected门禁均保留。没有为了让旧producer失败干净而移除业务或错误断言。
+
+**Assessment：定向C0/I0/M0，可继续64a4新test配精确旧0da Pane实际旧红；正式原件接入后按父调度完整compile7、新39/相关套。** fccde混合结果完整保留为“1业务assert+独立progress fixture error”，不改写为此前纯红；新准确结果未到前仍不签纯生命周期旧红。B起点clean `1d30f1ff5c67b0717a108a11a5a466665dbc50df`，仅本报告与INDEX，src fdca不变；无compile/typecheck/transpile/out/native/UI，短C/I已交父/原J/唯一lane。
