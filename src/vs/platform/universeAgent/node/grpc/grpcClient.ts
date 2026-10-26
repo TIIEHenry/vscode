@@ -5,6 +5,7 @@
 
 import type * as grpc from '@grpc/grpc-js';
 import { Emitter } from '../../../../base/common/event.js';
+import { decodeQueueState, encodeGetQueueRequest, decodeSaveSkillContentResponse, encodeSaveSkillContentRequest } from './grpcQueueSkillWire.js';
 import type {
 	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentChatRequest,
@@ -156,6 +157,8 @@ import type {
 	UniverseAgentQueueItemRefRequest,
 	UniverseAgentQueueMutationResult,
 	UniverseAgentQueueRefRequest,
+	UniverseAgentGetQueueRequest,
+	UniverseAgentQueueState,
 	UniverseAgentForkAgentRequest,
 	UniverseAgentForkAgentResult,
 	UniverseAgentKillAgentRequest,
@@ -502,7 +505,6 @@ import {
 	mapRotateTokenResponse,
 	mapSaveAgentProfileResponse,
 	mapSaveRemoteAgentConfigResponse,
-	mapSaveSkillContentResponse,
 	mapSessionInfoResponse,
 	mapSetMaintenanceResponse,
 	mapSetSkillEnabledResponse,
@@ -524,10 +526,8 @@ import {
 	mapUsageResponse,
 	mapWriteFileResponse,
 	mapWriteGitWriteResponse,
-	type SaveSkillContentResponseWire,
 } from './grpcClientMappers.js';
 import {
-	makeUnaryClient,
 	makeUnaryBytesClient,
 	makeServerStreamBytesClient,
 	makeClientStreamBytesClient,
@@ -1090,7 +1090,7 @@ export interface GrpcUniverseAgentClientOptions {
 }
 
 /**
- * Hand-written @grpc/grpc-js client. RPCs use proto bytes except SaveSkillContent, which stays JSON.
+ * Hand-written @grpc/grpc-js client. RPCs use protobuf bytes.
  */
 const HANDSHAKE_STATUS_EXEMPT_PATHS = new Set([
 	'/agentservice.SystemService/Connect',
@@ -1928,6 +1928,11 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 		return unary(encodeRespondQuestionRequest(request));
 	}
 
+	async getQueue(request: UniverseAgentGetQueueRequest): Promise<UniverseAgentQueueState> {
+		const unary = makeUnaryBytesClient(this._channel, UniverseAgentGrpcServices.Agent.service, UniverseAgentGrpcServices.Agent.GetQueue, decodeQueueState);
+		return unary(encodeGetQueueRequest(request));
+	}
+
 	async enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {
 		return this._queueMutation(UniverseAgentGrpcServices.Agent.EnqueueQueueItem, encodeEnqueueQueueItemRequest(request));
 	}
@@ -2271,16 +2276,8 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 	}
 
 	async saveSkillContent(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult> {
-		const unary = makeUnaryClient<Record<string, unknown>, SaveSkillContentResponseWire>(
-			this._channel,
-			UniverseAgentGrpcServices.Tool.service,
-			UniverseAgentGrpcServices.Tool.SaveSkillContent,
-		);
-		const wire = await unary({
-			skill_name: request.skillName,
-			content: request.content,
-		});
-		return mapSaveSkillContentResponse(wire);
+		const unary = makeUnaryBytesClient(this._channel, UniverseAgentGrpcServices.Tool.service, UniverseAgentGrpcServices.Tool.SaveSkillContent, decodeSaveSkillContentResponse);
+		return unary(encodeSaveSkillContentRequest(request));
 	}
 
 	async listAgentProfiles(request: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult> {

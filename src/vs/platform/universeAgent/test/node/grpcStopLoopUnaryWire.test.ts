@@ -128,7 +128,7 @@ suite('grpc AgentService StopLoop protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('stopLoop uses bytes then existing map; SaveSkillContent stays JSON', () => {
+	test('stopLoop uses bytes then existing map', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const stop = extractAsyncMethod(source, 'stopLoop');
 		assert.ok(stop.includes('makeUnaryBytesClient'), 'stopLoop must use makeUnaryBytesClient');
@@ -140,7 +140,6 @@ suite('grpc AgentService StopLoop protobuf wire', () => {
 		assert.ok(!stop.includes('JSON.stringify'), 'stopLoop must not JSON.stringify');
 
 		assert.ok(source.includes('grpcStopLoopUnaryWire'));
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});

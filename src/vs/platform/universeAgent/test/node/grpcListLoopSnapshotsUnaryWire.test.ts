@@ -222,7 +222,7 @@ suite('grpc AgentService ListLoopSnapshots protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('listLoopSnapshots uses bytes then existing map; SaveSkillContent stays JSON', () => {
+	test('listLoopSnapshots uses bytes then existing map', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const listLoop = extractAsyncMethod(source, 'listLoopSnapshots');
 		assert.ok(listLoop.includes('makeUnaryBytesClient'), 'listLoopSnapshots must use makeUnaryBytesClient');
@@ -233,7 +233,6 @@ suite('grpc AgentService ListLoopSnapshots protobuf wire', () => {
 		assert.ok(!listLoop.includes('JSON.stringify'), 'listLoopSnapshots must not JSON.stringify');
 
 		assert.ok(source.includes('grpcListLoopSnapshotsUnaryWire'));
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});

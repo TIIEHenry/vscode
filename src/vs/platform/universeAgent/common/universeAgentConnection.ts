@@ -152,6 +152,8 @@ import type {
 	UniverseAgentQueueItemRefRequest,
 	UniverseAgentQueueMutationResult,
 	UniverseAgentQueueRefRequest,
+	UniverseAgentGetQueueRequest,
+	UniverseAgentQueueState,
 	UniverseAgentForkAgentRequest,
 	UniverseAgentForkAgentResult,
 	UniverseAgentKillAgentRequest,
@@ -912,6 +914,7 @@ export interface IUniverseAgentConnection {
 	respondQuestion?(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 
 	/** AgentService.EnqueueQueueItem. Engine roster forwards when connected. */
+	getQueue?(request: UniverseAgentGetQueueRequest): Promise<UniverseAgentQueueState>;
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	/**

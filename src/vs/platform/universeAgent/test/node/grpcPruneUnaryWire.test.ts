@@ -115,7 +115,7 @@ suite('grpc AgentService Prune protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('prune uses bytes then existing map; SaveSkillContent stays JSON', () => {
+	test('prune uses bytes then existing map', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const prune = extractAsyncMethod(source, 'prune');
 		assert.ok(prune.includes('makeUnaryBytesClient'), 'prune must use makeUnaryBytesClient');
@@ -126,7 +126,6 @@ suite('grpc AgentService Prune protobuf wire', () => {
 		assert.ok(!prune.includes('JSON.stringify'), 'prune must not JSON.stringify');
 
 		assert.ok(source.includes('grpcPruneUnaryWire'));
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});

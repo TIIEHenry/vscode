@@ -289,6 +289,7 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { ok: false, message: 'test' };
 	}
 
+	async getQueue() { return { items: [], isPaused: false, isProcessing: false, pauseReason: 'NONE' as const, version: '0' }; }
 	async enqueueQueueItem(): Promise<{ ok: false; error: 'test' }> {
 		return { ok: false, error: 'test' };
 	}

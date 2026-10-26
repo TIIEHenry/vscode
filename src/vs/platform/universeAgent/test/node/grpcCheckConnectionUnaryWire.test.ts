@@ -338,7 +338,7 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('checkConnection uses bytes then existing map; SaveSkillContent stays JSON', () => {
+	test('checkConnection uses bytes then existing map', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const check = extractAsyncMethod(source, 'checkConnection');
 		assert.ok(check.includes('makeUnaryBytesClient'), 'checkConnection must use makeUnaryBytesClient');
@@ -349,15 +349,13 @@ suite('grpc RemoteAgentService CheckConnection protobuf wire', () => {
 		assert.ok(!check.includes('JSON.stringify'), 'checkConnection must not JSON.stringify');
 
 		assert.ok(source.includes('grpcCheckConnectionUnaryWire'));
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));
 	});
 
-	test('SaveSkillContent stays JSON; do not lock siblings', () => {
+	test('do not lock siblings', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveAnchor').includes('makeUnaryBytesClient'));

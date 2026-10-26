@@ -40,7 +40,7 @@ import {
 } from '../../browser/conversationLensDockStrings.js';
 import { findFirstInboxPendingConfirmationTurnId } from '../../browser/conversationPendingSeat.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import { ConversationMessageQueueItem } from '../../browser/conversationMessageQueueModel.js';
+import { ConversationMessageQueueItem, ConversationMessageQueueState } from '../../browser/conversationMessageQueueModel.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 
@@ -750,6 +750,29 @@ suite('ConversationInboxOverlay context ring', () => {
 		assert.ok(rule.includes('conic-gradient'));
 	});
 
+	test('engine queue read states distinguish empty success and retain readonly rows on failure', () => {
+		let state: ConversationMessageQueueState = { items: [], isPaused: false, isProcessing: false, readState: 'ready' };
+		const roster = store.add(new class extends LeftoverPairingWritesRoster {
+			override getMessageQueueState() { return state; }
+		}());
+		const overlay = createOverlay(roster);
+		const chip = overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement;
+		assert.ok(chip.textContent?.includes(conversationLensDockInboxNoQueue));
+		chip.click();
+		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')].at(-1) as HTMLElement;
+		for (const [readState, label] of [['loading', 'Loading queue'], ['error', 'Queue unavailable'], ['stale', 'Queue disconnected'], ['unsupported', 'Queue not supported']] as const) {
+			state = { ...state, readState, items: [{ id: 'retained', content: 'Draft queue item', status: 'FAILED', retryCount: 1, hold: undefined, lastError: 'failed', uploadProgress: undefined, locked: false, pinned: false }] };
+			overlay.render();
+			assert.ok(chip.textContent?.includes(label), chip.textContent ?? '');
+			const row = panel.querySelector('.queue-item') as HTMLElement;
+			assert.ok(row); assert.strictEqual(row.getAttribute('aria-disabled'), 'true');
+			row.click();
+			for (const button of panel.querySelectorAll<HTMLButtonElement>('.queue-bar-action')) { assert.strictEqual(button.disabled, true); }
+			if (readState === 'unsupported') { assert.strictEqual(panel.querySelector('.queue-bar-action'), null); }
+		}
+		assert.deepStrictEqual(roster.pauseCalls, []); assert.deepStrictEqual(roster.clearCalls, []); assert.deepStrictEqual(roster.retryCalls, []);
+	});
+
 	test('getSessionId shows bound session queue while global active is another session', () => {
 		const roster = store.add(new ConversationStubService());
 		const sessA = roster.getActiveSessionId();
@@ -1155,6 +1178,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		roster.enqueueResult = false;
 		const overlay = createOverlay(roster, 'Nope', failures);
 		const panel = openQueuePanel(overlay);
+		forceEnable(getEnqueueButton(panel));
 		getEnqueueButton(panel).click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(roster.enqueueCalls, []);
@@ -1178,8 +1202,8 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		});
 		const overlay = createOverlay(roster, undefined, [], undefined, undefined, connection);
 		const panel = openQueuePanel(overlay);
-		assert.strictEqual(getEnqueueButton(panel).disabled, false);
-		assert.strictEqual(getEnqueueButton(panel).getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(getEnqueueButton(panel).disabled, true);
+		assert.strictEqual(getEnqueueButton(panel).getAttribute('aria-disabled'), 'true');
 
 		pairingPending = true;
 		overlay.render();
@@ -1230,15 +1254,16 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		assert.deepStrictEqual(roster.getMessageQueueState(sessionId).items, []);
 	});
 
-	test('disconnected Enqueue with history is enabled and shows engine_disconnected without enqueue', async () => {
+	test('disconnected Enqueue stays disabled and forced click reports engine_disconnected', async () => {
 		const failures: ConversationComposerPostFailureReason[] = [];
 		const roster = store.add(new EnqueueRoster());
 		roster.connected = false;
 		roster.history = true;
 		const overlay = createOverlay(roster, 'Should not enqueue', failures);
 		const button = getEnqueueButton(openQueuePanel(overlay));
-		assert.strictEqual(button.disabled, false);
-		assert.strictEqual(button.getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(button.disabled, true);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		forceEnable(button);
 		button.click();
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.deepStrictEqual(failures, ['engine_disconnected']);
@@ -1271,6 +1296,7 @@ suite('ConversationInboxOverlay Enqueue', () => {
 		roster.enqueueResult = false;
 		const overlay = createOverlay(roster, 'Nope');
 		const button = getEnqueueButton(openQueuePanel(overlay));
+		forceEnable(button);
 		await assertInboxClickCatchPathDoesNotLeak(overlay, paintBoom, 'showPostFailure', () => {
 			button.click();
 		});

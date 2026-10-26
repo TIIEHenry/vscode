@@ -413,7 +413,7 @@ suite('grpc RemoteAgentService RemoteChat protobuf server-stream wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('openRemoteChatStream uses makeServerStreamBytesClient; Upload bytes; SaveSkillContent stays JSON', () => {
+	test('openRemoteChatStream uses makeServerStreamBytesClient; Upload bytes', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const remoteChat = extractMethod(source, 'openRemoteChatStream');
 		assert.ok(remoteChat.includes('makeServerStreamBytesClient'), 'openRemoteChatStream must use makeServerStreamBytesClient');
@@ -424,8 +424,6 @@ suite('grpc RemoteAgentService RemoteChat protobuf server-stream wire', () => {
 		assert.ok(!remoteChat.includes('JSON.stringify'), 'openRemoteChatStream itself must not JSON.stringify');
 		assert.ok(source.includes('grpcRemoteChatStreamWire'));
 
-		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(extractMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
 		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryClient<'));
 		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));

@@ -151,10 +151,8 @@ suite('grpc AgentService ContinueGeneration/Regenerate/Resume protobuf server-st
 		assert.ok(source.includes('grpcAgentChatServerStreamWire'));
 	});
 
-	test('SaveSkillContent stays JSON; Connect, ResolveTurn, ResolveAnchor, and Watch use proto bytes', () => {
+	test('Connect, ResolveTurn, ResolveAnchor, and Watch use proto bytes', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
-		assert.ok(!extractMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(extractMethod(source, 'saveSkillContent').includes('makeUnaryClient<'));
 		assert.ok(extractMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractMethod(source, 'connect').includes('makeUnaryClient<'));
 		assert.ok(extractMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));

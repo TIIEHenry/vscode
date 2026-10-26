@@ -3,14 +3,16 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-26
-summary: "当前编译合同基线已修：全量compile-client45→3→0，Electron325过3既有红、Node10过；D1387已有J实现正在独立补修，未合入；D1385范围纠正保留。"
+updated: 2026-10-27
+summary: "默认编辑器UI三项审查问题已修：浮层Esc焦点返回、Stub权限关联工具终态、Dark Modern中性主按钮；Electron105过并完成隔离真实窗口复验。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **队列与技能跨仓方案（2026-10-26）**：用户已明确两仓范围；独立只读评估的锁覆盖、fresh原文CAS、bind唤醒与保存中新草稿保持已改入[方案](../plans/engine-queue-and-skill-contracts.md)。先方案commit，再实施；保留生成中Send/Enqueue闸与其他WIP。
+- **默认编辑器 UI 三项修复（2026-10-27）**：History/Snapshots 在隐藏浮层前恢复触发器焦点；Stub 权限通过 `confirmationId` 只结算关联 pending 工具，Allow→completed、Skip→cancelled；Dark Modern 主按钮改近白中性 token。四套件官方 Electron **105 passing**，7 TS ESLint 0 errors/10 既有 warnings，transpile-client 与 diff-check 通过。隔离无引擎 1024×768 实拍确认两个 Esc 焦点返回、Skip 后 `1 cancelled`、Allow 计算色 `rgb(243,243,243)`；截图在本地 `.build/ui-review-fixed/screenshots/`。保留共享工作区其他 WIP，未跑全量 compile。
+- **持续视觉审查检查点（2026-10-27）**：空白隔离 profile 默认编辑器实拍发现 Agent 只读 `Session unavailable` 容器仍继承 select chevron，覆盖文字末尾；CSS 用只读子元素限定隐藏伪元素，保留真正选择器箭头。既有运行 JS + 注入当前源 CSS 的局部验证：只读箭头 block→none，Permission/Model 仍 block，三控件盒尺寸不变；浅色截图已看，本地证据 `.build/visual-review-20261027/readonly-chevron.json` / `after.png`，before 为 `.build/visual-review-20261027-initial.png`。续验仅向 out CSS 加入本次规则并重载，无整份 WIP CSS 覆盖：真实会话叶未恢复，改用实际 Conversation 内相同结构的 DOM fixture；浅色、深色、深色高对比在700/420px容器下只读箭头隐藏、真实选择器箭头可见（6张截图在同目录，深色/HC窄图已复看）。浅色高对比切换超时，四主题矩阵未完成；fixture不代表完整窄叶/键盘业务验收。diff check通过；docs health仍被其他WIP方案未索引阻断。loop/merge已包含agent-ide当前提交且继续前进；本修复尚未提交，因CSS和status混有其他会话WIP，按sync-docs-and-commit等待用户授权拆分暂存。窗口自动连接已有 Loopback 后出现 bind failed 与原始错误通知，需结合引擎消费 WIP 继续核验，不归因于本次 CSS。持续目标仍进行中。
+- **队列与技能跨仓实施（2026-10-27）**：正式GetQueue与SaveSkillContent、握手/bytes/IPC/能力闸、bound真实id读回及失效防护、技能磁盘CAS/规范化读回/脏草稿保持与显式Refresh已实现。Node833、Electron278、引擎61过；本主题原project native tsc与定向ESLint通过，最终共享工作区新增其他主题StubModel一项TS18048，未改该WIP；proto副本/hash/breaking与KMP通过。独立实现复核C0/I0/M1，Minor已修；真实行编辑因缺异步接受顺序暂关闭，Send/Enqueue仍关，50061未升级、无新接口默认窗E2E，不升产品状态。见[方案](../plans/engine-queue-and-skill-contracts.md)。
 - **引擎协议消费修复（2026-10-26）**：补Create/Info/Fork/Provider/Profile字段、两条正式RPC与IPC/能力闸，maxRewinds显式0在正文/模型/工具保存中保持。原8业务red转绿；Node203+498、Profile编辑器3过，原project native tsc通过，MCP一既有mapper失败单独复现。跨仓队列/技能获授权，另续方案，不升产品状态。见[方案](../plans/engine-protocol-consumption-closeout.md)。
 - **控件细节精修（2026-10-26）**：四CSS收敛Sources工具栏命中区/页签按压、Navigator筛选焦点/清除对齐、Connection与Engine返回按钮；四主题16组基本控件、8组本地工具栏、4组禁用ActionBar验证通过，独立源码复读C0/I0/M0。局部CSS刷新，无全量编译；本地根/禁用fixture与既有JS边界见[证据](control-detail-polish-evidence/verification.md)。
 - **对话行内编辑与会话菜单（2026-10-26）**：用户回合把同一张 Composer 放进该行（Exit、输入、发送留在行内，底栏不跟进去）；加上下文和会话切换用标题加消息数区分同名项，空会话写 No messages，种子标题改为 Visualize；展开输入用 expand-all / collapse-all，文案 Expand input / Shrink input，提示在按钮上方。未开窗口验收。规格见 [composer-and-inbox](../../docs/systems/conversation/composer-and-inbox.md)。

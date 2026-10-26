@@ -126,7 +126,7 @@ suite('grpc AgentService Reset protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('resetAgent uses bytes then existing map; SaveSkillContent stays JSON', () => {
+	test('resetAgent uses bytes then existing map', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const reset = extractAsyncMethod(source, 'resetAgent');
 		assert.ok(reset.includes('makeUnaryBytesClient'), 'resetAgent must use makeUnaryBytesClient');
@@ -138,7 +138,6 @@ suite('grpc AgentService Reset protobuf wire', () => {
 		assert.ok(!reset.includes('JSON.stringify'), 'resetAgent must not JSON.stringify');
 
 		assert.ok(source.includes('grpcResetUnaryWire'));
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 	});

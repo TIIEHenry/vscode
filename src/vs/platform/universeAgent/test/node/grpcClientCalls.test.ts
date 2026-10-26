@@ -129,7 +129,7 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 		assert.deepStrictEqual(causes, []);
 	});
 
-	test('openUploadAttachmentStream wires makeClientStreamBytesClient; SaveSkillContent stays JSON', () => {
+	test('openUploadAttachmentStream wires makeClientStreamBytesClient', () => {
 		const client = fs.readFileSync(path.join(grpcDir(), 'grpc' + 'Client' + '.ts'), 'utf8');
 		const upload = extractMethod(client, 'openUploadAttachmentStream');
 		assert.ok(upload.includes('makeClientStreamBytesClient'), 'openUploadAttachmentStream must wire makeClientStreamBytesClient');
@@ -140,8 +140,6 @@ suite('grpcClientCalls makeClientStreamBytesClient', () => {
 		assert.ok(!upload.includes('makeClientStreamClient<'), 'openUploadAttachmentStream must not use JSON makeClientStreamClient');
 		assert.ok(!upload.includes('JSON.stringify'), 'JSON.stringify lives in makeClientStreamClient, not the method body');
 
-		assert.ok(!extractAsyncMethod(client, 'saveSkillContent').includes('makeUnaryBytesClient'));
-		assert.ok(extractAsyncMethod(client, 'saveSkillContent').includes('makeUnaryClient<'));
 		assert.ok(extractAsyncMethod(client, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(!extractAsyncMethod(client, 'connect').includes('makeUnaryClient<'));
 		assert.ok(extractAsyncMethod(client, 'resolveTurn').includes('makeUnaryBytesClient'));

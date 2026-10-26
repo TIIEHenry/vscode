@@ -151,6 +151,7 @@ const FORWARDED_CONNECTION_CALLS = {
 	killMember: true,
 	abort: true,
 	respondQuestion: true,
+	getQueue: true,
 	enqueueQueueItem: true,
 	insertQueueItem: true,
 	reorderQueue: true,

@@ -368,6 +368,12 @@ const CONVERSATION_ENTRY_PROBE_TARGETS: Partial<Record<keyof UniverseAgentConver
 		method: UniverseAgentGrpcServices.Permission.SetClientToolProfile,
 		methodKey: 'PermissionService.SetClientToolProfile',
 	},
+	getQueue: {
+		service: UniverseAgentGrpcServices.Agent.service,
+		method: UniverseAgentGrpcServices.Agent.GetQueue,
+		methodKey: 'AgentService.GetQueue',
+		acceptsInvalidArgument: true,
+	},
 	registerSessionEngineTrigger: {
 		service: UniverseAgentGrpcServices.Trigger.service,
 		method: UniverseAgentGrpcServices.Trigger.RegisterSessionEngineTrigger,

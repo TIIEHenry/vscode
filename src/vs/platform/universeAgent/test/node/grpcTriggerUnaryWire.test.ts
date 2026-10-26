@@ -475,7 +475,6 @@ suite('grpc TriggerService List/Upsert/Delete/SetEnabled/Fire protobuf wire', ()
 		assert.ok(!upsert.includes('triggerDtoWire'), 'upsertTrigger must not use triggerDtoWire');
 		assert.ok(!source.includes('function triggerDtoWire'));
 		assert.ok(source.includes('grpcTriggerUnaryWire'));
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 	});
 });

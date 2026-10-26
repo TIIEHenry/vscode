@@ -150,6 +150,8 @@ import type {
 	UniverseAgentQueueItemRefRequest,
 	UniverseAgentQueueMutationResult,
 	UniverseAgentQueueRefRequest,
+	UniverseAgentGetQueueRequest,
+	UniverseAgentQueueState,
 	UniverseAgentForkAgentRequest,
 	UniverseAgentForkAgentResult,
 	UniverseAgentKillAgentRequest,
@@ -598,6 +600,7 @@ export interface IUniverseAgentGrpcTransport {
 
 	respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
 
+	getQueue(request: UniverseAgentGetQueueRequest): Promise<UniverseAgentQueueState>;
 	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
 
 	/** AgentService.InsertQueueItem unary (snake_case `session_id`/`op_id`/`client_message_id`/`text`/`priority`/`before_item_id`). Empty ids sent as-is. */
@@ -1074,6 +1077,7 @@ export const UniverseAgentGrpcServices = {
 		ClearSessionDemoFake: 'ClearSessionDemoFake',
 		SwitchWorkDir: 'SwitchWorkDir',
 		TestModelProfile: 'TestModelProfile',
+		GetQueue: 'GetQueue',
 		EnqueueQueueItem: 'EnqueueQueueItem',
 		InsertQueueItem: 'InsertQueueItem',
 		ReorderQueue: 'ReorderQueue',

@@ -4,18 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { Disposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
+import { createUnknownConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { ClientActionRequestId, PendingActionView, SessionId, SessionViewSnapshot, SyncChrome, TimelineItemId, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
 import type {
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentQueueState,
 	UniverseAgentSessionEvent,
 	UniverseAgentSessionStreamCloseCause,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
@@ -47,6 +49,16 @@ export class MockUniverseAgentConnection extends Disposable implements IUniverse
 
 	private publishedEngineIdentityId: string | undefined;
 	private publishedLinkId: number | undefined;
+
+	getQueue?: IUniverseAgentConnection['getQueue'];
+	readonly getQueueCalls: string[] = [];
+	enableQueueReadback(fetch?: (id: string) => Promise<UniverseAgentQueueState>): void {
+		this.publishedEngineIdentityId = 'queue-engine'; this.publishedLinkId = 1;
+		this.getQueue = async request => {
+			this.getQueueCalls.push(request.sessionId);
+			return fetch ? fetch(request.sessionId) : { items: [], isPaused: false, isProcessing: false, pauseReason: 'NONE', version: '0' };
+		};
+	}
 
 	setConnected(value: boolean): void {
 		this.connected = value;
@@ -105,6 +117,7 @@ export class MockUniverseAgentConnection extends Disposable implements IUniverse
 			channelAlive: this.connected,
 			sharedFsRootSent: false,
 			capabilities: {} as UniverseAgentConnectionSnapshot['capabilities'],
+			...(this.getQueue ? { conversationEntryCapability: { ...createUnknownConversationEntryCapability(), getQueue: 'SUPPORTED' as const } } : {}),
 			...(this.publishedEngineIdentityId ? { engineIdentityId: this.publishedEngineIdentityId } : {}),
 			...(this.publishedLinkId !== undefined ? { linkId: this.publishedLinkId } : {}),
 		};
@@ -1944,6 +1957,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 	test('leftover-looks-live queue mutates reject while pairingPending and skip unary', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
+		connection.enableQueueReadback();
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 		const service = store.add(createService(connection, storage));
 		connection.setConnected(true);
@@ -1993,6 +2007,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		connection.setPairingPending(false);
 		service.setEngineConnected(true);
+		await awaitEngineCatalogRefresh(service);
 		assert.strictEqual(service.isEngineConnected(), true);
 		assert.strictEqual(isConversationPairingHold(connection), false);
 		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', 'live again'), false);
@@ -3705,9 +3720,30 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(connection.cancelCalls.length, 0);
 	});
 
+	test('GetQueue wakes after bind and mutations use actual engine session id', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const binding = new DeferredPromise<string>();
+		connection.enableQueueReadback();
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Local roster id' }]);
+		const service = store.add(createService(connection, undefined, createSessionViewMock({ whenEngineSessionReady: () => binding.p })));
+		connection.setConnected(true); await awaitEngineCatalogRefresh(service);
+		assert.deepStrictEqual(connection.getQueueCalls, []);
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q'), false);
+		await binding.complete('engine-real'); await timeout(0);
+		assert.deepStrictEqual(connection.getQueueCalls, ['engine-real']);
+		assert.strictEqual(service.getMessageQueueState('ua-only').readState, 'ready');
+		service.pauseMessageQueue('ua-only');
+		assert.strictEqual(service.retryMessageQueueItem('ua-only', 'q'), true);
+		assert.deepStrictEqual(connection.pauseQueueCalls, [{ sessionId: 'engine-real' }]);
+		assert.deepStrictEqual(connection.retryQueueItemCalls, [{ sessionId: 'engine-real', itemId: 'q' }]);
+		await timeout(0);
+		assert.ok(connection.getQueueCalls.length > 1);
+	});
+
 	test('connected MessageQueue mutations forward AgentService queue unaries', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
+		connection.enableQueueReadback();
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 		const service = store.add(createService(connection, storage));
 		connection.setConnected(true);
@@ -3736,6 +3772,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			items: [],
 			isPaused: false,
 			isProcessing: false,
+			readState: 'ready', version: '0',
 		});
 
 		assert.strictEqual(service.enqueueMessageQueueItem('ua-only', '  later  ', { priority: 'HIGH', opId: '  op-1  ' }), false);
@@ -3798,6 +3835,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			items: [],
 			isPaused: false,
 			isProcessing: false,
+			readState: 'unsupported', readError: undefined,
 		});
 		assert.strictEqual((connection as { getQueue?: unknown }).getQueue, undefined);
 		assert.strictEqual((connection as { listQueue?: unknown }).listQueue, undefined);
@@ -3812,6 +3850,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		try {
 			const storage = store.add(new TestStorageService());
 			const connection = store.add(new MockUniverseAgentConnection());
+		connection.enableQueueReadback();
 			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 			const service = store.add(createService(connection, storage));
 			connection.setConnected(true);
@@ -3847,7 +3886,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 				{ action: 'retryQueueItemUpload', message: 'denied' },
 			]);
 			assert.deepStrictEqual(service.getMessageQueueState('ua-only').items, []);
-			assert.strictEqual((connection as { getQueue?: unknown }).getQueue, undefined);
+			assert.ok(connection.getQueueCalls.length > 0);
 			assert.strictEqual((connection as { listQueue?: unknown }).listQueue, undefined);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
@@ -3862,6 +3901,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		try {
 			const storage = store.add(new TestStorageService());
 			const connection = store.add(new MockUniverseAgentConnection());
+		connection.enableQueueReadback();
 			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 			const service = store.add(createService(connection, storage));
 			connection.setConnected(true);
@@ -3886,7 +3926,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 				{ action: 'retryQueueItem', error: boom },
 			]);
 			assert.deepStrictEqual(service.getMessageQueueState('ua-only').items, []);
-			assert.strictEqual((connection as { getQueue?: unknown }).getQueue, undefined);
+			assert.ok(connection.getQueueCalls.length > 0);
 			assert.strictEqual((connection as { listQueue?: unknown }).listQueue, undefined);
 			assert.deepStrictEqual(unhandledRejections, []);
 		} finally {
@@ -4058,6 +4098,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 	test('connected retryMessageQueueItem forwards RetryQueueItem / RetryQueueItemUpload', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
+		connection.enableQueueReadback();
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 		const service = store.add(createService(connection, storage));
 		connection.setConnected(true);

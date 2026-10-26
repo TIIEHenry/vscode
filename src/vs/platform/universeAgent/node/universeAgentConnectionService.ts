@@ -163,6 +163,8 @@ import type {
 	UniverseAgentQueueItemRefRequest,
 	UniverseAgentQueueMutationResult,
 	UniverseAgentQueueRefRequest,
+	UniverseAgentGetQueueRequest,
+	UniverseAgentQueueState,
 	UniverseAgentForkAgentRequest,
 	UniverseAgentForkAgentResult,
 	UniverseAgentKillAgentRequest,
@@ -1604,6 +1606,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 
 	async respondQuestion(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult> {
 		return this._withTransport(transport => transport.respondQuestion(request));
+	}
+
+	async getQueue(request: UniverseAgentGetQueueRequest): Promise<UniverseAgentQueueState> {
+		return this._withTransport(transport => transport.getQueue(request));
 	}
 
 	async enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult> {

@@ -84,7 +84,7 @@ suite('grpc AgentService ClearSessionDemoFake protobuf wire', () => {
 		assert.ok(!new RegExp(String.raw`\b` + 'grpc' + 'Client' + String.raw`\b`).test(source));
 	});
 
-	test('clearSessionDemoFake uses bytes then existing map; SaveSkillContent stays JSON', () => {
+	test('clearSessionDemoFake uses bytes then existing map', () => {
 		const source = fs.readFileSync(path.join(grpcDir(), 'grpcClient.ts'), 'utf8');
 		const clear = extractAsyncMethod(source, 'clearSessionDemoFake');
 		assert.ok(clear.includes('makeUnaryBytesClient'), 'clearSessionDemoFake must use makeUnaryBytesClient');
@@ -95,7 +95,6 @@ suite('grpc AgentService ClearSessionDemoFake protobuf wire', () => {
 		assert.ok(!clear.includes('JSON.stringify'), 'clearSessionDemoFake must not JSON.stringify');
 
 		assert.ok(source.includes('grpcClearSessionDemoFakeUnaryWire'));
-		assert.ok(!extractAsyncMethod(source, 'saveSkillContent').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'connect').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'resolveTurn').includes('makeUnaryBytesClient'));
 		assert.ok(extractAsyncMethod(source, 'switchWorkDir').includes('makeUnaryBytesClient'));

@@ -80,6 +80,7 @@ export interface UniverseAgentConversationEntryCapability {
 	readonly setPermissionMode: UniverseAgentCapabilitySupport;
 	readonly setClientToolProfile: UniverseAgentCapabilitySupport;
 	readonly registerSessionEngineTrigger: UniverseAgentCapabilitySupport;
+	readonly getQueue: UniverseAgentCapabilitySupport;
 	readonly switchModel: UniverseAgentCapabilitySupport;
 	readonly switchAgent: UniverseAgentCapabilitySupport;
 }
@@ -1120,6 +1121,39 @@ export interface UniverseAgentRespondQuestionResult {
 	readonly message?: string;
 }
 
+export interface UniverseAgentGetQueueRequest { readonly sessionId: string }
+
+export interface UniverseAgentQueueItem {
+    readonly id: string;
+    readonly clientMessageId: string;
+    readonly text: string;
+    readonly createdAt: string;
+    readonly status: 'UPLOADING' | 'UPLOAD_FAILED' | 'PENDING' | 'SENDING' | 'FAILED';
+    readonly hold?: 'EDITING';
+    readonly uploadProgress: number;
+    readonly retryCount: number;
+    readonly lastError?: string;
+    readonly priority: UniverseAgentQueuePriority;
+    readonly pinned: boolean;
+    readonly locked: boolean;
+    readonly forkFromTurnId?: string;
+    readonly forkFromPreview?: string;
+    readonly version: number;
+    readonly uploadTotalCount: number;
+    readonly uploadCompletedCount: number;
+}
+
+/** QueueStateEvent, ADR-435. int64 values remain decimal strings across IPC. */
+export interface UniverseAgentQueueState {
+    readonly items: readonly UniverseAgentQueueItem[];
+    readonly isPaused: boolean;
+    readonly isProcessing: boolean;
+    readonly pauseReason: 'NONE' | 'MANUAL' | 'STOP' | 'LOCK';
+    readonly lockBlockedItemId?: string;
+    readonly opId?: string;
+    readonly version: string;
+}
+
 /** AgentService queue hold reason (QueueItemHoldReasonProto). */
 export type UniverseAgentQueueHoldReason = 'NONE' | 'EDITING';
 
@@ -1863,10 +1897,13 @@ export interface UniverseAgentSkillInfoResult {
 }
 
 /** Write SKILL.md body via engine catalog (ToolService.SaveSkillContent; customizations-engine §3.1). */
-export interface UniverseAgentSaveSkillContentRequest {
-	readonly skillName: string;
-	readonly content: string;
-}
+export type UniverseAgentSaveSkillContentRequest = {
+    readonly skillName: string;
+    readonly content: string;
+} & (
+    | { readonly create: true }
+    | { readonly create: false; readonly expectedSource: 'user' | 'project'; readonly expectedContent: string }
+);
 
 export interface UniverseAgentSaveSkillContentResult {
 	readonly ok: boolean;
