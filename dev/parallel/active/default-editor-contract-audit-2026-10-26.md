@@ -16,14 +16,14 @@ summary: "J+E两coder冻结；Sources65d虚拟noEmit0/Electron357过，宿主方
 
 | 工位 | 书面范围 | 当前阶段 |
 | --- | --- | --- |
-| J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。Astra追加并发I1采纳同service/API完整tuple与custom wildcard重叠sticky歧义门；D两轮报告7c84e0167e3已到，第二轮C0/I0；J正在独立accepted方案提交与宿主实施，尚无已接入新生产/非作者after |
-| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | accepted方案已独立提交5dd7d97d45b（受审SHA256 262df24…，C0/I0；blocked Minor已写），已开始完整实现且occupied；准确request/连接代次并保留question答案，真实processFold document-flow也纳入正式busy投影；方案/代码均未合入本线，不计完成 |
+| J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。Astra追加并发I1采纳同service/API完整tuple与custom wildcard重叠sticky歧义门；D两轮报告7c84e0167e3已到，第二轮C0/I0；J已独立提交accepted方案bf50c66b8b9并在自己槽位实施宿主生产/回归，尚无已接入新生产/非作者after |
+| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | accepted方案已独立提交5dd7d97d45b（受审SHA256 262df24…，C0/I0；blocked Minor已写），已在自己槽位14条源码路径完整实施且occupied；准确request/连接代次并保留question答案，真实processFold document-flow也纳入正式busy投影；方案/代码均未合入本线，不计完成 |
 | D / Sources独立审查与after | 非作者codepeer、正式产物冻结后的默认编辑器真实Git after | 两轮宿主规则16报告7c84e0167e3第二轮C0/I0；尚未收到freeze notice，不消费当前虚拟pack冒称最终after |
 | merge / baseline_executor | 唯一编译、类型、转译、out与串行集成车道 | 本阶段只取不可变Git内容做虚拟覆盖，src仍09f6/de22绿树。51份原始证据与命令/SHA入库；全量正式compile-client待两模块合源后实际跑，不复用pack身份 |
 
 本次Sources完整验证为357过/0败；wiring23过/1既有红（精确09f6已复现），lint0错误/56警告且4f7→65d无新增。89f类型6红、官方setup生命周期红与4f7 move夹具红全部留证，作者在65d补修后复验；原325/3编译基线与D17不被此结果覆盖。[完整证据与51份原始清单](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)。不升级产品状态，不发freeze，不提前formal合J。
 
-父已独立复核3760：51份仓内artifact SHA与30份live out SHA均0 mismatch，HEAD:src精确等932031绿树；本记录时间为2026-10-26 15:12:55 UTC。[父核验与当前阶段](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md#父级独立核验与最新调度状态)。主工位有独立主题WIP且外部HEAD持续前进，只允许一次显式SHA的ff-only，拒绝即保留原样，不覆盖、不重试。任何新编译/typecheck/transpile前先查全局活进程；若已有运行，记录具体PID/session并轮询，车道空闲后再执行，不杀外部任务、不重复启动。
+本轮已将主工位明确不可变3d522的9份纯docs真三路接入da0d263、D7c84两轮报告接入6c75c2；逐路径两边保留门禁65/117全PASS，src与out不变，不取任何root/J/E WIP。[合并门禁](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json)。父已独立复核3760：51份仓内artifact SHA与30份live out SHA均0 mismatch，HEAD:src精确等932031绿树；本记录时间为2026-10-26 15:12:55 UTC。[父核验与当前阶段](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md#父级独立核验与最新调度状态)。主工位有独立主题WIP且外部HEAD持续前进，只允许一次显式SHA的ff-only，拒绝即保留原样，不覆盖、不重试。任何新编译/typecheck/transpile前先查全局活进程；若已有运行，记录具体PID/session并轮询，车道空闲后再执行，不杀外部任务、不重复启动。
 
 ## 下一独立模块发现（源码实核，未在本Sources波编码）
 

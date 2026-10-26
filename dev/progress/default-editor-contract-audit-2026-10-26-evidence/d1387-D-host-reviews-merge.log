@@ -1,0 +1,6 @@
+Merge made by the 'ort' strategy.
+ .../d1387-comparison-gate-code-review.md           | 53 +++++++++++++
+ .../d1387-host-observation-plan-review.md          | 87 ++++++++++++++++++++++
+ 2 files changed, 140 insertions(+)
+ create mode 100644 dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md
+ create mode 100644 dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md

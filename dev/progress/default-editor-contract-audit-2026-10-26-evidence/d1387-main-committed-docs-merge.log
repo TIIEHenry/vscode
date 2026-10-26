@@ -1,0 +1,16 @@
+Merge made by the 'ort' strategy.
+ dev/parallel/INDEX.md                              |  1 +
+ dev/parallel/active/control-detail-polish.md       | 21 +++++
+ .../active/engine-protocol-consumption-closeout.md | 28 +++++++
+ dev/plans/INDEX.md                                 |  2 +
+ dev/plans/control-detail-polish.md                 | 39 +++++++++
+ dev/plans/engine-protocol-consumption-closeout.md  | 54 ++++++++++++
+ docs/INDEX.md                                      |  4 +-
+ docs/reference/universe-agent/INDEX.md             |  7 +-
+ .../universe-agent/ide-engine-feature-gaps.md      | 96 ++++++++++++++++++++++
+ 9 files changed, 247 insertions(+), 5 deletions(-)
+ create mode 100644 dev/parallel/active/control-detail-polish.md
+ create mode 100644 dev/parallel/active/engine-protocol-consumption-closeout.md
+ create mode 100644 dev/plans/control-detail-polish.md
+ create mode 100644 dev/plans/engine-protocol-consumption-closeout.md
+ create mode 100644 docs/reference/universe-agent/ide-engine-feature-gaps.md

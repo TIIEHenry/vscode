@@ -17,11 +17,13 @@ summary: "65d虚拟noEmit0、完整Electron357过；wiring23过1既有红、lint
 
 记录时间：**2026-10-26 15:12:55 UTC**。父 `/root` 已独立实算纯文档提交 `3760f3cd459fbbf1f9a8314c9528c1b22ee7f8c1`：51 份仓内 artifact SHA256 与 30 份 live out SHA256 均 **0 mismatch**，`HEAD:src` 精确等于 `932031c34525449d4010265f914f7074abad2c05` 绿树。此前 51 份原始证据、采样时 draft、325/3 基线与虚拟范围保持原样；本次只补当前文档，没有新编译、类型检查、转译或 out 写入。
 
-E 的 accepted 方案已在独立工位提交为 `5dd7d97d45b7dfa8827b5cb36f60e85fb61a4f8a`；受审稿为 **SHA256** `262df24edb9db55e2d126dc594d6746d9d77bbd847b581fcdf5c99b06a891cd0`，并非 Git ref。该提交方案正文记录同一 Astra 增量复读 C0/I0，以及新增 Minor 的 blocked / 明确前置返回已纳入合同。父已通知 E 开始完整实现，源码仍 occupied；E 另发现真实 processFold 的 document-flow 分支也需接正式 busy 投影，已纳入完整模块。**本集成线尚未合入 E 方案或代码**，不把方案 accepted 算作已实施/已验证。
+E 的 accepted 方案已在独立工位提交为 `5dd7d97d45b7dfa8827b5cb36f60e85fb61a4f8a`；受审稿为 **SHA256** `262df24edb9db55e2d126dc594d6746d9d77bbd847b581fcdf5c99b06a891cd0`，并非 Git ref。该提交方案正文记录同一 Astra 增量复读 C0/I0，以及新增 Minor 的 blocked / 明确前置返回已纳入合同。父已通知 E 开始完整实现，已在自己槽位 14 条源码路径实施，仍 occupied；E 另发现真实 processFold 的 document-flow 分支也需接正式 busy 投影，已纳入完整模块。**本集成线尚未合入 E 方案或代码**，不把方案 accepted 算作已实施/已验证。
 
-Sources 的新并发意见由 Astra 判为 I1，已采纳同 service / API 完整 tuple 与 custom wildcard 重叠的 sticky 歧义门。随后 D 两轮宿主规则16报告 `7c84e0167e3`（父 `75c3f82994e`）已到，第二轮方案 C0/I0；父通知 J 正在独立 accepted 方案提交与宿主实施。尚无该宿主边界已接入的新生产，当前 357 绿不覆盖该边界，不发 freeze。正式代码合并仍等 J/E 两模块 queued / 书面范围后串行执行。
+Sources 的新并发意见由 Astra 判为 I1，已采纳同 service / API 完整 tuple 与 custom wildcard 重叠的 sticky 歧义门。随后 D 两轮宿主规则16报告 `7c84e0167e3`（父 `75c3f82994e`）已到，第二轮方案 C0/I0；父进一步通知 J 已独立提交 accepted 方案 `bf50c66b8b970a4e29a1e92f0d3968232e2d6987`，其中 §6 引 D 两轮 C0/I0，实际 matches 方向与历史措辞已改；J 正在自己槽位实施宿主生产和回归。尚无该宿主边界已接入的新生产，当前 357 绿不覆盖该边界，不发 freeze。正式代码合并仍等 J/E 两模块 queued / 书面范围后串行执行。
 
 本轮主工位只读采样先见 `09f6…` 上独立视觉/协议主题 WIP，随后外部 HEAD 前进至 `18cd4bd…`、`3d522e7…`，最后一次采样有 24 条状态路径且该 HEAD 不是 3760 的祖先。本执行者未写主工位源码/out，不要求整理或丢弃其 WIP；仅允许对显式新文档 SHA 尝试一次 `merge --ff-only`，拒绝即停止同步并原样保留，不能报告主工位 clean 或已同步。
+
+主工位不可变已提交 `3d522e76b9985181fa4bdfc654d52c9951f87aed` 相对 09f6 仅 9 份文档，`HEAD:src` 同为 932031；这只核已提交树，不表示其含视觉 WIP 的文件系统源码已绿。仅取该提交真三路合入 `da0d263a1f18c7b79f8983764e1d0356d9c44ee5`，外部 control-detail-polish / engine-protocol-consumption 两方案和索引保留；未取 root WIP。D 的两轮宿主规则16报告 `7c84e0167e3` 真三路接入 `6c75c2ca02694ad794532043c291326d997dda92`，其[历史源码审查](d1387-comparison-gate-code-review.md)和[两轮方案审查](d1387-host-observation-plan-review.md)保持原文。等价两边保留门禁分别 **65 / 117 条路径全 PASS**，见[完整 merge-base/逐路径 blob 门禁](d1387-parent-doc-merges.json)和[主文档 merge 原日志](d1387-main-committed-docs-merge.log)、[D merge 原日志](d1387-D-host-reviews-merge.log)。所有既有 51 份 artifact 与 30 份 live out 身份不变；新合入的仅是文档，不是 bf50 宿主生产或 E 实现。
 
 后续每轮编译 / typecheck / transpile 前先核全局活跃进程；发现其他主题已有运行时，记录具体 PID/session 并轮询等待，车道空闲再执行，不杀外部任务、不重复启动。本次纯文档阶段没有新增编译必要性。
 

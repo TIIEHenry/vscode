@@ -1,0 +1,1682 @@
+{
+  "phase": "true-three-way-pure-docs-integration",
+  "merges": [
+    {
+      "label": "main-committed-docs",
+      "ours": "4c8444f721f3a7278edc56edf724688f33b5e2b9",
+      "theirs": "3d522e76b9985181fa4bdfc654d52c9951f87aed",
+      "mergeBase": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+      "mergeHead": "da0d263a1f18c7b79f8983764e1d0356d9c44ee5",
+      "command": [
+        "git",
+        "merge",
+        "--no-ff",
+        "-m",
+        "docs: integrate main-committed-docs without source changes",
+        "3d522e76b9985181fa4bdfc654d52c9951f87aed"
+      ],
+      "checks": [
+        {
+          "path": "dev/parallel/INDEX.md",
+          "rule": "theirs-only",
+          "base": "100644 blob 733035e60dfc1c00d6aac11545fe1185da2a994a\tdev/parallel/INDEX.md",
+          "ours": "100644 blob 733035e60dfc1c00d6aac11545fe1185da2a994a\tdev/parallel/INDEX.md",
+          "theirs": "100644 blob 411d1c886fa0efbd650a8b571996ae46e4bb4c8e\tdev/parallel/INDEX.md",
+          "result": "100644 blob 411d1c886fa0efbd650a8b571996ae46e4bb4c8e\tdev/parallel/INDEX.md",
+          "passed": true
+        },
+        {
+          "path": "dev/parallel/active/control-detail-polish.md",
+          "rule": "theirs-only",
+          "base": "",
+          "ours": "",
+          "theirs": "100644 blob 2a59e1c23adfb07225e665095dc9fda3d70fb351\tdev/parallel/active/control-detail-polish.md",
+          "result": "100644 blob 2a59e1c23adfb07225e665095dc9fda3d70fb351\tdev/parallel/active/control-detail-polish.md",
+          "passed": true
+        },
+        {
+          "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+          "rule": "ours-only",
+          "base": "100644 blob 155e0fd5642b468b11613b73e4f0d6731f247111\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+          "ours": "100644 blob 21af96d043572801baf853d69868b09f206d7cf8\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+          "theirs": "100644 blob 155e0fd5642b468b11613b73e4f0d6731f247111\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+          "result": "100644 blob 21af96d043572801baf853d69868b09f206d7cf8\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+          "passed": true
+        },
+        {
+          "path": "dev/parallel/active/engine-protocol-consumption-closeout.md",
+          "rule": "theirs-only",
+          "base": "",
+          "ours": "",
+          "theirs": "100644 blob 640836b6acaee0eaa4267035d64f87fd2aefefab\tdev/parallel/active/engine-protocol-consumption-closeout.md",
+          "result": "100644 blob 640836b6acaee0eaa4267035d64f87fd2aefefab\tdev/parallel/active/engine-protocol-consumption-closeout.md",
+          "passed": true
+        },
+        {
+          "path": "dev/plans/INDEX.md",
+          "rule": "theirs-only",
+          "base": "100644 blob 50f9df11b069f7e633eaa515d3c379d8b7c70ae0\tdev/plans/INDEX.md",
+          "ours": "100644 blob 50f9df11b069f7e633eaa515d3c379d8b7c70ae0\tdev/plans/INDEX.md",
+          "theirs": "100644 blob e686f6908a47a7fa54014abc014ae9b78ae633f8\tdev/plans/INDEX.md",
+          "result": "100644 blob e686f6908a47a7fa54014abc014ae9b78ae633f8\tdev/plans/INDEX.md",
+          "passed": true
+        },
+        {
+          "path": "dev/plans/control-detail-polish.md",
+          "rule": "theirs-only",
+          "base": "",
+          "ours": "",
+          "theirs": "100644 blob 9754d8d387ed46de8ca7b35f6e3d865aac46750d\tdev/plans/control-detail-polish.md",
+          "result": "100644 blob 9754d8d387ed46de8ca7b35f6e3d865aac46750d\tdev/plans/control-detail-polish.md",
+          "passed": true
+        },
+        {
+          "path": "dev/plans/engine-protocol-consumption-closeout.md",
+          "rule": "theirs-only",
+          "base": "",
+          "ours": "",
+          "theirs": "100644 blob 60b210e2d72d8b4c50908b2f00caecae122731a2\tdev/plans/engine-protocol-consumption-closeout.md",
+          "result": "100644 blob 60b210e2d72d8b4c50908b2f00caecae122731a2\tdev/plans/engine-protocol-consumption-closeout.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/INDEX.md",
+          "rule": "ours-only",
+          "base": "100644 blob 34ee6add03b23963a20a93210ccd1a6c14ff5455\tdev/progress/INDEX.md",
+          "ours": "100644 blob 87223b31162734361deaf04f39630d952875bf14\tdev/progress/INDEX.md",
+          "theirs": "100644 blob 34ee6add03b23963a20a93210ccd1a6c14ff5455\tdev/progress/INDEX.md",
+          "result": "100644 blob 87223b31162734361deaf04f39630d952875bf14\tdev/progress/INDEX.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob df3cfbda3506a36dd2d3e54cbded7d4d56d59769\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+          "theirs": "",
+          "result": "100644 blob df3cfbda3506a36dd2d3e54cbded7d4d56d59769\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 76e7be2038bab1478362ccdec607d9b604255f76\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+          "theirs": "",
+          "result": "100644 blob 76e7be2038bab1478362ccdec607d9b604255f76\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 61546574a636d33e693587720cd471cd2bb6e0d2\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+          "theirs": "",
+          "result": "100644 blob 61546574a636d33e693587720cd471cd2bb6e0d2\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 96c63d090d144d5bfa4dfae4f9dbab1ff7a43a8e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+          "theirs": "",
+          "result": "100644 blob 96c63d090d144d5bfa4dfae4f9dbab1ff7a43a8e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob d8f38f3dd20b879d4420d42c49b9016d249edc35\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+          "theirs": "",
+          "result": "100644 blob d8f38f3dd20b879d4420d42c49b9016d249edc35\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 70c7af04d6627a068621494f3e8d866db1910956\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+          "theirs": "",
+          "result": "100644 blob 70c7af04d6627a068621494f3e8d866db1910956\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 60f17d64fc6f9038fce6d45467979f2efa55e5c3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+          "theirs": "",
+          "result": "100644 blob 60f17d64fc6f9038fce6d45467979f2efa55e5c3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob a4d7395c27c50d999c7c2588dc35ebd3ef09a7b7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+          "theirs": "",
+          "result": "100644 blob a4d7395c27c50d999c7c2588dc35ebd3ef09a7b7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob ca8c0c31db980e53477aaa744ac25fb6d141f842\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+          "theirs": "",
+          "result": "100644 blob ca8c0c31db980e53477aaa744ac25fb6d141f842\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob b7af8459d744845cae8a878a3cddf21be6a16e58\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+          "theirs": "",
+          "result": "100644 blob b7af8459d744845cae8a878a3cddf21be6a16e58\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 0b389debf86a686f1f580379485f851754fd5675\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+          "theirs": "",
+          "result": "100644 blob 0b389debf86a686f1f580379485f851754fd5675\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 3a6d5a1563b517c1136f639a11f2d7e8fb116d30\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+          "theirs": "",
+          "result": "100644 blob 3a6d5a1563b517c1136f639a11f2d7e8fb116d30\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 546f1ee2c9d0983cfae6f5f99c318e3a5278bc77\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+          "theirs": "",
+          "result": "100644 blob 546f1ee2c9d0983cfae6f5f99c318e3a5278bc77\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 821033d637781a06f56e08f828fec60b37d5858d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+          "theirs": "",
+          "result": "100644 blob 821033d637781a06f56e08f828fec60b37d5858d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 54faefcf482141de5400ef231d910c0c6dd2c790\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+          "theirs": "",
+          "result": "100644 blob 54faefcf482141de5400ef231d910c0c6dd2c790\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 2b6c812d0c7cbf01581f679bccc07311174f5319\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+          "theirs": "",
+          "result": "100644 blob 2b6c812d0c7cbf01581f679bccc07311174f5319\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 38d774d9cf5c6373e3f17864fc3c5aafe033a521\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+          "theirs": "",
+          "result": "100644 blob 38d774d9cf5c6373e3f17864fc3c5aafe033a521\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 6fcf8d6202e0da52f3f03e7ee8f19b99a7dccc5a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+          "theirs": "",
+          "result": "100644 blob 6fcf8d6202e0da52f3f03e7ee8f19b99a7dccc5a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 760ca167e003746e08263d4ed286c82d36918f95\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+          "theirs": "",
+          "result": "100644 blob 760ca167e003746e08263d4ed286c82d36918f95\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 929c9e46b6e9f5d1b9425cf6e40b2f7fe2c37059\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+          "theirs": "",
+          "result": "100644 blob 929c9e46b6e9f5d1b9425cf6e40b2f7fe2c37059\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 11fadf7719a46eb35c41b0953c575cb47a87f91d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+          "theirs": "",
+          "result": "100644 blob 11fadf7719a46eb35c41b0953c575cb47a87f91d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 234cdc91ca51a594db98344bb66e963eb6d0ca1a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+          "theirs": "",
+          "result": "100644 blob 234cdc91ca51a594db98344bb66e963eb6d0ca1a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 8fc7ceb92563231f18e28dad12ff96a9845df77b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+          "theirs": "",
+          "result": "100644 blob 8fc7ceb92563231f18e28dad12ff96a9845df77b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 54e7e82a64c9e649ed1dbd4565e1ca0e4cc1ed20\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+          "theirs": "",
+          "result": "100644 blob 54e7e82a64c9e649ed1dbd4565e1ca0e4cc1ed20\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 2bb4feca13501f20f75bd62df01b7dd8259f10ef\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+          "theirs": "",
+          "result": "100644 blob 2bb4feca13501f20f75bd62df01b7dd8259f10ef\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 7bf6f698c30492143f394102dc183db078de4a0b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+          "theirs": "",
+          "result": "100644 blob 7bf6f698c30492143f394102dc183db078de4a0b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 2f08792a77cd8745e2fdce2056ccb2ad29fbf45f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+          "theirs": "",
+          "result": "100644 blob 2f08792a77cd8745e2fdce2056ccb2ad29fbf45f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 7937c2ad9a8896935f22f4ef5166d6e9a75d9640\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+          "theirs": "",
+          "result": "100644 blob 7937c2ad9a8896935f22f4ef5166d6e9a75d9640\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 9902e2fbb8e426c583f54bdb4f5b7de79161eb89\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+          "theirs": "",
+          "result": "100644 blob 9902e2fbb8e426c583f54bdb4f5b7de79161eb89\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob c86acc43ae06ea701c773f4fd10feb7b14401820\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+          "theirs": "",
+          "result": "100644 blob c86acc43ae06ea701c773f4fd10feb7b14401820\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 1bae0aa726195fa730ccf1a8c240c5824ad7163d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+          "theirs": "",
+          "result": "100644 blob 1bae0aa726195fa730ccf1a8c240c5824ad7163d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob c8630472bc4e3c5382e8cf25c71056580ae7961c\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+          "theirs": "",
+          "result": "100644 blob c8630472bc4e3c5382e8cf25c71056580ae7961c\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob ed674f7d5f498c6704694b060702edc54c7b78c6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+          "theirs": "",
+          "result": "100644 blob ed674f7d5f498c6704694b060702edc54c7b78c6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob e727bd070d415b86b3acdaae079a409cfdf5fac9\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+          "theirs": "",
+          "result": "100644 blob e727bd070d415b86b3acdaae079a409cfdf5fac9\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 62414d485511de450dfbd11fa145ca61d8db76dd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+          "theirs": "",
+          "result": "100644 blob 62414d485511de450dfbd11fa145ca61d8db76dd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 538e1bcebead54f04f687d7d754f9ebaf288865e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+          "theirs": "",
+          "result": "100644 blob 538e1bcebead54f04f687d7d754f9ebaf288865e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 129bd776bfdf5197d879764545393da5d9565ff7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+          "theirs": "",
+          "result": "100644 blob 129bd776bfdf5197d879764545393da5d9565ff7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob a1628fa9386115a916e719ad504a0089a99d4e98\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+          "theirs": "",
+          "result": "100644 blob a1628fa9386115a916e719ad504a0089a99d4e98\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 453d2d0a4abe6d4256cf1027871220c84b0e485f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+          "theirs": "",
+          "result": "100644 blob 453d2d0a4abe6d4256cf1027871220c84b0e485f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob ce725457179e80d3f23079d2772bdad7936fcf8f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+          "theirs": "",
+          "result": "100644 blob ce725457179e80d3f23079d2772bdad7936fcf8f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 622109114a99f4aa612301f286a249cd399ef2a4\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+          "theirs": "",
+          "result": "100644 blob 622109114a99f4aa612301f286a249cd399ef2a4\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob f44e36516df359922736bf28f848ebbca54f283d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+          "theirs": "",
+          "result": "100644 blob f44e36516df359922736bf28f848ebbca54f283d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob fce319679e1de0ebb8fda415c26df105c8be44f3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+          "theirs": "",
+          "result": "100644 blob fce319679e1de0ebb8fda415c26df105c8be44f3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 7bbf010ed3675a6803d9cfaba2187dab5e05602f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+          "theirs": "",
+          "result": "100644 blob 7bbf010ed3675a6803d9cfaba2187dab5e05602f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob d29751406a2d71e078015a8221feb7dd91511db5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+          "theirs": "",
+          "result": "100644 blob d29751406a2d71e078015a8221feb7dd91511db5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob c979aa84d0969328299f2389677e03baba524cbb\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+          "theirs": "",
+          "result": "100644 blob c979aa84d0969328299f2389677e03baba524cbb\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 78b5d398103fa55af9adf92c850fe6f23bd8b4bd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+          "theirs": "",
+          "result": "100644 blob 78b5d398103fa55af9adf92c850fe6f23bd8b4bd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 27eb9d7a13b283463cf921dd4c2b68bde0330be5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+          "theirs": "",
+          "result": "100644 blob 27eb9d7a13b283463cf921dd4c2b68bde0330be5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob bfb6e4efc2eaf4df21e837ccb37e62c972fcaf88\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+          "theirs": "",
+          "result": "100644 blob bfb6e4efc2eaf4df21e837ccb37e62c972fcaf88\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 789498104704da8c4cd124d6b1eaea95a88e7258\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+          "theirs": "",
+          "result": "100644 blob 789498104704da8c4cd124d6b1eaea95a88e7258\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob c23b4c2cbfe016a3e890a47e2a411cc9563b49d1\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+          "theirs": "",
+          "result": "100644 blob c23b4c2cbfe016a3e890a47e2a411cc9563b49d1\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob a799dfb71dd2838eb9b2ef9576aff24d475563d6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+          "theirs": "",
+          "result": "100644 blob a799dfb71dd2838eb9b2ef9576aff24d475563d6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob cf7a0a49dbda4b2a7677234fcc15d4ca034e79d3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+          "theirs": "",
+          "result": "100644 blob cf7a0a49dbda4b2a7677234fcc15d4ca034e79d3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/status.md",
+          "rule": "ours-only",
+          "base": "100644 blob a6764d1383ab10ca56a93ff1600718230a228b06\tdev/progress/status.md",
+          "ours": "100644 blob c63940250381352feea8311b2f5de31cbdee0bab\tdev/progress/status.md",
+          "theirs": "100644 blob a6764d1383ab10ca56a93ff1600718230a228b06\tdev/progress/status.md",
+          "result": "100644 blob c63940250381352feea8311b2f5de31cbdee0bab\tdev/progress/status.md",
+          "passed": true
+        },
+        {
+          "path": "docs/INDEX.md",
+          "rule": "theirs-only",
+          "base": "100644 blob 27ee7ba2ac6c5a0cf6b3469638f689ab37755c63\tdocs/INDEX.md",
+          "ours": "100644 blob 27ee7ba2ac6c5a0cf6b3469638f689ab37755c63\tdocs/INDEX.md",
+          "theirs": "100644 blob b1b8ca72db971e8c1375daf74b78e4863da3b6c9\tdocs/INDEX.md",
+          "result": "100644 blob b1b8ca72db971e8c1375daf74b78e4863da3b6c9\tdocs/INDEX.md",
+          "passed": true
+        },
+        {
+          "path": "docs/reference/universe-agent/INDEX.md",
+          "rule": "theirs-only",
+          "base": "100644 blob 5c8ade8fc1166ee820e22bd21d8835091cafac28\tdocs/reference/universe-agent/INDEX.md",
+          "ours": "100644 blob 5c8ade8fc1166ee820e22bd21d8835091cafac28\tdocs/reference/universe-agent/INDEX.md",
+          "theirs": "100644 blob 2becb6aaaed7fbb3040e82d3c1e96e663a506248\tdocs/reference/universe-agent/INDEX.md",
+          "result": "100644 blob 2becb6aaaed7fbb3040e82d3c1e96e663a506248\tdocs/reference/universe-agent/INDEX.md",
+          "passed": true
+        },
+        {
+          "path": "docs/reference/universe-agent/ide-engine-feature-gaps.md",
+          "rule": "theirs-only",
+          "base": "",
+          "ours": "",
+          "theirs": "100644 blob b967ac6bb1f785268d8e3f3c35406e37ead2f50f\tdocs/reference/universe-agent/ide-engine-feature-gaps.md",
+          "result": "100644 blob b967ac6bb1f785268d8e3f3c35406e37ead2f50f\tdocs/reference/universe-agent/ide-engine-feature-gaps.md",
+          "passed": true
+        }
+      ],
+      "allPathsPreserved": true,
+      "sourceTree": "932031c34525449d4010265f914f7074abad2c05"
+    },
+    {
+      "label": "D-host-reviews",
+      "ours": "da0d263a1f18c7b79f8983764e1d0356d9c44ee5",
+      "theirs": "7c84e0167e3f5fef3db1e7dea5cd6f96ca3393c4",
+      "mergeBase": "cbac43bfde87361cae7ae5abd995e71f24f34b55",
+      "mergeHead": "6c75c2ca02694ad794532043c291326d997dda92",
+      "command": [
+        "git",
+        "merge",
+        "--no-ff",
+        "-m",
+        "docs: integrate D-host-reviews without source changes",
+        "7c84e0167e3f5fef3db1e7dea5cd6f96ca3393c4"
+      ],
+      "checks": [
+        {
+          "path": "dev/parallel/INDEX.md",
+          "rule": "ours-only",
+          "base": "100644 blob 733035e60dfc1c00d6aac11545fe1185da2a994a\tdev/parallel/INDEX.md",
+          "ours": "100644 blob 411d1c886fa0efbd650a8b571996ae46e4bb4c8e\tdev/parallel/INDEX.md",
+          "theirs": "100644 blob 733035e60dfc1c00d6aac11545fe1185da2a994a\tdev/parallel/INDEX.md",
+          "result": "100644 blob 411d1c886fa0efbd650a8b571996ae46e4bb4c8e\tdev/parallel/INDEX.md",
+          "passed": true
+        },
+        {
+          "path": "dev/parallel/active/control-detail-polish.md",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 2a59e1c23adfb07225e665095dc9fda3d70fb351\tdev/parallel/active/control-detail-polish.md",
+          "theirs": "",
+          "result": "100644 blob 2a59e1c23adfb07225e665095dc9fda3d70fb351\tdev/parallel/active/control-detail-polish.md",
+          "passed": true
+        },
+        {
+          "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+          "rule": "ours-only",
+          "base": "100644 blob f61857115878f33d6f7a03dfaee73750dec3d34e\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+          "ours": "100644 blob 21af96d043572801baf853d69868b09f206d7cf8\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+          "theirs": "100644 blob f61857115878f33d6f7a03dfaee73750dec3d34e\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+          "result": "100644 blob 21af96d043572801baf853d69868b09f206d7cf8\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+          "passed": true
+        },
+        {
+          "path": "dev/parallel/active/engine-protocol-consumption-closeout.md",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 640836b6acaee0eaa4267035d64f87fd2aefefab\tdev/parallel/active/engine-protocol-consumption-closeout.md",
+          "theirs": "",
+          "result": "100644 blob 640836b6acaee0eaa4267035d64f87fd2aefefab\tdev/parallel/active/engine-protocol-consumption-closeout.md",
+          "passed": true
+        },
+        {
+          "path": "dev/plans/INDEX.md",
+          "rule": "ours-only",
+          "base": "100644 blob c53e340eee447d632ca09d91a2e9c47043b431bf\tdev/plans/INDEX.md",
+          "ours": "100644 blob e686f6908a47a7fa54014abc014ae9b78ae633f8\tdev/plans/INDEX.md",
+          "theirs": "100644 blob c53e340eee447d632ca09d91a2e9c47043b431bf\tdev/plans/INDEX.md",
+          "result": "100644 blob e686f6908a47a7fa54014abc014ae9b78ae633f8\tdev/plans/INDEX.md",
+          "passed": true
+        },
+        {
+          "path": "dev/plans/control-detail-polish.md",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 9754d8d387ed46de8ca7b35f6e3d865aac46750d\tdev/plans/control-detail-polish.md",
+          "theirs": "",
+          "result": "100644 blob 9754d8d387ed46de8ca7b35f6e3d865aac46750d\tdev/plans/control-detail-polish.md",
+          "passed": true
+        },
+        {
+          "path": "dev/plans/current-typescript-contract-baseline.md",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 6e2cd2a01e3589e5b3d883f7fcfbd7d25ab012ec\tdev/plans/current-typescript-contract-baseline.md",
+          "theirs": "",
+          "result": "100644 blob 6e2cd2a01e3589e5b3d883f7fcfbd7d25ab012ec\tdev/plans/current-typescript-contract-baseline.md",
+          "passed": true
+        },
+        {
+          "path": "dev/plans/engine-protocol-consumption-closeout.md",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 60b210e2d72d8b4c50908b2f00caecae122731a2\tdev/plans/engine-protocol-consumption-closeout.md",
+          "theirs": "",
+          "result": "100644 blob 60b210e2d72d8b4c50908b2f00caecae122731a2\tdev/plans/engine-protocol-consumption-closeout.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/INDEX.md",
+          "rule": "ours-only",
+          "base": "100644 blob 22691910e38d481c0bcb270f96972f1f237b48c9\tdev/progress/INDEX.md",
+          "ours": "100644 blob 87223b31162734361deaf04f39630d952875bf14\tdev/progress/INDEX.md",
+          "theirs": "100644 blob 22691910e38d481c0bcb270f96972f1f237b48c9\tdev/progress/INDEX.md",
+          "result": "100644 blob 87223b31162734361deaf04f39630d952875bf14\tdev/progress/INDEX.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-docs-health.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 25dc2ea8b8262c7bef1cd53af19b7307e7bd11d0\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-docs-health.log",
+          "theirs": "",
+          "result": "100644 blob 25dc2ea8b8262c7bef1cd53af19b7307e7bd11d0\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-docs-health.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron-command.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 3e35783c6e2d2296a58b237a467f416cf552c2e1\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron-command.json",
+          "theirs": "",
+          "result": "100644 blob 3e35783c6e2d2296a58b237a467f416cf552c2e1\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron-command.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 627e8760066dc9f4ab698367a486a5488aa93452\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron.log",
+          "theirs": "",
+          "result": "100644 blob 627e8760066dc9f4ab698367a486a5488aa93452\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-eslint.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 8fcb2e82f3b6a7f40ea12dacb23babfbcdef1b6f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-eslint.log",
+          "theirs": "",
+          "result": "100644 blob 8fcb2e82f3b6a7f40ea12dacb23babfbcdef1b6f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-eslint.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 5aba7abf909e80f4dc6a4e1d6edc398be2721ea2\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red-identity.json",
+          "theirs": "",
+          "result": "100644 blob 5aba7abf909e80f4dc6a4e1d6edc398be2721ea2\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 3c88cceb8e680dab280ba653063c4ffb35eb2556\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red.log",
+          "theirs": "",
+          "result": "100644 blob 3c88cceb8e680dab280ba653063c4ffb35eb2556\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-final-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 4b2b9685cefc34596a98a7252d3acfeef3d562d5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-final-identity.json",
+          "theirs": "",
+          "result": "100644 blob 4b2b9685cefc34596a98a7252d3acfeef3d562d5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-final-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-green.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob fec7e0dbde9549cd11845de17c64ed4dfe14c68d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-green.log",
+          "theirs": "",
+          "result": "100644 blob fec7e0dbde9549cd11845de17c64ed4dfe14c68d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-green.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 0646873c32af30b3281286fc4c21e81558f280ca\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.json",
+          "theirs": "",
+          "result": "100644 blob 0646873c32af30b3281286fc4c21e81558f280ca\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 27e50097f7879e1012da776562e47e5747eb2d84\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log",
+          "theirs": "",
+          "result": "100644 blob 27e50097f7879e1012da776562e47e5747eb2d84\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-grpcClientCalls.test.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 9a40de8bf1dc8184fc977e5878ee09124b99101d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-grpcClientCalls.test.log",
+          "theirs": "",
+          "result": "100644 blob 9a40de8bf1dc8184fc977e5878ee09124b99101d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-grpcClientCalls.test.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-manageRemoteAgentHostsCatchScanD1328.test.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 240873f8d5a7799ed8a31c34498d3c65a133eaef\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-manageRemoteAgentHostsCatchScanD1328.test.log",
+          "theirs": "",
+          "result": "100644 blob 240873f8d5a7799ed8a31c34498d3c65a133eaef\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-manageRemoteAgentHostsCatchScanD1328.test.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-mobileHostFilterFocusScan.test.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 0df5428c9f211ff58ac118d525c2fc1497f819c1\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-mobileHostFilterFocusScan.test.log",
+          "theirs": "",
+          "result": "100644 blob 0df5428c9f211ff58ac118d525c2fc1497f819c1\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-mobileHostFilterFocusScan.test.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-repair-1.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 0ae5a0fe3f456f5bb330f3d7cd7e4c48219be6ee\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-repair-1.log",
+          "theirs": "",
+          "result": "100644 blob 0ae5a0fe3f456f5bb330f3d7cd7e4c48219be6ee\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-repair-1.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob ab35bd36bbb428276e0f119348989ca5a055d9cb\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md",
+          "theirs": "",
+          "result": "100644 blob ab35bd36bbb428276e0f119348989ca5a055d9cb\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob df3cfbda3506a36dd2d3e54cbded7d4d56d59769\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+          "theirs": "",
+          "result": "100644 blob df3cfbda3506a36dd2d3e54cbded7d4d56d59769\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 76e7be2038bab1478362ccdec607d9b604255f76\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+          "theirs": "",
+          "result": "100644 blob 76e7be2038bab1478362ccdec607d9b604255f76\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 61546574a636d33e693587720cd471cd2bb6e0d2\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+          "theirs": "",
+          "result": "100644 blob 61546574a636d33e693587720cd471cd2bb6e0d2\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 96c63d090d144d5bfa4dfae4f9dbab1ff7a43a8e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+          "theirs": "",
+          "result": "100644 blob 96c63d090d144d5bfa4dfae4f9dbab1ff7a43a8e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob d8f38f3dd20b879d4420d42c49b9016d249edc35\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+          "theirs": "",
+          "result": "100644 blob d8f38f3dd20b879d4420d42c49b9016d249edc35\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 70c7af04d6627a068621494f3e8d866db1910956\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+          "theirs": "",
+          "result": "100644 blob 70c7af04d6627a068621494f3e8d866db1910956\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 60f17d64fc6f9038fce6d45467979f2efa55e5c3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+          "theirs": "",
+          "result": "100644 blob 60f17d64fc6f9038fce6d45467979f2efa55e5c3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob a4d7395c27c50d999c7c2588dc35ebd3ef09a7b7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+          "theirs": "",
+          "result": "100644 blob a4d7395c27c50d999c7c2588dc35ebd3ef09a7b7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob ca8c0c31db980e53477aaa744ac25fb6d141f842\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+          "theirs": "",
+          "result": "100644 blob ca8c0c31db980e53477aaa744ac25fb6d141f842\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob b7af8459d744845cae8a878a3cddf21be6a16e58\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+          "theirs": "",
+          "result": "100644 blob b7af8459d744845cae8a878a3cddf21be6a16e58\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 0b389debf86a686f1f580379485f851754fd5675\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+          "theirs": "",
+          "result": "100644 blob 0b389debf86a686f1f580379485f851754fd5675\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 3a6d5a1563b517c1136f639a11f2d7e8fb116d30\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+          "theirs": "",
+          "result": "100644 blob 3a6d5a1563b517c1136f639a11f2d7e8fb116d30\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 546f1ee2c9d0983cfae6f5f99c318e3a5278bc77\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+          "theirs": "",
+          "result": "100644 blob 546f1ee2c9d0983cfae6f5f99c318e3a5278bc77\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 821033d637781a06f56e08f828fec60b37d5858d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+          "theirs": "",
+          "result": "100644 blob 821033d637781a06f56e08f828fec60b37d5858d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 54faefcf482141de5400ef231d910c0c6dd2c790\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+          "theirs": "",
+          "result": "100644 blob 54faefcf482141de5400ef231d910c0c6dd2c790\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 2b6c812d0c7cbf01581f679bccc07311174f5319\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+          "theirs": "",
+          "result": "100644 blob 2b6c812d0c7cbf01581f679bccc07311174f5319\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 38d774d9cf5c6373e3f17864fc3c5aafe033a521\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+          "theirs": "",
+          "result": "100644 blob 38d774d9cf5c6373e3f17864fc3c5aafe033a521\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 6fcf8d6202e0da52f3f03e7ee8f19b99a7dccc5a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+          "theirs": "",
+          "result": "100644 blob 6fcf8d6202e0da52f3f03e7ee8f19b99a7dccc5a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 760ca167e003746e08263d4ed286c82d36918f95\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+          "theirs": "",
+          "result": "100644 blob 760ca167e003746e08263d4ed286c82d36918f95\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 929c9e46b6e9f5d1b9425cf6e40b2f7fe2c37059\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+          "theirs": "",
+          "result": "100644 blob 929c9e46b6e9f5d1b9425cf6e40b2f7fe2c37059\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 11fadf7719a46eb35c41b0953c575cb47a87f91d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+          "theirs": "",
+          "result": "100644 blob 11fadf7719a46eb35c41b0953c575cb47a87f91d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 234cdc91ca51a594db98344bb66e963eb6d0ca1a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+          "theirs": "",
+          "result": "100644 blob 234cdc91ca51a594db98344bb66e963eb6d0ca1a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 8fc7ceb92563231f18e28dad12ff96a9845df77b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+          "theirs": "",
+          "result": "100644 blob 8fc7ceb92563231f18e28dad12ff96a9845df77b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 54e7e82a64c9e649ed1dbd4565e1ca0e4cc1ed20\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+          "theirs": "",
+          "result": "100644 blob 54e7e82a64c9e649ed1dbd4565e1ca0e4cc1ed20\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 2bb4feca13501f20f75bd62df01b7dd8259f10ef\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+          "theirs": "",
+          "result": "100644 blob 2bb4feca13501f20f75bd62df01b7dd8259f10ef\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 7bf6f698c30492143f394102dc183db078de4a0b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+          "theirs": "",
+          "result": "100644 blob 7bf6f698c30492143f394102dc183db078de4a0b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 2f08792a77cd8745e2fdce2056ccb2ad29fbf45f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+          "theirs": "",
+          "result": "100644 blob 2f08792a77cd8745e2fdce2056ccb2ad29fbf45f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 7937c2ad9a8896935f22f4ef5166d6e9a75d9640\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+          "theirs": "",
+          "result": "100644 blob 7937c2ad9a8896935f22f4ef5166d6e9a75d9640\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 9902e2fbb8e426c583f54bdb4f5b7de79161eb89\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+          "theirs": "",
+          "result": "100644 blob 9902e2fbb8e426c583f54bdb4f5b7de79161eb89\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob c86acc43ae06ea701c773f4fd10feb7b14401820\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+          "theirs": "",
+          "result": "100644 blob c86acc43ae06ea701c773f4fd10feb7b14401820\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 1bae0aa726195fa730ccf1a8c240c5824ad7163d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+          "theirs": "",
+          "result": "100644 blob 1bae0aa726195fa730ccf1a8c240c5824ad7163d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob c8630472bc4e3c5382e8cf25c71056580ae7961c\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+          "theirs": "",
+          "result": "100644 blob c8630472bc4e3c5382e8cf25c71056580ae7961c\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob ed674f7d5f498c6704694b060702edc54c7b78c6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+          "theirs": "",
+          "result": "100644 blob ed674f7d5f498c6704694b060702edc54c7b78c6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob e727bd070d415b86b3acdaae079a409cfdf5fac9\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+          "theirs": "",
+          "result": "100644 blob e727bd070d415b86b3acdaae079a409cfdf5fac9\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 62414d485511de450dfbd11fa145ca61d8db76dd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+          "theirs": "",
+          "result": "100644 blob 62414d485511de450dfbd11fa145ca61d8db76dd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 538e1bcebead54f04f687d7d754f9ebaf288865e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+          "theirs": "",
+          "result": "100644 blob 538e1bcebead54f04f687d7d754f9ebaf288865e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 129bd776bfdf5197d879764545393da5d9565ff7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+          "theirs": "",
+          "result": "100644 blob 129bd776bfdf5197d879764545393da5d9565ff7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob a1628fa9386115a916e719ad504a0089a99d4e98\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+          "theirs": "",
+          "result": "100644 blob a1628fa9386115a916e719ad504a0089a99d4e98\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 453d2d0a4abe6d4256cf1027871220c84b0e485f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+          "theirs": "",
+          "result": "100644 blob 453d2d0a4abe6d4256cf1027871220c84b0e485f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob ce725457179e80d3f23079d2772bdad7936fcf8f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+          "theirs": "",
+          "result": "100644 blob ce725457179e80d3f23079d2772bdad7936fcf8f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 622109114a99f4aa612301f286a249cd399ef2a4\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+          "theirs": "",
+          "result": "100644 blob 622109114a99f4aa612301f286a249cd399ef2a4\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md",
+          "rule": "theirs-only",
+          "base": "",
+          "ours": "",
+          "theirs": "100644 blob f4b7fcb49b158a5b6d8ddeb0a4c225af1d7dcb4b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md",
+          "result": "100644 blob f4b7fcb49b158a5b6d8ddeb0a4c225af1d7dcb4b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-custom-review-integration.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob f903c556cc61da441b5809583a5698c457d0e574\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-custom-review-integration.json",
+          "theirs": "",
+          "result": "100644 blob f903c556cc61da441b5809583a5698c457d0e574\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-custom-review-integration.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md",
+          "rule": "theirs-only",
+          "base": "",
+          "ours": "",
+          "theirs": "100644 blob 1c0bc621e232c76f7e5d5a6a5a0be8f9d06ff55b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md",
+          "result": "100644 blob 1c0bc621e232c76f7e5d5a6a5a0be8f9d06ff55b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob f44e36516df359922736bf28f848ebbca54f283d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+          "theirs": "",
+          "result": "100644 blob f44e36516df359922736bf28f848ebbca54f283d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 732829d73416b92b8260fd958daed37e703bf3eb\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red-identity.json",
+          "theirs": "",
+          "result": "100644 blob 732829d73416b92b8260fd958daed37e703bf3eb\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 6dad1c651d8f487ab81edb06424ca2354a24169c\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.log",
+          "theirs": "",
+          "result": "100644 blob 6dad1c651d8f487ab81edb06424ca2354a24169c\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 9e93d97de580146d646028c98c6a0c0928b65d48\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md",
+          "theirs": "",
+          "result": "100644 blob 9e93d97de580146d646028c98c6a0c0928b65d48\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob f1746f3f5fde231c9efe6ae258e85d00534dcbb8\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.json",
+          "theirs": "",
+          "result": "100644 blob f1746f3f5fde231c9efe6ae258e85d00534dcbb8\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 4e70288e9a6c031decbaffd5f17719ce0a20f77d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md",
+          "theirs": "",
+          "result": "100644 blob 4e70288e9a6c031decbaffd5f17719ce0a20f77d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob fce319679e1de0ebb8fda415c26df105c8be44f3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+          "theirs": "",
+          "result": "100644 blob fce319679e1de0ebb8fda415c26df105c8be44f3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 7bbf010ed3675a6803d9cfaba2187dab5e05602f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+          "theirs": "",
+          "result": "100644 blob 7bbf010ed3675a6803d9cfaba2187dab5e05602f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob d29751406a2d71e078015a8221feb7dd91511db5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+          "theirs": "",
+          "result": "100644 blob d29751406a2d71e078015a8221feb7dd91511db5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob c979aa84d0969328299f2389677e03baba524cbb\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+          "theirs": "",
+          "result": "100644 blob c979aa84d0969328299f2389677e03baba524cbb\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 78b5d398103fa55af9adf92c850fe6f23bd8b4bd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+          "theirs": "",
+          "result": "100644 blob 78b5d398103fa55af9adf92c850fe6f23bd8b4bd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 27eb9d7a13b283463cf921dd4c2b68bde0330be5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+          "theirs": "",
+          "result": "100644 blob 27eb9d7a13b283463cf921dd4c2b68bde0330be5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob bfb6e4efc2eaf4df21e837ccb37e62c972fcaf88\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+          "theirs": "",
+          "result": "100644 blob bfb6e4efc2eaf4df21e837ccb37e62c972fcaf88\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob 789498104704da8c4cd124d6b1eaea95a88e7258\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+          "theirs": "",
+          "result": "100644 blob 789498104704da8c4cd124d6b1eaea95a88e7258\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob c23b4c2cbfe016a3e890a47e2a411cc9563b49d1\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+          "theirs": "",
+          "result": "100644 blob c23b4c2cbfe016a3e890a47e2a411cc9563b49d1\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob a799dfb71dd2838eb9b2ef9576aff24d475563d6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+          "theirs": "",
+          "result": "100644 blob a799dfb71dd2838eb9b2ef9576aff24d475563d6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob cf7a0a49dbda4b2a7677234fcc15d4ca034e79d3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+          "theirs": "",
+          "result": "100644 blob cf7a0a49dbda4b2a7677234fcc15d4ca034e79d3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/deferred-gaps.md",
+          "rule": "ours-only",
+          "base": "100644 blob f61100d2cf33d53c2fee89c55f14f0a8969e56f1\tdev/progress/deferred-gaps.md",
+          "ours": "100644 blob a011a6ceeb8d83ab4bda57c1fefc94efada6db30\tdev/progress/deferred-gaps.md",
+          "theirs": "100644 blob f61100d2cf33d53c2fee89c55f14f0a8969e56f1\tdev/progress/deferred-gaps.md",
+          "result": "100644 blob a011a6ceeb8d83ab4bda57c1fefc94efada6db30\tdev/progress/deferred-gaps.md",
+          "passed": true
+        },
+        {
+          "path": "dev/progress/status.md",
+          "rule": "ours-only",
+          "base": "100644 blob 5776263560cbf39f8f0c973f7a32d1f863fca96d\tdev/progress/status.md",
+          "ours": "100644 blob c63940250381352feea8311b2f5de31cbdee0bab\tdev/progress/status.md",
+          "theirs": "100644 blob 5776263560cbf39f8f0c973f7a32d1f863fca96d\tdev/progress/status.md",
+          "result": "100644 blob c63940250381352feea8311b2f5de31cbdee0bab\tdev/progress/status.md",
+          "passed": true
+        },
+        {
+          "path": "docs/INDEX.md",
+          "rule": "ours-only",
+          "base": "100644 blob 27ee7ba2ac6c5a0cf6b3469638f689ab37755c63\tdocs/INDEX.md",
+          "ours": "100644 blob b1b8ca72db971e8c1375daf74b78e4863da3b6c9\tdocs/INDEX.md",
+          "theirs": "100644 blob 27ee7ba2ac6c5a0cf6b3469638f689ab37755c63\tdocs/INDEX.md",
+          "result": "100644 blob b1b8ca72db971e8c1375daf74b78e4863da3b6c9\tdocs/INDEX.md",
+          "passed": true
+        },
+        {
+          "path": "docs/reference/universe-agent/INDEX.md",
+          "rule": "ours-only",
+          "base": "100644 blob 5c8ade8fc1166ee820e22bd21d8835091cafac28\tdocs/reference/universe-agent/INDEX.md",
+          "ours": "100644 blob 2becb6aaaed7fbb3040e82d3c1e96e663a506248\tdocs/reference/universe-agent/INDEX.md",
+          "theirs": "100644 blob 5c8ade8fc1166ee820e22bd21d8835091cafac28\tdocs/reference/universe-agent/INDEX.md",
+          "result": "100644 blob 2becb6aaaed7fbb3040e82d3c1e96e663a506248\tdocs/reference/universe-agent/INDEX.md",
+          "passed": true
+        },
+        {
+          "path": "docs/reference/universe-agent/ide-engine-feature-gaps.md",
+          "rule": "ours-only",
+          "base": "",
+          "ours": "100644 blob b967ac6bb1f785268d8e3f3c35406e37ead2f50f\tdocs/reference/universe-agent/ide-engine-feature-gaps.md",
+          "theirs": "",
+          "result": "100644 blob b967ac6bb1f785268d8e3f3c35406e37ead2f50f\tdocs/reference/universe-agent/ide-engine-feature-gaps.md",
+          "passed": true
+        },
+        {
+          "path": "src/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 3566a12382b8d4ed32439a49d14697222444174e\tsrc/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts",
+          "ours": "100644 blob 77cd8c6d13305da1206e98aec146e2f2d8cc8cb4\tsrc/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts",
+          "theirs": "100644 blob 3566a12382b8d4ed32439a49d14697222444174e\tsrc/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts",
+          "result": "100644 blob 77cd8c6d13305da1206e98aec146e2f2d8cc8cb4\tsrc/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 5fb5120797bb71f5f43e7bcab484f0200935e534\tsrc/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts",
+          "ours": "100644 blob f4b5bba856ee10ef362d749839f31a5509b3b76c\tsrc/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts",
+          "theirs": "100644 blob 5fb5120797bb71f5f43e7bcab484f0200935e534\tsrc/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts",
+          "result": "100644 blob f4b5bba856ee10ef362d749839f31a5509b3b76c\tsrc/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/platform/universeAgent/test/common/respondCleanup.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob b6df3025e5dd96ab712d2377d9e85823a29a4f60\tsrc/vs/platform/universeAgent/test/common/respondCleanup.test.ts",
+          "ours": "100644 blob bd2d4aaf5822495a692d69e5a01c7c2861cbdb6b\tsrc/vs/platform/universeAgent/test/common/respondCleanup.test.ts",
+          "theirs": "100644 blob b6df3025e5dd96ab712d2377d9e85823a29a4f60\tsrc/vs/platform/universeAgent/test/common/respondCleanup.test.ts",
+          "result": "100644 blob bd2d4aaf5822495a692d69e5a01c7c2861cbdb6b\tsrc/vs/platform/universeAgent/test/common/respondCleanup.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob ea8cdd4f3d5e521a0ed56cf72c32ebf926aaf302\tsrc/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+          "ours": "100644 blob 6bd02e937e9f40e6b5d78b8ff4286b9020f1fb31\tsrc/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+          "theirs": "100644 blob ea8cdd4f3d5e521a0ed56cf72c32ebf926aaf302\tsrc/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+          "result": "100644 blob 6bd02e937e9f40e6b5d78b8ff4286b9020f1fb31\tsrc/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/sessions/contrib/changes/browser/changesActions.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 7f75a31cf5b61356d5f94e79cd7f69f8346689e7\tsrc/vs/sessions/contrib/changes/browser/changesActions.ts",
+          "ours": "100644 blob 373a716a07c7d8800c278f586fdfc6533e0a5043\tsrc/vs/sessions/contrib/changes/browser/changesActions.ts",
+          "theirs": "100644 blob 7f75a31cf5b61356d5f94e79cd7f69f8346689e7\tsrc/vs/sessions/contrib/changes/browser/changesActions.ts",
+          "result": "100644 blob 373a716a07c7d8800c278f586fdfc6533e0a5043\tsrc/vs/sessions/contrib/changes/browser/changesActions.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/sessions/contrib/changes/browser/changesetReviewActions.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 7a622f9c2cdd24780f05606cc818b9380e2dbe88\tsrc/vs/sessions/contrib/changes/browser/changesetReviewActions.ts",
+          "ours": "100644 blob a75a25daf433fb9c499a97e01b7e688c7a14be48\tsrc/vs/sessions/contrib/changes/browser/changesetReviewActions.ts",
+          "theirs": "100644 blob 7a622f9c2cdd24780f05606cc818b9380e2dbe88\tsrc/vs/sessions/contrib/changes/browser/changesetReviewActions.ts",
+          "result": "100644 blob a75a25daf433fb9c499a97e01b7e688c7a14be48\tsrc/vs/sessions/contrib/changes/browser/changesetReviewActions.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob b6818cdd64e1ed339b39819833d2883db1ac86e5\tsrc/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts",
+          "ours": "100644 blob 7961da1343ab64e02c88d9bc9bb6eff887bcc48a\tsrc/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts",
+          "theirs": "100644 blob b6818cdd64e1ed339b39819833d2883db1ac86e5\tsrc/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts",
+          "result": "100644 blob 7961da1343ab64e02c88d9bc9bb6eff887bcc48a\tsrc/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 75a016cb6db835a3e024bde53711822effbac953\tsrc/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts",
+          "ours": "100644 blob d9cb1bd1ba9c1504f24537dcfb75d7ae48295682\tsrc/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts",
+          "theirs": "100644 blob 75a016cb6db835a3e024bde53711822effbac953\tsrc/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts",
+          "result": "100644 blob d9cb1bd1ba9c1504f24537dcfb75d7ae48295682\tsrc/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 505355b7c6bf2ae3fef5366b2e05f18b2168b324\tsrc/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts",
+          "ours": "100644 blob 5e3096c8944445f316260a52107e5100654c30ea\tsrc/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts",
+          "theirs": "100644 blob 505355b7c6bf2ae3fef5366b2e05f18b2168b324\tsrc/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts",
+          "result": "100644 blob 5e3096c8944445f316260a52107e5100654c30ea\tsrc/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts",
+          "rule": "ours-only",
+          "base": "100644 blob c951c05b0d9b6ec5ace0b5186f379f3f5a12d761\tsrc/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts",
+          "ours": "100644 blob 4cfa490846617d9a3d3985ad280a1bd4bae6db52\tsrc/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts",
+          "theirs": "100644 blob c951c05b0d9b6ec5ace0b5186f379f3f5a12d761\tsrc/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts",
+          "result": "100644 blob 4cfa490846617d9a3d3985ad280a1bd4bae6db52\tsrc/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 3df76363a2edde4b04d1600bf47e4c32765138a1\tsrc/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+          "ours": "100644 blob 099c92397fb8c022d032c6c8f8e49d3ddc11f9d4\tsrc/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+          "theirs": "100644 blob 3df76363a2edde4b04d1600bf47e4c32765138a1\tsrc/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+          "result": "100644 blob 099c92397fb8c022d032c6c8f8e49d3ddc11f9d4\tsrc/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob a49ec799653515a9784b4c768c40fb376c656678\tsrc/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+          "ours": "100644 blob 1299ab9bd45dda0a3a1e4a2a1560068fadf5cc5b\tsrc/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+          "theirs": "100644 blob a49ec799653515a9784b4c768c40fb376c656678\tsrc/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+          "result": "100644 blob 1299ab9bd45dda0a3a1e4a2a1560068fadf5cc5b\tsrc/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob ffd50263d0db9957341978a2c47537e6ad680351\tsrc/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+          "ours": "100644 blob c6da71247f8b12579df4f177083cee8788156d06\tsrc/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+          "theirs": "100644 blob ffd50263d0db9957341978a2c47537e6ad680351\tsrc/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+          "result": "100644 blob c6da71247f8b12579df4f177083cee8788156d06\tsrc/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob d1ac4bcb7653b00c58eaf42d6be94a707c9bcf5c\tsrc/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts",
+          "ours": "100644 blob cb2c9a86e3265d6118604c45d090f0908847b679\tsrc/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts",
+          "theirs": "100644 blob d1ac4bcb7653b00c58eaf42d6be94a707c9bcf5c\tsrc/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts",
+          "result": "100644 blob cb2c9a86e3265d6118604c45d090f0908847b679\tsrc/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob c4389d205e7192a2bf9805f89d50a8b166224cab\tsrc/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+          "ours": "100644 blob 07535717f1bfb3438f5f00d8cb4a679c8dda63f3\tsrc/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+          "theirs": "100644 blob c4389d205e7192a2bf9805f89d50a8b166224cab\tsrc/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+          "result": "100644 blob 07535717f1bfb3438f5f00d8cb4a679c8dda63f3\tsrc/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 545eff17fc2221fc2979b5f9ad5cf04e0bb3b96d\tsrc/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+          "ours": "100644 blob c7f5121f290d90a7ae16d1d6c05bd86479cf303d\tsrc/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+          "theirs": "100644 blob 545eff17fc2221fc2979b5f9ad5cf04e0bb3b96d\tsrc/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+          "result": "100644 blob c7f5121f290d90a7ae16d1d6c05bd86479cf303d\tsrc/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob d20d6d716b1db2b5599e04456113d60f731f2767\tsrc/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+          "ours": "100644 blob caacea76caec12cd73e8e17d210028d071422bc5\tsrc/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+          "theirs": "100644 blob d20d6d716b1db2b5599e04456113d60f731f2767\tsrc/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+          "result": "100644 blob caacea76caec12cd73e8e17d210028d071422bc5\tsrc/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 870424170088a514cd5835c7d2e0825b5bed0c5a\tsrc/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+          "ours": "100644 blob 6cf44bb7039433071ced7d3ed84eb237779b69a7\tsrc/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+          "theirs": "100644 blob 870424170088a514cd5835c7d2e0825b5bed0c5a\tsrc/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+          "result": "100644 blob 6cf44bb7039433071ced7d3ed84eb237779b69a7\tsrc/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 73b8e5eed13f573951e8da6184643fabe4a4b58f\tsrc/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts",
+          "ours": "100644 blob 9f975e76f36287ba96f01bcbeec6c1232b8afdb3\tsrc/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts",
+          "theirs": "100644 blob 73b8e5eed13f573951e8da6184643fabe4a4b58f\tsrc/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts",
+          "result": "100644 blob 9f975e76f36287ba96f01bcbeec6c1232b8afdb3\tsrc/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob c2a7f24009d352b01f54df7f6f2c75fbe56e982c\tsrc/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts",
+          "ours": "100644 blob a5a948de5c8139dfd7b2e5b0e4ce4b332caa884e\tsrc/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts",
+          "theirs": "100644 blob c2a7f24009d352b01f54df7f6f2c75fbe56e982c\tsrc/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts",
+          "result": "100644 blob a5a948de5c8139dfd7b2e5b0e4ce4b332caa884e\tsrc/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob bdbc3794c96cf61ec6720741b51bf0a682affa68\tsrc/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts",
+          "ours": "100644 blob 0f787c34970259b4ea7d53c7387551b49131ce4c\tsrc/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts",
+          "theirs": "100644 blob bdbc3794c96cf61ec6720741b51bf0a682affa68\tsrc/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts",
+          "result": "100644 blob 0f787c34970259b4ea7d53c7387551b49131ce4c\tsrc/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/contrib/output/test/browser/outputServices.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 98dc0001669ec36ed90fdeb642675c0c0db7009e\tsrc/vs/workbench/contrib/output/test/browser/outputServices.test.ts",
+          "ours": "100644 blob 5c6c5f848045c9323a76d90fe2095986901bb8e1\tsrc/vs/workbench/contrib/output/test/browser/outputServices.test.ts",
+          "theirs": "100644 blob 98dc0001669ec36ed90fdeb642675c0c0db7009e\tsrc/vs/workbench/contrib/output/test/browser/outputServices.test.ts",
+          "result": "100644 blob 5c6c5f848045c9323a76d90fe2095986901bb8e1\tsrc/vs/workbench/contrib/output/test/browser/outputServices.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob d1eecbfd9cf3c563137f54a3a61a8eacbf7befb9\tsrc/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts",
+          "ours": "100644 blob b9956c48c6dcef202d578900295002098bb263f6\tsrc/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts",
+          "theirs": "100644 blob d1eecbfd9cf3c563137f54a3a61a8eacbf7befb9\tsrc/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts",
+          "result": "100644 blob b9956c48c6dcef202d578900295002098bb263f6\tsrc/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob d6ed53f50a0d1a1cd84f022430e78d0cd56c7c74\tsrc/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts",
+          "ours": "100644 blob f71addba8fc30c96c786de14a7a820aa895704a6\tsrc/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts",
+          "theirs": "100644 blob d6ed53f50a0d1a1cd84f022430e78d0cd56c7c74\tsrc/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts",
+          "result": "100644 blob f71addba8fc30c96c786de14a7a820aa895704a6\tsrc/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob a0f3b750bb76d7e9c37cdfa9a6269c6eccfbe207\tsrc/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+          "ours": "100644 blob 276a058d3e886af0eee77e6ec27eab76d86d46e5\tsrc/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+          "theirs": "100644 blob a0f3b750bb76d7e9c37cdfa9a6269c6eccfbe207\tsrc/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+          "result": "100644 blob 276a058d3e886af0eee77e6ec27eab76d86d46e5\tsrc/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 366de9b22ea0172d0c819aa77a4977aa5ee4c832\tsrc/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts",
+          "ours": "100644 blob 3a7f6ec138d7edb0288a5a85849c4a1fbe15f279\tsrc/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts",
+          "theirs": "100644 blob 366de9b22ea0172d0c819aa77a4977aa5ee4c832\tsrc/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts",
+          "result": "100644 blob 3a7f6ec138d7edb0288a5a85849c4a1fbe15f279\tsrc/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts",
+          "passed": true
+        },
+        {
+          "path": "src/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts",
+          "rule": "ours-only",
+          "base": "100644 blob 6ea43ade18bae27062a80ed1731f17673a68cf62\tsrc/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts",
+          "ours": "100644 blob f941beecb422ed8779294b283480cd0ec45da4c2\tsrc/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts",
+          "theirs": "100644 blob 6ea43ade18bae27062a80ed1731f17673a68cf62\tsrc/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts",
+          "result": "100644 blob f941beecb422ed8779294b283480cd0ec45da4c2\tsrc/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts",
+          "passed": true
+        }
+      ],
+      "allPathsPreserved": true,
+      "sourceTree": "932031c34525449d4010265f914f7074abad2c05"
+    }
+  ],
+  "noSourceOrOutputRefresh": true
+}
