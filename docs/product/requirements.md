@@ -184,7 +184,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   6. 列表内编辑与队列编辑复用同一 Composer（含 Exit）；展示态用户卡没有按钮。
   7. 无引擎转写 capability 时不画语音钮，也不把预设台词写入草稿。语音转写队列不是 MessageQueue。
   8. 输入面不是 Copilot `ChatInputPart` 的一排 picker，也不是 Singularity 2×2 Material 配置卡。
-  9. 文件夹芯片和分支芯片打开锚定列表，当前项打勾，再点同一芯片关掉。搜索去掉空白后仍非空且一条动作都看不见时，文件夹写 “No matching folders.”，分支写 “No matching branches.”；空白查询、仍有条目或列表还在打开时不写。引擎芯片打开 Preferences，不打开文件夹或分支列表。
+  9. 文件夹芯片和分支芯片打开锚定列表，当前项打勾，再点同一芯片关掉。身份条的文件夹、分支、读屏名、菜单当前项与分支切换目标属于所在叶绑定的会话；并列另一叶或全局活动会话变化不改变这个归属。文件夹列表加入目录仍作用于当前窗口工作区（PRD-029 验收 10）。搜索去掉空白后仍非空且一条动作都看不见时，文件夹写 “No matching folders.”，分支写 “No matching branches.”；空白查询、仍有条目或列表还在打开时不写。引擎芯片打开 Preferences，不打开文件夹或分支列表。
 - **依赖或未决**：活队列 / 路由策略 / AgentProfile 数据依赖 PRD-008。无引擎时 Agent 用诚实空；Route 省略，不假装已接到引擎策略表。MessageQueue 列表 UI SSOT = Singularity [message-queue-bar](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md)（槽位仍以本仓 Inbox 为准）。方案见 [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md)。D194：假麦克风与假 Route 已删。**2026-10-21：** 验收 2 的「+」是加上下文，无底幽灵钮（PRD-028 验收 8），不是浅底圆。它列出可引用的会话并写成引用芯片。文件上传不在消息格式里，不画。Tool options 是旁边另一颗 `tools` 图标。发送仍是唯一实心圆。
 
 ### PRD-016 Conversation session 窗口与 chat tab
@@ -442,6 +442,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   9. 引擎身份未知时，不同引擎上的同一路径不共用 Preview 编辑器，按会话各自保存。
   10. 身份条文件夹列表里选一个最近文件夹、选「Add Folder to Workspace…」，或在 Navigator Projects 里点一个最近文件夹，都是把它加进当前工作区：已打开的文件夹不受影响，窗口不重开。已经在工作区里的文件夹再选一次不重复加入。只有用户显式要求新窗口（Navigator 里按住 Ctrl / Cmd 点）或替换当前窗口（按住 Alt 点）时才开新窗口或替换。（2026-10-24 用户增补）
   11. 窗口第一次从空窗口或单文件夹变成多根工作区时，扩展宿主重启一次（这是 VS Code 进入工作区的固有行为）；工作区里已有文件夹后再追加，不重启扩展宿主，也不重载窗口。工作区被删空后再加入第一个文件夹，仍会重启一次。远程窗口加入文件夹仍按 VS Code 自身行为处理。（2026-10-24 用户增补）
+  12. 并列叶的身份条按各自绑定会话的工作根显示文件夹与分支，非活动叶的工作目录变化也更新；本地分支读取、当前项和 checkout 使用该叶本地根，引擎根分支只读。绑定或根变化后，旧列表和晚到读取失效。Sources 继续跟全局活动会话，Preview 仍遵守验收 4。加入目录按钮只呈现与该叶引擎工作根匹配的现有全局 offer，点击重新验证同一 offer 与 URI；不增加每叶自动挂载或信任策略。（2026-10-26 归属澄清，D1386）
 - **依赖或未决**：方案见 [session-work-root-and-workbench-scope](../../dev/plans/session-work-root-and-workbench-scope.md)（`draft`）。验收 3、4 的 Preview 换入换出必须与 [PRD-027](#prd-027-preview-类别隔离与-surface-宿主) 的类别隔离同时成立，PRD-027 方案 P3 完成后另写设计再实施。验收 7 只数等待确认：正在生成没有按会话的只读来源。验收 8、10、11 显式加入的文件夹照常经过工作区信任，不绕过信任提示：当前工作区已受信任而新目录未受信任时，点击「Add and trust」或从菜单加入会弹信任框，点 No 后文件夹仍加入、整窗进入受限模式。切会话本身不弹这个框。同时连接多个引擎、每个引擎开一个窗口不在本条：引擎连接是全应用一份（见 [published-link-identity](../../dev/plans/published-link-identity.md)），要做须另立 ADR。在其他工作目录新建会话不在本条，需要 `CreateSession` 带工作目录或先建会话再切工作目录，另开方案。参照来源（`source`，不继承正文）：UniverseAgentDesktop `attention-and-action-reachability`（换引擎前提示）、Singularity ADR-243 / ADR-250 / ADR-297（工作目录挂在会话上、Workbench 分项目层与会话层、作用域跟当前会话的引擎）。
 
 ## 明确排除（不是需求）
