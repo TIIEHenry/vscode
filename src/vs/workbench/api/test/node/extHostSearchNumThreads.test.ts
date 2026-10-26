@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Emitter } from '../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
 import { mock } from '../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { NullLogService } from '../../../../platform/log/common/log.js';
@@ -26,24 +26,29 @@ class RipgrepThreadsConfiguration extends mock<IExtHostConfiguration>() {
 
 	constructor(private readonly configurationEmitter: Emitter<vscode.ConfigurationChangeEvent>) {
 		super();
-		this.provider = {
-			onDidChangeConfiguration: (listener, thisArgs, disposables) => this.configurationEmitter.event(listener, thisArgs, disposables),
-			getConfiguration: () => ({
-				get: <T>(section: string): T | undefined => {
-					if (section !== 'ripgrep.maxThreads') {
-						return undefined;
+		const configuration = this;
+		this.provider = new class extends mock<ExtHostConfigProvider>() {
+			override get onDidChangeConfiguration(): Event<vscode.ConfigurationChangeEvent> {
+				return configurationEmitter.event;
+			}
+
+			override getConfiguration(): vscode.WorkspaceConfiguration {
+				return new class extends mock<vscode.WorkspaceConfiguration>() {
+					override get<T>(section: string): T | undefined;
+					override get<T>(section: string, defaultValue: T): T;
+					override get<T>(section: string, defaultValue?: T): T | undefined {
+						if (section !== 'ripgrep.maxThreads') {
+							return defaultValue;
+						}
+						configuration.reads++;
+						if (configuration.fail) {
+							throw new Error('ripgrep.maxThreads failed');
+						}
+						return (configuration.value ?? defaultValue) as T | undefined;
 					}
-					this.reads++;
-					if (this.fail) {
-						throw new Error('ripgrep.maxThreads failed');
-					}
-					return this.value as T | undefined;
-				},
-				has: () => false,
-				inspect: () => undefined,
-				async update() { },
-			}),
-		} as ExtHostConfigProvider;
+				};
+			}
+		};
 	}
 
 	override async getConfigProvider(): Promise<ExtHostConfigProvider> {

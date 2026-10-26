@@ -1,10 +1,10 @@
 ---
 title: "2026-10-26 UI 与权限审查集成看板"
 type: progress
-status: completed
+status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1373–D1375 follow-up 已按真实行为与独立视觉闭合；当前唯一新编译 Sources 0、本轮改动 TS 0，全仓仍 160 条 / 58 文件未通过；Sources 官方 Electron 六套件 171 passing。首轮与本次日志分开保存。"
+summary: "D1378 输出 PromiseLike 合同已实施待 merge；D1373–D1375 follow-up 已按真实行为与独立视觉闭合；当前唯一新编译 Sources 0、本轮改动 TS 0，全仓仍 160 条 / 58 文件未通过；Sources 官方 Electron 六套件 171 passing。首轮与本次日志分开保存。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -113,3 +113,11 @@ D1373 只在 `/tmp/vscode-compile.lock` 内刷新新测试 JS 与 `conversationL
 新六项覆盖 TabsHost 注入会话事件的 tab 往返 / dispose 后停止响应、ReviewProgress 双会话工作根隔离与 SCM null/newTab/replace 的四条打开结果。11 TS 文件 targeted ESLint **0 errors / 31 既有 warnings**（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1375-eslint.log)）；D1374 占位夹具修后 ESLint **0 errors**（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1374-eslint-final.log)）。[当前15文件产物快照](../../progress/ui-visual-review-2026-10-26-evidence/followup-fresh-output.json) 记录全部 follow-up TS / CSS 的 source/output hash、mtime，均晚于本次编译开始；没有用旧 out 跑这些 Sources 验证。未重复上一轮已绿套件，也没有继续改其余 58 文件。
 
 D1375 短方案按范围转 `implemented`，生成索引随源重建；D1373 / D1374 / D1375 均 closed。按文档规则 3c 检索知识层的 D 编号 / 方案名与 Sources 会话上下文合同，未发现需继续翻转的待实施叙述：D1373 的 Conversation 规格、D1374 的 Sessions 概览已随源提交同步；D1375 恢复正式 DI / 空值合同，不改变已接受的 Sources 系统所有权与呈现契约，既有 Sources 总方案和 PRD 状态不翻转。首轮 docs-status 29/28 旧夹具失败保留原证据，本 follow-up 未重复或扩范围修它。
+
+## D1378 Extension Host 输出通道合同
+
+本切片基线 `e2442d8b3ec`，J 方案 `2f04745` 已经 Astra 独立只读审查（Critical / Important 无），实施只覆盖 ExtHostOutput 与相邻 Search 配置夹具。普通输出目录用原生 Promise 吸收正式文件系统 Thenable；普通与 extension log 的 mkdir 原拒绝及 FileExists 例外保留。初始化错误集中报告一次，派生排队链不再扩散未处理拒绝，操作自身错误仍报告；日志句柄缓存释放不再依赖初始化成功。
+
+3 个改动 TS 文件目标 ESLint `--no-cache` 0 errors / 0 warnings，diff-check 通过。新增输出回归 8 条，原 11 条保留；Search 原 4 条不改断言。仅 `.then` 夹具的链式返回也只有 `.then`，旧实现会先抛 `.catch` 缺失 TypeError；失败回归要求原始 mkdir 错误、恢复、一次报告、dispose 后同名重试与晚到资源释放，并用运行器观察 detached 未处理拒绝。错误 handler 在 finally 恢复。
+
+J 没有编译、转译、watch、typecheck 或写 `out/`。merge 需以旧生产加新测试证明 red，再用新生产证明 green，并在统一新编译核对旧日志的 6 条输出诊断与 1 条 Search 夹具诊断；这些数目不是新编译结果。目标套件为 `src/vs/workbench/api/test/common/extHostOutput.test.ts`（19 条）与 `src/vs/workbench/api/test/node/extHostSearchNumThreads.test.ts`（4 条）；官方测试运行器会将未处理拒绝记为失败。尚未运行前 D1378 open、方案 accepted，不提升其他 D 项或 PRD。

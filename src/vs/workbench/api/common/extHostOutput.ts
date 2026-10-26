@@ -104,7 +104,7 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 	private readonly proxy: MainThreadOutputServiceShape;
 
 	private readonly outputsLocation: URI;
-	private outputDirectoryPromise: Thenable<URI> | undefined;
+	private outputDirectoryPromise: Promise<URI> | undefined;
 	private readonly extensionLogDirectoryCreationPromise = new ResourceMap<Thenable<void>>();
 	private readonly logOutputChannels = new ResourceMap<vscode.OutputChannel>();
 	private namePool: number = 1;
@@ -143,7 +143,7 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 		}
 
 		const channelDisposables = new DisposableStore();
-		let extHostOutputChannelPromise;
+		let extHostOutputChannelPromise: Promise<ExtHostOutputChannel>;
 		let logLevel = this.initData.environment.extensionLogLevel?.find(([identifier]) => ExtensionIdentifier.equals(extension.identifier, identifier))?.[1];
 		let logFile: URI | undefined;
 		if (log) {
@@ -169,23 +169,26 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 			channel.visible = channel.id === this.visibleChannelId;
 			channelDisposables.add(toDisposable(() => {
 				this.channels.delete(channel.id);
-				if (logFile) {
-					this.logOutputChannels.delete(logFile);
-				}
 			}));
-		});
+		}).catch(onUnexpectedError);
 
 		if (logFile) {
-			const logOutputChannel = this.createExtHostLogOutputChannel(name, logLevel ?? this.logService.getLevel(), <Promise<ExtHostOutputChannel>>extHostOutputChannelPromise, channelDisposables);
-			this.logOutputChannels.set(logFile, logOutputChannel);
+			const logOutputChannel = this.createExtHostLogOutputChannel(name, logLevel ?? this.logService.getLevel(), extHostOutputChannelPromise, channelDisposables);
+			const file = logFile;
+			this.logOutputChannels.set(file, logOutputChannel);
+			channelDisposables.add(toDisposable(() => {
+				if (this.logOutputChannels.get(file) === logOutputChannel) {
+					this.logOutputChannels.delete(file);
+				}
+			}));
 			return logOutputChannel;
 		}
-		return this.createExtHostOutputChannel(name, <Promise<ExtHostOutputChannel>>extHostOutputChannelPromise, channelDisposables);
+		return this.createExtHostOutputChannel(name, extHostOutputChannelPromise, channelDisposables);
 	}
 
 	private async doCreateOutputChannel(name: string, languageId: string | undefined, extension: IExtensionDescription, channelDisposables: DisposableStore): Promise<ExtHostOutputChannel> {
 		if (!this.outputDirectoryPromise) {
-			const promise = this.extHostFileSystem.value.createDirectory(this.outputsLocation).then(() => this.outputsLocation);
+			const promise = Promise.resolve(this.extHostFileSystem.value.createDirectory(this.outputsLocation)).then(() => this.outputsLocation);
 			this.outputDirectoryPromise = promise;
 			// Drop only this attempt. A later channel must create the directory again; an in-flight or fulfilled promise stays shared.
 			promise.catch(() => {
@@ -235,38 +238,45 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 		return extensionLogDirectoryPromise;
 	}
 
+	private withChannel(channelPromise: Promise<ExtHostOutputChannel>, callback: (channel: ExtHostOutputChannel) => void): void {
+		// The registration chain reports creation failures once. Consume that rejection without changing the shared promise,
+		// while still reporting errors thrown by this operation.
+		channelPromise.then(callback, () => undefined).catch(onUnexpectedError);
+	}
+
 	private createExtHostOutputChannel(name: string, channelPromise: Promise<ExtHostOutputChannel>, channelDisposables: DisposableStore): vscode.OutputChannel {
 		const validate = () => {
 			if (channelDisposables.isDisposed) {
 				throw new Error('Channel has been closed');
 			}
 		};
-		channelPromise.then(channel => channelDisposables.add(channel)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this.withChannel(channelPromise, channel => { channelDisposables.add(channel); });
+		const withChannel = (callback: (channel: ExtHostOutputChannel) => void) => this.withChannel(channelPromise, callback);
 		return {
 			get name(): string { return name; },
 			append(value: string): void {
 				validate();
-				channelPromise.then(channel => channel.append(value));
+				withChannel(channel => channel.append(value));
 			},
 			appendLine(value: string): void {
 				validate();
-				channelPromise.then(channel => channel.appendLine(value));
+				withChannel(channel => channel.appendLine(value));
 			},
 			clear(): void {
 				validate();
-				channelPromise.then(channel => channel.clear());
+				withChannel(channel => channel.clear());
 			},
 			replace(value: string): void {
 				validate();
-				channelPromise.then(channel => channel.replace(value));
+				withChannel(channel => channel.replace(value));
 			},
 			show(columnOrPreserveFocus?: vscode.ViewColumn | boolean, preserveFocus?: boolean): void {
 				validate();
-				channelPromise.then(channel => channel.show(columnOrPreserveFocus, preserveFocus));
+				withChannel(channel => channel.show(columnOrPreserveFocus, preserveFocus));
 			},
 			hide(): void {
 				validate();
-				channelPromise.then(channel => channel.hide());
+				withChannel(channel => channel.hide());
 			},
 			dispose(): void {
 				channelDisposables.dispose();
@@ -285,35 +295,36 @@ export class ExtHostOutputService implements ExtHostOutputServiceShape {
 			logLevel = newLogLevel;
 			onDidChangeLogLevel.fire(newLogLevel);
 		}
-		channelPromise.then(channel => {
+		this.withChannel(channelPromise, channel => {
 			if (channel.logLevel !== logLevel) {
 				setLogLevel(channel.logLevel);
 			}
 			channelDisposables.add(channel.onDidChangeLogLevel(e => setLogLevel(e)));
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		});
+		const withChannel = (callback: (channel: ExtHostOutputChannel) => void) => this.withChannel(channelPromise, callback);
 		return {
 			...this.createExtHostOutputChannel(name, channelPromise, channelDisposables),
 			get logLevel() { return logLevel; },
 			onDidChangeLogLevel: onDidChangeLogLevel.event,
 			trace(value: string, ...args: unknown[]): void {
 				validate();
-				channelPromise.then(channel => channel.trace(value, ...args));
+				withChannel(channel => channel.trace(value, ...args));
 			},
 			debug(value: string, ...args: unknown[]): void {
 				validate();
-				channelPromise.then(channel => channel.debug(value, ...args));
+				withChannel(channel => channel.debug(value, ...args));
 			},
 			info(value: string, ...args: unknown[]): void {
 				validate();
-				channelPromise.then(channel => channel.info(value, ...args));
+				withChannel(channel => channel.info(value, ...args));
 			},
 			warn(value: string, ...args: unknown[]): void {
 				validate();
-				channelPromise.then(channel => channel.warn(value, ...args));
+				withChannel(channel => channel.warn(value, ...args));
 			},
 			error(value: Error | string, ...args: unknown[]): void {
 				validate();
-				channelPromise.then(channel => channel.error(value, ...args));
+				withChannel(channel => channel.error(value, ...args));
 			}
 		};
 	}

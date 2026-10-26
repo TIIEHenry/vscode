@@ -4,13 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26 follow-up：D1373 browser 4 / 独立四主题实拍、D1374 red 11 败→green 14 过、D1375 Electron 六套件 171 项通过；三项已闭合。当前 compile-client exit 1：Sources 0，全仓仍 160 条 TS / 58 文件；未 push。"
+summary: "2026-10-26 D1378 已实施待 merge 验证（open）；follow-up：D1373 browser 4 / 独立四主题实拍、D1374 red 11 败→green 14 过、D1375 Electron 六套件 171 项通过；三项已闭合。当前 compile-client exit 1：Sources 0，全仓仍 160 条 TS / 58 文件；未 push。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **Extension Host 输出通道合同方案（2026-10-26，D1378）**：已按当前文件系统 Thenable 合同、mkdir 原失败边界与日志句柄释放归属写 [短方案](../plans/ext-host-output-promise-contract.md)，Astra 规则 16 只读审查 Critical / Important 无；先独立提交方案，后实施仅 `.then` 行为回归与 typed 夹具。编译 / 运行统一留 merge，D1378 保持 open。
+- **Extension Host 输出通道合同（2026-10-26，D1378）**：[短方案](../plans/ext-host-output-promise-contract.md) 经 Astra 规则 16 审查无阻塞并先独立提交 `2f04745`。现文件系统 Thenable 先归一原生 Promise，保留 mkdir 原拒绝；初始化失败一次报告、公共派生链显式消费已报告错误，操作自身抛错仍报告；日志缓存 disposer 随同步句柄登记。新增 8 条行为 / 保留原 11 条；正式 RPC、filesystem/logger 与 Search 配置 typed 夹具，3 TS ESLint 0 errors / warnings。未编译、转译、watch 或写 out；merge 新编译及 red/green 未跑，D1378 open、方案 accepted。
 - **Sources 编译合同根因闭合（2026-10-26，D1375）**：J 方案 `220db77`、实施 `7dd0c6d` 已三路合成 `a4c5e30`。当前唯一新 `compile-client` exit 1（160 条 TS / 58 文件），Sources 0、本 follow-up 改动 TS 0，旧映射 9 条均消失；六套件 Chromium 162 过 / 8 个既有 process 环境失败，官方 Electron 隔离 Xvfb 同六套件 171 passing（含清理检查），新增 6 项全过。11 文件 ESLint 0 errors / 31 既有 warnings；[短方案](../plans/sources-compile-contracts.md) implemented，仅闭合三类合同，不扩大其余诊断；[当前日志/快照](../parallel/active/ui-visual-review-2026-10-26.md)。
 - **Sessions 旧打开覆盖显式导航（2026-10-26，D1374）**：宽功能审计追到真实分屏聚焦与关闭入口遗漏异步打开取消：资源解析晚到会盖回用户选择。现显式 `setActive`、关闭当前与全部会话取消旧 open/restore，关闭无关分屏保留当前打开；正常打开引发的同会话 focus echo 不自取消。新增 14 条受控屏障行为回归，merge 验明旧生产对应 `0ea` 后 red 为 3 passing / 11 failing；只刷新生产后修正新 empty-grid 夹具保留 `[undefined]` composer 占位，最终 green 14 passing，两文件定向语义 0、ESLint 0 errors。见 [D1374](deferred-gaps.md) 与 [Sessions 概览](../../docs/systems/sessions/overview.md)。
 - **待处理标签对比修复（2026-10-26，D1373）**：权限座位 `Input needed` 改用正常 foreground + 中性 12% 淡底，保留紧凑体积，高对比主题采用 contrastBorder；同语义提问标签已配对 badge 前景/背景，无同根因，保持。新增 `Conversation pending badge styles` 真实生产 CSS + 两类 Seat DOM 回归，覆盖浅/深/高对比、300→720→300 宽度、文字对比与决策键盘路径；merge 已最小刷新测试 JS 与生产 CSS，4 主题真实 browser 回归全过、定向语义 0；独立四主题×三宽度实拍通过，实测对比均超过 4.5，D1373 closed。目标 ESLint 0 errors；stylelint exit 0（既有 15 条 unknown-variable 提示 / 179 条 token 建议）；docs-health 0 errors / 46 既有链接警告、generated-status --check 与 diff-check 通过。复验条件见 [视觉证据](ui-visual-review-2026-10-26-evidence/visual-review.md)。

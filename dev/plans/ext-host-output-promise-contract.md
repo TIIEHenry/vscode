@@ -32,11 +32,11 @@ summary: "D1378：在文件系统 Thenable 边界归一原生 Promise，保留�
 - 公共普通/日志句柄在创建中排队 append/显示及日志级别操作，拒绝后错误只报告一次、不创建 logger/登记通道；测试等待后续事件循环以使 runner 捕获 detached 未处理拒绝。扩展日志失败 dispose 后同名新句柄能够重试成功。
 - 释放先于 mkdir 完成时，晚到 logger、RPC 通道和缓存均释放；成功后输出/日志方法抛错仍进入错误报告，不能靠空 catch 隐藏。
 - 现有进行中共享、成功缓存、FileExists 缓存、旧失败不能清掉新尝试的回归全部保留。
-- J 仅目标 ESLint、diff、文档健康/生成状态检查；禁止编译、转译、watch、写 out。merge 用旧生产+新测试证明 red，再以新生产证明 green，并统一新编译核对命名诊断；未运行前 D1378 与本方案保持 open/accepted，不宣称行为已通过。
+- J 仅目标 ESLint、diff、文档健康/生成状态检查；禁止编译、转译、watch、写 out。merge 用旧生产+新测试证明 red，再以新生产证明 green，并统一新编译核对命名诊断；未运行前 D1378 与本方案分别保持 open/accepted，不宣称行为已通过。
 
 ## 只读审查
 
 - [x] Astra / `engine_catalog_contract_repair` 于 2026-10-26 完成规则 16 只读审查（未改 J 文件）：Strengths 为 Thenable 边界归一、原失败边界、同步句柄持有释放与一次初始化报告；Critical / Important 无；Assessment 可独立提交后实施。Minor 已采纳：无未处理拒绝的承诺限于正常错误报告器；自定义错误处理器自身抛错不在本次范围，测试替换 handler 必须 finally 恢复。
-- [ ] 独立方案提交。
-- [ ] 实施与静态检查，更新 status / D1378。
+- [x] 独立方案提交 `2f04745`。
+- [x] 实施与静态检查：3 个 TS 文件 ESLint 0 errors / 0 warnings；diff-check 通过。新增 8 条输出行为，原 11 条保留；Search 原 4 条不变，只迁移 typed 配置夹具。status / D1378 与知识层已同步。
 - [ ] merge 新编译与 red/green 行为验收。

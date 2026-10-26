@@ -3,7 +3,7 @@ title: "Extension API 概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-08-30
+updated: 2026-10-26
 summary: "vscode.d.ts 是扩展契约；extension host 在独立进程兑现；proposed 与 contribution point 的边界"
 ---
 
@@ -107,3 +107,11 @@ Renderer 侧 class 用 `@extHostNamedCustomer(MainContext.…)` 登记到 `ExtHo
 | 新 proposed | 按 [vscode-dts README](../../../src/vscode-dts/README.md) 加 `vscode.proposed.<name>.d.ts`，实现处 `checkProposedApiEnabled` |
 | 新 contribution point | `ExtensionsRegistry.registerExtensionPoint`；清单 schema 与 handler 放在消费该点的 workbench 模块，而不是塞进 `vscode.d.ts` |
 | 只改 host 生命周期 / 进程 | [Processes](../processes/INDEX.md) 与 `workbench/services/extensions/`，不是 `vscode.d.ts` |
+
+## 7. 输出通道初始化与失败
+
+`window.createOutputChannel` 返回同步句柄，`ExtHostOutputService` 在后台准备目录、创建 logger，并为普通输出向工作台登记通道。文件系统 `createDirectory` 的契约是 Thenable；普通目录在本模块边界归一为原生 Promise，不能要求提供方额外实现 `.catch()`。
+
+普通输出目录失败拒绝本次创建；扩展日志目录仅把 `FileExists` 当成功，其他失败同样拒绝。失败缓存只在仍指向该次尝试时失效，进行中和成功结果继续共享。初始化错误由登记链报告一次，排队的追加、显示与日志操作消费这次已报告的创建拒绝，操作自身抛错仍报告；原始创建 Promise 保留拒绝。
+
+日志句柄按文件复用，缓存由同步句柄的释放容器持有：即使初始化失败，dispose 也会清掉自己的缓存，同名新句柄可重新尝试。初始化前已 dispose 的句柄仍负责释放晚到 logger 与通道。该恢复合同不把 mkdir 失败伪装成创建成功；回归入口为 `api/test/common/extHostOutput.test.ts`，本轮验收状态见 [D1378 方案](../../../dev/plans/ext-host-output-promise-contract.md)。
