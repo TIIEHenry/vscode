@@ -62,7 +62,7 @@ summary: "审查J23f8701c8d2完整实现：两根因与状态恢复方向成立�
 
 after保持独立空profile、空extensions/shared-data、自建两Git库、默认编辑器、离线0 Git RPC，不使用用户测试profile或在线引擎。按正式方案依次检查 Preview 所有入口及Beta→Alpha、Conversation首次replace/newTab/同条reveal/准确叶、Panel、move往返/各标题入口、失败→真实成功清自己的错误、完整URI与真实两侧文本、root/readonly/focus/pin/close/Reviewed；fixture HEAD/index/worktree前后不变，清理只自己已验证进程和profile。
 
-实际界面核查采用已读取的 `frontend-design`、`pc-web-ui-interaction`（及 states-feedback）与仓库[UI规范](../../../../docs/architecture/cross-cutting/ui-design-principles.md)：真实鼠标与键盘各走主路径，焦点和选中分开核对，错误仅在所属区域显示且恢复不清其他错误，不悬停检查状态，记录主题/窗口与叶宽/输入方式；浅深色与窄宽截图只用于相关可见性检查，不扩大为视觉改造。隔离自动化才使用已读完整 `launch` 技能，跳过prelaunch仅限唯一lane明确冻结的新产物。
+实际界面核查采用已读取的 `frontend-design`、`pc-web-ui-interaction`（及 states-feedback）与仓库[UI规范](../../../docs/architecture/cross-cutting/ui-design-principles.md)：真实鼠标与键盘各走主路径，焦点和选中分开核对，错误仅在所属区域显示且恢复不清其他错误，不悬停检查状态，记录主题/窗口与叶宽/输入方式；浅深色与窄宽截图只用于相关可见性检查，不扩大为视觉改造。隔离自动化才使用已读完整 `launch` 技能，跳过prelaunch仅限唯一lane明确冻结的新产物。
 
 ## Assessment
 
