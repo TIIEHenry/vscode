@@ -80,6 +80,7 @@ function registerHostedDiffMove(
 					throw error;
 				}
 				notificationService.error(sourcesGitDiffOpenFailureMessage(error));
+				return undefined;
 			}
 		}
 	});

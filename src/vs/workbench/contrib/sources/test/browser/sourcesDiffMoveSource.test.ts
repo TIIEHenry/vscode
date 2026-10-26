@@ -26,6 +26,7 @@ import { EditorParts } from '../../../../browser/parts/editor/editorParts.js';
 import { EditorExtensions, IEditorFactoryRegistry, IVisibleEditorPane } from '../../../../common/editor.js';
 import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
 import { Memento } from '../../../../common/memento.js';
+import { CommandService } from '../../../../services/commands/common/commandService.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { GroupDirection, IConversationEditorPart, IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
@@ -181,11 +182,16 @@ suite('Sources M01 move source', () => {
 			instantiation.stub(ISourcesDiffPanelService, new class extends mock<ISourcesDiffPanelService>() { }());
 			const done = new DeferredPromise<SourcesDiffMoveResult>();
 			let calls = 0;
-			const commandService: ICommandService = { ...NullCommandService, executeCommand: async (id, ...args) => {
-				const command = CommandsRegistry.getCommand(id);
-				assert.ok(command);
-				const result = await instantiation.invokeFunction(accessor => command.handler(accessor, ...args));
-				if (id === SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND) { calls++; await done.complete(result); }
+			const registeredCommands = disposables.add(instantiation.createInstance(CommandService));
+			const commandService: ICommandService = { ...NullCommandService, executeCommand: async <R>(id: string, ...args: unknown[]): Promise<R | undefined> => {
+				assert.ok(CommandsRegistry.getCommand(id));
+				const result = await registeredCommands.executeCommand<R | undefined>(id, ...args);
+				if (id === SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND) {
+					const observed: unknown = result;
+					assert.ok(observed === undefined || typeof observed === 'boolean' || observed === 'stale');
+					calls++;
+					await done.complete(observed);
+				}
 				return result;
 			} };
 			instantiation.stub(ICommandService, commandService);

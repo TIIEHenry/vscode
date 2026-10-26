@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J在独立accepted方案265b1fe后写M01显式Move来源及Pane局部反馈，新增38项业务场景源码；5TS静态0语法/0lint错误，唯一车道运行、源码peer与新freeze真实after待"
+summary: "M01 a222已得4入口旧业务红与两I源码闭合，真实compile5报4TS；J精确补返回路径/结构守卫/公共CommandService结果转交，3TS静态0语法0lint，唯一lane重编及新after待"
 ---
 
 # D1387 Sources 打开合同源码检查点
@@ -40,6 +40,17 @@ summary: "J在独立accepted方案265b1fe后写M01显式Move来源及Pane局部�
 本次仅在4项真实入口构造SourcesChangesModel前stub完整公开IAgentSessionContext（session id、readiness、pairing及两公开事件，未使用的lease入口显式拒绝），仍实际构造真实model、两真实Conversation parts、Pane、注册命令与helper，不换为direct helper。node扫描精确检查按钮runMoveToPreview的双catch、方法捕获原input/严格input类型、窄typed来源的原input/group/Pane与实际command携source委托，并同时保留新方法/旧命令naked-call排除；浏览器unhandled负控、原AcceptPatchbuilder扫描和38项业务场景均保留。3生产和既有Panel测试未修改。
 
 作者实际只做两测试TS的createSourceFile AST语法解析0诊断、ESLint0errors/20既有warnings；相对d046同两文件按rule/message/行文本逐条added=[]、removed=[]。测试SHA256更新为MoveSource `3e559440a02345efa67593097b98f2ee5b1e8b9ef76d553209f8f1cb82786c88`、WiringScan `bfe051c197f7e17df0dcefca79996fc8365afbb6700fd0e4f3fc70b77dea6753`；3生产仍为上节摘要。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。未compile/typecheck/transpile/out/watch/业务运行/第二窗口；唯一lane须先重跑同selector的4项旧入口，再新38及原完整覆盖，Astra定向复读与D新freeze真实M01 after待，accepted/open不升。
+
+
+### M01 第五次完整编译后的类型合同补修（2026-10-27）
+
+原Astra对a222两I定向复读提交`04ea96be19dc57cd128dfbea0206ca539587fb53`的原报告§13为C0/I0/M0，J已git show只读核验。唯一lane随后实际以准确旧src928/native8b4配a222新测试取得0passing/4failing，四项全为`registered Move must open B in Preview`业务AssertionError，无TypeError/加载/API/timeout，registered handler已settle；后续关闭及metadata断言未达，不越报覆盖。原始`/tmp/vscode-m01-old928-a222-second.log`及JSON由唯一lane保留；以上是a222测试身份的历史red，不替代下面修订的实际运行。
+
+正式合源HEAD34a4/src8e6（等于受审a222完整src）实际第五次fullcompile exit1，仅4条M01 TS：Action run缺leaf通知catch未显式return；helper对object使用hasKey不产生kind类型；测试Registry公共getCommand默认void返回导致ICommandService generic与done.complete两条不匹配。J已只读`/tmp/vscode-m01-fifth-native-build.log`的四条准确诊断；失败compile5已真实emit，不当作旧928/native8b4，也不freeze，新业务green未跑。
+
+本次精确补修：Action通知后显式return undefined，保留缺leaf通知和原void/no-op语义；helper用真实对象及Reflect.get(kind)值检查的类型谓词识别窄kind，继续拒绝失效显式来源，不用宽cast，不改ref/close及原关闭代数。真实入口测试通过现有公共CommandService.executeCommand<R>实际运行注册handler，wrapper原样返回result，仅将观察值经runtime boolean/stale/undefined联合检查后完成done；不将Registry默认void强转为Move结果或吞真实返回。真实model/parts/Pane/命令入口与38项业务expected、node精确scan、Panel无unhandled负控和原全部回归保持。
+
+作者实际只做3个改动TS的createSourceFile AST语法解析0诊断、ESLint0errors/0warnings，相对a222逐条added=[]、removed=[]；没有program/typechecker/emit。SHA256：actions `0057a1546f0f77eca716c70ee0a5b13c657e010436d5319eaa335042c3dcfdbc`，helper `84dd59d318a28b8645a132a6861ab82297f6b77d301a52e4fc3011d7914fad52`，MoveSource测试 `86e90709a2ac0453c4b464f404e8cb41cd961963d2578a86b6313367d98a39ca`；Pane/Panel/WiringScan沿a222不变。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者未compile/typecheck/transpile/out/watch/业务运行/UI；修订独立peer、唯一lane第六次真实完整编译与新38/完整相关套、D新freeze真实M01 after待，方案accepted、D1387/M01 open、PRD不升。
 
 ## 宿主观测与 Sources 重叠补修（2026-10-26，J）
 

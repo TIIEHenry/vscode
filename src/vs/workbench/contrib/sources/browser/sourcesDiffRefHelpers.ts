@@ -5,7 +5,6 @@
 
 import { getErrorMessage } from '../../../../base/common/errors.js';
 import { basename } from '../../../../base/common/resources.js';
-import { hasKey } from '../../../../base/common/types.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { IEditorGroup, isEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
 import { EditorResourceAccessor, IEditorPane, isEditorCommandsContext, isDiffEditorInput, SideBySideEditor } from '../../../common/editor.js';
@@ -111,6 +110,10 @@ export interface ISourcesConversationDiffMoveSource {
 	readonly pane: IEditorPane;
 }
 
+function hasConversationPaneKind(value: unknown): value is { readonly kind: 'conversationPane' } {
+	return typeof value === 'object' && value !== null && Reflect.get(value, 'kind') === 'conversationPane';
+}
+
 function isConversationPaneSource(value: unknown): value is ISourcesConversationDiffMoveSource {
 	const source = value as Partial<ISourcesConversationDiffMoveSource> | undefined;
 	return source?.kind === 'conversationPane' && source.editor instanceof ConversationDiffReviewInput
@@ -174,7 +177,7 @@ function captureMoveHost(
 	if (!groups) {
 		return undefined;
 	}
-	const paneArgument = commandArgs.find(arg => typeof arg === 'object' && arg !== null && hasKey(arg, { kind: true }) && arg.kind === 'conversationPane');
+	const paneArgument = commandArgs.find(hasConversationPaneKind);
 	const paneSource = isConversationPaneSource(paneArgument) ? paneArgument : undefined;
 	if (paneArgument && !paneSource) {
 		return undefined;
