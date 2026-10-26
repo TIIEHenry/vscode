@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留E/合源、D真实M01和d046两I历史；a222两测试补修定向peer C0/I0/M0，源码问题闭合，实际旧红新绿与新after待。"
+summary: "保留E/合源、D真实M01、d046两I及compile5失败历史；a222两I和0da326类型补修peer C0/I0/M0，新harness旧红/compile6及after待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -414,3 +414,20 @@ lane报告本轮finally已恢复154 native、3份旧生产与test输出存在性
 测试SHA256独立核对：MoveSource `3e559440a02345efa67593097b98f2ee5b1e8b9ef76d553209f8f1cb82786c88`；WiringScan `bfe051c197f7e17df0dcefca79996fc8365afbb6700fd0e4f3fc70b77dea6753`。3份作者行动文档明确首跑为4 fixture TypeError、业务旧红0，并撤回“旧src必到业务断言”的先行断言；§12及lane `2df7ff7` 原件保留不改。
 
 **Assessment：允许唯一lane继续准确旧928+新4入口实际重跑；静态两I已闭，不等于测试green或M01产品闭合。** 后续新38/完整相关套、实际编译及重新freeze/D真实after仍按父调度。此次未运行AST/lint或业务，不把作者AST0/lint无新增告警变成本reviewer结果；未compile/typecheck/transpile/out/UI。B起点clean `88910e7b5da02d75df09dceacc9f3ea54e7e0486`，src fdca不变，只写原报告和INDEX；先行短结论已交父与唯一lane。
+
+
+## 14. M01第五轮编译四诊断补修定向复读（2026-10-27）
+
+受审不可变 `0da326c052fdaac3d6ff9e2118ba95b001868f1f`，父 `a22237822e4a9feff58a89a0d78fd12669a65ca4`，src `d5eca6c1557b921827c2585104d54871936212ae`，6路径仅2生产、1测试、3行动文档。reviewer直接读diff、原hasKey实现、完整CommandService、基座服务注册与NullExtensionService；未compile/typecheck/transpile/out/业务/UI。
+
+唯一lane第五次完整编译原件已落提交 `a57b22f1d375d527f086879259f461b482341891`；reviewer读取其中 `m01-fifth-native-build.log` 并核与临时raw逐字相同，SHA256 `55c4be8fcb08c029dbf646e5b7c54d81b33624dfd8a845ef30a026f07089f7f3`。四诊断为Action TS7030缺return、helper TS2339在object上读kind、测试TS2322返回Promise<void>不符泛型命令接口、TS2345把void传给Move结果观察。此为lane实际编译失败，§13静态通过没有使它成为green；a222已实际成立的4项Preview缺失业务旧红保留，但新harness不能继承其运行结论。
+
+### Critical 0 / Important 0 / Minor 0
+
+- **Action语义保持。** 只在已识别缺Conversation leaf、完成notification后显式return undefined，与旧async落尾结果相同；其他异常仍throw，notification自身若抛仍拒绝。未调整缺leaf保源或true/false/stale/void/非leaf异常关闭代数。
+- **kind判别保持正式输入合同。** 对非null object用Reflect.get读取kind并比较准确literal，提供窄类型谓词代替原hasKey不能收窄object的写法；仍由后续原isConversationPaneSource核input/group/pane，并对携conversationPane kind但无效的来源拒绝，不fallback。合法plain对象及继承属性读取保持，未新增broad cast或把kind存在当成完整来源资格，ref/close共用捕获及live复验未变。
+- **新测试真实命令链与结果观察成立。** 基座workbenchInstantiationService已注册NullLogService和TestExtensionService；后者继承NullExtensionService，whenInstalledExtensionsRegistered与activateByEvent均返回resolve Promise。真实CommandService的Instantiation依赖也由基座提供；注册命令路径经其_tryExecuteCommand实际invokeFunction(handler, ...args)，构造/执行不缺新fixture服务。代理await公开executeCommand的原结果后，对Move结果以runtime检查只接受boolean/stale/undefined，再计calls、complete done并原样return result；其他命令也原样传结果，拒绝继续传播。没有把Registry默认void强转成成功、预先complete或只检查字符串。四入口业务expected、真实model/parts/Pane、准确双侧/组/根保留断言均未改。
+
+Pane、Panel no-unhandled负控、WiringScan三blob逐一与父相同；旧Accept扫描保持。三份受改TS SHA256独立核验：Actions `0057a1546f0f77eca716c70ee0a5b13c657e010436d5319eaa335042c3dcfdbc`；Helper `84dd59d318a28b8645a132a6861ab82297f6b77d301a52e4fc3011d7914fad52`；MoveSource test `86e90709a2ac0453c4b464f404e8cb41cd961963d2578a86b6313367d98a39ca`。
+
+**Assessment：本次静态C/I闭合，可按父调度继续新harness配精确旧928三生产的4入口重跑，并在原件接入后进行第六次实际完整编译。** 新旧harness运行身份分记，不能复用a222四红；failed compile5当前out身份与此前freeze不同，临时替换的finally恢复由唯一lane记录。本reviewer不预言编译通过，不把作者AST/lint当成编译，也不签新38/完整套或D after完成。B本轮起点clean `04ea96be19dc57cd128dfbea0206ca539587fb53`，src fdca不变；仅原报告与INDEX，先行短C/I已交父和lane。
