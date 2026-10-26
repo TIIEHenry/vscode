@@ -1,0 +1,241 @@
+
+
+  AgentSideEffects
+    ✔ tracks a resumed turn as a new provider execution
+    ✔ reports only the resumed attempt usage to turn telemetry
+    ✔ preserves the original turn-start checkpoint identity across resume and completion
+    ✔ discarding an abandoned resumable checkpoint survives replacement cancellation
+    ✔ provider-created turns discard an abandoned resumable checkpoint
+    ✔ a rejected replacement keeps the resumable turn checkpoint
+    ✔ records customization toggles in the enablement service
+    customization enablement refresh
+      ✔ republishes customizations after a decision write and dedupes a redundant write
+      ✔ republishes every open session for a global decision once
+      ✔ republishes only sessions sharing a workspace decision working directory
+      ✔ republishes when session enablement finishes loading
+      ✔ republishes a settled MCP decision that an earlier pending publication omitted
+      ✔ republishes when a pending working directory becomes known
+      ✔ retries an enablement refresh superseded by a direct customization update
+    handleAction — session/turnStarted
+      ✔ calls sendMessage on the agent
+      ✔ stamps the exhaustive host chat context on the send boundary
+      ✔ adds rich Markdown plan guidance with the exact current chat link when enabled
+      ✔ adds terminal command guidance for a terminal surface
+      ✔ adds focused edit guidance for an editor inline-chat surface
+      ✔ passes the dispatching client id and type to sendMessage
+      ✔ logs telemetry when sending a direct user message
+      ✔ parses protocol attachment URI strings before passing them to the agent
+      ✔ passes protocol selection attachment range straight through to the agent
+      ✔ resolves chat attachments that reference another session
+      ✔ degrades to a no-excerpt pointer when the referenced chat is unresolvable
+      ✔ awaits hydrated turns when resolving a chat attachment
+      ✔ pins the latest completed turn when a chat attachment omits endTurn
+      ✔ rejects chat attachments whose endTurn is missing from the retained transcript
+      ✔ rejects chat attachments whose endTurn is still active
+      ✔ dispatches session/error when no agent is found
+      ✔ rejects a turn on an archived session without calling the agent
+      ✔ rejects a turn on a read-only chat without calling the agent
+    handleAction — first-turn materialization failure
+      ✔ surfaces a failed provisional first turn as a terminal creation failure
+      ✔ surfaces a working directory resolution failure without calling the agent
+      ✔ captures the turn start before sending the message
+      ✔ skips turn-start checkpoint capture for an ephemeral session
+      ✔ client cancellation discards the pending turn start
+      ✔ discards a turn-start checkpoint for an ephemeral session
+      ✔ cancellation before send skips turn-start capture
+      ✔ AgentSideEffects owns exactly one ChatError when an already-ready session send rejects
+      ✔ does not duplicate a Codex provider-owned failure when sendMessage resolves
+    handleAction — /rename slash command
+      ✔ redirects /rename to a title change and completes the turn without calling the agent
+      ✔ /rename without a title completes the turn and leaves the title unchanged
+      ✔ /rename updates both the session and default chat title once multi-chat
+      ✔ peer /rename synchronously suppresses the automatic rename reminder
+      ✔ automatic rename guidance is transient context and never changes the user prompt
+      ✔ a message that merely starts with /rename text (no separator) is sent to the agent
+    handleAction — ! terminal command
+      ✔ runs a ! message as a terminal command and completes the turn without calling the agent
+      ✔ a lone ! is forwarded to the agent instead of running a command
+      ✔ records the completed bang turn as a local turn, stripped of the live terminal reference
+      ✔ seeds the session title from the ! command when the session is untitled
+    local turn persistence
+      ✔ anchors a bang turn to the preceding concrete turn
+      ✔ truncating at a local turn redirects the SDK truncation to the concrete anchor
+      ✔ truncating at a real turn drops the trailing local turn
+    turn usage persistence
+      ✔ persists the latest usage of a turn, without waiting for the turn to end
+      ✔ does not persist usage reported on a subagent chat
+    immediate title on first turn
+      ✔ dispatches titleChanged with user message on first turn
+      ✔ does not dispatch titleChanged when message is whitespace
+      ✔ normalizes whitespace and truncates long messages
+      ✔ does not dispatch titleChanged on second turn
+      ✔ does not dispatch titleChanged when title is already set
+    turn completion — read/unread
+      ✔ marks a read session unread when a turn completes
+      ✔ does not re-mark an already-unread session on turn completion
+      ✔ persists the unread flag so it survives a host restart
+      ✔ persists read state exactly once for client- and server-dispatched changes
+      ✔ marks the parent session unread when a subagent turn completes
+      ✔ marks a read session unread when a turn is cancelled
+      ✔ reports one cancelled turn end for a client cancellation even if the agent repeats it
+      ✔ ignores a stale client cancellation that ends no turn
+      ✔ marks a read session unread when a turn errors
+    handleAction — session/turnCancelled
+      ✔ calls abortSession on the agent
+    handleAction — chat/turnStarted model selection
+      ✔ calls changeModel on the agent before sending the message
+      ✔ waits for model selection before sending the message
+      ✔ forwards the chat channel for an additional (peer) chat
+    handleAction — chat/turnStarted agent selection
+      ✔ calls changeAgent on the agent for the session default chat before sending the message
+      ✔ forwards the chat channel for an additional (peer) chat
+    registerProgressListener
+      ✔ emits auth-required notifications when observable state becomes required
+      ✔ maps agent progress events to state actions
+      ✔ does not route stale actions into a force-started turn
+      ✔ preserves the turn id of a provider-initiated turn when idle
+      ✔ does not replace an active turn with a stale turn start
+      ✔ stale completion does not clear active turn tool tracking
+      ✔ returns a disposable that stops listening
+      ✔ customizations change publishes once, then dedupes identical re-fetches
+      ✔ re-publishes after session eviction + restore even when customizations are unchanged
+    agents observable
+      ✔ dispatches root/agentsChanged without fetching models when observable changes
+      ✔ model observable update publishes models
+      ✔ model observable update publishes model metadata
+      ✔ unchanged model observable update does not dispatch unchanged agent infos
+    pending message sync
+      ✔ rejects pending messages on a non-chat channel
+      ✔ syncs steering message to agent on ChatPendingMessageSet
+      ✔ syncs a peer chat steering message addressed by the peer chat URI
+      ✔ syncs queued message and preserves the enqueuing client attribution
+      ✔ parses queued protocol attachment URI strings before passing them to the agent
+      ✔ logs telemetry when sending a queued user message
+      ✔ syncs on ChatPendingMessageRemoved
+      ✔ syncs on ChatQueuedMessagesReordered
+    queued message consumption
+      ✔ auto-starts turn from queued message on idle
+      ✔ waits for pending steering before consuming a queued message
+      ✔ does not drain queued messages when the cancelled turn completes late
+      ✔ intercepts queued /rename and drains the message queued behind it
+      ✔ replaces a queued bang command title with the following real message
+      ✔ drains a peer chat queued message to the owning session with the chat arg
+      ✔ does not consume queued message while a turn is active
+      ✔ dispatches ChatPendingMessageRemoved for steering messages on steering_consumed
+    handleAction — session/activeClientSet
+      ✔ calls setClientCustomizations and dispatches customizationsChanged once (51ms)
+      ✔ dispatches customizationUpdated for sync progress after initial replacement (50ms)
+      ✔ rejects session actions emitted on a peer chat channel
+      ✔ clears client customizations when activeClient has no customizations
+      ✔ removes the active client when it is removed
+      ✔ Agent Host owns the exact chat fan-out and supplies host customizations
+      ✔ skips the fan-out when the host has no state for the session
+      ✔ re-fans-out every active client when a chat joins the catalog
+    handleAction - root/configChanged
+      ✔ republishes agent and session customizations for existing sessions
+      ✔ updates telemetry level from root config
+    onDidCustomizationsChange
+      ✔ republishes agent info and session customizations when agent fires onDidCustomizationsChange
+      ✔ does not republish when registerProgressListener is disposed
+    handleAction — session/toolCallConfirmed
+      ✔ routes confirmation to correct agent via _toolCallAgents
+      ✔ handles denial of tool call
+    tool_ready dispatches progress actions to advance tool call state
+      ✔ tool_ready for a non-permission tool dispatches ChatToolCallReady and advances state from Streaming to Running
+      ✔ tool_ready for a permission-gated tool dispatches ChatToolCallReady and advances state to PendingConfirmation
+      ✔ tool_ready marks autoApproveRuleResolvable only for eligible shell confirmations
+      ✔ tool_ready forwards the signal shell language into shell approval
+      ✔ tool_ready is dropped when the tool completes while permission lookup is pending
+      ✔ tool_ready for an additional chat is emitted on that chat channel
+      ✔ pending_confirmation for a tool inside a subagent routes to the subagent session
+      ✔ pending_confirmation without an active turn still dispatches (does not hang)
+      ✔ late confirmation for a cancelled turn is denied
+      ✔ permission evaluation settling after cancelled-auto-approve preserves the request lifecycle
+      ✔ permission evaluation settling after cancelled-confirmation preserves the request lifecycle
+      ✔ permission evaluation settling after removed-session preserves the request lifecycle
+      ✔ permission evaluation settling after hook-continuation preserves the request lifecycle
+    handleAction — chat/toolCallComplete routing
+      ✔ forwards session + default chat URI for a default-chat completion
+      ✔ forwards the exact additional chat URI for a completion
+      ✔ forwards parent peer chat URI for a subagent-chat completion
+    session config auto-approve
+      ✔ auto-approves all writes when autoApprove is set to bypass
+      ✔ auto-approves shell commands when autoApprove is set to bypass
+      ✔ does NOT auto-approve a shell command that opted out of the sandbox, even in bypass mode
+      ✔ marks pending client tool approval for client-side auto-approval in bypass mode
+      ✔ does NOT auto-approve when autoApprove is default
+      ✔ respects mid-session config change via SessionConfigChanged
+    edit auto-approve
+      ✔ auto-approves writes to regular source files
+      ✔ blocks writes to .env files
+      ✔ blocks writes to package.json
+      ✔ blocks writes to .lock files
+      ✔ blocks writes to .git directory
+    read auto-approve
+      ✔ auto-approves reads inside working directory
+      ✔ does not auto-approve reads outside working directory
+    title persistence
+      ✔ SessionTitleChanged persists to the database
+      ✔ default chat title change updates and persists the session title
+      ✔ first peer persists the inherited default chat title and provenance
+      ✔ default chat title snapshot does not overwrite an existing persisted title
+      ✔ a same-turn default chat rename wins after the inherited title snapshot
+      ✔ handleListSessions returns persisted custom title
+      ✔ handleRestoreSession uses persisted custom title
+      ✔ restore interleaves a persisted local turn after its anchor
+      ✔ SessionConfigChanged persists merged config values to the database
+      ✔ server-dispatched SessionConfigChanged persists merged config values to the database
+      ✔ SessionConfigChanged emits agentHost.executionModeChanged for effective mode transitions without duplicate echoes
+    subagent sessions
+      ✔ inherits the parent turn client identity for subagent telemetry
+      ✔ subagent_started creates a subagent chat and dispatches content on parent tool call
+      ✔ stamps _meta.subagentChatUri onto a subagent-spawning tool call as soon as toolKind is known
+      ✔ nested subagent_started routes discovery block and seeds each request prompt via the immediate parent chat (arbitrary depth)
+      ✔ events with parentToolCallId route to subagent session
+      ✔ completeSubagentSession clears pending buffered events when subagent never started
+      ✔ subagent_completed signal completes the subagent turn
+      ✔ permission requests for inactive and unroutable subagents are denied
+      ✔ cancelSubagentSessions cancels all subagent chats
+      ✔ removeSubagentSessions removes all subagent chats from state
+      ✔ deltas with parentToolCallId route to subagent session
+      ✔ tool_complete preserves subagent content in completed tool call
+      ✔ inner tool_start arriving BEFORE subagent_started routes to subagent (not parent)
+      ✔ reads inside parent working directory are auto-approved for tools in subagent sessions
+      ✔ session-level autoApprove on the parent is inherited by tools in subagent sessions
+    session inputNeeded production
+      ✔ chat input request mirrors its unresolved response part and is removed on completion
+      ✔ accepted ask-user input emits telemetry from synchronized answer state
+      ✔ chat truncation clears pending ask-user telemetry
+      ✔ chat input request without an active turn is not mirrored
+      ✔ tool confirmation is produced while pending and removed once confirmed
+      ✔ client tool execution is produced while running and removed once complete
+      ✔ auto-approved tool call still surfaces its client execution without flagging input needed
+      ✔ auto-approved tool still surfaces a genuine result confirmation
+      ✔ MCP tool authentication is produced while auth is required and removed once resolved
+      ✔ ending the turn clears the chat's outstanding requests
+      ✔ a blocker inside a subagent is produced against the subagent chat
+    session permissions
+      ✔ tool_ready action includes confirmation options when confirmation is needed
+      ✔ ChatToolCallConfirmed with allow-session adds tool to session permissions
+      ✔ subsequent tool_ready for same tool is auto-approved after allow-session permission
+      ✔ managed approval bypasses global, session, and per-tool auto-approval
+      ✔ managed approval does not persist allow-session from the client
+      ✔ subagent tool calls inherit parent session permissions
+      ✔ hard-denies a write to a snapshot under the session attachments dir, even with global auto-approve, and dispatches no confirmation-ready action (#331154)
+    changeset forwarders
+      ✔ stale tool completion does not attribute edits to the active turn
+      ✔ post-toolCallComplete edits fire onToolCallEditsApplied once
+      ✔ turn complete fires onTurnComplete once with the right turn id
+      ✔ turn complete passes the resolved working directories to the checkpoint capture
+      ✔ provider error keeps the turn start until completion capture
+      ✔ terminal provider error captures the end checkpoint without completion
+      ✔ send rejection reports an error turn end through end checkpoint capture
+      ✔ chat truncation discards pending turn starts for that chat
+      ✔ ChatTruncated fires onSessionTruncated once
+
+  Errors
+    ✔ should not have unexpected errors in tests
+
+
+  202 passing (753ms)
+

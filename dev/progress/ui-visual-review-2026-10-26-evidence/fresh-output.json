@@ -1,0 +1,88 @@
+{
+  "compile_start": "2026-10-26T09:32:05+08:00",
+  "out_root": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out",
+  "files": [
+    {
+      "source": "src/vs/platform/agentHost/node/agentSideEffects.ts",
+      "source_sha256": "2b650b001c2daa29e7689c72d526797cde784ea9db976c8c9735fc4aed450f37",
+      "output": "out/vs/platform/agentHost/node/agentSideEffects.js",
+      "output_sha256": "00ec40d933bf2114e642a4ae13ebc26eb7525408dff1fc454a09b88ba1091cf4",
+      "output_mtime": "2026-10-26T09:34:57.846228+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/platform/agentHost/test/node/agentSideEffects.test.ts",
+      "source_sha256": "3cd37170204ef3fbf0e4c03d057bbddb38c9cb051b5930fc28fc00d2e1f8f883",
+      "output": "out/vs/platform/agentHost/test/node/agentSideEffects.test.js",
+      "output_sha256": "a4b36b52da66727012187c8177256164e99ee7a383cf1a269967169ce6323c5d",
+      "output_mtime": "2026-10-26T09:34:57.873229+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/sessions/browser/parts/mobile/mobileSortGroupSheet.ts",
+      "source_sha256": "faa7e4e86904ebd6aea8cf5a22d2a1f647971241aa8a1bc06de27ab3130d559c",
+      "output": "out/vs/sessions/browser/parts/mobile/mobileSortGroupSheet.js",
+      "output_sha256": "1a861cfce51c87574eb7b0704f78902124c4054987bc8b70e3c4b3410cf80fab",
+      "output_mtime": "2026-10-26T09:32:23.336272+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/sessions/test/browser/mobileSortGroupSheet.test.ts",
+      "source_sha256": "0ce0a08fe52faa27e2273c1b74a35ad7d9d352fe347ddf0785f2d797916a14ad",
+      "output": "out/vs/sessions/test/browser/mobileSortGroupSheet.test.js",
+      "output_sha256": "c22ac19446fb16c89618b46dae0c6473baa61919b9cf9fb329a1e4bfa399c09b",
+      "output_mtime": "2026-10-26T09:32:21.636196+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/sessions/contrib/sessions/browser/agentHostShortcutsWidget.ts",
+      "source_sha256": "8b4b251e4db8f76257dbb052d0c31ca1fa999f8e32fdc8ac372b834b29d43d9b",
+      "output": "out/vs/sessions/contrib/sessions/browser/agentHostShortcutsWidget.js",
+      "output_sha256": "a1b6c4a8841e0266ace838e7767bda39872084cd480f2e4175bc30b8718417a1",
+      "output_mtime": "2026-10-26T09:32:23.478279+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/sessions/contrib/sessions/browser/views/sessionsView.ts",
+      "source_sha256": "665ddd6b7ae131930d7d9f3561786e6f2829ade8790e3dc8629eebf4accd38eb",
+      "output": "out/vs/sessions/contrib/sessions/browser/views/sessionsView.js",
+      "output_sha256": "6efddc09fb52b9909a5d077ae36d323ec8587b39ce925ec7fac8d676f117ff79",
+      "output_mtime": "2026-10-26T09:34:57.877229+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/sessions/contrib/sessions/test/browser/agentHostShortcutsWidget.test.ts",
+      "source_sha256": "91667a6b5a32fd5f0c82462736946764c40db1b43ad536d8d512ac3cf7488689",
+      "output": "out/vs/sessions/contrib/sessions/test/browser/agentHostShortcutsWidget.test.js",
+      "output_sha256": "1cb3d8cdc7bed2fac42a4dc13bd49097be8e15841d0bcbbc82865b97474cec7a",
+      "output_mtime": "2026-10-26T09:34:57.878229+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/sessions/test/browser/sessionHeader.test.ts",
+      "source_sha256": "6f21672eb5c43b6aac36945961128784c45bacec98b304878d693cd09761434d",
+      "output": "out/vs/sessions/test/browser/sessionHeader.test.js",
+      "output_sha256": "6268489d095b0a25043da4f2586f52c745583034f8b2e603baaed868931e329d",
+      "output_mtime": "2026-10-26T09:37:05.793981+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/enginePreferencesPane.test.ts",
+      "source_sha256": "4f01c5ec028dbe73fd229390f09037f25d598c58f466e556edd4117a2c715938",
+      "output": "out/vs/workbench/contrib/conversation/browser/enginePreferencesPane.test.js",
+      "output_sha256": "1ef1d3c42db96467cdcb032c36d0d76efd6a35f0994b987f00128e7932cc0f0e",
+      "output_mtime": "2026-10-26T09:37:05.795981+08:00",
+      "fresh_since_compile_start": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/connectionPreferencesPane.test.ts",
+      "source_sha256": "9b6ad6489821e5e10579411a53f8fdf315cb012c6d6e5f047042835ce690db33",
+      "output": "out/vs/workbench/contrib/conversation/browser/connectionPreferencesPane.test.js",
+      "output_sha256": "ec678ff2c6e2487c1c3b9f1a63ed153e83b6442111cb05cfd5ef8c9a3ce7078a",
+      "output_mtime": "2026-10-26T09:37:05.796981+08:00",
+      "fresh_since_compile_start": true
+    }
+  ],
+  "source_base_head": "df7c5b1",
+  "source_state": "source_base_head plus integration fixes committed alongside this snapshot"
+}

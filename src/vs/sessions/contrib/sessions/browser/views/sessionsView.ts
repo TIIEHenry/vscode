@@ -173,9 +173,9 @@ export class SessionsView extends ViewPane {
 
 		// Header row: "Sessions" label (left) + compact "New" button (right)
 		const headerRow = this.headerRow = DOM.append(sessionsContent, $('.agent-sessions-header-row'));
-		const headerLabel = this.headerLabel = DOM.append(headerRow, $('.agent-sessions-header-label'));
+		this.headerLabel = DOM.append(headerRow, $('.agent-sessions-header-label'));
 
-		const headerActions = this.headerActions = DOM.append(headerRow, $('.agent-sessions-header-actions'));
+		this.headerActions = DOM.append(headerRow, $('.agent-sessions-header-actions'));
 
 		// Container for the tree's find widget (toggled by the toolbar's Find action)
 		const findWidgetContainer = this.findWidgetContainer = DOM.append(headerRow, $('.agent-sessions-find-widget-container'));

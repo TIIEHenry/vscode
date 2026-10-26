@@ -158,17 +158,17 @@ suite('Sessions - SessionHeader', () => {
 
 		assert.deepStrictEqual({ ariaLabel: title.getAttribute('aria-label'), role: title.getAttribute('role'), tabIndex: title.tabIndex }, { ariaLabel: 'Rename session: My Session', role: 'button', tabIndex: 0 });
 
-		title.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Enter', bubbles: true, cancelable: true }));
+		title.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Enter', keyCode: 13, bubbles: true, cancelable: true }));
 		assert.ok(header.element.querySelector('.chat-composite-bar-session-title-input'));
 		assert.deepStrictEqual({ ariaLabel: title.getAttribute('aria-label'), role: title.getAttribute('role'), tabIndex: title.getAttribute('tabindex') }, { ariaLabel: null, role: null, tabIndex: null });
 
 		header.startTitleEditing();
 		const input = header.element.querySelector<HTMLElement>('.chat-composite-bar-session-title-input');
 		assert.ok(input);
-		input.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Escape', bubbles: true, cancelable: true }));
+		input.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Escape', keyCode: 27, bubbles: true, cancelable: true }));
 		assert.deepStrictEqual({ role: title.getAttribute('role'), tabIndex: title.tabIndex }, { role: 'button', tabIndex: 0 });
 
-		title.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: ' ', bubbles: true, cancelable: true }));
+		title.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: ' ', keyCode: 32, bubbles: true, cancelable: true }));
 		assert.ok(header.element.querySelector('.chat-composite-bar-session-title-input'));
 	});
 
@@ -178,7 +178,7 @@ suite('Sessions - SessionHeader', () => {
 		assert.ok(title);
 
 		assert.deepStrictEqual({ role: title.getAttribute('role'), tabIndex: title.getAttribute('tabindex') }, { role: null, tabIndex: null });
-		title.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Enter', bubbles: true, cancelable: true }));
+		title.dispatchEvent(new KeyboardEvent(EventType.KEY_DOWN, { key: 'Enter', keyCode: 13, bubbles: true, cancelable: true }));
 		assert.strictEqual(header.element.querySelector('.chat-composite-bar-session-title-input'), null);
 	});
 

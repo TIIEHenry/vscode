@@ -20,23 +20,8 @@ suite('ConnectionPreferencesPane (browser)', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('late listDevices after dispose does not paint hub device rows', async () => {
-		let resolveList!: (value: UniverseAgentListDevicesResult) => void;
-		const listDevices = new Promise<UniverseAgentListDevicesResult>(resolve => {
-			resolveList = resolve;
-		});
-		const connection = createConversationConnectionTestStub({
-			isEngineConnected: () => true,
-			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			listDevices: () => listDevices,
-		});
-
-		const container = document.createElement('div');
-		document.body.appendChild(container);
-		store.add({ dispose: () => container.remove() });
-
-		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IUniverseAgentHubService, {
+	function createHubStub(): Partial<IUniverseAgentHubService> {
+		return {
 			_serviceBrand: undefined,
 			getActiveHubBaseUrl: () => undefined,
 			setActiveHubBaseUrl: () => { },
@@ -57,7 +42,26 @@ suite('ConnectionPreferencesPane (browser)', () => {
 			addHubDeviceProfile: async () => ({ ok: true, profileId: 'hub-profile-1' }),
 			forgetConnectionProfile: async () => ({ ok: true }),
 			isEncryptionAvailable: async () => true,
+		};
+	}
+
+	test('late listDevices after dispose does not paint hub device rows', async () => {
+		let resolveList!: (value: UniverseAgentListDevicesResult) => void;
+		const listDevices = new Promise<UniverseAgentListDevicesResult>(resolve => {
+			resolveList = resolve;
 		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listDevices: () => listDevices,
+		});
+
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub());
 		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
@@ -105,28 +109,7 @@ suite('ConnectionPreferencesPane (browser)', () => {
 		store.add({ dispose: () => container.remove() });
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		instantiationService.stub(IUniverseAgentHubService, {
-			_serviceBrand: undefined,
-			getActiveHubBaseUrl: () => undefined,
-			setActiveHubBaseUrl: () => { },
-			getAuthStatus: () => ({ kind: 'signedOut' }),
-			getDirectoryStatus: () => ({ kind: 'idle' }),
-			listConnectionProfiles: () => [],
-			onDidChangeAuthStatus: Event.None,
-			onDidChangeDirectory: Event.None,
-			onDidChangeProfiles: Event.None,
-			login: async () => ({ ok: true }),
-			logout: async () => { },
-			changePassword: async () => ({ ok: true }),
-			refreshDirectory: async () => ({ kind: 'idle' }),
-			renameDevice: async () => ({ ok: true }),
-			revokeDevice: async () => ({ ok: true }),
-			confirmDeviceCode: async () => ({ ok: true }),
-			addDirectAddressProfile: async () => ({ ok: true, profileId: 'direct-profile-1' }),
-			addHubDeviceProfile: async () => ({ ok: true, profileId: 'hub-profile-1' }),
-			forgetConnectionProfile: async () => ({ ok: true }),
-			isEncryptionAvailable: async () => true,
-		});
+		instantiationService.stub(IUniverseAgentHubService, createHubStub());
 		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
 		instantiationService.stub(IDialogService, {
 			_serviceBrand: undefined,
@@ -166,8 +149,9 @@ suite('ConnectionPreferencesPane (browser)', () => {
 		store.add({ dispose: () => container.remove() });
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub());
 		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
-		const pane = instantiationService.createInstance(ConnectionPreferencesPane);
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
 		container.appendChild(pane.getDomNode());
 		pane.layout(new Dimension(480, 600));
 
@@ -197,8 +181,9 @@ suite('ConnectionPreferencesPane (browser)', () => {
 		store.add({ dispose: () => container.remove() });
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentHubService, createHubStub());
 		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
-		const pane = instantiationService.createInstance(ConnectionPreferencesPane);
+		const pane = store.add(instantiationService.createInstance(ConnectionPreferencesPane));
 		container.appendChild(pane.getDomNode());
 		pane.layout(new Dimension(800, 800));
 

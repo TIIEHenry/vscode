@@ -340,16 +340,17 @@ export class AgentSideEffects extends Disposable {
 						break;
 				}
 				if (envelope.action.type === ActionType.ChatTurnCancelled) {
+					const cancelledTurnId = envelope.action.turnId;
 					let turnIds = this._cancelledTurnIds.get(envelope.channel);
 					if (!turnIds) {
 						turnIds = new Set();
 						this._cancelledTurnIds.set(envelope.channel, turnIds);
 					}
-					turnIds.add(envelope.action.turnId);
+					turnIds.add(cancelledTurnId);
 					// The reducer has already ended the turn, so its response parts are now
 					// history. Remember the tool calls it owned: a confirmation that arrives
 					// after the active turn is gone must be denied, not auto-approved.
-					const cancelledTurn = chatState?.turns.find(turn => turn.id === envelope.action.turnId);
+					const cancelledTurn = chatState?.turns.find(turn => turn.id === cancelledTurnId);
 					if (cancelledTurn) {
 						let toolCallIds = this._cancelledTurnToolCallIds.get(envelope.channel);
 						if (!toolCallIds) {
@@ -1272,7 +1273,7 @@ export class AgentSideEffects extends Disposable {
 	 */
 	private async _handleToolReady(e: IAgentToolPendingConfirmationSignal, sessionKey: ProtocolURI, turnId: string, agent: IAgent): Promise<void> {
 		const toolCallKey = `${sessionKey}:${e.state.toolCallId}`;
-		if (this._isCancelledTurnToolCall(e.chat, sessionKey, e.state.toolCallId)) {
+		if (this._isCancelledTurnToolCall(e.chat.toString(), sessionKey, e.state.toolCallId)) {
 			this._logService.trace(`[AgentSideEffects] Denying late confirmation for cancelled turn tool call ${e.state.toolCallId}`);
 			this._toolCallAgents.delete(toolCallKey);
 			this._managedApprovalToolCalls.delete(toolCallKey);
@@ -1299,7 +1300,7 @@ export class AgentSideEffects extends Disposable {
 		// Permission evaluation can cross an async filesystem or shell-policy
 		// boundary. The turn/session may be cancelled or disposed while it is
 		// suspended; never publish a ready action for that stale request.
-		if (this._isCancelledTurnToolCall(e.chat, sessionKey, e.state.toolCallId) || !this._stateManager.getSessionState(sessionKey)) {
+		if (this._isCancelledTurnToolCall(e.chat.toString(), sessionKey, e.state.toolCallId) || !this._stateManager.getSessionState(sessionKey)) {
 			this._logService.trace(`[AgentSideEffects] Denying late confirmation after async permission evaluation for ${e.state.toolCallId}`);
 			this._toolCallAgents.delete(toolCallKey);
 			this._managedApprovalToolCalls.delete(toolCallKey);

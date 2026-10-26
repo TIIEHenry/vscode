@@ -33,7 +33,7 @@ suite('EnginePreferencesPane (browser)', () => {
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
-		const pane = instantiationService.createInstance(EnginePreferencesPane);
+		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
 		container.appendChild(pane.getDomNode());
 
 		const testButton = pane.getDomNode().querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
@@ -73,7 +73,7 @@ suite('EnginePreferencesPane (browser)', () => {
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
-		const pane = instantiationService.createInstance(EnginePreferencesPane);
+		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
 		container.appendChild(pane.getDomNode());
 		pane.layout(new Dimension(480, 600));
 
@@ -104,7 +104,7 @@ suite('EnginePreferencesPane (browser)', () => {
 
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
-		const pane = instantiationService.createInstance(EnginePreferencesPane);
+		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
 		container.appendChild(pane.getDomNode());
 		pane.layout(new Dimension(800, 600));
 

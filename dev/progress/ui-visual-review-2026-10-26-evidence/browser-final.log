@@ -1,0 +1,52 @@
+Failed to load resource: the server responded with a status of 404 (Not Found) []
+
+
+  Mobile sort/group sheet - D1369 - /CHROMIUM-CHROME/
+    ✔ Tab and Shift+Tab cycle in DOM order and skip disabled controls (186ms)
+    ✔ an empty sheet initially focuses Close (181ms)
+    ✔ close dismiss restores the opener and preserves its result (181ms)
+    ✔ backdrop dismiss restores the opener and preserves its result (181ms)
+    ✔ escape dismiss restores the opener and preserves its result (181ms)
+    ✔ selection dismiss restores the opener and preserves its result (181ms)
+    ✔ tap dismiss restores the opener and preserves its result (181ms)
+    ✔ closing chrome releases keys immediately and cannot steal a reopened sheet focus (361ms)
+    ✔ does not restore an opener that is hidden (181ms)
+    ✔ does not restore an opener that is ancestor-hidden (181ms)
+    ✔ does not restore an opener that is removed (181ms)
+    ✔ does not restore an opener that is disabled (180ms)
+    ✔ does not reclaim focus moved outside before or during the close animation (362ms)
+
+  AgentHostShortcutsWidget - /CHROMIUM-CHROME/
+    ✔ renders an always-expanded toolbar with content and no collapse affordance
+    ✔ keeps divider and toolbar as direct flex children and removes only owned nodes
+
+  SessionsView responsive controls (D1370) - /CHROMIUM-CHROME/
+    ✔ desktop to phone to desktop follows context before the CSS class catches up
+    ✔ phone startup and repeated round trips create one toolbar set and release old listeners
+    ✔ Host toolbar respects sessions/auxiliary window gates and ignores unrelated context
+
+  Sessions - SessionHeader - /CHROMIUM-CHROME/
+    ✔ a small pointer move over the title actions toolbar does not start a session drag
+    ✔ a drag starting elsewhere in the header still initiates a session drag
+    ✔ hides the header while it is replaced by the single-group tabs row
+    ✔ reports whether the inline rename could be started
+    ✔ exposes an editable title as a keyboard button and activates it with Enter or Space
+    ✔ does not expose a non-editable title as a button
+    ✔ updates title rename affordance when capabilities hydrate
+
+  EnginePreferencesPane (browser) - /CHROMIUM-CHROME/
+    ✔ late probeEngine after dispose does not paint test status
+    ✔ narrow navigation returns focus to Back when opening a detail section
+    ✔ resizing from wide navigation returns focus to Back
+
+  ConnectionPreferencesPane (browser) - /CHROMIUM-CHROME/
+    ✔ late listDevices after dispose does not paint hub device rows
+    ✔ late probeEngine after dispose does not paint test status
+    ✔ narrow navigation returns focus to Back when opening a detail section
+[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) [ [length]: 0 ]
+[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) [ [length]: 0 ]
+    ✔ resizing from wide navigation returns focus to Back
+
+
+  32 passing (3s)
+

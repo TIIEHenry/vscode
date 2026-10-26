@@ -3,7 +3,7 @@ title: "并行看板索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-11
+updated: 2026-10-26
 summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查、自有界面视觉审查、十六路方案审查、缺陷扫描、验证治理与 M7 GC fanout"
 ---
 
@@ -11,6 +11,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
+| [ui-visual-review-2026-10-26](active/ui-visual-review-2026-10-26.md) | **进行中**：D1368–D1370 行为验证完成，D1371/1372 设置页视觉修复待集成；真实编译失败单列 |
 | [session-work-root](active/session-work-root.md) | **进行中**：PRD-029 S1–S4。S5 不做 |
 | [visual-audit-2026-10-05](active/visual-audit-2026-10-05.md) | **已完成**：自有界面八项已确认视觉问题、一项待实测疑点；收口方案已签收，排除 VS Code 原生部分 |
 | [architecture-review-2026-10-05](active/architecture-review-2026-10-05.md) | **已完成**：自研架构只读审查及 Grok 复核，排除 VS Code 原生；5 条已核实发现、1 条契约疑点 |

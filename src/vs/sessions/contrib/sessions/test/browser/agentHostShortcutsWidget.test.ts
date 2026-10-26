@@ -252,7 +252,7 @@ suite('SessionsView responsive controls (D1370)', () => {
 	test('Host toolbar respects sessions/auxiliary window gates and ignores unrelated context', () => {
 		const h = createHarness(false);
 		const toolbar = h.container.querySelector('.agent-host-toolbar');
-		h.host.scopedContextKeyService.createKey('unrelated', false).set(true);
+		h.host.scopedContextKeyService.createKey<boolean>('unrelated', false).set(true);
 		assert.strictEqual(h.container.querySelector('.agent-host-toolbar'), toolbar);
 		h.auxiliaryWindow.set(true);
 		assert.strictEqual(h.state().hostToolbars, 0);

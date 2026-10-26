@@ -4918,7 +4918,7 @@ suite('AgentSideEffects', () => {
 				});
 				assert.strictEqual(evaluate.callCount, 1, 'evaluation must be suspended before invalidation');
 				assert.deepStrictEqual(agent.respondToPermissionCalls, []);
-				assert.deepStrictEqual(ready, []);
+				assert.strictEqual(ready.length, 0);
 
 				if (scenario.startsWith('cancelled-')) {
 					stateManager.dispatchServerAction(defaultChatUri, {
