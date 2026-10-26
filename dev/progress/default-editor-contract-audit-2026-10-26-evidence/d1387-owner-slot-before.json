@@ -1,0 +1,2971 @@
+{
+  "stages": [
+    {
+      "label": "00-ready",
+      "active": "session-102",
+      "focusedLeaf": "session-102",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "preview",
+      "slot": "replace",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 8,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [],
+      "selected": null,
+      "review": {
+        "rows": [],
+        "progress": "Reviewed 0 / 4",
+        "status": "Showing local source control changes only.",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "TEXTAREA",
+        "cls": "conversation-lens-dock-input",
+        "aria": "Message"
+      },
+      "commands": [],
+      "rpc": []
+    },
+    {
+      "label": "C1-before-alpha-row",
+      "active": "untitled",
+      "focusedLeaf": "untitled",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "replace",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 8,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [],
+      "selected": null,
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n●",
+            "aria": "other.txt, Changes, unreviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n●",
+            "aria": "shared.txt, Changes, unreviewed, stub",
+            "focused": false,
+            "selected": false
+          }
+        ],
+        "progress": "Reviewed 0 / 2",
+        "status": "Showing local source control changes only.",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "BUTTON",
+        "cls": "sources-tab selected",
+        "aria": null
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C1-after-alpha-row",
+      "active": "untitled",
+      "focusedLeaf": "untitled",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "replace",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 8,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "scheme": "file"
+            },
+            "shared.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n●",
+            "aria": "other.txt, Changes, unreviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n●",
+            "aria": "shared.txt, Changes, unreviewed, stub",
+            "focused": true,
+            "selected": true
+          }
+        ],
+        "progress": "Reviewed 0 / 2",
+        "status": "Unable to open diff: Conversation chat input requires CONVERSATION_GROUP or a conversation editor group",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "monaco-list list_id_5 mouse-support last-focused element-focused selection-single",
+        "aria": "Sources Review"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C2-before-beta-row-enter",
+      "active": "session-102",
+      "focusedLeaf": "session-102",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "newTab",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 8,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [],
+      "selected": null,
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n●",
+            "aria": "other.txt, Changes, unreviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n●",
+            "aria": "shared.txt, Changes, unreviewed, stub",
+            "focused": true,
+            "selected": false
+          }
+        ],
+        "progress": "Reviewed 0 / 2",
+        "status": "Showing local source control changes only.",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "monaco-list list_id_5 mouse-support last-focused selection-none element-focused",
+        "aria": "Sources Review"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C2-after-beta-row-enter",
+      "active": "session-102",
+      "focusedLeaf": "session-102",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "newTab",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 8,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": null,
+              "editors": []
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "file"
+            },
+            "shared.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n●",
+            "aria": "other.txt, Changes, unreviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n●",
+            "aria": "shared.txt, Changes, unreviewed, stub",
+            "focused": true,
+            "selected": true
+          }
+        ],
+        "progress": "Reviewed 0 / 2",
+        "status": "Unable to open diff: Conversation chat input requires CONVERSATION_GROUP or a conversation editor group",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "monaco-list list_id_5 mouse-support last-focused element-focused selection-single",
+        "aria": "Sources Review"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C3-beta-openSelected-real-diff",
+      "active": "session-102",
+      "focusedLeaf": "session-102",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "newTab",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 10,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": {
+                "type": "workbench.editors.conversationDiffReviewInput",
+                "ctor": "_ConversationDiffReviewInput",
+                "name": "shared.txt",
+                "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                "readonly": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "shared.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+          "originalText": "BETA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "BETA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readonlyOriginal": true,
+          "readonlyModified": true,
+          "visible": true,
+          "rect": {
+            "x": 874.5,
+            "y": 189,
+            "width": 220,
+            "height": 989,
+            "top": 189,
+            "right": 1094.5,
+            "bottom": 1178,
+            "left": 874.5
+          }
+        }
+      ],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "file"
+            },
+            "shared.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n●",
+            "aria": "other.txt, Changes, unreviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n○",
+            "aria": "shared.txt, Changes, reviewed, stub",
+            "focused": true,
+            "selected": true
+          }
+        ],
+        "progress": "Reviewed 1 / 2",
+        "status": "Showing local source control changes only.",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "native-edit-context",
+        "aria": "The editor is not accessible at this time. To enable screen reader optimized mode, use Shift+Alt+F4"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C3-beta-openSelected-no-slot"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C4-replace-other-real-diff",
+      "active": "session-102",
+      "focusedLeaf": "session-102",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "replace",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 10,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": {
+                "type": "workbench.editors.conversationDiffReviewInput",
+                "ctor": "_ConversationDiffReviewInput",
+                "name": "other.txt",
+                "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                "readonly": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "other.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/other.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fother.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt",
+          "originalText": "BETA OTHER BASELINE\n",
+          "modifiedText": "BETA OTHER MODIFIED\n",
+          "readonlyOriginal": true,
+          "readonlyModified": true,
+          "visible": true,
+          "rect": {
+            "x": 874.5,
+            "y": 189,
+            "width": 220,
+            "height": 989,
+            "top": 189,
+            "right": 1094.5,
+            "bottom": 1178,
+            "left": 874.5
+          }
+        }
+      ],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/other.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/beta/other.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/beta/other.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/other.txt",
+              "scheme": "file"
+            },
+            "other.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n○",
+            "aria": "other.txt, Changes, reviewed, stub",
+            "focused": true,
+            "selected": true
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n○",
+            "aria": "shared.txt, Changes, reviewed, stub",
+            "focused": false,
+            "selected": false
+          }
+        ],
+        "progress": "Reviewed 2 / 2",
+        "status": "Showing local source control changes only.",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "monaco-list list_id_5 mouse-support last-focused element-focused selection-single",
+        "aria": "Sources Review"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C3-beta-openSelected-no-slot"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C4-newTab-shared-result",
+      "active": "session-102",
+      "focusedLeaf": "session-102",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "newTab",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 10,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": {
+                "type": "workbench.editors.conversationDiffReviewInput",
+                "ctor": "_ConversationDiffReviewInput",
+                "name": "other.txt",
+                "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                "readonly": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "other.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/other.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fother.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt",
+          "originalText": "BETA OTHER BASELINE\n",
+          "modifiedText": "BETA OTHER MODIFIED\n",
+          "readonlyOriginal": true,
+          "readonlyModified": true,
+          "visible": true,
+          "rect": {
+            "x": 874.5,
+            "y": 189,
+            "width": 220,
+            "height": 989,
+            "top": 189,
+            "right": 1094.5,
+            "bottom": 1178,
+            "left": 874.5
+          }
+        }
+      ],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "file"
+            },
+            "shared.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n○",
+            "aria": "other.txt, Changes, reviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n○",
+            "aria": "shared.txt, Changes, reviewed, stub",
+            "focused": true,
+            "selected": true
+          }
+        ],
+        "progress": "Reviewed 2 / 2",
+        "status": "Unable to open diff: Conversation chat input requires CONVERSATION_GROUP or a conversation editor group",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "monaco-list list_id_5 mouse-support last-focused element-focused selection-single",
+        "aria": "Sources Review"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C3-beta-openSelected-no-slot"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C4-openSelected-shared-control",
+      "active": "session-102",
+      "focusedLeaf": "session-102",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "newTab",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 10,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": {
+                "type": "workbench.editors.conversationDiffReviewInput",
+                "ctor": "_ConversationDiffReviewInput",
+                "name": "shared.txt",
+                "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                "readonly": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "other.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                },
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "shared.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+          "originalText": "BETA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "BETA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readonlyOriginal": true,
+          "readonlyModified": true,
+          "visible": true,
+          "rect": {
+            "x": 874.5,
+            "y": 189,
+            "width": 220,
+            "height": 989,
+            "top": 189,
+            "right": 1094.5,
+            "bottom": 1178,
+            "left": 874.5
+          }
+        }
+      ],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "file"
+            },
+            "shared.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n○",
+            "aria": "other.txt, Changes, reviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n○",
+            "aria": "shared.txt, Changes, reviewed, stub",
+            "focused": true,
+            "selected": true
+          }
+        ],
+        "progress": "Reviewed 2 / 2",
+        "status": "Unable to open diff: Conversation chat input requires CONVERSATION_GROUP or a conversation editor group",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "native-edit-context",
+        "aria": "The editor is not accessible at this time. To enable screen reader optimized mode, use Shift+Alt+F4"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C3-beta-openSelected-no-slot"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C4-beta-openSelected-shared-no-slot"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C4-newTab-same-shared-reveal",
+      "active": "session-102",
+      "focusedLeaf": "session-102",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "newTab",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 10,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": {
+                "type": "workbench.editors.conversationDiffReviewInput",
+                "ctor": "_ConversationDiffReviewInput",
+                "name": "shared.txt",
+                "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                "readonly": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "other.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                },
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "shared.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+          "originalText": "BETA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "BETA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readonlyOriginal": true,
+          "readonlyModified": true,
+          "visible": true,
+          "rect": {
+            "x": 874.5,
+            "y": 189,
+            "width": 220,
+            "height": 989,
+            "top": 189,
+            "right": 1094.5,
+            "bottom": 1178,
+            "left": 874.5
+          }
+        }
+      ],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "file"
+            },
+            "shared.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n○",
+            "aria": "other.txt, Changes, reviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n○",
+            "aria": "shared.txt, Changes, reviewed, stub",
+            "focused": true,
+            "selected": true
+          }
+        ],
+        "progress": "Reviewed 2 / 2",
+        "status": "Unable to open diff: Conversation chat input requires CONVERSATION_GROUP or a conversation editor group",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "monaco-list list_id_5 mouse-support last-focused element-focused selection-single",
+        "aria": "Sources Review"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C3-beta-openSelected-no-slot"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C4-beta-openSelected-shared-no-slot"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C4-replace-same-shared-reveal",
+      "active": "session-102",
+      "focusedLeaf": "session-102",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "replace",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 10,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": {
+                "type": "workbench.editors.conversationDiffReviewInput",
+                "ctor": "_ConversationDiffReviewInput",
+                "name": "shared.txt",
+                "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                "readonly": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "other.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                },
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "shared.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+          "originalText": "BETA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "BETA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readonlyOriginal": true,
+          "readonlyModified": true,
+          "visible": true,
+          "rect": {
+            "x": 874.5,
+            "y": 189,
+            "width": 220,
+            "height": 989,
+            "top": 189,
+            "right": 1094.5,
+            "bottom": 1178,
+            "left": 874.5
+          }
+        }
+      ],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "file"
+            },
+            "shared.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n○",
+            "aria": "other.txt, Changes, reviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n○",
+            "aria": "shared.txt, Changes, reviewed, stub",
+            "focused": true,
+            "selected": true
+          }
+        ],
+        "progress": "Reviewed 2 / 2",
+        "status": "Unable to open diff: Conversation chat input requires CONVERSATION_GROUP or a conversation editor group",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "monaco-list list_id_5 mouse-support last-focused element-focused selection-single",
+        "aria": "Sources Review"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C3-beta-openSelected-no-slot"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C4-beta-openSelected-shared-no-slot"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C5-alpha-recent-focused",
+      "active": "untitled",
+      "focusedLeaf": "untitled",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "replace",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 10,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": {
+                "type": "workbench.editors.conversationDiffReviewInput",
+                "ctor": "_ConversationDiffReviewInput",
+                "name": "shared.txt",
+                "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                "readonly": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "other.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                },
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "shared.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+          "originalText": "BETA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "BETA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readonlyOriginal": true,
+          "readonlyModified": true,
+          "visible": true,
+          "rect": {
+            "x": 874.5,
+            "y": 189,
+            "width": 220,
+            "height": 989,
+            "top": 189,
+            "right": 1094.5,
+            "bottom": 1178,
+            "left": 874.5
+          }
+        }
+      ],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "file"
+            },
+            "shared.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\n○",
+            "aria": "other.txt, Changes, reviewed",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\n○",
+            "aria": "shared.txt, Changes, reviewed",
+            "focused": true,
+            "selected": true
+          }
+        ],
+        "progress": "Reviewed 2 / 2",
+        "status": "Showing local source control changes only.",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "BUTTON",
+        "cls": "conversation-review-nav",
+        "aria": "Review, View changes (2 files)"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C3-beta-openSelected-no-slot"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C4-beta-openSelected-shared-no-slot"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C5-beta-public-openSelected-target",
+      "active": "session-102",
+      "focusedLeaf": "session-102",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "conversation",
+      "slot": "replace",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 10,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": {
+                "type": "workbench.editors.conversationDiffReviewInput",
+                "ctor": "_ConversationDiffReviewInput",
+                "name": "shared.txt",
+                "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                "readonly": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "other.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                },
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "shared.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+          "originalText": "BETA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "BETA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readonlyOriginal": true,
+          "readonlyModified": true,
+          "visible": true,
+          "rect": {
+            "x": 740.5,
+            "y": 189,
+            "width": 220,
+            "height": 989,
+            "top": 189,
+            "right": 960.5,
+            "bottom": 1178,
+            "left": 740.5
+          }
+        }
+      ],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "scheme": "file"
+            },
+            "shared.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n○",
+            "aria": "other.txt, Changes, reviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n○",
+            "aria": "shared.txt, Changes, reviewed, stub",
+            "focused": true,
+            "selected": true
+          }
+        ],
+        "progress": "Reviewed 2 / 2",
+        "status": "Unable to open diff: Conversation chat input requires CONVERSATION_GROUP or a conversation editor group",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "native-edit-context",
+        "aria": "The editor is not accessible at this time. To enable screen reader optimized mode, use Shift+Alt+F4"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C3-beta-openSelected-no-slot"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C4-beta-openSelected-shared-no-slot"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C5-recent-alpha-then-explicit-beta"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C5-recent-alpha-then-explicit-beta"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C6-preview-alpha-result",
+      "active": "untitled",
+      "focusedLeaf": "untitled",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "preview",
+      "slot": "replace",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 10,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": {
+                "type": "workbench.editors.conversationDiffReviewInput",
+                "ctor": "_ConversationDiffReviewInput",
+                "name": "shared.txt",
+                "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                "readonly": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "other.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                },
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "shared.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+          "originalText": "BETA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "BETA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readonlyOriginal": true,
+          "readonlyModified": true,
+          "visible": true,
+          "rect": {
+            "x": 740.5,
+            "y": 189,
+            "width": 220,
+            "height": 989,
+            "top": 189,
+            "right": 960.5,
+            "bottom": 1178,
+            "left": 740.5
+          }
+        }
+      ],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "scheme": "file"
+            },
+            "shared.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n●",
+            "aria": "other.txt, Changes, unreviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n○",
+            "aria": "shared.txt, Changes, reviewed, stub",
+            "focused": true,
+            "selected": true
+          }
+        ],
+        "progress": "Reviewed 1 / 2",
+        "status": "Showing local source control changes only.",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "monaco-list list_id_5 mouse-support last-focused element-focused selection-single",
+        "aria": "Sources Review"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C3-beta-openSelected-no-slot"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C4-beta-openSelected-shared-no-slot"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C5-recent-alpha-then-explicit-beta"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C5-recent-alpha-then-explicit-beta"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C6-preview-default-noop"
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "C6-panel-alpha-result",
+      "active": "untitled",
+      "focusedLeaf": "untitled",
+      "visible": [
+        "untitled",
+        "session-102"
+      ],
+      "owner": "panel",
+      "slot": "replace",
+      "phase": {
+        "kind": "disconnected"
+      },
+      "transport": "idle",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "active": null,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 10,
+          "groups": [
+            {
+              "id": 8,
+              "active": {
+                "type": "workbench.editors.conversationChatInput",
+                "ctor": "_ConversationChatInput",
+                "name": "Conversation",
+                "resource": "conversation-chat:/session/session-102/chat/default",
+                "readonly": true,
+                "isDefaultRoot": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "ctor": "_ConversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default",
+                  "readonly": true,
+                  "isDefaultRoot": true
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": {
+                "type": "workbench.editors.conversationDiffReviewInput",
+                "ctor": "_ConversationDiffReviewInput",
+                "name": "shared.txt",
+                "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                "readonly": true
+              },
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "other.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                },
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "ctor": "_ConversationDiffReviewInput",
+                  "name": "shared.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+                  "readonly": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "main": {
+        "active": null,
+        "editors": []
+      },
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+          "originalText": "BETA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "BETA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readonlyOriginal": true,
+          "readonlyModified": true,
+          "visible": true,
+          "rect": {
+            "x": 740.5,
+            "y": 189,
+            "width": 220,
+            "height": 689,
+            "top": 189,
+            "right": 960.5,
+            "bottom": 878,
+            "left": 740.5
+          }
+        },
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Falpha%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+          "originalText": "ALPHA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "ALPHA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readonlyOriginal": true,
+          "readonlyModified": true,
+          "visible": true,
+          "rect": {
+            "x": 348,
+            "y": 950,
+            "width": 612,
+            "height": 228,
+            "top": 950,
+            "right": 960,
+            "bottom": 1178,
+            "left": 348
+          }
+        }
+      ],
+      "selected": {
+        "uri": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+        "origin": "scm",
+        "command": {
+          "id": "_workbench.diff",
+          "title": "Open",
+          "arguments": [
+            {
+              "$mid": 1,
+              "path": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "scheme": "git",
+              "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt\",\"ref\":\"~\"}"
+            },
+            {
+              "$mid": 1,
+              "fsPath": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "external": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "path": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "scheme": "file"
+            },
+            "shared.txt (Working Tree)",
+            null
+          ]
+        }
+      },
+      "review": {
+        "rows": [
+          {
+            "text": "other.txt\nChanges\nstub\n●",
+            "aria": "other.txt, Changes, unreviewed, stub",
+            "focused": false,
+            "selected": false
+          },
+          {
+            "text": "shared.txt\nChanges\nstub\n○",
+            "aria": "shared.txt, Changes, reviewed, stub",
+            "focused": true,
+            "selected": true
+          }
+        ],
+        "progress": "Reviewed 1 / 2",
+        "status": "Showing local source control changes only.",
+        "empty": "Loading…"
+      },
+      "focus": {
+        "tag": "DIV",
+        "cls": "monaco-list list_id_5 mouse-support last-focused element-focused selection-single",
+        "aria": "Sources Review"
+      },
+      "commands": [
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C1-alpha-first-empty-replace"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C2-beta-newTab-keyboard"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C3-beta-openSelected-no-slot"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C4-beta-openSelected-shared-no-slot"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt"
+            ]
+          ],
+          "active": "session-102",
+          "stage": "C5-recent-alpha-then-explicit-beta"
+        },
+        {
+          "id": "sources.review.openSelected",
+          "args": [],
+          "active": "session-102",
+          "stage": "C5-recent-alpha-then-explicit-beta"
+        },
+        {
+          "id": "sources.review.showForPaths",
+          "args": [
+            [
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+              "file:///tmp/vscode-review-real-git-audit-fixture/alpha/other.txt"
+            ]
+          ],
+          "active": "untitled",
+          "stage": "C6-preview-default-noop"
+        }
+      ],
+      "rpc": []
+    }
+  ],
+  "routing": [],
+  "slotPlans": [],
+  "errors": [],
+  "loaded": [
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/browser/editorService.js",
+      "scriptId": "157",
+      "sha256": "a2968c29642b436c0a3d77635b95ab8e63dfd469b644010c71a288eef180e2ca",
+      "bytes": 125599,
+      "diskSha256": "a2968c29642b436c0a3d77635b95ab8e63dfd469b644010c71a288eef180e2ca",
+      "copy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__services__editor__browser__editorService.js"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/common/editorService.js",
+      "scriptId": "487",
+      "sha256": "7747d66b65b3764093ab55446e89ef4f1a9484fba703edf3482d20ba2943e4fa",
+      "bytes": 22203,
+      "diskSha256": "7747d66b65b3764093ab55446e89ef4f1a9484fba703edf3482d20ba2943e4fa",
+      "copy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__services__editor__common__editorService.js"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/common/editorGroupFinder.js",
+      "scriptId": "1144",
+      "sha256": "a02770c54b513be593582fb937f804030e26cf6e540494e85b2a2154687594a0",
+      "bytes": 54908,
+      "diskSha256": "a02770c54b513be593582fb937f804030e26cf6e540494e85b2a2154687594a0",
+      "copy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__services__editor__common__editorGroupFinder.js"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+      "scriptId": "2658",
+      "sha256": "385f20fa54188fd49f59dc6aacdd4c5df8af4822ac84b57ce9b0c92ea966e32b",
+      "bytes": 7104,
+      "diskSha256": "385f20fa54188fd49f59dc6aacdd4c5df8af4822ac84b57ce9b0c92ea966e32b",
+      "copy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__contrib__conversation__common__conversationEditorRouting.js"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/browser/editorOpenSlot.js",
+      "scriptId": "3194",
+      "sha256": "b3f6366467055edb0f7e51b824e268ddfea19fadb674c2afb0b013194e657e3e",
+      "bytes": 12086,
+      "diskSha256": "b3f6366467055edb0f7e51b824e268ddfea19fadb674c2afb0b013194e657e3e",
+      "copy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__services__editor__browser__editorOpenSlot.js"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/common/editorOpenSlot.js",
+      "scriptId": "3196",
+      "sha256": "2a29b2b3a71352085153cfba6e0276131b34ac249f417cade02e88a6acd3cd39",
+      "bytes": 3025,
+      "diskSha256": "2a29b2b3a71352085153cfba6e0276131b34ac249f417cade02e88a6acd3cd39",
+      "copy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__services__editor__common__editorOpenSlot.js"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.js",
+      "scriptId": "4172",
+      "sha256": "fb5b7d7fb0bd690a0b974f4fa1d61938f9be8e29278732509b18d88d1eb2d319",
+      "bytes": 35482,
+      "diskSha256": "fb5b7d7fb0bd690a0b974f4fa1d61938f9be8e29278732509b18d88d1eb2d319",
+      "copy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__contrib__sources__browser__sourcesChangeEntryOpen.js"
+    }
+  ],
+  "setup": {
+    "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/code/electron-browser/workbench/workbench-dev.html",
+    "agents": false,
+    "phase": {
+      "kind": "disconnected"
+    },
+    "transport": "idle",
+    "initialRepos": [
+      {
+        "id": "git",
+        "root": "file:///tmp/vscode-review-real-git-audit-fixture/alpha",
+        "groups": [
+          {
+            "id": "merge",
+            "resources": 0
+          },
+          {
+            "id": "index",
+            "resources": 0
+          },
+          {
+            "id": "workingTree",
+            "resources": 2
+          },
+          {
+            "id": "untracked",
+            "resources": 0
+          }
+        ]
+      },
+      {
+        "id": "git",
+        "root": "file:///tmp/vscode-review-real-git-audit-fixture/beta",
+        "groups": [
+          {
+            "id": "merge",
+            "resources": 0
+          },
+          {
+            "id": "index",
+            "resources": 0
+          },
+          {
+            "id": "workingTree",
+            "resources": 2
+          },
+          {
+            "id": "untracked",
+            "resources": 0
+          }
+        ]
+      }
+    ]
+  },
+  "sessions": {
+    "alphaId": "untitled",
+    "betaId": "session-102",
+    "alphaTurn": "untitled-101",
+    "betaTurn": "session-102-104",
+    "visible": [
+      "untitled",
+      "session-102"
+    ]
+  },
+  "emitters": [
+    "settle",
+    "mutation"
+  ],
+  "breakpoints": [
+    {
+      "id": "4:23:0:1144",
+      "tag": "finder-before-excluded",
+      "line": 23,
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/common/editorGroupFinder.js"
+    },
+    {
+      "id": "4:26:0:1144",
+      "tag": "finder-after-excluded",
+      "line": 26,
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/common/editorGroupFinder.js"
+    }
+  ],
+  "completed": true
+}

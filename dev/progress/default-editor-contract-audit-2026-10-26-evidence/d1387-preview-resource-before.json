@@ -1,0 +1,30 @@
+{
+  "selected": {
+    "ctor": "MainThreadSCMResource",
+    "source": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+    "command": {
+      "id": "_workbench.diff",
+      "title": "Open",
+      "arguments": [
+        {
+          "$mid": 1,
+          "path": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+          "scheme": "git",
+          "query": "{\"path\":\"/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt\",\"ref\":\"~\"}"
+        },
+        {
+          "$mid": 1,
+          "fsPath": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+          "external": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+          "path": "/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+          "scheme": "file"
+        },
+        "shared.txt (Working Tree)",
+        null
+      ]
+    },
+    "open": "open(preserveFocus) {\n    return this.proxy.$executeResourceCommand(this.sourceControlHandle, this.groupHandle, this.handle, preserveFocus);\n  }"
+  },
+  "review": "Reviewed 1 / 1",
+  "domDiffCount": 0
+}

@@ -1,0 +1,28 @@
+{
+  "openLog": [
+    {
+      "source": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+      "command": "_workbench.diff",
+      "preserveFocus": true,
+      "active": "session-102"
+    },
+    {
+      "source": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+      "command": "_workbench.diff",
+      "preserveFocus": false,
+      "active": "session-102"
+    }
+  ],
+  "editor": {
+    "type": "workbench.editors.diffEditorInput",
+    "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt"
+  },
+  "diff": [
+    "BETA BASELINE\nunchanged sentinel",
+    "BETA BASELINE",
+    "BETA MODIFIED FOR REVIEW\nunchanged sentinel"
+  ],
+  "rpc": [],
+  "owner": "preview",
+  "active": "session-102"
+}

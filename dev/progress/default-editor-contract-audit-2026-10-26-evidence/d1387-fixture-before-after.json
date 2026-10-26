@@ -1,0 +1,31 @@
+{
+  "before": [
+    {
+      "root": "/tmp/vscode-review-real-git-audit-fixture/alpha",
+      "HEAD": "4aca405e3c14e1db100fed3885cb527efa4dbc5b",
+      "status": "M other.txt\n M shared.txt",
+      "index": ""
+    },
+    {
+      "root": "/tmp/vscode-review-real-git-audit-fixture/beta",
+      "HEAD": "975c6c6f3dff3d7b18363bd9da02d13d47523fbc",
+      "status": "M other.txt\n M shared.txt",
+      "index": ""
+    }
+  ],
+  "after": [
+    {
+      "root": "/tmp/vscode-review-real-git-audit-fixture/alpha",
+      "HEAD": "4aca405e3c14e1db100fed3885cb527efa4dbc5b",
+      "status": "M other.txt\n M shared.txt",
+      "index": ""
+    },
+    {
+      "root": "/tmp/vscode-review-real-git-audit-fixture/beta",
+      "HEAD": "975c6c6f3dff3d7b18363bd9da02d13d47523fbc",
+      "status": "M other.txt\n M shared.txt",
+      "index": ""
+    }
+  ],
+  "unchanged": true
+}

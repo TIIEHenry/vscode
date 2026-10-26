@@ -1,0 +1,84 @@
+{
+  "J_HEAD": "4fb712274ee129c9a175c4e763406595bcf815d6",
+  "merge_HEAD_at_manifest": "6f82fe5b05210fd72852abc5df729a70b68b4401",
+  "files": [
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "J_sha256": "fea0aec79f26aeac4c8ff16d4b1ebacf48e86a3bdc9d2d4b1287b9f54b5e04b4",
+      "merge_sha256": "fea0aec79f26aeac4c8ff16d4b1ebacf48e86a3bdc9d2d4b1287b9f54b5e04b4",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts",
+      "J_sha256": "740517387a3b2eaa35a12ec000538e63c0308a5b4f5c412355d78cbdb57cd466",
+      "merge_sha256": "740517387a3b2eaa35a12ec000538e63c0308a5b4f5c412355d78cbdb57cd466",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts",
+      "J_sha256": "6057149fedd424f8eb6b4796b6115069e7978efac2e508ec9f2ba46d09941dbc",
+      "merge_sha256": "6057149fedd424f8eb6b4796b6115069e7978efac2e508ec9f2ba46d09941dbc",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesChangesReadModel.ts",
+      "J_sha256": "6269f07b18bc88a2dac82bd507b84be7806552ad915767a159144215260ae912",
+      "merge_sha256": "6269f07b18bc88a2dac82bd507b84be7806552ad915767a159144215260ae912",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReviewHostService.ts",
+      "J_sha256": "ad8709eabd267427f023c749420179d96b1dbba76531065593efe7d7b2d9e11e",
+      "merge_sha256": "ad8709eabd267427f023c749420179d96b1dbba76531065593efe7d7b2d9e11e",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReview.contribution.ts",
+      "J_sha256": "2942d283fae88b22d11d7d31944d38d782b9ff2a53b04d968f47c9192591ca26",
+      "merge_sha256": "2942d283fae88b22d11d7d31944d38d782b9ff2a53b04d968f47c9192591ca26",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesReviewListModel.ts",
+      "J_sha256": "25e2158e026f2a9ca46cabecb3ccb2de10f289b7f99963b71ae683a881d84daf",
+      "merge_sha256": "25e2158e026f2a9ca46cabecb3ccb2de10f289b7f99963b71ae683a881d84daf",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/api/common/extHostSCM.ts",
+      "J_sha256": "0e1131d23c775cc6a8c5c5f18d655946d2a596b42de5c3f3c24029b6f06d7c22",
+      "merge_sha256": "0e1131d23c775cc6a8c5c5f18d655946d2a596b42de5c3f3c24029b6f06d7c22",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/api/browser/mainThreadSCM.ts",
+      "J_sha256": "376c2bc20b93185406d83bfe637c2c024a8aed0fcc53f67daf097d138e761331",
+      "merge_sha256": "376c2bc20b93185406d83bfe637c2c024a8aed0fcc53f67daf097d138e761331",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/scm/browser/scmViewPane.ts",
+      "J_sha256": "4240c6fbaaf49625d9dd6225e5a364b713a206eb30d93ea0d25ee353f33454ab",
+      "merge_sha256": "4240c6fbaaf49625d9dd6225e5a364b713a206eb30d93ea0d25ee353f33454ab",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationSessionWindowService.ts",
+      "J_sha256": "9a3d7a8dd5be1a14cb5de71beab243f96a6304d0e85c5a437e56169b97334300",
+      "merge_sha256": "9a3d7a8dd5be1a14cb5de71beab243f96a6304d0e85c5a437e56169b97334300",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationReviewNavService.ts",
+      "J_sha256": "8fb2ac3053f844f0458c9b3c9213602300de8fd12a048c2c5d6ceb5766aab4dd",
+      "merge_sha256": "8fb2ac3053f844f0458c9b3c9213602300de8fd12a048c2c5d6ceb5766aab4dd",
+      "equal": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "J_sha256": "e3d135c0b414c4b897a7d00db4a3b981d061d40536d76b7adbf01f92647b642f",
+      "merge_sha256": "492eb3a3fb06b921499bb5da62ec5b996828375555ae5f9825889431407f7cc2",
+      "equal": false
+    }
+  ]
+}

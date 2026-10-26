@@ -1,0 +1,81 @@
+{
+  "J_HEAD": "4fb712274ee129c9a175c4e763406595bcf815d6",
+  "merge_HEAD_at_capture": "1247bec91a29d2202d1a13b40de861f4ea83b461",
+  "files": [
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "J_sha256": "fea0aec79f26aeac4c8ff16d4b1ebacf48e86a3bdc9d2d4b1287b9f54b5e04b4",
+      "merge_sha256": "fea0aec79f26aeac4c8ff16d4b1ebacf48e86a3bdc9d2d4b1287b9f54b5e04b4",
+      "sourceEqual": true,
+      "embeddedSources": [
+        {
+          "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+          "sha256": "fea0aec79f26aeac4c8ff16d4b1ebacf48e86a3bdc9d2d4b1287b9f54b5e04b4",
+          "matches_J": true,
+          "matches_merge": true
+        }
+      ],
+      "loadedCopy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__contrib__sources__browser__sourcesChangeEntryOpen.js"
+    },
+    {
+      "path": "src/vs/workbench/services/editor/browser/editorOpenSlot.ts",
+      "J_sha256": "e23df5b6f138ea8d78bd3655e973e378f5e65ff76d5a34e8d7493ed09571f1a5",
+      "merge_sha256": "e23df5b6f138ea8d78bd3655e973e378f5e65ff76d5a34e8d7493ed09571f1a5",
+      "sourceEqual": true,
+      "embeddedSources": [
+        {
+          "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/services/editor/browser/editorOpenSlot.ts",
+          "sha256": "e23df5b6f138ea8d78bd3655e973e378f5e65ff76d5a34e8d7493ed09571f1a5",
+          "matches_J": true,
+          "matches_merge": true
+        }
+      ],
+      "loadedCopy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__services__editor__browser__editorOpenSlot.js"
+    },
+    {
+      "path": "src/vs/workbench/services/editor/common/editorGroupFinder.ts",
+      "J_sha256": "4cbbdc596d62e0f4a82702c355ce8ee922a08dd1d048557158c55398a3ca2b2e",
+      "merge_sha256": "4cbbdc596d62e0f4a82702c355ce8ee922a08dd1d048557158c55398a3ca2b2e",
+      "sourceEqual": true,
+      "embeddedSources": [
+        {
+          "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/services/editor/common/editorGroupFinder.ts",
+          "sha256": "4cbbdc596d62e0f4a82702c355ce8ee922a08dd1d048557158c55398a3ca2b2e",
+          "matches_J": true,
+          "matches_merge": true
+        }
+      ],
+      "loadedCopy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__services__editor__common__editorGroupFinder.js"
+    },
+    {
+      "path": "src/vs/workbench/services/editor/browser/editorService.ts",
+      "J_sha256": "ed24d1943efb7e108c92d55000da29fd03f386930f63f4eb629e8347d198817c",
+      "merge_sha256": "ed24d1943efb7e108c92d55000da29fd03f386930f63f4eb629e8347d198817c",
+      "sourceEqual": true,
+      "embeddedSources": [
+        {
+          "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/services/editor/browser/editorService.ts",
+          "sha256": "ed24d1943efb7e108c92d55000da29fd03f386930f63f4eb629e8347d198817c",
+          "matches_J": true,
+          "matches_merge": true
+        }
+      ],
+      "loadedCopy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__services__editor__browser__editorService.js"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/common/conversationEditorRouting.ts",
+      "J_sha256": "28d3ce87a4f05e0c5485ae5d048551a28e7ddbd1023c1fcaae1c03326a7d7434",
+      "merge_sha256": "28d3ce87a4f05e0c5485ae5d048551a28e7ddbd1023c1fcaae1c03326a7d7434",
+      "sourceEqual": true,
+      "embeddedSources": [
+        {
+          "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/common/conversationEditorRouting.ts",
+          "sha256": "28d3ce87a4f05e0c5485ae5d048551a28e7ddbd1023c1fcaae1c03326a7d7434",
+          "matches_J": true,
+          "matches_merge": true
+        }
+      ],
+      "loadedCopy": "/home/clarence/Projects/Agents/vscode-WorkTrees/J/.build/review-real-git-audit/owner-slot-probe/loaded/vs__workbench__contrib__conversation__common__conversationEditorRouting.js"
+    }
+  ]
+}

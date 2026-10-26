@@ -3,7 +3,7 @@ title: "Sources 系统索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-02
+updated: 2026-10-26
 summary: "End 列下格：SOURCES_PART + contrib/sources 的 Files | Changes | Review。Files 挂资源管理器同一棵工作区树，不占活动栏图标；Changes / Review 仍是列表投影。PRD-005 仍 accepted。Diff 归属属 PRD-009 / ADR-005。sources-architecture 保持 accepted；P7 已落：命令 id 在 sources common，Diff 守卫只比 type id 与 scheme，归因按路径取记录且每会话超过 500 条丢掉最旧的一条"
 ---
 
@@ -30,5 +30,6 @@ summary: "End 列下格：SOURCES_PART + contrib/sources 的 Files | Changes | R
 
 - [Parts/Grid](../workbench/parts-and-grid.md) · [companion-contribs](../workbench/companion-contribs.md)（SCM / files 配套面）
 - [ADR-005 Diff 归属](../../../dev/decisions/005-changes-diff-owner.md) · [sources-changes-diff plan](../../../dev/plans/sources-changes-diff.md) · [sources-review-open-identity](../../../dev/plans/sources-review-open-identity.md)（打开身份，`accepted` @2026-09-19） · [diff-footprint](../../reference/code-oss-b2/diff-footprint.md)
+- [Sources 打开分派与准确 Conversation 目标](../../../dev/plans/sources-open-dispatch-and-conversation-target.md)：D1387 两独立机制；三 owner/slot 合同，修复与独立 after 待完成。
 - [Conversation 系统](../conversation/INDEX.md)
 - [Sources 架构审查 2026-09-28](../../../dev/progress/sources-architecture-review-2026-09-28.md)：只读审查 8 条；引擎 Diff 模型在 HEAD 不可解析（已运行时证实）。实施方案 [sources-architecture](../../../dev/plans/sources-architecture.md) 保持 accepted；P7 已在 loop/merge 落
