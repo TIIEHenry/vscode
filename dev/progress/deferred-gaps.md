@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "D1313 已关：删会话时一个终端关失败留下跟踪并继续关其余。D1314–D1367 已合入，D464/D467 证据已闭合；D465、D24、D8、D16、D147、D405 仍开。定向 Electron 测试受 sandbox 限制待复验，唯一一次 compile 受只读输出目录限制。D1312–D1305 已关。"
+summary: "D1313 已关。D1314–D1367 已合入，D1370 收口响应式生命周期并待 merge 统一验证；D464/D467 证据已闭合。D465、D24、D8、D16、D147、D405 仍开；既有唯一一次 compile 写只读输出目录时 exit 1。D1312–D1305 已关。"
 
 
 
@@ -1319,3 +1319,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1367 | P3 | **closed** SessionsView 原只在首次布局创建桌面 header toolbar 或移动端 filter chips；运行时跨 phone breakpoint 后，工作台虽更新 `.phone-layout` 与 `IsPhoneLayoutContext`，控件却不切换。现保留可切换的 chips slot，监听 phone-layout context，在桌面与手机控件间安全 dispose/recreate；新增源码回归锁定初始与运行时共用重建路径。 | 只收口 Sessions 列表在运行时 phone/desktop 布局切换后的控件生命周期；不改变会话排序、筛选匹配、打开、创建、关闭或移动标题栏语义 | 桌面→手机后出现状态筛选 chips；手机→桌面后恢复 Sessions/New/Filter/Search toolbar；旧控件不会重复或残留；初始两种布局行为保持 | sessions / responsive-controls | closed |
 | D1368 | P3 | **open** `pending_confirmation` 进入异步路径策略评估后，turn/session 可能已取消或销毁；原逻辑只在 await 前检查取消，晚到结果仍可派发 `ChatToolCallReady` 或留下 SDK 权限等待。现 await 后复核 cancelled tool 与 session state，过期请求立即拒绝并清理跟踪；可控评估屏障回归覆盖取消后的自动批准/人工确认结果、session 移除与 hook continuation，直接观察答复次数和 Ready 公告。目标文件 ESLint `--no-cache` 退出 0，Node 测试交 merge 工位统一验证，未跑 full compile/转译。 | 只收口权限评估跨异步边界后的过期确认，不改变正常 auto-approve、人工确认或无 active turn 的 hook continuation 语义 | 评估 await 期间取消或 session 销毁后只发送一次拒绝且不派发 Ready；正常连接和无 active turn 但 session 仍存在的确认继续沿原路径 | agent-host / permissions / session-state | open |
 | D1369 | P3 | **open** Mobile Sort/Group sheet 原声明 `aria-modal="true"`，但 Tab 可离开且关闭后不恢复触发控件。现按 DOM 顺序循环 Tab/Shift+Tab，空项时聚焦 Close；关闭开始释放全部监听并设置 inert/aria-hidden，仅在 sheet/背景拥有焦点且 opener 可用时立即恢复，180ms 动画结束只移除旧 DOM，避免重开 sheet 或外部焦点被旧回调抢走。新增 13 条 browser 回归覆盖键盘、五种关闭入口、动画重开、隐藏/销毁/禁用 opener 与外部焦点；目标 ESLint 0 errors，最终行为回归留 merge 一路执行。未完整编译或转译 out。 | 只修 Sort/Group sheet 的模态键盘边界和关闭生命周期；保留排序/分组结果、触摸关闭和动画时长 | Tab/Shift+Tab 留在 sheet；Close/Escape/backdrop/选择/触摸关闭恢复可用 opener；旧动画不拦截新 sheet，隐藏/销毁/禁用 opener 不获焦，关闭前或动画期间已转移的外部焦点保持 | sessions / mobile-sort-group-sheet | open |
+| D1370 | P3 | **open** SessionsView 的 web-only Host toolbar 原只按首次布局创建；D1367 的 header toolbar/chips 又在 phone context 已更新、CSS 类未跟上时早退。现 Host 独立订阅上下文，header/chips/可见性统一读 context；widget 保留原 divider 与 toolbar 两个 flex 子项并在 dispose 清理，不增加 wrapper。以真实 context+DOM 行为回归取代镜像源码扫描。 | 代码已收口；按本轮约束，仅 merge 工位执行最终验证，C 不编译/转译 out；不改变 Host 菜单、连接动作或移动标题栏语义 | browser 回归通过：两种初始布局、context 先于 CSS 的双向切换、三次往返无重复、旧监听已释放、筛选保留、非 Sessions/auxiliary 门控，以及两个原 flex 子项的布局/清理；验证后再闭本行 | sessions / agent-host-responsive | open |
