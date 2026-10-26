@@ -6,14 +6,15 @@
 import assert from 'assert';
 import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { localize } from '../../../../../nls.js';
-import { EditorOpenSource, IResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
+import { EditorActivation, EditorOpenSource, IResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { CommandsRegistry, ICommandEvent, ICommandService } from '../../../../../platform/commands/common/commands.js';
@@ -27,7 +28,7 @@ import type {
 	UniverseAgentWriteGitStagePathsRequest,
 	UniverseAgentWriteGitWriteResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { TestEditorGroupsService, TestEditorGroupView, TestEditorInput, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { registerTestEditor, TestEditorGroupsService, TestEditorGroupView, TestEditorInput, TestEditorService, workbenchInstantiationService, workbenchTeardown } from '../../../../test/browser/workbenchTestServices.js';
 import { API_OPEN_DIFF_EDITOR_COMMAND_ID, API_OPEN_EDITOR_COMMAND_ID, setup as setupEditorCommands } from '../../../../browser/parts/editor/editorCommands.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
@@ -36,9 +37,19 @@ import { ISCMResource, ISCMResourceGroup, ISCMService } from '../../../scm/commo
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
 import { EditorGroupModel } from '../../../../common/editor/editorGroupModel.js';
-import { EditorsOrder, IUntypedEditorInput, IVisibleEditorPane, isResourceDiffEditorInput, isResourceEditorInput } from '../../../../common/editor.js';
+import { EditorExtensions, EditorsOrder, IEditorFactoryRegistry, IEditorWillOpenEvent, IUntypedEditorInput, IVisibleEditorPane, isResourceDiffEditorInput, isResourceEditorInput } from '../../../../common/editor.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
-import { IEditorGroup, IEditorGroupsService, preferredSideBySideGroupDirection } from '../../../../services/editor/common/editorGroupsService.js';
+import { GroupDirection, IEditorGroup, IEditorGroupsService, preferredSideBySideGroupDirection } from '../../../../services/editor/common/editorGroupsService.js';
+import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { StorageScope } from '../../../../../platform/storage/common/storage.js';
+import { Memento } from '../../../../common/memento.js';
+import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { EditorParts } from '../../../../browser/parts/editor/editorParts.js';
+import { CategorizedMainEditorPart } from '../../../../browser/parts/editor/categorizedMainEditorPart.js';
+import { EditorService } from '../../../../services/editor/browser/editorService.js';
+import { editorGroupToColumn } from '../../../../services/editor/common/editorGroupColumn.js';
+import { PreviewCategory } from '../../../../services/editor/common/previewCategoryService.js';
+import { resolveSourcesChangeRefFromEditor } from '../../browser/sourcesDiffRefHelpers.js';
 import { ConversationChatInput, getConversationChatResource, getDefaultConversationChatResource } from '../../../conversation/common/conversationChatInput.js';
 import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
@@ -55,6 +66,9 @@ import { rememberSourcesDiffOpenIdentity, sourcesDiffOpenIdentity } from '../../
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
+
+// Isolate the active A pane without changing diff identity, matching or model behavior.
+class SourcesHostDiffInput extends DiffEditorInput { }
 
 suite('Sources - Changes list open', () => {
 
@@ -356,6 +370,402 @@ suite('Sources - Changes list open', () => {
 		}
 	}
 
+
+	for (const kind of ['file', 'diff'] as const) {
+		for (const slot of ['newTab', 'replace'] as const) {
+			test(`delegated host official ${kind} ${slot} records inactive B and its canonical reveal while A stays active`, async () => {
+				const disposables = store.add(new DisposableStore());
+				disposables.add(registerTestEditor('SourcesHostTestEditor', [new SyncDescriptor(TestEditorInput), new SyncDescriptor(SourcesHostDiffInput)]));
+				const instantiationService = workbenchInstantiationService(undefined, disposables);
+				instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
+				try {
+					const parts = disposables.add(instantiationService.createInstance(EditorParts));
+					parts.mainPart.create(document.createElement('div'));
+					parts.mainPart.layout(1080, 800, 0, 0);
+					await parts.whenReady;
+					const main = parts.mainPart;
+					assert.ok(main instanceof CategorizedMainEditorPart);
+					instantiationService.stub(IEditorGroupsService, parts);
+					const editorService = disposables.add(instantiationService.createInstance(EditorService, undefined));
+					instantiationService.stub(IEditorService, editorService);
+					instantiationService.stub(IOpenerService, new class extends mock<IOpenerService>() { }());
+					const requests: EditorInput[] = [];
+					disposables.add(editorService.onWillOpenEditor(event => {
+						requests.push(event.editor);
+						disposables.add(event.editor);
+						if (event.editor instanceof DiffEditorInput) {
+							disposables.add(event.editor.original);
+							disposables.add(event.editor.modified);
+						}
+					}));
+					const groupA = main.ensureCategoryGroup(PreviewCategory.Code);
+					const groupB = main.addGroupInCategory(groupA, GroupDirection.RIGHT, PreviewCategory.Code);
+					const modified = URI.file('/host/shared.ts');
+					const original = URI.file('/host/shared.original.ts');
+					const inputA = kind === 'diff'
+						? store.add(new SourcesHostDiffInput(undefined, undefined, store.add(new TestEditorInput(original, 'test.host-original')), store.add(new TestEditorInput(modified, 'test.host-modified')), undefined, editorService))
+						: store.add(new TestEditorInput(modified, 'test.host-file'));
+					const blocker = store.add(new TestEditorInput(URI.file('/host/blocker.ts'), 'test.host-blocker'));
+					await editorService.openEditor(inputA, { pinned: false }, groupA);
+					await editorService.openEditor(blocker, { pinned: true }, groupB);
+					parts.activateGroup(groupA.id);
+					assert.strictEqual(main.getGroupCategory(groupA), PreviewCategory.Code);
+					assert.strictEqual(main.getGroupCategory(groupB), PreviewCategory.Code);
+					const oldResource = commandResource(modified, undefined, async () => { });
+					rememberSourcesDiffOpenIdentity(inputA, { groupId: 'workingTree', scmResource: oldResource });
+					const column = editorGroupToColumn(parts, groupB);
+					assert.ok(column >= 0);
+					const commandId = kind === 'diff' ? API_OPEN_DIFF_EDITOR_COMMAND_ID : API_OPEN_EDITOR_COMMAND_ID;
+					const providerOptions = [column, { inactive: true, activation: EditorActivation.PRESERVE, pinned: false, preserveFocus: true }];
+					const args = kind === 'diff' ? [original, modified, undefined, providerOptions] : [modified, providerOptions, undefined];
+					let calls = 0;
+					const commandService: ICommandService = { ...NullCommandService, executeCommand: async (id, ...commandArgs) => {
+						calls++;
+						const command = CommandsRegistry.getCommand(id);
+						assert.ok(command);
+						await instantiationService.invokeFunction(accessor => command.handler(accessor, ...commandArgs));
+						return undefined;
+					} };
+					const first = commandResource(modified, { id: commandId, title: '', arguments: args }, async () => assert.fail('official API must not call custom.open'));
+					const deps = createDeps({ editorService, editorGroupsService: parts, commandService });
+					assert.strictEqual(await openSourcesChangeEntry({ ...createEntry(modified, first), groupId: 'index' }, deps, { slot }), true);
+					const opened = groupB.editors.find(input => input !== blocker);
+					assert.ok(opened);
+					assert.ok(opened !== inputA);
+					assert.deepStrictEqual({
+						activeA: parts.activeGroup === groupA && groupA.activeEditor === inputA,
+						activeB: groupB.activeEditor === blocker, pinnedA: groupA.isPinned(inputA), pinnedB: groupB.isPinned(opened),
+						visibleB: editorService.visibleEditorPanes.some(pane => pane.input === opened),
+						identityA: identitySnapshot(inputA, oldResource), identityB: identitySnapshot(opened, first), calls,
+					}, {
+						activeA: true, activeB: true, pinnedA: false, pinnedB: false, visibleB: false,
+						identityA: { groupId: 'workingTree', sameResource: true }, identityB: { groupId: 'index', sameResource: true }, calls: 1,
+					});
+					const beforeReveal = requests.length;
+					const second = commandResource(modified, { id: commandId, title: '', arguments: args }, async () => assert.fail('official API must not call custom.open'));
+					assert.strictEqual(await openSourcesChangeEntry({ ...createEntry(modified, second), groupId: 'staged-again' }, deps, { slot }), true);
+					assert.deepStrictEqual({
+						calls, countB: groupB.editors.length, retainsB: groupB.editors.includes(opened),
+						activeA: parts.activeGroup === groupA && groupA.activeEditor === inputA,
+						identityA: identitySnapshot(inputA, oldResource), identityB: identitySnapshot(opened, second),
+					}, {
+						calls: 2, countB: 2, retainsB: true, activeA: true,
+						identityA: { groupId: 'workingTree', sameResource: true }, identityB: { groupId: 'staged-again', sameResource: true },
+					});
+					if (kind === 'diff') {
+						assert.ok(requests.slice(beforeReveal).some(input => input !== opened));
+						const ref = resolveSourcesChangeRefFromEditor(opened, new class extends mock<ISCMService>() { override readonly repositories = []; }());
+						assert.deepStrictEqual({ groupId: ref?.groupId, sameResource: ref?.scmResource === second, original: ref?.original?.toString(), modified: ref?.modified.toString() }, {
+							groupId: 'staged-again', sameResource: true, original: original.toString(), modified: modified.toString(),
+						});
+					}
+				} finally {
+					try {
+						await workbenchTeardown(instantiationService);
+					} finally {
+						disposables.dispose();
+						Memento.clear(StorageScope.WORKSPACE);
+						Memento.clear(StorageScope.PROFILE);
+					}
+				}
+			});
+		}
+	}
+
+	function observedScmHarness() {
+		const events = store.add(new Emitter<IEditorWillOpenEvent>());
+		const editorService = store.add(new class extends TestEditorService {
+			override readonly onWillOpenEditor = events.event;
+		}());
+		const groups = [new TestEditorGroupView(80), new TestEditorGroupView(81), new TestEditorGroupView(82)];
+		const previous = store.add(new TestEditorInput(URI.file('/old/preview.ts'), 'test.old-preview'));
+		groups[0].activeEditor = previous;
+		groups[0].editors = [previous];
+		editorService.activeEditor = previous;
+		editorService.activeEditorPane = visiblePane(previous, groups[0]);
+		const trace: string[] = [];
+		for (const group of groups) {
+			group.pinEditor = input => trace.push(input === previous ? 'pin:previous' : 'pin:new');
+			group.closeEditor = async () => { trace.push('close'); return true; };
+		}
+		const editorGroupsService = new TestEditorGroupsService(groups);
+		const place = (input: EditorInput, group = groups[1], candidate = input) => {
+			events.fire({ editor: candidate, groupId: group.id });
+			group.editors = [input];
+			group.activeEditor = input;
+			editorService.visibleEditorPanes = [
+				...(editorService.visibleEditorPanes ?? []).filter(pane => pane.group !== group),
+				visiblePane(input, group),
+			];
+		};
+		return { editorService, editorGroupsService, groups, events, previous, trace, place };
+	}
+
+	function pendingScmOpen(harness: ReturnType<typeof observedScmHarness>, options: {
+		readonly kind?: 'file' | 'diff' | 'custom';
+		readonly modified?: URI;
+		readonly original?: URI;
+		readonly groupId?: string;
+		readonly slot?: 'newTab' | 'replace';
+		readonly onEnter?: () => void;
+		readonly reject?: Error;
+	}) {
+		const modified = options.modified ?? URI.file('/overlap/shared.ts');
+		const original = options.original ?? URI.parse('git:/overlap/shared.ts?index#baseline');
+		const entered = new DeferredPromise<void>();
+		const released = new DeferredPromise<void>();
+		let calls = 0;
+		const run = async () => {
+			calls++;
+			options.onEnter?.();
+			await entered.complete();
+			await released.p;
+			if (options.reject) {
+				throw options.reject;
+			}
+		};
+		const kind = options.kind ?? 'diff';
+		const command = kind === 'custom' ? undefined : kind === 'file'
+			? { id: API_OPEN_EDITOR_COMMAND_ID, title: '', arguments: [modified, [0, { pinned: false }], undefined] }
+			: { id: API_OPEN_DIFF_EDITOR_COMMAND_ID, title: '', arguments: [original, modified, undefined, [0, { pinned: false }]] };
+		const scmResource = commandResource(modified, command, kind === 'custom' ? run : async () => assert.fail('API must not call custom.open'), [original, modified]);
+		const result = openSourcesChangeEntry({ ...createEntry(modified, scmResource), groupId: options.groupId ?? 'index' }, createDeps({
+			editorService: harness.editorService, editorGroupsService: harness.editorGroupsService,
+			commandService: { ...NullCommandService, executeCommand: async () => { await run(); return undefined; } },
+		}), { slot: options.slot ?? 'replace', preserveFocus: true });
+		return { result, entered: entered.p, release: () => released.complete(), scmResource, get calls() { return calls; } };
+	}
+
+	for (const firstToSettle of ['g1', 'g2'] as const) {
+		test(`Sources overlap same tuple ${firstToSettle} settles first never attributes B to the no-op delegate`, async () => {
+			const harness = observedScmHarness();
+			const input = diffInput(URI.parse('git:/overlap/shared.ts?index#baseline'), URI.file('/overlap/shared.ts'), harness.editorService);
+			const oldResource = commandResource(URI.file('/overlap/shared.ts'), undefined, async () => { });
+			rememberSourcesDiffOpenIdentity(input, { groupId: 'old', scmResource: oldResource });
+			const first = pendingScmOpen(harness, { groupId: 'g1' });
+			await first.entered;
+			const second = pendingScmOpen(harness, { groupId: 'g2', onEnter: () => harness.place(input) });
+			await second.entered;
+			const order = firstToSettle === 'g1' ? [first, second] : [second, first];
+			for (const operation of order) {
+				await operation.release();
+				assert.strictEqual(await operation.result, true);
+			}
+			assert.deepStrictEqual({ calls: [first.calls, second.calls], identity: identitySnapshot(input, oldResource), trace: harness.trace, listening: harness.events.hasListeners }, {
+				calls: [1, 1], identity: { groupId: 'old', sameResource: true }, trace: [], listening: false,
+			});
+		});
+	}
+
+
+	test('Sources overlap same tuple in the initiating group skips replace close', async () => {
+		const harness = observedScmHarness();
+		const input = diffInput(URI.parse('git:/overlap/shared.ts?index#baseline'), URI.file('/overlap/shared.ts'), harness.editorService);
+		const first = pendingScmOpen(harness, { groupId: 'g1' });
+		await first.entered;
+		const second = pendingScmOpen(harness, { groupId: 'g2', onEnter: () => {
+			const group = harness.groups[0];
+			harness.events.fire({ editor: input, groupId: group.id });
+			group.editors = [harness.previous, input];
+			group.activeEditor = input;
+		} });
+		await second.entered;
+		await second.release();
+		assert.strictEqual(await second.result, true);
+		await first.release();
+		assert.strictEqual(await first.result, true);
+		assert.deepStrictEqual({ calls: [first.calls, second.calls], identity: sourcesDiffOpenIdentity(input) !== undefined, previousRetained: harness.groups[0].editors.includes(harness.previous), trace: harness.trace }, {
+			calls: [1, 1], identity: false, previousRetained: true, trace: [],
+		});
+	});
+
+	test('Sources overlap three delegates retains sticky ambiguity after the first leaves', async () => {
+		const harness = observedScmHarness();
+		const input = diffInput(URI.parse('git:/overlap/shared.ts?index#baseline'), URI.file('/overlap/shared.ts'), harness.editorService);
+		const first = pendingScmOpen(harness, { groupId: 'g1' });
+		await first.entered;
+		const second = pendingScmOpen(harness, { groupId: 'g2' });
+		await second.entered;
+		await first.release();
+		assert.strictEqual(await first.result, true);
+		const third = pendingScmOpen(harness, { groupId: 'g3', onEnter: () => harness.place(input) });
+		await third.entered;
+		await second.release();
+		assert.strictEqual(await second.result, true);
+		await third.release();
+		assert.strictEqual(await third.result, true);
+		assert.deepStrictEqual({ calls: [first.calls, second.calls, third.calls], identity: sourcesDiffOpenIdentity(input) !== undefined, trace: harness.trace, listening: harness.events.hasListeners }, {
+			calls: [1, 1, 1], identity: false, trace: [], listening: false,
+		});
+	});
+
+	for (const otherKind of ['diff', 'custom'] as const) {
+		for (const customFirst of [false, true]) {
+			test(`Sources overlap custom wildcard with ${otherKind} customFirst=${customFirst} preserves only its pre-pin cost`, async () => {
+				const harness = observedScmHarness();
+				const firstInput = diffInput(URI.parse('git:/wildcard/a.ts?base'), URI.file('/wildcard/a.ts'), harness.editorService);
+				const secondInput = diffInput(URI.parse('git:/wildcard/b.ts?base'), URI.file('/wildcard/b.ts'), harness.editorService);
+				const custom = { kind: 'custom' as const, groupId: 'custom', modified: URI.file('/wildcard/a.ts'), original: URI.parse('git:/wildcard/a.ts?base'), slot: 'newTab' as const, onEnter: () => harness.place(firstInput) };
+				const other = { kind: otherKind, groupId: 'other', modified: URI.file('/wildcard/b.ts'), original: URI.parse('git:/wildcard/b.ts?base'), onEnter: () => harness.place(secondInput, harness.groups[2]) };
+				const first = pendingScmOpen(harness, customFirst ? custom : other);
+				await first.entered;
+				const second = pendingScmOpen(harness, customFirst ? other : custom);
+				await second.entered;
+				await first.release();
+				assert.strictEqual(await first.result, true);
+				await second.release();
+				assert.strictEqual(await second.result, true);
+				assert.deepStrictEqual({ calls: [first.calls, second.calls], identities: [sourcesDiffOpenIdentity(firstInput) !== undefined, sourcesDiffOpenIdentity(secondInput) !== undefined], trace: harness.trace, listening: harness.events.hasListeners }, {
+					calls: [1, 1], identities: [false, false], trace: ['pin:previous'], listening: false,
+				});
+			});
+		}
+	}
+
+	for (const distinction of ['ordered sides', 'query', 'fragment', 'file versus diff', 'service instance'] as const) {
+		test(`Sources overlap independent ${distinction} retains each accurate identity`, async () => {
+			const firstHarness = observedScmHarness();
+			const secondHarness = distinction === 'service instance' ? observedScmHarness() : firstHarness;
+			const modified = URI.file('/independent/shared.ts');
+			const original = URI.parse('git:/independent/shared.ts?base#first');
+			const secondOriginal = distinction === 'query' ? original.with({ query: 'other' }) : distinction === 'fragment' ? original.with({ fragment: 'second' }) : distinction === 'ordered sides' ? modified : original;
+			const secondModified = distinction === 'ordered sides' ? original : modified;
+			const firstInput = diffInput(original, modified, firstHarness.editorService);
+			const secondInput = distinction === 'file versus diff' ? store.add(new TestEditorInput(modified, 'test.independent-file')) : diffInput(secondOriginal, secondModified, secondHarness.editorService);
+			const first = pendingScmOpen(firstHarness, { groupId: 'first', modified, original, onEnter: () => firstHarness.place(firstInput) });
+			await first.entered;
+			const second = pendingScmOpen(secondHarness, { kind: distinction === 'file versus diff' ? 'file' : 'diff', groupId: 'second', modified: secondModified, original: secondOriginal, onEnter: () => secondHarness.place(secondInput, secondHarness.groups[2]) });
+			await second.entered;
+			await first.release();
+			assert.strictEqual(await first.result, true);
+			await second.release();
+			assert.strictEqual(await second.result, true);
+			assert.deepStrictEqual({ calls: [first.calls, second.calls], first: identitySnapshot(firstInput, first.scmResource), second: identitySnapshot(secondInput, second.scmResource), trace: firstHarness.trace, secondTrace: secondHarness.trace }, {
+				calls: [1, 1], first: { groupId: 'first', sameResource: true }, second: { groupId: 'second', sameResource: true }, trace: [], secondTrace: [],
+			});
+		});
+	}
+
+	test('Sources overlap reject finally releases the registry and listener for the next sequential open', async () => {
+		const harness = observedScmHarness();
+		const boom = new Error('delegate failed');
+		const first = pendingScmOpen(harness, { reject: boom });
+		const rejection = assert.rejects(first.result, error => error === boom);
+		await first.entered;
+		const second = pendingScmOpen(harness, {});
+		await second.entered;
+		await first.release();
+		await rejection;
+		await second.release();
+		assert.strictEqual(await second.result, true);
+		assert.strictEqual(harness.events.hasListeners, false);
+		const input = diffInput(URI.parse('git:/overlap/shared.ts?index#baseline'), URI.file('/overlap/shared.ts'), harness.editorService);
+		const third = pendingScmOpen(harness, { groupId: 'recovered', onEnter: () => harness.place(input) });
+		await third.entered;
+		await third.release();
+		assert.strictEqual(await third.result, true);
+		assert.deepStrictEqual({ calls: [first.calls, second.calls, third.calls], identity: identitySnapshot(input, third.scmResource), trace: harness.trace, listening: harness.events.hasListeners }, {
+			calls: [1, 1, 1], identity: { groupId: 'recovered', sameResource: true }, trace: [], listening: false,
+		});
+	});
+
+	for (const result of ['unopened will', 'disposed member', 'removed group', 'same-id replacement', 'two observed hosts', 'two fallback tabs', 'one inactive fallback tab', 'canonical member'] as const) {
+		test(`delegated host ${result} verifies actual group members before side effects`, async () => {
+			const harness = observedScmHarness();
+			const original = URI.parse('git:/overlap/shared.ts?index#baseline');
+			const modified = URI.file('/overlap/shared.ts');
+			const input = diffInput(original, modified, harness.editorService);
+			const other = result === 'canonical member'
+				? store.add(new DiffEditorInput(undefined, undefined, input.original, input.modified, undefined, harness.editorService))
+				: diffInput(original, modified, harness.editorService);
+			const oldResource = commandResource(modified, undefined, async () => { });
+			rememberSourcesDiffOpenIdentity(input, { groupId: 'old', scmResource: oldResource });
+			const operation = pendingScmOpen(harness, { groupId: 'new', onEnter: () => {
+				if (result === 'two fallback tabs' || result === 'one inactive fallback tab') {
+					harness.groups[1].editors = result === 'two fallback tabs' ? [input, other] : [input];
+				} else if (result === 'unopened will') {
+					harness.events.fire({ editor: input, groupId: harness.groups[1].id });
+				} else {
+					harness.place(input, harness.groups[1], result === 'canonical member' ? other : input);
+					if (result === 'disposed member') {
+						input.dispose();
+					} else if (result === 'removed group') {
+						harness.editorGroupsService.groups = [harness.groups[0], harness.groups[2]];
+					} else if (result === 'same-id replacement') {
+						const replacement = new TestEditorGroupView(harness.groups[1].id);
+						replacement.editors = [input];
+						harness.editorGroupsService.groups = [harness.groups[0], replacement, harness.groups[2]];
+					} else if (result === 'two observed hosts') {
+						harness.place(other, harness.groups[2]);
+					}
+				}
+			} });
+			await operation.entered;
+			await operation.release();
+			assert.strictEqual(await operation.result, true);
+			const succeeds = result === 'one inactive fallback tab' || result === 'canonical member';
+			assert.deepStrictEqual({ calls: operation.calls, input: identitySnapshot(input, succeeds ? operation.scmResource : oldResource), other: sourcesDiffOpenIdentity(other) !== undefined, trace: harness.trace, listening: harness.events.hasListeners }, {
+				calls: 1, input: { groupId: succeeds ? 'new' : 'old', sameResource: true }, other: false, trace: [], listening: false,
+			});
+		});
+	}
+
+
+	test('delegated host custom observed comparison records and pins only the verified new member', async () => {
+		const harness = observedScmHarness();
+		const input = diffInput(URI.parse('git:/overlap/shared.ts?index#baseline'), URI.file('/overlap/shared.ts'), harness.editorService);
+		const operation = pendingScmOpen(harness, { kind: 'custom', slot: 'newTab', onEnter: () => harness.place(input) });
+		await operation.entered;
+		await operation.release();
+		assert.strictEqual(await operation.result, true);
+		assert.deepStrictEqual({ calls: operation.calls, identity: identitySnapshot(input, operation.scmResource), trace: harness.trace, listening: harness.events.hasListeners }, {
+			calls: 1, identity: { groupId: 'index', sameResource: true }, trace: ['pin:previous', 'pin:new'], listening: false,
+		});
+	});
+
+	test('delegated host cannot invent a group from a bare active editor', async () => {
+		const harness = observedScmHarness();
+		const resource = URI.file('/bare/shared.ts');
+		const input = store.add(new TestEditorInput(resource, 'test.bare'));
+		harness.editorService.activeEditor = input;
+		const scmResource = commandResource(resource, { id: API_OPEN_EDITOR_COMMAND_ID, title: '', arguments: [resource, [0], undefined] }, async () => assert.fail('API must not call custom.open'));
+		assert.strictEqual(await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({ editorService: harness.editorService }), { slot: 'replace' }), true);
+		assert.deepStrictEqual({ identity: sourcesDiffOpenIdentity(input) !== undefined, listening: harness.events.hasListeners }, { identity: false, listening: false });
+	});
+
+	test('delegated host uses one captured DTO for dispatch, key and matching while resource.command changes', async () => {
+		const harness = observedScmHarness();
+		const original = URI.parse('git:/capture/shared.ts?index');
+		const modified = URI.file('/capture/shared.ts');
+		const input = diffInput(original, modified, harness.editorService);
+		const entered = new DeferredPromise<void>();
+		const released = new DeferredPromise<void>();
+		const args = [original, modified, undefined, [0, { pinned: false }]];
+		let currentCommand: ISCMResource['command'] = { id: API_OPEN_DIFF_EDITOR_COMMAND_ID, title: '', arguments: args };
+		let reads = 0;
+		const scmResource = commandResource(modified, undefined, async () => assert.fail('captured API must not call custom.open'));
+		Object.defineProperty(scmResource, 'command', { get: () => { reads++; return currentCommand; } });
+		const commands: { id: string; original: string | undefined; modified: string | undefined }[] = [];
+		const result = openSourcesChangeEntry({ ...createEntry(modified, scmResource), groupId: 'captured' }, createDeps({
+			editorService: harness.editorService, editorGroupsService: harness.editorGroupsService,
+			commandService: { ...NullCommandService, executeCommand: async (id, ...commandArgs) => {
+				commands.push({ id, original: URI.isUri(commandArgs[0]) ? commandArgs[0].toString() : undefined, modified: URI.isUri(commandArgs[1]) ? commandArgs[1].toString() : undefined });
+				await entered.complete();
+				await released.p;
+				harness.place(input);
+				return undefined;
+			} },
+		}), { slot: 'replace' });
+		await entered.p;
+		args[0] = URI.parse('git:/capture/changed.ts?HEAD');
+		currentCommand = { id: API_OPEN_EDITOR_COMMAND_ID, title: '', arguments: [URI.file('/capture/changed.ts')] };
+		await released.complete();
+		assert.strictEqual(await result, true);
+		assert.deepStrictEqual({ reads, commands, identity: identitySnapshot(input, scmResource), trace: harness.trace }, {
+			reads: 1, commands: [{ id: API_OPEN_DIFF_EDITOR_COMMAND_ID, original: original.toString(), modified: modified.toString() }], identity: { groupId: 'captured', sameResource: true }, trace: [],
+		});
+	});
+
 	test('API file void does not claim a diff that merely contains the same modified URI', async () => {
 		const resource = URI.file('/alpha/shared.ts');
 		const editorService = store.add(new TestEditorService());
@@ -566,11 +976,15 @@ suite('Sources - Changes list open', () => {
 		group.pinEditor = () => assert.fail('provider pinned:false must retain priority');
 		group.closeEditor = async () => assert.fail('provider-selected background target must not close the focused editor');
 		const editorService = store.add(new TestEditorService());
-		editorService.activeEditor = opened;
+		const background = new TestEditorGroupView(57);
+		background.activeEditor = opened;
+		background.editors = [opened];
+		editorService.activeEditor = previous;
+		editorService.activeEditorPane = visiblePane(previous, group);
 		const scmResource = commandResource(resource, { id: API_OPEN_EDITOR_COMMAND_ID, title: '', arguments: [resource, [2, { pinned: false, preserveFocus: true }], undefined] }, async () => assert.fail('API DTO must use commandService'));
 		assert.strictEqual(await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
 			editorService,
-			editorGroupsService: new TestEditorGroupsService([group]),
+			editorGroupsService: new TestEditorGroupsService([group, background]),
 		}), { slot: 'replace', pinned: true, preserveFocus: true }), true);
 		assert.strictEqual(sourcesDiffOpenIdentity(previous), undefined);
 		assert.deepStrictEqual(sourcesDiffOpenIdentity(opened), { groupId: 'workingTree', scmResource });
@@ -624,27 +1038,24 @@ suite('Sources - Changes list open', () => {
 			const editorService = store.add(new TestEditorService());
 			const previous = store.add(new TestEditorInput(URI.file('/project/previous.ts'), 'test.previous'));
 			const opened = diffInput(original, resource, editorService);
-			let activeEditor: EditorInput | null = previous;
+			const group = new TestEditorGroupView(58);
+			group.activeEditor = previous;
+			group.editors = [previous, opened];
 			const trace: string[] = [];
 			const scmResource = commandResource(resource, undefined,
 				async preserveFocus => {
 					trace.push(`open:${preserveFocus}`);
-					activeEditor = opened;
+					group.activeEditor = opened;
 				},
 				[original, resource]);
-			const editorGroupsService = {
-				activeGroup: {
-					get activeEditor() { return activeEditor; },
-					editors: [previous, opened],
-					isPinned: () => false,
-					pinEditor: (input: EditorInput) => trace.push(input === previous ? 'pin:previous' : 'pin:opened'),
-					closeEditor: async (input: EditorInput) => {
-						assert.strictEqual(input, previous);
-						trace.push('close:previous');
-						return true;
-					},
-				},
-			} as unknown as IEditorGroupsService;
+			group.isPinned = () => false;
+			group.pinEditor = input => trace.push(input === previous ? 'pin:previous' : 'pin:opened');
+			group.closeEditor = async input => {
+				assert.ok(input === previous);
+				trace.push('close:previous');
+				return true;
+			};
+			const editorGroupsService = new TestEditorGroupsService([group]);
 			await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
 				editorService: { openEditor: async () => assert.fail('SCM opens its own editor') } as unknown as IEditorService,
 				editorGroupsService,

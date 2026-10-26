@@ -17,7 +17,7 @@ import { IEditorService } from '../../../../services/editor/common/editorService
 import { IEditorGroupsService } from '../../../../services/editor/common/editorGroupsService.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { ConversationChatInput, getDefaultConversationChatResource } from '../../../conversation/common/conversationChatInput.js';
-import { workbenchInstantiationService, TestEditorInput } from '../../../../test/browser/workbenchTestServices.js';
+import { workbenchInstantiationService, TestEditorGroupsService, TestEditorGroupView, TestEditorInput } from '../../../../test/browser/workbenchTestServices.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
 import { ISCMService } from '../../../scm/common/scm.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
@@ -421,6 +421,7 @@ suite('Sources - Diff ref helpers', () => {
 		const modifiedInput = store.add(new TestEditorInput(modified, 'test.modified'));
 		const diffInput = store.add(instantiationService.createInstance(DiffEditorInput, undefined, undefined, originalInput, modifiedInput, undefined));
 		const editorService = createEditorService(undefined);
+		const previewGroup = new TestEditorGroupView(101);
 
 		const indexGroup = { id: 'index', label: 'Staged Changes', resources: [] as unknown[] };
 		const workingGroup = { id: 'workingTree', label: 'Changes', resources: [] as unknown[] };
@@ -438,7 +439,11 @@ suite('Sources - Diff ref helpers', () => {
 			decorations: {},
 			multiDiffEditorOriginalUri: original,
 			multiDiffEditorModifiedUri: modified,
-			open: async () => { editorService.setActiveEditor(diffInput); },
+			open: async () => {
+				editorService.setActiveEditor(diffInput);
+				previewGroup.activeEditor = diffInput;
+				previewGroup.editors = [diffInput];
+			},
 		};
 		indexGroup.resources.push(indexResource);
 		workingGroup.resources.push(workingResource);
@@ -452,7 +457,11 @@ suite('Sources - Diff ref helpers', () => {
 			groupId: 'workingTree',
 			scmResource: workingResource as never,
 		});
-		const deps = createMoveDeps(editorService, instantiationService, panelService);
+		const moveDeps = createMoveDeps(editorService, instantiationService, panelService);
+		const editorGroupsService = new class extends TestEditorGroupsService {
+			override readonly conversationParts = moveDeps.editorGroupsService?.conversationParts ?? [];
+		}([previewGroup]);
+		const deps = { ...moveDeps, editorGroupsService };
 
 		await moveActiveDiffToPreview('viewTitle', deps, scmService);
 		assert.strictEqual(editorService.activeEditor, diffInput);

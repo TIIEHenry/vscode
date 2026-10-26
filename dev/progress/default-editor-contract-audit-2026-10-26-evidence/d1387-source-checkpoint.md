@@ -4,12 +4,26 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "J在独立澄清a76d062后补API预pin与完整比较身份，新增28项handler/真实组模型及负控回归源码；仅静态0语法/0lint错误，唯一车道运行与非作者after待"
+summary: "J在独立方案bf50c66后写宿主候选核对与Sources重叠歧义保护，新增29项官方真实宿主/并发/成员回归源码；3TS静态0语法/0lint错误，唯一车道运行与非作者after待"
 ---
 
 # D1387 Sources 打开合同源码检查点
 
 [正式方案](../../plans/sources-open-dispatch-and-conversation-target.md) accepted，独立规则16 C0/I0后于 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 单独提交。[真实Git before/C1–C6](d1387-before.md)与两轮Astra已证两个根因；以下是源码检查点，不是after或运行通过。
+
+## 宿主观测与 Sources 重叠补修（2026-10-26，J）
+
+D/Astra确认完整tuple仍可能被旧active宿主遮住，D再指出事件没有operationId会把R2的同tuple input误记给pending/no-op的R1。本轮先按规则16完成两轮只读审查，正式报告`7c84e0167e3f5fef3db1e7dea5cd6f96ca3393c4`最终C0/I0、两Minor实改，并以`bf50c66b8b970a4e29a1e92f0d3968232e2d6987`独立提交accepted方案后才改源码。原`65d2288`模块357过/虚拟TS0仅为父转交的唯一车道历史运行，不作为以下新边界的green。
+
+- `sourcesChangeEntryOpen.ts`只在单次SCM dispatch期间订阅公开`onWillOpenEditor`，事件只给候选。await后验证`getGroup(id)`仍是原对象、input未dispose且是完整身份的真实组成员；接受组模型保留的规范实例时使用`actual === event.editor || actual.matches(event.editor)`。唯一有效候选优先，有相关will却未落实或不唯一时不猜；完全没有相关will才扫描全部parts/groups的全部tabs取唯一可信fallback，不裸用active、重解析column或造组。
+- 同一`IEditorService`的模块内WeakMap registry在listener/dispatch前同步登记。API key区分file/diff及完整有序URI tuple（含query/fragment）；key、matcher和实际dispatch使用同次同步捕获的command id/args。相同API key重叠双方sticky ambiguous；custom是wildcard，与同服务全部活动Sources委托冲突。另一方先settle不解锁仍pending者，活动歧义记录继续与第三调用冲突；每次finally清自己的登记和listener。观察范围止于dispatch await及紧接的同步宿主核对，先清理再开始后置动作。
+- 歧义不阻断或串行dispatch，只跳过后置identity、新input pin和replace close；void仍true，reject原样传播。custom newTab的旧preview预pin窄例外保留，包括no-op/reject/另组成本，不回滚。仅覆盖Sources间定义的重叠，不声称非Sources同tuple外部打开或任意窗口并发因果安全。
+- 新增29个用例源码：4项file/diff×newTab/replace的官方handler、真实默认`EditorParts`/`CategorizedMainEditorPart`、真实`EditorService`与组模型，A保留同tuple旧input且active，provider指定B inactive/activation:PRESERVE/pinned:false，B不在visible panes仍准确记身份，重复reveal保留规范成员，diff后续ref准确；2种同tuple双方settle顺序、发起组replace零close、三调用传递、4项custom wildcard组合、5项完整key/不同服务隔离、reject清理后顺序恢复；8项will未落实/disposed/移组/同id换组/多host/多fallback/单inactive fallback/规范成员，以及custom准确后pin、无组裸active负控、command/args变化的同次捕获。控制并发用公开依赖、事件与受控Promise，没有跨await保留ServicesAccessor或改Sources私有状态。
+- 真实宿主测试只给A活动pane注册无行为覆盖的`DiffEditorInput`子类与既有轻量测试pane；B仍使用官方真实File/Diff input，identity/matches/组模型不改。teardown、输入/监听disposable和Memento清理保留per-test leak门禁。旧背景API/custom正例与workingTree→Conversation/Panel夹具补合法组成员，原严格SCM引用、准确group与缺信息负控继续保留。
+
+本轮J实际检查：最终3TS仅`typescript.createSourceFile` AST语法解析均0诊断，无program/typechecker/emit；定向ESLint 0errors/29warnings，按rule/message/所在行文本与`bf50c66`三文件逐项比较added=[]、removed=[]；`git diff --check`通过。源码SHA256：helper `45cf6d831abda7efd46ae2121b520c5f142282caa079f0e913da8312bf73741a`；Changes测试 `45cf248ffa6588cefeb10bc1c36e371e5bf7d256549481ac56f42a3fcc7b2be9`；DiffRefHelpers测试 `f07dc9fe157ce53387f58fd08f0a5ae2ccef1fcc480aae9ca59f60716fb479ce`。没有编译、typecheck、transpile、写out/watch、业务测试或启动窗口。本次fresh文档门禁health 0errors/75warnings，与本工位bf50独立方案检查点逐条比较added=[]、removed=[]；既有未合入D宿主报告链接仍在原75中，不复制他槽或借父工位计数。生成状态`--check`、diff通过，status170行。
+
+唯一merge须将旧`65d2288036fdad74ab607e231d3db758fa397aa8`生产与本轮新测试配对：宿主业务red selector `delegated host official`；并发业务red selector `Sources overlap same tuple .*settles first`，必须由实际旧身份误记断言失败而非scan/加载/类型/timeout充数。之后只刷新本轮生产，运行`delegated host|Sources overlap`全部29项，再完整原相关套件与语义检查；原R1/R2、14根因与其他完整覆盖继续保留。新源码独立peer与非作者默认编辑器真实Git三owner after仍待，方案accepted、D1387 open、PRD不升。不得把本轮WIP或原357过当本次集成结论。
 
 ## 本轮独立审查后的补修（2026-10-26）
 

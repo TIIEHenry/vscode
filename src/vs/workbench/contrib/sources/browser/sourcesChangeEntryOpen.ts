@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -158,19 +159,38 @@ async function openSourcesChangeInPreview(
 	if (ref.scmResource) {
 		const group = deps.editorGroupsService?.activeGroup;
 		const previous = group?.activeEditor ?? undefined;
-		// Custom open cannot receive a pinned option, so preserving its old preview needs this pre-pin.
-		// API commands pin the new input through their context, with provider options winning instead.
-		if (!isApiScmOpenCommand(ref.scmResource) && options.slot === 'newTab' && previous && group && !group.isPinned(previous)) {
-			group.pinEditor(previous);
+		const dispatch = captureScmResourceOpen(ref, ref.scmResource, deps.commandService, options);
+		const scope = new DisposableStore();
+		let opened: { input: EditorInput; group: IEditorGroup } | undefined;
+		try {
+			const operation = registerScmOpen(deps.editorService, dispatch.key, scope);
+			const candidates: IScmOpenCandidate[] = [];
+			const listener = deps.editorService.onWillOpenEditor?.(event => {
+				if (dispatch.matches(event.editor)) {
+					candidates.push({ input: event.editor, groupId: event.groupId, group: deps.editorGroupsService?.getGroup(event.groupId) });
+				}
+			});
+			if (listener) {
+				scope.add(listener);
+			}
+			// Custom open cannot receive pinned; preserving its old preview needs this pre-pin.
+			// It remains a compatibility cost even when overlapping delegates become ambiguous.
+			if (!dispatch.isApi && options.slot === 'newTab' && previous && group && !group.isPinned(previous)) {
+				group.pinEditor(previous);
+			}
+			await dispatch.run();
+			if (!operation.ambiguous) {
+				opened = findOpenedScmResource(dispatch.matches, candidates, deps.editorGroupsService);
+			}
+		} finally {
+			// Bound observation to dispatch and its synchronous host decision, before post-open actions.
+			scope.dispose();
 		}
-
-		await dispatchScmResource(ref.scmResource, deps.commandService, options);
-		const opened = findOpenedScmResource(ref, deps, group);
 		if (opened) {
 			rememberSourcesDiffOpenIdentity(opened.input, { groupId: ref.groupId, scmResource: ref.scmResource });
 			// API commands apply context options themselves, with provider options winning.
-			if (!isApiScmOpenCommand(ref.scmResource) && (options.slot === 'newTab' || options.pinned)) {
-				opened.group?.pinEditor(opened.input);
+			if (!dispatch.isApi && (options.slot === 'newTab' || options.pinned)) {
+				opened.group.pinEditor(opened.input);
 			}
 			if (options.slot === 'replace' && group && opened.group === group && previous && !previous.matches(opened.input) && group.editors.includes(previous)) {
 				await group.closeEditor(previous);
@@ -217,81 +237,138 @@ async function openSourcesChangeInPreview(
 	return pane !== undefined;
 }
 
-function isApiScmOpenCommand(resource: ISCMResource): boolean {
-	return resource.command?.id === API_OPEN_EDITOR_COMMAND_ID || resource.command?.id === API_OPEN_DIFF_EDITOR_COMMAND_ID;
+interface IScmOpenOperation {
+	readonly key: string | undefined;
+	ambiguous: boolean;
 }
 
-async function dispatchScmResource(resource: ISCMResource, commandService: ICommandService, options: ISourcesChangeEntryOpenOptions): Promise<void> {
-	const command = resource.command;
-	if (command && isApiScmOpenCommand(resource)) {
-		const args = [...(command.arguments ?? [])];
-		const contextIndex = command.id === API_OPEN_EDITOR_COMMAND_ID ? 3 : 4;
-		args[contextIndex] = {
-			editorOptions: {
-				preserveFocus: options.preserveFocus,
-				pinned: options.slot ? true : options.pinned,
-				source: EditorOpenSource.USER,
-			},
-			sideBySide: false,
-		};
-		await commandService.executeCommand(command.id, ...args);
-		return;
+interface IScmOpenCandidate {
+	readonly input: EditorInput;
+	readonly groupId: number;
+	readonly group: IEditorGroup | undefined;
+}
+
+// Only Sources delegates share this bounded ambiguity fence. Editor events have no operation id.
+const activeScmOpens = new WeakMap<IEditorService, Set<IScmOpenOperation>>();
+
+function registerScmOpen(editorService: IEditorService, key: string | undefined, scope: DisposableStore): IScmOpenOperation {
+	const active = activeScmOpens.get(editorService) ?? new Set<IScmOpenOperation>();
+	activeScmOpens.set(editorService, active);
+	const operation: IScmOpenOperation = { key, ambiguous: false };
+	for (const other of active) {
+		// A custom (or unidentifiable API) target is a wildcard; distinct complete API tuples are independent.
+		if (key === undefined || other.key === undefined || key === other.key) {
+			operation.ambiguous = other.ambiguous = true;
+		}
 	}
-	await resource.open(!!options.preserveFocus);
+	active.add(operation);
+	scope.add(toDisposable(() => {
+		active.delete(operation);
+		if (active.size === 0) {
+			activeScmOpens.delete(editorService);
+		}
+	}));
+	return operation;
 }
 
-/** Match public resource identities before pin/close or remembering a delegated open. */
-function findOpenedScmResource(ref: ISourcesChangeRef, deps: ISourcesChangeEntryOpenDeps, requestedGroup: IEditorGroup | undefined): { input: EditorInput; group: IEditorGroup | undefined } | undefined {
-	const resource = ref.scmResource;
-	const command = resource?.command;
-	const firstArgument = command?.arguments?.[0];
-	const secondArgument = command?.arguments?.[1];
+function captureScmResourceOpen(ref: ISourcesChangeRef, resource: ISCMResource, commandService: ICommandService, options: ISourcesChangeEntryOpenOptions) {
+	// Key, matcher and actual dispatch must all use the same synchronous DTO capture.
+	const command = resource.command;
+	const commandId = command?.id;
+	const args = [...(command?.arguments ?? [])];
+	const isApi = commandId === API_OPEN_EDITOR_COMMAND_ID || commandId === API_OPEN_DIFF_EDITOR_COMMAND_ID;
+	const firstArgument = args[0];
+	const secondArgument = args[1];
 	let apiOpenResource: URI | undefined;
-	if (command?.id === API_OPEN_EDITOR_COMMAND_ID) {
+	if (commandId === API_OPEN_EDITOR_COMMAND_ID) {
 		if (typeof firstArgument === 'string') {
 			apiOpenResource = URI.parse(firstArgument);
 		} else if (isUriComponents(firstArgument)) {
 			apiOpenResource = URI.revive(firstArgument);
 		}
 	}
-	const apiOriginal = command?.id === API_OPEN_DIFF_EDITOR_COMMAND_ID && isUriComponents(firstArgument) ? URI.revive(firstArgument) : undefined;
-	const apiModified = command?.id === API_OPEN_DIFF_EDITOR_COMMAND_ID && isUriComponents(secondArgument) ? URI.revive(secondArgument) : undefined;
-	const matches = (input: EditorInput | undefined): input is EditorInput => {
-		if (!input) {
-			return false;
-		}
-		if (command?.id === API_OPEN_EDITOR_COMMAND_ID) {
+	const apiOriginal = commandId === API_OPEN_DIFF_EDITOR_COMMAND_ID && isUriComponents(firstArgument) ? URI.revive(firstArgument) : undefined;
+	const apiModified = commandId === API_OPEN_DIFF_EDITOR_COMMAND_ID && isUriComponents(secondArgument) ? URI.revive(secondArgument) : undefined;
+	const customOriginal = !isApi ? resource.multiDiffEditorOriginalUri : undefined;
+	const customModified = !isApi ? resource.multiDiffEditorModifiedUri : undefined;
+	const key = apiOpenResource ? JSON.stringify(['file', apiOpenResource.toString()])
+		: apiOriginal && apiModified ? JSON.stringify(['diff', apiOriginal.toString(), apiModified.toString()]) : undefined;
+	const matches = (input: EditorInput): boolean => {
+		if (commandId === API_OPEN_EDITOR_COMMAND_ID) {
 			return !!apiOpenResource && !isDiffEditorInput(input) && !isSideBySideEditorInput(input)
 				&& isEqual(EditorResourceAccessor.getOriginalUri(input), apiOpenResource);
 		}
-		if (command?.id === API_OPEN_DIFF_EDITOR_COMMAND_ID) {
+		if (commandId === API_OPEN_DIFF_EDITOR_COMMAND_ID) {
 			return !!apiOriginal && !!apiModified && isDiffEditorInput(input)
 				&& isEqual(EditorResourceAccessor.getOriginalUri(input.original), apiOriginal)
 				&& isEqual(EditorResourceAccessor.getOriginalUri(input.modified), apiModified);
 		}
-		if (resource?.multiDiffEditorOriginalUri && resource.multiDiffEditorModifiedUri) {
+		if (customOriginal && customModified) {
 			return isDiffEditorInput(input)
-				&& isEqual(EditorResourceAccessor.getOriginalUri(input.original), resource.multiDiffEditorOriginalUri)
-				&& isEqual(EditorResourceAccessor.getOriginalUri(input.modified), resource.multiDiffEditorModifiedUri);
+				&& isEqual(EditorResourceAccessor.getOriginalUri(input.original), customOriginal)
+				&& isEqual(EditorResourceAccessor.getOriginalUri(input.modified), customModified);
 		}
 		const identity = sourcesDiffOpenIdentity(input);
-		return !!resource && identity?.scmResource === resource && identity.groupId === ref.groupId;
+		return identity?.scmResource === resource && identity.groupId === ref.groupId;
 	};
-	const activePane = deps.editorService.activeEditorPane;
-	if (activePane && matches(activePane.input)) {
-		return { input: activePane.input, group: activePane.group };
+	const run = async () => {
+		if (commandId === API_OPEN_EDITOR_COMMAND_ID || commandId === API_OPEN_DIFF_EDITOR_COMMAND_ID) {
+			const contextIndex = commandId === API_OPEN_EDITOR_COMMAND_ID ? 3 : 4;
+			args[contextIndex] = {
+				editorOptions: {
+					preserveFocus: options.preserveFocus,
+					pinned: options.slot ? true : options.pinned,
+					source: EditorOpenSource.USER,
+				},
+				sideBySide: false,
+			};
+			await commandService.executeCommand(commandId, ...args);
+		} else {
+			await resource.open(!!options.preserveFocus);
+		}
+	};
+	return { isApi, key, matches, run };
+}
+
+/** Verify candidates against real group members; a will event alone never proves an opened tab. */
+function findOpenedScmResource(matches: (input: EditorInput) => boolean, observed: readonly IScmOpenCandidate[], groups: IEditorGroupsService | undefined): { input: EditorInput; group: IEditorGroup } | undefined {
+	if (!groups) {
+		return undefined;
 	}
-	const requested = requestedGroup?.activeEditor ?? undefined;
-	if (matches(requested)) {
-		return { input: requested, group: requestedGroup };
-	}
-	for (const pane of deps.editorService.visibleEditorPanes ?? []) {
-		if (matches(pane.input)) {
-			return { input: pane.input, group: pane.group };
+	const opened: { input: EditorInput; group: IEditorGroup }[] = [];
+	const add = (input: EditorInput, group: IEditorGroup) => {
+		if (!opened.some(candidate => candidate.input === input && candidate.group === group)) {
+			opened.push({ input, group });
+		}
+	};
+	if (observed.length) {
+		for (const candidate of observed) {
+			const group = candidate.group;
+			if (!group || groups.getGroup(candidate.groupId) !== group) {
+				continue;
+			}
+			const actual = group.editors.filter(input => !input.isDisposed() && matches(input)
+				&& (input === candidate.input || input.matches(candidate.input)));
+			if (actual.length > 1) {
+				return undefined;
+			}
+			if (actual.length === 1) {
+				add(actual[0], group);
+			}
+		}
+	} else {
+		for (const group of new Set(groups.parts?.flatMap(part => part.groups) ?? [])) {
+			if (groups.getGroup(group.id) !== group) {
+				continue;
+			}
+			for (const input of group.editors) {
+				if (!input.isDisposed() && matches(input)) {
+					add(input, group);
+				}
+			}
 		}
 	}
-	const active = deps.editorService.activeEditor;
-	return matches(active) ? { input: active, group: requestedGroup?.editors.includes(active) ? requestedGroup : undefined } : undefined;
+	return opened.length === 1 ? opened[0] : undefined;
 }
 
 /** Shared false-result detail; it also applies to direct Preview editor opens. */

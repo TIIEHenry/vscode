@@ -4,14 +4,14 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-26
-summary: "D1387：65d原模块357过/虚拟TS0由唯一车道实证；§3.2宿主候选观测、同service Sources重叠歧义及真实成员核对经D规则16 C0/I0签收，独立方案提交后实施"
+summary: "D1387：bf50独立方案后已写宿主候选/真实成员核对与Sources重叠歧义保护，新增29项回归源码；静态0语法/0lint错误，唯一车道运行与新源码peer/真实after待"
 ---
 
 # Sources 打开分派与准确 Conversation 目标
 
 ## 1. 问题、证据与签收边界
 
-范围是默认编辑器的 Sources Changes / Review → Preview、Conversation、Panel 打开及移动合同（[PRD-005/009](../../docs/product/requirements.md#prd-009-changes-与-diff)、[ADR-005](../decisions/005-changes-diff-owner.md)、[Sources SSOT](../../docs/systems/sources/overview.md)）。不开发 `src/vs/sessions/`。D1387 保持 open，PRD 状态不升；原方案与custom预pin澄清已有下方规则16，本轮§3.2同tuple宿主/并发歧义澄清也经D规则16 C0/I0签收，新边界待实施。原两项Important补修`89f3e5a6a17`与测试harness`4f7e49d`/`65d2288`已交唯一车道；D/Astra又确认同tuple另组后台打开可能错记旧host，须审查澄清、补修并经唯一车道运行与非作者after。本作者没有运行或修复后验证。
+范围是默认编辑器的 Sources Changes / Review → Preview、Conversation、Panel 打开及移动合同（[PRD-005/009](../../docs/product/requirements.md#prd-009-changes-与-diff)、[ADR-005](../decisions/005-changes-diff-owner.md)、[Sources SSOT](../../docs/systems/sources/overview.md)）。不开发 `src/vs/sessions/`。D1387 保持 open，PRD 状态不升；原方案与custom预pin澄清已有下方规则16，本轮§3.2同tuple宿主/并发歧义澄清也经D规则16 C0/I0签收，独立方案`bf50c66`后新边界源码及29项回归已写。原两项Important补修`89f3e5a6a17`与测试harness`4f7e49d`/`65d2288`已交唯一车道；D/Astra后确认的同tuple另组后台宿主与并发归因补修仍须唯一车道运行、新源码独立peer及非作者after。本作者没有运行或修复后验证。
 
 [真实 Git before](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before.md) 有两个不同根、同名文件与不同两侧哨兵，真实内置 Git provider，断连、零 Git RPC、fixture HEAD/index/worktree 未变。J 初轮只读审查及 C1–C6 的结果是 before，不能充当作者实现后的 after。
 
@@ -150,14 +150,14 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 - P（原方案历史检查点）：PRD事实→生成状态→SSOT/证据/本方案；父派独立规则16 reviewer，C/I 核验改入后 accepted，单独方案 commit。规则16已通过，单独方案commit后再实施。
 - I（原源码历史检查点）：仅按 accepted 方案改生产、真实依赖和回归；静态复核/文档门禁，独立实现 commit；计划仍 accepted、D1387 open，不报未跑的 green。
 - I 补修：J原实现`23f8701c8d2`经D独立实现审查后，Astra确认API预pin与单侧URI误配两项Important；§3.2的custom预pin窄例外先按规则16澄清、单独文档提交，再补修与增加真实handler/组模型回归。当前澄清签收不代表实现通过。
-- I 宿主补修：D/Astra确认`89f3e5a6a17`完整tuple匹配仍可能按旧active优先误认宿主，D再指出事件缺operationId的并发归因Important；本轮候选观测、同service Sources重叠歧义fence、await后真实成员核对与全tabs唯一fallback先只改文档进review，非作者规则16 C/I解决、单独方案commit后才改生产/新回归。`65d2288`原模块357过/虚拟TS0是唯一merge已运行结果，不证明本轮新边界；作者不重跑或借此升状态。
+- I 宿主补修：D/Astra确认`89f3e5a6a17`完整tuple匹配仍可能按旧active优先误认宿主，D再指出事件缺operationId的并发归因Important；本轮候选观测、同service Sources重叠歧义fence、await后真实成员核对与全tabs唯一fallback先只改文档进review，非作者规则16 C/I解决、独立方案`bf50c66`后已写生产与29项回归源码。`65d2288`原模块357过/虚拟TS0是唯一merge已运行结果，不证明本轮新边界；作者不重跑或借此升状态。
 - V：唯一 merge 精确旧生产+新测试 red，再新生产 green/完整相关套/必要全量；非作者真实 after；按证据决定 implemented/closed。全量旧失败另记，不重开已闭 D1382/D1386，不升 PRD-008/009/029。
 
 重要新设计点或边界外问题先报父/Astra，不顺手扩展。全量由父提供的运行记录说明；本作者不借其他主题产物给此主题背书。
 
 ## 6. 规则16记录
 
-2026-10-26，本轮同tuple宿主候选观测首稿经D只读审查为C0/I1，并发归因Important经Astra确认must-fix；作者补入同service Sources重叠sticky ambiguity、custom wildcard、同步捕获DTO与外部并发非保证边界后，D增量规则16为 **Critical 0 / Important 0**。正式两轮报告提交`7c84e0167e3f5fef3db1e7dea5cd6f96ca3393c4`，见[宿主观测规则16报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md)。第一稿plan/SSOT SHA256为`8de7de8c0b8cacaab65d44525851bc0b8d94d761f857033b1d0593889b464e70` / `fd67b9a7a5545ff38f6664cc7dca762c979cf8a8f7dcc5de383c94edda95f61e`；最终受审稿为`7f1d87afc2c5058105afe91125175b5556d915ef00ab387bad97ddc2ff8ea45f` / `07fcba33bd8da9f9dc46e4d56b487056e1ddfe7f89fa63033bab2cfbc4dd6f59`。作者已只读核验报告，并实改两Minor：actual对event的matches方向、旧accepted/规则16措辞的历史归属；现恢复accepted、单独方案commit后才实施。此前审查不替代本轮签收，本轮也不签源码/运行/after；当前生产仍为`89f3e5a6a17`。 本次作者文档门禁为health 0errors/75warnings，较受审稿fresh74仅新增D已提交但J尚未合入的同仓宿主报告链接；不跨槽复制。生成状态与diff检查通过，status170行；原73/74及D报告46为各自历史/工位结果，不替代本次记录。
+2026-10-26，本轮同tuple宿主候选观测首稿经D只读审查为C0/I1，并发归因Important经Astra确认must-fix；作者补入同service Sources重叠sticky ambiguity、custom wildcard、同步捕获DTO与外部并发非保证边界后，D增量规则16为 **Critical 0 / Important 0**。正式两轮报告提交`7c84e0167e3f5fef3db1e7dea5cd6f96ca3393c4`，见[宿主观测规则16报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md)。第一稿plan/SSOT SHA256为`8de7de8c0b8cacaab65d44525851bc0b8d94d761f857033b1d0593889b464e70` / `fd67b9a7a5545ff38f6664cc7dca762c979cf8a8f7dcc5de383c94edda95f61e`；最终受审稿为`7f1d87afc2c5058105afe91125175b5556d915ef00ab387bad97ddc2ff8ea45f` / `07fcba33bd8da9f9dc46e4d56b487056e1ddfe7f89fa63033bab2cfbc4dd6f59`。作者已只读核验报告，并实改两Minor：actual对event的matches方向、旧accepted/规则16措辞的历史归属；恢复accepted后以`bf50c66`单独提交方案，再实施。此前审查不替代本轮签收，本轮也不签源码/运行/after；方案签收时生产仍为`89f3e5a6a17`。 该次作者文档门禁为health 0errors/75warnings，较受审稿fresh74仅新增D已提交但J尚未合入的同仓宿主报告链接；不跨槽复制。生成状态与diff检查通过，status170行；原73/74及D报告46为各自历史/工位结果，不替代本次实施记录。
 
 2026-10-26 独立 reviewer C（非 Sources 作者）完整核对正式稿、两轮 Astra、PRD/SSOT实际diff、SCM/slot/finder/状态源码与before机器证据，最终 **Critical 0 / Important 0**。原I1指出helper明确stale与open-status旧代次不能混成一切旧void不mark；作者已拆表并同步PRD/SSOT，reviewer增量复读正式稿SHA `970bac28c99e456d93e0970af0e361a7d802d2ee42bf6632b545fca5f487759d`确认落实。两Minor提醒保留move既有关闭策略、精确报告docs warning delta。见[规则16原报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-plan-peer-review.md)。
 
@@ -172,3 +172,5 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 作者未编译、transpile、typecheck、写out/watch或运行测试；静态结果与独立实现审查后续收录在该检查点。唯一merge的业务旧红/新绿、相关完整套件与非作者三owner真Git after仍待。此为原源码历史检查点的accepted/open状态，不作为本轮新边界通过证明；D1387 open、PRD状态不升。
 
 本轮澄清独立提交`a76d062f297`后，J补修源码只取消API预pin、改DTO有序双侧/单资源类型及custom可信身份匹配，保留custom预pin窄例外；新增28个官方handler/真实组模型/比较身份与custom兼容负控用例源码。仅本轮静态语法0错误、ESLint0错误且测试29警告相对原23f逐项不变；详见同一[源码检查点本轮段](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#本轮独立审查后的补修2026-10-26)。这是源码补修完成线，不是I1/I2运行通过或after签收。
+
+宿主/并发澄清独立提交`bf50c66b8b970a4e29a1e92f0d3968232e2d6987`后，J已按§3.2写候选观测、真实有效组/规范成员核对、全tabs唯一fallback与同service sticky ambiguity registry；command id/args同步捕获，custom预pin窄例外、void/reject语义保留。新增29项官方真实默认宿主、同tuple并发与custom wildcard、完整key/服务隔离、异常清理、候选负控和DTO变化回归源码。最终3TS AST语法0诊断，ESLint0错误/29旧警告相对bf50逐项不变；[本轮源码与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#宿主观测与-sources-重叠补修2026-10-26j)记录精确hash与selector。唯一车道须旧65d生产配新测试业务red，再新生产green/完整相关套/语义；新源码独立peer及非作者真实after未到，仍accepted/open，不借原357过升状态。
