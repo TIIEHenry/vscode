@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1332–D1367 已落盘，D467 回收证据已闭合；本波唯一一次 npm run compile 在 compile-copilot 写只读输出目录时 exit 1，未 push。定向 Electron 测试仍受 sandbox 限制待复验。"
+summary: "2026-10-26：D1369 Sort/Group sheet 焦点边界与关闭生命周期已收口，13 条 browser 行为回归待 merge 一路验证；未完整编译或转译 out。D1332–D1367 的既有验证记录保持。"
 
 
 ---
@@ -13,6 +13,7 @@ summary: "2026-10-26：D1332–D1367 已落盘，D467 回收证据已闭合；�
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Sort/Group sheet 焦点与关闭生命周期（2026-10-26，D1369）**：表单打开后按 DOM 顺序循环 Tab/Shift+Tab，空项时聚焦 Close；关闭开始即释放监听、设置 inert/aria-hidden 并按焦点归属恢复可用 opener，动画结束只移除旧 DOM，避免新 sheet/外部焦点被抢。新增 13 条 browser 回归覆盖关闭入口、动画重开、隐藏/销毁/禁用 opener 与外部焦点；目标 ESLint 0 errors，最终行为回归留 merge 一路执行；未完整编译或转译 out。历史 2026-10-11–12 条目已[归档](../archive/status-2026-10-11-12-retained-2026-10-26.md)，未删除。见 [D1369](deferred-gaps.md)。
 - **SessionsView 响应式控件重建（2026-10-26，D1367，会话列表/窄宽审计）**：SessionsView 原只在首次布局创建桌面 header toolbar 或移动端 filter chips；运行时跨 phone breakpoint 后，工作台虽更新 `.phone-layout` 与 `IsPhoneLayoutContext`，控件却不切换。现保留可切换的 chips slot，监听 phone-layout context，在桌面与手机控件间安全 dispose/recreate；新增源码回归锁定初始与运行时共用重建路径。目标文件 ESLint 通过；定向 Electron 测试受本机 sandbox 限制，未跑 full compile。见 [D1367](deferred-gaps.md)。
 - **Preferences 宽转窄焦点迁移（2026-10-26，D1366，本波响应式 UI/键盘焦点审计）**：Engine 与 Connection Preferences 从宽布局缩到窄布局时，原逻辑隐藏导航却保留导航行焦点，键盘用户会停在 `display:none` 节点。现仅当缩窄前焦点在导航宿主内时，在窄详情布局完成后的微任务中把焦点移到可见 Back 按钮；补 Engine/Connection 两份 browser 回归，不抢程序化缩窄或导航外焦点。目标 ESLint 0 errors，定向 Electron 测试受本机 sandbox 限制，未跑 full compile。见 [D1366](deferred-gaps.md)。
 - **SessionHeader 标题重命名能力 hydration（2026-10-26，D1365，会话生命周期审计）**：标题可编辑性原在标题 autorun 中用未追踪的 `capabilities.get()`，提供方动态开放/收回 `supportsRename` 时键盘/ARIA 重命名入口不更新。现通过 reader 订阅能力 observable，并补能力切换回归；目标文件 ESLint 通过，浏览器测试受本机 `listen EPERM` 限制，未跑 full compile。见 [D1365](deferred-gaps.md)。
@@ -193,8 +194,3 @@ summary: "2026-10-26：D1332–D1367 已落盘，D467 回收证据已闭合；�
     - 单编译锁（`flock -x /tmp/vscode-compile.lock`）转译 10012 文件 0 errors；
     - 针对性回归单测（16 node + 149 browser passing）全部通过；
     - `python3 scripts/check-docs-health.py` 0 errors。
-- **远程删除在途不打开邻居窗（2026-10-12）**：焦点会话（含主会话）已不在名册时，`onDidChangeActiveSession` 不再 `revealSessionWindow`。`onDidDeleteSession` 卸叶后若没有可见叶，再打开仍在名册里的活动会话，不为刚删掉的 id 开窗。未改 `deleteEngineSession` / `rollbackEngineSessionDelete`。`compile-client` 0 errors；`conversationSessionWindowService.test.ts` 8 passing。目录刷新不发删除事件的缺口记 [D1297](deferred-gaps.md)。不宣称产品完成。
-- **编辑器叶输入最大化转发（2026-10-11）**：`ConversationLeafSessionBar.setInputMaximized` 转到该页已有的 `ConversationLens.setInputMaximized`。History / Snapshots 即将打开仍走这条。未改透镜方法。`compile-client` 0 errors；`conversationEditorPane.test.ts` 4 passing。最大化不关叶上 History / Snapshots 记 [D1296](deferred-gaps.md)。不宣称产品完成。
-- **Engine Providers / Models 分节（2026-10-11）**：左栏拆成 Providers（只读凭据状态）和 Models（只读注册表）。去掉注册表分组上的凭据脚注。Manage Models… 打开 Models。不画凭据写表单，不升 PRD-025。单测 61 passing。`check-docs-health.py` 0 errors。
-- **壳与会话观感（2026-10-11）**：产品主题收成 chrome `#F3F3F3`、画布浅色 `#F8F8F8` / 深色 `#191A1B`、输入白；主按钮浅色近黑、深色近白。用户回合占满阅读列。方案 [cursor-visual-alignment](../plans/cursor-visual-alignment.md) 仍 `draft`。`compile-client` 0 errors；`WorkbenchThemeService` 25 passing（node runner）；`conversationLensCssScan.test.ts` 29 passing。进行中一行 Composer、会话切换菜单、目录列表与 Markdown 预览未做。13 个 `trajectory-*.png` 删除仍不进提交。
-- **工位关仓（2026-10-11）**：产品尖端 `7825da47599`。槽表在 [worktree-pool.md](worktree-pool.md)。未 push `origin/main`。未为关仓重编译。C 仍只脏 `dev/loop`。人类工位的 13 个 `trajectory-*.png` 删除不进提交。

@@ -12,6 +12,15 @@ import { localize } from '../../../../nls.js';
 
 const $ = DOM.$;
 
+function isAvailableFocusTarget(element: HTMLElement): boolean {
+	if (!element.isConnected || element === element.ownerDocument.body || element === element.ownerDocument.documentElement
+		|| element.closest('[hidden], [inert], [aria-hidden="true"]') || element.hasAttribute('disabled') || element.getClientRects().length === 0) {
+		return false;
+	}
+	const visibility = DOM.getWindow(element).getComputedStyle(element).visibility;
+	return visibility !== 'hidden' && visibility !== 'collapse';
+}
+
 /**
  * One row in the {@link showMobileSortGroupSheet} bottom sheet.
  */
@@ -60,19 +69,30 @@ export function showMobileSortGroupSheet(
 	return new Promise<string | undefined>(resolve => {
 		const disposables: (() => void)[] = [];
 		let resolved = false;
+		const ownerDocument = workbenchContainer.ownerDocument;
+		const activeElement = ownerDocument.activeElement;
+		const opener = DOM.isHTMLElement(activeElement) ? activeElement : undefined;
 
 		const finish = (id: string | undefined) => {
 			if (resolved) {
 				return;
 			}
 			resolved = true;
+			const active = ownerDocument.activeElement;
+			const shouldRestoreFocus = sheet.contains(active) || active === ownerDocument.body;
+			// Closing chrome must not intercept a replacement sheet during the animation.
+			for (const dispose of disposables) {
+				try { dispose(); } catch { /* ignore */ }
+			}
+			overlay.inert = true;
+			overlay.setAttribute('aria-hidden', 'true');
+			if (shouldRestoreFocus && opener && isAvailableFocusTarget(opener)) {
+				opener.focus();
+			}
 			// Animate sheet out before removal for a more native feel.
 			sheet.classList.add('closing');
 			backdrop.classList.add('closing');
 			DOM.getWindow(workbenchContainer).setTimeout(() => {
-				for (const d of disposables) {
-					try { d(); } catch { /* ignore */ }
-				}
 				overlay.remove();
 				resolve(id);
 			}, 180);
@@ -82,6 +102,7 @@ export function showMobileSortGroupSheet(
 		const overlay = DOM.append(workbenchContainer, $('div.mobile-sort-group-sheet-overlay'));
 		const backdrop = DOM.append(overlay, $('div.mobile-sort-group-sheet-backdrop'));
 		const sheet = DOM.append(overlay, $('div.mobile-sort-group-sheet'));
+		sheet.tabIndex = -1;
 		sheet.setAttribute('role', 'dialog');
 		sheet.setAttribute('aria-modal', 'true');
 		sheet.setAttribute('aria-label', title);
@@ -92,6 +113,7 @@ export function showMobileSortGroupSheet(
 		DOM.append(header, $('div.mobile-sort-group-sheet-title')).textContent = title;
 		const closeBtn = DOM.append(header, $('button.mobile-sort-group-sheet-close', { type: 'button' })) as HTMLButtonElement;
 		closeBtn.setAttribute('aria-label', localize('sortGroupSheet.close', "Close"));
+		const focusTargets = [closeBtn];
 		DOM.append(closeBtn, $('span')).classList.add(...ThemeIcon.asClassNameArray(Codicon.close));
 		const closeGesture = Gesture.addTarget(closeBtn);
 		disposables.push(() => closeGesture.dispose());
@@ -123,6 +145,7 @@ export function showMobileSortGroupSheet(
 			}
 
 			const row = DOM.append(list, $('button.mobile-sort-group-sheet-item', { type: 'button' })) as HTMLButtonElement;
+			focusTargets.push(row);
 			row.setAttribute('role', 'option');
 			row.setAttribute('aria-selected', String(item.checked));
 			if (item.checked) {
@@ -163,11 +186,27 @@ export function showMobileSortGroupSheet(
 				e.preventDefault();
 				e.stopPropagation();
 				finish(undefined);
+				return;
 			}
+			if (e.key !== 'Tab') {
+				return;
+			}
+			e.preventDefault();
+			e.stopPropagation();
+			const focusable = focusTargets.filter(isAvailableFocusTarget);
+			if (focusable.length === 0) {
+				sheet.focus();
+				return;
+			}
+			const currentIndex = focusable.findIndex(element => element === ownerDocument.activeElement);
+			const nextIndex = currentIndex < 0
+				? (e.shiftKey ? focusable.length - 1 : 0)
+				: (currentIndex + (e.shiftKey ? -1 : 1) + focusable.length) % focusable.length;
+			focusable[nextIndex].focus();
 		}, true);
 		disposables.push(() => keyHandler.dispose());
 
 		// Focus the first checked row (or the first row) for keyboard users.
-		(firstCheckedRow ?? firstRow)?.focus();
+		(firstCheckedRow ?? firstRow ?? closeBtn).focus();
 	});
 }
