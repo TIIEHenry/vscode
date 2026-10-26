@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留900f原三I及c2b闭合历史；正式关联运行暴露ack错误隔离回归，增量静态裁定C0/I1，resync两次为旧有界重试合同，旧运行复现另证。"
+summary: "保留原三I和ack回归历史；5f280 ack补修定向C0/I0/M0；另四旧红经精确旧5df复现，三项夹具纠正待、reasoning旧生产差异保留。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -153,3 +153,51 @@ Astra边界决策：由原E在本次搬移路径恢复原有ack错误处理合�
 唯一lane宜分别隔离精确旧5df的resync与ack用例：静态预期是resync同红、ack warn-then-rethrow旧绿；如实跑不同，先核实际模块身份和错误通道，不能推翻日志或直接统一归类既有。修复后需跑完整FrameSource套（包含此前afterEach提前中止而未执行的后续测试），确认无全局unexpected错误，再按唯一lane已有流程完成其余关联回归。其余10套的结果不能替代此ack回归闭合。
 
 本节结论是原E范围内一项必须修复的ack回归，加一处旧resync fixture合同不符；不是三个独立产品缺陷，也不能将三红全部标为既有。报告提交只改本报告及证据INDEX，产品/测试修改仍交原作者。
+
+## 6. ack补修复读与另四旧失败定界（2026-10-27）
+
+### ack不可变补修：Strengths / Critical / Important / Minor / Assessment
+
+受审提交 `5f28071f4cafeb850ae014c92ce8bcfab75b1875`，父 `de1c958d1f0b036df93d2ad2e3a4bf334cea3f6d`，src `371cbc7bc25cea3bb2353343dd10e8a8a7e4d246`，共4路径（FrameSource、其测试、方案实施记录、status）。reviewer通过Git核身份与diff check，只读产品及测试；本轮B写报告前HEAD为 `d8da659a63cf1966e7b5364fcfc664af4da39821`、src仍 `fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1`、工作树clean，未同步或猜测其他工位前进来源。
+
+**Strengths：**生产仅在notifyApplied准确补回第二个 `.catch(onUnexpectedError)`，保留通知顺序及ack cursor/payload。测试保留两次unexpectedWarns；新增process/window双通道旁听，只记录事件并在finally移除，不preventDefault、不替换或阻挡runner处理。额外断言该有效帧只发送一次准确ack。resync生产不动，旧fixture改为恰好两次，再经过额外事件循环确认无第三次，原坏帧不应用、不ack、snapshot不变及无未处理拒绝断言保留。
+
+**Critical 0 / Important 0 / Minor 0。** §5的ack Important在该不可变补修源码上闭合；恢复的是旧warn-then-rethrow合同，不扩张为无限次throw的通用防护。**Assessment：**可交唯一lane复验，此结论不等于5f280运行green，也不提前宣告整个E或默认编辑器after完成。§5原回归与此前漏审历史保留。
+
+### 唯一lane精确旧生产对照：实跑与静态分开
+
+reviewer收到唯一lane结果并只读其JSON原件；执行者仍是baseline，而非本reviewer。producer均为精确 `5df17cb7273f490ccd59818dccba479fa80848dc` / src `7fa3c86d152420afeb66c6038bd961bb6d5b8f4b`。Frame对照3模块，另三完整套采用受影响17路径旧生产/测试组合；新State在旧ref不存在，临时移除后恢复。JSON记录touched outputs与86份native SHA均恢复。执行当时工作区HEAD已为 `71ba410c4f3e00fadf595b2e8c1b123beaac8546` / src `5ebb6ea96b6a130943d08368509ae8ef3016785a`，但未消费该工作区源码；native基线仍绑定0008234/src1ee09f，不能称新HEAD已编译。
+
+| 精确旧对照 | 实际结果 | 与正式native失败关系 |
+| --- | --- | --- |
+| FrameSource resync reject | 0过1败：2次实际、1次旧期望 | 证实既有fixture冲突 |
+| FrameSource ack warn-then-rethrow | 1过0败 | 结合源码双catch→单catch，证实E迁移回归 |
+| TimelineProjection完整套 | 15过2败 | allowed/pending及THINKING/preview两处与正式运行相同 |
+| TimelineRenderer完整套 | 29过1败 | 同一首次CTA查询null.click，与正式运行相同 |
+| StreamScripts完整套 | 32过1败 | 同一无pend question的undecided/pending，与正式运行相同 |
+
+当轮原件 `/tmp/vscode-je-formal-old5df-frame.json` SHA256 `edf70728563bd6a67785319791c859aa88614a80911b13285bbe0fa913a1aecb`、`/tmp/vscode-je-formal-old5df-related.json` SHA256 `1377e7cd1f88428b3623b4b74e26fdd44ae39314db051d52bd11b00fa35345f0`；其runs数组含精确命令、各log SHA及恢复身份。永久运行原件由唯一lane另行入库，本报告不虚构尚未交付的仓内路径。
+
+### 另四失败的具体因果与修正边界
+
+比较版本仍为§5四个不可变ref。三个测试文件与DSL四版本逐字同blob：TimelineProjection test `d668ef56fcbbd58c0e5bd177e719d6b0060932a0`；TimelineRenderer test `b0f62dee9da9262083a6314bf108e335b66d6a4d`；streamScripts `276732b87d60488ba8cc5764e20ac8d160d775dd`；streamScript `a7488a19bcbba70f481706a7b6464ae015e6c154`。不是仅凭测试名称或“非本scope”归类。
+
+**1. pending removal changes the confirmation entry status：旧fixture错误。** 测试一开始就用status allowed生成带decision allow的timeline，并给pending summary也写decision allow，却期待pending覆盖已承认终态。`timelineItemToEntry`的permission分支始终先决定allow/deny、然后才检查pending；四版分支SHA256均 `336f8fa6f601ea273dff204bd8a859a00ca46a2aad638e161d808cedb4f6915c`，E只附加response state，并未改变状态优先级。
+
+允许原E作trivial fixture纠正：从无decision且有pending开始，A=pending；B移除pending但仍无decision→undecided，保留cached/fresh等价、只有目标entry换引用而user引用稳定；C加入明确allow→allowed。另保留“allow决定已存在但pending尚未移除仍为allowed”的负控。不得为了旧测试让pending复活已决定座位，也不能只把第一条expected改allowed后丢掉缓存失效验证。
+
+**2. question-valid-flag-without-options-is-not-submit-safe：旧脚本缺pending事实。** 脚本只发送question timeline，没有pend；DSL文档明确pending需独立pend op，question分支也只upsert timeline。无answered且无真实pending的question状态本来是undecided，E只是把完全相同的exact/最长prefix解析提取到common。该测试原意是验证无options的题目不能提交，不是凭answerKeysValid发明待决身份。
+
+允许原E补真实 `pend q1 as question` 以继续验证pending但answerKeysValid=false、没有Submit/响应回调为0；保留或追加无pend→undecided的负控。生产pending身份规则不变，不只改expected掩盖测试缺事实。
+
+**3. repainting a respondable client tool stays disabled until a retryable failure：旧renderer夹具走错入口。** 测试node固定 `variant:'turn'`，工具因此进入standalone fallback；该函数只画诚实摘要，本来没有Respond CTA。正式process-fold节点才传onRespondClientTool与in-flight回调。standalone函数四版本SHA256均 `923b1a2686c54ab8dea4f34f5f362a544971946875605b705e6b823219d7cf6c`。失败在第一次null.click，尚未执行它声称覆盖的忙碌/重试断言；不是E typed busy导致按钮被移除。
+
+允许原E用projectProcessFoldSpans生成正式process-fold节点或真实TimelineHost构造此夹具；先断言CTA存在再click，完整保留首次发一次、重绘disabled/aria-busy、第二click抑制、retryable恢复并显示错误/nonretryable隐藏CTA及保留错误的断言。不要向standalone只读fallback追加产品按钮来迎合夹具。
+
+**4. persisted reasoning keeps the joined thinking preview on the reading line：既有生产投影/摘要差异，不能当普通fixture修掉。** reasoning分支四版SHA256均 `5538e88fb19b57891e8e77b9cf3f39889b83d6f3cdd0d4668b1187e42931dcf7`：`text = summary.title ? summary.title : preview`，因此标题THINKING压过非空collapsedPreview，而payload仍存完整preview。正式process fold的expanded正文用 `thinkingBodyText = payload ?? text`，故不能宣称整段思考正文丢失；但内层 `formatThinkingSummary`读取turn.text，摘要确会继续显示通用标题。外层步骤名另有payload fallback，不能拿它证明内层摘要正确。轨迹模型reasoning已经preview优先。
+
+[现有规格](../../../docs/systems/conversation/lens-and-trajectory.md)说明思考行摘要应为自身文字。原测试保留对preview文本及cache/agent/turn/payload的验证具有意义，不能把expected改THINKING冒充恢复门禁，也不能只验payload就宣称摘要问题消失。Astra及父已定界：独立保留为既有生产差异及旧红，不纳入E unary恢复新回归，不借本波打开新产品模块；冻结波后由主任务整体分析。前三fixture修正只改测试，reviewer不改产品或方案。
+
+### 本轮交接
+
+父已转原E按上述前三项具体夹具/负控修正，reasoning原红保留；提交不可变修订后再定向复读。当前仅ack补修静态C0/I0/M0，不预先宣告尚未修订的夹具或完整E运行通过。首次失败、精确旧复现和未来新green须各自保留来源。
