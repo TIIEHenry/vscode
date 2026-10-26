@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留VM/SCM失败与fccde混合旧红；64a4完整组级progress夹具定向C0/I0/M0，准确生命周期旧红/compile7及39项、新freeze待。"
+summary: "保留compile7实际38/1与424/1；468d生命周期seed resolver引用补修定向C0/I0/M0，原VM/SCM/progress历史保留，39项及新freeze待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -529,3 +529,31 @@ lane JSON记录source `fb214e7e06c7e23ede11003bfdb1d5b4f86a7db8` / src d5eca，c
 受改test SHA256 `83653d3619affa62557b4c431cba6000cbe1e329943826c411fd9ca85695f75c`；Pane仍 `e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`，src路径diff证实全production不变。真实4 Move入口区及从lifecycle test至文件末分别与fccde逐字一致，39项expected、Spy原方法执行及finally恢复、leak/unexpected门禁均保留。没有为了让旧producer失败干净而移除业务或错误断言。
 
 **Assessment：定向C0/I0/M0，可继续64a4新test配精确旧0da Pane实际旧红；正式原件接入后按父调度完整compile7、新39/相关套。** fccde混合结果完整保留为“1业务assert+独立progress fixture error”，不改写为此前纯红；新准确结果未到前仍不签纯生命周期旧红。B起点clean `1d30f1ff5c67b0717a108a11a5a466665dbc50df`，仅本报告与INDEX，src fdca不变；无compile/typecheck/transpile/out/native/UI，短C/I已交父/原J/唯一lane。
+
+
+## 20. 第七轮运行的生命周期文本夹具边界与续读（2026-10-27）
+
+### 实际38/1与424/1：首次VM释放已通过，第二次比较未建成
+
+唯一lane第七轮producer `0930c43e7d2f2cc91d7d3355deaf5db270bc31fe` / src `ab952ce1fc0bd279754f747460bea9a8dc97f216` 与64a4一致，实际compile7 exit0。reviewer独立读取 `/tmp/vscode-m01-seventh-M01-focused.log` 及JSON：**38 passing / 1 failing**，raw SHA256 `5df336ea4fbe08bcfc5755a56e644162c253193a897cfb841e8688be8535da30`。原38场景及四真实Move入口/反馈全过；新增生命周期case的firstDispose.calledOnce已经通过，随后createViewModel.callCount期望2实际1，未到clear/dispose后续断言，无leak/console/TypeError。完整11套raw `/tmp/vscode-m01-seventh-J-complete-11.log` 与JSON为 **424 passing / 1 failing**，同一计数断言，SHA256 `a0c53ac0bf1a9743359196647b62c44de5731da97449c5ba0690b09edec97e13`；均非全绿，JSON outFrozen=false。
+
+### 独立定位：两侧seed文本没有跨输入的resolver所有权
+
+**当前新增C0/I1/M0，I1限定生命周期fixture的文本保活。** `setInput()`会await完整renderDiff后才返回，测试也await了setInput，故不是再等一个tick就能修复的观测时机；renderDiff没有按SCM groupId='index'禁载的条件，替换input仍有original，token/generation也没有新失效。实际raw只直接证明第一VM已释放与第二VM未创建，以下是静态调用链解释，尚未额外运行观测模型状态。
+
+fixture先用IModelService.createModel创建inmemory双侧并store.add，但这不等于持有ITextModelService的引用。Pane.clearEditors正确撤销自己的原/改references；ResourceModelCollection.destroyReferencedObject在最后引用消失后异步dispose TextResourceEditorModel，而后者明确强制destroy底层ITextModel。下一renderDiff顺序await original reference再await modified reference：重新取得original可撤其pending disposal，但等待original期间modified的最后reference可能已销毁，无content provider可重新生成fixture seed，因此后续解析失败被renderDiff转为false，不创建第二VM。此链与count1及原失败路径一致，不能据此改expected为1或把加载失败说成新生命周期成功。
+
+最小正确fixture处理是：在比较生命周期范围，用真实ITextModelService对两seed各持有独立reference，跨替换/clear/第三次open保持资源存在，Pane清理后由fixture有序释放；或注册可真实重建内容的provider。保留真实resolver/Pane/widget/VM，不stub renderDiff成功或调用私有构造。各次await setInput后明确断言comparison load state为ok，并核两侧seed仍live，再断言VM数2/3与每代dispose；不得任意sleep、删后续断言、改变production或让测试代dispose VM。原J已收到此建议，父/lane已收到静态定界；新immutable修订及实际复验待。
+
+
+### 468d真实resolver保活修订：Critical 0 / Important 0 / Minor 0
+
+受审不可变 `468d805ef929298de9113f72665a3de0bdf4742a`，父 `64a4e46b5fa27d48920789aa4b66e7340dfa833b`，src `2b5df2b37ca926e38888443e371cf65e2883dba2`。仅1测试及3行动文档；reviewer核完整test diff、相关fixture和DisposableStore清理语义，src变更列表证实生产全部不变。test SHA256 `eb81299cb0e6b170b888aa2e57ee5655d23613236b7a41c2d908c9132524577d`；Pane仍 `e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`。
+
+**本节文本fixture I1源码闭合。** 仅新增生命周期case传专用modelReferences DisposableStore；helper先将Pane.dispose包装登记在此store，再为原/改seed分别await真实createModelReference，并在各自成功时立即add。没有并行取得后统一登记的漏口：第二引用获取失败时第一引用和Pane已登记，case finally仍处理；若首次open或其后断言失败也同样收回。引用在首次setInput前取得并跨三次open，属于fixture自己的资源所有权，没有替Pane保留旧VM或代执行VM.dispose。
+
+**释放次序与异常路径可证明。** DisposableStore内部为按插入顺序遍历的Set，case finally先dispose此专用store，首项清Pane，随后清各已取得的resolver references；外层suite store后续再清seed模型及基座资源。Pane正常case已经显式dispose，再次入口只处理已清字段，未重复释放旧VM。内层try/finally确保专用store清理即使报错也恢复sinon spy；引用只取到一侧、helper尚未返回时不依赖h变量完成清理。未把store.add(ITextModel)冒充resolver引用。
+
+**新增断言区分资源与视图模型。** 三次await setInput后均要求comparisonLoadState='ok'，每次open以及clearInput/Pane.dispose后都要求两文本仍live；同时保留createViewModel计数1/2/3和三代dispose.calledOnce原断言。即使产品错误地在VM清理时直接销毁共享文本，live断言也会失败；即使文本仍存活但旧VM漏释放，dispose断言仍会失败。没有改count为1、加sleep、替换resolver返回值或删除clear/dispose验证。真实4 Move入口区及原feedback tests开始至文件末逐字与64a4一致；原38场景expected与gates保留。
+
+**Assessment：定向C0/I0/M0，可交唯一lane执行新test与准确旧0da Pane的生命周期旧红，再按父调度新候选验证。** 先前compile7=0、原38实过和完整424/1只是各自实际边界；新39/完整相关套及freeze/D after尚未签。作者AST/lint未由reviewer代跑；B起点clean `e5c25b4b33853e8d6b9da9476adfbe589e24a0b9`，仅原报告与INDEX，src fdca不变，无compile/typecheck/transpile/out/native/UI。短C/I已交父/原J/唯一lane。
