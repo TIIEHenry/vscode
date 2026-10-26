@@ -14,8 +14,8 @@ summary: "独立实现审查与最近旧生产业务验证入口；完整迭代�
 | 证据 | 范围 |
 | --- | --- |
 | [D1387 J真实部分after](d1387-j-partial-after-2026-10-27.md) | C0/I1：14真实UI过、1隔离过、2仅lane连续性；M01真实按钮no-op，250原件逐SHA保留，D1387仍open、E未启动 |
-| [J/E正式集成与验证](je-formal-integration-verification.md) | 固定d91三路/411原件与失败历史保留；r2冻结及observer/CSS旧507/1边界保留；J已封存/父核510/0，E同身份明确授权运行中；§23独审真三路504路径，bidi fixture/12广告13handler/queue UNSUPPORTED/canonical-only timeline BOUNDARY无UI credit，双Pane已证/busy八项仍待，源码/163native/cache冻结 |
-| [Conversation响应恢复实现审查](conversation-response-recovery-code-review.md) | 900f原三I与c2b闭合历史；5f280/9e79定向补修C0/I0/M0；固定d91合源peer C0/I0/M0；D真实M01产品I1留存；b882方案规则16 C0/I0/M1；d046两I/4夹具失败历史；a222两I及0da326四TS补修C0/I0/M0，保留compile5失败；compile6后24/2与410/2泄漏历史；a166 VM与SCM夹具失败历史；fccde mixed旧红分类；64a4 progress与468d seed引用补修C0/I0/M0；compile7历史保留；D after toJSON定界为observer返回service bag，attempt1/2分记；CSS全文可逆映射闭合来源，原507/1保留且CSSOM勾号正确，CDP文本差异不作产品缺陷，整体验收另定；E bidi夹具纠正、canonical timeline-only BOUNDARY和双叶busy证据合同，实际E待；保留reasoning旧红 |
+| [J/E正式集成与验证](je-formal-integration-verification.md) | 固定d91三路/415原件及历史边界保留；J封存/父核510/0、E明确授权运行中；§23/24独审504/511路径，bidi/12广告13handler/queue UNSUPPORTED/timeline-only BOUNDARY无UI credit保持；link1→2可见Pane缺lease高度吻合Important候选，未证唯一根因/未修，实际八项待；source/163native/cache冻结 |
+| [Conversation响应恢复实现审查](conversation-response-recovery-code-review.md) | 900f原三I与c2b闭合历史；5f280/9e79定向补修C0/I0/M0；固定d91合源peer C0/I0/M0；D真实M01产品I1留存；b882方案规则16 C0/I0/M1；d046两I/4夹具失败历史；a222两I及0da326四TS补修C0/I0/M0，保留compile5失败；compile6后24/2与410/2泄漏历史；a166 VM与SCM夹具失败历史；fccde mixed旧红分类；64a4 progress与468d seed引用补修C0/I0/M0；compile7历史保留；D after toJSON定界为observer返回service bag，attempt1/2分记；CSS全文可逆映射闭合来源，原507/1保留且CSSOM勾号正确，CDP文本差异不作产品缺陷，整体验收另定；E bidi夹具纠正、canonical timeline-only BOUNDARY和双叶busy证据合同，实际E待；link1→2后可见Pane缺lease登记生命周期Important候选，公开恢复不洗首次观察；保留reasoning旧红 |
 | [E c2b回归配精确旧900f代表红](e-c2b-review-old900f-red-verification.md) | 五项纯业务旧红，非c2b新green |
 | [J/E初版旧业务验证](je-preintegration-old-red-verification.md) | 初版六项响应业务红及Sources宿主旧红的实际落点 |
 | [J listener补修的并发旧红](j-4d49-overlap-old65d-red-verification.md) | 两项旧65d业务失败与产物恢复 |

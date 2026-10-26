@@ -1,5 +1,5 @@
 {
-  "phase": "independent-E-execution-boundary-review-merged-J-sealed-E-authorized-running-frozen-source-native",
+  "phase": "E-running-boundaries-and-reconnect-visible-Pane-lease-Important-candidate-independent-reports-integrated-source-native-frozen",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -2876,6 +2876,34 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-r2-E-phase-authorization.json",
       "bytes": 622,
       "sha256": "cf91e5ca34215228be7ae9b8c9a381ba653f29e8b841e330da98c314c9348661",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-reconnect-candidate-peer-conflict-resolutions.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-reconnect-candidate-peer-conflict-resolutions.json",
+      "bytes": 13545,
+      "sha256": "0e304a65d5e430f491b8b311e671b17be0bf5d9f3d39f7f59241b50d300eb8e1",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-reconnect-candidate-peer-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-reconnect-candidate-peer-merge-identity.json",
+      "bytes": 287933,
+      "sha256": "a8dc1ad29c364376218e41d34b2fa00a0d42145117faf300d676f07e38668c44",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-reconnect-candidate-peer-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-reconnect-candidate-peer-merge.log",
+      "bytes": 258,
+      "sha256": "e79030392ad87cbb4f1060ef97eb0a084b9d33d459e71a66a29df17eccb1ae25",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-reconnect-candidate-peer-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-reconnect-candidate-peer-pre-merge.json",
+      "bytes": 433,
+      "sha256": "c8621715db90a685fb68c187c1cbb24cbba81d2139fae4106d4adeb8c726fdab",
       "bytePreservingCopy": true
     }
   ]

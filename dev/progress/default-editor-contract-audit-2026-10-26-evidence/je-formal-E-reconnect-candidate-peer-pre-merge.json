@@ -1,0 +1,9 @@
+{
+  "phase": "before-real-three-way-independent-E-reconnect-lifecycle-important-candidate-review",
+  "ours": "ab6822f5646cf56b67ee0582d97bcd6d98ff6444",
+  "theirs": "c1a5ab63b323605c227bd9c0590cbb85b9ec8fa7",
+  "mergeBase": "bf1b829ef3565dc76fb2b183e1894b98a3aa51dc",
+  "recordedAtUtc": "2026-10-26T21:21:37.896599+00:00",
+  "existingReportSections1Through23ExactPrefixPreserved": true,
+  "rootExplicitAuthorizationReceived": true
+}

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J r2已封存且父核510/0，E已明确授权运行中；§23独立边界报告真三路504路径保留，canonical-only timeline无UI credit、双Pane已证/busy八项待，源码与163native冻结。"
+summary: "J r2封存/父核510/0，E已授权运行中；§23/24独审真三路504/511路径保留，重连可见Pane缺lease为Important候选非已证唯一根因，八项待，源码/163native冻结。"
 ---
 
 # J/E 正式集成
@@ -402,3 +402,13 @@ finally所有163输出存在性/mode/SHA、163源SHA及旧Pane source/native全�
 canonical-envelope-only fixture未授respondable，不能生成所要求timeline-only clientTool CTA；该项维持 **BOUNDARY、无UI credit**，不把pending换名、不改生产或临时造新wire时序。真实nested split路径已经D `09-E-explicit-public-split`原件证明：标准显式groupId/editorIndex上下文，同session两个不同Pane/group可合法共享同一input；不能把window-service去重误写终局不可达。该步骤只解除双Pane身份前置风险，**busy、第二叶真实操作抑制、失败恢复/同参数retry及八项业务结果仍待D完成**。reviewer只读边界审查，既不判准备状态失败，也不签E通过。本lane不把这些步骤写成E整体通过或领取额外UI credit，不翻plan/PRD/whole wave。
 
 [本次只读冻结核验](m01-E-boundary-docs-native-check.json)持共享锁对完整163项当前native、FS source、当前Git source逐SHA与冻结清单核准，src仍 **`2b5df2b37ca926e38888443e371cf65e2883dba2`**；没有任何source/out/依赖缓存写入。三原cache symlink路径/目标仍稳定，当时home **1,016,971,264 bytes**不足全还原文件1,590,020,186 bytes+512MiB余量，按父授权保留全部symlink，未部分还原或额外删除；本E期间不机械重做镜像全文哈希。原404 artifacts全部bytes/SHA保留，新增四三路证明、只读native检查与两个阶段原件后现411。继续保持冻结，本切片立即收尾，不等待D后续、也不追新main。
+
+## E重连可见Pane缺lease的Important候选报告接入
+
+父在实际读§24、独核七件D原件SHA并读02/03/04/06观察后，明确授权本lane继续consume **`c1a5ab63b323605c227bd9c0590cbb85b9ec8fa7`**（父bf1b，仅同报告/INDEX）。本lane随后实际读完整增量，以§1–23逐字前缀保留核验后正式真三路合入；[511路径mode/type/blob门禁](je-formal-E-reconnect-candidate-peer-merge-identity.json)PASS，report blob精确incoming。仅INDEX冲突，[双方全文及理由](je-formal-E-reconnect-candidate-peer-conflict-resolutions.json)保留原411原件、J封存/E授权运行中、§23边界及incoming Important候选导航。原411逐bytes/SHA保留，四新三路证明后库存415，status仍200。
+
+准确登记为**已有可见Pane经历link1→2重连后绑定恢复的Important候选**。02创建真实leaf时link1/local，03/04在fixture重启后link2/engine-cache；04另行取得的public observer lease已有permission pending，而真实Pane正确session/disposed=false但lastEntries为空、sessionViewLease未登记，不能把public frame当Pane持有lease。05公开hide、06公开restore后seat出现且可响应，属于明确恢复路径，不能回写成此前打开即正确得到pending。也不把它归作旧E unary业务回归。
+
+审查给出的静态链与观察高度吻合：Roster连接通知先将catalog置loading；Lens在not-ready且无same-session entries时清lease；同id catalog恢复只发session更新而缺lease可见消费者未重绑；公开可见性切换补偿绑定。但**没有完整callback现场顺序/readiness/entries记录，也没有独立最小重现**，所以不称唯一根因已证实、不称已修复；生产三文件与旧9cc56/当前800d字节连续，只说明不是M01改这三文件引入，不替代旧窗口复现或证明整条因果代码都未变。
+
+当前冻结波只记录候选，不新编号/新方案、不加产品补丁。E八项仍由D继续执行，permission-false的正常无force重复操作证据仍在补充；公开恢复后的unary后续成功不洗掉此前观察，也不预判八项通过/失败。J封存9c874a/父核510/0与E授权cf91e5ca的身份不变，canonical-only timeline BOUNDARY不领UI credit、queue UNSUPPORTED边界继续保留。源码/src tree仍2b5d、完整163native与缓存保持冻结，不编译/转译/测试/UI、不ff/push、不追新main；本切片立即文档收尾。
