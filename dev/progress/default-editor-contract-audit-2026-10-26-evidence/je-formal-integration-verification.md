@@ -359,3 +359,18 @@ finally所有163输出存在性/mode/SHA、163源SHA及旧Pane source/native全�
 [父只读核验范围](m01-eighth-parent-read-verification.json)为：重算compile8全部163 pair及候选Git tree，418/160路径base/ours/theirs/result mode/type/blob、361原件bytes/SHA，以及六组JSON结果/身份标志；不是父代跑业务或UI。[本轮cache状态](m01-eighth-cache-status.json)三镜像逐entry仍全精确，home **1,298,288,640 bytes** / tmp **2,698,514,432 bytes**，不足1,590,020,186文件bytes+512MiB全恢复余量，按父明确授权保留全部稳定原path symlink，未恢复/未partial restore/未额外删除；精确原路径/目标/清单哈希与后续安全还原步骤见JSON及原relocation record。这一稳定依赖安排不阻塞经授权D J。
 
 全部361已有artifact逐bytes/SHA保留，当前库存391。第七失败、新旧反例和早期历史不回写。下一仅按D最后5a3合同发r2新53共同superset notices与全163freeze，manifest不当renderer loaded；父独核后单独调度J默认编辑器zeroEngineRpc，E须实际J完成及父另授。此记录时尚无新notice/UI/E执行，D1387仍open、不push/不重试主ff。
+
+## M01 r2新53共同通知与完整163冻结
+
+在第八真实compile0/new39与完整J425通过、相关链及明确旧红边界、391原件全核后，唯一lane空全局scan/共享锁签新freeze。冻结 **sourceHead `800d383ba65fdefb36da324b380941c7574c4bf3` / src `2b5df2b37ca926e38888443e371cf65e2883dba2`**；真实native producer仍 **`bd1b756066932d524f5de5f6b8fdc247c70d46f5` / ordinal8 / exit0**，两Git src相同且fixed d91祖先成立。最后D合同SHA **`5a3d7eb82cce25f0f5b9bbe1325c71817b14e2481eab14d9c5f1bfe45149c138`** 实核，candidate468d/parent64a4/repaira166/39/planned8、runId **`sources-m01-after-20261027-r2`** 全绑定；历史合同/旧notice原件不覆盖。
+
+| 新通知 | 实际consumer路径（D/.build/下） | 原始JSON SHA256 |
+| --- | --- | --- |
+| [J新53原件](m01-r2-J-production-frozen.json) | `d1387-m01-after-20261027-r2/fresh-notice.json` | `671cb3c8d944cd785772b8c8326415f0c2263c29e47cc0bfc991f2454e62479b` |
+| [E新53原件](m01-r2-E-production-frozen.json) | `e-response-after-m01-20261027-r2/e-final-freeze.json` | `cacee49ecc452d69fbf6dd33557a6363b32ad269626f0d4aec9a444f80d38098` |
+
+两份是**相同53共同superset**，每项path/sha256/sourcePath/sourceSha256四字段，三M01生产helper/actions/Pane齐全。共同canonical outputs SHA256 **`f9dd6bc5f3923a4bd57f6b70ab01ac5070bcbd991c67cbef667d8cbfcbfc23d6`**；算法为outputs按native path codepoint排序、递归键排序compact UTF8 JSON。J/E原模板rawSHA分别f6e513…/30bd9…，原字节[模板J](m01-r2-J-freeze-template.json)/[模板E](m01-r2-E-freeze-template.json)保留，通知仅填真实身份，不把模板占位算已签freeze。
+
+[完整163冻结JSON](m01-r2-final-freeze.json)原始SHA256 **`ba84c0c60db4de894d2b0276cda24665f48003a911dbb053570dc0c4e00cc022`**，canonical全163 outputs SHA256 **`decb88f3f79afee5671bba09b32ac280dd80065f7ba63c3396a4c4a940a847f9`**；全部163实际source/native逐SHA对真实Git/磁盘核准，另含存在性/mode/bytes/mtime及两consumer原件路径/hash。[实际签发脚本](m01-r2-final-freeze.py)与两进程scan原件保留，使用exclusive新建，未覆盖旧run通知。全部391原件bytes/SHA保留，现399 artifact；status仍200行。
+
+**所有out mutation自签发起停止，直至D阶段结束。** 后续仅纯docs保存；缓存镜像和原路径symlink按已核状态保留，未虚称恢复。通知是source/native manifest，不是renderer实际loaded或产品验收；父已收到精确sourceHead/tree/producer/原始及canonical SHA，独立核后才调度J默认编辑器zeroEngineRpc。本lane没有跑D/readiness/UI/server/engine；E须同runId/身份的实际J completion及父独立E授权，当前未授权。Wiring23/1和E11 reasoning旧红仍在，不由新notice抹去；D1387 open、不push/不重试主ff。

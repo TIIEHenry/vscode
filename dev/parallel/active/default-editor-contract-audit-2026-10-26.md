@@ -174,3 +174,5 @@ C f9真三路f75，精确旧69ac/57action正文+只fresh真实controller测试�
 后修没有fullcompile；source6f82的唯一45/27失败和旧46/28/55/36原log按字节保留，不替f75估算新计数。新红绿/失败/产物hash/body/mtime分文件落现有证据目录；未写人类/字母槽、未push。J新Sources设计或未提交实现不在此checkpoint，D1382既定通知合同不倒灌。
 
 唯一lane真实第八完整compile producerbd1b/src2b5d精确468d，exit0/0TS；M0139/Jfocused29/完整J425/E44/Roster190实际过，三次load/live/count1/2/3/三dispose全达，无leak/异常。Wiring23/1唯一旧Accept builder红；E11全11与Node61+50生产/外部133精确source/native连续，沿用实际旧reasoning255/1及Node880，不冒称重跑。每组163及HEAD/src/clean保持；361历史全保留现391原件，父只读核范围已记录。三cache全核而/home不足全restore+余量，按父授权保留全symlink。下一53新notice/163freeze，父独核后仅调度J，E仍未授权，D1387 open。
+
+M01 r2新freeze已实际签：sourceHead800d/src2b5d、native producerbd1b/ordinal8 exit0、runId sources-m01-after-20261027-r2，D最后5a3合同核准；J/E共同53原件raw671cb3/cacee4，共同canonicalf9dd6b，全163freeze另存且399历史原件全核。全部out mutation暂停至D阶段结束，cache全symlink按已核稳定状态保留；父独核后单独调度J默认窗zeroEngineRpc，E仍需实际J完成及父另授。本lane未跑D/readiness/UI/server/engine，D1387 open。
