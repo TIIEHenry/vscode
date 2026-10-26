@@ -85,6 +85,8 @@ Model 菜单在选项后有分隔线，下一项是 **Manage Models…**，只�
 
 `IUniverseAgentConnection` 无 voice/transcript 方法，也无对应 capability key。Composer **不画**麦克风按钮、转写条或预设台词；不得用 `durationLabel '0:01'` / stub phrase 冒充用户说过话。真转写须等引擎 capability 后再开门控。语音队列不是 MessageQueue。
 
+默认编辑器中保留的 Copilot Chat `agentsVoice.startVoiceInChat` 是另一条兼容入口，不属于 Conversation 真语音验收，也不挂载浮动语音窗。其首次连接录音授权绑定发起 widget/composer 与当次手势；连接请求完成不等于录音准入，须等既有 ack 或 fallback 令 `isConnected` 成立。等待中离开发起 composer、换其 view model、隐藏或移除 owner、松开冷启动按住手势，都会单向撤销该次授权；回到原 composer 不复活。取消可保留安静连接，下次明确按下重新建立归属。hands-free 准入后才释放 auto-listen hold；非 hands-free 冷点击仅连接，冷按住只在按住期间录音，释放强制结束；已连接 tap/hold/停止合同保持。生命周期、例外与验证见 [冷连接授权方案](../../../dev/plans/copilot-chat-cold-voice-authorization.md)。
+
 ## 6. 输入历史
 
 `conversationInputHistory.ts`：↑ / ↓ 浏览该会话已发送的用户正文。去掉空白后输入框还有字时不开始翻。光标必须是折叠选区：↑ 只在首行、↓ 只在末行；否则方向键只移动光标，不改文字。Ctrl / Alt / Shift / Meta 加方向键也不翻。召回后 ↑ 把光标放在开头、↓ 放在末尾，下一次同向键才能继续翻。`turnEdit` / `queueEdit` 按同一套光标规则改输入框里的字，但不写入 compose 草稿。Escape 退出浏览并还原进入前的文字。回合或队列编辑里，这次 Escape 留在编辑中；再按一次才回 `compose`。按会话隔离。召回或 Escape 还原改了输入框之后，发送钮跟一次 input 走同一套门闩：有可提交正文才打开；配对保持和 KEEP leftover 列表失败仍关掉。
