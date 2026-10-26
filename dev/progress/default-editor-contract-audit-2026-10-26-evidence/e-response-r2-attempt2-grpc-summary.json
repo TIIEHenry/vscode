@@ -1,0 +1,159 @@
+{
+  "runId": "sources-m01-after-20261027-r2",
+  "attempt": 2,
+  "createdAt": "2026-10-26T21:48:35.292700+00:00",
+  "status": "COMPLETE_TRANSPORT_OBSERVATION",
+  "measurement": "grpc-js server_call Received call to method emitted before handler lookup, including unknown methods; both complete independent fake lifetimes aggregated",
+  "episodes": [
+    {
+      "episode": "episode1",
+      "tracePath": "fake-grpc-trace.log",
+      "traceSha256": "4df3bc56554203f45630a2500e682de5ad28d8f5abd41e2c206924810ca0a399",
+      "traceBytes": 42636,
+      "ioPath": "fake-io.jsonl",
+      "ioSha256": "932440b6c1de9596f59d035363d43483a466954b148c1de605f03d023c4f4648",
+      "receivedMethods": {
+        "/agentservice.AgentService/Chat": 1,
+        "/agentservice.AgentService/RespondQuestion": 5,
+        "/agentservice.AgentService/SendClientToolResponse": 5,
+        "/agentservice.AgentService/Tree": 4,
+        "/agentservice.PermissionService/Respond": 7,
+        "/agentservice.SessionService/List": 3,
+        "/agentservice.SessionService/Resume": 1,
+        "/agentservice.SessionService/SessionEventStream": 1,
+        "/agentservice.SystemService/Connect": 1,
+        "/agentservice.SystemService/HealthCheck": 1
+      },
+      "receivedCount": 29,
+      "registeredUnaryDispatchCounts": {
+        "/agentservice.AgentService/RespondQuestion": 5,
+        "/agentservice.AgentService/SendClientToolResponse": 5,
+        "/agentservice.AgentService/Tree": 4,
+        "/agentservice.PermissionService/Respond": 7,
+        "/agentservice.SessionService/List": 3,
+        "/agentservice.SessionService/Resume": 1,
+        "/agentservice.SystemService/Connect": 1,
+        "/agentservice.SystemService/HealthCheck": 1
+      },
+      "registeredUnaryAndSessionHandshakeCrosscheck": true,
+      "sessionStreamHandshakes": 1,
+      "residentChatStreamOpens": 1,
+      "chatWritePayloads": 0,
+      "unknownMethodCount": 0,
+      "firstEvent": {
+        "at": 1793050379408,
+        "fakeIo": true,
+        "type": "fake-server-started",
+        "pid": 2032136,
+        "socket": "/tmp/vscode-e-after-home-3j30qpjd/server.sock",
+        "sourceHead": "800d383ba65fdefb36da324b380941c7574c4bf3"
+      },
+      "lastEvent": {
+        "at": 1793050804717,
+        "fakeIo": true,
+        "type": "fake-server-stopped",
+        "signal": "SIGTERM",
+        "pid": 2032136
+      },
+      "completeFakeLifetime": true
+    },
+    {
+      "episode": "episode2",
+      "tracePath": "transport-episode-2/fake-grpc-trace.log",
+      "traceSha256": "234311caf81dde84b5393d8cded12eed6a46beb26558703a1161e00d2703686e",
+      "traceBytes": 20148,
+      "ioPath": "transport-episode-2/fake-io.jsonl",
+      "ioSha256": "15764c1cf6b0c2c2b8770898bd3189dc7e6001abd83f0553461a3ff8162936e0",
+      "receivedMethods": {
+        "/agentservice.AgentService/Chat": 1,
+        "/agentservice.AgentService/SendClientToolResponse": 1,
+        "/agentservice.AgentService/Tree": 4,
+        "/agentservice.PermissionService/Respond": 1,
+        "/agentservice.SessionService/List": 3,
+        "/agentservice.SessionService/Resume": 1,
+        "/agentservice.SessionService/SessionEventStream": 1,
+        "/agentservice.SystemService/Connect": 1,
+        "/agentservice.SystemService/HealthCheck": 1
+      },
+      "receivedCount": 14,
+      "registeredUnaryDispatchCounts": {
+        "/agentservice.AgentService/SendClientToolResponse": 1,
+        "/agentservice.AgentService/Tree": 4,
+        "/agentservice.PermissionService/Respond": 1,
+        "/agentservice.SessionService/List": 3,
+        "/agentservice.SessionService/Resume": 1,
+        "/agentservice.SystemService/Connect": 1,
+        "/agentservice.SystemService/HealthCheck": 1
+      },
+      "registeredUnaryAndSessionHandshakeCrosscheck": true,
+      "sessionStreamHandshakes": 1,
+      "residentChatStreamOpens": 1,
+      "chatWritePayloads": 0,
+      "unknownMethodCount": 0,
+      "firstEvent": {
+        "at": 1793050836427,
+        "fakeIo": true,
+        "type": "fake-server-started",
+        "pid": 2044385,
+        "socket": "/tmp/vscode-e-after-home-3j30qpjd/server.sock",
+        "sourceHead": "800d383ba65fdefb36da324b380941c7574c4bf3"
+      },
+      "lastEvent": {
+        "at": 1793051269837,
+        "fakeIo": true,
+        "type": "fake-server-stopped",
+        "signal": "SIGTERM",
+        "pid": 2044385
+      },
+      "completeFakeLifetime": true
+    }
+  ],
+  "registeredHandlerCount": 13,
+  "advertisedMethodCount": 12,
+  "registeredPaths": [
+    "/agentservice.AgentService/Chat",
+    "/agentservice.AgentService/RespondQuestion",
+    "/agentservice.AgentService/SendClientToolResponse",
+    "/agentservice.AgentService/Tree",
+    "/agentservice.PermissionService/Respond",
+    "/agentservice.SessionService/Create",
+    "/agentservice.SessionService/GetHistory",
+    "/agentservice.SessionService/Info",
+    "/agentservice.SessionService/List",
+    "/agentservice.SessionService/Resume",
+    "/agentservice.SessionService/SessionEventStream",
+    "/agentservice.SystemService/Connect",
+    "/agentservice.SystemService/HealthCheck"
+  ],
+  "allReceivedMethodCounts": {
+    "/agentservice.AgentService/Chat": 2,
+    "/agentservice.AgentService/RespondQuestion": 5,
+    "/agentservice.AgentService/SendClientToolResponse": 6,
+    "/agentservice.AgentService/Tree": 8,
+    "/agentservice.PermissionService/Respond": 8,
+    "/agentservice.SessionService/List": 6,
+    "/agentservice.SessionService/Resume": 2,
+    "/agentservice.SessionService/SessionEventStream": 2,
+    "/agentservice.SystemService/Connect": 2,
+    "/agentservice.SystemService/HealthCheck": 2
+  },
+  "receivedCallCount": 43,
+  "unaryDispatchCount": 39,
+  "responseUnaryCount": 19,
+  "residentChatStreamOpens": 2,
+  "chatWritePayloads": 0,
+  "getQueueReceived": 0,
+  "saveSkillContentReceived": 0,
+  "unknownMethodCount": 0,
+  "knownPathsCrosschecked": true,
+  "activeObserverFilesNoDirectQueueSkillOrForcedClick": [
+    "driver.cjs",
+    "probe.cjs",
+    "run-response-case.py",
+    "run-concurrency.py",
+    "run-transport-prep.py",
+    "run-transport-new-link.py",
+    "run-final-disconnect.py"
+  ],
+  "importantUiFailureRetained": "step70 disconnected cached permission falsely became Allowed; zero RPC is not a UI-disabled pass"
+}

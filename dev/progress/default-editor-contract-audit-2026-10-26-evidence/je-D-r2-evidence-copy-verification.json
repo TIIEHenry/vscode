@@ -1,0 +1,508 @@
+{
+  "phase": "explicit-D-r2-evidence-commit-actual-byte-preservation-check-no-runtime",
+  "checkedAtUtc": "2026-10-26T22:03:00.516266+00:00",
+  "incomingCommit": "da743813ffcaa47c6bbf45f1ff8c34fed24e9c3f",
+  "incomingParentAndActualMergeBase": "ee1892ee8cd3499ec9af0b1fd8ca66124524fb0c",
+  "only31EvidencePaths": true,
+  "runtimeSourceHead": "800d383ba65fdefb36da324b380941c7574c4bf3",
+  "runtimeSourceTree": "2b5df2b37ca926e38888443e371cf65e2883dba2",
+  "DCommitSourceTreeNotRuntimeIdentity": "fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1",
+  "mainReportActuallyRead": true,
+  "mainReportSha256": "399e64c3609f5f3150949f95f9b2d76f87577b77c9a3c2c22b5dd44215cc0c99",
+  "manifestSha256": "2c6d6343b7fee610cf7c9c89ce283defc521fe9d29a0fbf32541973ec6d96bd8",
+  "manifest23Copies": [
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/J-evidence-sealed.tar.gz",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-after-evidence.tar.gz",
+      "bytes": 10435863,
+      "sha256": "19a06c98431ae7a1c8aa04ce556a7695d40ca32ed17c5f445b7aa5115665cd80",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/artifact-inventory.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-artifact-inventory.json",
+      "bytes": 156670,
+      "sha256": "3c9341ae66948d50c4cd166e466133a6c6547360d4ece2e389cba445cb052f27",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/j-phase-complete.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-phase-complete.json",
+      "bytes": 7294,
+      "sha256": "9c874a5ebacda7dad026db5c16c72d8cc3f6d8dfc77f3c566b62c4f8f2783d3e",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/matrix.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-matrix.json",
+      "bytes": 12335,
+      "sha256": "1d49c8194fbfbc5b4f9e74d01be89f22eb04c439cf6c23bc6857fa87c1227bb7",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/assertions.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-assertions.json",
+      "bytes": 106543,
+      "sha256": "70a37adbf870dfe3cf270a71e179b2e3697d1ec2ff7aa78ffc07b831d223d0c4",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2/attempt1-evidence-sealed.tar.gz",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-evidence.tar.gz",
+      "bytes": 6706240,
+      "sha256": "4aff8e15b0a277f49fbef43a17188c7d9ecc5f8d8b74e9773d19f94e34f2a792",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2/attempt1-artifact-inventory.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-artifact-inventory.json",
+      "bytes": 63431,
+      "sha256": "4d1af46f525f9249565babfec2dadd0f1339a19d5484678c3978c8d159d125c5",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2/attempt1-seal.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-seal.json",
+      "bytes": 438,
+      "sha256": "2033d8f20b24bb36e3c2c027dffc20b49ca27952eabd01fc2426200802ea00b4",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2/matrix.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-matrix.json",
+      "bytes": 12864,
+      "sha256": "a7efdc963be069984e68b46a7b38eeaf115864e4fb905462ce49a8809086c4bd",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/attempt2-evidence-sealed.tar.gz",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-evidence.tar.gz",
+      "bytes": 5373669,
+      "sha256": "7678841cb782513c8f030e0870470480cc6cc13831e7bc17cba50f0cc887c5a8",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/attempt2-artifact-inventory.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-artifact-inventory.json",
+      "bytes": 63108,
+      "sha256": "93fe73be6e29f720f3a271873e5d166eaa2a0411fe9fa0b65adf5709e58e7294",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/attempt2-stage-seal.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-seal.json",
+      "bytes": 1713,
+      "sha256": "ad7f781a5906ac2df82ceffbb4ac575a8a4b9efb716f43690d0c4a831aaf443b",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/attempt2-stage-archive-verification.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-archive-verification.json",
+      "bytes": 394,
+      "sha256": "b0c7bd28db19f6ec1b12e27cb0fc0c829c1067268aedd1ee4ceee786eecf0b59",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/stage-summary.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-summary.json",
+      "bytes": 3830,
+      "sha256": "ac13c0ab0059683899c241b438e1f15a27ffdd8e1430c4caca8f7c70690b8b1e",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/matrix.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-matrix.json",
+      "bytes": 15471,
+      "sha256": "db730347c6a0e9182076e21e5d06b6bc9eecff0724cf022b3a2c317d167e8a5d",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/E-ATTEMPT2-STAGE-REPORT.md",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-runtime-report.md",
+      "bytes": 8287,
+      "sha256": "49a75e257069d018cb8a461838a2b383df3145744d4dba9bbd84a22edaa69409",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/grpc-full-lifetime-summary.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-grpc-summary.json",
+      "bytes": 6254,
+      "sha256": "acf5afcc602d682d760c49b36e3ba749b1d387ad17ed92a7f0160c4f9cfade34",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/runtime-assets-E.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-runtime-assets.json",
+      "bytes": 54935,
+      "sha256": "cea24163a569e479db9e952728705765e89742074b31cdabb55c75b23841a721",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/full163-guard-after.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-full163-guard.json",
+      "bytes": 83635,
+      "sha256": "090dda694fc243484c766e0338ee382b337b4d91c68d6dc899032385d4f7f5f1",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/attempt2-cleanup.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-cleanup.json",
+      "bytes": 10960,
+      "sha256": "9dd662975fe6305dc20ec6f76ef8e4eac73d64854c40580d4b828b2c30f48852",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/j-preservation-after-cleanup.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-j-preservation.json",
+      "bytes": 1689,
+      "sha256": "cde161844ca44edc5299bb738a9c182eb849069fb4efc555deeb1351a642da43",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/git-fixtures-exact-baseline-after.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-fixtures-after.json",
+      "bytes": 4646,
+      "sha256": "56d46970c4775a90319f87e537d284705c91191364678fbf0f43d75fda98d489",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/css-typed-identity.json",
+      "durablePath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-css-typed-identity.json",
+      "bytes": 859,
+      "sha256": "3edfd12d25d871971b27ae18baab734233d0cff82a3081a09554c5eb386654af",
+      "copyByteExact": true,
+      "originalMergedFsIncomingGitAllByteExact": true
+    }
+  ],
+  "all30NonIndexPaths": [
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-after-evidence.tar.gz",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "4495a44cba8dfb67673a4988c13e6dd7a7832c4f",
+      "filesystemMode": 436,
+      "bytes": 10435863,
+      "sha256": "19a06c98431ae7a1c8aa04ce556a7695d40ca32ed17c5f445b7aa5115665cd80",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-artifact-inventory.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "3df3f147db69c28797e3277d5cf8cc162aef94ad",
+      "filesystemMode": 436,
+      "bytes": 156670,
+      "sha256": "3c9341ae66948d50c4cd166e466133a6c6547360d4ece2e389cba445cb052f27",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-assertions.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "b6f6bf645017872570d83c78ec8598db376c46f2",
+      "filesystemMode": 436,
+      "bytes": 106543,
+      "sha256": "70a37adbf870dfe3cf270a71e179b2e3697d1ec2ff7aa78ffc07b831d223d0c4",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-matrix.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "fa06086429e4d77d455e31047962c3ddaf08dbaa",
+      "filesystemMode": 436,
+      "bytes": 12335,
+      "sha256": "1d49c8194fbfbc5b4f9e74d01be89f22eb04c439cf6c23bc6857fa87c1227bb7",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-phase-complete.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "cff372a65fc2b040d3620e1e69f4ace0c8bd8170",
+      "filesystemMode": 436,
+      "bytes": 7294,
+      "sha256": "9c874a5ebacda7dad026db5c16c72d8cc3f6d8dfc77f3c566b62c4f8f2783d3e",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-artifact-inventory.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "ce9128e830cd329ca040605fded8417c0b633c88",
+      "filesystemMode": 436,
+      "bytes": 63431,
+      "sha256": "4d1af46f525f9249565babfec2dadd0f1339a19d5484678c3978c8d159d125c5",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-evidence.tar.gz",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "b36771034bc98ca6e1f4b40359dd222816fa19e9",
+      "filesystemMode": 436,
+      "bytes": 6706240,
+      "sha256": "4aff8e15b0a277f49fbef43a17188c7d9ecc5f8d8b74e9773d19f94e34f2a792",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-matrix.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "964661376961aee15859022a25b90a7b3c1e6687",
+      "filesystemMode": 436,
+      "bytes": 12864,
+      "sha256": "a7efdc963be069984e68b46a7b38eeaf115864e4fb905462ce49a8809086c4bd",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-seal.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "ca4125d0fc5007e745199aacb980f49d92f69bf2",
+      "filesystemMode": 436,
+      "bytes": 438,
+      "sha256": "2033d8f20b24bb36e3c2c027dffc20b49ca27952eabd01fc2426200802ea00b4",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-archive-verification.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "7083a0675e3437a2a14d71b6809f13a407751bcf",
+      "filesystemMode": 436,
+      "bytes": 394,
+      "sha256": "b0c7bd28db19f6ec1b12e27cb0fc0c829c1067268aedd1ee4ceee786eecf0b59",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-artifact-inventory.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "b18211b390a1f1ebfbe440fd18c7808d20b51a6a",
+      "filesystemMode": 436,
+      "bytes": 63108,
+      "sha256": "93fe73be6e29f720f3a271873e5d166eaa2a0411fe9fa0b65adf5709e58e7294",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-cleanup.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "a13683b511fd1fd4d7011e7e186e40a25a02d4cf",
+      "filesystemMode": 436,
+      "bytes": 10960,
+      "sha256": "9dd662975fe6305dc20ec6f76ef8e4eac73d64854c40580d4b828b2c30f48852",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-css-typed-identity.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "79aac85d901e8a864654dd88d92cb1ac4ccfaf12",
+      "filesystemMode": 436,
+      "bytes": 859,
+      "sha256": "3edfd12d25d871971b27ae18baab734233d0cff82a3081a09554c5eb386654af",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-evidence.tar.gz",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "fdb4e817f9b6a883c8511bdedaf1b8f5f4f19320",
+      "filesystemMode": 436,
+      "bytes": 5373669,
+      "sha256": "7678841cb782513c8f030e0870470480cc6cc13831e7bc17cba50f0cc887c5a8",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-fixtures-after.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "9a616d0bec6665d8e3505a3e284a05fd9a47e377",
+      "filesystemMode": 436,
+      "bytes": 4646,
+      "sha256": "56d46970c4775a90319f87e537d284705c91191364678fbf0f43d75fda98d489",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-full163-guard.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "5e57a5634a416aca2644b24b9c7a74b62056a018",
+      "filesystemMode": 436,
+      "bytes": 83635,
+      "sha256": "090dda694fc243484c766e0338ee382b337b4d91c68d6dc899032385d4f7f5f1",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-grpc-summary.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "a42f001169abebd068612ed1d67e988a8a77aa73",
+      "filesystemMode": 436,
+      "bytes": 6254,
+      "sha256": "acf5afcc602d682d760c49b36e3ba749b1d387ad17ed92a7f0160c4f9cfade34",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-j-preservation.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "4b7b4b4cdba6dce62ea3ec994e25dac3ac0cc6a8",
+      "filesystemMode": 436,
+      "bytes": 1689,
+      "sha256": "cde161844ca44edc5299bb738a9c182eb849069fb4efc555deeb1351a642da43",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-matrix.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "a8f1ee3d64bc7745f8d7e478797a96f2b5b87c79",
+      "filesystemMode": 436,
+      "bytes": 15471,
+      "sha256": "db730347c6a0e9182076e21e5d06b6bc9eecff0724cf022b3a2c317d167e8a5d",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-runtime-assets.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "baed643c292a41c69d61ee4b5636a4fa64960f1f",
+      "filesystemMode": 436,
+      "bytes": 54935,
+      "sha256": "cea24163a569e479db9e952728705765e89742074b31cdabb55c75b23841a721",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-runtime-report.md",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "8073a41b9c634e8886bbcdc184c001378f626678",
+      "filesystemMode": 436,
+      "bytes": 8287,
+      "sha256": "49a75e257069d018cb8a461838a2b383df3145744d4dba9bbd84a22edaa69409",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-seal.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "29a2e22a36b1dd42fc42b6a4483ee3f40f53ca3a",
+      "filesystemMode": 436,
+      "bytes": 1713,
+      "sha256": "ad7f781a5906ac2df82ceffbb4ac575a8a4b9efb716f43690d0c4a831aaf443b",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-summary.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "b8f0b4beaf34f3efea673fd6e02b63d89a26b5bf",
+      "filesystemMode": 436,
+      "bytes": 3830,
+      "sha256": "ac13c0ab0059683899c241b438e1f15a27ffdd8e1430c4caca8f7c70690b8b1e",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-diff-check.log",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-docs-gates.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "00406b623ee20ad5e752502c2b31415142f0a9dd",
+      "filesystemMode": 436,
+      "bytes": 5428,
+      "sha256": "6de176721b238b17ea01939e5676beff1db2586fa5f9ac39a5bd8d8d5aa22f2b",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-docs-health.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "f4034a57d52120226f37df618c77a489909514b1",
+      "filesystemMode": 436,
+      "bytes": 9167,
+      "sha256": "6903743435cd16705131fca7dda863b5943bf56dc6fd2b1e16cb779805aa96c2",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-docs-health.stderr.log",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-evidence-manifest.json",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "644384798e49f74d9e468b5f07107a5858a8ea14",
+      "filesystemMode": 436,
+      "bytes": 10220,
+      "sha256": "2c6d6343b7fee610cf7c9c89ce283defc521fe9d29a0fbf32541973ec6d96bd8",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-evidence.md",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "e7aaf18d98087c38b4a0e6493098d542ccb4066a",
+      "filesystemMode": 436,
+      "bytes": 9147,
+      "sha256": "399e64c3609f5f3150949f95f9b2d76f87577b77c9a3c2c22b5dd44215cc0c99",
+      "mergedFsBytesExactIncoming": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-generated-status-check.log",
+      "gitMode": "100644",
+      "gitType": "blob",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "filesystemMode": 436,
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "mergedFsBytesExactIncoming": true
+    }
+  ],
+  "filesystemModeBoundary": "Git mode/type/blob are exact. Shared-worktree checkout permissions are separately recorded as 0664, non-executable; no chmod or raw byte changes were made.",
+  "parentAlreadyStreamVerifiedAllThreeArchiveMembers": true,
+  "producerDidNotDuplicateArchiveMemberInspectionOrRuntime": true,
+  "noSourceOutCacheWritesOrCompileTestsUi": true,
+  "EAfter": "FAIL Important disconnected cached permission false local Allowed",
+  "EPlan": "accepted",
+  "waveComplete": false
+}

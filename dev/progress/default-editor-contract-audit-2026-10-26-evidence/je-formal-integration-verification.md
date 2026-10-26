@@ -426,3 +426,11 @@ canonical-envelope-only fixture未授respondable，不能生成所要求timeline
 [父实际独立复核范围](m01-E-final-parent-read-verification.json)准确记录父完整读diff、核新stage七引用SHA、323原件+1 inventory在tar/external逐bytes/SHA、两trace计数及69/70原JSON/PNG视觉确认，只读审查不冒称父运行live UI/业务。D实际stage已结束，owned main/Xvfb/fake按PID/startticks精确清理、live0，最终163/J/Git fixtures守卫相同；这是D执行与父/审查者对原件的核验。本lane此切片不展开新D包、不等待D稍后正式文档提交；仅接本明确review SHA，后续D evidence/index须父明确给commit再接。
 
 原415 artifact全量bytes/SHA保留，四份三路证明及父复核范围JSON加入后现420，status200。source tree仍 **`2b5df2b37ca926e38888443e371cf65e2883dba2`**，唯一lane的完整163native和三cache稳定symlink保持；home不足不还原、不部分还原或额外删除。旧freeze保留为本旧身份的真实历史，不延用未来修订。父已把原合同内UI/callback/postBound共用拒绝门交回原E作者独立分支，尚无可消费source SHA、没有新编译/运行授权；本lane不改产品、不compile/transpile/typecheck/业务/UI测试或写out/cache，不触main WIP/ff/push。PRD、旧D、整波状态均不升级或关闭。
+
+## D完整J after与E两轮阶段原件正式接入
+
+明确交付的D不可变 **`da743813ffcaa47c6bbf45f1ff8c34fed24e9c3f`**（父与实际base均ee1892）仅31个本证据目录路径，真实三路合并[544路径mode/type/blob门禁](je-formal-J-E-r2-D-evidence-merge-identity.json)PASS。仅INDEX交集已保留双方导航与当前结论，[双方全文与理由](je-formal-J-E-r2-D-evidence-conflict-resolutions.json)完整留存；其余30文件与incoming Git逐bytes精确一致。[23映射拷贝与30incoming复核](je-D-r2-evidence-copy-verification.json)核对原D文件、合入FS和不可变Git字节/SHA；Git100644与实际FS0664非执行位分开记录，不误称FS0644。
+
+已实际完整读[D正式报告](j-e-r2-after-evidence.md)（SHA256 `399e64c3609f5f3150949f95f9b2d76f87577b77c9a3c2c22b5dd44215cc0c99`）与[manifest](j-e-r2-after-evidence-manifest.json)（`2c6d6343b7fee610cf7c9c89ce283defc521fe9d29a0fbf32541973ec6d96bd8`），不把本lane的原件读核说成本轮UI运行。J原source800d/src2b5d完整after **510/0**，18矩阵=15真实UI+2唯一lane provenance+1隔离，67 snapshots、五方向Move与实际Conversation按钮通过；仅适用于该旧源码身份。E attempt1污染与attempt2最终 **FAIL/C0/I1**、八行通过及断连缓存普通Allow的本地假成功均按原件保留；canonical timeline-only BOUNDARY无UI credit、§24缺leaseImportant候选未复现与BODY Minor候选不升级。原方案accepted、整波active，旧D与PRD不关闭。
+
+旧420件逐bytes/SHA全部保留，新增30不可变D文件、四merge证明及一copy-verification后库存 **455**。三个封包只作原始字节身份核对；父已逐member检查的展开工作不机械重做。source tree仍 **`2b5df2b37ca926e38888443e371cf65e2883dba2`**，本docs切片无native/source/cache写入，无编译/转译/测试/UI。后续只按父明确交付的peer/source与独立运行授权开展旧红和新native验证，旧after不沿用未来修订。

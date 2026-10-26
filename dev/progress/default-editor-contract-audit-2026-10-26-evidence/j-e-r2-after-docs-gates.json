@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-26T21:55:56.993407+00:00",
+  "skill": "sync-docs-and-commit",
+  "theme": "J complete frozen-source after and both E response attempts including product FAIL",
+  "includedPaths": [
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-after-evidence.tar.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-artifact-inventory.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-assertions.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-matrix.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-r2-phase-complete.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-artifact-inventory.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-evidence.tar.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-matrix.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt1-seal.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-archive-verification.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-artifact-inventory.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-cleanup.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-css-typed-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-evidence.tar.gz",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-fixtures-after.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-full163-guard.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-grpc-summary.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-j-preservation.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-matrix.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-runtime-assets.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-runtime-report.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-seal.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-response-r2-attempt2-summary.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-diff-check.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-docs-gates.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-docs-health.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-docs-health.stderr.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-evidence-manifest.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-evidence.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-e-r2-after-generated-status-check.log"
+  ],
+  "excludedScope": [
+    "product source/out/build mutation",
+    "global status/plan/deferred/spec owner delegated to parent baseline lane",
+    "old partial-after reports or archives",
+    "frozen original J/E artifact directories"
+  ],
+  "designDocs": "No behavior changed in this evidence-only commit; no design/spec update",
+  "planStatus": "No plan file changed; E plan remains accepted, wave not complete",
+  "actionLayer": "Evidence directory and its existing INDEX updated; root explicitly owns global status and plan integration",
+  "checks": {
+    "docsHealthExitCode": 0,
+    "docsHealthErrors": 0,
+    "docsHealthWarnings": 46,
+    "newOrChangedEvidenceWarningCount": 0,
+    "generatedStatusCheckExitCode": 0,
+    "gitDiffCheckExitCode": 0,
+    "copiedEvidenceFilesByteExact": 23,
+    "newReportLinksResolve": true,
+    "sourceOutOrBusinessTestsRunByD": false
+  },
+  "sourceIdentity": "Frozen runtime source800d; docs commit base is not runtime identity",
+  "runtimeStageResult": "8 UI PASS + 1 BOUNDARY + final disconnected permission Important FAIL; allRequired/phase/wave=false",
+  "primaryHashes": {
+    "JArchive": "19a06c98431ae7a1c8aa04ce556a7695d40ca32ed17c5f445b7aa5115665cd80",
+    "EAttempt1Archive": "4aff8e15b0a277f49fbef43a17188c7d9ecc5f8d8b74e9773d19f94e34f2a792",
+    "EAttempt2Archive": "7678841cb782513c8f030e0870470480cc6cc13831e7bc17cba50f0cc887c5a8"
+  },
+  "hashes": {
+    "j-e-r2-after-evidence.md": "399e64c3609f5f3150949f95f9b2d76f87577b77c9a3c2c22b5dd44215cc0c99",
+    "j-e-r2-after-evidence-manifest.json": "2c6d6343b7fee610cf7c9c89ce283defc521fe9d29a0fbf32541973ec6d96bd8",
+    "j-e-r2-after-docs-health.json": "6903743435cd16705131fca7dda863b5943bf56dc6fd2b1e16cb779805aa96c2",
+    "j-e-r2-after-generated-status-check.log": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+    "j-e-r2-after-diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

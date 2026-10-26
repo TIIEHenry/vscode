@@ -1,0 +1,37 @@
+{
+  "runId": "sources-m01-after-20261027-r2",
+  "allCriticalJArtifactsByteUnchanged": true,
+  "files": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/j-phase-complete.json",
+      "sha256": "9c874a5ebacda7dad026db5c16c72d8cc3f6d8dfc77f3c566b62c4f8f2783d3e",
+      "matchesOriginalSealed": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/J-evidence-sealed.tar.gz",
+      "sha256": "19a06c98431ae7a1c8aa04ce556a7695d40ca32ed17c5f445b7aa5115665cd80",
+      "matchesOriginalSealed": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/artifact-inventory.json",
+      "sha256": "3c9341ae66948d50c4cd166e466133a6c6547360d4ece2e389cba445cb052f27",
+      "matchesOriginalSealed": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/J-RUNTIME-REPORT.md",
+      "sha256": "4f278d0944f0f6a7016f94f04c1aaf5d7f907a6a853bb1f2be4fc424b12277e0",
+      "matchesOriginalSealed": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/matrix.json",
+      "sha256": "1d49c8194fbfbc5b4f9e74d01be89f22eb04c439cf6c23bc6857fa87c1227bb7",
+      "matchesOriginalSealed": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/assertions.json",
+      "sha256": "70a37adbf870dfe3cf270a71e179b2e3697d1ec2ff7aa78ffc07b831d223d0c4",
+      "matchesOriginalSealed": true
+    }
+  ],
+  "jLaunchAndLeaseIntentionallyUnmodified": true
+}
