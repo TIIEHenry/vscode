@@ -25,6 +25,16 @@ summary: "J在独立澄清a76d062后补API预pin与完整比较身份，新增28
 
 以下各节保留原`23f8701c8d2`源码检查点事实；原“公开URI”匹配的不足已由本段与当前方案§3.2纠正。
 
+### R2 失败报告小投影补修（2026-10-26，J）
+
+父转述唯一merge在`89f3e5a6a17`新测试配`23f8701c8d2`旧生产时，R1四项已得到业务AssertionError；首项R2后进程仍活但无Mocha结果，guard中断不计业务red。J只读确认R2把完整identity及带throwing `resourceGroup` getter的SCM对象交给失败报告；该对象展开是待验证的卡住原因，不把推测记为已复现根因。
+
+本次只改R2断言harness：用identity存在性、准确`groupId`、`scmResource === expectedResource`布尔值与原完整调用trace作小投影。原no-op旧身份不变、新input无身份、同双侧reveal与后台/当前组新比较得到新身份、只在当前组replace关闭旧input的语义全部保留；资源检查由结构比较加强为严格对象身份。生产文件不变，原`89f3e5a6a17`生产审查仍有效。未改测试标题与selectors，未编译/typecheck/transpile/out/运行测试；须由唯一merge重跑原R2 red，卡住或超时仍不算业务red。宿主归属新Important另走方案澄清与独立规则16，不混入此小修。
+
+父随后报告完整10文件Electron在首个官方handler测试后，per-test disposable gate检测到46个`setupEditorCommands()`全局启动注册，并触发unexpected-console后续失败（原日志`/tmp/vscode-d1387-89f-complete-electron.log`，J未亲自运行）。本次将真实setup移到一次性`suiteSetup`，仅当API open/diff未注册时执行；测试进程启动注册与每项测试的局部disposable scope分开，仍直接调用官方原handler并使用真实EditorGroupModel。没有关闭、绕过或ignore leak检测，没有改生产setup。
+
+J本次实际静态检查：该TS的`createSourceFile`语法诊断0；ESLint 0错误/29警告，相对`89f3e5a6a17`逐项按rule/message/所在行文本比较新增0、消失0；`git diff --check`通过。生产`sourcesChangeEntryOpen.ts` SHA256仍为`f13693e1de22a0a2b60e966ced1bcdef0d79a9257195b8637fa2cc474bccad37`。以上不证明完整Electron套通过，运行归唯一merge。
+
 ## 生产切片
 
 - `sourcesChangeEntryOpen.ts`：识别既有API open/diff常量，一次执行原DTO；官方context分别放第4/5参数。其他资源仅调用custom.open；二者void resolve保留委托完成语义，reject不兜底。无SCM的直接Preview文件/diff有pane才true。只对公开URI匹配input做Sources identity、custom pin和同组replace close；不同资源旧input不冒认，provider显式选项不被API分支post-pin覆盖。newTab保留旧preview语义照旧。

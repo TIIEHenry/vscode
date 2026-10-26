@@ -60,6 +60,13 @@ suite('Sources - Changes list open', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
+	suiteSetup(() => {
+		// These startup registrations live for the test process, outside each test's disposable scope.
+		if (!CommandsRegistry.getCommand(API_OPEN_EDITOR_COMMAND_ID) || !CommandsRegistry.getCommand(API_OPEN_DIFF_EDITOR_COMMAND_ID)) {
+			setupEditorCommands();
+		}
+	});
+
 	function createEntry(resource: URI, scmResource?: ISCMResource): ISourcesChangeEntry {
 		return {
 			resource,
@@ -114,6 +121,12 @@ suite('Sources - Changes list open', () => {
 			override readonly input = input;
 			override readonly group = group;
 		}();
+	}
+
+	function identitySnapshot(input: EditorInput, expectedResource: ISCMResource) {
+		const identity = sourcesDiffOpenIdentity(input);
+		// Keep failure reports away from SCM getters and the editor's service graph.
+		return identity ? { groupId: identity.groupId, sameResource: identity.scmResource === expectedResource } : undefined;
 	}
 
 	for (const commandId of [API_OPEN_EDITOR_COMMAND_ID, API_OPEN_DIFF_EDITOR_COMMAND_ID]) {
@@ -195,9 +208,6 @@ suite('Sources - Changes list open', () => {
 		}
 
 		test(`API SCM ${commandId} runs the official handler with provider column and options taking priority`, async () => {
-			if (!CommandsRegistry.getCommand(commandId)) {
-				setupEditorCommands();
-			}
 			const instantiationService = workbenchInstantiationService(undefined, store);
 			const groups = new TestEditorGroupsService([new TestEditorGroupView(46), new TestEditorGroupView(47), new TestEditorGroupView(48)]);
 			const editorService = store.add(new TestEditorService());
@@ -243,9 +253,6 @@ suite('Sources - Changes list open', () => {
 
 	for (const providerPinned of [undefined, false] as const) {
 		test(`API newTab real group model honors ${providerPinned === false ? 'provider pinned:false' : 'the default pinned input'}`, async () => {
-			if (!CommandsRegistry.getCommand(API_OPEN_EDITOR_COMMAND_ID)) {
-				setupEditorCommands();
-			}
 			const instantiationService = workbenchInstantiationService(undefined, store);
 			const model = store.add(instantiationService.createInstance(EditorGroupModel, undefined));
 			const previous = store.add(new TestEditorInput(URI.file('/beta/preview.ts'), 'test.preview'));
@@ -335,13 +342,12 @@ suite('Sources - Changes list open', () => {
 						override async getQuickDiffs() { return [{ id: 'git', originalResource: URI.parse('git:/alpha/shared.ts?quickDiff'), label: 'Git', kind: 'primary' as const }]; }
 					}(),
 				}), { slot, preserveFocus: true }), true);
-				const newIdentity = { groupId: 'index', scmResource };
 				assert.deepStrictEqual({
-					previousIdentity: sourcesDiffOpenIdentity(previous),
-					openedIdentity: sourcesDiffOpenIdentity(opened), trace,
+					previousIdentity: identitySnapshot(previous, result === 'same comparison' ? scmResource : oldResource),
+					openedIdentity: identitySnapshot(opened, scmResource), trace,
 				}, {
-					previousIdentity: result === 'same comparison' ? newIdentity : oldIdentity,
-					openedIdentity: result === 'no-op' ? undefined : newIdentity,
+					previousIdentity: { groupId: result === 'same comparison' ? 'index' : 'workingTree', sameResource: true },
+					openedIdentity: result === 'no-op' ? undefined : { groupId: 'index', sameResource: true },
 					trace: slot === 'replace' && result === 'current comparison' ? ['command', 'close:previous'] : ['command'],
 				});
 			});
