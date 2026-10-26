@@ -215,8 +215,8 @@ suite('AgentsVoiceContribution - startVoiceInChat', () => {
 			setHold: (value: Promise<void> | undefined) => { hold = value; },
 			get bridgeCalls() { return bridgeCalls; },
 			assertReleased: () => assert.deepStrictEqual([
-				focusChanged.hasListeners, removed.hasListeners,
-				a.changed.hasListeners, a.hidden.hasListeners, b.changed.hasListeners, b.hidden.hasListeners,
+				focusChanged.hasListeners(), removed.hasListeners(),
+				a.changed.hasListeners(), a.hidden.hasListeners(), b.changed.hasListeners(), b.hidden.hasListeners(),
 			], [false, false, false, false, false, false]),
 		};
 	}
@@ -476,7 +476,7 @@ suite('AgentsVoiceContribution - startVoiceInChat', () => {
 		const run = h.run();
 		await h.controller.connectEntered.p;
 		await flush();
-		assert.strictEqual(h.a.changed.hasListeners, true);
+		assert.strictEqual(h.a.changed.hasListeners(), true);
 		auth.complete();
 		await flush();
 		h.controller.admit();
