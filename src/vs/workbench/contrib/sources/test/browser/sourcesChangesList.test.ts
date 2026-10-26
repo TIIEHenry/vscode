@@ -551,7 +551,7 @@ suite('Sources - Changes list open', () => {
 				await operation.release();
 				assert.strictEqual(await operation.result, true);
 			}
-			assert.deepStrictEqual({ calls: [first.calls, second.calls], identity: identitySnapshot(input, oldResource), trace: harness.trace, listening: harness.events.hasListeners }, {
+			assert.deepStrictEqual({ calls: [first.calls, second.calls], identity: identitySnapshot(input, oldResource), trace: harness.trace, listening: harness.events.hasListeners() }, {
 				calls: [1, 1], identity: { groupId: 'old', sameResource: true }, trace: [], listening: false,
 			});
 		});
@@ -594,7 +594,7 @@ suite('Sources - Changes list open', () => {
 		assert.strictEqual(await second.result, true);
 		await third.release();
 		assert.strictEqual(await third.result, true);
-		assert.deepStrictEqual({ calls: [first.calls, second.calls, third.calls], identity: sourcesDiffOpenIdentity(input) !== undefined, trace: harness.trace, listening: harness.events.hasListeners }, {
+		assert.deepStrictEqual({ calls: [first.calls, second.calls, third.calls], identity: sourcesDiffOpenIdentity(input) !== undefined, trace: harness.trace, listening: harness.events.hasListeners() }, {
 			calls: [1, 1, 1], identity: false, trace: [], listening: false,
 		});
 	});
@@ -615,7 +615,7 @@ suite('Sources - Changes list open', () => {
 				assert.strictEqual(await first.result, true);
 				await second.release();
 				assert.strictEqual(await second.result, true);
-				assert.deepStrictEqual({ calls: [first.calls, second.calls], identities: [sourcesDiffOpenIdentity(firstInput) !== undefined, sourcesDiffOpenIdentity(secondInput) !== undefined], trace: harness.trace, listening: harness.events.hasListeners }, {
+				assert.deepStrictEqual({ calls: [first.calls, second.calls], identities: [sourcesDiffOpenIdentity(firstInput) !== undefined, sourcesDiffOpenIdentity(secondInput) !== undefined], trace: harness.trace, listening: harness.events.hasListeners() }, {
 					calls: [1, 1], identities: [false, false], trace: ['pin:previous'], listening: false,
 				});
 			});
@@ -658,13 +658,13 @@ suite('Sources - Changes list open', () => {
 		await rejection;
 		await second.release();
 		assert.strictEqual(await second.result, true);
-		assert.strictEqual(harness.events.hasListeners, false);
+		assert.strictEqual(harness.events.hasListeners(), false);
 		const input = diffInput(URI.parse('git:/overlap/shared.ts?index#baseline'), URI.file('/overlap/shared.ts'), harness.editorService);
 		const third = pendingScmOpen(harness, { groupId: 'recovered', onEnter: () => harness.place(input) });
 		await third.entered;
 		await third.release();
 		assert.strictEqual(await third.result, true);
-		assert.deepStrictEqual({ calls: [first.calls, second.calls, third.calls], identity: identitySnapshot(input, third.scmResource), trace: harness.trace, listening: harness.events.hasListeners }, {
+		assert.deepStrictEqual({ calls: [first.calls, second.calls, third.calls], identity: identitySnapshot(input, third.scmResource), trace: harness.trace, listening: harness.events.hasListeners() }, {
 			calls: [1, 1, 1], identity: { groupId: 'recovered', sameResource: true }, trace: [], listening: false,
 		});
 	});
@@ -704,7 +704,7 @@ suite('Sources - Changes list open', () => {
 			await operation.release();
 			assert.strictEqual(await operation.result, true);
 			const succeeds = result === 'one inactive fallback tab' || result === 'canonical member';
-			assert.deepStrictEqual({ calls: operation.calls, input: identitySnapshot(input, succeeds ? operation.scmResource : oldResource), other: sourcesDiffOpenIdentity(other) !== undefined, trace: harness.trace, listening: harness.events.hasListeners }, {
+			assert.deepStrictEqual({ calls: operation.calls, input: identitySnapshot(input, succeeds ? operation.scmResource : oldResource), other: sourcesDiffOpenIdentity(other) !== undefined, trace: harness.trace, listening: harness.events.hasListeners() }, {
 				calls: 1, input: { groupId: succeeds ? 'new' : 'old', sameResource: true }, other: false, trace: [], listening: false,
 			});
 		});
@@ -718,7 +718,7 @@ suite('Sources - Changes list open', () => {
 		await operation.entered;
 		await operation.release();
 		assert.strictEqual(await operation.result, true);
-		assert.deepStrictEqual({ calls: operation.calls, identity: identitySnapshot(input, operation.scmResource), trace: harness.trace, listening: harness.events.hasListeners }, {
+		assert.deepStrictEqual({ calls: operation.calls, identity: identitySnapshot(input, operation.scmResource), trace: harness.trace, listening: harness.events.hasListeners() }, {
 			calls: 1, identity: { groupId: 'index', sameResource: true }, trace: ['pin:previous', 'pin:new'], listening: false,
 		});
 	});
@@ -730,7 +730,7 @@ suite('Sources - Changes list open', () => {
 		harness.editorService.activeEditor = input;
 		const scmResource = commandResource(resource, { id: API_OPEN_EDITOR_COMMAND_ID, title: '', arguments: [resource, [0], undefined] }, async () => assert.fail('API must not call custom.open'));
 		assert.strictEqual(await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({ editorService: harness.editorService }), { slot: 'replace' }), true);
-		assert.deepStrictEqual({ identity: sourcesDiffOpenIdentity(input) !== undefined, listening: harness.events.hasListeners }, { identity: false, listening: false });
+		assert.deepStrictEqual({ identity: sourcesDiffOpenIdentity(input) !== undefined, listening: harness.events.hasListeners() }, { identity: false, listening: false });
 	});
 
 	test('delegated host uses one captured DTO for dispatch, key and matching while resource.command changes', async () => {

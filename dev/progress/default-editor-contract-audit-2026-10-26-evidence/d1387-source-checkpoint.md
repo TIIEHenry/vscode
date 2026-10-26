@@ -3,7 +3,7 @@ title: "D1387 Sources 打开合同源码检查点"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "J在独立方案bf50c66后写宿主候选核对与Sources重叠歧义保护，新增29项官方真实宿主/并发/成员回归源码；3TS静态0语法/0lint错误，唯一车道运行与非作者after待"
 ---
 
@@ -24,6 +24,14 @@ D/Astra确认完整tuple仍可能被旧active宿主遮住，D再指出事件没�
 本轮J实际检查：最终3TS仅`typescript.createSourceFile` AST语法解析均0诊断，无program/typechecker/emit；定向ESLint 0errors/29warnings，按rule/message/所在行文本与`bf50c66`三文件逐项比较added=[]、removed=[]；`git diff --check`通过。源码SHA256：helper `45cf6d831abda7efd46ae2121b520c5f142282caa079f0e913da8312bf73741a`；Changes测试 `45cf248ffa6588cefeb10bc1c36e371e5bf7d256549481ac56f42a3fcc7b2be9`；DiffRefHelpers测试 `f07dc9fe157ce53387f58fd08f0a5ae2ccef1fcc480aae9ca59f60716fb479ce`。没有编译、typecheck、transpile、写out/watch、业务测试或启动窗口。本次fresh文档门禁health 0errors/75warnings，与本工位bf50独立方案检查点逐条比较added=[]、removed=[]；既有未合入D宿主报告链接仍在原75中，不复制他槽或借父工位计数。生成状态`--check`、diff通过，status170行。
 
 唯一merge须将旧`65d2288036fdad74ab607e231d3db758fa397aa8`生产与本轮新测试配对：宿主业务red selector `delegated host official`；并发业务red selector `Sources overlap same tuple .*settles first`，必须由实际旧身份误记断言失败而非scan/加载/类型/timeout充数。之后只刷新本轮生产，运行`delegated host|Sources overlap`全部29项，再完整原相关套件与语义检查；原R1/R2、14根因与其他完整覆盖继续保留。新源码独立peer与非作者默认编辑器真实Git三owner after仍待，方案accepted、D1387 open、PRD不升。不得把本轮WIP或原357过当本次集成结论。
+
+### 监听清理断言调用补修（2026-10-27，J）
+
+实施提交`1ac1fdc4ae2db39f4e2c3a49e014bcc629b40419`的D独立codepeer为C0/I0/M1，正式报告`8b2480351817d795af60b69d1b962c85dc5c2123`中的`d1387-host-observation-code-review.md`已由J只读核验，未复制他槽文件。M1与唯一lane反馈一致：新增测试8处将公开Emitter方法`hasListeners`作为函数对象比较false；这会污染red并使green必红。本次只将8处改成实际`hasListeners()`，全部listener释放、metadata、准确SCM引用与调用trace断言保留，29项新增与原全部回归不删改，生产文件不变。
+
+父转交唯一lane旧65d生产配1ac测试已得4项official host纯身份业务red（0过/4败），无需因本夹具补修重跑。J只读`/tmp/vscode-d1387-host-overlap-old65d-red-overlap.log`确认并发两项0过/2败同时含旧identity误写为g1/g2与`[Function: hasListeners]`差异，因此不把这次混合失败计为两项纯业务red；唯一lane须仅重跑修正测试的两完成顺序旧red，再最终新生产29项green/原完整相关套/语义。J没有运行业务测试或写out。
+
+本次实际静态检查：测试与生产helper AST语法均0；测试ESLint 0errors/29warnings，相对1ac逐条rule/message/所在行文本比较added=[]、removed=[]；diff-check通过。测试SHA256更新为`02a6263e06688776dd5b86225857a1247624641c5f74ab6a804bfc2a1109dd3d`，生产helper仍为`45cf6d831abda7efd46ae2121b520c5f142282caa079f0e913da8312bf73741a`。未编译、typecheck、transpile、out/watch或启动窗口；本次文档门禁health 0errors/75warnings，与1ac工位记录逐条无增减；generated-status/diff通过，status170行。方案accepted、D1387 open、PRD不升，新生产运行与非作者真实after仍待。
 
 ## 本轮独立审查后的补修（2026-10-26）
 

@@ -3,14 +3,14 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "D1386 CSS真实4红/完整44绿，非作者真实after C0/I0/M0并闭合；D1385取消真实controller旧红/完整183绿、本3TS0/lint0，实际保留CopilotChat owner入口UI仍待证/open；后修未全量。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **D1387 宿主/并发源码补修（2026-10-26，J）**：D两轮规则16 C0/I0、两Minor实改并独立方案bf50后，已写单dispatch候选观测、有效组/规范成员核对、全tabs唯一fallback及同service Sources sticky ambiguity（同API完整key/custom wildcard/同步DTO）。新增29项官方真实默认宿主、两settle顺序/三调用、独立key/服务、finally恢复与成员负控回归源码；3TS语法0、lint0错误/29旧警告逐项无增减。唯一车道旧65d+新测试red、新生产green/完整套/语义、新源码peer与非作者after待；accepted/open，不借原357过/TS0升状态，J无编译/out/业务运行。[证据](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#宿主观测与-sources-重叠补修2026-10-26j)。
+- **D1387 宿主/并发源码补修（2026-10-27，J）**：bf50方案后1ac生产/29项新回归已写，D独立codepeer C0/I0/M1。唯一lane旧65d+1ac测试宿主4项纯身份业务红；并发两项真实误写身份但混hasListeners函数对象差异。本次仅8处改实际hasListeners()，保留全部监听释放/metadata断言，helper hash不变；语法0、lint0错误/29旧警告逐项无增减。唯一lane只重验并发2旧red，再新29green/原完整套/语义，非作者after待；accepted/open，不借原357过/TS0升状态，J无编译/out/业务运行。[证据](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#监听清理断言调用补修2026-10-27j)。
 - **D1387 测试类型/合同夹具补修（2026-10-26，J）**：按唯一merge六条虚拟noEmit诊断补精确group id及root/resource断言；error-tone scan对齐带open来源的当前调用，并在真实API拒绝业务用例断言错误色。独立九套248过/1败的workingTree move夹具补paired multiDiff URI，保留后续准确组/resource保证与缺信息负控；Accept patch扫描失败不动。五TS语法0、lint0错误/51旧警告无增减；仅测试/证据，无编译/typecheck/out/业务运行，唯一merge复核待，accepted/open。[证据](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#测试类型与既有合同夹具补修2026-10-26j)。
 - **D1387 测试harness补修（2026-10-26，J）**：唯一merge反馈R1四项旧生产业务红、R2卡住不计red及完整套启动注册leak；本次将R2完整identity比较改为存在性/组id/严格SCM引用布尔值及原trace小投影，并将真实官方setup移到一次性suiteSetup，保留per-test leak门禁与handler/组模型。生产未改，语法0、lint0错误/29旧警告无增减、diff通过；未编译/out/业务运行，重跑交唯一merge。宿主归属新Important另走规则16，accepted/open不升。[证据](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#r2-失败报告小投影补修2026-10-26j)。
 - **D1387 两项Important源码补修（2026-10-26，J）**：先独立澄清`a76d062`、D规则16 C0/I0；现按Astra保留custom预pin窄例外，只取消API预pin，并用DTO完整双侧/单资源类型及custom可信身份作后置gate。新增28个官方handler/真实EditorGroupModel/同modified不同original与后台比较/custom兼容成本回归源码；两TS语法0、lint0错误/29旧警告逐项无新增、diff通过。未编译/typecheck/transpile/out/运行，唯一merge的原23f业务red/新green与D真实after待；方案accepted、D1387open。[源码/精确待运行](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#本轮独立审查后的补修2026-10-26)。

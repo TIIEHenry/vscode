@@ -3,7 +3,7 @@ title: "2026-10-26 默认编辑器合同与功能缺口续审"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "D1386 CSS4红/完整44绿及非作者真实after C0/I0/M0后closed；D1385取消真实controller旧红/完整183绿，实际保留CopilotChat owner路由UI待证/open；后修3TS0，无第二全量。"
 ---
 
@@ -28,7 +28,7 @@ D1382/1383/1384 按各自证据 closed。D1385/1386 仍 open、正式方案 acce
 | J / configuration_initialization_contracts | D1384：RemoteUserConfiguration 显式重试共有等待、reload 及销毁边界 | 源 `c4b9332` 已三路合入 `3e63f9e`。旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。方案 implemented，缺口 closed。C 静态 after C0/I0，两条 Minor 不阻断 |
 | C / voice_cold_start | D1385：保留CopilotChat首次录音授权与冷取消 | 原5红/182绿，f9取消先discard后hold已真三路f75；真实controller owner-hide旧业务红、新完整183绿，本次目标TS0；D非作者实际保留pane/editor toolbar/快捷键owner路由证明待到，accepted/open |
 | D / leaf_root_identity（原生接班） | D1386：叶根身份、命令URI/菜单与只读CSS | ea根归属旧11红/40+Lens8绿；b774CSS旧4几何红/新完整44绿，C非作者真实after C0/I0/M0、I1正式CSS原窗口复验解除；D1386closed、planimplemented，限制保留 |
-| J / sources_executor（原完整实现后补修） | D1387：Sources三owner/slot打开合同，两独立机制 | D两轮规则16最终C0/I0、两Minor实改并独立方案`bf50c66`后，已写候选观测/有效组规范成员/全tabs唯一fallback与同service sticky ambiguity（完整API key/custom wildcard/同步DTO），新增29项官方真实默认宿主/并发/隔离/恢复与负控源码。3TS语法0、lint0错误/29旧警告逐项无增减；唯一merge须旧65d+新测试red→新生产green/完整套/语义，新源码peer与非作者真实after待。原357过/虚拟TS0不作新边界证据；accepted/open，J无编译/typecheck/out/业务运行。 |
+| J / sources_executor（原完整实现后补修） | D1387：Sources三owner/slot打开合同，两独立机制 | bf50方案后1ac宿主/重叠生产与29项新回归已写；D独立codepeer C0/I0/M1，8处hasListeners漏调用本次全改实际调用，生产helper不变。语法0、lint0错误/29旧警告逐项无增减。唯一lane旧65d宿主4项纯业务红无需重跑；并发2红混夹具差异须重验，再新29green/原完整相关套/语义及非作者真实after。原357过/虚拟TS0不作新边界证据；accepted/open，J无编译/typecheck/out/业务运行。 |
 | merge / 唯一集成者 | 串行源码/精确旧基线/red-green、类型/lint及after收录 | 当前f75后修只fresh两个测试JS/一个actionJS/一CSS，本次3TS0/lint0；D1386closed、D1385实际入口UI待证。后修不全量，source6f82原45/27真实失败不覆盖，不取J新Sources实现 |
 
 D1386 after I1已由C真实确认只读folder/branch箭头12×12仍可见；D clean ff57后仅补production hidden组的chip-open选择器与4主题真实CSS/DOM几何回归，未运行。等待唯一merge旧CSS red/新CSS green与C原窗口正式新CSS复验，保持accepted/open；[补修检查点](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md)。
