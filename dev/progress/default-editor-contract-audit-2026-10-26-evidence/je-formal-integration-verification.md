@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J4d49/Ec2b已串行真三路5373/9209接入，262/208路径保留PASS；src fdca956，完整编译/相关全套/after待，禁push/主ff不重试。"
+summary: "J/E真三路完成；首次原生完整编译1条E测试TS2322已退原作者，完整日志/86输出身份保留；运行待、未freeze，禁push/主ff不重试。"
 ---
 
 # J/E 正式集成
@@ -38,3 +38,9 @@ summary: "J4d49/Ec2b已串行真三路5373/9209接入，262/208路径保留PASS�
 [J原始合并日志](je-formal-J-merge.log)、[J保留证明](je-formal-J-merge-identity.json)逐一核实际Git mode/type/blob，262路径全PASS；5双改文档7块冲突分别保留main新增队列/协议/视觉方案、D1385默认产品范围纠正、本线原始验证与作者6条源码/夹具历史。[E原始日志](je-formal-E-merge.log)、[E保留证明](je-formal-E-merge-identity.json)208路径全PASS；3双改文档5块冲突保留当前边界及E两条源码交接/历史冻结分工，且E独立peer原件blob与3e550精确相同。仓内缺少`scripts/check-merge-both-sides.sh`，没有声称执行该脚本。
 
 两次生成状态校验/非log差异检查通过，文档health均0 errors / 46既有链接warnings；status当前195行。此时尚无正式新编译/新green，native输出仍ad80历史身份，随后仅唯一lane在全局活进程检查与共享锁下实际完整`rtk proxy npm run compile-client`，无需在前另跑全量noEmit。统一green和精确source/native身份齐后再通知D冻结；不提前标implemented/closed。
+
+## 首次正式完整编译：1条测试类型失败
+
+实际源码HEAD `24a3850cc46c680799309adfc9bc093ae653ff27` / src `fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1`，全局活跃编译车道两次扫描为空，并独占`/tmp/vscode-compile.lock`后运行一次完整`rtk proxy npm run compile-client`。实际UTC 2026-10-26T16:37:23.982333+00:00 至 2026-10-26T16:37:56.938315+00:00，**exit1 / 1条TS诊断**：`conversationEngineRosterService.test.ts(3643,129)` TS2322，`false`不能赋给`true`。已即时回报父并退原E作者做精确类型夹具修正，不在merge宽cast或弱化断言。
+
+[第一份完整原日志](je-formal-first-compile.log)、[命令/共享锁/源与86输出前后身份](je-formal-first-compile.json)、[原执行脚本](je-formal-first-compile.py)保留原字节。HEAD/src/clean前后均未变；本次原生emit已发生，当前out是此次失败编译的实际输出，不能继续写成旧ad80原生身份，也不是正式绿产物。无freeze；作者不可变修订接入后再完整编译与相关全套。

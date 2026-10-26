@@ -1,5 +1,5 @@
 {
-  "phase": "P2-true-merges-complete-native-compile-pending",
+  "phase": "P2-first-full-compile-1-TS-awaiting-E-author",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -119,6 +119,27 @@
       "bytes": 4384,
       "sha256": "bacb75c481d69be9cb3ac066adafe157c933993f87f4fd5f3ec3081e9b4c7624",
       "capturedDirectly": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-native-build.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.py",
+      "bytes": 4873,
+      "sha256": "8120e06a79f121bd7ae99c054bbc9887cf4b164ae4793fdbdc8d8af14ea5b675",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-native-build.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.json",
+      "bytes": 44413,
+      "sha256": "07ff77821340f8cc886281d21a368af7744b8b706f35ead414e88e6d45d0c6e5",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-native-build.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.log",
+      "bytes": 28671,
+      "sha256": "7499be572d8baf8d0959ba473c755d0d0509932e7c24042d4512cb849ff905a6",
+      "bytePreservingCopy": true
     }
   ]
 }

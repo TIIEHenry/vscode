@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J4d49/Ec2b已正式串行真三路接入，peer C/I闭合；完整编译/全套/after待，P5禁push/P6主ff不重试。"
+summary: "J/E正式真三路完成，首轮fullcompile仅E测试1条TS2322已退作者；输出为实际失败编译emit，非绿产物；无freeze，禁push/主ff不重试。"
 ---
 
 # 默认编辑器合同与功能缺口续审
@@ -12,9 +12,12 @@ summary: "J4d49/Ec2b已正式串行真三路接入，peer C/I闭合；完整编�
 > 当前冻结代码波只含J Sources与E unary恢复；不可变J4d49/Ec2b已分别真三路5373/9209接入，无occupied代码成员。独立peer原件C/I闭合已实读，父授权本wake直接P0–P7；[正式集成记录](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。P0 main明确5df/src7fa、99dirty路径只登记不消费，J/E/merge clean、stash0；P2串行真三路262/208路径保留PASS，src fdca956；完整emit/相关全套待，统一green前不freeze。P5禁push/P6主ff既有拒绝不重试，不提前宣称wave释放。
 
 
-## 当前已提交基线：5df对齐，最终编译待
+## 当前已提交基线：J/E正式源齐，首轮完整编译1条诊断
 
 此前ad80/src030def对齐180fc已实际fullcompile-client0，原生emit替换旧65d pack。后续只取明确main5df真三路231b，119路径保留门禁全PASS（status原字节+main三行）；5df接入时src精确7fa3c86；现J/E正式真三路后src fdca956，无新emit且34native采样仍ad80身份，不将旧compile0延伸到当前src。J/E最终peer已闭合且正式串行三路接入，随后一次完整编译/相关全套/after；不重试主ff、不写rootout、不freeze。[当前源/边界与门禁](../../progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md)。
+
+
+首次正式完整编译已实际exit1，仅E roster测试3643:129 TS2322，已退原作者；[完整日志与86输出身份](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#首次正式完整编译1条测试类型失败)。下列未emit/ad80描述是编译前检查点；当前out已由本次native emit刷新，仍非绿产物，不freeze。
 
 ## 当前冻结分工与本次实际验证
 
