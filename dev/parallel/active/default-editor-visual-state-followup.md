@@ -15,8 +15,10 @@ summary: "人类授权修复五项视觉问题后续审；文件互斥、父 age
 | --- | --- | --- |
 | settings_visual_audit | Connection / Engine CSS、Provider renderer 与设置测试 | 方案已审查，待实施 |
 | timeline_visual_audit | ProcessFold Model / renderer、conversationLens.css 与模型/DOM 测试 | 方案已审查，待实施 |
-| shell_visual_audit | 独立方案/改动只读审查，不修改文件 | 待审查 |
-| 父 agent | 默认编辑器会话列表 CSS/样式回归、全部文档、产物刷新与集成测试 | 方案与产品边界落位 |
+| shell_visual_audit | 已完成独立方案审查；实施会话列表 CSS/就近回归，V2b Sources 同根因修复待短审 | V2 新回归已运行旧生产，修正合法 dotted 焦点的测试断言 |
+| 父 agent | 全部文档、产物刷新与集成测试 | Fold red 43 passing / 13 failing；设置样式 red 4 passing / 6 failing；只读 Provider red 命中 |
+
+V2b 续审定位：`sourcesFilesExplorer.ts` 的引擎目录入口仍现行可达；`sourcesFilesList.css` 的名称色覆盖行选择色，和 V2 同根因。`timeline_visual_audit` 独立短审 Critical / Important 无；只收敛选择态名称继承与真实树 DOM 回归，可进入实施。
 
 ## 验证与续审
 
