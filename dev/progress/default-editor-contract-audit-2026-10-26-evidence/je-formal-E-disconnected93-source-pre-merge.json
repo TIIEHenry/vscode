@@ -1,0 +1,22 @@
+{
+  "phase": "before-real-three-way-explicit-E93-source-after-meaningful-old-model-red-and-full-restore",
+  "ours": "6a29b185a9865b90b7e9bf3b5c371c245dc280f7",
+  "theirs": "93e36abc7ad915608d546f0bcd17b8b2e221dacf",
+  "mergeBase": "4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff",
+  "incomingParent": "4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff",
+  "recordedAtUtc": "2026-10-26T22:08:41.921785+00:00",
+  "incomingNetChangedPaths": [
+    "dev/plans/conversation-unary-response-recovery.md",
+    "dev/progress/status.md",
+    "docs/systems/conversation/lens-and-trajectory.md",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensComposer.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationSessionAvailability.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationLensReadingColumn.test.ts"
+  ],
+  "onlyExplicitNinePaths": true,
+  "oldRedRecord": "/tmp/vscode-e93-old4919-compile8.json",
+  "oldRedRecordSha256": "cc8e3a2395a48cc8a1614239bc0ec7e4a973ada211fdbbe7350927591f7275cf"
+}

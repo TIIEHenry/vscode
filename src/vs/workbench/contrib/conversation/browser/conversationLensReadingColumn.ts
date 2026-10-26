@@ -24,7 +24,8 @@ import { ConversationTrajectory } from './conversationTrajectory.js';
 import { conversationLensPhasePreFirstClass, conversationLensPrefirstHeroClass } from './conversationLensDockStrings.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { applyLeafWidthClasses } from './conversationNarrowLayout.js';
-import { isConversationSessionNotReady } from './conversationSessionAvailability.js';
+import { isConversationDisconnectedEngineSession, isConversationSessionNotReady } from './conversationSessionAvailability.js';
+import type { ConversationSessionSource } from './conversationRosterStorage.js';
 import { isConversationPairingHold, type IConversationPairingHoldSource } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 
@@ -184,11 +185,15 @@ export function isReadingColumnWritesEnabled(host: {
 	readonly stubService: {
 		isEngineConnected(): boolean;
 		isEngineSessionReady?(): boolean;
+		hasEngineConnectionHistory?(): boolean;
+		getSessionSource?(sessionId: string): ConversationSessionSource;
 	};
 	readonly uaConnection: IConversationPairingHoldSource;
+	getBoundSessionId?(): string;
 }): boolean {
 	const leftoverCatalogListFailed = isConversationSessionNotReady(host.stubService);
-	return !isConversationPairingHold(host.uaConnection) && !leftoverCatalogListFailed;
+	return !isConversationPairingHold(host.uaConnection) && !leftoverCatalogListFailed
+		&& !isConversationDisconnectedEngineSession(host.stubService, host.getBoundSessionId?.());
 }
 
 export function shouldShowReadingColumnLiveChrome(host: {

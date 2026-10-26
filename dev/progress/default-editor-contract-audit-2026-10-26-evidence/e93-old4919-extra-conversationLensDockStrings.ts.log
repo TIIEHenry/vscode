@@ -1,0 +1,108 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { localize } from '../../../../nls.js';
+
+/** Honest Input Dock copy — no engine, no Copilot entitlement CTAs. */
+export const conversationLensDockEngineNotConnected = localize('conversationLens.dockEngineNotConnected', "Engine not connected");
+/** Transport is up, but the bound session is not a live write target. */
+export const conversationLensDockSessionUnavailable = localize('conversationLens.dockSessionUnavailable', "Session unavailable");
+export const conversationLensDockSessionUnavailableReason = localize('conversationLens.dockSessionUnavailableReason', "The engine is connected, but the active session is not ready.");
+/** Catalog or bind still in flight. The gate uses this alone; unavailable keeps the longer sentence. */
+export const conversationLensDockSessionLoading = localize('conversationLens.dockSessionLoading', "Loading session…");
+export const conversationLensDockInboxNoQueue = localize('conversationLens.inboxNoQueue', "No queue");
+/** Connected / disconnected-cache Inbox is not a live engine queue (no GetQueue). */
+export const conversationLensDockInboxQueueNotListed = localize('conversationLens.inboxQueueNotListed', "Queue not listed");
+export const conversationLensDockInboxNoTasks = localize('conversationLens.inboxNoTasks', "No tasks");
+export const conversationLensDockInboxTaskLabel = localize('conversationLens.inboxTaskLabel', "Task");
+export const conversationLensDockInboxQueueLabel = localize('conversationLens.inboxQueueLabel', "MessageQueue");
+export const conversationLensInboxQueuePause = localize('conversationLens.inboxQueuePause', "Pause");
+export const conversationLensInboxQueueResume = localize('conversationLens.inboxQueueResume', "Resume");
+export const conversationLensInboxQueueClear = localize('conversationLens.inboxQueueClear', "Clear");
+export const conversationLensInboxQueueEnqueue = localize('conversationLens.inboxQueueEnqueue', "Enqueue");
+export const conversationLensInboxQueueEnqueuePrompt = localize('conversationLens.inboxQueueEnqueuePrompt', "Message to enqueue");
+export const conversationLensInboxQueueEnqueuePlaceholder = localize('conversationLens.inboxQueueEnqueuePlaceholder', "Queued after the current turn");
+export const conversationLensInboxQueueEnqueueUnavailable = localize('conversationLens.inboxQueueEnqueueUnavailable', "Cannot enqueue without engine");
+export const conversationLensInboxQueueRetry = localize('conversationLens.inboxQueueRetry', "Retry");
+export const conversationLensInboxQueueRetryUnavailable = localize('conversationLens.inboxQueueRetryUnavailable', "Cannot retry without engine");
+export const conversationLensInboxQueueQueuedTag = localize('conversationLens.inboxQueueQueuedTag', "Queued");
+export const conversationLensInboxQueueEditingTag = localize('conversationLens.inboxQueueEditingTag', "Editing");
+export const conversationLensInboxQueueUploadingTag = localize('conversationLens.inboxQueueUploadingTag', "Uploading {0}%");
+export const conversationLensInboxQueueFailedTag = localize('conversationLens.inboxQueueFailedTag', "Failed");
+export const conversationLensInboxQueueFailedCount = localize('conversationLens.inboxQueueFailedCount', "{0} failed");
+export const conversationLensInboxQueueSummaryFailed = localize('conversationLens.inboxQueueSummaryFailed', "{0} messages failed");
+export const conversationLensInboxQueueEditingCount = localize('conversationLens.inboxQueueEditingCount', "{0} editing");
+export const conversationLensInboxQueueSummaryEditing = localize('conversationLens.inboxQueueSummaryEditing', "{0} messages editing");
+export const conversationLensInboxQueueUploadingCount = localize('conversationLens.inboxQueueUploadingCount', "{0} uploading");
+export const conversationLensInboxQueueSummaryUploading = localize('conversationLens.inboxQueueSummaryUploading', "{0} messages uploading");
+export const conversationLensDockGoal = localize('conversationLens.dockGoal', "Goal");
+export const conversationLensDockNoGoal = localize('conversationLens.dockNoGoal', "No goal");
+export const conversationLensDockGoalUnavailable = localize('conversationLens.dockGoalUnavailable', "Needs an engine connection");
+export const conversationLensDockGoalPrompt = localize('conversationLens.dockGoalPrompt', "Session goal");
+export const conversationLensDockGoalPlaceholder = localize('conversationLens.dockGoalPlaceholder', "What should this session accomplish?");
+export const conversationLensDockNoModel = localize('conversationLens.dockNoModel', "No model");
+export const conversationLensDockAddTitle = localize('conversationLens.dockAddTitle', "Add context");
+export const conversationLensDockAddEmpty = localize('conversationLens.dockAddEmpty', "No sessions to add");
+export const conversationLensDockNoAttachments = localize('conversationLens.dockNoAttachments', "No attachments");
+export const conversationLensDockTuneTitle = localize('conversationLens.dockTuneTitle', "Tool options");
+export const conversationLensDockTuneOpenEngine = localize('conversationLens.dockTuneOpenEngine', "Engine tools");
+export const conversationLensDockTuneSearch = localize('conversationLens.dockTuneSearch', "Search tools...");
+export const conversationLensDockTuneNoMatch = localize('conversationLens.dockTuneNoMatch', "No matching tools");
+export const conversationLensDockNoTools = localize('conversationLens.dockNoTools', "No tools configured");
+export const conversationLensDockNoEngineTools = localize('conversationLens.dockNoEngineTools', "No tools from engine");
+export const conversationLensDockToolsEngineHint = localize('conversationLens.dockToolsEngineHint', "Enablement is on the Engine page. This list does not change the session.");
+export const conversationLensDockPermissionLabel = localize('conversationLens.dockPermissionLabel', "Permission");
+export const conversationLensDockPermissionAsk = localize('conversationLens.dockPermissionAsk', "Ask");
+export const conversationLensDockPermissionAgent = localize('conversationLens.dockPermissionAgent', "Agent");
+export const conversationLensDockPermissionPermit = localize('conversationLens.dockPermissionPermit', "Permit");
+export const conversationLensDockAgentLabel = localize('conversationLens.dockAgentLabel', "Agent");
+export const conversationLensDockNoAgent = localize('conversationLens.dockNoAgent', "No agent");
+/** Connected + capability UNKNOWN: keep-while-probing, not an empty failed catalog. */
+export const conversationLensDockCatalogProbing = localize('conversationLens.dockCatalogProbing', "Confirming engine catalog…");
+export const conversationLensDockMoreTitle = localize('conversationLens.dockMoreTitle', "More");
+export const conversationLensDockTemplatesTitle = localize('conversationLens.dockTemplatesTitle', "Templates");
+export const conversationLensDockNoTemplates = localize('conversationLens.dockNoTemplates', "No templates");
+export const conversationLensDockMaximizeInput = localize('conversationLens.dockMaximizeInput', "Maximize input");
+/** Composer bottom-bar control hit height (px). */
+export const conversationLensDockControlHeightPx = 24;
+export const conversationLensDockRestoreTimeline = localize('conversationLens.dockRestoreTimeline', "Restore timeline");
+export const conversationLensDockStop = localize('conversationLens.dockStop', "Stop");
+export const conversationLensDockStopNotGenerating = localize('conversationLens.dockStopNotGenerating', "Not generating");
+export const conversationLensDockStopGenerating = localize('conversationLens.dockStopGenerating', "Stop generating");
+export const conversationLensDockSendBusy = localize('conversationLens.dockSendBusy', "Wait for the current reply to finish.");
+export const conversationLensPostFailedMailboxFull = localize('conversationLens.postFailedMailboxFull', "Message not sent — inbox full. Try again.");
+export const conversationLensPostFailedNotAuthenticated = localize('conversationLens.postFailedNotAuthenticated', "Message not sent — not signed in.");
+export const conversationLensPostFailedNoSession = localize('conversationLens.postFailedNoSession', "Message not sent — session not found.");
+export const conversationLensPostFailedDisconnected = localize('conversationLens.postFailedDisconnected', "Message not sent — engine disconnected. Draft kept.");
+export const conversationLensPostFailedSessionNotReady = localize('conversationLens.postFailedSessionNotReady', "Session not ready — not sent. Draft kept.");
+export const conversationLensPostFailedChatStreamClosed = localize('conversationLens.postFailedChatStreamClosed', "Message not sent — chat stream unavailable. Draft kept.");
+/** Honest fallback when postBound throws — not one of the four Actor reject reasons. */
+export const conversationLensPostFailed = localize('conversationLens.postFailed', "Retry failed — could not post. Try again.");
+export type ConversationComposerPostFailureReason =
+	| 'mailbox_full'
+	| 'no_such_session'
+	| 'not_authenticated'
+	| 'chat_stream_closed'
+	| 'engine_disconnected'
+	| 'session_not_ready'
+	| 'empty_session_title'
+	| 'failed';
+export const conversationLensDockPlaceholder = localize('conversationLens.dockPlaceholder', "Message");
+export const conversationLensDockEditingMessage = localize('conversationLens.dockEditingMessage', "Editing message");
+export const conversationLensDockEditingQueued = localize('conversationLens.dockEditingQueued', "Editing queued");
+export const conversationLensDockEditExit = localize('conversationLens.dockEditExit', "Exit");
+export const conversationLensDockSaveQueued = localize('conversationLens.dockSaveQueued', "Save queued message");
+
+/** Toggled on ConversationPart slot hosts when Input Maximize is active (Desktop §8.3.11). */
+export const conversationLensInputMaximizedClass = 'conversation-lens-input-maximized';
+
+/** Toggled on the shared timeline slot while the Trajectory page is showing (D42). */
+export const conversationLensShowingTrajectoryClass = 'conversation-lens-showing-trajectory';
+
+/** PreFirst (no visible messages): centered composer cluster in the reading column. */
+export const conversationLensPhasePreFirstClass = 'conversation-lens-phase-prefirst';
+export const conversationLensPrefirstHeroClass = 'conversation-lens-prefirst-hero';
+/** Hides the dock slot while PreFirst composer lives in the reading column. */
+export const conversationLensPhasePreFirstDockHiddenClass = 'conversation-lens-phase-prefirst-dock-hidden';

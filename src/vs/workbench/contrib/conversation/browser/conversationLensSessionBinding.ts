@@ -25,7 +25,7 @@ import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { applyComposerSurfaceText } from './conversationComposerRefs.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
-import { conversationTimelineEmptyKind, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
+import { conversationTimelineEmptyKind, getConversationSessionReadiness, isConversationDisconnectedEngineSession, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 export interface IConversationLensSessionBindingHost {
 	/** Same dispose gate Mermaid resolve uses. */
 	readonly isDisposed: boolean;
@@ -109,6 +109,15 @@ export function rejectKeepLeftoverListFailWrite(host: IConversationKeepLeftoverW
 		return false;
 	}
 	host.showPostFailure('session_not_ready');
+	return true;
+}
+
+/** The cached read lease must never authorize a local response after an engine disconnect. */
+function rejectDisconnectedEngineResponse(host: IConversationLensSessionBindingHost): boolean {
+	if (!isConversationDisconnectedEngineSession(host.stubService, host.getBoundSessionId())) {
+		return false;
+	}
+	host.showPostFailure('engine_disconnected');
 	return true;
 }
 
@@ -270,6 +279,9 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 	if (rejectKeepLeftoverListFailWrite(host)) {
 		return;
 	}
+	if (rejectDisconnectedEngineResponse(host)) {
+		return;
+	}
 	if (host.stubService.isEngineConnected()) {
 		const forwarded = host.stubService.resolveConfirmation(
 			host.getBoundSessionId(),
@@ -315,6 +327,9 @@ export async function resolveQuestion(host: IConversationLensSessionBindingHost,
 		return;
 	}
 	if (rejectKeepLeftoverListFailWrite(host)) {
+		return;
+	}
+	if (rejectDisconnectedEngineResponse(host)) {
 		return;
 	}
 	if (host.stubService.isEngineConnected()) {
@@ -442,6 +457,9 @@ export function respondClientTool(host: IConversationLensSessionBindingHost, tur
 		return;
 	}
 	if (rejectKeepLeftoverListFailWrite(host)) {
+		return;
+	}
+	if (rejectDisconnectedEngineResponse(host)) {
 		return;
 	}
 	const forwarded = host.stubService.respondClientTool(host.getBoundSessionId(), callId, { content: '' });

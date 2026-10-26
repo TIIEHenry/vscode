@@ -250,3 +250,20 @@ E静态检查仅2个TS的无checker/emit parse，0语法诊断；ESLint 0 errors
 `persisted reasoning keeps the joined thinking preview on the reading line` 是旧生产投影/summary合同差异：payload有完整 `hmm\nthen this`，摘要却取 `THINKING`。该测试及其 `hmm\nthen this` 预期原样保留，**不改为THINKING、不skip、不修本波生产**；精确旧失败原件保留，作为独立既有问题待冻结波后处理，不宣称本次三套全绿或据此关闭产品需求。唯一lane仍须运行三夹具/负控和相关全套，原Astra定向复读不可变补修后再判定。
 
 静态核对：3份改动TS的 `createSourceFile` 解析0语法错误（无checker/emit），ESLint 0错误/6条既有警告；`git diff --check`、`generate-docs-status.py --check` 通过，docs-health 0错误/73警告，status保持197行。reasoning完整测试块与本轮起点逐字相同，SHA-256为 `c72b6abdcd4b0317eb7f1aa17fe7e3a4ef34457ea37da54c3ebc73c19a8e3026`；生产路径diff为空。本轮未运行compile/typecheck/transpile/watch、未写out、未执行依赖out的测试，静态结果不替代唯一lane运行与原Astra复读。
+
+
+### 9.4 非作者 after 发现的断连缓存响应写门补修
+
+本次是原accepted §2/§6的断连写门修复，不新增方案或产品范围。父转达D实证 `.build/e-response-after-m01-20261027-r2-attempt2` steps66–70：69真实public connection disconnect后channelAlive=false；70同一controlled session的权限按钮aria-disabled=false，正常click使真实Pane8/9同时从pending变Allowed并清空pending，response unary 19→19、Chat write 0。两个Pane同时显示Engine not connected与Cached snapshot (read-only)，故这是实际缓存模型假成功，不能仅以零RPC推断未发生写入。question/clientTool在该断连现场没有CTA，只留证边界，不授予真实点击/禁用验证。旧六false/reject、八矩阵、并发、真实link1→2/scope4→6与原39项M01结果均由唯一lane/D保留；本次gate负控失败不据此关闭wave，reasoning原测试/预期不变，global CANCELLED旧通知行为不扩修。
+
+E复用槽前实录clean `loop/E@9e79c26ad11156d691f25a64be8164205ebb475f`，src `2232d14ecec6f2b0b795993a47f88c2fe47d4a8f`；相对明确merge `4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff` 无独有提交。保留原branch，在新 `fix/e-disconnected-seat-gate-20261027` 从4919安全起步，src起点 `2b5df2b37ca926e38888443e371cf65e2883dba2`，不追main、不取WIP、不复制工位。父转达compile8的producer bd1b与相关reasoning一旧红；E未运行该编译或借旧产物宣称本次green。
+
+原Astra直接裁定不改 `getConversationSessionReadiness` 的disconnected→ready：那是目录/读取语义。现有 `conversationSessionAvailability.ts` 提供窄公开判定：当前断连，且公开 `hasEngineConnectionHistory()` 为真或本叶绑定/显式捕获lease的session source为engine-cache，即不可退回本地写入。ReadingColumn座位enabled、三种实际响应callback与 `postBound` 最终门共用该判定；history覆盖来源仍local的过渡，来源查询只用绑定/捕获session，不读无关activeId。配对保持与已连接但not-ready的既有优先级保留；真正从未连过引擎的local stub仍可正常授权。没有读取privateflag、禁用全部stub或增加RPC。
+
+真实响应callback在窄guard直接显示 `engine_disconnected` 并return，permission/question不进入fallback postBound，clientTool也不进入公共响应写入；pending/model均保留。最终postBound在任何lease.post之前拒绝，显式传入已捕获stub lease也不能绕过。按Astra裁定，它保持既有 `PostOutcome` closed拒绝（no_such_session），不扩platform/node镜像枚举、不新增Lens返回联合类型、不额外提示造成双提示；用户可见准确原因由实际响应callback承担。
+
+回归源码新增10项 `response recovery disconnected seat` 在既有 `conversationEngineRosterService.test.ts`：真实connection baseline与storage capture→真实断连后acquireSessionView获得实际stub lease→真实TimelineHost/renderer→LensSessionBinding→postBound。首项正常权限click先检查真实model逐字不变及pending未清，再检查双Pane无Allowed/禁用/hidden→show不重开；精确旧4919须在模型被授权/请求被清理的业务断言红。三类callback分别固定engine_disconnected/无post与无focus；三类postBound分别覆盖implicit及显式captured真实cache lease，不能假accepted。另有重连后两Pane真实unary恢复/准确cleanup、never-connected local真实callback及captured lease授权正控、pairing/connected-notready原门保持。ReadingColumn另加bound source/history过渡与local正控。此harness顶层只import旧已有公开函数，不import新helper，不让旧red先因missingAPI/模块失败。原八/core/39M01等断言不改。
+
+唯一baseline后续负责新测试JS配精确4919/compile8旧生产的meaningful red、正式新编译/green及相关套；E只做无checker/emit parse、lint、diff/docs静态检查。原Astra负责不可变源码独立复审，非作者after在新产物身份明确后另跑；当前仍accepted、未green/implemented，未关闭PRD或旧D项。
+
+本轮静态结果：6个改动TS的 `createSourceFile` parse 0语法诊断（无checker/emit），ESLint 0 errors / 0 warnings；原roster测试声明逐块比对均仍逐字存在，reasoning所在Projection整文件与4919同字节。`git diff --check`与生成状态核对通过，docs-health 0 errors / 73既有warnings，status仍200行。原始静态JSON为 `/tmp/vscode-response-disconnected-seat-E-{parse,eslint,existing-tests,docs-health}.json`。E没有compile/typecheck/transpile/watch/out写入或任何依赖out的业务执行；这些静态结果不替代旧红/新绿/非作者after。

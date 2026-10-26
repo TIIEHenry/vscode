@@ -7,7 +7,7 @@ import assert from 'assert';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { Disposable, toDisposable } from '../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { createUnknownConversationEntryCapability } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -24,7 +24,10 @@ import type {
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';
 import { setConversationStubNextTurnId } from '../../browser/conversationStubModel.js';
-import { postBound } from '../../browser/conversationLensComposer.js';
+import { postBound, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import { resolveConfirmation, resolveQuestion, respondClientTool, type IConversationLensSessionBindingHost } from '../../browser/conversationLensSessionBinding.js';
+import { isReadingColumnWritesEnabled } from '../../browser/conversationLensReadingColumn.js';
+import type { ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { CONVERSATION_ROSTER_STORAGE_KEY, type ConversationRosterStorageV1 } from '../../browser/conversationRosterStorage.js';
 import { createConversationProjectionCache, projectSnapshotToEntries, stubTurnsToSnapshot } from '../../browser/conversationSessionView.js';
 import { isConversationEngineLive, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
@@ -646,6 +649,7 @@ async function acquireEngineBaseline(
 	store: { add<T extends { dispose(): void }>(disposable: T): T },
 	snapshotFor: (sessionId: string) => SessionViewSnapshot,
 	setConnectedOverride = true,
+	storage?: TestStorageService,
 ): Promise<{
 	service: ConversationEngineRosterService;
 	connection: MockUniverseAgentConnection;
@@ -655,7 +659,7 @@ async function acquireEngineBaseline(
 	const connection = store.add(new MockUniverseAgentConnection());
 	const sessionView = store.add(new BaselineProjectionSessionView(snapshotFor));
 	connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
-	const service = store.add(createService(connection, undefined, sessionView));
+	const service = store.add(createService(connection, storage, sessionView));
 	connection.setConnected(true);
 	if (setConnectedOverride) {
 		service.setEngineConnected(true);
@@ -728,6 +732,78 @@ function recoveryAction(host: ConversationTimelineHost, kind: 'permission' | 'qu
 	const action = host.domNode.querySelector<HTMLElement>(selector);
 	assert.ok(action, `${kind} response control must exist`);
 	return action;
+}
+
+/** Product response callbacks and final post door, including the real disconnected stub lease. */
+function responseSeatRoute(
+	store: { add<T extends { dispose(): void }>(disposable: T): T },
+	service: ConversationEngineRosterService, connection: MockUniverseAgentConnection, initialLease: IConversationSessionViewLease,
+) {
+	const failures: ConversationComposerPostFailureReason[] = [];
+	const posted: ConversationWriteMessage[] = [];
+	const focused: string[] = [];
+	const route = {
+		isDisposed: false,
+		stubService: service,
+		uaConnection: connection,
+		sessionViewLease: initialLease,
+		getBoundSessionId: () => initialLease.sessionId,
+		showPostFailure: (reason: ConversationComposerPostFailureReason) => failures.push(reason),
+		focusTimelineRecord: (id: string) => focused.push(id),
+		postBound: (message: ConversationWriteMessage): ReturnType<typeof postBound> => {
+			posted.push(message);
+			return postBound(route as IConversationLensComposerHost, message);
+		},
+	};
+	const binding = route as IConversationLensSessionBindingHost;
+	let settled = Promise.resolve();
+	const instantiation = workbenchInstantiationService(undefined, store);
+	instantiation.stub(IWebviewService, {
+		_serviceBrand: undefined, activeWebview: undefined, webviews: [], onDidChangeActiveWebview: Event.None,
+		createWebviewOverlay: () => { throw new Error('No webview in response seat route'); },
+		createWebviewElement: () => { throw new Error('No webview in response seat route'); },
+	});
+	const parent = document.createElement('div');
+	document.body.appendChild(parent);
+	store.add(toDisposable(() => parent.remove()));
+	const timeline = store.add(instantiation.createInstance(ConversationTimelineHost, parent, {
+		getResponseProjection: () => route.sessionViewLease.responseProjection,
+		writesEnabled: () => isReadingColumnWritesEnabled(route),
+		showLiveChrome: () => service.isEngineConnected(),
+		onResolveConfirmation: (id, status) => { settled = resolveConfirmation(binding, id, status); },
+		onQuestionRespond: (id, requestId, answers, customText) => { settled = resolveQuestion(binding, id, requestId, answers, customText); },
+		onRespondClientTool: turn => respondClientTool(binding, turn),
+		contentAdapter: { renderTurnBody: (turn, container) => { container.textContent = turn.text; return Disposable.None; } },
+	}));
+	const lifetime = store.add(new DisposableStore());
+	const apply = (event: Parameters<ConversationTimelineHost['applyEntries']>[1]) => {
+		const lease = route.sessionViewLease;
+		timeline.applyEntries(projectSnapshotToEntries(lease.snapshot, lease.attribution, lease.details, undefined, undefined,
+			lease.respondFailures, { responseProjection: lease.responseProjection }), event);
+	};
+	const rebind = (lease: IConversationSessionViewLease, paint = true) => {
+		lifetime.clear();
+		route.sessionViewLease = lease;
+		lifetime.add(lease.onDidApplyFrame(apply));
+		if (paint) {
+			apply({ kind: 'baseline' });
+			timeline.refreshPresentation();
+		}
+	};
+	rebind(initialLease);
+	return { timeline, route, binding, failures, posted, focused, rebind, whenSettled: () => settled };
+}
+
+async function disconnectedResponseSeat(store: { add<T extends { dispose(): void }>(disposable: T): T }) {
+	const live = await acquireEngineBaseline(store, responseRecoverySnapshot, false, store.add(new TestStorageService()));
+	live.connection.setConnected(false);
+	assert.strictEqual(live.service.isEngineConnected(), false);
+	assert.strictEqual(live.service.hasEngineConnectionHistory(), true);
+	assert.strictEqual(live.service.getSessionSource('ua-only'), 'engine-cache');
+	const cachedLease = store.add(live.service.acquireSessionView('ua-only'));
+	assert.ok(cachedLease.snapshot.pendingActions.some(action => action.requestId === 'req-allow'));
+	assert.strictEqual(live.service.getTurns('ua-only').find(turn => turn.id === 'req-allow')?.status, 'pending');
+	return { ...live, cachedLease };
 }
 
 function chooseRecoveryAnswers(host: ConversationTimelineHost): void {
@@ -3456,6 +3532,150 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 
 		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-1', 'allowed'), false);
 		assert.strictEqual(connection.respondPermissionCalls.length, 0);
+	});
+
+	test('response recovery disconnected seat normal permission clicks keep both cached panes pending and the model unchanged', async () => {
+		const { service, connection, sessionView, cachedLease } = await disconnectedResponseSeat(store);
+		const otherLease = store.add(service.acquireSessionView('ua-only'));
+		const first = responseSeatRoute(store, service, connection, cachedLease);
+		const second = responseSeatRoute(store, service, connection, otherLease);
+		const modelBefore = JSON.stringify(service.getTurns('ua-only'));
+		const pendingBefore = JSON.stringify(cachedLease.snapshot.pendingActions);
+		second.timeline.hide();
+
+		recoveryAction(first.timeline, 'permission').click();
+		await first.whenSettled();
+		// Old production reaches stub permissionRespond here: pending becomes Allowed without a unary.
+		assert.strictEqual(JSON.stringify(service.getTurns('ua-only')), modelBefore, 'a disconnected click must not authorize the cached model');
+		assert.strictEqual(JSON.stringify(cachedLease.snapshot.pendingActions), pendingBefore, 'the real cached lease must retain its pending requests');
+		second.timeline.show();
+		recoveryAction(second.timeline, 'permission').click();
+		await second.whenSettled();
+		for (const pane of [first, second]) {
+			assert.strictEqual(pane.timeline.getTimelineRowElement('req-allow')?.textContent?.includes('Allowed'), false);
+			assert.strictEqual(recoveryAction(pane.timeline, 'permission').getAttribute('aria-disabled'), 'true');
+			assert.deepStrictEqual(pane.posted, []);
+			assert.deepStrictEqual(pane.focused, []);
+		}
+		assert.strictEqual(JSON.stringify(otherLease.snapshot.pendingActions), pendingBefore);
+		assert.strictEqual(connection.respondPermissionCalls.length, 0);
+		assert.strictEqual(sessionView.postCalls.length, 0);
+	});
+
+	for (const kind of ['permission', 'question', 'clientTool'] as const) {
+		test(`response recovery disconnected seat ${kind} callback rejects before the cached stub route`, async () => {
+			const { service, connection, sessionView, cachedLease } = await disconnectedResponseSeat(store);
+			const pane = responseSeatRoute(store, service, connection, cachedLease);
+			const before = JSON.stringify([service.getTurns('ua-only'), cachedLease.snapshot]);
+			if (kind === 'permission') {
+				await resolveConfirmation(pane.binding, 'req-allow', 'allowed');
+			} else if (kind === 'question') {
+				await resolveQuestion(pane.binding, 'q-ask:row', 'q-ask', { radio: { selectedLabels: ['first'] } });
+			} else {
+				respondClientTool(pane.binding, { id: 'call-ask' });
+			}
+			assert.strictEqual(JSON.stringify([service.getTurns('ua-only'), cachedLease.snapshot]), before, 'a late response callback must leave the actual cached model and pending requests untouched');
+			assert.deepStrictEqual(pane.failures, ['engine_disconnected']);
+			assert.deepStrictEqual(pane.posted, []);
+			assert.deepStrictEqual(pane.focused, []);
+			assert.strictEqual(connection.respondPermissionCalls.length + connection.respondQuestionCalls.length + connection.sendClientToolResponseCalls.length, 0);
+			assert.strictEqual(sessionView.postCalls.length, 0);
+		});
+
+		test(`response recovery disconnected seat ${kind} postBound rejects implicit and captured cached leases`, async () => {
+			const { service, connection, sessionView, cachedLease } = await disconnectedResponseSeat(store);
+			const pane = responseSeatRoute(store, service, connection, cachedLease);
+			const message: ConversationWriteMessage = kind === 'permission'
+				? { kind: 'permissionRespond', requestId: 'req-allow', decision: 'allow' }
+				: kind === 'question' ? { kind: 'questionRespond', requestId: 'q-ask', answers: { radio: { selectedLabels: ['first'] } } }
+					: { kind: 'clientToolRespond', requestId: 'call-ask', resultJson: '{}' };
+			const before = JSON.stringify([service.getTurns('ua-only'), cachedLease.snapshot]);
+			for (const captured of [undefined, cachedLease]) {
+				const outcome = await postBound(pane.route as IConversationLensComposerHost, message, captured);
+				assert.strictEqual(JSON.stringify([service.getTurns('ua-only'), cachedLease.snapshot]), before, 'the final post door must not mutate or clear a cached request');
+				assert.deepStrictEqual(outcome, { accepted: false, reason: 'no_such_session' });
+			}
+			assert.deepStrictEqual(pane.failures, [], 'the final transport door leaves UI notices to the response callback');
+			assert.strictEqual(connection.respondPermissionCalls.length + connection.respondQuestionCalls.length + connection.sendClientToolResponseCalls.length, 0);
+			assert.strictEqual(sessionView.postCalls.length, 0);
+		});
+	}
+
+	test('response recovery disconnected seat reconnect restores the real permission route in both panes', async () => {
+		const { service, connection, sessionView, cachedLease } = await disconnectedResponseSeat(store);
+		const first = responseSeatRoute(store, service, connection, cachedLease);
+		const second = responseSeatRoute(store, service, connection, store.add(service.acquireSessionView('ua-only')));
+		assert.strictEqual(recoveryAction(first.timeline, 'permission').getAttribute('aria-disabled'), 'true');
+		connection.setConnected(true);
+		await awaitEngineCatalogRefresh(service);
+		const firstLive = store.add(service.acquireSessionView('ua-only'));
+		const secondLive = store.add(service.acquireSessionView('ua-only'));
+		sessionView.emitGeneration(responseRecoverySnapshot('ua-only'), 2);
+		await timeout(0);
+		first.rebind(firstLive);
+		second.rebind(secondLive);
+		assert.strictEqual(recoveryAction(first.timeline, 'permission').getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(recoveryAction(second.timeline, 'permission').getAttribute('aria-disabled'), 'false');
+		recoveryAction(first.timeline, 'permission').click();
+		await first.whenSettled();
+		assert.strictEqual(await service.whenDispatchedEngineActionSettles(), true);
+		assert.deepStrictEqual(connection.respondPermissionCalls, [{ sessionId: 'ua-only', requestId: 'req-allow', granted: true }]);
+		for (const pane of [first, second]) {
+			assert.ok(pane.timeline.getTimelineRowElement('req-allow')?.textContent?.includes('Allowed'));
+			assert.deepStrictEqual(pane.posted, []);
+			assert.deepStrictEqual(pane.failures, []);
+			assert.ok(!pane.route.sessionViewLease.snapshot.pendingActions.some(action => action.requestId === 'req-allow'));
+		}
+		assert.strictEqual(sessionView.postCalls.length, 0);
+	});
+
+	test('response recovery disconnected seat never-connected local stub still authorizes through the real callback and captured lease', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		const service = store.add(createService(connection));
+		const sessionId = service.getActiveSessionId();
+		const request = service.appendConfirmationTurn(sessionId, 'Local permission');
+		assert.ok(request);
+		const lease = store.add(service.acquireSessionView(sessionId));
+		const pane = responseSeatRoute(store, service, connection, lease);
+		pane.timeline.revealTurn(request.id);
+		assert.strictEqual(service.hasEngineConnectionHistory(), false);
+		assert.strictEqual(service.getSessionSource(sessionId), 'local');
+		const allow = pane.timeline.getTimelineRowElement(request.id)?.querySelector<HTMLElement>('.conversation-lens-confirmation-actions .monaco-button');
+		assert.ok(allow);
+		assert.strictEqual(allow.getAttribute('aria-disabled'), 'false');
+		allow.click();
+		await pane.whenSettled();
+		assert.strictEqual(service.getTurns(sessionId).find(turn => turn.id === request.id)?.status, 'allowed');
+		assert.ok(!lease.snapshot.pendingActions.some(action => action.requestId === request.id));
+		assert.deepStrictEqual(pane.failures, []);
+		const next = service.appendConfirmationTurn(sessionId, 'Local captured permission');
+		assert.ok(next);
+		const outcome = await postBound(pane.route as IConversationLensComposerHost, { kind: 'permissionRespond', requestId: next.id, decision: 'deny' }, lease);
+		assert.strictEqual(outcome.accepted, true);
+		assert.strictEqual(service.getTurns(sessionId).find(turn => turn.id === next.id)?.status, 'skipped');
+		assert.strictEqual(connection.respondPermissionCalls.length, 0);
+	});
+
+	test('response recovery disconnected seat keeps pairing and connected-not-ready response gates', async () => {
+		const { service, connection, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot, false);
+		const pane = responseSeatRoute(store, service, connection, lease);
+		connection.setPairingPending(true);
+		await resolveConfirmation(pane.binding, 'req-allow', 'allowed');
+		assert.strictEqual(isReadingColumnWritesEnabled(pane.route), false);
+		assert.deepStrictEqual(pane.failures, ['engine_disconnected']);
+		assert.deepStrictEqual(await postBound(pane.route as IConversationLensComposerHost, { kind: 'permissionRespond', requestId: 'req-allow', decision: 'allow' }, lease), { accepted: false, reason: 'no_such_session' });
+		connection.listSessionsError = new Error('list unavailable');
+		connection.setPairingPending(false);
+		await awaitEngineCatalogRefresh(service);
+		assert.strictEqual(service.isEngineConnected(), true);
+		assert.strictEqual(service.isEngineSessionReady(), false);
+		await resolveConfirmation(pane.binding, 'req-allow', 'allowed');
+		assert.strictEqual(isReadingColumnWritesEnabled(pane.route), false);
+		assert.deepStrictEqual(pane.failures, ['engine_disconnected', 'session_not_ready']);
+		assert.deepStrictEqual(await postBound(pane.route as IConversationLensComposerHost, { kind: 'permissionRespond', requestId: 'req-allow', decision: 'allow' }, lease), { accepted: false, reason: 'no_such_session' });
+		assert.deepStrictEqual(pane.posted, []);
+		assert.strictEqual(connection.respondPermissionCalls.length, 0);
+		assert.ok(lease.snapshot.pendingActions.some(action => action.requestId === 'req-allow'));
 	});
 
 	for (const kind of ['permission', 'question', 'clientTool'] as const) {

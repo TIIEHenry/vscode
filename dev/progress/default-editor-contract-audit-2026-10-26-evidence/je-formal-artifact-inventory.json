@@ -1,5 +1,5 @@
 {
-  "phase": "E93-immutable-independent-peer-C0-I0-M0-integrated-old-red-new-native-and-after-pending-E-stage-remains-FAIL",
+  "phase": "E93-source-only-integrated-after-actual-old4919-3pass7-business-red-and-163-restore-extra4-old-native-qualified-compile9-pending",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -3212,6 +3212,181 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-disconnected93-peer-merge-identity.json",
       "bytes": 307894,
       "sha256": "daf7b92c2ea89a9d086a60fd779b376a559d736a49ff2c4a585fadbba8c27655",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-compile8.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-compile8.py",
+      "bytes": 8249,
+      "sha256": "f6eba726e634d90aab37afdef514c4e788074e8f3eaa9839edcd3018bb29421f",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-compile8.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-compile8.json",
+      "bytes": 148820,
+      "sha256": "cc8e3a2395a48cc8a1614239bc0ec7e4a973ada211fdbbe7350927591f7275cf",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-compile8.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-compile8.log",
+      "bytes": 23203,
+      "sha256": "c7b9fc3ce711946953d19f718bfb974dbf9d03615b5d9f44ff8088d65b00cba8",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-compile8.test-source.ts",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-compile8.test-source.ts",
+      "bytes": 305053,
+      "sha256": "7e8d392b17f21e99c0dab44e34a05c530e60611f25a6549f779274fffdf17a0a",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-compile8.temporary-test.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-compile8.temporary-test.js",
+      "bytes": 544724,
+      "sha256": "12b9fe19296c83678e990ed16b3890d6d7cf25708fed7d9ce7c71246af781a21",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-compile8.processes-before.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-compile8.processes-before.log",
+      "bytes": 252691,
+      "sha256": "ac4685a57d645225a4b841ef25e52128ec1d5dc87a3ca77825e3f81107260321",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-compile8.processes-under-lock.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-compile8.processes-under-lock.log",
+      "bytes": 252680,
+      "sha256": "d7ee3acc0c73c80582569a46fa522782616ecec68dc4d9424afa3b56422310a4",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-disconnected93-source-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-disconnected93-source-pre-merge.json",
+      "bytes": 1293,
+      "sha256": "4650184af278ec97ea2efb5420c3a77ca94b4ca4ccf7677dee5bac4e4bae28a0",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-disconnected93-source-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-disconnected93-source-merge.log",
+      "bytes": 160,
+      "sha256": "7b062612663b38695884d4a90668592de957e1ca8045dfcb88e7ab2a56911daf",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-disconnected93-source-conflict-resolutions.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-disconnected93-source-conflict-resolutions.json",
+      "bytes": 554268,
+      "sha256": "399b9514af7612eb2070cb3f47cb742b8fee01780f91a9310aa33b5f617260d1",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-disconnected93-source-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-disconnected93-source-merge-identity.json",
+      "bytes": 587032,
+      "sha256": "8c8c320c0a741e265de0326afc5db8ccbaa86bf5bf840d2992a8cdb8fb5f1cdd",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-existing-test-continuity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-existing-test-continuity.json",
+      "bytes": 806,
+      "sha256": "89615927487a2101be6b41a680f1bcc40e4b3c358aad479056b1f4aa5764f5a1",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-native-proof.json",
+      "bytes": 7208,
+      "sha256": "40382e03a54025339dd51069787d72e9a88c4c28baeabb132aa1d3f40e803d52",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensComposer.deterministic.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationLensComposer.deterministic.js",
+      "bytes": 63112,
+      "sha256": "8416ea8b1b79677bfe72e4b99b962f08510be48605356abf6cb18cb0b0b854c8",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensComposer.old-native.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationLensComposer.old-native.js",
+      "bytes": 63112,
+      "sha256": "8416ea8b1b79677bfe72e4b99b962f08510be48605356abf6cb18cb0b0b854c8",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensComposer.ts",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationLensComposer.ts.log",
+      "bytes": 22246,
+      "sha256": "67db066f506bffe1d94630bbcbd439d1fedc182738eb5e4b93709b900e8520e9",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensDockStrings.deterministic.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationLensDockStrings.deterministic.js",
+      "bytes": 30444,
+      "sha256": "e15bd60c66286c87b2b3f49ee468cc08e7275bad98b2a01dbb9cdc2cd5bcba7f",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensDockStrings.old-native.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationLensDockStrings.old-native.js",
+      "bytes": 30444,
+      "sha256": "e15bd60c66286c87b2b3f49ee468cc08e7275bad98b2a01dbb9cdc2cd5bcba7f",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensDockStrings.ts",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationLensDockStrings.ts.log",
+      "bytes": 10754,
+      "sha256": "a5a76174aeea40a415337a97cee7b9d53702930251e0f4f4ef31b391a6a2a265",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionAvailability.deterministic.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationSessionAvailability.deterministic.js",
+      "bytes": 5529,
+      "sha256": "61bc22fa92e966e1a524e443110bd7e984811d0b3cd058669ede593f2a54367c",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionAvailability.old-native.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationSessionAvailability.old-native.js",
+      "bytes": 5529,
+      "sha256": "61bc22fa92e966e1a524e443110bd7e984811d0b3cd058669ede593f2a54367c",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionAvailability.ts",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationSessionAvailability.ts.log",
+      "bytes": 2222,
+      "sha256": "2c692b9f275f25de3737547c741f501214a5a3a00226e6b361570746f1bb6125",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionReadiness.deterministic.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationSessionReadiness.deterministic.js",
+      "bytes": 5117,
+      "sha256": "f2ffe5d321b151a0018fb57bbe9c8a4e48470325a30868828af3e24b51093156",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionReadiness.old-native.js",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationSessionReadiness.old-native.js",
+      "bytes": 5117,
+      "sha256": "f2ffe5d321b151a0018fb57bbe9c8a4e48470325a30868828af3e24b51093156",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionReadiness.ts",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e93-old4919-extra-conversationSessionReadiness.ts.log",
+      "bytes": 2306,
+      "sha256": "3394a715b46f4b93a2583273283c7db8265ea56d3792aeb39fbb891ced72e828",
       "bytePreservingCopy": true
     }
   ]

@@ -13,7 +13,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerEnabledModelIds, composerModelIds, composerModelSelectionIndex, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
-import { isConversationSessionNotReady } from './conversationSessionAvailability.js';
+import { isConversationDisconnectedEngineSession, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { rejectKeepLeftoverListFailWrite, rejectPairingHoldWrite } from './conversationLensSessionBinding.js';
 import {
@@ -335,6 +335,10 @@ export function postBound(
 		// D294: pairing-hold keeps the leftover engine lease for reads (D289).
 		// Writes must not fall through to lease.post — same closed outcome as a missing session.
 		if (isConversationPairingHold(host.uaConnection)) {
+			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
+		}
+		// A cached stub lease is for reads; an explicit captured lease cannot reopen this door.
+		if (isConversationDisconnectedEngineSession(host.stubService, sessionViewLease?.sessionId ?? host.sessionViewLease?.sessionId)) {
 			return Promise.resolve({ accepted: false, reason: 'no_such_session' });
 		}
 		if (msg.kind === 'clientToolRespond' && host.stubService.isEngineConnected()) {
