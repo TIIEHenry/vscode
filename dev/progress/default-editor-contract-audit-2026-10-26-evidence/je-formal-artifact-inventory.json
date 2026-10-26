@@ -1,5 +1,5 @@
 {
-  "phase": "fixed-d91-final-source-native-frozen-J-after-awaiting-root-E-separate-authorization",
+  "phase": "parent-freeze-verified-J-only-scheduled-E-unauthorized-out-stable",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -1131,6 +1131,34 @@
     {
       "originalPath": "/tmp/vscode-je-final-freeze-health.log",
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-freeze-health.log",
+      "bytes": 4384,
+      "sha256": "bacb75c481d69be9cb3ac066adafe157c933993f87f4fd5f3ec3081e9b4c7624",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": null,
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-parent-freeze-verification.json",
+      "bytes": 1210,
+      "sha256": "08276c7d8b6c24f87ce64d7f7b75602585600b68f77a85cb8c5e2c556047f8f5",
+      "capturedFromExplicitParentMessage": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-final-parent-receipt-generated-check.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-parent-receipt-generated-check.log",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-final-parent-receipt-diff-check.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-parent-receipt-diff-check.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-final-parent-receipt-health.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-parent-receipt-health.log",
       "bytes": 4384,
       "sha256": "bacb75c481d69be9cb3ac066adafe157c933993f87f4fd5f3ec3081e9b4c7624",
       "bytePreservingCopy": true
