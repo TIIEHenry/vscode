@@ -675,3 +675,35 @@ hello outer field10的version1/head0/epoch1/lastMutated0分别对decoder内1/2/3
 后续独立追踪确认合法nested editor split路径：公开`workbench.action.splitEditorRight`接受标准`{ groupId, editorIndex }`。`resolveCommandsContext`取显式上下文；`EditorParts.getGroup`遍历所有parts，`addGroup`定位源group所属part；`splitEditor`copy非Singleton input。`ConversationChatInput`只追加CannotClose而非Singleton，且基础`EditorInput.copy()`返回`this`，所以两个Pane可以共享同一input对象；审查初期要求“不同input实例”过强，已纠正为不同Pane/group及准确resource绑定。无参命令的global active排除Conversation，不能依赖它碰巧命中；`splitEditorInGroup`的side-by-side包装也不是这里的两个nested group路径。
 
 独立读取D `steps/09-E-explicit-public-split.json`（SHA256 `cf94daa703bdd74c51534613589663e87949c67cc17cad165f40ff3108b1fb17`）：实际command args为group11/editorIndex0，随后同controlled-session part拥有group11、13的两个`workbench.editor.conversationChat`，resource同为该session/default；两个permission seat的x分别666.5、886.5，宽186，Allow均ariaDisabled=false，uiErrors=[]。因此同session两个真实nested Pane可达的风险已由D实际原件解除，不能把顶层window-service去重当作终局UI不可达；busy、第二次操作抑制与恢复仍待后续原件。reviewer没有执行此命令，也未把这一步算作八项业务通过。
+
+
+## 24. E重连后可见Pane未自动恢复lease：产品生命周期Important候选（2026-10-27）
+
+**父裁定登记Important候选，保留观察与归因限制；本冻结波不改产品、不新编号/方案。** 当前E unary矩阵在公开恢复后继续，其成功不能洗掉此问题；也不把该生命周期观察归为旧E unary回归失败。后续调度由父在D证据封存/冻结波结账后另行决定，与既有reasoning摘要问题分别保留。
+
+### 直接观察与身份
+
+D `steps/00..02`的连接为linkId1，controlled session公开source为local；02通过`windows.openSessionBeside`建真实group11/Pane。旧fake协议修正重启后03/04连接已为linkId2、source为engine-cache，故不是已证明“初次创建Pane必失败”，而是**已有可见Pane经历重连后的绑定恢复问题**。04的public observer lease已读到request `D-E-permission-false`，UI seats为空；D随后的实际Pane字段诊断显示正确boundSessionId、lastEntries=[]、disposed=false，并报告`sessionViewLease`为undefined（该字段在JSON序列化后省略，须连同采集表达式保存）。独立public readiness记录为ready/true，空态“No messages yet”。
+
+driver的`frameViews`是另行`roster.acquireSessionView→读snapshot→dispose`产生的public观察，不是该Pane持有lease的证据。05只经公开`hideSessionWindow`，06经公开`restoreSessionWindow`后出现真实permission seat且Allow enabled；未直接写private binding。该恢复明确标记为恢复路径，不能改写成首次打开已正确收到pending。
+
+| D原件 | SHA256 |
+| --- | --- |
+| `actual-pane-readonly-binding-diagnostic.json` | `f372765aa59e5b486eebc839a09594e582b4eea4339ecbfe84707f689d071ab6` |
+| `readiness-public.json` | `501de82c6101320b1f390e7fc06dff6836bd39927caefa05b4c61cd17e0d8894` |
+| `steps/02-E-open-real-leaf.json` | `a44658573ce720f12b7a03864b0339d3b65768d1204e8b55f59047bcb6499e5b` |
+| `steps/03-E-bidi-connected.json` | `413c401163f6e6c8a6298b013d8ae2617c39cff2eedc196ed38a3c93986182aa` |
+| `steps/04-permission-false-pending.json` | `90cb85589a9d64b5aee028e1a84d69dc13cd434baf99ef6002707777d3b5cf19` |
+| `steps/05-E-public-hide-before-rebind.json` | `43387ad44afaf99914228db9843af0af1bbe5bb79a361a690a28868ce6059db0` |
+| `steps/06-E-public-restore-rebind.json` | `396f9d932c2a7a49b57059c6a1cb123b3af8e0ce7a5ebde2a0532f02a2a266ec` |
+
+### 与观察吻合的静态生命周期链
+
+1. Roster先于Lens订阅connection变化。`onUaConnectionChanged`在connected时发起`refreshEngineCatalog`，其async主体在首个await前同步将`listCompleted=false`。这时公开readiness为loading。
+2. Lens的connection监听调用`rebindSessionViewAfterConnectionChange→bindSessionView`；`conversationLensSessionBinding.bindSessionViewNow`在not-ready且无应保留的same-session entries时clear lifetime、置lease undefined并blank。非空同session leftover有保留分支，不能扩大为所有重连都清空。
+3. catalog异步成功后设listCompleted=true并激活目标；`activateEngineSession`只在active id变化时发active-session事件。同id恢复只发`onDidChangeSession`，而Lens这个监听只刷新选项、title/inbox/phase/gate等，不在缺lease时重绑。
+4. `ConversationEditorPane.bindHiddenLeafLease`的syncLease在setInput及visibleWindows变化触发；普通readiness-ready本身不触发它。hide释放后restore使visible事件触发“无lease→bindSessionView”，此时ready，正好补偿缺失绑定，与06表现一致。
+
+此静态链解释了“独立public lease已live、同session真实Pane仍空、公开可见性切换恢复”。它不依赖修改readonly字段或制造模型；但**现场没有记录每次callback的完整顺序与当时readiness/entries**，也没有当前审查的独立最小重现，因此称Important候选和高度吻合归因，不声称已证明唯一根因。不能凭模型晚到作泛化解释或无限增加等待；需要后续专门验证ready转变后的可见消费者绑定是否恢复。
+
+Lens、SessionBinding、EditorPane三生产文件在旧9cc56与当前800d逐字相同，SHA分别`bb1e6108f5a17ebbc8d902dabbd59c856a15c3a86477f94b36dc30c7147e0dbd`、`c1ec5cc15a0f282f2ab2ee3f32f02a316a4f96d8e2df327053452367207bf6e2`、`51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65`。该源连续性说明不是M01修改这三文件引入，不能替代旧运行重现或断言全部因果代码不变。后续可评估“ready通知与可见且缺lease的消费者绑定”切片，并保留hidden不持lease、same-session leftover、换session、失败/重连与多Pane隔离合同；当前只登记候选，不在冻结产物上实施或添加临时补丁。
