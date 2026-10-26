@@ -5,7 +5,7 @@
 
 import { URI } from '../../../../base/common/uri.js';
 import { Event, Emitter } from '../../../../base/common/event.js';
-import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
+import { CancellationError, getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, IDisposable, dispose, toDisposable, MutableDisposable, combinedDisposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { FileChangeType, FileChangesEvent, IFileService, whenProviderRegistered, FileOperationError, FileOperationResult, FileOperation, FileOperationEvent } from '../../../../platform/files/common/files.js';
@@ -378,6 +378,12 @@ class FileServiceBasedConfiguration extends Disposable {
 
 }
 
+interface RemoteUserConfigurationAttempt {
+	readonly initial: boolean;
+	readonly promise: Promise<ConfigurationModel | undefined>;
+	readonly state: { initializationPromise?: Promise<ConfigurationModel> };
+}
+
 export class RemoteUserConfiguration extends Disposable {
 
 	private readonly _cachedConfiguration: CachedRemoteUserConfiguration;
@@ -385,12 +391,10 @@ export class RemoteUserConfiguration extends Disposable {
 	private readonly _uriIdentityService: IUriIdentityService;
 	private readonly _remoteAgentService: IRemoteAgentService;
 	private readonly _logService: ILogService;
-	private _userConfiguration: FileServiceBasedRemoteUserConfiguration | CachedRemoteUserConfiguration;
-	private _userConfigurationInitializationPromise: Promise<ConfigurationModel> | null = null;
-	private _remoteUserConfigurationPromise: Promise<void> | undefined;
-	private _remoteUserConfigurationError: unknown;
-	private _remoteUserConfigurationAttemptId = 0;
-	private _adoptedRemoteDisposables: IDisposable[] | undefined;
+	private _remoteConfiguration: FileServiceBasedRemoteUserConfiguration | undefined;
+	private _remoteUserConfigurationAttempt: RemoteUserConfigurationAttempt | undefined;
+	private _failedRemoteUserConfigurationAttempt: { readonly attempt: RemoteUserConfigurationAttempt; readonly error: unknown } | undefined;
+	private readonly _remoteConfigurationDisposables = this._register(new MutableDisposable<DisposableStore>());
 
 	private readonly _onDidChangeConfiguration: Emitter<ConfigurationModel> = this._register(new Emitter<ConfigurationModel>());
 	public readonly onDidChangeConfiguration: Event<ConfigurationModel> = this._onDidChangeConfiguration.event;
@@ -411,161 +415,133 @@ export class RemoteUserConfiguration extends Disposable {
 		this._uriIdentityService = uriIdentityService;
 		this._remoteAgentService = remoteAgentService;
 		this._logService = logService;
-		this._userConfiguration = this._cachedConfiguration = this._register(new CachedRemoteUserConfiguration(remoteAuthority, configurationCache, { scopes: REMOTE_MACHINE_SCOPES }, logService));
-		this._ensureRemoteUserConfiguration();
+		this._cachedConfiguration = this._register(new CachedRemoteUserConfiguration(remoteAuthority, configurationCache, { scopes: REMOTE_MACHINE_SCOPES }, logService));
+		// Detached startup owns the historical double chain. Disposal must not report it.
+		this._ensureRemoteUserConfiguration(true).promise.catch(error => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			return Promise.reject(error);
+		}).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
-	private _ensureRemoteUserConfiguration(): Promise<void> {
-		const current = this._remoteUserConfigurationPromise;
+	private _ensureRemoteUserConfiguration(initial: boolean): RemoteUserConfigurationAttempt {
+		const current = this._remoteUserConfigurationAttempt;
 		if (current) {
 			return current;
 		}
-		this._remoteUserConfigurationError = undefined;
-		const attemptId = this._remoteUserConfigurationAttemptId;
-		let promise: Promise<void>;
-		try {
-			promise = this._loadRemoteUserConfiguration();
-		} catch (error) {
-			promise = Promise.reject(error);
-		}
-		this._remoteUserConfigurationPromise = promise;
-		// Drop only this attempt after it rejects. A later initialize() reads again.
-		// In-flight and fulfilled attempts stay shared, including a missing environment.
-		promise.catch(error => {
-			if (this._remoteUserConfigurationPromise !== promise) {
-				return;
-			}
-			this._remoteUserConfigurationPromise = undefined;
-			this._userConfigurationInitializationPromise = null;
-			if (this._remoteUserConfigurationAttemptId === attemptId) {
-				this._remoteUserConfigurationError = error;
+		const state: RemoteUserConfigurationAttempt['state'] = {};
+		const attempt: RemoteUserConfigurationAttempt = { initial, state, promise: this._loadRemoteUserConfiguration(state) };
+		this._remoteUserConfigurationAttempt = attempt;
+		attempt.promise.catch(error => {
+			if (this._remoteUserConfigurationAttempt === attempt) {
+				this._remoteUserConfigurationAttempt = undefined;
+				if (initial && !this._store.isDisposed) {
+					this._failedRemoteUserConfigurationAttempt = { attempt, error };
+				}
 			}
 		});
-		return promise;
+		return attempt;
 	}
 
-	private _loadRemoteUserConfiguration(): Promise<void> {
-		const uriIdentityService = this._uriIdentityService;
-		const logService = this._logService;
-		const realRemoteAgentService = this._remoteAgentService;
-		let environmentPromise: ReturnType<IRemoteAgentService['getEnvironment']> | undefined;
-		const remoteAgentService = {
-			getEnvironment: () => {
-				if (!environmentPromise) {
-					environmentPromise = realRemoteAgentService.getEnvironment();
-				}
-				return environmentPromise;
+	private async _loadRemoteUserConfiguration(state: RemoteUserConfigurationAttempt['state']): Promise<ConfigurationModel | undefined> {
+		const disposables = new DisposableStore();
+		this._remoteConfigurationDisposables.value = disposables;
+		try {
+			const environment = await this._remoteAgentService.getEnvironment();
+			this.throwIfDisposed();
+			if (!environment) {
+				return undefined;
 			}
-		};
-		this._adoptedRemoteDisposables = [];
-		const swallowed = remoteAgentService.getEnvironment().then(async environment => {
-			if (environment) {
-				const userConfiguration = this._register(new FileServiceBasedRemoteUserConfiguration(environment.settingsPath, { scopes: REMOTE_MACHINE_SCOPES }, this._fileService, uriIdentityService, logService));
-				this._register(userConfiguration.onDidChangeConfiguration(configurationModel => this.onDidUserConfigurationChange(configurationModel)));
-				this._userConfigurationInitializationPromise = userConfiguration.initialize();
-				const configurationModel = await this._userConfigurationInitializationPromise;
-				this._userConfiguration.dispose();
-				this._userConfiguration = userConfiguration;
-				this.onDidUserConfigurationChange(configurationModel);
-				this._onDidInitialize.fire(configurationModel);
+			const configuration = disposables.add(new FileServiceBasedRemoteUserConfiguration(environment.settingsPath, { scopes: REMOTE_MACHINE_SCOPES }, this._fileService, this._uriIdentityService, this._logService));
+			state.initializationPromise = configuration.initialize();
+			const model = await state.initializationPromise;
+			this.throwIfDisposed();
+			this._remoteConfiguration = configuration;
+			disposables.add(configuration.onDidChangeConfiguration(model => this.onDidUserConfigurationChange(model)));
+			this.onDidUserConfigurationChange(model);
+			this._onDidInitialize.fire(model);
+			return model;
+		} catch (error) {
+			if (this._remoteConfigurationDisposables.value === disposables) {
+				this._remoteConfigurationDisposables.clear();
+			} else {
+				disposables.dispose();
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
-		if (!environmentPromise) {
-			this._adoptedRemoteDisposables = undefined;
-			return Promise.reject(new Error('Remote user configuration did not read the environment'));
+			throw error;
 		}
-		const readEnvironment = environmentPromise;
-		return (async () => {
-			let failed = false;
-			try {
-				const environment = await readEnvironment;
-				await swallowed;
-				if (!environment || this._userConfiguration instanceof FileServiceBasedRemoteUserConfiguration) {
-					return;
-				}
-				if (this._userConfigurationInitializationPromise) {
-					await this._userConfigurationInitializationPromise;
-				}
-				throw new Error('Remote user configuration failed to initialize');
-			} catch (error) {
-				failed = true;
-				throw error;
-			} finally {
-				const tracked = this._adoptedRemoteDisposables;
-				this._adoptedRemoteDisposables = undefined;
-				if (failed && tracked) {
-					dispose(tracked);
-					this._userConfigurationInitializationPromise = null;
-				}
-			}
-		})();
-	}
-
-	private _forgetObservedRemoteUserConfigurationError(): void {
-		this._remoteUserConfigurationError = undefined;
-		this._remoteUserConfigurationAttemptId++;
-	}
-
-	protected override _register<T extends IDisposable>(o: T): T {
-		const registered = super._register(o);
-		this._adoptedRemoteDisposables?.push(registered);
-		return registered;
 	}
 
 	async initialize(): Promise<ConfigurationModel> {
-		if (this._userConfiguration instanceof FileServiceBasedRemoteUserConfiguration) {
-			return this._userConfiguration.initialize();
-		}
-
-		if (this._remoteUserConfigurationError) {
-			const error = this._remoteUserConfigurationError;
-			this._forgetObservedRemoteUserConfigurationError();
-			throw error;
-		}
-
-		if (!this._remoteUserConfigurationPromise) {
-			try {
-				await this._ensureRemoteUserConfiguration();
-			} catch (error) {
-				this._forgetObservedRemoteUserConfigurationError();
-				throw error;
-			}
-			if (this._userConfiguration instanceof FileServiceBasedRemoteUserConfiguration) {
-				return this._userConfiguration.initialize();
-			}
-		}
-
-		// Initialize cached configuration. An in-flight environment read stays shared and is not awaited here.
-		let configurationModel = await this._userConfiguration.initialize();
-		if (this._userConfigurationInitializationPromise) {
-			try {
-				configurationModel = await this._userConfigurationInitializationPromise;
-			} catch (error) {
-				this._forgetObservedRemoteUserConfigurationError();
-				throw error;
-			}
-			this._userConfigurationInitializationPromise = null;
-		}
-
-		if (this._remoteUserConfigurationError && !(this._userConfiguration instanceof FileServiceBasedRemoteUserConfiguration)) {
-			const error = this._remoteUserConfigurationError;
-			this._forgetObservedRemoteUserConfigurationError();
-			throw error;
-		}
-
-		return configurationModel;
+		return this.loadConfiguration(false);
 	}
 
-	reload(): Promise<ConfigurationModel> {
-		return this._userConfiguration.reload();
+	async reload(): Promise<ConfigurationModel> {
+		return this.loadConfiguration(true);
+	}
+
+	private async loadConfiguration(reload: boolean): Promise<ConfigurationModel> {
+		this.throwIfDisposed();
+		if (this._remoteConfiguration) {
+			return reload ? this._remoteConfiguration.reload() : this._remoteConfiguration.initialize();
+		}
+		const failed = this.takeRemoteUserConfigurationFailure();
+		if (failed) {
+			throw failed.error;
+		}
+		const attempt = this._ensureRemoteUserConfiguration(false);
+		if (!attempt.initial) {
+			const model = await this.waitForRemoteUserConfiguration(attempt);
+			this.throwIfDisposed();
+			return model ?? this._cachedConfiguration.reload();
+		}
+
+		// The first environment read must not block startup on cached settings.
+		const cachedModel = await this._cachedConfiguration.initialize();
+		if (attempt.state.initializationPromise) {
+			const model = await this.waitForRemoteUserConfiguration(attempt);
+			if (model) {
+				return model;
+			}
+		}
+		this.throwIfDisposed();
+		const failure = this.takeRemoteUserConfigurationFailure(attempt);
+		if (failure) {
+			throw failure.error;
+		}
+		return cachedModel;
+	}
+
+	private async waitForRemoteUserConfiguration(attempt: RemoteUserConfigurationAttempt): Promise<ConfigurationModel | undefined> {
+		try {
+			return await attempt.promise;
+		} catch (error) {
+			this.takeRemoteUserConfigurationFailure(attempt);
+			throw error;
+		}
+	}
+
+	private takeRemoteUserConfigurationFailure(attempt?: RemoteUserConfigurationAttempt): { readonly error: unknown } | undefined {
+		const failure = this._failedRemoteUserConfigurationAttempt;
+		if (failure && (!attempt || failure.attempt === attempt)) {
+			this._failedRemoteUserConfigurationAttempt = undefined;
+			return failure;
+		}
+		return undefined;
+	}
+
+	private throwIfDisposed(): void {
+		if (this._store.isDisposed) {
+			throw new CancellationError();
+		}
 	}
 
 	reparse(): ConfigurationModel {
-		return this._userConfiguration.reparse({ scopes: REMOTE_MACHINE_SCOPES });
+		return (this._remoteConfiguration ?? this._cachedConfiguration).reparse({ scopes: REMOTE_MACHINE_SCOPES });
 	}
 
 	getRestrictedSettings(): string[] {
-		return this._userConfiguration.getRestrictedSettings();
+		return (this._remoteConfiguration ?? this._cachedConfiguration).getRestrictedSettings();
 	}
 
 	private onDidUserConfigurationChange(configurationModel: ConfigurationModel): void {
@@ -574,10 +550,10 @@ export class RemoteUserConfiguration extends Disposable {
 	}
 
 	private async updateCache(): Promise<void> {
-		if (this._userConfiguration instanceof FileServiceBasedRemoteUserConfiguration) {
+		if (this._remoteConfiguration) {
 			let content: string | undefined;
 			try {
-				content = await this._userConfiguration.resolveContent();
+				content = await this._remoteConfiguration.resolveContent();
 			} catch (error) {
 				if ((<FileOperationError>error).fileOperationResult !== FileOperationResult.FILE_NOT_FOUND) {
 					return;
@@ -639,6 +615,9 @@ class FileServiceBasedRemoteUserConfiguration extends Disposable {
 
 	async initialize(): Promise<ConfigurationModel> {
 		const exists = await this.fileService.exists(this.configurationResource);
+		if (this._store.isDisposed) {
+			throw new CancellationError();
+		}
 		this.onResourceExists(exists);
 		return this.reload();
 	}

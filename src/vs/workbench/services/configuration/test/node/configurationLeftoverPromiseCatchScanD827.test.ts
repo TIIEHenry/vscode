@@ -159,7 +159,7 @@ suite('leftover remaining unused after D821 moved to configuration leftover rema
 		assertPromiseSignature(configuration, 'private async updateCachedConfigurationDefaultsOverrides(): Promise<void> {');
 		assertPromiseSignature(configuration, 'private async updateCache(): Promise<void> {');
 		assertPromiseSignature(configuration, 'private async waitAndInitialize(workspaceIdentifier: IWorkspaceIdentifier): Promise<void> {');
-		assert.ok(configuration.includes("import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(configuration.includes("import { CancellationError, getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assertWrapped(configuration, updateCachedDefaultsCall);
 		assertWrapped(configuration, updateCacheCall);
 		assertWrapped(configuration, waitAndInitializeCall);

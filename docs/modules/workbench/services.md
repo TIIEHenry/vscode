@@ -3,8 +3,8 @@ title: "Workbench 核心服务"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "workbench/services 与 contrib 的边界；代表目录职责（editor、views、extensions、files、textfile、host、lifecycle、layout、chat entitlement）"
+updated: 2026-10-26
+summary: "workbench/services 与 contrib 的边界；代表目录职责；远端用户配置的首次缓存、共享重试与销毁合同。"
 ---
 
 # Workbench 核心服务
@@ -42,6 +42,18 @@ summary: "workbench/services 与 contrib 的边界；代表目录职责（editor
 | `chat/` | `IChatEntitlementService` | **仅**账号/套餐/额度门闩与 setup context key；**不**持有 `IChatModel`。见 [chat](../chat/INDEX.md) |
 
 `services/extensions` 管宿主进程与激活；安装/启用/推荐在旁边的 `extensionManagement/`、`extensionRecommendations/`。`services/chat` 不要当成 Chat 功能本体——本体在 `contrib/chat/`。
+
+## 远端用户配置
+
+默认编辑器工作台通过 `configuration/browser/configuration.ts` 的 `RemoteUserConfiguration` 读取远端用户设置。稳定合同：
+
+- 构造时开始读远端环境。环境尚未完成时，`initialize()` 与 `reload()` 先返回缓存。环境已经进入文件初始化后，这两路等待同一次提交完成的模型。
+- 真实远端模型成功提交后发一次 `onDidInitialize`。配置变更订阅在这次提交之后接到外部出口。
+- 环境为 `null` 时停在缓存，之后的入口继续读这份缓存。
+- 首次后台失败记成带 `error` 的记录，`undefined` 和 `null` 拒绝按原值保留。第一个公共入口消费这次失败。之后的 `initialize()` 与 `reload()` 开启一轮共享重试，并发调用等待同一个结果。
+- 服务已销毁时，晚到的成功以 `CancellationError` 结束，晚到的拒绝保持原错误。已销毁的服务不再发布这次结果，也不再把它报成后台错误。销毁之后的新调用直接取消。
+
+尝试身份、资源归属和回归映射见 [远端用户配置初始化与重试合同](../../../dev/plans/remote-user-configuration-attempts.md)。统一运行证据回来前，该方案保持 `accepted`。
 
 ## 抽样目录（15–25）
 

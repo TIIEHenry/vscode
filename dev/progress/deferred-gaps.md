@@ -5,7 +5,7 @@ status: accepted
 phase: N/A
 created: 2026-08-30
 updated: 2026-10-26
-summary: "2026-10-26：D1379–D1381受控回归/独立after闭合；唯一全量原55诊断/36文件未过，Roster新诊断修后14TS定向0，日志未动54/35子集不冒充重编译。历史证据保留。"
+summary: "2026-10-26：D1384 远端配置重试已写入但仍 open，待统一运行。D1379–D1381 闭合证据保留。"
 
 
 
@@ -1331,3 +1331,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1376 | P2 | **closed** Engine Catalog正式能力/快照/workroot/dialog合同迁移，MCP原14场景保留并在公共交互下20项通过；集成恢复既有Agents页级CTA，修disabled标签及Triggers夹具。 | 官方Electron十套件294 passing；旧映射85条当前全量日志不再出现，11补修TS scoped语义0；独立补修审查Critical0/Important0 | [方案](../plans/engine-catalog-test-contracts.md) implemented；[映射/当前证据](ui-visual-review-2026-10-26-evidence/d1376-catalog-contracts.md)，不恢复旧UI、不skip | M7 Engine Catalog | closed |
 | D1377 | P2 | **closed** void包装、三策略、通知出口及安装链消费sendText boolean；保留sendPath/runCommand和public void正式类型。真实运行补Xterm Promise与marker返回wrapper所有权，恢复现有合同。 | 官方Electron原11加Xterm套件512 passing/109既有pending，27投递+4Delayer新增场景执行；新MainThread夹具类型已正式修正，定向语义0 | [方案](../plans/terminal-delivery-contracts.md) implemented；本轮唯一fullcompile原始59/37未过，11补修语义0不等于全仓绿；[看板](../parallel/active/ui-visual-review-2026-10-26.md) | terminal / delivery-contracts | closed |
 | D1379 | P2 | **closed** Policy服务/配置两层请求与成功水位、共享pending、原拒绝与显式重试、动态事件拒绝日志、并发initialize监听一次；typed IPC channel修正。 | 旧330真实生产red 0过/12败（11行为+1原裸拒绝hook）；仅fresh两生产后四完整套件41 passing，5TS语义0/ESLint0errors0warnings | [方案](../plans/policy-definition-submission-lifecycle.md) implemented；owner/reference等既有断言保留，未global、不推算其余平台诊断；[证据](../parallel/active/ui-visual-review-2026-10-26.md#d1379当前运行证据) | Platform policy | closed |
+| D1384 | P2 | **open** RemoteUserConfiguration 首次环境仍走缓存快返，`null` 保持终态；已观察失败后的 initialize/reload 共享同一轮尝试与原始拒绝（含 undefined/null）。销毁时晚到成功改为取消、晚到拒绝保留原错误，不发布、不后台报告；candidate 成功提交后才订阅外发。 | J 已写入生产、21 条公共屏障、D747 退役远端环境整段 pin（余六项）与 D827 导入行。本工位未编译，也未跑依赖 out 的测试，尚无 old-production red / new-production green。 | merge 先确认旧生产产物对应 `4963799b1e95`，仅刷新测试后新场景 red，再只刷新生产 green；另跑 node scan 与 configurationService 远端套件，并确认原两条语义诊断消失。运行证据回来前方案不升 implemented，本行不关。见 [方案](../plans/remote-user-configuration-attempts.md)。 | workbench / configuration | open |

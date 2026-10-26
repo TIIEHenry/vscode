@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-26
-summary: "D1384；保留首次缓存启动，显式失败重试共享结果，reload 可恢复，晚到工作不越过销毁；Astra复核C0/I0，待实施与统一运行。"
+summary: "D1384；实施已写入首次缓存、共享重试与销毁边界。静态检查后仍 accepted，统一运行前不升 implemented。"
 ---
 
 # 远端用户配置初始化与重试合同
@@ -66,6 +66,6 @@ J 禁止编译、typecheck、transpile、写 `out/` 或启动 watch。仅静态�
 ## 审查与进度
 
 - [x] Astra 独立只读审查；初审 C0/I3：attempt 身份、falsy 拒绝、取消/原拒绝优先三项已改稿，复核 C0/I0/M0，可签收。
-- [ ] 方案独立提交。
-- [ ] 实施与有意义屏障测试提交，静态检查。
+- [x] 方案独立提交 `f3006a5f30e`。
+- [x] 实施与 21 条公共屏障已写入。本工位只做静态检查，未跑依赖 `out/` 的测试。
 - [ ] merge old-production red/new-production green、完整目标套件、语义诊断和独立 after。
