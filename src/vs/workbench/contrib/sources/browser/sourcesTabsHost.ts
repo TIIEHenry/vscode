@@ -73,25 +73,23 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		private readonly tabHost: HTMLElement,
 		private readonly contentHost: HTMLElement,
 		@IInstantiationService private readonly instantiationService: IInstantiationService,
-		@ISourcesReviewHostService reviewHostService: ISourcesReviewHostService,
+		@ISourcesReviewHostService private readonly reviewHostService: ISourcesReviewHostService,
 		@ISourcesPartService private readonly sourcesPartService: ISourcesPartService,
 		@IStorageService private readonly storageService: IStorageService,
-		@IAgentSessionContext private readonly session: IAgentSessionContext | undefined,
+		@IAgentSessionContext private readonly session: IAgentSessionContext,
 	) {
 		super();
 
-		reviewHostService.registerReviewListHost(this);
+		this.reviewHostService.registerReviewListHost(this);
 
 		this.renderTabStrip();
 		this.renderPanels();
-		this.selectedTabSessionId = this.session?.getActiveSessionId();
+		this.selectedTabSessionId = this.session.getActiveSessionId();
 		const initialTab = this.selectedTabSessionId
 			? readSourcesSelectedTab(key => this.storageService.get(key, StorageScope.WORKSPACE), this.selectedTabSessionId)
 			: DEFAULT_SOURCES_TAB;
 		this.selectTab(initialTab, false);
-		if (this.session) {
-			this._register(this.session.onDidChangeActiveSession(sessionId => this.restoreTabForSession(sessionId)));
-		}
+		this._register(this.session.onDidChangeActiveSession(sessionId => this.restoreTabForSession(sessionId)));
 		this.sourcesPartService.setFocusDelegate(() => this.focusSelectedPanel());
 		const observer = new ResizeObserver(() => this.syncFilterDock());
 		observer.observe(this.tabHost);
@@ -101,9 +99,7 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 
 	override dispose(): void {
 		this.sourcesPartService.setFocusDelegate(undefined);
-		this.instantiationService.invokeFunction(accessor => {
-			accessor.get(ISourcesReviewHostService).registerReviewListHost(undefined);
-		});
+		this.reviewHostService.registerReviewListHost(undefined);
 		super.dispose();
 	}
 

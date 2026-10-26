@@ -142,7 +142,7 @@ export class SourcesFilesExplorer extends ExplorerView {
 		@IAccessibilityService accessibilityService: IAccessibilityService,
 		@IEnvironmentService environmentService: IEnvironmentService,
 		@IEditorGroupsService editorGroupsService: IEditorGroupsService,
-		@IAgentSessionContext private readonly session: IAgentSessionContext | undefined,
+		@IAgentSessionContext private readonly session: IAgentSessionContext,
 	) {
 		super(options, contextMenuService, viewDescriptorService, instantiationService, contextService, progressService, editorService, editorResolverService, layoutService, keybindingService, contextKeyService, configurationService, labelService, themeService, telemetryService, hoverService, explorerService, storageService, clipboardService, fileService, uriIdentityService, commandService, openerService, accessibilityService, environmentService, editorGroupsService);
 		this.headerVisible = false;
@@ -276,9 +276,6 @@ export class SourcesFilesExplorer extends ExplorerView {
 
 	private bindListModeToWorkRoot(): void {
 		const session = this.session;
-		if (!session) {
-			return;
-		}
 		const onWorkRoot = session.onDidChangeActiveWorkRoot;
 		if (onWorkRoot) {
 			this._register(onWorkRoot(root => this.reloadListMode(root.projectKey, root.sessionId)));
@@ -291,10 +288,10 @@ export class SourcesFilesExplorer extends ExplorerView {
 	}
 
 	private currentListModeScope(): { projectKey: string | undefined; sessionId: string } {
-		const root = this.session?.getActiveWorkRoot?.();
+		const root = this.session.getActiveWorkRoot?.();
 		return {
 			projectKey: root?.projectKey,
-			sessionId: root?.sessionId || this.session?.getActiveSessionId() || '',
+			sessionId: root?.sessionId || this.session.getActiveSessionId(),
 		};
 	}
 

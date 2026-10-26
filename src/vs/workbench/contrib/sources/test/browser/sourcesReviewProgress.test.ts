@@ -11,11 +11,11 @@ import { FileChangeType, FileChangesEvent, IFileService } from '../../../../../p
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IFileMutationRecord } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ISCMService } from '../../../scm/common/scm.js';
-import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
 import { sourcesGitUnrootedChangeResource } from '../../common/sourcesChangesGitRead.js';
 import { buildSourcesReviewProgressKey, sourcesReviewProgressBucket } from '../../common/sourcesReviewProgress.js';
 import { SourcesReviewProgressService } from '../../browser/sourcesReviewProgressService.js';
+import { createSourcesTestSessionContext } from './sourcesTestSessionContext.js';
 
 suite('Sources - review progress service', () => {
 
@@ -52,9 +52,7 @@ suite('Sources - review progress service', () => {
 			getConnectionSnapshot: () => ({ workDir: options.workDir }),
 		} as unknown as IUniverseAgentConnection;
 
-		const session = options.getWorkRoot
-			? { getWorkRoot: options.getWorkRoot } as IAgentSessionContext
-			: undefined;
+		const session = createSourcesTestSessionContext({ getWorkRoot: options.getWorkRoot });
 		const service = store.add(new SourcesReviewProgressService(fileService, scmService, connection, session));
 		return Object.assign(service, { fileChangeEmitter, mutationEmitter });
 	}
@@ -305,6 +303,46 @@ suite('Sources - review progress service', () => {
 		service.noteRefreshedKey(reloaded);
 		assert.strictEqual(service.isReviewed(key), true);
 		assert.strictEqual(service.isEntryReviewed(target), true);
+	});
+
+	test('injected session roots match absolute mutations without invalidating another session', async function () {
+		const resource = sourcesGitUnrootedChangeResource('src/a.ts');
+		const workDirs = new Map([['sess-a', '/engine/a'], ['sess-b', '/engine/b']]);
+		const service = createService({
+			workDir: '/connection',
+			getWorkRoot: sessionId => ({
+				sessionId,
+				engineIdentityId: 'eng',
+				workDir: workDirs.get(sessionId)!,
+				source: 'session',
+				access: 'engine',
+				localRoot: undefined,
+				projectKey: `eng\n${workDirs.get(sessionId)}`,
+			}),
+		});
+		const mutation = (sessionId: string, path: string, turnId: string): IFileMutationRecord => ({
+			sessionId,
+			path,
+			turnId,
+			toolCallId: `tc-${turnId}`,
+			agentId: 'agent',
+			operation: 'edit',
+		});
+		const targets = ['sess-a', 'sess-b'].map(sessionId => ({ resource, origin: 'engine' as const, sessionId, gitPath: 'src/a.ts' }));
+		service.mutationEmitter.fire(mutation('sess-a', '/engine/a/src/a.ts', 'a-1'));
+		service.mutationEmitter.fire(mutation('sess-b', '/engine/b/src/a.ts', 'b-1'));
+		const keys = await Promise.all(targets.map(target => service.resolveKey(target)));
+		service.markAllReviewed(keys);
+		assert.deepStrictEqual(keys.map(key => key.contentHash), ['a-1\0tc-a-1', 'b-1\0tc-b-1']);
+
+		service.mutationEmitter.fire(mutation('sess-a', '/connection/src/a.ts', 'decoy'));
+		assert.deepStrictEqual(keys.map(key => service.isReviewed(key)), [true, true]);
+		service.mutationEmitter.fire(mutation('sess-a', '/engine/a/src/a.ts', 'a-2'));
+		assert.deepStrictEqual(keys.map(key => service.isReviewed(key)), [false, true]);
+		assert.deepStrictEqual(await Promise.all(targets.map(async target => (await service.resolveKey(target)).contentHash)), [
+			'a-2\0tc-a-2',
+			'b-1\0tc-b-1',
+		]);
 	});
 
 	test('never calls IStorageService at runtime', async function () {

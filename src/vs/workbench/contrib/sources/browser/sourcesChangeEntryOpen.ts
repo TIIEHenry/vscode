@@ -217,7 +217,7 @@ async function openScmResourceInSlot(
 		group.pinEditor(previous);
 	}
 	await resource.open(preserveFocus);
-	const opened = group.activeEditor;
+	const opened = group.activeEditor ?? undefined;
 	if (slot === 'newTab') {
 		if (opened) {
 			group.pinEditor(opened);

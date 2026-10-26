@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1368–D1372 已集成，Node 202、核心 browser 32 与设置补充 browser 9 项及独立视觉 after 通过；唯一 compile-client exit 1（176 TS / 69 文件），全仓仍未过；D1373 已修复源码并补真实样式回归，merge 新输出 4 主题 browser 已过，独立四主题实拍已过，closed；未 push。"
+summary: "2026-10-26 follow-up：D1373 fresh browser 4 主题与独立实拍通过；D1374 受控屏障 red 11 败 / green 14 过；D1375 Sources 根因已合入待唯一新编译和六套件验证，不沿用前轮全仓诊断作为当前结果。"
 
 ---
-
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **Sources 编译基线合同修复（2026-10-26，D1375）**：[短方案](../plans/sources-compile-contracts.md) 经 D 槽只读审查（Critical / Important 无，Minor 两项已吸收），独立方案提交 `220db77` 后实施。三个装饰服务恢复正式 `IAgentSessionContext`、TabsHost 直接使用构造注入的 ReviewHost 释放、SCM `activeEditor` 空值归一、list-mode leak-checker `store` 已接好；6 份测试夹具对齐，新增会话 tab 往返/释放、双会话工作根审阅隔离及 SCM null/newTab/replace 共 6 项。11 TS 文件 ESLint 0 errors / 31 既有 warnings，docs-health 0 errors / 73 既有链接 warnings（J 未初始化 loop 子模块）、生成状态与 diff-check 通过。旧日志预计对应 9 条仍只作源码映射，J 未编译 / 转译 / watch / 写 out，运行回归与实际诊断数留 merge 新产物，D1375 保持 open。
 - **Sessions 旧打开覆盖显式导航（2026-10-26，D1374）**：宽功能审计追到真实分屏聚焦与关闭入口遗漏异步打开取消：资源解析晚到会盖回用户选择。现显式 `setActive`、关闭当前与全部会话取消旧 open/restore，关闭无关分屏保留当前打开；正常打开引发的同会话 focus echo 不自取消。新增 14 条受控屏障行为回归，merge 验明旧生产对应 `0ea` 后 red 为 3 passing / 11 failing；只刷新生产后修正新 empty-grid 夹具保留 `[undefined]` composer 占位，最终 green 14 passing，两文件定向语义 0、ESLint 0 errors。见 [D1374](deferred-gaps.md) 与 [Sessions 概览](../../docs/systems/sessions/overview.md)。
 - **待处理标签对比修复（2026-10-26，D1373）**：权限座位 `Input needed` 改用正常 foreground + 中性 12% 淡底，保留紧凑体积，高对比主题采用 contrastBorder；同语义提问标签已配对 badge 前景/背景，无同根因，保持。新增 `Conversation pending badge styles` 真实生产 CSS + 两类 Seat DOM 回归，覆盖浅/深/高对比、300→720→300 宽度、文字对比与决策键盘路径；merge 已最小刷新测试 JS 与生产 CSS，4 主题真实 browser 回归全过、定向语义 0；独立四主题×三宽度实拍通过，实测对比均超过 4.5，D1373 closed。目标 ESLint 0 errors；stylelint exit 0（既有 15 条 unknown-variable 提示 / 179 条 token 建议）；docs-health 0 errors / 46 既有链接警告、generated-status --check 与 diff-check 通过。复验条件见 [视觉证据](ui-visual-review-2026-10-26-evidence/visual-review.md)。
 - **设置页详情与 Preview 窄宽修复（2026-10-26，D1371 / D1372）**：Astra 在 merge 新产物实拍复现 Connection 606px pane 中 Host 说明只剩 49px，以及 356px Preview 被 Settings 500px 最小宽撑开。Direct Address 的 Host / Port / Name 现共用网格列宽，详情正文不足 480px 时统一纵排，勾选项和 Hub 原表单保持；UA 专属 TOC / 纯 UA `@id:` 视图的 pane 与内部列共用 300px 最小宽并同步约束事件，普通 / 混合搜索恢复 500px，TOC 仍以 700px 显隐。新增实际 CSS+DOM 容器宽度往返、UA/上游样式往返与查询范围回归，替代旧 CSS 字符串扫描；目标 ESLint 0 errors、stylelint exit 0（既有提示）、docs-health 0 errors / 46 既有链接警告、generated-status --check 与 diff-check 通过。merge 最小刷新后新布局 / UA scope 5 项与 Connection 焦点 4 项全过；新 Event 契约类型诊断已适配，定向语义 0；Astra 独立浅深色 after、479→480 边界、UA/普通/混合/TOC/300px 重开全部通过，D1371/1372 已闭合；[视觉证据](ui-visual-review-2026-10-26-evidence/visual-review.md) 留下覆盖限制。见 [D1371 / D1372](deferred-gaps.md) 与 [Settings SSOT](../../docs/reference/code-oss-b2/settings-ua-access.md)。

@@ -64,6 +64,7 @@ import {
 	reviewListEmptyReason,
 } from '../../common/sourcesReviewListModel.js';
 import { SourcesReviewProgressService } from '../../browser/sourcesReviewProgressService.js';
+import { createSourcesTestSessionContext } from './sourcesTestSessionContext.js';
 import { IFileService } from '../../../../../platform/files/common/files.js';
 import { buildSourcesReviewProgressKey, ISourcesReviewProgressBucket, ISourcesReviewProgressKey, ISourcesReviewProgressService, sourcesReviewProgressTarget } from '../../common/sourcesReviewProgress.js';
 
@@ -956,7 +957,7 @@ suite('Sources - review list model', () => {
 			onDidFileMutation: Event.None,
 			getConnectionSnapshot: () => ({ workDir: '/project' }),
 		} as unknown as IUniverseAgentConnection;
-		const progress = store.add(new SourcesReviewProgressService(fileService, scmService, connection));
+		const progress = store.add(new SourcesReviewProgressService(fileService, scmService, connection, createSourcesTestSessionContext()));
 		const entryA = entry(resourceA);
 		const entryB = entry(resourceB);
 		const { model, snapshot } = mutableChangesModel();
@@ -1004,7 +1005,7 @@ suite('Sources - review list model', () => {
 			onDidFileMutation: Event.None,
 			getConnectionSnapshot: () => ({ workDir: '/project' }),
 		} as unknown as IUniverseAgentConnection;
-		const progress = store.add(new SourcesReviewProgressService(fileService, scmService, connection));
+		const progress = store.add(new SourcesReviewProgressService(fileService, scmService, connection, createSourcesTestSessionContext()));
 		const keyA: ISourcesReviewProgressKey = {
 			origin: 'engine',
 			sessionId: 'session-a',
