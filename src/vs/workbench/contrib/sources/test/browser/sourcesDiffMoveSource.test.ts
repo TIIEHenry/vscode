@@ -288,7 +288,12 @@ suite('Sources M01 move source', () => {
 			isPairingHold: () => false, onDidChangeActiveSession: Event.None, onDidChangeSession: Event.None,
 			acquireSessionView: () => { throw new Error('not used'); },
 		} satisfies IAgentSessionContext);
-		instantiation.stub(ISCMService, new class extends mock<ISCMService>() { override readonly repositories = []; }());
+		instantiation.stub(ISCMService, {
+			_serviceBrand: undefined, repositories: [], repositoryCount: 0,
+			onDidAddRepository: Event.None, onDidRemoveRepository: Event.None,
+			getRepository: () => undefined,
+			registerSCMProvider: () => { throw new Error('unexpected SCM provider registration'); },
+		} satisfies ISCMService);
 		instantiation.stub(ISourcesChangesModel, store.add(instantiation.createInstance(SourcesChangesModel)));
 		const pending: DeferredPromise<SourcesDiffMoveResult>[] = [];
 		let pane: ConversationDiffReviewPane;

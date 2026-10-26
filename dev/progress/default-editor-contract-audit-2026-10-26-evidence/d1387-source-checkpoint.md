@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "M01 0da新harness4旧业务红、compile6过；focused24/2与完整410/2暴露真实Pane VM所有权，J按Astra局部补显式owner并加切换/clear/dispose回归，总39项源码，运行与新after待"
+summary: "M01 a166的Pane VM所有权peer C0/I0；新增生命周期旧跑因共享SCM夹具缺事件TypeError、业务红0，现仅补完整空仓ISCMService并核剩余反馈依赖，生产及39项expected不变，运行待"
 ---
 
 # D1387 Sources 打开合同源码检查点
@@ -64,6 +64,17 @@ Astra独立根因报告`5972836d932ff0cbde50c970b672743e0eee8563`原件§15为C0
 原38场景不删，另加1个真实Pane生命周期业务用例，总39项源码。通过公共createViewModel的spy取得真实返回对象，只观察其公开dispose，依次验证替换input、clearInput及Pane.dispose及时释放各代VM，spy在finally恢复；不由测试调用VM.dispose，保留per-test泄漏门禁。原双真实Pane同tuple入口继续验证只关B而保留A/根及后续无关Preview，全部反馈/旧完成覆盖保留。新生命周期selector为`real Pane comparison view models release`；旧0da配该新测试应在“replacing input must release its comparison view model”业务断言red，是否成立由唯一lane实际运行，不先记red。
 
 作者实际只做2个改动TS的createSourceFile AST语法解析0诊断、ESLint0errors/0warnings，相对0da按rule/message/行文本逐条added=[]、removed=[]。SHA256：Pane `e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`，MoveSource测试 `5c0012d0814870c9aff596a764ae3cd0b4029c7d6192766347e3285558ab4f3b`；Actions/Helper/Panel/WiringScan沿0da不变。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者没有compile/typecheck/transpile/out/watch/业务运行/UI；修订peer、唯一lane新native首入口无leak/完整39/相关完整套和D新freeze真实after待，方案accepted、D1387/M01 open、PRD不升。
+
+
+### M01 共享反馈夹具的完整 SCM 接口补齐（2026-10-27）
+
+a166局部VM所有权独立peer正式提交`d31d4265bb4d9cb37bbd5105d8c4a2fc666da3c6`原件§16为C0/I0/M0，J已git show只读核验；这仅闭合生产所有权源码，不签运行。唯一lane精确旧0da Pane配a166新增生命周期测试实际0passing/1failing，失败为`this.scmService.onDidAddRepository is not a function`，位于真实SourcesChangesModel构造→共享feedbackPane，尚未创建VM或到替换释放断言，生命周期业务旧红为0。J已只读`/tmp/vscode-m01-old0da-a166-lifecycle.log`；原始log/JSON与163身份恢复由唯一lane保留，不能将此TypeError计作产品旧红。a166尚未正式合源或compile7。
+
+根因是feedbackPane覆盖了SCM为仅repositories的mock，而真实model构造必订阅add/remove两事件。本次仅将该stub改为完整空仓ISCMService literal并用satisfies检查公共接口：repositories/count空仓、两Event.None、getRepository无结果、未用registerSCMProvider明确拒绝；不新增宽cast。未删真实model/禁scheduler、未吞异常，生产Pane VM补修及四真实Move入口/所有39项业务expected逐字保留。
+
+作者系统读取共享feedbackPane余下依赖与SourcesChangesModel完整refresh、Pane订阅/写事实路径：既有connection helper提供phase/snapshot/connected/capabilities及连接事件；session提供active/pairing/readiness/两事件，workspace.getWorkspace由基座TestContextService提供，模型/解析器由基座提供并用真实inmemory模型，diffProvider与interaction已有正式测试服务。空repo不触发provider监听，断开连接且无read hook不调用engine RPC/lease。该核查与原Astra独立核对一致，正式18828520a95670cc4aa212552fb01cbc0929ed49原报告§17（SCM夹具C0/I1）已git show只读核验；未用source阅读宣称剩余反馈用例已运行。
+
+本次唯一测试TS的createSourceFile AST语法解析0诊断、ESLint0errors/0warnings，相对a166按rule/message/行文本逐条added=[]、removed=[]；测试SHA256 `2011e14ecdd055a745f403e480afd00ffb9abfd799d3e9c6b5f249dfcee49df6`，Pane仍`e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者未compile/typecheck/transpile/out/watch/业务运行/UI；唯一lane须以准确旧0da Pane配修正test重跑同生命周期selector，实际业务旧红成立后新native及完整39/原相关套；修订peer、freeze和D真实after待，accepted/open不升。
 
 ## 宿主观测与 Sources 重叠补修（2026-10-26，J）
 
