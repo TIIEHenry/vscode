@@ -4,24 +4,26 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "J+E两coder冻结；Sources65d虚拟noEmit0/Electron357过，宿主Important待规则16/补修；E unary draft规则16改稿；唯一merge未formal合源/after。"
+summary: "J+E两coder冻结；Sources65d虚拟noEmit0/Electron357过，宿主方案第二轮规则16C0/I0、生产待补修；E unary方案accepted独立提交/已实施中；唯一merge未formal合源/after。"
 ---
 
 # 默认编辑器合同与功能缺口续审
 
-> 当前代码波固定 J Sources + E unary 失败恢复两 coder，正式合源等两模块 queued / 书面范围后由唯一 merge 串行；D1387 accepted/open，E 当前 draft / 规则16改稿。D1385原UI验收停止、accepted/open且退出队列；D1386已closed。本检查点只提交文档/证据，src仍09f6；merge out是明确虚拟叠加，主工位out未写。
+> 当前代码波固定 J Sources + E unary 失败恢复两 coder，正式合源等两模块 queued / 书面范围后由唯一 merge 串行；D1387 accepted/open，E 已独立提交 accepted 方案并开始实施，仍 occupied。D1385原UI验收停止、accepted/open且退出队列；D1386已closed。本检查点只提交文档/证据，src仍09f6；merge out是明确虚拟叠加，主工位out未写。
 
 
 ## 当前冻结分工与本次实际验证
 
 | 工位 | 书面范围 | 当前阶段 |
 | --- | --- | --- |
-| J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。same tuple多宿主Important的澄清稿在D规则16审查，尚无该边界生产补修；未正式合源/非作者after |
-| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | 独立工位以09f6只读事实写方案，当前draft/规则16意见改稿、occupied；准确request/连接代次并保留question答案，不与Sources混写，不计完成 |
-| D / Sources独立审查与after | 非作者codepeer、正式产物冻结后的默认编辑器真实Git after | 新宿主边界规则16审查中；尚未收到freeze notice，不消费当前虚拟pack冒称最终after |
+| J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。Astra追加并发I1采纳同service/API完整tuple与custom wildcard重叠sticky歧义门；D两轮报告7c84e0167e3已到，第二轮C0/I0；J正在独立accepted方案提交与宿主实施，尚无已接入新生产/非作者after |
+| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | accepted方案已独立提交5dd7d97d45b（受审SHA256 262df24…，C0/I0；blocked Minor已写），已开始完整实现且occupied；准确request/连接代次并保留question答案，真实processFold document-flow也纳入正式busy投影；方案/代码均未合入本线，不计完成 |
+| D / Sources独立审查与after | 非作者codepeer、正式产物冻结后的默认编辑器真实Git after | 两轮宿主规则16报告7c84e0167e3第二轮C0/I0；尚未收到freeze notice，不消费当前虚拟pack冒称最终after |
 | merge / baseline_executor | 唯一编译、类型、转译、out与串行集成车道 | 本阶段只取不可变Git内容做虚拟覆盖，src仍09f6/de22绿树。51份原始证据与命令/SHA入库；全量正式compile-client待两模块合源后实际跑，不复用pack身份 |
 
 本次Sources完整验证为357过/0败；wiring23过/1既有红（精确09f6已复现），lint0错误/56警告且4f7→65d无新增。89f类型6红、官方setup生命周期红与4f7 move夹具红全部留证，作者在65d补修后复验；原325/3编译基线与D17不被此结果覆盖。[完整证据与51份原始清单](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)。不升级产品状态，不发freeze，不提前formal合J。
+
+父已独立复核3760：51份仓内artifact SHA与30份live out SHA均0 mismatch，HEAD:src精确等932031绿树；本记录时间为2026-10-26 15:12:55 UTC。[父核验与当前阶段](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md#父级独立核验与最新调度状态)。主工位有独立主题WIP且外部HEAD持续前进，只允许一次显式SHA的ff-only，拒绝即保留原样，不覆盖、不重试。任何新编译/typecheck/transpile前先查全局活进程；若已有运行，记录具体PID/session并轮询，车道空闲后再执行，不杀外部任务、不重复启动。
 
 ## 下一独立模块发现（源码实核，未在本Sources波编码）
 
