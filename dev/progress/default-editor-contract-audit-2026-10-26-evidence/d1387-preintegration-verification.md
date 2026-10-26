@@ -25,6 +25,8 @@ Sources 的新并发意见由 Astra 判为 I1，已采纳同 service / API 完�
 
 主工位不可变已提交 `3d522e76b9985181fa4bdfc654d52c9951f87aed` 相对 09f6 仅 9 份文档，`HEAD:src` 同为 932031；这只核已提交树，不表示其含视觉 WIP 的文件系统源码已绿。仅取该提交真三路合入 `da0d263a1f18c7b79f8983764e1d0356d9c44ee5`，外部 control-detail-polish / engine-protocol-consumption 两方案和索引保留；未取 root WIP。D 的两轮宿主规则16报告 `7c84e0167e3` 真三路接入 `6c75c2ca02694ad794532043c291326d997dda92`，其[历史源码审查](d1387-comparison-gate-code-review.md)和[两轮方案审查](d1387-host-observation-plan-review.md)保持原文。等价两边保留门禁分别 **65 / 117 条路径全 PASS**，见[完整 merge-base/逐路径 blob 门禁](d1387-parent-doc-merges.json)和[主文档 merge 原日志](d1387-main-committed-docs-merge.log)、[D merge 原日志](d1387-D-host-reviews-merge.log)。所有既有 51 份 artifact 与 30 份 live out 身份不变；新合入的仅是文档，不是 bf50 宿主生产或 E 实现。
 
+单次主工位同步实际记录于 `2026-10-26T15:23:56.178016+00:00`：对显式文档检查点 `a7123fb10a5e301210de49d545fb35a67bbea747` 执行 `git merge --ff-only`，Git **exit 128：无法快进，终止**。本次 main HEAD 为 `180fcdbb4ec9fda12a15c3daa6fa48a5e4e742c1`，执行前后 HEAD、全部采样 WIP 文件 SHA、暂存区 diff SHA 和 status **完全相同**；未重试、未覆盖，也未访问/刷新主工位 out。见[原始拒绝日志](d1387-main-ff-attempt.log)与[一次执行及逐文件保留身份](d1387-main-ff-attempt.json)。main 保留独立主题 WIP，不能称 clean 或已同步；merge 的已提交源码树仍为 932031，纯文档分支可继续由父调度，波未完成。
+
 后续每轮编译 / typecheck / transpile 前先核全局活跃进程；发现其他主题已有运行时，记录具体 PID/session 并轮询等待，车道空闲再执行，不杀外部任务、不重复启动。本次纯文档阶段没有新增编译必要性。
 
 ## 来源与可复核流程
@@ -70,4 +72,6 @@ Sources 的新并发意见由 Astra 判为 I1，已采纳同 service / API 完�
 
 [原始证据清单](d1387-preintegration-artifact-inventory.json)逐条记录原路径、仓库路径、字节数和 SHA256，51 份日志/命令/身份/helper 均 byte-for-byte 复制。原日志的 ANSI、空白和尾空格保留；源码、Markdown、JSON 仍做正常 diff-check，日志只豁免空白检查，不静默清洗。没有 push，没有写其他工位产物；此文档检查点不推进方案/缺口/PRD 完成状态。
 
-文档门禁实际为 docs health **0 errors / 46 link warnings**、generated status **OK**；status 172 行。见[健康检查原日志](d1387-65d-docs-health.log)、[生成列检查](d1387-65d-generated-status-check.log)与[门禁命令](d1387-65d-docs-gates-command.json)。未改方案状态或生成列，无需改产品规格。
+65d 采样时文档门禁实际为 docs health **0 errors / 46 link warnings**、generated status **OK**；status 172 行。见[健康检查原日志](d1387-65d-docs-health.log)、[生成列检查](d1387-65d-generated-status-check.log)与[门禁命令](d1387-65d-docs-gates-command.json)。未改方案状态或生成列，无需改产品规格。
+
+后续纯文档合并与本次拒绝记录的门禁仍为 docs health 0 errors / 46 link warnings，generated status OK；status 175 行，见[本次健康原日志](d1387-parent-sync-docs-health.log)。本轮没有新编译或产物写入。
