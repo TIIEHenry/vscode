@@ -57,3 +57,7 @@ C 工位只做静态 diff、ESLint 与文档检查，禁止编译、transpile、
 2026-10-26 `/root/tunnel_retry_contracts` 只读审查：Strengths 为输入变化闭合、getter 单一真相及非活动叶覆盖；Critical 0、Important 0。Minor 要求登记两套测试共用的正式替身 harness，并沿既有父看板与缺口账记录 D1382；已纳入。本稿可接受，先独立提交方案，再实施。运行及实际默认编辑器界面证据齐备前不升 `implemented`。
 
 同日实施静态核查发现 delayed DI 反例，reviewer 复读 `InstantiationService` 的 early-listener 实现后补审：接受构造时解析可选工作根提供者、只缓存调用能力的最小机制；Important 要求移除原「DI 自然保证先构造」假设并补真实 delayed 回归，已写入上文。harness 因实例化 browser 服务移到 `test/browser/`；workspace 变更测试按 SCM 优先的真实解析规则验行增减，不假设它能覆盖已有 SCM 根。
+
+## 实施记录
+
+2026-10-26 C 已按上文写入生产 `conversationReviewNavService.ts`、正式替身 `conversationReviewNavTestHarness.ts`，以及 ReviewNav、ReviewEntry、AgentSessionContext 三套直接测试。delayed 回归先 `createInstance(ConversationReviewNavService)`，再对 Context 做一次非事件读取：ReviewNav 若未在连接订阅前解析 `getWorkRoot`，Context 的连接监听会排在后面，回调仍读到旧根。方案保持 `accepted`，D1382 保持 open。本工位未编译、未跑测试、未做默认编辑器实拍。

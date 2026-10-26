@@ -18,7 +18,7 @@ summary: "2026-10-26：D1379–D1381受控回归/独立after闭合；唯一全�
 
 | ID | Priority | Gap | Why Deferred | Exit Condition | Track | Status |
 |:---|:---------|:----|:-------------|:---------------|:------|:-------|
-| D1382 | P2 | ReviewNav未完整转发会话工作目录、工作区目录及SCM根变化；静止活动叶/非活动并列叶可保留旧审阅路径。可选DI与直接相关工作根夹具有静态合同诊断。 | C方案经只读审查C0/I0，运行证据统一交merge；类型错误不推定运行故障。SCM子根与workspace gate差异另属归因合同，未改。 | [方案](../plans/conversation-review-root-invalidation.md)；事件回调读取内容的旧生产red/新生产green、正式DI/类型与独立默认编辑器after齐备才闭合 | Conversation ReviewNav | open |
+| D1382 | P2 | ReviewNav未完整转发会话工作目录、工作区目录及SCM根变化；静止活动叶/非活动并列叶可保留旧审阅路径。可选DI与直接相关工作根夹具有静态合同诊断。 | 实施已写入 C，方案仍 accepted。本工位只做静态检查，不跑编译和测试。SCM子根与workspace gate差异另属归因合同，未改。 | [方案](../plans/conversation-review-root-invalidation.md)；事件回调读取内容的旧生产red/新生产green、正式DI/类型与独立默认编辑器after齐备才闭合 | Conversation ReviewNav | open |
 | D1 | P3 | 套件 `dev/loop/overview.md` 引用的 `docs/guides/multi-agent-design-workflow.md` 缺失 | 门禁仅 warning 不阻塞 | 指南落盘且 `check-docs-health` 0 warning | docs | closed |
 | D2 | P2 | 工位池基线未编译验绿 | 编译耗时长；建槽时未跑 | merge 槽 `569ce371`：`npm run compile` 绿；[worktree-pool.md](worktree-pool.md) 已标注 | infra | closed |
 | D3 | P2 | **M0 compile 验证**（`compile-client` + `valid-layers-check`） | — | merge 槽 `a6137373`：`compile-client` + `valid-layers-check` 绿；17 域单测绿 | M4 | closed |

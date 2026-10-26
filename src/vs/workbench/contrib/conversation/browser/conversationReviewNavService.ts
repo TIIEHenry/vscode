@@ -10,6 +10,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import type { IFileMutationRecord, UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
+import type { IAgentWorkRoot } from '../../../services/agentSession/common/agentWorkRoot.js';
 import { ISCMService } from '../../scm/common/scm.js';
 import { getWorkspaceFolderRoots } from '../../sources/common/sourcesReviewAttribution.js';
 import { IConversationRosterService } from '../browser/conversationStubService.js';
@@ -33,6 +34,7 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 	private readonly settledTurnIds = new Map<string, Set<string>>();
 	private readonly runtimeToAssistantTurnId = new Map<string, Map<string, string>>();
 	private connectionSnapshot: UniverseAgentConnectionSnapshot;
+	private readonly getSessionWorkRoot: (sessionId: string) => IAgentWorkRoot | undefined;
 
 	private readonly _onDidChange = this._register(new Emitter<void>());
 	readonly onDidChange = this._onDidChange.event;
@@ -42,10 +44,16 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 		@IConversationRosterService private readonly roster: IConversationRosterService,
 		@IWorkspaceContextService private readonly workspaceContext: IWorkspaceContextService,
 		@ISCMService private readonly scmService: ISCMService,
-		@IAgentSessionContext private readonly session?: IAgentSessionContext,
+		@IAgentSessionContext session: IAgentSessionContext,
 	) {
 		super();
 
+		// Resolve the optional provider before listening for connection changes.
+		// Reading a non-event member initializes a delayed Context, so it commits
+		// the link before consumers handle our notification. Cache no root values.
+		this.getSessionWorkRoot = session.getWorkRoot
+			? sessionId => session.getWorkRoot?.(sessionId)
+			: () => undefined;
 		this.connectionSnapshot = connection.getConnectionSnapshot();
 
 		this._register(connection.onDidFileMutation(record => {
@@ -56,9 +64,15 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 			this.applyTurnSettle(signal);
 		}));
 
-		this._register(roster.onDidChangeActiveSession(() => {
+		this._register(session.onDidChangeActiveSession(() => {
 			this._onDidChange.fire();
 		}));
+		// Each mounted lens reads its own bound session when invalidated. An
+		// active-root event alone misses work-root changes in another visible leaf.
+		this._register(session.onDidChangeSession(() => this._onDidChange.fire()));
+		this._register(workspaceContext.onDidChangeWorkspaceFolders(() => this._onDidChange.fire()));
+		this._register(scmService.onDidAddRepository(() => this._onDidChange.fire()));
+		this._register(scmService.onDidRemoveRepository(() => this._onDidChange.fire()));
 
 		this._register(connection.onDidChangeConnection(snapshot => {
 			this.connectionSnapshot = snapshot;
@@ -113,7 +127,7 @@ export class ConversationReviewNavService extends Disposable implements IConvers
 		const settled = this.settledTurnIds.get(sessionId) ?? new Set<string>();
 		const workspaceRoots = getWorkspaceFolderRoots(this.workspaceContext.getWorkspace().folders);
 		const hasScmProvider = !Iterable.isEmpty(this.scmService.repositories);
-		const root = this.session?.getWorkRoot?.(sessionId);
+		const root = this.getSessionWorkRoot(sessionId);
 		if (root) {
 			return materializeReviewNavRecords({
 				sessionId,
