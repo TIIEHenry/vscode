@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "a166 Pane VM源码补修C0/I0；新增生命周期旧跑先遇SCM事件夹具I1，业务红0；保留compile6泄漏原件，39项/新freeze待。"
+summary: "保留a166 VM与SCM夹具失败历史；fccde4完整SCM补修定向C0/I0/M0，生命周期实际旧红/compile7及39项、新freeze待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -490,3 +490,18 @@ B起点clean `5972836d932ff0cbde50c970b672743e0eee8563`，src fdca不变；只�
 独立读完整SourcesChangesModel、connection helper、session stub、Pane构造及workbench基座后，最小建议为同一SCM stub补两个公开Event.None事件，并保留repositories=[]和真实model/scheduler。空repo不触发provider的资源/组订阅；connection helper已提供连接事件、phase/snapshot/isEngineConnected/capabilities，session有active/pairing/readiness及两事件；workspace.getWorkspace、model/resolver由基座提供，diffProvider已显式stub。当前断开连接/无read hook路径不调用engine RPC或acquireSessionView。未发现第二个确定缺失依赖，但此静态核对不保证后续运行全过；不得删除真实model、绕过refresh、屏蔽leak/console或补产品私有dispose。
 
 lane JSON记录source `fb214e7e06c7e23ede11003bfdb1d5b4f86a7db8` / src d5eca，current compile6的163输出存在性/mode/SHA、对应source及旧Pane均已finally恢复，HEAD/src/clean不变；此为其执行声明，不是reviewer逐产物复跑。a166未合、第七次完整编译未开始、未freeze/UI。已将两事件与完整依赖检查建议交原J/父；待新immutable修订定向peer后由唯一lane再跑，所有旧失败原件保留。
+
+
+## 18. 完整空仓SCM夹具修订定向复读（2026-10-27）
+
+受审不可变 `fccde4afb3eeca0b9264b732efef6b5e31e4b380`，父 `a166d422747b1e123109d0f7cec527821c06b04c`，src `898787fffa49d6aa28e67eb917b8f899d95d5a8c`。4路径仅1测试及3行动文档；独立Git核src变更列表仅MoveSource test，全部生产与a166相同。test SHA256 `2011e14ecdd055a745f403e480afd00ffb9abfd799d3e9c6b5f249dfcee49df6`，Pane仍 `e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`。
+
+**Critical 0 / Important 0 / Minor 0（§17夹具I1源码闭合）。** feedbackPane用完整空仓literal并satisfies ISCMService替换不完整mock：必需onDidAddRepository/onDidRemoveRepository均Event.None，repositories=[]、repositoryCount=0、两个getRepository输入形状皆返回undefined；未用registerSCMProvider显式抛错，不伪造成功。直接与当前公开接口逐项核对，没有broad cast把缺成员藏起来。真实SourcesChangesModel构造与scheduler/refresh、真实Pane与VM仍运行；未删真实依赖、吞构造错误、关闭leak/console或代替产品dispose。
+
+构造所需connection/session事件与两SCM事件齐备；空仓refresh读取空repositories、基座workspace folders以及已有连接/session facts，仍遵循§17已独立读过的真实路径。原connection stub断开、无read hook，不触发engine RPC/lease；模型resolver、diffProvider和interaction由原fixture/基座提供。未发现另一确定依赖遗漏；这是静态依赖核查，未到达的实际运行仍须执行，不能预先保证39项通过。
+
+原4真实Move入口之前的完整源码区与a166逐字一致；从新增生命周期test开始直至文件末的完整区也逐字一致，全部39场景expected、replacement/clear/dispose观察、finally恢复spy和反馈负控未改。Pane所有权补修与Move关闭代数不受此次fixture修订影响，§16生产静态结论继续有效。
+
+§17生命周期首轮夹具失败现有永久原件 `65cf42e3dfebd6cead138669c2c2762ca12dc3cb`。reviewer直接Git核其中 `m01-old0da-a166-lifecycle.log` SHA256 `51ce0aea9498f185b9853269bba12235ae0f686f4ad3757000c461a408c44f43` 与§17临时raw相同；其0 passing/1 TypeError、生命周期业务红0历史保留，不改成通过。
+
+**Assessment：允许唯一lane用本次test配精确旧0da Pane重新验证生命周期业务旧红，再按父调度第七次实际完整编译和39项/完整相关套。** 新运行结果未到时，不把原Move四红当生命周期旧红，不把完整fixture静态合同当运行green；新freeze/D after仍待。作者AST/lint未由reviewer重跑；B起点clean `18828520a95670cc4aa212552fb01cbc0929ed49`、src fdca不变，仅原报告+INDEX，无compile/typecheck/transpile/out/native/UI。
