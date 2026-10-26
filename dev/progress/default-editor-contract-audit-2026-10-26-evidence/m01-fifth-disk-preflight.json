@@ -1,0 +1,21 @@
+{
+  "phase": "first-compile5-invocation-stopped-before-lock-or-npm-on-disk-preflight",
+  "recordedAtUtc": "2026-10-26T19:24:16.066752+00:00",
+  "expectedSourceHead": "34a4a48fa60796c5c46831e5686cbb7410e5f11c",
+  "sourceTree": "8e6e9bb4b63ae2b65cf6e023fa99ad48fae9ed88",
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "/tmp/vscode-m01-fifth-native-build.py",
+    "34a4a48fa60796c5c46831e5686cbb7410e5f11c"
+  ],
+  "guard": "os.statvfs(repo).f_bavail * os.statvfs(repo).f_frsize > 1024**3",
+  "reportedFreeMiBApprox": 309,
+  "lockAcquired": false,
+  "npmInvoked": false,
+  "emitHappened": false,
+  "typescriptDiagnostic": false,
+  "recordNature": "Contemporaneous lane/parent report retained as a structured derivative; no separate original raw log was saved for this initial preflight exception. The later actual compile has its own complete raw log and identity JSON.",
+  "laterActualFullCompileRecord": "/tmp/vscode-m01-fifth-native-build.json"
+}

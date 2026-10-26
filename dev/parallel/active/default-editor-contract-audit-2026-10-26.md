@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "M01 a222准确旧4业务红/源码peer C0I0闭合并正式三路接入，新src8e6待第五native；D1387 open/E未跑，旧冻结与首夹具失败原件均保留。"
+summary: "M01正式合源34a4/src8e6，第五完整compile exit1/4TS已退原J精确补修，失败emit不freeze；D1387 open/E未跑，历史证据保留。"
 ---
 
 # 默认编辑器合同与功能缺口续审
 
-## M01最新增量（2026-10-27，正式合源 / 第五编译待）
+## M01最新增量（2026-10-27，正式合源 / 第五编译4TS失败）
 
-原J accepted265b后3生产及38公共回归源码已写；d046旧node扫描/真实入口session夹具两I由a222修正，原Astra04ea正式C0/I0/M0原件已核。唯一lane首轮4fixture败不计业务红，第二轮a222新4真实Pane/registered command配精确旧928生产实跑0过4纯业务Preview断言红；共享锁内155旧pair与test输出原不存在性全恢复。已按父授权真三路接a222，源码/测试无交集冲突且精确incoming，新src8e6；当前native仍旧928/8b4，不能拿旧绿签新源，随后唯一lane实际第五完整compile与M01/J/Sources/E受影响回归。
+原J accepted265b后3生产及38公共回归源码已写；d046旧node扫描/真实入口session夹具两I由a222修正，原Astra04ea正式C0/I0/M0原件已核。唯一lane首轮4fixture败不计业务红，第二轮a222新4真实Pane/registered command配精确旧928生产实跑0过4纯业务Preview断言红；共享锁内155旧pair与test输出原不存在性全恢复。已按父授权真三路接a222，源码/测试无交集冲突且精确incoming，新src8e6；唯一lane已实际完整compile5 exit1/4TS（action返回、helper收窄、命令桩泛型及void结果），准确log退原J补修；156native已emit/6变，现out属失败compile5，不能借旧928/8b4绿或freeze。M01/J/Sources/E受影响新green未跑，等不可变修订/peer续读后再唯一lane下一完整compile。自有ignored三cache全mode/type/SHA核全暂移/tmp、原路径symlink，未动证据，编译窗口完条件允许核全还原。
 
 原D部分after C0/I1、14真实UI过/1隔离过/2仅lane连续性/M01两次真实按钮no-op、101采样zeroRPC及39JS+1CSS loaded/12 manifest全部保留。D自有旧窗口已清、E未授权或启动；旧freeze当时真实成立，D1387仍open，J源码peer闭合转唯一lane验证/新freeze和D重验，不升PRD/不释放wave。原完成/关闭代数、显式来源严格live校验/ref-close同capture与Pane局部反馈保持。J无编译/typecheck/transpile/out/业务运行；下述旧并行表及未freeze记录是历史，不覆盖当前阶段。
 

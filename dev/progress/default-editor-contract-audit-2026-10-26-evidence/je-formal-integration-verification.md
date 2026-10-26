@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "a222新4入口配旧928纯业务4红，首夹具失败保留；原Astra04ea C0/I0/M0、正式三路53路径保留，新src8e6待第五完整native，D1387/E after仍待。"
+summary: "a222正式合源34a4/src8e6，第五完整compile实际exit1/4TS，准确原log退J补修；223历史原件保留，业务新绿/新freeze及D1387/E after待。"
 ---
 
 # J/E 正式集成
@@ -222,3 +222,24 @@ finally在共享锁内恢复：新test源从未写入、临时testJS原不存在
 在四纯旧红成立且实际peer原件C/I闭合后，按父授权对a222真三方合入；merge-base为最终accepted265b，incoming实际11路径=3生产+3tests+5docs。仅parallel/status两文档冲突，源码/测试无冲突，[53路径mode/type/blob门禁](je-formal-m01-source-merge-identity.json)全PASS，[双方完整原文与合成理由](je-formal-m01-source-conflict-resolutions.json)保留作者源码/静态历史、首轮夹具败、D旧partial和本lane新四业务旧红。**六TS blob及完整src tree精确等于受审a222：`8e6e9bb4b63ae2b65cf6e023fa99ad48fae9ed88`**，没有合并时悄改生产或测试。
 
 正式新src与旧native身份明确分开：此时out仍由旧src928/8b4第四编译产生，旧compile0不延伸新src8e6，不发新freeze。随后唯一lane实际第五完整compile及38/J29/完整Sources、native title/unhandled/wiring/E受影响链；Node880生产/61test无源变化时只做实际source/native连续性，不机械重跑。D模板新增mandatory helper，必须覆盖全部三个M01生产；第五0与新green后再发新notice。D新实际J/M01通过前E未授权、D1387 open，原reasoning及Accept builder既有红边界不变，不push/主ff重试/追main。
+
+## 第五次实际完整编译失败：4条TypeScript诊断
+
+正式合源HEAD `34a4a48fa60796c5c46831e5686cbb7410e5f11c` / 完整src tree `8e6e9bb4b63ae2b65cf6e023fa99ad48fae9ed88` 精确受审a222。第一次driver调用在共享锁/npm之前因 `/home` 约309MiB低于1GiB而停止，**没有emit，不能计为TS失败或第五次实际compile**；[结构化事件说明](m01-fifth-disk-preflight.json)明确当次没有另存raw log，不冒充原始log。
+
+经父明确执行授权，只在本merge工位将三个ignored生成依赖缓存 `.build/extensions`、`.build/electron`、`node_modules/foundry-local-sdk` 镜像到 `/tmp`；全局编译lane空、持共享锁、无活进程路径/句柄，逐entry mode/type/path/SHA全匹配后才以原路径symlink切换，155旧native未变。前两个实际仅释放约636MiB，仍938MiB不足预检；追加本工位npm安装依赖缓存后 `/home` 实际1,659,699,200 bytes可用、`/tmp` 2,860,810,240 bytes可用。没有迁移/删除源码、out、验收证据或其他工位内容。[可逆脚本](m01-fifth-cache-relocation.py)与[完整逐entry/路径/恢复方案](m01-fifth-cache-relocation.json)保留；本轮失败compile后再次全量核mirror仍精确。因原作者即刻补修需下一完整compile，三目录在同一编译窗口暂保symlink，尚未声称已恢复；窗口结束条件允许即共享锁内复制回临时同级目录、核全、原目录还原并再核，最后才删已验证临时镜像。
+
+随后实际调用 `rtk proxy npm run compile-client`，开始UTC `2026-10-26T19:20`（当地2026-10-27），两次全局scan空、共享锁内记录156对source/native。**真实exit1 / 4 TS errors**，不是预检失败。完整[执行脚本](m01-fifth-native-build.py)、[原始raw log](m01-fifth-native-build.log)、[命令/时间/156身份/诊断JSON](m01-fifth-native-build.json)及两份全局进程原记录已存：
+
+| 原生诊断位置 | 准确错误 |
+| --- | --- |
+| `sourcesDiffActions.ts(72,71)` | TS7030: Not all code paths return a value. |
+| `sourcesDiffRefHelpers.ts(177,125)` | TS2339: Property 'kind' does not exist on type 'object'. |
+| `sourcesDiffMoveSource.test.ts(184,69)` | TS2322: 命令桩泛型返回 `Promise<void>` 不满足 `Promise<R | undefined>` |
+| `sourcesDiffMoveSource.test.ts(188,85)` | TS2345: Argument of type 'void' is not assignable to parameter of type 'SourcesDiffMoveResult'. |
+
+当轮HEAD/src/clean均未变；**out已被实际完整编译清理/emit，156记录全部存在，其中6项hash变化**，此刻属于失败compile5，不能沿用第四编译0或称旧928 native仍在，也不能freeze。已立即把准确raw原件和4行诊断交原J/父，唯一lane不代改作者类型/断言。M01 38/J29/完整Sources/E受影响链**尚未运行新green**；没有拿静态lint替代完整编译。
+
+同一不可变HEAD的本次6TS ESLint实际 **0errors / 21warnings**，Panel1、node wiring20，新MoveSource文件0warning；[脚本](m01-fifth-lint.mjs)、[逐条JSON](m01-fifth-lint.json)、[完整log](m01-fifth-lint.log)保留。这里只报实际scope/计数，不扩大为完整旧113文件lint复跑。
+
+D已静态重备独立 `sources-m01-after-20261027-r2`，J/E两模板同53项superset，三M01生产（Pane/actions/helper）均mandatory source/native及后续实际loaded。driver核新模板各SHA后取scope，没有写旧notice或新实际notice。待原J不可变修订和独立peer续读后再正式合源、实际下一完整compile0与新green，才能发新r2冻结；旧250成员/29PNG和旧52冻结历史均保留，E仍未授权/未启动、D1387 open、不推送/不重试主ff。
