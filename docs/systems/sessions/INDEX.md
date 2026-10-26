@@ -3,11 +3,13 @@ title: "Sessions 系统索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-08-30
-summary: "Agents Window 跨层协作导航：分层方向、共享服务与三类 provider"
+updated: 2026-10-26
+summary: "Agents Window 上游对照导航，非本项目使用与验收范围；保留分层方向、共享服务与三类 provider 的实现记录"
 ---
 
 # Sessions
+
+**本页性质：上游对照与实现记录。** 本项目只使用默认编辑器窗口；Agents Window 不属于产品使用、UI 审查与交付验收范围，见 [产品愿景](../../product/vision.md)。
 
 Agents Window 是跨 `sessions` / `workbench` / `platform` 的运行时系统：窗口与编排在 `vs/sessions`，可复用的 workbench 能力向下依赖，计算后端由 provider 适配。契约正文见 [src/vs/sessions/README.md](../../../src/vs/sessions/README.md)，本页只标协作边界。
 

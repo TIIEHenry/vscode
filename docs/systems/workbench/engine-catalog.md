@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-25
+updated: 2026-10-26
 summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内置预设与 models.dev 云端目录；筛选两边都空时写 No matching providers.，云目录还在读时不写；Models 可增删改与测试，对话框在 level 后有 Description、Cost、Speed；Token Usage 无参读全局用量；Memory 只做 global 的列出、搜索、保存和删除，无 searchMemory 的查询不把旧列表当命中，零条搜索不是空库；Rules 桌面可增删改，网页不实现；Hooks 仍只读；产品验证未做"
 ---
 
@@ -133,7 +133,7 @@ Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240�
 | 节 | HEAD UI | 仍缺 |
 |----|---------|------|
 | Overview | 已有；GC-6 Model 计数；Provider 行已隐藏 | 产品验证 |
-| Providers | 桌面凭据写、本地导入、内置预设与 models.dev 云端目录。状态行的启用外观只读 | 点击不发启用 RPC，无连接测试。云端目录不依赖引擎重编译。钉死引擎未重新编译时，模型注册表写仍不在已钉进程上；产品验证未做 |
+| Providers | 桌面凭据写、本地导入、内置预设与 models.dev 云端目录。启用状态只读，用可见的 Enabled / Disabled 文字，不画开关 | 不发启用 RPC，无连接测试。云端目录不依赖引擎重编译。钉死引擎未重新编译时，模型注册表写仍不在已钉进程上；产品验证未做 |
 | Models | 桌面注册表写与 Test；对话框含 Description、Cost、Speed | 无 discovery、temperature、maxTokens、topP、lanes。`UpsertModel` / `DeleteModel` / `SetModelEnabled` 要引擎重新编译后才在已钉进程上存在。会话选用在 Composer |
 | Token Usage | `getGlobalUsage()` 无参；八项原样显示；Refresh 是幽灵图标 | 无 24h/7d。`getSessionUsage` / `Agent.Usage` 不是这页 |
 | Skills / Agents / Tools | 已有 list/toggle/写；Agents Model 子 tab 写三字段 | Composer 下拉；不是模型注册表选择器。无 skill store |
@@ -149,7 +149,7 @@ Agents 详情列宽至少 560px 时，档案列表约占列宽 34%（夹在 240�
 | M7 节 | HEAD | 数据姿态 |
 |-------|------|----------|
 | Overview | 壳已挂 | 聚合连接路径、workDir、capability；Model 摘要仅在 `models=SUPPORTED`；不暴露 secret |
-| Providers | 桌面写、导入与预设目录已挂 | `listProviderStatus?` 加 Upsert/Clear；内置预设在本地，云端目录走桌面 `listProviderPresetCatalog?`；不跳 Copilot Models。启用外观只读，点击不发 RPC；无连接测试 |
+| Providers | 桌面写、导入与预设目录已挂 | `listProviderStatus?` 加 Upsert/Clear；内置预设在本地，云端目录走桌面 `listProviderPresetCatalog?`；不跳 Copilot Models。Enabled / Disabled 是可见的只读文字，不画开关、不发启用 RPC；无连接测试 |
 | Models | 桌面注册表写已挂；对话框含 Description、Cost、Speed | `ListModels` 加 Upsert/Delete/SetModelEnabled；不跳 Copilot Models。无 discovery |
 | Token Usage | 无参 `getGlobalUsage?` | 缺方法是 unsupported，不是零快照。不是会话用量 |
 | Skills | 已有 | 两栏宿主，保留 list/toggle/body/New。无 skill store |

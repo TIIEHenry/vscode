@@ -4,10 +4,12 @@ type: overview
 status: accepted
 phase: N/A
 updated: 2026-10-26
-summary: "Agents Window 一页定向：跨层依赖、服务栈与三类 provider；明确切换或关闭当前会话后，旧异步打开不再盖回。"
+summary: "Agents Window 上游对照与实现记录，非本项目使用与验收范围；保留跨层依赖、服务栈与三类 provider 的说明。"
 ---
 
 # Sessions 系统概览
+
+**本页仅供上游对照与实现参考**，不作为本项目产品 UI 的开发或验收依据。窗口范围见 [产品愿景](../../product/vision.md)，本系统文档定位见 [系统索引](INDEX.md)。
 
 Agents Window 是 VS Code 源码层级里高于 `workbench` 的窗口：同一套 provider-neutral 模型服务多种计算后端，并自有 parts / grid / 列表，而不是再开一个普通 workbench 窗口。
 

@@ -3,7 +3,7 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-10-25
+updated: 2026-10-26
 summary: "PRD-001–029：2026-10-25 PRD-015 身份条文件夹与分支搜索落空分别写 No matching folders. / No matching branches.，状态仍 accepted。2026-10-24 PRD-002 增补会话列表组内排序与删除确认，PRD-007 增补加载中 / 不可用 / 空三分；PRD-029 会话工作根与 Workbench 状态跟随会话（2026-10-11 新增，proposed，方案 draft；2026-10-24 用户改为多根工作区随时扩展、本机工作目录切会话自动加入，改写验收 8、增补 10–11）；PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案仍 accepted；对话框与引导页遮罩、向 Cursor 靠齐均已 implemented；2026-10-21 用户选定 ChatGPT 为主参照，方案 draft）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，P2 组归属与显隐 2026-10-05 已落，P3 未做）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
@@ -108,9 +108,9 @@ summary: "PRD-001–029：2026-10-25 PRD-015 身份条文件夹与分支搜索�
 
 PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（追踪矩阵记 V1–V8 PASS）。PRD-003、004、007 的验收 4–5 仍待验证；PRD-005 的 R5 冒烟未做。PRD-001、002、006 的矩阵证据就是 D4（及已落的配套单测），没有另列缺口，状态仍是 `accepted`。
 
-## Agents 窗口需求
+## Agents Window 对照记录（非本项目使用范围）
 
-以下需求作用于 Agents 窗口的对话区，不改变上文默认窗产品壳的任何陈述。
+以下仅保留 Agents Window 的历史需求与签收记录，供上游界面和实现对照；本项目不使用该窗口，也不将其计入现行产品交付或 UI 验收。下列历史状态不表示它属于本项目当前范围；窗口边界见 [产品愿景](vision.md)。
 
 ### PRD-011 Chat 并排比对
 
@@ -359,6 +359,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   4. Rules 不把 Copilot instructions 当 UA 权威；Hooks 无 metadata RPC 时不抄静态点位；Plugins 无 marketplace。
   5. MCP Definitions 与 Runtime 共用 Engine server id，但不读取 vscode `IMcpService` 作为 UA 运行态。
   6. Skills / Agents / Tools 已有编辑状态迁入新宿主后不丢选择、未保存内容或能力门控。
+  7. Providers 的启用状态用可见的 Enabled / Disabled 文字只读呈现，不画可切换开关，也不增加启用 RPC（2026-10-26 视觉审查修复）。
 - **依赖或未决**：UI 不等待所有 RPC；缺能力先交付完整 unsupported/failed 状态，真实数据接线后只替换数据源。实施见 [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted` @2026-09-02）。**引擎面核对（2026-10-19，[protocol-surface §1b](../reference/universe-agent/engine-protocol-surface.md) 与 [engine-catalog](../systems/workbench/engine-catalog.md)）**：Models 仍没有「上下文上限 / 能力标签」。会话级 `SwitchModel` 属 Composer，不在本条。桌面 Providers 走 `UpsertProviderCredentials` / `ClearProviderCredentials`，并可从本地 harness 导入；内置预设在本地，桌面云端目录走 `listProviderPresetCatalog?`（models.dev，不是引擎 RPC）。桌面 Models 走 `UpsertModel` / `DeleteModel` / `SetModelEnabled`，Test 走已有 `TestModelProfile`。密钥不回显、不进 `settings.json`。网页不实现这些写方法。Rules 的 Upsert/Delete 已进桌面 connection（G-ENG-2），网页不实现；Hooks 仍只读（G-ENG-3）。无 hook 时 Hooks 仍以 unsupported 完整态满足。没有用户可观察的产品验证，本条保持 `accepted`。
 
 ### PRD-026 Client 设置完整性

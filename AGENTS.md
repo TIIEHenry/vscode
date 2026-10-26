@@ -2,6 +2,8 @@
 
 > 本文件是本仓库的 **Agent 开发向导**。编码风格与校验命令以 [Copilot Instructions](.github/copilot-instructions.md) 为准。
 
+本项目只使用**默认编辑器窗口**。Agents Window（`src/vs/sessions/`）仅作上游界面与实现对照，不属于本项目的产品使用、UI 审查或交付验收范围；相关文档保留供参考。范围正文见 [产品愿景](docs/product/vision.md)。
+
 ## 新会话必读
 
 1. 本文件 — 项目全貌与文档入口
@@ -28,7 +30,7 @@
 
 ## 启动
 
-用户要看窗口（「启动」「启动一下」）时，只按 [Agents 测试配置](docs/guides/test-profile.md) 启动默认编辑器窗口：`~/.universe-agent-studio-test` 的 user-data、extensions、shared-data，命令里带 `--new-window`，不要加 `--agents`。不带 `--new-window` 时，这份配置会把上次的 Agents 窗口恢复出来。用户明确说打开 Agents 时，才去掉 `--new-window` 并追加 `--agents`。同时拉起 [钉死引擎](docs/guides/debug-engine.md)（`vscode-debug-engine/start-engine.sh`，`127.0.0.1:50061`）。`50061` 已经在听就不要再起一份。不要用 `.agents/skills/launch/scripts/launch.sh`，也不要拷 `~/.vscode-oss-dev` 或日常目录 `~/.universe-agent-studio`。`launch.sh` 只用于 [壳冒烟](docs/guides/shell-smoke-verification.md) 这种必须隔离、登录不写回的自动化。壳冒烟不启动这份引擎。
+用户要看窗口（「启动」「启动一下」）时，只按 [Agents 测试配置](docs/guides/test-profile.md) 启动默认编辑器窗口：`~/.universe-agent-studio-test` 的 user-data、extensions、shared-data，命令里带 `--new-window`，不要加 `--agents`。不带 `--new-window` 时，这份配置会把上次的 Agents 窗口恢复出来。只有用户明确要求查看 Agents 对照界面时，才去掉 `--new-window` 并追加 `--agents`；这不属于本项目产品联调。同时拉起 [钉死引擎](docs/guides/debug-engine.md)（`vscode-debug-engine/start-engine.sh`，`127.0.0.1:50061`）。`50061` 已经在听就不要再起一份。不要用 `.agents/skills/launch/scripts/launch.sh`，也不要拷 `~/.vscode-oss-dev` 或日常目录 `~/.universe-agent-studio`。`launch.sh` 只用于 [壳冒烟](docs/guides/shell-smoke-verification.md) 这种必须隔离、登录不写回的自动化。壳冒烟不启动这份引擎。
 
 ## 架构摘要
 
