@@ -267,3 +267,16 @@ E复用槽前实录clean `loop/E@9e79c26ad11156d691f25a64be8164205ebb475f`，src
 唯一baseline后续负责新测试JS配精确4919/compile8旧生产的meaningful red、正式新编译/green及相关套；E只做无checker/emit parse、lint、diff/docs静态检查。原Astra负责不可变源码独立复审，非作者after在新产物身份明确后另跑；当前仍accepted、未green/implemented，未关闭PRD或旧D项。
 
 本轮静态结果：6个改动TS的 `createSourceFile` parse 0语法诊断（无checker/emit），ESLint 0 errors / 0 warnings；原roster测试声明逐块比对均仍逐字存在，reasoning所在Projection整文件与4919同字节。`git diff --check`与生成状态核对通过，docs-health 0 errors / 73既有warnings，status仍200行。原始静态JSON为 `/tmp/vscode-response-disconnected-seat-E-{parse,eslint,existing-tests,docs-health}.json`。E没有compile/typecheck/transpile/watch/out写入或任何依赖out的业务执行；这些静态结果不替代旧红/新绿/非作者after。
+
+
+### 9.5 compile9 类型诊断后的正式窄宿主补修
+
+父转达唯一lane用93正式集成 `fd693` / src `2e04cd45ef6d2861785fadda42e488fd20cbf965` 完成精确旧4919/compile8业务对照：3过/7纯业务AssertionError，无fixture/API/timeout失败；额外4旧native+map及finally旧163身份均精确恢复。这些旧红实际成立，不因后续编译失败撤销，也不由E重复执行。随后第九次完整native compile实际exit1，6条TS2352全部在新增 `responseSeatRoute` 测试：755/3594/3653/3666/3675是精简route断言为完整ComposerHost，758是完整BindingHost。原log `/tmp/vscode-e93-ninth-native-build.log` 已实读；253 native虽已emit，但checker失败，不能记green、不能复用compile8作新UI/after。
+
+E从clean不可变93原分支继续，不消费merge临时WIP或追main。原Astra直接实读诊断和函数body后批准本合同内的正式type-only窄接口：`IConversationLensPostHost` 精确Pick现有ComposerHost的connection、完整roster、bound-id及lease四字段；`IConversationLensResponseHost` 精确Pick现有BindingHost的dispose、完整roster/connection、bound-id、failure/focus与postBound。原完整宿主仍结构满足两接口；既有字段类型/必需性、参数、返回和服务契约不放松，不改optional、不用Partial/any/unknown。
+
+postBound与三种响应函数及断连guard只更换参数的静态宿主类型，运行body、写门判定和执行顺序均保留。fixture用两个正式Pick交集加非undefined实际lease显式构造，postBound回调显式 `Promise<PostOutcome>`，去掉全部六处route整体cast；不为宽宿主伪造无关UI组件。真实TimelineHost→Binding→postBound→实际cached stublease链、10项业务断言、旧160声明及reasoning整文件保持。新aliases仅type-import，不增加旧对照的运行时import或missingAPI依赖。
+
+本次仅类型补修与行动记录，方案仍accepted，不freeze/不关wave。待原Astra对新不可变候选复读、唯一baseline重新完整native与green/相关套，之后按新产物身份做非作者after；E仍只做无checker/emit parse、lint、diff/docs静态核对。
+
+本轮静态证据：3个改动TS parse 0诊断（无checker/emit），ESLint 0 errors / 0 warnings；AST源文逐块核对Composer/Binding全部生产function body与93同字节，ReadingColumn/Availability整文件不变。测试整文件精确白名单比对仅获准type-import、宿主注解和六cast移除；旧4919的160个test声明逐字全保，Projection reasoning整文件不变。diff check、生成状态核对通过；docs-health 0 errors / 73 warnings，status200行。原始静态JSON `/tmp/vscode-response-route-typed-host-E-{static,eslint,docs-health}.json`。E未compile/typecheck/transpile/watch/out写入或运行任何依赖out的测试，不以静态证据宣称六诊断已被实际checker验证。

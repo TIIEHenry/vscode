@@ -63,6 +63,10 @@ export interface IConversationLensSessionBindingHost {
 	setInputMaximized(maximized: boolean): void;
 }
 
+/** Response actions do not depend on the lens's unrelated reading and composer widgets. */
+export type IConversationLensResponseHost = Pick<IConversationLensSessionBindingHost,
+	'isDisposed' | 'stubService' | 'uaConnection' | 'getBoundSessionId' | 'showPostFailure' | 'focusTimelineRecord' | 'postBound'>;
+
 /** D285: pairing-hold (connecting or connected + pairingPending) — do not treat as true disconnect. */
 function shouldKeepLeftoverTimelineForPairingHold(host: IConversationLensSessionBindingHost): boolean {
 	if (host.lastAttachedEntries.length === 0) {
@@ -113,7 +117,7 @@ export function rejectKeepLeftoverListFailWrite(host: IConversationKeepLeftoverW
 }
 
 /** The cached read lease must never authorize a local response after an engine disconnect. */
-function rejectDisconnectedEngineResponse(host: IConversationLensSessionBindingHost): boolean {
+function rejectDisconnectedEngineResponse(host: IConversationLensResponseHost): boolean {
 	if (!isConversationDisconnectedEngineSession(host.stubService, host.getBoundSessionId())) {
 		return false;
 	}
@@ -271,7 +275,7 @@ export function findFirstPendingConfirmationTurnId(host: IConversationLensSessio
 
 }
 
-export async function resolveConfirmation(host: IConversationLensSessionBindingHost, turnId: string, status: 'allowed' | 'skipped'): Promise<void> {
+export async function resolveConfirmation(host: IConversationLensResponseHost, turnId: string, status: 'allowed' | 'skipped'): Promise<void> {
 
 	if (rejectPairingHoldWrite(host)) {
 		return;
@@ -321,7 +325,7 @@ export async function resolveConfirmation(host: IConversationLensSessionBindingH
 
 }
 
-export async function resolveQuestion(host: IConversationLensSessionBindingHost, turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void> {
+export async function resolveQuestion(host: IConversationLensResponseHost, turnId: string, requestId: string, answers: ConversationQuestionRespondAnswers, customText?: string): Promise<void> {
 
 	if (rejectPairingHoldWrite(host)) {
 		return;
@@ -447,7 +451,7 @@ export function cancelToolCall(host: IConversationLensSessionBindingHost, turn: 
 
 }
 
-export function respondClientTool(host: IConversationLensSessionBindingHost, turn: { readonly id: string }): void {
+export function respondClientTool(host: IConversationLensResponseHost, turn: { readonly id: string }): void {
 
 	const callId = turn.id.trim();
 	if (!callId) {
