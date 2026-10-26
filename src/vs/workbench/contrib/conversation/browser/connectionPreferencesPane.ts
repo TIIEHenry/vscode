@@ -688,6 +688,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			type: 'number',
 			placeholder: '50061',
 			description: localize('ua.connectionDirectPortDescription', "Port number where the engine is listening (1-65535)."),
+			layout: 'setting-row',
 		}).input;
 		this.directPortInput.inputElement.min = '1';
 		this.directPortInput.inputElement.max = '65535';
@@ -695,6 +696,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.directNameInput = this.createFieldInput(this.directAddressSection, localize('ua.connectionDirectDisplayName', "Name"), {
 			placeholder: localize('ua.connectionDirectDisplayNamePlaceholder', "Local Engine"),
 			description: localize('ua.connectionDirectDisplayNameDescription', "A friendly label to identify this engine connection profile."),
+			layout: 'setting-row',
 		}).input;
 		this.directNameInput.value = 'Local Engine';
 
@@ -860,7 +862,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	): { readonly row: HTMLElement; readonly label: HTMLElement; readonly input: InputBox } {
 		const row = DOM.append(parent, $(options.rowClass ? `.connection-field-row.${options.rowClass}` : '.connection-field-row'));
 		if (options.layout === 'setting-row') {
-			row.classList.add('ua-setting-row');
+			row.classList.add('ua-setting-row', 'connection-input-row');
 		}
 		const copy = options.layout === 'setting-row' ? DOM.append(row, $('.ua-setting-copy')) : row;
 		const label = DOM.append(copy, $('label'));

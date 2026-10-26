@@ -4,17 +4,94 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Delayer } from '../../../../../base/common/async.js';
+import * as DOM from '../../../../../base/browser/dom.js';
+import { Delayer, timeout } from '../../../../../base/common/async.js';
 import { HistoryNavigator } from '../../../../../base/common/history.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ConfigurationTarget } from '../../../../../platform/configuration/common/configuration.js';
 import { AGENTS_WINDOW_SETTING_TAG, FEATURE_SETTING_TAG } from '../../common/preferences.js';
 import { planSettingsEditContextChange, planSettingsEditFlush, planSettingsEditLeave, SettingsEditContext, shouldClearPendingSettingsEdit } from '../../browser/settingsEditFlush.js';
-import { getSettingsSearchSuggestions, isSettingsSearchUpToDate, readNextSettingsSearchHistory } from '../../browser/settingsEditor2.js';
+import { getSettingsSearchSuggestions, isSettingsSearchUpToDate, isUaClientSettingsView, readNextSettingsSearchHistory } from '../../browser/settingsEditor2.js';
 import { AiSearchToggleOutcomeKind, AiSearchToggleVisibilityUpdate, planAiSearchToggle, planAiSearchToggleVisibilityUpdate, shouldShowSettingsClearFiltersLink, stripSettingsSearchFilterTokens } from '../../browser/settingsEditor2Search.js';
 
 suite('SettingsEditor2', () => {
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	suite('UA Client responsive scope', () => {
+		test('narrow Client chrome fits its controls and restores upstream styles when the scope changes', async () => {
+			for (const path of ['../../browser/media/settingsEditor2.css', '../../../conversation/browser/media/uaClientSettingsChrome.css']) {
+				const stylesheet = document.createElement('link');
+				stylesheet.rel = 'stylesheet';
+				stylesheet.href = new URL(path, import.meta.url).href;
+				store.add(toDisposable(() => stylesheet.remove()));
+				await new Promise<void>((resolve, reject) => {
+					stylesheet.onload = () => resolve();
+					stylesheet.onerror = () => reject(new Error('Settings stylesheet failed to load'));
+					document.head.appendChild(stylesheet);
+				});
+			}
+			const workbench = DOM.append(document.body, DOM.$('.monaco-workbench'));
+			store.add(toDisposable(() => workbench.remove()));
+			workbench.style.width = '300px';
+			workbench.style.height = '400px';
+			const root = DOM.append(workbench, DOM.$('.settings-editor.narrow-width'));
+			const header = DOM.append(root, DOM.$('.settings-header'));
+			const search = DOM.append(DOM.append(header, DOM.$('.search-container')), DOM.$('.suggest-input-container'));
+			search.style.height = '22px';
+			const tree = DOM.append(DOM.append(root, DOM.$('.settings-body')), DOM.$('.settings-tree-container'));
+			const groupRow = DOM.append(tree, DOM.$('div'));
+			groupRow.style.height = '42px';
+			const title = DOM.append(groupRow, DOM.$('.settings-group-title-label.settings-group-level-1'));
+			title.textContent = 'Client Settings With A Long Translated Group Title';
+			const item = DOM.append(tree, DOM.$('.setting-item.setting-item-enum'));
+			const contents = DOM.append(item, DOM.$('.setting-item-contents'));
+			const control = DOM.append(DOM.append(contents, DOM.$('.setting-item-value')), DOM.$('.setting-item-control'));
+			const select = DOM.append(control, DOM.$('select'));
+			DOM.append(select, DOM.$('option')).textContent = 'Comfortable';
+			for (const client of [true, false, true]) {
+				root.classList.toggle('ua-client-settings', client);
+				await timeout(0);
+				const rootBounds = root.getBoundingClientRect();
+				const selectBounds = select.getBoundingClientRect();
+				assert.deepStrictEqual({
+					searchVisible: search.getBoundingClientRect().width > 0,
+					titleVisible: title.getBoundingClientRect().height > 0,
+					selectFits: selectBounds.left >= rootBounds.left && selectBounds.right <= rootBounds.right,
+					upstreamSelectWidth: !client && DOM.getWindow(select).getComputedStyle(select).width === '320px',
+				}, { searchVisible: true, titleVisible: true, selectFits: client, upstreamSelectWidth: !client });
+			}
+		});
+
+		test('exact Client queries can leave and reenter the compact layout', () => {
+			const queries = [
+				'@id:ua.client.display.conversationDensity',
+				'@id:editor.fontSize',
+				'@id:ua.client.chatInput.autoFocus',
+				'@id:ua.client.chatInput.autoFocus,editor.fontSize',
+				'@id:ua.client.chatInput.autoFocus @id:editor.fontSize',
+				'ua.client',
+				'',
+			];
+			assert.deepStrictEqual(queries.map(query => isUaClientSettingsView(false, query, undefined)), [true, false, true, false, false, false, false]);
+		});
+
+		test('only Client categories opt in, and mixed ID filters override a Client category', () => {
+			const categories = ['ua', 'ua/display', 'editor', undefined, 'ua/keyboardEnter', 'application'];
+			assert.deepStrictEqual(categories.map(category => isUaClientSettingsView(false, '', category)), [true, true, false, false, true, false]);
+			assert.strictEqual(isUaClientSettingsView(false, '@id:ua.client.display.conversationDensity,editor.fontSize', 'ua/display'), false);
+			assert.strictEqual(isUaClientSettingsView(false, 'font size', 'ua'), false, 'ordinary searches restore their width before asynchronous results arrive');
+		});
+
+		test('Agents window and ordinary queries retain the upstream layout', () => {
+			assert.deepStrictEqual([
+				isUaClientSettingsView(true, '@id:ua.client.display.conversationDensity', 'ua'),
+				isUaClientSettingsView(false, 'font size', undefined),
+				isUaClientSettingsView(false, '@modified', undefined),
+				isUaClientSettingsView(false, '@id:ua.client.display.conversationDensity,ua.client.keyboardEnter.behavior', undefined),
+			], [false, false, false, true]);
+		});
+	});
 
 	suite('getSettingsSearchSuggestions', () => {
 		const chatSuggestion = `@${FEATURE_SETTING_TAG}chat`;

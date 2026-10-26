@@ -106,6 +106,18 @@ export function isSettingsSearchUpToDate(searchPending: boolean, renderedSearchQ
 	return !searchPending && renderedSearchQuery === currentSearchValue.trim();
 }
 
+/** Only UA Client categories or exclusive ID filters can use the compact Client layout. */
+export function isUaClientSettingsView(isSessionsWindow: boolean, query: string, categoryId: string | undefined): boolean {
+	if (isSessionsWindow) {
+		return false;
+	}
+	const { idFilters } = parseQuery(query);
+	if (idFilters.length) {
+		return idFilters.every(id => id.startsWith('ua.client.'));
+	}
+	return !query.trim() && (categoryId === 'ua' || !!categoryId?.startsWith('ua/'));
+}
+
 /**
  * Next newer settings-search query for Down, or null when the visible query must stay put.
  * Callers must not write a query when this returns null.
@@ -248,6 +260,7 @@ export class SettingsEditor2 extends EditorPane {
 	private static TOC_MIN_WIDTH: number = 100;
 	private static TOC_RESET_WIDTH: number = 200;
 	private static EDITOR_MIN_WIDTH: number = 500;
+	private static UA_CLIENT_EDITOR_MIN_WIDTH: number = 300;
 	// Below NARROW_TOTAL_WIDTH, we only render the editor rather than the ToC.
 	private static NARROW_TOTAL_WIDTH: number = this.TOC_RESET_WIDTH + this.EDITOR_MIN_WIDTH;
 
@@ -271,6 +284,9 @@ export class SettingsEditor2 extends EditorPane {
 	private readonly modelDisposables: DisposableStore;
 
 	private rootElement!: HTMLElement;
+	private uaClientSettingsView = false;
+	private readonly _onDidChangeSizeConstraints = this._register(new Emitter<void>());
+	override readonly onDidChangeSizeConstraints = this._onDidChangeSizeConstraints.event;
 	private headerContainer!: HTMLElement;
 	private searchContainer: HTMLElement | null = null;
 	private bodyContainer!: HTMLElement;
@@ -551,7 +567,7 @@ export class SettingsEditor2 extends EditorPane {
 		}
 	}
 
-	override get minimumWidth(): number { return SettingsEditor2.EDITOR_MIN_WIDTH; }
+	override get minimumWidth(): number { return this.uaClientSettingsView ? SettingsEditor2.UA_CLIENT_EDITOR_MIN_WIDTH : SettingsEditor2.EDITOR_MIN_WIDTH; }
 	override get maximumWidth(): number { return Number.POSITIVE_INFINITY; }
 	override get minimumHeight() { return 180; }
 
@@ -717,6 +733,7 @@ export class SettingsEditor2 extends EditorPane {
 		if (query !== undefined) {
 			this.searchWidget.setValue(query);
 			this.viewState.query = query;
+			this.updateResponsiveLayout();
 		}
 
 		const target: SettingsTarget | undefined = options.folderUri ?? recoveredViewState?.settingsTarget ?? <SettingsTarget | undefined>options.target;
@@ -727,6 +744,7 @@ export class SettingsEditor2 extends EditorPane {
 
 	override clearInput(): void {
 		this.flushPendingSettingsEditOnLeave();
+		this.updateResponsiveLayout(true);
 		this.inSettingsEditorContextKey.set(false);
 		super.clearInput();
 	}
@@ -1220,10 +1238,11 @@ export class SettingsEditor2 extends EditorPane {
 				this.tocTree.layout(height, width);
 			}
 		}, startingWidth, undefined, true);
+		const editor = this;
 		this.splitView.addView({
-			onDidChange: Event.None,
+			onDidChange: this.onDidChangeSizeConstraints,
 			element: this.settingsTreeContainer,
-			minimumSize: SettingsEditor2.EDITOR_MIN_WIDTH,
+			get minimumSize() { return editor.minimumWidth; },
 			maximumSize: Number.POSITIVE_INFINITY,
 			layout: (width, _, height) => {
 				this.settingsTreeContainer.style.width = `${width}px`;
@@ -1284,6 +1303,7 @@ export class SettingsEditor2 extends EditorPane {
 			// Filter to show only the selected category
 			if (this.viewState.categoryFilter !== element) {
 				this.viewState.categoryFilter = element ?? undefined;
+				this.updateResponsiveLayout();
 				// Force render in this case, because
 				// onDidClickSetting relies on the updated view.
 				this.renderTree(undefined, true);
@@ -2019,6 +2039,7 @@ export class SettingsEditor2 extends EditorPane {
 	}
 
 	private renderTree(key?: string, force = false): void {
+		this.updateResponsiveLayout();
 		if (!force && key && this.scheduledRefreshes.has(key)) {
 			this.updateModifiedLabelForKey(key);
 			return;
@@ -2127,6 +2148,7 @@ export class SettingsEditor2 extends EditorPane {
 			languageFilter: parseQuery(query).languageFilter,
 		});
 		this.viewState.query = query;
+		this.updateResponsiveLayout();
 		if (query) {
 			this.searchWidget.addToHistory();
 			this.updateSearchPlaceholder();
@@ -2241,6 +2263,7 @@ export class SettingsEditor2 extends EditorPane {
 			}
 			this.tocTreeModel.currentSearchModel = this.searchResultModel;
 			this.renderedSearchQuery = this.viewState.query;
+			this.updateResponsiveLayout();
 
 			if (this.searchResultModel) {
 				// Added a filter model
@@ -2546,6 +2569,22 @@ export class SettingsEditor2 extends EditorPane {
 				return Promise.reject(err);
 			} else {
 				return null;
+			}
+		}
+	}
+
+	private updateResponsiveLayout(clear = false): void {
+		const uaClientSettingsView = !clear && isUaClientSettingsView(
+			this.environmentService.isSessionsWindow,
+			this.searchWidget?.getValue() ?? this.viewState.query ?? '',
+			this.viewState.categoryFilter?.id,
+		);
+		this.rootElement?.classList.toggle('ua-client-settings', uaClientSettingsView);
+		if (this.uaClientSettingsView !== uaClientSettingsView) {
+			this.uaClientSettingsView = uaClientSettingsView;
+			this._onDidChangeSizeConstraints.fire();
+			if (this.dimension) {
+				this.layout(this.dimension);
 			}
 		}
 	}
