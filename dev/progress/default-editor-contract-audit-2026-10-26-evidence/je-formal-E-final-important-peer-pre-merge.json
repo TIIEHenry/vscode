@@ -1,0 +1,10 @@
+{
+  "phase": "before-real-three-way-independent-final-E-after-Important-review",
+  "ours": "4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff",
+  "theirs": "ccd5df420dd30c914658dacdbb7ce282f82ef236",
+  "mergeBase": "c1a5ab63b323605c227bd9c0590cbb85b9ec8fa7",
+  "recordedAtUtc": "2026-10-26T21:56:59.141163+00:00",
+  "existingReportSections1Through24ExactBodyBytesPreserved": true,
+  "historicalSectionsBodySha256": "5f11538a85e00bf7be900d15b13802a036f3bd159a12a5480393d9a0d7ef12fe",
+  "incomingFrontmatterSummaryChangeExplicitlyRetained": true
+}

@@ -1,0 +1,41 @@
+{
+  "recordedAtUtc": "2026-10-26T21:58:40.231806+00:00",
+  "verificationBy": "/root",
+  "capturedBy": "/root/baseline_executor",
+  "source": "explicit parent message authorizing immutable ccd5 final E-after review consumption",
+  "codePeerCommit": "ccd5df420dd30c914658dacdbb7ce282f82ef236",
+  "reportSection": "25",
+  "parentVerificationVerbatim": "根完整实读105行diff并独核新stage全部7引用SHA、323原件+1inventory tar/external逐bytes/SHA、两trace43calls/19response/Chatopens2/writes0、GetQueue/SaveSkill/unknown0；69/70原JSON与PNG根亲读/视确认cachedread-only却Allowed。",
+  "parentVerified": {
+    "full105LineReviewDiffActuallyRead": true,
+    "sevenStageReferencedArtifactHashesExact": true,
+    "rawArtifactExternalAndTarByteSizeShaCount": 323,
+    "inventoryExtraTarEntryCount": 1,
+    "fullLifecycleReceivedCalls": 43,
+    "fullLifecycleResponseUnaries": 19,
+    "chatStreamOpens": 2,
+    "chatMessageWrites": 0,
+    "GetQueueCalls": 0,
+    "SaveSkillContentCalls": 0,
+    "unknownMethodCalls": 0,
+    "steps69And70OriginalJsonActuallyRead": true,
+    "step70PngVisuallyInspected": true,
+    "cachedReadOnlyYetNewAllowedConfirmed": true,
+    "ownedRuntimeCleanupReportedExactLiveCount": 0,
+    "final163JAndGitFixtureGuardsUnchanged": true
+  },
+  "interpretation": {
+    "JOldR2SourceIdentityFullAfter": "510 assertions / 0 failures, actual completed and sealed",
+    "ECleanAttempt2": "six false/reject scenes, eight rows, concurrency and transport restart pass; canonical-only timeline BOUNDARY",
+    "EOverallAfter": "FAIL: Important disconnected cached permission normal click mutates local state to Allowed and clears pending",
+    "EPlanStatus": "accepted; original-contract fix pending",
+    "oldEAttempt1GetQueueObserverContaminationPreserved": true,
+    "clientToolFocusBodyMinorCandidatePreserved": true,
+    "section24ReconnectLeaseImportantCandidatePreservedNotReproducedInAttempt2": true,
+    "PRDOrOldDOrWholeWaveClosed": false
+  },
+  "parentDidNotRunLiveUiOrBusinessOrCompileForThisVerification": true,
+  "producerDidNotDuplicateParentArchiveTraceUiVerification": true,
+  "producerOperation": "pure documentation integration only; no source/out/cache writes, compile/typecheck/transpile/business/UI tests",
+  "nextSourceCandidateAuthorizedForConsumption": false
+}

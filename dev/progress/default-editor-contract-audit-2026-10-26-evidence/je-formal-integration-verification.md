@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J r2封存/父核510/0，E已授权运行中；§23/24独审真三路504/511路径保留，重连可见Pane缺lease为Important候选非已证唯一根因，八项待，源码/163native冻结。"
+summary: "J旧r2源码身份after510/0；E attempt2八行及并发/换链过但断连缓存权限假Allowed为Important，整体after FAIL/原方案accepted，§25独审515路径真三路，163native仍冻结。"
 ---
 
 # J/E 正式集成
@@ -412,3 +412,17 @@ canonical-envelope-only fixture未授respondable，不能生成所要求timeline
 审查给出的静态链与观察高度吻合：Roster连接通知先将catalog置loading；Lens在not-ready且无same-session entries时清lease；同id catalog恢复只发session更新而缺lease可见消费者未重绑；公开可见性切换补偿绑定。但**没有完整callback现场顺序/readiness/entries记录，也没有独立最小重现**，所以不称唯一根因已证实、不称已修复；生产三文件与旧9cc56/当前800d字节连续，只说明不是M01改这三文件引入，不替代旧窗口复现或证明整条因果代码都未变。
 
 当前冻结波只记录候选，不新编号/新方案、不加产品补丁。E八项仍由D继续执行，permission-false的正常无force重复操作证据仍在补充；公开恢复后的unary后续成功不洗掉此前观察，也不预判八项通过/失败。J封存9c874a/父核510/0与E授权cf91e5ca的身份不变，canonical-only timeline BOUNDARY不领UI credit、queue UNSUPPORTED边界继续保留。源码/src tree仍2b5d、完整163native与缓存保持冻结，不编译/转译/测试/UI、不ff/push、不追新main；本切片立即文档收尾。
+
+## E attempt2最终Important失败独审的正式文档接入
+
+本lane实际完整读原Astra不可变 **`ccd5df420dd30c914658dacdbb7ce282f82ef236`**（父c1a5）的105行diff，包含前言summary与新增§25；旧§1–24正文逐字连续，精确incoming摘要变更保留。[515路径Git mode/type/blob门禁](je-formal-E-final-important-peer-merge-identity.json)PASS，原报告blob精确incoming，仅INDEX冲突，[双方全文/hunk与理由](je-formal-E-final-important-peer-conflict-resolutions.json)保存本lane415证据和J/冻结历史导航、incoming最终E结论。没有消费尚未明确交付的新产品源码。
+
+**当前结论：J旧r2源码身份的真实完整after 510/0成立；E整体after FAIL，原E方案仍accepted。** E干净attempt2六类false/reject场景、问题草稿与同请求双Pane抑制合计八行通过，不同请求并发和真实换链补充通过；canonical timeline-only依旧BOUNDARY、无UI credit。最终69公开断连后70普通Allow点击，使标明`Cached snapshot (read-only)`的两个真实Pane显示新Allowed并清空pending，响应unary19→19、Chat消息write0→0；零远端写不抵消本地只读合同违背。已证结论为C0/I1，不能用八行通过或干净加载把本轮整体签绿，也不称M01改动引入。
+
+首轮E1完整观察污染与纠正保留：直接service getQueue并不自行UNSUPPORTED fail-fast，能力门在实际QueueReader.canRead；旧observer绕过UI owner真实触发GetQueue UNIMPLEMENTED。因此前§23/阶段记述中的公开直调fail-fast推断由§25明确纠正，不把旧pollution说成零GetQueue，也不借此登记产品能力门回归。旧question成功后Answered座位不消失的观察器断言失败、旧inode必须不同的断言失败均按原件保留；不把整个历史改写为观察脚本全无错。
+
+独立审查确认最终两episode全生命周期trace共 **43 Received、19 response unary、2 Chat常驻stream open、0 Chat消息write、GetQueue/SaveSkillContent/unknown各0**，不是“Chat RPC 0”；12广告/13 handlers和队列/技能无验收credit边界保持。CSS仍是全文可逆来源与683 CSSOM规则相等，原raw mismatch不翻绿；40JS+1CSS actual/12 manifest-only分开。clientTool retry后BODY焦点为Minor候选，§24重连缺lease候选本次未复现仍保留，不计作本次已证第二项Important；通用CANCELLED通知存在也不被局部状态恢复抹去。
+
+[父实际独立复核范围](m01-E-final-parent-read-verification.json)准确记录父完整读diff、核新stage七引用SHA、323原件+1 inventory在tar/external逐bytes/SHA、两trace计数及69/70原JSON/PNG视觉确认，只读审查不冒称父运行live UI/业务。D实际stage已结束，owned main/Xvfb/fake按PID/startticks精确清理、live0，最终163/J/Git fixtures守卫相同；这是D执行与父/审查者对原件的核验。本lane此切片不展开新D包、不等待D稍后正式文档提交；仅接本明确review SHA，后续D evidence/index须父明确给commit再接。
+
+原415 artifact全量bytes/SHA保留，四份三路证明及父复核范围JSON加入后现420，status200。source tree仍 **`2b5df2b37ca926e38888443e371cf65e2883dba2`**，唯一lane的完整163native和三cache稳定symlink保持；home不足不还原、不部分还原或额外删除。旧freeze保留为本旧身份的真实历史，不延用未来修订。父已把原合同内UI/callback/postBound共用拒绝门交回原E作者独立分支，尚无可消费source SHA、没有新编译/运行授权；本lane不改产品、不compile/transpile/typecheck/业务/UI测试或写out/cache，不触main WIP/ff/push。PRD、旧D、整波状态均不升级或关闭。

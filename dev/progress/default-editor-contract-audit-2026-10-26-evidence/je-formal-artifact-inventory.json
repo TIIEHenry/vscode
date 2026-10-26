@@ -1,5 +1,5 @@
 {
-  "phase": "E-running-boundaries-and-reconnect-visible-Pane-lease-Important-candidate-independent-reports-integrated-source-native-frozen",
+  "phase": "E-attempt2-after-important-product-FAIL-independent-final-review-integrated-original-contract-fix-awaiting-source-authorization",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -2904,6 +2904,41 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-reconnect-candidate-peer-pre-merge.json",
       "bytes": 433,
       "sha256": "c8621715db90a685fb68c187c1cbb24cbba81d2139fae4106d4adeb8c726fdab",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-important-peer-conflict-resolutions.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-important-peer-conflict-resolutions.json",
+      "bytes": 14419,
+      "sha256": "9945b2eb95489d946849c29a635fce74c06c608be9de350f32a1e0e337cd8da1",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-important-peer-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-important-peer-merge-identity.json",
+      "bytes": 290966,
+      "sha256": "1cdda4123f479c0f770a08094fea90c15e50b5568b33dbbed05d1a89d1cf10dc",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-important-peer-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-important-peer-merge.log",
+      "bytes": 258,
+      "sha256": "e79030392ad87cbb4f1060ef97eb0a084b9d33d459e71a66a29df17eccb1ae25",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-important-peer-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-important-peer-pre-merge.json",
+      "bytes": 537,
+      "sha256": "ef9b0e7c963a7156542b9a22268a5edf5bef67226a84e22f5b9ade778fde846c",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-E-final-parent-read-verification.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-E-final-parent-read-verification.json",
+      "bytes": 2317,
+      "sha256": "0d9061b1981d983e5a2f372653542ddd489b1506d2419160f401ec79a4e687a3",
       "bytePreservingCopy": true
     }
   ]
