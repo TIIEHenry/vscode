@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留M01及observer历史；CSS实际CDP全文可逆对应冻结native，原507/1保留；CSSOM勾号正确，CDP文本差异不作产品缺陷或全局UI验收。"
+summary: "保留M01及observer/CSS历史；E attempt2八行与并发换链通过，断连缓存permission假Allowed为Important，after不通过、原合同补修待；全生命周期trace、163身份及完整封存独立复核。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -707,3 +707,106 @@ driver的`frameViews`是另行`roster.acquireSessionView→读snapshot→dispose
 此静态链解释了“独立public lease已live、同session真实Pane仍空、公开可见性切换恢复”。它不依赖修改readonly字段或制造模型；但**现场没有记录每次callback的完整顺序与当时readiness/entries**，也没有当前审查的独立最小重现，因此称Important候选和高度吻合归因，不声称已证明唯一根因。不能凭模型晚到作泛化解释或无限增加等待；需要后续专门验证ready转变后的可见消费者绑定是否恢复。
 
 Lens、SessionBinding、EditorPane三生产文件在旧9cc56与当前800d逐字相同，SHA分别`bb1e6108f5a17ebbc8d902dabbd59c856a15c3a86477f94b36dc30c7147e0dbd`、`c1ec5cc15a0f282f2ab2ee3f32f02a316a4f96d8e2df327053452367207bf6e2`、`51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65`。该源连续性说明不是M01修改这三文件引入，不能替代旧运行重现或断言全部因果代码不变。后续可评估“ready通知与可见且缺lease的消费者绑定”切片，并保留hidden不持lease、same-session leftover、换session、失败/重连与多Pane隔离合同；当前只登记候选，不在冻结产物上实施或添加临时补丁。
+
+
+## 25. E attempt2完整after复核：八项通过，断连缓存权限假成功为Important（2026-10-27）
+
+**本轮after不能整体通过，方案保持accepted。** 八个可执行响应矩阵行通过（六个false/reject场景、问题草稿、双Pane shared busy），不同请求并发隔离与真实换链补充通过；canonical timeline-only仍为BOUNDARY。最终公开断连后，permission真实普通点击使只读引擎缓存显示Allowed并清空pending，且没有引擎响应调用，构成已证Important产品失败。不得以零RPC、八行通过或干净加载身份抵消。新增结论为Critical 0 / Important 1，另有clientTool焦点Minor候选；§24重连缺lease的Important候选继续保留，本次未复现，不合并为本次已证第二项。
+
+reviewer只读D原始JSON/PNG、脚本与冻结源码，独立计算SHA、分析trace/封存内容；实际点击、键盘、连接变化、CDP采集与清理由D执行。reviewer未运行UI、引擎、fixture、业务测试、编译/typecheck/transpile，未改产品/out/D证据。审查采用仓库PRD-007断连快照只读合同及桌面交互规范的焦点/诚实反馈要求，不追加未授权UI矩阵。
+
+### 身份与首轮历史保留
+
+本节D根目录为`/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/`。consumer为`800d383ba65fdefb36da324b380941c7574c4bf3`，冻结src tree为`2b5df2b37ca926e38888443e371cf65e2883dba2`；后续docs HEAD变化不冒充重新emit。E notice为`cacee49e…`，J notice为`671cb3c8…`，两种身份分别保留；runtime collector的`freezeNoticeSha256`指J notice，不能错读成E notice。
+
+attempt2新home `/tmp/vscode-e-after-home-3j30qpjd`，main PID2029498、Xvfb2029439、CDP33871；controlled session为`D-E-attempt2-controlled-session`。group8/9为两个实际且不同的Conversation Pane，其自身lease与snapshot均有记录，不拿observer临时acquire的frameViews替代。三类请求的主要场景发生在link1/scope4；source/native冻结未动。
+
+attempt1完整保留在相邻`e-response-after-m01-20261027-r2/`：reviewer按精确归档路径逐项核对inventory的320份原件大小/SHA，全部匹配tar内原件；archive SHA为`4aff8e15b0a277f49fbef43a17188c7d9ecc5f8d8b74e9773d19f94e34f2a792`，inventory SHA为`4d1af46f525f9249565babfec2dadd0f1339a19d5484678c3978c8d159d125c5`，均与seal相同。保留旧bidi错误、observer assertion失败、step64与profile日志，不把03–63截取后称整轮干净。
+
+**纠正§23的公开getQueue推断：** `universeAgentConnectionService.getQueue`经`_withTransport`直接进grpc unary，本身不做UNSUPPORTED fail-fast；能力门在`ConversationEngineQueueReader.canRead()`。attempt1 step64观察器直接调用公开getQueue，绕过实际UI/能力owner，真实收到GetQueue UNIMPLEMENTED。因此“公开调用应fail-fast”是审查时的错误推断；不能据此宣告产品能力门回归，也不能把handler日志看不到unknown path当作零GetQueue。新attempt2不做该直接调用，用全方法server trace观察，旧污染不消失。
+
+attempt1另一观察器错误也保留：question成功后原脚本断言目标座位全消失，但生产cleanup会保留/生成Answered时间线。原42 JSON与PNG实际显示Answered、无Submit/input/error/busy、pending空，不能记产品失败；`assertion-attempts/question-answered-seat/`留存原脚本与失败，补充typed判断不重写旧断言。
+
+### 实际八行与有类型的恢复结果
+
+| 实际场景 | step | 独立复核 |
+| --- | --- | --- |
+| permission false / reject | 06–11 / 12–17 | 两Pane shared busy；false/reject后就地retryable失败、解除busy；同参数retry成功后pending-only座位消失 |
+| question false / reject | 18–25 / 26–33 | 同上；发起叶Alpha与custom文本保留；成功后Answered静态行保留，pending/输入/Submit/错误/busy清除 |
+| clientTool false / reject | 34–39 / 40–45 | 同上；成功后pending-only可响应座位消失，无Chat消息写入 |
+| 问题草稿、同请求双Pane抑制 | 纳入上述六场景 | 发起叶文本为`D E retained custom text`；另一叶独立空draft不是丢失。每次重试requestHex逐字一致 |
+
+六个场景均有普通第二叶点击尝试，不用force；实际错误包含`element is not enabled`，结合两叶控件disabled/aria-disabled与held区间恰好一个response-held证明真实用户重复操作被抑制，不将任意timeout算通过。retry后总attempt恰好2。reviewer复查每个失败/成功actualPane projection，成功settle早于success snapshot，期间无publish，故本地cleanup不是靠下一条权威overlay洗掉。六场景`uiErrors=[]`不代表没有正常业务错误通知。
+
+question typed终态为`answered=true`、`blocked=true`、`inFlight=false`、无failure、`pendingAliases=[]`，两个实际座位无可操作控件；permission/clientTool的本次pending-only目标从座位与projection移除。不把三类终态全部要求为“Answered”或全部消失。
+
+三种false场景的retry分别在10/24/38用正常focus+Enter，发起前焦点是Allow/Submit/Respond且enabled。permission/question busy后焦点回到自身座位DIV；clientTool回到BODY。实际窗口1440×900、Universe Agent Studio light；不声称Tab遍历、键盘完整恢复、深色/高对比/窄宽均已验证。
+
+46–54使用不同ID、不同kind的permission A与question B同时在两个真实Pane中活动：A held时B不busy；B held后二者busy；A false时只有A失败，B仍busy无失败；A retry只增A第二次unary且hex相同；A成功只清A，B仍pending/busy；B成功才变Answered。Alpha及`Concurrent B preserved draft`随B发送，独立请求没有互相清busy/失败/草稿。此补充通过不扩大为所有same-id/alias/incarnation时序均经真实UI重跑，后者继续按原core证据范围记。
+
+### 真实丢链、自动重连与最终断连分开记
+
+55–59先制造permission旧failure与clientTool旧busy。D核对owned fake PID2032136/startticks后SIGTERM，记录旧进程停止与socket不存在；main/profile保持。60真实连接disconnected，Pane各转stub-lease-8/9，局部旧busy/failure不再显示，但缓存permission Allow/Skip仍`aria-disabled=false`。该步未点击，只能先记UI/readiness异常，不能从服务停机推导“控件已正确disabled”。
+
+episode2使用独立`transport-episode-2/`目录，IO/control/trace从空开始；新PID2044385/startticks不同。fake代码唯一差异是`jNoticePath`多一层`..`，12广告/13handler未改；同session同home，不重放旧控制日志。内核复用了socket inode数值1765704，原“新inode必须不同”观察器断言错误保留于`observer-inode-reuse-assertion.json`。旧socket absence、新PID/startticks与新bind/ctime可证明新episode，不为追求不同inode重跑。
+
+61真实连接已link2/scope6，group8/9各自自动持有真实engine lease，pending空；没有public reveal/forceReload/private bind。62以旧request IDs重新发布，两请求无旧failure/busy；63正常键盘permission、64普通tool点击、65本地成功清理后才再publish。因此本次自动换链通过，§24未复现；不据此删除首轮可见Pane无lease的已存观察。61–65正文仍有全局CANCELLED error，故结论只限局部response状态没有携入新binding。
+
+66–68三类pending准备完成；69经公开`connection.disconnect()`进入closed/channelAlive=false。70普通Allow点击前两个Pane缓存permission按钮仍enabled，点击成功后两个真实Pane均显示Allowed、pending清空。reviewer亲自查看70 PNG：两个列顶明确写`Cached snapshot (read-only)`，下方却显示新Allowed，构成直接用户可见的只读合同违背。71 question Submit与72 clientTool Respond均不存在，记录为absence boundary，不能领取“实际点击disabled控件”的信用。69–73响应unary总数19→19、Chat消息写入0→0只能证明没有向fake发响应，不能证明没有本地假成功。
+
+### Important精确owner与原合同内最小修正
+
+此次已证失败链与冻结源码一致：
+
+1. `conversationLensReadingColumn.ts:183`的writes-enabled只排pairing-hold与connected-but-not-ready；`conversationSessionReadiness.ts:23`对disconnected返回ready，本意是只处理连接后的目录可用性，不能被当作断连写许可。
+2. `conversationLensSessionBinding.ts:265`的resolveConfirmation在非connected分支调用`postBound(permissionRespond)`，没有走`ConversationEngineRosterService.resolveConfirmation`已存在的history拒绝分支。
+3. `conversationLensComposer.ts:329`的postBound仅排pairing/not-ready，然后调用lease.post；`conversationEngineRosterService.ts:871`真断连返回stub lease。
+4. `conversationStubFrameSource.ts:136`直接更新本地model、refresh并返回accepted，导致两个订阅Pane变Allowed。0个远端RPC与本地假成功同时成立。
+
+上述ReadingColumn、SessionBinding、Composer、StubFrameSource、SessionReadiness五文件在旧9cc56与当前800d逐字相同。该源连续性说明现有路径漏门在本轮after显露，不证明旧窗口已实跑同问题，也不能称M01新引入；它仍违反本E方案§2“断连既有写门保持”及§6公开断连负控，因此必须在原E切片补修，不能用“既有”免除本次验收，也不需要新模块/新计划。
+
+最小正式修正边界：复用公开连接/历史身份形成窄的“曾连引擎缓存现已断连”拒绝判定，供实际座位enabled、真实response callback与postBound最后写门共同使用；不得只隐藏按钮而留可调用写入口，显式传入lease也不得绕过。真实响应callback报`engine_disconnected`且不改model/pending；postBound保留现有platform PostOutcome失败枚举，在调用lease.post前拒绝，不新增wire枚举或私有flag，不制造双重UI提示。保留从未连接的真正local stub正常授权、pairing、connected-not-ready、unknown session及缺hook边界；hidden/reveal后的缓存仍只读，不以销毁内容实现“不能写”。测试须经真实host→confirmation→postBound→真实stub lease，核model/pending与两Pane，不能只测本来已拒绝的Roster API。
+
+父已将该原合同内补修交回原E作者；当前仅源码静态工作，旧D/J/E封存、唯一merge产物仍冻结。补修须交不可变SHA独立复审，再由父安排唯一lane重验/新冻结与J/E after，不把未来结果写成本节已完成。
+
+### Minor焦点候选与通用通知边界
+
+clientTool38正常Enter后发出正确retry，随后activeElement=BODY；35/37也观察到BODY。`conversationProcessFold.ts:1140–1187`重建/禁用原生Respond按钮，没有对应的焦点保留路径。建议作为Minor交互候选记录：pending仍存在时保留用户的任务焦点位置，并在后续专门验证失败重试焦点；本轮不改产品，不夸成键盘无法发起，也不拿终态座位删除后的BODY当同一个缺陷。
+
+CANCELLED正文来自既有`conversationNotifications.contribution.ts:55/63`订阅onDidFailEngineAction并按session/action通知；该文件旧9cc56→800d相同，无绑定成功自动清除。这里保留通用通知存在的事实，不追加通知系统改造，不将局部failure已清写成全部错误UI消失。
+
+### 全生命周期trace、加载身份与封存边界
+
+两个fake在grpc-js require前启用`GRPC_TRACE=server_call`/`GRPC_VERBOSITY=DEBUG`。reviewer静态核对grpc-js的Received日志发生在handler lookup之前，普通handler日志/拦截器本身不足以捕获unknown。最终两episode IO均有start和stop，trace与IO SHA已独立重算，全部Received方法逐条计数与D汇总一致：
+
+| 全生命周期观察 | 次数 |
+| --- | --- |
+| Received总数 / registered unary | 43 / 39 |
+| permission / question / clientTool响应unary | 8 / 5 / 6（合计19） |
+| Chat常驻stream open / Chat消息write | 2 / 0 |
+| SessionEventStream握手 | 2 |
+| GetQueue / SaveSkillContent / 未注册方法 | 0 / 0 / 0 |
+
+两episode分别29与14次Received，注册13路径外为空集。不得写“Chat RPC 0”，也不领取queue/skills验收credit。非空已知路径、start/stop、handler前trace与IO交叉核对，避免空观察器的“零unknown”假阳性；这只证明本次完整fake生命周期，没有真实远端交付结论。
+
+`full163-guard-after.json`的163项reviewer逐项重新计算native、filesystem source及冻结800d Git source，全部相等；full163 freeze原件SHA也匹配。`runtime-assets-E.json`53项中40为renderer JS实际加载、1为CSS实际加载、12仅manifest，已核全部native/source与保存loaded copy摘要。main运行环境另有D inspector记录，但不能把12项manifest-only说成全部实际模块加载。
+
+CSS继续沿§22精确边界：CDP raw UTF-8摘要`75252e…`与native `828212…`不等，完整windows1252逆映射可逐字还原175386字节native；reviewer对新`cssom-native-reference-comparison.json`两组683条规则逐字符串比较全等，实际勾号正确、无匹配控件可见glyph验证。该runtime语义补充不将旧raw断言翻绿，不虚构CSS逐字原始相等。
+
+J最终六份关键封存物在`j-preservation-after-cleanup.json`中仍为原SHA，reviewer再算全部一致。D cleanup记录owned main/Xvfb/fake按PID+startticks停止、socket不存在、profile日志归档、无剩余owned live process；这是D执行证据的离线复核。stage-summary明确`allRequiredCasesPassed=false`、`phaseComplete=false`、`waveComplete=false`，证据阶段结束不等于产品E或整波完成。
+
+| attempt2原件 | SHA256 |
+| --- | --- |
+| `case-results.jsonl` | `f8c53675ab178e37f52ce5c72bd42836ce3d17830c5b9f146016e5bdd75c4011` |
+| `concurrency-result.json` | `bd06e2e12ca0b20f5cdd02590adbf91c89cedb37c6556059af7c3981ee59b01c` |
+| `transport-restart-result.json` | `03c5ef5c452bc0d2170561b8b98aa31c0cc4fb0400a868c066715ff09b4e8b41` |
+| `disconnect-negative-result.json` | `1416cba701dc57354136c3ef13bf628d75e47275292346b8d4b6cd2932e01976` |
+| `steps/70-A2-disconnect-permission-normal-ui-attempt.json` | `c36ddf61bfe0528b77435f8dbbdb559816589c5b0bac6391b64971aedbbb41f6` |
+| `shots/70-A2-disconnect-permission-normal-ui-attempt.png` | `7a9714e2c05e5c44e3302efef748d1e56237fca7a8d7fc0ed742a2afa4cfce8c` |
+| `grpc-full-lifetime-summary.json` | `acf5afcc602d682d760c49b36e3ba749b1d387ad17ed92a7f0160c4f9cfade34` |
+| `runtime-assets-E.json` | `cea24163a569e479db9e952728705765e89742074b31cdabb55c75b23841a721` |
+| `full163-guard-after.json` | `090dda694fc243484c766e0338ee382b337b4d91c68d6dc899032385d4f7f5f1` |
+
+attempt2最终stage seal为`SEALED_EVIDENCE_STAGE_WITH_IMPORTANT_PRODUCT_FAIL`。reviewer独立核对seal引用的七份SHA，并按精确路径验证323份原件在外部与tar内逐字/大小/SHA相同；tar另含inventory共324项。archive SHA256 `7678841cb782513c8f030e0870470480cc6cc13831e7bc17cba50f0cc887c5a8`，inventory `93fe73be6e29f720f3a271873e5d166eaa2a0411fe9fa0b65adf5709e58e7294`，stage-summary `ac13c0ab0059683899c241b438e1f15a27ffdd8e1430c4caca8f7c70690b8b1e`，matrix `db730347c6a0e9182076e21e5d06b6bc9eecff0724cf022b3a2c317d167e8a5d`。原inode观察器exit1留存；不声称全部观察脚本无错。该目录已由D声明不再写入，后续修复须新身份/新证据。
+
+**状态建议：原E方案仍accepted，断连Important补修及新验证待；PRD-004/008、旧D项不升级或关闭。** 原reasoning旧红、§24生命周期候选与timeline-only BOUNDARY分别保留。此结论既认可已执行的八项及补充通过，也完整保留会阻止本轮after整体签收的实际产品失败。
