@@ -6,6 +6,7 @@
 import { Codicon } from '../../../../base/common/codicons.js';
 import { getErrorMessage } from '../../../../base/common/errors.js';
 import { Schemas } from '../../../../base/common/network.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { localize2 } from '../../../../nls.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr, ContextKeyExpression } from '../../../../platform/contextkey/common/contextkey.js';
@@ -28,6 +29,7 @@ import { moveActiveDiffToConversation, moveActiveDiffToPanel, moveActiveDiffToPr
 
 function sourcesChangeEntryOpenDeps(accessor: ServicesAccessor): ISourcesChangeEntryOpenDeps {
 	return {
+		commandService: accessor.get(ICommandService),
 		editorService: accessor.get(IEditorService),
 		quickDiffService: accessor.get(IQuickDiffService),
 		configurationService: accessor.get(IConfigurationService),

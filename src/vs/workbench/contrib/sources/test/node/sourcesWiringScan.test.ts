@@ -304,7 +304,7 @@ suite('Sources - review list model - 源码接线扫描', () => {
 		assert.ok(entryFn.includes('Promise<boolean | \'stale\'>'));
 		assert.ok(entryFn.includes('runSuppressingExplorerAutoReveal'));
 		assert.ok(entryFn.includes("return 'stale'"));
-		assert.ok(entryFn.includes('return true'));
+		assert.ok(entryFn.includes('return openSourcesChangeInPreview(ref, deps, options)'));
 		assert.ok(entryFn.includes('sourcesDiffPanelService.show(ref)'));
 		const showStart = panelService.indexOf('async show(');
 		assert.ok(showStart >= 0);
@@ -502,7 +502,8 @@ suite('Sources - custom UI visual CSS - 源码接线扫描', () => {
 		assert.ok(reviewCss.includes('.sources-review-status.is-error'));
 		assert.ok(review.includes("classList.toggle('is-error'"));
 		assert.ok(review.includes('this.setStatusMessage(gitReadError, true)'));
-		assert.ok(review.includes('this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true)'));
+		// Behavioral coverage: Review alternate API rejection / public Open Selected recovery.
+		assert.ok(review.includes('this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true, \'open\')'));
 		assert.ok(!review.includes('this.setStatusMessage(sourcesGitReadPairingHoldMessage(), true)'));
 		assert.ok(!review.includes('this.setStatusMessage(sourcesGitReadUnavailableNoHookMessage(), true)'));
 		assert.ok(!review.includes('this.setStatusMessage(sourcesGitLocalOnlyMessage(), true)'));

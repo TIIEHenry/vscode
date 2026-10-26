@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "D1386范围内closed；D1385共享兼容修复旧红/183绿保留，默认产品宿主前提失效，原UI验收未满足并停止；accepted/open且移出当前产品执行队列。"
 
 
@@ -18,7 +18,7 @@ summary: "D1386范围内closed；D1385共享兼容修复旧红/183绿保留，�
 
 | ID | Priority | Gap | Why Deferred | Exit Condition | Track | Status |
 |:---|:---------|:----|:-------------|:---------------|:------|:-------|
-| D1387 | P2 | Sources真实Git默认Preview漏API open/diff DTO，no-op却标Review；Conversation准确具体组在空组/newTab/reveal被finder改投主组拒绝。 | 两库真实before与C1–C6公共正负对照、Debugger组9/10→main0及五模块embedded源一致；无slot/typed replace/Panel通过不是修复after。 | [方案](../plans/sources-open-dispatch-and-conversation-target.md) accepted，规则16 C0/I0；源码实施待做；[before与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md)。三owner/slot/void边界，修复/旧红新绿/非作者after均未执行，不提前关。 | Sources open / editor routing | open |
+| D1387 | P2 | Sources真实Git默认Preview漏API open/diff DTO，no-op却标Review；Conversation准确具体组在空组/newTab/reveal被finder改投主组拒绝。 | 两库真实before与C1–C6公共正负对照、Debugger组9/10→main0及五模块embedded源一致；无slot/typed replace/Panel通过不是修复after。 | [方案](../plans/sources-open-dispatch-and-conversation-target.md) accepted，规则16 C0/I0；源码/回归已写、仅静态；[源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)；[before与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md)。三owner/slot/void边界，旧红新绿/非作者after未执行，不提前关。 | Sources open / editor routing | open |
 | D1385 | P2 | 首次录音授权/冷取消的共享兼容实现修复已验证；原“默认CopilotChat pane/editor可达”前提失效，产品UI验收未满足并停止。 | 原5业务红/182绿；f9取消真实controller旧abort0/release1/ptt_end1红、新完整183绿，目标TS0/lint0与独立源码复审C0/I0/M0保留。默认公开入口按既有M5关闭，不是账号/设备缺失；组件fixture excluded。 | [方案](../plans/copilot-chat-cold-voice-authorization.md#10-默认产品可达性范围纠正2026-10-26) accepted；[最终范围裁定](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md) / [独立入口核验](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md)。移出当前默认产品执行队列，不继续造入口或探测，不计Conversation真语音；未closed/implemented。 | agentsVoice / 共享兼容维护 | open |
 | D1386 | P2 | **closed** 叶级folder/aria/branch/菜单/checkout归属与晚结果代次已修；只读chevron隐藏优先CSS补修完成。 | 原11业务旧红/新完整40+Lens8绿；旧CSS四主题真实几何4红，新正式CSS完整44绿；目标TS0、lint0，stylelint新旧同5变量/9建议。C非作者真实两叶/命令URI/实际键盘/四主题/1024窄宽after C0/I0/M0，I1解除。 | [方案](../plans/2026-10-26-leaf-session-root-identity.md) implemented；[CSS运行](default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md) / [独立after](default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md)。保留fixture/无真实Git或checkout/远程授权窗口/在线引擎、仅三JS正文及该CSS范围；PRD029总体仍proposed。 | Conversation identity strip | closed |
 | D1382 | P2 | **closed** ReviewNav会话/工作区目录/SCM变化通知与必需Context/DI合同已补齐，静止活动叶和非活动并列叶同步重读根。 | 旧生产新行为3过/7败，新生产37过，五TS语义0；J静态after C0/I0，D独立默认编辑器after C0/I0，真实行/根失效/并列叶及click/Enter参数通过。 | [方案](../plans/conversation-review-root-invalidation.md) implemented；[自动证据](default-editor-contract-audit-2026-10-26-evidence/d1382-verification.md)；[独立after](default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)。无真实git diff、未折叠后再根失效、未独立720px；SCM子根/workspace gate未改，芯片另记D1386。 | Conversation ReviewNav | closed |

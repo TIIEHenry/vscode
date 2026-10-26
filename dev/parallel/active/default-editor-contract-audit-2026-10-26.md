@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J4d49/Ec2b独立peer C/I闭合、原件已读且正式merge-queued，冻结波无occupied；P0/P1完，P2串行合源/完整编译及全套进行前，P5禁push/P6主ff不重试。"
+summary: "J4d49正式真三路接入，Ec2b待串行合源；两peer C/I闭合，完整编译/全套/after待，P5禁push/P6主ff不重试。"
 ---
 
 # 默认编辑器合同与功能缺口续审
@@ -70,7 +70,7 @@ D1382/1383/1384 按各自证据 closed。D1385/1386 仍 open、正式方案 acce
 | J / configuration_initialization_contracts | D1384：RemoteUserConfiguration 显式重试共有等待、reload 及销毁边界 | 源 `c4b9332` 已三路合入 `3e63f9e`。旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。方案 implemented，缺口 closed。C 静态 after C0/I0，两条 Minor 不阻断 |
 | C / voice_cold_start | D1385：共享兼容修复及纯文档范围纠正 | 原5红/182绿、f9取消旧红/完整183绿保留；默认宿主按M5关闭，原UI验收未满足并停止，accepted/open且移出当前产品执行队列；不再Voice开发 |
 | D / leaf_root_identity（原生接班） | D1386：叶根身份、命令URI/菜单与只读CSS | ea根归属旧11红/40+Lens8绿；b774CSS旧4几何红/新完整44绿，C非作者真实after C0/I0/M0、I1正式CSS原窗口复验解除；D1386closed、planimplemented，限制保留 |
-| J / review_sources_real_git_audit（作者） | D1387：Sources三owner/slot打开合同，两独立机制 | 已从4fb ff d472；真Git/C1–C6 before与Astra最终落点已到，正式plan accepted、规则16 C0/I0且I1改入；单独方案commit后实施，未改生产/编译/out/测试 |
+| J / sources_executor（原完整实现后补修） | D1387：Sources三owner/slot打开合同，两独立机制 | bf50方案后1ac宿主/重叠生产与29项新回归已写；D独立codepeer核心C0/I0且M1关闭，8处hasListeners漏调用本次全改实际调用，生产helper不变。语法0、lint0错误/29旧警告逐项无增减。唯一lane旧65d宿主4项纯业务红无需重跑；并发2项已由唯一lane重验为纯业务旧红；正式新29green/原完整相关套/语义及非作者真实after。原357过/虚拟TS0不作新边界证据；accepted/open，J无编译/typecheck/out/业务运行。 |
 | merge / 唯一集成者 | 串行源码/精确旧基线/red-green、类型/lint及after收录 | 当前f75后修只fresh两个测试JS/一个actionJS/一CSS，本次3TS0/lint0；D1386closed；D1385原UI前提已撤回、验收停止，accepted/open。后修不全量，source6f82原45/27真实失败不覆盖，不取J新Sources实现 |
 
 D1386 after I1已由C真实确认只读folder/branch箭头12×12仍可见；D clean ff57后仅补production hidden组的chip-open选择器与4主题真实CSS/DOM几何回归，未运行。等待唯一merge旧CSS red/新CSS green与C原窗口正式新CSS复验，保持accepted/open；[补修检查点](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md)。

@@ -15,7 +15,7 @@ export interface ISourcesReviewListHost {
 	getSelectedEntry(): ISourcesReviewEntry | undefined;
 	toggleReviewedSelected(): void;
 	markAllReviewed(): void;
-	setStatusMessage(message: string | undefined, isError?: boolean): void;
+	setStatusMessage(message: string | undefined, isError?: boolean, source?: 'open'): void;
 }
 
 export interface ISourcesReviewHostService {

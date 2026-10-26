@@ -13,6 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
+| [D1387 源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md) | 一次API分派、准确Conversation组、局部错误恢复及回归已写；仅静态，旧红新绿/独立after待 |
 | [J/E冻结波正式集成](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md) | 两候选merge-queued/peer C/I闭合原件已读，P0/P1完；P2串行合源/实际完整编译与全套待，禁push/主ff不重试 |
 | [E三I精确旧900f五代表业务红](default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md) | c2b新测试对完整旧900f14生产模块，5纯业务红；15输出/34native身份恢复，修订Astra复读待、不可formal queued |
 | [J4d49两项并发纯业务旧红](default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md) / [D宿主实现peer原件](default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-code-review.md) | 八处listener调用精确修补后2纯旧红；D核心C0/I0/M1关闭，192路径仅文档接入；34native身份恢复，E仍occupied |
@@ -26,7 +27,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 | [D1387 实现独立peer](default-editor-contract-audit-2026-10-26-evidence/d1387-implementation-peer-review.md) / [接入与安全同步](default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md) | J23f完整实现C0/I2，Astra已裁补修；D不可变报告真三路接入，编译绿基线仅ff主工位，无Sources实现/after通过 |
 | [D1385范围纠正与D1387方案纯文档集成](default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-integration.md) | 两ref真实三路、共享PRD与完整历史保留，源/out/原编译日志不变；D1387为当前产品执行队列，D1385停止原UI验收/open、D1386closed |
 | [D1387 原两机制业务red](default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md) / [custom窄例外方案审查](default-editor-contract-audit-2026-10-26-evidence/d1387-custom-newtab-plan-review.md) | 旧生产+J23f新测试0过14红（12DTO断言、2准确组业务拒绝）；仅两测试out刷新。规则16增量C0/I0，I1/I2源码补修/green/after仍待 |
-| [D1387 Sources 打开 before 与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md) | 两真实Git库、Preview no-op与Conversation具体组路由；C1–C6/实际Debugger五模块、Astra两轮裁定；正式方案规则16已通过C0/I0，未修复after |
+| [D1387 Sources 打开 before 与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md) | 两真实Git库、Preview no-op与Conversation具体组路由；C1–C6/实际Debugger五模块、Astra两轮裁定；规则16 C0/I0；before不代after |
 | [D1386 只读箭头补修检查点](default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md) | 非作者after I1的既有合同CSS补修；四主题computed/bounds回归已写，等待旧CSS red/新CSS green与正式新CSS同窗after |
 | [D1386 叶级身份条](default-editor-contract-audit-2026-10-26-evidence/d1386-source-checkpoint.md) / [原运行](default-editor-contract-audit-2026-10-26-evidence/d1386-verification.md) / [CSS后修](default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md) / [独立after](default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md) | 原11红/40+Lens8绿，CSS4红/完整44绿，非作者真实after C0/I0/M0；范围内implemented/closed，限制保留 |
 | [D1385 原运行](default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md) / [取消顺序后修](default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md) | 原5红/182绿、取消旧红/完整183绿；默认宿主前提已撤回，原UI验收未满足并停止，accepted/open；[范围裁定](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md) / [独立入口核验](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md) / [勘误只读审查](default-editor-contract-audit-2026-10-26-evidence/d1385-scope-erratum-peer.md) |

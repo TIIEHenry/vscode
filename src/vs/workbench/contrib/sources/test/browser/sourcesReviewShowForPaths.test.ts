@@ -28,7 +28,8 @@ import {
 	SOURCES_REVIEW_OPEN_SELECTED_COMMAND,
 	SOURCES_REVIEW_TOGGLE_REVIEWED_SELECTED_COMMAND,
 } from '../../browser/sourcesReviewCommands.contribution.js';
-import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { SourcesTabId } from '../../common/sourcesTabs.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
@@ -201,6 +202,9 @@ suite('Sources - review showForPaths', () => {
 		let toggled = 0;
 		let markedAll = 0;
 		const accessor = stubAccessor((id: unknown) => {
+			if (id === ICommandService) {
+				return NullCommandService;
+			}
 			if (id === ISourcesReviewHostService) {
 				return hostService;
 			}
@@ -241,6 +245,9 @@ suite('Sources - review showForPaths', () => {
 		}));
 
 		const accessor = stubAccessor((id: unknown) => {
+			if (id === ICommandService) {
+				return NullCommandService;
+			}
 			if (id === ISourcesReviewHostService) {
 				return hostService;
 			}
@@ -321,6 +328,9 @@ suite('Sources - review showForPaths', () => {
 		});
 
 		const accessor = stubAccessor((id: unknown) => {
+			if (id === ICommandService) {
+				return NullCommandService;
+			}
 			if (id === ISourcesReviewHostService) {
 				return hostService;
 			}
@@ -404,6 +414,9 @@ suite('Sources - review showForPaths', () => {
 		});
 
 		const accessor = stubAccessor((id: unknown) => {
+			if (id === ICommandService) {
+				return NullCommandService;
+			}
 			if (id === ISourcesReviewHostService) {
 				return hostService;
 			}
@@ -463,7 +476,7 @@ suite('Sources - review showForPaths', () => {
 
 		assert.strictEqual(diffCalls, 1, 'live Open Selected must readGitFileDiff');
 		assert.strictEqual(openedDiff, true, 'live Open Selected must open FileDiff sides, not a fake file preview');
-		assert.strictEqual(marked, 1);
+		assert.strictEqual(marked, 0, 'direct editor completion without a pane must not mark reviewed');
 	});
 
 	test('openSelected KEEP leftover write-closed still opens FileDiff and does not mark reviewed', async function () {
@@ -498,6 +511,9 @@ suite('Sources - review showForPaths', () => {
 		});
 
 		const accessor = stubAccessor((id: unknown) => {
+			if (id === ICommandService) {
+				return NullCommandService;
+			}
 			if (id === ISourcesReviewHostService) {
 				return hostService;
 			}

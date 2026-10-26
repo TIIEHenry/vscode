@@ -127,8 +127,8 @@ export class SourcesTabsHost extends Disposable implements ISourcesReviewListHos
 		this.reviewList?.markAllReviewed();
 	}
 
-	setStatusMessage(message: string | undefined, isError?: boolean): void {
-		this.reviewList?.setStatusMessage(message, isError);
+	setStatusMessage(message: string | undefined, isError?: boolean, source?: 'open'): void {
+		this.reviewList?.setStatusMessage(message, isError, source);
 	}
 
 	private focusSelectedPanel(): boolean {
