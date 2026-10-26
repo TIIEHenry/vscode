@@ -267,7 +267,7 @@ type RestartHarness = {
 };
 
 function createRestartHarness(options: {
-	launchConfig: IConfig;
+	launchConfig: IConfig & { program?: string };
 	providerConfig?: IConfig | undefined;
 	substitutedConfig?: IConfig | undefined;
 	cancelledBySubstitute?: boolean;

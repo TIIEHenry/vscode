@@ -182,7 +182,7 @@ suite('MCP Sandbox Service', () => {
 			let current = initial;
 			return {
 				service: {
-					updateSandboxConfig: async update => {
+					updateSandboxConfig: async (update: Parameters<IMcpResourceScannerService['updateSandboxConfig']>[0]) => {
 						current = update({ sandbox: current }).sandbox ?? {};
 					},
 				} as unknown as IMcpResourceScannerService,

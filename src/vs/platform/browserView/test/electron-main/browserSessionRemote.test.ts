@@ -72,7 +72,7 @@ suite('BrowserSessionRemote', () => {
 		assert.strictEqual(seen[1].proxyRules, url);
 		assert.strictEqual(events.starts, 2);
 		await remote.whenReady;
-		assert.strictEqual(remote.proxy?.url, url);
+		assert.deepStrictEqual(remote.proxy, proxyInfo(url));
 		assert.strictEqual(remote.isRemote, true);
 
 		remote.acquire('view', proxyInfo(url));

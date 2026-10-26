@@ -181,8 +181,8 @@ export class MobileHostFilterActionViewItem extends HostFilterActionViewItem {
 				event.preventDefault();
 				return;
 			}
-			const current = targetDocument.activeElement as HTMLElement | null;
-			const currentIndex = current ? focusable.indexOf(current) : -1;
+			const current = targetDocument.activeElement;
+			const currentIndex = focusable.findIndex(button => button === current);
 			const nextIndex = event.shiftKey
 				? (currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1)
 				: (currentIndex === focusable.length - 1 ? 0 : currentIndex + 1);

@@ -8,7 +8,7 @@ import { Disposable } from '../../../base/common/lifecycle.js';
 import { mock } from '../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../base/test/common/utils.js';
 import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
-import { ILogService, NullLogService } from '../../../platform/log/common/log.js';
+import { NullLogService } from '../../../platform/log/common/log.js';
 import { IStorageService } from '../../../platform/storage/common/storage.js';
 import { IUserDataProfile, IUserDataProfilesService } from '../../../platform/userDataProfile/common/userDataProfile.js';
 import { IUserDataProfileStorageService } from '../../../platform/userDataProfile/common/userDataProfileStorageService.js';
@@ -111,7 +111,7 @@ function createHarness(store: ReturnType<typeof ensureNoDisposablesAreLeakedInTe
 	};
 	const instantiationService = new class extends mock<IInstantiationService>() {
 		override createInstance<T>(_ctor: unknown, ..._args: unknown[]): T {
-			return new Disposable() as unknown as T;
+			return new class extends Disposable { }() as T;
 		}
 		override createChild(): IInstantiationService {
 			return child;

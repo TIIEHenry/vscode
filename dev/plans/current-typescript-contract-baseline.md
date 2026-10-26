@@ -1,10 +1,10 @@
 ---
 title: "当前 TypeScript 编译合同基线"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "c968 全量编译真实45诊断/27文件；修正夹具与API合同、窄化可选URI及按钮类型，不改产品范围或压制诊断。"
+summary: "全量compile-client45→3→0；27文件正式合同修复，Electron325过3既有红、Node10过、源码审查C0/I0；不升产品状态。"
 ---
 
 # 当前 TypeScript 编译合同基线
@@ -62,5 +62,5 @@ summary: "c968 全量编译真实45诊断/27文件；修正夹具与API合同、
 ## 签收
 
 - [x] 规则16：Astra 独立只读审查 Critical 0 / Important 0，Assessment 允许独立方案提交后实施；Strengths 为初始45/27逐项一致、三生产窄类型边界真实、保留竞态/断言及禁止诊断逃逸、单车道与按环境测试可行。Minor 两项已落实到修复边界：URI局部捕获且缺失回退、焦点用元素身份findIndex而不用跨window instanceof。审查回执由父 agent 转达，本执行者没有冒称独立审查。
-- [ ] 实施修复，既定全量compile-client实际exit0。
-- [ ] 相关运行测试与静态检查已记录。
+- [x] 实施修复，既定全量compile-client实际exit0；修复27文件，无编译范围/配置/诊断逃逸。
+- [x] [验证证据](../progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md)：Electron325过/3既有红（精确旧测试复现三红）、Node10过，ESLint0errors/20warnings。Astra实施审查C0/I0；产品PRD与D17不升。

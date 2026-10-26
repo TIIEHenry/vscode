@@ -142,7 +142,10 @@ suite('MCP Types', () => {
 				command: 'server',
 				args: [],
 				env: {},
-			} as McpServerLaunch)), false);
+				cwd: undefined,
+				envFile: undefined,
+				sandbox: undefined,
+			})), false);
 		});
 
 		test('http still requires the same host', () => {

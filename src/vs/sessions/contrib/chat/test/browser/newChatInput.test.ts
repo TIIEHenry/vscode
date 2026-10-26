@@ -10,7 +10,7 @@ import { Codicon } from '../../../../../base/common/codicons.js';
 import { DisposableStore, IDisposable, IReference } from '../../../../../base/common/lifecycle.js';
 import { Schemas } from '../../../../../base/common/network.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { mock } from '../../../../../base/test/common/mock.js';
+import { mock, upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { Range } from '../../../../../editor/common/core/range.js';
 import { isLocation } from '../../../../../editor/common/languages.js';
@@ -27,6 +27,7 @@ import { AnythingQuickAccessProvider } from '../../../../../workbench/contrib/se
 import { SymbolsQuickAccessProvider } from '../../../../../workbench/contrib/search/browser/symbolsQuickAccess.js';
 import { NewChatContextAttachments } from '../../browser/newChatContextAttachments.js';
 import { getAdditionalFolderContextId, getAdditionalRepositoryContextId } from '../../common/newChatContextIds.js';
+import { IActiveSession } from '../../../../services/sessions/common/sessionsManagement.js';
 
 interface IInputModelReferenceHarness {
 	readonly _store: DisposableStore;
@@ -368,7 +369,7 @@ suite('NewChatInputWidget', () => {
 			dispose: () => { },
 		};
 		const widget = disposables.add(new NewChatInSessionWidget(
-			{ session: { sessionId: 'session-1' } },
+			{ session: upcastPartial<IActiveSession>({ sessionId: 'session-1' }) },
 			{
 				createInstance: (_ctor: unknown, options: { draftStorageKey?: string }) => {
 					assert.strictEqual(options.draftStorageKey, inSessionDraftStorageKey('session-1'));

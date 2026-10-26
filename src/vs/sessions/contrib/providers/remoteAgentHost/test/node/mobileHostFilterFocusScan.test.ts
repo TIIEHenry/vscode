@@ -5,9 +5,9 @@
 
 import assert from 'assert';
 import * as fs from 'fs';
-import * as path from '../../../../../base/common/path.js';
+import * as path from '../../../../../../base/common/path.js';
 import { fileURLToPath } from 'url';
-import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
 const SOURCE_REL = 'src/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts';

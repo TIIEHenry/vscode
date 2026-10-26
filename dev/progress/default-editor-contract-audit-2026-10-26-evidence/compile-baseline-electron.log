@@ -1,0 +1,442 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[870919:1026/220110.380584:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:870943) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:870943) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:870943) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  BrowserSessionRemote[0m
+  [32m  ✔[0m[90m applies the same proxy again after setProxy rejects, then caches the success[0m
+  [32m  ✔[0m[90m shares one in-flight apply for the same proxy[0m
+  [32m  ✔[0m[90m does not roll back a newer proxy when an older apply rejects[0m
+  [32m  ✔[0m[90m rolls back to the previous proxy when the new apply rejects[0m
+
+[0m  KeyboardLayoutMainService[0m
+  [32m  ✔[0m[90m a failed keymap read is tried again and the listener is registered once[0m
+  [32m  ✔[0m[90m a failed native-keymap import is tried again[0m
+  [32m  ✔[0m[90m in-flight getKeyboardLayoutData shares one native-keymap load[0m
+  [32m  ✔[0m[90m a thrown listener registration is not stacked on retry[0m
+
+[0m  clientToolRespondCleanupPatches[0m
+  [32m  ✔[0m[90m settles the timeline row and removes the pending action[0m
+  [32m  ✔[0m[90m keeps a failed response honest and still clears pending state[0m
+  [32m  ✔[0m[90m ignores unknown call ids and does not remove a colliding question[0m
+  [32m  ✔[0m[90m does not rewrite a non-client tool row on id collision[0m
+  [32m  ✔[0m[90m does not remove a colliding non-client pending action beside a client row[0m
+  [32m  ✔[0m[90m settles a pending client tool when its timeline row is not yet present[0m
+
+[0m  SessionChangesEditorInput[0m
+  [32m  ✔[0m[90m releases resolved multi-diff models without disposing restorable input state[0m
+  [32m  ✔[0m[90m clearing the editor pane releases the resolved multi-diff model[0m
+  [32m  ✔[0m[90m updates managed Changes editor capabilities with editor area visibility[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when header middle-click review command rejects[0m
+
+[0m  NewChatInputWidget[0m
+  [32m  ✔[0m[90m keeps the input model alive until reference acquisition settles during disposal[0m
+  [32m  ✔[0m[90m Enter yields to suggest only when a focused item would be accepted[0m
+  [32m  ✔[0m[90m history down past the last entry clears an empty draft instead of keeping the recall[0m
+  [32m  ✔[0m[90m treats an additional folder pill as sendable content without prompt text[0m
+  [32m  ✔[0m[90m persists and restores additional folder and repository context with URI values[0m
+  [32m  ✔[0m[90m keeps a follow-up draft off the welcome composer key[0m
+  [32m  ✔[0m[90m does not overwrite a stored follow-up draft before it has been restored[0m
+  [32m  ✔[0m[90m follow-up composer writes its draft on storage flush and when the view is torn down[0m
+  [32m  ✔[0m[90m follow-up send stays on the pane session after the global active session changes[0m
+  [32m  ✔[0m[90m renders GitHub context pills as openable with a keyboard-reachable remove button[0m
+  [32m  ✔[0m[90m renders additional folder and repository context as attachment pills[0m
+  [32m  ✔[0m[90m implicit context uses the active editor and skips the composer[0m
+  [32m  ✔[0m[90m tools mode resolves builtin ids and omits an unset mode[0m
+  [32m  ✔[0m[90m renders file, image, and paste attachments, and keeps a remove control on a ranged file[0m
+  [32m  ✔[0m[90m attach picker offers Anything, Symbols, Go to Symbol, and widget-free context picks[0m
+
+[0m  Copilot BranchPicker[0m
+  [32m  ✔[0m[90m adapts the active Copilot session to the shared branch picker[0m
+  [32m  ✔[0m[90m explains when branch filtering has no matches[0m
+  [32m  ✔[0m[90m isolation checkbox is checked when worktree mode is active[0m
+  [32m  ✔[0m[90m isolation checkbox is unchecked when workspace mode is active[0m
+  [32m  ✔[0m[90m toggling the checkbox updates the session isolation mode[0m
+  [32m  ✔[0m[90m disabling the isolation option hides the checkbox without forcing worktree[0m
+  [32m  ✔[0m[90m checkbox element is stable across toggles (focus preserved)[0m
+
+[0m  SessionsSetUpService[0m
+  [32m  ✔[0m[90m reads the default profile again on the second whenSetupDone after the first read fails[0m
+  [32m  ✔[0m[90m concurrent whenSetupDone calls share one profile read[0m
+  [32m  ✔[0m[90m a completed default profile marks setup done and is not read again[0m
+  [32m  ✔[0m[90m a synchronous read failure is read again on the next whenSetupDone[0m
+  [32m  ✔[0m[90m a failed read drops the promise only while it still points at that attempt[0m
+
+[0m  Conversation composer picker[0m
+  [32m  ✔[0m[90m pressing the control opens the workbench menu with the current value checked[0m
+  [32m  ✔[0m[90m picker defensively omits No model when actual models are present[0m
+  [32m  ✔[0m[90m picker displays No model when it is the only option[0m
+  [32m  ✔[0m[90m running an action writes the index back and fires change once[0m
+  [32m  ✔[0m[90m pressing the control again closes the menu[0m
+  [32m  ✔[0m[90m the footer entry is a menu item after a separator[0m
+  [32m  ✔[0m[90m disabled controls do not open[0m
+  [32m  ✔[0m[90m value-changing keys on the control open the menu instead of changing the value[0m
+  [32m  ✔[0m[90m native select mode does not capture the click or mark the control as a menu[0m
+  [32m  ✔[0m[90m a pick against options replaced while open is dropped[0m
+  [32m  ✔[0m[90m getItemDetail supplies detail to keybinding and action without altering label[0m
+
+[0m  conversation lens dispose gate[0m
+  [32m  ✔[0m[90m applySessionViewTimeline skips applyEntries after dispose[0m
+  [32m  ✔[0m[90m refreshTrajectoryRecords skips setRecords after dispose[0m
+  [32m  ✔[0m[90m refreshTrajectoryRecords still setRecords while live[0m
+  [32m  ✔[0m[90m refreshTrajectoryRecords keeps leftover lease turn ids while pairingPending then true disconnect uses stub ids[0m
+  [32m  ✔[0m[90m refreshTrajectoryRecords keeps leftover painted records when pairingPending has no lease[0m
+  [32m  ✔[0m[90m refreshTrajectoryRecords first-pull pairingPending without leftover still setRecords[0m
+  [32m  ✔[0m[90m shouldShowReadingColumnLiveChrome keeps leftover lease while pairingPending then true disconnect hides[0m
+  [32m  ✔[0m[90m shouldShowReadingColumnLiveChrome keeps leftover cached turns without lease while pairingPending[0m
+  [32m  ✔[0m[90m shouldShowReadingColumnLiveChrome first-pull pairingPending without leftover stays false[0m
+  [32m  ✔[0m[90m leftover-looks-live first-pull shouldShowReadingColumnLiveChrome stays false[0m
+  [32m  ✔[0m[90m leftover-looks-live keeps leftover lease shouldShowReadingColumnLiveChrome[0m
+  [32m  ✔[0m[90m leftover-looks-live keeps leftover cached turns shouldShowReadingColumnLiveChrome[0m
+  [32m  ✔[0m[90m reading column live chrome and stale banner follow bound session without lease not global active[0m
+  [32m  ✔[0m[90m leftover-looks-live leftover lease requestDetail stays 0 unary[0m
+  [32m  ✔[0m[90m leftover-looks-live leftover lease serves cached leftover body without requestDetail[0m
+  [32m  ✔[0m[90m connected leftover still requestDetail[0m
+  [32m  ✔[0m[90m first-pull pairing without lease requestDetail stays unavailable[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when reading-column sources review executeCommand rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m reading column sources review fire-and-forget voids double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when mermaid resolve then-callback throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when mermaid getExtension rejects, then-callback throws, and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m conversation lens mermaid resolve fire-and-forget voids double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m applySessionViewTimeline pairing leftover live/syncing lease paints roster demoted sync not Session live[0m
+  [32m  ✔[0m[90m applySessionViewTimeline connected leftover live still paints Session live[0m
+  [32m  ✔[0m[90m updateSyncChrome and stale banner ignore leftover live lease and follow getSessionSync[0m
+  [31m  1) pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live[0m
+  [32m  ✔[0m[90m bindSessionView skips applyEntries after dispose[0m
+  [32m  ✔[0m[90m bindSessionView still applyEntries empty tree while live[0m
+  [32m  ✔[0m[90m bindSessionView empty sessionId still clears leftover while engine roster is in-flight[0m
+  [32m  ✔[0m[90m bindSessionView keeps leftover timeline while engine roster is in-flight[0m
+  [32m  ✔[0m[90m bindSessionView KEEP leftover roster in-flight does not keep other session leftover[0m
+  [32m  ✔[0m[90m bindSessionView still clears empty timeline on first pull while engine roster is in-flight[0m
+  [32m  ✔[0m[90m bindSessionView keeps leftover timeline while pairingPending then true disconnect rebinds[0m
+  [32m  ✔[0m[90m bindSessionView keeps leftover timeline on production connecting pairing snapshot[0m
+  [32m  ✔[0m[90m bindSessionView cross-session pending lease blanks the previous timeline and trajectory[0m
+  [32m  ✔[0m[90m bindSessionView cross-session roster and pairing clears fold expand and trajectory rows[0m
+  [32m  ✔[0m[90m bindSessionView pairing-hold leftover does not keep other session leftover[0m
+  [32m  ✔[0m[90m applyActiveSession first-pull to other session refreshes phase and sync chrome without acquire[0m
+  [32m  ✔[0m[90m applyActiveSession same-session KEEP leftover does not clear leftover[0m
+  [32m  ✔[0m[90m bindSessionView acquireSessionView throw shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m retryError posts continueGeneration on the bound lease and does not call roster.retryError[0m
+  [32m  ✔[0m[90m retryError omitted turnId and agentId fall back to messageId and root[0m
+  [32m  ✔[0m[90m retryError blank messageId posts nothing[0m
+  [32m  ✔[0m[90m retryError postBound reject shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m retryError postBound reject still shows failed and does not leak when showPostFailure throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m resolveConfirmation postBound reject shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m resolveQuestion postBound reject shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m resolveConfirmation connected roster false shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m resolveConfirmation connected roster false then disconnect shows engine_disconnected[0m
+  [32m  ✔[0m[90m resolveQuestion connected roster false shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m resolveQuestion connected roster false then disconnect shows engine_disconnected[0m
+  [32m  ✔[0m[90m postBound pairing-hold leftover lease rejects without lease.post[0m
+  [32m  ✔[0m[90m resolveConfirmation pairing-hold leftover lease does not post and shows engine_disconnected[0m
+  [32m  ✔[0m[90m resolveQuestion pairing-hold leftover lease does not post and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live resolveConfirmation skips unary and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live resolveQuestion skips unary and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live deleteTurn skips unary and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live cancelToolCall skips unary and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live retryError skips postBound and shows engine_disconnected[0m
+  [32m  ✔[0m[90m connected without pairing resolveConfirmation still forwards[0m
+  [32m  ✔[0m[90m connected without pairing resolveQuestion still forwards[0m
+  [32m  ✔[0m[90m connected without pairing deleteTurn still forwards[0m
+  [32m  ✔[0m[90m connected without pairing cancelToolCall still forwards[0m
+  [32m  ✔[0m[90m connected without pairing retryError still posts continueGeneration[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail resolveConfirmation skips unary and shows session_not_ready[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail resolveQuestion skips unary and shows session_not_ready[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail deleteTurn skips unary and shows session_not_ready[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail cancelToolCall skips unary and shows session_not_ready[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail retryError skips postBound and shows session_not_ready[0m
+  [32m  ✔[0m[90m retryError pairing-hold leftover lease does not post and shows engine_disconnected[0m
+  [32m  ✔[0m[90m updateSendEnabled pairing-hold leftover draft disables Send[0m
+  [32m  ✔[0m[90m submitDraft pairing-hold leftover draft does not enqueue or post[0m
+  [32m  ✔[0m[90m saveTurnEdit pairing-hold leftover does not write and stays in edit[0m
+  [32m  ✔[0m[90m saveQueueEdit pairing-hold leftover does not write and stays in edit[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail submitDraft skips postBound and shows session_not_ready[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail saveTurnEdit skips updateUserTurnText and stays in edit[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail saveQueueEdit skips queue write and stays in edit[0m
+  [32m  ✔[0m[90m leftover-looks-live submitDraft skips postBound and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live saveTurnEdit skips updateUserTurnText[0m
+  [32m  ✔[0m[90m leftover-looks-live saveQueueEdit skips queue write[0m
+  [32m  ✔[0m[90m connected live submitDraft still posts when engine session is ready[0m
+  [32m  ✔[0m[90m connected live saveTurnEdit still writes when engine session is ready[0m
+  [32m  ✔[0m[90m connected live saveQueueEdit still writes when engine session is ready[0m
+  [32m  ✔[0m[90m deleteTurn pairing-hold leftover does not write and shows engine_disconnected[0m
+  [32m  ✔[0m[90m beginTurnEdit pairing-hold leftover does not enter edit[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail writesEnabled is false and beginTurnEdit does not enter edit[0m
+  [32m  ✔[0m[90m pairing-hold writesEnabled stays false[0m
+  [32m  ✔[0m[90m connected live writesEnabled stays true when engine session is ready[0m
+  [32m  ✔[0m[90m beginQueueEdit pairing-hold leftover does not enter edit[0m
+  [32m  ✔[0m[90m updateSessionBarWriteChrome pairing-hold disables title delete and new[0m
+  [32m  ✔[0m[90m updateSessionBarWriteChrome leftover-looks-live keeps title delete and new disabled[0m
+  [32m  ✔[0m[90m updateSessionBarWriteChrome KEEP leftover disables title delete and new[0m
+  [32m  ✔[0m[90m updateSessionBarWriteChrome connected live keeps title delete and new enabled[0m
+  [32m  ✔[0m[90m KEEP leftover SessionBar handlers refuse title edit create delete rename[0m
+  [32m  ✔[0m[90m pairing-hold SessionBar handlers still refuse title edit create delete[0m
+  [32m  ✔[0m[90m engine-cache disconnect SessionBar handlers refuse create without capturing a draft[0m
+  [31m  2) connected live SessionBar handlers still write when engine session is ready[0m
+  [32m  ✔[0m[90m unchanged or blank session title commit does not look like a failed send[0m
+  [32m  ✔[0m[90m session title commit during pairing hold does not rename[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold session selects stay disabled and do not write[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold More radios stay disabled and forced click does not write[0m
+  [32m  ✔[0m[90m More popup closes on Escape[0m
+  [32m  ✔[0m[90m Tune popup closes on Escape[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when More permission click applySessionPermissionIndex catch-path notice throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m composer chrome applySession fire-and-forget voids double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m in-flight leftover-looks-live permission and model apply keep the accepted value and stay read-only[0m
+  [32m  ✔[0m[90m leftover permission keeps the accepted value and does not show an unsent newer target[0m
+  [32m  ✔[0m[90m leftover permission failure rolls back and does not paint a failure notice[0m
+  [32m  ✔[0m[90m leftover model keeps the accepted value and does not show an unsent newer target[0m
+  [32m  ✔[0m[90m leftover model with an empty resolved id rolls back and does not paint a failure notice[0m
+  [32m  ✔[0m[90m leftover stale model with an empty resolved id restores the last accepted model[0m
+  [32m  ✔[0m[90m leftover stale permission throw restores the last accepted value and not the unsent target[0m
+  [32m  ✔[0m[90m leftover stale model throw restores the last accepted model and not the unsent target[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail session selects stay disabled and do not write[0m
+  [32m  ✔[0m[90m connected live session selects still write when engine session is ready[0m
+  [32m  ✔[0m[90m applySessionModelIndex failure after rebind restores only the originating session cell[0m
+  [32m  ✔[0m[90m overlapping switchModel failure does not restore the dropdown to the earlier index[0m
+  [32m  ✔[0m[90m overlapping switchModel success does not keep the earlier modelId[0m
+  [32m  ✔[0m[90m submitDraft omits modelProfileId when the settled model index is 0[0m
+  [32m  ✔[0m[90m selecting the empty model does not send switchModel and a stale failure does not force index 0[0m
+  [32m  ✔[0m[90m in-flight permission fail after switch to B does not roll back B select or paint B notice[0m
+  [32m  ✔[0m[90m in-flight permission throw after switch to B does not roll back B select or paint B notice[0m
+  [32m  ✔[0m[90m in-flight leftover permission after switch to B keeps A accepted value and does not roll back B select[0m
+  [32m  ✔[0m[90m permission apply for A while bound to B writes A config and does not select B box[0m
+  [32m  ✔[0m[90m permission apply fail while still on A still rolls back select and shows gate notice[0m
+  [32m  ✔[0m[90m overlapping setPermissionMode keeps Ask when an earlier Permit succeeds[0m
+  [32m  ✔[0m[90m overlapping setPermissionMode failure does not restore the newer choice to the earlier previous[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold Tune overlay still paints leftover catalog[0m
+  [32m  ✔[0m[90m Tune overlay dismisses on an outside click delivered as a StandardMouseEvent[0m
+  [32m  ✔[0m[90m Tune overlay scrolls a long catalog and Engine tools opens the Tools section[0m
+  [32m  ✔[0m[90m cancelToolCall pairing-hold leftover does not write and shows engine_disconnected[0m
+  [32m  ✔[0m[90m submitDraft postBound reject shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when dock send click submitDraft rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m enabled send click submits once and a disabled send click does not[0m
+  [32m  ✔[0m[90m saving a turn edit from Send does not also post the restored compose draft[0m
+  [32m  ✔[0m[90m send wrapper click submits once only when Send is enabled[0m
+  [32m  ✔[0m[90m saving a turn edit from the send wrapper does not post the restored draft[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when dock capture click submitDraft rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when dock Enter submitDraft rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m dock submitDraft fire-and-forget voids double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when dock permission select applySessionPermissionIndex catch-path throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when dock model select applySessionModelIndex catch-path throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m dock applySession fire-and-forget voids double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m saveTurnEdit roster false after disconnect stays in edit and shows engine_disconnected[0m
+  [32m  ✔[0m[90m saveTurnEdit roster false without connection history stays in edit and shows failed[0m
+  [32m  ✔[0m[90m saveTurnEdit roster true exits edit and does not show post failure[0m
+  [32m  ✔[0m[90m saveTurnEdit with display id e1 and turnId t1 writes t1[0m
+  [32m  ✔[0m[90m saveTurnEdit without turnId writes display id[0m
+  [32m  ✔[0m[90m saveTurnEdit blank turnId and missing row still write display id[0m
+  [32m  ✔[0m[90m beginTurnEdit highlight stays on display id when L1 turnId differs[0m
+  [32m  ✔[0m[90m saveQueueEdit roster false after disconnect stays in edit and shows engine_disconnected[0m
+  [32m  ✔[0m[90m saveQueueEdit roster false without connection history stays in edit and shows failed[0m
+  [32m  ✔[0m[90m saveQueueEdit roster true exits edit and does not show post failure[0m
+  [32m  ✔[0m[90m copyTurn writeText reject shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m copyTurn writeText reject still shows failed and does not leak when showPostFailure throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m copyTurn writeText resolve stays silent[0m
+  [32m  ✔[0m[90m deleteTurn roster false after disconnect shows engine_disconnected[0m
+  [32m  ✔[0m[90m deleteTurn roster false without connection history shows failed[0m
+  [32m  ✔[0m[90m deleteTurn roster true stays silent[0m
+  [32m  ✔[0m[90m cancelToolCall roster false after disconnect shows engine_disconnected[0m
+  [32m  ✔[0m[90m cancelToolCall roster false without connection history shows failed[0m
+  [32m  ✔[0m[90m cancelToolCall roster true stays silent[0m
+  [32m  ✔[0m[90m respondClientTool pairing-hold leftover does not write and shows engine_disconnected[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail respondClientTool skips unary and shows session_not_ready[0m
+  [32m  ✔[0m[90m respondClientTool roster false after disconnect shows engine_disconnected[0m
+  [32m  ✔[0m[90m respondClientTool roster false without connection history shows failed[0m
+  [32m  ✔[0m[90m respondClientTool roster true stays silent and sends empty content[0m
+  [31m  3) showPostFailure failed uses retry copy not disconnected[0m
+
+[0m  Conversation session split (S4)[0m
+  [32m  ✔[0m[90m CONVERSATION_SIDE_GROUP increases conversation editor part group count[0m[31m (82ms)[0m
+  [32m  ✔[0m[90m conversation part id is scoped to its session key[0m
+  [32m  ✔[0m[90m conversation part grid memento is scoped to its session key and old counter ids are not migrated[0m[33m (45ms)[0m
+  [32m  ✔[0m[90m splitSessionWindow adds a second group in the same conversation part[0m[33m (62ms)[0m
+  [32m  ✔[0m[90m file SIDE_GROUP increases preview groups only[0m
+  [32m  ✔[0m[90m hide split column preserves group model without rendering the column[0m
+  [32m  ✔[0m[90m hiding the active split column activates a visible group[0m
+  [32m  ✔[0m[90m show split column restores hidden column rendering[0m
+  [32m  ✔[0m[90m CONVERSATION_GROUP and CONVERSATION_SIDE_GROUP never target a hidden group[0m[33m (38ms)[0m
+
+[0m  Conversation chat tablist keyboard leftover (D548)[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when tablist cycle openEditor rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m tablist cycle fire-and-forget voids double-catch onUnexpectedError[0m
+
+[0m  Debug - saveAllBeforeDebugStart[0m
+  [32m  ✔[0m[90m saveAllBeforeDebugStart returns false and skips reload when saveAll fails[0m
+  [32m  ✔[0m[90m saveAllBeforeDebugStart returns false and skips reload when untitled save fails[0m
+  [32m  ✔[0m[90m saveAllBeforeDebugStart returns true for none without saveAll[0m
+  [32m  ✔[0m[90m saveAllBeforeDebugStart reloads when both saves succeed[0m
+  [32m  ✔[0m[90m startDebugging returns false and leaves initializing when save fails[0m
+  [32m  ✔[0m[90m DEBUG_START_COMMAND_ID does not call startDebugging when save fails[0m
+  [32m  ✔[0m[90m restartSession returns before tasks when save fails[0m
+
+[0m  Debug - restart and create cancellation[0m
+  [32m  ✔[0m[90m restart does not write a half-resolved configuration when substitution is cancelled[0m
+  [32m  ✔[0m[90m restart does not restart when the provider resolves to nothing[0m
+  [32m  ✔[0m[90m restart does not restart correlated tests when substitution is cancelled[0m
+  [32m  ✔[0m[90m restart still restarts when no substitution is needed[0m
+  [32m  ✔[0m[90m createSession returns false when cancelled after the configuration resolved[0m
+  [32m  ✔[0m[90m createSession still creates when the token is not cancelled[0m
+
+[0m  Files - Browser download cancel[0m
+  [32m  ✔[0m[90m small file cancel aborts without write or close[0m
+  [32m  ✔[0m[90m readFile failure aborts without close[0m
+  [32m  ✔[0m[90m readFileStream failure aborts without close[0m
+  [32m  ✔[0m[90m large file cancel aborts without write or close[0m
+  [32m  ✔[0m[90m large file cancellation after listen aborts without close[0m
+  [32m  ✔[0m[90m large file onError aborts without close[0m
+  [32m  ✔[0m[90m large file onEnd closes without abort[0m
+  [32m  ✔[0m[90m canceled token does not create a download file handle[0m
+  [32m  ✔[0m[90m new download file is removed when canceled before close[0m
+  [32m  ✔[0m[90m existing download file is kept when canceled before close[0m
+  [32m  ✔[0m[90m new download file is removed when createWritable fails[0m
+  [32m  ✔[0m[90m existing download file is kept when createWritable fails[0m
+  [32m  ✔[0m[90m new large download file is removed when canceled before close[0m
+  [32m  ✔[0m[90m completed small download keeps the new file[0m
+  [32m  ✔[0m[90m canceled token does not create a download folder[0m
+  [32m  ✔[0m[90m canceled download of a new folder removes the folder and its file[0m
+  [32m  ✔[0m[90m canceled download into an existing folder keeps the folder and its old file[0m
+  [32m  ✔[0m[90m partial folder download keeps closed files and removes the unfinished file[0m
+  [32m  ✔[0m[90m canceled nested download removes empty directories this download created[0m
+  [32m  ✔[0m[90m folder download keeps a parent that already closed a file when a nested folder cancels[0m
+  [32m  ✔[0m[90m completed empty folder download leaves the directory[0m
+  [32m  ✔[0m[90m read failure removes a new download folder[0m
+  [32m  ✔[0m[90m directory picker cancellation ends quietly without a notification[0m
+  [32m  ✔[0m[90m write failure notifies with the already closed file and rethrows[0m
+
+[0m  Files - Browser upload cancel[0m
+  [32m  ✔[0m[90m confirmed overwrite cancel before write restores original bytes and omits the uri[0m
+  [32m  ✔[0m[90m large file cancel errors the stream instead of a successful end and restores original bytes[0m
+  [32m  ✔[0m[90m new large file cancel leaves no target and does not treat end as success[0m
+  [32m  ✔[0m[90m small file and streamless file cancel do not writeFile[0m
+  [32m  ✔[0m[90m FileReader error rejects and does not writeFile[0m
+  [32m  ✔[0m[90m directory confirm does not apply the delete bulk edit[0m
+  [32m  ✔[0m[90m declined overwrite does not delete or write[0m
+  [32m  ✔[0m[90m completed small upload still writes and returns the uri[0m
+  [32m  ✔[0m[90m token already canceled before a small read rejects without writeFile[0m
+  [32m  ✔[0m[90m canceled new directory upload removes the directory and its child file[0m
+  [32m  ✔[0m[90m canceled upload into an existing directory removes only names created by this upload[0m
+  [32m  ✔[0m[90m completed new directory upload keeps the directory and returns it[0m
+  [32m  ✔[0m[90m canceled case-insensitive upload does not delete the existing child it overwrote[0m
+  [32m  ✔[0m[90m canceled case-sensitive upload deletes only the new different-cased child[0m
+
+[0m  MarkerViewModel quick fixes[0m
+  [32m  ✔[0m[90m requests getCodeActions again after the first quick fix read rejects[0m
+
+[0m  MCP Sandbox Service[0m
+  [32m  ✔[0m[90m converts default cwd URIs for the target operating system[0m
+  [32m  ✔[0m[90m resolves relative cwd against the target-side default cwd[0m
+  [32m  ✔[0m[90m later launch does not inherit the previous cwd or overwrite its settings file[0m
+  [32m  ✔[0m[90m calls getEnvironment again on the next remote read after rejection, then caches success[0m
+  [32m  ✔[0m[90m caches a getEnvironment result that resolves to null[0m
+  [32m  ✔[0m[90m a rejected remote environment read drops the promise only while it still points at that attempt[0m
+[0m    applySandboxConfigSuggestion[0m
+    [32m  ✔[0m[90m keeps denied domains when only allowWrite grows[0m
+    [32m  ✔[0m[90m keeps denyRead and denyWrite when only allowedDomains grows[0m
+    [32m  ✔[0m[90m returns false and leaves the data untouched when every suggestion already exists[0m
+
+[0m  MCP Types[0m
+  [32m  ✔[0m[90m McpResourceURI - round trips[0m
+  [32m  ✔[0m[90m McpServerDefinition serializes default cwd as a URI[0m
+  [32m  ✔[0m[90m McpServerLaunch converts persisted configurations[0m
+  [32m  ✔[0m[90m maps configuration targets to collection provenance[0m
+[0m    McpServerDefinition.equals[0m
+    [32m  ✔[0m[90m returns true for identical definitions[0m
+    [32m  ✔[0m[90m returns false when cacheNonce differs[0m
+    [32m  ✔[0m[90m returns false when id differs[0m
+    [32m  ✔[0m[90m returns false when label differs[0m
+    [32m  ✔[0m[90m returns false when roots differ[0m
+    [32m  ✔[0m[90m returns false when default cwd differs[0m
+    [32m  ✔[0m[90m returns true when roots are both undefined[0m
+    [32m  ✔[0m[90m returns false when launch differs[0m
+[0m    canLoadMcpNetworkResourceDirectly[0m
+    [32m  ✔[0m[90m loads https only when the launch is HTTP on the same host[0m
+    [32m  ✔[0m[90m rejects a missing server or a non-HTTP launch[0m
+    [32m  ✔[0m[90m http still requires the same host[0m
+
+[0m  OutputService - output folder creation[0m
+  [32m  ✔[0m[90m creates the output folder again after the first createFolder rejection[0m
+
+[0m  ExtensionsManager initialize[0m
+  [32m  ✔[0m[90m reads installed extensions again after the first getInstalled failure[0m
+  [32m  ✔[0m[90m concurrent whenInitialized reads installed extensions once[0m
+  [32m  ✔[0m[90m registers extension change listeners once when initialization is retried[0m
+  [32m  ✔[0m[90m does not read installed extensions again after success[0m
+
+[0m  NativeKeyboardLayoutService[0m
+  [32m  ✔[0m[90m a failed initialize is read again and does not subscribe twice[0m
+  [32m  ✔[0m[90m concurrent initialize shares one read[0m
+  [32m  ✔[0m[90m a layout change after a failed init reads again without another subscription[0m
+
+[0m  WorkbenchMcpGalleryManifestService[0m
+  [32m  ✔[0m[90m a rejected manifest read is fetched again and can succeed[0m
+  [32m  ✔[0m[90m in-flight manifest reads share one create[0m
+  [32m  ✔[0m[90m a successful read does not register the configuration listener again[0m
+
+[0m  ThreadedBackgroundTokenizerFactory[0m
+  [32m  ✔[0m[90m creates another worker after the first $init fails[0m
+  [32m  ✔[0m[90m in-flight requests share one worker creation[0m
+  [32m  ✔[0m[90m disposes the worker when $init fails[0m
+  [32m  ✔[0m[90m does not create another worker after $init succeeds[0m
+  [32m  ✔[0m[90m an older $init failure does not dispose the worker created after grammar definitions change[0m
+
+
+[92m [0m[32m 325 passing[0m[90m (18s)[0m
+[31m  3 failing[0m
+
+[0m  1) conversation lens dispose gate
+       pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(engineBlock.includes("this.bindSessionView(this.getBoundSessionId());"))
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js:850:12)
+[0m
+[0m  2) conversation lens dispose gate
+       connected live SessionBar handlers still write when engine session is ready:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  "[undefined]"[0m
+      [32m+  "leftover draft"[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   undefined
+  -   'leftover draft'
+    ]
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js:3032:12)
+[0m
+[0m  3) conversation lens dispose gate
+       showPostFailure failed uses retry copy not disconnected:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  TypeError: host.gateRow.classList.toggle is not a function
+      at setGateWarning (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.js:597:26)
+      at showGateNotice (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.js:622:3)
+      at showPostFailure (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.js:636:3)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js:5379:5)
+[0m
+
+

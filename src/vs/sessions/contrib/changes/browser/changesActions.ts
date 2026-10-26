@@ -584,9 +584,10 @@ class ChangesetOperationsActionControllerContribution extends Disposable impleme
 					async run(accessor: ServicesAccessor, ...args: unknown[]): Promise<void> {
 						const changesViewService = accessor.get(IChangesViewService);
 						const activeEditorPane = accessor.get(IEditorService).activeEditorPane;
+						const editorResource = activeEditorPane?.input?.resource;
 						const editorSession = changesetOperationSessionResource(args)
-							?? (activeEditorPane?.input
-								? accessor.get(ISessionChangesService).getSessionResource(activeEditorPane.input.resource)
+							?? (editorResource
+								? accessor.get(ISessionChangesService).getSessionResource(editorResource)
 								: undefined);
 						const session = editorSession ? accessor.get(ISessionsManagementService).getSession(editorSession) : undefined;
 						const changes = session?.changes.get() ?? changesViewService.activeSessionChangesObs.get();

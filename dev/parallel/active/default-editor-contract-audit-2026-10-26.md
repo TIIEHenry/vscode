@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1386范围内closed；D1385共享兼容183绿保留，默认产品宿主前提失效，原UI验收未满足并停止；accepted/open，移出当前产品执行队列。"
+summary: "唯一merge编译合同修复全量0；Electron325过3既有红与Node10过；J D1387独立补修中，尚未接入；D1385/1386范围结论保留。"
 ---
 
 # 默认编辑器合同与功能缺口续审
@@ -13,6 +13,8 @@ summary: "D1386范围内closed；D1385共享兼容183绿保留，默认产品宿
 
 
 ## 当前编译基线恢复（2026-10-26）
+
+完成检查点：27文件合同修复后，顺序fullcompile45→3→0，末次exit0；Electron325过3既有红、精确c968旧测试同三红，Node10过，ESLint0errors/20warnings。Astra源码C0/I0。[源树/产物与完整验证](../../progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md)保留所有失败，不升产品PRD/D17。下述初始红基线为历史起点；D/J后续实现须独立集成验证。
 
 本轮父 agent 仅调度。merge / baseline_executor 独占编译、类型检查、转译与 out 写入，并负责记录行动文档；D / Sources 独立只读核查已有 J 提交，Astra 只读整体核查和设计决策，其余工位不写本轮代码。主分支实际为 `agent-ide`，不以 Microsoft origin/main 替换基线、不 push、不丢 WIP。
 

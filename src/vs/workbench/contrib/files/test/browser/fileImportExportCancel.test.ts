@@ -825,7 +825,7 @@ suite('Files - Browser download cancel', () => {
 	test('directory picker cancellation ends quietly without a notification', async () => {
 		const cts = store.add(new CancellationTokenSource());
 		const errors: string[] = [];
-		const download = createDownloadWithNotification({}, { error: message => errors.push(String(message)) } as unknown as INotificationService);
+		const download = createDownloadWithNotification({}, { error: (message: Parameters<INotificationService['error']>[0]) => errors.push(String(message)) } as unknown as INotificationService);
 
 		await download.downloadViaFileSystemAccess(
 			{ resource: URI.file('/src/notes'), name: 'notes', isDirectory: true, isFile: false, size: 0, children: [] },
@@ -849,7 +849,7 @@ suite('Files - Browser download cancel', () => {
 				}
 				return { name: 'a.txt', size: 4, value: VSBuffer.fromString('data') };
 			},
-		}, { error: message => errors.push(String(message)) } as unknown as INotificationService);
+		}, { error: (message: Parameters<INotificationService['error']>[0]) => errors.push(String(message)) } as unknown as INotificationService);
 
 		await assert.rejects(
 			() => download.downloadViaFileSystemAccess(

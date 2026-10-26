@@ -6,7 +6,7 @@
 import assert from 'assert';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { IConfigurationChangeEvent, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { ConfigurationTarget, IConfigurationChangeEvent, IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { NullLogService } from '../../../../../platform/log/common/log.js';
 import { IMcpGalleryManifest, McpGalleryManifestStatus } from '../../../../../platform/mcp/common/mcpGalleryManifest.js';
@@ -162,15 +162,21 @@ suite('WorkbenchMcpGalleryManifestService', () => {
 		assert.strictEqual(configuration.listenerCount, 1);
 
 		configuration.onDidChangeConfigurationEmitter.fire({
+			source: ConfigurationTarget.USER,
+			affectedKeys: new Set([mcpGalleryServiceUrlConfig]),
+			change: { keys: [mcpGalleryServiceUrlConfig], overrides: [] },
 			affectsConfiguration: (key: string) => key === mcpGalleryServiceUrlConfig,
-		} as IConfigurationChangeEvent);
+		});
 		await drain();
 		assert.strictEqual(service.creates, 2);
 		assert.strictEqual(configuration.listenerCount, 1);
 
 		configuration.onDidChangeConfigurationEmitter.fire({
+			source: ConfigurationTarget.USER,
+			affectedKeys: new Set(),
+			change: { keys: [], overrides: [] },
 			affectsConfiguration: () => false,
-		} as IConfigurationChangeEvent);
+		});
 		await drain();
 		assert.strictEqual(service.creates, 2);
 		assert.strictEqual(configuration.listenerCount, 1);

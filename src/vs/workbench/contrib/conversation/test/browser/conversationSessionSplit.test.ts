@@ -12,7 +12,7 @@ import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
-import { IStorageService, StorageScope, WillSaveStateReason } from '../../../../../platform/storage/common/storage.js';
+import { IStorageService, StorageScope, StorageTarget, WillSaveStateReason } from '../../../../../platform/storage/common/storage.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { Memento } from '../../../../common/memento.js';
 import { findGroup } from '../../../../services/editor/common/editorGroupFinder.js';
@@ -23,6 +23,7 @@ import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/edi
 import { IWorkbenchLayoutService, Parts } from '../../../../services/layout/browser/layoutService.js';
 import { IAuxiliaryWindowService } from '../../../../services/auxiliaryWindow/browser/auxiliaryWindowService.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConversationEditorPartImpl } from '../../../../browser/parts/editor/conversationEditorPart.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
 import { getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
 import { ConversationChatInput } from '../../common/conversationChatInput.js';
@@ -141,6 +142,8 @@ suite('Conversation session split (S4)', () => {
 
 		const otherPart = parts.createConversationEditorPart(otherHost, 'other-session');
 
+		assert.ok(conversationPart instanceof ConversationEditorPartImpl);
+		assert.ok(otherPart instanceof ConversationEditorPartImpl);
 		assert.strictEqual(conversationPart.getId(), `workbench.parts.conversationEditor.${SESSION_KEY}`);
 		assert.strictEqual(otherPart.getId(), 'workbench.parts.conversationEditor.other-session');
 		assert.notStrictEqual(conversationPart.getId(), otherPart.getId());
@@ -165,13 +168,14 @@ suite('Conversation session split (S4)', () => {
 		assert.strictEqual(storage.getObject('memento/workbench.parts.conversationEditor.other-session', StorageScope.WORKSPACE), undefined);
 		assert.ok(!otherPart.activeGroup.editors.some(editor => editor.resource?.toString() === file.resource.toString()));
 
-		storage.store('memento/workbench.parts.conversationEditor.1', savedState, StorageScope.WORKSPACE);
+		storage.store('memento/workbench.parts.conversationEditor.1', savedState, StorageScope.WORKSPACE, StorageTarget.MACHINE);
 		const oldIdHost = document.createElement('div');
 		document.body.appendChild(oldIdHost);
 		store.add({ dispose: () => oldIdHost.remove() });
 		const oldIdPart = parts.createConversationEditorPart(oldIdHost, 'session-after-old-id');
 
 		assert.ok(!oldIdPart.activeGroup.editors.some(editor => editor.resource?.toString() === file.resource.toString()));
+		assert.ok(oldIdPart instanceof ConversationEditorPartImpl);
 		assert.notStrictEqual(oldIdPart.getId(), 'workbench.parts.conversationEditor.1');
 	});
 
@@ -247,8 +251,8 @@ suite('Conversation session split (S4)', () => {
 		sessionChatService.hideSplitColumn(undefined, sideGroup.id);
 
 		const input = store.add(new ConversationChatInput(getDefaultConversationChatResource(SESSION_KEY), { isDefaultRoot: true }));
-		const activeTarget = instantiationService.invokeFunction(accessor => findGroup(accessor, input, CONVERSATION_GROUP));
-		const sideTarget = instantiationService.invokeFunction(accessor => findGroup(accessor, input, CONVERSATION_SIDE_GROUP));
+		const activeTarget = await instantiationService.invokeFunction(accessor => findGroup(accessor, input, CONVERSATION_GROUP));
+		const sideTarget = await instantiationService.invokeFunction(accessor => findGroup(accessor, input, CONVERSATION_SIDE_GROUP));
 		const activeGroup = Array.isArray(activeTarget) ? activeTarget[0] : activeTarget;
 		const sideTargetGroup = Array.isArray(sideTarget) ? sideTarget[0] : sideTarget;
 

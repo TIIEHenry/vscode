@@ -48,8 +48,9 @@ export class ChangesetReviewAction extends Action2 {
 
 		const changesViewService = accessor.get(IChangesViewService);
 		const activeEditorPane = accessor.get(IEditorService).activeEditorPane;
-		const editorSession = activeEditorPane?.input
-			? accessor.get(ISessionChangesService).getSessionResource(activeEditorPane.input.resource)
+		const editorResource = activeEditorPane?.input?.resource;
+		const editorSession = editorResource
+			? accessor.get(ISessionChangesService).getSessionResource(editorResource)
 			: undefined;
 		const editorChanges = editorSession
 			? accessor.get(ISessionsManagementService).getSession(editorSession)?.changes.get()

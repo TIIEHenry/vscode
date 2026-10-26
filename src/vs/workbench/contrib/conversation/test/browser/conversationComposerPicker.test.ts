@@ -222,6 +222,7 @@ suite('Conversation composer picker', () => {
 
 		disposables.add(attachComposerPicker(container, contextViewService, contextMenuService, {
 			ariaLabel: 'Session',
+			alignment: AnchorAlignment.LEFT,
 			getItemDetail: (index: number) => index === 0 ? '5 messages' : undefined,
 		}));
 

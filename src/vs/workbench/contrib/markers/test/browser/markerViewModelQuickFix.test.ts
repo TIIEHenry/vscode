@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { CancellationError } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -46,7 +47,7 @@ suite('MarkerViewModel quick fixes', () => {
 		};
 		const viewModel = disposables.add(new MarkerViewModel(
 			new Marker('marker-1', markerData),
-			{ getModel: () => model } as IModelService,
+			upcastPartial<IModelService>({ getModel: () => model }),
 			{} as IInstantiationService,
 			{} as IEditorService,
 			{ codeActionProvider: registry } as ILanguageFeaturesService,

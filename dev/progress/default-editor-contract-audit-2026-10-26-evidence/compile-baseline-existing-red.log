@@ -1,0 +1,68 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[894266:1026/220236.077353:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:894315) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:894315) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:894315) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  conversation lens dispose gate[0m
+  [31m  1) pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live[0m
+  [31m  2) connected live SessionBar handlers still write when engine session is ready[0m
+  [31m  3) showPostFailure failed uses retry copy not disconnected[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (14ms)[0m
+[31m  3 failing[0m
+
+[0m  1) conversation lens dispose gate
+       pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(engineBlock.includes("this.bindSessionView(this.getBoundSessionId());"))
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js:850:12)
+[0m
+[0m  2) conversation lens dispose gate
+       connected live SessionBar handlers still write when engine session is ready:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+      [31m-  "[undefined]"[0m
+      [32m+  "leftover draft"[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   undefined
+  -   'leftover draft'
+    ]
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js:3032:12)
+[0m
+[0m  3) conversation lens dispose gate
+       showPostFailure failed uses retry copy not disconnected:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  TypeError: host.gateRow.classList.toggle is not a function
+      at setGateWarning (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.js:597:26)
+      at showGateNotice (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.js:622:3)
+      at showPostFailure (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.js:636:3)
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js:5379:5)
+[0m
+
+

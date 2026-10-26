@@ -243,7 +243,7 @@ function fakeBidiChannel(): { emitData(data: unknown): void } {
 	};
 	return {
 		makeBidiStreamRequest: () => call,
-		emitData: data => onData?.(data),
+		emitData: (data: unknown) => onData?.(data),
 	} as never;
 }
 

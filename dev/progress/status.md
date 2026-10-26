@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "纯文档合入D1385范围纠正与D1387 accepted方案；当前产品执行队列仅D1387，D1385前提失效停止原UI验收并保持open，D1386closed；源码/out未改，无新运行。"
+summary: "当前编译合同基线已修：全量compile-client45→3→0，Electron325过3既有红、Node10过；D1387已有J实现正在独立补修，未合入；D1385范围纠正保留。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **当前编译合同范围完成（2026-10-26）**：方案33922独立提交后修27文件，Astra源码审查C0/I0；唯一merge全量`compile-client`真实45→3→0、exit0。20文件Electron325过/3既有红，精确c968旧测试已复现同三红并恢复当前测试JS原SHA；Node三份10过，ESLint0errors/20warnings，D17保持open。src子树和27组source/out身份见[证据](default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md)。不改Sources实现，不升产品PRD；J D1387独立补修由父调度。
 - **当前全量编译合同恢复（2026-10-26）**：merge从clean c968实际运行`npm run compile-client`，exit1、45诊断/27文件；新原始日志独立保存，不复用旧计数。已写[最小方案](../plans/current-typescript-contract-baseline.md)，Astra规则16 C0/I0、两Minor改入，accepted；先独立方案提交，继而只在merge修正式API/夹具与三处生产窄类型。其他D Sources与Astra整体审查保持只读，父仅调度；D1387已有J实现待独立核查，未提前合入。
 - **纯文档集成检查点（2026-10-26）**：C4ed462→d17d01、J133ef4→6ecd5c真三路合入，保留PRD005/009与015各自条款及两plan原文。当前产品执行队列仅D1387（accepted/open，待源码与红绿/非作者after），D1385原UI前提失效、停止并退出队列但仍accepted/open；D1386已closed。源码/配置等根树与d472一致，现有产物hash/mtime复核不变；本轮未编译/typecheck/transpile/out或复跑183/44。末次全量仍source6f82的45/27、exit1，后修仅3TS0。[集成证据](default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-integration.md)。
 - **D1387 正式方案编写（2026-10-26，J）**：从clean4fb仅ff已验证基线d472，真实Git审计已证Preview漏API open/diff DTO与Conversation具体组路由两独立机制。PRD005/009事实、Sources/编辑器SSOT与[方案](../plans/sources-open-dispatch-and-conversation-target.md)已写，已过独立规则16 C0/I0，stale/status代次文案I1已改入并复读；[before/五模块加载身份/两轮Astra裁定](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md)入库。未实施/未编译/typecheck/transpile/out/运行测试，方案accepted、缺口open；既有D1385/1386与全量记录不改。

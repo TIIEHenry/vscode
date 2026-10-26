@@ -1,0 +1,36 @@
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts
+   83:31  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+   84:31  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  101:32  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  102:32  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/sessions/contrib/changes/browser/changesActions.ts
+  168:21   warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility                                                                  local/code-no-in-operator
+  593:23   warning  Observable '.get()' should not be used in reactive context. Use '.read(reader)' instead to properly track dependencies or '.read(undefined)' to be explicit about an untracked read  local/code-no-observable-get-in-reactive-context
+  593:49   warning  Observable '.get()' should not be used in reactive context. Use '.read(reader)' instead to properly track dependencies or '.read(undefined)' to be explicit about an untracked read  local/code-no-observable-get-in-reactive-context
+  599:10   warning  Observable '.get()' should not be used in reactive context. Use '.read(reader)' instead to properly track dependencies or '.read(undefined)' to be explicit about an untracked read  local/code-no-observable-get-in-reactive-context
+  599:113  warning  Observable '.get()' should not be used in reactive context. Use '.read(reader)' instead to properly track dependencies or '.read(undefined)' to be explicit about an untracked read  local/code-no-observable-get-in-reactive-context
+  600:10   warning  Observable '.get()' should not be used in reactive context. Use '.read(reader)' instead to properly track dependencies or '.read(undefined)' to be explicit about an untracked read  local/code-no-observable-get-in-reactive-context
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts
+  34:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts
+  33:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  34:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  35:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  36:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  37:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  38:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+  39:29  warning  Only use double-quoted strings for externalized strings  local/code-no-unexternalized-strings
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts
+  29:1  warning  '../../common/conversationChatInput.js' import is duplicated  no-duplicate-imports
+
+/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts
+  291:48  warning  The "in" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility  local/code-no-in-operator
+
+✖ 20 problems (0 errors, 20 warnings)
+  0 errors and 5 warnings potentially fixable with the `--fix` option.
+

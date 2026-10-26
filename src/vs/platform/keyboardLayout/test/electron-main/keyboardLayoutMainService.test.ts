@@ -46,7 +46,7 @@ function createProbe(): IKeymapProbe {
 }
 
 function createModule(probe: IKeymapProbe): typeof nativeKeymap {
-	return {
+	const bindings = {
 		getKeyMap: () => {
 			probe.reads++;
 			if (probe.failReads > 0) {
@@ -65,7 +65,8 @@ function createModule(probe: IKeymapProbe): typeof nativeKeymap {
 			}
 		},
 		isISOKeyboard: () => false,
-	} as typeof nativeKeymap;
+	};
+	return { ...bindings, default: bindings };
 }
 
 class TestKeyboardLayoutMainService extends KeyboardLayoutMainService {

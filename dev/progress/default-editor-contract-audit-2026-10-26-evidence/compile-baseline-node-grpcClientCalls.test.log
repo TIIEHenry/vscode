@@ -1,0 +1,24 @@
+npm warn Unknown project config "disturl". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "target". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "ms_build_id". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "runtime". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "build_from_source". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "timeout". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> code-oss-dev@1.136.0 test-node
+> mocha test/unit/node/index.js --delay --ui=tdd --timeout=5000 --exit --run src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts
+
+
+
+  grpcClientCalls makeClientStreamBytesClient
+    ✔ write Uint8Array proto bytes; decode unary via caller; close-gate/error/end/dispose
+    ✔ makeClientStreamBytesClient exists; serializes proto bytes; JSON makeClientStreamClient stays
+    ✔ resident bidi handle drops data after local dispose but keeps it after a half-close
+    ✔ openUploadAttachmentStream wires makeClientStreamBytesClient; SaveSkillContent stays JSON
+
+  Errors
+    ✔ should not have unexpected errors in tests
+
+
+  5 passing (6ms)
+

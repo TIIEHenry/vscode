@@ -1,0 +1,438 @@
+{
+  "sourceBaseHead": "c968c0627e7",
+  "planCommit": "33922f0a6dc",
+  "stagedSourceTree": "932031c34525449d4010265f914f7074abad2c05",
+  "command": "rtk proxy npm run compile-client",
+  "compileExitCode": 0,
+  "diagnostics": 0,
+  "compiles": [
+    {
+      "log": "compile-baseline-initial.log",
+      "exit": 1,
+      "diagnostics": 45
+    },
+    {
+      "log": "compile-baseline-repair-1.log",
+      "exit": 1,
+      "diagnostics": 3
+    },
+    {
+      "log": "compile-baseline-green.log",
+      "exit": 0,
+      "diagnostics": 0
+    }
+  ],
+  "electron": {
+    "files": 20,
+    "passing": 325,
+    "failing": 3,
+    "exitCode": 1,
+    "log": "compile-baseline-electron.log"
+  },
+  "node": {
+    "passing": 10,
+    "exitCode": 0,
+    "results": [
+      {
+        "file": "src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+        "exit": 0,
+        "log": "compile-baseline-node-grpcClientCalls.test.log"
+      },
+      {
+        "file": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+        "exit": 0,
+        "log": "compile-baseline-node-manageRemoteAgentHostsCatchScanD1328.test.log"
+      },
+      {
+        "file": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+        "exit": 0,
+        "log": "compile-baseline-node-mobileHostFilterFocusScan.test.log"
+      }
+    ]
+  },
+  "eslint": {
+    "errors": 0,
+    "warnings": 20,
+    "exitCode": 0
+  },
+  "sourceOutputs": [
+    {
+      "source": {
+        "path": "src/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts",
+        "sha256": "356bd4b549aa91f348aa86e9fbd44455fcc7436f74ade9856bf0ce7c1c4eb7b2",
+        "bytes": 6667,
+        "mtimeUtc": "2026-10-26T13:57:19.896687+00:00"
+      },
+      "output": {
+        "path": "out/vs/platform/browserView/test/electron-main/browserSessionRemote.test.js",
+        "sha256": "1b616b30ff7f2b0f9cd94fdc2225826e807fa29b455a720c0197e9bcb9781cc8",
+        "bytes": 21475,
+        "mtimeUtc": "2026-10-26T13:59:56.752127+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts",
+        "sha256": "0f681622d9eb4bbe2e6e45a988963bb186ada06256a41aa1c8e2205e31afe4d2",
+        "bytes": 7334,
+        "mtimeUtc": "2026-10-26T13:59:38.227137+00:00"
+      },
+      "output": {
+        "path": "out/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.js",
+        "sha256": "200c83ae58b4f281285debf9c58e4a1bfdb7024fb64eb0e67f3b283b314841af",
+        "bytes": 22569,
+        "mtimeUtc": "2026-10-26T13:59:56.758127+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/platform/universeAgent/test/common/respondCleanup.test.ts",
+        "sha256": "e5028a50789681e9f0d38999a3ef2a713ecfd9c6f9d78f7c468c773f2e6e08f8",
+        "bytes": 5436,
+        "mtimeUtc": "2026-10-26T13:57:19.899687+00:00"
+      },
+      "output": {
+        "path": "out/vs/platform/universeAgent/test/common/respondCleanup.test.js",
+        "sha256": "7245b2eb61fe05e2bb5e2f442c3875bf3b0604f878ee5dddbb7c03253d86ba18",
+        "bytes": 16272,
+        "mtimeUtc": "2026-10-26T13:59:56.770128+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+        "sha256": "f55ae64a62e85ce4998acbab917b9b345d6ba09e4ad659cc9b87879f019f8508",
+        "bytes": 12362,
+        "mtimeUtc": "2026-10-26T13:57:19.899687+00:00"
+      },
+      "output": {
+        "path": "out/vs/platform/universeAgent/test/node/grpcClientCalls.test.js",
+        "sha256": "9cf51b618163ecac7ce5923c9b7e9e1be70cc73ef4b3dd946125b5b546409936",
+        "bytes": 37458,
+        "mtimeUtc": "2026-10-26T13:59:56.772128+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/sessions/contrib/changes/browser/changesActions.ts",
+        "sha256": "db4053dabd0f7f78787898273b36cfe415bae3a06378da61610d51500700d38b",
+        "bytes": 26847,
+        "mtimeUtc": "2026-10-26T13:57:19.899687+00:00"
+      },
+      "output": {
+        "path": "out/vs/sessions/contrib/changes/browser/changesActions.js",
+        "sha256": "690f5ad31865e39d18e3a72790ac7ae29f0049dc6082ef40878194dc31a5cd4a",
+        "bytes": 72013,
+        "mtimeUtc": "2026-10-26T13:59:56.697124+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/sessions/contrib/changes/browser/changesetReviewActions.ts",
+        "sha256": "17877f889fe5b775f9db51d5c6fd804023795f880ee0445c5ca6be5ceac00e46",
+        "bytes": 4014,
+        "mtimeUtc": "2026-10-26T13:57:19.899687+00:00"
+      },
+      "output": {
+        "path": "out/vs/sessions/contrib/changes/browser/changesetReviewActions.js",
+        "sha256": "85f1b1cf911cb77e60dad83095e663820df9d4f09e9d370a617890f3f1c69e1d",
+        "bytes": 11604,
+        "mtimeUtc": "2026-10-26T13:59:56.698124+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts",
+        "sha256": "6dc49d9248ea3f33e1029487d5d4650b744d557283732c5559e6938b5b738d8a",
+        "bytes": 8686,
+        "mtimeUtc": "2026-10-26T13:57:19.899687+00:00"
+      },
+      "output": {
+        "path": "out/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.js",
+        "sha256": "4133726d848a182f6d0a6f1151fb9cfb08adeb3ddb4df07f32c6a42d702f3a3e",
+        "bytes": 26476,
+        "mtimeUtc": "2026-10-26T13:59:57.025141+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts",
+        "sha256": "fffd79963b8efcf09dcd3ccadf2853206ecb62d078e4e04bc6817813239a6124",
+        "bytes": 33946,
+        "mtimeUtc": "2026-10-26T13:57:19.899687+00:00"
+      },
+      "output": {
+        "path": "out/vs/sessions/contrib/chat/test/browser/newChatInput.test.js",
+        "sha256": "b8a526131b428fb3befc1efa9856fd77cb4ff1a2fdec0cc5b75e39d251e48fbd",
+        "bytes": 103969,
+        "mtimeUtc": "2026-10-26T13:59:57.028142+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts",
+        "sha256": "842eec5d0b9fd3ea942f1f7860350b29ef2eb6cbbe407bf6064d0e83418508c3",
+        "bytes": 10765,
+        "mtimeUtc": "2026-10-26T13:57:19.899687+00:00"
+      },
+      "output": {
+        "path": "out/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.js",
+        "sha256": "a0b238df686824b086723ecabe9271536e4b0d220a21e3b7796630e730b8f383",
+        "bytes": 30618,
+        "mtimeUtc": "2026-10-26T13:59:57.151148+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts",
+        "sha256": "ca347c1227271ecd40a8e8fa08e88e7a4030c52014f53b13ad3cc88e0373f1b5",
+        "bytes": 14592,
+        "mtimeUtc": "2026-10-26T13:57:19.899687+00:00"
+      },
+      "output": {
+        "path": "out/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.js",
+        "sha256": "57335d819733afa3dc66ba9dc4a794c8dfbfc1e1b453a7969924c39d74243c69",
+        "bytes": 42903,
+        "mtimeUtc": "2026-10-26T13:59:57.043143+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+        "sha256": "6b345e4d32493e41fa8c85f462f98f5e6b48efcdc76fbaa1fb15796638c989c8",
+        "bytes": 2328,
+        "mtimeUtc": "2026-10-26T13:57:19.899687+00:00"
+      },
+      "output": {
+        "path": "out/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.js",
+        "sha256": "d18a6ad2a44c584628662da6f778ae57b25c0c4b535152c2fb155f96dd28766a",
+        "bytes": 6766,
+        "mtimeUtc": "2026-10-26T13:59:57.153148+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+        "sha256": "2fe8857e609f638a5b1bca837f6d9397c2317d00a72a271ab818527dc474fe40",
+        "bytes": 2523,
+        "mtimeUtc": "2026-10-26T13:57:19.900687+00:00"
+      },
+      "output": {
+        "path": "out/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.js",
+        "sha256": "d2bc7904fdc33168912930ae6927ea82c8fa73f67dc071833cf083a5dc727ce8",
+        "bytes": 7468,
+        "mtimeUtc": "2026-10-26T13:59:57.153148+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+        "sha256": "d09fd09fe3c5ac1d68f2671e06850af43bb18749d3c7e882d4eabfa202b3e751",
+        "bytes": 8733,
+        "mtimeUtc": "2026-10-26T13:57:19.900687+00:00"
+      },
+      "output": {
+        "path": "out/vs/sessions/test/browser/sessionsSetUpService.test.js",
+        "sha256": "b08b9ea439f04e5242e22d5bceef0933bbbb3a382363d7f4949ef1e5f85949e6",
+        "bytes": 25980,
+        "mtimeUtc": "2026-10-26T13:59:53.584958+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts",
+        "sha256": "2495b8840b96442fb3421c21a07f392b4bd1981ed79ed343738e62f5249ae64b",
+        "bytes": 9844,
+        "mtimeUtc": "2026-10-26T13:58:12.720544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.js",
+        "sha256": "57fdefa0153c4c7f6ec96126edc1b0da68c3443a9491e07f7a59f54918e884bb",
+        "bytes": 31759,
+        "mtimeUtc": "2026-10-26T13:59:56.915136+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+        "sha256": "730f1d12dbf2d125b7d416ea1e8d7b3bc0bfe91fe85ed43b101a031bcb4ca66e",
+        "bytes": 222026,
+        "mtimeUtc": "2026-10-26T13:58:12.721544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js",
+        "sha256": "9f1da0a76209b1cd4b71278a46b8feea0b8e74f16780f27e25181f6d6f1a46ab",
+        "bytes": 707141,
+        "mtimeUtc": "2026-10-26T14:02:37.144643+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+        "sha256": "1d6973c88a40cd1598de97b8cc476902df30fe0fe5067305a409010a082b3db6",
+        "bytes": 17790,
+        "mtimeUtc": "2026-10-26T13:58:12.723544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.js",
+        "sha256": "6909ff206ef071c3312b6cd2761b2d7f41316e98a0376354b1de066db3ee295f",
+        "bytes": 53268,
+        "mtimeUtc": "2026-10-26T13:59:56.923136+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+        "sha256": "e5c905326d29e04f54d849006af3d60af46eaa49a725dc59dd7b1c138fe5e7c3",
+        "bytes": 19118,
+        "mtimeUtc": "2026-10-26T13:58:12.723544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.js",
+        "sha256": "13df0420beabf3cfad7ae8fc14be83ba9b0715e65df80a776aa8ec0e70b8b6de",
+        "bytes": 56227,
+        "mtimeUtc": "2026-10-26T13:59:56.933137+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+        "sha256": "3c6546bf613e1b608c476f94dca5d8455465f0583cb00fbe091259d79a512808",
+        "bytes": 59527,
+        "mtimeUtc": "2026-10-26T13:58:12.723544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.js",
+        "sha256": "39b6264b59d9407560ceeb966787655b0ea48b70c71a213ca3f1978ae4f853c1",
+        "bytes": 194834,
+        "mtimeUtc": "2026-10-26T13:59:56.943137+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts",
+        "sha256": "d3a7a82976d0ff23196a1a4440d05a755bc4d56638c8e2158a787287d629b224",
+        "bytes": 3035,
+        "mtimeUtc": "2026-10-26T13:58:12.724544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.js",
+        "sha256": "34882a896be773952457a3762d1e4c1c59e4b161c8cde6604dfe9c8dbb7c630c",
+        "bytes": 8158,
+        "mtimeUtc": "2026-10-26T13:59:56.944137+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts",
+        "sha256": "6bd4018054153f951dde80d9595ca56dca1069f5864e5682e846c262df8d65ad",
+        "bytes": 13120,
+        "mtimeUtc": "2026-10-26T13:58:12.724544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.js",
+        "sha256": "4e622561588f4da74d258a909236cfe158cb9502739b584fb2128f64a70c8a5a",
+        "bytes": 39918,
+        "mtimeUtc": "2026-10-26T13:59:56.947137+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts",
+        "sha256": "46669411de903dc4bf36d8176f33569fae2db495530bbf714a90f8ea183dea69",
+        "bytes": 9034,
+        "mtimeUtc": "2026-10-26T13:58:12.724544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/mcp/test/common/mcpTypes.test.js",
+        "sha256": "e871013aa137f0a500a22217ae31301aa2b25f135223adc3dee072488cb15691",
+        "bytes": 29619,
+        "mtimeUtc": "2026-10-26T13:59:56.947137+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/contrib/output/test/browser/outputServices.test.ts",
+        "sha256": "e80498b2f971ea72be2c53ac887d9fcabc655c454564dc25f9884847099ef6de",
+        "bytes": 7589,
+        "mtimeUtc": "2026-10-26T13:58:12.724544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/contrib/output/test/browser/outputServices.test.js",
+        "sha256": "0006e86de9dc644d08c5298913c0c5292face12d629054fb5b5d6c7caa46edd6",
+        "bytes": 23171,
+        "mtimeUtc": "2026-10-26T13:59:56.964138+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts",
+        "sha256": "fc00e9ddfd911133ee3c948bf82ee8ad3549a6135300f40ead6bcd42c8b12caf",
+        "bytes": 6001,
+        "mtimeUtc": "2026-10-26T13:58:12.724544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.js",
+        "sha256": "7bd3a6784a3c83800c2b475d685aa3db194c7c55923cd8a8e755b0865751e3ac",
+        "bytes": 17941,
+        "mtimeUtc": "2026-10-26T13:59:56.830131+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts",
+        "sha256": "af36dfdc892b6451cf6a74e753f374ba4b5c87f081e6728cc68a71041bfeffc5",
+        "bytes": 5911,
+        "mtimeUtc": "2026-10-26T13:58:12.724544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.js",
+        "sha256": "02ce68d53ff74e714d8043b059cbe6fee62bc16703f2c2a21546bfd96f6ddcfe",
+        "bytes": 17963,
+        "mtimeUtc": "2026-10-26T13:59:56.838131+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+        "sha256": "edf8d848f324b788d2c6a8cf2b8bce354e6ccd39cae79dace8dec3e7c64c3a39",
+        "bytes": 6946,
+        "mtimeUtc": "2026-10-26T13:59:38.227137+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.js",
+        "sha256": "027486b4565362bd0abad1b671610467150032d911bd53506e7e4c8dc336b5ef",
+        "bytes": 20677,
+        "mtimeUtc": "2026-10-26T13:59:56.840132+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts",
+        "sha256": "c368bf92bf846cb5729c9045d47c66f504c081a393ca18d6c9472cda4b21b9af",
+        "bytes": 6297,
+        "mtimeUtc": "2026-10-26T13:58:12.724544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.js",
+        "sha256": "cba5bbdeec0baf52c3d3038ca60fabd5ac89c63419b43bf96710c3ffa370b34b",
+        "bytes": 18808,
+        "mtimeUtc": "2026-10-26T13:59:56.848132+00:00"
+      }
+    },
+    {
+      "source": {
+        "path": "src/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts",
+        "sha256": "12088ea9b90a9bd3288da15d2c6049931c001b39471b50bc6b7719319f65fb69",
+        "bytes": 27579,
+        "mtimeUtc": "2026-10-26T13:58:12.724544+00:00"
+      },
+      "output": {
+        "path": "out/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.js",
+        "sha256": "5c4b3ebad50493451b61eeb449e74661ef897e4f93986abdae8c75642e33d9e7",
+        "bytes": 78502,
+        "mtimeUtc": "2026-10-26T13:59:56.820131+00:00"
+      }
+    }
+  ]
+}

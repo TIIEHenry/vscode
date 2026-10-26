@@ -6,6 +6,7 @@
 import assert from 'assert';
 import { DeferredPromise } from '../../../../../base/common/async.js';
 import type { IWebWorkerClient, Proxied } from '../../../../../base/common/worker/webWorker.js';
+import { upcastPartial } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { IWebWorkerService } from '../../../../../platform/webWorker/browser/webWorkerService.js';
 import { ThreadedBackgroundTokenizerFactory } from '../../browser/backgroundTokenization/threadedBackgroundTokenizerFactory.js';
@@ -34,10 +35,10 @@ function createHarness(store: ReturnType<typeof ensureNoDisposablesAreLeakedInTe
 			const fake: IFakeWorker = { init, disposeCount: 0 };
 			workers.push(fake);
 			const client: IWebWorkerClient<TextMateTokenizationWorker> = {
-				proxy: {
+				proxy: upcastPartial<Proxied<TextMateTokenizationWorker>>({
 					$init: () => init.p,
 					$acceptTheme: async () => { },
-				} as Proxied<TextMateTokenizationWorker>,
+				}),
 				dispose: () => { fake.disposeCount++; },
 				setChannel: () => { },
 				getChannel: () => { throw new Error('unused'); },

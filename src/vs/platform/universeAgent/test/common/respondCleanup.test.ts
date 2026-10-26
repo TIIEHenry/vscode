@@ -52,9 +52,10 @@ suite('clientToolRespondCleanupPatches', () => {
 
 		const patches = clientToolRespondCleanupPatches(snapshot, { callId: 'call-2', isError: true, content: '' });
 
-		assert.strictEqual(patches[0]?.op, 'upsertTimelineItem');
-		assert.strictEqual((patches[0] as { item: SessionViewSnapshot['timeline'][number] }).item.summary.kind, 'tool');
-		assert.strictEqual((patches[0] as { item: SessionViewSnapshot['timeline'][number] }).item.summary.kind === 'tool' && (patches[0] as { item: SessionViewSnapshot['timeline'][number] }).item.summary.status, 'failed');
+		const patch = patches[0];
+		assert.strictEqual(patch?.op, 'upsertTimelineItem');
+		assert.strictEqual(patch.item.summary.kind, 'tool');
+		assert.strictEqual(patch.item.summary.status, 'failed');
 		assert.deepStrictEqual(patches[1], { op: 'removePendingAction', requestId: 'call-2' });
 	});
 

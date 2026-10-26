@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { UniverseAgentSwitchModelResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -3632,13 +3633,11 @@ suite('conversation lens dispose gate', () => {
 			engineSessionReady: true,
 		});
 		try {
-			let releaseFirst: ((value: { resolvedModelId: string }) => void) | undefined;
+			let releaseFirst: ((value: UniverseAgentSwitchModelResult) => void) | undefined;
 			let firstStarted: (() => void) | undefined;
 			const firstEntered = new Promise<void>(resolve => { firstStarted = resolve; });
-			const firstHold = new Promise<{ resolvedModelId: string }>(resolve => { releaseFirst = resolve; });
-			const uaConnection = fixture.host.uaConnection as {
-				switchModel: (request: { sessionId: string; modelId: string }) => Promise<{ resolvedModelId: string }>;
-			};
+			const firstHold = new Promise<UniverseAgentSwitchModelResult>(resolve => { releaseFirst = resolve; });
+			const uaConnection = fixture.host.uaConnection;
 			uaConnection.switchModel = async request => {
 				fixture.modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
 				firstStarted?.();
@@ -3649,7 +3648,7 @@ suite('conversation lens dispose gate', () => {
 			const second = applySessionModelIndex(fixture.host, 'sess-leftover', 2);
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 2);
 			fixture.setPairingPending(true);
-			releaseFirst!({ resolvedModelId: 'gpt-a' });
+			releaseFirst!({ resolvedModelId: 'gpt-a', provider: '', level: 0, cost: '', speed: '' });
 			await first;
 			await second;
 			assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a']);
@@ -3669,13 +3668,11 @@ suite('conversation lens dispose gate', () => {
 			engineSessionReady: true,
 		});
 		try {
-			let releaseModel: ((value: { resolvedModelId: string }) => void) | undefined;
+			let releaseModel: ((value: UniverseAgentSwitchModelResult) => void) | undefined;
 			let modelStarted: (() => void) | undefined;
 			const modelEntered = new Promise<void>(resolve => { modelStarted = resolve; });
-			const modelHold = new Promise<{ resolvedModelId: string }>(resolve => { releaseModel = resolve; });
-			const uaConnection = fixture.host.uaConnection as {
-				switchModel: (request: { sessionId: string; modelId: string }) => Promise<{ resolvedModelId: string }>;
-			};
+			const modelHold = new Promise<UniverseAgentSwitchModelResult>(resolve => { releaseModel = resolve; });
+			const uaConnection = fixture.host.uaConnection;
 			uaConnection.switchModel = async request => {
 				fixture.modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
 				modelStarted?.();
@@ -3684,7 +3681,7 @@ suite('conversation lens dispose gate', () => {
 			const apply = applySessionModelIndex(fixture.host, 'sess-leftover', 1);
 			await modelEntered;
 			fixture.setPairingPending(true);
-			releaseModel!({ resolvedModelId: '' });
+			releaseModel!({ resolvedModelId: '', provider: '', level: 0, cost: '', speed: '' });
 			await apply;
 			assert.strictEqual(fixture.modelSelect.selectedIndex, 0);
 			assert.strictEqual(fixture.host.modelSelectedIndex, 0);
@@ -3703,13 +3700,11 @@ suite('conversation lens dispose gate', () => {
 			engineSessionReady: true,
 		});
 		try {
-			let releaseFirst: ((value: { resolvedModelId: string }) => void) | undefined;
+			let releaseFirst: ((value: UniverseAgentSwitchModelResult) => void) | undefined;
 			let firstStarted: (() => void) | undefined;
 			const firstEntered = new Promise<void>(resolve => { firstStarted = resolve; });
-			const firstHold = new Promise<{ resolvedModelId: string }>(resolve => { releaseFirst = resolve; });
-			const uaConnection = fixture.host.uaConnection as {
-				switchModel: (request: { sessionId: string; modelId: string }) => Promise<{ resolvedModelId: string }>;
-			};
+			const firstHold = new Promise<UniverseAgentSwitchModelResult>(resolve => { releaseFirst = resolve; });
+			const uaConnection = fixture.host.uaConnection;
 			uaConnection.switchModel = async request => {
 				fixture.modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
 				firstStarted?.();
@@ -3719,7 +3714,7 @@ suite('conversation lens dispose gate', () => {
 			await firstEntered;
 			const second = applySessionModelIndex(fixture.host, 'sess-leftover', 2);
 			fixture.setPairingPending(true);
-			releaseFirst!({ resolvedModelId: '' });
+			releaseFirst!({ resolvedModelId: '', provider: '', level: 0, cost: '', speed: '' });
 			await first;
 			await second;
 			assert.deepStrictEqual(fixture.modelCalls.map(call => call.modelId), ['gpt-a']);
@@ -3777,9 +3772,7 @@ suite('conversation lens dispose gate', () => {
 			let firstStarted: (() => void) | undefined;
 			const firstEntered = new Promise<void>(resolve => { firstStarted = resolve; });
 			const firstHold = new Promise<never>((_resolve, reject) => { rejectFirst = reject; });
-			const uaConnection = fixture.host.uaConnection as {
-				switchModel: (request: { sessionId: string; modelId: string }) => Promise<{ resolvedModelId: string }>;
-			};
+			const uaConnection = fixture.host.uaConnection;
 			uaConnection.switchModel = async request => {
 				fixture.modelCalls.push({ sessionId: request.sessionId, modelId: request.modelId });
 				firstStarted?.();

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { spy } from 'sinon';
 import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -37,7 +38,6 @@ suite('OutputService - output folder creation', () => {
 		const lifecycleService = disposables.add(new TestLifecycleService());
 		const storageService = disposables.add(new TestStorageService());
 		const instantiationService = disposables.add(new TestInstantiationService());
-		const folderPromises: Promise<unknown>[] = [];
 		const resources: URI[] = [];
 		let attempts = 0;
 		let rejectFirst: (error: Error) => void = () => {
@@ -92,13 +92,12 @@ suite('OutputService - output folder creation', () => {
 		instantiationService.stubInstance(FileOutputChannelModel, model);
 		instantiationService.stubInstance(MultiFileOutputChannelModel, model);
 
-		const originalCreate = instantiationService.createInstance.bind(instantiationService);
-		instantiationService.createInstance = ((ctor: unknown, ...args: unknown[]) => {
-			if (typeof ctor === 'function' && ctor.name === 'OutputChannel' && args[2] instanceof Promise) {
-				folderPromises.push(args[2]);
-			}
-			return originalCreate(ctor as never, ...args as never[]);
-		}) as typeof instantiationService.createInstance;
+		const createInstanceSpy = spy(instantiationService, 'createInstance');
+		disposables.add({ dispose: () => createInstanceSpy.restore() });
+		const folderPromises = (): Promise<unknown>[] => createInstanceSpy.getCalls().flatMap(call => {
+			const [ctor, , , folder] = call.args;
+			return typeof ctor === 'function' && ctor.name === 'OutputChannel' && folder instanceof Promise ? [folder] : [];
+		});
 
 		const outputService = disposables.add(instantiationService.createInstance(OutputService));
 		const suffix = `${Date.now()}`;
@@ -113,13 +112,13 @@ suite('OutputService - output folder creation', () => {
 				register('first');
 			}
 			assert.strictEqual(attempts, 1, 'first output channel should create the folder once');
-			assert.ok(folderPromises.length >= 1);
-			const failed = folderPromises[0];
-			assert.ok(folderPromises.every(promise => promise === failed), 'in-flight channels must share the creation promise');
+			assert.ok(folderPromises().length >= 1);
+			const failed = folderPromises()[0];
+			assert.ok(folderPromises().every(promise => promise === failed), 'in-flight channels must share the creation promise');
 
 			register('while-pending');
 			assert.strictEqual(attempts, 1, 'a second channel must not create the folder while the first attempt is pending');
-			assert.ok(folderPromises.every(promise => promise === failed));
+			assert.ok(folderPromises().every(promise => promise === failed));
 
 			const failure = failed.then(() => {
 				throw new Error('output folder creation should reject');
@@ -130,11 +129,11 @@ suite('OutputService - output folder creation', () => {
 			assert.strictEqual(error.message, 'create-output-folder-failed');
 			await new Promise(resolve => setTimeout(resolve, 0));
 
-			const promisesBeforeRetry = folderPromises.length;
+			const promisesBeforeRetry = folderPromises().length;
 			register('retry');
 			assert.strictEqual(attempts, 2, 'the next channel should create the folder again after rejection');
-			assert.ok(folderPromises.length > promisesBeforeRetry);
-			const retried = folderPromises[folderPromises.length - 1];
+			assert.ok(folderPromises().length > promisesBeforeRetry);
+			const retried = folderPromises()[folderPromises().length - 1];
 			assert.notStrictEqual(retried, failed);
 			await retried;
 			assert.strictEqual(resources[0].toString(), resources[1].toString());

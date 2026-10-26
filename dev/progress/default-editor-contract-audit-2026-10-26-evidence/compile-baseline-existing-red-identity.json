@@ -1,0 +1,25 @@
+{
+  "oldSourceHead": "c968c0627e7",
+  "oldTestSourceSha256": "914d1e12eb9ef2499149c8d75011132569c101498cf7d12bed9054825135ae5b",
+  "oldTestOutputSha256": "a2ba5a7346f7dc4d7d8726948f6dc0f63ccd2d2481dffd9bc1c9ec8101d7dc4d",
+  "currentTestOutputSha256": "9f1da0a76209b1cd4b71278a46b8feea0b8e74f16780f27e25181f6d6f1a46ab",
+  "testExitCode": 1,
+  "restoredTestOutputSha256": "9f1da0a76209b1cd4b71278a46b8feea0b8e74f16780f27e25181f6d6f1a46ab",
+  "unchangedProduction": [
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLens.ts",
+      "sha256": "bb1e6108f5a17ebbc8d902dabbd59c856a15c3a86477f94b36dc30c7147e0dbd",
+      "equalToC968": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts",
+      "sha256": "aaea54ee64a4193e3a624cd0f47c9291a02f8624df82e93febe3880e3bdf1fac",
+      "equalToC968": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts",
+      "sha256": "333dce7dd9b0e64808c2a4c920217272677fd15338ccdb1025498ce9f2dbeedf",
+      "equalToC968": true
+    }
+  ]
+}

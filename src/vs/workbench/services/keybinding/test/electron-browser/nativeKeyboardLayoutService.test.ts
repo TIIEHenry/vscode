@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { Emitter, Event } from '../../../../../base/common/event.js';
+import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { IChannel } from '../../../../../base/parts/ipc/common/ipc.js';
 import { mock } from '../../../../../base/test/common/mock.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -147,7 +148,7 @@ suite('NativeKeyboardLayoutService', () => {
 		assert.strictEqual(channel.reads, 1);
 		assert.strictEqual(channel.listens, 1);
 
-		const seen = Event.toPromise(service.onDidChangeKeyboardLayout, store);
+		const seen = Event.toPromise(service.onDidChangeKeyboardLayout, store.add(new DisposableStore()));
 		channel.onDidChange.fire(changed);
 		await seen;
 

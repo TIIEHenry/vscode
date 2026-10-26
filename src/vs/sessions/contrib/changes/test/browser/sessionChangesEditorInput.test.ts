@@ -166,7 +166,7 @@ suite('SessionChangesEditorInput', () => {
 			override readonly activeSessionChangesObs = constObservable([{ modifiedUri: resource, insertions: 1, deletions: 0, reviewed: false }]);
 		}());
 
-		const factory = instantiationService.createInstance(SessionChangesUIElementFactory, constObservable([]));
+		const factory = instantiationService.createInstance(SessionChangesUIElementFactory, constObservable([{ modifiedUri: resource, insertions: 1, deletions: 0, reviewed: false }]), constObservable(undefined));
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
 		process.on('unhandledRejection', onUnhandledRejection);

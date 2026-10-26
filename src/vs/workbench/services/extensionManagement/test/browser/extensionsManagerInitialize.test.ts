@@ -79,7 +79,7 @@ suite('ExtensionsManager initialize', () => {
 
 		await manager.whenInitialized();
 		assert.strictEqual(reads, 1);
-		assert.deepStrictEqual(manager.extensions, []);
+		assert.deepStrictEqual([...manager.extensions], []);
 
 		await manager.whenInitialized();
 		assert.strictEqual(reads, 2);

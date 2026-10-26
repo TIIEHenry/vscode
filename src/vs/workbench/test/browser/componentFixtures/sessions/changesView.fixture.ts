@@ -138,6 +138,8 @@ class FixtureChangesViewService extends Disposable implements IChangesViewServic
 
 	setChangesetFilesReviewState(_resources: readonly URI[], _reviewed: boolean): void { }
 
+	setSessionChangesetFilesReviewState(_sessionResource: URI, _resources: readonly URI[], _reviewed: boolean): void { }
+
 	setViewMode(mode: ChangesViewMode): void {
 		this.viewModeObs.set(mode, undefined);
 	}

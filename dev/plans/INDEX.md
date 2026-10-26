@@ -14,7 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [当前 TypeScript 编译合同基线](current-typescript-contract-baseline.md) | `accepted` | c968全量真实45诊断/27文件，按正式API修基线，不改编译范围或削弱断言；规则16待审。 |
+| [当前 TypeScript 编译合同基线](current-typescript-contract-baseline.md) | `implemented` | 全量compile-client45→3→0；27文件合同修复，Electron325过3既有红、Node10过，Astra源码C0/I0；D17不关闭。 |
 | [Sources 打开分派与准确 Conversation 目标](sources-open-dispatch-and-conversation-target.md) | `accepted` | D1387；真Git已证API DTO漏分派与concrete Conversation组路由两独立机制；三owner/slot/void保持，规则16已通过C0/I0，未实施。 |
 | [Conversation 叶级会话工作根身份条](2026-10-26-leaf-session-root-identity.md) | `implemented` | D1386；原根归属11红/40+Lens8绿，I1旧CSS4几何红/新完整44绿；非作者真实默认编辑器after C0/I0/M0、正式dee625 CSS复验通过，范围内closed。 |
 | [Copilot Chat 首次连接录音授权](copilot-chat-cold-voice-authorization.md) | `accepted` | D1385；共享兼容修复原5红/182绿、取消旧红/完整183绿；默认产品宿主前提失效，原UI验收未满足并停止，移出当前产品执行队列；accepted/open保留。 |
