@@ -1,0 +1,130 @@
+{
+  "label": "E-related-full",
+  "sourceHead": "bb41f815236afc5073df1699a0c97c696d7ee028",
+  "sourceTree": "d5eca6c1557b921827c2585104d54871936212ae",
+  "nativeCompileHead": "bb41f815236afc5073df1699a0c97c696d7ee028",
+  "nativeCompileExit": 0,
+  "nativeSourceOutputIdentityScope": 156,
+  "nativeOutputsAllExistAndUnchanged": true,
+  "nativeJavaScriptAllWrittenAfterCompileStart": true,
+  "nativeCopiedCssExactSourceBytes": true,
+  "sourceHashesAllMatchCompiledRecord": true,
+  "startedAtUtc": "2026-10-26T19:43:10.495346+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationResponseState.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionView.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineHost.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationQuestionSeat.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationProcessFold.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationProcessFoldToolDetails.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationStreamToDom.test.ts",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationStreamScripts.test.ts"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "sharedLockHeld": true,
+  "globalLaneMatches": [],
+  "outFrozen": false,
+  "additionalTestOutputsOutside156Scope": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionView.test.ts",
+      "sourceSha256": "c9402f75a73c9b1d4d25b18873aa99da0b594157de74b825d38a8ceead4d59e8",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionView.test.js",
+      "outputSha256": "988a46697fe19955326a327df1a07b9388504c8930b88e167014a0037256863b",
+      "writtenAfterActualCompile6Start": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineHost.test.ts",
+      "sourceSha256": "bc4b4c129673665f392b4c6ffccbb1da1aa91dabf2174d2751a39dba6f33bb05",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationTimelineHost.test.js",
+      "outputSha256": "edd6e87220dcce36d09bfe6e9db2c62af7837666185806dedc7d134a4892e9bf",
+      "writtenAfterActualCompile6Start": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationQuestionSeat.test.ts",
+      "sourceSha256": "aa285a2d3170ec14e4291bdcec496c7548cc83bd5717b06019eb1ce99ba1fc11",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationQuestionSeat.test.js",
+      "outputSha256": "89b5d04142ac85bba6a98cfed85b0f9cb7ab91f27b6042c6613ec26b39d86ed3",
+      "writtenAfterActualCompile6Start": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationProcessFold.test.ts",
+      "sourceSha256": "bd9b9688fc14f166796525c77bae7ec8264b88e4f3734599fe158e1d4f2685f4",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationProcessFold.test.js",
+      "outputSha256": "da3eb01fa1a474f0cc28dd7bfd4b036ff215b774490f17bb7943056b1fa25527",
+      "writtenAfterActualCompile6Start": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationProcessFoldToolDetails.test.ts",
+      "sourceSha256": "b701505eafec46c1104bc2ef2bca720e0355f47debc7b229b7ba338a73cf6ad3",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationProcessFoldToolDetails.test.js",
+      "outputSha256": "90280339e2543297bedf2e954df7a68be82f13353aeaf171e81cb6ebee9f955e",
+      "writtenAfterActualCompile6Start": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationStreamToDom.test.ts",
+      "sourceSha256": "43189b40c8ffabaa4785aa209ad6871af796f17e483b6567995f8c121334cd8c",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationStreamToDom.test.js",
+      "outputSha256": "18bb169087e7a5566d5337f4ed2f789a956b06010e73a2c6c3cff2443afba0f3",
+      "writtenAfterActualCompile6Start": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationStreamScripts.test.ts",
+      "sourceSha256": "b9093fd8d2480d88daed66b99ccffd978320624fd24e7b3dd2e7095d98cd907b",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationStreamScripts.test.js",
+      "outputSha256": "06f0540804cfebe98f46b7dc98053740444c2fb3a2fe563fd5793fcbb82f1ff6",
+      "writtenAfterActualCompile6Start": true
+    }
+  ],
+  "additionalTestOutputsUnchangedAfterRun": true,
+  "testFiles": [
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationResponseState.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionView.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineHost.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationQuestionSeat.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationProcessFold.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationProcessFoldToolDetails.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationStreamToDom.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationStreamScripts.test.ts"
+  ],
+  "exitCode": 1,
+  "finishedAtUtc": "2026-10-26T19:43:12.540597+00:00",
+  "mochaSummaries": [
+    "  255 passing (540ms)",
+    "  1 failing"
+  ],
+  "outputsUnchangedAfterRun": true,
+  "sourceTreeUnchanged": true
+}

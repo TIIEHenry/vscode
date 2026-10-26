@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留E/合源、D真实M01、d046两I及compile5失败历史；a222两I和0da326类型补修peer C0/I0/M0，新harness旧红/compile6及after待。"
+summary: "保留M01修订历史；compile6实际通过但新运行暴露Pane自有diff view model缺失I1，24/2与410/2非green；局部生命周期补修待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -431,3 +431,28 @@ lane报告本轮finally已恢复154 native、3份旧生产与test输出存在性
 Pane、Panel no-unhandled负控、WiringScan三blob逐一与父相同；旧Accept扫描保持。三份受改TS SHA256独立核验：Actions `0057a1546f0f77eca716c70ee0a5b13c657e010436d5319eaa335042c3dcfdbc`；Helper `84dd59d318a28b8645a132a6861ab82297f6b77d301a52e4fc3011d7914fad52`；MoveSource test `86e90709a2ac0453c4b464f404e8cb41cd961963d2578a86b6313367d98a39ca`。
 
 **Assessment：本次静态C/I闭合，可按父调度继续新harness配精确旧928三生产的4入口重跑，并在原件接入后进行第六次实际完整编译。** 新旧harness运行身份分记，不能复用a222四红；failed compile5当前out身份与此前freeze不同，临时替换的finally恢复由唯一lane记录。本reviewer不预言编译通过，不把作者AST/lint当成编译，也不签新38/完整套或D after完成。B本轮起点clean `04ea96be19dc57cd128dfbea0206ca539587fb53`，src fdca不变；仅原报告与INDEX，先行短C/I已交父和lane。
+
+
+## 15. 第六轮实际编译后的Pane视图模型泄漏定界（2026-10-27）
+
+### 实际运行与可声明边界
+
+唯一lane运行JSON记录source/native producer `bb41f815236afc5073df1699a0c97c696d7ee028`，src `d5eca6c1557b921827c2585104d54871936212ae` 与0da326精确一致，compile6实际exit0；本reviewer未编译，独立读以下raw与身份JSON：
+
+| 原始运行日志（/tmp/） | 实际结果与边界 | SHA256 |
+| --- | --- | --- |
+| `vscode-m01-sixth-M01-focused.log` | 24 passing / 2 failing：23受控及首个真实button empty-global业务本体通过，随后afterEach失败；余14未到达，非38green | `338cec2c2afc644c96d6642b8bacdeb735964d81e45fdeac6d1680fa3d121896` |
+| `vscode-m01-sixth-J-complete-11.log` | 410 passing / 2 failing：同一首真实入口之后同6资源泄漏与console连带失败，非完整相关套通过 | `9b1a842572d7465220dcc9cf66c566ac8c0926edd8c9f676c012233b9f164f97` |
+| `vscode-m01-sixth-J-wiring-scan.log` | 23 passing / 1 failing：新Move双catch/context扫描实过；失败仍为原Accept builder的 `!source.includes("parseSourcesGitUnifiedDiff")`，不得改预期遮掩 | `503fb7a16fd6138f6f1315fc4c40ca95276cc16bc719617e112ff19d5c3fe258` |
+
+两个浏览器失败分别是6 undisposed disposables，以及leak输出触发Unexpected console output；不能算两项独立产品断言。泄漏为2个DiffEditorViewModel及各自DisposableStore/FunctionDisposable，创建栈均指向DiffEditorWidget.setModel→ConversationDiffReviewPane.renderDiff。focused JSON明确outFrozen=false；新freeze/UI未执行。临时原件由唯一lane继续落中央报告/库存，本报告不复制其大包或代签恢复检查。
+
+### 独立根因与最小修复：Critical 0 / Important 1 / Minor 0
+
+**I1为产品Pane的视图模型所有权缺口，不是仅测试少等一个tick。** 已直接读0da源码：Pane在renderDiff持有两个text model reference，却把raw `{ original, modified }`交给widget.setModel；clearEditors已执行setModel(null)、清widget及原/改text refs，测试finally也确实dispose拥有真实parts的store。widget `diffEditorWidget.ts:509–513` 对raw model创建view model及初始RefCounted；`setDiffModel:533`再存一份clone。`utils.ts:470,492–509`显示初始计数1、clone加1，仅归零才dispose；setModel没有交回或释放初始base，detach/清widget撤clone仍不能归零。534–538行零延迟定时器只释放额外prev clone，等待它不能补上遗失base的释放。两个真实A/B Pane与2组VM子资源相符；测试泄漏检查暴露的是实际对象链，不应在fixture里窥私有VM替产品补清。
+
+**最小正确处理由当前Pane明确拥有VM。** 使用现有公开createViewModel，登记到Pane注册的MutableDisposable<IDiffEditorViewModel>，再把VM交widget；参考现有TextDiffEditor自行创建、保存和释放_previousViewModel的合同。clearEditors先detach widget并清理widget，再释放Pane自有VM，最后释放text model references；setInput更换、clearInput、dispose共用既有清理入口。保留renderDiff在两个异步reference成功之后的input/token/renderGeneration/disposed筛选，失效仅释放该次局部refs；创建并登记VM之后不引入新的await，避免旧完成清掉新代次。VM只拥有自身diff计算/监听，不替代文本引用所有权；同tuple两个Pane各有自己的VM，关B不能销毁A仍渲染的text model。modified-only、load失败和取消路径不得虚造VM或提前释放仍在显示的模型。
+
+父已明确接受上述判定并授权原J局部实施；**仍属原M01生命周期补修，不新增产品契约、resolver/服务或全局DiffEditorWidget改造，无需另开方案/重复规则16。** 若实现扩大到全局widget引用计数或跨Pane共享owner，则超出本判定，须重新审查。禁止关闭leak检查、压console、mark singleton、测试手工释放产品私有VM、用超时碰运气，或删真实parts/Pane覆盖。
+
+原J不可变补修尚待；后续peer需核创建/异常/代际及清理顺序，唯一lane再实际验证首真实入口无泄漏并完成其余14及相关套。§14 C0/I0仅静态类型补修，不抹掉本轮新实际Important；M01/D1387仍open。reviewer本轮仅报告+INDEX，未运行native、未改产品/tests/D或out。

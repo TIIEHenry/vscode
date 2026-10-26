@@ -1,0 +1,14 @@
+{
+  "phase": "parent-reported-independent-read-only-checks-not-business-reruns",
+  "recordedAtUtc": "2026-10-26T19:48:29.927614+00:00",
+  "source": "Explicit parent collaboration messages in this session; this is a structured derivative, not an invented tool log.",
+  "checks": {
+    "old0daHarnessFourBusinessRedsAnd156FinallyRestorationJsonActuallyRead": true,
+    "compile6Exit0ZeroDiagnosticsBothGlobalScansAnd156SourceNativeHashesRecomputed": true,
+    "bb41And0daSourceTreeD5ecaAndD91Peer25bfAncestorsVerified": true,
+    "formal252InventoryBytesShaAllRecomputed": true,
+    "typesSource82AndTypesPeer338ModeTypeBlobRowsRecomputedAgainstRealGitTrees": true,
+    "Astra597ProductI1AcceptedForLocalPaneOwnerRepair": true
+  },
+  "noParentBusinessRerunClaim": true
+}

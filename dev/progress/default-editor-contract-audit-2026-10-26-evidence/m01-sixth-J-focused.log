@@ -1,0 +1,42 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1817989:1027/033803.381761:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1818002) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1818002) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1818002) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources - Changes list open[0m
+  [32m  ✔[0m[90m delegated host official file newTab records inactive B and its canonical reveal while A stays active[0m[33m (73ms)[0m
+  [32m  ✔[0m[90m delegated host official file replace records inactive B and its canonical reveal while A stays active[0m
+  [32m  ✔[0m[90m delegated host official diff newTab records inactive B and its canonical reveal while A stays active[0m
+  [32m  ✔[0m[90m delegated host official diff replace records inactive B and its canonical reveal while A stays active[0m
+  [32m  ✔[0m[90m Sources overlap same tuple g1 settles first never attributes B to the no-op delegate[0m
+  [32m  ✔[0m[90m Sources overlap same tuple g2 settles first never attributes B to the no-op delegate[0m
+  [32m  ✔[0m[90m Sources overlap same tuple in the initiating group skips replace close[0m
+  [32m  ✔[0m[90m Sources overlap three delegates retains sticky ambiguity after the first leaves[0m
+  [32m  ✔[0m[90m Sources overlap custom wildcard with diff customFirst=false preserves only its pre-pin cost[0m
+  [32m  ✔[0m[90m Sources overlap custom wildcard with diff customFirst=true preserves only its pre-pin cost[0m
+  [32m  ✔[0m[90m Sources overlap custom wildcard with custom customFirst=false preserves only its pre-pin cost[0m
+  [32m  ✔[0m[90m Sources overlap custom wildcard with custom customFirst=true preserves only its pre-pin cost[0m
+  [32m  ✔[0m[90m Sources overlap independent ordered sides retains each accurate identity[0m
+  [32m  ✔[0m[90m Sources overlap independent query retains each accurate identity[0m
+  [32m  ✔[0m[90m Sources overlap independent fragment retains each accurate identity[0m
+  [32m  ✔[0m[90m Sources overlap independent file versus diff retains each accurate identity[0m
+  [32m  ✔[0m[90m Sources overlap independent service instance retains each accurate identity[0m
+  [32m  ✔[0m[90m Sources overlap reject finally releases the registry and listener for the next sequential open[0m
+  [32m  ✔[0m[90m delegated host unopened will verifies actual group members before side effects[0m
+  [32m  ✔[0m[90m delegated host disposed member verifies actual group members before side effects[0m
+  [32m  ✔[0m[90m delegated host removed group verifies actual group members before side effects[0m
+  [32m  ✔[0m[90m delegated host same-id replacement verifies actual group members before side effects[0m
+  [32m  ✔[0m[90m delegated host two observed hosts verifies actual group members before side effects[0m
+  [32m  ✔[0m[90m delegated host two fallback tabs verifies actual group members before side effects[0m
+  [32m  ✔[0m[90m delegated host one inactive fallback tab verifies actual group members before side effects[0m
+  [32m  ✔[0m[90m delegated host canonical member verifies actual group members before side effects[0m
+  [32m  ✔[0m[90m delegated host custom observed comparison records and pins only the verified new member[0m
+  [32m  ✔[0m[90m delegated host cannot invent a group from a bare active editor[0m
+  [32m  ✔[0m[90m delegated host uses one captured DTO for dispatch, key and matching while resource.command changes[0m
+
+
+[92m [0m[32m 29 passing[0m[90m (190ms)[0m
+

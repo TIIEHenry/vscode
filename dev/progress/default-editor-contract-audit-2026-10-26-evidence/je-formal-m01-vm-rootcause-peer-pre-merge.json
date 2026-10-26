@@ -1,0 +1,7 @@
+{
+  "phase": "before-real-three-way-M01-VM-product-I1-report",
+  "ours": "bb41f815236afc5073df1699a0c97c696d7ee028",
+  "theirs": "5972836d932ff0cbde50c970b672743e0eee8563",
+  "mergeBase": "25bf24e8216fffda3060e31794b8d75716b07ff2",
+  "recordedAtUtc": "2026-10-26T19:44:23.088423+00:00"
+}

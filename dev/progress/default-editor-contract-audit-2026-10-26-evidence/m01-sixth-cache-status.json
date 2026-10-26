@@ -1,0 +1,44 @@
+{
+  "phase": "same-compile-window-owned-ignored-cache-mirrors-still-verified-not-restored",
+  "recordedAtUtc": "2026-10-26T19:48:29.919989+00:00",
+  "verificationCompletedAtUtc": "2026-10-26T19:44:26.968915+00:00",
+  "fullOriginalRepositoryInventory": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-fifth-cache-relocation.json",
+  "fullOriginalRepositoryInventorySha256": "2eae5abd8852d7263be8bdc9f6987bce8a6cc9174fcb1b16662b775c6b475c53",
+  "directories": [
+    {
+      "sourceDirectory": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/extensions",
+      "destinationDirectory": "/tmp/vscode-m01-fifth-extensions-m61of5_0/extensions",
+      "gitIgnored": true,
+      "fileBytes": 586758778,
+      "phase": "relocated-with-original-path-symlink",
+      "copyInventoryExact": true,
+      "entriesCount": 27147,
+      "originalAndCurrentEntryInventoryExact": true
+    },
+    {
+      "sourceDirectory": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron",
+      "destinationDirectory": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron",
+      "gitIgnored": true,
+      "fileBytes": 326323956,
+      "phase": "relocated-with-original-path-symlink",
+      "copyInventoryExact": true,
+      "entriesCount": 79,
+      "originalAndCurrentEntryInventoryExact": true
+    },
+    {
+      "sourceDirectory": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/foundry-local-sdk",
+      "destinationDirectory": "/tmp/vscode-m01-fifth-foundry-local-sdk-d4_hburf/foundry-local-sdk",
+      "gitIgnored": true,
+      "fileBytes": 676937452,
+      "phase": "relocated-with-original-path-symlink",
+      "copyInventoryExact": true,
+      "entriesCount": 81,
+      "originalAndCurrentEntryInventoryExact": true
+    }
+  ],
+  "homeAvailableBytes": 1517486080,
+  "tmpAvailableBytes": 2810290176,
+  "sourceOutEvidenceNotMigrated": true,
+  "parentAuthorizedSameBuildWindowPendingNextRepair": true,
+  "restored": false
+}

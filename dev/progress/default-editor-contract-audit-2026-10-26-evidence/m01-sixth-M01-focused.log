@@ -1,0 +1,235 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1817788:1027/033801.332794:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1817812) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1817812) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1817812) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources M01 move source[0m
+  [32m  ✔[0m[90m native toolbar captures the explicit group instead of unrelated global active[0m
+  [32m  ✔[0m[90m native context menu captures the explicit group instead of unrelated global active[0m
+  [32m  ✔[0m[90m native explicit invalid index -1 never falls back[0m
+  [32m  ✔[0m[90m native explicit invalid index 1 never falls back[0m
+  [32m  ✔[0m[90m native explicit invalid index 0.5 never falls back[0m
+  [32m  ✔[0m[90m native explicit invalid index NaN never falls back[0m
+  [32m  ✔[0m[90m native explicit invalid index null never falls back[0m
+  [32m  ✔[0m[90m explicit disposed input cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit replaced member cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit changed pane cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit removed group cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit same id group cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit removed part cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit same key part cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit wrong source kind cannot borrow another active editor[0m
+  [32m  ✔[0m[90m explicit wrong input type cannot borrow another active editor[0m
+  [32m  ✔[0m[90m await global focus preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m await same URI replacement preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m await pane replacement preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m await group replacement preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m await part replacement preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m await session key change preserves dispatch and rechecks the captured close target[0m
+  [32m  ✔[0m[90m explicit non-leaf rejection retains the existing close algebra[0m
+  [32m  ✔[0m[90m real Pane registered command button empty global moves only B from real Conversation parts[0m[31m (221ms)[0m
+[1817755:1027/033803.126114:INFO:CONSOLE:272] "
+
+
+==================== Leaking disposable 1/6: DiffEditorViewModel ====================
+(shared with 2/6 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 2/6 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 2/6 leaks) at new Disposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:366:5)
+(shared with 2/6 leaks) at new DiffEditorViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:30:5)
+(shared with 2/6 leaks) at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+(shared with 2/6 leaks) at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)
+(shared with 2/6 leaks) at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)
+(shared with 2/6 leaks) at DiffEditorWidget.createViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:443:39)
+(shared with 2/6 leaks) at DiffEditorWidget.setModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:449:120)
+(shared with 2/6 leaks) at ConversationDiffReviewPane.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js:696:12)
+    - stacktraces of 2 other leaks continue with AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)
+    - stacktraces of 2 other leaks continue with TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+============================================================
+
+
+
+
+==================== Leaking disposable 2/6: _DisposableStore ====================
+(shared with 2/6 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 2/6 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 2/6 leaks) at new _DisposableStore (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:276:5)
+(shared with 2/6 leaks) at get store (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:194:21)
+(shared with 2/6 leaks) at AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:221:28)
+(shared with 2/6 leaks) at AutorunObserver._run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:84:16)
+(shared with 2/6 leaks) at new AutorunObserver (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:37:10)
+(shared with 2/6 leaks) at autorun (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorun.js:8:10)
+(shared with 2/6 leaks) at new DiffEditorViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:219:20)
+(shared with 2/6 leaks) at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+    - stacktraces of 2 other leaks continue with AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)
+    - stacktraces of 2 other leaks continue with ConversationDiffReviewPane.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js:696:12)
+============================================================
+
+
+
+
+==================== Leaking disposable 3/6: FunctionDisposable ====================
+(shared with 2/6 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 2/6 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 2/6 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+(shared with 2/6 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+(shared with 2/6 leaks) at SyncDocumentDiffProvider.onDidChange [as event] (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/test/browser/diff/testDiffProviderFactoryService.js:10:30)
+(shared with 2/6 leaks) at FromEventObservableSignal.onFirstObserverAdded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/observableSignalFromEvent.js:26:30)
+(shared with 2/6 leaks) at FromEventObservableSignal.addObserver (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/baseObservable.js:116:12)
+(shared with 2/6 leaks) at AutorunObserver.readObservable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:182:16)
+(shared with 2/6 leaks) at FromEventObservableSignal.read (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/baseObservable.js:30:21)
+(shared with 2/6 leaks) at AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)
+    - stacktraces of 2 other leaks continue with TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+    - stacktraces of 2 other leaks continue with ConversationDiffReviewPane.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js:696:12)
+============================================================
+
+
+
+
+==================== Leaking disposable 4/6: DiffEditorViewModel ====================
+(shared with 2/6 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+(shared with 2/6 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+(shared with 2/6 leaks) at new Disposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:366:5)
+(shared with 2/6 leaks) at new DiffEditorViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:30:5)
+(shared with 2/6 leaks) at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+(shared with 2/6 leaks) at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/  [31m  1) "after each" hook for "real Pane registered command button empty global moves only B from real Conversation parts"[0m
+  [31m  2) "after each" hook for "real Pane registered command button empty global moves only B from real Conversation parts"[0m
+
+
+[92m [0m[32m 24 passing[0m[90m (305ms)[0m
+[31m  2 failing[0m
+
+[0m  1) Sources M01 move source
+       "after each" hook for "real Pane registered command button empty global moves only B from real Conversation parts":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  Error: There are 6 undisposed disposables!
+  
+  
+  ==================== Leaking disposable 1/6: DiffEditorViewModel ====================
+  (shared with 2/6 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 2/6 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 2/6 leaks) at new Disposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:366:5)
+  (shared with 2/6 leaks) at new DiffEditorViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:30:5)
+  (shared with 2/6 leaks) at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+  (shared with 2/6 leaks) at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)
+  (shared with 2/6 leaks) at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)
+  (shared with 2/6 leaks) at DiffEditorWidget.createViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:443:39)
+  (shared with 2/6 leaks) at DiffEditorWidget.setModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:449:120)
+  (shared with 2/6 leaks) at ConversationDiffReviewPane.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js:696:12)
+      - stacktraces of 2 other leaks continue with AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)
+      - stacktraces of 2 other leaks continue with TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 2/6: _DisposableStore ====================
+  (shared with 2/6 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 2/6 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 2/6 leaks) at new _DisposableStore (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:276:5)
+  (shared with 2/6 leaks) at get store (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:194:21)
+  (shared with 2/6 leaks) at AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:221:28)
+  (shared with 2/6 leaks) at AutorunObserver._run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:84:16)
+  (shared with 2/6 leaks) at new AutorunObserver (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:37:10)
+  (shared with 2/6 leaks) at autorun (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorun.js:8:10)
+  (shared with 2/6 leaks) at new DiffEditorViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:219:20)
+  (shared with 2/6 leaks) at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+      - stacktraces of 2 other leaks continue with AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)
+      - stacktraces of 2 other leaks continue with ConversationDiffReviewPane.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js:696:12)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 3/6: FunctionDisposable ====================
+  (shared with 2/6 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 2/6 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 2/6 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 2/6 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 2/6 leaks) at SyncDocumentDiffProvider.onDidChange [as event] (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/test/browser/diff/testDiffProviderFactoryService.js:10:30)
+  (shared with 2/6 leaks) at FromEventObservableSignal.onFirstObserverAdded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/observableSignalFromEvent.js:26:30)
+  (shared with 2/6 leaks) at FromEventObservableSignal.addObserver (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/baseObservable.js:116:12)
+  (shared with 2/6 leaks) at AutorunObserver.readObservable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:182:16)
+  (shared with 2/6 leaks) at FromEventObservableSignal.read (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/baseObservable.js:30:21)
+  (shared with 2/6 leaks) at AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)
+      - stacktraces of 2 other leaks continue with TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+      - stacktraces of 2 other leaks continue with ConversationDiffReviewPane.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js:696:12)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 4/6: DiffEditorViewModel ====================
+  (shared with 2/6 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 2/6 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 2/6 leaks) at new Disposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:366:5)
+  (shared with 2/6 leaks) at new DiffEditorViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:30:5)
+  (shared with 2/6 leaks) at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+  (shared with 2/6 leaks) at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)
+  (shared with 2/6 leaks) at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)
+  (shared with 2/6 leaks) at DiffEditorWidget.createViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:443:39)
+  (shared with 2/6 leaks) at DiffEditorWidget.setModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:449:120)
+  (shared with 2/6 leaks) at ConversationDiffReviewPane.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js:696:12)
+      - stacktraces of 2 other leaks continue with AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)
+      - stacktraces of 2 other leaks continue with TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 5/6: _DisposableStore ====================
+  (shared with 2/6 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 2/6 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 2/6 leaks) at new _DisposableStore (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:276:5)
+  (shared with 2/6 leaks) at get store (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:194:21)
+  (shared with 2/6 leaks) at AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:221:28)
+  (shared with 2/6 leaks) at AutorunObserver._run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:84:16)
+  (shared with 2/6 leaks) at new AutorunObserver (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:37:10)
+  (shared with 2/6 leaks) at autorun (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorun.js:8:10)
+  (shared with 2/6 leaks) at new DiffEditorViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:219:20)
+  (shared with 2/6 leaks) at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+      - stacktraces of 2 other leaks continue with AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)
+      - stacktraces of 2 other leaks continue with ConversationDiffReviewPane.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js:696:12)
+  ============================================================
+  
+  
+  
+  
+  ==================== Leaking disposable 6/6: FunctionDisposable ====================
+  (shared with 2/6 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)
+  (shared with 2/6 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)
+  (shared with 2/6 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)
+  (shared with 2/6 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)
+  (shared with 2/6 leaks) at SyncDocumentDiffProvider.onDidChange [as event] (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/test/browser/diff/testDiffProviderFactoryService.js:10:30)
+  (shared with 2/6 leaks) at FromEventObservableSignal.onFirstObserverAdded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/observableSignalFromEvent.js:26:30)
+  (shared with 2/6 leaks) at FromEventObservableSignal.addObserver (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/baseObservable.js:116:12)
+  (shared with 2/6 leaks) at AutorunObserver.readObservable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:182:16)
+  (shared with 2/6 leaks) at FromEventObservableSignal.read (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/baseObservable.js:30:21)
+  (shared with 2/6 leaks) at AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)
+      - stacktraces of 2 other leaks continue with TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)
+      - stacktraces of 2 other leaks continue with ConversationDiffReviewPane.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js:696:12)
+  ============================================================
+  
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/test/common/utils.js:45:15)
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js:469:17
+[0m
+[0m  2) "after each" hook for "real Pane registered command button empty global moves only B from real Conversation parts":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Error: Unexpected console output in test run. Please ensure no console.[log|error|info|warn] usage in tests or runtime errors.
+      at Context.<anonymous> (renderer.js:340:11)
+[0m
+
+

@@ -1,0 +1,50 @@
+{
+  "label": "M01-focused",
+  "sourceHead": "bb41f815236afc5073df1699a0c97c696d7ee028",
+  "sourceTree": "d5eca6c1557b921827c2585104d54871936212ae",
+  "nativeCompileHead": "bb41f815236afc5073df1699a0c97c696d7ee028",
+  "nativeCompileExit": 0,
+  "nativeSourceOutputIdentityScope": 156,
+  "nativeOutputsAllExistAndUnchanged": true,
+  "nativeJavaScriptAllWrittenAfterCompileStart": true,
+  "nativeCopiedCssExactSourceBytes": true,
+  "sourceHashesAllMatchCompiledRecord": true,
+  "startedAtUtc": "2026-10-26T19:38:00.995524+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffMoveSource.test.ts",
+    "--grep",
+    "Sources M01 move source"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "sharedLockHeld": true,
+  "globalLaneMatches": [],
+  "outFrozen": false,
+  "testFiles": [
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffMoveSource.test.ts"
+  ],
+  "exitCode": 1,
+  "finishedAtUtc": "2026-10-26T19:38:03.164874+00:00",
+  "mochaSummaries": [
+    "  24 passing (305ms)",
+    "  2 failing"
+  ],
+  "outputsUnchangedAfterRun": true,
+  "sourceTreeUnchanged": true
+}
