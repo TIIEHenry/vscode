@@ -810,3 +810,48 @@ J最终六份关键封存物在`j-preservation-after-cleanup.json`中仍为原SH
 attempt2最终stage seal为`SEALED_EVIDENCE_STAGE_WITH_IMPORTANT_PRODUCT_FAIL`。reviewer独立核对seal引用的七份SHA，并按精确路径验证323份原件在外部与tar内逐字/大小/SHA相同；tar另含inventory共324项。archive SHA256 `7678841cb782513c8f030e0870470480cc6cc13831e7bc17cba50f0cc887c5a8`，inventory `93fe73be6e29f720f3a271873e5d166eaa2a0411fe9fa0b65adf5709e58e7294`，stage-summary `ac13c0ab0059683899c241b438e1f15a27ffdd8e1430c4caca8f7c70690b8b1e`，matrix `db730347c6a0e9182076e21e5d06b6bc9eecff0724cf022b3a2c317d167e8a5d`。原inode观察器exit1留存；不声称全部观察脚本无错。该目录已由D声明不再写入，后续修复须新身份/新证据。
 
 **状态建议：原E方案仍accepted，断连Important补修及新验证待；PRD-004/008、旧D项不升级或关闭。** 原reasoning旧红、§24生命周期候选与timeline-only BOUNDARY分别保留。此结论既认可已执行的八项及补充通过，也完整保留会阻止本轮after整体签收的实际产品失败。
+
+
+## 26. E断连缓存响应写门补修93e36独立复审（2026-10-27）
+
+**固定候选源码审查：Critical 0 / Important 0 / Minor 0。** §25的断连假Allowed在本候选代码中已有对应的UI与执行层修正，可交唯一lane验证；这不是新green/after通过，也不撤销冻结800d的实际Important失败。方案仍accepted，§24生命周期Important候选、clientTool焦点Minor候选、timeline-only BOUNDARY与reasoning旧红分别保留。
+
+| 身份 / 范围 | 独立核对 |
+| --- | --- |
+| 候选 | `93e36abc7ad915608d546f0bcd17b8b2e221dacf` |
+| 实际parent | `4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff` |
+| 候选src tree | `2e04cd45ef6d2861785fadda42e488fd20cbf965` |
+| 变更 | 9路径：4生产TS、2测试TS、原方案§9.4、知识文档、行动进度 |
+| 工作边界 | E候选工作树clean；reviewer只读固定Git diff/源码/测试/文档，未编译、typecheck、transpile、写out或运行业务测试 |
+
+### Strengths
+
+- `conversationSessionAvailability.ts`新增窄判定：当前未连接，且公开连接历史为真或给定session来源为engine-cache才拒绝。history覆盖cache来源尚未切换的过渡；source补充按绑定/捕获session读取，未改用无关active session。真正从未连接且source=local保持可写。
+- `conversationLensReadingColumn.ts`的座位enabled、`conversationLensSessionBinding.ts`三个响应callback与`conversationLensComposer.ts`最终postBound共用同一判定。它在执行时重新读取当前连接状态，不能仅凭旧renderer捕获的enabled值继续授权；禁用UI以外仍有实际动作门。
+- permission/question在拒绝分支直接返回，不进入原fallback postBound；clientTool不进入roster写入口。callback显示`engine_disconnected`且不focus已完成的记录。postBound在任何lease.post前再拒绝，显式captured lease的sessionId优先用于来源判断，不能靠显式lease绕过缓存只读；它不发送额外通知、不改变协议failure枚举。
+- pairing/not-ready既有callback优先级保留；目录readiness的disconnected→ready没有改变，平台`PostOutcome`合同未扩展。最终postBound使用既有`accepted:false / no_such_session`，由真实UI callback承担准确错误说明，避免transport层兼任通知导致重复或覆盖。
+- 改动没有触碰共享response projection、unary结果解释、identity/incarnation、旧cleanup、缓存模型或stub写实现。真正local stub授权仍走原路径，缓存内容仍可读，没有以清空/隐藏历史规避写门。
+
+### Critical / Important / Minor
+
+**Critical：0。Important：0。Minor：0。** 本次候选未发现需返修的实质源码问题。此计数只针对93e36本次补修，不含此前独立登记而本次未修的§24与焦点候选；也不将尚待执行的回归标成已通过。
+
+reviewer逐条追踪了旧失败路径与新门的位置：原旧renderer可用状态→confirmation callback→postBound→真实stub lease→model权限写入，在callback或最终postBound任一处都会被当前公开history/source门拦截。正常新render的座位先disabled，迟到/过期callback仍会明确拒绝；直接postBound及其显式lease参数也只能返回失败，不能假accepted或清pending。读取型ready与可写型判定保持分离，未连local不会因为目录readiness或stub类型被全部禁用。
+
+### 测试源码与旧红资格
+
+新增`responseSeatRoute`使用真实ConversationTimelineHost/renderer、实际LensSessionBinding公开函数和真实postBound；连接baseline带TestStorageService，使断连时生产`captureEngineCache`确实投影到本地model。之后公开`acquireSessionView`返回真实cached stub lease，非手写假lease，也未直接伪造private连接历史。首项普通DOM click先断言model逐字不变及pending保留，再断言无Allowed和禁用，因此精确旧4919预期先落实际假授权业务断言，不会只在禁用样式断言红。
+
+`response recovery disconnected seat`共10项展开测试：首项双消费者permission；三种callback；三种postBound implicit/captured；reconnect；never-connected local正控；pairing/not-ready。permission的最终门负控同时核model与snapshot；question/clientTool的stub旧路径可能无模型副作用，仍通过必须`accepted:false`及callback诚实拒绝防止假成功。不是要求所有正控/已有拒绝分支在旧源码都red；唯一lane须分别记录旧代表性业务红与本来就正确的正控。
+
+顶层新增运行期imports只有旧4919已存在的`resolveConfirmation`、`resolveQuestion`、`respondClientTool`、`isReadingColumnWritesEnabled`及已有生命周期工具；未import新predicate。reviewer在旧Git对象逐一查到这些export，故没有“新helper缺失先炸”的静态前置问题。是否实际模块加载、运行到期望断言及无泄漏，仍必须由唯一lane执行证实，不能由本审查替代。
+
+独立从候选suite移除新增完整测试块后，原roster suite与4919逐字相同，原160条`test(...)`声明完整保留；新增6个语法声明因kind循环展开为10项。上方`acquireEngineBaseline`仅加可选storage参数，旧调用默认值不变。reasoning所在`conversationTimelineProjection.test.ts`整文件与4919相同，SHA256为`5d172565767dd64c154321f0ec4eda254533a9199510ad6ba2b96c16d8a6d49e`，`hmm\nthen this`预期未改；原八项/core/39 M01证据不得因补修被换名为新运行通过。
+
+**测试范围须精确表述：** 新单测的“双Pane”是两个真实TimelineHost/renderer消费者，不是两个实际默认编辑器EditorPane。hidden/show调用timeline生命周期；reconnect用真实connection事件与公开acquire后由测试helper显式rebind。因此它验证当前写门重新允许真实unary、两消费者cleanup及内容/禁用保持，不证明生产EditorPane自动缺lease恢复。真实窗口和完整生命周期仍需新冻结后的非作者after，§24不可据该测试关闭。
+
+### Assessment与后续顺序
+
+原方案§9.4、知识文档与行动层已记录真实70失败、公开判定、local正控及未运行边界，未将accepted改implemented。E自报六TS无checker/emit parse与lint通过属于作者静态证据；reviewer仅独立做源码/测试/文档审查及Git diff whitespace检查，不称已重新执行这些工具或业务。
+
+**可进入唯一lane，不能直接签收产品。** 顺序保持：用新测试JS配精确旧4919/compile8生产验证代表性假Allowed/clear业务red并保留原件；正式合入已审源码后完整native编译、相关target/套与必要校验；发新source/native冻结身份，再做独立默认编辑器J/E after。任何missing API、模块加载、类型或timeout不冒充业务red。旧800d的J/E封存、§25的after FAIL与原观察器失败均不回写；最终断连必须同时核禁止本地假成功与零远端写入，不能再只数RPC。

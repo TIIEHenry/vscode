@@ -1,0 +1,12 @@
+{
+  "phase": "before-real-three-way-explicit-E93-disconnected-cache-write-gate-peer-only",
+  "ours": "fe90daad4b94c05dc4fd5c3b0dc9b73ad997c04d",
+  "theirs": "b024d6b7d137eea3f3bdad63c18a988e8d285c75",
+  "mergeBase": "ccd5df420dd30c914658dacdbb7ce282f82ef236",
+  "incomingParent": "ccd5df420dd30c914658dacdbb7ce282f82ef236",
+  "recordedAtUtc": "2026-10-26T22:06:08.964599+00:00",
+  "incomingNetChangedPaths": [
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md"
+  ]
+}

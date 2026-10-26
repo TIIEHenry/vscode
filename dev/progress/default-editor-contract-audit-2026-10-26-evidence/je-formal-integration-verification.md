@@ -434,3 +434,9 @@ canonical-envelope-only fixture未授respondable，不能生成所要求timeline
 已实际完整读[D正式报告](j-e-r2-after-evidence.md)（SHA256 `399e64c3609f5f3150949f95f9b2d76f87577b77c9a3c2c22b5dd44215cc0c99`）与[manifest](j-e-r2-after-evidence-manifest.json)（`2c6d6343b7fee610cf7c9c89ce283defc521fe9d29a0fbf32541973ec6d96bd8`），不把本lane的原件读核说成本轮UI运行。J原source800d/src2b5d完整after **510/0**，18矩阵=15真实UI+2唯一lane provenance+1隔离，67 snapshots、五方向Move与实际Conversation按钮通过；仅适用于该旧源码身份。E attempt1污染与attempt2最终 **FAIL/C0/I1**、八行通过及断连缓存普通Allow的本地假成功均按原件保留；canonical timeline-only BOUNDARY无UI credit、§24缺leaseImportant候选未复现与BODY Minor候选不升级。原方案accepted、整波active，旧D与PRD不关闭。
 
 旧420件逐bytes/SHA全部保留，新增30不可变D文件、四merge证明及一copy-verification后库存 **455**。三个封包只作原始字节身份核对；父已逐member检查的展开工作不机械重做。source tree仍 **`2b5df2b37ca926e38888443e371cf65e2883dba2`**，本docs切片无native/source/cache写入，无编译/转译/测试/UI。后续只按父明确交付的peer/source与独立运行授权开展旧红和新native验证，旧after不沿用未来修订。
+
+## E93断连缓存写门正式独审接入
+
+本lane完整实际读取明确交付的Astra **`b024d6b7d137eea3f3bdad63c18a988e8d285c75`**（父ccd5、仅报告§26与INDEX），真正三路合入。[555路径mode/type/blob门禁](je-formal-E-disconnected93-peer-merge-identity.json)PASS，旧§1–25全文为精确前缀、report精确incoming；INDEX冲突的双方全文与取舍保存在[证明](je-formal-E-disconnected93-peer-conflict-resolutions.json)。原455件逐bytes/SHA不变，加四证明现459，status200，src仍2b5d。
+
+§26对固定候选93e36/src2e04仅静态独审 **C0/I0/M0**：四生产TS共享公开connection history/session source写门，ReadingColumn、Binding三个callback、Composer最终postBound共同拒绝缓存只读假成功；从未连接local仍可写。十项新增测试使用真实TimelineHost/renderer、实际Binding/postBound和真实cached stub lease，首项先核model/pending；双消费者不是实际双EditorPane，helper reconnect显式rebind不关闭§24。旧160声明、整份reasoning与`hmm\nthen this`预期保留。审查不代替本lane实际旧红/new native/new green或独立窗口after，旧E FAIL/C0/I1、原方案accepted和wave active不变。父明确条件授权下一步：只装不可变93新testJS配精确旧4919/compile8生产实跑10项、分类业务red及正控并finally完整恢复163/source；无未解load/API/fixture/cleanup错误且代表model/pending业务红成立后才正式三路接源码与唯一完整compile9，之后影响范围相关suite；暂不freeze/UI/关闭wave。
