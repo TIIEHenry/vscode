@@ -243,6 +243,8 @@ suite('Sources - Changes list open', () => {
 			});
 			if (commandId === API_OPEN_DIFF_EDITOR_COMMAND_ID) {
 				assert.ok(isResourceDiffEditorInput(request.input));
+				assert.ok(request.input.original.resource);
+				assert.ok(request.input.modified.resource);
 				assert.deepStrictEqual([request.input.original.resource.toString(), request.input.modified.resource.toString()], [original.toString(), resource.toString()]);
 			} else {
 				assert.ok(isResourceEditorInput(request.input));

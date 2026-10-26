@@ -146,7 +146,7 @@ suite('Conversation editor fence', () => {
 			const review = store.add(new RoutingReviewInput(URI.file('/alpha/shared.ts'), URI.parse('git:/alpha/shared.ts?baseline')));
 			const [found] = await instantiationService.invokeFunction(accessor => findGroup(accessor, review, target));
 			assert.strictEqual(found, side);
-			assert.strictEqual(parts.getPart(found), conversationPart);
+			assert.strictEqual(parts.getPart(found.id), conversationPart);
 			assert.strictEqual(conversationPart.sessionKey, 'session-a');
 			const pane = await editorService.openEditor(review, { pinned: true, preserveFocus: true }, target);
 			assert.ok(pane);
@@ -166,13 +166,14 @@ suite('Conversation editor fence', () => {
 			const { parts, conversationPart, editorService } = await createHarness();
 			const rootGroup = conversationPart.activeGroup;
 			const root = rootGroup.activeEditor;
+			assert.ok(root instanceof ConversationChatInput);
 			const side = conversationPart.addGroup(rootGroup, GroupDirection.RIGHT);
 			const first = store.add(new RoutingReviewInput(URI.file('/alpha/shared.ts'), URI.parse('git:/alpha/shared.ts?baseline')));
 			const pane = await openEditorInSlot(editorService, parts, first, slot, { preserveFocus: true }, side);
 			assert.ok(pane);
 			assert.strictEqual(pane.input, first);
 			assert.strictEqual(pane.group, side);
-			assert.strictEqual(parts.getPart(side), conversationPart);
+			assert.strictEqual(parts.getPart(side.id), conversationPart);
 			assert.strictEqual(conversationPart.groups.length, 2);
 			const revealed = await openEditorInSlot(editorService, parts, first, slot, { preserveFocus: true }, side);
 			assert.ok(revealed);
@@ -201,7 +202,7 @@ suite('Conversation editor fence', () => {
 		for (const input of [file, untitled, chat, diff]) {
 			for (const target of [CONVERSATION_GROUP, conversationPart.activeGroup, conversationPart.activeGroup.id]) {
 				const [found] = await instantiationService.invokeFunction(accessor => findGroup(accessor, input, target));
-				assert.strictEqual(parts.getPart(found), parts.mainPart);
+				assert.strictEqual(parts.getPart(found.id), parts.mainPart);
 			}
 		}
 	});

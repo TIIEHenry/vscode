@@ -35,6 +35,16 @@ summary: "J在独立澄清a76d062后补API预pin与完整比较身份，新增28
 
 J本次实际静态检查：该TS的`createSourceFile`语法诊断0；ESLint 0错误/29警告，相对`89f3e5a6a17`逐项按rule/message/所在行文本比较新增0、消失0；`git diff --check`通过。生产`sourcesChangeEntryOpen.ts` SHA256仍为`f13693e1de22a0a2b60e966ced1bcdef0d79a9257195b8637fa2cc474bccad37`。以上不证明完整Electron套通过，运行归唯一merge。
 
+### 测试类型与既有合同夹具补修（2026-10-26，J）
+
+父转交唯一merge虚拟noEmit的六处新测试诊断（`/tmp/vscode-d1387-89f-virtual-noemit.log`）：三个`getPart(IEditorGroup)`超出真实重载、一个Conversation root可空、两个官方diff DTO resource可空。J只改测试为精确group id及显式root类型/resource非空断言，保留准确组、根不可替换和完整两侧URI验证，没有宽cast或production/config修改；语义诊断是否消除须唯一merge复核，J未运行typecheck。
+
+父另报告wiring 22过/2败（`/tmp/vscode-d1387-89f-wiring.log`）；Review error-tone扫描仍钉旧的两参数调用。本次对齐当前`setStatusMessage(..., true, 'open')`，保留错误色与非错误notice断言，并在既有“Review alternate API rejection then public Open Selected void success clears only its open error”业务用例显式断言真实拒绝状态为error tone。另一条Accept patch builder禁parse失败的生产路径本主题未改，留唯一merge精确基线核对，不修改或弱化该扫描。
+
+独立九套248过/1败的父报告（`/tmp/vscode-d1387-89f-independent-nine-electron.log`）定位到“preview opened from workingTree keeps that group when the same URI is also staged”custom夹具只有sourceUri。本次给workingTree/index分别补真实有序multiDiff双侧，index original特意不同；仍打开既有DiffEditorInput，保留后续move到Conversation/Panel的workingTree和准确scmResource断言。它使用当前已签收的成对身份合同；相邻无open record、两组同URI的负控保持不猜group/resource，没有把实际合法单侧custom一概宣称可归属。
+
+J实际只做五TS AST语法解析0错误、ESLint0错误/51警告；按rule/message/所在行文本与`4f7e49d`逐项比较新增0、消失0，`git diff --check`通过。生产未改，唯一merge运行/语义检查与宿主归属新Important仍待；accepted/open与PRD状态不升。
+
 ## 生产切片
 
 - `sourcesChangeEntryOpen.ts`：识别既有API open/diff常量，一次执行原DTO；官方context分别放第4/5参数。其他资源仅调用custom.open；二者void resolve保留委托完成语义，reject不兜底。无SCM的直接Preview文件/diff有pane才true。只对公开URI匹配input做Sources identity、custom pin和同组replace close；不同资源旧input不冒认，provider显式选项不被API分支post-pin覆盖。newTab保留旧preview语义照旧。

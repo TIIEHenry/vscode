@@ -428,12 +428,16 @@ suite('Sources - Diff ref helpers', () => {
 			sourceUri: modified,
 			resourceGroup: indexGroup,
 			decorations: {},
+			multiDiffEditorOriginalUri: original.with({ query: 'index' }),
+			multiDiffEditorModifiedUri: modified,
 			open: async () => { },
 		};
 		const workingResource = {
 			sourceUri: modified,
 			resourceGroup: workingGroup,
 			decorations: {},
+			multiDiffEditorOriginalUri: original,
+			multiDiffEditorModifiedUri: modified,
 			open: async () => { editorService.setActiveEditor(diffInput); },
 		};
 		indexGroup.resources.push(indexResource);

@@ -2684,6 +2684,7 @@ suite('Sources - review list model', () => {
 		await runReviewAlternateOpen(host, shown);
 		assert.strictEqual(marked, 0);
 		assert.ok((await waitForStatusText(host, '.sources-review-status', 'first-open-failed')).includes('first-open-failed'));
+		assert.ok(statusIsError(host));
 		const selected = instantiationService.invokeFunction(accessor => accessor.get(ISourcesChangesModel).getSnapshot().entries[0]);
 		assert.ok(selected);
 		installSelectedReviewHost(instantiationService, widget, selected);
