@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留E/合源与D真实M01失败历史；b882e8f5方案增量规则16 C0/I0/M1，原生标题参数细化后独立accepted提交，生产/新after待。"
+summary: "保留E/合源与D真实M01失败历史；方案增量后d046实现peer C0/I2/M0：旧扫描未适配、真实入口夹具缺依赖；原J补修与新验证待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -374,3 +374,29 @@ B本轮开始clean `7b63babf11ac58b1095f05030f1f5e985aaaa5b9` / src `fdca9564aba
 **规则16结论C0/I0/M1：可签收主体方案；原J核验并补M1后独立提交accepted文档，再按父调度实施。** 本次不签任何产品修复、旧红新绿或新after；§10产品Important仍open，直到实际源码、唯一lane验证和D新freeze复验闭合。单独accepted提交可以引用本报告并明确M1已落实；如果另改失败关闭代数、扩大上下文resolver或跨模块架构，须重新定向审查。
 
 审查已先发短结论给父与原J。不可变文档diff-check通过；reviewer未改方案/产品/测试/D文件，未编译/typecheck/transpile/out/业务/UI。
+
+
+## 12. M01显式来源实现定向peer（2026-10-27）
+
+### 身份与边界
+
+受审不可变实现 `d04697351413f2e83a4745c3ab2b7fc37a03ea0c`，父为已纳入§11原生参数细化的accepted方案 `265b1fe8e01f88725169696976f6cc463a8b61dd`，src `abc5ee767c00513c8737e424d4c807469f837fe9`。此次10路径包括3生产、2测试与5文档。reviewer读取生产完整diff、helper捕获/关闭链、新测试完整源码、既有no-unhandled改动与未变更的node wiring scan，并对照accepted §3.5/§4.4；未执行编译、typecheck、transpile、业务测试、UI或out写入。B起点clean `3f299c3dc5b18c47209e6ccb23ba40a2fe0765e4`，src仍 `fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1`，仅写本报告和INDEX。
+
+### Strengths
+
+- **显式来源贯通真实命令。** Pane在点击时传准确input/group/pane对象；registered Action接收并转交args、返回helper结果。helper一次捕获同时提供ref与close；typed来源与native context都不再借global active抢认另一叶。native toolbar `{ groupId }`和context menu的URI后置context均可识别，无index只取命名组active，非法index拒绝、不fallback；无参旧程序入口保留。
+- **关闭前身份复验落实。** typed来源须属于真实注册Conversation part，检查group对象注册、精确editor成员、未dispose、同part/sessionKey及同pane/input；await后复验再用原group.closeEditor(originalEditor)。改变全局焦点仍可关准确来源，替换input/part/group/pane则不关替代对象。没有改global聚合、provider优先级或另建resolver/服务。
+- **原关闭代数与错误归属保持。** true/false/stale/void及非leaf异常仍走既有close，缺leaf保源；当前无效来源在派发前终止。独立move notice不清加载/读写notice，反馈受input、render及move attempt代次和dispose约束；setInput/clearInput/dispose使旧完成失效。按钮保留外层双catch；原no-unhandled负例改为命令失败后notice渲染自身抛出，仍覆盖catch路径异常。
+- **回归设计经过真实公共入口。** 新文件的4个真实入口用真实EditorParts、EditorService、已注册Pane与CommandsRegistry handler；两叶同tuple不同SCM组，核B双侧/组身份、只关B、保留A/root与无关Preview。其余受控测试覆盖来源失效、await替换、结果与旧完成。新增context/result仅type import，旧生产不存在这些类型不会造成运行时缺export。上述是源码覆盖判断，作者所报38项不是本reviewer运行结果，且下列夹具错误阻止4入口实际到达业务断言。
+
+### Critical 0 / Important 2 / Minor 0
+
+**I1：既有wiring scan仍要求已经删除的旧按钮调用，构成确定校验回归。** 不可变实现中 `src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts:192` 仍断言源码包含 `void this.commandService.executeCommand('sources.diff.moveToPreview')${doubleCatch}`，而生产 `conversationDiffReviewPane.ts:203` 已改成 `void this.runMoveToPreview().catch(onUnexpectedError).catch(onUnexpectedError)`。197行的naked-call排除也仍只检查旧executeCommand。这是直接源码与精确字符串断言不匹配，非已执行测试结果；§10及accepted回归要求本就明确需要更新扫描，不能留给集成lane删掉换绿。原J须最小适配真实按钮runMoveToPreview的双catch、排除其裸调用，并保留方法内传准确context到registered command的约束；不得弱化原no-unhandled负例。
+
+**I2：4个真实入口夹具构造SourcesChangesModel前未提供IAgentSessionContext，尚未证明原M01业务旧红。** 新 `sourcesDiffMoveSource.test.ts:167–174` 注册connection等依赖后直接createInstance(SourcesChangesModel)，缺session；该model构造器 `common/sourcesChangesReadModel.ts:60,65–66` 即订阅session事件。唯一lane在准确旧src928生产+不可变d046新test的4入口筛选实跑为 **0 passing / 4 failing，全部TypeError读取undefined.onDidChangeActiveSession**；栈位于native model.js:60与test.js:243，尚未到点击/命令/身份断言。reviewer已读其raw `/tmp/vscode-m01-old928-red.log`，SHA256 `e210829103ebf6c0c9916be7ff30287a721e8f2010d7f5410d493b85b7a2b724`，未代跑。原J须补真实夹具所需session依赖、保留真实Pane/公共handler和业务expected，再交不可变修订给唯一lane；不能把这4个失败记为产品旧红，也不能改生产或预期以掩盖夹具错误。
+
+lane报告本轮finally已恢复154 native、3份旧生产与test输出存在性，HEAD/src/clean未变；这是执行lane的恢复声明，本reviewer没有再次逐产物复核。lane尚未合d046或开始第五轮完整编译；lane随后以不可变 `2df7ff7eda332de5aa8d5edf94e715a5fab78148` 将该运行落入中央验证报告/库存和 `m01-old928-d046-first.log` 等原件；reviewer另核该提交的永久log SHA与上述raw相同。长期证据以该提交为准，临时路径不充当唯一来源。
+
+### Assessment
+
+**d046当前C0/I2/M0，退原J补修，不签green。** 本轮未发现额外确定生产合同缺陷，但生产静态合理不能代替可运行回归。两项先发父/原J/唯一lane；修订须保留真实旧红→新native最小及完整相关套→重新freeze→D真实M01/受影响Move复验的顺序。§10原产品Important、D1387与新after继续open；此前D旧after的其他有效结果保留，不借本次peer或作者AST/lint把它们扩成新修复验证。
