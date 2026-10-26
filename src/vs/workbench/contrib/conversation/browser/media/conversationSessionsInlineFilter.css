@@ -71,7 +71,7 @@
 
 .monaco-workbench .conversation-sessions-inline-filter-input:focus {
 	outline: none;
-	border-color: transparent;
+	border-color: var(--vscode-focusBorder);
 	background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
 }
 
@@ -81,7 +81,7 @@
 
 .monaco-workbench .conversation-sessions-inline-filter-clear {
 	position: absolute;
-	right: 6px;
+	right: var(--vscode-spacing-size120);
 	flex-shrink: 0;
 	display: none;
 	align-items: center;
@@ -98,16 +98,13 @@
 	transition: color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
-.monaco-workbench .conversation-sessions-inline-filter-clear:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-}
-
 .monaco-workbench .conversation-sessions-inline-filter.has-text .conversation-sessions-inline-filter-clear {
 	display: flex;
 }
 
 .monaco-workbench .conversation-sessions-inline-filter-clear:hover {
 	color: var(--vscode-foreground);
+	background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .conversation-sessions-inline-filter-clear:focus-visible {
@@ -115,4 +112,12 @@
 	outline-offset: -1px;
 	background-color: var(--vscode-toolbar-hoverBackground);
 	border-radius: 4px;
+}
+
+.monaco-workbench .conversation-sessions-inline-filter-clear:active {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
+.monaco-workbench.monaco-reduce-motion .conversation-sessions-inline-filter-clear {
+	transition: none;
 }

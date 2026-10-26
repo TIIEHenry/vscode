@@ -1,0 +1,22 @@
+[
+  {
+    "path": "src/vs/workbench/contrib/sources/browser/media/sourcesTabs.css",
+    "source": "32f2b7d70a00f473b427fc0743ab9df59320f2f7275cca30d3b085286e854587",
+    "out": "32f2b7d70a00f473b427fc0743ab9df59320f2f7275cca30d3b085286e854587"
+  },
+  {
+    "path": "src/vs/workbench/contrib/conversation/browser/media/conversationSessionsInlineFilter.css",
+    "source": "b389e8b68ae71d093720ee8938aaccd444b415d571e9acce1c502832cab703ed",
+    "out": "b389e8b68ae71d093720ee8938aaccd444b415d571e9acce1c502832cab703ed"
+  },
+  {
+    "path": "src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+    "source": "8ad8286adc9db11803f84768b8fbd87cb6a92562bfd1350ef69a6e13d4abd8a4",
+    "out": "8ad8286adc9db11803f84768b8fbd87cb6a92562bfd1350ef69a6e13d4abd8a4"
+  },
+  {
+    "path": "src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+    "source": "c6ea72f7e00d6870da8a6df4df26c4df40a9f53fd821c807abf0381d26aaa45d",
+    "out": "c6ea72f7e00d6870da8a6df4df26c4df40a9f53fd821c807abf0381d26aaa45d"
+  }
+]

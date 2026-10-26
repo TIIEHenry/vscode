@@ -1,0 +1,754 @@
+[
+  {
+    "name": "light",
+    "width": 1440,
+    "toolbar": {
+      "rect": {
+        "x": 1264,
+        "y": 681.5,
+        "width": 22,
+        "height": 22,
+        "top": 681.5,
+        "right": 1286,
+        "bottom": 703.5,
+        "left": 1264
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(32, 32, 32)",
+      "opacity": "0.8",
+      "font": "16px",
+      "paddingRight": "2px",
+      "outline": "3px",
+      "cls": "action-label codicon codicon-new-file"
+    },
+    "docked": 1,
+    "clear": {
+      "rect": {
+        "x": 1237,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1257,
+        "bottom": 702.5,
+        "left": 1237
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(96, 96, 96)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "input": {
+      "rect": {
+        "x": 1059,
+        "y": 682.5,
+        "width": 200,
+        "height": 20,
+        "top": 682.5,
+        "right": 1259,
+        "bottom": 702.5,
+        "left": 1059
+      },
+      "padding": "28px"
+    },
+    "hover": {
+      "rect": {
+        "x": 1237,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1257,
+        "bottom": 702.5,
+        "left": 1237
+      },
+      "bg": "rgba(0, 0, 0, 0.12)",
+      "color": "rgb(32, 32, 32)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "pressed": {
+      "rect": {
+        "x": 1237,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1257,
+        "bottom": 702.5,
+        "left": 1237
+      },
+      "bg": "rgb(214, 214, 216)",
+      "color": "rgb(32, 32, 32)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "1px",
+      "cls": "explorer-inline-filter-clear"
+    }
+  },
+  {
+    "name": "light",
+    "width": 1024,
+    "toolbar": {
+      "rect": {
+        "x": 907.453125,
+        "y": 681.5,
+        "width": 22,
+        "height": 22,
+        "top": 681.5,
+        "right": 929.453125,
+        "bottom": 703.5,
+        "left": 907.453125
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(32, 32, 32)",
+      "opacity": "0.8",
+      "font": "16px",
+      "paddingRight": "2px",
+      "outline": "3px",
+      "cls": "action-label codicon codicon-new-file"
+    },
+    "docked": 0,
+    "clear": {
+      "rect": {
+        "x": 997,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1025,
+        "bottom": 763,
+        "left": 997
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(96, 96, 96)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "input": {
+      "rect": {
+        "x": 829,
+        "y": 735,
+        "width": 168,
+        "height": 28,
+        "top": 735,
+        "right": 997,
+        "bottom": 763,
+        "left": 829
+      },
+      "padding": "0px"
+    },
+    "hover": {
+      "rect": {
+        "x": 996,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1024,
+        "bottom": 763,
+        "left": 996
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(32, 32, 32)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "pressed": {
+      "rect": {
+        "x": 996,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1024,
+        "bottom": 763,
+        "left": 996
+      },
+      "bg": "rgb(214, 214, 216)",
+      "color": "rgb(32, 32, 32)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "1px",
+      "cls": "explorer-inline-filter-clear"
+    }
+  },
+  {
+    "name": "dark",
+    "width": 1440,
+    "toolbar": {
+      "rect": {
+        "x": 1263,
+        "y": 681.5,
+        "width": 22,
+        "height": 22,
+        "top": 681.5,
+        "right": 1285,
+        "bottom": 703.5,
+        "left": 1263
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(191, 191, 191)",
+      "opacity": "0.8",
+      "font": "16px",
+      "paddingRight": "2px",
+      "outline": "3px",
+      "cls": "action-label codicon codicon-new-file"
+    },
+    "docked": 1,
+    "clear": {
+      "rect": {
+        "x": 1236,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1256,
+        "bottom": 702.5,
+        "left": 1236
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(140, 140, 140)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "input": {
+      "rect": {
+        "x": 1058,
+        "y": 682.5,
+        "width": 200,
+        "height": 20,
+        "top": 682.5,
+        "right": 1258,
+        "bottom": 702.5,
+        "left": 1058
+      },
+      "padding": "28px"
+    },
+    "hover": {
+      "rect": {
+        "x": 1236,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1256,
+        "bottom": 702.5,
+        "left": 1236
+      },
+      "bg": "rgba(90, 93, 94, 0.31)",
+      "color": "rgb(191, 191, 191)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "pressed": {
+      "rect": {
+        "x": 1236,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1256,
+        "bottom": 702.5,
+        "left": 1236
+      },
+      "bg": "rgba(255, 255, 255, 0.2)",
+      "color": "rgb(191, 191, 191)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "1px",
+      "cls": "explorer-inline-filter-clear"
+    }
+  },
+  {
+    "name": "dark",
+    "width": 1024,
+    "toolbar": {
+      "rect": {
+        "x": 906.453125,
+        "y": 681.5,
+        "width": 22,
+        "height": 22,
+        "top": 681.5,
+        "right": 928.453125,
+        "bottom": 703.5,
+        "left": 906.453125
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(191, 191, 191)",
+      "opacity": "0.8",
+      "font": "16px",
+      "paddingRight": "2px",
+      "outline": "3px",
+      "cls": "action-label codicon codicon-new-file"
+    },
+    "docked": 0,
+    "clear": {
+      "rect": {
+        "x": 996,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1024,
+        "bottom": 763,
+        "left": 996
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(140, 140, 140)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "input": {
+      "rect": {
+        "x": 828,
+        "y": 735,
+        "width": 168,
+        "height": 28,
+        "top": 735,
+        "right": 996,
+        "bottom": 763,
+        "left": 828
+      },
+      "padding": "0px"
+    },
+    "hover": {
+      "rect": {
+        "x": 996,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1024,
+        "bottom": 763,
+        "left": 996
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(191, 191, 191)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "pressed": {
+      "rect": {
+        "x": 996,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1024,
+        "bottom": 763,
+        "left": 996
+      },
+      "bg": "rgba(255, 255, 255, 0.2)",
+      "color": "rgb(191, 191, 191)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "1px",
+      "cls": "explorer-inline-filter-clear"
+    }
+  },
+  {
+    "name": "hc-dark",
+    "width": 1440,
+    "toolbar": {
+      "rect": {
+        "x": 1263,
+        "y": 681.5,
+        "width": 22,
+        "height": 22,
+        "top": 681.5,
+        "right": 1285,
+        "bottom": 703.5,
+        "left": 1263
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(255, 255, 255)",
+      "opacity": "0.8",
+      "font": "16px",
+      "paddingRight": "2px",
+      "outline": "3px",
+      "cls": "action-label codicon codicon-new-file"
+    },
+    "docked": 1,
+    "clear": {
+      "rect": {
+        "x": 1236,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1256,
+        "bottom": 702.5,
+        "left": 1236
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgba(255, 255, 255, 0.7)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "input": {
+      "rect": {
+        "x": 1058,
+        "y": 682.5,
+        "width": 200,
+        "height": 20,
+        "top": 682.5,
+        "right": 1258,
+        "bottom": 702.5,
+        "left": 1058
+      },
+      "padding": "28px"
+    },
+    "hover": {
+      "rect": {
+        "x": 1236,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1256,
+        "bottom": 702.5,
+        "left": 1236
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(255, 255, 255)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "pressed": {
+      "rect": {
+        "x": 1236,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1256,
+        "bottom": 702.5,
+        "left": 1236
+      },
+      "bg": "color(srgb 1 1 1 / 0.1)",
+      "color": "rgb(255, 255, 255)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "1px",
+      "cls": "explorer-inline-filter-clear"
+    }
+  },
+  {
+    "name": "hc-dark",
+    "width": 1024,
+    "toolbar": {
+      "rect": {
+        "x": 906.453125,
+        "y": 681.5,
+        "width": 22,
+        "height": 22,
+        "top": 681.5,
+        "right": 928.453125,
+        "bottom": 703.5,
+        "left": 906.453125
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(255, 255, 255)",
+      "opacity": "0.8",
+      "font": "16px",
+      "paddingRight": "2px",
+      "outline": "3px",
+      "cls": "action-label codicon codicon-new-file"
+    },
+    "docked": 0,
+    "clear": {
+      "rect": {
+        "x": 996,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1024,
+        "bottom": 763,
+        "left": 996
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgba(255, 255, 255, 0.7)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "input": {
+      "rect": {
+        "x": 828,
+        "y": 735,
+        "width": 168,
+        "height": 28,
+        "top": 735,
+        "right": 996,
+        "bottom": 763,
+        "left": 828
+      },
+      "padding": "0px"
+    },
+    "hover": {
+      "rect": {
+        "x": 996,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1024,
+        "bottom": 763,
+        "left": 996
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(255, 255, 255)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "pressed": {
+      "rect": {
+        "x": 996,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1024,
+        "bottom": 763,
+        "left": 996
+      },
+      "bg": "rgba(255, 255, 255, 0.1)",
+      "color": "rgb(255, 255, 255)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "1px",
+      "cls": "explorer-inline-filter-clear"
+    }
+  },
+  {
+    "name": "hc-light",
+    "width": 1440,
+    "toolbar": {
+      "rect": {
+        "x": 1263,
+        "y": 681.5,
+        "width": 22,
+        "height": 22,
+        "top": 681.5,
+        "right": 1285,
+        "bottom": 703.5,
+        "left": 1263
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(41, 41, 41)",
+      "opacity": "0.8",
+      "font": "16px",
+      "paddingRight": "2px",
+      "outline": "3px",
+      "cls": "action-label codicon codicon-new-file"
+    },
+    "docked": 1,
+    "clear": {
+      "rect": {
+        "x": 1236,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1256,
+        "bottom": 702.5,
+        "left": 1236
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgba(41, 41, 41, 0.7)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "input": {
+      "rect": {
+        "x": 1058,
+        "y": 682.5,
+        "width": 200,
+        "height": 20,
+        "top": 682.5,
+        "right": 1258,
+        "bottom": 702.5,
+        "left": 1058
+      },
+      "padding": "28px"
+    },
+    "hover": {
+      "rect": {
+        "x": 1236,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1256,
+        "bottom": 702.5,
+        "left": 1236
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(41, 41, 41)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "pressed": {
+      "rect": {
+        "x": 1236,
+        "y": 682.5,
+        "width": 20,
+        "height": 20,
+        "top": 682.5,
+        "right": 1256,
+        "bottom": 702.5,
+        "left": 1236
+      },
+      "bg": "color(srgb 0.160784 0.160784 0.160784 / 0.1)",
+      "color": "rgb(41, 41, 41)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "1px",
+      "cls": "explorer-inline-filter-clear"
+    }
+  },
+  {
+    "name": "hc-light",
+    "width": 1024,
+    "toolbar": {
+      "rect": {
+        "x": 906.453125,
+        "y": 681.5,
+        "width": 22,
+        "height": 22,
+        "top": 681.5,
+        "right": 928.453125,
+        "bottom": 703.5,
+        "left": 906.453125
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(41, 41, 41)",
+      "opacity": "0.8",
+      "font": "16px",
+      "paddingRight": "2px",
+      "outline": "3px",
+      "cls": "action-label codicon codicon-new-file"
+    },
+    "docked": 0,
+    "clear": {
+      "rect": {
+        "x": 996,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1024,
+        "bottom": 763,
+        "left": 996
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgba(41, 41, 41, 0.7)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "input": {
+      "rect": {
+        "x": 828,
+        "y": 735,
+        "width": 168,
+        "height": 28,
+        "top": 735,
+        "right": 996,
+        "bottom": 763,
+        "left": 828
+      },
+      "padding": "0px"
+    },
+    "hover": {
+      "rect": {
+        "x": 996,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1024,
+        "bottom": 763,
+        "left": 996
+      },
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(41, 41, 41)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "3px",
+      "cls": "explorer-inline-filter-clear"
+    },
+    "pressed": {
+      "rect": {
+        "x": 996,
+        "y": 735,
+        "width": 28,
+        "height": 28,
+        "top": 735,
+        "right": 1024,
+        "bottom": 763,
+        "left": 996
+      },
+      "bg": "rgba(255, 255, 255, 0.1)",
+      "color": "rgb(41, 41, 41)",
+      "opacity": "1",
+      "font": "13.3333px",
+      "paddingRight": "0px",
+      "outline": "1px",
+      "cls": "explorer-inline-filter-clear"
+    }
+  }
+]

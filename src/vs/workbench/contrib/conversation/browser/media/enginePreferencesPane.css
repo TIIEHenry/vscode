@@ -284,7 +284,11 @@
 
 .monaco-workbench .engine-preferences-back {
 	flex: 0 0 auto;
-	padding: 2px 8px;
+	align-items: center;
+	justify-content: center;
+	height: var(--vscode-spacing-size240, 24px);
+	padding: 0 var(--vscode-spacing-size80, 8px);
+	box-sizing: border-box;
 	border: var(--vscode-strokeThickness) solid var(--vscode-button-border, var(--vscode-panel-border));
 	border-radius: var(--vscode-cornerRadius-small);
 	background: var(--vscode-button-secondaryBackground);
@@ -294,23 +298,26 @@
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
-.monaco-workbench .engine-preferences-back:active {
-	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+.monaco-workbench .engine-preferences-back:not([hidden]) {
+	display: inline-flex;
 }
 
 .monaco-workbench .engine-preferences-back:hover {
 	background: var(--vscode-button-secondaryHoverBackground);
 }
 
+.monaco-workbench .engine-preferences-back:active {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
 .monaco-workbench .engine-preferences-back:focus-visible {
-	outline: 1px solid var(--vscode-focusBorder);
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
 	outline-offset: 1px;
 	box-shadow: none;
-	background: var(--vscode-button-secondaryHoverBackground);
 }
 
 .monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-back:focus-visible {
-	outline: 1px solid var(--vscode-contrastActiveBorder);
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastActiveBorder);
 	box-shadow: none;
 }
 
@@ -1698,6 +1705,7 @@
 }
 
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .monaco-button,
+.monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-preferences-back,
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-preferences-nav-row,
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-provider-status-row,
 .monaco-workbench.monaco-reduce-motion .engine-preferences-pane .engine-provider-preset-row,

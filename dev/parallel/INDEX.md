@@ -11,7 +11,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
-| [control-detail-polish](active/control-detail-polish.md) | **进行中**：控件细节两路精修，父集成验证 |
+| [control-detail-polish](active/control-detail-polish.md) | **已完成**：四CSS精修，四主题16+8+4组验证 |
 | [default-editor-contract-audit-2026-10-26](active/default-editor-contract-audit-2026-10-26.md) | **进行中**：C 会话导航、D Tunnel 重试、J 配置初始化；从已同步干净基线重新审查，唯一 merge 编译 |
 | [default-editor-visual-state-followup](active/default-editor-visual-state-followup.md) | **已完成**：五项视觉状态修复及同根因续审；Electron 350 passing，十四项真实焦点 Chrome 补验全过 |
 | [ui-visual-review-2026-10-26](active/ui-visual-review-2026-10-26.md) | **已完成**：续至 D1381，Policy41、投影138、Provider49+Chrome4及独立实拍已验；唯一全量原55诊断/36文件未过，后修14TS定向0 |
