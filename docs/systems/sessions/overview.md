@@ -4,7 +4,7 @@ type: overview
 status: accepted
 phase: N/A
 updated: 2026-10-26
-summary: "Agents Window 一页定向：跨层依赖、服务栈与三类 provider。删会话时一个终端关失败不打断其余关闭。"
+summary: "Agents Window 一页定向：跨层依赖、服务栈与三类 provider；明确切换或关闭当前会话后，旧异步打开不再盖回。"
 ---
 
 # Sessions 系统概览
@@ -51,6 +51,10 @@ Provider 可以依赖非 provider contrib 与兄弟 provider；反向禁止。�
 Parts、grid、title bar 属于 [LAYOUT.md](../../../src/vs/sessions/LAYOUT.md)；按 session 的工作集与恢复属于 [LAYOUT_CONTROLLER.md](../../../src/vs/sessions/LAYOUT_CONTROLLER.md)；侧栏列表属于 [SESSIONS_LIST.md](../../../src/vs/sessions/SESSIONS_LIST.md)。Phone 是同一模型上的呈现适配，见 [MOBILE.md](../../../src/vs/sessions/MOBILE.md)。
 
 规格只在契约（所有权、接口、状态机、跨组件不变量）变化时更新；回归放测试。开发路由见 [.github/skills/sessions/SKILL.md](../../../.github/skills/sessions/SKILL.md)。
+
+## 会话导航
+
+显式聚焦已有分屏、关闭当前会话或关闭全部会话后，较早尚未完成的打开与窗口恢复不再改变当前活动会话。关闭其他分屏不打断正在打开的目标。正常打开把焦点移进自己的视图时，仍继续加载所选聊天。
 
 ## 模型选择器
 

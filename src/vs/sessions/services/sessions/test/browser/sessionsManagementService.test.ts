@@ -40,7 +40,7 @@ import { SessionTypeAuthRequirement, ChatInteractivity, ChatOriginKind, IChat, I
 import { ILanguageModelChatMetadataAndIdentifier } from '../../../../../workbench/contrib/chat/common/languageModels.js';
 import { ISessionChangeEvent, ISendRequestOptions, ISessionModelsSnapshot, ISessionModelPickerOptions, ISessionsProvider, ISessionsProviderCreateSessionOptions, ISessionWorktreeConfiguration } from '../../common/sessionsProvider.js';
 import { SessionsManagementService } from '../../browser/sessionsManagementService.js';
-import { ISessionsManagementService, ICreateNewSessionOptions, inheritableSessionTarget, ISendRequestSentEvent, WorkspaceNotTrustedError } from '../../common/sessionsManagement.js';
+import { ISessionsManagementService, IActiveSession, ICreateNewSessionOptions, inheritableSessionTarget, ISendRequestSentEvent, WorkspaceNotTrustedError } from '../../common/sessionsManagement.js';
 import { SessionsService } from '../../browser/sessionsService.js';
 import { ISessionOpenTelemetryService, SessionOpenTelemetryService } from '../../browser/sessionOpenTelemetryService.js';
 import { ISessionsPartService } from '../../browser/sessionsPartService.js';
@@ -232,6 +232,7 @@ function createSessionsManagementService(
 	workspaceTrustRequestService?: IWorkspaceTrustRequestService,
 	configurationService: IConfigurationService = new TestConfigurationService(),
 	notificationService?: INotificationService,
+	sessionsPartService?: ISessionsPartService,
 ): { service: ISessionsManagementService; view: SessionsService; chatWidgetService: TestChatWidgetService; chatService: TestChatService; contextKeyService: MockContextKeyService } {
 	const instantiationService = disposables.add(new TestInstantiationService());
 	const chatWidgetService = new TestChatWidgetService();
@@ -260,7 +261,7 @@ function createSessionsManagementService(
 	}
 
 	const service = disposables.add(instantiationService.createInstance(SessionsManagementService));
-	const view = createView(instantiationService, service, disposables);
+	const view = createView(instantiationService, service, disposables, sessionsPartService);
 	return { service, view, chatWidgetService, chatService, contextKeyService };
 }
 
@@ -272,7 +273,7 @@ class TestSessionsPartService extends mock<ISessionsPartService>() {
 	override readonly onDidFocusSession = Event.None;
 	override readonly onDidToggleMaximizeSession = Event.None;
 	override updateVisibleSessions(): void { }
-	override focusSession(): void { }
+	override focusSession(_session: IActiveSession | undefined): void { }
 }
 
 /**
@@ -280,9 +281,9 @@ class TestSessionsPartService extends mock<ISessionsPartService>() {
  * service, stubbing the management service instance and a passive part so the
  * view's opening/restore/visible-session behaviour can be tested.
  */
-function createView(instantiationService: TestInstantiationService, service: ISessionsManagementService, disposables: ReturnType<typeof ensureNoDisposablesAreLeakedInTestSuite>): SessionsService {
+function createView(instantiationService: TestInstantiationService, service: ISessionsManagementService, disposables: ReturnType<typeof ensureNoDisposablesAreLeakedInTestSuite>, sessionsPartService: ISessionsPartService = new TestSessionsPartService()): SessionsService {
 	instantiationService.stub(ISessionsManagementService, service);
-	instantiationService.stub(ISessionsPartService, new TestSessionsPartService());
+	instantiationService.stub(ISessionsPartService, sessionsPartService);
 	instantiationService.stub(ICustomViewService, disposables.add(new CustomViewService(new NullLogService(), disposables.add(new InMemoryStorageService()))));
 	instantiationService.stub(IConfigurationService, new TestConfigurationService());
 	instantiationService.stub(ISessionOpenTelemetryService, disposables.add(new SessionOpenTelemetryService(NullTelemetryService)));
@@ -3177,6 +3178,195 @@ suite('SessionsManagementService', () => {
 			activeSession: 'target',
 			activeChat: targetPeer.resource.toString(),
 		});
+	});
+
+	suite('navigation while an open is resolving', () => {
+		const grid = (view: SessionsService) => ({
+			visible: view.visibleSessions.get().map(session => session?.sessionId),
+			active: view.activeSession.get()?.sessionId,
+		});
+
+		async function setup(openChat: boolean) {
+			const sessions = ['first', 'second', 'pending'].map(sessionId => {
+				const chat = { ...stubChat, resource: URI.parse(`test:///${sessionId}/main`) };
+				return stubSession({ sessionId, providerId: 'test', chats: constObservable([chat]), mainChat: constObservable(chat) });
+			});
+			const [first, second, pending] = sessions;
+			const resolving = new DeferredPromise<void>();
+			const resolution = new DeferredPromise<URI | undefined>();
+			const provider = new class extends TestSessionsProvider {
+				constructor() { super(first); }
+				override getSessions(): ISession[] { return sessions; }
+				override async resolveSessionResource(resource: URI): Promise<URI | undefined> {
+					if (resource.toString() === pending.resource.toString()) {
+						resolving.complete();
+						return resolution.p;
+					}
+					return undefined;
+				}
+			};
+			const { view } = createSessionsManagementService(first, disposables, provider);
+			await view.openSession(first.resource);
+			view.insertAt(second, first.sessionId, 'right', false);
+			const opening = openChat
+				? view.openChat(pending, pending.mainChat.get().resource)
+				: view.openSession(pending.resource);
+			await resolving.p;
+			return { view, first, second, opening, resolution };
+		}
+
+		for (const openChat of [false, true]) {
+			const operation = openChat ? 'openChat' : 'openSession';
+
+			test(`focusing a visible session supersedes a pending ${operation}`, async () => {
+				const { view, opening, resolution } = await setup(openChat);
+				view.setActive(view.visibleSessions.get()[1]);
+				resolution.complete(undefined);
+				await opening;
+
+				assert.deepStrictEqual(grid(view), { visible: ['first', 'second'], active: 'second' });
+			});
+
+			test(`closing the active session supersedes a pending ${operation} when another slot remains`, async () => {
+				const { view, first, opening, resolution } = await setup(openChat);
+				view.closeSession(first);
+				resolution.complete(undefined);
+				await opening;
+
+				assert.deepStrictEqual(grid(view), { visible: ['second'], active: 'second' });
+			});
+
+			test(`closing all sessions supersedes a pending ${operation}`, async () => {
+				const { view, opening, resolution } = await setup(openChat);
+				view.closeAllSessions();
+				resolution.complete(undefined);
+				await opening;
+
+				assert.deepStrictEqual(grid(view), { visible: [], active: undefined });
+			});
+
+			test(`closing an inactive session lets the current ${operation} finish`, async () => {
+				const { view, second, opening, resolution } = await setup(openChat);
+				view.closeSession(second);
+				resolution.complete(undefined);
+				await opening;
+
+				assert.deepStrictEqual(grid(view), { visible: ['pending'], active: 'pending' });
+			});
+		}
+
+		test('explicitly focusing the already-active session supersedes a pending open', async () => {
+			const { view, opening, resolution } = await setup(false);
+			view.setActive(view.activeSession.get());
+			resolution.complete(undefined);
+			await opening;
+
+			assert.deepStrictEqual(grid(view), { visible: ['first', 'second'], active: 'first' });
+		});
+
+		test('closing all sessions still cancels an open when the grid is already empty', async () => {
+			const pending = stubSession({ sessionId: 'pending', providerId: 'test' });
+			const resolving = new DeferredPromise<void>();
+			const resolution = new DeferredPromise<URI | undefined>();
+			const provider = new class extends TestSessionsProvider {
+				override async resolveSessionResource(): Promise<URI | undefined> {
+					resolving.complete();
+					return resolution.p;
+				}
+			}(pending);
+			const { view } = createSessionsManagementService(pending, disposables, provider);
+			const opening = view.openSession(pending.resource);
+			await resolving.p;
+			view.closeAllSessions();
+			resolution.complete(undefined);
+			await opening;
+
+			assert.deepStrictEqual(grid(view), { visible: [], active: undefined });
+		});
+
+		test('the focus event caused by opening a session does not cancel loading its targeted chat', async () => {
+			const focused = disposables.add(new Emitter<string>());
+			const part = new class extends TestSessionsPartService {
+				override readonly onDidFocusSession = focused.event;
+				override focusSession(session: IActiveSession | undefined): void {
+					if (session) {
+						focused.fire(session.sessionId);
+					}
+				}
+			};
+			const main = { ...stubChat, resource: URI.parse('test:///loading/main') };
+			const peer = { ...stubChat, resource: URI.parse('test:///loading/peer') };
+			const loading = observableValue('loading', true);
+			const session = stubSession({ sessionId: 'loading', providerId: 'test', loading, chats: constObservable([main, peer]), mainChat: constObservable(main) });
+			const { view } = createSessionsManagementService(session, disposables, undefined, undefined, undefined, undefined, undefined, part);
+			const activated = new DeferredPromise<void>();
+			disposables.add(autorun(reader => {
+				if (view.activeSession.read(reader)?.sessionId === session.sessionId) {
+					activated.complete();
+				}
+			}));
+			const opening = view.openChat(session, peer.resource);
+			await activated.p;
+			loading.set(false, undefined);
+			await opening;
+
+			assert.deepStrictEqual({ ...grid(view), chat: view.activeSession.get()?.activeChat.get().resource.toString() }, {
+				visible: ['loading'], active: 'loading', chat: peer.resource.toString(),
+			});
+		});
+
+		for (const action of ['focus', 'close-active', 'close-all'] as const) {
+			test(`${action} supersedes a restore waiting for its persisted resource`, async () => {
+				const first = stubSession({ sessionId: 'first', providerId: 'test' });
+				const second = stubSession({ sessionId: 'second', providerId: 'test' });
+				const pending = stubSession({ sessionId: 'pending', providerId: 'test' });
+				const resolving = new DeferredPromise<void>();
+				const resolution = new DeferredPromise<URI | undefined>();
+				const provider = new class extends TestSessionsProvider {
+					override getSessions(): ISession[] { return [first, second, pending]; }
+					override async resolveSessionResource(resource: URI): Promise<URI | undefined> {
+						if (resource.toString() === pending.resource.toString()) {
+							resolving.complete();
+							return resolution.p;
+						}
+						return undefined;
+					}
+				}(first);
+				const storage = disposables.add(new InMemoryStorageService());
+				storage.store('agentSessions.activeSessionStates', JSON.stringify([
+					{ sessionResource: pending.resource.toString(), visibleOrder: 0, isActive: true },
+				]), 1 /* StorageScope.WORKSPACE */, 1 /* StorageTarget.MACHINE */);
+				const instantiationService = disposables.add(new TestInstantiationService());
+				instantiationService.stub(IStorageService, storage);
+				instantiationService.stub(ILogService, new NullLogService());
+				instantiationService.stub(IContextKeyService, disposables.add(new MockContextKeyService()));
+				instantiationService.stub(ISessionsProvidersService, new TestSessionsProvidersService([provider]));
+				instantiationService.stub(IUriIdentityService, { extUri: extUriBiasedIgnorePathCase });
+				instantiationService.stub(IChatService, disposables.add(new TestChatService()));
+				const management = disposables.add(instantiationService.createInstance(SessionsManagementService));
+				const view = createView(instantiationService, management, disposables);
+				view.showSession(first.resource);
+				view.insertAt(second, first.sessionId, 'right', false);
+				const restoring = view.restoreVisibleSessions();
+				await resolving.p;
+
+				if (action === 'focus') {
+					view.setActive(view.visibleSessions.get()[1]);
+				} else if (action === 'close-active') {
+					view.closeSession(first);
+				} else {
+					view.closeAllSessions();
+				}
+				resolution.complete(undefined);
+				await restoring;
+
+				assert.deepStrictEqual(grid(view), action === 'focus'
+					? { visible: ['first', 'second'], active: 'second' }
+					: action === 'close-active'
+						? { visible: ['second'], active: 'second' }
+						: { visible: [], active: undefined });
+			});
+		}
 	});
 
 	test('replacing a session only swaps the active session when it matches `from`', async () => {

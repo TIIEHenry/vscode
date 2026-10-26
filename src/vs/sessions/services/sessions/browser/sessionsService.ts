@@ -517,7 +517,9 @@ export class SessionsService extends Disposable implements ISessionsService {
 		// to the active session.
 		this._register(this.sessionsPartService.onDidFocusSession(sessionId => {
 			const session = this.visibleSessions.get().find(s => s?.sessionId === sessionId);
-			if (session) {
+			// Opening a session also focuses its view. That echo must not cancel
+			// the open that is still waiting for the session's chats to load.
+			if (session && this.activeSession.get()?.sessionId !== session.sessionId) {
 				this.setActive(session);
 			}
 		}));
@@ -714,10 +716,15 @@ export class SessionsService extends Disposable implements ISessionsService {
 		// workbench then restores the sessions grid and its side panel state.
 		this.customViewService.hideCustomView();
 
-		this._openSessionCts.value?.cancel();
+		this._cancelOpenSession();
 		const cts = new CancellationTokenSource();
 		this._openSessionCts.value = cts;
 		return cts.token;
+	}
+
+	private _cancelOpenSession(): void {
+		this._openSessionCts.value?.cancel();
+		this._openSessionCts.clear();
 	}
 
 	/**
@@ -1160,6 +1167,8 @@ export class SessionsService extends Disposable implements ISessionsService {
 	}
 
 	setActive(session: IActiveSession | undefined): void {
+		this._cancelRestore();
+		this._cancelOpenSession();
 		this._activate(session);
 	}
 
@@ -1204,6 +1213,10 @@ export class SessionsService extends Disposable implements ISessionsService {
 		// here means the empty slot is active.
 		const activeSessionId = this._visibility.activeSession.get()?.sessionId;
 		const wasActive = activeSessionId === sessionId;
+		if (wasActive) {
+			this._cancelRestore();
+			this._cancelOpenSession();
+		}
 
 		// Remember the slot so Reopen Closed Chat or Session can put it back
 		// exactly where it was.
@@ -1230,6 +1243,8 @@ export class SessionsService extends Disposable implements ISessionsService {
 	}
 
 	closeAllSessions(): void {
+		this._cancelRestore();
+		this._cancelOpenSession();
 		const ids = this._visibility.visibleSessions.get()
 			.filter((s): s is IActiveSession => !!s)
 			.map(s => s.sessionId);
