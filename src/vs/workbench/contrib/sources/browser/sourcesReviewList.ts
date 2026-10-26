@@ -54,8 +54,8 @@ import {
 	IReviewAttributionChipDisplay,
 	ISourcesReviewAttributionService,
 } from '../common/sourcesReviewAttribution.js';
-import { conversationDiffComparisonLoadFailedMessage } from './conversationDiffReviewPane.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
+import { sourcesChangeOpenIncompleteMessage } from './sourcesChangeEntryOpen.js';
 import { sourcesAlternateOpenAction, sourcesEditorOpenSlot } from './sourcesEditorOpenMode.js';
 import { beginSourcesReviewOpenStatus, isCurrentSourcesReviewOpenStatus, settleSourcesOpenStatus } from './sourcesOpenStatus.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
@@ -229,6 +229,8 @@ export class SourcesReviewList extends Disposable {
 	private readonly listContainer: HTMLElement;
 	private readonly emptyMessage: HTMLElement;
 	private readonly statusMessage: HTMLElement;
+	private modelStatusMessage: { readonly message: string; readonly isError: boolean } | undefined;
+	private openStatusMessage: { readonly message: string; readonly isError: boolean } | undefined;
 	private list: WorkbenchList<ISourcesReviewEntry> | undefined;
 	private listViewport: SourcesListViewport | undefined;
 	private labels: ResourceLabels | undefined;
@@ -401,16 +403,25 @@ export class SourcesReviewList extends Disposable {
 		this.markAllVisibleReviewed();
 	}
 
-	setStatusMessage(message: string | undefined, isError?: boolean): void {
-		if (!message) {
+	setStatusMessage(message: string | undefined, isError?: boolean, source?: 'open'): void {
+		const status = message ? { message, isError: isError ?? isSourcesReviewErrorStatus(message) } : undefined;
+		if (source === 'open') {
+			this.openStatusMessage = status;
+		} else {
+			this.modelStatusMessage = status;
+		}
+		const snapshot = this.changesModel.getSnapshot();
+		const modelHoldsStatus = !!snapshot.failureMessage || (snapshot.state.kind === 'engine-leftover' && (snapshot.state.reason === 'pairing-hold' || snapshot.state.reason === 'no-hook'));
+		const presented = modelHoldsStatus ? this.modelStatusMessage : this.openStatusMessage ?? this.modelStatusMessage;
+		if (!presented) {
 			this.statusMessage.textContent = '';
 			this.statusMessage.style.display = 'none';
 			this.statusMessage.classList.remove('is-error');
 			return;
 		}
-		this.statusMessage.textContent = message;
+		this.statusMessage.textContent = presented.message;
 		this.statusMessage.style.display = 'block';
-		this.statusMessage.classList.toggle('is-error', isError ?? isSourcesReviewErrorStatus(message));
+		this.statusMessage.classList.toggle('is-error', presented.isError);
 	}
 
 	private onModelChange(): void {
@@ -666,6 +677,7 @@ export class SourcesReviewList extends Disposable {
 			await markReviewedAfterSuccessfulOpen(
 				async () => {
 					opened = await openSourcesChangeEntry(element, {
+						commandService: this.commandService,
 						editorService: this.editorService,
 						quickDiffService: this.quickDiffService,
 						configurationService: this.configurationService,
@@ -695,12 +707,13 @@ export class SourcesReviewList extends Disposable {
 			);
 			if (opened !== undefined) {
 				settleSourcesOpenStatus(generation, isCurrentSourcesReviewOpenStatus, opened, {
-					onFalse: () => this.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())), true),
+					onFalse: () => this.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(sourcesChangeOpenIncompleteMessage())), true, 'open'),
+					onTrue: () => this.setStatusMessage(undefined, undefined, 'open'),
 				});
 			}
 		} catch (error) {
 			if (isCurrentSourcesReviewOpenStatus(generation)) {
-				this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true);
+				this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true, 'open');
 			}
 		}
 	}

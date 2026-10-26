@@ -1,0 +1,47 @@
+---
+title: "D1387 Sources 打开合同源码检查点"
+type: progress
+status: active
+phase: M7
+updated: 2026-10-26
+summary: "方案133ef4e后两根因与局部状态恢复源码/回归已写；仅作者静态检查，业务旧红新绿、完整相关套与非作者真实Git after均待"
+---
+
+# D1387 Sources 打开合同源码检查点
+
+[正式方案](../../plans/sources-open-dispatch-and-conversation-target.md) accepted，独立规则16 C0/I0后于 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 单独提交。[真实Git before/C1–C6](d1387-before.md)与两轮Astra已证两个根因；以下是源码检查点，不是after或运行通过。
+
+## 生产切片
+
+- `sourcesChangeEntryOpen.ts`：识别既有API open/diff常量，一次执行原DTO；官方context分别放第4/5参数。其他资源仅调用custom.open；二者void resolve保留委托完成语义，reject不兜底。无SCM的直接Preview文件/diff有pane才true。只对公开URI匹配input做Sources identity、custom pin和同组replace close；不同资源旧input不冒认，provider显式选项不被API分支post-pin覆盖。newTab保留旧preview语义照旧。
+- Changes/Review列表、Open Selected和move动作依赖包全部提供真实ICommandService。未改extHost map，不执行任意其他resource.command，不扩大vscode.changes支持面，不复制slot算法。
+- `editorGroupFinder.ts`：typed Conversation chat/review仍为白名单；既有token或准确有效具体组才承认。真实conversationParts/groups对象成员验证，对象必须同一实例，数字须实际getGroup解析到该成员；其他excluded旗/伪造同id/过期组不获授权。finder不重选会话或最近叶。
+- Review与Changes分别保留局部open错误；当前true清自己错误，false用通用打开未完成文案，reject写打开错误，旧generation/stale不写新状态。Review host既有状态通道新增可选open来源；读失败与Changes写失败不被成功顺带清除。不改captured-entry标记与write/pairing门、move既有false/stale关闭策略。
+
+## 回归源码与意义
+
+| 套件 | 新增/调整的业务断言 |
+| --- | --- |
+| sourcesChangesList.test.ts | API open/diff × 无slot/newTab/replace × preserveFocus两值的12个生产DTO形状场景：execute一次/resource.open零次、正确context位、optional/provider tuple不改；API reject无fallback；不同资源旧input不改identity/close；custom同条reveal与reject；provider后台目标不pin/close聚焦组。 |
+| conversationEditorFence.test.ts | 真实parts + public findGroup + actual EditorService对象/数字准确目标；实际共享slot首次空组replace/newTab、同条reveal、另一条replace与根保留。普通file/untitled/ChatEditorInput/可写Diff × token/对象/id负控；无目标/main错误/无效id/移除组/同id Proxy与其他excluded负控。 |
+| sourcesReviewList.test.ts | Review右键API reject后公共Open Selected void成功清旧error、不清无关读状态；旧void晚到不清较新error且不发明通用Review取消策略；Changes右键reject→成功恢复provenance，后续成功仍留本地unstage写失败，0 Review mark。 |
+| 既有相关测试 | REQUIRED命令依赖接入DiffPanel/DiffRefHelpers/GitDiffContent/ReviewCommands/ReviewShowForPaths；既有direct undefined夹具改断言false/不mark，未把空pane夹具伪装成真成功；false文案断言改通用文案；既有wiring scan仅同步Preview不再无条件true。 |
+
+EditorService路由测试使用无行为覆盖的RoutingReviewInput子类及既有registerTestEditor轻量pane，隔离全套运行时pane注册顺序和文件模型加载；继承生产identity/matches/只读能力，未mock EditorService.openEditor或finder。它证明公共路由/slot，不证明实际Git两侧加载。真实production pane与真实provider仍须下面非作者after。
+
+## 作者实际检查
+
+- J始于clean d472，方案提交133ef4e后仅本主题paths；未合入后续他槽源码，没有写其他工位。
+- 定向ESLint及TypeScript AST **语法解析**已执行；无emit/program/typechecker。初次14文件0 errors/35 warnings；扩大到全部17个变更TS后，与133ef逐条按规则/消息/所在行文本比对，均0 errors/56 warnings、0新增诊断；语法解析0错误、0新增any/unknown/never宽cast。含既有source scan的20个warning，不与首次14文件35个warning直接比较。
+- `git diff --check`与生成状态--check已过；docs health 0 errors/73 warnings，与同工位方案检查点warning记录逐条相等，新/改D1387文档断链0，status165行。73是该隔离工位实际外仓/子模块可用性下的日志，不能替换父工位的46；未为清warning初始化或修改外仓。首次误用不支持的--json参数exit2已按--format json正确重跑成功。测试源不等于测试已运行。
+- **未执行**编译、transpile、typecheck、out/watch或依赖out的测试。作者未重开应用；自己的before不作after。无engine RPC、无用户仓库/设备/账户操作。
+
+## 唯一merge待运行顺序
+
+1. 记录源/产物scope与摘要。仅刷新新测试，保留旧生产正文并核对旧源码；最小I1业务red选择 `API SCM .*dispatches its DTO once`，I2业务red选择 `public finder and EditorService retain the exact typed Conversation`。旧代码必须在command未执行或准确组被改投/拒绝的断言red，不以source scan/夹具类型/编译错误充数。
+2. 串行刷新本主题生产，运行以上red对应green，再完整Sources Changes/Review/DiffRefHelpers/DiffPanel/GitDiffContent/ReviewCommands/ReviewShowForPaths、Conversation fence、shared slot和相关editorService/source scan套。语义/必要full由唯一merge按实际日志报；原始既有全量失败单列。
+3. 非作者真实默认编辑器两Git fixture：Preview Review鼠标/真Enter/右键/OpenSelected、Changes先Beta后Alpha；Conversation C1/C2空组replace/newTab、C3无slot、C4replace另一条/newTab/reveal、C5精确叶、隐藏候选恢复；Panel；move Preview→Conversation→Panel→Preview及viewTitle。记录实际两侧全文/URI/part/sessionKey/group/readonly/root/focus/tabs/Reviewed/错误恢复，不用getter或命令参数替代真diff。
+4. C准备材料 `/tmp/vscode-d1387-after-preparation.md`；实际after前再核最终commit/out加载身份。五相关Debugger模块URL/hash/副本与源码scope按最终采样，不称整out同构建。无引擎0 RPC、fixture HEAD/index/worktree前后不变，清理只自己profile/进程。
+5. 迟到命令/active切换旧before夹具失败仍列未覆盖；本波若运行则用公共依赖受控Promise/加载事件，不能跨await保留ServicesAccessor或改Sources私有状态。
+
+独立实现peer及运行/真实after到齐前，方案accepted、D1387 open、PRD实施状态不升；不重新打开已闭D1382/1386。

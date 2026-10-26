@@ -304,7 +304,7 @@ suite('Sources - review list model - 源码接线扫描', () => {
 		assert.ok(entryFn.includes('Promise<boolean | \'stale\'>'));
 		assert.ok(entryFn.includes('runSuppressingExplorerAutoReveal'));
 		assert.ok(entryFn.includes("return 'stale'"));
-		assert.ok(entryFn.includes('return true'));
+		assert.ok(entryFn.includes('return openSourcesChangeInPreview(ref, deps, options)'));
 		assert.ok(entryFn.includes('sourcesDiffPanelService.show(ref)'));
 		const showStart = panelService.indexOf('async show(');
 		assert.ok(showStart >= 0);

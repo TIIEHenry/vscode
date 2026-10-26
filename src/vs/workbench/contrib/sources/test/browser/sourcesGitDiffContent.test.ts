@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { DisposableStore } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -113,7 +114,8 @@ suite('Sources - git diff content provider', () => {
 		await timeout(0);
 		assert.strictEqual(calls, 2);
 		releaseSecond();
-		assert.strictEqual(await freshOpen, true);
+		// The model write won, but this fixture deliberately supplies no visible editor pane.
+		assert.strictEqual(await freshOpen, false);
 		releaseFirst();
 		assert.strictEqual(await staleOpen, 'stale');
 		assert.strictEqual(opens, 1);
@@ -255,6 +257,7 @@ function openDeps(
 	onOpen: () => void,
 ): ISourcesChangeEntryOpenDeps {
 	return {
+		commandService: NullCommandService,
 		editorService: {
 			openEditor: async () => {
 				onOpen();

@@ -102,8 +102,7 @@ import {
 } from '../common/sourcesChangesPresentation.js';
 import { SourcesListViewport } from './sourcesListViewport.js';
 import { ISourcesDiffPanelService } from '../common/sourcesDiffPanelService.js';
-import { conversationDiffComparisonLoadFailedMessage } from './conversationDiffReviewPane.js';
-import { openSourcesChangeEntry, ISourcesChangeEntryOpenOptions } from './sourcesChangeEntryOpen.js';
+import { openSourcesChangeEntry, ISourcesChangeEntryOpenOptions, sourcesChangeOpenIncompleteMessage } from './sourcesChangeEntryOpen.js';
 import { beginSourcesChangesOpenStatus, isCurrentSourcesChangesOpenStatus, settleSourcesOpenStatus } from './sourcesOpenStatus.js';
 import { SourcesListFilterBox } from './sourcesListFilterBox.js';
 
@@ -407,6 +406,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 	private activeRepository: ISCMRepository | undefined;
 	private gitCommandsAvailable = false;
 	private writeStatusMessage: string | undefined;
+	private openStatusMessage: string | undefined;
 
 	setFilterDock(dock: HTMLElement | undefined): void {
 		this.filterBox.dock(dock);
@@ -681,6 +681,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		const generation = beginSourcesChangesOpenStatus();
 		try {
 			const opened = await openSourcesChangeEntry(element, {
+				commandService: this.commandService,
 				editorService: this.editorService,
 				quickDiffService: this.quickDiffService,
 				configurationService: this.configurationService,
@@ -693,19 +694,17 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 			}, options);
 			settleSourcesOpenStatus(generation, isCurrentSourcesChangesOpenStatus, opened, {
 				onFalse: () => {
-					this.writeStatusMessage = undefined;
-					this.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())));
+					this.setOpenStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(sourcesChangeOpenIncompleteMessage())));
 				},
 				onTrue: () => {
-					this.setStatusMessage(undefined);
+					this.setOpenStatusMessage(undefined);
 				},
 			});
 		} catch (error) {
 			if (!isCurrentSourcesChangesOpenStatus(generation)) {
 				return;
 			}
-			this.writeStatusMessage = undefined;
-			this.setStatusMessage(sourcesGitDiffOpenFailureMessage(error));
+			this.setOpenStatusMessage(sourcesGitDiffOpenFailureMessage(error));
 		}
 	}
 
@@ -794,9 +793,6 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 
 		const allEntries = snapshot.entries;
 		const gitReadError = snapshot.failureMessage;
-		const gitReadPairingHold = snapshot.state.kind === 'engine-leftover' && snapshot.state.reason === 'pairing-hold';
-		const gitReadNoHook = snapshot.state.kind === 'engine-leftover' && snapshot.state.reason === 'no-hook';
-		const localOnly = snapshot.state.kind === 'scm' && allEntries.length > 0 && !gitReadError;
 		const hasRepository = snapshot.state.kind !== 'scm' || this.scmService.repositoryCount > 0;
 		const entries = filterSourcesEntries(allEntries, this.filterBox.value);
 		const hasAnyEntries = allEntries.length > 0;
@@ -823,23 +819,7 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		this.filterBox.setAvailable(hasAnyEntries);
 		this.commitRow.style.display = hasRepository && !(gitReadError && !hasAnyEntries) ? 'flex' : 'none';
 
-		if (gitReadError && hasAnyEntries) {
-			this.presentStatus(gitReadError, undefined);
-		} else if (gitReadError) {
-			this.presentStatus(undefined, undefined);
-		} else if (this.writeStatusMessage) {
-			this.presentStatus(this.writeStatusMessage, undefined);
-		} else if (gitReadPairingHold) {
-			this.presentStatus(sourcesGitReadPairingHoldMessage(), undefined);
-		} else if (gitReadNoHook) {
-			this.presentStatus(sourcesGitReadUnavailableNoHookMessage(), undefined);
-		} else if (localOnly) {
-			this.presentStatus(undefined, sourcesGitLocalOnlyMessage());
-		} else if (hasRepository && !this.gitCommandsAvailable && !this.canWriteStage() && !this.canWriteCommit()) {
-			this.presentStatus(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."), undefined);
-		} else {
-			this.presentStatus(undefined, undefined);
-		}
+		this.renderStatus(snapshot);
 
 		this.syncCommitInputFromRepository();
 		this.updateCommitRow();
@@ -1100,6 +1080,36 @@ export class SourcesChangesList extends Disposable implements ISourcesChangesRen
 		} catch (error) {
 			this.setWriteStatusMessage(localize('sourcesChangesList.stageFailed', "Unable to stage: {0}", getErrorMessage(error)));
 			return true;
+		}
+	}
+
+	private setOpenStatusMessage(message: string | undefined): void {
+		this.openStatusMessage = message;
+		this.renderStatus(this.changesModel.getSnapshot());
+	}
+
+	private renderStatus(snapshot: ISourcesChangesSnapshot): void {
+		const readError = snapshot.failureMessage;
+		const hasEntries = snapshot.entries.length > 0;
+		const hasRepository = snapshot.state.kind !== 'scm' || this.scmService.repositoryCount > 0;
+		const pairingHold = snapshot.state.kind === 'engine-leftover' && snapshot.state.reason === 'pairing-hold';
+		const noHook = snapshot.state.kind === 'engine-leftover' && snapshot.state.reason === 'no-hook';
+		if (readError) {
+			this.presentStatus(hasEntries ? readError : undefined, undefined);
+		} else if (this.openStatusMessage && !pairingHold && !noHook) {
+			this.presentStatus(this.openStatusMessage, undefined);
+		} else if (this.writeStatusMessage) {
+			this.presentStatus(this.writeStatusMessage, undefined);
+		} else if (pairingHold) {
+			this.presentStatus(sourcesGitReadPairingHoldMessage(), undefined);
+		} else if (noHook) {
+			this.presentStatus(sourcesGitReadUnavailableNoHookMessage(), undefined);
+		} else if (snapshot.state.kind === 'scm' && hasEntries) {
+			this.presentStatus(undefined, sourcesGitLocalOnlyMessage());
+		} else if (hasRepository && !this.gitCommandsAvailable && !this.canWriteStage() && !this.canWriteCommit()) {
+			this.presentStatus(localize('sourcesChangesList.gitUnavailable', "Git stage/commit commands are not available."), undefined);
+		} else {
+			this.presentStatus(undefined, undefined);
 		}
 	}
 

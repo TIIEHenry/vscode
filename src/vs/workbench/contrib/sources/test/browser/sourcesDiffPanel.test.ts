@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { timeout } from '../../../../../base/common/async.js';
@@ -2515,6 +2516,7 @@ suite('Sources diff panel', () => {
 		const models = new Map<string, string>();
 
 		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
 			editorService: { openEditor: async () => undefined } as unknown as IEditorService,
 			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
 			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'panel' }),
@@ -2567,6 +2569,7 @@ suite('Sources diff panel', () => {
 		});
 
 		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
 			editorService: {
 				openEditor: async () => { throw new Error('conversation open must not use editorService.openEditor'); },
 			} as unknown as IEditorService,
@@ -2654,6 +2657,7 @@ suite('Sources diff panel', () => {
 		} as unknown as IEditorService;
 
 		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
 			editorService,
 			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
 			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'preview' }),
@@ -2685,6 +2689,7 @@ suite('Sources diff panel', () => {
 
 		const opensBeforeMove = editorOpens;
 		await moveActiveDiffToConversation('editorTitle', {
+			commandService: NullCommandService,
 			editorService,
 			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
 			configurationService: new TestConfigurationService(),
@@ -2721,6 +2726,7 @@ suite('Sources diff panel', () => {
 		let previewHost: DiffEditorInput | undefined;
 
 		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
 			editorService: {
 				get activeEditor() { return previewHost; },
 				openEditor: async (input: { original?: { resource?: URI }; modified?: { resource?: URI } }) => {
@@ -2888,6 +2894,7 @@ suite('Sources diff panel', () => {
 		let shown: ISourcesChangeRef | undefined;
 		const models = new Map<string, string>();
 		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
 			editorService: { openEditor: async () => undefined } as unknown as IEditorService,
 			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
 			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'panel' }),
@@ -2946,6 +2953,7 @@ suite('Sources diff panel', () => {
 			},
 		});
 		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
 			editorService: {
 				openEditor: async () => { throw new Error('conversation open must not use editorService.openEditor'); },
 			} as unknown as IEditorService,
@@ -3210,6 +3218,7 @@ suite('Sources diff panel', () => {
 		let shown: ISourcesChangeRef | undefined;
 		const models = new Map<string, string>();
 		const opened = await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
 			editorService: { openEditor: async () => undefined } as unknown as IEditorService,
 			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
 			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'panel' }),

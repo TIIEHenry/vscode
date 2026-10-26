@@ -46,8 +46,8 @@ function handleGroupResult(group: IEditorGroup, editor: EditorInputWithOptions |
 	const editorInput = isEditorInputWithOptions(editor) ? editor.editor : isEditorInput(editor) ? editor : undefined;
 
 	const conversationExplicitOpen = !!editorInput
-		&& !isBlockedFromConversationGroup(editorInput)
-		&& isConversationPreferredGroup(preferredGroup);
+		&& (isConversationChatInput(editorInput) || isConversationDiffReviewInput(editorInput))
+		&& (isConversationPreferredGroup(preferredGroup) || isExplicitConversationGroupTarget(preferredGroup, group, editorGroupService));
 
 	if (isGroupInExcludedPart(group, editorGroupService) && !conversationExplicitOpen) {
 		group = editorGroupService.mainPart.activeGroup;
@@ -398,8 +398,16 @@ function isGroupInExcludedPart(group: IEditorGroup, editorGroupService: IEditorG
 }
 
 function isGroupInConversationPart(group: IEditorGroup, editorGroupService: IEditorGroupsService): boolean {
-	const part = editorGroupService.getPart(group);
-	return part.excludeFromGlobalEditorAggregation === true;
+	return editorGroupService.conversationParts.some(part => part.groups.includes(group));
+}
+
+function isExplicitConversationGroupTarget(preferredGroup: PreferredGroup | undefined, group: IEditorGroup, editorGroupService: IEditorGroupsService): boolean {
+	if (!isExplicitGroupTarget(preferredGroup) || !isGroupInConversationPart(group, editorGroupService)) {
+		return false;
+	}
+	return typeof preferredGroup === 'number'
+		? editorGroupService.getGroup(preferredGroup) === group
+		: preferredGroup === group;
 }
 
 function isGroupLockedForEditor(group: IEditorGroup, editor: EditorInput | IUntypedEditorInput): boolean {

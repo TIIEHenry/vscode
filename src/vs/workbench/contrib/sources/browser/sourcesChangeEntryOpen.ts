@@ -5,11 +5,15 @@
 
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { localize } from '../../../../nls.js';
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { EditorOpenSource } from '../../../../platform/editor/common/editor.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import type { UniverseAgentReadGitFileDiffResult } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
+import { EditorResourceAccessor, SideBySideEditor } from '../../../common/editor.js';
+import { isEqual } from '../../../../base/common/resources.js';
+import { API_OPEN_DIFF_EDITOR_COMMAND_ID, API_OPEN_EDITOR_COMMAND_ID } from '../../../browser/parts/editor/editorCommands.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../services/editor/common/editorService.js';
 import { IEditorGroup, IEditorGroupsService, preferredSideBySideGroupDirection } from '../../../services/editor/common/editorGroupsService.js';
 import { openEditorInSlot } from '../../../services/editor/browser/editorOpenSlot.js';
@@ -18,6 +22,7 @@ import { runSuppressingExplorerAutoReveal } from '../../../services/editor/commo
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { ConversationChatInput } from '../../conversation/common/conversationChatInput.js';
 import { IQuickDiffService } from '../../scm/common/quickDiff.js';
+import { ISCMResource } from '../../scm/common/scm.js';
 import { resolveSourcesChangeRef, ISourcesChangeRef, sourcesChangeIdentity, sourcesChangeRefWithEntryIdentity } from '../common/sourcesChangeRef.js';
 import {
 	isSourcesGitUnrootedResource,
@@ -50,6 +55,7 @@ export interface ISourcesChangeEntryOpenOptions {
 }
 
 export interface ISourcesChangeEntryOpenDeps {
+	readonly commandService: ICommandService;
 	readonly editorService: IEditorService;
 	readonly quickDiffService: IQuickDiffService;
 	readonly configurationService: IConfigurationService;
@@ -64,7 +70,8 @@ export interface ISourcesChangeEntryOpenDeps {
 /**
  * Open a Changes/Review row via default diff owner dispatch.
  * `'stale'` means a newer `ReadGitFileDiff` won; nothing was opened and this is not a failure.
- * Boolean results come only from `openSourcesChangeInConversation` and Panel `show()`.
+ * Direct editors and comparison hosts report their observable result.
+ * SCM commands retain their delegated void completion contract.
  */
 export async function openSourcesChangeEntry(
 	entry: ISourcesChangeEntry,
@@ -96,8 +103,7 @@ async function dispatchSourcesChangeEntry(
 			return deps.sourcesDiffPanelService.show(ref);
 		case 'preview':
 		default:
-			await openSourcesChangeInPreview(ref, deps, options);
-			return true;
+			return openSourcesChangeInPreview(ref, deps, options);
 	}
 }
 
@@ -147,20 +153,29 @@ async function openSourcesChangeInPreview(
 	ref: ISourcesChangeRef,
 	deps: ISourcesChangeEntryOpenDeps,
 	options: ISourcesChangeEntryOpenOptions,
-): Promise<void> {
+): Promise<boolean> {
 	if (ref.scmResource) {
-		if (options.slot && deps.editorGroupsService) {
-			const opened = await openScmResourceInSlot(ref.scmResource, deps.editorGroupsService, options.slot, !!options.preserveFocus);
-			rememberSourcesDiffOpenIdentity(opened, { groupId: ref.groupId, scmResource: ref.scmResource });
-			return;
+		const group = deps.editorGroupsService?.activeGroup;
+		const previous = group?.activeEditor ?? undefined;
+		// Keep the old preview before the provider opens the next tab.
+		if (options.slot === 'newTab' && previous && group && !group.isPinned(previous)) {
+			group.pinEditor(previous);
 		}
-		await ref.scmResource.open(!!options.preserveFocus);
-		rememberSourcesDiffOpenIdentity(deps.editorService.activeEditor, { groupId: ref.groupId, scmResource: ref.scmResource });
-		if (options.pinned) {
-			const activeEditorPane = deps.editorService.activeEditorPane;
-			activeEditorPane?.group.pinEditor(activeEditorPane.input);
+
+		await dispatchScmResource(ref.scmResource, deps.commandService, options);
+		const opened = findOpenedScmResource(ref, deps, group);
+		if (opened) {
+			rememberSourcesDiffOpenIdentity(opened.input, { groupId: ref.groupId, scmResource: ref.scmResource });
+			// API commands apply context options themselves, with provider options winning.
+			if (!isApiScmOpenCommand(ref.scmResource) && (options.slot === 'newTab' || options.pinned)) {
+				opened.group?.pinEditor(opened.input);
+			}
+			if (options.slot === 'replace' && group && opened.group === group && previous && !previous.matches(opened.input) && group.editors.includes(previous)) {
+				await group.closeEditor(previous);
+			}
 		}
-		return;
+		// Neither the API command nor custom resource.open returns a pane.
+		return true;
 	}
 
 	if (ref.original) {
@@ -173,17 +188,14 @@ async function openSourcesChangeInPreview(
 				source: EditorOpenSource.USER,
 			},
 		};
-		if (options.slot && deps.editorGroupsService) {
-			const pane = await openEditorInSlot(deps.editorService, deps.editorGroupsService, input, options.slot, {
+		const pane = options.slot && deps.editorGroupsService
+			? await openEditorInSlot(deps.editorService, deps.editorGroupsService, input, options.slot, {
 				preserveFocus: options.preserveFocus,
 				source: EditorOpenSource.USER,
-			}, ACTIVE_GROUP);
-			rememberSourcesDiffOpenIdentity(pane?.input, { groupId: ref.groupId, scmResource: ref.scmResource });
-			return;
-		}
-		const pane = await deps.editorService.openEditor(input, ACTIVE_GROUP);
+			}, ACTIVE_GROUP)
+			: await deps.editorService.openEditor(input, ACTIVE_GROUP);
 		rememberSourcesDiffOpenIdentity(pane?.input, { groupId: ref.groupId, scmResource: ref.scmResource });
-		return;
+		return pane !== undefined;
 	}
 
 	const fileInput = {
@@ -194,40 +206,69 @@ async function openSourcesChangeInPreview(
 			source: EditorOpenSource.USER,
 		},
 	};
-	if (options.slot && deps.editorGroupsService) {
-		await openEditorInSlot(deps.editorService, deps.editorGroupsService, fileInput, options.slot, {
+	const pane = options.slot && deps.editorGroupsService
+		? await openEditorInSlot(deps.editorService, deps.editorGroupsService, fileInput, options.slot, {
 			preserveFocus: options.preserveFocus,
 			source: EditorOpenSource.USER,
-		}, ACTIVE_GROUP);
-		return;
-	}
-	await deps.editorService.openEditor(fileInput, ACTIVE_GROUP);
+		}, ACTIVE_GROUP)
+		: await deps.editorService.openEditor(fileInput, ACTIVE_GROUP);
+	return pane !== undefined;
 }
 
-async function openScmResourceInSlot(
-	resource: { open(preserveFocus: boolean): Promise<void> },
-	editorGroupsService: IEditorGroupsService,
-	slot: EditorOpenSlot,
-	preserveFocus: boolean,
-): Promise<EditorInput | undefined> {
-	const group = editorGroupsService.activeGroup;
-	const previous = group.activeEditor ?? undefined;
-	// An unpinned diff open replaces the preview tab. Pin it first so "new tab" keeps it.
-	if (slot === 'newTab' && previous && !group.isPinned(previous)) {
-		group.pinEditor(previous);
+function isApiScmOpenCommand(resource: ISCMResource): boolean {
+	return resource.command?.id === API_OPEN_EDITOR_COMMAND_ID || resource.command?.id === API_OPEN_DIFF_EDITOR_COMMAND_ID;
+}
+
+async function dispatchScmResource(resource: ISCMResource, commandService: ICommandService, options: ISourcesChangeEntryOpenOptions): Promise<void> {
+	const command = resource.command;
+	if (command && isApiScmOpenCommand(resource)) {
+		const args = [...(command.arguments ?? [])];
+		const contextIndex = command.id === API_OPEN_EDITOR_COMMAND_ID ? 3 : 4;
+		args[contextIndex] = {
+			editorOptions: {
+				preserveFocus: options.preserveFocus,
+				pinned: options.slot ? true : options.pinned,
+				source: EditorOpenSource.USER,
+			},
+			sideBySide: false,
+		};
+		await commandService.executeCommand(command.id, ...args);
+		return;
 	}
-	await resource.open(preserveFocus);
-	const opened = group.activeEditor ?? undefined;
-	if (slot === 'newTab') {
-		if (opened) {
-			group.pinEditor(opened);
+	await resource.open(!!options.preserveFocus);
+}
+
+/** Match public resource identities before pin/close or remembering a delegated open. */
+function findOpenedScmResource(ref: ISourcesChangeRef, deps: ISourcesChangeEntryOpenDeps, requestedGroup: IEditorGroup | undefined): { input: EditorInput; group: IEditorGroup | undefined } | undefined {
+	const matches = (input: EditorInput | undefined): input is EditorInput => {
+		if (!input) {
+			return false;
 		}
-		return opened;
+		const primary = EditorResourceAccessor.getOriginalUri(input, { supportSideBySide: SideBySideEditor.PRIMARY });
+		const secondary = EditorResourceAccessor.getOriginalUri(input, { supportSideBySide: SideBySideEditor.SECONDARY });
+		return [ref.modified, ref.scmResource?.sourceUri, ref.scmResource?.multiDiffEditorOriginalUri, ref.scmResource?.multiDiffEditorModifiedUri]
+			.some(uri => !!uri && (isEqual(primary, uri) || isEqual(secondary, uri)));
+	};
+	const activePane = deps.editorService.activeEditorPane;
+	if (activePane && matches(activePane.input)) {
+		return { input: activePane.input, group: activePane.group };
 	}
-	if (previous && opened && !previous.matches(opened) && group.editors.includes(previous)) {
-		await group.closeEditor(previous);
+	const requested = requestedGroup?.activeEditor ?? undefined;
+	if (matches(requested)) {
+		return { input: requested, group: requestedGroup };
 	}
-	return opened;
+	for (const pane of deps.editorService.visibleEditorPanes ?? []) {
+		if (matches(pane.input)) {
+			return { input: pane.input, group: pane.group };
+		}
+	}
+	const active = deps.editorService.activeEditor;
+	return matches(active) ? { input: active, group: requestedGroup?.editors.includes(active) ? requestedGroup : undefined } : undefined;
+}
+
+/** Shared false-result detail; it also applies to direct Preview editor opens. */
+export function sourcesChangeOpenIncompleteMessage(): string {
+	return localize('sourcesChangeEntryOpen.incomplete', "The requested change could not be opened.");
 }
 
 /** Active session has no conversation leaf. */

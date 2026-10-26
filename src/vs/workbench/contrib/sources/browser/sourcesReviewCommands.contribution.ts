@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IModelService } from '../../../../editor/common/services/model.js';
 import { localize2 } from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -19,7 +20,7 @@ import { ISourcesChangesModel, isSourcesChangesReadFailed, sourcesChangesWriteSe
 import { ISourcesReviewHostService } from '../common/sourcesReviewHostService.js';
 import { markReviewedAfterSuccessfulOpen } from '../common/sourcesReviewListModel.js';
 import { ISourcesReviewProgressService, sourcesReviewProgressTarget } from '../common/sourcesReviewProgress.js';
-import { conversationDiffComparisonLoadFailedMessage } from './conversationDiffReviewPane.js';
+import { sourcesChangeOpenIncompleteMessage } from './sourcesChangeEntryOpen.js';
 import { openSourcesChangeEntry } from './sourcesChangesList.js';
 import { beginSourcesReviewOpenStatus, isCurrentSourcesReviewOpenStatus, settleSourcesOpenStatus } from './sourcesOpenStatus.js';
 
@@ -60,6 +61,7 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 			await markReviewedAfterSuccessfulOpen(
 				async () => {
 					opened = await openSourcesChangeEntry(entry, {
+						commandService: accessor.get(ICommandService),
 						editorService: accessor.get(IEditorService),
 						quickDiffService: accessor.get(IQuickDiffService),
 						configurationService: accessor.get(IConfigurationService),
@@ -100,12 +102,13 @@ registerAction2(class SourcesReviewOpenSelectedAction extends Action2 {
 			);
 			if (opened !== undefined) {
 				settleSourcesOpenStatus(generation, isCurrentSourcesReviewOpenStatus, opened, {
-					onFalse: () => host.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(conversationDiffComparisonLoadFailedMessage())), true),
+					onFalse: () => host.setStatusMessage(sourcesGitDiffOpenFailureMessage(new Error(sourcesChangeOpenIncompleteMessage())), true, 'open'),
+					onTrue: () => host.setStatusMessage(undefined, undefined, 'open'),
 				});
 			}
 		} catch (error) {
 			if (isCurrentSourcesReviewOpenStatus(generation)) {
-				host.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true);
+				host.setStatusMessage(sourcesGitDiffOpenFailureMessage(error), true, 'open');
 			}
 		}
 	}

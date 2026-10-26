@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
@@ -14,7 +15,7 @@ import { localize } from '../../../../../nls.js';
 import { EditorOpenSource, IResourceEditorInput } from '../../../../../platform/editor/common/editor.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
-import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandEvent, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -24,11 +25,12 @@ import type {
 	UniverseAgentWriteGitStagePathsRequest,
 	UniverseAgentWriteGitWriteResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { TestEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestEditorGroupsService, TestEditorGroupView, TestEditorInput, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { API_OPEN_DIFF_EDITOR_COMMAND_ID, API_OPEN_EDITOR_COMMAND_ID } from '../../../../browser/parts/editor/editorCommands.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
-import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
+import { ISCMResource, ISCMResourceGroup, ISCMService } from '../../../scm/common/scm.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { ACTIVE_GROUP, IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IEditorGroupsService, preferredSideBySideGroupDirection } from '../../../../services/editor/common/editorGroupsService.js';
@@ -66,6 +68,7 @@ suite('Sources - Changes list open', () => {
 	function createDeps(overrides: Partial<ISourcesChangeEntryOpenDeps> & Pick<ISourcesChangeEntryOpenDeps, 'editorService'>): ISourcesChangeEntryOpenDeps {
 		const configurationService = new TestConfigurationService();
 		return {
+			commandService: NullCommandService,
 			quickDiffService: {
 				getQuickDiffs: async () => [],
 			} as unknown as IQuickDiffService,
@@ -80,6 +83,153 @@ suite('Sources - Changes list open', () => {
 			...overrides,
 		};
 	}
+
+	function commandResource(resource: URI, command: ISCMResource['command'], open: ISCMResource['open']): ISCMResource {
+		return {
+			get resourceGroup(): ISCMResourceGroup { throw new Error('opening a resource must not inspect its group'); },
+			sourceUri: resource,
+			decorations: {},
+			contextValue: undefined,
+			command,
+			multiDiffEditorOriginalUri: undefined,
+			multiDiffEditorModifiedUri: undefined,
+			open,
+		};
+	}
+
+	for (const commandId of [API_OPEN_EDITOR_COMMAND_ID, API_OPEN_DIFF_EDITOR_COMMAND_ID]) {
+		for (const slot of [undefined, 'newTab', 'replace'] as const) {
+			for (const preserveFocus of [false, true]) {
+				test(`API SCM ${commandId} ${slot ?? 'no slot'} preserveFocus=${preserveFocus} dispatches its DTO once`, async () => {
+					const resource = URI.file('/project/shared.ts');
+					const original = URI.parse('git:/project/shared.ts?baseline');
+					// These are the ext-host API converters' optional argument slots.
+					const providerOptions = [2, { preserveFocus: false, pinned: false }];
+					const args = commandId === API_OPEN_EDITOR_COMMAND_ID
+						? [resource, providerOptions, undefined]
+						: [original, resource, 'Shared change', providerOptions];
+					let resourceOpens = 0;
+					const scmResource = commandResource(resource, { id: commandId, title: '', arguments: args }, async () => { resourceOpens++; });
+					const commands: ICommandEvent[] = [];
+					const commandService: ICommandService = {
+						...NullCommandService,
+						executeCommand: async (id, ...commandArgs) => {
+							commands.push({ commandId: id, args: commandArgs });
+							return undefined; // A fulfilled API command has a void contract.
+						},
+					};
+					const opened = await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
+						commandService,
+						editorService: store.add(new TestEditorService()),
+					}), { slot, preserveFocus, pinned: false });
+
+					assert.strictEqual(opened, true);
+					assert.strictEqual(resourceOpens, 0);
+					assert.deepStrictEqual(commands, [{ commandId, args: [...args, {
+						editorOptions: { preserveFocus, pinned: slot ? true : false, source: EditorOpenSource.USER },
+						sideBySide: false,
+					}] }]);
+					assert.deepStrictEqual(providerOptions, [2, { preserveFocus: false, pinned: false }]);
+					assert.strictEqual(args.length, commandId === API_OPEN_EDITOR_COMMAND_ID ? 3 : 4);
+				});
+			}
+		}
+	}
+
+	test('API SCM rejection propagates without a resource.open fallback or unrelated identity', async () => {
+		const resource = URI.file('/alpha/shared.ts');
+		const previous = store.add(new TestEditorInput(URI.file('/beta/shared.ts'), 'test.beta'));
+		const group = new TestEditorGroupView(41);
+		group.activeEditor = previous;
+		group.editors = [previous];
+		group.pinEditor = () => assert.fail('provider options must not be overwritten after a rejection');
+		group.closeEditor = async () => assert.fail('a rejection must not close the previous input');
+		const editorService = store.add(new TestEditorService());
+		editorService.activeEditor = previous;
+		let resourceOpens = 0;
+		let commands = 0;
+		const boom = new Error('command rejected');
+		const scmResource = commandResource(resource, { id: API_OPEN_DIFF_EDITOR_COMMAND_ID, title: '', arguments: [undefined, resource, undefined, undefined] }, async () => { resourceOpens++; });
+		await assert.rejects(() => openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
+			editorService,
+			editorGroupsService: new TestEditorGroupsService([group]),
+			commandService: { ...NullCommandService, executeCommand: async () => { commands++; throw boom; } },
+		}), { slot: 'replace' }), error => error === boom);
+		assert.strictEqual(commands, 1);
+		assert.strictEqual(resourceOpens, 0);
+		assert.strictEqual(sourcesDiffOpenIdentity(previous), undefined);
+	});
+
+	test('fulfilled API void does not relabel or close a different resource left visible', async () => {
+		const resource = URI.file('/alpha/shared.ts');
+		const previous = store.add(new TestEditorInput(URI.file('/beta/shared.ts'), 'test.beta'));
+		const group = new TestEditorGroupView(42);
+		group.activeEditor = previous;
+		group.editors = [previous];
+		group.pinEditor = () => assert.fail('API provider pinned:false must keep priority');
+		group.closeEditor = async () => assert.fail('unmatched input must stay open');
+		const editorService = store.add(new TestEditorService());
+		editorService.activeEditor = previous;
+		const scmResource = commandResource(resource, { id: API_OPEN_EDITOR_COMMAND_ID, title: '', arguments: [resource, [undefined, { pinned: false }], undefined] }, async () => assert.fail('API DTO must use commandService'));
+		const opened = await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
+			editorService,
+			editorGroupsService: new TestEditorGroupsService([group]),
+		}), { slot: 'replace', preserveFocus: true, pinned: true });
+		assert.strictEqual(opened, true);
+		assert.strictEqual(group.activeEditor, previous);
+		assert.strictEqual(sourcesDiffOpenIdentity(previous), undefined);
+	});
+
+	test('custom SCM reveal of the same input retains delegated void and the correct identity', async () => {
+		const resource = URI.file('/alpha/shared.ts');
+		const input = store.add(new TestEditorInput(resource, 'test.alpha'));
+		const group = new TestEditorGroupView(43);
+		group.activeEditor = input;
+		group.editors = [input];
+		group.closeEditor = async () => assert.fail('same input reveal must not close itself');
+		let opens = 0;
+		const scmResource = commandResource(resource, { id: 'provider.customOpen', title: '' }, async preserveFocus => { opens++; assert.strictEqual(preserveFocus, true); });
+		const opened = await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
+			editorService: store.add(new TestEditorService()),
+			editorGroupsService: new TestEditorGroupsService([group]),
+			commandService: { ...NullCommandService, executeCommand: async () => assert.fail('custom resource must own its dispatch') },
+		}), { slot: 'replace', preserveFocus: true });
+		assert.strictEqual(opened, true);
+		assert.strictEqual(opens, 1);
+		assert.deepStrictEqual(sourcesDiffOpenIdentity(input), { groupId: 'workingTree', scmResource });
+	});
+
+	test('custom SCM rejection is dispatched once without executing its command DTO', async () => {
+		const resource = URI.file('/alpha/custom.ts');
+		let opens = 0;
+		const boom = new Error('custom rejected');
+		const scmResource = commandResource(resource, { id: 'provider.customOpen', title: '' }, async () => { opens++; throw boom; });
+		await assert.rejects(() => openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
+			editorService: store.add(new TestEditorService()),
+			commandService: { ...NullCommandService, executeCommand: async () => assert.fail('custom dispatch belongs to resource.open') },
+		}), { preserveFocus: true }), error => error === boom);
+		assert.strictEqual(opens, 1);
+	});
+
+	test('a provider-selected background input gets its identity without pinning or closing the focused group', async () => {
+		const resource = URI.file('/alpha/background.ts');
+		const previous = store.add(new TestEditorInput(URI.file('/beta/focused.ts'), 'test.focused'));
+		const opened = store.add(new TestEditorInput(resource, 'test.background'));
+		const group = new TestEditorGroupView(44);
+		group.activeEditor = previous;
+		group.editors = [previous];
+		group.pinEditor = () => assert.fail('provider pinned:false must retain priority');
+		group.closeEditor = async () => assert.fail('provider-selected background target must not close the focused editor');
+		const editorService = store.add(new TestEditorService());
+		editorService.activeEditor = opened;
+		const scmResource = commandResource(resource, { id: API_OPEN_EDITOR_COMMAND_ID, title: '', arguments: [resource, [2, { pinned: false, preserveFocus: true }], undefined] }, async () => assert.fail('API DTO must use commandService'));
+		assert.strictEqual(await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
+			editorService,
+			editorGroupsService: new TestEditorGroupsService([group]),
+		}), { slot: 'replace', pinned: true, preserveFocus: true }), true);
+		assert.strictEqual(sourcesDiffOpenIdentity(previous), undefined);
+		assert.deepStrictEqual(sourcesDiffOpenIdentity(opened), { groupId: 'workingTree', scmResource });
+	});
 
 	test('openSourcesChangeEntry uses scmResource.open for working-tree diff', async function () {
 		const resource = toResource.call(this, '/project/src/a.ts');

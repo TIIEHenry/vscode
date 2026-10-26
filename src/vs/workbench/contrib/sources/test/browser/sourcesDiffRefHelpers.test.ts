@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { getErrorMessage } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -47,6 +48,7 @@ suite('Sources - Diff ref helpers', () => {
 		});
 		conversationOpened = harness.opened;
 		return {
+			commandService: NullCommandService,
 			editorService,
 			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
 			configurationService: new TestConfigurationService(),
@@ -219,6 +221,7 @@ suite('Sources - Diff ref helpers', () => {
 		});
 
 		const moved = await moveActiveDiffToConversation('viewTitle', {
+			commandService: NullCommandService,
 			editorService,
 			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
 			configurationService: new TestConfigurationService(),
@@ -293,6 +296,7 @@ suite('Sources - Diff ref helpers', () => {
 			groupId: 'workingTree',
 		});
 		const deps = {
+			commandService: NullCommandService,
 			editorService,
 			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
 			configurationService: new TestConfigurationService(),

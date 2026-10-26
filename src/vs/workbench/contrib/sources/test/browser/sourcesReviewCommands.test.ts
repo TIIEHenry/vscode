@@ -6,7 +6,8 @@
 import assert from 'assert';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
-import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService, ServiceIdentifier, ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
@@ -61,6 +62,9 @@ suite('Sources - review commands', () => {
 		}));
 
 		const accessor = stubAccessor((id: unknown) => {
+			if (id === ICommandService) {
+				return NullCommandService;
+			}
 			if (id === ISourcesReviewHostService) {
 				return hostService;
 			}

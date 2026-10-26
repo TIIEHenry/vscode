@@ -4,14 +4,14 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-26
-summary: "D1387：真实 Git 已证 Preview 漏 API open/diff DTO、Conversation slot 的准确 concrete group 被改投主组；保留三 owner/两 slot/void 合同，规则16 C0/I0后进入源码实施准备，运行/独立after待做"
+summary: "D1387：真实 Git 已证 Preview 漏 API open/diff DTO、Conversation slot 的准确 concrete group 被改投主组；保留三 owner/两 slot/void 合同，规则16 C0/I0后已写源码切片与回归；作者仅静态校验，唯一车道旧红新绿/非作者after待做"
 ---
 
 # Sources 打开分派与准确 Conversation 目标
 
 ## 1. 问题、证据与签收边界
 
-范围是默认编辑器的 Sources Changes / Review → Preview、Conversation、Panel 打开及移动合同（[PRD-005/009](../../docs/product/requirements.md#prd-009-changes-与-diff)、[ADR-005](../decisions/005-changes-diff-owner.md)、[Sources SSOT](../../docs/systems/sources/overview.md)）。不开发 `src/vs/sessions/`。D1387 保持 open，PRD 状态不升；本方案已通过下方规则16，允许单独方案提交后按范围实施；目前尚无源码实现或修复后验证。
+范围是默认编辑器的 Sources Changes / Review → Preview、Conversation、Panel 打开及移动合同（[PRD-005/009](../../docs/product/requirements.md#prd-009-changes-与-diff)、[ADR-005](../decisions/005-changes-diff-owner.md)、[Sources SSOT](../../docs/systems/sources/overview.md)）。不开发 `src/vs/sessions/`。D1387 保持 open，PRD 状态不升；本方案已通过下方规则16，允许单独方案提交后按范围实施；源码切片与回归已写；当前仅有作者静态校验，无运行或修复后验证。
 
 [真实 Git before](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before.md) 有两个不同根、同名文件与不同两侧哨兵，真实内置 Git provider，断连、零 Git RPC、fixture HEAD/index/worktree 未变。J 初轮只读审查及 C1–C6 的结果是 before，不能充当作者实现后的 after。
 
@@ -137,3 +137,9 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 2026-10-26 独立 reviewer C（非 Sources 作者）完整核对正式稿、两轮 Astra、PRD/SSOT实际diff、SCM/slot/finder/状态源码与before机器证据，最终 **Critical 0 / Important 0**。原I1指出helper明确stale与open-status旧代次不能混成一切旧void不mark；作者已拆表并同步PRD/SSOT，reviewer增量复读正式稿SHA `970bac28c99e456d93e0970af0e361a7d802d2ee42bf6632b545fca5f487759d`确认落实。两Minor提醒保留move既有关闭策略、精确报告docs warning delta。见[规则16原报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-plan-peer-review.md)。
 
 作者核验后标accepted；本段是方案审查与文档门禁，不是实现green。生成状态已同步，docs health 0 errors / 73 warnings，新/改D1387文档专项断链0；status 165行。没有编译/typecheck/transpile/out/依赖out测试，独立新产物after仍待。
+
+## 7. 源码检查点（待集成验证）
+
+方案提交 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 后，J 按§3写 Sources 一次API分派/全部真实调用方命令依赖、公开URI匹配后的局部身份副作用、finder准确对象/数字成员判定及局部打开错误恢复。回归包含真实DTO、委托void/reject、公共列表/命令状态恢复，以及真实parts + public findGroup/EditorService/共享slot；pane仅使用既有轻量测试编辑器隔离模型加载，不能作为真实Git两侧通过证据。详见[源码与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)。
+
+作者未编译、transpile、typecheck、写out/watch或运行测试；静态结果与独立实现审查后续收录在该检查点。唯一merge的业务旧红/新绿、相关完整套件与非作者三owner真Git after仍待。方案保持accepted、D1387 open，PRD状态不升。

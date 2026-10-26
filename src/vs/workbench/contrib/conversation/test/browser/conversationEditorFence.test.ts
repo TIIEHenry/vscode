@@ -14,11 +14,13 @@ import { SyncDescriptor } from '../../../../../platform/instantiation/common/des
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { findGroup } from '../../../../services/editor/common/editorGroupFinder.js';
 import { CONVERSATION_GROUP, CONVERSATION_SIDE_GROUP, IEditorService, SIDE_GROUP } from '../../../../services/editor/common/editorService.js';
-import { IEditorGroupsService, type IConversationEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
+import { GroupDirection, IEditorGroupsService, type IConversationEditorPart } from '../../../../services/editor/common/editorGroupsService.js';
 import { EditorService } from '../../../../services/editor/browser/editorService.js';
-import { EditorExtensions, IEditorFactoryRegistry } from '../../../../common/editor.js';
+import { EditorExtensions, EditorInputCapabilities, IEditorFactoryRegistry } from '../../../../common/editor.js';
+import { openEditorInSlot } from '../../../../services/editor/browser/editorOpenSlot.js';
 import { createEditorParts, registerTestEditor, TestFileEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { SideBySideEditorInput } from '../../../../common/editor/sideBySideEditorInput.js';
+import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
 import { ConversationChatInput, getConversationChatResource, getDefaultConversationChatResource } from '../../common/conversationChatInput.js';
 import { IConversationSessionChatService } from '../../common/conversationSessionChat.js';
@@ -30,6 +32,10 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { createEmptyConversationSessionChatService, stubConversationLensRuntimeServices, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
+
+// Keep these routing tests independent of file model loading and pane registry order.
+// All input identity, matching and read-only capabilities are inherited unchanged.
+class RoutingReviewInput extends ConversationDiffReviewInput { }
 
 suite('Conversation editor fence', () => {
 
@@ -66,7 +72,7 @@ suite('Conversation editor fence', () => {
 
 	setup(function () {
 		this.timeout(20_000);
-		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));
+		store.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput), new SyncDescriptor(RoutingReviewInput)], TEST_EDITOR_INPUT_ID));
 	});
 
 	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
@@ -126,8 +132,113 @@ suite('Conversation editor fence', () => {
 		trackEditors(conversationPart);
 		conversationPart.activeGroup.focus();
 
-		return { instantiationService, parts, conversationPart };
+		return { instantiationService, parts, conversationPart, editorService };
 	}
+
+	for (const targetKind of ['object', 'id'] as const) {
+		test(`public finder and EditorService retain the exact typed Conversation ${targetKind} target`, async () => {
+			const { instantiationService, parts, conversationPart, editorService } = await createHarness();
+			const rootGroup = conversationPart.activeGroup;
+			const root = rootGroup.activeEditor;
+			assert.ok(root instanceof ConversationChatInput);
+			const side = conversationPart.addGroup(rootGroup, GroupDirection.RIGHT);
+			const target = targetKind === 'object' ? side : side.id;
+			const review = store.add(new RoutingReviewInput(URI.file('/alpha/shared.ts'), URI.parse('git:/alpha/shared.ts?baseline')));
+			const [found] = await instantiationService.invokeFunction(accessor => findGroup(accessor, review, target));
+			assert.strictEqual(found, side);
+			assert.strictEqual(parts.getPart(found), conversationPart);
+			assert.strictEqual(conversationPart.sessionKey, 'session-a');
+			const pane = await editorService.openEditor(review, { pinned: true, preserveFocus: true }, target);
+			assert.ok(pane);
+			assert.strictEqual(pane.input, review);
+			assert.strictEqual(pane.group, side);
+			assert.strictEqual(rootGroup.activeEditor, root);
+			assert.ok(rootGroup.editors.includes(root));
+			const [chatGroup] = await instantiationService.invokeFunction(accessor => findGroup(accessor, root, targetKind === 'object' ? rootGroup : rootGroup.id));
+			assert.strictEqual(chatGroup, rootGroup);
+			const rootPane = await editorService.openEditor(root, { preserveFocus: true }, targetKind === 'object' ? rootGroup : rootGroup.id);
+			assert.strictEqual(rootPane?.group, rootGroup);
+		});
+	}
+
+	for (const slot of ['replace', 'newTab'] as const) {
+		test(`public slot ${slot} opens and reveals an empty Conversation side without replacing the root`, async () => {
+			const { parts, conversationPart, editorService } = await createHarness();
+			const rootGroup = conversationPart.activeGroup;
+			const root = rootGroup.activeEditor;
+			const side = conversationPart.addGroup(rootGroup, GroupDirection.RIGHT);
+			const first = store.add(new RoutingReviewInput(URI.file('/alpha/shared.ts'), URI.parse('git:/alpha/shared.ts?baseline')));
+			const pane = await openEditorInSlot(editorService, parts, first, slot, { preserveFocus: true }, side);
+			assert.ok(pane);
+			assert.strictEqual(pane.input, first);
+			assert.strictEqual(pane.group, side);
+			assert.strictEqual(parts.getPart(side), conversationPart);
+			assert.strictEqual(conversationPart.groups.length, 2);
+			const revealed = await openEditorInSlot(editorService, parts, first, slot, { preserveFocus: true }, side);
+			assert.ok(revealed);
+			assert.strictEqual(revealed.input, first);
+			assert.strictEqual(revealed.group, side);
+			const second = store.add(new RoutingReviewInput(URI.file('/alpha/other.ts'), URI.parse('git:/alpha/other.ts?baseline')));
+			const replaced = await openEditorInSlot(editorService, parts, second, 'replace', { preserveFocus: true }, side);
+			assert.ok(replaced);
+			assert.strictEqual(replaced.input, second);
+			assert.strictEqual(replaced.group, side);
+			assert.ok(!side.editors.includes(first));
+			assert.strictEqual(conversationPart.groups.length, 2);
+			assert.strictEqual(rootGroup.activeEditor, root);
+			assert.ok(rootGroup.editors.includes(root));
+		});
+	}
+
+	test('ordinary file, untitled, chat and writable diff stay outside Conversation for tokens and concrete targets', async () => {
+		const { instantiationService, parts, conversationPart } = await createHarness();
+		const file = store.add(new TestFileEditorInput(URI.file('/tmp/fence-file.ts'), TEST_EDITOR_INPUT_ID));
+		const untitled = store.add(new TestFileEditorInput(URI.parse('untitled:fence'), TEST_EDITOR_INPUT_ID));
+		const chat = store.add(instantiationService.createInstance(ChatEditorInput, URI.parse('vscode-chat:session/blocked'), {}));
+		const original = store.add(new TestFileEditorInput(URI.file('/tmp/fence-original.ts'), TEST_EDITOR_INPUT_ID));
+		const diff = store.add(instantiationService.createInstance(DiffEditorInput, undefined, undefined, original, file, undefined));
+		assert.strictEqual(diff.hasCapability(EditorInputCapabilities.Readonly), false);
+		for (const input of [file, untitled, chat, diff]) {
+			for (const target of [CONVERSATION_GROUP, conversationPart.activeGroup, conversationPart.activeGroup.id]) {
+				const [found] = await instantiationService.invokeFunction(accessor => findGroup(accessor, input, target));
+				assert.strictEqual(parts.getPart(found), parts.mainPart);
+			}
+		}
+	});
+
+	test('typed Conversation input rejects missing, wrong, removed and same-id forged concrete targets', async () => {
+		const { instantiationService, parts, conversationPart } = await createHarness();
+		const review = store.add(new ConversationDiffReviewInput(URI.file('/alpha/shared.ts')));
+		const valid = conversationPart.activeGroup;
+		const forged = new Proxy(valid, {});
+		const removed = conversationPart.addGroup(valid, GroupDirection.RIGHT);
+		conversationPart.removeGroup(removed);
+		for (const target of [undefined, parts.mainPart.activeGroup, parts.mainPart.activeGroup.id, Number.MAX_SAFE_INTEGER, removed, removed.id, forged]) {
+			await assert.rejects(async () => instantiationService.invokeFunction(accessor => findGroup(accessor, review, target)), /explicit conversation group target|CONVERSATION_GROUP or a conversation editor group/);
+		}
+	});
+
+	test('an excluded non-Conversation part flag cannot authorize a typed Conversation input', async () => {
+		const { instantiationService, parts, conversationPart } = await createHarness();
+		const foreignGroup = parts.mainPart.activeGroup;
+		const excludedPart = new Proxy(parts.mainPart, {
+			get(target, property, receiver) {
+				return property === 'excludeFromGlobalEditorAggregation' ? true : Reflect.get(target, property, receiver);
+			},
+		});
+		const service = new Proxy(parts, {
+			get(target, property, receiver) {
+				if (property === 'getPart') {
+					return (group: number | typeof foreignGroup) => (typeof group === 'number' ? group : group.id) === foreignGroup.id ? excludedPart : target.getPart(group);
+				}
+				return Reflect.get(target, property, receiver);
+			},
+		});
+		instantiationService.stub(IEditorGroupsService, service);
+		assert.ok(!conversationPart.groups.includes(foreignGroup));
+		const review = store.add(new ConversationDiffReviewInput(URI.file('/alpha/shared.ts')));
+		await assert.rejects(async () => instantiationService.invokeFunction(accessor => findGroup(accessor, review, foreignGroup)), /CONVERSATION_GROUP or a conversation editor group/);
+	});
 
 	test('CONVERSATION_GROUP constants are defined', () => {
 		assert.strictEqual(CONVERSATION_GROUP, -5);
