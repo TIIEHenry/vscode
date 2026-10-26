@@ -157,7 +157,7 @@ suite('AgentsVoiceContribution - startVoiceInChat', () => {
 		}
 		override pttDown(): void { this.downCalls++; }
 		override pttUp(source?: 'explicit' | 'internal', forceFinish?: boolean): void { this.ups.push({ source, forceFinish }); }
-		override discardRecording(): void { this.discardCalls++; }
+		override discardListening(): void { this.discardCalls++; }
 		admit(): void {
 			transaction(tx => {
 				this.isConnecting.set(false, tx);
@@ -181,7 +181,7 @@ suite('AgentsVoiceContribution - startVoiceInChat', () => {
 		let focused: IChatWidget | undefined = options.focused === null ? undefined : a;
 		let hold = options.hold;
 		let bridgeCalls = 0;
-		const widgets = [a, b];
+		const widgets: IChatWidget[] = [a, b];
 		const instantiationService = workbenchInstantiationService(undefined, disposables);
 		instantiationService.stub(IConfigurationService, new TestConfigurationService({
 			'agents.voice.handsFree': options.handsFree ?? true,
