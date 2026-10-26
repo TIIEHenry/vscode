@@ -182,7 +182,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   4. Model、Permission、Tools 在 During 仍留在输入行。不画第二行「锁定 SessionConfig」卡片。
   5. Inbox 左簇 Task 在 MessageQueue 左侧；两列表互斥展开；无权威时整槽省略或诚实空，不造假任务。MessageQueue **列表与行交互**跟 Singularity MessageQueue 设计稿，不另造一套。
   6. 列表内编辑与队列编辑复用同一 Composer（含 Exit）；展示态用户卡没有按钮。
-  7. 无引擎转写 capability 时不画语音钮，也不把预设台词写入草稿。语音转写队列不是 MessageQueue。
+  7. 无引擎转写 capability 时不画语音钮，也不把预设台词写入草稿。语音转写队列不是 MessageQueue。默认编辑器保留的 Copilot Chat Voice Mode 是独立兼容入口；首次连接的录音授权只属于发起 composer 与当次手势，离开后不自动恢复。本条不把该入口计为 Conversation 真语音交付（2026-10-26）。
   8. 输入面不是 Copilot `ChatInputPart` 的一排 picker，也不是 Singularity 2×2 Material 配置卡。
   9. 文件夹芯片和分支芯片打开锚定列表，当前项打勾，再点同一芯片关掉。搜索去掉空白后仍非空且一条动作都看不见时，文件夹写 “No matching folders.”，分支写 “No matching branches.”；空白查询、仍有条目或列表还在打开时不写。引擎芯片打开 Preferences，不打开文件夹或分支列表。
 - **依赖或未决**：活队列 / 路由策略 / AgentProfile 数据依赖 PRD-008。无引擎时 Agent 用诚实空；Route 省略，不假装已接到引擎策略表。MessageQueue 列表 UI SSOT = Singularity [message-queue-bar](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md)（槽位仍以本仓 Inbox 为准）。方案见 [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md)。D194：假麦克风与假 Route 已删。**2026-10-21：** 验收 2 的「+」是加上下文，无底幽灵钮（PRD-028 验收 8），不是浅底圆。它列出可引用的会话并写成引用芯片。文件上传不在消息格式里，不画。Tool options 是旁边另一颗 `tools` 图标。发送仍是唯一实心圆。
