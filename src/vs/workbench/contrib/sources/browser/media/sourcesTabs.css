@@ -83,26 +83,29 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 20px;
-	height: 20px;
-	padding: 2px;
+	width: calc(var(--vscode-spacing-size240) - var(--vscode-spacing-size20));
+	height: calc(var(--vscode-spacing-size240) - var(--vscode-spacing-size20));
+	padding: var(--vscode-spacing-size20);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
-	color: var(--vscode-foreground);
-	opacity: 0.8;
 	box-sizing: border-box;
 }
 
-.monaco-workbench .part.sources > .title .sources-title-filter > .actions .monaco-action-bar .action-label:hover {
+.monaco-workbench .part.sources > .title .sources-title-filter > .actions .monaco-action-bar .action-item:not(.disabled) .action-label {
+	color: var(--vscode-foreground);
+	opacity: 0.8;
+}
+
+.monaco-workbench .part.sources > .title .sources-title-filter > .actions .monaco-action-bar .action-item:not(.disabled) .action-label:hover {
 	opacity: 1;
 	background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.08));
 }
 
-.monaco-workbench .part.sources > .title .sources-title-filter > .actions .monaco-action-bar .action-label:active {
+.monaco-workbench .part.sources > .title .sources-title-filter > .actions .monaco-action-bar .action-item:not(.disabled) .action-label:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.12));
 }
 
-.monaco-workbench .part.sources > .title .sources-title-filter > .actions .monaco-action-bar .action-item.checked .action-label,
-.monaco-workbench .part.sources > .title .sources-title-filter > .actions .monaco-action-bar .action-label.checked {
+.monaco-workbench .part.sources > .title .sources-title-filter > .actions .monaco-action-bar .action-item.checked:not(.disabled) .action-label,
+.monaco-workbench .part.sources > .title .sources-title-filter > .actions .monaco-action-bar .action-item:not(.disabled) .action-label.checked {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.12));
 	opacity: 1;
 }
@@ -136,7 +139,7 @@
 	width: 100%;
 	height: 20px;
 	margin: 0;
-	padding: 0 22px;
+	padding: 0 var(--vscode-spacing-size280) 0 22px;
 	border: none;
 	outline: none;
 	background: transparent;
@@ -165,8 +168,19 @@
 	right: 2px;
 	top: 50%;
 	transform: translateY(-50%);
-	width: 16px;
-	height: 16px;
+	width: var(--vscode-spacing-size200);
+	height: var(--vscode-spacing-size200);
+	border-radius: var(--vscode-cornerRadius-small);
+}
+
+.monaco-workbench .part.sources > .title .sources-title-filter .explorer-inline-filter-clear:hover,
+.monaco-workbench .part.sources > .title .sources-title-filter .sources-list-filter-clear:hover {
+	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.sources > .title .sources-title-filter .explorer-inline-filter-clear:active,
+.monaco-workbench .part.sources > .title .sources-title-filter .sources-list-filter-clear:active {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .part.sources .sources-tab-list {
@@ -213,10 +227,6 @@
 	transition: background-color 0.1s ease, color 0.1s ease;
 }
 
-.monaco-workbench .part.sources .sources-tab:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
-}
-
 .monaco-workbench .part.sources.is-narrow .sources-tab,
 .monaco-workbench .part.sources.is-compact .sources-tab {
 	flex: 1 1 0;
@@ -239,6 +249,11 @@
 
 .monaco-workbench .part.sources .sources-tab.selected:hover {
 	background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.monaco-workbench .part.sources .sources-tab:active,
+.monaco-workbench .part.sources .sources-tab.selected:active {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
 .monaco-workbench .part.sources .sources-tab.selected::after {
@@ -318,4 +333,11 @@
 	content: "\ea86";
 	color: var(--vscode-descriptionForeground);
 	opacity: 0.65;
+}
+
+.monaco-workbench.monaco-reduce-motion .part.sources .sources-tab,
+.monaco-workbench.monaco-reduce-motion .part.sources > .title .sources-title-filter .action-label,
+.monaco-workbench.monaco-reduce-motion .part.sources > .title .sources-title-filter .explorer-inline-filter-clear,
+.monaco-workbench.monaco-reduce-motion .part.sources > .title .sources-title-filter .sources-list-filter-clear {
+	transition: none;
 }

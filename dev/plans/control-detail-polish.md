@@ -1,7 +1,7 @@
 ---
 title: "默认编辑器控件细节精修"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
 summary: "Sources 工具栏与页签、Navigator 筛选和首选项返回按钮的尺寸、对齐及状态一致性；避开既有 Composer WIP。"
@@ -31,9 +31,9 @@ summary: "Sources 工具栏与页签、Navigator 筛选和首选项返回按钮�
 ## 审查与进度
 
 - [x] 规则16只读审查及改稿：reviewer C0/I1；hidden可见性风险已改稿，焦点/按压组合与减少动效一并纳入。
-- [ ] A Sources / Navigator实施
-- [ ] B 首选项返回控件实施
-- [ ] 浅深色/高对比/窄宽/键盘验证与独立复读
-- [ ] 文档与范围提交
+- [x] A Sources / Navigator实施
+- [x] B 首选项返回控件实施
+- [x] 浅深色/高对比/窄宽/键盘验证与独立复读：16+8+4组；[验证与fixture边界](../progress/control-detail-polish-evidence/verification.md)。
+- [x] 文档与范围提交：本主题CSS、方案、证据与并行看板；其他WIP保留。
 
 方案先独立提交；实现与本主题验证/行动层一并提交。保留所有其他WIP，不升PRD-028整体状态。

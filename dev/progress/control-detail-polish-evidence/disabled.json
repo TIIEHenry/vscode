@@ -1,0 +1,110 @@
+[
+  {
+    "name": "light",
+    "normal": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(187, 187, 187)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    },
+    "hover": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(187, 187, 187)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    },
+    "pressed": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(187, 187, 187)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    }
+  },
+  {
+    "name": "dark",
+    "normal": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(187, 187, 187)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    },
+    "hover": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(160, 160, 160)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    },
+    "pressed": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(149, 149, 149)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    }
+  },
+  {
+    "name": "hc-dark",
+    "normal": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(165, 165, 165)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    },
+    "hover": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(165, 165, 165)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    },
+    "pressed": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(165, 165, 165)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    }
+  },
+  {
+    "name": "hc-light",
+    "normal": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(157, 157, 157)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    },
+    "hover": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(143, 143, 143)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    },
+    "pressed": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(143, 143, 143)",
+      "opacity": "1",
+      "width": 22,
+      "disabled": "true",
+      "parent": "action-item disabled"
+    }
+  }
+]

@@ -204,12 +204,14 @@
 
 .monaco-workbench .connection-preferences-back {
 	flex: 0 0 auto;
-	height: 26px;
+	align-items: center;
+	justify-content: center;
+	height: var(--vscode-spacing-size240, 24px);
 	border: var(--vscode-strokeThickness) solid var(--vscode-button-border, transparent);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background: var(--vscode-button-secondaryBackground);
 	color: var(--vscode-button-secondaryForeground);
-	padding: 4px 10px;
+	padding: 0 var(--vscode-spacing-size80, 8px);
 	font-size: var(--vscode-fontSize-label1);
 	font-weight: 400;
 	cursor: pointer;
@@ -217,23 +219,26 @@
 	transition: background-color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1)), color 100ms var(--ua-ease, cubic-bezier(0.2, 0, 0, 1));
 }
 
-.monaco-workbench .connection-preferences-back:active {
-	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
+.monaco-workbench .connection-preferences-back:not([hidden]) {
+	display: inline-flex;
 }
 
 .monaco-workbench .connection-preferences-back:hover {
 	background: var(--vscode-button-secondaryHoverBackground);
 }
 
+.monaco-workbench .connection-preferences-back:active {
+	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
+}
+
 .monaco-workbench .connection-preferences-back:focus-visible {
-	outline: 2px solid var(--vscode-focusBorder);
-	outline-offset: 2px;
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
+	outline-offset: 1px;
 	box-shadow: none;
-	background: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
 }
 
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-back:focus-visible {
-	outline: 1px solid var(--vscode-contrastBorder);
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastBorder);
 	box-shadow: none;
 }
 
