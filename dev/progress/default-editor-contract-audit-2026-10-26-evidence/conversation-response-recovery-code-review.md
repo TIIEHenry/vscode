@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留M01修订历史；compile6实际通过但新运行暴露Pane自有diff view model缺失I1，24/2与410/2非green；局部生命周期补修待。"
+summary: "保留M01修订与compile6后24/2、410/2泄漏历史；a166 Pane自有VM补修定向C0/I0/M0，39项实际运行与新freeze/after待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -456,3 +456,24 @@ Pane、Panel no-unhandled负控、WiringScan三blob逐一与父相同；旧Accep
 父已明确接受上述判定并授权原J局部实施；**仍属原M01生命周期补修，不新增产品契约、resolver/服务或全局DiffEditorWidget改造，无需另开方案/重复规则16。** 若实现扩大到全局widget引用计数或跨Pane共享owner，则超出本判定，须重新审查。禁止关闭leak检查、压console、mark singleton、测试手工释放产品私有VM、用超时碰运气，或删真实parts/Pane覆盖。
 
 原J不可变补修尚待；后续peer需核创建/异常/代际及清理顺序，唯一lane再实际验证首真实入口无泄漏并完成其余14及相关套。§14 C0/I0仅静态类型补修，不抹掉本轮新实际Important；M01/D1387仍open。reviewer本轮仅报告+INDEX，未运行native、未改产品/tests/D或out。
+
+
+## 16. Pane自有diff view model补修定向peer（2026-10-27）
+
+受审不可变 `a166d422747b1e123109d0f7cec527821c06b04c`，父 `0da326c052fdaac3d6ff9e2118ba95b001868f1f`，src `1ec396de28fa1b72295648f08366056d5a2119ca`。仅Pane、MoveSource test及3行动文档，未扩大到全局widget。reviewer独立核父/src、完整代码diff、创建/清理上下文、测试fixture与dispose观察；Pane SHA256 `e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`，test `5c0012d0814870c9aff596a764ae3cd0b4029c7d6192766347e3285558ab4f3b`，与作者交付同。
+
+### Critical 0 / Important 0 / Minor 0
+
+**§15 I1源码实质闭合。** Pane注册自己的MutableDisposable<IDiffEditorViewModel>，公开createViewModel所得真实对象先登记，再setModel(viewModel)，不再丢失raw model隐式创建的VM。clearEditors保留先清cursor监听、detach widgets、清widgets，随后清Pane自有VM，最后清原/改text references；setInput换入、clearInput、dispose共用此入口。MutableDisposable在正常清理后为空，super.dispose不会再次释放同一个已清VM。
+
+**异步与模型边界保持。** 两次await取得text references后的disposed/input/token/renderGeneration检查逐字不变，失效/解析失败只清此次局部refs并返回，不写VM字段。guard后创建并登记VM至widget.setModel之间没有新await，未引入旧完成覆盖新VM的窗口。无original的modified-only路径仍只用CodeEditorWidget，不创建VM；既有失败路径也不虚造VM。DiffEditorViewModel持有模型供计算而不负责dispose原/改文本，Pane先detach再清VM与最后释放各自reference，不将同tuple两Pane合成一个共享VM owner，关B不主动销毁A的文本。创建成功后若setModel等同步步骤抛出，VM已经登记给Pane，仍可由既有clear/dispose收回，未形成无主返回值。
+
+**新增回归是观察产品释放，不是测试补释放。** `real Pane comparison view models release on replacement, clear and dispose`用真实Pane与真实双侧model；spy公开createViewModel取得实际返回VM，再spy其公开dispose，依次要求换input、clearInput、Pane.dispose各调用原VM.dispose一次，并核clear后无control。sinon.spy保留原方法执行，测试没有直接调用VM.dispose、mark singleton、关闭leak或吞console；finally只恢复spy。fixture compare参数默认false，原反馈用例仍为原modified-only设置；原4入口与其余38场景expected不改，新增1场景使作者源码集合为39，不代表39已运行。
+
+Actions、Helper、全局DiffEditorWidget、Panel no-unhandled负控和WiringScan blob均逐一与父相同；Move完成/关闭代数及旧Accept扫描不变。作者AST/lint和文档门禁属其声明，本reviewer未重跑AST/lint/编译/native/UI；本次不可变diff-check通过。
+
+### Assessment
+
+**定向C0/I0/M0允许继续父调度的验证；不签运行green。** 原始24/2与410/2泄漏失败及23/1旧scan边界完整保留于§15。新增生命周期测试应由唯一lane配精确旧0da Pane实际验证旧释放断言失败，再对新src实际完整编译与39项、完整相关套复验；原4入口业务旧红来自各自原harness身份，不能混作新生命周期旧红。实际无泄漏、余14及新freeze/D after仍待。
+
+B起点clean `5972836d932ff0cbde50c970b672743e0eee8563`，src fdca不变；只写原报告+INDEX，短C/I已交父/原J/唯一lane。本补修保持§15父授权局部生命周期范围，不需要新的方案或全局架构设计。
