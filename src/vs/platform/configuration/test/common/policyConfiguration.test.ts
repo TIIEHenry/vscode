@@ -4,7 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../base/common/event.js';
+import { DeferredPromise, timeout } from '../../../../base/common/async.js';
+import { IStringDictionary } from '../../../../base/common/collections.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
+import { toDisposable } from '../../../../base/common/lifecycle.js';
+import { isWeb } from '../../../../base/common/platform.js';
 import { URI } from '../../../../base/common/uri.js';
 import { DefaultConfiguration, PolicyConfiguration } from '../../common/configurations.js';
 import { IFileService } from '../../../files/common/files.js';
@@ -15,7 +19,7 @@ import { Extensions, IConfigurationNode, IConfigurationRegistry } from '../../co
 import { Registry } from '../../../registry/common/platform.js';
 import { VSBuffer } from '../../../../base/common/buffer.js';
 import { deepClone } from '../../../../base/common/objects.js';
-import { IPolicyService } from '../../../policy/common/policy.js';
+import { IPolicyService, PolicyDefinition, PolicyValue, PolicyValueSource } from '../../../policy/common/policy.js';
 import { FilePolicyService } from '../../../policy/common/filePolicyService.js';
 import { runWithFakedTimers } from '../../../../base/test/common/timeTravelScheduler.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -480,4 +484,218 @@ suite('PolicyConfiguration', () => {
 		assert.deepStrictEqual(acutal.overrides, []);
 	});
 
+});
+
+const submissionPolicyName = 'PolicySubmissionLifecycle';
+const submissionSettingKey = 'policy.submissionLifecycle';
+
+interface PolicySubmission {
+	readonly definitions: IStringDictionary<PolicyDefinition>;
+	readonly completion: DeferredPromise<IStringDictionary<PolicyValue>>;
+}
+
+/** Implements the public contract directly so caller tests do not depend on AbstractPolicyService. */
+class SubmissionPolicyService implements IPolicyService {
+	declare readonly _serviceBrand: undefined;
+	readonly policyDefinitions: IStringDictionary<PolicyDefinition> = {};
+	readonly changes = new Emitter<readonly string[]>();
+	registrations = 0;
+	readonly onDidChange: Event<readonly string[]> = (listener, thisArgs, disposables) => {
+		this.registrations++;
+		return this.changes.event(listener, thisArgs, disposables);
+	};
+	readonly updates: PolicySubmission[] = [];
+	private readonly started: DeferredPromise<PolicySubmission>[] = [];
+	private values: IStringDictionary<PolicyValue> = {};
+
+	waitForUpdate(index: number): Promise<PolicySubmission> {
+		return (this.started[index] ??= new DeferredPromise<PolicySubmission>()).p;
+	}
+
+	async updatePolicyDefinitions(definitions: IStringDictionary<PolicyDefinition>): Promise<IStringDictionary<PolicyValue>> {
+		// Other suites can register unrelated definitions in the shared registry.
+		// Only this suite's policy is held at the controlled backend boundary.
+		if (definitions[submissionPolicyName]) {
+			const update = { definitions: { ...definitions }, completion: new DeferredPromise<IStringDictionary<PolicyValue>>() };
+			const index = this.updates.push(update) - 1;
+			void (this.started[index] ??= new DeferredPromise<PolicySubmission>()).complete(update);
+			this.values = await update.completion.p;
+		}
+		Object.assign(this.policyDefinitions, definitions);
+		return { ...this.values };
+	}
+
+	getPolicyValue(name: string): PolicyValue | undefined {
+		return this.values[name];
+	}
+
+	getPolicyValueSource(name: string): PolicyValueSource | undefined {
+		return this.values[name] === undefined ? undefined : PolicyValueSource.Device;
+	}
+
+	serialize(): undefined {
+		return undefined;
+	}
+}
+
+class SubmissionLogService extends NullLogService {
+	readonly errors: { message: string | Error; args: unknown[] }[] = [];
+
+	override error(message: string | Error, ...args: unknown[]): void {
+		this.errors.push({ message, args });
+	}
+}
+
+suite('PolicyConfiguration submission lifecycle', () => {
+	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
+	const registry = Registry.as<IConfigurationRegistry>(Extensions.Configuration);
+	let service: SubmissionPolicyService;
+	let configuration: PolicyConfiguration;
+	let logService: SubmissionLogService;
+	let node: IConfigurationNode;
+
+	setup(async () => {
+		node = {
+			id: 'policySubmissionLifecycle',
+			type: 'object',
+			properties: {
+				[submissionSettingKey]: {
+					type: 'boolean', default: false,
+					policy: {
+						name: submissionPolicyName, category: PolicyCategory.Extensions, minimumVersion: '1.0.0',
+						restrictedValue: true, localization: { description: { key: '', value: '' } },
+					},
+				},
+			},
+		};
+		registry.registerConfiguration(node);
+		const defaults = disposables.add(new DefaultConfiguration(new NullLogService()));
+		await defaults.initialize();
+		service = new SubmissionPolicyService();
+		logService = new SubmissionLogService();
+		configuration = disposables.add(new PolicyConfiguration(defaults, service, logService));
+		disposables.add(service.changes);
+		// Deregister after the configurations and their registry listeners are disposed.
+		disposables.add(toDisposable(() => registry.deregisterConfigurations([node])));
+	});
+
+	function setRestrictedValue(value: boolean, notify = false): void {
+		const property = node.properties![submissionSettingKey];
+		property.policy = { ...property.policy!, restrictedValue: value };
+		if (notify) {
+			registry.updateConfigurations({ remove: [node], add: [node] });
+		}
+	}
+
+	test('same definition shares pending initialization and installs listeners once', async () => {
+		const first = configuration.initialize();
+		const update = await service.waitForUpdate(0);
+		let secondSettled = false;
+		const second = configuration.initialize().then(result => {
+			secondSettled = true;
+			return result;
+		});
+		// The backend remains gated while all already queued initialization continuations run.
+		await timeout(0);
+		assert.strictEqual(secondSettled, false);
+		assert.strictEqual(service.updates.length, 1);
+		await update.completion.complete({ [submissionPolicyName]: true });
+		await Promise.all([first, second]);
+		assert.strictEqual(configuration.configurationModel.getValue(submissionSettingKey), true);
+		assert.strictEqual(service.registrations, 1);
+
+		const changed = Event.toPromise(configuration.onDidChangeConfiguration);
+		setRestrictedValue(false, true);
+		const next = await service.waitForUpdate(1);
+		await next.completion.complete({ [submissionPolicyName]: false });
+		await changed;
+		assert.strictEqual(service.updates.length, 2);
+		configuration.dispose();
+		assert.strictEqual(service.changes.hasListeners(), false);
+		setRestrictedValue(true, true);
+		await timeout(0);
+		assert.strictEqual(service.updates.length, 2, 'disposed configuration must not submit another definition');
+	});
+
+	test('failed initialization preserves the original rejection and retries the same definition', async () => {
+		const first = configuration.initialize();
+		const update = await service.waitForUpdate(0);
+		const second = configuration.initialize();
+		const error = new Error('policy backend failed');
+		const rejections = [first, second].map(promise => assert.rejects(promise, (reason: unknown) => reason === error));
+		await update.completion.error(error);
+		await Promise.all(rejections);
+		assert.strictEqual(service.registrations, 0);
+
+		const retry = configuration.initialize();
+		await timeout(0);
+		assert.strictEqual(service.updates.length, 2, 'the caller must not suppress the same definition after failure');
+		const retried = await service.waitForUpdate(1);
+		await retried.completion.complete({ [submissionPolicyName]: true });
+		await retry;
+		assert.strictEqual(configuration.configurationModel.getValue(submissionSettingKey), true);
+		assert.strictEqual(service.registrations, 1);
+	});
+
+	test('returning to a successful definition while a newer one is pending resubmits it', async () => {
+		const initial = configuration.initialize();
+		await (await service.waitForUpdate(0)).completion.complete({ [submissionPolicyName]: true });
+		await initial;
+		setRestrictedValue(false);
+		const second = configuration.initialize();
+		const secondUpdate = await service.waitForUpdate(1);
+		setRestrictedValue(true);
+		const latest = configuration.initialize();
+		assert.strictEqual(service.updates.length, 2, 'submissions must stay serial');
+		assert.strictEqual(secondUpdate.definitions[submissionPolicyName].restrictedValue, false);
+
+		await secondUpdate.completion.complete({ [submissionPolicyName]: false });
+		const latestUpdate = await service.waitForUpdate(2);
+		assert.strictEqual(latestUpdate.definitions[submissionPolicyName].restrictedValue, true);
+		await latestUpdate.completion.complete({ [submissionPolicyName]: true });
+		await Promise.all([second, latest]);
+		assert.strictEqual(configuration.configurationModel.getValue(submissionSettingKey), true);
+		assert.strictEqual(service.policyDefinitions[submissionPolicyName].restrictedValue, true);
+	});
+
+	test('dynamic submission failure is logged and the same registry definition can be retried', async () => {
+		const initial = configuration.initialize();
+		await (await service.waitForUpdate(0)).completion.complete({ [submissionPolicyName]: true });
+		await initial;
+		const unhandled: unknown[] = [];
+		const onUnhandled = (reason: unknown) => unhandled.push(reason);
+		const onBrowserUnhandled = (event: PromiseRejectionEvent) => onUnhandled(event.reason);
+		if (isWeb) {
+			globalThis.addEventListener('unhandledrejection', onBrowserUnhandled);
+		} else {
+			process.on('unhandledRejection', onUnhandled);
+		}
+		try {
+			setRestrictedValue(false, true);
+			const update = await service.waitForUpdate(1);
+			const error = new Error('dynamic policy update failed');
+			await update.completion.error(error);
+			await timeout(0);
+			assert.deepStrictEqual(unhandled, []);
+			assert.strictEqual(logService.errors.length, 1);
+			assert.strictEqual(logService.errors[0].args[0], error);
+			assert.strictEqual(configuration.configurationModel.getValue(submissionSettingKey), true);
+			assert.strictEqual(service.updates.length, 2, 'failure must not trigger a hidden retry');
+
+			const changed = Event.toPromise(configuration.onDidChangeConfiguration);
+			setRestrictedValue(false, true);
+			await timeout(0);
+			assert.strictEqual(service.updates.length, 3, 'the next same-definition event must reach the backend');
+			const retried = await service.waitForUpdate(2);
+			await retried.completion.complete({ [submissionPolicyName]: false });
+			await changed;
+			assert.strictEqual(configuration.configurationModel.getValue(submissionSettingKey), false);
+		} finally {
+			if (isWeb) {
+				globalThis.removeEventListener('unhandledrejection', onBrowserUnhandled);
+			} else {
+				process.off('unhandledRejection', onUnhandled);
+			}
+		}
+	});
 });

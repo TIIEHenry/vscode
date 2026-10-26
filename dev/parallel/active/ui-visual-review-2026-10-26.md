@@ -1,10 +1,10 @@
 ---
 title: "2026-10-26 UI 与权限审查集成看板"
 type: progress
-status: completed
+status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1376–D1378定向闭合：Catalog294、Terminal512/109既有pending、Output/Search27过；唯一全量59/37未过，11补修语义0。默认编辑器为产品范围，历史记录保留。"
+summary: "D1376–D1378定向闭合；D1379 Policy提交生命周期源码/11受控回归已写，待merge运行与类型验证。唯一全量59/37未过；默认编辑器为产品范围，历史记录保留。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -22,6 +22,7 @@ summary: "D1376–D1378定向闭合：Catalog294、Terminal512/109既有pending�
 | Astra / 独立视觉复核 | 用真实运行画面复核现有设置页与 responsive UI | 发现 Direct Address 中窄 Host 竖条、Client Settings 窄 Preview 裁切；已交 D 修复 |
 | D / 设置页视觉修复 | D1371 / D1372 局部响应式修复 | `292ec409fc1`，三路合成 `a514ec3d2a5`；最小刷新和行为复验已过，独立视觉 after 已通过 |
 | J / Sources 编译基线 | D1375 正式服务注入、SCM null 结果与测试生命周期 | 基线 `0ea26634bed`；方案 `220db77` 已过 D 槽只读审查，实施 `7dd0c6d` 三路合成 `a4c5e30`；当前 Sources 0 诊断，官方 Electron 六套件 171 passing，D1375 closed |
+| J / Policy 提交生命周期 | D1379 服务与配置两层 requested/success 水位、pending共享、失败重试与动态事件出口 | 基线 `330b68911b5`；方案 `ed5a136` 经 Astra C0/I2 改稿后独立提交；两生产/三测试已写，5 TS ESLint 0 errors / 0 warnings；merge 运行与类型待验，open |
 
 | C / Terminal 投递合同 | D1377 sendPath / runCommand void 边界、三执行策略与沙箱安装 boolean | 方案 `1bfceca` 过 Astra 只读审查；实施 `0ab1d16` 已合入；最终官方Electron512 passing/109既有pending，见本轮末节 |
 
@@ -30,6 +31,17 @@ summary: "D1376–D1378定向闭合：Catalog294、Terminal512/109既有pending�
 ### D1375 Sources 合同基线
 
 [方案](../../plans/sources-compile-contracts.md) 收敛旧日志 Sources 的 9 条，而非全仓 176 条：三个装饰参数 optional/union 使 `GetLeadingNonServiceArgs` / singleton 合同失败 6 条；SCM 组空编辑器 `null` 未归一 2 条；list-mode 测试漏接 `store` 1 条。已按当前源码逐点修复；D1368–D1372 的已修日志不重做。J 只做静态分析与目标 ESLint（11 文件，0 errors / 31 既有 warnings），没有编译、转译、watch 或写 `out/`。新增 6 条运行回归已在 merge 当前新产物通过：`sourcesTabs` 1、`sourcesReviewProgress` 1、`sourcesChangesList` 4；同时运行夹具对齐的 `sourcesPartFocus`、`sourcesReviewList`、`sourcesFilesListMode`。当前 compile-client 已实证 Sources 0 诊断，原映射 9 条均消失；仅 D1375 合同范围闭合，全仓仍 160 条 / 58 文件。
+
+## D1379 Policy definition 提交生命周期（待运行）
+
+基线 `330b68911b5`；[短方案](../../plans/policy-definition-submission-lifecycle.md) `ed5a136` 经 Astra 规则 16 审查，C0/I2 改稿后独立提交。实施仅 `policy.ts` / `configurations.ts` 与三份对应测试：请求定义与成功水位分离、单 pending 等待与串行快照、原拒绝/显式同定义重试、动态事件失败日志、初始化一次监听。Astra 实施静态复核 C0/I0；5 TS ESLint 0 errors / 0 warnings，diff-check、generated-status --check 与文档健康 0 errors / 73 工位既有链接 warnings。J 未编译、转译、typecheck、运行测试或写 `out/`。D1379 保持 open，方案 accepted；schema 的方案状态闭集不支持 `in_progress`。
+
+merge 验证交接：
+
+- 新增 11 项：`policy/test/common/policy.test.ts` 5（pending/原拒绝重试/独立快照串行/失败不暗重试/同步重入），`policyIpc.test.ts` 2，`configuration/test/common/policyConfiguration.test.ts` 独立 `PolicyConfiguration submission lifecycle` 4（同语义 pending/一次监听与释放/失败重试/A→B→A/动态事件错误出口合并于四项）。
+- 先仅刷新三份测试，以 `330b68911b5` 对应旧 `policy.ts` / `configurations.ts` 产物运行新增用例，确认 red 来自等待、调用次数、原拒绝、日志或最终值断言；再只刷新两份生产 green。新增聚焦 grep 可用 `same definition|different definitions|failed update|synchronous reentry|IPC rejection|PolicyConfiguration submission lifecycle`，实际执行数/结果按日志落账。
+- green 后运行上述三份完整套件与 `policy/test/common/filePolicyService.test.ts`，保留现有 owner/reference、全集替换与 null 删除覆盖。五份改动 TS 做定向语义检查；当前唯一全量日志中的 `policyIpc` 4 条是预计映射，未验证前不写消除数。
+- tunnel/respond/grpc/browserSession/keyboard 另外 5 条测试诊断与 policy snapshot/event 候选不在本组，不推算全仓余量，不改变既定门禁或 PRD 状态。
 
 ## 首轮编译与修正
 

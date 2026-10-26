@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-26
-summary: "D1379：已过 Astra 只读审查；请求与成功水位分离、同定义等待/原拒绝重试、动态事件失败日志及一次监听；运行验证由 merge 唯一流水线执行。"
+summary: "D1379：两层请求/成功水位、原拒绝重试、动态事件失败日志及一次监听已写；新增11受控行为，5TS ESLint通过，运行与类型验证待merge，保持open。"
 ---
 
 # Policy definition 提交生命周期
@@ -46,10 +46,11 @@ summary: "D1379：已过 Astra 只读审查；请求与成功水位分离、同�
 - J 只做目标 ESLint、`git diff --check`、文档健康/生成列检查；不编译、转译、typecheck、watch 或写 `out/`。merge 是唯一产物/运行流水线。
 - merge 定向检查上述 5 个改动 TS；`policyIpc` 旧 4 条只作预计映射，以当前真实检查决定，不推算全仓余量。
 - merge 用当前新产物运行上述 3 套件，并回归 `FilePolicyService`、`PolicyConfiguration` 的既有 owner/reference 行为；失败按 [health-gates](../progress/health-gates.md) 分类，不声称全仓通过。
-- 策略提交契约写入现有 [platform 概览](../../docs/modules/platform/overview.md)，本方案与 `status.md`、D1379、[本轮看板](../parallel/active/ui-visual-review-2026-10-26.md) 一起落账。方案 commit 与实施 commit 分离，未真实运行保持 D1379 open、方案 in_progress，不升 PRD。
+- 策略提交契约写入现有 [platform 概览](../../docs/modules/platform/overview.md)，本方案与 `status.md`、D1379、[本轮看板](../parallel/active/ui-visual-review-2026-10-26.md) 一起落账。方案 commit 与实施 commit 分离，未真实运行保持 D1379 open、方案 accepted（方案状态闭集仅 draft/accepted/implemented），不升 PRD。
 
 ## 5. 审查与实施状态
 
 - [x] 规则 16：Astra 于 2026-10-26 只读审查方案、两生产文件及三份现有测试；Strengths 为两层成功水位同修与独立服务假体隔离根因；Critical 0、Important 2 均核验改入（裸 async 动态事件出口记录拒绝；并发 initialize 只安装一次监听），Minor 的中间请求合并措辞已明确。Assessment：上述修改后可独立提交方案并实施。
-- [ ] 两层提交生命周期与 typed channel、受控回归完成；J 静态检查记录。
+- [x] 两层提交生命周期与 typed channel 已写；新增 11 项受控回归（服务 5 / IPC 2 / 配置 4），原测试场景保留。J 5 TS 目标 ESLint exit 0（0 errors / 0 warnings），diff-check 通过；未编译、转译、运行测试或写 out。
+- Astra 实施静态复核 Critical 0 / Important 0；确认共享 pending、独立快照/成功水位、外层 while 的完成间隙复核、事件拒绝日志与一次监听。快照沿既有 definition 身份合同作字典浅拷贝，不新增支持调用者原地修改 definition 的承诺。文档健康 0 errors / 73 工位既有链接 warnings，generated-status --check 通过。运行验证仍待 merge。
 - [ ] merge 旧生产 red / 新生产 green 与定向类型证据入库后闭合本合同。

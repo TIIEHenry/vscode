@@ -3,7 +3,7 @@ title: "platform 层概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-15
+updated: 2026-10-26
 summary: "platform 层角色、可导入范围、DI 约定；universeAgent 会话帧走 onDynamicDidApplyFrame(leaseId) 宿主缓冲；lease 按 owner 回收；unary 默认 deadline；生产 DiagnosticsPort 落主进程日志；fail-closed 后停止流级 reopen；bind 等 whenEngineSessionReady（Create/Resume），不把 acquireLease / web-empty 当成功"
 ---
 
@@ -138,6 +138,12 @@ registerSingleton(IUriIdentityService, UriIdentityService, InstantiationType.Del
 - `chat/`：跨层设置键（如 `chat.disableAIFeatures`）与 `AI_AGENT` 环境约定；**不是** `workbench/contrib/chat` 的 UI
 - `mcp/`：`IMcpManagementService`、`IMcpGalleryService` 等 MCP 服务器管理
 - `agentPlugins/`：`plugin.json` / MCP 清单解析（`IAgentPluginManifest`）
+
+### 策略定义提交
+
+`IPolicyService.updatePolicyDefinitions` 的成功表示本次请求定义已经提交完成。同 identity 的 pending 调用共享等待；后端拒绝保留原错误，不把失败定义当成已成功，下次显式同定义调用仍会重试。`AbstractPolicyService` 保存请求定义与成功水位，按独立快照串行更新；未开始的中间定义可以合并为最新请求，旧快照不会在新快照成功后回写。
+
+`PolicyConfiguration` 沿用 owner/reference 的既有定义解析与语义去重，成功后才记提交水位；同语义并发请求也等待真实完成。动态配置事件的拒绝通过现有 `ILogService` 记录，不自动重试，后续同语义事件可再提交；初始化成功只安装一次监听，dispose 时释放。此合同不改变策略 IPC 的全集替换、null 删除或引擎协议。实现与受控验收见 [D1379 方案](../../../dev/plans/policy-definition-submission-lifecycle.md)；当前运行证据见 [本轮看板](../../../dev/parallel/active/ui-visual-review-2026-10-26.md)。
 
 ### 其他常用 platform 服务
 

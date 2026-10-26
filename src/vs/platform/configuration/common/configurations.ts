@@ -103,8 +103,13 @@ export class PolicyConfiguration extends Disposable implements IPolicyConfigurat
 	private _configurationModel: ConfigurationModel;
 	get configurationModel() { return this._configurationModel; }
 
-	/** Last definition submitted per policy name; avoids redundant re-registration. */
+	/** Last successfully submitted definition per policy name. */
 	private readonly _submittedPolicyDefinitions = new Map<PolicyName, PolicyDefinition>();
+	private readonly _requestedPolicyDefinitions = new Map<PolicyName, PolicyDefinition>();
+	private _policyDefinitionsVersion = 0;
+	private _submittedPolicyDefinitionsVersion = 0;
+	private _policyDefinitionsUpdate: Promise<void> | undefined;
+	private _listenersInstalled = false;
 
 	/** Maps each policy-controlled setting key to its policy name, so removed keys can be re-resolved. */
 	private readonly _policyNameByKey = new Map<string, PolicyName>();
@@ -124,8 +129,15 @@ export class PolicyConfiguration extends Disposable implements IPolicyConfigurat
 
 		this.update(await this.updatePolicyDefinitions(this.defaultConfiguration.configurationModel.keys), false);
 		this.update(await this.updatePolicyDefinitions(Object.keys(this.configurationRegistry.getExcludedConfigurationProperties())), false);
-		this._register(this.policyService.onDidChange(policyNames => this.onDidChangePolicies(policyNames)));
-		this._register(this.defaultConfiguration.onDidChangeConfiguration(async ({ properties }) => this.update(await this.updatePolicyDefinitions(properties), true)));
+		if (!this._listenersInstalled) {
+			this._listenersInstalled = true;
+			this._register(this.policyService.onDidChange(policyNames => this.onDidChangePolicies(policyNames)));
+			this._register(this.defaultConfiguration.onDidChangeConfiguration(({ properties }) => {
+				void this.updatePolicyDefinitions(properties).then(keys => this.update(keys, true)).catch(error => {
+					this.logService.error('PolicyConfiguration#updatePolicyDefinitions - Failed to update policy definitions', error);
+				});
+			}));
+		}
 		return this._configurationModel;
 	}
 
@@ -167,20 +179,51 @@ export class PolicyConfiguration extends Disposable implements IPolicyConfigurat
 			}
 		}
 
-		const changedDefinitions: IStringDictionary<PolicyDefinition> = {};
+		let changed = false;
 		for (const policyName of policyNames) {
 			const definition = this.resolvePolicyDefinition(policyName);
-			if (definition && !this.isSamePolicyDefinition(this._submittedPolicyDefinitions.get(policyName), definition)) {
-				this._submittedPolicyDefinitions.set(policyName, definition);
-				changedDefinitions[policyName] = definition;
+			if (definition && !this.isSamePolicyDefinition(this._requestedPolicyDefinitions.get(policyName), definition)) {
+				this._requestedPolicyDefinitions.set(policyName, definition);
+				changed = true;
 			}
 		}
 
-		if (!isEmptyObject(changedDefinitions)) {
-			await this.policyService.updatePolicyDefinitions(changedDefinitions);
+		if (changed) {
+			this._policyDefinitionsVersion++;
+		}
+		while (this._submittedPolicyDefinitionsVersion !== this._policyDefinitionsVersion) {
+			const update = this._policyDefinitionsUpdate ?? Promise.resolve().then(() => this.submitPolicyDefinitions());
+			this._policyDefinitionsUpdate = update;
+			try {
+				await update;
+			} finally {
+				if (this._policyDefinitionsUpdate === update) {
+					this._policyDefinitionsUpdate = undefined;
+				}
+			}
 		}
 
 		return keys;
+	}
+
+	private async submitPolicyDefinitions(): Promise<void> {
+		while (this._submittedPolicyDefinitionsVersion !== this._policyDefinitionsVersion) {
+			const version = this._policyDefinitionsVersion;
+			const definitions = new Map(this._requestedPolicyDefinitions);
+			const changedDefinitions: IStringDictionary<PolicyDefinition> = {};
+			for (const [name, definition] of definitions) {
+				if (!this.isSamePolicyDefinition(this._submittedPolicyDefinitions.get(name), definition)) {
+					changedDefinitions[name] = definition;
+				}
+			}
+			if (!isEmptyObject(changedDefinitions)) {
+				await this.policyService.updatePolicyDefinitions(changedDefinitions);
+			}
+			for (const [name, definition] of definitions) {
+				this._submittedPolicyDefinitions.set(name, definition);
+			}
+			this._submittedPolicyDefinitionsVersion = version;
+		}
 	}
 
 	private isSamePolicyDefinition(a: PolicyDefinition | undefined, b: PolicyDefinition): boolean {

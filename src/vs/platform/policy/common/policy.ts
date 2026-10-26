@@ -69,6 +69,9 @@ export abstract class AbstractPolicyService extends Disposable implements IPolic
 	readonly _serviceBrand: undefined;
 
 	public policyDefinitions: IStringDictionary<PolicyDefinition> = {};
+	private policyDefinitionsVersion = 0;
+	private appliedPolicyDefinitionsVersion = 0;
+	private policyDefinitionsUpdate: Promise<void> | undefined;
 	protected policies = new Map<PolicyName, PolicyValue>();
 	private readonly policyValueSources = new Map<PolicyName, PolicyValueSource>();
 
@@ -86,10 +89,35 @@ export abstract class AbstractPolicyService extends Disposable implements IPolic
 		}
 
 		if (changed) {
-			await this._updatePolicyDefinitions(this.policyDefinitions);
+			this.policyDefinitionsVersion++;
+		}
+
+		while (this.appliedPolicyDefinitionsVersion !== this.policyDefinitionsVersion) {
+			// Install the shared wait before invoking a service that can synchronously
+			// fire policy events and reenter this method.
+			const update = this.policyDefinitionsUpdate ?? Promise.resolve().then(() => this.applyPolicyDefinitions());
+			this.policyDefinitionsUpdate = update;
+			try {
+				await update;
+			} finally {
+				if (this.policyDefinitionsUpdate === update) {
+					this.policyDefinitionsUpdate = undefined;
+				}
+			}
 		}
 
 		return this.getPolicyValues();
+	}
+
+	private async applyPolicyDefinitions(): Promise<void> {
+		while (this.appliedPolicyDefinitionsVersion !== this.policyDefinitionsVersion) {
+			const version = this.policyDefinitionsVersion;
+			const definitions = { ...this.policyDefinitions };
+			await this._updatePolicyDefinitions(definitions);
+			// A rejection leaves this version unapplied, so an explicit same-definition
+			// retry still performs the update. Newer requests follow this snapshot.
+			this.appliedPolicyDefinitionsVersion = version;
+		}
 	}
 
 	getPolicyValue(name: PolicyName): PolicyValue | undefined {
