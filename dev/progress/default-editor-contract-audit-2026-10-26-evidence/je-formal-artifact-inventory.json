@@ -1,5 +1,5 @@
 {
-  "phase": "M01-formal-source-actual-fifth-full-compile-exit1-four-TS-awaiting-author-fix",
+  "phase": "0da-new-CommandService-four-old-business-reds-real-peer-formal-source-awaiting-sixth-full-native",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -1665,6 +1665,104 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-fifth-lint.log",
       "bytes": 2750,
       "sha256": "8c0d3224ccb89a075af357287dd855bfe3665cdbff7b29d8cb0610276b7965bf",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-old928-0da-third.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-0da-third.py",
+      "bytes": 10144,
+      "sha256": "6c9a7175961b988e32fede8ce62544519ff58accd857bd548e2274031c472a88",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-old928-0da-third.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-0da-third.json",
+      "bytes": 62301,
+      "sha256": "fcb197ab5dc58b575b4c8cd66b2309e626fe9cf9432b31e9eebf5339f86c36a8",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-old928-0da-third.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-0da-third.log",
+      "bytes": 2921,
+      "sha256": "6bab746cd2a33f2ed143f85a4f7bab67d96c36a17806746d260a36db89c485f3",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-old928-0da-third.processes-before.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-0da-third.processes-before.log",
+      "bytes": 252138,
+      "sha256": "c218daa1f8ba0ed510246939130294445dd687138f4a3545973b57eb4f102746",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-old928-0da-third.processes-under-lock.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-0da-third.processes-under-lock.log",
+      "bytes": 252132,
+      "sha256": "fc10a7a64444b3a57e2d1ba76ae1f82429e55dfc19a8473bbcf4a1d718adbeb6",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-types-peer-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-types-peer-pre-merge.json",
+      "bytes": 276,
+      "sha256": "cd09a2267cfca474860d9e08c7d4e44c847a7dbd79eac9ae45dcf916e5433f57",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-types-peer-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-types-peer-merge.log",
+      "bytes": 258,
+      "sha256": "e79030392ad87cbb4f1060ef97eb0a084b9d33d459e71a66a29df17eccb1ae25",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-types-peer-conflict-resolutions.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-types-peer-conflict-resolutions.json",
+      "bytes": 6220,
+      "sha256": "f10c77f8313e9306359ef3345b90a1b800a5ac0d7777a1735e6dcf0fcfe7d278",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-types-peer-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-types-peer-merge-identity.json",
+      "bytes": 194731,
+      "sha256": "794c3f36d0167dd12546caa61107e8a87a55c7f13dca1226adda4e7c91412006",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-types-source-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-types-source-pre-merge.json",
+      "bytes": 280,
+      "sha256": "d6256c4ce3463c852ab038d35a5e817aa06da6108c4f7a30a9202da004be4933",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-types-source-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-types-source-merge.log",
+      "bytes": 338,
+      "sha256": "740b43b7f8eabe087c1717cd81f6cc20d6a5a4e5d0bcad5aaf54651ecd6efd40",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-types-source-conflict-resolutions.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-types-source-conflict-resolutions.json",
+      "bytes": 512646,
+      "sha256": "011d4458ccb2f5c1c08467008f42341d4a2a1a2311a8b04a318382d8c92a024c",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-m01-types-source-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-types-source-merge-identity.json",
+      "bytes": 556075,
+      "sha256": "3464d505b5f326cd430878fb6bf2b54c3a00df3bed1bb033ed5070fb07c6ad71",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-sixth-code-peer-approved.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-sixth-code-peer-approved.json",
+      "bytes": 1052,
+      "sha256": "626b213f6e0af85dfcde00b2cfa9e386e20f09ae5839df1ab5deae9b2cabeae3",
       "bytePreservingCopy": true
     }
   ]

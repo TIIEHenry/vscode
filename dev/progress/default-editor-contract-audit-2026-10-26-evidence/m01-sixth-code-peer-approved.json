@@ -1,0 +1,21 @@
+{
+  "phase": "actual-immutable-0da-review-read-and-new-harness-four-business-old-reds-closed",
+  "candidate": "0da326c052fdaac3d6ff9e2118ba95b001868f1f",
+  "candidateSourceTree": "d5eca6c1557b921827c2585104d54871936212ae",
+  "mergedSourceTree": "d5eca6c1557b921827c2585104d54871936212ae",
+  "codePeerReportCommit": "25bf24e8216fffda3060e31794b8d75716b07ff2",
+  "codePeerReportGitBlob": "bf51165d25d5daad49b8ad2fd157ea712abfe264",
+  "codePeerReportPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md",
+  "codePeerSection": "14",
+  "codePeerActuallyRead": true,
+  "critical": 0,
+  "important": 0,
+  "minor": 0,
+  "oldHarnessCandidate": "0da326c052fdaac3d6ff9e2118ba95b001868f1f",
+  "oldHarnessCommandServiceReal": true,
+  "oldFourPureBusinessReds": true,
+  "oldHarnessEvidenceSha256": "fcb197ab5dc58b575b4c8cd66b2309e626fe9cf9432b31e9eebf5339f86c36a8",
+  "failedCompile5All156FinallyRestored": true,
+  "recordedAtUtc": "2026-10-26T19:35:32.373521+00:00",
+  "fullCompile6NotYetRun": true
+}

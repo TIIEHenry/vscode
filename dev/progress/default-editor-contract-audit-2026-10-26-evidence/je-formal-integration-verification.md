@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "a222正式合源34a4/src8e6，第五完整compile实际exit1/4TS，准确原log退J补修；223历史原件保留，业务新绿/新freeze及D1387/E after待。"
+summary: "0da新CommandService配精确old928四纯业务红，原Astra25bf C0/I0/M0原件实读并正式三路合源；compile5失败保留，src d5eca6待第六完整compile。"
 ---
 
 # J/E 正式集成
@@ -243,3 +243,19 @@ finally在共享锁内恢复：新test源从未写入、临时testJS原不存在
 同一不可变HEAD的本次6TS ESLint实际 **0errors / 21warnings**，Panel1、node wiring20，新MoveSource文件0warning；[脚本](m01-fifth-lint.mjs)、[逐条JSON](m01-fifth-lint.json)、[完整log](m01-fifth-lint.log)保留。这里只报实际scope/计数，不扩大为完整旧113文件lint复跑。
 
 D已静态重备独立 `sources-m01-after-20261027-r2`，J/E两模板同53项superset，三M01生产（Pane/actions/helper）均mandatory source/native及后续实际loaded。driver核新模板各SHA后取scope，没有写旧notice或新实际notice。待原J不可变修订和独立peer续读后再正式合源、实际下一完整compile0与新green，才能发新r2冻结；旧250成员/29PNG和旧52冻结历史均保留，E仍未授权/未启动、D1387 open、不推送/不重试主ff。
+
+## 0da真实CommandService新harness旧四红与正式合源
+
+原J不可变修订 `0da326c052fdaac3d6ff9e2118ba95b001868f1f`（父a222）只改Action缺leaf通知后的显式undefined、helper object+Reflect.get(kind)真实类型谓词、测试以公共CommandService实际delegate并原样转交结果，另3行动文档。没有改Pane、Panel no-unhandled负控、WiringScan、38项business expected或原完成/关闭代数。新harness身份独立，不沿用a222旧四红。
+
+父明确要求以当前失败compile5为恢复目标。本lane两次全局scan空、独占共享锁，先将当前156 output全部按存在性/mode/SHA保存到独立 `/tmp/vscode-m01-old928-0da-third-backup-*`，同时记录156 source SHA；后从不可变 `ce6d977a4316c1f903869089638a2cd7262dc7db` / src928取三生产源，按原编译配置重建到内存，**三份native都逐一匹配以前实际old928运行记录的SHA后，才允许overlay**，不是把语义近似转译当旧产物。其余150旧supporting native逐SHA一致，两个不参与selector的Panel/Wiring测试产物不冒称old928；实际源码树从未替换，始终是当前src8e6。仅临时安装三个byte-exact old928生产JS及0da新测试JS，type别名已擦除，无新runtime export依赖。
+
+官方Electron runner selector `real Pane registered command` 实际 **0 passing (427ms) / 4 failing / exit1**，四项都为 `AssertionError [ERR_ASSERTION]: registered Move must open B in Preview`（test.js348），无TypeError/load/API/timeout。真实CommandService执行registered handler并settle后才到Preview存在性断言；因此是**该新harness的四纯业务旧红**。其后close/root/metadata断言未到达，不扩写旧失败范围。[实际脚本](m01-old928-0da-third.py)、[完整raw log](m01-old928-0da-third.log)、[156备份/三旧native/新test/结果/finally原JSON](m01-old928-0da-third.json)及两份全局进程原件保留。
+
+finally在同一共享锁内把当前失败compile5 **全部156 output存在性/mode/SHA与156 source SHA精确恢复**；HEAD a57/src8e6/clean均未变。当前native仍属失败compile5，不拿本次临时old red签新green或freeze。首d046夹具败、a222旧四红、compile5四TS失败及全部238历史artifact逐字保留。
+
+已直接读原Astra `25bf24e8216fffda3060e31794b8d75716b07ff2` §14，核其受审0da/srcd5eca、Action/guard/真实CommandService依赖与结果链及 **C0/I0/M0**，并核报告读取的compile5原log SHA。报告真三路接入为 `c56bfeb0f0b`：[338路径mode/type/blob门禁](je-formal-m01-types-peer-merge-identity.json)全PASS，仅INDEX冲突，保留本lane最新历史与incoming精确review行，[双方整文](je-formal-m01-types-peer-conflict-resolutions.json)完整，报告blob精确incoming。审查未跑runtime，不把本lane旧4归给reviewer。
+
+随后0da按实际merge-base a222真三路接入，incoming6路径=3TS+3行动文档，仅status/parallel冲突，[82路径mode/type/blob门禁](je-formal-m01-types-source-merge-identity.json)全PASS；[双方整文及理由](je-formal-m01-types-source-conflict-resolutions.json)保留本lane失败emit/磁盘/历史及原J精确补修。三TS SHA与完整src tree精确受审候选：**`d5eca6c1557b921827c2585104d54871936212ae`**，无merge代改。实际旧4与原件C/I闭合后才填写[第六编译peer依据](m01-sixth-code-peer-approved.json)，不是先填批准占位。
+
+第六完整driver/runtime已静态准备；runtime现显式拒绝非真实compile6 exit0或任何TS诊断，防止以失败emit误跑新green。下一实际compile0后才跑38/J29/完整11相关、node wiring及E受影响链；Node880仅精确source/native连续性，不机械重跑。D最新r2合同候选元数据由D静态核对，freeze前须取D最后明确SHA，不擅改；此时没有新freeze/UI/E授权。三ignored cache在父批准同编译窗口仍保/tmp镜像及原路径symlink，窗口完成条件允许即逐entry核全还原；D1387 open、不push/主ff不重试。
