@@ -1,0 +1,20 @@
+{
+  "phase": "fccde-lifecycle-old-run-mixed-business-assertion-and-progress-fixture-error",
+  "candidate": "fccde4afb3eeca0b9264b732efef6b5e31e4b380",
+  "rawRunRecord": "/tmp/vscode-m01-old0da-fccde4afb3ee-lifecycle.json",
+  "rawRunRecordSha256": "ac7843ff6af69cad1fae6f294a22eef5f9d4cf6d1aba221e112f2f74347d05a1",
+  "actualRunnerExit": 1,
+  "actualSummaries": [
+    "0 passing (63ms)",
+    "2 failing"
+  ],
+  "replacementDisposalBusinessAssertionReached": true,
+  "replacementDisposalBusinessAssertionCount": 1,
+  "separateAfterEachUnexpectedProgressServiceError": true,
+  "unexpectedLocation": "DiffEditorWidget native350 / source TS404 _editorProgressService.show(true,1000)",
+  "cleanPureBusinessOldRed": false,
+  "laterClearDisposeAssertionsReached": false,
+  "all163OutputExistenceModeShaAndSourceRestored": true,
+  "classificationNote": "The replacement-disposal assertion actually failed, unlike the previous SCM constructor fixture failure. A separate progress-service TypeError also occurred and must be fixed; the generic pure-red gate therefore stays false. No product or test expected value was changed by the lane.",
+  "recordedAtUtc": "2026-10-26T19:59:13.569398+00:00"
+}

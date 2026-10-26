@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "compile6与产品VM I1历史保留；a166新增生命周期旧跑0过1夹具TypeError、业务红0，全部163 finally恢复，候选未合/compile7未跑。"
+summary: "64a4新生命周期配精确old0da纯业务旧红成立，SCM夹具败与progress mixed全保；最终Astrae5c25实际读并三路合源，新srcab952待第七完整compile。"
 ---
 
 # J/E 正式集成
@@ -293,3 +293,23 @@ finally在同一共享锁内把当前失败compile5 **全部156 output存在性/
 全局lane空/共享锁内将当前**全部163 source/native output按存在性/mode/SHA精确备份**，包含E11补记7项；只临时转不可变新test JS，0da Pane及其他生产不写。官方selector `real Pane comparison view models release` 实际 **0 passing (12ms) / 1 failing / exit1**，为 `TypeError: this.scmService.onDidAddRepository is not a function`，栈SourcesChangesReadModel.js62→feedbackPane test.js400→新case.js439。尚未创建VM/达到replacement-disposal断言，**生命周期业务旧红0**，不是预计的产品释放AssertionError。[完整raw](m01-old0da-a166-lifecycle.log)、[163备份/命令/结果/finally JSON](m01-old0da-a166-lifecycle.json)、[实际脚本](m01-old0da-a166-lifecycle.py)与两份全局进程原件保留；driver exit0仅表示finally/采集完成，runner exit1不变。
 
 finally所有163输出存在性/mode/SHA、163源SHA及旧Pane source/native全恢复，HEAD fb214/srcd5eca/clean前后不变。原feedback helper依赖之前被第一个真实入口afterEach中止遮住，本轮首次selector显露SCM事件夹具缺失；原J/父/Astra已收到准确raw并由原作者最小补公开依赖，不由lane补fixture/改断言/释放私有VM。全部290历史原件保留，含0da准确四业务旧红与compile6实际VM产品I1，不能与本次夹具失败混计。等待不可变fixture修订/独立peer后重跑准确生命周期旧红，继而真三路合源、实际compile7与39/相关套；cache仍按同编译窗口授权保留，尚无新freeze/UI/E授权，D1387 open。
+
+## 64a4生命周期纯业务旧红与最终正式合源
+
+本轮新增生命周期的三次真实运行身份分别保留，均官方selector `real Pane comparison view models release` 配精确compile6/0da Pane；每次独占共享锁/全局scan空，只临时转不可变新test JS，不改生产或源码，finally全部163输出存在性/mode/SHA、源SHA及oldPane source/native精确恢复。
+
+| 新test不可变对象 | 实际结果 | 分类与未到达边界 |
+| --- | --- | --- |
+| a166（前节永久65cf） | 0过1TypeError | 缺SCM事件，未建VM，业务红0 |
+| [fccde raw](m01-old0da-fccde4afb3ee-lifecycle.log) / [JSON](m01-old0da-fccde4afb3ee-lifecycle.json) | 0过2败，exit1 | 已到1条replacement释放AssertionError，另有progress服务undefined.show TypeError afterEach；[mixed分类](m01-fccde4-lifecycle-classification.json)明确不是纯红，不改写为未到业务断言 |
+| [64a4 raw](m01-old0da-64a4e46b5fa2-lifecycle.log) / [JSON](m01-old0da-64a4e46b5fa2-lifecycle.json) | **0过1败，exit1** | 唯一 `replacing input must release its comparison view model` AssertionError（test.js456，false!==true）；无TypeError/load/API/timeout/独立hook错，**纯生命周期业务旧红成立**；后续clear/dispose断言未达 |
+
+两个后续driver、raw、JSON及各两份全局进程原件完整入库，不拿driver采集exit0冒称runner通过。64a4 run的finally仍为HEAD65cf/srcd5eca/clean，163全部精确恢复；fccde mixed及a166首fixture败不被新纯红覆盖。Mixed的show错误已只读定位DiffEditorWidget.js350/TS404的组级IEditorProgressService；原J完整show/emptyProgressRunner、showWhile await/保留reject补的是公开fixture接口，不关闭autorun、unexpected/leak检测或代dispose私有VM。
+
+[fccde连续性](m01-fccde4-harness-continuity.json)与[64a4精确selected连续性](m01-64a4-harness-continuity.json)直接核Git全文/slice：原39测试body/expected与四真实Move/CommandService区逐字不变；对0da仅imports及feedback helper+新增case切片改变，对fccde仅progress imports及feedback helper改变。全部生产精确a166，39之外没有新模块。仅据明示selected source continuity沿用0da第三轮四纯Preview业务红，不机械重跑它们，也不称生命周期case等同旧四入口。
+
+最终原Astra `e5c25b4b33853e8d6b9da9476adfbe589e24a0b9` §16–19已实际读，保留SCM I1/首失败、progress mixed I1/后续64a4 **C0/I0/M0**，不拿口头先行消息代原件。真三路报告接入 `6d5660543c7`，[396路径mode/type/blob门禁](je-formal-m01-vm-final-peer-merge-identity.json)PASS，仅INDEX冲突，报告blob精确incoming，双方整文保留。父实际读最终§19及64a4新run/finally、核最新D合同属于父只读范围，不冒称父代跑。
+
+在新纯生命周期旧红及实际原件C/I闭合后，对64a4以实际merge-base0da真三路接入；incoming5路径=Pane、test、3行动docs，源码无冲突，仅status/parallel合成，[139路径mode/type/blob门禁](je-formal-m01-vm-final-source-merge-identity.json)PASS，[双方整文及理由](je-formal-m01-vm-final-source-conflict-resolutions.json)保留全部历史。两TS SHA和完整src tree精确受审候选：**`ab952ce1fc0bd279754f747460bea9a8dc97f216`**。此时native仍是compile6/d5eca，与新源码严格分开；[第七实际peer依据](m01-seventh-code-peer-approved.json)在上述实际闭合后才写，不代表compile7或39green。
+
+全部296历史artifact精确核保留。本轮compile7 driver显式163scope（原156+E11新增7），runtime显式拒绝非实际compile7 exit0/任何TS诊断；待实际完整compile及39/J29/完整相关套。D最后静态合同为candidate64a4/ordinal7、SHA f7655ad9fe2c493a535bbfaf5cdccadade070d449d3436c69b49c6087a69137f；先前5248/337/114身份由D保留，冻结时只消费最后明确合同，53模板/3mandatory不变。当前没有新freeze/notice/UI/E授权，cache同编译窗口待条件允许逐entry恢复、D1387 open，不push/主ff不重试。

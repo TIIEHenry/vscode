@@ -1,0 +1,69 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1855000:1027/035627.884779:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1855016) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1855016) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1855016) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources M01 move source[0m
+  [31m  1) real Pane comparison view models release on replacement, clear and dispose[0m
+[1854969:1027/035628.987422:INFO:CONSOLE:272] "Error: Test run should not have unexpected errors:
+Cannot read properties of undefined (reading 'show')
+TypeError: Cannot read properties of undefined (reading 'show')
+    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:350:47
+    at AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorun.js:60:7)
+    at AutorunObserver._run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:84:16)
+    at AutorunObserver.endUpdate (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:134:18)
+    at Derived.endUpdate (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/derivedImpl.js:203:11)
+    at Derived.endUpdate (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/derivedImpl.js:203:11)
+    at TransactionImpl.finish (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/transaction.js:74:16)
+    at transaction (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/transaction.js:9:8)
+    at subtransaction (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/transaction.js:37:5)
+    at DiffEditorWidget.setDiffModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:458:7)", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+  [31m  2) "after each" hook for "real Pane comparison view models release on replacement, clear and dispose"[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (63ms)[0m
+[31m  2 failing[0m
+
+[0m  1) Sources M01 move source
+       real Pane comparison view models release on replacement, clear and dispose:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: replacing input must release its comparison view model
+  
+  false !== true
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesDiffMoveSource.test.js:448:14)
+[0m
+[0m  2) "after each" hook for "real Pane comparison view models release on replacement, clear and dispose":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Error: Test run should not have unexpected errors:
+  Cannot read properties of undefined (reading 'show')
+  TypeError: Cannot read properties of undefined (reading 'show')
+      at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:350:47
+      at AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorun.js:60:7)
+      at AutorunObserver._run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:84:16)
+      at AutorunObserver.endUpdate (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:134:18)
+      at Derived.endUpdate (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/derivedImpl.js:203:11)
+      at Derived.endUpdate (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/derivedImpl.js:203:11)
+      at TransactionImpl.finish (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/transaction.js:74:16)
+      at transaction (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/transaction.js:9:8)
+      at subtransaction (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/transaction.js:37:5)
+      at DiffEditorWidget.setDiffModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:458:7)
+      at Context.<anonymous> (renderer.js:351:11)
+[0m
+
+

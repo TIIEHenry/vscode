@@ -1,0 +1,22 @@
+{
+  "phase": "64a4-actual-pure-lifecycle-old-red-and-immutable-peer-closed-for-compile7",
+  "candidate": "64a4e46b5fa27d48920789aa4b66e7340dfa833b",
+  "mergedSourceTree": "ab952ce1fc0bd279754f747460bea9a8dc97f216",
+  "codePeerReportCommit": "e5c25b4b33853e8d6b9da9476adfbe589e24a0b9",
+  "codePeerReportPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md",
+  "codePeerReportGitBlob": "836a25fd3c624717fe2e3b52e54323696266b661",
+  "codePeerSection": "19",
+  "codePeerActuallyRead": true,
+  "critical": 0,
+  "important": 0,
+  "minor": 0,
+  "oldLifecycleBusinessRed": true,
+  "oldLifecycleRawRunRecordSha256": "c4acb7565fcbf8614f28845f1d5d4d1d1877fe46a95426ae08bf1a583d07fe9c",
+  "all163Compile6FinallyRestored": true,
+  "selectedFourHarnessContinuityVerified": true,
+  "oldFourEvidence": "m01-old928-0da-third.json",
+  "selectedContinuityRecord": "m01-64a4-harness-continuity.json",
+  "rawFirstFixtureAndMixedBothRetained": true,
+  "recordedAtUtc": "2026-10-26T20:08:13.789514+00:00",
+  "compile7NotYetRun": true
+}

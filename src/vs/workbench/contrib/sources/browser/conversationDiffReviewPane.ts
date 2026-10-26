@@ -11,6 +11,7 @@ import { IDiffEditorConstructionOptions } from '../../../../editor/browser/edito
 import { CodeEditorWidget } from '../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
 import { DiffEditorWidget } from '../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
 import { IEditorOptions as ICodeEditorOptions } from '../../../../editor/common/config/editorOptions.js';
+import { IDiffEditorViewModel } from '../../../../editor/common/editorCommon.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
 import { localize } from '../../../../nls.js';
@@ -97,6 +98,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 	static readonly ID = ConversationDiffReviewEditorId;
 
 	private readonly diffWidget = this._register(new MutableDisposable<DiffEditorWidget>());
+	private readonly diffViewModel = this._register(new MutableDisposable<IDiffEditorViewModel>());
 	private readonly codeWidget = this._register(new MutableDisposable<CodeEditorWidget>());
 	private readonly originalModelRef = this._register(new MutableDisposable<IReference<IResolvedTextEditorModel>>());
 	private readonly modifiedModelRef = this._register(new MutableDisposable<IReference<IResolvedTextEditorModel>>());
@@ -787,10 +789,11 @@ export class ConversationDiffReviewPane extends EditorPane {
 			this.getDiffEditorOptions(),
 			{},
 		);
-		widget.setModel({
+		const viewModel = this.diffViewModel.value = widget.createViewModel({
 			original: originalRef.object.textEditorModel,
 			modified: modifiedRef.object.textEditorModel,
 		});
+		widget.setModel(viewModel);
 		if (!this._store.isDisposed && this.input === input && generation === this.renderGeneration) {
 			this.bindAcceptCursor(widget);
 		}
@@ -844,6 +847,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 		this.codeWidget.value?.setModel(null);
 		this.diffWidget.clear();
 		this.codeWidget.clear();
+		this.diffViewModel.clear();
 		this.originalModelRef.clear();
 		this.modifiedModelRef.clear();
 	}

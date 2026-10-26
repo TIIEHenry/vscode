@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import sinon from 'sinon';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { Event } from '../../../../../base/common/event.js';
@@ -15,11 +16,13 @@ import { TestConfigurationService } from '../../../../../platform/configuration/
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { emptyProgressRunner, IEditorProgressService } from '../../../../../platform/progress/common/progress.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IUserInteractionService, MockUserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionService.js';
 import { StorageScope } from '../../../../../platform/storage/common/storage.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IDiffProviderFactoryService } from '../../../../../editor/browser/widget/diffEditor/diffProviderFactoryService.js';
+import { DiffEditorWidget } from '../../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
 import { TestDiffProviderFactoryService } from '../../../../../editor/test/browser/diff/testDiffProviderFactoryService.js';
 import { EditorParts } from '../../../../browser/parts/editor/editorParts.js';
@@ -275,8 +278,13 @@ suite('Sources M01 move source', () => {
 	}
 
 
-	async function feedbackPane() {
+	async function feedbackPane(compare = false) {
 		const instantiation = workbenchInstantiationService(undefined, store);
+		instantiation.stub(IEditorProgressService, {
+			_serviceBrand: undefined,
+			show: () => emptyProgressRunner,
+			showWhile: async promise => { await promise; },
+		} satisfies IEditorProgressService);
 		instantiation.stub(IDiffProviderFactoryService, new TestDiffProviderFactoryService());
 		instantiation.stub(IUserInteractionService, new MockUserInteractionService());
 		const connection = createConversationConnectionTestStub();
@@ -286,7 +294,12 @@ suite('Sources M01 move source', () => {
 			isPairingHold: () => false, onDidChangeActiveSession: Event.None, onDidChangeSession: Event.None,
 			acquireSessionView: () => { throw new Error('not used'); },
 		} satisfies IAgentSessionContext);
-		instantiation.stub(ISCMService, new class extends mock<ISCMService>() { override readonly repositories = []; }());
+		instantiation.stub(ISCMService, {
+			_serviceBrand: undefined, repositories: [], repositoryCount: 0,
+			onDidAddRepository: Event.None, onDidRemoveRepository: Event.None,
+			getRepository: () => undefined,
+			registerSCMProvider: () => { throw new Error('unexpected SCM provider registration'); },
+		} satisfies ISCMService);
 		instantiation.stub(ISourcesChangesModel, store.add(instantiation.createInstance(SourcesChangesModel)));
 		const pending: DeferredPromise<SourcesDiffMoveResult>[] = [];
 		let pane: ConversationDiffReviewPane;
@@ -305,8 +318,10 @@ suite('Sources M01 move source', () => {
 		document.body.appendChild(parent);
 		store.add({ dispose: () => parent.remove() });
 		pane.create(parent);
-		const input = store.add(new ConversationDiffReviewInput(URI.parse('inmemory://m01/feedback'), undefined, 'workingTree'));
+		const original = compare ? URI.parse('inmemory://m01/feedback-original') : undefined;
+		const input = store.add(new ConversationDiffReviewInput(URI.parse('inmemory://m01/feedback'), original, 'workingTree'));
 		const models = instantiation.invokeFunction(accessor => accessor.get(IModelService));
+		if (original) { store.add(models.createModel('before feedback', null, original)); }
 		store.add(models.createModel('feedback content', null, input.modified));
 		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
 		const button = parent.querySelector('button.conversation-diff-review-open-preview');
@@ -314,6 +329,30 @@ suite('Sources M01 move source', () => {
 		assert.ok(button instanceof HTMLButtonElement && notice instanceof HTMLElement);
 		return { pane, parent, input, notice, click: () => { button.click(); assert.ok(pending.length); return pending[pending.length - 1]; } };
 	}
+
+	test('real Pane comparison view models release on replacement, clear and dispose', async () => {
+		const sandbox = sinon.createSandbox();
+		const createViewModel = sandbox.spy(DiffEditorWidget.prototype, 'createViewModel');
+		try {
+			const h = await feedbackPane(true);
+			assert.strictEqual(createViewModel.callCount, 1);
+			const firstDispose = sandbox.spy(createViewModel.firstCall.returnValue, 'dispose');
+			await h.pane.setInput(store.add(new ConversationDiffReviewInput(h.input.modified, h.input.original, 'index')), undefined, Object.create(null), CancellationToken.None);
+			assert.strictEqual(firstDispose.calledOnce, true, 'replacing input must release its comparison view model');
+			assert.strictEqual(createViewModel.callCount, 2);
+			const secondDispose = sandbox.spy(createViewModel.secondCall.returnValue, 'dispose');
+			h.pane.clearInput();
+			assert.strictEqual(h.pane.getControl(), undefined);
+			assert.strictEqual(secondDispose.calledOnce, true, 'clearing input must release its comparison view model');
+			await h.pane.setInput(store.add(new ConversationDiffReviewInput(h.input.modified, h.input.original, 'workingTree')), undefined, Object.create(null), CancellationToken.None);
+			assert.strictEqual(createViewModel.callCount, 3);
+			const finalDispose = sandbox.spy(createViewModel.thirdCall.returnValue, 'dispose');
+			h.pane.dispose();
+			assert.strictEqual(finalDispose.calledOnce, true, 'disposing the Pane must release its comparison view model');
+		} finally {
+			sandbox.restore();
+		}
+	});
 
 	test('Pane move failure then current success restores only its local move notice', async () => {
 		const h = await feedbackPane();
