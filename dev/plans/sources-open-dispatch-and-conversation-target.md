@@ -4,14 +4,14 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-26
-summary: "D1387：真实 Git 已证 Preview 漏 API open/diff DTO、Conversation slot 的准确 concrete group 被改投主组；保留三 owner/两 slot/void 合同，规则16 C0/I0后已写源码切片与回归；作者仅静态校验，唯一车道旧红新绿/非作者after待做"
+summary: "D1387：65d原模块357过/虚拟TS0由唯一车道实证；§3.2宿主候选观测、同service Sources重叠歧义及真实成员核对经D规则16 C0/I0签收，独立方案提交后实施"
 ---
 
 # Sources 打开分派与准确 Conversation 目标
 
 ## 1. 问题、证据与签收边界
 
-范围是默认编辑器的 Sources Changes / Review → Preview、Conversation、Panel 打开及移动合同（[PRD-005/009](../../docs/product/requirements.md#prd-009-changes-与-diff)、[ADR-005](../decisions/005-changes-diff-owner.md)、[Sources SSOT](../../docs/systems/sources/overview.md)）。不开发 `src/vs/sessions/`。D1387 保持 open，PRD 状态不升；原方案与本轮§3.2实质澄清均已通过下方规则16。原源码切片与回归已写，但独立实现审查发现两项Important，须按澄清补修并经唯一车道运行与非作者after；本作者没有运行或修复后验证。
+范围是默认编辑器的 Sources Changes / Review → Preview、Conversation、Panel 打开及移动合同（[PRD-005/009](../../docs/product/requirements.md#prd-009-changes-与-diff)、[ADR-005](../decisions/005-changes-diff-owner.md)、[Sources SSOT](../../docs/systems/sources/overview.md)）。不开发 `src/vs/sessions/`。D1387 保持 open，PRD 状态不升；原方案与custom预pin澄清已有下方规则16，本轮§3.2同tuple宿主/并发歧义澄清也经D规则16 C0/I0签收，新边界待实施。原两项Important补修`89f3e5a6a17`与测试harness`4f7e49d`/`65d2288`已交唯一车道；D/Astra又确认同tuple另组后台打开可能错记旧host，须审查澄清、补修并经唯一车道运行与非作者after。本作者没有运行或修复后验证。
 
 [真实 Git before](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before.md) 有两个不同根、同名文件与不同两侧哨兵，真实内置 Git provider，断连、零 Git RPC、fixture HEAD/index/worktree 未变。J 初轮只读审查及 C1–C6 的结果是 before，不能充当作者实现后的 after。
 
@@ -63,7 +63,23 @@ API DTO 分支只用 context 的 pinned 默认值保留 newTab 旧 preview，不
 
 **custom newTab 保留既有预pin窄例外。** custom.open 只有 preserveFocus 参数和 void 完成合同，不能注入 pinned / column；若先让未固定的新 input 替换旧 preview，事后 pin 无法找回被替换的旧标签。因此仅 custom + newTab 在调用前仍 pin 动作发起组的旧 preview，以维持原有保留语义。custom no-op、reject、另组或外部打开时也可能已 pin 这个旧 preview，这是既有兼容成本，不宣称零 pin 副作用。该例外不适用于 API，不授权分派后凭单侧 URI 写 identity、pin 新 input 或关闭旧 input；custom 的 preserveFocus / await / 拒绝传播与单次调用保持。
 
+**宿主候选观测与Sources重叠歧义保护（本轮规则16已签收、待实施）。** 完整比较身份只能证明内容相同，不能证明provider选了哪个宿主。A/B两个组可以各持独立input且有相同有序双侧或单资源URI；provider显式column并以`inactive:true`或`activation:PRESERVE`在B打开时，A仍可active。不能按active→requested→visible的先后次序认领A，也不能只把所有多匹配永久跳过，遗漏已有准确provider目标支持。D本轮指出候选事件没有operationId：R1等待期间可能收到另一个Sources R2对同tuple的will，即使只有一个最终input也不能天然归因R1；Astra定级Important，须加入下面有界保护。本轮局部实现如下：
+
+1. 在任何listener注册或SCM dispatch前，同步捕获一次resource command id与参数数组，保持原参数值/optional槽及provider options；完整身份匹配器、并发key和实际`executeCommand`都用同一份捕获，不在await后重读可变`resource.command`/arguments。API file key是类型+完整单URI，API diff key是不同类型+有序original/modified完整URI tuple，包含query/fragment，以结构化序列编码避免分隔符碰撞。custom仍只调用自己的open一次，匹配仍限成对multiDiff或已有resource/group可信身份，不能用其command造API key。
+2. 用模块内`WeakMap<IEditorService, Set<本次观察记录>>`保存同一服务实例的活动Sources委托；不新增服务或全局队列。开始单次SCM dispatch的观察scope时同步登记，再注册现有`IEditorService.onWillOpenEditor`局部listener。相同完整API key的两个活动记录相互标记`ambiguous=true`；不同API tuple/file-diff类型互不冲突。所有custom都按wildcard与同服务全部活动API/custom冲突，因为无法约束其真实打开目标。只标记歧义，不阻止、串行化或重派任何dispatch。
+3. ambiguous是每次操作自己的粘性事实：一次重叠后直到该操作自己的`finally`退出都不能改回false，另一方先resolve/reject并移除不得替仍pending的一方解锁。三操作传递重叠中，尚活动的歧义记录仍参与后续冲突登记；新记录与它直接同key或wildcard冲突时也永久标歧义。finally仅移除本记录并及时dispose本listener，空集合可从WeakMap移除；reject原样传播且不能泄漏登记/监听。登记/监听scope覆盖单次SCM dispatch的await及紧接的同步宿主核对，在本次后置动作开始前finally清理；不把已经完成的委托和后续await close混成新一轮可追溯归因。
+4. listener只收集本scope中匹配的请求input与group id/当前group对象，作为候选证据；不宣称事件天然属于这次委托，不从事件发起打开或驱动另一个控制流。await正常完成时，若本记录ambiguous则跳过全部后置identity、新input pin及replace close；仍返回合法void的true。custom既有newTab预pin成本保留，不回滚，也不把它计为被允许的后置pin。
+5. 未被Sources重叠污染时，重新用`getGroup(id)`验证候选group仍为同一有效对象，检查其全部`editors`中的真实成员仍未dispose且完整身份匹配。will不是成功：没有实际成员不能写身份。`EditorGroupModel`会把新请求input规范成已开的同`matches`实例，所以只允许`actual === event.editor || actual.matches(event.editor)`的唯一真实成员（由actual对event方向匹配）；不能要求每次input对象变化，也不能把临时请求对象当已开标签。重复同group/成员去重后，仅一个可验证候选宿主可优先于其他旧active同tuple；相关will存在但最终无有效成员或有多个候选时，不回退认旧active/requested。
+6. 只有未ambiguous且完全没有相关will观测时，才从当前`editorGroupsService.parts[].groups`的全部`editors`查找可信fallback，不限visible pane或active tab；每个group须`getGroup(id)`同对象有效。仅一个完整身份候选可用于原已开reveal/custom可信记录兼容路径；零个或多个候选不猜。没有可验证的组服务时不从裸activeEditor补造宿主。不得再次调用可能创建组的`columnToEditorGroup`推算目标，provider实际解析/路由仍由原handler负责。
+7. 仅对上述未歧义且核对完成的真实成员写本次Sources resource/group identity，custom按原合同pin新成员，replace只有实际宿主仍为动作发起组才关闭仍在该组的旧input。API provider显式pinned/column/inactive/activation等保持优先；custom newTab预pin窄例外原样保留，不借观测扩大custom可信比较身份。无可用候选/歧义只省略这些后置副作用，void完成仍true、reject仍原样。
+
+这项保护只约束同一IEditorService实例内Sources委托之间可能混淆的重叠；非Sources同tuple外部打开仍没有operationId，不能宣称已证明其因果归属或任意窗口并发安全。官方API/custom的void合同不能暗改；真实inactive成功本来就可返回undefined，也不能把pane返回值当万能归因解法。不开全局串行、不拦截EditorService、不新增RPC。
+
 测试分别覆盖 API open/diff 与 custom、newTab / replace、不同资源与同 modified 不同 original 的旧 input、同条 reveal、provider 指定列与背景/保焦点、reject。API options 优先级须经过真实官方 handler；custom 预pin成本与没有可信身份时的后置零副作用分别断言，不能只 stub 一个 activeEditor 变化就宣布真实打开。
+
+本轮必须增加真实官方handler与组模型/公开EditorService事件归属回归：API file/diff × newTab/replace，A/B同category、相同完整tuple、独立input与不同SCM资源/组身份；provider明确指定B并用`inactive:true`或`activation:PRESERVE`保留A active，断言A原identity与tab不动、B实际新/规范成员得到本次identity，后续move-ref仍归准确SCM组/resource。覆盖B inactive tab不在visible pane、已开B成员reveal、will后未开/组被移除或同id替换、多个实际观测与无观测多候选。fallback歧义必须metadata/pin/close全不改且voidtrue，不能用“永远跳过多匹配”代替B正例；custom成对/既有可信身份与预pin成本继续独立覆盖。断言用小投影避免失败报告遍历SCM getter/服务图，官方startup setup保持一次性suite生命周期与per-test leak检测。
+
+并发回归另须用受控公共Promise屏障证明：R1的g1同tuple委托pending且最终ABORT/no-op，R2的g2在B真正打开成功；R1先settle和R2先settle都不能让R1把B写成g1，R2允许因重叠一并跳过metadata，各dispatch一次且无后置pin/close。覆盖同key三操作传递重叠、custom-wildcard×API/custom两种启动顺序、custom原预pin成本、不同API tuple（含file/diff类型）并发正控、不同IEditorService实例隔离、reject后finally清理并使下一次顺序打开恢复正常，以及resource.command/arguments在await期间变化仍按同步捕获DTO的key/分派/匹配一致。不能仅以单项最终input唯一来替代Sources重叠检查。
 
 无 SCM 的直接 Preview diff/file 路径返回 pane/undefined：将 undefined 显式返回 false，不再由 Preview dispatch 无条件 true；用适用于所有 owner 的打开未完成文案，不把它写成 Conversation 载入失败。此规则不外推到 API command/custom void。
 
@@ -112,7 +128,8 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 | 范围 | 必须的 green / 负控 |
 |---|---|
 | SCM dispatch | open/diff 两常量、slot/无 slot、preserveFocus true/false、pinned、provider options 优先级和正确参数位；custom resolve/reject、各一次、无兜底。 |
-| identity / slot | API newTab以默认pinned新input保留旧、provider显式options仍优先；custom newTab保留预pin窄例外并锁定no-op/reject/另组成本；replace另一条、同条reveal；同modified不同original/不同资源旧input不记新identity、不做未核对的后置pin/close；provider列/后台/保焦点；direct undefined false。 |
+| identity / slot | API newTab以默认pinned新input保留旧、provider显式options仍优先；custom newTab预pin窄例外与no-op/reject/另组成本；同modified不同original/不同资源旧input不记新identity；未歧义时A/B同tuple的B候选/真实成员优先、inactive tab与规范实例reveal、准确move-ref；will未落实/失效组/多候选及无观测多候选均后置零副作用；provider列/inactive/activation；direct undefined false。 |
+| Sources重叠歧义 | 同service同API key双方sticky ambiguous直到各自finally；g1 pending最终ABORT/no-op与g2真开B的两settle顺序、三操作传递；custom wildcard×API/custom两启动顺序及预pin成本；不同API tuple/type和不同service正控；reject清理后顺序恢复；同步捕获DTO用于key/分派/匹配。只保护Sources间已定义重叠，不声称外部同tuple因果安全。 |
 | 真实调用方 | Changes/Review 行、Enter、右键另一种、Open Selected、各 move 入口都接 commandService；move 保留缺失 Conversation leaf 不关闭源宿主的既有合同；其他 false/stale 后的既有关闭策略已有测试锁定，本刀不改写为所有失败都保源，不顺手扩独立缺口。 |
 | finder 正例 | 允许 typed chat/review + 当前真实对象/有效数字；准确 part/session/group；已有token；隐藏组恢复与根保留。 |
 | finder 负控 | file、untitled、ChatEditorInput、普通可写Diff × token/对象/id；无目标；错误main；非Conversation excluded；未解析id；移除组；同id伪造/过期对象。 |
@@ -130,14 +147,17 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 
 ## 5. 顺序、审查与状态
 
-- P：PRD事实→生成状态→SSOT/证据/本方案；父派独立规则16 reviewer，C/I 核验改入后 accepted，单独方案 commit。规则16已通过，单独方案commit后再实施。
-- I：仅按 accepted 方案改生产、真实依赖和回归；静态复核/文档门禁，独立实现 commit；计划仍 accepted、D1387 open，不报未跑的 green。
+- P（原方案历史检查点）：PRD事实→生成状态→SSOT/证据/本方案；父派独立规则16 reviewer，C/I 核验改入后 accepted，单独方案 commit。规则16已通过，单独方案commit后再实施。
+- I（原源码历史检查点）：仅按 accepted 方案改生产、真实依赖和回归；静态复核/文档门禁，独立实现 commit；计划仍 accepted、D1387 open，不报未跑的 green。
 - I 补修：J原实现`23f8701c8d2`经D独立实现审查后，Astra确认API预pin与单侧URI误配两项Important；§3.2的custom预pin窄例外先按规则16澄清、单独文档提交，再补修与增加真实handler/组模型回归。当前澄清签收不代表实现通过。
+- I 宿主补修：D/Astra确认`89f3e5a6a17`完整tuple匹配仍可能按旧active优先误认宿主，D再指出事件缺operationId的并发归因Important；本轮候选观测、同service Sources重叠歧义fence、await后真实成员核对与全tabs唯一fallback先只改文档进review，非作者规则16 C/I解决、单独方案commit后才改生产/新回归。`65d2288`原模块357过/虚拟TS0是唯一merge已运行结果，不证明本轮新边界；作者不重跑或借此升状态。
 - V：唯一 merge 精确旧生产+新测试 red，再新生产 green/完整相关套/必要全量；非作者真实 after；按证据决定 implemented/closed。全量旧失败另记，不重开已闭 D1382/D1386，不升 PRD-008/009/029。
 
 重要新设计点或边界外问题先报父/Astra，不顺手扩展。全量由父提供的运行记录说明；本作者不借其他主题产物给此主题背书。
 
 ## 6. 规则16记录
+
+2026-10-26，本轮同tuple宿主候选观测首稿经D只读审查为C0/I1，并发归因Important经Astra确认must-fix；作者补入同service Sources重叠sticky ambiguity、custom wildcard、同步捕获DTO与外部并发非保证边界后，D增量规则16为 **Critical 0 / Important 0**。正式两轮报告提交`7c84e0167e3f5fef3db1e7dea5cd6f96ca3393c4`，见[宿主观测规则16报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md)。第一稿plan/SSOT SHA256为`8de7de8c0b8cacaab65d44525851bc0b8d94d761f857033b1d0593889b464e70` / `fd67b9a7a5545ff38f6664cc7dca762c979cf8a8f7dcc5de383c94edda95f61e`；最终受审稿为`7f1d87afc2c5058105afe91125175b5556d915ef00ab387bad97ddc2ff8ea45f` / `07fcba33bd8da9f9dc46e4d56b487056e1ddfe7f89fa63033bab2cfbc4dd6f59`。作者已只读核验报告，并实改两Minor：actual对event的matches方向、旧accepted/规则16措辞的历史归属；现恢复accepted、单独方案commit后才实施。此前审查不替代本轮签收，本轮也不签源码/运行/after；当前生产仍为`89f3e5a6a17`。 本次作者文档门禁为health 0errors/75warnings，较受审稿fresh74仅新增D已提交但J尚未合入的同仓宿主报告链接；不跨槽复制。生成状态与diff检查通过，status170行；原73/74及D报告46为各自历史/工位结果，不替代本次记录。
 
 2026-10-26 独立 reviewer C（非 Sources 作者）完整核对正式稿、两轮 Astra、PRD/SSOT实际diff、SCM/slot/finder/状态源码与before机器证据，最终 **Critical 0 / Important 0**。原I1指出helper明确stale与open-status旧代次不能混成一切旧void不mark；作者已拆表并同步PRD/SSOT，reviewer增量复读正式稿SHA `970bac28c99e456d93e0970af0e361a7d802d2ee42bf6632b545fca5f487759d`确认落实。两Minor提醒保留move既有关闭策略、精确报告docs warning delta。见[规则16原报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-plan-peer-review.md)。
 
@@ -149,6 +169,6 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 
 方案提交 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 后，J原实现`23f8701c8d2`写 Sources 一次API分派/全部真实调用方命令依赖、局部身份副作用、finder准确对象/数字成员判定及局部打开错误恢复。D独立实现审查指出预pin和单侧URI匹配仍违反实际目标归属，两项Important须补；本轮按§3.2补修。原回归包含真实DTO、委托void/reject、公共列表/命令状态恢复，以及真实parts + public findGroup/EditorService/共享slot；pane仅使用既有轻量测试编辑器隔离模型加载，不能作为真实Git两侧通过证据。原切片详见[源码与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)，新增API handler/组模型与完整比较身份回归另按本轮实际证据记账。
 
-作者未编译、transpile、typecheck、写out/watch或运行测试；静态结果与独立实现审查后续收录在该检查点。唯一merge的业务旧红/新绿、相关完整套件与非作者三owner真Git after仍待。方案保持accepted、D1387 open，PRD状态不升。
+作者未编译、transpile、typecheck、写out/watch或运行测试；静态结果与独立实现审查后续收录在该检查点。唯一merge的业务旧红/新绿、相关完整套件与非作者三owner真Git after仍待。此为原源码历史检查点的accepted/open状态，不作为本轮新边界通过证明；D1387 open、PRD状态不升。
 
 本轮澄清独立提交`a76d062f297`后，J补修源码只取消API预pin、改DTO有序双侧/单资源类型及custom可信身份匹配，保留custom预pin窄例外；新增28个官方handler/真实组模型/比较身份与custom兼容负控用例源码。仅本轮静态语法0错误、ESLint0错误且测试29警告相对原23f逐项不变；详见同一[源码检查点本轮段](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#本轮独立审查后的补修2026-10-26)。这是源码补修完成线，不是I1/I2运行通过或after签收。

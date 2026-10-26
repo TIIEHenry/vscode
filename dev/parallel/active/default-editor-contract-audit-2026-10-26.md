@@ -28,7 +28,7 @@ D1382/1383/1384 按各自证据 closed。D1385/1386 仍 open、正式方案 acce
 | J / configuration_initialization_contracts | D1384：RemoteUserConfiguration 显式重试共有等待、reload 及销毁边界 | 源 `c4b9332` 已三路合入 `3e63f9e`。旧生产16项断言失败、4项旧通过、1项超时不计。新生产21过、远端17过。方案 implemented，缺口 closed。C 静态 after C0/I0，两条 Minor 不阻断 |
 | C / voice_cold_start | D1385：保留CopilotChat首次录音授权与冷取消 | 原5红/182绿，f9取消先discard后hold已真三路f75；真实controller owner-hide旧业务红、新完整183绿，本次目标TS0；D非作者实际保留pane/editor toolbar/快捷键owner路由证明待到，accepted/open |
 | D / leaf_root_identity（原生接班） | D1386：叶根身份、命令URI/菜单与只读CSS | ea根归属旧11红/40+Lens8绿；b774CSS旧4几何红/新完整44绿，C非作者真实after C0/I0/M0、I1正式CSS原窗口复验解除；D1386closed、planimplemented，限制保留 |
-| J / sources_executor（原完整实现后补修） | D1387：Sources三owner/slot打开合同，两独立机制 | `4f7e49d`先修R2报告与官方setup生命周期，生产未改；本次再按lane反馈补六处test类型断言、保留error-tone合同的scan/业务断言、workingTree move成对身份夹具。五TS语法0/lint0错误/51旧警告无增减；J未编译/typecheck/out/运行。宿主归属新Important另走方案规则16，完整merge red/green与D真实after待，accepted/open。 |
+| J / sources_executor（原完整实现后补修） | D1387：Sources三owner/slot打开合同，两独立机制 | 父已报`65d2288`原模块357过/虚拟TS0；生产仍`89f3e5`。宿主候选观测新增D/Astra并发归因Important，方案/SSOT补同service同API key sticky ambiguity、custom wildcard、同步捕获DTO及三操作/隔离/异常恢复回归要求，D两轮报告7c84e016最终C0/I0、两Minor实改并accepted待独立方案commit。未实施新边界/open；J不编译/typecheck/out/运行，真实after待。 |
 | merge / 唯一集成者 | 串行源码/精确旧基线/red-green、类型/lint及after收录 | 当前f75后修只fresh两个测试JS/一个actionJS/一CSS，本次3TS0/lint0；D1386closed、D1385实际入口UI待证。后修不全量，source6f82原45/27真实失败不覆盖，不取J新Sources实现 |
 
 D1386 after I1已由C真实确认只读folder/branch箭头12×12仍可见；D clean ff57后仅补production hidden组的chip-open选择器与4主题真实CSS/DOM几何回归，未运行。等待唯一merge旧CSS red/新CSS green与C原窗口正式新CSS复验，保持accepted/open；[补修检查点](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1386-readonly-chevron-source.md)。
