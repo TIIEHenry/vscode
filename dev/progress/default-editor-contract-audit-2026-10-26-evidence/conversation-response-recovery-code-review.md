@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "原回归与补修复读留史；最终after前固定吸收已提交d91，列出Roster合并合同、第四轮必要验证与D夹具/freeze边界，实际合源peer待。"
+summary: "原回归与补修复读留史；固定d91真实三路9cc56定向合并peer C0/I0/M0，第四轮编译/回归与D after待，reasoning既有红保留。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -281,3 +281,31 @@ fake第95行逐项精确广告，没有 `AgentService.*`、GetQueue或SaveSkillC
 QueueReader是Roster新的直接runtime import；responseState也是E核心真实依赖，不能只固定其importer而遗漏。可复用完整out manifest收敛记录，只补mandatory和实际加载证据；renderer/main加载证明与“文件存在且hash固定”分别记。engineSkillsSection若D不打开，不要求伪造loaded证明；它仍属于第四轮编译及外部自动测试的身份范围。
 
 本节为**基线选择与合并条件**，不对尚未提供的实际合源结果签C0/I0，不复用§7局部夹具结论代替它。实际候选到达后继续定向只读复读。
+
+
+## 9. 固定d91真实合源候选定向peer（2026-10-27）
+
+### 身份与读取范围
+
+受审不可变merge为 `9cc56b5595cdc680020cc832fe390c592a55c25c`，第一父 `5f180399790eb57c8eb68692f379caa8033c4d4f`、第二父 `d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42`，src `92801b513611ed3ae1ba36862a58131c609f6aa2`；reviewer已独立Git核身份。B开始为clean `a075db2e1bd3fdfc4440196e7226ff130f61009f` / src `fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1`。本轮通过Git读取实际Roster生产相对两父的完整diff、合成通知路径、两侧测试diff与块，核E核心/ack/夹具和外部QueueReader字节连续；不以无冲突或保留门禁代替语义审查。
+
+唯一lane称358路径mode/type/blob门禁通过、107旧artifact原字节保留并追加至115、旧90native未改；这属于其原执行证据，本reviewer未重新运行业务/编译或冒称复跑该门禁。本reviewer另已读候选自带的 `je-formal-main-d91-conflict-resolutions.json` 五交集与rationale，原件SHA256 `d183fd30bfbc403260042e053b79dd74bf6b2549ce763949940ad9e019598884`；其base/ours/theirs/result和四patch供合源追溯。无产品、测试、out写入。
+
+### Strengths：实际合成合同
+
+- **断线与身份变更的通知次序保留。** 真实Roster `setEngineConnected`（237行）先写test/display gate，才capture/super事件及scope reset；`onUaConnectionChanged`（1745行）先对真实disconnect撤override、再adopt identity，断线路径完成response reset后才显式调用末尾的queue bind/sync。identity adoption（2102行）仍在 `responseWriteTransitions` 的try/finally内保存旧owner缓存、提交新identity/catalog、恢复新owner缓存、reset scope和发布session通知。新增queue通知没有被插到这段关键提交顺序之前；super通知导致的同步bind也在既有公开门关闭后发生。
+- **响应所有权与queue写入没有混用。** `dispatchEngineResponse`（1328行）保留真实phase/pairing/live与transition门、generation/identity捕获、begin占用及begin后current复查；cleanup与失败完成仍只作用于当前attempt。外部 `dispatchQueueMutation`（1467行）另用reader epoch、显式ok和当前scope刷新；没有把三类响应改回普通queue mutation，也没有将queue ready当成响应pending身份。
+- **bind/scope同步通知保留事实屏障。** `syncQueueReader`（1773行）仍采published identity/link、monitor generation、本地active id、当前lease绑定返回的真实id、live和capability；`bindLiveTreeObservationLease`（1785行）清queueBoundLease后才sync，listed/pending bind成功保留原monitor/current筛选后才赋lease并sync。QueueReader与第二父逐字相同，update先落scope/epoch/readState再通知，异步read/mutation均受当前epoch资格限制。断线、pairing与unsupported不靠旧ready放行。
+- **旧补修与双方测试没有回退。** responseState、FrameSource、SessionView及FrameSource/Projection/Renderer/streamScripts相关测试与第一父逐字一致，保留原三I补修、ack双catch与5f280/9e79全部边界，reasoning原红仍在。QueueReader生产/测试与第二父逐字一致。Roster相对第一父仅加入已审d91 queue hunks；相对第二父仅加入E响应hunks，两边实现均未整文件覆盖。
+
+### 测试连续性与审查限度
+
+静态逐块比对：第二父145个顶层literal test块在结果中全部存在且逐字一致；第一父153个顶层literal test块全部存在，仅6个原queue测试按d91引入readback能力/ready或unsupported断言、刷新等待和读回记录，E新增9个顶层literal块逐字一致。此为源码块计数，**不是运行用例总数**，不拿它代替循环生成的189/190等runner计数。
+
+另对第一段 `response recovery` literal测试起至既有 `accepted engine allow and deny...` 测试前的完整28,822字节区段比较，包含循环生成的响应回归，候选与第一父逐字相同，SHA256 `832effc7ee910d92ed23a8d109f7cb03f3ba8d6acac83f6e05c4fcd380c0f5f7`。因此没有因文本合成丢掉重入/身份/草稿/终态测试；queue新增bind真实id用例和原拒绝/no-unhandled断言也保留。没有新增skip、改runner过滤或为合并弱化预期。
+
+### Critical / Important / Minor / Assessment
+
+**Critical 0 / Important 0 / Minor 0（本次实际三路合并合同定向范围）。** 可以进入§8约定的第四次实际完整编译、最小相关回归和最终重新freeze。此结论只关闭“实际merge尚未peer”的条件，不把尚未执行的新native验证或D after记为green，不扩大为外部队列/技能模块完整产品验收。reasoning旧生产差异继续单独保留。
+
+已先将短C/I闭合结论发给父与唯一lane；本报告与证据INDEX为唯一写集。reviewer没有执行compile/typecheck/transpile、业务测试、服务器或UI，也没有改D准备夹具。
