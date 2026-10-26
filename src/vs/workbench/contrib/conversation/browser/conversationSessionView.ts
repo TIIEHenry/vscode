@@ -12,6 +12,7 @@ import {
 	type ConversationRespondFailure,
 	type ItemAttribution,
 } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { resolveConversationResponses, conversationQuestionRequestId, type ConversationResponseProjection, type ConversationResponseSeatState } from '../../../../platform/universeAgent/common/conversationResponseState.js';
 import type {
 	DetailRef,
 	OverlayBlockView,
@@ -86,6 +87,7 @@ export interface ConversationTimelineEntry {
 	readonly respondable?: true;
 	/** Still-pending respond whose uplink failed. The seat stays actionable. */
 	readonly respondFailure?: ConversationRespondFailure;
+	readonly responseState?: ConversationResponseSeatState;
 	readonly agentId?: string;
 	/** `error` entries: engine-declared retryability; absent = not retryable. */
 	readonly retryable?: boolean;
@@ -386,6 +388,7 @@ const BAND_OVERLAY = 2;
 /** Same agent predicate as the trajectory page. Absent means keep every row. */
 export interface ConversationEntryProjectionOptions {
 	readonly filterAgentId?: string;
+	readonly responseProjection?: ConversationResponseProjection;
 }
 
 export function projectSnapshotToEntries(
@@ -394,9 +397,34 @@ export function projectSnapshotToEntries(
 	details: ReadonlyMap<string, string>,
 	catalogForSession?: ConversationStubTurnCatalogLookup,
 	cache?: ConversationProjectionCache,
-	respondFailures?: ReadonlyMap<string, ConversationRespondFailure>,
+	legacyRespondFailures?: ReadonlyMap<string, ConversationRespondFailure>,
 	options?: ConversationEntryProjectionOptions,
 ): ConversationTimelineEntry[] {
+	const respondFailures = new Map<string, ConversationRespondFailure>();
+	const responseByRow = new Map<string, ConversationResponseSeatState>();
+	for (const [key, resolved] of resolveConversationResponses(snapshot, attribution)) {
+		const state = options?.responseProjection?.byRequest.get(key);
+		for (const rowId of resolved.rowIds) {
+			if (options?.responseProjection) {
+				if (state && options.responseProjection.byRow.get(rowId) === key) {
+					responseByRow.set(rowId, state);
+					if (state.failure) {
+						respondFailures.set(rowId, state.failure);
+					}
+				}
+			} else {
+				const failure = legacyRespondFailures?.get(resolved.identity.requestId) ?? legacyRespondFailures?.get(rowId);
+				if (failure) {
+					respondFailures.set(rowId, failure);
+				}
+			}
+		}
+	}
+	const withResponseState = (entry: ConversationTimelineEntry): ConversationTimelineEntry => {
+		const responseState = responseByRow.get(entry.id);
+		return responseState && entry.responseState !== responseState ? { ...entry, responseState } : entry;
+	};
+
 	const activeSessionId = String(snapshot.sessionId);
 	const pendingIds = new Set<string>(snapshot.pendingActions.map(action => String(action.requestId)));
 	// Sidecar attribution for a permission row often has no agentId. The same requestId on
@@ -476,13 +504,13 @@ export function projectSnapshotToEntries(
 		const visualizeDetail = visualizeDetailFor(item, details);
 		const permissionPending = pendingIds.has(id);
 		const questionRequestId = item.summary.kind === 'question' ? resolveQuestionRequestId(id, pendingIds) : undefined;
-		const respondError = respondFailures?.get(id)?.error
-			?? (questionRequestId !== undefined ? respondFailures?.get(questionRequestId)?.error : undefined);
+		const respondError = JSON.stringify([respondFailures.get(id), responseByRow.get(id)]);
 		// One timeline item. Usable thinking is a row first, then usable text once,
 		// then every tool name on this arm in order. A cache hit must emit that
 		// whole group, or the next frame drops the thought or keeps only the first name.
 		const slot = state?.slots.get(id);
-		const emitTimeline = (entries: readonly ConversationTimelineEntry[]) => {
+		const emitTimeline = (sourceEntries: readonly ConversationTimelineEntry[]) => {
+			const entries = sourceEntries.map(withResponseState);
 			state?.slots.set(id, {
 				item,
 				attr,
@@ -561,7 +589,7 @@ export function projectSnapshotToEntries(
 			activeSessionId,
 		);
 		if (entry) {
-			pendingOnlySeats.push(entry);
+			pendingOnlySeats.push(withResponseState(entry));
 		}
 	}
 
@@ -968,6 +996,9 @@ function timelineSlotMatches(
 	const permission = item.summary.kind === 'permission';
 	const question = item.summary.kind === 'question';
 	const assistant = readsAssistantCatalog(item, attr) || timelineKeepsAssistantBody(item);
+	if (slot.respondError !== respondError) {
+		return false;
+	}
 	if (slot.item === item
 		&& slot.attr === attr
 		&& (!visualize || slot.visualizeDetail === visualizeDetail)
@@ -1032,19 +1063,7 @@ function overlaySlotMatches(
  * break by code-unit order. No such prefix → undefined (do not slice at the first colon).
  */
 function resolveQuestionRequestId(displayId: string, pendingIds: ReadonlySet<string>): string | undefined {
-	if (pendingIds.has(displayId)) {
-		return displayId;
-	}
-	let best: string | undefined;
-	for (const pendingId of pendingIds) {
-		if (pendingId.length === 0 || !displayId.startsWith(`${pendingId}:`)) {
-			continue;
-		}
-		if (best === undefined || pendingId.length > best.length || (pendingId.length === best.length && pendingId < best)) {
-			best = pendingId;
-		}
-	}
-	return best;
+	return conversationQuestionRequestId(displayId, pendingIds);
 }
 
 function rewriteAssistantSessionLinks(
@@ -1353,7 +1372,7 @@ function timelineItemToEntry(
 					? 'pending'
 					: 'undecided';
 			const resolvedQuestionFailure = questionStatus === 'pending'
-				? respondFailures?.get(id) ?? (questionRequestId !== undefined ? respondFailures?.get(questionRequestId) : undefined)
+				? respondFailures?.get(id)
 				: undefined;
 			return {
 				id, kind: 'question', text: summary.title,
@@ -1433,11 +1452,14 @@ export function entriesToLegacyTurns(entries: readonly ConversationTimelineEntry
 			kind: entry.kind,
 			text: entry.text,
 			...(entry.status !== undefined ? { status: entry.status } : {}),
+			...(entry.responseState !== undefined ? { responseState: entry.responseState } : {}),
+			...(entry.respondFailure !== undefined ? { respondFailure: entry.respondFailure } : {}),
 			...(entry.stubEcho ? { stubEcho: true } : {}),
 			...(entry.toolName !== undefined ? { toolName: entry.toolName } : {}),
 			...(entry.summary !== undefined ? { summary: entry.summary } : {}),
 			...(entry.payload !== undefined ? { payload: entry.payload } : {}),
 			...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
+			...(entry.respondable === true ? { respondable: true as const } : {}),
 			...(entry.toolCallId !== undefined ? { toolCallId: entry.toolCallId } : {}),
 			...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
 			...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
@@ -1506,6 +1528,7 @@ export function entryToRenderableTurn(entry: ConversationTimelineEntry): Convers
 		...(entry.toolCallId !== undefined ? { toolCallId: entry.toolCallId } : {}),
 		...(entry.respondable === true ? { respondable: true as const } : {}),
 		...(entry.respondFailure !== undefined ? { respondFailure: entry.respondFailure } : {}),
+		...(entry.responseState !== undefined ? { responseState: entry.responseState } : {}),
 		...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
 		...(entry.agentId !== undefined ? { agentId: entry.agentId } : {}),
 		...(entry.retryable !== undefined ? { retryable: entry.retryable } : {}),
@@ -1604,6 +1627,8 @@ export function stubTurnsToEntries(turns: readonly ConversationStubTurn[]): Conv
 		...(turn.toolStatus !== undefined ? { toolStatus: turn.toolStatus } : {}),
 		...(turn.toolCallId !== undefined ? { toolCallId: turn.toolCallId } : {}),
 		...(turn.respondable === true ? { respondable: true as const } : {}),
+		...(turn.respondFailure !== undefined ? { respondFailure: turn.respondFailure } : {}),
+		...(turn.responseState !== undefined ? { responseState: turn.responseState } : {}),
 		...(turn.turnId !== undefined ? { turnId: turn.turnId } : {}),
 		...(turn.pending === true ? { pending: true as const } : {}),
 	}));

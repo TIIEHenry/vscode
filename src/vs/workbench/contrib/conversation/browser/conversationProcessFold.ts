@@ -1147,7 +1147,7 @@ function appendProcessFoldToolRespond(
 		return;
 	}
 	const writesEnabled = options.writesEnabled !== false;
-	const responseInFlight = options.isRespondInFlight?.(turn) === true && turn.respondFailure === undefined;
+	const responseInFlight = turn.responseState?.inFlight === true || (options.isRespondInFlight?.(turn) === true && turn.respondFailure === undefined);
 	const respondFailure = turn.respondFailure;
 	if (respondFailure) {
 		const failure = append(parent, $('span.conversation-process-fold-tool-respond-failure'));
@@ -1155,7 +1155,7 @@ function appendProcessFoldToolRespond(
 		failure.setAttribute('role', 'alert');
 	}
 	const toolStillOpen = turn.toolStatus === undefined || turn.toolStatus === 'pending' || turn.toolStatus === 'running';
-	if (!toolStillOpen || !options.onRespondClientTool || respondFailure?.retryable === false) {
+	if (!toolStillOpen || !options.onRespondClientTool || respondFailure?.retryable === false || turn.responseState?.blocked === true) {
 		return;
 	}
 	const respond = append(parent, $('button.conversation-process-fold-tool-respond')) as HTMLButtonElement;

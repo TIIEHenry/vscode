@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { toErrorMessage } from '../../../../base/common/errorMessage.js';
+import type { ConversationResponseKind } from '../../../../platform/universeAgent/common/conversationResponseState.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { localize } from '../../../../nls.js';
@@ -27,7 +29,7 @@ import {
 	type ConversationRosterStorageV1,
 	type PersistedConversationSession,
 } from './conversationRosterStorage.js';
-import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/types.js';
+import type { SessionViewSnapshot, ViewPatch, SyncChrome } from '../../../../platform/universeAgent/common/sessionView/types.js';
 import { clientToolRespondCleanupPatches, permissionRespondCleanupPatches, questionRespondCleanupPatches } from '../../../../platform/universeAgent/common/sessionView/respond-cleanup.js';
 import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type ConversationTrajectoryRecord, type TrajectoryProjectionOptions } from './conversationTrajectoryModel.js';
 import {
@@ -108,6 +110,8 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	 * Tracks published identity while connected; on disconnect keeps the last displayed identity for read-only cache only.
 	 */
 	private boundEngineIdentityId: string | undefined;
+	/** Cache ownership changes may synchronously notify response consumers. */
+	private responseWriteTransitions = 0;
 	private testEngineConnected: boolean | undefined;
 	private readonly sessionGoals = new Map<string, string>();
 
@@ -225,14 +229,19 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override setEngineConnected(connected: boolean): void {
+		const wasConnected = this.isEngineConnected();
+		// Close the public write gate before any cache or scope notification.
+		this.testEngineConnected = connected;
 		if (!connected) {
 			this.connectionGeneration++;
-			if (this.isEngineConnected()) {
+			if (wasConnected) {
 				this.captureEngineCache();
 			}
 		}
-		this.testEngineConnected = connected;
 		super.setEngineConnected(connected);
+		if (!connected) {
+			this.engineFrameSource.resetResponseScopes();
+		}
 		if (connected) {
 			if (this.isEngineLiveChrome()) {
 				this.wasEverConnected = true;
@@ -1243,26 +1252,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			}
 			const content = options?.content;
 			const metadataJson = options?.metadataJson;
-			this.dispatchEngineAction(sessionId, 'sendClientToolResponse', this.wrapEngineQueueMutation(
-				'sendClientToolResponse',
+			return this.dispatchEngineResponse(sessionId, 'clientTool', trimmedCallId, 'sendClientToolResponse',
 				() => this.uaConnection.sendClientToolResponse!({
-					sessionId,
-					callId: trimmedCallId,
+					sessionId, callId: trimmedCallId,
 					...(options?.isError === true ? { isError: true } : {}),
 					...(content !== undefined ? { content } : {}),
 					...(metadataJson !== undefined ? { metadataJson } : {}),
 				}),
-				() => {
-					// Accepted unary only. The client-tool response has no Chat-stream
-					// arm, so settle the pending action and timeline locally.
-					this.engineFrameSource.applyRespondCleanup(sessionId, snapshot => clientToolRespondCleanupPatches(snapshot, {
-						callId: trimmedCallId,
-						isError: options?.isError === true,
-						content: content ?? '',
-					}));
-				}, true),
-			);
-			return true;
+				snapshot => clientToolRespondCleanupPatches(snapshot, { callId: trimmedCallId, isError: options?.isError === true, content: content ?? '' }), true);
 		}
 		return false;
 	}
@@ -1285,22 +1282,9 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 				return false;
 			}
 			const decision: 'allow' | 'deny' = status === 'allowed' ? 'allow' : 'deny';
-			this.dispatchEngineAction(sessionId, 'respondPermission', this.wrapEngineQueueMutation(
-				'respondPermission',
-				() => this.uaConnection.respondPermission!({
-					sessionId,
-					requestId,
-					granted: decision === 'allow',
-				}),
-				() => {
-					// Accepted unary only. Same cleanup as the actor, without a second chat-stream permissionRespond.
-					this.engineFrameSource.applyRespondCleanup(sessionId, snapshot => permissionRespondCleanupPatches(snapshot, {
-						requestId,
-						decision,
-					}));
-				},
-			));
-			return true;
+			return this.dispatchEngineResponse(sessionId, 'permission', requestId, 'respondPermission',
+				() => this.uaConnection.respondPermission!({ sessionId, requestId, granted: decision === 'allow' }),
+				snapshot => permissionRespondCleanupPatches(snapshot, { requestId, decision }));
 		}
 		return false;
 	}
@@ -1323,25 +1307,57 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (!this.uaConnection.respondQuestion) {
 				return false;
 			}
-			this.dispatchEngineAction(sessionId, 'respondQuestion', this.wrapEngineQueueMutation(
-				'respondQuestion',
+			return this.dispatchEngineResponse(sessionId, 'question', trimmedQuestionId, 'respondQuestion',
 				() => this.uaConnection.respondQuestion!({
-					sessionId,
-					questionId: trimmedQuestionId,
+					sessionId, questionId: trimmedQuestionId,
 					...(answers !== undefined ? { answers } : {}),
 					...(customText !== undefined ? { customText } : {}),
 				}),
-				() => {
-					// Accepted unary only. Same cleanup as the actor, without a second chat-stream questionRespond.
-					this.engineFrameSource.applyRespondCleanup(sessionId, snapshot => questionRespondCleanupPatches(snapshot, {
-						questionId: trimmedQuestionId,
-						...(answers !== undefined ? { answers } : {}),
-					}));
-				},
-			));
-			return true;
+				snapshot => questionRespondCleanupPatches(snapshot, { questionId: trimmedQuestionId, ...(answers !== undefined ? { answers } : {}) }));
 		}
 		return false;
+	}
+
+	/** Own a response before notifying any leaf or invoking a possibly reentrant hook. */
+	private dispatchEngineResponse(
+		sessionId: string, kind: ConversationResponseKind, requestId: string, action: string,
+		send: () => Promise<unknown>, cleanup: (snapshot: SessionViewSnapshot) => readonly ViewPatch[], requireExplicitOk = false,
+	): boolean {
+		const canWrite = () => !this._store.isDisposed && this.responseWriteTransitions === 0 && this.isEngineConnected()
+			&& isConversationEngineLive(this.uaConnection.getConnectionPhase(), this.uaConnection.getConnectionSnapshot().pairingPending);
+		if (!canWrite()) {
+			return false;
+		}
+		const generation = this.connectionGeneration;
+		const identity = this.boundEngineIdentityId;
+		const response = this.engineFrameSource.beginResponse(sessionId, kind, requestId);
+		if (response.kind === 'blocked') {
+			return false;
+		}
+		if (response.kind === 'inFlight') {
+			return true;
+		}
+		const current = () => canWrite() && generation === this.connectionGeneration && identity === this.boundEngineIdentityId
+			&& (response.kind !== 'started' || response.isCurrent());
+		if (!current()) {
+			return false;
+		}
+		const mutation = this.wrapEngineQueueMutation(action, send, () => {
+			if (response.kind === 'started' && current()) {
+				response.complete(undefined, cleanup);
+			}
+		}, requireExplicitOk);
+		this.dispatchEngineAction(sessionId, action, async () => {
+			try {
+				await mutation();
+			} catch (error) {
+				if (response.kind === 'started' && current()) {
+					response.complete({ retryable: true, error: toErrorMessage(error) });
+				}
+				throw error;
+			}
+		});
+		return true;
 	}
 
 	private deleteEngineMessage(sessionId: string, turnId: string, callRemote: boolean, agentId?: string): boolean {
@@ -1738,6 +1754,11 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	private onUaConnectionChanged(): void {
+		// A real disconnect overrides the test/display flag before scope listeners
+		// can attempt a new response. Pairing's existing leftover display is kept.
+		if (this.uaConnection.getConnectionPhase().kind === 'disconnected' && !isConversationPairingHold(this.uaConnection)) {
+			this.testEngineConnected = undefined;
+		}
 		this.adoptSnapshotEngineIdentity();
 		const connected = this.isEngineConnected();
 		if (connected) {
@@ -1754,6 +1775,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			if (this.testEngineConnected === undefined) {
 				super.setEngineConnected(false);
 			}
+			this.engineFrameSource.resetResponseScopes();
 		}
 		this.bindLiveTreeObservationLease();
 	}
@@ -2074,16 +2096,23 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if (next === this.boundEngineIdentityId) {
 			return;
 		}
-		this.connectionGeneration++;
-		this.captureEngineCache();
-		this.boundEngineIdentityId = next;
-		this.engineSessions = [];
-		this.activeEngineSessionId = undefined;
-		this.listCompleted = false;
-		this.engineSessionBindFailed = false;
-		this.engineBoundSessionIds.clear();
-		this.restoreEngineCacheFromStorage();
-		this._onDidChangeSession.fire(this.getActiveSessionId());
+		this.responseWriteTransitions++;
+		try {
+			this.connectionGeneration++;
+			// Persist under the old owner before committing the new identity/catalog.
+			this.captureEngineCache();
+			this.boundEngineIdentityId = next;
+			this.engineSessions = [];
+			this.activeEngineSessionId = undefined;
+			this.listCompleted = false;
+			this.engineSessionBindFailed = false;
+			this.engineBoundSessionIds.clear();
+			this.restoreEngineCacheFromStorage();
+			this.engineFrameSource.resetResponseScopes();
+			this._onDidChangeSession.fire(this.getActiveSessionId());
+		} finally {
+			this.responseWriteTransitions--;
+		}
 	}
 
 	private restoreEngineCacheFromStorage(): void {

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import type { ConversationResponseProjection } from '../../../../platform/universeAgent/common/conversationResponseState.js';
 import type { ConversationQuestionRespondAnswers } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { DiffEditorPool } from '../../chat/browser/widget/chatContentParts/chatContentCodePools.js';
 import { ProcessFoldSpan } from './conversationProcessFoldModel.js';
@@ -36,6 +37,7 @@ export interface IConversationTimelineTreeOptions {
 	readonly showLiveChrome?: () => boolean;
 	/** Pairing-hold leftover stays readable; write CTAs stay painted but disabled (D297). */
 	readonly writesEnabled?: () => boolean;
+	readonly getResponseProjection?: () => ConversationResponseProjection | undefined;
 	readonly showToolInvocationDetails?: () => boolean;
 	readonly diffEditorPool?: DiffEditorPool;
 }

@@ -13,7 +13,8 @@ import { localize } from '../../../../nls.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { IWebviewService } from '../../webview/browser/webview.js';
 import { ConversationConfirmationSeat } from './conversationConfirmationSeat.js';
-import { ConversationQuestionSeat } from './conversationQuestionSeat.js';
+import type { ConversationResponseProjection } from '../../../../platform/universeAgent/common/conversationResponseState.js';
+import { ConversationQuestionSeat, type ConversationQuestionDraft } from './conversationQuestionSeat.js';
 import { conversationLensTurnCopy, conversationLensTurnDelete, conversationLensTurnViewInTrajectory } from './conversationLensSessionBarStrings.js';
 import { ConversationMermaidExtensionInfo, createMermaidHostContext } from './conversationMermaidHost.js';
 import type { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
@@ -118,6 +119,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 
 	private readonly confirmationSeats = new Map<string, ConversationConfirmationSeat>();
 	private readonly questionSeats = new Map<string, ConversationQuestionSeat>();
+	private readonly questionDrafts = new Map<string, { readonly turn: ConversationStubTurn; readonly structure: string; readonly draft: ConversationQuestionDraft }>();
 	/** Pending seat id → message text for a decision posted before a failure or a closed status. */
 	private readonly openDecisionHold = new Map<string, string>();
 	/** Respondable client-tool id → text for a response posted before the next snapshot. */
@@ -249,6 +251,8 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				message: turn.text,
 				status: turn.status ?? 'pending',
 				questionItems: fields.questionItems,
+				initialDraft: this.questionDraft(turn),
+				onDraftChange: draft => this.questionDrafts.set(turn.id, { turn, structure: this.questionStructure(turn), draft }),
 				answerKeysValid: fields.answerKeysValid,
 				questionRequestId: fields.questionRequestId,
 				payload: turn.payload,
@@ -259,7 +263,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 						this.onQuestionRespond!(turn.id, requestId, answers, customText);
 					}
 					: undefined,
-				writesEnabled: this.writesEnabled() && !responseInFlight,
+				writesEnabled: this.writesEnabled() && !responseInFlight && turn.responseState?.blocked !== true,
 				responseInFlight,
 				respondFailure: turn.respondFailure,
 			}));
@@ -323,7 +327,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 						this.onResolveConfirmation!(turn.id, 'skipped');
 					}
 					: undefined,
-				writesEnabled: this.writesEnabled() && !responseInFlight,
+				writesEnabled: this.writesEnabled() && !responseInFlight && turn.responseState?.blocked !== true,
 				responseInFlight,
 				respondFailure: turn.respondFailure,
 			}));
@@ -532,6 +536,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 			seat.dispose();
 		}
 		this.questionSeats.clear();
+		this.questionDrafts.clear();
 		this.openDecisionHold.clear();
 	}
 
@@ -608,12 +613,38 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		}
 	}
 
+	/** Retire drafts before row reuse, including an equal final remove/re-add frame. */
+	syncResponseProjection(projection: ConversationResponseProjection | undefined): void {
+		for (const [id, saved] of this.questionDrafts) {
+			const old = saved.turn.responseState;
+			if (old && (projection?.scope !== old.scope || projection.byRequest.get(old.key)?.incarnation !== old.incarnation || projection.byRequest.get(old.key)?.blocked)) {
+				this.questionDrafts.delete(id);
+			}
+		}
+	}
+
+	private questionStructure(turn: ConversationStubTurn): string {
+		return JSON.stringify([turn.questionRequestId, turn.questionItems, turn.answerKeysValid]);
+	}
+
+	private questionDraft(turn: ConversationStubTurn): ConversationQuestionDraft | undefined {
+		const saved = this.questionDrafts.get(turn.id);
+		const old = saved?.turn.responseState;
+		const current = turn.responseState;
+		if (saved && saved.structure === this.questionStructure(turn) && old?.scope === current?.scope && old?.key === current?.key && old?.incarnation === current?.incarnation && (turn.status ?? 'pending') === 'pending' && !current?.blocked) {
+			return saved.draft;
+		}
+		this.questionDrafts.delete(turn.id);
+		return undefined;
+	}
+
 	/**
 	 * First post of a still-pending seat with no respond failure. A later paint of
 	 * that same message stays disabled. A different message, a failure, a closed
 	 * status, or a retry that already shows a failure does not use this hold.
 	 */
 	private decisionHeld(turn: ConversationStubTurn): boolean {
+		if (turn.responseState) { return turn.responseState.inFlight; }
 		const pending = (turn.status ?? 'pending') === 'pending';
 		const heldText = this.openDecisionHold.get(turn.id);
 		if (!pending || turn.respondFailure || heldText === undefined) {
@@ -630,6 +661,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 	}
 
 	private noteFreshDecision(turn: ConversationStubTurn): void {
+		if (turn.responseState) { return; }
 		if (turn.respondFailure || (turn.status ?? 'pending') !== 'pending') {
 			this.openDecisionHold.delete(turn.id);
 			return;
@@ -638,6 +670,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 	}
 
 	private clientToolResponseHeld(turn: ConversationStubTurn): boolean {
+		if (turn.responseState) { return turn.responseState.inFlight; }
 		const heldText = this.openClientToolResponseHold.get(turn.id);
 		if (turn.respondable !== true || heldText === undefined || turn.respondFailure !== undefined || (turn.toolStatus !== undefined && turn.toolStatus !== 'pending' && turn.toolStatus !== 'running')) {
 			if (turn.respondable !== true || turn.respondFailure !== undefined || (turn.toolStatus !== undefined && turn.toolStatus !== 'pending' && turn.toolStatus !== 'running')) {
@@ -653,6 +686,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 	}
 
 	private noteClientToolResponse(turn: ConversationStubTurn): void {
+		if (turn.responseState) { return; }
 		if (turn.respondable !== true || turn.respondFailure !== undefined || (turn.toolStatus !== undefined && turn.toolStatus !== 'pending' && turn.toolStatus !== 'running')) {
 			return;
 		}

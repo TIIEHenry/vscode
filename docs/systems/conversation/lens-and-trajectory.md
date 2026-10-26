@@ -3,7 +3,7 @@ title: "Conversation 透镜、时间线与轨迹"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "ConversationEditorPane 页 chrome（lensTablist）；「对话 | 轨迹」双透镜；阅读列身份条与时间线流宽 min(100%, 720px) 居中；轨迹 Overview 是 12px 分段条（>200 段按 turn 聚合），时间刻度瀑布条仍 Deferred；视觉规则见 ui-design-principles；叶宽 `.is-medium` / `.is-narrow` / `.is-compact`（Q6/RWD-1）；子代理 overlay 自备 sessionBar、只传 lensTablist；时间线会话 pill；stub 字面会话路径 catalog 命中才改写；同步徽章 28ch / 窄叶 12ch；SessionBar 上一级与下一级常驻，History / Snapshots 窄于 450 才收进 `…`；会话标题未改不报发送失败，空白说明不能为空；编辑器来回在编辑器区；待确认定位走 revealPendingTurn，非末根解开贴底；时间线 content-visibility 只走样式表，焦点行不被 120px 占位夹住；Accessible View；帧源投影与 Q4 live 过程折；换到另一条会话时过程折展开不沿用，pending 或名单未就绪时时间线和轨迹也不留上一条；发起窗乐观发送行标 Sending… 且不可编辑；轨迹表与检查器的用户预览去掉合法引用尾块；不可重试的权限送达失败不再标 Input needed；离开待决且未回答的提问是 undecided，不再当成待确认座位；已提交且快照仍 pending 的 Allow/Skip 与提问不再交第二次；多道必填单选在每道都点过之前不提交，也不把没点过的第一项一起交出去；换到另一条会话时清掉轨迹搜索，同一条重连和 KEEP leftover 仍留着；同一封里的思考在正文或工具出现后仍先画成阅读区思考行，关掉工具详情也留着；已有同样思考行时工具标题下不再重复这段；没有思考行时工具标题下的思考仍在详情开着时留着；关掉工具详情时不画 file_edit 增删统计；live 工具 overlay 仍有正文时阅读区另留助手行，工具摘要只用工具名；同一 turn 只有 tool_call、没有可用正文、且 streaming 正文还在时，阅读行留着这段字，工具行另留在时间线上；工具一开始跑时 `tool_call_lifecycle.started` 的工具名走同一条生成中工具路径，已流出的正文留着；同一封信落盘时工具臂也带着正文；提问座位在选项组前画出与正文不同的题干，问句优先于短 header；用户回合不显示 You，助手默认不显示 Agent，非 default 代理名在首行 11px；用户回合靠右、宽度随正文且不超过列宽 82%，卡内文字左对齐，底色 input.background，前景色 8% 细边，高对比仍用 contrastBorder；读屏名仍在文章 aria-label；轨迹工具行显示已承认的 canvas 标题，usage 行显示已承认的 token 与 context 比例，缺则省略；审阅行随会话工作目录、工作区目录和 SCM 仓库变化重算，含非活动并列叶，路径归因 gate 未改"
 ---
 
@@ -49,6 +49,15 @@ SessionBar 标题 Enter 或失焦即提交，Escape 取消且不提示。去掉�
 对话透镜**不含**：context 注入卡、环境 / SYSTEM 全文、工具 schema 目录；用户回合只显示正文（PRD-012 验收 2）。这些都在轨迹页。
 
 **审阅行：** 已绑定的 `ConversationLens` 订阅 `IConversationReviewNavService.onDidChange`，在回调里用 `applySessionViewTimeline(..., { sidecarOnly: true })` 重读该会话的审阅行。`ConversationReviewNavService` 与 `IAgentSessionContext` 都是 delayed singleton。ReviewNav 构造时先读取可选 `getWorkRoot`：这次非事件访问会建好 Context，使 Context 的连接监听先于 ReviewNav 登记；留下的函数每次调用当时的 `getWorkRoot`。服务同时订阅活动会话、会话变更、工作区目录和 SCM 仓库增减，并保留文件变更、回合落定和连接变化。上述输入变化后，每张已挂上的透镜重算自己绑定的会话，包括非活动并列叶。审阅路径仍由 `materializeReviewNavRecords` 的既有 SCM 与 workspace gate 决定。SCM 子目录已被 Context 认成 local、审阅行仍按工作区根过滤，这是另一条归因缺口，不在这次通知修复里。 D1382 已有自动回归及非作者默认编辑器真实行、根失效、非活动并列叶与命令参数证据，按此通知合同闭合；[独立 after](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)保留本地夹具、无真实 git diff 等限制。身份条芯片归属已由 D1386 独立修复并按[限定 after](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md)闭合，不扩审阅导航通知修复的验收范围。
+
+
+permission/question/client-tool unary 的本地响应状态由 engine FrameSource 的共享 binding 管理，正式合同见[准确恢复方案](../../../dev/plans/conversation-unary-response-recovery.md)。canonical key 编码 kind、准确 requestId 与已承认 agent；完整 snapshot resolver 先核 kind/agent 冲突，再把状态映射到真实行和 question aliases，projection 不按裸字符串 id 双读本地错误。stream failure 复用既有 `pendingRespondFailed` 语义，unary false/reject 只投影本请求的 `retryable` 错误，不修改权威 snapshot 或发送 host ack。
+
+共享 binding 先原子登记唯一 attempt/busy，全部消费者安装新 projection 后才同步通知，roster 再验票据后发一次 unary。第二叶与重入只返回已处理；terminal/non-retryable 明确 blocked，不进入未知请求的兼容转发。完成只作用于捕获的 binding/scope/incarnation/attempt；换连接/引擎、generation、请求语义、remove→re-add、释放或更晚 stream failure/终态均废弃旧结果。局部 sidecar 与 request incarnation 变动即使最终 snapshot 逐值相等也通知真实 row id 与 pending alias；重试先清自己的 retryable 错误，保留新 busy。
+
+已知timeline-only clientTool终态省略respondable时仍保留旧身份的blocked tombstone；普通terminal tool不据终态推断client response。same-generation baseline同时比较pending与已存在交互行的规范语义，已有question options/items或tool args变化会退休旧attempt；pending-only首次materialize与相同语义重放保留busy。disconnect或published identity切换先关闭写门/提交新目录ownership，后发scope通知，监听器同步响应也不能发旧请求；旧cache先以旧owner保存。
+
+QuestionSeat 的草稿（selectedLabels、customText、多组显式激活）由 renderer 按正式 scope/identity/incarnation/问题结构保存。失败重绘与行回收恢复选择且不自动发送；同帧同 id 重建、换题/会话/代次清空。client-tool 在 document-flow process fold 的真实 CTA 同样消费正式 busy/blocked。E初版900f独立源码审查C0/I3，按上述原合同补修及18项公共边界回归源码已写，待原Astra复审；方案仍accepted，唯一merge最终新green、完整相关套和非作者默认编辑器after尚待。初版六项旧业务red的有限落点见[方案§9](../../../dev/plans/conversation-unary-response-recovery.md#9-初版源码独立审查与原合同补修2026-10-27)，不据源码或文档进度升PRD，D1356/1357/1359原范围与状态保持。
 
 ## 3. 轨迹透镜
 

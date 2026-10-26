@@ -34,6 +34,7 @@ export interface IConversationConfirmationSeatOptions {
 
 export interface IConversationOptionGroupKeysOptions {
 	readonly role?: 'radio';
+	readonly initialIndex?: number;
 	readonly onSelect?: (index: number) => void;
 	readonly onActivate?: (index: number) => void;
 }
@@ -62,7 +63,7 @@ export function wireConversationSeatOptionKeys(
 		});
 		options?.onSelect?.(selected);
 	};
-	apply(0);
+	apply(options?.initialIndex ?? 0);
 
 	elements.forEach((el, i) => {
 		disposables.add(addDisposableListener(el, 'focus', () => {

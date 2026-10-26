@@ -15,8 +15,16 @@ import { conversationLensDockSendBusy } from './conversationLensDockStrings.js';
 import { ConfirmationStatus, ConversationQuestionOptionItem } from './conversationStubModel.js';
 import { getConversationTurnRoleLabel } from './conversationTrajectoryList.js';
 
+export interface ConversationQuestionDraft {
+	readonly answers: ConversationQuestionRespondAnswers;
+	readonly customText: string;
+	readonly activatedItems: readonly string[];
+}
+
 export interface IConversationQuestionSeatOptions {
 	readonly message: string;
+	readonly initialDraft?: ConversationQuestionDraft;
+	readonly onDraftChange?: (draft: ConversationQuestionDraft) => void;
 	readonly status: ConfirmationStatus;
 	readonly questionItems?: readonly ConversationQuestionOptionItem[];
 	readonly answerKeysValid?: boolean;
@@ -120,15 +128,15 @@ export class ConversationQuestionSeat extends Disposable {
 			return;
 		}
 
-		const selections = new Map<string, string[]>();
-		let customText = '';
+		const selections = new Map<string, string[]>(Object.entries(options.initialDraft?.answers ?? {}).map(([id, answer]) => [id, [...answer.selectedLabels]]));
+		let customText = options.initialDraft?.customText ?? '';
 		const needsExplicitSubmit = items.some(item => item.multiSelect === true || item.allowCustom === true);
 		const required = items.filter(item => item.options.length > 0 && item.multiSelect !== true);
 		// Several single-choice groups and no Submit: the roving tabindex checks
 		// the first option before anyone picks it. That default must not be sent
 		// when another group is clicked.
 		const implicitMulti = !needsExplicitSubmit && required.length > 1;
-		const activated = new Set<string>();
+		const activated = new Set(options.initialDraft?.activatedItems ?? []);
 		const collectAnswers = (): ConversationQuestionRespondAnswers => {
 			const answers: Record<string, { readonly selectedLabels: readonly string[] }> = {};
 			for (const item of items) {
@@ -136,6 +144,8 @@ export class ConversationQuestionSeat extends Disposable {
 			}
 			return answers;
 		};
+		const noteDraft = (): void => options.onDraftChange?.({ answers: collectAnswers(), customText, activatedItems: [...activated] });
+
 		const writesEnabled = options.writesEnabled !== false && options.responseInFlight !== true;
 		const holdReason = options.responseInFlight
 			? conversationLensDockSendBusy
@@ -198,6 +208,7 @@ export class ConversationQuestionSeat extends Disposable {
 				return;
 			}
 			clearRequiredChoiceMissing();
+			noteDraft();
 			markSubmitted();
 			respond(requestId, collectAnswers(), customText);
 		};
@@ -215,7 +226,7 @@ export class ConversationQuestionSeat extends Disposable {
 				group.setAttribute('role', 'group');
 				group.setAttribute('aria-label', item.title || options.message);
 				const boxes: HTMLElement[] = [];
-				const chosen = new Set<string>();
+				const chosen = new Set(selections.get(item.id) ?? []);
 				for (const option of item.options) {
 					const box = append(group, $('div.conversation-lens-question-option'));
 					box.setAttribute('role', 'checkbox');
@@ -226,6 +237,7 @@ export class ConversationQuestionSeat extends Disposable {
 				}
 				const sync = (): void => {
 					selections.set(item.id, [...chosen]);
+					noteDraft();
 					boxes.forEach((box, index) => {
 						const label = item.options[index];
 						box.setAttribute('aria-checked', label !== undefined && chosen.has(label) ? 'true' : 'false');
@@ -251,6 +263,7 @@ export class ConversationQuestionSeat extends Disposable {
 						sync();
 					},
 				});
+				sync();
 				continue;
 			}
 
@@ -269,6 +282,7 @@ export class ConversationQuestionSeat extends Disposable {
 				let seeded = false;
 				wireConversationSeatOptionKeys(radios, disposables, {
 					role: 'radio',
+					initialIndex: Math.max(0, item.options.findIndex(label => selections.get(item.id)?.includes(label))),
 					onSelect: index => {
 						if (submitted || !writesEnabled) {
 							const chosen = selections.get(item.id) ?? [];
@@ -280,12 +294,13 @@ export class ConversationQuestionSeat extends Disposable {
 						}
 						if (!seeded) {
 							seeded = true;
-							if (implicitMulti) {
+							if (implicitMulti && !activated.has(item.id)) {
 								for (const radio of radios) {
 									radio.setAttribute('aria-checked', 'false');
 								}
 								return;
 							}
+							if (selections.has(item.id)) { return; }
 						}
 						const label = item.options[index];
 						if (label === undefined) {
@@ -297,6 +312,7 @@ export class ConversationQuestionSeat extends Disposable {
 						if (implicitMulti) {
 							activated.add(item.id);
 						}
+						noteDraft();
 						if (!requiredLabelMissing()) {
 							clearRequiredChoiceMissing();
 						}
@@ -311,6 +327,7 @@ export class ConversationQuestionSeat extends Disposable {
 						}
 						selections.set(item.id, [label]);
 						activated.add(item.id);
+						noteDraft();
 						if (!needsExplicitSubmit && required.length === 1) {
 							submit();
 							return;
@@ -325,6 +342,7 @@ export class ConversationQuestionSeat extends Disposable {
 			// Stems were painted in the loop, including custom-only questions.
 			const input = append(this.element, $('input.conversation-lens-question-custom')) as HTMLInputElement;
 			input.type = 'text';
+			input.value = customText;
 			const customLabel = localize('conversationLens.questionCustomAnswer', "Custom answer");
 			input.setAttribute('aria-label', holdReason ? `${customLabel}. ${holdReason}` : customLabel);
 			if (!writesEnabled) {
@@ -336,6 +354,7 @@ export class ConversationQuestionSeat extends Disposable {
 			}
 			disposables.add(addDisposableListener(input, 'input', () => {
 				customText = input.value;
+				noteDraft();
 			}));
 			disposables.add(addDisposableListener(input, 'keydown', e => {
 				if (e.key === 'Enter') {

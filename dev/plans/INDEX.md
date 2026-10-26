@@ -14,6 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [Conversation 响应失败后恢复准确座位](conversation-unary-response-recovery.md) | `accepted` | 三类unary准确typed投影、shared attempt与Question草稿；规则16增量复读C0/I0，方案accepted；整链红绿/after未跑 |
 | [队列读回与技能正文保存跨仓修复](engine-queue-and-skill-contracts.md) | `draft` | 用户授权两仓；正式快照、来源与原文CAS、能力闸与断线恢复。 |
 | [引擎协议消费遗漏修复](engine-protocol-consumption-closeout.md) | `implemented` | 已有正式字段、两条 RPC、IPC 与能力闸；规则16 C0/I3 已改入，跨仓队列与技能保存已获授权，另续方案。 |
 | [默认编辑器控件细节精修](control-detail-polish.md) | `implemented` | Sources工具栏/页签、Navigator筛选、首选项返回控件；局部CSS精修。 |

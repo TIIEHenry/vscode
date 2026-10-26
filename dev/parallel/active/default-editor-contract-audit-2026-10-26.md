@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J4d49正式真三路接入，Ec2b待串行合源；两peer C/I闭合，完整编译/全套/after待，P5禁push/P6主ff不重试。"
+summary: "J4d49/Ec2b已正式串行真三路接入，peer C/I闭合；完整编译/全套/after待，P5禁push/P6主ff不重试。"
 ---
 
 # 默认编辑器合同与功能缺口续审
@@ -30,6 +30,21 @@ summary: "J4d49正式真三路接入，Ec2b待串行合源；两peer C/I闭合�
 本次Sources完整验证为357过/0败；wiring23过/1既有红（精确09f6已复现），lint0错误/56警告且4f7→65d无新增。89f类型6红、官方setup生命周期红与4f7 move夹具红全部留证，作者在65d补修后复验；原325/3编译基线与D17不被此结果覆盖。[完整证据与51份原始清单](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)。不升级产品状态，不发freeze，不提前formal合J。
 
 本轮已将主工位明确不可变3d522的9份纯docs真三路接入da0d263、D7c84两轮报告接入6c75c2；逐路径两边保留门禁65/117全PASS，src与out不变，不取任何root/J/E WIP。[合并门禁](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json)。父已独立复核3760：51份仓内artifact SHA与30份live out SHA均0 mismatch，HEAD:src精确等932031绿树；本记录时间为2026-10-26 15:12:55 UTC。[父核验与当前阶段](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md#父级独立核验与最新调度状态)。主工位有独立主题WIP且外部HEAD前进；唯一一次显式a7123fb的ff-only已被Git exit128拒绝，HEAD/WIP/index/status前后全同，未重试/覆盖，main未同步且非clean。[原始执行/保留身份](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json)。任何新编译/typecheck/transpile前先查全局活进程；若已有运行，记录具体PID/session并轮询，车道空闲后再执行，不杀外部任务、不重复启动。
+## E 作者交付时的冻结分工（历史，当前集成状态以上为准）
+
+> 当前波冻结 J=Sources完整补修、E=三类响应unary失败恢复；D只做非作者审查/验收，merge唯一验证。E方案accepted，初版900f独立源码审查C0/I3不可排队，E按原合同补修并新增18项公共边界回归源码，待原Astra复审/唯一lane旧900f最小red与统一green/非作者after；J当前occupied，旧23f不是当前补修完成线。下述单Sources队列、只读分工与纯文档检查点均为历史，不能取消新分派或充当本波结束。D1385仍退出默认产品队列，D1386范围结论保留。
+
+
+## 冻结并行波成员（2026-10-26）
+
+| 槽 / 子代理 | 完整模块 | 本波职责与门禁 |
+| --- | --- | --- |
+| J / sources_executor | Sources三owner/两slot打开、准确Conversation目标及预pin/身份补修 | occupied；按不可变补修提交交merge验证，旧23f不是本波最终queued |
+| E / response_recovery_executor | permission/question/client-tool响应失败准确恢复，retry busy与Question草稿 | [方案§9](../../plans/conversation-unary-response-recovery.md#9-初版源码独立审查与原合同补修2026-10-27)仍accepted；初版900f独立源码审查C0/I3不可排队，闭态/写门/baseline语义补修及18项公共回归源码待原Astra复审、唯一lane新验证/after |
+| D / sources_audit | 非作者审查及默认编辑器after | 不写产品/编译/out |
+| merge / baseline_executor | 两模块串行red/green、集成/编译/运行产物 | 全波唯一验证车道；当前绿基线来源09f6/src932031，不抢用J/E WIP |
+
+本波只含J、E两coder；禁止第三coder/新模块，任一模块merge-queued后不扩大冻结波。父只调度/记录；共享文档真三路保留，禁止为同步覆盖他槽WIP。规则16、模块验证和非作者after各自判定，不用旧进度枚举代当前源码证据。
 
 ## 下一独立模块发现（源码实核，未在本Sources波编码）
 

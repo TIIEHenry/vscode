@@ -345,6 +345,7 @@ export class ConversationTimelineHost extends Disposable {
 	}
 
 	applyEntries(entries: readonly ConversationTimelineEntry[], _applied: ConversationViewFrameApplied): void {
+		this.renderer.syncResponseProjection(this.options.getResponseProjection?.());
 		const projected = this.project(entries);
 		this.currentTurns = projected.turns;
 		this.flatItems = projected.flat;

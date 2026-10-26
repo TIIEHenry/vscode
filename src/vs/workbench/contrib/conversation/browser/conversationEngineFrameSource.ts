@@ -18,6 +18,7 @@ import {
 	type ConversationViewFrame,
 	type IConversationViewFrameSource,
 } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { ConversationResponseState, conversationResponseChangedIds, conversationResponseSemanticChanged, type ConversationResponseKind, type ConversationResponseProjection, type ConversationResponseBegin } from '../../../../platform/universeAgent/common/conversationResponseState.js';
 import type { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import {
 	applyViewFrame,
@@ -48,6 +49,7 @@ class SharedEngineHostBinding {
 	private readonly _attribution = new Map<string, ItemAttribution>();
 	private readonly _details = new Map<string, string>();
 	private readonly _respondFailures = new Map<string, ConversationRespondFailure>();
+	private readonly responses = new ConversationResponseState();
 	private hasReceivedBaseline = false;
 	private lastAppliedKey = '';
 
@@ -97,6 +99,10 @@ class SharedEngineHostBinding {
 		return this._respondFailures;
 	}
 
+	get responseProjection(): ConversationResponseProjection {
+		return this.responses.projection;
+	}
+
 	get authoritativeCursor(): ReplicaCursor | null {
 		return this.cursor;
 	}
@@ -118,6 +124,7 @@ class SharedEngineHostBinding {
 				this._attribution,
 				this._details,
 				this._respondFailures,
+				this.responseProjection,
 				this.lastAppliedKey,
 			);
 		} else if (this.cursor !== null) {
@@ -134,18 +141,19 @@ class SharedEngineHostBinding {
 		}
 	}
 
-	applyFrameToBinding(frame: ConversationViewFrame): void {
+	applyFrameToBinding(frame: ConversationViewFrame): boolean {
 		const key = `${frame.frame.generation}:${frame.frame.frameId}:${frame.frame.version}`;
 		if (this.lastAppliedKey === key) {
-			return;
+			return false;
 		}
 		const result = applyViewFrame(this.replica, frame.frame, this.cursor);
 		const next = result as Partial<{ next: SessionViewSnapshot; cursor: ReplicaCursor }>;
 		if (next.next === undefined || next.cursor === undefined) {
-			return;
+			this.requestResync();
+			return false;
 		}
+		const generationChanged = this.cursor?.generation !== next.cursor.generation;
 		this.lastAppliedKey = key;
-		this.replica = next.next;
 		this.cursor = next.cursor;
 		if (frame.frame.body.kind === 'baseline') {
 			this.hasReceivedBaseline = true;
@@ -164,39 +172,124 @@ class SharedEngineHostBinding {
 				this._details.delete(patch.ref);
 			}
 		}
+		if (generationChanged) {
+			this.responses.reset();
+			this._respondFailures.clear();
+		}
+		if (frame.frame.body.kind === 'patches') {
+			this.foldResponsePatches(frame.frame.body.patches);
+		}
+		this.replica = next.next;
+		this.responses.reconcile(this.replica, this._attribution);
 		updateRespondFailures(this._respondFailures, frame.frame);
+		return true;
+	}
+
+	/** Fold lifecycle in patch order, including remove/re-add with an equal final replica. */
+	private foldResponsePatches(patches: readonly ViewPatch[]): void {
+		let current = this.replica;
+		for (const patch of patches) {
+			const retired = new Set<string>();
+			if (patch.op === 'removePendingAction') {
+				const id = String(patch.requestId);
+				// An already closed result remains explicitly blocked while its terminal row exists.
+				if (![...this.responseProjection.byRequest.values()].some(state => state.identity.requestId === id && state.blocked)) {
+					retired.add(id);
+				}
+			} else if (patch.op === 'removeTimelineItem' || patch.op === 'upsertTimelineItem') {
+				const id = String(patch.op === 'removeTimelineItem' ? patch.itemId : patch.item.id);
+				const prev = current.timeline.find(item => String(item.id) === id);
+				if (patch.op === 'removeTimelineItem' || (prev && conversationResponseSemanticChanged(prev.summary, patch.item.summary))) {
+					const key = this.responseProjection.byRow.get(id);
+					const state = key ? this.responseProjection.byRequest.get(key) : undefined;
+					if (state) {
+						retired.add(state.identity.requestId);
+					}
+				}
+			}
+			current = applyViewPatches(current, [patch]);
+			this.responses.reconcile(current, this._attribution, retired);
+			if (patch.op === 'pendingRespondFailed' && (patch.cause === 'hostWriteFailed' || patch.cause === 'commandFailed') && typeof patch.retryable === 'boolean' && typeof patch.error === 'string') {
+				this.responses.noteFailure(String(patch.requestId), { retryable: patch.retryable, error: patch.error });
+			}
+		}
 	}
 
 	onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void {
-		this.applyFrameToBinding(frame);
-		for (const consumer of [...this.consumers]) {
-			if (!consumer.isDisposed()) {
-				consumer.onHostFrame(frame, applied);
-			}
+		const before = this.responseProjection;
+		if (!this.applyFrameToBinding(frame)) {
+			return;
+		}
+		const normalized = normalizeSessionViewFrameApplied(applied);
+		const changed = conversationResponseChangedIds(before, this.responseProjection);
+		this.publish(normalized.kind === 'patches'
+			? { kind: 'patches', changedIds: new Set([...normalized.changedIds, ...changed]) }
+			: normalized, true);
+	}
+
+	/** Install every leaf before any synchronous listener can reenter the roster. */
+	private publish(applied: ConversationViewFrameApplied, acknowledge = false): void {
+		const consumers = [...this.consumers].filter(consumer => !consumer.isDisposed());
+		for (const consumer of consumers) {
+			consumer.installBindingSnapshot(this.replica, this.cursor, this._attribution, this._details, this._respondFailures, this.responseProjection, this.lastAppliedKey);
+		}
+		for (const consumer of consumers) {
+			consumer.notifyApplied(applied, acknowledge);
 		}
 	}
 
-	applyLocalPatches(patches: readonly ViewPatch[]): void {
-		if (patches.length === 0) {
-			return;
+	beginResponse(kind: ConversationResponseKind, requestId: string): ConversationEngineResponseBegin {
+		if (this.refCount === 0) {
+			return { kind: 'untracked' };
 		}
+		const before = this.responseProjection;
+		const started = this.responses.begin(kind, requestId);
+		if (started.kind !== 'started') {
+			return started;
+		}
+		const ticket = started.ticket;
+		this.publish({ kind: 'patches', changedIds: conversationResponseChangedIds(before, this.responseProjection) });
+		return {
+			kind: 'started',
+			isCurrent: () => this.refCount > 0 && this.responses.isCurrent(ticket),
+			complete: (failure, build) => {
+				if (this.refCount === 0 || !this.responses.isCurrent(ticket)) {
+					return;
+				}
+				const before = this.responseProjection;
+				this.responses.finish(ticket, failure);
+				this.applyLocalPatches(build?.(this.replica) ?? [], before);
+			},
+		};
+	}
+
+	resetResponseScope(): void {
+		const before = this.responseProjection;
+		this.responses.reset(true);
+		this._respondFailures.clear();
+		this.responses.reconcile(this.replica, this._attribution);
+		this.publish({ kind: 'patches', changedIds: conversationResponseChangedIds(before, this.responseProjection) });
+	}
+
+	applyLocalPatches(patches: readonly ViewPatch[], before = this.responseProjection): void {
 		const next = applyViewPatches(this.replica, patches);
-		if (respondCleanupUnchanged(this.replica, next)) {
-			return;
-		}
+		this.foldResponsePatches(patches);
+		const snapshotChanged = !respondCleanupUnchanged(this.replica, next);
 		this.replica = next;
-		updateRespondFailures(this._respondFailures, {
-			leaseId: this.leaseId as ConversationViewFrame["frame"]["leaseId"],
-			generation: this.cursor?.generation ?? 0,
-			frameId: this.cursor?.frameId ?? 0,
-			version: this.cursor?.version ?? 0,
-			body: { kind: 'patches', patches },
-		});
-		for (const consumer of [...this.consumers]) {
-			if (!consumer.isDisposed()) {
-				consumer.applyLocalPatches(patches);
+		// Local outcomes never enter the legacy map under an untyped string key.
+		for (const patch of patches) {
+			if (patch.op === 'removePendingAction') {
+				this._respondFailures.delete(String(patch.requestId));
 			}
 		}
+		const changedIds = new Set(conversationResponseChangedIds(before, this.responseProjection));
+		if (!snapshotChanged && changedIds.size === 0) {
+			return;
+		}
+		for (const patch of patches) {
+			changedIds.add(changedIdForRespondPatch(patch));
+		}
+		this.publish({ kind: 'patches', changedIds });
 	}
 
 	recordDetail(ref: string, content: string): void {
@@ -310,6 +403,9 @@ class SharedEngineHostBinding {
 	}
 
 	private teardown(): void {
+		// Unpublish before calling release hooks, which may synchronously acquire again.
+		this.onEmpty();
+		this.responses.reset();
 		this.frameLifetime.dispose();
 		if (this.leaseId) {
 			this.releaseHost(this.leaseId);
@@ -320,7 +416,6 @@ class SharedEngineHostBinding {
 				}
 			});
 		}
-		this.onEmpty();
 	}
 
 	private releaseHost(leaseId: string): void {
@@ -331,6 +426,10 @@ class SharedEngineHostBinding {
 		void this.sessionView.releaseLease(leaseId).catch(() => undefined);
 	}
 }
+
+export type ConversationEngineResponseBegin =
+	| { readonly kind: 'started'; readonly isCurrent: () => boolean; readonly complete: (failure?: ConversationRespondFailure, build?: (snapshot: SessionViewSnapshot) => readonly ViewPatch[]) => void }
+	| Exclude<ConversationResponseBegin, { readonly kind: 'started' }>;
 
 /**
  * Engine-backed frame source (stream-timeline S4): proxies lease + frames from
@@ -362,6 +461,7 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 			() => this.heldLeases.delete(lease),
 			() => this.heldLeases.add(lease),
 		);
+		this.heldLeases.add(lease);
 		binding.addConsumer(lease);
 		return lease;
 	}
@@ -405,6 +505,24 @@ export class ConversationEngineFrameSource extends Disposable implements IConver
 		binding.applyLocalPatches(patches);
 	}
 
+	beginResponse(sessionId: string, kind: ConversationResponseKind, requestId: string): ConversationEngineResponseBegin {
+		return this.hostBindings.get(sessionId)?.beginResponse(kind, requestId) ?? { kind: 'untracked' };
+	}
+
+	resetResponseScopes(): void {
+		for (const binding of this.hostBindings.values()) {
+			binding.resetResponseScope();
+		}
+	}
+
+	override dispose(): void {
+		for (const lease of [...this.heldLeases]) {
+			lease.dispose();
+		}
+		this.resetResponseScopes();
+		super.dispose();
+	}
+
 	/** Last replica for a session when a lease is still held (UA disconnect cache). */
 	getCachedProjection(sessionId: string): ConversationSessionViewProjection | undefined {
 		const binding = this.hostBindings.get(sessionId);
@@ -435,6 +553,7 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		return this.binding.boundEngineSessionId;
 	}
 	private disposed = false;
+	responseProjection: ConversationResponseProjection | undefined;
 
 	constructor(
 		readonly sessionId: string,
@@ -466,33 +585,45 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 	}
 
 	syncInitialSnapshot(
-		replica: SessionViewSnapshot,
-		cursor: ReplicaCursor | null,
-		attribution: ReadonlyMap<string, ItemAttribution>,
-		details: ReadonlyMap<string, string>,
-		respondFailures: ReadonlyMap<string, ConversationRespondFailure>,
+		replica: SessionViewSnapshot, cursor: ReplicaCursor | null,
+		attribution: ReadonlyMap<string, ItemAttribution>, details: ReadonlyMap<string, string>,
+		respondFailures: ReadonlyMap<string, ConversationRespondFailure>, responseProjection: ConversationResponseProjection,
 		lastAppliedKey: string,
+	): void {
+		this.installBindingSnapshot(replica, cursor, attribution, details, respondFailures, responseProjection, lastAppliedKey);
+		queueMicrotask(() => this.notifyApplied({ kind: 'baseline' }));
+	}
+
+	installBindingSnapshot(
+		replica: SessionViewSnapshot, cursor: ReplicaCursor | null,
+		attribution: ReadonlyMap<string, ItemAttribution>, details: ReadonlyMap<string, string>,
+		respondFailures: ReadonlyMap<string, ConversationRespondFailure>, responseProjection: ConversationResponseProjection,
+		_lastAppliedKey: string,
 	): void {
 		if (this.disposed) {
 			return;
 		}
 		this.replica = replica;
-		this.cursor = cursor ? { ...cursor } : null;
-		this.lastAppliedKey = lastAppliedKey;
-		for (const [itemId, value] of attribution) {
-			this._attribution.set(itemId, value);
+		this.cursor = cursor;
+		this._attribution.clear();
+		this._details.clear();
+		this._respondFailures.clear();
+		for (const [key, value] of attribution) { this._attribution.set(key, value); }
+		for (const [key, value] of details) { this._details.set(key, value); }
+		for (const [key, value] of respondFailures) { this._respondFailures.set(key, value); }
+		this.responseProjection = responseProjection;
+	}
+
+	notifyApplied(applied: ConversationViewFrameApplied, acknowledge = false): void {
+		if (this.disposed) {
+			return;
 		}
-		for (const [detailRef, content] of details) {
-			this._details.set(detailRef, content);
+		this._onDidApplyFrame.fire(applied);
+		if (acknowledge && this.leaseId && this.cursor) {
+			void this.sessionView.acknowledge(this.leaseId, {
+				generation: this.cursor.generation, frameId: this.cursor.frameId, appliedVersion: this.cursor.version,
+			}).catch(onUnexpectedError);
 		}
-		for (const [requestId, failure] of respondFailures) {
-			this._respondFailures.set(requestId, failure);
-		}
-		queueMicrotask(() => {
-			if (!this.disposed) {
-				this._onDidApplyFrame.fire({ kind: 'baseline' });
-			}
-		});
 	}
 
 	whenBindReady(): Promise<boolean> {
@@ -554,78 +685,10 @@ class EngineSessionViewLease extends Disposable implements IConversationSessionV
 		return outcome;
 	}
 
-	private lastAppliedKey = '';
-
-	/** Snapshot no-op patches still have to reach the seat. A baseline drops failures whose request is gone. */
-	private noteRespondFailures(frame: ConversationViewFrame["frame"]): void {
-		updateRespondFailures(this._respondFailures, frame);
-	}
-
-	/** Local respond cleanup. A no-op slice does not repaint. Does not ack the host. */
-	applyLocalPatches(patches: readonly ViewPatch[]): void {
-		if (this.disposed || patches.length === 0) {
-			return;
-		}
-		const next = applyViewPatches(this.replica, patches);
-		if (respondCleanupUnchanged(this.replica, next)) {
-			return;
-		}
-		this.replica = next;
-		this.noteRespondFailures({
-			leaseId: this.leaseId as ConversationViewFrame["frame"]["leaseId"],
-			generation: this.cursor?.generation ?? 0,
-			frameId: this.cursor?.frameId ?? 0,
-			version: this.cursor?.version ?? 0,
-			body: { kind: 'patches', patches },
-		});
-		const changedIds = new Set<string>();
-		for (const patch of patches) {
-			changedIds.add(changedIdForRespondPatch(patch));
-		}
-		this._onDidApplyFrame.fire({ kind: 'patches', changedIds });
-	}
-
-	/** @internal */
+	/** @internal All frame application still goes through the shared binding. */
 	onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void {
-		if (this.disposed) {
-			return;
-		}
-		this.binding.applyFrameToBinding(frame);
-		const key = `${frame.frame.generation}:${frame.frame.frameId}:${frame.frame.version}`;
-		if (this.lastAppliedKey === key) {
-			return;
-		}
-		const result = applyViewFrame(this.replica, frame.frame, this.cursor);
-		const next = result as Partial<{ next: SessionViewSnapshot; cursor: ReplicaCursor }>;
-		if (next.next === undefined || next.cursor === undefined) {
-			this.requestResync();
-			return;
-		}
-		this.lastAppliedKey = key;
-		this.replica = next.next;
-		this.cursor = next.cursor;
-		for (const patch of frame.attribution ?? []) {
-			if (patch.op === 'upsertAttribution') {
-				this._attribution.set(patch.itemId, patch.attribution);
-			} else {
-				this._attribution.delete(patch.itemId);
-			}
-		}
-		for (const patch of frame.details ?? []) {
-			if (patch.op === 'upsertDetail') {
-				this._details.set(patch.ref, patch.body);
-			} else {
-				this._details.delete(patch.ref);
-			}
-		}
-		this.noteRespondFailures(frame.frame);
-		this._onDidApplyFrame.fire(normalizeSessionViewFrameApplied(applied));
-		if (this.leaseId) {
-			void this.sessionView.acknowledge(this.leaseId, {
-				generation: this.cursor.generation,
-				frameId: this.cursor.frameId,
-				appliedVersion: this.cursor.version,
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (!this.disposed) {
+			this.binding.onHostFrame(frame, applied);
 		}
 	}
 
