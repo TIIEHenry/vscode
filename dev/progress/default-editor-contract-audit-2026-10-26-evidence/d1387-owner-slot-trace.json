@@ -1,0 +1,554 @@
+{
+  "routing": [
+    {
+      "tag": "before-excluded",
+      "stage": "trace-C1-alpha-still-empty-replace",
+      "groupId": 9,
+      "preferred": {
+        "id": 9
+      },
+      "explicit": false,
+      "inputType": "workbench.editors.conversationDiffReviewInput",
+      "partMembership": [
+        {
+          "sessionKey": "untitled",
+          "groupIds": [
+            7,
+            9
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "groupIds": [
+            8,
+            10
+          ]
+        }
+      ],
+      "mainGroup": 0
+    },
+    {
+      "tag": "after-excluded",
+      "stage": "trace-C1-alpha-still-empty-replace",
+      "groupId": 0,
+      "preferred": {
+        "id": 9
+      },
+      "explicit": false,
+      "inputType": "workbench.editors.conversationDiffReviewInput",
+      "partMembership": [
+        {
+          "sessionKey": "untitled",
+          "groupIds": [
+            7,
+            9
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "groupIds": [
+            8,
+            10
+          ]
+        }
+      ],
+      "mainGroup": 0
+    },
+    {
+      "tag": "before-excluded",
+      "stage": "trace-C2-C4-beta-newTab",
+      "groupId": 10,
+      "preferred": {
+        "id": 10
+      },
+      "explicit": false,
+      "inputType": "workbench.editors.conversationDiffReviewInput",
+      "partMembership": [
+        {
+          "sessionKey": "untitled",
+          "groupIds": [
+            7,
+            9
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "groupIds": [
+            8,
+            10
+          ]
+        }
+      ],
+      "mainGroup": 0
+    },
+    {
+      "tag": "after-excluded",
+      "stage": "trace-C2-C4-beta-newTab",
+      "groupId": 0,
+      "preferred": {
+        "id": 10
+      },
+      "explicit": false,
+      "inputType": "workbench.editors.conversationDiffReviewInput",
+      "partMembership": [
+        {
+          "sessionKey": "untitled",
+          "groupIds": [
+            7,
+            9
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "groupIds": [
+            8,
+            10
+          ]
+        }
+      ],
+      "mainGroup": 0
+    },
+    {
+      "tag": "before-excluded",
+      "stage": "trace-C4-beta-replace-same-other",
+      "groupId": 10,
+      "preferred": {
+        "id": 10
+      },
+      "explicit": false,
+      "inputType": "workbench.editors.conversationDiffReviewInput",
+      "partMembership": [
+        {
+          "sessionKey": "untitled",
+          "groupIds": [
+            7,
+            9
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "groupIds": [
+            8,
+            10
+          ]
+        }
+      ],
+      "mainGroup": 0
+    },
+    {
+      "tag": "after-excluded",
+      "stage": "trace-C4-beta-replace-same-other",
+      "groupId": 0,
+      "preferred": {
+        "id": 10
+      },
+      "explicit": false,
+      "inputType": "workbench.editors.conversationDiffReviewInput",
+      "partMembership": [
+        {
+          "sessionKey": "untitled",
+          "groupIds": [
+            7,
+            9
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "groupIds": [
+            8,
+            10
+          ]
+        }
+      ],
+      "mainGroup": 0
+    }
+  ],
+  "plans": [
+    {
+      "tag": "slot-plan",
+      "stage": "trace-C1-alpha-still-empty-replace",
+      "slot": "replace",
+      "plan": "open",
+      "groupId": 9,
+      "inputType": "workbench.editors.conversationDiffReviewInput",
+      "inputResource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Falpha%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Falpha%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Falpha%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+      "preferred": {
+        "id": 9
+      }
+    },
+    {
+      "tag": "slot-plan",
+      "stage": "trace-C2-C4-beta-newTab",
+      "slot": "newTab",
+      "plan": "open",
+      "groupId": 10,
+      "activeType": "workbench.editors.conversationDiffReviewInput",
+      "activeResource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+      "inputType": "workbench.editors.conversationDiffReviewInput",
+      "inputResource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+      "preferred": {
+        "id": 10
+      }
+    },
+    {
+      "tag": "slot-plan",
+      "stage": "trace-C4-beta-replace-other",
+      "slot": "replace",
+      "plan": "replace",
+      "groupId": 10,
+      "activeType": "workbench.editors.conversationDiffReviewInput",
+      "activeResource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+      "inputType": "workbench.editors.conversationDiffReviewInput",
+      "inputResource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+      "preferred": {
+        "id": 10
+      }
+    },
+    {
+      "tag": "slot-plan",
+      "stage": "trace-C4-beta-replace-same-other",
+      "slot": "replace",
+      "plan": "open",
+      "groupId": 10,
+      "activeType": "workbench.editors.conversationDiffReviewInput",
+      "activeResource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+      "inputType": "workbench.editors.conversationDiffReviewInput",
+      "inputResource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+      "preferred": {
+        "id": 10
+      }
+    }
+  ],
+  "stages": [
+    {
+      "label": "trace-C1-alpha-empty-replace",
+      "active": "untitled",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": "conversation-chat:/session/untitled/chat/default",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default"
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 8,
+          "groups": [
+            {
+              "id": 8,
+              "active": "conversation-chat:/session/session-102/chat/default",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default"
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "name": "shared.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "selected": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+      "status": "Showing local source control changes only.",
+      "progress": "Reviewed 1 / 2",
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Falpha%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+          "originalText": "ALPHA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "ALPHA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readOnlyOriginal": true,
+          "readOnlyModified": true
+        },
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+          "originalText": "BETA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "BETA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readOnlyOriginal": true,
+          "readOnlyModified": true
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "trace-C4-beta-newTab-same",
+      "active": "session-102",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": "conversation-chat:/session/untitled/chat/default",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default"
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 8,
+          "groups": [
+            {
+              "id": 8,
+              "active": "conversation-chat:/session/session-102/chat/default",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default"
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "name": "shared.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "selected": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+      "status": "Showing local source control changes only.",
+      "progress": "Reviewed 2 / 2",
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Falpha%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+          "originalText": "ALPHA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "ALPHA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readOnlyOriginal": true,
+          "readOnlyModified": true
+        },
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+          "originalText": "BETA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "BETA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readOnlyOriginal": true,
+          "readOnlyModified": true
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "trace-C4-beta-replace-other",
+      "active": "session-102",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": "conversation-chat:/session/untitled/chat/default",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default"
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 8,
+          "groups": [
+            {
+              "id": 8,
+              "active": "conversation-chat:/session/session-102/chat/default",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default"
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "name": "other.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "selected": "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt",
+      "status": "Showing local source control changes only.",
+      "progress": "Reviewed 2 / 2",
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Falpha%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+          "originalText": "ALPHA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "ALPHA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readOnlyOriginal": true,
+          "readOnlyModified": true
+        },
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/other.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fother.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt",
+          "originalText": "BETA OTHER BASELINE\n",
+          "modifiedText": "BETA OTHER MODIFIED\n",
+          "readOnlyOriginal": true,
+          "readOnlyModified": true
+        }
+      ],
+      "rpc": []
+    },
+    {
+      "label": "trace-C4-beta-replace-same-other",
+      "active": "session-102",
+      "parts": [
+        {
+          "sessionKey": "untitled",
+          "activeGroup": 7,
+          "groups": [
+            {
+              "id": 7,
+              "active": "conversation-chat:/session/untitled/chat/default",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/untitled/chat/default"
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "editors": []
+            }
+          ]
+        },
+        {
+          "sessionKey": "session-102",
+          "activeGroup": 8,
+          "groups": [
+            {
+              "id": 8,
+              "active": "conversation-chat:/session/session-102/chat/default",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationChatInput",
+                  "name": "Conversation",
+                  "resource": "conversation-chat:/session/session-102/chat/default"
+                }
+              ]
+            },
+            {
+              "id": 10,
+              "active": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree",
+              "editors": [
+                {
+                  "type": "workbench.editors.conversationDiffReviewInput",
+                  "name": "other.txt",
+                  "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "selected": "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt",
+      "status": "Unable to open diff: Conversation chat input requires CONVERSATION_GROUP or a conversation editor group",
+      "progress": "Reviewed 2 / 2",
+      "controls": [
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Falpha%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+          "originalText": "ALPHA BASELINE\nunchanged sentinel\n",
+          "modifiedText": "ALPHA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+          "readOnlyOriginal": true,
+          "readOnlyModified": true
+        },
+        {
+          "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/other.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fother.txt%22%2C%22ref%22%3A%22%22%7D",
+          "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/other.txt",
+          "originalText": "BETA OTHER BASELINE\n",
+          "modifiedText": "BETA OTHER MODIFIED\n",
+          "readOnlyOriginal": true,
+          "readOnlyModified": true
+        }
+      ],
+      "rpc": []
+    }
+  ],
+  "errors": [],
+  "breakpoints": [
+    {
+      "id": "4:23:0:1144",
+      "tag": "before-excluded",
+      "line": 23,
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/common/editorGroupFinder.js"
+    },
+    {
+      "id": "4:26:0:1144",
+      "tag": "after-excluded",
+      "line": 26,
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/common/editorGroupFinder.js"
+    },
+    {
+      "id": "4:48:0:3194",
+      "tag": "slot-plan",
+      "line": 48,
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/services/editor/browser/editorOpenSlot.js"
+    }
+  ],
+  "completed": true
+}

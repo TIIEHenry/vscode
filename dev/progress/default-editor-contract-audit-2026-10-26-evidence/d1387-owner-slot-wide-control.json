@@ -1,0 +1,113 @@
+{
+  "active": "session-102",
+  "owner": "conversation",
+  "slot": "newTab",
+  "parts": [
+    {
+      "sessionKey": "untitled",
+      "activeGroup": 7,
+      "groups": [
+        {
+          "id": 7,
+          "editors": [
+            {
+              "type": "workbench.editors.conversationChatInput",
+              "name": "Conversation",
+              "resource": "conversation-chat:/session/untitled/chat/default"
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "editors": []
+        }
+      ]
+    },
+    {
+      "sessionKey": "session-102",
+      "activeGroup": 10,
+      "groups": [
+        {
+          "id": 8,
+          "editors": [
+            {
+              "type": "workbench.editors.conversationChatInput",
+              "name": "Conversation",
+              "resource": "conversation-chat:/session/session-102/chat/default"
+            }
+          ]
+        },
+        {
+          "id": 10,
+          "editors": [
+            {
+              "type": "workbench.editors.conversationDiffReviewInput",
+              "name": "other.txt",
+              "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fother.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fother.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree"
+            },
+            {
+              "type": "workbench.editors.conversationDiffReviewInput",
+              "name": "shared.txt",
+              "resource": "conversation-diff-review:/modified/file%253A%252F%252F%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt/original/git%253A%252Ftmp%252Fvscode-review-real-git-audit-fixture%252Fbeta%252Fshared.txt.git%253F%25257B%252522path%252522%25253A%252522%25252Ftmp%25252Fvscode-review-real-git-audit-fixture%25252Fbeta%25252Fshared.txt%252522%25252C%252522ref%252522%25253A%252522%252522%25257D/group/workingTree"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "original": "git:/tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Falpha%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+      "modified": "file:///tmp/vscode-review-real-git-audit-fixture/alpha/shared.txt",
+      "originalText": "ALPHA BASELINE\nunchanged sentinel\n",
+      "modifiedText": "ALPHA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+      "readonlyOriginal": true,
+      "readonlyModified": true,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      }
+    },
+    {
+      "original": "git:/tmp/vscode-review-real-git-audit-fixture/beta/shared.txt.git?%7B%22path%22%3A%22%2Ftmp%2Fvscode-review-real-git-audit-fixture%2Fbeta%2Fshared.txt%22%2C%22ref%22%3A%22%22%7D",
+      "modified": "file:///tmp/vscode-review-real-git-audit-fixture/beta/shared.txt",
+      "originalText": "BETA BASELINE\nunchanged sentinel\n",
+      "modifiedText": "BETA MODIFIED FOR REVIEW\nunchanged sentinel\n",
+      "readonlyOriginal": true,
+      "readonlyModified": true,
+      "rect": {
+        "x": 1194.5,
+        "y": 157,
+        "width": 406,
+        "height": 1121,
+        "top": 157,
+        "right": 1600.5,
+        "bottom": 1278,
+        "left": 1194.5
+      }
+    }
+  ],
+  "focus": {
+    "tag": "DIV",
+    "cls": "native-edit-context",
+    "aria": "The editor is not accessible at this time. To enable screen reader optimized mode, use Shift+Alt+F4"
+  },
+  "status": "Showing local source control changes only.",
+  "progress": "Reviewed 2 / 2",
+  "rpc": [],
+  "dom": [
+    "BETA BASELINE\nunchanged sentinel",
+    "BETA BASELINE",
+    "BETA MODIFIED FOR REVIEW\nunchanged sentinel"
+  ],
+  "priorAlphaFocus": {
+    "active": "untitled",
+    "focus": "reviewNav:untitled-101"
+  }
+}

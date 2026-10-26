@@ -1,0 +1,20 @@
+{
+  "processes": [
+    {
+      "key": "pid",
+      "pid": 426203,
+      "owned": true,
+      "command": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron/code-oss --disable-extension=vscode.vscode-api-tests --user-data-dir=/tmp/code-oss-dev-20261026-192606-426148-rWAXbe/user-data --extensions-dir=/tmp/code-oss-dev-20261026-192606-426148-rWAXbe/user-data/extensions --shared-data-dir=/tmp/code-oss-dev-20261026-192606-426148-rWAXbe/shared-data --remote-debugging-port=34641 --inspect-extensions=34801 --inspect=43297 --inspect-agenthost=46297 --disable-workspace-trust --new-window --enable-smoke-test-driver --use-mock-keychain --no-sandbox --disable-gpu . /tmp/vscode-review-real-git-audit-fixture/owner-slot.code-workspace ",
+      "stillExists": false
+    },
+    {
+      "key": "xvfbPid",
+      "pid": 426130,
+      "owned": true,
+      "command": "rtk proxy Xvfb :211 -screen 0 1920x1200x24 -nolisten tcp ",
+      "stillExists": false
+    }
+  ],
+  "removedProfile": "/tmp/code-oss-dev-20261026-192606-426148-rWAXbe",
+  "preservedFixture": "/tmp/vscode-review-real-git-audit-fixture"
+}
