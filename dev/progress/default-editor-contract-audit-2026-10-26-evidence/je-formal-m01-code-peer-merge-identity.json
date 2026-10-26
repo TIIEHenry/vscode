@@ -1,0 +1,5887 @@
+{
+  "ours": "2df7ff7eda332de5aa8d5edf94e715a5fab78148",
+  "theirs": "04ea96be19dc57cd128dfbea0206ca539587fb53",
+  "mergeBase": "3f299c3dc5b18c47209e6ccb23ba40a2fe0765e4",
+  "theirsChangedPaths": [
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md"
+  ],
+  "bothChangedPaths": [
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md"
+  ],
+  "checkedAtUtc": "2026-10-26T19:09:43.623544+00:00",
+  "resultTree": "d55ed4998c13a8ae0e53ef36bf03c31f1c84b354",
+  "resultSrcTree": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+  "method": "actual per-path Git mode/type/blob comparison, both-changed hunk proof; absent check-merge-both-sides.sh not run",
+  "rows": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5e2b815ffc4e3fae968d016cf859c6862da3f9f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1ac5562fe889c9fada0a814b33352a961e61f54"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5e2b815ffc4e3fae968d016cf859c6862da3f9f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1ac5562fe889c9fada0a814b33352a961e61f54"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "efe89cb1b2534d0e0a082d31cf96185af4ea193b"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "50e25d0fad3f528789f04971ac63c23c2a5b9e37"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "efe89cb1b2534d0e0a082d31cf96185af4ea193b"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "50e25d0fad3f528789f04971ac63c23c2a5b9e37"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/parallel/active/engine-queue-and-skill-contracts.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "11db60d6646e23d9a42373b1509b1dd2e3788ab7"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a77734558ab1cbb8d4d958a445d4bcda301cdbcb"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "11db60d6646e23d9a42373b1509b1dd2e3788ab7"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a77734558ab1cbb8d4d958a445d4bcda301cdbcb"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "53616cd02d37762e4629c7bc5fed8007c6eca217"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "34a28eb17a4f925a8a4485d722a5ab040740deee"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "53616cd02d37762e4629c7bc5fed8007c6eca217"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "34a28eb17a4f925a8a4485d722a5ab040740deee"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/conversation-unary-response-recovery.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "da86e371c153c10008543e1c3fca16da14183ff9"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "683fd2dd3d243d29e6f8757a3232eb618dda4c0e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "da86e371c153c10008543e1c3fca16da14183ff9"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "683fd2dd3d243d29e6f8757a3232eb618dda4c0e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/engine-queue-and-skill-contracts.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a194a61de5c7a816857dcf80367295950bd043e4"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90704599b3981d6336145d73f6f01ca8480af858"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a194a61de5c7a816857dcf80367295950bd043e4"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90704599b3981d6336145d73f6f01ca8480af858"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/sources-open-dispatch-and-conversation-target.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1818aa5da5cbaca24d8c3864afb13c93109d5755"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "19cbd862fe90f2378a6f5f2df7be68a3494620df"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1818aa5da5cbaca24d8c3864afb13c93109d5755"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "19cbd862fe90f2378a6f5f2df7be68a3494620df"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "81246cba6ebcf51722439aec23b2a531571ea040"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "206f305fbada71d9c514fb7034b965c611af5dcf"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "81246cba6ebcf51722439aec23b2a531571ea040"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "206f305fbada71d9c514fb7034b965c611af5dcf"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/readonly-agent-chevron-matrix.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c9b453628dbcf1ebbe643b04fb520878a5b6f41"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c9b453628dbcf1ebbe643b04fb520878a5b6f41"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/readonly-agent-hc-black.png",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "26aff47d8b86a5a739fa02db795ba0d4ba942af2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "26aff47d8b86a5a739fa02db795ba0d4ba942af2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/readonly-agent-hc-light.png",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6eda4d7965a075be77b711c33ff93b32a9020832"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6eda4d7965a075be77b711c33ff93b32a9020832"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/readonly-agent-vs-dark.png",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6cb085b0194158a0f0489fd5c7ffec342468b15"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6cb085b0194158a0f0489fd5c7ffec342468b15"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/readonly-agent-vs.png",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58b7f382a1c5ada21b2c79c69a8fd11a71463fbb"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58b7f382a1c5ada21b2c79c69a8fd11a71463fbb"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/verification.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fed9f31d93c90de9e3e24f0a11ed43f3fc56e054"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0cd1eba076f62ba6fac2d670915b7b4eb492c940"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fed9f31d93c90de9e3e24f0a11ed43f3fc56e054"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0cd1eba076f62ba6fac2d670915b7b4eb492c940"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md",
+      "classification": "synthesized-both",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "74a221df7850f09fb564f8b866e254f4dab23ecd"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2747b7cb0e2337ab946b8d91ccbc21631bb7feaa"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5aa92b256b57d65ef2fe3d9245b158307ab0b43"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ab4ef24d2f5678fbeb4f3f3077146dc6429ec10b"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "48aced41d40a6fbf18d38a789b4ba56b16e3fd6e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "48aced41d40a6fbf18d38a789b4ba56b16e3fd6e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58e884045090fb7f1868a42d989861732c19599f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58e884045090fb7f1868a42d989861732c19599f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-2026-10-27.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "12aea5fa1ac0b9ffc33c27c6012169f914bf59b7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "12aea5fa1ac0b9ffc33c27c6012169f914bf59b7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fb033e8e4c0e29f032d0e6237f30ef783223367d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fb033e8e4c0e29f032d0e6237f30ef783223367d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-assertions.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b8f1a875ca1cd768be5b0ee40c98c2384fed3320"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b8f1a875ca1cd768be5b0ee40c98c2384fed3320"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1d6b03910e00eb6ed40c105b7287e9c9128360e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1d6b03910e00eb6ed40c105b7287e9c9128360e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-evidence.tar.gz",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e37c497f40ba3acb98cb38f534b951bf47a7b448"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e37c497f40ba3acb98cb38f534b951bf47a7b448"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-j-partial-after-matrix.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "25f4439b2173e1e693d695866dd9098542a1af67"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "25f4439b2173e1e693d695866dd9098542a1af67"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-J-partial-after-package-verification.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "72a29252464705a4f0f46ba5c8860bfa171ad61c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "72a29252464705a4f0f46ba5c8860bfa171ad61c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-focused.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "54b8d4d894d11e00dafcec0ed0926360f9135385"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "54b8d4d894d11e00dafcec0ed0926360f9135385"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-focused.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bc575ea0d75c51ec4ce038a923bf79b2a4d834f8"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bc575ea0d75c51ec4ce038a923bf79b2a4d834f8"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-freeze-template.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3f577cf35869d9f0201f859a845661437159f963"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3f577cf35869d9f0201f859a845661437159f963"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-production-frozen.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6b81f0228f99549fff6b95a641e749033cb69871"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6b81f0228f99549fff6b95a641e749033cb69871"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-related-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c1d3ddd31fbb96763ec80fb573ab7038a2cccd7c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c1d3ddd31fbb96763ec80fb573ab7038a2cccd7c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-related-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "65bc4cd5c4488e512a5f70770687689906c47534"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "65bc4cd5c4488e512a5f70770687689906c47534"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-rework-focused.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "caf8b9df6641311c3f6691597b8f1cd8106614b3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "caf8b9df6641311c3f6691597b8f1cd8106614b3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-rework-focused.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fa479662cfbbe2b341f73f939de5872d9867a022"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fa479662cfbbe2b341f73f939de5872d9867a022"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-roster-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8e6cbe9b176bd8048dbee9e27ba35c1e5fddc0a7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8e6cbe9b176bd8048dbee9e27ba35c1e5fddc0a7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-E-roster-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ddd8baf2baec9bbe2355a4977c59656efb215ec4"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ddd8baf2baec9bbe2355a4977c59656efb215ec4"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-J-focused.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6caabab39815a73dd87dd845e1386a7536c26bc1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6caabab39815a73dd87dd845e1386a7536c26bc1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-J-focused.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "59f2667965841d796bbcec1fee3c2829eec47cfd"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "59f2667965841d796bbcec1fee3c2829eec47cfd"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-J-freeze-template.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b35e4cf987cf6ff5fafb99de15621a01460665a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b35e4cf987cf6ff5fafb99de15621a01460665a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-J-production-frozen.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aaf85deb27f140c0009eed1a67135099ce91906a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aaf85deb27f140c0009eed1a67135099ce91906a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-J-suite-continuity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "01ebd95516bb4fcef6e924e7c892405cfcd44127"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "01ebd95516bb4fcef6e924e7c892405cfcd44127"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-P0-P7-boundaries.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bc954da94879065a52240322844bd16744d71c1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bc954da94879065a52240322844bd16744d71c1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-external-main-observation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1c1f385df1ee84ede0f42cc9996d599ccab86ff5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1c1f385df1ee84ede0f42cc9996d599ccab86ff5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-freeze-diff-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-freeze-generated-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-freeze-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-freeze-processes.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e0760e08fa06b802fec2e60d60c5943625be147a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e0760e08fa06b802fec2e60d60c5943625be147a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-lint.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd51f8c84e0098c506f2375f53c4d7b9bc529ead"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd51f8c84e0098c506f2375f53c4d7b9bc529ead"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-lint.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd783dd7d849e3505c65a029833e8c3428082ef4"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd783dd7d849e3505c65a029833e8c3428082ef4"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-lint.mjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b07300dd8783dcdb3ea6060fb513dd429b0eabcb"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b07300dd8783dcdb3ea6060fb513dd429b0eabcb"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-parent-freeze-verification.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8da63042e94acb2dce42545e5a6eda55e6427179"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8da63042e94acb2dce42545e5a6eda55e6427179"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-parent-receipt-diff-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-parent-receipt-generated-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-parent-receipt-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-runtime.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "350c0c12ba6e5d755d3b193015ab5020ee73bdc4"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "350c0c12ba6e5d755d3b193015ab5020ee73bdc4"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-final-source-native-freeze.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4942bcbd1b9a909707727d9740ca1562eaeb8f7a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4942bcbd1b9a909707727d9740ca1562eaeb8f7a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-ack-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fa67727b91b1dcba5fde3f22d966a9e5e44cff5e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fa67727b91b1dcba5fde3f22d966a9e5e44cff5e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-ack-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-ack-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d212d6199c8aa8c648db64ddc34f2766f5498540"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d212d6199c8aa8c648db64ddc34f2766f5498540"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationProcessFold.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d2cba56e3c304b3ed5268e55b831024abe449fe"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d2cba56e3c304b3ed5268e55b831024abe449fe"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationProcessFold.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "470b8d0a5fa0acc7e1dc9950d21811e453379bdf"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "470b8d0a5fa0acc7e1dc9950d21811e453379bdf"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationProcessFoldToolDetails.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10621eb625d202108e983a2d1b382eb1fc48f377"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10621eb625d202108e983a2d1b382eb1fc48f377"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationProcessFoldToolDetails.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "829b7b8ab468ec7a8572399e5894b8db19dab986"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "829b7b8ab468ec7a8572399e5894b8db19dab986"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationQuestionSeat.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7eedfed2d8002cb246b7f8b6356f9d42ee0b38f1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7eedfed2d8002cb246b7f8b6356f9d42ee0b38f1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationQuestionSeat.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d219b46e5b4d183e2f556a21c91859ef9e050a9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d219b46e5b4d183e2f556a21c91859ef9e050a9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationResponseState.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a425ee4c34edde5990da1968aab575f2e1a1ec72"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a425ee4c34edde5990da1968aab575f2e1a1ec72"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationResponseState.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f1becfbfd63068b76911d039a3c0b9a157dc4243"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f1becfbfd63068b76911d039a3c0b9a157dc4243"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationSessionView.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "38a0bf6a5653c67da8c76314eb05a4816d0d4ad3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "38a0bf6a5653c67da8c76314eb05a4816d0d4ad3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationSessionView.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df98db05c80beb3f0bdceedbfda944d21a97ebbd"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df98db05c80beb3f0bdceedbfda944d21a97ebbd"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationStreamScripts.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0898a87d857b580f9b5493d39efe5d389abf5faf"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0898a87d857b580f9b5493d39efe5d389abf5faf"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationStreamScripts.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5a0a2c0f934545ebb404b9a35133f3c11f97675"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5a0a2c0f934545ebb404b9a35133f3c11f97675"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationStreamToDom.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bee5af4719160c2572a3c1a69fc66b59d844e92"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bee5af4719160c2572a3c1a69fc66b59d844e92"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationStreamToDom.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f346bff2f5f0ef5534999f799a51b3fb4acbe118"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f346bff2f5f0ef5534999f799a51b3fb4acbe118"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineHost.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a1390e6f6f744cd6e4177b7995f0500ccd2dd4c7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a1390e6f6f744cd6e4177b7995f0500ccd2dd4c7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineHost.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "51b02e7a012a1e50218c2cc4312082efefba7d9e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "51b02e7a012a1e50218c2cc4312082efefba7d9e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineProjection.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90a9fc1b55a26867f991cea670c0dfaf63269110"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90a9fc1b55a26867f991cea670c0dfaf63269110"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineProjection.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "89efae1665ed841251cb2346ba07c08b3d955883"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "89efae1665ed841251cb2346ba07c08b3d955883"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineRenderer.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b43979ce33a24c677533a8a36d3886db3d54aea1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b43979ce33a24c677533a8a36d3886db3d54aea1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineRenderer.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b67bf3e9ff5f5badbf4a6684f7df2087cf866c7c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b67bf3e9ff5f5badbf4a6684f7df2087cf866c7c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-fixture-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a79234e035317228fd9b362e91fc07768c6da509"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a79234e035317228fd9b362e91fc07768c6da509"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-fixture-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-fixture-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd8352cf2a6fb956cd7cfe3aed770eadf1d0061d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd8352cf2a6fb956cd7cfe3aed770eadf1d0061d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-fixtures-peer-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d2230a6903d6aef70f2d8ec3d74bd1415cf7a014"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d2230a6903d6aef70f2d8ec3d74bd1415cf7a014"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-fixtures-peer-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-fixtures-peer-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a4559241d32c4d1a4a5fee73288f538d7ef012cf"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a4559241d32c4d1a4a5fee73288f538d7ef012cf"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-focused.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d821bf47e474c2064d16d8ea41a24b61dfb1d048"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d821bf47e474c2064d16d8ea41a24b61dfb1d048"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-focused.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a75b68b8cc4878fff8fe7b6afe97946f551095c7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a75b68b8cc4878fff8fe7b6afe97946f551095c7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-old-fixtures-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f40dffeb97e369f63c8d3ff66bfa242662eefc75"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f40dffeb97e369f63c8d3ff66bfa242662eefc75"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-old-fixtures-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-old-fixtures-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "001972c98809ece4ba7e052d1d878d66a467624e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "001972c98809ece4ba7e052d1d878d66a467624e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-related-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef8ccc5a133d202fee11a5033e0b4b7bc2699be9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef8ccc5a133d202fee11a5033e0b4b7bc2699be9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-related-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bd319bbc3f9a9234168f465f1cbeeb90ffaac79"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bd319bbc3f9a9234168f465f1cbeeb90ffaac79"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-roster-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4207606d4538a6b81c374f38a46221a75d8e3f04"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4207606d4538a6b81c374f38a46221a75d8e3f04"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-roster-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd16d74133628b7ddb7f00badcbe6fafcef38dc6"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd16d74133628b7ddb7f00badcbe6fafcef38dc6"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-runtime-peer-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2fef05991383f021f250a926b203b5fcc55ad957"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2fef05991383f021f250a926b203b5fcc55ad957"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-runtime-peer-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-runtime-peer-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1bf1eb9d1c17ae90cc6e76024ade8332a46c386c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1bf1eb9d1c17ae90cc6e76024ade8332a46c386c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-focused.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2fe6e7d29a8561650dcef051fdeb7047162236d3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2fe6e7d29a8561650dcef051fdeb7047162236d3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-focused.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ca13c8fe3aa57624c278f96d6b739c77e4e17a43"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ca13c8fe3aa57624c278f96d6b739c77e4e17a43"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f520c4262dd0aee49a1e2d2d0ac5bebe2d989a01"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f520c4262dd0aee49a1e2d2d0ac5bebe2d989a01"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c445a2c6c5476c8820547f625a86b0efba19c420"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c445a2c6c5476c8820547f625a86b0efba19c420"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-partial-after-diff-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-partial-after-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1d6b03910e00eb6ed40c105b7287e9c9128360e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1d6b03910e00eb6ed40c105b7287e9c9128360e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-partial-after-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d5e883f633eb9acce25e6b96e0a08a419f1f9088"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d5e883f633eb9acce25e6b96e0a08a419f1f9088"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-partial-after-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-partial-after-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1be18d0bae2b592734c616d685b44338b914fad"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1be18d0bae2b592734c616d685b44338b914fad"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-artifact-inventory.json",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c64c6d229776673175b3613cb46648ef9e4f122e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd976f6f6afe858c5a93f48bab285b4d796ad40b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c64c6d229776673175b3613cb46648ef9e4f122e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd976f6f6afe858c5a93f48bab285b4d796ad40b"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-cache-incident-summary.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2977f60abb5be88f67db7438fe212d44db83e9f7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2977f60abb5be88f67db7438fe212d44db83e9f7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-d91-peer-conflict-resolutions.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a1a76a0146c7828da703c9aa0082ddfdd54f4689"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a1a76a0146c7828da703c9aa0082ddfdd54f4689"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-d91-peer-diff-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-d91-peer-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-d91-peer-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "80cd4505efad488ccd37c2fca4ca4c21a2fbce9e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "80cd4505efad488ccd37c2fca4ca4c21a2fbce9e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-d91-peer-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "715afd47ceafa132f802a38e98e20a269865924b"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "715afd47ceafa132f802a38e98e20a269865924b"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-d91-peer-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6eb6b77dd209cc100f9ce7b56fd2db4049e8fd70"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6eb6b77dd209cc100f9ce7b56fd2db4049e8fd70"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-external-ref-observation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2518917f9860af29c0ebc7387a6e77bdc63213e4"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2518917f9860af29c0ebc7387a6e77bdc63213e4"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ccf5521170f7a488a0b78a01ecf5121f85d53bb1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ccf5521170f7a488a0b78a01ecf5121f85d53bb1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd9e3aea4669d96108db3168af64c74a3683a986"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd9e3aea4669d96108db3168af64c74a3683a986"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c8294b5c2e01354a894a6af3791fd81cfcabbcda"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c8294b5c2e01354a894a6af3791fd81cfcabbcda"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-fourth-native-build.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28ff20f22e3620e39da72f573a66280b28420eaa"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28ff20f22e3620e39da72f573a66280b28420eaa"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-fourth-native-build.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "eebaa2da3bbf2a4cbbce58814d5f42668065b5c0"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "eebaa2da3bbf2a4cbbce58814d5f42668065b5c0"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-fourth-native-build.processes-before.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5324f2c163d661975d6c957ff9d77a4d357c0e8c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5324f2c163d661975d6c957ff9d77a4d357c0e8c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-fourth-native-build.processes-under-lock.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5f4490af5b43ddea9336ecc8522faccfd532f3d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5f4490af5b43ddea9336ecc8522faccfd532f3d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-fourth-native-build.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7609611ceaf5a42cfb87fc65719af2fd78edce6a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7609611ceaf5a42cfb87fc65719af2fd78edce6a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "39f1abe22841da3fd1b4cab9113b0699f3e308bb"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b12957449c1a0bf979cc4033fcc00ea4ff57aa51"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "39f1abe22841da3fd1b4cab9113b0699f3e308bb"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b12957449c1a0bf979cc4033fcc00ea4ff57aa51"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-lint.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7e630523dd07da8f460728eeccb68cf5df4c5e6d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7e630523dd07da8f460728eeccb68cf5df4c5e6d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-lint.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf35cb5051045e470400ff8fbae4038adc361630"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf35cb5051045e470400ff8fbae4038adc361630"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-lint.mjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4dd3fb110b7cc586ed2ebed1d852175cca35bca8"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4dd3fb110b7cc586ed2ebed1d852175cca35bca8"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-accepted-diff-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-accepted-generated-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-accepted-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1d6b03910e00eb6ed40c105b7287e9c9128360e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1d6b03910e00eb6ed40c105b7287e9c9128360e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-accepted-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6f89c763cdb8f50284aa06e65eaeb1935f0138b1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6f89c763cdb8f50284aa06e65eaeb1935f0138b1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-accepted-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-accepted-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf1aaaf2b5f20dab88ae2df78d0fa2000c916db5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf1aaaf2b5f20dab88ae2df78d0fa2000c916db5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-peer-conflict-resolutions.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "482d3c0cd6dcb6aee194de0e5cc61d8855f4c203"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "482d3c0cd6dcb6aee194de0e5cc61d8855f4c203"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-peer-diff-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-peer-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-peer-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "97aca75c940118355bcdf5bc6ca4f5b0c9578647"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "97aca75c940118355bcdf5bc6ca4f5b0c9578647"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-peer-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "715afd47ceafa132f802a38e98e20a269865924b"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "715afd47ceafa132f802a38e98e20a269865924b"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-peer-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cdbf68a4b46121d19364ac832e777f1f0dc4b0e4"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cdbf68a4b46121d19364ac832e777f1f0dc4b0e4"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-main-d91-conflict-resolutions.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a226264d49e92a6430d16ca465dfeef068301be8"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a226264d49e92a6430d16ca465dfeef068301be8"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-main-d91-diff-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-main-d91-generated-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-main-d91-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-main-d91-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "63f45ef344b4348da740b1027e44bbcc4a5a9984"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "63f45ef344b4348da740b1027e44bbcc4a5a9984"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-main-d91-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d568c9b11e4a716125b1c5d759395c46fde6c47d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d568c9b11e4a716125b1c5d759395c46fde6c47d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-main-d91-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b5b66ccb0078d64de0b613b32f9dc1f80b1b3878"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b5b66ccb0078d64de0b613b32f9dc1f80b1b3878"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-main-d91-preservation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fc4f66dd9bf97c190b24e38e053ce556a220af71"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fc4f66dd9bf97c190b24e38e053ce556a220af71"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-frame-ack.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3b33a171bdaf9e4021c185c17005a505f6fbb649"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3b33a171bdaf9e4021c185c17005a505f6fbb649"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-frame-resync.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd595cebe3eb061e3720b8f21fb77330f200cb5e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd595cebe3eb061e3720b8f21fb77330f200cb5e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-frame.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3f3160b19ab2c45c91a3db699f8002aeac7f0aa9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3f3160b19ab2c45c91a3db699f8002aeac7f0aa9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-related-conversationStreamScripts.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d3c5e6e751248df9363817c750be288fc0a8354"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d3c5e6e751248df9363817c750be288fc0a8354"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-related-conversationTimelineProjection.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa2902119452963a3ca1215b6d1ca4021dde2c63"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa2902119452963a3ca1215b6d1ca4021dde2c63"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-related-conversationTimelineRenderer.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "79b351f275a3f7047b520284abaf7532e7c4b5c2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "79b351f275a3f7047b520284abaf7532e7c4b5c2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-related.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0cfcd4c9009f0e55cbae3f1b9fa88286318f9db6"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0cfcd4c9009f0e55cbae3f1b9fa88286318f9db6"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-runtime.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fe3a4f84a00f3986833177093ad17020fc648ff5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fe3a4f84a00f3986833177093ad17020fc648ff5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-runtime.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "72e192bdb0d46308e3e3f2288b14e2b157c8c8a5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "72e192bdb0d46308e3e3f2288b14e2b157c8c8a5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-second-native-build.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a09cc955fdae804b5b1e58a09d61c9ebd623084b"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a09cc955fdae804b5b1e58a09d61c9ebd623084b"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-second-native-build.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5831848174991fd0d1f5bf3b351ade0a0c1296b1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5831848174991fd0d1f5bf3b351ade0a0c1296b1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-second-native-build.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b4792b5e07b3f69717980d9a9c2723291f6ce0d2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b4792b5e07b3f69717980d9a9c2723291f6ce0d2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-third-native-build.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fe88fd78f2ae896744865eda0bf4e92d03c82b9e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fe88fd78f2ae896744865eda0bf4e92d03c82b9e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-third-native-build.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "504fd305675386a3e021dfc08a98d9d24844848f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "504fd305675386a3e021dfc08a98d9d24844848f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-third-native-build.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d62b8f410b6eac91475dfd81e405321595399316"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d62b8f410b6eac91475dfd81e405321595399316"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-unexpected-merge-ref-observation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb6e9c8e632e943c48d242b444363affde92b047"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb6e9c8e632e943c48d242b444363affde92b047"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-wiring.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "00867678cea33b8d7c175f83c8d92c6a1741139c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "00867678cea33b8d7c175f83c8d92c6a1741139c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-wiring.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ed6620fb031640e269935db9f5b5f5bf50bc9037"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ed6620fb031640e269935db9f5b5f5bf50bc9037"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-E-focused.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9399dc57b7934991f9018cbedb1a127fdadf0501"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9399dc57b7934991f9018cbedb1a127fdadf0501"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-E-focused.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "076b05c0fa4fd0e8161cd26e67ec0f7a28d2c6d8"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "076b05c0fa4fd0e8161cd26e67ec0f7a28d2c6d8"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-E-related-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6107ab0f7737340fc249bce03b9ba459f1af3c9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6107ab0f7737340fc249bce03b9ba459f1af3c9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-E-related-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e28b36595f2dcbd6cf2c0a9bdacc8aea84a27093"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e28b36595f2dcbd6cf2c0a9bdacc8aea84a27093"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-E-rework-focused.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "619efd1ee4effc64af82bcd3accb9b82257ab39e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "619efd1ee4effc64af82bcd3accb9b82257ab39e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-E-rework-focused.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "33fa61ada0b531d58388ef0d271c737b79dc2ad2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "33fa61ada0b531d58388ef0d271c737b79dc2ad2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-E-roster-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b18ae7f4ee3a958078f6a36e16fd43a916498103"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b18ae7f4ee3a958078f6a36e16fd43a916498103"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-E-roster-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c10d2461e8d9efda14a0d76ec95588163195aa8a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c10d2461e8d9efda14a0d76ec95588163195aa8a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-J-focused.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6637b7575c6e3939b864c87e66dd36b18c34ab9a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6637b7575c6e3939b864c87e66dd36b18c34ab9a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-J-focused.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "07d83da925256244eb9d22f6a68c5670a1a5283f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "07d83da925256244eb9d22f6a68c5670a1a5283f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-J-suite-continuity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1c5366efd0cbb1f11dccc23a2c2988d045a1c5ee"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1c5366efd0cbb1f11dccc23a2c2988d045a1c5ee"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-J-suite-continuity.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0fe00aefa6bfba6a345e5b7e3da3bdf280c6d2f1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0fe00aefa6bfba6a345e5b7e3da3bdf280c6d2f1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-checkpoint-diff-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-checkpoint-generated-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-checkpoint-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-d91-browser-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c4c609b5ea5a254e60911298b98ae8ed5f047c9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c4c609b5ea5a254e60911298b98ae8ed5f047c9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-d91-browser-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0988f191cded7159b957fe14f33d1d703b78de45"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0988f191cded7159b957fe14f33d1d703b78de45"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-d91-node-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "840251978a6e6ac90e416280ce49bf4fa685b9f9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "840251978a6e6ac90e416280ce49bf4fa685b9f9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-d91-node-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d0beeb4e27df1f7b55389e3d9b68df51887c9229"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d0beeb4e27df1f7b55389e3d9b68df51887c9229"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-fourth-processes.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "da5d9653adb3f12c3755f9b38802698655aa2dc0"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "da5d9653adb3f12c3755f9b38802698655aa2dc0"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-lint.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8edb8baae50e30df8b3a9ade5aa2d46e72c273e6"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8edb8baae50e30df8b3a9ade5aa2d46e72c273e6"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-lint.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ddbf4f33686a9be6a4abd8d8b93be98658911976"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ddbf4f33686a9be6a4abd8d8b93be98658911976"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-lint.mjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ebf5384f008d239320f927ff53836affad9b87f4"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ebf5384f008d239320f927ff53836affad9b87f4"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-runtime.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "15c65dbcda31b9ec1e0cb3891cee7da0284e5608"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "15c65dbcda31b9ec1e0cb3891cee7da0284e5608"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-fourth-source-native-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bdcfbe901c4fd95ff328ec6b7338a050589aebb"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bdcfbe901c4fd95ff328ec6b7338a050589aebb"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-m01-docs-checkpoint-diff-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-m01-docs-checkpoint-generated-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-m01-docs-checkpoint-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1d6b03910e00eb6ed40c105b7287e9c9128360e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1d6b03910e00eb6ed40c105b7287e9c9128360e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-m01-docs-integration-preservation-after.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c147b5a92ee9d3fbb79e0dbbd82933f19104a349"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c147b5a92ee9d3fbb79e0dbbd82933f19104a349"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-m01-docs-integration-preservation-before.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ed8eb139c903ac64a811625d517c87e4ae6cc8d2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ed8eb139c903ac64a811625d517c87e4ae6cc8d2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-m01-status-consolidation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dcb25337a69e077853f14d0618c9260ef3e5fc87"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dcb25337a69e077853f14d0618c9260ef3e5fc87"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-third-checkpoint-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e09a431ef479e1d41dd00f1cdd76a96587ebd3c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-third-source-native-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e7030cf0050af39c1bec5cd2b4ede3c1a5e682c9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e7030cf0050af39c1bec5cd2b4ede3c1a5e682c9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-d046-first-diff-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-d046-first-generated-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-d046-first-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1d6b03910e00eb6ed40c105b7287e9c9128360e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1d6b03910e00eb6ed40c105b7287e9c9128360e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-d046-first.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "016aed9b5b0e36b9959d4da12a0fafc482fde37f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "016aed9b5b0e36b9959d4da12a0fafc482fde37f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-d046-first.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8940d3d879931953660305ab7955437aeb66128f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8940d3d879931953660305ab7955437aeb66128f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-d046-first.processes-before.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2d0bbc512a435194ef4c552736f1582823c01785"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2d0bbc512a435194ef4c552736f1582823c01785"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-d046-first.processes-under-lock.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "63437529bb311650c1e2685ccfd46fae576903e5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "63437529bb311650c1e2685ccfd46fae576903e5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old928-d046-first.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bade5c7ce200fe72bf47ad238e7bddbddc661f3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bade5c7ce200fe72bf47ad238e7bddbddc661f3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-d91-candidate-peer-approved.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2cf0557bf8e0f8077ac97ab3fa0cb6a669a50935"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2cf0557bf8e0f8077ac97ab3fa0cb6a669a50935"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-d91-required-tests.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8ea58d3ec7cbdd8bc4f1d87960815aac1cd617a3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8ea58d3ec7cbdd8bc4f1d87960815aac1cd617a3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/deferred-gaps.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bde6e4425132ed06746f6498e01be891e14a784d"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6051c06f6f342c60d5f93669e11142fe3f47245b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bde6e4425132ed06746f6498e01be891e14a784d"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6051c06f6f342c60d5f93669e11142fe3f47245b"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "458de24928fbdc9440ffcfa52e5f556f7c3d434e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "edb27a6c20daa28db90455cb52c2ef10bc8ddc24"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "458de24928fbdc9440ffcfa52e5f556f7c3d434e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "edb27a6c20daa28db90455cb52c2ef10bc8ddc24"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/product/requirements.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a24286a39ebe4b80a407f0de07416f004194454a"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a854e1ba3c7ffb091c19d8eb45eba0090c911a8d"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a24286a39ebe4b80a407f0de07416f004194454a"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a854e1ba3c7ffb091c19d8eb45eba0090c911a8d"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/product/traceability.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "901657536c118de491a2cb6bf8c43c5c221908d3"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d978c3f93b86dd054a50a1ad3878f6c697645cd2"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "901657536c118de491a2cb6bf8c43c5c221908d3"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d978c3f93b86dd054a50a1ad3878f6c697645cd2"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/reference/universe-agent/engine-protocol-surface.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9ac1b9cb15aa282ac7620c83d76bdca6cf31fb36"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "13c6b6a71140856902f0f13f76d5a9e8a43e0777"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9ac1b9cb15aa282ac7620c83d76bdca6cf31fb36"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "13c6b6a71140856902f0f13f76d5a9e8a43e0777"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/reference/universe-agent/ide-engine-feature-gaps.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "eb4addc3aacfd7aee42005615c22ed9e6359259c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ee1cc938a3d4bb241d1e384830abe13076a3985f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "eb4addc3aacfd7aee42005615c22ed9e6359259c"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ee1cc938a3d4bb241d1e384830abe13076a3985f"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/systems/sources/overview.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4de120530932f7a0692af7dc054bb5900dd83af7"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "34c945e8134ab830fc4c5345001a005b27624e3a"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4de120530932f7a0692af7dc054bb5900dd83af7"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "34c945e8134ab830fc4c5345001a005b27624e3a"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/systems/workbench/engine-catalog.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dc4041bb370807447295029d2a1d425346a5a82f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "869fc0670ad25dde6c0ca120ac8ea791e1d4dda7"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dc4041bb370807447295029d2a1d425346a5a82f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "869fc0670ad25dde6c0ca120ac8ea791e1d4dda7"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentCapabilities.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90d417d1a595536c7af0d39b7c3bd87a0b108a56"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e115904334d8bbe85f2bdba0afa3194bb293924a"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90d417d1a595536c7af0d39b7c3bd87a0b108a56"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e115904334d8bbe85f2bdba0afa3194bb293924a"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentConnection.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bd23d87d9b28d771f201dcbb19e1865f63c230e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4eb7a8bc726a0c441bdc4c46a6b7b96aaca062da"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bd23d87d9b28d771f201dcbb19e1865f63c230e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4eb7a8bc726a0c441bdc4c46a6b7b96aaca062da"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4926d0068c3e0b9dcdebb39e6a836eeab6c2a276"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "51bdb868180bd5ae95db5f748047f01691cdbd51"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4926d0068c3e0b9dcdebb39e6a836eeab6c2a276"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "51bdb868180bd5ae95db5f748047f01691cdbd51"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentTypes.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "77bdb39b03ae5df8ff5f9a0ad6b9ffae0438222b"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dca1378ca649a5bdbc0de3e02f69cbda3dfdf8d9"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "77bdb39b03ae5df8ff5f9a0ad6b9ffae0438222b"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dca1378ca649a5bdbc0de3e02f69cbda3dfdf8d9"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcClient.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5c462eba75b221c8d244b69c4c2a189e433afbc"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf32e55c58a3aa5dec6738ac55a40132f8597daa"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5c462eba75b221c8d244b69c4c2a189e433afbc"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf32e55c58a3aa5dec6738ac55a40132f8597daa"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcProtoCodec.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f9b5e3b15994f9de3c38c5ad3827547ea3a55f73"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "388478f01af6a3c4a7b32cda2dc0026660fc02aa"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f9b5e3b15994f9de3c38c5ad3827547ea3a55f73"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "388478f01af6a3c4a7b32cda2dc0026660fc02aa"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcQueueSkillWire.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bdf3b65dca8e198cd89dd4f890586d99df442bd"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bdf3b65dca8e198cd89dd4f890586d99df442bd"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcTransport.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c6c9b1bdca9991c73dbf0ce3f95212fd2da68b4f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7ae17151584a5d388fc27f5f376e64e4f62f7eee"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c6c9b1bdca9991c73dbf0ce3f95212fd2da68b4f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7ae17151584a5d388fc27f5f376e64e4f62f7eee"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpcCapabilityProbe.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "56a680d64c4c6a87c1f96411d27034d2fe5dcd99"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d335b1e9cf6adb403cc6b87058aaada9e6aa2246"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "56a680d64c4c6a87c1f96411d27034d2fe5dcd99"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d335b1e9cf6adb403cc6b87058aaada9e6aa2246"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/universeAgentConnectionService.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3805ab5f5645917b05a4a1320aaf76163451bcfb"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f97f8caa895322053ea47cd3c63e89f13801dbbc"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3805ab5f5645917b05a4a1320aaf76163451bcfb"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f97f8caa895322053ea47cd3c63e89f13801dbbc"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/deviceAuthHandshake.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ce8377418985de4d87bd73bf97c9e0fccea0d14f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e3f2eacb285367c84d2aa4f2cb53dde5fd26c4a"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ce8377418985de4d87bd73bf97c9e0fccea0d14f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e3f2eacb285367c84d2aa4f2cb53dde5fd26c4a"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcAgentChatServerStreamWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "84482982b403831edb7071fe24e043f1359e25c7"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d67f9c69abc246bb914813ca7bd39aa214b40c39"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "84482982b403831edb7071fe24e043f1359e25c7"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d67f9c69abc246bb914813ca7bd39aa214b40c39"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcAgentHistoryUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e93eb267759ffce837f2157219e787d89165576"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "027ed7bd83aabfda6dc6d332c688d0b3496ed10b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e93eb267759ffce837f2157219e787d89165576"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "027ed7bd83aabfda6dc6d332c688d0b3496ed10b"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcBackUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "704a85ff095c92a6dabe1dffd168f1692d4cb1e0"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "814655c17ec795566e76b9764079ac712927ed16"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "704a85ff095c92a6dabe1dffd168f1692d4cb1e0"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "814655c17ec795566e76b9764079ac712927ed16"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcBranchUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b68dd7d9dbf4c32b4541af8330ee4cf1b7534e52"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e47a8ebe3e20ac2c8199ba70c1457f344eb8b48"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b68dd7d9dbf4c32b4541af8330ee4cf1b7534e52"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e47a8ebe3e20ac2c8199ba70c1457f344eb8b48"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcCancelRemoteSessionUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "405a0588e67bd7c04fd675685e0a5f5d3fc26ac0"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6fb7f776b9a610f735ac48a72617bb4a99752dfa"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "405a0588e67bd7c04fd675685e0a5f5d3fc26ac0"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6fb7f776b9a610f735ac48a72617bb4a99752dfa"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcCatalogUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "501eeec2ae62523ca5593f6b0033cf50adc6bd2d"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0bb4393fa4e6f7f7818f9b05b56b412751a42131"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "501eeec2ae62523ca5593f6b0033cf50adc6bd2d"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0bb4393fa4e6f7f7818f9b05b56b412751a42131"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcCheckConnectionUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a3c766cf49ad88ef6bb3e0d3a3255aff68f4277c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d0255ad0126e489a9326d5634eb554ac8481b807"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a3c766cf49ad88ef6bb3e0d3a3255aff68f4277c"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d0255ad0126e489a9326d5634eb554ac8481b807"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcClearSessionDemoFakeUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0b2a8e54d469de29f58b518828de89c7ad349076"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4d7ba57322036e50f979e793cbbb58914a174799"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0b2a8e54d469de29f58b518828de89c7ad349076"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4d7ba57322036e50f979e793cbbb58914a174799"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6bd02e937e9f40e6b5d78b8ff4286b9020f1fb31"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c3ef3c3272358a7d60bb11e51367517d22bbafa"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6bd02e937e9f40e6b5d78b8ff4286b9020f1fb31"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c3ef3c3272358a7d60bb11e51367517d22bbafa"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcCompactUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "46004383e2f87caee037cb58c379cee459bbc617"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e8787b8183cb691e766939aba2d5e2d30242ea95"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "46004383e2f87caee037cb58c379cee459bbc617"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e8787b8183cb691e766939aba2d5e2d30242ea95"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcCreateRemoteSessionUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "60a0b971e1d88f4c5e691a48c227fc03795e3e1c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "303fc86914c1825cf8d3a00f529e5619bee088e2"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "60a0b971e1d88f4c5e691a48c227fc03795e3e1c"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "303fc86914c1825cf8d3a00f529e5619bee088e2"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcDeleteConfigUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "404978f8f0916a23ba7d843fa71d951c50786ef4"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c9bb54b2efa5ca080b2c2c734feb288a82d144e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "404978f8f0916a23ba7d843fa71d951c50786ef4"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c9bb54b2efa5ca080b2c2c734feb288a82d144e"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcDestroyRemoteSessionUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08584cfce7221e05779904ea202ba4409e7af68e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d4eda8c494270139af7eafffd070a5a4dbe780d9"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08584cfce7221e05779904ea202ba4409e7af68e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d4eda8c494270139af7eafffd070a5a4dbe780d9"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcDevicePairUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cbfa71818ff0a158f0d37f6891c81d5308e476c1"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1aab356f1be624aa262dded803d9448ac60676d2"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cbfa71818ff0a158f0d37f6891c81d5308e476c1"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1aab356f1be624aa262dded803d9448ac60676d2"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcDownloadAttachmentStreamWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ea7032eba47c3af5955779bc29d02a5a972b0f04"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "483934e3b4bf3a3fbd4b72bc04cb396420744967"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ea7032eba47c3af5955779bc29d02a5a972b0f04"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "483934e3b4bf3a3fbd4b72bc04cb396420744967"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcExitMaintenanceUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "568c8e89205988715a844fee1074046e347847f0"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6f6d60b69c6460117a51a50eb3f9e6401c5b93dc"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "568c8e89205988715a844fee1074046e347847f0"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6f6d60b69c6460117a51a50eb3f9e6401c5b93dc"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcFetchToolUsageDetailUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f7c8ab09b40afceadf48c1c3e093761b761ed319"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6f43eb35d9ed7091e660a1e2c9f5c8587256c48e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f7c8ab09b40afceadf48c1c3e093761b761ed319"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6f43eb35d9ed7091e660a1e2c9f5c8587256c48e"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcFireTriggerWebhookUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "660d3bcf6b769ca12d799dc6262c69d058c52d8a"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ca22da38455ed3c6ea4f2bbed8e7e8b7b1464884"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "660d3bcf6b769ca12d799dc6262c69d058c52d8a"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ca22da38455ed3c6ea4f2bbed8e7e8b7b1464884"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcGetConfigUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "201783602b27607ff81bd0a00e85bc1afd1cc47c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "773574c1b01523d82dc16262a15bff792f8db656"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "201783602b27607ff81bd0a00e85bc1afd1cc47c"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "773574c1b01523d82dc16262a15bff792f8db656"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcGetNodeUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9e97805888b1cff77cc74402fae300b74a230fb0"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "71bdbb6a9249c347563bd237b1ad9cd3239324aa"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9e97805888b1cff77cc74402fae300b74a230fb0"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "71bdbb6a9249c347563bd237b1ad9cd3239324aa"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcGetRemoteSessionHistoryUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "547c4306127229ad0bdd8e7b86e3c445a7ab649a"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "240cd96afa14341f8f5f5c4edb1f6a4e34ce1ac7"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "547c4306127229ad0bdd8e7b86e3c445a7ab649a"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "240cd96afa14341f8f5f5c4edb1f6a4e34ce1ac7"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcGetRemoteSessionStatusUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0ea020d06ed99b0143725bcd1691db9dac9ec98f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0f59ee10362a37da93841b38f90f67cda955937c"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0ea020d06ed99b0143725bcd1691db9dac9ec98f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0f59ee10362a37da93841b38f90f67cda955937c"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcGetUploadProgressUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "24306ec179fec241cd8a5df753d985c19070a4fb"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dbfafddfe8b9bd4e72fd5d4a97baf4b8179c2b6b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "24306ec179fec241cd8a5df753d985c19070a4fb"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dbfafddfe8b9bd4e72fd5d4a97baf4b8179c2b6b"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcListConfigsUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4893ce2b5d78e9b38b5071c7d560ccebe3e187df"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f1e6ec65149d0d94a0d6c49de88c5dac46876ce4"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4893ce2b5d78e9b38b5071c7d560ccebe3e187df"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f1e6ec65149d0d94a0d6c49de88c5dac46876ce4"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcListLoopSnapshotsUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ea004c1609313a63d3ff3a84c53e9fbfec122450"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "826ca2d42f3254f75f50a2ee3d55f1a3877a6a5e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ea004c1609313a63d3ff3a84c53e9fbfec122450"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "826ca2d42f3254f75f50a2ee3d55f1a3877a6a5e"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcListNodesUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bebb6ed242abac44bd1897df3a33368c1b8a89d3"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "af4beb36817c07ff19285979756e8a24f0510e47"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bebb6ed242abac44bd1897df3a33368c1b8a89d3"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "af4beb36817c07ff19285979756e8a24f0510e47"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcMemoryRebuildStreamWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8cd4ce6132ad101d10e071ef5f53701205a6380f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b53b0043606d07c565e2e0103066f46011be6309"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8cd4ce6132ad101d10e071ef5f53701205a6380f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b53b0043606d07c565e2e0103066f46011be6309"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcModelPreferencesUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "847dd15d4488c72959288b435896b1d0947b9684"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3d605f76f4f7e46e216f5cf955ff59c7d92598df"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "847dd15d4488c72959288b435896b1d0947b9684"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3d605f76f4f7e46e216f5cf955ff59c7d92598df"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcPauseUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4f89ab8d8658e2acf44b8171098e32905fee39df"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1ddda5bdfe2af3cfe527a79830b59a75b41b172c"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4f89ab8d8658e2acf44b8171098e32905fee39df"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1ddda5bdfe2af3cfe527a79830b59a75b41b172c"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcPruneUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4707b4305b4c1577458208e1cb334e19c26c9785"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "95b13ad16431821caf0bea7157e7f063f4f76428"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4707b4305b4c1577458208e1cb334e19c26c9785"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "95b13ad16431821caf0bea7157e7f063f4f76428"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcQueueSkillWire.test.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ddd840a9ea481108c9866acc7204360eca5c0b38"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ddd840a9ea481108c9866acc7204360eca5c0b38"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcReloadRemoteAgentsUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d8dc8e62080c250ba73869d5008d3ed5b637a205"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b83e659bb3eaf6482dacb7339ab2e13450d13aa"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d8dc8e62080c250ba73869d5008d3ed5b637a205"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b83e659bb3eaf6482dacb7339ab2e13450d13aa"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcRemoteChatStreamWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3fbe20b058945c85e4a8a5cb6267601ce8b74583"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "29db2f02792974c9c8970f728f80fa7998eda3b9"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3fbe20b058945c85e4a8a5cb6267601ce8b74583"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "29db2f02792974c9c8970f728f80fa7998eda3b9"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcResetErrorUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ff58aae1564c0214b95fb913f44c2a6eb5c9ada7"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "13499d80d3076c3973ceeb9d61dd998082d90146"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ff58aae1564c0214b95fb913f44c2a6eb5c9ada7"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "13499d80d3076c3973ceeb9d61dd998082d90146"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcResetUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "616ec16eaa3d8fa22f57c114e052028f0997ed67"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4ebb4ad60bddbc3dbd547a327a016e4a97279fbf"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "616ec16eaa3d8fa22f57c114e052028f0997ed67"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4ebb4ad60bddbc3dbd547a327a016e4a97279fbf"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcResolveModelUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3bfaa56e5b5c2622b346e8ad7a87d079a36dc947"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c581803e0d7e42fc74e682dc31dc8f4876416465"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3bfaa56e5b5c2622b346e8ad7a87d079a36dc947"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c581803e0d7e42fc74e682dc31dc8f4876416465"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcResumeLoopUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b0b3f193fd4d172e957396fc45682cfb18ce42fa"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "250024e5f613f2b2055b607aace912c0804ba729"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b0b3f193fd4d172e957396fc45682cfb18ce42fa"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "250024e5f613f2b2055b607aace912c0804ba729"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcResumeRemoteSessionUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "907bbcafdaaf87338c21e7cbde5c32e3105351b1"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ca47e5f0113e636c1fc1d65846bbd6b63d444a79"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "907bbcafdaaf87338c21e7cbde5c32e3105351b1"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ca47e5f0113e636c1fc1d65846bbd6b63d444a79"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcRunToolInBackgroundUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f8356069a84aa1a5860cf822115be2a0a8454ca1"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4e04375e6915d528ffabdaaabfbb77f80910c1ef"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f8356069a84aa1a5860cf822115be2a0a8454ca1"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4e04375e6915d528ffabdaaabfbb77f80910c1ef"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcSaveConfigUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef3e49bec39e03967168f1ab5945ca8ecadb3f22"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0b66475896934827785502d417a8756cbc76d34f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef3e49bec39e03967168f1ab5945ca8ecadb3f22"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0b66475896934827785502d417a8756cbc76d34f"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcSendShellSessionClientControlUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b64796716615f4a8d2baf009bc63702ddf60828c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3a1acf96f7d881900f26656a6f314f7d10688e2f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b64796716615f4a8d2baf009bc63702ddf60828c"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3a1acf96f7d881900f26656a6f314f7d10688e2f"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcSessionLifecycleUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "056cb46652343bd08b25baf0148b2f73c37e23ea"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4985e783ab43f057ece6d64e2c735e83645cd5fc"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "056cb46652343bd08b25baf0148b2f73c37e23ea"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4985e783ab43f057ece6d64e2c735e83645cd5fc"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcSessionResolveUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f1d929273ee8677831f79e4bad67abd8457b419d"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0a632cab1bb048606a90a8e270b2daf4558bfca2"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f1d929273ee8677831f79e4bad67abd8457b419d"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0a632cab1bb048606a90a8e270b2daf4558bfca2"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcSetMaintenanceUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef61b65f15d178994599556fcf3ae662096ef929"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5c7a40fdb94ea8a53b5254b87ba0bcb2b7d0f2a0"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef61b65f15d178994599556fcf3ae662096ef929"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5c7a40fdb94ea8a53b5254b87ba0bcb2b7d0f2a0"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcStatusUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "49657804b0f2c89c8423d40d23f5057332d0445e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "520ce584256f815482910777962da95e6cbe5775"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "49657804b0f2c89c8423d40d23f5057332d0445e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "520ce584256f815482910777962da95e6cbe5775"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcStopLoopUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "86d1ad682e054d4be2f65cf4ff189fcbc2851d7a"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "48fc236fe6fea797114c38e9e0e909e13779c9a5"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "86d1ad682e054d4be2f65cf4ff189fcbc2851d7a"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "48fc236fe6fea797114c38e9e0e909e13779c9a5"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcStopShellTaskUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "61bc3c300b1e95bcf681ad63fb67c8294e351e58"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "87c882d2654f09b7baef37afd5cadc3e380a4570"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "61bc3c300b1e95bcf681ad63fb67c8294e351e58"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "87c882d2654f09b7baef37afd5cadc3e380a4570"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcSubscribeToolDetailStreamWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4993bc0bc885b3f9d46326d67f8b6fc000faaedd"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "350c803e8ccf4e6aab550455105e8ab8143b9aeb"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4993bc0bc885b3f9d46326d67f8b6fc000faaedd"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "350c803e8ccf4e6aab550455105e8ab8143b9aeb"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcSuspendLoopUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "687b5cc513ebf241d0e35cb80f1c1e2ad6d446b3"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c3b5082189137cebc09f454c3a2cd8bd9cde6287"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "687b5cc513ebf241d0e35cb80f1c1e2ad6d446b3"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c3b5082189137cebc09f454c3a2cd8bd9cde6287"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcSwitchWorkDirUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7fae60e0739042036571ab68dbc57bffc71c90d8"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "acfe9ab267a0d3b229d124fbd10338b5389ebae0"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7fae60e0739042036571ab68dbc57bffc71c90d8"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "acfe9ab267a0d3b229d124fbd10338b5389ebae0"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcTestModelProfileUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b8e0e54e01432bab040db0758ce35ed68c368903"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "121c8ce987ef27630ac404d717fe8a924995653b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b8e0e54e01432bab040db0758ce35ed68c368903"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "121c8ce987ef27630ac404d717fe8a924995653b"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcTodoUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "14270b7712e116d367191d3f93284d2395f5c538"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5899067f35b709c289a708a642f1d5163291cbde"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "14270b7712e116d367191d3f93284d2395f5c538"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5899067f35b709c289a708a642f1d5163291cbde"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcTriggerUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c4906a04b885349058740d1fcd4b368cc58333a9"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa623862ffc8ebc6881eb396661e00d254abccf7"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c4906a04b885349058740d1fcd4b368cc58333a9"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa623862ffc8ebc6881eb396661e00d254abccf7"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcUploadAttachmentStreamWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dcf342d6e3f4b976fa49725426c6553d975221c5"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc26f9080fe7a40ef3bbccde8c6082a07911ab1f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dcf342d6e3f4b976fa49725426c6553d975221c5"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc26f9080fe7a40ef3bbccde8c6082a07911ab1f"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcUsageUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a64ca598567ea738a708db01d15d300df64da482"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "697881b79883d6b2f8660f8f189789ce595ba042"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a64ca598567ea738a708db01d15d300df64da482"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "697881b79883d6b2f8660f8f189789ce595ba042"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08b5ab6c36f6fc8645fd1108a249fbeaaf256f9e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "559ee489f270fa0f3d35c35aa23992c9216cf05b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08b5ab6c36f6fc8645fd1108a249fbeaaf256f9e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "559ee489f270fa0f3d35c35aa23992c9216cf05b"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6314fcff4da9ba8d75ebc9028a0904291feff117"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "20cba9204cd1a4e11b3ab4837f3b1278dee3206d"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6314fcff4da9ba8d75ebc9028a0904291feff117"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "20cba9204cd1a4e11b3ab4837f3b1278dee3206d"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/universeAgentConnectionIpcChannel.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "806627360e67681b729fda0dbaacff3ca878ce60"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "52ec7e989bf60b1e793dd9e0f46863793d1662ee"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "806627360e67681b729fda0dbaacff3ca878ce60"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "52ec7e989bf60b1e793dd9e0f46863793d1662ee"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a243037cd29e1ec50ace17c7af2afbe4069a799c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28549cb9960fbad63a674cfcf2242bc25095e41b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a243037cd29e1ec50ace17c7af2afbe4069a799c"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28549cb9960fbad63a674cfcf2242bc25095e41b"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEngineQueueReader.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c00984ea7881a80ce9612b4dfbb074ab9c8afb0b"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c00984ea7881a80ce9612b4dfbb074ab9c8afb0b"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "03a37daf02cdd55598921e537302cc6f7d972754"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2132fbe8f590f275b9671c1ac0a1363c6d66054e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "03a37daf02cdd55598921e537302cc6f7d972754"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2132fbe8f590f275b9671c1ac0a1363c6d66054e"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationInboxOverlay.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a8826cfba4019a107020f42fe6cfbadb934509ca"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b2d25bd588d101aebc58cc53236613102258274"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a8826cfba4019a107020f42fe6cfbadb934509ca"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b2d25bd588d101aebc58cc53236613102258274"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationMessageQueueModel.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2a7fd062eb6dcc9dff2b725bac4fdfd49a61688d"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "79c71beb75c08b884be9ecf8037a13d4ce53dbea"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2a7fd062eb6dcc9dff2b725bac4fdfd49a61688d"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "79c71beb75c08b884be9ecf8037a13d4ce53dbea"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/engineSkillsSection.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fb6578130302ab7a47589ef1b4164a6fe2919742"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "097a52c6496de8c8beb9b67c310bb9d00c492b9e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fb6578130302ab7a47589ef1b4164a6fe2919742"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "097a52c6496de8c8beb9b67c310bb9d00c492b9e"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1461493ac5b15171d7b644eed7eb81d3a89ac5ef"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a2883026187b73c6fa6798c5a5ae546015b0ded9"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1461493ac5b15171d7b644eed7eb81d3a89ac5ef"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a2883026187b73c6fa6798c5a5ae546015b0ded9"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "65f3fa095856c2ca8085a8f358348e8f389ae0f9"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "274922b50c59a92ba2762afbdaf18693081f1339"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "65f3fa095856c2ca8085a8f358348e8f389ae0f9"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "274922b50c59a92ba2762afbdaf18693081f1339"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineQueueReader.test.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "81d9b6ff4d7c2e997b3610077e3553a97e76282e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "81d9b6ff4d7c2e997b3610077e3553a97e76282e"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e9bd3784450942907a7ff973ec654becdf4b6c5"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f4213a93db016c8080f94581e3dacd3134bbd5df"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e9bd3784450942907a7ff973ec654becdf4b6c5"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f4213a93db016c8080f94581e3dacd3134bbd5df"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationInboxOverlay.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0eaa7c01c5bf6a409fc72bf61865dba848e72369"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6ac05a9ba1192b9a27f396ac9f0c90c79d9792fc"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0eaa7c01c5bf6a409fc72bf61865dba848e72369"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6ac05a9ba1192b9a27f396ac9f0c90c79d9792fc"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d668ef56fcbbd58c0e5bd177e719d6b0060932a0"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3619124bf2035aa36cedf5977bab3a35a3882450"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d668ef56fcbbd58c0e5bd177e719d6b0060932a0"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3619124bf2035aa36cedf5977bab3a35a3882450"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b0f62dee9da9262083a6314bf108e335b66d6a4d"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "38b934bd6fa48e209c290f6c3d50d09a4552c754"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b0f62dee9da9262083a6314bf108e335b66d6a4d"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "38b934bd6fa48e209c290f6c3d50d09a4552c754"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/engineSkillsSection.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ad6d33cb4136b70b3aa247f9680c6107bd49d2fd"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0befceddf8418a33bcecda35018809b260f492a7"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ad6d33cb4136b70b3aa247f9680c6107bd49d2fd"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0befceddf8418a33bcecda35018809b260f492a7"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/streamScripts.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "276732b87d60488ba8cc5764e20ac8d160d775dd"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6d929d8730c3ec71b33931b1761be6c53536e6f8"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "276732b87d60488ba8cc5764e20ac8d160d775dd"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6d929d8730c3ec71b33931b1761be6c53536e6f8"
+      },
+      "pass": true
+    }
+  ],
+  "hunkResolutions": [
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md",
+      "rationale": "Preserve permanent D partial-after navigation and current fourth-native/freeze history; incoming reviewer row retains first fixture failure and corrected a222 static C0/I0/M0 boundary. Actual second run remains separate lane evidence, not reviewer execution.",
+      "base": "---\ntitle: \"默认编辑器合同与功能缺口续审证据入口\"\ntype: index\nstatus: active\nphase: M7\nupdated: 2026-10-27\nsummary: \"独立实现审查与最近旧生产业务验证入口；完整迭代记录仍由progress/status和各主题验证报告维护。\"\n---\n\n# 默认编辑器合同与功能缺口续审证据入口\n\n本目录的迭代记录入口是[当前进度](../status.md)。以下链接集中最近的独立审查与验证证据，不替代各报告注明的源码、产物及运行边界。\n\n| 证据 | 范围 |\n| --- | --- |\n| [J/E正式集成与验证](je-formal-integration-verification.md) | 串行真三路与262/208路径mode/type/blob/hunk证明，完整新编译/全套待 |\n| [Conversation响应恢复实现审查](conversation-response-recovery-code-review.md) | 900f原三I与c2b闭合历史；5f280/9e79定向补修C0/I0/M0；固定d91合源peer C0/I0/M0；D真实M01产品I1留存；b882方案增量规则16 C0/I0/M1与原生参数细化；保留reasoning旧红 |\n| [E c2b回归配精确旧900f代表红](e-c2b-review-old900f-red-verification.md) | 五项纯业务旧红，非c2b新green |\n| [J/E初版旧业务验证](je-preintegration-old-red-verification.md) | 初版六项响应业务红及Sources宿主旧红的实际落点 |\n| [J listener补修的并发旧红](j-4d49-overlap-old65d-red-verification.md) | 两项旧65d业务失败与产物恢复 |\n| [主基线5df接入](main-5df-baseline-verification.md) | 已提交主分支源码接入边界，不等于新emit |\n",
+      "ours": "---\ntitle: \"默认编辑器合同与功能缺口续审证据入口\"\ntype: index\nstatus: active\nphase: M7\nupdated: 2026-10-27\nsummary: \"独立实现审查与最近旧生产业务验证入口；完整迭代记录仍由progress/status和各主题验证报告维护。\"\n---\n\n# 默认编辑器合同与功能缺口续审证据入口\n\n本目录的迭代记录入口是[当前进度](../status.md)。以下链接集中最近的独立审查与验证证据，不替代各报告注明的源码、产物及运行边界。\n\n| 证据 | 范围 |\n| --- | --- |\n| [D1387 J真实部分after](d1387-j-partial-after-2026-10-27.md) | C0/I1：14真实UI过、1隔离过、2仅lane连续性；M01真实按钮no-op，250原件逐SHA保留，D1387仍open、E未启动 |\n| [J/E正式集成与验证](je-formal-integration-verification.md) | 固定d91真三路358路径保留/实际peer闭合；第四compile0，11相关255过1旧红，J29/E44/Roster190/外部133/Node880过，旧154身份保持；D部分after M01 I1，d046首轮旧运行4夹具败/业务红0、E未跑 |\n| [Conversation响应恢复实现审查](conversation-response-recovery-code-review.md) | 900f原三I与c2b闭合历史；5f280/9e79定向补修C0/I0/M0；固定d91合源peer C0/I0/M0；D真实M01产品I1留存；b882方案增量规则16 C0/I0/M1与原生参数细化；保留reasoning旧红 |\n| [E c2b回归配精确旧900f代表红](e-c2b-review-old900f-red-verification.md) | 五项纯业务旧红，非c2b新green |\n| [J/E初版旧业务验证](je-preintegration-old-red-verification.md) | 初版六项响应业务红及Sources宿主旧红的实际落点 |\n| [J listener补修的并发旧红](j-4d49-overlap-old65d-red-verification.md) | 两项旧65d业务失败与产物恢复 |\n| [主基线5df接入](main-5df-baseline-verification.md) | 已提交主分支源码接入边界，不等于新emit |\n",
+      "theirs": "---\ntitle: \"默认编辑器合同与功能缺口续审证据入口\"\ntype: index\nstatus: active\nphase: M7\nupdated: 2026-10-27\nsummary: \"独立实现审查与最近旧生产业务验证入口；完整迭代记录仍由progress/status和各主题验证报告维护。\"\n---\n\n# 默认编辑器合同与功能缺口续审证据入口\n\n本目录的迭代记录入口是[当前进度](../status.md)。以下链接集中最近的独立审查与验证证据，不替代各报告注明的源码、产物及运行边界。\n\n| 证据 | 范围 |\n| --- | --- |\n| [J/E正式集成与验证](je-formal-integration-verification.md) | 串行真三路与262/208路径mode/type/blob/hunk证明，完整新编译/全套待 |\n| [Conversation响应恢复实现审查](conversation-response-recovery-code-review.md) | 900f原三I与c2b闭合历史；5f280/9e79定向补修C0/I0/M0；固定d91合源peer C0/I0/M0；D真实M01产品I1留存；b882方案规则16 C0/I0/M1；d046两I/4夹具失败历史；a222定向补修C0/I0/M0，实际旧红新绿待；保留reasoning旧红 |\n| [E c2b回归配精确旧900f代表红](e-c2b-review-old900f-red-verification.md) | 五项纯业务旧红，非c2b新green |\n| [J/E初版旧业务验证](je-preintegration-old-red-verification.md) | 初版六项响应业务红及Sources宿主旧红的实际落点 |\n| [J listener补修的并发旧红](j-4d49-overlap-old65d-red-verification.md) | 两项旧65d业务失败与产物恢复 |\n| [主基线5df接入](main-5df-baseline-verification.md) | 已提交主分支源码接入边界，不等于新emit |\n",
+      "result": "---\ntitle: \"默认编辑器合同与功能缺口续审证据入口\"\ntype: index\nstatus: active\nphase: M7\nupdated: 2026-10-27\nsummary: \"独立实现审查与最近旧生产业务验证入口；完整迭代记录仍由progress/status和各主题验证报告维护。\"\n---\n\n# 默认编辑器合同与功能缺口续审证据入口\n\n本目录的迭代记录入口是[当前进度](../status.md)。以下链接集中最近的独立审查与验证证据，不替代各报告注明的源码、产物及运行边界。\n\n| 证据 | 范围 |\n| --- | --- |\n| [D1387 J真实部分after](d1387-j-partial-after-2026-10-27.md) | C0/I1：14真实UI过、1隔离过、2仅lane连续性；M01真实按钮no-op，250原件逐SHA保留，D1387仍open、E未启动 |\n| [J/E正式集成与验证](je-formal-integration-verification.md) | 固定d91真三路358路径保留/实际peer闭合；第四compile0，11相关255过1旧红，J29/E44/Roster190/外部133/Node880过，旧154身份保持；D部分after M01 I1，d046首轮旧运行4夹具败/业务红0、E未跑 |\n| [Conversation响应恢复实现审查](conversation-response-recovery-code-review.md) | 900f原三I与c2b闭合历史；5f280/9e79定向补修C0/I0/M0；固定d91合源peer C0/I0/M0；D真实M01产品I1留存；b882方案规则16 C0/I0/M1；d046两I/4夹具失败历史；a222定向补修C0/I0/M0，实际旧红新绿待；保留reasoning旧红 |\n| [E c2b回归配精确旧900f代表红](e-c2b-review-old900f-red-verification.md) | 五项纯业务旧红，非c2b新green |\n| [J/E初版旧业务验证](je-preintegration-old-red-verification.md) | 初版六项响应业务红及Sources宿主旧红的实际落点 |\n| [J listener补修的并发旧红](j-4d49-overlap-old65d-red-verification.md) | 两项旧65d业务失败与产物恢复 |\n| [主基线5df接入](main-5df-baseline-verification.md) | 已提交主分支源码接入边界，不等于新emit |\n"
+    }
+  ],
+  "pathsChecked": 297,
+  "allPass": true
+}

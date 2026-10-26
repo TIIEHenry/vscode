@@ -1,0 +1,31 @@
+{
+  "ours": "37fb714dba6cfaa798fe50b1b462842004e96b47",
+  "theirs": "a22237822e4a9feff58a89a0d78fd12669a65ca4",
+  "mergeBase": "265b1fe8e01f88725169696976f6cc463a8b61dd",
+  "theirsChangedPaths": [
+    "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+    "dev/plans/sources-open-dispatch-and-conversation-target.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md",
+    "dev/progress/status.md",
+    "docs/systems/sources/overview.md",
+    "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesDiffRefHelpers.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffMoveSource.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts"
+  ],
+  "bothChangedPaths": [
+    "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+    "dev/progress/status.md"
+  ],
+  "reviewedBy": "04ea96be19dc57cd128dfbea0206ca539587fb53",
+  "oldPureBusinessRed": {
+    "newTestRef": "a22237822e4a9feff58a89a0d78fd12669a65ca4",
+    "oldProductionSourceTree": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+    "pass": 0,
+    "businessAssertionFailures": 4,
+    "fixtureFailures": 0,
+    "restoredAll155OldPairs": true
+  }
+}

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "M01 d046首轮旧928实跑0过4夹具TypeError、业务红0，已退原J；154旧native/3生产/测试存在性全恢复，产品未正式合/未compile5，新peer/修订待。"
+summary: "a222新4入口配旧928纯业务4红，首夹具失败保留；原Astra04ea C0/I0/M0、正式三路53路径保留，新src8e6待第五完整native，D1387/E after仍待。"
 ---
 
 # J/E 正式集成
@@ -208,3 +208,17 @@ D cleanup原件记录其自有main1643431/Xvfb1643371/子1643372已无proc，379
 [实际执行脚本](m01-old928-d046-first.py)、[原始完整log](m01-old928-d046-first.log)、[锁/命令/身份/分类与恢复JSON](m01-old928-d046-first.json)及两份全局进程原记录完整入库。driver退出0仅表示finally恢复和记录成功，业务runner exit1/夹具失败状态明确保留。
 
 finally在共享锁内恢复：新test源从未写入、临时testJS原不存在→现仍不存在；原154 source/native全部SHA恢复、额外三旧生产pair均未变、HEAD f3d2cd/src928/clean前后不变。未消费main FS/WIP，没有新helper/生产overlay，没有完整emit或freeze，也没有启动E。下一步等原J不可变夹具修订后重新做准确旧red；原Astra实际codepeer C/I闭合后才按父调度真三路合源与compile5。M01/D1387仍open。
+
+## M01修订四纯业务旧红与正式真三路合源
+
+原J精确修订 `a22237822e4a9feff58a89a0d78fd12669a65ca4`（父d046）仅2tests+3行动docs，三个生产及Panel原no-unhandled负控与d046同字节。新MoveSource SHA `3e559440a02345efa67593097b98f2ee5b1e8b9ef76d553209f8f1cb82786c88`，新node Wiring SHA `bfe051c197f7e17df0dcefca79996fc8365afbb6700fd0e4f3fc70b77dea6753` 均已对不可变Git核验。没有由merge改作者夹具或预期。
+
+独占共享锁、两次全局lane空扫描并核旧src928/native8b4后，**再次只临时加载新test JS**，4真实入口 selector `real Pane registered command` 实跑 **0 passing / 4 failing / exit1**，全部为 `AssertionError [ERR_ASSERTION]: registered Move must open B in Preview`（test.js345），无load/API/type/timeout错误。每项已等registered command settle后到Preview存在性业务断言，**4条纯业务旧红成立**；后续close/root/metadata断言尚未到达，不把它们冒计为旧失败。首d046的4夹具TypeError/业务红0完整保留，不改写其归属。
+
+[第二轮实际脚本](m01-old928-a222-second.py)、[完整raw log](m01-old928-a222-second.log)、[命令/身份/四业务红/恢复JSON](m01-old928-a222-second.json)与两份全局进程原件均入库。finally恢复testJS原不存在、新test源始终未写；原154冻结pair与额外helper pair共155旧source/native身份全保留，三生产逐字不改，HEAD 2df7ff7/src928/clean前后不变。随后正式合源以前，旧native字节仍完全相同。
+
+已实读并真三路接原Astra `04ea96be19dc57cd128dfbea0206ca539587fb53`（含88910 §12原d046 C0/I2/夹具失败历史与§13 a222 C0/I0/M0），形成 `37fb714dba6cfaa798fe50b1b462842004e96b47`。[297路径保留门禁](je-formal-m01-code-peer-merge-identity.json)PASS；仅证据INDEX冲突，保留D部分after/第四native历史与incoming review边界，[hunk原文](je-formal-m01-code-peer-conflict-resolutions.json)完整，实际review报告blob精确incoming。reviewer静态未运行业务，不把本lane四旧红归给reviewer。
+
+在四纯旧红成立且实际peer原件C/I闭合后，按父授权对a222真三方合入；merge-base为最终accepted265b，incoming实际11路径=3生产+3tests+5docs。仅parallel/status两文档冲突，源码/测试无冲突，[53路径mode/type/blob门禁](je-formal-m01-source-merge-identity.json)全PASS，[双方完整原文与合成理由](je-formal-m01-source-conflict-resolutions.json)保留作者源码/静态历史、首轮夹具败、D旧partial和本lane新四业务旧红。**六TS blob及完整src tree精确等于受审a222：`8e6e9bb4b63ae2b65cf6e023fa99ad48fae9ed88`**，没有合并时悄改生产或测试。
+
+正式新src与旧native身份明确分开：此时out仍由旧src928/8b4第四编译产生，旧compile0不延伸新src8e6，不发新freeze。随后唯一lane实际第五完整compile及38/J29/完整Sources、native title/unhandled/wiring/E受影响链；Node880生产/61test无源变化时只做实际source/native连续性，不机械重跑。D模板新增mandatory helper，必须覆盖全部三个M01生产；第五0与新green后再发新notice。D新实际J/M01通过前E未授权、D1387 open，原reasoning及Accept builder既有红边界不变，不push/主ff重试/追main。

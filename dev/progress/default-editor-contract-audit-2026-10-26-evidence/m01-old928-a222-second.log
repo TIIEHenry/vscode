@@ -1,0 +1,50 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1763130:1027/030623.161169:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1763146) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1763146) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1763146) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Sources M01 move source[0m
+  [31m  1) real Pane registered command button empty global moves only B from real Conversation parts[0m
+  [31m  2) real Pane registered command button unrelated global moves only B from real Conversation parts[0m
+  [31m  3) real Pane registered command native toolbar moves only B from real Conversation parts[0m
+  [31m  4) real Pane registered command native context menu moves only B from real Conversation parts[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (422ms)[0m
+[31m  4 failing[0m
+
+[0m  1) Sources M01 move source
+       real Pane registered command button empty global moves only B from real Conversation parts:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: registered Move must open B in Preview
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesDiffMoveSource.test.js:345:16)
+[0m
+[0m  2) Sources M01 move source
+       real Pane registered command button unrelated global moves only B from real Conversation parts:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: registered Move must open B in Preview
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesDiffMoveSource.test.js:345:16)
+[0m
+[0m  3) Sources M01 move source
+       real Pane registered command native toolbar moves only B from real Conversation parts:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: registered Move must open B in Preview
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesDiffMoveSource.test.js:345:16)
+[0m
+[0m  4) Sources M01 move source
+       real Pane registered command native context menu moves only B from real Conversation parts:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: registered Move must open B in Preview
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesDiffMoveSource.test.js:345:16)
+[0m
+
+

@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "D1387 M01增量规则16 C0/I0、Minor已改：Conversation真实Pane按钮丢来源导致Move no-op；拟显式input/group/Pane来源与注册part快照、关闭前复核及局部错误恢复，保留原完成/关闭代数"
+summary: "D1387 M01已按独立accepted265b写显式来源修复与38项公共回归源码，静态0语法/0lint错误，源码peer/唯一lane/新after待；Conversation真实Pane按钮丢来源导致Move no-op；拟显式input/group/Pane来源与注册part快照、关闭前复核及局部错误恢复，保留原完成/关闭代数"
 ---
 
 # Sources 打开分派与准确 Conversation 目标
@@ -216,3 +216,5 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 本轮澄清独立提交`a76d062f297`后，J补修源码只取消API预pin、改DTO有序双侧/单资源类型及custom可信身份匹配，保留custom预pin窄例外；新增28个官方handler/真实组模型/比较身份与custom兼容负控用例源码。仅本轮静态语法0错误、ESLint0错误且测试29警告相对原23f逐项不变；详见同一[源码检查点本轮段](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#本轮独立审查后的补修2026-10-26)。这是源码补修完成线，不是I1/I2运行通过或after签收。
 
 宿主/并发澄清独立提交`bf50c66b8b970a4e29a1e92f0d3968232e2d6987`后，J已按§3.2写候选观测、真实有效组/规范成员核对、全tabs唯一fallback与同service sticky ambiguity registry；command id/args同步捕获，custom预pin窄例外、void/reject语义保留。新增29项官方真实默认宿主、同tuple并发与custom wildcard、完整key/服务隔离、异常清理、候选负控和DTO变化回归源码。最终3TS AST语法0诊断，ESLint0错误/29旧警告相对bf50逐项不变；[本轮源码与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#宿主观测与-sources-重叠补修2026-10-26j)记录精确hash与selector。唯一车道须旧65d生产配新测试业务red，再新生产green/完整相关套/语义；新源码独立peer及非作者真实after未到，仍accepted/open，不借原357过升状态。
+
+M01独立accepted方案`265b1fe8e01f88725169696976f6cc463a8b61dd`后，J按§3.5/§4.4写3生产路径、38项独立公共回归及既有无unhandled负控适配；新增独立测试文件只隔离真实默认parts/Pane/command复杂harness，不扩大生产范围。5TS语法0、lint0errors/1旧warning逐项无增减，未编译/typecheck/transpile/out/业务运行。[精确源码、旧red selector与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#m01-显式-move-来源源码检查点2026-10-27j)。新源码peer、唯一lane旧红新绿/完整相关套及D真实M01 after未签，accepted/open不升。

@@ -2404,7 +2404,7 @@ suite('Sources diff panel', () => {
 		});
 	});
 
-	test('does not leak unhandled rejection when Preview executeCommand rejects and onUnexpectedError warn-then-rethrows', async function () {
+	test('does not leak unhandled rejection when Preview failure notice throws and onUnexpectedError warn-then-rethrows', async function () {
 		const commandBoom = new Error('preview boom');
 		await assertWarnThenRethrowDoesNotLeak(commandBoom, async () => {
 			const { parent } = await mountConversationDiffReviewPane(this, {
@@ -2412,7 +2412,15 @@ suite('Sources diff panel', () => {
 					throw commandBoom;
 				},
 			});
-			forceClick(parent.querySelector('.conversation-diff-review-open-preview'));
+			const notice = parent.querySelector('.conversation-diff-review-move-notice');
+			assert.ok(notice);
+			Object.defineProperty(notice, 'textContent', { configurable: true, set: () => { throw commandBoom; } });
+			try {
+				forceClick(parent.querySelector('.conversation-diff-review-open-preview'));
+				await timeout(0);
+			} finally {
+				Reflect.deleteProperty(notice, 'textContent');
+			}
 		});
 	});
 

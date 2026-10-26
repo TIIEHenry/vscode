@@ -4,14 +4,16 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "D真实J部分after M01 C0/I1，J reopened occupied、accepted补修实施中；E after未启动，旧928/native154保持以待准确旧red；本次只接文档/原件，不重编。"
+summary: "M01 a222准确旧4业务红/源码peer C0I0闭合并正式三路接入，新src8e6待第五native；D1387 open/E未跑，旧冻结与首夹具失败原件均保留。"
 ---
 
 # 默认编辑器合同与功能缺口续审
 
-## M01最新增量（2026-10-27，方案accepted / J reopened occupied）
+## M01最新增量（2026-10-27，正式合源 / 第五编译待）
 
-D真实默认编辑器after发现Conversation Pane内“Open Diff in Preview”按钮静默no-op，普通Review新建Beta比较亦复现；Astra裁定为原D1387三owner/Move合同Important。J clean24a祖先核验后仅Git ff到父明确纯docs `4173b3fea640124a50cbdaa6aa7ceb7892274641`，当前src928/native8b4冻结不动，D旧窗口由D收尾，不起第二窗。J已核按钮无参→registered action丢context→global active resolver，写现[方案§3.5/§4.4](../../plans/sources-open-dispatch-and-conversation-target.md#35-m01conversation-pane-的-move-显式来源本轮增量已签收)及SSOT草案，原Astra规则16 C0/I0/M1、native参数Minor已改，独立accepted方案commit后实施；显式来源严格live验证、ref/close统一capture与Pane局部反馈，保留原完成/关闭代数。最终accepted不可变265b1与原Astra3f299、D永久部分after ee189已由merge纯doc三路保留；J reopened occupied，D1387仍open，E after未启动/未授权。D14实际UI过/1隔离过/2仅lane连续性/M01 partial-fail、自有进程已清与101采样zeroRPC已留证；旧928/native154保持供下一步精确旧red，不从accepted推产品通过。以下并行表及未freeze等措辞均为先前历史交接，不覆盖当前父已冻结身份，也不表示本M01已通过。J不编译/typecheck/transpile/out/业务测试，D1387 open、PRD不升。
+原J accepted265b后3生产及38公共回归源码已写；d046旧node扫描/真实入口session夹具两I由a222修正，原Astra04ea正式C0/I0/M0原件已核。唯一lane首轮4fixture败不计业务红，第二轮a222新4真实Pane/registered command配精确旧928生产实跑0过4纯业务Preview断言红；共享锁内155旧pair与test输出原不存在性全恢复。已按父授权真三路接a222，源码/测试无交集冲突且精确incoming，新src8e6；当前native仍旧928/8b4，不能拿旧绿签新源，随后唯一lane实际第五完整compile与M01/J/Sources/E受影响回归。
+
+原D部分after C0/I1、14真实UI过/1隔离过/2仅lane连续性/M01两次真实按钮no-op、101采样zeroRPC及39JS+1CSS loaded/12 manifest全部保留。D自有旧窗口已清、E未授权或启动；旧freeze当时真实成立，D1387仍open，J源码peer闭合转唯一lane验证/新freeze和D重验，不升PRD/不释放wave。原完成/关闭代数、显式来源严格live校验/ref-close同capture与Pane局部反馈保持。J无编译/typecheck/transpile/out/业务运行；下述旧并行表及未freeze记录是历史，不覆盖当前阶段。
 
 > 当前冻结代码波只含J Sources与E unary恢复；不可变J4d49/Ec2b已分别真三路5373/9209接入，无occupied代码成员。独立peer原件C/I闭合已实读，父授权本wake直接P0–P7；[正式集成记录](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。P0 main明确5df/src7fa、99dirty路径只登记不消费，J/E/merge clean、stash0；P2串行真三路262/208路径保留PASS，src fdca956；完整emit/相关全套待，统一green前不freeze。P5禁push/P6主ff既有拒绝不重试，不提前宣称wave释放。
 

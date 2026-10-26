@@ -1,0 +1,14 @@
+{
+  "candidate": "a22237822e4a9feff58a89a0d78fd12669a65ca4",
+  "mergedSourceTree": "8e6e9bb4b63ae2b65cf6e023fa99ad48fae9ed88",
+  "peerReportCommit": "04ea96be19dc57cd128dfbea0206ca539587fb53",
+  "critical": 0,
+  "important": 0,
+  "minor": 0,
+  "oldPureBusinessRedCount": 4,
+  "oldProductionSourceTree": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+  "old155NativePairsRestored": true,
+  "allSixSourceBlobsExactReviewedIncoming": true,
+  "formalSourceSrcTreeExactIncoming": true,
+  "newNativeCreditGranted": false
+}

@@ -1,0 +1,12 @@
+{
+  "ours": "2df7ff7eda332de5aa8d5edf94e715a5fab78148",
+  "theirs": "04ea96be19dc57cd128dfbea0206ca539587fb53",
+  "mergeBase": "3f299c3dc5b18c47209e6ccb23ba40a2fe0765e4",
+  "theirsChangedPaths": [
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md"
+  ],
+  "bothChangedPaths": [
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md"
+  ]
+}
