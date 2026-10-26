@@ -18,6 +18,7 @@ import { OS } from '../../../../../base/common/platform.js';
 import { IContextKey, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IChatAcceptInputOptions, IChatWidgetService } from '../../../chat/browser/chat.js';
 import { IChatAgentService } from '../../../chat/common/participants/chatAgents.js';
 import { IChatModel, IChatResponseModel, isCellTextEditOperationArray } from '../../../chat/common/model/chatModel.js';
@@ -124,6 +125,7 @@ export class TerminalChatWidget extends Disposable {
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IChatAgentService private readonly _chatAgentService: IChatAgentService,
 		@IChatWidgetService private readonly _chatWidgetService: IChatWidgetService,
+		@INotificationService private readonly _notificationService: INotificationService,
 	) {
 		super();
 
@@ -345,8 +347,12 @@ export class TerminalChatWidget extends Disposable {
 			return;
 		}
 		const value = code.getValue();
-		this._instance.runCommand(value, shouldExecute);
-		this.clear();
+		try {
+			await this._instance.runCommand(value, shouldExecute);
+			this.clear();
+		} catch (error) {
+			this._notificationService.error(error);
+		}
 	}
 
 	public get focusTracker(): IFocusTracker {

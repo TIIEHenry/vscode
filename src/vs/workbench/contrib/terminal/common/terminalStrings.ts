@@ -10,6 +10,7 @@ import { localize, localize2 } from '../../../../nls.js';
  */
 export const terminalStrings = {
 	terminal: localize('terminal', "Terminal"),
+	inputDeliveryFailed: localize('terminal.inputDeliveryFailed', "The terminal input could not be delivered. The command was not sent."),
 	new: localize('terminal.new', "New Terminal"),
 	doNotShowAgain: localize('doNotShowAgain', 'Do Not Show Again'),
 	currentSessionCategory: localize('currentSessionCategory', 'current session'),

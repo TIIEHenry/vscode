@@ -871,7 +871,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		this._register(toDisposable(() => this._resizeDebouncer = undefined));
 		this.updateAccessibilitySupport();
 		this._register(this.xterm.onDidRequestRunCommand(e => {
-			this.sendText(e.command.command, e.noNewLine ? false : true);
+			this._sendTextOrThrow(e.command.command, e.noNewLine ? false : true).catch(error => this._notificationService.error(error));
 		}));
 		this._register(this.xterm.onDidRequestRefreshDimensions(() => {
 			if (this._lastLayoutDimensions) {
@@ -1071,14 +1071,14 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		// Determine whether to send ETX (ctrl+c) before running the command. Only do this when the
 		// command will be executed immediately or when command detection shows the prompt contains text.
 		if (shouldExecute && (!commandDetection || commandDetection.promptInputModel.value.length > 0)) {
-			await this.sendText('\x03', false);
+			await this._sendTextOrThrow('\x03', false);
 			// Wait a little before running the command to avoid the sequences being echoed while the ^C
 			// is being evaluated
 			await timeout(100);
 		}
 		// By default, use bracketed paste mode only when not running the command; callers can override
 		// this by explicitly enabling it via the bracketedPasteMode argument.
-		await this.sendText(commandLine, shouldExecute, !shouldExecute || forceBracketedPasteMode);
+		await this._sendTextOrThrow(commandLine, shouldExecute, !shouldExecute || forceBracketedPasteMode);
 	}
 
 	detachFromElement(): void {
@@ -1297,9 +1297,9 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		const store = new DisposableStore();
 		const dndController = store.add(this._scopedInstantiationService.createInstance(TerminalInstanceDragAndDropController, container));
 		store.add(dndController.onDropTerminal(e => this._onRequestAddInstanceToGroup.fire(e)));
-		store.add(dndController.onDropFile(async path => {
+		store.add(dndController.onDropFile(path => {
 			this.focus();
-			await this.sendPath(path, false);
+			this.sendPath(path, false).catch(error => this._notificationService.error(error));
 		}));
 		store.add(new dom.DragAndDropObserver(container, dndController));
 		this._dndObserver.value = store;
@@ -1444,13 +1444,19 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 		return true;
 	}
 
+	private async _sendTextOrThrow(text: string, shouldExecute: boolean, forceBracketedPasteMode?: boolean): Promise<void> {
+		if (!await this.sendText(text, shouldExecute, forceBracketedPasteMode)) {
+			throw new Error(terminalStrings.inputDeliveryFailed);
+		}
+	}
+
 	async sendSignal(signal: string): Promise<void> {
 		this._logService.debug('sending signal (vscode)', signal);
 		await this._processManager.sendSignal(signal);
 	}
 
 	async sendPath(originalPath: string | URI, shouldExecute: boolean): Promise<void> {
-		return this.sendText(await this.preparePathForShell(originalPath), shouldExecute);
+		await this._sendTextOrThrow(await this.preparePathForShell(originalPath), shouldExecute);
 	}
 
 	async preparePathForShell(originalPath: string | URI): Promise<string> {
@@ -1707,7 +1713,7 @@ export class TerminalInstance extends Disposable implements ITerminalInstance {
 
 	public async freePortKillProcess(port: string, command: string): Promise<void> {
 		await this._processManager?.freePortKillProcess(port);
-		this.runCommand(command, false);
+		await this.runCommand(command, false);
 	}
 
 	private _onProcessData(ev: IProcessDataEvent): void {

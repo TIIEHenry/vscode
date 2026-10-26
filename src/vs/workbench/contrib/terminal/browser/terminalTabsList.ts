@@ -57,6 +57,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IStorageService, StorageScope } from '../../../../platform/storage/common/storage.js';
 import { TerminalStorageKeys } from '../common/terminalStorageKeys.js';
 import { isObject } from '../../../../base/common/types.js';
+import { INotificationService } from '../../../../platform/notification/common/notification.js';
 
 const $ = DOM.$;
 
@@ -631,6 +632,7 @@ class TerminalTabsDragAndDrop extends Disposable implements IListDragAndDrop<ITe
 		@ITerminalGroupService private readonly _terminalGroupService: ITerminalGroupService,
 		@ITerminalEditingService private readonly _terminalEditingService: ITerminalEditingService,
 		@IListService private readonly _listService: IListService,
+		@INotificationService private readonly _notificationService: INotificationService,
 	) {
 		super();
 		this._primaryBackend = this._terminalService.getPrimaryBackend();
@@ -807,7 +809,7 @@ class TerminalTabsDragAndDrop extends Disposable implements IListDragAndDrop<ITe
 		this._terminalService.setActiveInstance(instance);
 
 		instance.focus();
-		await instance.sendPath(resource, false);
+		await instance.sendPath(resource, false).catch(error => this._notificationService.error(error));
 	}
 }
 

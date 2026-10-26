@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1376 Catalog 与 D1378 ExtHostOutput 已合入待真实新编译/行为验收，D1377 Terminal 待合入；前轮160条/58文件仅保留历史，三槽新条目与历史归档均保留。"
+summary: "2026-10-26：D1376 Catalog、D1377 Terminal、D1378 Output 三槽源提交齐，待 merge 当前新编译/运行；前轮结果仅保留历史，默认编辑器是本阶段产品验收范围。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -22,6 +22,8 @@ summary: "2026-10-26：D1376 Catalog 与 D1378 ExtHostOutput 已合入待真实�
 | Astra / 独立视觉复核 | 用真实运行画面复核现有设置页与 responsive UI | 发现 Direct Address 中窄 Host 竖条、Client Settings 窄 Preview 裁切；已交 D 修复 |
 | D / 设置页视觉修复 | D1371 / D1372 局部响应式修复 | `292ec409fc1`，三路合成 `a514ec3d2a5`；最小刷新和行为复验已过，独立视觉 after 已通过 |
 | J / Sources 编译基线 | D1375 正式服务注入、SCM null 结果与测试生命周期 | 基线 `0ea26634bed`；方案 `220db77` 已过 D 槽只读审查，实施 `7dd0c6d` 三路合成 `a4c5e30`；当前 Sources 0 诊断，官方 Electron 六套件 171 passing，D1375 closed |
+
+| C / Terminal 投递合同 | D1377 sendPath / runCommand void 边界、三执行策略与沙箱安装 boolean | 方案 `1bfceca` 过 Astra 只读审查；源码与 27 条行为回归已补，尚未运行；merge 验证前保持 open |
 
 两次源码合入均只有 `status.md` / `deferred-gaps.md` 文档冲突，按三路内容保留 D1368、D1369、D1370 的独立意图。D1369 迁出的 2026-10-11–12 历史仍在 [原归档](../../archive/status-2026-10-11-12-retained-2026-10-26.md)，没有删除。
 
@@ -126,3 +128,10 @@ J 没有编译、转译、watch、typecheck 或写 `out/`。merge 需以旧生�
 D 工位以 `e2442d8b3ec` 开工，范围为当前 Engine Catalog 旧表单、连接 snapshot 事件与 readonly 能力构造、列表能力 namespace、工作根、对话框及回调断言类型；[短方案](../../plans/engine-catalog-test-contracts.md) 已获 J 独立只读审查（Critical 0 / Important 0）；方案 `b8ef18a4041` / 签收修稿 `1c4f891bc32`。D 不编译/转译/watch/写 out；最终编译与行为结果由 merge 统一记录，当前不宣称清零。
 
 D1376 源码已按当前合同迁移，MCP 旧 14 项保留并扩展至预期 20 项，包含真实共享 BrowserDialogHandler DOM 生命周期与确认跨断连/选择变化；完整[场景映射/静态结果](../../progress/ui-visual-review-2026-10-26-evidence/d1376-catalog-contracts.md)。D 工位只执行 ESLint 与文档检查，统一编译和实际行为结果尚未产生，D1376 保持 open。status 超出的 2026-10-16 十二批历史已整体移入[归档](../../archive/status-wave-2026-10-16-retained-2026-10-26.md)，没有删除。
+## D1377 终端投递合同待验收
+
+C 仅静态修复 [短方案](../../plans/terminal-delivery-contracts.md) 的四类根因：void 包装消费 boolean；三执行策略等待投递；事件 / public void 入口使用通知出口；沙箱安装抽象声明 boolean 并清理拒绝等待。RunInTerminal 的 1822 / 1886 共用 options：`createTerminal` 返回真实 `ITerminalInstance`，平台 `ISandboxDependencyInstallTerminal.sendText(text, shouldExecute): Promise<boolean>` 对齐后，两条安装 / 修复调用无需加 cast 或修改调用文件。group 测试传正式下标；四个旧 sendText 替身返回 true。
+
+新增 27 条受控行为：TerminalInstance 3（路径 void accepted / dropped、命令 dropped、Ctrl+C dropped）；安装 / 修复各 5 个屏障结果（accepted / dropped / throw / cancelled / disposed）共 10；三执行策略各 dropped / throw 共 6；Basic 清行 2、None 清行 1；Inline Chat accepted / refused 2；MainThread public void 通知 1；RunInTerminal 安装 / 修复拒绝后原命令不执行 2。Astra 只读复核核心实现未发现 Critical / Important；指出 send pending 时取消会释放监听，但方法仍等 send 解决，本文与方案按这个真实边界表述。
+
+C 不编译、不转译、不启动 watch、不写 out、不运行旧产物冒充验证。目标 [ESLint 日志](../../progress/ui-visual-review-2026-10-26-evidence/terminal-delivery-eslint.log) 与 diff-check / docs-health 是静态检查；行为尚未验证，不推算全仓诊断下降。merge 需当前唯一新编译与新产物定向套件：`terminalInstance`、`terminalGroup`、`outputMonitor`、`terminalSandboxService`、`basicExecuteStrategy`、`noneExecuteStrategy`、`richExecuteStrategy`、`terminalExecutionDelivery`、`terminalChatWidget`、`mainThreadTerminalShellIntegration`、`runInTerminalTool`。

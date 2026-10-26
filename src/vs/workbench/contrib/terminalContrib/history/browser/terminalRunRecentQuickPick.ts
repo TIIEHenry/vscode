@@ -30,6 +30,7 @@ import { ResourceSet } from '../../../../../base/common/map.js';
 import { extUri, extUriIgnorePathCase } from '../../../../../base/common/resources.js';
 import { IPathService } from '../../../../services/path/common/pathService.js';
 import { isObject } from '../../../../../base/common/types.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 
 export async function showRunRecentQuickPick(
 	accessor: ServicesAccessor,
@@ -49,6 +50,7 @@ export async function showRunRecentQuickPick(
 	const quickInputService = accessor.get(IQuickInputService);
 	const storageService = accessor.get(IStorageService);
 	const pathService = accessor.get(IPathService);
+	const notificationService = accessor.get(INotificationService);
 
 	const runRecentStorageKey = `${TerminalStorageKeys.PinnedRecentCommandsPrefix}.${instance.shellType}`;
 	let placeholder: string;
@@ -360,7 +362,7 @@ export async function showRunRecentQuickPick(
 		terminalScrollStateSaved = false;
 		instance.xterm?.markTracker.clear();
 		instance.scrollToBottom();
-		instance.runCommand(text, !quickPick.keyMods.alt);
+		instance.runCommand(text, !quickPick.keyMods.alt).catch(error => notificationService.error(error));
 		if (quickPick.keyMods.alt) {
 			instance.focus();
 		}

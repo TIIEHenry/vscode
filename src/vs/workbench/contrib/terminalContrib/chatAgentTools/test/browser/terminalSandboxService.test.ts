@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { deepStrictEqual, ok, rejects, strictEqual } from 'assert';
-import { CancellationToken } from '../../../../../../base/common/cancellation.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../../../base/common/cancellation.js';
+import { DeferredPromise } from '../../../../../../base/common/async.js';
 import { IChannel } from '../../../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/test/common/utils.js';
 import { TestInstantiationService } from '../../../../../../platform/instantiation/test/common/instantiationServiceMock.js';
@@ -31,6 +32,7 @@ import { testWorkspace } from '../../../../../../platform/workspace/test/common/
 import { ILifecycleService } from '../../../../../services/lifecycle/common/lifecycle.js';
 import { ISandboxDependencyStatus, ISandboxHelperService, type IWindowsMxcConfig, IWindowsMxcFilesystemPolicy, type IWindowsMxcPolicyContainment, type IWindowsMxcSandboxPolicy } from '../../../../../../platform/sandbox/common/sandboxHelperService.js';
 import { IWindowsMxcTerminalSandboxRuntime, WindowsMxcTerminalSandboxRuntime } from '../../../../../../platform/sandbox/common/terminalSandboxMxcRuntime.js';
+import { TerminalCapability } from '../../../../../../platform/terminal/common/capabilities/capabilities.js';
 import { getTerminalSandboxReadAllowListForCommands } from '../../../../../../platform/sandbox/common/terminalSandboxReadAllowList.js';
 import { getTerminalSandboxRuntimeConfigurationForCommands } from '../../../../../../platform/sandbox/common/terminalSandboxRuntimeConfigurationPerOperation.js';
 
@@ -351,6 +353,7 @@ suite('TerminalSandboxService - network domains', () => {
 			sendText: async command => {
 				sentCommand = command;
 				commandFinishedEmitter.fire({ exitCode: 0 });
+				return true;
 			},
 			focus: () => { },
 			capabilities: {
@@ -369,6 +372,67 @@ suite('TerminalSandboxService - network domains', () => {
 		strictEqual(result.exitCode, 0);
 		strictEqual(sentCommand, `sudo apt-get update && sudo apt-get install -y 'bubblewrap' 'socat'`);
 	});
+
+	for (const kind of ['install', 'remediate'] as const) {
+		for (const outcome of ['accepted', 'dropped', 'throw', 'cancelled', 'disposed'] as const) {
+			test(`${kind} requires accepted delivery before using an early completion (${outcome})`, async () => {
+				sandboxHelperService.status = {
+					bubblewrapInstalled: false,
+					bubblewrapUsable: false,
+					socatInstalled: true,
+					dependencyInstallCommand: 'sudo apt-get install -y',
+				};
+				const sandboxService = store.add(instantiationService.createInstance(TerminalSandboxService));
+				const commandFinished = store.add(new Emitter<{ exitCode: number | undefined }>());
+				const disposed = store.add(new Emitter<unknown>());
+				const capabilityAdded = store.add(new Emitter<{ id: TerminalCapability }>());
+				const cts = store.add(new CancellationTokenSource());
+				const delivery = new DeferredPromise<boolean>();
+				const entered = new DeferredPromise<void>();
+				const failure = new Error('delivery failed');
+				const terminal: ISandboxDependencyInstallTerminal = {
+					sendText: async () => {
+						entered.complete();
+						return delivery.p;
+					},
+					focus: () => { },
+					capabilities: {
+						get: () => ({ onCommandFinished: commandFinished.event }),
+						onDidAddCapability: capabilityAdded.event,
+					},
+					onDidInputData: Event.None,
+					onDisposed: disposed.event,
+				};
+				const options = { createTerminal: async () => terminal, focusTerminal: async () => { } };
+				const resultPromise = kind === 'install'
+					? sandboxService.installMissingSandboxDependencies(['bubblewrap'], undefined, cts.token, options)
+					: sandboxService.runSandboxRemediation(TerminalSandboxPreCheckRemediation.DisableUnprivilagedusernamespaceRestriction, undefined, cts.token, options);
+				let settled = false;
+				const observed = resultPromise.then(result => {
+					settled = true;
+					return result;
+				});
+				await entered.p;
+				commandFinished.fire({ exitCode: 0 });
+				await Promise.resolve();
+				strictEqual(settled, false, 'A completion frame cannot acknowledge pending input');
+				if (outcome === 'cancelled') {
+					cts.cancel();
+				} else if (outcome === 'disposed') {
+					disposed.fire(undefined);
+				}
+				if (outcome === 'throw') {
+					const rejected = rejects(observed, error => error === failure);
+					delivery.error(failure);
+					await rejected;
+				} else {
+					delivery.complete(outcome !== 'dropped');
+					deepStrictEqual(await observed, { exitCode: outcome === 'accepted' ? 0 : undefined });
+				}
+				deepStrictEqual([commandFinished.hasListeners(), capabilityAdded.hasListeners(), disposed.hasListeners()], [false, false, false]);
+			});
+		}
+	}
 
 	test('should install sandbox dependencies with the remote host package manager', async () => {
 		sandboxHelperService.status = {
@@ -400,6 +464,7 @@ suite('TerminalSandboxService - network domains', () => {
 			sendText: async command => {
 				sentCommand = command;
 				commandFinishedEmitter.fire({ exitCode: 0 });
+				return true;
 			},
 			focus: () => { },
 			capabilities: {
@@ -449,6 +514,7 @@ suite('TerminalSandboxService - network domains', () => {
 				sendText: async command => {
 					sentCommand = command;
 					commandFinishedEmitter.fire({ exitCode: 0 });
+					return true;
 				},
 				focus: () => { },
 				capabilities: {

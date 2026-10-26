@@ -80,7 +80,8 @@ export interface ITerminalSandboxCommand {
  * does not import browser types directly.
  */
 export interface ISandboxDependencyInstallTerminal {
-	sendText(text: string, addNewLine?: boolean): Promise<void>;
+	/** Returns whether input was delivered to the current process, not whether it succeeded. */
+	sendText(text: string, shouldExecute: boolean): Promise<boolean>;
 	focus(): void;
 	capabilities: {
 		get(id: TerminalCapability.CommandDetection): { onCommandFinished: Event<{ exitCode: number | undefined }> } | undefined;

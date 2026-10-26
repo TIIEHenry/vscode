@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1376 Catalog 与 D1378 ExtHostOutput 已合入，均待本轮新编译/行为验收；D1377 Terminal 最终源提交待合入。前轮160条/58文件仅保留历史，归档完整保留，未 push。"
+summary: "2026-10-26 默认编辑器验收：D1376 Catalog、D1377 Terminal 与 D1378 ExtHostOutput 源码已三路合入，待当前唯一新编译及真实行为；历史归档与三槽摘要均保留，未 push。"
 
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **终端投递合同（2026-10-26，D1377）**：C 方案 `1bfceca` 经 Astra 只读审查；保留 `sendPath` / `runCommand` void API，false 转受控失败，三执行策略等送达、全部已知事件 / void 调用交给通知；沙箱安装 / 修复采用 boolean 并释放拒绝 / 异常等待。补 27 条送达屏障与错误出口行为回归，C 未编译 / 转译 / 运行，目标 ESLint 与文档静态检查见[本轮看板](../parallel/active/ui-visual-review-2026-10-26.md)。D1377 open，待 merge 新编译与新产物验证。
 - **Extension Host 输出通道合同（2026-10-26，D1378）**：[短方案](../plans/ext-host-output-promise-contract.md) 经 Astra 规则 16 审查无阻塞并先独立提交 `2f04745`。现文件系统 Thenable 先归一原生 Promise，保留 mkdir 原拒绝；初始化失败一次报告、公共派生链显式消费已报告错误，操作自身抛错仍报告；日志缓存 disposer 随同步句柄登记。新增 8 条行为 / 保留原 11 条；正式 RPC、filesystem/logger 与 Search 配置 typed 夹具，3 TS ESLint 0 errors / warnings。未编译、转译、watch 或写 out；merge 新编译及 red/green 未跑，D1378 open、方案 accepted。
 - **Engine Catalog 合同基线（2026-10-26，D1376）**：已按独立审查后的[短方案](../plans/engine-catalog-test-contracts.md)迁移 MCP 14 个旧场景至当前工具栏 / 共享对话框，预期注册 20 项（未运行）；补真实 BrowserDialogHandler 校验与关闭 DOM、确认等待跨断连/选中变化、完整 session/workroot 夹具、只读能力构造与 snapshot 事件、TestDialogService 兼容参数及 never 窄化。生产仅删 unused，不恢复旧表单。目标 ESLint 0 errors / 57 warnings；D 未编译/转译/watch/写 out，D1376 保持 open，最终结果待 merge。覆盖映射见[证据](ui-visual-review-2026-10-26-evidence/d1376-catalog-contracts.md)。
 - **Sources 编译合同根因闭合（2026-10-26，D1375）**：J 方案 `220db77`、实施 `7dd0c6d` 已三路合成 `a4c5e30`。当前唯一新 `compile-client` exit 1（160 条 TS / 58 文件），Sources 0、本 follow-up 改动 TS 0，旧映射 9 条均消失；六套件 Chromium 162 过 / 8 个既有 process 环境失败，官方 Electron 隔离 Xvfb 同六套件 171 passing（含清理检查），新增 6 项全过。11 文件 ESLint 0 errors / 31 既有 warnings；[短方案](../plans/sources-compile-contracts.md) implemented，仅闭合三类合同，不扩大其余诊断；[当前日志/快照](../parallel/active/ui-visual-review-2026-10-26.md)。

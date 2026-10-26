@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { strictEqual, rejects } from 'assert';
+import { deepStrictEqual, strictEqual, rejects } from 'assert';
+import { runWithFakedTimers } from '../../../../../../base/test/common/timeTravelScheduler.js';
 import { CancellationToken } from '../../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../../base/common/event.js';
 import { toDisposable } from '../../../../../../base/common/lifecycle.js';
@@ -47,9 +48,10 @@ suite('BasicExecuteStrategy', () => {
 			onData: Event.None,
 			onDisposed: Event.None,
 			onExit: onExitEmitter.event,
-			sendText: () => {
+			sendText: async () => {
 				// Simulate process exiting without firing onCommandFinished
 				queueMicrotask(() => onExitEmitter.fire(1));
+				return true;
 			},
 		} as unknown as ITerminalInstance;
 		const commandDetection = {
@@ -67,6 +69,27 @@ suite('BasicExecuteStrategy', () => {
 
 		strictEqual(result.exitCode, 1);
 	});
+
+	for (const isExecuting of [false, true]) {
+		test(`does not send a command when clearing pending input is dropped (executing=${isExecuting})`, () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+			const sent: string[] = [];
+			const instance = {
+				xtermReadyPromise: Promise.resolve({ raw: { buffer: { active: {}, alternate: {}, onBufferChange: Event.None }, registerMarker: () => ({ line: 0, onDispose: Event.None, dispose: () => { } }) } }),
+				onData: Event.None,
+				onDisposed: Event.None,
+				onExit: Event.None,
+				sendText: async (text: string) => {
+					sent.push(text);
+					return false;
+				},
+			} as unknown as ITerminalInstance;
+			const detection = { onCommandFinished: Event.None, executingCommandObject: isExecuting ? {} : undefined } as unknown as ICommandDetectionCapability;
+			const strategy = store.add(new BasicExecuteStrategy(instance, () => true, detection, new TestConfigurationService(), createLogService()));
+
+			await rejects(strategy.execute('echo delivery', CancellationToken.None), /could not be delivered/);
+			deepStrictEqual(sent, [isExecuting ? '\x03' : '\x15']);
+		}));
+	}
 
 	test('rejects when pty has already exited before execute()', async () => {
 		// Simulates the scenario where the shell process from a previous command

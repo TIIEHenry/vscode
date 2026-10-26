@@ -16,6 +16,7 @@ import { createAltBufferPromise, setupRecreatingStartMarker, stripCommandEchoAnd
 import { TerminalChatAgentToolsSettingId } from '../../common/terminalChatAgentToolsConfiguration.js';
 import { isMacintosh } from '../../../../../../base/common/platform.js';
 import { isMultilineCommand } from '../runInTerminalHelpers.js';
+import { terminalStrings } from '../../../../terminal/common/terminalStrings.js';
 
 /**
  * This strategy is used when no shell integration is available. There are very few extension APIs
@@ -81,7 +82,9 @@ export class NoneExecuteStrategy extends Disposable implements ITerminalExecuteS
 				// 130" results for the next command. Ctrl+U is a no-op on an idle
 				// prompt.
 				this._log('Sending Ctrl+U to clear any pending input before sending command');
-				await this._instance.sendText('\x15', false);
+				if (!await this._instance.sendText('\x15', false)) {
+					throw new Error(terminalStrings.inputDeliveryFailed);
+				}
 				await waitForIdle(this._instance.onData, 100);
 			}
 
@@ -93,7 +96,9 @@ export class NoneExecuteStrategy extends Disposable implements ITerminalExecuteS
 			markerRecreation.dispose();
 			const startLine = this._startMarker.value?.line;
 			const forceBracketedPasteMode = isMacintosh || isMultilineCommand(commandLine);
-			this._instance.sendText(commandLine, true, forceBracketedPasteMode);
+			if (!await this._instance.sendText(commandLine, true, forceBracketedPasteMode)) {
+				throw new Error(terminalStrings.inputDeliveryFailed);
+			}
 
 			// Wait for the cursor to move past the command line before
 			// starting idle detection. Without this, the idle poll may

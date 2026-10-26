@@ -12,6 +12,7 @@ import { IWorkbenchEnvironmentService } from '../../services/environment/common/
 import { extHostNamedCustomer, type IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
 import { TerminalShellExecutionCommandLineConfidence } from '../common/extHostTypes.js';
 import { IExtensionService } from '../../services/extensions/common/extensions.js';
+import { INotificationService } from '../../../platform/notification/common/notification.js';
 
 @extHostNamedCustomer(MainContext.MainThreadTerminalShellIntegration)
 export class MainThreadTerminalShellIntegration extends Disposable implements MainThreadTerminalShellIntegrationShape {
@@ -21,7 +22,8 @@ export class MainThreadTerminalShellIntegration extends Disposable implements Ma
 		extHostContext: IExtHostContext,
 		@ITerminalService private readonly _terminalService: ITerminalService,
 		@IWorkbenchEnvironmentService workbenchEnvironmentService: IWorkbenchEnvironmentService,
-		@IExtensionService private readonly _extensionService: IExtensionService
+		@IExtensionService private readonly _extensionService: IExtensionService,
+		@INotificationService private readonly _notificationService: INotificationService
 	) {
 		super();
 
@@ -109,7 +111,7 @@ export class MainThreadTerminalShellIntegration extends Disposable implements Ma
 	}
 
 	$executeCommand(terminalId: number, commandLine: string): void {
-		this._terminalService.getInstanceFromId(terminalId)?.runCommand(commandLine, true);
+		this._terminalService.getInstanceFromId(terminalId)?.runCommand(commandLine, true).catch(error => this._notificationService.error(error));
 	}
 
 	private _enableShellIntegration(instance: ITerminalInstance): void {
