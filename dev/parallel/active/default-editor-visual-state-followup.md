@@ -1,10 +1,10 @@
 ---
 title: "默认编辑器视觉状态修复协作"
 type: progress
-status: active
+status: completed
 phase: M7
 updated: 2026-10-26
-summary: "人类授权修复五项视觉问题后续审；文件互斥、父 agent 唯一刷新产物与验证。Agents Window 仅作对照。"
+summary: "默认编辑器五项视觉修复与同根因续审完成：Electron 350 passing；十四项原生焦点/窄宽 Chrome 补验全过；类型诊断无新增，未做完整产品实拍。"
 ---
 
 # 默认编辑器视觉状态修复
@@ -13,13 +13,13 @@ summary: "人类授权修复五项视觉问题后续审；文件互斥、父 age
 
 | 角色 | 独占范围 | 状态 |
 | --- | --- | --- |
-| settings_visual_audit | Connection / Engine CSS、Provider renderer 与设置测试 | 方案已审查，待实施 |
-| timeline_visual_audit | ProcessFold Model / renderer、conversationLens.css 与模型/DOM 测试 | 方案已审查，待实施 |
-| shell_visual_audit | 已完成独立方案审查；实施会话列表 CSS/就近回归，V2b Sources 同根因修复待短审 | V2 新回归已运行旧生产，修正合法 dotted 焦点的测试断言 |
-| 父 agent | 全部文档、产物刷新与集成测试 | Fold red 43 passing / 13 failing；设置样式 red 4 passing / 6 failing；只读 Provider red 命中 |
+| settings_visual_audit | Connection / Engine CSS、Provider renderer 与设置测试 | 已修复；Provider 几何补验 Important 已闭合；交叉审 Fold 无阻断 |
+| timeline_visual_audit | ProcessFold Model / renderer、conversationLens.css 与模型/DOM 测试 | 已修复；V2b 独立短审通过；设置交叉审的几何验证缺口已闭合 |
+| shell_visual_audit | 方案独立审查；会话列表与 Sources CSS/真实 View/Tree 回归 | 已修复；真实浏览器验证选中行过渡，测试保留图标 token 差异与原生焦点前提 |
+| 父 agent | 全部文档、唯一产物刷新与集成测试 | Electron 350 passing / 14 pending；Chrome 对应十四项 14 passing / 0 pending；九份 TS 新增诊断 0 |
 
-V2b 续审定位：`sourcesFilesExplorer.ts` 的引擎目录入口仍现行可达；`sourcesFilesList.css` 的名称色覆盖行选择色，和 V2 同根因。`timeline_visual_audit` 独立短审 Critical / Important 无；只收敛选择态名称继承与真实树 DOM 回归，可进入实施。
+V2b 续审定位：`sourcesFilesExplorer.ts` 的引擎目录入口仍现行可达；`sourcesFilesList.css` 的名称色覆盖行选择色，和 V2 同根因。`timeline_visual_audit` 独立短审 Critical / Important 无；选择态名称继承已实施，真实树五主题原生焦点回归全部通过。
 
 ## 验证与续审
 
-规则 16 独立只读审查已完成，两项 Important 已改入方案。尚未更改产品代码、没有新运行验证；父 agent 已持锁刷新七份基线生产 TS/CSS，快照留在本地 `.build/default-editor-visual-state-followup/baseline-output.json`，供新增回归先验失败。沿用已有全仓编译红基线的事实，不把最小刷新或定向测试写成全仓通过。
+规则 16 独立只读审查已完成，两项 Important 已改入方案并实施。父 agent 持锁刷新七份基线生产，再仅刷新十四份最终改动产物；原始 red / 排障日志留在本地 `.build/default-editor-visual-state-followup/`。最终日志、摘要与覆盖限制已收敛到 [验证证据](../../progress/default-editor-visual-state-followup-evidence/verification.md)。沿用已有全仓编译红基线的事实，不把最小刷新或定向测试写成全仓通过。

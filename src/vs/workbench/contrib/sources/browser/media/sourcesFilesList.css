@@ -129,6 +129,11 @@
 	color: var(--vscode-foreground);
 }
 
+.monaco-workbench .part.sources .sources-files-list .monaco-list-row.selected .label-name,
+.monaco-workbench .part.sources .sources-files-list .monaco-list-row.focused .label-name {
+	color: inherit;
+}
+
 .monaco-workbench .part.sources .sources-files-list .monaco-icon-description-container {
 	flex: 1 1 auto;
 	min-width: 0;

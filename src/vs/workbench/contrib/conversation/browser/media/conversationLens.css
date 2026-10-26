@@ -1706,11 +1706,34 @@
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-summary {
-	flex: 1;
+	flex: 1 1 8em;
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-header {
+	flex-wrap: wrap;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-statuses {
+	display: inline-flex;
+	flex: 0 1 auto;
+	flex-wrap: wrap;
+	gap: 4px 8px;
+	min-width: 0;
+	max-width: 100%;
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-statuses[hidden] {
+	display: none;
+}
+
+.monaco-workbench .part.conversation .conversation-process-fold-status-count {
+	max-width: 100%;
+	overflow-wrap: anywhere;
 }
 
 .monaco-workbench .part.conversation .conversation-process-fold-chevron {

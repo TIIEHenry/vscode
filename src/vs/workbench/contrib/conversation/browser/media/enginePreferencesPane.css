@@ -90,7 +90,7 @@
 .monaco-workbench .engine-preferences-disconnected-banner.is-warning {
 	border: none;
 	background: color-mix(in srgb, var(--ua-status-warn, var(--vscode-editorWarning-foreground)) 12%, transparent);
-	color: var(--ua-status-warn, var(--vscode-editorWarning-foreground));
+	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .engine-preferences-disconnected-banner.is-warning::before {
@@ -224,7 +224,7 @@
 	content: none;
 }
 
-:is(.hc-black, .hc-light) .monaco-workbench .engine-preferences-nav-row.selected::before {
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-nav-row.selected::before {
 	content: '';
 	position: absolute;
 	inset-block: 0;
@@ -309,7 +309,7 @@
 	background: var(--vscode-button-secondaryHoverBackground);
 }
 
-:is(.hc-black, .hc-light) .monaco-workbench .engine-preferences-back:focus-visible {
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-back:focus-visible {
 	outline: 1px solid var(--vscode-contrastActiveBorder);
 	box-shadow: none;
 }
@@ -397,7 +397,7 @@
 	outline-offset: 1px;
 }
 
-:is(.hc-black, .hc-light) .monaco-workbench .engine-test-row > .monaco-button {
+.monaco-workbench:is(.hc-black, .hc-light) .engine-test-row > .monaco-button {
 	border: 1px solid var(--vscode-contrastBorder);
 }
 
@@ -427,13 +427,13 @@
 }
 
 .monaco-workbench .engine-test-status.is-success {
-	color: var(--ua-status-ok, var(--vscode-testing-iconPassed));
+	color: var(--vscode-foreground);
 	background: color-mix(in srgb, var(--ua-status-ok, var(--vscode-testing-iconPassed)) 12%, transparent);
 }
 
 .monaco-workbench .engine-test-status.is-pending,
 .monaco-workbench .engine-test-status.is-warning {
-	color: var(--ua-status-warn, var(--vscode-editorWarning-foreground));
+	color: var(--vscode-foreground);
 	background: color-mix(in srgb, var(--ua-status-warn, var(--vscode-editorWarning-foreground)) 12%, transparent);
 }
 
@@ -490,7 +490,7 @@
 /* A status only raises its voice when the news is bad. */
 .monaco-workbench .engine-section-status--warning,
 .monaco-workbench .engine-catalog-status-widget[data-catalog-mode="unsupported"] .engine-catalog-status-message {
-	color: var(--vscode-notificationsWarningIcon-foreground);
+	color: var(--vscode-foreground);
 }
 
 .monaco-workbench .engine-section-status--error,
@@ -602,13 +602,13 @@
 	cursor: default;
 }
 
-:is(.hc-black, .hc-light) .monaco-workbench .engine-triggers-actions .monaco-button,
-:is(.hc-black, .hc-light) .monaco-workbench .engine-catalog-icon-actions .monaco-button {
+.monaco-workbench:is(.hc-black, .hc-light) .engine-triggers-actions .monaco-button,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-catalog-icon-actions .monaco-button {
 	border: 1px solid var(--vscode-contrastBorder);
 }
 
-:is(.hc-black, .hc-light) .monaco-workbench .engine-triggers-actions .monaco-button:focus-visible,
-:is(.hc-black, .hc-light) .monaco-workbench .engine-catalog-icon-actions .monaco-button:focus-visible {
+.monaco-workbench:is(.hc-black, .hc-light) .engine-triggers-actions .monaco-button:focus-visible,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-catalog-icon-actions .monaco-button:focus-visible {
 	outline: 1px solid var(--vscode-contrastActiveBorder);
 }
 
@@ -652,7 +652,7 @@
 .monaco-workbench .engine-agents-editor-status.is-success,
 .monaco-workbench .engine-tools-info-status.is-success,
 .monaco-workbench .engine-plugins-scan-result.is-success {
-	color: var(--ua-status-ok, var(--vscode-testing-iconPassed));
+	color: var(--vscode-foreground);
 	background: color-mix(in srgb, var(--ua-status-ok, var(--vscode-testing-iconPassed)) 12%, transparent);
 	border: none;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
@@ -717,17 +717,39 @@
 	background-color: var(--vscode-toolbar-activeBackground, color-mix(in srgb, var(--vscode-foreground) 10%, transparent));
 }
 
-.monaco-workbench .engine-triggers-row:hover,
-.monaco-workbench .engine-clipboard-row:hover,
-.monaco-workbench .engine-context-variable-row:hover {
+.monaco-workbench .engine-triggers-row:hover:not(.selected),
+.monaco-workbench .engine-clipboard-row:hover:not(.selected),
+.monaco-workbench .engine-context-variable-row:hover:not(.selected) {
 	background: var(--vscode-toolbar-hoverBackground);
 }
 
 .monaco-workbench .engine-triggers-row.selected,
 .monaco-workbench .engine-clipboard-row.selected,
 .monaco-workbench .engine-context-variable-row.selected {
-	background: var(--vscode-toolbar-hoverBackground, var(--vscode-list-inactiveSelectionBackground));
+	background: var(--vscode-list-inactiveSelectionBackground);
+	color: var(--vscode-list-inactiveSelectionForeground, var(--vscode-foreground));
 	font-weight: 400;
+}
+
+.monaco-workbench .engine-triggers-list:focus-within .engine-triggers-row.selected,
+.monaco-workbench .engine-clipboard-list:focus-within .engine-clipboard-row.selected,
+.monaco-workbench .engine-context-variable-list:focus-within .engine-context-variable-row.selected {
+	background: var(--vscode-list-activeSelectionBackground);
+	color: var(--vscode-list-activeSelectionForeground, var(--vscode-foreground));
+}
+
+.monaco-workbench :is(.engine-triggers-row, .engine-clipboard-row, .engine-context-variable-row).selected * {
+	color: inherit;
+}
+
+.monaco-workbench :is(.engine-triggers-row, .engine-clipboard-row, .engine-context-variable-row):focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-list-focusOutline, var(--vscode-focusBorder));
+	outline-offset: -1px;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) :is(.engine-triggers-row, .engine-clipboard-row, .engine-context-variable-row).selected {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-contrastActiveBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .engine-overview-row,
@@ -777,8 +799,7 @@
 	font-size: var(--vscode-fontSize-label1);
 }
 
-.monaco-workbench .engine-models-row--disabled,
-.monaco-workbench .engine-provider-status-row--disabled {
+.monaco-workbench .engine-models-row--disabled {
 	opacity: 0.55;
 }
 
@@ -862,9 +883,12 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	min-width: 0;
 }
 
 .monaco-workbench .engine-providers-section .engine-catalog-name {
+	flex-shrink: 1;
+	min-width: 0;
 	font-size: var(--vscode-fontSize-body1, 13px);
 	font-weight: 400;
 	line-height: 24px;
@@ -887,7 +911,8 @@
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	flex-shrink: 0;
+	flex: 0 1 auto;
+	min-width: 0;
 	margin-left: auto;
 }
 
@@ -905,8 +930,9 @@
 
 .monaco-workbench .engine-provider-pill--success {
 	background: color-mix(in srgb, var(--ua-status-ok, var(--vscode-testing-iconPassed)) 12%, transparent);
-	color: var(--ua-status-ok, var(--vscode-testing-iconPassed));
+	color: var(--vscode-foreground);
 	border: none;
+	flex-shrink: 0;
 }
 
 .monaco-workbench .engine-provider-pill--success .engine-provider-pill-dot {
@@ -920,8 +946,9 @@
 
 .monaco-workbench .engine-provider-pill--warning {
 	background: color-mix(in srgb, var(--ua-status-warn, var(--vscode-editorWarning-foreground)) 12%, transparent);
-	color: var(--ua-status-warn, var(--vscode-editorWarning-foreground));
+	color: var(--vscode-foreground);
 	border: none;
+	flex-shrink: 0;
 }
 
 .monaco-workbench .engine-provider-pill--warning .engine-provider-pill-dot {
@@ -934,67 +961,26 @@
 }
 
 .monaco-workbench .engine-provider-pill--muted {
+	display: block;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 	color: var(--vscode-descriptionForeground);
 	border: none;
 	font-size: 11px;
 }
 
-:is(.hc-black, .hc-light) .monaco-workbench .engine-provider-pill {
+.monaco-workbench:is(.hc-black, .hc-light) .engine-provider-pill {
 	border: var(--vscode-strokeThickness) solid var(--vscode-contrastBorder);
 }
 
-.monaco-workbench .engine-provider-switch {
-	position: relative;
-	display: inline-flex;
+.monaco-workbench .engine-provider-enabled-status {
 	flex: 0 0 auto;
-	box-sizing: border-box;
-	width: 34px;
-	height: 20px;
-	padding: 0;
-	border: none;
-	border-radius: 9999px;
-	background-color: color-mix(in srgb, var(--vscode-foreground) 20%, transparent);
-	pointer-events: none;
-}
-
-.monaco-workbench .engine-provider-switch.is-enabled {
-	background-color: var(--vscode-testing-iconPassed);
-}
-
-.monaco-workbench .engine-provider-switch-thumb {
-	position: absolute;
-	top: 2px;
-	inset-inline-start: 2px;
-	width: 16px;
-	height: 16px;
-	border-radius: 9999px;
-	background: var(--vscode-checkbox-foreground, var(--vscode-editor-background));
-	box-shadow: none;
-}
-
-.monaco-workbench .engine-provider-switch.is-enabled .engine-provider-switch-thumb {
-	inset-inline-start: 16px;
-}
-
-:is(.hc-black, .hc-light) .monaco-workbench .engine-provider-switch {
-	border: var(--vscode-strokeThickness) solid var(--vscode-contrastBorder);
-}
-
-.monaco-workbench .engine-provider-switch-container {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	flex-shrink: 0;
-}
-
-.monaco-workbench .engine-provider-switch-label {
-	font-size: 0;
-	width: 0;
-	height: 0;
-	opacity: 0;
-	overflow: hidden;
-	pointer-events: none;
+	font-size: var(--vscode-fontSize-label2, 11px);
+	line-height: 24px;
+	color: var(--vscode-foreground);
+	white-space: nowrap;
 }
 
 .monaco-workbench .engine-provider-catalog {
@@ -1352,11 +1338,11 @@
 	border-left: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
 }
 
-:is(.hc-black, .hc-light) .monaco-workbench .engine-agents-section:not(.is-split) .engine-agents-detail {
+.monaco-workbench:is(.hc-black, .hc-light) .engine-agents-section:not(.is-split) .engine-agents-detail {
 	border-top-color: var(--vscode-contrastBorder);
 }
 
-:is(.hc-black, .hc-light) .monaco-workbench .engine-agents-section.is-split .engine-agents-detail {
+.monaco-workbench:is(.hc-black, .hc-light) .engine-agents-section.is-split .engine-agents-detail {
 	border-left-color: var(--vscode-contrastBorder);
 }
 

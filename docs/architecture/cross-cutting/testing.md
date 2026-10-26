@@ -3,8 +3,8 @@ title: "测试与校验"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-05
-summary: "单测、集成测与编辑器窗口产品壳剧本的入口；sessions e2e 不是这条壳。何时 typecheck、valid-layers-check。原则摘自 Copilot Instructions"
+updated: 2026-10-26
+summary: "单测、集成测与默认编辑器产品壳入口；焦点样式需真实聚焦浏览器，隐藏 Electron 的 pending 不算通过；何时 typecheck、valid-layers-check。"
 ---
 
 # 测试与校验
@@ -51,6 +51,20 @@ Copilot Instructions 要求：尽量加针对性选择器（如 `--grep`）。
 - Node 单测：`npm run test-node -- --run src/vs/editor/test/browser/controller/cursor.test.ts`
 
 跑单测前若只要新鲜输出文件，用 `npm run transpile-client`，不要先 `compile` 再仪式性 typecheck。
+
+### 验证真实焦点样式
+
+`test/unit/electron/index.js` 默认以 `show: false` 创建窗口。元素即使是 `activeElement`，文档仍可能没有原生焦点，`:focus` / `:focus-visible` 也不会生效。不能据此测活动选中颜色、焦点环或依靠焦点显露的操作，更不能把它当成缺陷已修复。
+
+仅对依赖真实焦点的样式用例：挂载生产 View / List / Tree 和生产 CSS，先确认目标窗口的 `document.hasFocus()`，再检查目标元素 `matches(':focus')`。隐藏 Electron 无法聚焦时可明确 `this.skip()`；该 pending 只表示环境前提不满足，必须在可聚焦的官方浏览器 runner 中零 pending 补验。本机已装 Chrome 时可用：
+
+```bash
+rtk proxy node test/unit/browser/index.js --browser chromium-chrome \
+  --run src/vs/workbench/contrib/conversation/browser/conversationSessionsView.test.ts \
+  --grep 'selected session text follows'
+```
+
+测量窗口与元素用 `getWindow(element)` 取得，避免多窗口下读错文档。对比度按真实层叠背景合成；主题允许图标前景与文字前景不同，分别核对配对 token 和可读性。焦点前景立即变化时，背景过渡也须核查，不能仅等过渡结束来掩盖切换瞬间的低对比。产品初始 palette 的 DOM 回归与完整主题、真实产品窗口实拍分别记录。
 
 ## 集成测试
 

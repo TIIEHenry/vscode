@@ -1,10 +1,10 @@
 ---
 title: "默认编辑器视觉状态修复与续审"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "修复默认编辑器五项视觉发现：状态正文对比、会话列表失焦前景、选择与悬停区分、Provider 只读呈现、过程折取消摘要；以生产 CSS/DOM 与行为回归验证。"
+summary: "五项视觉修复与同根因续审已落地；Electron 350 passing，十四项原生焦点/窄宽 Chrome 回归全过；定向类型无新增诊断，不升 PRD 总体状态。"
 ---
 
 # 默认编辑器视觉状态修复与续审
@@ -36,10 +36,11 @@ summary: "修复默认编辑器五项视觉发现：状态正文对比、会话�
 
 - [x] 规则 16：`shell_visual_audit` 于 2026-10-26 独立只读审查，Critical 无；两项 Important 已核验写入 V3 的前景/背景与子文字配对、V4 的 Provider 整行透明度边界；可进入实施。Minor 纳入回归：未知工具覆盖 live / Stub，两态均不画完成勾；全部明确 completed 时外层仍无图标，仅工具行保留勾。
 - [x] V2b 补充短审：`timeline_visual_audit` 独立核对现行引擎目录 → SourcesFilesList → WorkbenchObjectTree / ResourceLabels 路径，Critical / Important 无，可实施；Minor 采纳为聚焦未选行与未选邻行不受新选择样式污染的回归。
-- [ ] V1 / V3 / V4 设置侧修复及回归。
-- [ ] V2 会话列表失焦修复及回归。
-- [ ] V2b 续审 Sources 引擎文件列表同根因修复及回归（独立短审后实施）。
-- [ ] V5 过程折状态修复及回归。
-- [ ] 新产物针对性验证、续审与文档收尾。
+- [x] V1 / V3 / V4 设置侧修复及回归；同根因修正两份 CSS 的高对比根类选择器，Provider 保持 24px 单行、只读状态完整、托管提示随重绘释放。
+- [x] V2 会话列表失焦修复及回归；真实焦点复验补修选中行背景过渡的短暂低对比，普通悬停过渡保留，尊重主题图标前景。
+- [x] V2b 续审 Sources 引擎文件列表同根因修复及回归（独立短审后实施）。
+- [x] V5 过程折状态修复及回归；状态摘要不随步骤名省略，未知工具不画完成勾，取消与混合状态原位更新。
+- [x] 新产物针对性验证、续审与文档收尾；八套件 Electron 350 passing / 14 个真实焦点 pending，官方 Chrome 补验该十四项全部通过且零 pending；定向九份 TS 与 HEAD 同为九条既有诊断，无新增。详见 [验证证据](../progress/default-editor-visual-state-followup-evidence/verification.md)。
+- [x] 最终独立只读复核：`timeline_visual_audit` 确认代码/文档边界与验证数量一致，Critical / Important 无；Minor 已收窄 Back 焦点环仅条件核对的证据措辞。
 
 协作与最终证据统一记入 [本轮看板](../parallel/active/default-editor-visual-state-followup.md)。不提升 PRD-025 / PRD-028 总体状态。

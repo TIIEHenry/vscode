@@ -82,9 +82,16 @@ suite('conversationProcessFoldModel (browser unit)', () => {
 		);
 	});
 
-	test('summarizeProcessSteps does not invent failed or waiting counts without a real status', () => {
+	test('summarizeProcessSteps counts cancelled tools and preserves other real states', () => {
+		assert.strictEqual(summarizeTools([tool('a', 'read', 'cancelled')]), 'Stub · 1 step · read · 1 cancelled');
+		assert.strictEqual(summarizeTools([tool('a', 'read', 'cancelled'), tool('b', 'write', 'cancelled')], true), '2 steps · read, write · 2 cancelled');
+		assert.strictEqual(summarizeTools([
+			tool('a', 'read', 'failed'), tool('b', 'write', 'pending'), tool('c', 'edit', 'cancelled'), tool('d', 'search', 'completed'),
+		], true), '4 steps · read, write, edit, search · 1 failed · 1 waiting · 1 cancelled');
+	});
+
+	test('summarizeProcessSteps does not invent counts without a matching real status', () => {
 		assert.strictEqual(summarizeTools([tool('a', 'read', 'running')], true), '1 step · read');
-		assert.strictEqual(summarizeTools([tool('a', 'read', 'cancelled')]), 'Stub · 1 step · read');
 		assert.strictEqual(summarizeTools([tool('a', 'read', 'completed')]), 'Stub · 1 step · read');
 		assert.strictEqual(summarizeTools([tool('a', 'read')]), 'Stub · 1 step · read');
 	});
@@ -102,6 +109,17 @@ suite('conversationProcessFoldModel (browser unit)', () => {
 			}],
 		});
 		assert.strictEqual(summary, 'Stub · 2 steps · look, write · 1 waiting');
+	});
+
+	test('summarizeProcessSteps counts cancelled tools nested on a thinking node', () => {
+		const summary = summarizeProcessSteps({
+			id: 'fold:t1', startIndex: 0, endIndex: 2, turnIds: ['t1', 'tool1'],
+			nodes: [{
+				kind: 'thinking', turn: { id: 't1', kind: 'thinking', text: 'look' },
+				tools: [tool('tool1', 'write', 'cancelled')],
+			}],
+		});
+		assert.strictEqual(summary, 'Stub · 2 steps · look, write · 1 cancelled');
 	});
 
 	test('summarizeTrajectoryProcessSteps does not invent failed or waiting counts', () => {

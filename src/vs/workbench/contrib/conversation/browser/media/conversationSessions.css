@@ -47,6 +47,11 @@
 	box-sizing: border-box;
 }
 
+/* Focus changes must switch the selected foreground and background together. */
+.monaco-workbench .conversation-sessions-list .monaco-list-row.selected {
+	transition: none;
+}
+
 .monaco-workbench .conversation-sessions-list .monaco-list-row:active {
 	background-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));
 }
@@ -137,7 +142,7 @@
 
 .monaco-workbench .conversation-sessions-list .monaco-list-row.selected .conversation-sessions-item-label {
 	font-weight: 400;
-	color: var(--vscode-list-activeSelectionForeground);
+	color: inherit;
 }
 
 .monaco-workbench .conversation-sessions-list .monaco-list-row.selected .conversation-sessions-item-subtitle,
@@ -146,7 +151,7 @@
 }
 
 .monaco-workbench .conversation-sessions-list .monaco-list-row.selected .conversation-sessions-item-icon--idle {
-	color: var(--vscode-list-activeSelectionForeground);
+	color: inherit;
 }
 
 .monaco-workbench .conversation-sessions-item-more {

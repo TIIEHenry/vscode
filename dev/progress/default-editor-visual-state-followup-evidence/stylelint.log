@@ -1,0 +1,330 @@
+Stylelint: checking 5 CSS files matched by 5 requested paths.
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(19,1): Unknown variable: --ua-conversation-identity-reserved-top
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(20,1): Unknown variable: --ua-conversation-identity-reserved-top
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(81,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(81,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(217,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(217,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(278,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(278,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(355,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(465,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(475,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(492,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(502,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(561,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(675,1): Unknown variable: --ua-ease
+
+src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css (26 design-token suggestions)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(94,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(95,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(113,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(127,1): [radius] 2px -> var(--vscode-cornerRadius-xSmall)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(165,1): [font-size] 18px -> var(--vscode-fontSize-heading2)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(166,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(214,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(273,1): [spacing] 4px 14px is off the spacing scale -> nearest: 4px 16px (var(--vscode-spacing-size40) var(--vscode-spacing-size160))
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(276,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(319,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(320,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(329,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(373,1): [spacing] 14px 0 is off the spacing scale -> nearest: 16px 0 (var(--vscode-spacing-size160) var(--vscode-spacing-sizeNone))
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(436,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(437,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(531,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(532,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(542,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(543,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(570,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(571,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(652,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(653,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(660,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(672,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css(673,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(55,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(55,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(92,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(98,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(142,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(142,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(294,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(294,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(431,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(437,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(578,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(578,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(656,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(711,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(821,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(821,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(846,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(932,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(942,1): Unknown variable: --ua-status-ok
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(948,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(958,1): Unknown variable: --ua-status-warn
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1006,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1006,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1037,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1103,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1206,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1277,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1277,1): Unknown variable: --ua-ease
+
+src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css (37 design-token suggestions)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(141,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(171,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(172,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(180,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(181,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(185,1): [spacing] 1px 7px is off the spacing scale -> nearest: 2px 8px (var(--vscode-spacing-size20) var(--vscode-spacing-size80))
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(186,1): [radius] 9999px -> var(--vscode-cornerRadius-circle)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(197,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(205,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(215,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(272,1): [font-size] 18px -> var(--vscode-fontSize-heading2)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(273,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(731,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(810,1): [spacing] 14px is off the spacing scale -> nearest: 16px (var(--vscode-spacing-size160))
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(858,1): [radius] 8px -> var(--vscode-cornerRadius-large)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(893,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(902,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(924,1): [radius] 9999px -> var(--vscode-cornerRadius-circle)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(925,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(926,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(941,1): [radius] 9999px -> var(--vscode-cornerRadius-circle)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(957,1): [radius] 9999px -> var(--vscode-cornerRadius-circle)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(971,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(994,1): [spacing] 10px 0 14px is off the spacing scale -> nearest: 10px 0 16px (var(--vscode-spacing-size100) var(--vscode-spacing-sizeNone) var(--vscode-spacing-size160))
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(995,1): [spacing] 0 14px 0 36px is off the spacing scale -> nearest: 0 16px 0 36px (var(--vscode-spacing-sizeNone) var(--vscode-spacing-size160) var(--vscode-spacing-sizeNone) var(--vscode-spacing-size360))
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(996,1): [radius] 8px -> var(--vscode-cornerRadius-large)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(998,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1050,1): [radius] 8px -> var(--vscode-cornerRadius-large)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1065,1): [spacing] 14px is off the spacing scale -> nearest: 16px (var(--vscode-spacing-size160))
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1132,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1174,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1201,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1221,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1263,1): [stroke] border: 1px solid transparent -> use var(--vscode-strokeThickness) for the 1px width
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1275,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1363,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css(1372,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(239,1): Unknown variable: --vscode-font-family
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(759,1): Unknown variable: --vscode-conversation-background
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(774,1): Unknown variable: --vscode-conversation-background
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(792,1): Unknown variable: --vscode-conversation-background
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(848,1): Unknown variable: --vscode-conversation-background
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1014,1): Unknown variable: --vscode-conversation-background
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1633,1): Unknown variable: --vscode-conversation-background
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2595,1): Unknown variable: --vscode-conversation-background
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2608,1): Unknown variable: --vscode-conversation-background
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3259,1): Unknown variable: --conversation-inbox-context-pct
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3344,1): Unknown variable: --vscode-font-family
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3563,1): Unknown variable: --conversation-composer-radius
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3567,1): Unknown variable: --ua-ease
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3578,1): Unknown variable: --conversation-composer-radius
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3783,1): Unknown variable: --vscode-font-family
+
+src/vs/workbench/contrib/conversation/browser/media/conversationLens.css (179 design-token suggestions)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(22,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(23,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(40,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(68,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(71,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(72,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(99,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(122,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(123,1): [font-size] 10px -> var(--vscode-fontSize-label3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(124,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(149,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(150,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(156,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(237,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(238,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(243,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(344,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(348,1): [radius] 8px -> var(--vscode-cornerRadius-large)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(357,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(360,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(462,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(463,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(476,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(477,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(494,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(495,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(559,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(560,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(573,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(574,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(583,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(584,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(614,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(615,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(676,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(698,1): [spacing] 0 22px 0 6px is off the spacing scale -> nearest: 0 24px 0 6px (var(--vscode-spacing-sizeNone) var(--vscode-spacing-size240) var(--vscode-spacing-sizeNone) var(--vscode-spacing-size60))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(701,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(702,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(709,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(714,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(771,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(898,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1055,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1056,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1083,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1086,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1101,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1104,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1159,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1160,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1219,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1251,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1252,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1288,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1315,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1316,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1326,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1346,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1354,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1390,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1391,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1403,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1448,1): [radius] 2px -> var(--vscode-cornerRadius-xSmall)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1481,1): [radius] 2px -> var(--vscode-cornerRadius-xSmall)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1499,1): [radius] 2px -> var(--vscode-cornerRadius-xSmall)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1557,1): [radius] 1px -> var(--vscode-cornerRadius-xSmall) (off-scale, 2px)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1574,1): [radius] 999px -> var(--vscode-cornerRadius-circle) (off-scale, 9999px)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1586,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1595,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1605,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1609,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1622,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1635,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1672,1): [spacing] 3px 8px is off the spacing scale -> nearest: 4px 8px (var(--vscode-spacing-size40) var(--vscode-spacing-size80))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1676,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1679,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1784,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1799,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1809,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1843,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1872,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1910,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1920,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1925,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(1989,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2002,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2007,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2014,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2023,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2024,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2035,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2183,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2192,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2238,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2275,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2304,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2369,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2386,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2408,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2538,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2561,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2609,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2648,1): [spacing] 2px 16px 14px is off the spacing scale -> nearest: 2px 16px 16px (var(--vscode-spacing-size20) var(--vscode-spacing-size160) var(--vscode-spacing-size160))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2658,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2665,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2698,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2714,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2788,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2831,1): [spacing] 12px 14px is off the spacing scale -> nearest: 12px 16px (var(--vscode-spacing-size120) var(--vscode-spacing-size160))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2835,1): [radius] 8px -> var(--vscode-cornerRadius-large)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2846,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2851,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2857,1): [radius] 999px -> var(--vscode-cornerRadius-circle) (off-scale, 9999px)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2861,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2862,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2873,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2874,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2891,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2892,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2918,1): [spacing] 0 14px is off the spacing scale -> nearest: 0 16px (var(--vscode-spacing-sizeNone) var(--vscode-spacing-size160))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2919,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2920,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2921,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2958,1): [spacing] 3px 12px is off the spacing scale -> nearest: 4px 12px (var(--vscode-spacing-size40) var(--vscode-spacing-size120))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(2973,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3272,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3273,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3452,1): [stroke] border: 1px solid transparent -> use var(--vscode-strokeThickness) for the 1px width
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3553,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3630,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3631,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3688,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3759,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3866,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3885,1): [codicon] 13px -> var(--vscode-codiconFontSize) [16] or var(--vscode-codiconFontSize-compact) [12]
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(3978,1): [codicon] 14px -> var(--vscode-codiconFontSize) [16] or var(--vscode-codiconFontSize-compact) [12]
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4029,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4108,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4129,1): [spacing] 3px 10px 2px is off the spacing scale -> nearest: 4px 10px 2px (var(--vscode-spacing-size40) var(--vscode-spacing-size100) var(--vscode-spacing-size20))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4144,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4193,1): [spacing] 3px 8px is off the spacing scale -> nearest: 4px 8px (var(--vscode-spacing-size40) var(--vscode-spacing-size80))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4212,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4230,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4233,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4258,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4274,1): [spacing] 3px 8px is off the spacing scale -> nearest: 4px 8px (var(--vscode-spacing-size40) var(--vscode-spacing-size80))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4378,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4406,1): [spacing] 0 5px is off the spacing scale -> nearest: 0 6px (var(--vscode-spacing-sizeNone) var(--vscode-spacing-size60))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4407,1): [radius] 999px -> var(--vscode-cornerRadius-circle) (off-scale, 9999px)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4408,1): [font-size] 10px -> var(--vscode-fontSize-label3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4409,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4438,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4444,1): [spacing] 0 0 0 18px is off the spacing scale -> nearest: 0 0 0 20px (var(--vscode-spacing-sizeNone) var(--vscode-spacing-sizeNone) var(--vscode-spacing-sizeNone) var(--vscode-spacing-size200))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4451,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4452,1): [stroke] border: 1px solid transparent -> use var(--vscode-strokeThickness) for the 1px width
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4474,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4475,1): [stroke] border: 1px solid transparent -> use var(--vscode-strokeThickness) for the 1px width
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4495,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4498,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4547,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4561,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4580,1): [radius] 6px -> var(--vscode-cornerRadius-medium)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4584,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4857,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4868,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4908,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4909,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4936,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4973,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4988,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4989,1): [spacing] 1px 6px is off the spacing scale -> nearest: 2px 6px (var(--vscode-spacing-size20) var(--vscode-spacing-size60))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(4994,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(5016,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(5018,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(5035,1): [spacing] 0 6px 0 5px is off the spacing scale -> nearest: 0 6px 0 6px (var(--vscode-spacing-sizeNone) var(--vscode-spacing-size60) var(--vscode-spacing-sizeNone) var(--vscode-spacing-size60))
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(5077,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(5084,1): [font-size] 10px -> var(--vscode-fontSize-label3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(5096,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+  src/vs/workbench/contrib/conversation/browser/media/conversationLens.css(5102,1): [weight] 600 -> var(--vscode-fontWeight-semiBold)
+
+src/vs/workbench/contrib/conversation/browser/media/conversationSessions.css (4 design-token suggestions)
+  src/vs/workbench/contrib/conversation/browser/media/conversationSessions.css(22,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/conversation/browser/media/conversationSessions.css(127,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/conversation/browser/media/conversationSessions.css(139,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/conversation/browser/media/conversationSessions.css(144,1): [weight] 400 -> var(--vscode-fontWeight-regular)
+src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css(239,1): Unknown variable: --vscode-editor-font-family
+
+src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css (9 design-token suggestions)
+  src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css(34,1): [radius] 4px -> var(--vscode-cornerRadius-small)
+  src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css(64,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css(128,1): [font-size] 13px -> var(--vscode-fontSize-body1) or var(--vscode-fontSize-heading3)
+  src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css(148,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css(166,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css(184,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css(224,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+  src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css(240,1): [font-size] 11px -> var(--vscode-fontSize-body2) or var(--vscode-fontSize-label2)
+  src/vs/workbench/contrib/sources/browser/media/sourcesFilesList.css(250,1): [font-size] 12px -> var(--vscode-fontSize-label1)
+All valid variable names are in `build/lib/stylelint/vscode-known-variables.json`
+To update that file, run `./scripts/test-documentation.sh|bat.`
+
+Design-token suggestions: 255 in 5 files (codicon 2, font-size 99, weight 75, radius 55, spacing 20, stroke 4, deprecated 0)
+Stylelint: checked 5 CSS files in 76ms.

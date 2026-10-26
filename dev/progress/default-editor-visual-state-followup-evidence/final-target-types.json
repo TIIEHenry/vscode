@@ -1,0 +1,51 @@
+{
+  "files": 9,
+  "diagnostics": [
+    {
+      "file": "src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts",
+      "code": 6133,
+      "message": "'formatProviderRowSummary' is declared but its value is never read."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+      "code": 2416,
+      "message": "Property 'input' in type '(Anonymous class)' is not assignable to the same property in base type 'TestDialogService'.   Type '(input: IInput) => Promise<IInputResult>' is not assignable to type '() => Promise<IInputResult>'.     Target signature provides too few arguments. Expected 1 or more, but got 0."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+      "code": 2416,
+      "message": "Property 'input' in type '(Anonymous class)' is not assignable to the same property in base type 'TestDialogService'.   Type '(_input: IInput) => Promise<IInputResult>' is not assignable to type '() => Promise<IInputResult>'.     Target signature provides too few arguments. Expected 1 or more, but got 0."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+      "code": 2416,
+      "message": "Property 'input' in type '(Anonymous class)' is not assignable to the same property in base type 'TestDialogService'.   Type '(input: IInput) => Promise<IInputResult>' is not assignable to type '() => Promise<IInputResult>'.     Target signature provides too few arguments. Expected 1 or more, but got 0."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+      "code": 2416,
+      "message": "Property 'input' in type '(Anonymous class)' is not assignable to the same property in base type 'TestDialogService'.   Type '(input: IInput) => Promise<IInputResult>' is not assignable to type '() => Promise<IInputResult>'.     Target signature provides too few arguments. Expected 1 or more, but got 0."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+      "code": 2339,
+      "message": "Property 'includes' does not exist on type 'string | IMarkdownString'.   Property 'includes' does not exist on type 'IMarkdownString'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+      "code": 2339,
+      "message": "Property 'includes' does not exist on type 'string | IMarkdownString'.   Property 'includes' does not exist on type 'IMarkdownString'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+      "code": 2339,
+      "message": "Property 'includes' does not exist on type 'string | IMarkdownString'.   Property 'includes' does not exist on type 'IMarkdownString'."
+    },
+    {
+      "file": "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+      "code": 2416,
+      "message": "Property 'input' in type '(Anonymous class)' is not assignable to the same property in base type 'TestDialogService'.   Type '(input: IInput) => Promise<IInputResult>' is not assignable to type '() => Promise<IInputResult>'.     Target signature provides too few arguments. Expected 1 or more, but got 0."
+    }
+  ],
+  "added": []
+}

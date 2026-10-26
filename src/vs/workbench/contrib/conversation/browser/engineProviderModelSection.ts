@@ -5,6 +5,7 @@
 
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button, type IButtonStyles } from '../../../../base/browser/ui/button/button.js';
+import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
@@ -14,6 +15,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
+import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { readCapabilityEntry } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { builtinProviderPresets } from '../../../../platform/universeAgent/common/providerPresetCatalog.js';
@@ -180,6 +182,7 @@ export class EngineProvidersSection extends Disposable {
 	private readonly providerActionMessage: HTMLElement;
 	private readonly providerList: HTMLElement;
 	private readonly providerRowActions = this._register(new DisposableStore());
+	private readonly providerRowHovers = this._register(new DisposableStore());
 	private readonly catalogFilter: HTMLInputElement;
 	private readonly builtinList: HTMLElement;
 	private readonly cloudStatus: HTMLElement;
@@ -207,6 +210,7 @@ export class EngineProvidersSection extends Disposable {
 		@ICommandService private readonly commandService: ICommandService,
 		@IDialogService private readonly dialogService: IDialogService,
 		@IContextViewService private readonly contextViewService: IContextViewService,
+		@IHoverService private readonly hoverService: IHoverService,
 	) {
 		super();
 
@@ -447,6 +451,7 @@ export class EngineProvidersSection extends Disposable {
 	private renderProviderList(providers: readonly UniverseAgentProviderStatus[]): void {
 		this.setProviderCount(providers.length);
 		this.clearProviderRowActions();
+		this.providerRowHovers.clear();
 		DOM.clearNode(this.providerList);
 		for (const provider of providers) {
 			const row = DOM.append(this.providerList, $('.engine-catalog-row.engine-provider-status-row'));
@@ -461,7 +466,9 @@ export class EngineProvidersSection extends Disposable {
 
 			const text = DOM.append(row, $('.engine-catalog-text'));
 			const titleRow = DOM.append(text, $('.engine-provider-title-row'));
-			DOM.append(titleRow, $('.engine-catalog-name')).textContent = brandName;
+			const name = DOM.append(titleRow, $('.engine-catalog-name'));
+			name.textContent = brandName;
+			this.providerRowHovers.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), name, brandName));
 
 			const metaParts: string[] = [];
 			if (provider.protocol && provider.protocol.toLowerCase() !== brandName.toLowerCase()) {
@@ -482,17 +489,10 @@ export class EngineProvidersSection extends Disposable {
 			if (provider.credentialSource && provider.credentialSource !== 'NONE') {
 				const sourcePill = DOM.append(badges, $('.engine-provider-pill.engine-provider-pill--muted'));
 				sourcePill.textContent = formatProviderCredentialSource(provider.credentialSource);
+				this.providerRowHovers.add(this.hoverService.setupManagedHover(getDefaultHoverDelegate('mouse'), sourcePill, sourcePill.textContent));
 			}
 
-			const switchContainer = DOM.append(row, $('.engine-provider-switch-container'));
-			const switchEl = DOM.append(switchContainer, $('.engine-provider-switch'));
-			const switchLabel = DOM.append(switchContainer, $('span.engine-provider-switch-label'));
-			DOM.append(switchEl, $('.engine-provider-switch-thumb'));
-			switchEl.setAttribute('aria-hidden', 'true');
-			const label = getModelEnabledLabel(provider.enabled);
-			switchEl.classList.toggle('is-enabled', provider.enabled);
-			switchEl.classList.toggle('is-disabled', !provider.enabled);
-			switchLabel.textContent = label;
+			DOM.append(row, $('span.engine-provider-enabled-status')).textContent = getModelEnabledLabel(provider.enabled);
 			row.classList.toggle('engine-provider-status-row--disabled', !provider.enabled);
 
 			if (this.canWriteProviders()) {
@@ -743,6 +743,7 @@ export class EngineProvidersSection extends Disposable {
 
 	private clearProviderPresentation(): void {
 		this.setProviderCount(0);
+		this.providerRowHovers.clear();
 		DOM.clearNode(this.providerList);
 		this.providerList.style.display = 'none';
 	}
