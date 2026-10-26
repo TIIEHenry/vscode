@@ -9,7 +9,9 @@ summary: "65d虚拟noEmit0、完整Electron357过；wiring23过1既有红、lint
 
 # D1387 不可变源码叠加验证
 
-当前集成源码仍为 `09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a`，`src` 子树 `932031c34525449d4010265f914f7074abad2c05`；本检查点只提交文档与验证证据，未正式合入 J 源码。唯一 merge 车道从不可变 Git 提交取出 Sources 主题源码并刷新 `out/`，没有读取 J 未提交文件或写入人类工位产物。最新虚拟主题 ref 为 `65d2288036fdad74ab607e231d3db758fa397aa8`，对应 **完整 10 文件 Electron 357 passing / exit 0、完整虚拟 TypeScript Program noEmit 0 诊断 / exit 0**。
+> 本文65d及932031均为带时间的历史采样。后续main180fc已真三路接入ad80/src030def并实际完整compile-client0，原生emit已替换全部30旧pack JS，旧pack非live；最新基线与范围见[180fc验证](main-180fc-baseline-verification.md)。未接J/E候选或发freeze。
+
+65d验证采样时，集成源码为 `09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a`，`src` 子树 `932031c34525449d4010265f914f7074abad2c05`；本检查点只提交文档与验证证据，未正式合入 J 源码。唯一 merge 车道从不可变 Git 提交取出 Sources 主题源码并刷新 `out/`，没有读取 J 未提交文件或写入人类工位产物。最新虚拟主题 ref 为 `65d2288036fdad74ab607e231d3db758fa397aa8`，对应 **完整 10 文件 Electron 357 passing / exit 0、完整虚拟 TypeScript Program noEmit 0 诊断 / exit 0**。
 
 **这不是最新集成源码的实际 `compile-client`，也不是独立界面 after。** 同比较 tuple 出现在多个宿主组时的准确归属仍有独立 Important，澄清稿在 D 的规则 16 审查中，尚无该边界的生产补修；不将当前 357 绿当作该边界已闭。65d 验证采样时，E unary 失败恢复为另一个已授权独立模块，当时 draft / 规则 16 改稿、仍 occupied；该历史采样保持原样，最新阶段见下一节。正式合源须等两模块 queued / 书面范围后按 wave guard 串行；不发冻结通知，不关闭 D1387、不提升产品 PRD。
 
@@ -25,7 +27,7 @@ Sources 的新并发意见由 Astra 判为 I1，已采纳同 service / API 完�
 
 主工位不可变已提交 `3d522e76b9985181fa4bdfc654d52c9951f87aed` 相对 09f6 仅 9 份文档，`HEAD:src` 同为 932031；这只核已提交树，不表示其含视觉 WIP 的文件系统源码已绿。仅取该提交真三路合入 `da0d263a1f18c7b79f8983764e1d0356d9c44ee5`，外部 control-detail-polish / engine-protocol-consumption 两方案和索引保留；未取 root WIP。D 的两轮宿主规则16报告 `7c84e0167e3` 真三路接入 `6c75c2ca02694ad794532043c291326d997dda92`，其[历史源码审查](d1387-comparison-gate-code-review.md)和[两轮方案审查](d1387-host-observation-plan-review.md)保持原文。等价两边保留门禁分别 **65 / 117 条路径全 PASS**，见[完整 merge-base/逐路径 blob 门禁](d1387-parent-doc-merges.json)和[主文档 merge 原日志](d1387-main-committed-docs-merge.log)、[D merge 原日志](d1387-D-host-reviews-merge.log)。所有既有 51 份 artifact 与 30 份 live out 身份不变；新合入的仅是文档，不是 bf50 宿主生产或 E 实现。
 
-单次主工位同步实际记录于 `2026-10-26T15:23:56.178016+00:00`：对显式文档检查点 `a7123fb10a5e301210de49d545fb35a67bbea747` 执行 `git merge --ff-only`，Git **exit 128：无法快进，终止**。本次 main HEAD 为 `180fcdbb4ec9fda12a15c3daa6fa48a5e4e742c1`，执行前后 HEAD、全部采样 WIP 文件 SHA、暂存区 diff SHA 和 status **完全相同**；未重试、未覆盖，也未访问/刷新主工位 out。见[原始拒绝日志](d1387-main-ff-attempt.log)与[一次执行及逐文件保留身份](d1387-main-ff-attempt.json)。main 保留独立主题 WIP，不能称 clean 或已同步；merge 的已提交源码树仍为 932031，纯文档分支可继续由父调度，波未完成。
+单次主工位同步实际记录于 `2026-10-26T15:23:56.178016+00:00`：对显式文档检查点 `a7123fb10a5e301210de49d545fb35a67bbea747` 执行 `git merge --ff-only`，Git **exit 128：无法快进，终止**。当次 main HEAD 为 `180fcdbb4ec9fda12a15c3daa6fa48a5e4e742c1`，执行前后 HEAD、全部采样 WIP 文件 SHA、暂存区 diff SHA 和 status **完全相同**；未重试、未覆盖，也未访问/刷新主工位 out。见[原始拒绝日志](d1387-main-ff-attempt.log)与[一次执行及逐文件保留身份](d1387-main-ff-attempt.json)。main 保留独立主题 WIP，不能称 clean 或已同步；merge 的已提交源码树仍为 932031，纯文档分支可继续由父调度，波未完成。
 
 后续每轮编译 / typecheck / transpile 前先核全局活跃进程；发现其他主题已有运行时，记录具体 PID/session 并轮询等待，车道空闲再执行，不杀外部任务、不重复启动。本次纯文档阶段没有新增编译必要性。
 

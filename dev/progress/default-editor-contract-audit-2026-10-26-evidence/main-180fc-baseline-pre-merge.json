@@ -1,0 +1,217 @@
+{
+  "phase": "main-180fc-baseline-pre-merge",
+  "recordedAtUtc": "2026-10-26T15:29:32.799139+00:00",
+  "ours": "54c53c4399d4a0c212ed0d8a3b59a0406503a3ed",
+  "theirs": "180fcdbb4ec9fda12a15c3daa6fa48a5e4e742c1",
+  "mergeBase": "3d522e76b9985181fa4bdfc654d52c9951f87aed",
+  "oursChangedPaths": [
+    "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-D-host-reviews-merge.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-committed-docs-merge.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-sync-docs-health.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+    "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+    "dev/progress/status.md"
+  ],
+  "theirsChangedPaths": [
+    "dev/parallel/INDEX.md",
+    "dev/parallel/active/control-detail-polish.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/control-detail-polish.md",
+    "dev/progress/control-detail-polish-evidence/after-manifest.json",
+    "dev/progress/control-detail-polish-evidence/disabled.json",
+    "dev/progress/control-detail-polish-evidence/matrix.json",
+    "dev/progress/control-detail-polish-evidence/runtime-js.json",
+    "dev/progress/control-detail-polish-evidence/toolbar.json",
+    "dev/progress/control-detail-polish-evidence/verification.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+    "src/vs/workbench/contrib/conversation/browser/media/conversationSessionsInlineFilter.css",
+    "src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+    "src/vs/workbench/contrib/sources/browser/media/sourcesTabs.css"
+  ],
+  "oursSourceTree": "932031c34525449d4010265f914f7074abad2c05",
+  "targetSourceTree": "030defda3cc7cfac7148e84fac470a3bf5098d06",
+  "preCompileVirtualPack": "65d2288036fdad74ab607e231d3db758fa397aa8",
+  "preCompileVirtualOutputs": [
+    {
+      "path": "out/vs/workbench/api/browser/mainThreadSCM.js",
+      "sha256": "43aacd25578b224a1f62733184bd2cb7b53d0fa3c1aa6796f6c40d84a03e3622"
+    },
+    {
+      "path": "out/vs/workbench/browser/parts/editor/editorCommands.js",
+      "sha256": "4ec4f8a4bd84db87b1a56279c7cfe12ec76472bac7b27cb3725b3acee45252ef"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+      "sha256": "5a10d03c3b19a3224e92aee87c43a3729e461ff93f15bd84d464ec7ac04f8038"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.js",
+      "sha256": "d9e7c4c7578cfc5c955c2e737532af5bab3329be9d8c38a91292cad86722c4df"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.js",
+      "sha256": "b5bf3f060156979177f5d0215fd39686826e3d7294aef50808a2e4b4f9525307"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "sha256": "609a58871c0232fcb88ae23db54ede5bdc17d60afabb63212b86960c17ba0ead"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.js",
+      "sha256": "7a50e09457d826806d48b1d6db71eab57c052e61489d44d386f83636d8fa2977"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesChangesList.js",
+      "sha256": "3c897f8ac0a498636b41d903948822f8c3606a7cf96e22e5ebb331fb1af2ca5c"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffActions.js",
+      "sha256": "fbe1a572bf6f0a511a8469c5b22b74b9fd5e718f90fac8ddf5b9981e5e9b9b8c"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.js",
+      "sha256": "0f55249ffe38b08640f6b1a54cfb87c89268d79e7d636b49e895b18186d96506"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "sha256": "92ebdeae8d9c5d54ddda171a0a7077d12ce1310eec73b6ecf54cb775a4887121"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesOpenStatus.js",
+      "sha256": "7c219228c2a5a50e77e8dd4312aa7dc8b4b2cde373abfc88eebfde6b3d8f4469"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.js",
+      "sha256": "4320af44fe515674760184c8955f9e621e33eda0b7e520aaafbdd18ce3b8076f"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesReviewList.js",
+      "sha256": "7835cfcef0433eae619ba827d0fe413d6cbd67350a340052e5c1f0a30e021fa5"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesTabsHost.js",
+      "sha256": "54242bcb128061256262d6e747656729a70ef6b8f6c393f2e342a95c71331b96"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/common/sourcesReviewHostService.js",
+      "sha256": "5b13759e980430ecfdbad543c5892001e3ea2eb586acfbe5cb827e217c7c0763"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js",
+      "sha256": "51efff4b93ef0e23baa29dd29a00508c9955a0ff2c334b7e2e68f9dd441c2192"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/sourcesConversationOpenHarness.js",
+      "sha256": "e6817f742c978dfc02a07dfddd55adefa319b7c7af11a58d5e1c67044e12f6ea"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "sha256": "9a113898299ca7fc8d903e6cd5463cef23bf722fe29a0f4fc8682071c5f0b926"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffRefHelpers.test.js",
+      "sha256": "313ad8c3dde7a6c54129baa156b7a6de3f1f606243721c62d25b5ddac2c6e692"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/sourcesGitDiffContent.test.js",
+      "sha256": "1d21cb451105287ffc36443342c1bbc780581b5eae502238b73edf942becf26a"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/sourcesReviewCommands.test.js",
+      "sha256": "2b3588dd5f74dd85584c53a28296a624e3497400e5f3ac382eb96f5a75eefba0"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.js",
+      "sha256": "07ee81bbcca415cbe5e0ed24366b3d77bd9271094c544095d7b144e5ab5575c9"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/sourcesReviewShowForPaths.test.js",
+      "sha256": "a56a8ca4b659d4488f5110580d457901987e2f3e3dee6715951a39dffa92866b"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.js",
+      "sha256": "2ce248ad4b0b7d0cd68d87174f5353f9e7d3c54903101c1090e425c6708bd120"
+    },
+    {
+      "path": "out/vs/workbench/services/editor/browser/editorOpenSlot.js",
+      "sha256": "99fee96531fcb437f49b58070d9468f3b6a8f430b6f126c37a0bc74fba5c3a10"
+    },
+    {
+      "path": "out/vs/workbench/services/editor/browser/editorService.js",
+      "sha256": "5986f30408d90875aa35915a03ffe77ed15f6f342a7b5f8258fb101377cf2958"
+    },
+    {
+      "path": "out/vs/workbench/services/editor/common/editorGroupFinder.js",
+      "sha256": "18b7817eee8e53a0a354380abd95296b1b039509d7ebf66ec1a8047d58ee7edf"
+    },
+    {
+      "path": "out/vs/workbench/services/editor/test/browser/editorService.test.js",
+      "sha256": "cd3354d8c0227cdcdf21938c728ea1c40e463838bef8a7e44a9f385c0cbf31b2"
+    },
+    {
+      "path": "out/vs/workbench/services/editor/test/common/editorOpenSlot.test.js",
+      "sha256": "f35fffb63f867b6c58fe977531b6cb6004237336c33b140d81dfc0a20f747803"
+    }
+  ],
+  "outFrozen": false,
+  "rootFilesystemWipNotConsumed": true
+}

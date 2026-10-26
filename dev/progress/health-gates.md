@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-09-18
+updated: 2026-10-26
 summary: "M7 UI 开发继续规则：测试债旁路；托管 CI 已关（既定，非缺口）；门禁改本地 compile / eslint / docs-health / unit-custom；valid-layers-check 继续豁免；三域挡合入待切片 5"
 ---
 
@@ -70,6 +70,8 @@ python3 -m unittest scripts/tests/test_docs_status.py
 ## 合并两边保留门禁（按需）
 
 本仓**尚无** `scripts/check-merge-both-sides.sh`。合并字母槽后若需机器门禁，从消费仓移植脚本并在本节补命令；规格见套件 `dev/loop/worktrees.md` §5.1–5.2。
+
+本轮实际等价检查已落[180fc基线证据](default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md)：用Git对象逐路径比较base/ours/theirs/result的mode与blob，both-changed另留双方diff与字节保留证明；[78路径JSON门禁](default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge-identity.json)可复核。此记录不表示已执行尚不存在的Bash脚本；未新增工作流模块或改submodule。
 
 ## 冷却（与套件通用层一致）
 

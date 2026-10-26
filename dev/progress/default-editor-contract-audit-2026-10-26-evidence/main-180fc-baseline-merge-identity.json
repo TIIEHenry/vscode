@@ -1,0 +1,728 @@
+{
+  "phase": "main-180fc-true-three-way-baseline-integration",
+  "ours": "54c53c4399d4a0c212ed0d8a3b59a0406503a3ed",
+  "theirs": "180fcdbb4ec9fda12a15c3daa6fa48a5e4e742c1",
+  "mergeBase": "3d522e76b9985181fa4bdfc654d52c9951f87aed",
+  "resultHead": "ad80c9fe1cfaaa250ea0eac9e05de6d780f984c2",
+  "checks": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "rule": "theirs-only",
+      "base": "100644 blob 411d1c886fa0efbd650a8b571996ae46e4bb4c8e\tdev/parallel/INDEX.md",
+      "ours": "100644 blob 411d1c886fa0efbd650a8b571996ae46e4bb4c8e\tdev/parallel/INDEX.md",
+      "theirs": "100644 blob a10a45b70d30979d0ed0e578dda2dd10a3ea6267\tdev/parallel/INDEX.md",
+      "result": "100644 blob a10a45b70d30979d0ed0e578dda2dd10a3ea6267\tdev/parallel/INDEX.md",
+      "passed": true
+    },
+    {
+      "path": "dev/parallel/active/control-detail-polish.md",
+      "rule": "theirs-only",
+      "base": "100644 blob 2a59e1c23adfb07225e665095dc9fda3d70fb351\tdev/parallel/active/control-detail-polish.md",
+      "ours": "100644 blob 2a59e1c23adfb07225e665095dc9fda3d70fb351\tdev/parallel/active/control-detail-polish.md",
+      "theirs": "100644 blob 6b4beca78e421cd02d7b4006f0dc172766b973d1\tdev/parallel/active/control-detail-polish.md",
+      "result": "100644 blob 6b4beca78e421cd02d7b4006f0dc172766b973d1\tdev/parallel/active/control-detail-polish.md",
+      "passed": true
+    },
+    {
+      "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "rule": "ours-only",
+      "base": "100644 blob 155e0fd5642b468b11613b73e4f0d6731f247111\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "ours": "100644 blob edd28898de25cb9024a18cfa658af1d1d03305df\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "theirs": "100644 blob 155e0fd5642b468b11613b73e4f0d6731f247111\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "result": "100644 blob edd28898de25cb9024a18cfa658af1d1d03305df\tdev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "passed": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "rule": "theirs-only",
+      "base": "100644 blob e686f6908a47a7fa54014abc014ae9b78ae633f8\tdev/plans/INDEX.md",
+      "ours": "100644 blob e686f6908a47a7fa54014abc014ae9b78ae633f8\tdev/plans/INDEX.md",
+      "theirs": "100644 blob 6b044ac14c2530369d5d660584bc073ec8f73fd9\tdev/plans/INDEX.md",
+      "result": "100644 blob 6b044ac14c2530369d5d660584bc073ec8f73fd9\tdev/plans/INDEX.md",
+      "passed": true
+    },
+    {
+      "path": "dev/plans/control-detail-polish.md",
+      "rule": "theirs-only",
+      "base": "100644 blob 9754d8d387ed46de8ca7b35f6e3d865aac46750d\tdev/plans/control-detail-polish.md",
+      "ours": "100644 blob 9754d8d387ed46de8ca7b35f6e3d865aac46750d\tdev/plans/control-detail-polish.md",
+      "theirs": "100644 blob fd51f098662667f8fb8b56bb0d431d8d51161da2\tdev/plans/control-detail-polish.md",
+      "result": "100644 blob fd51f098662667f8fb8b56bb0d431d8d51161da2\tdev/plans/control-detail-polish.md",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "rule": "ours-only",
+      "base": "100644 blob 34ee6add03b23963a20a93210ccd1a6c14ff5455\tdev/progress/INDEX.md",
+      "ours": "100644 blob 81aa62f1524f29d2133d53ce544bc00e0957e7df\tdev/progress/INDEX.md",
+      "theirs": "100644 blob 34ee6add03b23963a20a93210ccd1a6c14ff5455\tdev/progress/INDEX.md",
+      "result": "100644 blob 81aa62f1524f29d2133d53ce544bc00e0957e7df\tdev/progress/INDEX.md",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/after-manifest.json",
+      "rule": "theirs-only",
+      "base": "",
+      "ours": "",
+      "theirs": "100644 blob d7f0db43b8bdd8774c03b485c8e90ad749dca0ec\tdev/progress/control-detail-polish-evidence/after-manifest.json",
+      "result": "100644 blob d7f0db43b8bdd8774c03b485c8e90ad749dca0ec\tdev/progress/control-detail-polish-evidence/after-manifest.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/disabled.json",
+      "rule": "theirs-only",
+      "base": "",
+      "ours": "",
+      "theirs": "100644 blob 9f9af2f981502cf6d78f868ed86632cd4e40b3c6\tdev/progress/control-detail-polish-evidence/disabled.json",
+      "result": "100644 blob 9f9af2f981502cf6d78f868ed86632cd4e40b3c6\tdev/progress/control-detail-polish-evidence/disabled.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/matrix.json",
+      "rule": "theirs-only",
+      "base": "",
+      "ours": "",
+      "theirs": "100644 blob 6051dfa339e0f03f52b06a3b13b37c893dc48a59\tdev/progress/control-detail-polish-evidence/matrix.json",
+      "result": "100644 blob 6051dfa339e0f03f52b06a3b13b37c893dc48a59\tdev/progress/control-detail-polish-evidence/matrix.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/runtime-js.json",
+      "rule": "theirs-only",
+      "base": "",
+      "ours": "",
+      "theirs": "100644 blob f78dda033ab7493222c370457c60d8ec2a8be9dc\tdev/progress/control-detail-polish-evidence/runtime-js.json",
+      "result": "100644 blob f78dda033ab7493222c370457c60d8ec2a8be9dc\tdev/progress/control-detail-polish-evidence/runtime-js.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/toolbar.json",
+      "rule": "theirs-only",
+      "base": "",
+      "ours": "",
+      "theirs": "100644 blob 563d32dfc5098f04d6e475118b0bccfcd6962e53\tdev/progress/control-detail-polish-evidence/toolbar.json",
+      "result": "100644 blob 563d32dfc5098f04d6e475118b0bccfcd6962e53\tdev/progress/control-detail-polish-evidence/toolbar.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/verification.md",
+      "rule": "theirs-only",
+      "base": "",
+      "ours": "",
+      "theirs": "100644 blob fed9f31d93c90de9e3e24f0a11ed43f3fc56e054\tdev/progress/control-detail-polish-evidence/verification.md",
+      "result": "100644 blob fed9f31d93c90de9e3e24f0a11ed43f3fc56e054\tdev/progress/control-detail-polish-evidence/verification.md",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob df3cfbda3506a36dd2d3e54cbded7d4d56d59769\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+      "theirs": "",
+      "result": "100644 blob df3cfbda3506a36dd2d3e54cbded7d4d56d59769\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 76e7be2038bab1478362ccdec607d9b604255f76\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+      "theirs": "",
+      "result": "100644 blob 76e7be2038bab1478362ccdec607d9b604255f76\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 61546574a636d33e693587720cd471cd2bb6e0d2\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+      "theirs": "",
+      "result": "100644 blob 61546574a636d33e693587720cd471cd2bb6e0d2\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 96c63d090d144d5bfa4dfae4f9dbab1ff7a43a8e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+      "theirs": "",
+      "result": "100644 blob 96c63d090d144d5bfa4dfae4f9dbab1ff7a43a8e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob d8f38f3dd20b879d4420d42c49b9016d249edc35\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+      "theirs": "",
+      "result": "100644 blob d8f38f3dd20b879d4420d42c49b9016d249edc35\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 70c7af04d6627a068621494f3e8d866db1910956\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+      "theirs": "",
+      "result": "100644 blob 70c7af04d6627a068621494f3e8d866db1910956\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 60f17d64fc6f9038fce6d45467979f2efa55e5c3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+      "theirs": "",
+      "result": "100644 blob 60f17d64fc6f9038fce6d45467979f2efa55e5c3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob a4d7395c27c50d999c7c2588dc35ebd3ef09a7b7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+      "theirs": "",
+      "result": "100644 blob a4d7395c27c50d999c7c2588dc35ebd3ef09a7b7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob ca8c0c31db980e53477aaa744ac25fb6d141f842\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+      "theirs": "",
+      "result": "100644 blob ca8c0c31db980e53477aaa744ac25fb6d141f842\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob b7af8459d744845cae8a878a3cddf21be6a16e58\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+      "theirs": "",
+      "result": "100644 blob b7af8459d744845cae8a878a3cddf21be6a16e58\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 0b389debf86a686f1f580379485f851754fd5675\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+      "theirs": "",
+      "result": "100644 blob 0b389debf86a686f1f580379485f851754fd5675\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 3a6d5a1563b517c1136f639a11f2d7e8fb116d30\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+      "theirs": "",
+      "result": "100644 blob 3a6d5a1563b517c1136f639a11f2d7e8fb116d30\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 546f1ee2c9d0983cfae6f5f99c318e3a5278bc77\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+      "theirs": "",
+      "result": "100644 blob 546f1ee2c9d0983cfae6f5f99c318e3a5278bc77\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 821033d637781a06f56e08f828fec60b37d5858d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+      "theirs": "",
+      "result": "100644 blob 821033d637781a06f56e08f828fec60b37d5858d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 54faefcf482141de5400ef231d910c0c6dd2c790\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+      "theirs": "",
+      "result": "100644 blob 54faefcf482141de5400ef231d910c0c6dd2c790\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 2b6c812d0c7cbf01581f679bccc07311174f5319\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+      "theirs": "",
+      "result": "100644 blob 2b6c812d0c7cbf01581f679bccc07311174f5319\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 38d774d9cf5c6373e3f17864fc3c5aafe033a521\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+      "theirs": "",
+      "result": "100644 blob 38d774d9cf5c6373e3f17864fc3c5aafe033a521\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 6fcf8d6202e0da52f3f03e7ee8f19b99a7dccc5a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+      "theirs": "",
+      "result": "100644 blob 6fcf8d6202e0da52f3f03e7ee8f19b99a7dccc5a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 760ca167e003746e08263d4ed286c82d36918f95\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+      "theirs": "",
+      "result": "100644 blob 760ca167e003746e08263d4ed286c82d36918f95\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 929c9e46b6e9f5d1b9425cf6e40b2f7fe2c37059\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+      "theirs": "",
+      "result": "100644 blob 929c9e46b6e9f5d1b9425cf6e40b2f7fe2c37059\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 11fadf7719a46eb35c41b0953c575cb47a87f91d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+      "theirs": "",
+      "result": "100644 blob 11fadf7719a46eb35c41b0953c575cb47a87f91d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 234cdc91ca51a594db98344bb66e963eb6d0ca1a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+      "theirs": "",
+      "result": "100644 blob 234cdc91ca51a594db98344bb66e963eb6d0ca1a\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 8fc7ceb92563231f18e28dad12ff96a9845df77b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+      "theirs": "",
+      "result": "100644 blob 8fc7ceb92563231f18e28dad12ff96a9845df77b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 54e7e82a64c9e649ed1dbd4565e1ca0e4cc1ed20\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+      "theirs": "",
+      "result": "100644 blob 54e7e82a64c9e649ed1dbd4565e1ca0e4cc1ed20\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 2bb4feca13501f20f75bd62df01b7dd8259f10ef\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+      "theirs": "",
+      "result": "100644 blob 2bb4feca13501f20f75bd62df01b7dd8259f10ef\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 7bf6f698c30492143f394102dc183db078de4a0b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+      "theirs": "",
+      "result": "100644 blob 7bf6f698c30492143f394102dc183db078de4a0b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 2f08792a77cd8745e2fdce2056ccb2ad29fbf45f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+      "theirs": "",
+      "result": "100644 blob 2f08792a77cd8745e2fdce2056ccb2ad29fbf45f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 7937c2ad9a8896935f22f4ef5166d6e9a75d9640\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+      "theirs": "",
+      "result": "100644 blob 7937c2ad9a8896935f22f4ef5166d6e9a75d9640\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 9902e2fbb8e426c583f54bdb4f5b7de79161eb89\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+      "theirs": "",
+      "result": "100644 blob 9902e2fbb8e426c583f54bdb4f5b7de79161eb89\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob c86acc43ae06ea701c773f4fd10feb7b14401820\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+      "theirs": "",
+      "result": "100644 blob c86acc43ae06ea701c773f4fd10feb7b14401820\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 1bae0aa726195fa730ccf1a8c240c5824ad7163d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+      "theirs": "",
+      "result": "100644 blob 1bae0aa726195fa730ccf1a8c240c5824ad7163d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob c8630472bc4e3c5382e8cf25c71056580ae7961c\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+      "theirs": "",
+      "result": "100644 blob c8630472bc4e3c5382e8cf25c71056580ae7961c\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob ed674f7d5f498c6704694b060702edc54c7b78c6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+      "theirs": "",
+      "result": "100644 blob ed674f7d5f498c6704694b060702edc54c7b78c6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob e727bd070d415b86b3acdaae079a409cfdf5fac9\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+      "theirs": "",
+      "result": "100644 blob e727bd070d415b86b3acdaae079a409cfdf5fac9\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 62414d485511de450dfbd11fa145ca61d8db76dd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+      "theirs": "",
+      "result": "100644 blob 62414d485511de450dfbd11fa145ca61d8db76dd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 538e1bcebead54f04f687d7d754f9ebaf288865e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+      "theirs": "",
+      "result": "100644 blob 538e1bcebead54f04f687d7d754f9ebaf288865e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 129bd776bfdf5197d879764545393da5d9565ff7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+      "theirs": "",
+      "result": "100644 blob 129bd776bfdf5197d879764545393da5d9565ff7\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob a1628fa9386115a916e719ad504a0089a99d4e98\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+      "theirs": "",
+      "result": "100644 blob a1628fa9386115a916e719ad504a0089a99d4e98\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 453d2d0a4abe6d4256cf1027871220c84b0e485f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+      "theirs": "",
+      "result": "100644 blob 453d2d0a4abe6d4256cf1027871220c84b0e485f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob ce725457179e80d3f23079d2772bdad7936fcf8f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+      "theirs": "",
+      "result": "100644 blob ce725457179e80d3f23079d2772bdad7936fcf8f\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 622109114a99f4aa612301f286a249cd399ef2a4\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+      "theirs": "",
+      "result": "100644 blob 622109114a99f4aa612301f286a249cd399ef2a4\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-D-host-reviews-merge.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 8bd175f6af1cacab1c3e36ad1670cb0da78d4abf\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-D-host-reviews-merge.log",
+      "theirs": "",
+      "result": "100644 blob 8bd175f6af1cacab1c3e36ad1670cb0da78d4abf\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-D-host-reviews-merge.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob f4b7fcb49b158a5b6d8ddeb0a4c225af1d7dcb4b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md",
+      "theirs": "",
+      "result": "100644 blob f4b7fcb49b158a5b6d8ddeb0a4c225af1d7dcb4b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 1c0bc621e232c76f7e5d5a6a5a0be8f9d06ff55b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md",
+      "theirs": "",
+      "result": "100644 blob 1c0bc621e232c76f7e5d5a6a5a0be8f9d06ff55b\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-committed-docs-merge.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob f46b1a910d02243fa851cac2643c2470fc0102e0\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-committed-docs-merge.log",
+      "theirs": "",
+      "result": "100644 blob f46b1a910d02243fa851cac2643c2470fc0102e0\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-committed-docs-merge.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 7f4aed679e8bb247369d020fbec28404c07e5556\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json",
+      "theirs": "",
+      "result": "100644 blob 7f4aed679e8bb247369d020fbec28404c07e5556\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob ea75ff5b79045fc0a917751a857e8b69ea544407\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.log",
+      "theirs": "",
+      "result": "100644 blob ea75ff5b79045fc0a917751a857e8b69ea544407\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob f44e36516df359922736bf28f848ebbca54f283d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+      "theirs": "",
+      "result": "100644 blob f44e36516df359922736bf28f848ebbca54f283d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob f3fd83d9200c2673f3f4f37dabe418aac4aa94b8\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json",
+      "theirs": "",
+      "result": "100644 blob f3fd83d9200c2673f3f4f37dabe418aac4aa94b8\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-sync-docs-health.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 7f05549c3a5f9d78ea03c1c06bb446714e48565d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-sync-docs-health.log",
+      "theirs": "",
+      "result": "100644 blob 7f05549c3a5f9d78ea03c1c06bb446714e48565d\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-sync-docs-health.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob fce319679e1de0ebb8fda415c26df105c8be44f3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+      "theirs": "",
+      "result": "100644 blob fce319679e1de0ebb8fda415c26df105c8be44f3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 2f83273b46dd15d13d0cb2c318aa26f462d0fe2e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+      "theirs": "",
+      "result": "100644 blob 2f83273b46dd15d13d0cb2c318aa26f462d0fe2e\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob d29751406a2d71e078015a8221feb7dd91511db5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+      "theirs": "",
+      "result": "100644 blob d29751406a2d71e078015a8221feb7dd91511db5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob c979aa84d0969328299f2389677e03baba524cbb\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+      "theirs": "",
+      "result": "100644 blob c979aa84d0969328299f2389677e03baba524cbb\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 78b5d398103fa55af9adf92c850fe6f23bd8b4bd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+      "theirs": "",
+      "result": "100644 blob 78b5d398103fa55af9adf92c850fe6f23bd8b4bd\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 27eb9d7a13b283463cf921dd4c2b68bde0330be5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+      "theirs": "",
+      "result": "100644 blob 27eb9d7a13b283463cf921dd4c2b68bde0330be5\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob bfb6e4efc2eaf4df21e837ccb37e62c972fcaf88\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+      "theirs": "",
+      "result": "100644 blob bfb6e4efc2eaf4df21e837ccb37e62c972fcaf88\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob 789498104704da8c4cd124d6b1eaea95a88e7258\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+      "theirs": "",
+      "result": "100644 blob 789498104704da8c4cd124d6b1eaea95a88e7258\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob c23b4c2cbfe016a3e890a47e2a411cc9563b49d1\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+      "theirs": "",
+      "result": "100644 blob c23b4c2cbfe016a3e890a47e2a411cc9563b49d1\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob a799dfb71dd2838eb9b2ef9576aff24d475563d6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+      "theirs": "",
+      "result": "100644 blob a799dfb71dd2838eb9b2ef9576aff24d475563d6\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+      "rule": "ours-only",
+      "base": "",
+      "ours": "100644 blob cf7a0a49dbda4b2a7677234fcc15d4ca034e79d3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+      "theirs": "",
+      "result": "100644 blob cf7a0a49dbda4b2a7677234fcc15d4ca034e79d3\tdev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+      "passed": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "rule": "both-changed-synthesized-preserving-ours-and-exact-theirs-added-row",
+      "base": "100644 blob a6764d1383ab10ca56a93ff1600718230a228b06\tdev/progress/status.md",
+      "ours": "100644 blob bfc922664f50c68caa2b65e5bc17a9d870584b8c\tdev/progress/status.md",
+      "theirs": "100644 blob 7dc6859286dca029bc3e1571a279c3418234d001\tdev/progress/status.md",
+      "result": "100644 blob 4757510912056b292eee67da3a87b39d6b844328\tdev/progress/status.md",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "rule": "theirs-only",
+      "base": "100644 blob 08fbfaeaca75a1968db91e151b9bb72a37ccab4a\tsrc/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "ours": "100644 blob 08fbfaeaca75a1968db91e151b9bb72a37ccab4a\tsrc/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "theirs": "100644 blob b47df73d702020c2020aa8d2fa9f389e00fbc8a8\tsrc/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "result": "100644 blob b47df73d702020c2020aa8d2fa9f389e00fbc8a8\tsrc/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/conversationSessionsInlineFilter.css",
+      "rule": "theirs-only",
+      "base": "100644 blob 1cb2cbdf70bf259989601ab11a4c3cdabb2e076c\tsrc/vs/workbench/contrib/conversation/browser/media/conversationSessionsInlineFilter.css",
+      "ours": "100644 blob 1cb2cbdf70bf259989601ab11a4c3cdabb2e076c\tsrc/vs/workbench/contrib/conversation/browser/media/conversationSessionsInlineFilter.css",
+      "theirs": "100644 blob 0a123e0b9d1a61b8e536aa4cf8c4b59c56f1c386\tsrc/vs/workbench/contrib/conversation/browser/media/conversationSessionsInlineFilter.css",
+      "result": "100644 blob 0a123e0b9d1a61b8e536aa4cf8c4b59c56f1c386\tsrc/vs/workbench/contrib/conversation/browser/media/conversationSessionsInlineFilter.css",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "rule": "theirs-only",
+      "base": "100644 blob d384c0d5f9f8db5838be4781f3637c60acf4a0a4\tsrc/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "ours": "100644 blob d384c0d5f9f8db5838be4781f3637c60acf4a0a4\tsrc/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "theirs": "100644 blob c5f5390418094679147c6aa908974e6074754d1f\tsrc/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "result": "100644 blob c5f5390418094679147c6aa908974e6074754d1f\tsrc/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "passed": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/media/sourcesTabs.css",
+      "rule": "theirs-only",
+      "base": "100644 blob 306d3c1776f461aeac11db38e23264aef7e62ee4\tsrc/vs/workbench/contrib/sources/browser/media/sourcesTabs.css",
+      "ours": "100644 blob 306d3c1776f461aeac11db38e23264aef7e62ee4\tsrc/vs/workbench/contrib/sources/browser/media/sourcesTabs.css",
+      "theirs": "100644 blob 4bbdbdd630a07f25458178a95feb7cd2e596d1a9\tsrc/vs/workbench/contrib/sources/browser/media/sourcesTabs.css",
+      "result": "100644 blob 4bbdbdd630a07f25458178a95feb7cd2e596d1a9\tsrc/vs/workbench/contrib/sources/browser/media/sourcesTabs.css",
+      "passed": true
+    }
+  ],
+  "manualBothChangedProof": [
+    {
+      "path": "dev/progress/status.md",
+      "oursBytesRetainedAfterRemovingExactTheirsRow": true,
+      "theirsAddedRow": "- **\u63a7\u4ef6\u7ec6\u8282\u7cbe\u4fee\uff082026-10-26\uff09**\uff1a\u56dbCSS\u6536\u655bSources\u5de5\u5177\u680f\u547d\u4e2d\u533a/\u9875\u7b7e\u6309\u538b\u3001Navigator\u7b5b\u9009\u7126\u70b9/\u6e05\u9664\u5bf9\u9f50\u3001Connection\u4e0eEngine\u8fd4\u56de\u6309\u94ae\uff1b\u56db\u4e3b\u989816\u7ec4\u57fa\u672c\u63a7\u4ef6\u30018\u7ec4\u672c\u5730\u5de5\u5177\u680f\u30014\u7ec4\u7981\u7528ActionBar\u9a8c\u8bc1\u901a\u8fc7\uff0c\u72ec\u7acb\u6e90\u7801\u590d\u8bfbC0/I0/M0\u3002\u5c40\u90e8CSS\u5237\u65b0\uff0c\u65e0\u5168\u91cf\u7f16\u8bd1\uff1b\u672c\u5730\u6839/\u7981\u7528fixture\u4e0e\u65e2\u6709JS\u8fb9\u754c\u89c1[\u8bc1\u636e](control-detail-polish-evidence/verification.md)\u3002\n",
+      "oursSha256": "12be6af39cfda5a71a9ce3db687803aee6573d56845c281ef924f994f84be092",
+      "resultSha256": "64143af396b2d8c79c6e4094d1275c0ceb2399834a8b77caa8bad018058006d4",
+      "theirsDelta": "diff --git a/dev/progress/status.md b/dev/progress/status.md\nindex a6764d1383a..7dc6859286d 100644\n--- a/dev/progress/status.md\n+++ b/dev/progress/status.md\n@@ -10,6 +10,7 @@ summary: \"\u5f53\u524d\u7f16\u8bd1\u5408\u540c\u57fa\u7ebf\u5df2\u4fee\uff1a\u5168\u91cfcompile-client45\u21923\u21920\uff0cElec\n # Development Progress\n > **\u5f53\u524d\u8fed\u4ee3\u8d26**\uff08\u89c4\u5219 3a\uff09\u3002\u5ef6\u671f \u2192 [deferred-gaps](deferred-gaps.md)\u30022026-09-30 \u4f1a\u8bdd\u6d41\u6c34 \u2192 [\u5f52\u6863](../archive/status-current-session-2026-09-30.md) \u00b7 2026-10-05 \u5f52\u6863 \u2192 [\u5f52\u6863](../archive/status-current-session-2026-10-05.md) \u00b7 Wave 28 \u2192 [\u5f52\u6863](../archive/status-wave-28-2026-10-13.md) \u00b7 Wave 29 \u2192 [\u5f52\u6863](../archive/status-wave-29-2026-10-16.md)\u3002\n ## Current Session\n+- **\u63a7\u4ef6\u7ec6\u8282\u7cbe\u4fee\uff082026-10-26\uff09**\uff1a\u56dbCSS\u6536\u655bSources\u5de5\u5177\u680f\u547d\u4e2d\u533a/\u9875\u7b7e\u6309\u538b\u3001Navigator\u7b5b\u9009\u7126\u70b9/\u6e05\u9664\u5bf9\u9f50\u3001Connection\u4e0eEngine\u8fd4\u56de\u6309\u94ae\uff1b\u56db\u4e3b\u989816\u7ec4\u57fa\u672c\u63a7\u4ef6\u30018\u7ec4\u672c\u5730\u5de5\u5177\u680f\u30014\u7ec4\u7981\u7528ActionBar\u9a8c\u8bc1\u901a\u8fc7\uff0c\u72ec\u7acb\u6e90\u7801\u590d\u8bfbC0/I0/M0\u3002\u5c40\u90e8CSS\u5237\u65b0\uff0c\u65e0\u5168\u91cf\u7f16\u8bd1\uff1b\u672c\u5730\u6839/\u7981\u7528fixture\u4e0e\u65e2\u6709JS\u8fb9\u754c\u89c1[\u8bc1\u636e](control-detail-polish-evidence/verification.md)\u3002\n - **D1387 \u539f\u4e24\u673a\u5236\u4e1a\u52a1\u7ea2\uff082026-10-26\uff09**\uff1a\u4e3b/merge\u5df2\u540cclean555c\uff0c\u53ea\u6709merge\u53d6\u4e0d\u53ef\u53d8J23f\u4e24\u65b0\u6d4b\u8bd5JS\uff1b\u4e94core\u6e90\u9010\u5b57\u7b49c968/133ef\u3001\u751f\u4ea7JS\u524d\u540eSHA\u4e0d\u53d8\u3002\u5b98\u65b9Electron0\u8fc714\u8d25\uff1a12DTO\u5728resource.open\u5b9e\u96451/\u671f\u671b0\u65ad\u8a00\u7ea2\uff0c\u51c6\u786e\u5bf9\u8c61/id\u4e24\u9879\u88ab\u65e7finder\u4e1a\u52a1\u62d2\u7edd\uff0c\u65e0\u52a0\u8f7d/\u7c7b\u578b/timeout\u3002\u660e\u786etest-only\u6df7\u5408scope\uff0c\u6700\u7ec8J\u8865\u4feegreen/\u5b8c\u6574\u5957/after\u5f85\uff1bD cbac\u89c4\u521916custom\u7a84\u4f8b\u5916\u62a5\u544a\u53e6\u771f\u4e09\u8def\u63a5\u5165\uff0c\u9010\u8def\u5f84\u4fdd\u7559\u95e8\u7981PASS\u3002[\u7ea2\u4e0e\u8eab\u4efd](default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md)\u3002\n - **\u7f16\u8bd1\u57fa\u7ebf\u5b89\u5168\u540c\u6b65\u4e0eD1387 peer\u63a5\u5165\uff082026-10-26\uff09**\uff1a\u7236\u5b9e\u683854\u4e2asource/out SHA\u4e0esrc\u6811\u540e\uff0c\u4e3b\u5de5\u4f4dclean agent-ide\u4ec5ff de22\u6210\u529f\uff1bD\u4e0d\u53ef\u53d8c664\u72ec\u7acb\u62a5\u544a\u771f\u4e09\u8def\u5408\u51650dd2\uff0c\u4e24\u8fb9\u4fdd\u7559\u7b49\u4ef7\u9010\u8def\u5f84\u95e8\u7981PASS\u3001src/out\u672a\u53d8\u3001\u65e0\u65b0\u7f16\u8bd1\u3002J\u539f23f\u5b9e\u73b0\u5df2\u72ec\u7acb\u5ba1C0/I2\uff0cnewTab\u9884pin\u4e0e\u5355\u4fa7URI\u8eab\u4efd\u8bef\u914d\u7531Astra\u88c1\u5b9a\u3001J\u8865\u4fee\u4e2d\uff0c\u5c1a\u672a\u5408\u751f\u4ea7\u6216\u5ba3\u544aafter\u3002[\u63a5\u5165\u8bc1\u636e](default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md)\u3002\n - **\u5f53\u524d\u7f16\u8bd1\u5408\u540c\u8303\u56f4\u5b8c\u6210\uff082026-10-26\uff09**\uff1a\u65b9\u684833922\u72ec\u7acb\u63d0\u4ea4\u540e\u4fee27\u6587\u4ef6\uff0cAstra\u6e90\u7801\u5ba1\u67e5C0/I0\uff1b\u552f\u4e00merge\u5168\u91cf`compile-client`\u771f\u5b9e45\u21923\u21920\u3001exit0\u300220\u6587\u4ef6Electron325\u8fc7/3\u65e2\u6709\u7ea2\uff0c\u7cbe\u786ec968\u65e7\u6d4b\u8bd5\u5df2\u590d\u73b0\u540c\u4e09\u7ea2\u5e76\u6062\u590d\u5f53\u524d\u6d4b\u8bd5JS\u539fSHA\uff1bNode\u4e09\u4efd10\u8fc7\uff0cESLint0errors/20warnings\uff0cD17\u4fdd\u6301open\u3002src\u5b50\u6811\u548c27\u7ec4source/out\u8eab\u4efd\u89c1[\u8bc1\u636e](default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md)\u3002\u4e0d\u6539Sources\u5b9e\u73b0\uff0c\u4e0d\u5347\u4ea7\u54c1PRD\uff1bJ D1387\u72ec\u7acb\u8865\u4fee\u7531\u7236\u8c03\u5ea6\u3002",
+      "resultVsOurs": "diff --git a/dev/progress/status.md b/dev/progress/status.md\nindex bfc922664f5..47575109120 100644\n--- a/dev/progress/status.md\n+++ b/dev/progress/status.md\n@@ -14,6 +14,7 @@ summary: \"\u7f16\u8bd1\u57fa\u7ebf\u5168\u91cf0\u3001325/3\u65e2\u6709\u7ea2\u4fdd\u7559\uff1bD1387\u865a\u62df65d noEmit0/El\n - **\u5916\u90e8\u7eaf\u6587\u6863\u5b89\u5168\u63a5\u5165\uff082026-10-26\uff09**\uff1a\u53ea\u53d6\u4e3b\u5de5\u4f4d\u4e0d\u53ef\u53d83d522\u76849\u4efd\u5df2\u63d0\u4ea4\u6587\u6863\uff0csrc\u6811\u4ecd932031\uff0c\u771f\u4e09\u8defda0d263\uff1bD7c84\u4e24\u8f6e\u5bbf\u4e3b\u89c4\u521916\u62a5\u544a\u53e6\u63a56c75c2\u3002\u9010\u8def\u5f84\u4e24\u8fb9\u4fdd\u7559\u95e8\u798165/117\u5168PASS\uff1b\u672c\u65b951\u4efd\u539f\u59cb\u8bc1\u636e\u3001\u5206\u5de5\u4e0e\u5916\u90e8\u4e24\u65b9\u6848/\u7d22\u5f15\u5747\u4fdd\u7559\uff0c\u4e0d\u53d6root/J/E WIP\u3001\u4e0d\u653930\u4efd65d pack\u3002Sources\u5bbf\u4e3b\u65b0\u751f\u4ea7\u4e0eE\u4ee3\u7801\u4ecd\u672a\u63a5\uff0c\u6b63\u5f0f\u6ce2\u672a\u5b8c\u6210\u3002[\u95e8\u7981](default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json)\u3002\n - **\u7236\u7ea7\u6838\u9a8c\u4e0e\u4e24\u6a21\u5757\u5f53\u524d\u72b6\u6001\uff082026-10-26 15:12:55 UTC\u8bb0\u5f55\uff09**\uff1a\u7236\u72ec\u7acb\u68383760\u768451\u4efdartifact\u300130\u4efdlive out\u57470 mismatch\uff0csrc\u7cbe\u786e932031\u7eff\u6811\u3002E accepted\u65b9\u6848\u72ec\u7acb\u63d0\u4ea45dd7d97d45b\uff0c\u53d7\u5ba1SHA256 262df24\u2026\u5df2C0/I0\uff0cblocked Minor\u5df2\u5199\uff0c\u73b0\u4e8e\u81ea\u5df1\u69fd\u4f4d14\u6761\u6e90\u7801\u8def\u5f84\u5b9e\u65bd\u4e14occupied\uff1b\u672c\u7ebf\u672a\u542bE\u65b9\u6848/\u4ee3\u7801\u3002Sources\u5e76\u53d1I1\u5df2\u91c7\u7eb3\u540cservice/API\u5b8c\u6574tuple\u4e0ecustom wildcard\u91cd\u53e0sticky\u6b67\u4e49\u95e8\uff0cD\u4e24\u8f6e\u89c4\u521916\u62a5\u544a7c84e0167e3\u7b2c\u4e8c\u8f6eC0/I0\uff0cJ\u5df2\u72ec\u7acbaccepted\u65b9\u6848\u63d0\u4ea4bf50c66b8b9\u5e76\u5728\u81ea\u5df1\u69fd\u4f4d\u5b9e\u65bd\u5bbf\u4e3b\u751f\u4ea7/\u56de\u5f52\uff0c\u5c1a\u65e0\u5df2\u63a5\u5165\u65b0\u751f\u4ea7/\u4e0dfreeze\u3002\u4e3b\u5de5\u4f4d\u72ec\u7acb\u4e3b\u9898WIP\u53ca\u5916\u90e8\u524d\u8fdbHEAD\u4fdd\u7559\uff0c\u53ea\u5141\u8bb8\u4e00\u6b21ff-only\uff1b\u65b0\u7f16\u8bd1\u524d\u5148\u67e5\u5168\u5c40\u6d3b\u8fdb\u7a0b\uff0c\u4e0d\u91cd\u590d\u8d77\u8f66\u9053\u3002[\u6838\u9a8c\u4e0e\u91c7\u6837\u5386\u53f2](default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md#\u7236\u7ea7\u72ec\u7acb\u6838\u9a8c\u4e0e\u6700\u65b0\u8c03\u5ea6\u72b6\u6001)\u3002\n - **D1387 \u4e0d\u53ef\u53d8\u6e90\u7801\u53e0\u52a0\u9a8c\u8bc1\uff082026-10-26\uff0c65d\u91c7\u6837\u5386\u53f2\uff09**\uff1a65d\u865a\u62df\u5b8c\u6574Program noEmit0\u3001\u5b98\u65b9\u5341\u6587\u4ef6Electron357\u8fc7/exit0\uff0cwiring23\u8fc71\u5df2\u7cbe\u786e09f6\u590d\u73b0\u7684Acceptpatch\u65e2\u6709\u7ea2\uff0clint0\u9519\u8bef/56\u8b66\u544a\u4e144f7\u219265d\u65e0\u65b0\u589e\u3002R1/R2\u7cbe\u786e23f\u54040\u8fc74\u4e1a\u52a1\u7ea2\uff0c89f\u7c7b\u578b6\u7ea2\u3001setup\u6cc4\u6f0f\u4e0e4f7\u5939\u5177\u7ea2\u5747\u4fdd\u7559\u5e76\u7531\u4f5c\u8005\u8865\u4fee\uff1b51\u4efdraw/\u547d\u4ee4/source-out\u8eab\u4efd\u5f53\u8f6e\u843d\u5e93\u3002src\u4ecd09f6/de22\u7eff\u6811\uff0c\u4ec5merge out\u865a\u62df\u53e0\u52a0\uff1b\u540ctuple\u591a\u5bbf\u4e3bImportant\u89c4\u521916/\u751f\u4ea7\u8865\u4fee\u5f85\uff0cJ+E\u4e24coder\u51bb\u7ed3\uff0c\u91c7\u6837\u65f6E unary\u65b9\u6848draft/\u89c4\u521916\u6539\u7a3f\u4e14occupied\uff0c\u4e0dformal\u5408\u6e90/\u4e0d\u53d1after freeze/\u4e0d\u8ba1\u4ea7\u54c1\u5b8c\u6210\u3002[\u5b8c\u6574\u8bc1\u636e](default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)\u3002\n+- **\u63a7\u4ef6\u7ec6\u8282\u7cbe\u4fee\uff082026-10-26\uff09**\uff1a\u56dbCSS\u6536\u655bSources\u5de5\u5177\u680f\u547d\u4e2d\u533a/\u9875\u7b7e\u6309\u538b\u3001Navigator\u7b5b\u9009\u7126\u70b9/\u6e05\u9664\u5bf9\u9f50\u3001Connection\u4e0eEngine\u8fd4\u56de\u6309\u94ae\uff1b\u56db\u4e3b\u989816\u7ec4\u57fa\u672c\u63a7\u4ef6\u30018\u7ec4\u672c\u5730\u5de5\u5177\u680f\u30014\u7ec4\u7981\u7528ActionBar\u9a8c\u8bc1\u901a\u8fc7\uff0c\u72ec\u7acb\u6e90\u7801\u590d\u8bfbC0/I0/M0\u3002\u5c40\u90e8CSS\u5237\u65b0\uff0c\u65e0\u5168\u91cf\u7f16\u8bd1\uff1b\u672c\u5730\u6839/\u7981\u7528fixture\u4e0e\u65e2\u6709JS\u8fb9\u754c\u89c1[\u8bc1\u636e](control-detail-polish-evidence/verification.md)\u3002\n - **D1387 \u539f\u4e24\u673a\u5236\u4e1a\u52a1\u7ea2\uff082026-10-26\uff09**\uff1a\u4e3b/merge\u5df2\u540cclean555c\uff0c\u53ea\u6709merge\u53d6\u4e0d\u53ef\u53d8J23f\u4e24\u65b0\u6d4b\u8bd5JS\uff1b\u4e94core\u6e90\u9010\u5b57\u7b49c968/133ef\u3001\u751f\u4ea7JS\u524d\u540eSHA\u4e0d\u53d8\u3002\u5b98\u65b9Electron0\u8fc714\u8d25\uff1a12DTO\u5728resource.open\u5b9e\u96451/\u671f\u671b0\u65ad\u8a00\u7ea2\uff0c\u51c6\u786e\u5bf9\u8c61/id\u4e24\u9879\u88ab\u65e7finder\u4e1a\u52a1\u62d2\u7edd\uff0c\u65e0\u52a0\u8f7d/\u7c7b\u578b/timeout\u3002\u660e\u786etest-only\u6df7\u5408scope\uff0c\u6700\u7ec8J\u8865\u4feegreen/\u5b8c\u6574\u5957/after\u5f85\uff1bD cbac\u89c4\u521916custom\u7a84\u4f8b\u5916\u62a5\u544a\u53e6\u771f\u4e09\u8def\u63a5\u5165\uff0c\u9010\u8def\u5f84\u4fdd\u7559\u95e8\u7981PASS\u3002[\u7ea2\u4e0e\u8eab\u4efd](default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md)\u3002\n - **\u7f16\u8bd1\u57fa\u7ebf\u5b89\u5168\u540c\u6b65\u4e0eD1387 peer\u63a5\u5165\uff082026-10-26\uff09**\uff1a\u7236\u5b9e\u683854\u4e2asource/out SHA\u4e0esrc\u6811\u540e\uff0c\u4e3b\u5de5\u4f4dclean agent-ide\u4ec5ff de22\u6210\u529f\uff1bD\u4e0d\u53ef\u53d8c664\u72ec\u7acb\u62a5\u544a\u771f\u4e09\u8def\u5408\u51650dd2\uff0c\u4e24\u8fb9\u4fdd\u7559\u7b49\u4ef7\u9010\u8def\u5f84\u95e8\u7981PASS\u3001src/out\u672a\u53d8\u3001\u65e0\u65b0\u7f16\u8bd1\u3002J\u539f23f\u5b9e\u73b0\u5df2\u72ec\u7acb\u5ba1C0/I2\uff0cnewTab\u9884pin\u4e0e\u5355\u4fa7URI\u8eab\u4efd\u8bef\u914d\u7531Astra\u88c1\u5b9a\u3001J\u8865\u4fee\u4e2d\uff0c\u5c1a\u672a\u5408\u751f\u4ea7\u6216\u5ba3\u544aafter\u3002[\u63a5\u5165\u8bc1\u636e](default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md)\u3002\n - **\u5f53\u524d\u7f16\u8bd1\u5408\u540c\u8303\u56f4\u5b8c\u6210\uff082026-10-26\uff09**\uff1a\u65b9\u684833922\u72ec\u7acb\u63d0\u4ea4\u540e\u4fee27\u6587\u4ef6\uff0cAstra\u6e90\u7801\u5ba1\u67e5C0/I0\uff1b\u552f\u4e00merge\u5168\u91cf`compile-client`\u771f\u5b9e45\u21923\u21920\u3001exit0\u300220\u6587\u4ef6Electron325\u8fc7/3\u65e2\u6709\u7ea2\uff0c\u7cbe\u786ec968\u65e7\u6d4b\u8bd5\u5df2\u590d\u73b0\u540c\u4e09\u7ea2\u5e76\u6062\u590d\u5f53\u524d\u6d4b\u8bd5JS\u539fSHA\uff1bNode\u4e09\u4efd10\u8fc7\uff0cESLint0errors/20warnings\uff0cD17\u4fdd\u6301open\u3002src\u5b50\u6811\u548c27\u7ec4source/out\u8eab\u4efd\u89c1[\u8bc1\u636e](default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md)\u3002\u4e0d\u6539Sources\u5b9e\u73b0\uff0c\u4e0d\u5347\u4ea7\u54c1PRD\uff1bJ D1387\u72ec\u7acb\u8865\u4fee\u7531\u7236\u8c03\u5ea6\u3002"
+    }
+  ],
+  "allPathsPassed": true,
+  "oursSinceBaseOnlyDocs": true,
+  "resultSourceTree": "030defda3cc7cfac7148e84fac470a3bf5098d06",
+  "exactTargetSourceTree": true,
+  "nonexistentShellScriptNotRun": true,
+  "actualMethod": "Per-path git ls-tree base/ours/theirs/result blob+mode comparison; both-changed status removes exact main-added row to reproduce ours bytes, with both diffs retained."
+}

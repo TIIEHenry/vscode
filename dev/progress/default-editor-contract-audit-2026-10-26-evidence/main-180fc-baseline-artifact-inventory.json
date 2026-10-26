@@ -1,0 +1,61 @@
+{
+  "phase": "main-180fc-baseline-evidence",
+  "artifacts": [
+    {
+      "originalPath": "/tmp/vscode-main-180fc-baseline-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-pre-merge.json",
+      "bytes": 13305,
+      "sha256": "965fbad66c0920ca143b91d699b1fef10a540009c2c8fd40853d2314bcf03301",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-main-180fc-baseline-merge.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge.log",
+      "bytes": 160,
+      "sha256": "7b062612663b38695884d4a90668592de957e1ca8045dfcb88e7ab2a56911daf",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-main-180fc-baseline-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge-identity.json",
+      "bytes": 55618,
+      "sha256": "3db7c2b13a4add9f5b38bb5125f682c290e13f62751d74f625ba62e35fff1eee",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-main-180fc-baseline-merge-docs-health.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge-docs-health.log",
+      "bytes": 4384,
+      "sha256": "81d51ee1df7b56c64fe232f52bb74e192d5abe560e9aee75c1758d0dc64026ba",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-main-180fc-compile.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile.log",
+      "bytes": 28374,
+      "sha256": "21fa7d69a75c149fbd2b578e05d0ee400d922a0fd4938cd7e43d19af29793e3b",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-main-180fc-compile.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile.json",
+      "bytes": 17953,
+      "sha256": "c78b3338b7e89d288667fb6ea476848e9c403e2f475fabe271cee8936ce34400",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-main-180fc-compile.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile-runner.py",
+      "bytes": 3761,
+      "sha256": "0e81f99c09938a6e65fa052e4804d4ea3166e66ab3025e4cab91bc0915b28786",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-main-180fc-final-docs-health.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-final-docs-health.log",
+      "bytes": 4384,
+      "sha256": "66ef4368cdc4b748e8e997e6df25aaae18c1ecaf58d1449a21b67acd89a05705",
+      "bytePreservingCopy": true
+    }
+  ]
+}
