@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "原回归与补修复读留史；固定d91真实三路9cc56定向合并peer C0/I0/M0，第四轮编译/回归与D after待，reasoning既有红保留。"
+summary: "保留E与固定d91合源复读历史；D真实J after发现Conversation按钮来源丢失Important，归原J补现plan并独立审查，未签全after。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -309,3 +309,35 @@ QueueReader是Roster新的直接runtime import；responseState也是E核心真�
 **Critical 0 / Important 0 / Minor 0（本次实际三路合并合同定向范围）。** 可以进入§8约定的第四次实际完整编译、最小相关回归和最终重新freeze。此结论只关闭“实际merge尚未peer”的条件，不把尚未执行的新native验证或D after记为green，不扩大为外部队列/技能模块完整产品验收。reasoning旧生产差异继续单独保留。
 
 已先将短C/I闭合结论发给父与唯一lane；本报告与证据INDEX为唯一写集。reviewer没有执行compile/typecheck/transpile、业务测试、服务器或UI，也没有改D准备夹具。
+
+
+## 10. D真实after的Conversation→Preview按钮缺陷定界（2026-10-27）
+
+### 发现与根因：Critical 0 / Important 1 / Minor 0
+
+D在冻结src `92801b513611ed3ae1ba36862a58131c609f6aa2` 的真实默认编辑器after中报告：Preview/Review/Changes真实Git打开、准确Conversation叶及若干Move已通过，但真实pane的Open Diff in Preview按钮无效；从普通Review创建的Beta shared比较也重复失败。父报告运行使用第四轮实际compiled产物；reviewer不把报告的运行变成自己的执行。本次直接读取同src的不可变 `9cc56b5595cdc680020cc832fe390c592a55c25c` 源码及D以下原件，未运行UI/业务。
+
+D目录 `/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-after-sources-audit-20261026/steps/` 的 `M01-conversation-to-preview-real-button.json` SHA256为 `cfacdccb67f43702d1a6a849a4ec05078428b3a9efe8d836034d010db87f3860`，`M01-normal-beta-conversation-preview-button.json` 为 `f0cdc242a77401ef58054614d6e770d59d8ad66f3a2a481dfa2e456fda11944a`。已读action/state：真实button动作后global activeEditor=null、activeGroup=0、main所有组仍空，visualize真实comparison group11仍保留Alpha other或Beta shared；不是仅以无参命令自测推断产品失败。D完整矩阵与图像原件由D继续保管，本reviewer只核上述JSON和源码，不代签未读矩阵。
+
+源码闭合：`conversationDiffReviewPane.ts:199`忽略pane已拥有的真实input/group，无参执行 `sources.diff.moveToPreview`；`sourcesDiffActions.ts:72–77`不接调用源；`sourcesDiffRefHelpers.ts:142–146`只读全局activeEditor，空即undefined返回。`IConversationEditorPart`在公共 `editorGroupsService.ts:533–535`明确 `excludeFromGlobalEditorAggregation: true`。因此准确Conversation宿主存在而全局聚合为空是合法架构状态，**真实可见按钮丢来源并静默不工作是产品Important，不是driver失败，也不能用全局命令无active时允许no-op来豁免。** 已有helper测试把ConversationInput直接放进mock全局active（`sourcesDiffRefHelpers.test.ts:496–510`），没有覆盖真实默认宿主边界。
+
+本结论不推翻§9的限定Roster合并peer：这是D实际UI揭示的J已accepted三owner/Move合同未满足。D1387继续open、J after不全通过；其他已完成case保留其各自证据，E after尚未启动。原J负责补修，不新开coder、RPC、服务、全局串行队列或Agents界面。
+
+### 方案决策：显式调用来源，共用捕获与存活校验
+
+原J先在[既有方案](../../plans/sources-open-dispatch-and-conversation-target.md)追加本轮合同与回归、独立文档commit，按规则16只读审查C/I闭合后才实现。现有accepted方案没有定义显式pane调用源，这属于需要明确的公共命令边界增量；不是新产品计划或新增owner。
+
+1. **pane提供自己已经知道的来源。** 在点击时捕获准确 `ConversationDiffReviewInput` 对象、实际 `IEditorGroup` 对象以及判别明确的来源kind，通过既有命令传到helper；可附注册Conversation part/sessionKey用于校验。host sessionKey、编辑器group对象/id与Sources ref的SCM groupId/content sessionId须分开，不能混作同一身份。无参命令仍保持现有全局入口适用范围，不为修按钮去改全局聚合或猜最近叶。
+2. **入口校验真实宿主，不把参数当授权事实。** 在当前公开conversationParts中确认同一个part和group对象，确认当前pane/input对应且input仍是该组真实成员、未dispose。只匹配URI、同数值group id或 `.matches` 不足以区分多叶同一比较。显式context存在但无效时终止，不回退global active、当前session或另一个同内容tab。具体结构由J在addendum选择，但必须用现有公开成员/生命周期边界，不做新的服务或可伪造的全局缓存。
+3. **resolve与close绑定同一份同步捕获。** 不能只给resolve传显式input，却让captureMoveHostClose继续读global active。来源有效才分派一次；await后关闭前重新核注册part/group对象与精确input成员，已删除/替换/同id重建的来源不关闭任何替代对象。正常异步打开把全局焦点移到Preview，并不自动使原input失效；若原对象仍存活在原组，可精确关闭原对象，不要求重新成为global active。使用公开group.closeEditor或能够证明同一宿主的现有服务。
+4. **保留既有打开代数与provider合同。** 完整original/modified/SCM组身份、provider显式options、single-dispatch、void委托和局部歧义fence保持。已accepted §4.2明确其他false/stale后的既有关闭策略已锁定，本刀不改成“所有失败都保源”；当前helper确实在false/stale及非缺leaf异常后走既有close。新“来源失效不误关”与既有“缺Conversation leaf保源”须单独列出，不能借错误恢复偷偷统一改整个Move事务策略。如需改变失败关闭合同，须另列实质设计变更审查。
+5. **反馈只归当前调用。** 真实有效按钮不能再静默吞掉无来源；派发异常沿既有通知/局部状态通道表达，当前成功清本次打开错误，旧异步结果不得盖掉新input/pane的状态。不用新global状态服务，也不清独立读失败或写失败。stale来源是拒绝旧调用，不能借重试转向新叶。
+
+### 必要回归与补修顺序
+
+- **真实公共正例：** 默认Conversation part不参与全局聚合，global active为空时，真实pane按钮→已注册command→helper→公开EditorService/group，完整双侧确实进入Preview、按既有pin合同，恰好关闭来源比较并保留chat root。另测global active是无关Preview时仍只移动点击的Conversation比较。仅helper mock/global active赋值或只验命令字符串不够。
+- **多叶隔离：** A/B Conversation同名文件、同modified不同original、乃至同tuple不同input对象；点B只使用B的input/group/身份，A及不相关Preview保持。焦点/最近session切到A不能把B的显式调用改归A。
+- **失效负控：** 显式input已移除/dispose、pane已换input、part/group已移除、同group id新对象、plain object伪group、非Conversation/错误input类型；派发前零打开零关闭，不fallback。await期间来源成员替换/part关闭不得关新input；合法来源仍存活但焦点改变则允许精确关闭原来源。
+- **结果与恢复：** 公共handler的throw/拒绝、当前重试成功、旧完成晚到与多pane错误隔离；保留旧false/stale/void与缺leaf例外的独立测试，不用新的expected抹掉旧行为。保留其余Preview/Panel move正例、SCM参数/pin/identity与Sources重叠歧义回归。更新旧wiring-scan的无参字符串断言去核新的真实context传递，不能只删scan换绿。
+
+顺序为原J方案增量→独立只读审查→原J实现/公共回归→唯一lane准确旧红与新native必要测试/身份重新freeze→D重跑M01及受影响Move/Panel/错误恢复，保留本次真实失败原件。不得用正在进行的D旧产物after直接签新修复。reviewer本轮仅报告与INDEX写入，不改作者方案/产品/tests/out，不执行编译/typecheck/transpile、业务或UI。
