@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "保留a166 VM与SCM夹具失败历史；fccde4完整SCM补修定向C0/I0/M0，生命周期实际旧红/compile7及39项、新freeze待。"
+summary: "保留VM/SCM失败与fccde混合旧红；64a4完整组级progress夹具定向C0/I0/M0，准确生命周期旧红/compile7及39项、新freeze待。"
 ---
 
 # Conversation 响应恢复实现独立审查与三项补修复读
@@ -505,3 +505,27 @@ lane JSON记录source `fb214e7e06c7e23ede11003bfdb1d5b4f86a7db8` / src d5eca，c
 §17生命周期首轮夹具失败现有永久原件 `65cf42e3dfebd6cead138669c2c2762ca12dc3cb`。reviewer直接Git核其中 `m01-old0da-a166-lifecycle.log` SHA256 `51ce0aea9498f185b9853269bba12235ae0f686f4ad3757000c461a408c44f43` 与§17临时raw相同；其0 passing/1 TypeError、生命周期业务红0历史保留，不改成通过。
 
 **Assessment：允许唯一lane用本次test配精确旧0da Pane重新验证生命周期业务旧红，再按父调度第七次实际完整编译和39项/完整相关套。** 新运行结果未到时，不把原Move四红当生命周期旧红，不把完整fixture静态合同当运行green；新freeze/D after仍待。作者AST/lint未由reviewer重跑；B起点clean `18828520a95670cc4aa212552fb01cbc0929ed49`、src fdca不变，仅原报告+INDEX，无compile/typecheck/transpile/out/native/UI。
+
+
+## 19. 生命周期混合旧红的进度服务定界与补修复读（2026-10-27）
+
+### fccde实际结果：已达业务断言，但夹具仍有独立错误
+
+唯一lane以fccde新test配精确旧0da Pane实跑0 passing / 2 failing。reviewer直接读 `/tmp/vscode-m01-old0da-fccde4afb3ee-lifecycle.log` 与JSON，raw SHA256 `5f10852bcf649322992f992cacfa06a54d38409177a304ded066b12894dfd213`；source为 `65cf42e3dfebd6cead138669c2c2762ca12dc3cb` / src d5eca。首失败准确为 `replacing input must release its comparison view model`（false !== true），已经创建VM并到替换释放业务断言；第二afterEach失败为unexpected TypeError读undefined.show，clear/dispose后续断言未达。应记录**1条真实业务AssertionError与独立夹具错误并存，非干净纯业务旧红**；JSON的保守lifecycleOldBusinessRed=false不代表业务断言从未到达，也不能把mixed结果包装成满足门禁的纯红。
+
+独立读恢复后的native与不可变TS确认：native DiffEditorWidget.js:350对应TS:404 `_editorProgressService.show(true, 1000)`，位于新model初始化的isInitializingDiff autorun，从setDiffModel事务触发；这是缺IEditorProgressService，**不是旧悬置VM在widget销毁后异步回调的次生错误**。真实EditorGroupView:222通过child ServiceCollection提供组级EditorProgressIndicator，原4真实入口有此组级DI；feedbackPane直接createInstance(ConversationDiffReviewPane)没有真实组级注入，而workbench基座注册的IProgressService是另一接口，不能替代它。§18闭合SCM接口的静态结论保留，此新增运行事实不得隐藏。
+
+扩展静态依赖复核覆盖DiffEditorWidget、DiffEditorViewModel、双CodeEditorWidget与diff子组件：context/instantiation/codeEditor/accessibilitySignal、VM diffProvider、theme/notification/accessibility/language config/features、interaction、menu/keybinding/contextMenu等由基座或显式fixture提供；未发现当前生命周期路径另一确定缺口。clipboard仅作为内联viewzone交互参数，本case未触发复制，不据此承诺所有未执行交互都通过。未找到可导出的正式Null/TestEditorProgressService；standalone同名职责类不导出且不宜为fixture导入其全局注册。既有chat CodeBlockPart:745采用完整局部IEditorProgressService实现，show返回公共emptyProgressRunner，showWhile await原promise，可沿此模式补fixture。
+
+**本次新增C0/I1/M0，I1限定组级progress夹具。** 最小补齐完整公开接口，保留真实widget/model、业务expected及unexpected/leak门禁；showWhile要真实等待并保留reject，不能吞错误。父已授权原J本地补修，仍无新产品合同/方案；补后由唯一lane再以旧0da实际重跑，未合fccde或启动compile7，不为让旧producer“干净”而删测试/关检查。当前163输出恢复声明由lane保管，reviewer不代跑native或逐产物恢复。
+
+
+### 64a4进度接口修订：Critical 0 / Important 0 / Minor 0
+
+受审不可变 `64a4e46b5fa27d48920789aa4b66e7340dfa833b`，父 `fccde4afb3eeca0b9264b732efef6b5e31e4b380`，src `ab952ce1fc0bd279754f747460bea9a8dc97f216`，仅1test+3行动docs。reviewer独立读完整test diff并核父/src/hash。新增6行仅导入公开progress模块并在direct feedbackPane注册完整satisfies IEditorProgressService：brand、show返回正式emptyProgressRunner、showWhile async await原promise。没有catch吞拒绝，没有禁用diff autorun、伪造diff完成或屏蔽unexpected；公共空runner覆盖total/worked/done，足以支持真实widget进度清理，不是返回undefined的新空mock。
+
+**本节progress夹具I1源码闭合。** 此变更提供真实编辑器组在产品中本已提供的组级依赖，不改全局注册或生产，也未引入standalone模块副作用。§19上半部扩展依赖核查仍适用，未发现当前路径另一确定缺失接口；实际尚未走到的行为继续由lane验证，不能仅凭补齐DI签完整green。
+
+受改test SHA256 `83653d3619affa62557b4c431cba6000cbe1e329943826c411fd9ca85695f75c`；Pane仍 `e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`，src路径diff证实全production不变。真实4 Move入口区及从lifecycle test至文件末分别与fccde逐字一致，39项expected、Spy原方法执行及finally恢复、leak/unexpected门禁均保留。没有为了让旧producer失败干净而移除业务或错误断言。
+
+**Assessment：定向C0/I0/M0，可继续64a4新test配精确旧0da Pane实际旧红；正式原件接入后按父调度完整compile7、新39/相关套。** fccde混合结果完整保留为“1业务assert+独立progress fixture error”，不改写为此前纯红；新准确结果未到前仍不签纯生命周期旧红。B起点clean `1d30f1ff5c67b0717a108a11a5a466665dbc50df`，仅本报告与INDEX，src fdca不变；无compile/typecheck/transpile/out/native/UI，短C/I已交父/原J/唯一lane。
