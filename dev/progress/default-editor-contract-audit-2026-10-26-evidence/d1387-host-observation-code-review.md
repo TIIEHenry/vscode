@@ -3,8 +3,8 @@ title: "D1387 宿主观测与重叠保护源码独立审查"
 type: reference
 status: accepted
 phase: M7
-updated: 2026-10-26
-summary: "独立静态peer核对1ac1fdc的8路径/3TS：已审宿主与Sources重叠边界落地，29项新回归源码有意义，C0/I0/M1；lane发现8处hasListeners漏调用待原作者修补，不签运行、编译或after"
+updated: 2026-10-27
+summary: "独立静态peer1ac核心C0/I0；4d490616仅8处hasListeners方法调用与3行动docs，M1已静态关闭，production不变；运行/编译/真实after仍由唯一车道证据签收"
 ---
 
 # D1387 宿主观测与重叠保护源码独立审查
@@ -52,6 +52,14 @@ summary: "独立静态peer核对1ac1fdc的8路径/3TS：已审宿主与Sources�
 **C0 / I0 / M1，核心可进入唯一车道 formalqueued；测试夹具修补后再计受影响的 red/green。** 车道按作者精确 selector 将旧 `65d2288036fdad74ab607e231d3db758fa397aa8` 生产配修正后的新测试，证明 `delegated host official` 以及 `Sources overlap same tuple .*settles first` 在实际身份业务断言 red；加载、类型、扫描失败、夹具差异或超时不计。然后刷新本次生产，新29项 green 后保留原 R1/R2、根因与完整相关套/语义及必要全量编译义务。
 
 本报告不是运行 green、最终产物来源或默认编辑器真实 Git after。唯一产物车道尚未发最终 freeze；审查者不会用现有混合 out 提前启动窗口。最终 source/out 冻结、加载模块身份与非作者 Preview/Conversation/Panel、全部入口/move/Review 错误恢复等 after 仍待。D1387 保持 open，PRD 不升。
+
+## M1 补修增量复核（2026-10-27）
+
+作者不可变补修 `4d4906163044929c1b7b7a7ed40693a2cd4a9a91`，父为本报告原受审 `1ac1fdc4ae2db39f4e2c3a49e014bcc629b40419`。D 只读核对4路径diff：3份行动文档，唯一TS为 `sourcesChangesList.test.ts`。以原测试全文精确将8处 `harness.events.hasListeners` 替换成 `harness.events.hasListeners()` 后，与补修测试全文完全相等，无其他测试语义变化；新测试SHA-256为 `02a6263e06688776dd5b86225857a1247624641c5f74ab6a804bfc2a1109dd3d`。补修相对原1ac的生产路径diff为空，helper仍为 `45cf6d831abda7efd46ae2121b520c5f142282caa079f0e913da8312bf73741a`。
+
+因此 **M1在源码层关闭，补修静态C0/I0/M0，沿用原核心peer，不重复全核心审查**。这不是两并发旧red或新green的运行签收：唯一车道正在重验，须以其不可变源/产物和实际业务断言结果为准；原两并发失败含函数对象差异的历史记录保留。本轮没有编译、typecheck、transpile、写out或启动窗口，未收到最终freeze，仍不执行after。
+
+实际 `git diff --check 1ac1fdc 4d490616` 通过；本报告增量的D文档健康检查前后均0 errors/46 warnings，warning集合无变化，暂存diff-check通过。只提交本报告，不修改J/主工位/merge或父维护的状态/索引账。
 
 ## 本报告门禁
 
