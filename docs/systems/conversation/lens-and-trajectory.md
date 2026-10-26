@@ -110,6 +110,8 @@ Stub fixture：`mergeTrajectoryFixtureExtras` 仅 seed `untitled`、且 `!isEngi
 - live 信号：`ConversationTimelineEntry.streaming` 与 tool `toolStatus` 经 `entryToRenderableTurn` 传到渲染层。执行中详情限高内滚；折叠后只稳定摘要；sticky breadcrumb 仅展开且内容超出可视区时出现。结束后保留完成、失败或取消的真实状态。
 - 外层摘要 `summarizeProcessSteps` / `summarizeTrajectoryProcessSteps`：无引擎时必含 `Stub`（PRD-013 验收 4），无假耗时 / loading / live 字样。引擎 live chrome（`showLiveChrome`）才显示 Loading / Running。stub 源永不置 `streaming`。
 - 对话页外层将步骤名与真实 failed / waiting / cancelled 数量分开呈现：名称可省略，状态必要时换行，收起后仍可辨取消；图标按执行中、失败、取消的顺序取优先级，全部完成时外层无状态图标。工具行仅明确 `completed` 时画完成勾，未知状态不借 Stub 补完成。ARIA 与 sticky 摘要仍使用完整文字，不拆成多个操作入口。
+- 本地缺失工具状态由 `stubTurnsToSnapshot` 用合法 text summary 与 attribution 的 `localTool` sidecar保留；只有 `role=tool`、`stub=true` 同时成立才还原工具行。对话与轨迹两个投影都识别该严格本地标记；名称、参数/结果、可用 callId 与工具归组保持，缺失状态不补 pending/completed。正式 session-core 工具仍仅有五个必填状态，live 状态原样投影。
+- 本地缓存 `conversation.roster.v1` 新保存写 `toolStatusEncoding: explicit`，所有已知状态（含 completed）显式保留，新缺失仍未知。加载无标记的历史缓存时，一次性将三类桶（local、未分键 engineCache、分引擎 engineCaches）中 tool 的省略状态解释为 completed，再允许局部更新保存；其他状态不改。旧格式无法区分“省略已完成”和“真实未知”，此迁移保留历史呈现，不宣称恢复未知历史事实。这个兼容解释只在存储读取边界，运行时投影不猜测。
 - 步数按单复数写：一步是 `1 step`，多步是 `{0} steps`，带工具名时是 `1 step · read_file` / `2 steps · …`。
 - 思考行摘要就是这条思考自己的文字，不把后面的工具名拼进去。外层摘要仍按步骤列出 thinking 和工具名。披露箭头只画在外层摘要；Thinking 与工具行不画 chevron，有正文时仍可展开。
 - 同一封里的可用思考先画成阅读区思考行，再画正文，再按原顺序画工具名。空白思考不新增空行。思考行在 `showToolInvocationDetails` 关掉后仍在。工具条目上仍可留着 `thinkingText`，但整组交给渲染、且已有同样文字的思考行时，工具 turn 不再带这段，过程折就不会在工具标题下再画一遍。没有思考行时，工具行上的 `thinkingText` 仍画在标题下，工具正文收起时也留着，不拼进工具名或摘要；详情关掉时标题下不留这段，也不留 `file_edit` 的增删统计，工具名和摘要还在。

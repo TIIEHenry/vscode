@@ -149,3 +149,7 @@ Catalog与Terminal补修真实改变生产：Agents body CTA恢复[既有SSOT §
 已核对主线 `8252bdfdd5724960664c94aa64cccb5aa9eb550c` 相对07ab的30路径视觉实施与证据，和merge `7ba39cf106a` 真三路合成。Provider两TS自动合并：保留我方删除unused helper与dialog detail正式string收窄，也保留外部managed hover/释放、只读Enabled/Disabled文案与无switch/无RPC断言；未整文件取ours/theirs，模型行为边界不扩。仅plans INDEX/status文档冲突，保留双方计划/历史并采用外部真实implemented状态。Astra已独立核对双方diff支持语义并集，最终交集复核与merge新产物验证尚在途。
 
 825已提交的证据为外部Electron350 passing/14pending、Chrome补验14 passing，九TS九条旧诊断无新增；原始[外部验证](../../progress/default-editor-visual-state-followup-evidence/verification.md)保留，这些不是merge当前新运行。仅默认编辑器产品范围，不开发Agents Window。下一步merge独占锁内最小fresh、定向语义与受影响UI/Provider/catalog回归；旧833项不全重跑，上一轮59/37不冒称本轮新全量。
+
+## D1380 本地工具状态投影补修（验证在途）
+
+真实默认编辑器 source `330b689` 的未知工具在完整 Stub→frame→view 路径仍画完成勾。D 方案 `e127b730d69` 经 J 规则16只读 Critical0/Important0 后实施：缺失状态以 text summary + 严格本地 attribution sidecar投影为工具，已知五态原样；新缓存显式保存completed，历史省略只在三桶load边界兼容。未改session-core协议、Provider或Sources。新增六条受控回归覆盖真实frame同ID往返和真实服务恢复，详见[方案](../../plans/conversation-tool-status-projection.md)。D只做目标lint（0 errors / 5 warnings）与文档/diff门禁；尚未运行新测试、未编译、未写out。唯一merge负责旧生产red、新产物green与语义；另一独立reviewer负责真实窗口after，D1380仍open。

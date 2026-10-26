@@ -26,6 +26,7 @@ import {
 } from '../../browser/conversationSessionView.js';
 import { CONVERSATION_STUB_SEED_SESSIONS, ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationStubService } from '../../browser/conversationStubService.js';
+import { projectSnapshotToTrajectory } from '../../browser/conversationTrajectoryModel.js';
 import { ConversationTimelineRenderer } from '../../browser/conversationTimelineRenderer.js';
 import type { ConversationTimelineItem } from '../../browser/conversationTimelineTypes.js';
 import { IConversationSessionChatEntry } from '../../common/conversationSessionChat.js';
@@ -122,6 +123,72 @@ suite('conversationSessionView (S1)', () => {
 	test('seed fixtures round-trip through the view contract without loss', () => {
 		for (const session of CONVERSATION_STUB_SEED_SESSIONS) {
 			assert.deepStrictEqual(roundTrip(session.id, session.turns), session.turns, session.id);
+		}
+	});
+
+	test('local missing tool status survives the complete projection and fold without a completion check', () => {
+		const original: ConversationStubTurn = { id: 'local-tool', kind: 'tool', text: 'Read source', toolName: 'read', summary: 'app.ts', payload: 'contents', toolCallId: 'call-1', agentId: 'agent-1' };
+		const projection = stubTurnsToSnapshot('s', [original]);
+		assert.strictEqual(projection.snapshot.timeline[0].summary.kind, 'text', 'do not fabricate a session-core tool status');
+		const entries = projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details);
+		assert.deepStrictEqual(entriesToLegacyTurns(entries), [original]);
+		assert.deepStrictEqual(projectSnapshotToTrajectory(projection.snapshot, projection.attribution, projection.details), [{
+			id: 'local-tool', kind: 'tool', text: 'Read source', callId: 'call-1', depth: 0,
+			messageSource: { kind: 'tool', label: 'read' }, inputDetail: 'app.ts', outputDetail: 'contents', result: 'contents',
+		}]);
+		const turn = entryToRenderableTurn(entries[0]);
+		assert.strictEqual(turn.kind, 'tool');
+		assert.strictEqual(turn.toolStatus, undefined);
+		const span = projectProcessFoldSpans([{ id: 'thinking', kind: 'thinking', text: 'Inspecting' }, turn])[0];
+		assert.ok(span);
+		assert.deepStrictEqual(span.turnIds, ['thinking', 'local-tool']);
+		for (const showLiveChrome of [false, true]) {
+			const host = document.createElement('div');
+			renderProcessFoldSpan(host, span, {
+				defaultOuterExpanded: true, isOuterExpanded: () => true, setOuterExpanded: () => { },
+				isThinkingExpanded: () => false, setThinkingExpanded: () => { },
+				isToolExpanded: () => true, setToolExpanded: () => { }, onLayoutChange: () => { }, showLiveChrome,
+			}, store.add(new DisposableStore()));
+			assert.strictEqual(host.querySelector('.codicon-check'), null);
+			assert.strictEqual(host.querySelector('.conversation-process-fold-tool-name')?.textContent, 'read');
+			assert.ok(host.textContent?.includes('contents'));
+		}
+	});
+
+	test('all five explicit tool outcomes survive local and live snapshot projection and completed round-trip', () => {
+		for (const status of ['pending', 'running', 'completed', 'failed', 'cancelled'] as const) {
+			const turn: ConversationStubTurn = { id: status, kind: 'tool', text: status, toolName: 'read', toolStatus: status };
+			const projection = stubTurnsToSnapshot('s', [turn]);
+			assert.strictEqual(projection.snapshot.timeline[0].summary.kind, 'tool');
+			assert.deepStrictEqual(roundTrip('s', [turn]), [turn]);
+			// A valid live snapshot carries its explicit status without local attribution.
+			const entry = projectSnapshotToEntries(projection.snapshot, new Map(), projection.details)[0];
+			assert.strictEqual(entry.toolStatus, status);
+			assert.strictEqual(entryToRenderableTurn(entry).toolStatus, status);
+			assert.deepStrictEqual(entriesToLegacyTurns([entry]), [turn]);
+			const host = document.createElement('div');
+			renderProcessFoldSpan(host, projectProcessFoldSpans([entryToRenderableTurn(entry)])[0], {
+				defaultOuterExpanded: true, isOuterExpanded: () => true, setOuterExpanded: () => { },
+				isThinkingExpanded: () => false, setThinkingExpanded: () => { },
+				isToolExpanded: () => false, setToolExpanded: () => { }, onLayoutChange: () => { }, showLiveChrome: true,
+			}, store.add(new DisposableStore()));
+			assert.strictEqual(!!host.querySelector('.conversation-process-fold-tool .codicon-check'), status === 'completed');
+			assert.strictEqual(!!host.querySelector('.conversation-process-fold-tool--failed'), status === 'failed');
+			assert.strictEqual(!!host.querySelector('.conversation-process-fold-tool--cancelled'), status === 'cancelled');
+		}
+	});
+
+	test('local tool sidecar requires both tool attribution and the stub boundary', () => {
+		const projection = stubTurnsToSnapshot('s', [{ id: 'text', kind: 'assistant', text: 'ordinary' }]);
+		for (const attr of [
+			{ role: 'assistant', stub: true, localTool: { toolName: 'read' } },
+			{ role: 'tool', localTool: { toolName: 'read' } },
+		] satisfies ItemAttribution[]) {
+			const entry = projectSnapshotToEntries(projection.snapshot, new Map([['text', attr]]), projection.details)[0];
+			assert.notStrictEqual(entry.kind, 'tool');
+			assert.notStrictEqual(projectSnapshotToTrajectory(projection.snapshot, new Map([['text', attr]]), projection.details)[0].kind, 'tool');
+			assert.strictEqual(entry.text, 'ordinary');
+			assert.strictEqual(entry.toolStatus, undefined);
 		}
 	});
 
@@ -222,7 +289,7 @@ suite('conversationSessionView (S1)', () => {
 	});
 
 	test('projection keeps tool respondable only when the snapshot already set it', () => {
-		const base = stubTurnsToSnapshot('s', [{ id: 't1', kind: 'tool', text: 'client', toolName: 'clientTool' }]);
+		const base = stubTurnsToSnapshot('s', [{ id: 't1', kind: 'tool', text: 'client', toolName: 'clientTool', toolStatus: 'pending' }]);
 		const item = base.snapshot.timeline[0];
 		assert.ok(item && item.summary.kind === 'tool');
 		const snapshot: SessionViewSnapshot = {
@@ -574,7 +641,7 @@ suite('conversationSessionView (S1)', () => {
 
 	test('visualize stays a tool row unless parseVisualizeArgs accepts the detail', () => {
 		const projectVisualize = (body: string | undefined) => {
-			const base = stubTurnsToSnapshot('s', [{ id: 'v1', kind: 'tool', text: 'Roadmap', toolName: 'visualize' }]);
+			const base = stubTurnsToSnapshot('s', [{ id: 'v1', kind: 'tool', text: 'Roadmap', toolName: 'visualize', toolStatus: 'completed' }]);
 			const item = base.snapshot.timeline[0];
 			assert.ok(item && item.summary.kind === 'tool');
 			const detail = 'detail:v1' as DetailRef;
