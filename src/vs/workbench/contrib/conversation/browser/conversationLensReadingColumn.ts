@@ -88,6 +88,7 @@ export function mountTimeline(host: IConversationLensReadingColumnHost, timeline
 		onOpenVisualizeFullscreen: (source, title) => host.openVisualizeOverlay(source, title),
 		showLiveChrome: () => shouldShowReadingColumnLiveChrome(host),
 		writesEnabled: () => isReadingColumnWritesEnabled(host),
+		getResponseProjection: () => host.sessionViewLease?.sessionId === host.getBoundSessionId() ? host.sessionViewLease.responseProjection : undefined,
 		showToolInvocationDetails: () => shouldShowClientToolInvocationDetails(host.configurationService),
 	}));
 	host.trajectoryView = host.register(host.instantiationService.createInstance(ConversationTrajectory, host.readingColumn, {

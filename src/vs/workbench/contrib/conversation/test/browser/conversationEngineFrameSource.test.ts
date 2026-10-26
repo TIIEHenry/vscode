@@ -9,12 +9,13 @@ import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/com
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/empty-snapshot.js';
-import type { SessionId, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
+import type { ClientActionRequestId, SessionId, SessionViewSnapshot, TimelineItemId, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
 import { type ConversationViewFrame, type ConversationViewFrameApplied, type ConversationWriteMessage, type DetailFetchOutcome, type PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type {
 	IUniverseAgentSessionView,
 	IUniverseAgentSessionViewFrameEvent,
 } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
+import { permissionRespondCleanupPatches } from '../../../../../platform/universeAgent/common/sessionView/respond-cleanup.js';
 import { ConversationEngineFrameSource } from '../../browser/conversationEngineFrameSource.js';
 
 type LeaseChannel = {
@@ -781,4 +782,36 @@ suite('ConversationEngineFrameSource shared host lease (F3 / D22)', () => {
 		assert.deepStrictEqual(firstApplied, secondApplied);
 		assert.deepStrictEqual(first.snapshot.sync, second.snapshot.sync);
 	});
+	test('captured response completion cannot clean or fail a replacement binding with the same session and request ids', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		const frames = store.add(new Emitter<IUniverseAgentSessionViewFrameEvent>());
+		sessionView.onDynamicDidApplyFrame = () => frames.event;
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const snapshot: SessionViewSnapshot = {
+			...emptySessionViewSnapshot('replacement' as SessionId),
+			timeline: [{ id: 'same' as TimelineItemId, orderKey: 'same', summary: { kind: 'permission', title: 'Run?', permissionKind: 'shell' } }],
+			pendingActions: [{ requestId: 'same' as ClientActionRequestId, summary: { kind: 'permission', title: 'Run?', permissionKind: 'shell' } }],
+		};
+		const baseline = () => frames.fire({ leaseId: 'lease:replacement', sessionId: 'replacement', applied: { kind: 'baseline' }, frame: { frame: {
+			leaseId: 'lease:replacement' as ViewLeaseId, generation: 1, frameId: 1, version: 1, body: { kind: 'baseline', snapshot },
+		} } });
+		const first = store.add(source.acquire('replacement'));
+		await timeout(0);
+		baseline();
+		const old = source.beginResponse('replacement', 'permission', 'same');
+		assert.strictEqual(old.kind, 'started');
+		if (old.kind !== 'started') { return; }
+		first.dispose();
+		const replacement = store.add(source.acquire('replacement'));
+		await timeout(0);
+		baseline();
+		const before = JSON.stringify(replacement.snapshot);
+		old.complete({ retryable: true, error: 'late failure' });
+		old.complete(undefined, view => permissionRespondCleanupPatches(view, { requestId: 'same', decision: 'allow' }));
+		assert.strictEqual(old.isCurrent(), false);
+		assert.strictEqual(JSON.stringify(replacement.snapshot), before);
+		assert.ok([...replacement.responseProjection!.byRequest.values()].every(state => !state.inFlight && !state.failure));
+		assert.strictEqual(source.beginResponse('replacement', 'permission', 'same').kind, 'started');
+	});
+
 });

@@ -4,16 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { Disposable, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
-import type { ClientActionRequestId, PendingActionView, SessionId, SessionViewSnapshot, SyncChrome, TimelineItemId, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
+import type { ClientActionRequestId, PendingActionView, SessionId, SessionViewSnapshot, SyncChrome, TimelineItemId, ViewLeaseId, ViewPatch } from '../../../../../platform/universeAgent/common/sessionView/types.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentSessionEvent,
@@ -24,8 +24,11 @@ import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngin
 import { setConversationStubNextTurnId } from '../../browser/conversationStubModel.js';
 import { postBound } from '../../browser/conversationLensComposer.js';
 import { CONVERSATION_ROSTER_STORAGE_KEY, type ConversationRosterStorageV1 } from '../../browser/conversationRosterStorage.js';
-import { projectSnapshotToEntries, stubTurnsToSnapshot } from '../../browser/conversationSessionView.js';
+import { createConversationProjectionCache, projectSnapshotToEntries, stubTurnsToSnapshot } from '../../browser/conversationSessionView.js';
 import { isConversationEngineLive, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { IWebviewService } from '../../../webview/browser/webview.js';
+import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 
 export class MockUniverseAgentConnection extends Disposable implements IUniverseAgentConnection {
@@ -173,7 +176,9 @@ export class MockUniverseAgentConnection extends Disposable implements IUniverse
 	readonly cancelCalls: { sessionId: string; agentId: string }[] = [];
 	writeResult: { ok: boolean; error?: string; message?: string } = { ok: true };
 	writeError: Error | undefined;
+	writePending: Promise<{ ok: boolean; error?: string; message?: string }> | undefined;
 	private async resolveWriteResult<T extends { ok: boolean }>(success: T): Promise<T | { ok: boolean; error?: string; message?: string }> {
+		if (this.writePending) { return this.writePending; }
 		if (this.writeError) {
 			throw this.writeError;
 		}
@@ -488,6 +493,8 @@ class LeftoverProjectionSessionView extends Disposable implements IUniverseAgent
 class BaselineProjectionSessionView extends Disposable implements IUniverseAgentSessionView {
 	declare readonly _serviceBrand: undefined;
 	readonly postCalls: { readonly leaseId: string; readonly msg: ConversationWriteMessage }[] = [];
+	readonly acknowledgeCalls: { generation: number; frameId: number; appliedVersion: number }[] = [];
+	private readonly frameCursors = new Map<string, { generation: number; frameId: number; version: number }>();
 	private leaseSeq = 0;
 	private readonly leaseSessions = new Map<string, string>();
 	private readonly emitters = new Map<string, Emitter<IUniverseAgentSessionViewFrameEvent>>();
@@ -521,8 +528,34 @@ class BaselineProjectionSessionView extends Disposable implements IUniverseAgent
 		return { accepted: true as const, correlation: { id: 'mock' } };
 	}
 	async requestResync() { }
-	async acknowledge() { }
+	async acknowledge(_leaseId: string, ack: { generation: number; frameId: number; appliedVersion: number }) { this.acknowledgeCalls.push(ack); }
 	async requestDetail() { return { ok: false as const, reason: 'unavailable' as const }; }
+
+	emitPatches(sessionId: string, patches: readonly ViewPatch[]): void {
+		for (const [leaseId, heldSessionId] of this.leaseSessions) {
+			const cursor = this.frameCursors.get(leaseId);
+			if (heldSessionId !== sessionId || !cursor) { continue; }
+			cursor.frameId++;
+			cursor.version++;
+			this.emitters.get(leaseId)?.fire({
+				leaseId, sessionId,
+				applied: { kind: 'patches', changedIds: new Set(['sync']) },
+				frame: { frame: { leaseId: leaseId as ViewLeaseId, ...cursor, body: { kind: 'patches', patches } } },
+			});
+		}
+	}
+
+	emitGeneration(snapshot: SessionViewSnapshot, generation: number): void {
+		for (const [leaseId, sessionId] of this.leaseSessions) {
+			if (sessionId !== String(snapshot.sessionId)) { continue; }
+			const cursor = { generation, frameId: 1, version: 1 };
+			this.frameCursors.set(leaseId, cursor);
+			this.emitters.get(leaseId)?.fire({
+				leaseId, sessionId, applied: { kind: 'baseline' },
+				frame: { frame: { leaseId: leaseId as ViewLeaseId, ...cursor, body: { kind: 'baseline', snapshot } } },
+			});
+		}
+	}
 
 	private emitBaseline(leaseId: string): void {
 		const emitter = this.emitters.get(leaseId);
@@ -530,6 +563,7 @@ class BaselineProjectionSessionView extends Disposable implements IUniverseAgent
 			return;
 		}
 		const sessionId = this.leaseSessions.get(leaseId) ?? 'ua-only';
+		this.frameCursors.set(leaseId, { generation: 1, frameId: 1, version: 1 });
 		emitter.fire({
 			leaseId,
 			sessionId,
@@ -614,6 +648,78 @@ async function acquireEngineBaseline(
 	assert.ok(await (lease as { whenBindReady?: () => Promise<boolean> }).whenBindReady?.());
 	await timeout(0);
 	return { service, connection, sessionView, lease };
+}
+
+function responseRecoverySnapshot(sessionId: string): SessionViewSnapshot {
+	const permission = enginePermissionSnapshot(sessionId);
+	const question: PendingActionView = {
+		requestId: 'q-ask' as ClientActionRequestId,
+		summary: { kind: 'question', title: 'Pick answers', answerKeysValid: true, items: [
+			{ id: 'radio', title: 'Choice', optionsPreview: ['first', 'second'] },
+			{ id: 'checks', title: 'Several', optionsPreview: ['x', 'y'], multiSelect: true },
+			{ id: 'custom', title: 'Details', optionsPreview: [], allowCustom: true },
+		] },
+	};
+	const tool: PendingActionView = {
+		requestId: 'call-ask' as ClientActionRequestId,
+		summary: { kind: 'tool', title: 'Client response', toolName: 'client-answer', status: 'pending', respondable: true, argPreview: '{}' },
+	};
+	return { ...permission,
+		timeline: [...permission.timeline,
+			{ id: 'q-ask:row' as TimelineItemId, orderKey: 'q', summary: question.summary },
+			{ id: 'call-ask' as TimelineItemId, orderKey: 'z', summary: tool.summary }],
+		pendingActions: [...permission.pendingActions, question, tool],
+	};
+}
+
+/** Uses the product host/renderer and projection, driven only by real lease notifications. */
+function responseRecoveryHost(
+	store: { add<T extends { dispose(): void }>(disposable: T): T },
+	service: ConversationEngineRosterService, lease: IConversationSessionViewLease,
+): ConversationTimelineHost {
+	const instantiation = workbenchInstantiationService(undefined, store);
+	instantiation.stub(IWebviewService, {
+		_serviceBrand: undefined, activeWebview: undefined, webviews: [], onDidChangeActiveWebview: Event.None,
+		createWebviewOverlay: () => { throw new Error('No webview in response recovery'); },
+		createWebviewElement: () => { throw new Error('No webview in response recovery'); },
+	});
+	const parent = document.createElement('div');
+	document.body.appendChild(parent);
+	store.add(toDisposable(() => parent.remove()));
+	const host = store.add(instantiation.createInstance(ConversationTimelineHost, parent, {
+		getResponseProjection: () => lease.responseProjection,
+		onResolveConfirmation: (id, status) => service.resolveConfirmation(lease.sessionId, id, status),
+		onQuestionRespond: (_id, requestId, answers, customText) => service.respondQuestion(lease.sessionId, requestId, answers, customText),
+		onRespondClientTool: turn => service.respondClientTool(lease.sessionId, turn.id, { content: 'client result' }),
+		contentAdapter: { renderTurnBody: (turn, container) => { container.textContent = turn.text; return Disposable.None; } },
+		showLiveChrome: () => true,
+	}));
+	const cache = createConversationProjectionCache();
+	const apply = (event: Parameters<ConversationTimelineHost['applyEntries']>[1]) => host.applyEntries(projectSnapshotToEntries(
+		lease.snapshot, lease.attribution, lease.details, undefined, cache, lease.respondFailures, { responseProjection: lease.responseProjection },
+	), event);
+	store.add(lease.onDidApplyFrame(apply));
+	apply({ kind: 'baseline' });
+	host.revealTurn('call-ask');
+	return host;
+}
+
+function recoveryAction(host: ConversationTimelineHost, kind: 'permission' | 'question' | 'clientTool'): HTMLElement {
+	const selector = kind === 'permission' ? '[data-turn-id="req-allow"] .conversation-lens-confirmation-actions .monaco-button'
+		: kind === 'question' ? '[data-turn-id="q-ask:row"] .conversation-lens-question-actions .monaco-button'
+			: '.conversation-process-fold-tool-respond';
+	const action = host.domNode.querySelector<HTMLElement>(selector);
+	assert.ok(action, `${kind} response control must exist`);
+	return action;
+}
+
+function chooseRecoveryAnswers(host: ConversationTimelineHost): void {
+	host.domNode.querySelectorAll<HTMLElement>('[data-turn-id="q-ask:row"] [role="radio"]')[1].click();
+	host.domNode.querySelectorAll<HTMLElement>('[data-turn-id="q-ask:row"] [role="checkbox"]')[1].click();
+	const input = host.domNode.querySelector<HTMLInputElement>('.conversation-lens-question-custom');
+	assert.ok(input);
+	input.value = 'keep this answer';
+	input.dispatchEvent(new UIEvent('input', { bubbles: true }));
 }
 
 function createSessionViewMock(overrides: Partial<IUniverseAgentSessionView> = {}): IUniverseAgentSessionView {
@@ -3330,6 +3436,265 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		service.setEngineConnected(false);
 
 		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-1', 'allowed'), false);
+		assert.strictEqual(connection.respondPermissionCalls.length, 0);
+	});
+
+	for (const kind of ['permission', 'question', 'clientTool'] as const) {
+		for (const outcome of ['false', 'reject'] as const) {
+			test(`response recovery business ${kind} unary ${outcome} restores the actual seat and retries once`, async () => {
+				const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+				const host = responseRecoveryHost(store, service, lease);
+				const pending = new DeferredPromise<{ ok: boolean; message?: string }>();
+				connection.writePending = pending.p;
+				const original = JSON.stringify([lease.snapshot.timeline, lease.snapshot.pendingActions]);
+				const acknowledgements = sessionView.acknowledgeCalls.length;
+				if (kind === 'question') {
+					chooseRecoveryAnswers(host);
+					host.domNode.querySelector<HTMLInputElement>('.conversation-lens-question-custom')!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+				} else {
+					recoveryAction(host, kind).click();
+				}
+				assert.strictEqual(recoveryAction(host, kind).getAttribute('aria-disabled'), 'true', 'all real response paths must show the shared busy hold');
+				if (outcome === 'false') { await pending.complete({ ok: false, message: 'wire refused' }); }
+				else { await pending.error(new Error('wire rejected')); }
+				assert.strictEqual(await service.whenDispatchedEngineActionSettles(), false);
+				assert.ok(host.domNode.textContent?.includes(outcome === 'false' ? 'wire refused' : 'wire rejected'), 'unary failure must reach the actual seat without a stream failure');
+				assert.strictEqual(recoveryAction(host, kind).getAttribute('aria-disabled'), 'false');
+				assert.strictEqual(JSON.stringify([lease.snapshot.timeline, lease.snapshot.pendingActions]), original, 'failure is a sidecar-only change');
+				assert.strictEqual(sessionView.acknowledgeCalls.length, acknowledgements, 'local busy/failure must not acknowledge the host');
+				if (kind === 'question') {
+					assert.deepStrictEqual({
+						radio: host.domNode.querySelectorAll('[role="radio"]')[1].getAttribute('aria-checked'),
+						check: host.domNode.querySelectorAll('[role="checkbox"]')[1].getAttribute('aria-checked'),
+						custom: host.domNode.querySelector<HTMLInputElement>('.conversation-lens-question-custom')?.value,
+					}, { radio: 'true', check: 'true', custom: 'keep this answer' });
+				}
+				const retry = new DeferredPromise<{ ok: boolean }>();
+				connection.writePending = retry.p;
+				recoveryAction(host, kind).click();
+				sessionView.emitPatches('ua-only', [{ op: 'setSyncChrome', sync: { kind: 'live' } }]);
+				assert.strictEqual(recoveryAction(host, kind).getAttribute('aria-disabled'), 'true', 'unrelated redraw cannot release the retry hold');
+				recoveryAction(host, kind).click();
+				const calls = kind === 'permission' ? connection.respondPermissionCalls : kind === 'question' ? connection.respondQuestionCalls : connection.sendClientToolResponseCalls;
+				assert.strictEqual(calls.length, 2, 'one original and one retry unary');
+				if (kind === 'question') {
+					assert.deepStrictEqual(connection.respondQuestionCalls.map(call => ({ answers: call.answers, customText: call.customText })), [0, 1].map(() => ({
+						answers: { radio: { selectedLabels: ['second'] }, checks: { selectedLabels: ['y'] }, custom: { selectedLabels: [] } }, customText: 'keep this answer',
+					})));
+				}
+				await retry.complete({ ok: true });
+				assert.strictEqual(await service.whenDispatchedEngineActionSettles(), true);
+				const repeated = kind === 'permission' ? service.resolveConfirmation('ua-only', 'req-allow', 'allowed')
+					: kind === 'question' ? service.respondQuestion('ua-only', 'q-ask', {}) : service.respondClientTool('ua-only', 'call-ask', { content: 'again' });
+				assert.strictEqual(repeated, false, 'an accepted terminal request is blocked, never untracked forwarding');
+				assert.strictEqual(calls.length, 2);
+				assert.deepStrictEqual(sessionView.postCalls, [], 'unary response never adds a Chat/post write');
+				assert.ok(lease.snapshot.pendingActions.some(action => String(action.requestId) === 'req-deny'), 'another request stays pending');
+			});
+		}
+	}
+
+	test('response recovery shared begin blocks a second leaf and synchronous notification reentry', async () => {
+		const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+		const second = store.add(service.acquireSessionView('ua-only'));
+		await timeout(0);
+		const firstHost = responseRecoveryHost(store, service, lease);
+		const secondHost = responseRecoveryHost(store, service, second);
+		const pending = new DeferredPromise<{ ok: boolean; message?: string }>();
+		connection.writePending = pending.p;
+		const failures: string[] = [];
+		store.add(service.onDidFailEngineAction(event => failures.push(event.action)));
+		let reentered = false;
+		store.add(lease.onDidApplyFrame(() => {
+			if (!reentered) {
+				reentered = true;
+				assert.strictEqual(lease.responseProjection, second.responseProjection, 'all consumers install the same state before the first listener');
+				secondHost.domNode.querySelector<HTMLElement>('[data-turn-id="req-allow"] .monaco-button')!.click();
+				assert.strictEqual(service.resolveConfirmation('ua-only', 'req-allow', 'skipped'), true);
+			}
+		}));
+		recoveryAction(firstHost, 'permission').click();
+		assert.deepStrictEqual({ calls: connection.respondPermissionCalls.length, reentered, failures }, { calls: 1, reentered: true, failures: [] });
+		assert.strictEqual(recoveryAction(secondHost, 'permission').getAttribute('aria-disabled'), 'true');
+		await pending.complete({ ok: false, message: 'shared refusal' });
+		await service.whenDispatchedEngineActionSettles();
+		assert.ok(firstHost.domNode.textContent?.includes('shared refusal'));
+		assert.ok(secondHost.domNode.textContent?.includes('shared refusal'));
+		const late = store.add(service.acquireSessionView('ua-only'));
+		await timeout(0);
+		const lateHost = responseRecoveryHost(store, service, late);
+		assert.ok(lateHost.domNode.textContent?.includes('shared refusal'));
+		assert.deepStrictEqual(sessionView.postCalls, []);
+	});
+
+	for (const removed of ['pending', 'timeline'] as const) {
+		for (const oldOutcome of ['false', 'reject', 'accepted'] as const) {
+			test(`response recovery same-frame ${removed} ${oldOutcome} remove/re-add clears draft and busy despite an equal final snapshot`, async () => {
+				const questionOnly = (sessionId: string): SessionViewSnapshot => {
+					const base = responseRecoverySnapshot(sessionId);
+					return { ...base, timeline: base.timeline.filter(row => row.summary.kind === 'question'), pendingActions: base.pendingActions.filter(action => action.summary.kind === 'question') };
+				};
+				const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, questionOnly);
+				const host = responseRecoveryHost(store, service, lease);
+				chooseRecoveryAnswers(host);
+				const pending = new DeferredPromise<{ ok: boolean }>();
+				connection.writePending = pending.p;
+				recoveryAction(host, 'question').click();
+				const original = JSON.stringify(lease.snapshot);
+				const notifications: string[][] = [];
+				store.add(lease.onDidApplyFrame(event => { if (event.kind === 'patches') { notifications.push([...event.changedIds]); } }));
+				const patches: readonly ViewPatch[] = removed === 'pending'
+					? [{ op: 'removePendingAction', requestId: lease.snapshot.pendingActions[0].requestId }, { op: 'upsertPendingAction', action: lease.snapshot.pendingActions[0] }]
+					: [{ op: 'removeTimelineItem', itemId: lease.snapshot.timeline[0].id }, { op: 'upsertTimelineItem', item: lease.snapshot.timeline[0] }];
+				sessionView.emitPatches('ua-only', patches);
+				assert.strictEqual(JSON.stringify(lease.snapshot), original);
+				assert.ok(notifications.some(ids => ids.includes('q-ask:row') && ids.includes('pending:q-ask')));
+				assert.deepStrictEqual({ custom: host.domNode.querySelector<HTMLInputElement>('.conversation-lens-question-custom')?.value,
+					checked: host.domNode.querySelectorAll('[role="checkbox"][aria-checked="true"]').length,
+					busy: recoveryAction(host, 'question').getAttribute('aria-disabled') }, { custom: '', checked: 0, busy: 'false' });
+				if (oldOutcome === 'reject') { await pending.error(new Error('stale transport')); }
+				else { await pending.complete({ ok: oldOutcome === 'accepted' }); }
+				await service.whenDispatchedEngineActionSettles();
+				assert.ok(lease.snapshot.pendingActions.some(action => String(action.requestId) === 'q-ask'));
+				assert.ok(!host.domNode.textContent?.includes('Couldn\'t send this response'), 'old incarnation outcome cannot alter the replacement');
+				assert.strictEqual(connection.respondQuestionCalls.length, 1);
+			});
+		}
+	}
+
+	test('response recovery authoritative and connection generation changes clear drafts and reject late outcomes', async () => {
+		const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+		const host = responseRecoveryHost(store, service, lease);
+		chooseRecoveryAnswers(host);
+		const pending = new DeferredPromise<{ ok: boolean }>();
+		connection.writePending = pending.p;
+		recoveryAction(host, 'question').click();
+		sessionView.emitPatches('ua-only', [{ op: 'setSyncChrome', sync: { kind: 'live' } }]);
+		sessionView.emitGeneration(lease.snapshot, 1);
+		assert.strictEqual(host.domNode.querySelector<HTMLInputElement>('.conversation-lens-question-custom')?.value, 'keep this answer');
+		assert.strictEqual(recoveryAction(host, 'question').getAttribute('aria-disabled'), 'true', 'same-generation same-request baseline preserves busy and draft');
+		sessionView.emitGeneration(lease.snapshot, 2);
+		assert.strictEqual(host.domNode.querySelector<HTMLInputElement>('.conversation-lens-question-custom')?.value, '');
+		assert.strictEqual(recoveryAction(host, 'question').getAttribute('aria-disabled'), 'false');
+		await pending.complete({ ok: true });
+		await service.whenDispatchedEngineActionSettles();
+		assert.ok(lease.snapshot.pendingActions.some(action => String(action.requestId) === 'q-ask'), 'old accepted response cannot settle a new generation');
+		chooseRecoveryAnswers(host);
+		service.setEngineConnected(false);
+		assert.strictEqual(host.domNode.querySelector<HTMLInputElement>('.conversation-lens-question-custom')?.value, '');
+		assert.strictEqual(service.respondQuestion('ua-only', 'q-ask', {}), false);
+		assert.strictEqual(connection.respondQuestionCalls.length, 1);
+	});
+
+	test('response recovery untracked forwarding never cleans a request that appears before the callback', async () => {
+		const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+		const pending = new DeferredPromise<{ ok: boolean }>();
+		connection.writePending = pending.p;
+		assert.strictEqual(service.respondQuestion('ua-only', 'new-q', { item: { selectedLabels: ['yes'] } }), true);
+		const question: PendingActionView = { requestId: 'new-q' as ClientActionRequestId, summary: {
+			kind: 'question', title: 'New incarnation', answerKeysValid: true, items: [{ id: 'item', title: 'Pick', optionsPreview: ['yes', 'no'] }],
+		} };
+		sessionView.emitPatches('ua-only', [{ op: 'upsertPendingAction', action: question }]);
+		await pending.complete({ ok: true });
+		await service.whenDispatchedEngineActionSettles();
+		assert.ok(lease.snapshot.pendingActions.some(action => String(action.requestId) === 'new-q'));
+		assert.ok([...lease.responseProjection!.byRequest.values()].filter(state => state.identity.requestId === 'new-q').every(state => !state.inFlight && !state.failure));
+		assert.deepStrictEqual(sessionView.postCalls, []);
+	});
+
+	for (const authoritative of ['retryable', 'nonretryable', 'terminal'] as const) {
+		for (const oldOutcome of ['false', 'reject', 'accepted'] as const) {
+			test(`response recovery authoritative ${authoritative} supersedes a late unary ${oldOutcome}`, async () => {
+				const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+				const host = responseRecoveryHost(store, service, lease);
+				const old = new DeferredPromise<{ ok: boolean; message?: string }>();
+				connection.writePending = old.p;
+				recoveryAction(host, 'permission').click();
+				const oldSettles = service.whenDispatchedEngineActionSettles();
+				const original = JSON.stringify(lease.snapshot);
+				if (authoritative === 'terminal') {
+					const row = lease.snapshot.timeline.find(item => String(item.id) === 'req-allow')!;
+					if (row.summary.kind !== 'permission') { assert.fail('permission row required'); }
+					sessionView.emitPatches('ua-only', [{ op: 'upsertTimelineItem', item: { ...row, summary: { ...row.summary, decision: 'deny' } } }, { op: 'removePendingAction', requestId: 'req-allow' as ClientActionRequestId }]);
+				} else {
+					sessionView.emitPatches('ua-only', [{ op: 'pendingRespondFailed', requestId: 'req-allow' as ClientActionRequestId, cause: 'hostWriteFailed', retryable: authoritative === 'retryable', error: 'authoritative refusal' }]);
+					assert.strictEqual(JSON.stringify(lease.snapshot), original, 'failure-only host patch must still revoke the old attempt');
+					assert.ok(host.domNode.textContent?.includes('authoritative refusal'));
+				}
+				const retry = new DeferredPromise<{ ok: boolean; message?: string }>();
+				if (authoritative === 'retryable') {
+					connection.writePending = retry.p;
+					recoveryAction(host, 'permission').click();
+				} else {
+					assert.strictEqual(service.resolveConfirmation('ua-only', 'req-allow', 'allowed'), false);
+				}
+				if (oldOutcome === 'reject') { await old.error(new Error('stale unary rejection')); }
+				else { await old.complete({ ok: oldOutcome === 'accepted', message: 'stale unary refusal' }); }
+				await oldSettles;
+				if (authoritative === 'retryable') {
+					assert.strictEqual(recoveryAction(host, 'permission').getAttribute('aria-disabled'), 'true', 'old callback cannot end a newer retry');
+					await retry.complete({ ok: false, message: 'current retry refusal' });
+					await service.whenDispatchedEngineActionSettles();
+					assert.ok(host.domNode.textContent?.includes('current retry refusal'));
+					assert.strictEqual(connection.respondPermissionCalls.length, 2);
+				} else if (authoritative === 'nonretryable') {
+					assert.ok(host.domNode.textContent?.includes('authoritative refusal'));
+					assert.strictEqual(service.resolveConfirmation('ua-only', 'req-allow', 'allowed'), false);
+					assert.strictEqual(connection.respondPermissionCalls.length, 1);
+				} else {
+					const row = lease.snapshot.timeline.find(item => String(item.id) === 'req-allow');
+					assert.ok(row?.summary.kind === 'permission' && row.summary.decision === 'deny', 'the actual terminal decision must win over any unary outcome');
+					assert.strictEqual(connection.respondPermissionCalls.length, 1);
+				}
+				assert.ok(!host.domNode.textContent?.includes('stale unary'));
+				assert.deepStrictEqual(sessionView.postCalls, []);
+			});
+		}
+	}
+
+	test('response recovery implicit multi-group activation survives failure without auto-submitting on rebuild', async () => {
+		const snapshotFor = (sessionId: string): SessionViewSnapshot => {
+			const base = engineQuestionSnapshot(sessionId);
+			return { ...base, pendingActions: [{ ...base.pendingActions[0], summary: {
+				kind: 'question', title: 'Choose both', answerKeysValid: true,
+				items: [{ id: 'one', title: 'First', optionsPreview: ['a', 'b'] }, { id: 'two', title: 'Second', optionsPreview: ['c', 'd'] }],
+			} }] };
+		};
+		const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, snapshotFor);
+		const host = responseRecoveryHost(store, service, lease);
+		const pending = new DeferredPromise<{ ok: boolean }>();
+		connection.writePending = pending.p;
+		const radios = host.domNode.querySelectorAll<HTMLElement>('[role="radio"]');
+		radios[1].click();
+		assert.strictEqual(connection.respondQuestionCalls.length, 0, 'a roving default in another group is not an activated answer');
+		radios[3].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
+		assert.strictEqual(connection.respondQuestionCalls.length, 1);
+		await pending.complete({ ok: false });
+		await service.whenDispatchedEngineActionSettles();
+		assert.strictEqual(connection.respondQuestionCalls.length, 1, 'draft restore cannot submit on its own');
+		assert.deepStrictEqual([...host.domNode.querySelectorAll('[role="radio"]')].map(radio => radio.getAttribute('aria-checked')), ['false', 'true', 'false', 'true']);
+		connection.writePending = undefined;
+		host.domNode.querySelectorAll<HTMLElement>('[role="radio"]')[2].click();
+		await service.whenDispatchedEngineActionSettles();
+		assert.deepStrictEqual(connection.respondQuestionCalls[1].answers, { one: { selectedLabels: ['b'] }, two: { selectedLabels: ['c'] } });
+		assert.deepStrictEqual(sessionView.postCalls, []);
+	});
+
+	test('response recovery non-retryable stream failure is blocked instead of taking unary forwarding', async () => {
+		const { service, connection, sessionView, lease } = await acquireEngineBaseline(store, responseRecoverySnapshot);
+		const host = responseRecoveryHost(store, service, lease);
+		sessionView.emitPatches('ua-only', [{ op: 'pendingRespondFailed', requestId: 'req-allow' as ClientActionRequestId, cause: 'hostWriteFailed', retryable: false, error: 'request expired' }]);
+		assert.ok(host.domNode.textContent?.includes('request expired'));
+		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-allow', 'allowed'), false);
+		assert.strictEqual(connection.respondPermissionCalls.length, 0);
+		service.setEngineConnected(false);
+		service.setEngineConnected(true);
+		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-allow', 'allowed'), false, 'reconnection cannot erase an authoritative non-retryable failure');
+		const row = lease.snapshot.timeline.find(item => String(item.id) === 'req-deny')!;
+		assert.strictEqual(row.summary.kind, 'permission');
+		if (row.summary.kind !== 'permission') { return; }
+		sessionView.emitPatches('ua-only', [{ op: 'upsertTimelineItem', item: { ...row, summary: { ...row.summary, decision: 'deny' } } }, { op: 'removePendingAction', requestId: 'req-deny' as ClientActionRequestId }]);
+		assert.strictEqual(service.resolveConfirmation('ua-only', 'req-deny', 'allowed'), false);
 		assert.strictEqual(connection.respondPermissionCalls.length, 0);
 	});
 

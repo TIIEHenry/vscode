@@ -5,6 +5,7 @@
 
 import { Event } from '../../../base/common/event.js';
 import { IDisposable } from '../../../base/common/lifecycle.js';
+import type { ConversationResponseProjection } from './conversationResponseState.js';
 import type { SessionViewSnapshot, ViewEffect, ViewFrame } from './sessionView/index.js';
 
 /** `ViewEffect.kind` for a local send that failed. Pinned to session-core `SEND_FAILED_EFFECT_KIND`. */
@@ -82,6 +83,8 @@ export interface IConversationSessionViewLease extends IDisposable {
 	 * Cleared when that request leaves `pendingActions`.
 	 */
 	readonly respondFailures?: ReadonlyMap<string, ConversationRespondFailure>;
+	/** Binding-owned canonical response identity, busy and request incarnation. Never an engine DTO. */
+	readonly responseProjection?: ConversationResponseProjection;
 	readonly onDidApplyFrame: Event<ConversationViewFrameApplied>;
 	/**
 	 * `accepted` ≠ delivered to the engine (Desktop ADR-012 INV-CHAT-3).

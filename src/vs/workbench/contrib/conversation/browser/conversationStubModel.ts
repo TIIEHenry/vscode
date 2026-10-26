@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { ConversationResponseSeatState } from '../../../../platform/universeAgent/common/conversationResponseState.js';
 import { localize } from '../../../../nls.js';
 import { ConversationVisualizeArgs } from '../common/conversationVisualize.js';
 import {
@@ -69,6 +70,7 @@ export interface ConversationStubTurn {
 	readonly respondable?: true;
 	/** Still-pending permission respond whose uplink failed. Buttons stay. */
 	readonly respondFailure?: { readonly retryable: boolean; readonly error: string };
+	readonly responseState?: ConversationResponseSeatState;
 	/** L1 turn id when the snapshot admits one; never inferred. */
 	readonly turnId?: string;
 	/** Optimistic local send in the originating window. Not a durable turn and not editable. */

@@ -51,7 +51,11 @@ SessionBar 标题 Enter 或失焦即提交，Escape 取消且不提示。去掉�
 **审阅行：** 已绑定的 `ConversationLens` 订阅 `IConversationReviewNavService.onDidChange`，在回调里用 `applySessionViewTimeline(..., { sidecarOnly: true })` 重读该会话的审阅行。`ConversationReviewNavService` 与 `IAgentSessionContext` 都是 delayed singleton。ReviewNav 构造时先读取可选 `getWorkRoot`：这次非事件访问会建好 Context，使 Context 的连接监听先于 ReviewNav 登记；留下的函数每次调用当时的 `getWorkRoot`。服务同时订阅活动会话、会话变更、工作区目录和 SCM 仓库增减，并保留文件变更、回合落定和连接变化。上述输入变化后，每张已挂上的透镜重算自己绑定的会话，包括非活动并列叶。审阅路径仍由 `materializeReviewNavRecords` 的既有 SCM 与 workspace gate 决定。SCM 子目录已被 Context 认成 local、审阅行仍按工作区根过滤，这是另一条归因缺口，不在这次通知修复里。 D1382 已有自动回归及非作者默认编辑器真实行、根失效、非活动并列叶与命令参数证据，按此通知合同闭合；[独立 after](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)保留本地夹具、无真实 git diff 等限制。身份条芯片归属已由 D1386 独立修复并按[限定 after](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md)闭合，不扩审阅导航通知修复的验收范围。
 
 
-响应失败恢复当前仍有一条已核缺口：远程permission/question/client-tool unary拒绝或异常只发通用失败通知，若没有额外stream respondFailure，pending座位可能保持禁用；问题重绘还会丢失构造局部答案。[准确恢复方案](../../../dev/plans/conversation-unary-response-recovery.md)拟在FrameSource共享binding内用canonical身份/原子attempt/incarnation的正式局部投影恢复本座位并保留草稿；同Astra规则16增量复读C0/I0已accepted，仍待实施/整链运行/非作者after；不将D1356/1357的accepted cleanup或D1359的stream failure控件语义当这条unary整链已闭合。
+permission/question/client-tool unary 的本地响应状态由 engine FrameSource 的共享 binding 管理，正式合同见[准确恢复方案](../../../dev/plans/conversation-unary-response-recovery.md)。canonical key 编码 kind、准确 requestId 与已承认 agent；完整 snapshot resolver 先核 kind/agent 冲突，再把状态映射到真实行和 question aliases，projection 不按裸字符串 id 双读本地错误。stream failure 复用既有 `pendingRespondFailed` 语义，unary false/reject 只投影本请求的 `retryable` 错误，不修改权威 snapshot 或发送 host ack。
+
+共享 binding 先原子登记唯一 attempt/busy，全部消费者安装新 projection 后才同步通知，roster 再验票据后发一次 unary。第二叶与重入只返回已处理；terminal/non-retryable 明确 blocked，不进入未知请求的兼容转发。完成只作用于捕获的 binding/scope/incarnation/attempt；换连接/引擎、generation、请求语义、remove→re-add、释放或更晚 stream failure/终态均废弃旧结果。局部 sidecar 与 request incarnation 变动即使最终 snapshot 逐值相等也通知真实 row id 与 pending alias；重试先清自己的 retryable 错误，保留新 busy。
+
+QuestionSeat 的草稿（selectedLabels、customText、多组显式激活）由 renderer 按正式 scope/identity/incarnation/问题结构保存。失败重绘与行回收恢复选择且不自动发送；同帧同 id 重建、换题/会话/代次清空。client-tool 在 document-flow process fold 的真实 CTA 同样消费正式 busy/blocked。E 已准备实现与整链回归源码，方案仍 accepted，唯一 merge 的旧业务 red/新 green、完整相关套和非作者默认编辑器 after 尚待；不据源码或文档进度升 PRD，D1356/1357/1359 原范围与状态保持。
 
 ## 3. 轨迹透镜
 

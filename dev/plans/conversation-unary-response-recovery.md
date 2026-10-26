@@ -176,6 +176,19 @@ TimelineHost 在每次 apply/空列表清理前从正式 getter 同步当前 sco
 3. 唯一 merge 串行合入及 red/green、相关套/类型/必要全量、非作者 after，再按证据决定 implemented。只记录已有问题、不因文档进度认完成。源码实施、运行/after均待。
 
 - [x] 规则16增量复读确认Critical/Important闭合；本轮accepted方案独立提交。
-- [ ] 三类响应准确结果通道、shared busy/incarnation与问题草稿实现并提交。
+- [x] 三类响应准确结果通道、shared busy/incarnation与问题草稿及整链回归源码随本轮实施提交；运行/after待。
 - [ ] 唯一merge业务旧红/新绿、完整相关回归及源/产物身份。
 - [ ] 非作者默认编辑器after与文档/状态门禁。
+
+## 8. E 实施交接（仅源码与静态证据）
+
+accepted 方案提交 `5dd7d97` 后在 E 实施，未取 root 外部视觉/协议 WIP，未改 Sources/finder/fence、协议或 Sessions。新增 common `conversationResponseState.ts` 是现有 renderer-facing 局部合同与纯 resolver/状态表；正式 `lease.responseProjection` 经 Lens/entry/TimelineHost 到 renderer。FrameSource 顺序处理 request 生命周期，并在通知前安装所有消费者状态；roster 三种 unary 捕获票据投影结果，unknown 转发的 callback 无本地 cleanup。关闭请求显式 blocked，连接 scope 失效保留仍有效的权威 non-retryable 关闭态；authoritative generation 新请求按新身份重建。QuestionSeat 增加草稿与初始 roving index；真实 document-flow `conversationProcessFold.ts` CTA 直接消费正式 busy，覆盖其绕开 renderer hold 的既有路径。
+
+回归源码落在 `conversationEngineRosterService.test.ts`（真实 host/renderer/lease/roster 整链）、`conversationEngineFrameSource.test.ts`（捕获 binding 释放重建）与独立 `conversationResponseState.test.ts`（canonical/alias/agent/缓存）。没有依赖 out 的测试执行结果。E 只做 TypeScript `createSourceFile` parse（无 checker、无 emit）、ESLint、diff/docs 静态门禁；静态结果为17个TS文件parse 0 errors、ESLint 0 errors / 17 warnings，`git diff --check`通过；docs health 0 errors / 73既有warnings（对首稿新增0/移除0），status172行。原始静态JSON位于`/tmp/vscode-response-recovery-E-eslint.json`与`/tmp/vscode-response-recovery-E-implementation-docs-health.json`；这些不是green或after证据。
+
+唯一 merge 运行合同：
+
+- 旧 red 用新测试 JS 加**精确 `09f6da72d30` 旧生产**，selector `response recovery business`；测试 harness 只把可选 `lease.responseProjection` 透传已有 projection/options，旧实现可忽略，不调用新增 begin API、不运行时 import 新 ResponseState support。因此 red 必须落真实 DOM busy/就地错误/可重试业务断言，不能以 missing API、模块加载/类型/timeout 计红。记录旧核心源/JS、测试JS摘要与产物身份。
+- 新 green 先跑 `rtk proxy scripts/test.sh --run src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts --grep 'response recovery'`，再跑该文件完整 suite；matrix 包括三类×false/reject、双叶同步 click/reentry、late leaf、同帧 pending/timeline remove→re-add×false/reject/accepted、同代 baseline保留与跨代清空、无票据迟到accepted、不复活blocked、implicit多组activation与权威stream优先×三种迟到结果。snapshot相等/noack/答案payload/RPC次数/post=0均须实际通过。
+- 完整相关 browser 套：`conversationEngineFrameSource.test.ts`、`conversationResponseState.test.ts`、`conversationSessionView.test.ts`、`conversationTimelineProjection.test.ts`、`conversationTimelineRenderer.test.ts`、`conversationTimelineHost.test.ts`、`conversationQuestionSeat.test.ts`、`conversationProcessFold.test.ts`、`conversationProcessFoldToolDetails.test.ts`、`conversationStreamToDom.test.ts`、`conversationStreamScripts.test.ts`；必要 `compile-client` 仅该 lane 执行。已有 D1356/1357/1359 的身份/显式ok/cleanup边界不得删断言以变绿。
+- 新产物冻结并核实际 JS/源摘要后，父派非作者默认编辑器 after；仍按 §6 的实际座位点击/键盘、busy、错误、重试、答案与准确隔离，不拿这里的源码矩阵充运行证据。

@@ -9,7 +9,7 @@ summary: "唯一merge编译合同修复全量0；Electron325过3既有红与Node
 
 # 默认编辑器合同与功能缺口续审
 
-> 当前波冻结 J=Sources完整补修、E=三类响应unary失败恢复；D只做非作者审查/验收，merge唯一验证。E方案accepted，同Astra增量复读C0/I0，方案独立提交后实施；J当前occupied，旧23f不是当前补修完成线。下述单Sources队列、只读分工与纯文档检查点均为历史，不能取消新分派或充当本波结束。D1385仍退出默认产品队列，D1386范围结论保留。
+> 当前波冻结 J=Sources完整补修、E=三类响应unary失败恢复；D只做非作者审查/验收，merge唯一验证。E方案accepted，同Astra增量复读C0/I0、独立方案5dd7d97后已准备完整实现/回归源码；唯一merge运行与非作者after待；J当前occupied，旧23f不是当前补修完成线。下述单Sources队列、只读分工与纯文档检查点均为历史，不能取消新分派或充当本波结束。D1385仍退出默认产品队列，D1386范围结论保留。
 
 
 ## 冻结并行波成员（2026-10-26）
@@ -17,7 +17,7 @@ summary: "唯一merge编译合同修复全量0；Electron325过3既有红与Node
 | 槽 / 子代理 | 完整模块 | 本波职责与门禁 |
 | --- | --- | --- |
 | J / sources_executor | Sources三owner/两slot打开、准确Conversation目标及预pin/身份补修 | occupied；按不可变补修提交交merge验证，旧23f不是本波最终queued |
-| E / response_recovery_executor | permission/question/client-tool响应失败准确恢复，retry busy与Question草稿 | [方案](../../plans/conversation-unary-response-recovery.md)accepted；同Astra增量复读C0/I0，typed身份/共享attempt/incarnation及blocked合同成立；独立方案提交后实施 |
+| E / response_recovery_executor | permission/question/client-tool响应失败准确恢复，retry busy与Question草稿 | [方案](../../plans/conversation-unary-response-recovery.md)accepted方案5dd7d97后已准备实现/整链回归源码；含typed身份/共享attempt/incarnation、blocked及Question草稿，唯一merge旧红/新绿与非作者after待 |
 | D / sources_audit | 非作者审查及默认编辑器after | 不写产品/编译/out |
 | merge / baseline_executor | 两模块串行red/green、集成/编译/运行产物 | 全波唯一验证车道；当前绿基线来源09f6/src932031，不抢用J/E WIP |
 

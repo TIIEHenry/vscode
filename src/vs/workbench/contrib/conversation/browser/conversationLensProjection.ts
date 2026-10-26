@@ -169,7 +169,7 @@ export function applySessionViewTimeline(host: IConversationLensProjectionHost, 
 			host.stubService.stubTurnSessionLinkCatalog,
 			projectionCacheFor(host),
 			host.sessionViewLease.respondFailures,
-			{ filterAgentId: host.filterAgentId });
+			{ filterAgentId: host.filterAgentId, responseProjection: host.sessionViewLease.responseProjection });
 		const reviewNav = host.reviewNavService.getReviewNavForSession(host.sessionViewLease.sessionId);
 		const entries = attachReviewEntries(baseEntries, host.sessionViewLease.snapshot, reviewNav, reviewNavCacheFor(host));
 
