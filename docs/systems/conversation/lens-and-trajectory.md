@@ -50,6 +50,9 @@ SessionBar 标题 Enter 或失焦即提交，Escape 取消且不提示。去掉�
 
 **审阅行：** 已绑定的 `ConversationLens` 订阅 `IConversationReviewNavService.onDidChange`，在回调里用 `applySessionViewTimeline(..., { sidecarOnly: true })` 重读该会话的审阅行。`ConversationReviewNavService` 与 `IAgentSessionContext` 都是 delayed singleton。ReviewNav 构造时先读取可选 `getWorkRoot`：这次非事件访问会建好 Context，使 Context 的连接监听先于 ReviewNav 登记；留下的函数每次调用当时的 `getWorkRoot`。服务同时订阅活动会话、会话变更、工作区目录和 SCM 仓库增减，并保留文件变更、回合落定和连接变化。上述输入变化后，每张已挂上的透镜重算自己绑定的会话，包括非活动并列叶。审阅路径仍由 `materializeReviewNavRecords` 的既有 SCM 与 workspace gate 决定。SCM 子目录已被 Context 认成 local、审阅行仍按工作区根过滤，这是另一条归因缺口，不在这次通知修复里。 D1382 已有自动回归及非作者默认编辑器真实行、根失效、非活动并列叶与命令参数证据，按此通知合同闭合；[独立 after](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1382-independent-after.md)保留本地夹具、无真实 git diff 等限制。身份条芯片归属已由 D1386 独立修复并按[限定 after](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1386-independent-after.md)闭合，不扩审阅导航通知修复的验收范围。
 
+
+响应失败恢复当前仍有一条已核缺口：远程permission/question/client-tool unary拒绝或异常只发通用失败通知，若没有额外stream respondFailure，pending座位可能保持禁用；问题重绘还会丢失构造局部答案。[准确恢复方案](../../../dev/plans/conversation-unary-response-recovery.md)拟在FrameSource共享binding内用canonical身份/原子attempt/incarnation的正式局部投影恢复本座位并保留草稿；同Astra规则16增量复读C0/I0已accepted，仍待实施/整链运行/非作者after；不将D1356/1357的accepted cleanup或D1359的stream failure控件语义当这条unary整链已闭合。
+
 ## 3. 轨迹透镜
 
 > 帧源与 shim 合同：[conversation-stream-timeline §3.3 / S6](../../../dev/plans/conversation-stream-timeline.md)（`accepted`）。切片对照：[conversation-trajectory-lens §4 T4/T5](../../../dev/plans/conversation-trajectory-lens.md)。
