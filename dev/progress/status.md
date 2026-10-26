@@ -3,13 +3,14 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "当前编译合同基线已修：全量compile-client45→3→0，Electron325过3既有红、Node10过；D1387已有J实现正在独立补修，未合入；D1385范围纠正保留。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **只读 Agent 箭头压字修复（2026-10-27）**：只读状态隐藏继承的下拉伪元素，真实选择器保留；真实浅色 before/after 尺寸不变，实际宿主下四主题×700/420px DOM fixture 8项通过。非完整会话/窄叶键盘验收；未改TS、未全量构建。独立worktree提交，证据与边界见[控件验证](control-detail-polish-evidence/verification.md#只读-agent-箭头补修2026-10-27)。
 - **队列与技能跨仓方案（2026-10-26）**：用户已明确两仓范围；独立只读评估的锁覆盖、fresh原文CAS、bind唤醒与保存中新草稿保持已改入[方案](../plans/engine-queue-and-skill-contracts.md)。先方案commit，再实施；保留生成中Send/Enqueue闸与其他WIP。
 - **引擎协议消费修复（2026-10-26）**：补Create/Info/Fork/Provider/Profile字段、两条正式RPC与IPC/能力闸，maxRewinds显式0在正文/模型/工具保存中保持。原8业务red转绿；Node203+498、Profile编辑器3过，原project native tsc通过，MCP一既有mapper失败单独复现。跨仓队列/技能获授权，另续方案，不升产品状态。见[方案](../plans/engine-protocol-consumption-closeout.md)。
 - **控件细节精修（2026-10-26）**：四CSS收敛Sources工具栏命中区/页签按压、Navigator筛选焦点/清除对齐、Connection与Engine返回按钮；四主题16组基本控件、8组本地工具栏、4组禁用ActionBar验证通过，独立源码复读C0/I0/M0。局部CSS刷新，无全量编译；本地根/禁用fixture与既有JS边界见[证据](control-detail-polish-evidence/verification.md)。
