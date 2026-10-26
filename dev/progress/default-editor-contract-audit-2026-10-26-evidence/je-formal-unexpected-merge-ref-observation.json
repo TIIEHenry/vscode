@@ -1,0 +1,6 @@
+{
+  "head": "71ba410c4f3e00fadf595b2e8c1b123beaac8546\n",
+  "src": "5ebb6ea96b6a130943d08368509ae8ef3016785a\n",
+  "status": "",
+  "reflog": "71ba410c4f3 HEAD@{2026-10-27T00:58:35+08:00}: commit (merge): merge: integrate verified read-only agent chevron fix\n0008234e2eb HEAD@{2026-10-27T00:43:37+08:00}: commit (merge): merge: 接入响应恢复终态夹具精确类型修正\n3b3fed2d7d8 HEAD@{2026-10-27T00:43:08+08:00}: commit: docs: 留存 J/E 首次完整编译单条类型失败\n24a3850cc46 HEAD@{2026-10-27T00:36:08+08:00}: commit: docs: 记录 J/E 正式合源与双侧保留门禁\n9209a2ed382 HEAD@{2026-10-27T00:34:34+08:00}: commit (merge): merge: 正式接入已审响应失败恢复合同\n5373d991af2 HEAD@{2026-10-27T00:33:21+08:00}: commit (merge): merge: 正式接入已审 Sources 打开合同修复\n07121db5169 HEAD@{2026-10-27T00:26:12+08:00}: commit: docs: 将已审 J/E 冻结代码波排入正式集成\n3e5502be545 HEAD@{2026-10-27T00:24:09+08:00}: merge 3e5502be545378cd48871bc2f0f0fc7359e2a0d9: Fast-forward\n"
+}

@@ -1,0 +1,115 @@
+{
+  "phase": "exact-old5df-isolated-frame",
+  "sourceHead": "71ba410c4f3e00fadf595b2e8c1b123beaac8546",
+  "sourceTree": "5ebb6ea96b6a130943d08368509ae8ef3016785a",
+  "producerRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+  "producerSourceTree": "7fa3c86d152420afeb66c6038bd961bb6d5b8f4b",
+  "startedAtUtc": "2026-10-26T17:09:55.723187+00:00",
+  "sharedLockHeldAcrossTranspileTestRestore": true,
+  "globalLaneMatches": [],
+  "nativeCompileExit": 0,
+  "nativeCompileSourceHead": "0008234e2ebe23ca129cd36f8402b2ff71bf2dea",
+  "nativeCompileSourceTree": "1ee09f7185369bd3090ae7788e1bfc8ea413149a",
+  "currentHeadNativelyCompiled": false,
+  "currentFilesystemSourceNotConsumed": true,
+  "nativeIdentityScope": 86,
+  "outFrozen": false,
+  "modules": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "f9f3239bcd7969ac8f07671e41a7d09cd52117c30c01adf3ddd367280f1e1445",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.js",
+      "beforeSha256": "2a4f12edbbd5da7a01480b97e23cdce5d5bd92dfba13889af0080b1ac4619885",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "8abecd03c4d783828bad4f72c346fc2d450c8a57881ea09122b71dac5fdf23a0",
+      "restoredSha256": "2a4f12edbbd5da7a01480b97e23cdce5d5bd92dfba13889af0080b1ac4619885"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "c2e49a41eb8e4b1753fc09921e27943f2a9ebcdb0f3d99662fd1525761ac6538",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.js",
+      "beforeSha256": "d1705675fd1be7ffd5c96812133392774973d90b0364f444f59611c84ccf44d7",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "af645b69667f3deda53e1dd161e7321f2c096966ad0276a71d972c7d05a21ee3",
+      "restoredSha256": "d1705675fd1be7ffd5c96812133392774973d90b0364f444f59611c84ccf44d7"
+    },
+    {
+      "sourcePath": "src/vs/platform/universeAgent/common/conversationViewFrame.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "ffd8551c2d08bc7cc592cef9e7edf560dad422662d5039544c076c555479298d",
+      "outputPath": "out/vs/platform/universeAgent/common/conversationViewFrame.js",
+      "beforeSha256": "0ed2b5b6b52992e9d934a5a8af40621589cf0097e269ce0373e674387cf9a3ee",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "6cd14c8577a2b3500cbe7ae368c08df8461f9afdf45fa84feba10a5be6fa8c37",
+      "restoredSha256": "0ed2b5b6b52992e9d934a5a8af40621589cf0097e269ce0373e674387cf9a3ee"
+    }
+  ],
+  "runs": [
+    {
+      "label": "resync",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "15s",
+        "240s",
+        "xvfb-run",
+        "-a",
+        "./scripts/test.sh",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--run",
+        "src/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.ts",
+        "--grep",
+        "requestResync reject does not leave"
+      ],
+      "exitCode": 1,
+      "mochaSummaries": [
+        "  0 passing (7ms)",
+        "  1 failing"
+      ],
+      "logPath": "/tmp/vscode-je-formal-old5df-frame-resync.log",
+      "logSha256": "3fac25414b684076a4853936c3812a0525e47d21d4da34b22ff026d74a0481ab"
+    },
+    {
+      "label": "ack",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "15s",
+        "240s",
+        "xvfb-run",
+        "-a",
+        "./scripts/test.sh",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--run",
+        "src/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.ts",
+        "--grep",
+        "acknowledge reject.*onUnexpectedError warn-then-rethrows"
+      ],
+      "exitCode": 0,
+      "mochaSummaries": [
+        "  1 passing (4ms)"
+      ],
+      "logPath": "/tmp/vscode-je-formal-old5df-frame-ack.log",
+      "logSha256": "8d2329f8bc1b486b4db50c17d409c4760ee0c96fec95abd25858a2940ef7d1f0"
+    }
+  ],
+  "allTouchedOutputsRestored": true,
+  "all86NativeOutputHashesRestored": true,
+  "sourceHeadUnchanged": true,
+  "sourceTreeUnchanged": true,
+  "finishedAtUtc": "2026-10-26T17:09:58.118385+00:00"
+}

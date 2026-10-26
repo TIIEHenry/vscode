@@ -1,0 +1,74 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1521230:1027/005638.515179:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1521251) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1521251) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1521251) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  renderHonestTimelineRow error retry (PRD-021)[0m
+  [32m  ✔[0m[90m retryable true draws a Retry button and click calls onRetryError[0m
+  [32m  ✔[0m[90m provider error collapses to one line and keeps the payload behind details[0m
+  [32m  ✔[0m[90m retryable false keeps the badge and does not draw a button[0m
+  [32m  ✔[0m[90m retryable absent does not draw a button[0m
+  [32m  ✔[0m[90m retryable true without onRetryError does not draw a fake button[0m
+  [32m  ✔[0m[90m retryable true with writesEnabled false stays disabled and does not retry[0m
+
+[0m  ConversationConfirmationSeat pairing-hold writes[0m
+  [32m  ✔[0m[90m writesEnabled false keeps Allow/Skip disabled and does not resolve[0m
+  [32m  ✔[0m[90m non-retryable respond failure hides Allow/Skip and does not ask for input[0m
+  [32m  ✔[0m[90m retryable respond failure keeps Input needed and Allow/Skip[0m
+  [32m  ✔[0m[90m a second Allow or Skip does not post again[0m
+  [32m  ✔[0m[90m detail renders under the message for pending and settled seats and is omitted when absent[0m
+
+[0m  ConversationQuestionSeat pairing-hold writes[0m
+  [32m  ✔[0m[90m writesEnabled false keeps Submit disabled and does not respond[0m
+
+[0m  renderStandaloneThinkingOrToolRow (D36)[0m
+  [32m  ✔[0m[90m standalone thinking is an honest summary row, not process-fold chrome[0m
+  [32m  ✔[0m[90m standalone tool falls back to text when summary is absent[0m
+  [32m  ✔[0m[90m standalone file_edit tool renders diff stats and expandable diff area[0m
+
+[0m  ConversationTimelineRenderer seat decision hold[0m
+  [32m  ✔[0m[90m confirmation without explicit status still renders Allow and Skip[0m
+  [32m  ✔[0m[90m repainting a pending confirmation after Allow stays disabled[0m
+  [32m  ✔[0m[90m repainting a pending question after Submit stays disabled until a failure[0m
+  [31m  1) repainting a respondable client tool stays disabled until a retryable failure[0m
+
+[0m  ConversationTimelineRenderer user-bubble writesEnabled[0m
+  [32m  ✔[0m[90m writesEnabled false does not call onEditUserTurn[0m
+  [32m  ✔[0m[90m writesEnabled true still calls onEditUserTurn[0m
+  [32m  ✔[0m[90m settled user row does not show a You label[0m
+  [32m  ✔[0m[90m pending user row shows Sending and is not an edit button[0m
+
+[0m  ConversationTimelineRenderer assistant delete agentId[0m
+  [32m  ✔[0m[90m default assistant hides Agent; a named agent is only the source line[0m
+  [32m  ✔[0m[90m delete click hands L1 turnId to deleteTurn when snapshot admits one[0m
+  [32m  ✔[0m[90m delete click hands row agentId to deleteTurn, not only turn.id[0m
+  [32m  ✔[0m[90m delete click treats blank turnId as missing and still sends display id[0m
+
+[0m  ConversationTimelineDelegate dynamic heights[0m
+  [32m  ✔[0m[90m getDynamicHeight returns recorded height or null[0m
+
+[0m  user row refs trailer is not read or copied[0m
+  [32m  ✔[0m[90m user row aria and copy omit the trailer while the visible body stays stripped[0m
+
+
+[92m [0m[32m 29 passing[0m[90m (35ms)[0m
+[31m  1 failing[0m
+
+[0m  1) ConversationTimelineRenderer seat decision hold
+       repainting a respondable client tool stays disabled until a retryable failure:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+[0m[90m
+  TypeError: Cannot read properties of null (reading 'click')
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.js:429:71)
+[0m
+
+

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J/E真三路完成；首次原生完整编译1条E测试TS2322已退原作者，完整日志/86输出身份保留；运行待、未freeze，禁push/主ff不重试。"
+summary: "第二次原生完整编译0；J386/roster189/新29与44绿，相关套ack新回归已退作者，5处旧夹具/既有红实证；外部HEAD漂移保留，未freeze。"
 ---
 
 # J/E 正式集成
@@ -44,3 +44,40 @@ summary: "J/E真三路完成；首次原生完整编译1条E测试TS2322已退�
 实际源码HEAD `24a3850cc46c680799309adfc9bc093ae653ff27` / src `fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1`，全局活跃编译车道两次扫描为空，并独占`/tmp/vscode-compile.lock`后运行一次完整`rtk proxy npm run compile-client`。实际UTC 2026-10-26T16:37:23.982333+00:00 至 2026-10-26T16:37:56.938315+00:00，**exit1 / 1条TS诊断**：`conversationEngineRosterService.test.ts(3643,129)` TS2322，`false`不能赋给`true`。已即时回报父并退原E作者做精确类型夹具修正，不在merge宽cast或弱化断言。
 
 [第一份完整原日志](je-formal-first-compile.log)、[命令/共享锁/源与86输出前后身份](je-formal-first-compile.json)、[原执行脚本](je-formal-first-compile.py)保留原字节。HEAD/src/clean前后均未变；本次原生emit已发生，当前out是此次失败编译的实际输出，不能继续写成旧ad80原生身份，也不是正式绿产物。无freeze；作者不可变修订接入后再完整编译与相关全套。
+
+## 第二次原生编译与正式完整运行（未freeze）
+
+E精确类型修订`de1c958d1f0b036df93d2ad2e3a4bf334cea3f6d`实际parent与merge-base是`24a3850cc46c680799309adfc9bc093ae653ff27`，以Git实读纠正交接“parent c2b”的误述；只有终态fixture省略可选true marker及plan尾简记，既无cast也不放宽领域类型/断言。[真三路原日志](je-formal-E-fixture-merge.log)与[9路径mode/type/blob门禁](je-formal-E-fixture-merge-identity.json)全PASS，形成`0008234e2ebe23ca129cd36f8402b2ff71bf2dea` / src `1ee09f7185369bd3090ae7788e1bfc8ea413149a`。
+
+[第二次完整原日志](je-formal-second-native-build.log)实际`rtk proxy npm run compile-client` **exit0 / 0 TS诊断**；[共享锁/两次空进程扫描/86源与产物身份](je-formal-second-native-build.json)记录HEAD/src/clean前后不变。首轮exit1原件完整保留。初始focused前置因CSS复制保留mtime的过严条件退出，未执行业务；确认86源码/输出SHA均吻合、JS均本轮emit、四CSS精确源字节后调整为JS时间+CSS字节核验；一次瞬时共享锁占用亦在执行业务前退出，未杀外部进程。
+
+以下全部在第二次native产物上实际运行，均跳过prelaunch、持共享锁、86源/产物身份前后不变；[实际运行脚本](je-formal-runtime.py)与逐suite JSON/未过滤原日志纳入[原始清单](je-formal-artifact-inventory.json)。各独立Electron进程的计数可包含自带registry housekeeping，不将逐文件计数冒充合并运行计数。
+
+| 实际运行 | 结果 | 原始证据 |
+| --- | --- | --- |
+| Sources新宿主/overlap | 29 passing / exit0 | [JSON](je-formal-J-focused.json) / [log](je-formal-J-focused.log) |
+| E response recovery（含18 review） | 44 passing / exit0 | [JSON](je-formal-E-focused.json) / [log](je-formal-E-focused.log) |
+| Sources完整10文件 | 386 passing / exit0 | [JSON](je-formal-J-full.json) / [log](je-formal-J-full.log) |
+| E完整roster | 189 passing / exit0 | [JSON](je-formal-E-roster-full.json) / [log](je-formal-E-roster-full.log) |
+| E相关11文件首次组合 | 20 passing / 3 failing / exit1，仅运行至FrameSource的afterEach中止，余10未覆盖 | [JSON](je-formal-E-related-full.json) / [log](je-formal-E-related-full.log) |
+| 后10逐文件：State / SessionView / Projection / Renderer / Host | 11/0、42/0、15/2、29/1、10/0 | 各`je-formal-E-conversation*.json/.log`原件 |
+| 后10逐文件：Question / ProcessFold / ToolDetails / StreamToDom / Scripts | 25/0、49/0、16/0、3/0、32/1 | 各`je-formal-E-conversation*.json/.log`原件 |
+
+FrameSource三红必须分别判定：requestResync实际两次lease而旧fixture期待一次；ack warn-then-rethrow只有一次unexpectedWarn、随后afterEach收到ack boom，后两红是同一真实unhandled回归，已退原E，不能统一列为既有。后10的四红是Projection确认初始allowed/pending、reasoning THINKING/正文，Renderer旧客户端工具CTA null.click（夹具入口，非机制业务red），Stream无options题undecided/pending。
+
+## 精确旧5df隔离对照与恢复
+
+[旧对照脚本](je-formal-old5df-runtime.py)只取不可变`5df17cb7273f490ccd59818dccba479fa80848dc` Git源码，不消费漂移后的文件系统源码。共享锁贯穿转译、测试与finally恢复；不是旧整棵native构建，不声称全out同一旧基线。
+
+- [FrameSource身份](je-formal-old5df-frame.json)：精确旧production/test/common Frame3模块；[resync旧跑](je-formal-old5df-frame-resync.log) **0过1红**，同样两次lease；[ack旧跑](je-formal-old5df-frame-ack.log) **1过0败**，证明ack两新红不是既有。3临时输出与86 native摘要全恢复。
+- [旧E相关组合身份](je-formal-old5df-related.json)：17路径精确旧生产/三测试组合，新State.js在旧ref不存在，临时移除后按原字节恢复；[Projection](je-formal-old5df-related-conversationTimelineProjection.log)15/2、[Renderer](je-formal-old5df-related-conversationTimelineRenderer.log)29/1、[StreamScripts](je-formal-old5df-related-conversationStreamScripts.log)32/1，四红与正式native逐项相同。全部临时输出及86 native摘要全恢复，HEAD/src未改。旧理由不等于本轮相关全绿；reasoning正文/摘要合同由独立审查判定，不顺手扩大产品编码。
+
+[34TS不可变源码ESLint](je-formal-lint.json)0 errors / 73 warnings；[正式Sources接线](je-formal-wiring.log)23过1败，失败仍为Accept patch builder禁止`parseSourcesGitUnifiedDiff`；[当前输入字节证明](je-formal-wiring.json)表明sourcesGitHunkPatch精确等于已实际旧跑的09f6，SHA d69e4d…，不改该既有扫描断言。
+
+## P0/P6补充：外部ref变化的只读观察
+
+[两槽reflog原件](je-formal-external-ref-observation.json)：B/E均在本地2026-10-27 00:35:23记录ff到9209、00:37:13记录ff到24a；只能确认Git操作与时间，执行者未知。本接续没有写这两槽；只登记E后续ack修订的dirty路径名，没有消费其WIP内容。
+
+[merge HEAD外部变化](je-formal-unexpected-merge-ref-observation.json)：验证后发现`71ba410c4f3e00fadf595b2e8c1b123beaac8546`，parents为000823与21162；相对000823仅Lens CSS5行与独立控件证据/status，保留原提交、不reset/revert，不计为本波作者实现。初次旧对照HEAD守卫在写out前退出；随后明确绑定已有000823/1ee native摘要与不可变5df隔离，登记当前HEAD/src5ebb未由该native编译背书，未消费新FS源码。后续最终源必须重新钉不可变HEAD并实际完整编译，当前不freeze。
+
+父此前独立只读核22份artifact SHA零差、J262+E208共470路径四侧Git mode/type/blob无不符；只核Git身份，不扩大为父已重审全部hunk或out。P5仍禁push，P6主工位ff既有拒绝不重试，外部槽同步来源未知，不宣称本波释放。

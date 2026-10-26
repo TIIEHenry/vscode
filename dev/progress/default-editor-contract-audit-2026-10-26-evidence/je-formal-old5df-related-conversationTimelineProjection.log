@@ -1,0 +1,70 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1550070:1027/011017.783167:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1550086) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1550086) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1550086) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  conversationTimelineProjection[0m
+  [32m  ✔[0m[90m cached projection matches an uncached one and reuses untouched entries[0m
+  [32m  ✔[0m[90m same-content baseline reuses entry references[0m
+  [31m  1) pending removal changes the confirmation entry status[0m
+  [32m  ✔[0m[90m question requestId change invalidates that entry[0m
+  [32m  ✔[0m[90m attribution change invalidates that entry[0m
+  [32m  ✔[0m[90m detail change invalidates the visualize entry[0m
+  [32m  ✔[0m[90m link catalog version invalidates assistant text entries only[0m
+  [32m  ✔[0m[90m entriesToRenderableTurns reuses turns only when a cache is passed[0m
+  [32m  ✔[0m[90m single non-think overlay chunk stays the chunk text[0m
+  [32m  ✔[0m[90m tool overlay keeps thinking chunks out of text[0m
+  [32m  ✔[0m[90m cached multi-call tool envelope keeps the body and both names[0m
+  [32m  ✔[0m[90m text overlay with thinking draws the thought before the body[0m
+  [32m  ✔[0m[90m whitespace thinking does not add an empty reading row[0m
+  [32m  ✔[0m[90m same envelope thinking stays ahead of the body and every tool name[0m
+  [32m  ✔[0m[90m reasoning overlay keeps only the thinking chunk in text[0m
+  [31m  2) persisted reasoning keeps the joined thinking preview on the reading line[0m
+
+
+[92m [0m[32m 15 passing[0m[90m (18ms)[0m
+[31m  2 failing[0m
+
+[0m  1) conversationTimelineProjection
+       pending removal changes the confirmation entry status:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-allowed[0m
+      [32m+pending[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'allowed'
+  - 'pending'
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.js:112:12)
+[0m
+[0m  2) conversationTimelineProjection
+       persisted reasoning keeps the joined thinking preview on the reading line:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-THINKING[0m
+      [32m+hmm[0m
+      [32m+then this[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'THINKING'
+  - 'hmm\nthen this'
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.js:575:12)
+[0m
+
+

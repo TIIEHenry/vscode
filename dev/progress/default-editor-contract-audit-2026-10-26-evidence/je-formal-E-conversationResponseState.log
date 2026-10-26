@@ -1,0 +1,26 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1520696:1027/005634.934121:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1520711) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1520711) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1520711) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  Conversation response canonical identity[0m
+  [32m  ✔[0m[90m same-id permission/question conflict never projects a bare failure onto another kind[0m
+  [32m  ✔[0m[90m same-id question/client-tool conflict never projects a bare failure onto another kind[0m
+  [32m  ✔[0m[90m same-id client-tool/permission conflict never projects a bare failure onto another kind[0m
+  [32m  ✔[0m[90m same-id timeline agent conflict rejects busy, failure and cleanup ownership[0m
+  [32m  ✔[0m[90m same-id attribution agent conflict rejects busy, failure and cleanup ownership[0m
+  [32m  ✔[0m[90m question longest prefix is resolved across all kinds before aliases can own any state[0m
+  [32m  ✔[0m[90m question alias failure, retry clear and busy invalidate both the display row and pending alias with a live cache[0m
+  [32m  ✔[0m[90m a conflict introduced during an attempt retires its result and a later same-id request gets a fresh incarnation[0m
+  [32m  ✔[0m[90m same semantic question baseline preserves the attempt despite object property order and optional false flags[0m
+  [32m  ✔[0m[90m non-retryable failure is explicitly blocked and cannot enter the forwarding branch[0m
+
+
+[92m [0m[32m 11 passing[0m[90m (6ms)[0m
+

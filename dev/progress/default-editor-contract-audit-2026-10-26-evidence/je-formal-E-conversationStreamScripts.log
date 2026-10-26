@@ -1,0 +1,71 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1522356:1027/005646.628195:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1522370) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1522370) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1522370) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  Conversation stream scripts[0m
+  [32m  ✔[0m[90m script ids are unique[0m
+  [32m  ✔[0m[90m streamed-reply: assistant reply streams in chunk by chunk, then commits into one durable row[0m[33m (49ms)[0m
+  [32m  ✔[0m[90m order-follows-order-key: rows sort by orderKey, not by arrival order[0m
+  [32m  ✔[0m[90m cancelled-turn: a streaming block removed without a commit leaves no ghost row[0m
+  [32m  ✔[0m[90m duplicate-frame: a re-delivered frame is not a gap: no paint, no ack, no resync[0m
+  [32m  ✔[0m[90m gap-then-recover: a frame after a hole is held back, a resync is requested, and a new baseline recovers[0m
+  [32m  ✔[0m[90m baseline-replaces: a later baseline replaces the timeline, it does not merge into it[0m
+  [32m  ✔[0m[90m remove-row: removing a timeline item removes exactly that row[0m
+  [32m  ✔[0m[90m dispose-stops-painting: after the lease is disposed nothing paints and the host lease is released[0m
+  [32m  ✔[0m[90m permission-pending-then-allowed: a permission item with a pending action is a pending confirmation; resolving flips it in place without adding a row[0m
+  [32m  ✔[0m[90m permission-denied-is-skipped: a denied permission becomes a skipped confirmation, still one row[0m
+  [32m  ✔[0m[90m permission-unpend-alone-is-undecided: withdrawing the pending action without a decision leaves an undecided confirmation (not pending, not dropped)[0m
+  [32m  ✔[0m[90m permission-respond-failed-keeps-row-pending: a failed respond uplink stays pending, shows the error, and keeps Allow/Skip[0m
+  [32m  ✔[0m[90m permission-respond-failed-not-retryable: a non-retryable respond failure shows the error and hides Allow/Skip[0m
+  [32m  ✔[0m[90m permission-pending-action-before-item: a pending action alone adds no row; the row appears pending once its item arrives[0m
+  [32m  ✔[0m[90m permission-decision-closes-seat-before-unpend: a decided permission closes the seat even while its pending action is still present[0m
+  [32m  ✔[0m[90m permission-respond-failed-unknown-request: a failed respond for an unknown request id is a harmless no-op (no row appears, no resync)[0m
+  [32m  ✔[0m[90m question-pending-then-answered: an ask-user question is a pending question row with its sub-questions until the answered chrome arrives, in place[0m
+  [32m  ✔[0m[90m question-invalid-answer-keys: answerKeysValid=false (duplicate / blank sub-question ids) never reaches the row as submit-safe[0m
+  [31m  1) question-valid-flag-without-options-is-not-submit-safe: a question claiming answerKeysValid=true whose sub-question has no options and no custom answer is not submit-safe[0m
+  [32m  ✔[0m[90m question-compound-row-id-resolves-pending-request: a compound question row id `<requestId>:<n>` resolves its parent pending request id[0m
+  [32m  ✔[0m[90m tool-lifecycle-in-place: a tool row moves pending → running → completed under one row id (no duplicates)[0m
+  [32m  ✔[0m[90m tool-failed-and-cancelled-are-terminal: failed and cancelled tools stop streaming and keep their terminal status[0m
+  [32m  ✔[0m[90m tool-respondable-chrome-follows-the-summary: a client-tool row is respondable only while its summary says so[0m
+  [32m  ✔[0m[90m error-row-is-kept: retryable and non-retryable errors render as error rows in order and are not dropped[0m
+  [32m  ✔[0m[90m unknown-row-is-not-assistant: an unknown upstream block renders as an unknown row carrying its verbatim type name, never as assistant text[0m
+  [32m  ✔[0m[90m sync-change-does-not-repaint-rows: a sync-only frame is applied (paint) and moves the replica chrome, but no row is rebuilt or re-rendered[0m
+  [32m  ✔[0m[90m sync-degraded-then-live-recovers: degraded keeps the rows and the reason; live clears the reason; rows are never touched[0m
+  [32m  ✔[0m[90m sync-closed-keeps-history-and-can-reopen: a closed session keeps its rows on screen; a fresh live chrome after it is adopted[0m
+  [32m  ✔[0m[90m sync-and-row-in-one-frame: a frame carrying both a sync change and a new row paints the row once[0m
+  [32m  ✔[0m[90m question-respond-failed-keeps-submit: a failed question respond stays a pending question, shows the error, and keeps Submit[0m
+  [32m  ✔[0m[90m question-respond-failed-not-retryable: a non-retryable question respond failure shows the error and hides Submit[0m
+
+
+[92m [0m[32m 32 passing[0m[90m (311ms)[0m
+[31m  1 failing[0m
+
+[0m  1) Conversation stream scripts
+       question-valid-flag-without-options-is-not-submit-safe: a question claiming answerKeysValid=true whose sub-question has no options and no custom answer is not submit-safe:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-undecided[0m
+      [32m+pending[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: [question-valid-flag-without-options-is-not-submit-safe › step 1 "ask claims valid keys but offers nothing to pick"] row "q1" status
+  + actual - expected
+  
+  + 'undecided'
+  - 'pending'
+  
+      at assertEntryFields (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/streamScript.js:187:12)
+      at assertExpect (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/streamScript.js:143:7)
+      at runStreamScript (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/streamScript.js:120:7)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationStreamScripts.test.js:14:7)
+[0m
+
+

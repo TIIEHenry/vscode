@@ -1,0 +1,62 @@
+{
+  "observations": [
+    {
+      "worktree": "/home/clarence/Projects/Agents/vscode-WorkTrees/B",
+      "head": {
+        "exitCode": 0,
+        "stdout": "d8da659a63cf1966e7b5364fcfc664af4da39821\n",
+        "stderr": ""
+      },
+      "branch": {
+        "exitCode": 0,
+        "stdout": "loop/B\n",
+        "stderr": ""
+      },
+      "status": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "headReflog": {
+        "exitCode": 0,
+        "stdout": "d8da659a63c HEAD@{2026-10-27T00:54:54+08:00}: commit: 文档：追加响应恢复关联运行的错误隔离审查\n24a3850cc46 HEAD@{2026-10-27T00:37:13+08:00}: merge 24a3850cc46c680799309adfc9bc093ae653ff27: Fast-forward\n9209a2ed382 HEAD@{2026-10-27T00:35:23+08:00}: merge 9209a2ed382daab85c8ba301da2cb2737e88b06a: Fast-forward\n3e5502be545 HEAD@{2026-10-27T00:22:23+08:00}: commit: 文档：保留响应恢复三项审查原意见并记录修订复读\n19b91119a55 HEAD@{2026-10-27T00:20:23+08:00}: merge 19b91119a5524a4d2a339487441eb04543a6534e: Fast-forward\ne1150a40a31 HEAD@{2026-10-26T00:44:55+08:00}: merge loop/merge: Fast-forward\n5d6e49128f1 HEAD@{2026-10-26T00:43:43+08:00}: merge loop/merge: Fast-forward\ncae1454ffc4 HEAD@{2026-10-26T00:36:52+08:00}: commit: 修复 Agents 状态图标仅靠颜色区分\ne8b8538cf5a HEAD@{2026-10-26T00:13:31+08:00}: merge e8b8538cf5a5b0e6ec021e1492058182548cc5fa: Fast-forward\n964f8bdcb41 HEAD@{2026-10-25T23:53:24+08:00}: merge 964f8bdcb41c80039ac5e15c836723b3dac3c0d4: Fast-forward\n",
+        "stderr": ""
+      },
+      "branchReflog": {
+        "exitCode": 0,
+        "stdout": "d8da659a63c HEAD@{2026-10-27T00:54:54+08:00}: commit: 文档：追加响应恢复关联运行的错误隔离审查\n24a3850cc46 HEAD@{2026-10-27T00:37:13+08:00}: merge 24a3850cc46c680799309adfc9bc093ae653ff27: Fast-forward\n9209a2ed382 HEAD@{2026-10-27T00:35:23+08:00}: merge 9209a2ed382daab85c8ba301da2cb2737e88b06a: Fast-forward\n3e5502be545 HEAD@{2026-10-27T00:22:23+08:00}: commit: 文档：保留响应恢复三项审查原意见并记录修订复读\n19b91119a55 HEAD@{2026-10-27T00:20:23+08:00}: merge 19b91119a5524a4d2a339487441eb04543a6534e: Fast-forward\ne1150a40a31 HEAD@{2026-10-26T00:44:55+08:00}: merge loop/merge: Fast-forward\n5d6e49128f1 HEAD@{2026-10-26T00:43:43+08:00}: merge loop/merge: Fast-forward\ncae1454ffc4 HEAD@{2026-10-26T00:36:52+08:00}: commit: 修复 Agents 状态图标仅靠颜色区分\ne8b8538cf5a HEAD@{2026-10-26T00:13:31+08:00}: merge e8b8538cf5a5b0e6ec021e1492058182548cc5fa: Fast-forward\n964f8bdcb41 HEAD@{2026-10-25T23:53:24+08:00}: merge 964f8bdcb41c80039ac5e15c836723b3dac3c0d4: Fast-forward\n",
+        "stderr": ""
+      }
+    },
+    {
+      "worktree": "/home/clarence/Projects/Agents/vscode-WorkTrees/E",
+      "head": {
+        "exitCode": 0,
+        "stdout": "de1c958d1f0b036df93d2ad2e3a4bf334cea3f6d\n",
+        "stderr": ""
+      },
+      "branch": {
+        "exitCode": 0,
+        "stdout": "loop/E\n",
+        "stderr": ""
+      },
+      "status": {
+        "exitCode": 0,
+        "stdout": " M src/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.ts\n",
+        "stderr": ""
+      },
+      "headReflog": {
+        "exitCode": 0,
+        "stdout": "de1c958d1f0 HEAD@{2026-10-27T00:40:03+08:00}: commit: test: omit the client-tool respondable marker in terminal fixture\n24a3850cc46 HEAD@{2026-10-27T00:37:13+08:00}: merge 24a3850cc46c680799309adfc9bc093ae653ff27: Fast-forward\n9209a2ed382 HEAD@{2026-10-27T00:35:23+08:00}: merge 9209a2ed382daab85c8ba301da2cb2737e88b06a: Fast-forward\nc2b1266006b HEAD@{2026-10-27T00:12:54+08:00}: commit: fix: retain response ownership through terminal and baseline changes\n900f772bfd1 HEAD@{2026-10-26T23:44:46+08:00}: commit: fix: recover conversation responses after unary failures\n5dd7d97d45b HEAD@{2026-10-26T23:02:15+08:00}: commit: docs: accept conversation unary response recovery plan\n09f6da72d30 HEAD@{2026-10-26T22:21:34+08:00}: merge 09f6da72d30: Fast-forward\n8e1db6684bf HEAD@{2026-10-26T02:34:36+08:00}: merge loop/merge: Fast-forward\nc417d66fe69 HEAD@{2026-10-26T02:33:36+08:00}: commit: fix(conversation): name sub-agent overlay icon actions\n02801f9de99 HEAD@{2026-10-26T02:29:29+08:00}: merge agent-ide: Fast-forward\n",
+        "stderr": ""
+      },
+      "branchReflog": {
+        "exitCode": 0,
+        "stdout": "de1c958d1f0 HEAD@{2026-10-27T00:40:03+08:00}: commit: test: omit the client-tool respondable marker in terminal fixture\n24a3850cc46 HEAD@{2026-10-27T00:37:13+08:00}: merge 24a3850cc46c680799309adfc9bc093ae653ff27: Fast-forward\n9209a2ed382 HEAD@{2026-10-27T00:35:23+08:00}: merge 9209a2ed382daab85c8ba301da2cb2737e88b06a: Fast-forward\nc2b1266006b HEAD@{2026-10-27T00:12:54+08:00}: commit: fix: retain response ownership through terminal and baseline changes\n900f772bfd1 HEAD@{2026-10-26T23:44:46+08:00}: commit: fix: recover conversation responses after unary failures\n5dd7d97d45b HEAD@{2026-10-26T23:02:15+08:00}: commit: docs: accept conversation unary response recovery plan\n09f6da72d30 HEAD@{2026-10-26T22:21:34+08:00}: merge 09f6da72d30: Fast-forward\n8e1db6684bf HEAD@{2026-10-26T02:34:36+08:00}: merge loop/merge: Fast-forward\nc417d66fe69 HEAD@{2026-10-26T02:33:36+08:00}: commit: fix(conversation): name sub-agent overlay icon actions\n02801f9de99 HEAD@{2026-10-26T02:29:29+08:00}: merge agent-ide: Fast-forward\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "performedByThisContinuation": "read-only Git calls only; no ff/cascade/write to B or E",
+  "actorOfReflogMoves": "unknown; reflog describes operation, not tool caller"
+}

@@ -1,0 +1,31 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1521972:1027/005643.955385:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1521986) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1521986) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1521986) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ConversationProcessFoldToolDetails[0m
+  [32m  ✔[0m[90m helper reads ua.client.clientTools.showToolInvocationDetails[0m
+  [32m  ✔[0m[90m tool row with details on renders expandable payload body[0m
+  [32m  ✔[0m[90m tool row with details off shows only name and status[0m
+  [32m  ✔[0m[90m executing live tool row shows Cancel tool and fires onCancelToolCall[0m
+  [32m  ✔[0m[90m completed or stub tool row omits Cancel tool[0m
+  [32m  ✔[0m[90m file_edit tool row with metadata.diff renders diff stats badge and expandable diff body[0m
+  [32m  ✔[0m[90m consecutive file edits share one card and sum the diff stats[0m
+  [32m  ✔[0m[90m tool row keeps thinking text outside the payload while a live executing row stays open[0m
+  [32m  ✔[0m[90m whitespace thinking text does not add a thinking line[0m
+  [32m  ✔[0m[90m tool details off keeps thinking text off the row and out of the name[0m
+  [32m  ✔[0m[90m thinking text that arrives while the fold is shut shows after expand[0m
+  [32m  ✔[0m[90m file_edit tool row with details off keeps the diff stats badge off the name[0m
+  [32m  ✔[0m[90m file_edit tool row without metadata keeps plain tool summary without diff stats[0m
+  [32m  ✔[0m[90m fillProcessFoldDiffStats weakens zero counts and retains color classes for non-zero counts (V8)[0m
+  [32m  ✔[0m[90m file_edit tool row with zero additions omits add class and keeps del class[0m
+
+
+[92m [0m[32m 16 passing[0m[90m (14ms)[0m
+

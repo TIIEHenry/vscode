@@ -1,0 +1,280 @@
+{
+  "phase": "exact-old5df-isolated-related",
+  "sourceHead": "71ba410c4f3e00fadf595b2e8c1b123beaac8546",
+  "sourceTree": "5ebb6ea96b6a130943d08368509ae8ef3016785a",
+  "producerRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+  "producerSourceTree": "7fa3c86d152420afeb66c6038bd961bb6d5b8f4b",
+  "startedAtUtc": "2026-10-26T17:10:16.858778+00:00",
+  "sharedLockHeldAcrossTranspileTestRestore": true,
+  "globalLaneMatches": [],
+  "nativeCompileExit": 0,
+  "nativeCompileSourceHead": "0008234e2ebe23ca129cd36f8402b2ff71bf2dea",
+  "nativeCompileSourceTree": "1ee09f7185369bd3090ae7788e1bfc8ea413149a",
+  "currentHeadNativelyCompiled": false,
+  "currentFilesystemSourceNotConsumed": true,
+  "nativeIdentityScope": 86,
+  "outFrozen": false,
+  "modules": [
+    {
+      "sourcePath": "src/vs/platform/universeAgent/common/conversationResponseState.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": null,
+      "outputPath": "out/vs/platform/universeAgent/common/conversationResponseState.js",
+      "beforeSha256": "883b7880dbe44d14f341103e43b3a76fe6d98288ff64e2aefbfd8bbaccc62ef6",
+      "sourceAbsentAtOldRef": true,
+      "installedSha256": null,
+      "restoredSha256": "883b7880dbe44d14f341103e43b3a76fe6d98288ff64e2aefbfd8bbaccc62ef6"
+    },
+    {
+      "sourcePath": "src/vs/platform/universeAgent/common/conversationViewFrame.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "ffd8551c2d08bc7cc592cef9e7edf560dad422662d5039544c076c555479298d",
+      "outputPath": "out/vs/platform/universeAgent/common/conversationViewFrame.js",
+      "beforeSha256": "0ed2b5b6b52992e9d934a5a8af40621589cf0097e269ce0373e674387cf9a3ee",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "6cd14c8577a2b3500cbe7ae368c08df8461f9afdf45fa84feba10a5be6fa8c37",
+      "restoredSha256": "0ed2b5b6b52992e9d934a5a8af40621589cf0097e269ce0373e674387cf9a3ee"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "8fc6ebd86524e0161af57aef86f14d9893bd2019999b23c1ea64289cbb606eed",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.js",
+      "beforeSha256": "572c023253d7ab5f38015598376b911b830e590b8bf83d87742cd69a3d281bb0",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "247f910beaef05a72c4060fb7c9b9cf725885ceedbdf0dd405308a07363619f3",
+      "restoredSha256": "572c023253d7ab5f38015598376b911b830e590b8bf83d87742cd69a3d281bb0"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "f9f3239bcd7969ac8f07671e41a7d09cd52117c30c01adf3ddd367280f1e1445",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.js",
+      "beforeSha256": "2a4f12edbbd5da7a01480b97e23cdce5d5bd92dfba13889af0080b1ac4619885",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "8abecd03c4d783828bad4f72c346fc2d450c8a57881ea09122b71dac5fdf23a0",
+      "restoredSha256": "2a4f12edbbd5da7a01480b97e23cdce5d5bd92dfba13889af0080b1ac4619885"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "c23f2c47fe523cff628297ac10cb5b8c890797b3e48a9f4df6c7dafbfaa3917d",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.js",
+      "beforeSha256": "32abd95779360c203bf03be9b3fcc195447bcb7a46630aeda27510eb0da0fc6a",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "83c53ed24cb4ea72d110d6339a28b96ed1c4aa4441b18a21fc3b69a2c20af601",
+      "restoredSha256": "32abd95779360c203bf03be9b3fcc195447bcb7a46630aeda27510eb0da0fc6a"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "ee0fd9fad7014f1aac077199d8ca9b4b8ef14083ff06358789808cb2313dede6",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationLensProjection.js",
+      "beforeSha256": "a97abb6e9f688da2e20c29441046c3a6899c1f6b71fef7330d8afe443f7626e4",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "3ad5c88eace4a49154b287f4de27cbd7faae543540caeb93d14476f6630cbd30",
+      "restoredSha256": "a97abb6e9f688da2e20c29441046c3a6899c1f6b71fef7330d8afe443f7626e4"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "492eb3a3fb06b921499bb5da62ec5b996828375555ae5f9825889431407f7cc2",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+      "beforeSha256": "741837400e2b1e13550052c459ce899547b151698ed4abfb29dfacd6fd2a9492",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "f9d0e940858a1b6356e66924f7c1a795dd0114ccde324eafb0801a4fec89fea2",
+      "restoredSha256": "741837400e2b1e13550052c459ce899547b151698ed4abfb29dfacd6fd2a9492"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationProcessFold.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "ca64e263d6ed236f2c605fa5fa96bb449dd9fe767624cd20fe98d8ec70a44459",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationProcessFold.js",
+      "beforeSha256": "2c858ae0890083412d298774cc5612fe5ce6f0487924c77f1ca46abfd2c6b5ec",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "4d0080101e8549eccc7d70b9014db64f0a9d7a9763d01ba1831d584e7ecbefb0",
+      "restoredSha256": "2c858ae0890083412d298774cc5612fe5ce6f0487924c77f1ca46abfd2c6b5ec"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "c42117b45bbb2c723084cac80acca764daba752b974930cffb2374b67b52bd43",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.js",
+      "beforeSha256": "1220abe90173abdfb8af6446216ba0b47cde69b4058f1cdb68adcbe334afffc2",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "b7721952c18f2031e9d53c3fd9a942f6ef9b05456bbf36f4e3bccc20ecc6c05d",
+      "restoredSha256": "1220abe90173abdfb8af6446216ba0b47cde69b4058f1cdb68adcbe334afffc2"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationSessionView.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "b66a7512c3f0974e6a4e6a5db7f99d11e3702e1621ed30fe3f72114d6afcefd6",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationSessionView.js",
+      "beforeSha256": "c927c3a8e81f884e2bdfad38b3d816e1d85d4b23406c25f424da4e08dba45604",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "efa3cf92403f200bc29dbfd68b5aafbb767e698ded252ca1b8d0aaec6cfadac2",
+      "restoredSha256": "c927c3a8e81f884e2bdfad38b3d816e1d85d4b23406c25f424da4e08dba45604"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "d57b4daa7fce96e2da37e5c8ee21c06bd00a8ff4f75b01a21e23362a5e459778",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationStubModel.js",
+      "beforeSha256": "44091b407c2cc250866376ca4bf85631320c5d15386fe5dc9dbe36cf351fa338",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "340800c302cb348b111115e2bc823d94bb6732bdb004b8b7465b38ddea87f043",
+      "restoredSha256": "44091b407c2cc250866376ca4bf85631320c5d15386fe5dc9dbe36cf351fa338"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "6122c251c83930667c0e2425493e2161a56b416fbeafcff3ef217f9ded411e6a",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationTimelineHost.js",
+      "beforeSha256": "0b558896b5a35ceb6d7fe1d6724442e0cf92256d1041eb8d694fbcd91398b1cb",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "b227588b29db8af49e353a204a0e11efcdfa8c59f3361b0f0619d1891b48a25c",
+      "restoredSha256": "0b558896b5a35ceb6d7fe1d6724442e0cf92256d1041eb8d694fbcd91398b1cb"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "f6373ac5d3f85e93885ad3b6079bd06c9d5f8ae82c5ad1e2f851a9499512a216",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.js",
+      "beforeSha256": "a4c7ef91fb11e156d5226a7d6512a4c119573990d7b3cac2f9636e0df49aac3b",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "56222cacc15a7e195b3f7ed017d38bdf32eca3470f849c2ffa80a10a04927472",
+      "restoredSha256": "a4c7ef91fb11e156d5226a7d6512a4c119573990d7b3cac2f9636e0df49aac3b"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationTimelineTypes.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "4ae80ae6795410a16e9f70cbcf6b13fd3461d19795c9543ec87c10018127c59d",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationTimelineTypes.js",
+      "beforeSha256": "a2d191499b4296d45157c56057861794a97791db3febc5e2f3bbcc95f9f04933",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "f99bb2d89567228e1431c4afbaa4d289d5d2af9f6149fbc75e10b8d5c2065e50",
+      "restoredSha256": "a2d191499b4296d45157c56057861794a97791db3febc5e2f3bbcc95f9f04933"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "e5cad495182eb8a6850a48d531460feecd19a5faf31850411d05d26b5d4aede7",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.js",
+      "beforeSha256": "f6c167d908b7daff010b6d18452ea39c55584cdedc85aed6ff2ad4227949a388",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "02d76cf852ab31ea76d847fbf814e5d7a3621cdc828306dce0de3336846d9b09",
+      "restoredSha256": "f6c167d908b7daff010b6d18452ea39c55584cdedc85aed6ff2ad4227949a388"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "6d188778003fbc9d8a7cce8f489093edcd0990b4cb4823a701e5fdffd9433e31",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.js",
+      "beforeSha256": "01a23569f4d1b35f7892d03288025f59a2ce7d6f78d7df652330980c24e690f6",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "45c34c18e2b9fe5d8829bd343405b9af3c7391ef818ec4506b8aec9df740d983",
+      "restoredSha256": "01a23569f4d1b35f7892d03288025f59a2ce7d6f78d7df652330980c24e690f6"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationStreamScripts.test.ts",
+      "sourceRef": "5df17cb7273f490ccd59818dccba479fa80848dc",
+      "sourceSha256": "b9093fd8d2480d88daed66b99ccffd978320624fd24e7b3dd2e7095d98cd907b",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationStreamScripts.test.js",
+      "beforeSha256": "06f0540804cfebe98f46b7dc98053740444c2fb3a2fe563fd5793fcbb82f1ff6",
+      "sourceAbsentAtOldRef": false,
+      "installedSha256": "f9e68c7bf92de99a3e3d46c5b1a7e06373c15ad50695a28102acef900cc68f31",
+      "restoredSha256": "06f0540804cfebe98f46b7dc98053740444c2fb3a2fe563fd5793fcbb82f1ff6"
+    }
+  ],
+  "runs": [
+    {
+      "label": "conversationTimelineProjection",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "15s",
+        "240s",
+        "xvfb-run",
+        "-a",
+        "./scripts/test.sh",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--run",
+        "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts"
+      ],
+      "exitCode": 1,
+      "mochaSummaries": [
+        "  15 passing (18ms)",
+        "  2 failing"
+      ],
+      "logPath": "/tmp/vscode-je-formal-old5df-related-conversationTimelineProjection.log",
+      "logSha256": "8f684718153b04c1c939da3848f4a2ad7c32326a6de5474ca00635a1500f0bf4"
+    },
+    {
+      "label": "conversationTimelineRenderer",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "15s",
+        "240s",
+        "xvfb-run",
+        "-a",
+        "./scripts/test.sh",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--run",
+        "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.ts"
+      ],
+      "exitCode": 1,
+      "mochaSummaries": [
+        "  29 passing (26ms)",
+        "  1 failing"
+      ],
+      "logPath": "/tmp/vscode-je-formal-old5df-related-conversationTimelineRenderer.log",
+      "logSha256": "d76f7fd0ad865345f9d11fe53786da15494c426e8de1fa41475ba02ab26f5a7a"
+    },
+    {
+      "label": "conversationStreamScripts",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "15s",
+        "240s",
+        "xvfb-run",
+        "-a",
+        "./scripts/test.sh",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--run",
+        "src/vs/workbench/contrib/conversation/test/browser/conversationStreamScripts.test.ts"
+      ],
+      "exitCode": 1,
+      "mochaSummaries": [
+        "  32 passing (319ms)",
+        "  1 failing"
+      ],
+      "logPath": "/tmp/vscode-je-formal-old5df-related-conversationStreamScripts.log",
+      "logSha256": "320d983c6ed9ce509246e381e4a69888475817a29424a7e2e76dfa6c77bfe45b"
+    }
+  ],
+  "allTouchedOutputsRestored": true,
+  "all86NativeOutputHashesRestored": true,
+  "sourceHeadUnchanged": true,
+  "sourceTreeUnchanged": true,
+  "finishedAtUtc": "2026-10-26T17:10:21.905572+00:00"
+}

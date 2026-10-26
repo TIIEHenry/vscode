@@ -1,0 +1,64 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1521796:1027/005642.753966:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1521808) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1521808) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1521808) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ConversationProcessFold[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans returns empty array when no continuous thinking or tool runs exist[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans does not create empty spans between boundary turns[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans splits on user, assistant, and confirmation[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans keeps tools as sibling rows inside each span[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans builds one span for untitled-style thinking/tool alternation[0m
+  [32m  ✔[0m[90m nestThinkingTools keeps each tool as its own row[0m
+  [32m  ✔[0m[90m nestThinkingTools keeps a leading tool ahead of the next thinking row[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans uses fold:${firstId} including overlay ids[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans does not rewrite span id via turnId[0m
+  [32m  ✔[0m[90m summarizeThinkingTools keeps nested tool names on a collapsed thinking row[0m
+  [32m  ✔[0m[90m summarizeProcessSteps includes Stub prefix and step counts[0m
+  [32m  ✔[0m[90m summarizeProcessSteps uses a one-line thinking summary and keeps the tool name[0m
+  [32m  ✔[0m[90m summarizeProcessSteps keeps thinking when the thought is blank[0m
+  [32m  ✔[0m[90m summarizeProcessSteps summarizes reading-line prose and truncates a long thought[0m
+  [32m  ✔[0m[90m projectTrajectoryProcessFoldSpans keeps system and context outside fold segments[0m
+  [32m  ✔[0m[90m summarizeTrajectoryProcessSteps includes Stub prefix for trajectory spans[0m
+  [32m  ✔[0m[90m summarizeTrajectoryProcessSteps uses thinking text unless it is THINKING or blank[0m
+  [32m  ✔[0m[90m executing tool row cancel forwards turn identity[0m
+  [32m  ✔[0m[90m executing tool row without a tool_call_id does not paint a stop button[0m
+  [32m  ✔[0m[90m each tool name on one arm cancels with its own tool_call_id[0m
+  [32m  ✔[0m[90m cancelToolCall sends toolCallId and does not send the row id[0m
+  [32m  ✔[0m[90m pairing-hold leftover executing cancel stays disabled and does not fire[0m
+  [32m  ✔[0m[90m pending tool without live chrome does not show a success check or a spinner[0m
+  [32m  ✔[0m[90m stub fixture tool row has no cancel control[0m
+  [32m  ✔[0m[90m respondable tool row shows Respond and fires onRespondClientTool[0m
+  [32m  ✔[0m[90m streaming tool row without respondable does not show Respond[0m
+  [32m  ✔[0m[90m respondable tool Respond stays disabled when writesEnabled is false[0m
+  [32m  ✔[0m[90m respondable tool shows an inline retryable failure and honors in-flight hold[0m
+  [32m  ✔[0m[90m terminal client-tool rows do not keep a Respond CTA[0m
+  [32m  ✔[0m[90m reconcile resyncs thinking row when outer fold reopens after collapse state changed[0m
+  [32m  ✔[0m[90m reconcile clears thinking loading chrome when streaming ends on the same turn[0m
+  [32m  ✔[0m[90m a running tool row shows a spinner and not a completion check[0m
+  [32m  ✔[0m[90m a completed tool row shows a check[0m
+  [32m  ✔[0m[90m collapsed and expanded headers show an error icon when a step failed[0m
+  [32m  ✔[0m[90m header shows a loading icon while a tool is running with live chrome and none without it[0m
+  [32m  ✔[0m[90m header has no status icon when every tool completed[0m
+  [32m  ✔[0m[90m header icon follows span updates and prefers loading over error while a tool is still running[0m
+  [32m  ✔[0m[90m cancelled fold headers retain a distinct status across expansion and live modes[0m
+  [32m  ✔[0m[90m fold status updates keep executing and failure priority while retaining cancellation counts[0m
+  [32m  ✔[0m[90m unknown tools do not acquire completion checks in live or Stub mode[0m
+  [32m  ✔[0m[90m separate status text remains part of the one fold button and its full accessible name[0m
+  [32m  ✔[0m[90m production fold CSS keeps mixed status counts visible at narrow widths in vs[0m
+  [32m  ✔[0m[90m production fold CSS keeps mixed status counts visible at narrow widths in vs-dark[0m
+  [32m  ✔[0m[90m production fold CSS keeps mixed status counts visible at narrow widths in hc-black[0m
+  [32m  ✔[0m[90m production fold CSS keeps mixed status counts visible at narrow widths in hc-light[0m
+  [32m  ✔[0m[90m live streaming thinking stays open and does not store the forced expansion[0m
+  [32m  ✔[0m[90m streaming thinking without live chrome still toggles[0m
+  [32m  ✔[0m[90m executing tool row stays open on header click and a settled tool row still toggles[0m
+
+
+[92m [0m[32m 49 passing[0m[90m (31ms)[0m
+

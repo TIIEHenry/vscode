@@ -1,0 +1,25 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1521415:1027/005640.049572:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1521431) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1521431) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1521431) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ConversationTimelineHost[0m
+  [32m  ✔[0m[90m same entries twice do not rerender and keep the article[0m
+  [32m  ✔[0m[90m replacing one assistant turn rerenders that root and keeps the article[0m
+  [32m  ✔[0m[90m inserting a root bumps setChildrenCount by 1[0m
+  [32m  ✔[0m[90m setVisible(false) skips DOM work and setVisible(true) applies it[0m
+  [32m  ✔[0m[90m articles expose data-root-id, the stream is a feed, and the last root is content-visibility visible[0m
+  [32m  ✔[0m[90m content-visibility is not inline so focus-within can unclamp an older row[0m
+  [32m  ✔[0m[90m a non-retryable question failure is not named Input needed on the feed[0m
+  [32m  ✔[0m[90m empty timeline copy follows loading and unavailable[0m
+  [32m  ✔[0m[90m resetTestApplyMetrics zeroes the counters[0m
+
+
+[92m [0m[32m 10 passing[0m[90m (57ms)[0m
+

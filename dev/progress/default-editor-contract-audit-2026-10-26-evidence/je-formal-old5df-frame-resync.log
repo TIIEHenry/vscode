@@ -1,0 +1,38 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1548892:1027/010956.113576:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1548917) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1548917) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1548917) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ConversationEngineFrameSource per-lease subscribe (F1)[0m
+  [31m  1) requestResync reject does not leave an unhandled rejection or apply a bad frame[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (7ms)[0m
+[31m  1 failing[0m
+
+[0m  1) ConversationEngineFrameSource per-lease subscribe (F1)
+       requestResync reject does not leave an unhandled rejection or apply a bad frame:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+         "lease:sess-resync-reject"
+      [31m-  "lease:sess-resync-reject"[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'lease:sess-resync-reject',
+  +   'lease:sess-resync-reject'
+    ]
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.js:473:14)
+[0m
+
+

@@ -1,0 +1,40 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1521615:1027/005641.591732:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1521628) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1521628) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1521628) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ConversationQuestionSeat selections[0m
+  [32m  ✔[0m[90m radio arrows keep aria-checked and selectedLabels on the same option[0m
+  [32m  ✔[0m[90m required radio with a blank label does not respond[0m
+  [32m  ✔[0m[90m moving to a non-empty choice clears the empty-choice alert and submits[0m
+  [32m  ✔[0m[90m clicking a blank required radio explains why it did not submit[0m
+  [32m  ✔[0m[90m enter in the custom field explains an empty required choice[0m
+  [32m  ✔[0m[90m writes held does not explain an empty required choice[0m
+  [32m  ✔[0m[90m multi-select arrows do not write selections[0m
+  [32m  ✔[0m[90m two required radios do not submit the other group first option[0m
+  [32m  ✔[0m[90m arrowing a required radio counts when the other group is confirmed[0m
+  [32m  ✔[0m[90m clicking the same radio twice posts one answer[0m
+  [32m  ✔[0m[90m a second Submit does not post again[0m
+  [32m  ✔[0m[90m invalid answer keys and no payload show an honest empty state[0m
+  [32m  ✔[0m[90m answered question without a payload does not add an unanswerable note[0m
+  [32m  ✔[0m[90m blocked seat with a payload preview still names the blocked reason[0m
+  [32m  ✔[0m[90m non-retryable respond failure does not ask for input or offer Submit[0m
+  [32m  ✔[0m[90m retryable respond failure still submits the chosen radio[0m
+  [32m  ✔[0m[90m two required radios paint each question stem in the seat text, not only on the aria-label[0m
+  [32m  ✔[0m[90m a single question already used as the seat body is not painted again[0m
+  [32m  ✔[0m[90m answered and non-retryable option previews keep each question stem once[0m
+  [32m  ✔[0m[90m custom-only question paints its stem before the input[0m
+  [32m  ✔[0m[90m custom-only question does not repeat a stem already used as the seat body[0m
+  [32m  ✔[0m[90m custom-only question with an empty stem does not paint one[0m
+  [32m  ✔[0m[90m options with a custom input paint the question stem once, not again before the input[0m
+  [32m  ✔[0m[90m undecided, answered, and non-retryable custom-only previews keep a stem that differs from the seat body[0m
+
+
+[92m [0m[32m 25 passing[0m[90m (12ms)[0m
+

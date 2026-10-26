@@ -1,0 +1,57 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1520872:1027/005636.125670:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1520884) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1520884) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1520884) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  conversationSessionView (S1)[0m
+  [32m  ✔[0m[90m seed fixtures round-trip through the view contract without loss[0m
+  [32m  ✔[0m[90m local missing tool status survives the complete projection and fold without a completion check[0m
+  [32m  ✔[0m[90m all five explicit tool outcomes survive local and live snapshot projection and completed round-trip[0m
+  [32m  ✔[0m[90m local tool sidecar requires both tool attribution and the stub boundary[0m
+  [32m  ✔[0m[90m entryToRenderableTurn forwards streaming and toolStatus to the render turn[0m
+  [32m  ✔[0m[90m honest kinds and agentId survive legacy turn projection and stub snapshot round trip[0m
+  [32m  ✔[0m[90m entryToRenderableTurn forwards optimistic pending and omits it on durable rows[0m
+  [32m  ✔[0m[90m projection keeps tool respondable only when the snapshot already set it[0m
+  [32m  ✔[0m[90m a persisted tool envelope with assistant text keeps the body and a tool-name row[0m
+  [32m  ✔[0m[90m a persisted tool envelope with two calls keeps the body and both tool names[0m
+  [32m  ✔[0m[90m stub snapshot never claims a live sync or streaming rows[0m
+  [32m  ✔[0m[90m role comes from attribution only: a text row without attribution renders neutral, not by title[0m
+  [32m  ✔[0m[90m tool-role text is a read-only row, not an assistant turn[0m
+  [32m  ✔[0m[90m question request id is the longest pending prefix, independent of insertion order[0m
+  [32m  ✔[0m[90m permission outside pendingActions without a decision is undecided and has no seat actions[0m
+  [32m  ✔[0m[90m unanswered question outside pendingActions is undecided and is not a pending seat[0m
+  [32m  ✔[0m[90m visualize stays a tool row unless parseVisualizeArgs accepts the detail[0m
+  [32m  ✔[0m[90m pending permission is driven by pendingActions, decision by the timeline record[0m
+  [32m  ✔[0m[90m pending permission argPreview is the confirmation payload and a blank preview is omitted[0m
+  [32m  ✔[0m[90m localPendingSends project as pending user rows and are dropped from legacy turns[0m
+  [32m  ✔[0m[90m localPendingSends sit after the timeline and before the overlay (§3.3)[0m
+  [32m  ✔[0m[90m diffProjections emits id-keyed patches only for what changed[0m
+  [32m  ✔[0m[90m diffProjections emits localPendingSend patches[0m
+  [32m  ✔[0m[90m acquireSessionView lease mirrors roster mutations through session-core frames[0m
+  [32m  ✔[0m[90m lease.post(submitInput) writes through the same stub path as the Dock[0m
+  [32m  ✔[0m[90m lease.post(permissionRespond) resolves the pending seat[0m
+  [32m  ✔[0m[90m post to an unknown session is rejected, not silently accepted[0m
+  [32m  ✔[0m[90m stub lease requestDetail upserts local body then settles full[0m
+  [32m  ✔[0m[90m requestResync re-baselines the replica[0m
+  [32m  ✔[0m[90m D472 path-only catalog hit projects assistant text as conversation-chat[0m
+  [32m  ✔[0m[90m projection cache does not keep timeline rows after the timeline array is cleared in place[0m
+  [32m  ✔[0m[90m cached projection rewrites assistant session links for the active snapshot session[0m
+  [32m  ✔[0m[90m D472 catalog miss and omitted catalog leave original path-only bytes[0m
+  [32m  ✔[0m[90m D472 already conversation-chat assistant text is unchanged on catalog hit[0m
+  [32m  ✔[0m[90m D472 user path-only text is not rewritten[0m
+  [32m  ✔[0m[90m filterAgentId hides other agents on the conversation page and keeps this agent pending send[0m
+  [32m  ✔[0m[90m pending-only question with an agentId is a seat on that agent page only[0m
+  [32m  ✔[0m[90m permission timeline row borrows pending agentId and an orphan permission seats only that agent[0m
+  [32m  ✔[0m[90m respondable tool pending with an agentId is one Respond row on that agent page[0m
+  [32m  ✔[0m[90m tool timeline row without sidecar agentId stays on the matching page and is not seated twice[0m
+  [32m  ✔[0m[90m submitDraft from a filtered lens posts that agent id[0m
+
+
+[92m [0m[32m 42 passing[0m[90m (37ms)[0m
+

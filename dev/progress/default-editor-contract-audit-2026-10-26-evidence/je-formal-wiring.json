@@ -1,0 +1,36 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "5s",
+    "60s",
+    "node",
+    "test/unit/node/index.js",
+    "--run",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.js"
+  ],
+  "sourceHead": "71ba410c4f3e00fadf595b2e8c1b123beaac8546",
+  "nativeSourceHead": "0008234e2ebe23ca129cd36f8402b2ff71bf2dea",
+  "nativeSourceTree": "1ee09f7185369bd3090ae7788e1bfc8ea413149a",
+  "globalLaneMatches": [],
+  "sharedLockHeld": true,
+  "startedAtUtc": "2026-10-26T17:12:55.905701+00:00",
+  "exitCode": 1,
+  "mochaSummaries": [
+    "  23 passing (17ms)",
+    "  1 failing"
+  ],
+  "all86NativeOutputsUnchanged": true,
+  "finishedAtUtc": "2026-10-26T17:12:56.038305+00:00",
+  "existingFailureSourceContinuity": {
+    "sourcePath": "src/vs/workbench/contrib/sources/common/sourcesGitHunkPatch.ts",
+    "baselineRef": "09f6da72d3056c0c28d4bfaa8b0ceb6dc809b62a",
+    "baselineSourceSha256": "d69e4dfe3569ccef6dc7313a9b82a95b5171a530c5a687960c1a77b962eddb44",
+    "currentFilesystemSourceSha256": "d69e4dfe3569ccef6dc7313a9b82a95b5171a530c5a687960c1a77b962eddb44",
+    "exactSameBytes": true,
+    "priorExactBaselineRun": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json"
+  }
+}

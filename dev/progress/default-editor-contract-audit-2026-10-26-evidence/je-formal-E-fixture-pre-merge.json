@@ -1,0 +1,10 @@
+{
+  "ours": "3b3fed2d7d866e2b75939b4813e2b218c695753e",
+  "theirs": "de1c958d1f0b036df93d2ad2e3a4bf334cea3f6d",
+  "mergeBase": "24a3850cc46c680799309adfc9bc093ae653ff27",
+  "candidateChangedPaths": [
+    "dev/plans/conversation-unary-response-recovery.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts"
+  ],
+  "startedAtUtc": "2026-10-26T16:43:36.728212+00:00"
+}

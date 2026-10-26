@@ -4,12 +4,13 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J/E已正式真三路；首轮完整compile-client仅1条E测试TS2322已退作者，原日志保留；新全套/after待，无freeze，禁push/主ff不重试。"
+summary: "J/E第二次完整编译0，Sources386/roster189/新29与44绿；相关ack新回归退作者、5处旧红已精确复现，外部HEAD保留，未freeze/禁push/主ff不重试。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **J/E第二次编译与完整套实际边界（2026-10-27）**：de1c精确夹具真三路000823/src1ee09f，fullcompile0；J新29/完整10共386、E新44/完整roster189均绿。相关批FrameSource20/3提前停，后10各自跑完另4红；精确旧5df resync同红、ack旧绿，另Projection/Renderer/Scripts四处同旧红，86native临时输出全恢复。ack真回归退E；reasoning独立既有问题不混为新机制红。外部71ba/src5ebb仅只读登记并保留，旧compile不延伸，未freeze。[逐套原日志/旧对照/外部ref](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第二次原生编译与正式完整运行未freeze)。
 - **只读 Agent 箭头压字修复（2026-10-27）**：只读状态隐藏继承的下拉伪元素，真实选择器保留；真实浅色 before/after 尺寸不变，实际宿主下四主题×700/420px DOM fixture 8项通过。非完整会话/窄叶键盘验收；未改TS、未全量构建。独立worktree提交，证据与边界见[控件验证](control-detail-polish-evidence/verification.md#只读-agent-箭头补修2026-10-27)。
 - **J/E首次完整编译失败（2026-10-27）**：24a3850/srcfdca956，全局活跃车道空+独占共享锁，实际full compile-client exit1，仅E roster测试3643:129 TS2322 false不能赋true，已交原E作者精确修；完整原日志与86产物前后摘要入库，HEAD/src/clean未变。native emit已发生但不可视绿产物；无freeze，相关运行/后修完整编译待。[失败原件与边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#首次正式完整编译1条测试类型失败)。
 - **J/E正式串行合源（2026-10-27）**：不可变J4d49真三路5373d991、E c2b真三路9209a2ed，源码/测试无冲突；5/3双改文档逐块合成，262/208路径实际mode/type/blob全PASS，E peer原blob保留。当前src fdca956；完整compile-client/新29及response recovery/完整相关套/非作者after待，不借旧compile0或357过升状态；禁push/主ff不重试。[原日志与两侧证明](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#p2串行正式源码已接入2026-10-27)。
