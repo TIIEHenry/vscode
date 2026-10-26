@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "e7两test真实项目noEmit0/lint0-1、定向emitter0、完整Lens317/0与254资格已封存；旧失败历史全保，614原件，待父独核后另授权v4 freeze/J，不升产品after。"
+summary: "e7完整Lens317/0及254资格成立；父独核后真实v4 common138/full254与三lane来源proof已签发，622原件，未UI/fake/授权/完成，待父单独J。"
 ---
 
 # J/E 正式集成
@@ -561,3 +561,22 @@ finally **完整253当前native存在/mode/bytes/SHA及source全部恢复compile
 总 exit0，业务测试实际316项。原先314/3的KEEP及roster/UA三项名称均真实通过，徽章 hidden/text/title/aria、同lease/snapshot/entries、精确真实turn正文等后续断言已执行通过。本轮没有 load/API/fixture/cleanup/timeout 失败。原始日志 SHA `3092b8b9662cbd8395a5342f53e5d47d43864e3fe25aece975b98b2e071a2400`，见 [完整两套 raw](e-e7-two-tests.full-lens-suites.log)、[实际校验记录](e-e7-two-tests.json)、[成功检查点](e-e7-two-tests-success-checkpoint.json)、[成功 emitter 资格](e-e7-two-tests-emitter.json) 和 [254 身份守卫](e-e7-two-tests-current254-preservation.json)。两个成功 fresh native JS 也按全文字节封存，便于后续独立实核。
 
 所有步骤前后254 source/native/mode、HEAD/src/clean、三个稳定cache symlink 与全 out metadata守卫通过。第一轮 emitter 的 lane驱动失败、2fd完整314/3、compile10原完整484/4、精确old4919四selector1/3、reasoning原断言及旧E overall after FAIL均保持历史，不回填成功。`fullCompileOfFinalSourceTree=false`，没有新freeze/UI，原方案仍accepted、wave active、PRD/旧D未关闭。下一步须父独立实核本检查点后分别授权 v4 common138/full254 freeze，再单独授权 J；测试通过本身不构成启动或产品验收完成。
+
+## e7 v4 common138/full254 真实冻结通知
+
+父独立实核 7ffe 检查点的614原件、实际317/0和254 source/native/mode、获审源码及内嵌source map后，明确授权唯一lane创建本轮v4 freeze及lane provenance。最终冻结Git固定为 `7ffe4d9869a0caea76bab537d8d49f08e0776ecd` / src `a2c34649ee88df907c03b70c9ec3235cb1b4a9d9`；后续证据文档提交不改变src或该明确身份。全局scan空/共享锁内签发前后254组 source/native/mode/final Git全核，全部12,554 out文件metadata精确等317实跑结束状态；out逻辑冻结，等待父显式释放，不再刷新产物。
+
+实际 mixed lineage：最新完整编译仍是 db0981/src58b3 的 ordinal10 / exit0 / 0TS；本轮full254由252个compile10精确连续成员及两份e7 fresh tests组成。fresh emitter真实执行源为8ad/srca2c，candidatee7，id `test-refresh-e7c246315db7`。各成员保source blob/hash/mode、native hash/mode与provenanceRef；`fullCompileOfFinalSourceTree=false`，没有执行或声称完整编译最终源码。
+
+| 原件 | SHA256 |
+| --- | --- |
+| [J common138](e-e7-v4-freeze-J.json) | be2d4813c8c66480e51684eb0ff4a3f701848408b21c4abe0e8399d02bd5f3ea |
+| [E common138，非执行授权](e-e7-v4-freeze-E.json) | 729780e2a9bef0968f9f5cb001624cbc0d25e4a2bd23e6abd2096265ff70ac6a |
+| [full254](e-e7-v4-full-freeze.json) | 425cbea3d505fecd61574e207e5374b7a5552ccf6cc9c208c505feb19afb17d0 |
+| [lane provenance](e-e7-v4-lane-provenance.json) | 0593fd9e6a665757be755d9a9d8c71ed5e8a3cde7104b5c89951f9a76dd730f1 |
+
+J/E共同canonical SHA `cf5b11a06613d2bf6b3df5dc5516212d535b158ddc5b7aeacd2a8a56ffc08900`；lineage SHA `c274e054889f59f9940a5156949b0641c8ec863b352a1a143aa2b76382a4be34`；full canonical SHA `2a999f19cad8f101171f330a963c6fa8a57b54d9cf82c7ff77a1950db248dab0`。实际consumer可复制原件目录为 merge 自有 `.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/common/`，D不作工位同步。各路径及发放前后守卫详见 [签发记录](e-e7-v4-freeze-issuance.json)。原件全部byte-preserving落库，现622 artifacts，旧614/588/582/531历史保持。
+
+lane proof逐来源限定：历史J仅28个声明的J/Sources输入source/native与原第八J425运行/原163manifest精确连续，复用该范围断言，不称新425重跑或新UI；新断连核心10仅原compile10 source与四production+Roster.test五输入，原grep十个精确case，ReadingColumn.test未冒称同进程；本次完整Lens317/0绑定真实8ad source、两fresh输出及实际守卫的254输入。三类均为`exact-declared-inputs-only`，不冒称全部模块运行时loaded，更不借旧E11整套。
+
+已用D不可变权威gates.py的lineage_records核实际record/pair/raw/driver/options/toolversion及原compile10 adapter兼容通过；未调用需要root执行授权的完整verify。未启动UI/fake、未创建execution-authorization或phase-complete，也未修改旧J/E freeze/completion。父核本次实际freeze后才另授权D的J；E仍须同身份真实J完成及父另授，不因E notice预备完成而授权。旧E overall after FAIL、原方案accepted、wave active、PRD/旧D保持。

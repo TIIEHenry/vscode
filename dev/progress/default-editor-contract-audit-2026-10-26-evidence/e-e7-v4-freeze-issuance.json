@@ -1,0 +1,55 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "issuedAtUtc": "2026-10-26T23:19:30.696490+00:00",
+  "finalSourceHead": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+  "finalSourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "fullCompileOfFinalSourceTree": false,
+  "commonAssets": 138,
+  "fullAssets": 254,
+  "compile10ContinuousMembers": 252,
+  "targetedFreshTests": 2,
+  "sharedCanonicalCommonSha256": "cf5b11a06613d2bf6b3df5dc5516212d535b158ddc5b7aeacd2a8a56ffc08900",
+  "fullCanonicalSha256": "2a999f19cad8f101171f330a963c6fa8a57b54d9cf82c7ff77a1950db248dab0",
+  "lineageSha256": "c274e054889f59f9940a5156949b0641c8ec863b352a1a143aa2b76382a4be34",
+  "outMutationSuspended": true,
+  "oldFreezeCompletionFilesUnmodified": true,
+  "executionAuthorizationCreated": false,
+  "phaseCompletionCreated": false,
+  "uiOrFakeStarted": false,
+  "beforeGuard": {
+    "atUtc": "2026-10-26T23:19:30.669205+00:00",
+    "all254SourceNativeModeFinalGitExact": true,
+    "all12554OutMetadataUnchangedSince317Run": true,
+    "headSourceCleanUnchanged": true
+  },
+  "afterGuard": {
+    "atUtc": "2026-10-26T23:19:36.715242+00:00",
+    "all254SourceNativeModeFinalGitExact": true,
+    "all12554OutMetadataUnchangedSince317Run": true,
+    "headSourceCleanUnchanged": true
+  },
+  "DGateModuleSha256": "8bf14be1d91c41893bed7a8c1d81af75f8182e11a1365607dd0bcac0bb523f88",
+  "DLineageRecordsCompatibilityPassed": true,
+  "paths": {
+    "freeze-E.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/common/freeze-E.json",
+      "sha256": "729780e2a9bef0968f9f5cb001624cbc0d25e4a2bd23e6abd2096265ff70ac6a",
+      "bytes": 75293
+    },
+    "freeze-J.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/common/freeze-J.json",
+      "sha256": "be2d4813c8c66480e51684eb0ff4a3f701848408b21c4abe0e8399d02bd5f3ea",
+      "bytes": 75293
+    },
+    "full-freeze.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/common/full-freeze.json",
+      "sha256": "425cbea3d505fecd61574e207e5374b7a5552ccf6cc9c208c505feb19afb17d0",
+      "bytes": 136677
+    },
+    "lane-provenance.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/common/lane-provenance.json",
+      "sha256": "0593fd9e6a665757be755d9a9d8c71ed5e8a3cde7104b5c89951f9a76dd730f1",
+      "bytes": 162095
+    }
+  }
+}

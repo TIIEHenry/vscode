@@ -1,5 +1,5 @@
 {
-  "phase": "e7-targeted-noEmit0-eslint0-1-emitter0-complete-lens317-0-current254-qualified-no-freeze",
+  "phase": "e7-v4-common138-full254-real-freeze-and-three-lane-proofs-issued-no-ui-no-auth-no-completion",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -4297,6 +4297,62 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-pairing-dom-turn-corrections-docs-health.json",
       "bytes": 12908,
       "sha256": "635f9535d23c0baf922b0527e19361ff282c117bf3a449a95955732477414a36",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/common/freeze-J.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-e7-v4-freeze-J.json",
+      "bytes": 75293,
+      "sha256": "be2d4813c8c66480e51684eb0ff4a3f701848408b21c4abe0e8399d02bd5f3ea",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/common/freeze-E.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-e7-v4-freeze-E.json",
+      "bytes": 75293,
+      "sha256": "729780e2a9bef0968f9f5cb001624cbc0d25e4a2bd23e6abd2096265ff70ac6a",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/common/full-freeze.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-e7-v4-full-freeze.json",
+      "bytes": 136677,
+      "sha256": "425cbea3d505fecd61574e207e5374b7a5552ccf6cc9c208c505feb19afb17d0",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/common/lane-provenance.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-e7-v4-lane-provenance.json",
+      "bytes": 162095,
+      "sha256": "0593fd9e6a665757be755d9a9d8c71ed5e8a3cde7104b5c89951f9a76dd730f1",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/freeze-issuance.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-e7-v4-freeze-issuance.json",
+      "bytes": 2589,
+      "sha256": "f82f2547aefbd4002bbabf4eaa7f6ea2bc43fa25e3f2b32ff6960ed728c54740",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/processes-before.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-e7-v4-freeze.processes-before.log",
+      "bytes": 249371,
+      "sha256": "87fc51f8f071cd82ba77508f487488602a5e2ea69c7a0e843d854d1efd187743",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/sources-e-gate-after-20261027-r3-baseline-freeze-v4/processes-under-lock.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-e7-v4-freeze.processes-under-lock.log",
+      "bytes": 249330,
+      "sha256": "e7187328b73d3d9f8cbd4dd55025f07b1f2ba7c15ec2132c2d727059b6f8523c",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-e-e7-v4-freeze.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-e7-v4-freeze.py",
+      "bytes": 11006,
+      "sha256": "2df38cfafedc6294a5b60863775d6afaf74146e324e20060e83e66dbcadbe99e",
       "bytePreservingCopy": true
     }
   ]
