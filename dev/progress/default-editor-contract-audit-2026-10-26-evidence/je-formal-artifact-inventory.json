@@ -1,5 +1,5 @@
 {
-  "phase": "compile6-actual-zero-TS-M01-runtime-VM-product-I1-unfrozen-E11-actual163-scope",
+  "phase": "a166-lifecycle-old0da-attempt-fixture-TypeError-business-red-zero-163-restored",
   "artifacts": [
     {
       "originalPath": "/tmp/vscode-je-formal-P0-P1.json",
@@ -2029,6 +2029,48 @@
       "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-m01-vm-rootcause-peer-merge-identity.json",
       "bytes": 201956,
       "sha256": "395da821f7c5a3268ab3eba41e838c660ac0abaa2add9b034a4d45462d2031b5",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-old0da-a166-lifecycle.py",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old0da-a166-lifecycle.py",
+      "bytes": 8002,
+      "sha256": "dce4a006eeefdf313388502a283d77021caddff9260e88516d52fdf8dcc0576a",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-old0da-a166-lifecycle.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old0da-a166-lifecycle.json",
+      "bytes": 92708,
+      "sha256": "b759b8f8be120f486d1c0659e4268af5ae3770eb21464bfdd2e3450bc843733a",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-old0da-a166-lifecycle.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old0da-a166-lifecycle.log",
+      "bytes": 2171,
+      "sha256": "51ce0aea9498f185b9853269bba12235ae0f686f4ad3757000c461a408c44f43",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-old0da-a166-lifecycle.processes-before.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old0da-a166-lifecycle.processes-before.log",
+      "bytes": 252659,
+      "sha256": "4e7d4b5dee071587d3d1ceaf32602ca0ab7f99d45fdcdf9d08aa651c3f7c517f",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-old0da-a166-lifecycle.processes-under-lock.log",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-old0da-a166-lifecycle.processes-under-lock.log",
+      "bytes": 252659,
+      "sha256": "f0749a605022435aab0c981c4e3fb8a291e0a227f1260aa2c3c57a2a6019f19f",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-m01-a166-harness-continuity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-a166-harness-continuity.json",
+      "bytes": 8754,
+      "sha256": "f70a43421d29ccefeb3a9d27c134da7abc4fc86d6194c7b84dc98452bf8ae370",
       "bytePreservingCopy": true
     }
   ]

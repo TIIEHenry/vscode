@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "第六完整compile0/0TS，新M01 24过2afterEach败与完整J410/2为产品Pane VM I1；E44/Roster190过、E11实际255/1旧红，163身份记录，修订待。"
+summary: "compile6与产品VM I1历史保留；a166新增生命周期旧跑0过1夹具TypeError、业务红0，全部163 finally恢复，候选未合/compile7未跑。"
 ---
 
 # J/E 正式集成
@@ -283,3 +283,13 @@ finally在同一共享锁内把当前失败compile5 **全部156 output存在性/
 [父独立只读核验范围](m01-sixth-parent-read-verification.json)明确父实际核新harness旧4/finally、compile6身份、252库存及82/338真实Git mode/type/blob行，不冒称父重跑业务或运行不存在的门禁脚本。全部252历史artifact精确保留，含首夹具败/各旧红/compile5失败/旧52 freeze/250成员29图。运行orchestrator退出0只表示收集结束，各runner exit1分别保留，不签green。
 
 [本窗口缓存状态](m01-sixth-cache-status.json)记录三个自有ignored镜像逐entry仍精确、原路径symlink仍在，source/out/evidence未迁；为即将局部修订的下一完整编译按父授权保留，未声称已恢复，窗口完成条件允许才按原方案还原/核全。D候选/ordinal静态准备不当执行：没有新notice/freeze/UI/E授权，D1387 open、不push/主ff不重试。下一a166所有权修订仍须新增生命周期准确旧红、真实peer原件后合源/compile7及完整39/相关运行。
+
+## a166新增生命周期旧跑夹具失败：业务红0
+
+原J不可变 `a166d422747b1e123109d0f7cec527821c06b04c`（父0da）仅Pane自有VM+新生命周期case及行动文档。实际已读原Astra `d31d4265bb4d9cb37bbd5105d8c4a2fc666da3c6` §16静态C0/I0/M0；该结论不预言新harness能运行。唯一lane按父授权先在当前精确compile6/0da Pane实际native下试新selector，未正式合a166、未compile7，源码仍d5eca。
+
+[selected harness连续性](m01-a166-harness-continuity.json)直接Git核新/旧全文件：去掉两个新增imports、把新增feedback-helper+生命周期case切片换成原helper后，完整文件逐字等0da；原38测试body/expected及四真实入口CommandService链均未改。feedbackPane新增可选compare=false，原反馈用例仍走同modified-only默认，只有新case走双侧；不能笼统称整个helper没改。故明确沿用0da第三轮新CommandService配旧928的四纯Preview业务红，不机械重跑，也不把它们当新生命周期释放旧红。
+
+全局lane空/共享锁内将当前**全部163 source/native output按存在性/mode/SHA精确备份**，包含E11补记7项；只临时转不可变新test JS，0da Pane及其他生产不写。官方selector `real Pane comparison view models release` 实际 **0 passing (12ms) / 1 failing / exit1**，为 `TypeError: this.scmService.onDidAddRepository is not a function`，栈SourcesChangesReadModel.js62→feedbackPane test.js400→新case.js439。尚未创建VM/达到replacement-disposal断言，**生命周期业务旧红0**，不是预计的产品释放AssertionError。[完整raw](m01-old0da-a166-lifecycle.log)、[163备份/命令/结果/finally JSON](m01-old0da-a166-lifecycle.json)、[实际脚本](m01-old0da-a166-lifecycle.py)与两份全局进程原件保留；driver exit0仅表示finally/采集完成，runner exit1不变。
+
+finally所有163输出存在性/mode/SHA、163源SHA及旧Pane source/native全恢复，HEAD fb214/srcd5eca/clean前后不变。原feedback helper依赖之前被第一个真实入口afterEach中止遮住，本轮首次selector显露SCM事件夹具缺失；原J/父/Astra已收到准确raw并由原作者最小补公开依赖，不由lane补fixture/改断言/释放私有VM。全部290历史原件保留，含0da准确四业务旧红与compile6实际VM产品I1，不能与本次夹具失败混计。等待不可变fixture修订/独立peer后重跑准确生命周期旧红，继而真三路合源、实际compile7与39/相关套；cache仍按同编译窗口授权保留，尚无新freeze/UI/E授权，D1387 open。

@@ -4,14 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "compile6实际0/0TS但M01 24/2与完整J410/2暴露Pane VM产品I1，163身份记录；J29/E44/Roster190过，局部修订待，D1387/E after仍待。"
+summary: "a166新生命周期旧跑SCM夹具TypeError/业务红0，163 finally全恢复；原作者补依赖待，候选未合/compile7未跑，compile6产品VM I1历史保留。"
 ---
 
 # 默认编辑器合同与功能缺口续审
 
-## M01最新增量（2026-10-27，第六编译0 / 新运行Pane VM I1）
+## M01最新增量（2026-10-27，a166生命周期旧跑夹具失败）
 
-原J accepted265b后3生产及38公共回归源码已写；d046旧node扫描/真实入口session夹具两I由a222修正，原Astra04ea正式C0/I0/M0原件已核。唯一lane首轮4fixture败不计业务红，第二轮a222新4真实Pane/registered command配精确旧928生产实跑0过4纯业务Preview断言红；共享锁内155旧pair与test输出原不存在性全恢复。已按父授权真三路接a222，源码/测试无交集冲突且精确incoming，新src8e6；唯一lane已实际完整compile5 exit1/4TS（action返回、helper收窄、命令桩泛型及void结果），准确log退原J补修；156native已emit/6变，现out属失败compile5，不能借旧928/8b4绿或freeze。原J0da不可变精确补undefined返回、真实kind类型谓词与真实公共CommandService原结果转交，Astra25bf §14 C0/I0/M0原件已核；新harness配逐SHA精确旧928三生产实跑4纯Preview业务红，finally当前failedcompile5 156mode/存在性/SHA全恢复，真三路正式接入后唯一lane第六完整compile待。实际compile6完整0/0TS，但M01 24/2与完整J410/2同首真实入口pass后的VM所有权leak/console；余14未达，Astra597产品C0/I1、父授权原J局部修复，未签39green。J29/E44/Roster190实际过，E11仅补一次255/1旧reasoning红，Wiring23/1旧Accept红；163身份完整，后续准确生命周期旧红/新peer/compile7待。自有ignored三cache全mode/type/SHA核全暂移/tmp、原路径symlink，未动证据，编译窗口完条件允许核全还原。
+原J accepted265b后3生产及38公共回归源码已写；d046旧node扫描/真实入口session夹具两I由a222修正，原Astra04ea正式C0/I0/M0原件已核。唯一lane首轮4fixture败不计业务红，第二轮a222新4真实Pane/registered command配精确旧928生产实跑0过4纯业务Preview断言红；共享锁内155旧pair与test输出原不存在性全恢复。已按父授权真三路接a222，源码/测试无交集冲突且精确incoming，新src8e6；唯一lane已实际完整compile5 exit1/4TS（action返回、helper收窄、命令桩泛型及void结果），准确log退原J补修；156native已emit/6变，现out属失败compile5，不能借旧928/8b4绿或freeze。原J0da不可变精确补undefined返回、真实kind类型谓词与真实公共CommandService原结果转交，Astra25bf §14 C0/I0/M0原件已核；新harness配逐SHA精确旧928三生产实跑4纯Preview业务红，finally当前failedcompile5 156mode/存在性/SHA全恢复，真三路正式接入后唯一lane第六完整compile待。实际compile6完整0/0TS，但M01 24/2与完整J410/2同首真实入口pass后的VM所有权leak/console；余14未达，Astra597产品C0/I1、父授权原J局部修复，未签39green。J29/E44/Roster190实际过，E11仅补一次255/1旧reasoning红，Wiring23/1旧Accept红；163身份完整；a166新生命周期配精确old0da Pane实际0过1SCM事件TypeError，未建VM/业务旧红0，finally163mode/存在性/SHA/source全恢复，已退原J最小补公开fixture，候选未合/compile7未跑。原38与真实四harness断言字节保留，明示continuity沿用0da第三轮纯业务四红。自有ignored三cache全mode/type/SHA核全暂移/tmp、原路径symlink，未动证据，编译窗口完条件允许核全还原。
 
 原D部分after C0/I1、14真实UI过/1隔离过/2仅lane连续性/M01两次真实按钮no-op、101采样zeroRPC及39JS+1CSS loaded/12 manifest全部保留。D自有旧窗口已清、E未授权或启动；旧freeze当时真实成立，D1387仍open，J源码peer闭合转唯一lane验证/新freeze和D重验，不升PRD/不释放wave。原完成/关闭代数、显式来源严格live校验/ref-close同capture与Pane局部反馈保持。J无编译/typecheck/transpile/out/业务运行；下述旧并行表及未freeze记录是历史，不覆盖当前阶段。
 
