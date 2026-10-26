@@ -1,10 +1,10 @@
 ---
 title: "Policy definition 提交生命周期"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
-summary: "D1379：两层请求/成功水位、原拒绝重试、动态事件失败日志及一次监听已写；新增11受控行为，5TS ESLint通过，运行与类型验证待merge，保持open。"
+summary: "D1379：旧330两生产正文核验后test-only red为11行为失败+1裸拒绝hook；新生产四套件41 passing，五TS定向语义0、ESLint0/0，合同闭合。"
 ---
 
 # Policy definition 提交生命周期
@@ -53,4 +53,4 @@ summary: "D1379：两层请求/成功水位、原拒绝重试、动态事件失�
 - [x] 规则 16：Astra 于 2026-10-26 只读审查方案、两生产文件及三份现有测试；Strengths 为两层成功水位同修与独立服务假体隔离根因；Critical 0、Important 2 均核验改入（裸 async 动态事件出口记录拒绝；并发 initialize 只安装一次监听），Minor 的中间请求合并措辞已明确。Assessment：上述修改后可独立提交方案并实施。
 - [x] 两层提交生命周期与 typed channel 已写；新增 11 项受控回归（服务 5 / IPC 2 / 配置 4），原测试场景保留。J 5 TS 目标 ESLint exit 0（0 errors / 0 warnings），diff-check 通过；未编译、转译、运行测试或写 out。
 - Astra 实施静态复核 Critical 0 / Important 0；确认共享 pending、独立快照/成功水位、外层 while 的完成间隙复核、事件拒绝日志与一次监听。快照沿既有 definition 身份合同作字典浅拷贝，不新增支持调用者原地修改 definition 的承诺。文档健康 0 errors / 73 工位既有链接 warnings，generated-status --check 通过。运行验证仍待 merge。
-- [ ] merge 旧生产 red / 新生产 green 与定向类型证据入库后闭合本合同。
+- [x] merge旧330生产身份核验后，新测试red为0 passing/12 failing（11行为断言+1原动态事件裸拒绝hook），无超时/加载异常；仅刷新两生产后官方Electron三完整套件+FilePolicyService共41 passing，五TS正式项目上下文定向语义0、ESLint0errors/0warnings。原owner/reference与错误对象/重试断言保留，D1379 closed；[当前证据](../parallel/active/ui-visual-review-2026-10-26.md#d1379当前运行证据)。尚无本轮global compile，不推算全仓剩余。

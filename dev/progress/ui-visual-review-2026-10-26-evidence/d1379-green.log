@@ -1,0 +1,63 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3399859:1026/115934.355332:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3399877) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3399877) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3399877) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  AbstractPolicyService[0m
+  [32m  ✔[0m[90m same definition waits for the pending submission and caches only its success[0m
+  [32m  ✔[0m[90m same definition shares the original rejection and can be explicitly retried[0m
+  [32m  ✔[0m[90m different definitions follow the in-flight snapshot and finish at the latest value[0m
+  [32m  ✔[0m[90m a failed update does not silently retry a newer queued definition[0m
+  [32m  ✔[0m[90m synchronous reentry joins the installed pending submission[0m
+  [32m  ✔[0m[90m serialize() omits the non-cloneable value callback so policiesData can be sent over IPC[0m
+  [32m  ✔[0m[90m tracks value and source changes together[0m
+
+[0m  PolicyChannelClient[0m
+  [32m  ✔[0m[90m same definition waits for the shared IPC response[0m
+  [32m  ✔[0m[90m IPC rejection is preserved and the same definition is sent again on retry[0m
+  [32m  ✔[0m[90m replaces the startup snapshot with the returned full set and reports removals[0m
+  [32m  ✔[0m[90m a null event still deletes the value and reports the name[0m
+
+[0m  PolicyConfiguration[0m
+  [32m  ✔[0m[90m initialize: with policies[0m
+  [32m  ✔[0m[90m initialize: no policies[0m
+  [32m  ✔[0m[90m initialize: with policies but not registered[0m
+  [32m  ✔[0m[90m initialize: with object type policy[0m
+  [32m  ✔[0m[90m initialize: with array type policy[0m
+  [32m  ✔[0m[90m initialize: with boolean type policy as false[0m
+  [32m  ✔[0m[90m initialize: with boolean type policy as true[0m
+  [32m  ✔[0m[90m initialize: with object type policy ignores policy if value is not valid[0m
+  [32m  ✔[0m[90m initialize: with object type policy ignores policy if there are duplicate keys[0m
+  [32m  ✔[0m[90m change: when policy is added[0m
+  [32m  ✔[0m[90m change: when policy is updated[0m
+  [32m  ✔[0m[90m change: when policy is removed[0m
+  [32m  ✔[0m[90m initialize: an owning policy applies to both the owner and its references[0m
+  [32m  ✔[0m[90m initialize: a reference resolves even when its owner is not registered[0m
+  [32m  ✔[0m[90m initialize: the owner definition is authoritative; a reference only contributes the policy name[0m
+  [32m  ✔[0m[90m change: a late-registering owner supersedes an earlier reference definition[0m
+  [32m  ✔[0m[90m change: deregistering the owner falls back to a surviving reference definition[0m
+  [32m  ✔[0m[90m change: an owning policy update propagates to both the owner and its references[0m
+  [32m  ✔[0m[90m change: when policy setting is registered[0m
+  [32m  ✔[0m[90m change: when policy setting is deregistered[0m
+  [32m  ✔[0m[90m initialize: with internal policies[0m
+
+[0m  PolicyConfiguration submission lifecycle[0m
+  [32m  ✔[0m[90m same definition shares pending initialization and installs listeners once[0m
+  [32m  ✔[0m[90m failed initialization preserves the original rejection and retries the same definition[0m
+  [32m  ✔[0m[90m returning to a successful definition while a newer one is pending resubmits it[0m
+  [32m  ✔[0m[90m dynamic submission failure is logged and the same registry definition can be retried[0m
+
+[0m  FilePolicyService[0m
+  [32m  ✔[0m[90m keeps the last good table when the file is not valid JSON[0m
+  [32m  ✔[0m[90m keeps the last good table when the file is a JSON array[0m
+  [32m  ✔[0m[90m keeps the last good table when reading fails for a reason other than FILE_NOT_FOUND[0m
+  [32m  ✔[0m[90m a missing file clears the table[0m
+
+
+[92m [0m[32m 41 passing[0m[90m (28ms)[0m

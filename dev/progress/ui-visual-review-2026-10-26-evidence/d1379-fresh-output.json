@@ -1,0 +1,41 @@
+{
+  "source_head": "30ef3e1890d5e415c14266619d0926acde4c635e",
+  "out_root": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out",
+  "items": [
+    {
+      "source": "src/vs/platform/policy/common/policy.ts",
+      "source_sha256": "e2fb6e3dfc16ff91a71c42ad22083c3b61885fa5d0ada6baf11c83d5e61275b5",
+      "output": "out/vs/platform/policy/common/policy.js",
+      "output_sha256": "abd9860834d5afd2a9a6b6e9855a0c395d35ef7680c2c26575f3b00e10550e5e",
+      "output_mtime": "2026-10-26T03:59:34.075037+00:00"
+    },
+    {
+      "source": "src/vs/platform/configuration/common/configurations.ts",
+      "source_sha256": "1a90c51965eaa0f5dd5690e5b2754cb6a4995831bc8f84cb17e16a48e3b3107f",
+      "output": "out/vs/platform/configuration/common/configurations.js",
+      "output_sha256": "3653f11f7b09ff05fe96f9866d412667a3a9fe9e2bc80bdd9e32f3dbabeb5e10",
+      "output_mtime": "2026-10-26T03:59:34.079037+00:00"
+    },
+    {
+      "source": "src/vs/platform/policy/test/common/policy.test.ts",
+      "source_sha256": "fb27999c613c122a241413399f49b290585ea9520ea8900d1359dd26a087527e",
+      "output": "out/vs/platform/policy/test/common/policy.test.js",
+      "output_sha256": "4329d36b76f224a08d801454001ce3b04f98bc032a6180c90fc592c4cde550ad",
+      "output_mtime": "2026-10-26T03:59:20.193365+00:00"
+    },
+    {
+      "source": "src/vs/platform/policy/test/common/policyIpc.test.ts",
+      "source_sha256": "5988e7a64387eedac223c4cdbef27b30a5c5f68727f7f584d7518c45a04861f5",
+      "output": "out/vs/platform/policy/test/common/policyIpc.test.js",
+      "output_sha256": "e99da8be85ccb2d12beccc0b7eb87dddad7038e230ebc47d13271dd438cd9021",
+      "output_mtime": "2026-10-26T03:59:20.195365+00:00"
+    },
+    {
+      "source": "src/vs/platform/configuration/test/common/policyConfiguration.test.ts",
+      "source_sha256": "5e65fcb3ed05e9a819bb0bc732cd2a7121b524a48fbe0f585d87df7aaf81d752",
+      "output": "out/vs/platform/configuration/test/common/policyConfiguration.test.js",
+      "output_sha256": "8818e6aef778e67282bec162bc5c0afabc5d10edfa5aab3fb742899e26febc66",
+      "output_mtime": "2026-10-26T03:59:20.198365+00:00"
+    }
+  ]
+}

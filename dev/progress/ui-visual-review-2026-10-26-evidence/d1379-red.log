@@ -1,0 +1,209 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[3399085:1026/115920.504279:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3399103) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3399103) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3399103) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  AbstractPolicyService[0m
+  [31m  1) same definition waits for the pending submission and caches only its success[0m
+  [31m  2) same definition shares the original rejection and can be explicitly retried[0m
+  [31m  3) different definitions follow the in-flight snapshot and finish at the latest value[0m
+  [31m  4) a failed update does not silently retry a newer queued definition[0m
+  [31m  5) synchronous reentry joins the installed pending submission[0m
+
+[0m  PolicyChannelClient[0m
+  [31m  6) same definition waits for the shared IPC response[0m
+  [31m  7) IPC rejection is preserved and the same definition is sent again on retry[0m
+
+[0m  PolicyConfiguration submission lifecycle[0m
+  [31m  8) same definition shares pending initialization and installs listeners once[0m
+  [31m  9) failed initialization preserves the original rejection and retries the same definition[0m
+  [31m  10) returning to a successful definition while a newer one is pending resubmits it[0m
+  [31m  11) dynamic submission failure is logged and the same registry definition can be retried[0m
+[3399052:1026/115921.356429:INFO:CONSOLE:272] "Error: Test run should not have unexpected errors:
+dynamic policy update failed
+Error: dynamic policy update failed
+    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/configuration/test/common/policyConfiguration.test.js:568:21)", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+  [31m  12) "after each" hook for "dynamic submission failure is logged and the same registry definition can be retried"[0m
+
+
+[92m [0m[32m 0 passing[0m[90m (13ms)[0m
+[31m  12 failing[0m
+
+[0m  1) AbstractPolicyService
+       same definition waits for the pending submission and caches only its success:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-true[0m
+      [32m+false[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/policy/test/common/policy.test.js:42:12)
+[0m
+[0m  2) AbstractPolicyService
+       same definition shares the original rejection and can be explicitly retried:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async Promise.all (index 1)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/policy/test/common/policy.test.js:59:5)
+[0m
+[0m  3) AbstractPolicyService
+       different definitions follow the in-flight snapshot and finish at the latest value:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-2[0m
+      [32m+1[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: the latest update must not run concurrently
+
+  2 !== 1
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/policy/test/common/policy.test.js:76:12)
+[0m
+[0m  4) AbstractPolicyService
+       a failed update does not silently retry a newer queued definition:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-2[0m
+      [32m+1[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: the queued definition must not start a hidden second attempt
+
+  2 !== 1
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/policy/test/common/policy.test.js:92:12)
+[0m
+[0m  5) AbstractPolicyService
+       synchronous reentry joins the installed pending submission:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-{}[0m
+      [32m+{[0m
+      [32m+  "Policy": "applied"[0m
+      [32m+}[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + {}
+  - {
+  -   Policy: 'applied'
+  - }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/policy/test/common/policy.test.js:120:12)
+[0m
+[0m  6) PolicyChannelClient
+       same definition waits for the shared IPC response:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-true[0m
+      [32m+false[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/policy/test/common/policyIpc.test.js:37:12)
+[0m
+[0m  7) PolicyChannelClient
+       IPC rejection is preserved and the same definition is sent again on retry:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-{}[0m
+      [32m+{[0m
+      [32m+  "PolicyA": "retried"[0m
+      [32m+}[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+
+  + {}
+  - {
+  -   PolicyA: 'retried'
+  - }
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/policy/test/common/policyIpc.test.js:58:12)
+[0m
+[0m  8) PolicyConfiguration submission lifecycle
+       same definition shares pending initialization and installs listeners once:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-true[0m
+      [32m+false[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  true !== false
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/configuration/test/common/policyConfiguration.test.js:498:12)
+[0m
+[0m  9) PolicyConfiguration submission lifecycle
+       failed initialization preserves the original rejection and retries the same definition:
+[0m[31m     [0m[90m
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async Promise.all (index 1)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/configuration/test/common/policyConfiguration.test.js:523:5)
+[0m
+[0m  10) PolicyConfiguration submission lifecycle
+       returning to a successful definition while a newer one is pending resubmits it:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-3[0m
+      [32m+2[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: submissions must stay serial
+
+  3 !== 2
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/configuration/test/common/policyConfiguration.test.js:543:12)
+[0m
+[0m  11) PolicyConfiguration submission lifecycle
+       dynamic submission failure is logged and the same registry definition can be retried:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-0[0m
+      [32m+1[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  0 !== 1
+
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/configuration/test/common/policyConfiguration.test.js:572:14)
+[0m
+[0m  12) "after each" hook for "dynamic submission failure is logged and the same registry definition can be retried":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Error: Test run should not have unexpected errors:
+  dynamic policy update failed
+  Error: dynamic policy update failed
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/configuration/test/common/policyConfiguration.test.js:568:21)
+      at Context.<anonymous> (renderer.js:351:11)
+[0m

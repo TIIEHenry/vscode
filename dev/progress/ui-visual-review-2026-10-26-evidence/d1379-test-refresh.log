@@ -1,0 +1,5 @@
+{"baseline":"330b68911b5","source":"src/vs/platform/policy/common/policy.ts","output":"out/vs/platform/policy/common/policy.js","bodyEqual":true,"outputHash":"a6c98d50b73c650d1fec95513a9c848977c272f95a7b0cd92631ca5abbdcb31b","mtime":"2026-10-26T02:56:24.684Z"}
+{"baseline":"330b68911b5","source":"src/vs/platform/configuration/common/configurations.ts","output":"out/vs/platform/configuration/common/configurations.js","bodyEqual":true,"outputHash":"63bc75ab681214f74348bf601a8e314aa8ce4270f80d992b48dd1f2a8ad0c19c","mtime":"2026-10-26T02:56:24.413Z"}
+test-only fresh src/vs/platform/policy/test/common/policy.test.ts
+test-only fresh src/vs/platform/policy/test/common/policyIpc.test.ts
+test-only fresh src/vs/platform/configuration/test/common/policyConfiguration.test.ts

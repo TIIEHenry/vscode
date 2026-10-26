@@ -1,0 +1,7 @@
+{
+  "typescriptVersion": "6.0.3",
+  "sourceHead": "30ef3e1890d5e415c14266619d0926acde4c635e",
+  "scope": "Unmodified src/tsconfig project context; per-target semantic/syntactic only; noEmit",
+  "files": 5,
+  "diagnostics": []
+}

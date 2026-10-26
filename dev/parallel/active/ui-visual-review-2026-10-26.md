@@ -185,3 +185,11 @@ Astra最终Provider源码并集只读审查Critical0/Important0；完整默认�
 checkpoint文档门禁：531份Markdown、docs-health0errors/46既有warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/825-merge-docs-health.log)），generated-status/diff-check通过，status145行。
 
 D1379当前源码合入：方案ed5a136/实施8a7d81d真三路进入merge；冲突只为文档，保留dfcb对D1380/D1381的open和视觉方案accepted，J既有实现与11测试当前未运行。按旧330生产身份→test-only red→production green顺序验证，不把旧输出当新生产。
+
+## D1379当前运行证据
+
+J方案ed5a136/实施8a7d81d已真三路合成source30ef3e1890d；旧330两生产输出先与相同esbuild选项转译正文逐字比对一致，保存hash/mtime后锁内只刷新三测试（[身份/test-only日志](../../progress/ui-visual-review-2026-10-26-evidence/d1379-test-refresh.log)）。精确新增grep `same definition|different definitions|failed update|synchronous reentry|IPC rejection|PolicyConfiguration submission lifecycle` 对旧生产运行：**0 passing/12 failing**，包含11个新等待/原拒绝/重试/顺序/监听断言及1个原动态事件裸拒绝hook；无加载异常或超时（[red](../../progress/ui-visual-review-2026-10-26-evidence/d1379-red.log)）。独立测试进程退出后，锁内仅刷新两生产（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1379-production-refresh.log)）。
+
+新生产通过官方Electron隔离Xvfb跑完整policy.test、policyIpc.test、policyConfiguration.test及filePolicyService.test：**41 passing/0 failing**，11新场景与原owner/reference、动态注册、全集替换/删除公告等断言保留（[green](../../progress/ui-visual-review-2026-10-26-evidence/d1379-green.log)）。测试进程限时90s、单项5s，未改测试为假成功。五目标TS在未修改src/tsconfig完整上下文下定向semantic/syntactic0、noEmit（[类型日志](../../progress/ui-visual-review-2026-10-26-evidence/d1379-types.log)），typed IPC旧4条不再出现；只查这五文件，不推断其它平台诊断。targeted ESLint0errors/0warnings（[日志](../../progress/ui-visual-review-2026-10-26-evidence/d1379-eslint.log)）。
+
+[五文件产物快照](../../progress/ui-visual-review-2026-10-26-evidence/d1379-fresh-output.json)绑定source30ef3e1与merge/out，记录两生产/三测试source/output SHA256与时间。D1379按其合同closed、方案implemented；D1380/D1381 Important保持open、外部视觉方案accepted。此阶段未跑global/旧287+14/833套件，等待C/D源码到齐后再判断唯一全量需要。规则3c知识层已核对并沿用J同步的平台提交成功/失败语义，原始失败与新结果分开留证。
