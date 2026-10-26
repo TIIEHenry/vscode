@@ -34,6 +34,8 @@ summary: "D1385：默认编辑器保留的 Copilot Chat 首按授权绑定 compo
 
 取消时保留 held，安静连接可以继续握手。只在该意图仍为当前、且 controller 当前 target/draft 仍对应它所写目标时清其 target；`setTargetSession(undefined)` 会回退活动会话，必须在 held 中执行。旧意图不能清后来 B 的 target。下一次明确按下先建立新 owner/target，再释放该 action 保留的闸；成功后清掉 action 的 gate 所有权。正常 warm 路径不无条件 hold/unhold，避免停止后立即重启。
 
+取消顺序（2026-10-26 同合同补修）：先写 invalid；仅本次已 startedPtt 且仍拥有 gated 意图时，同步 `discardListening()` 后再持 hold，因为 setter 会把尚活跃的 PTT 正常 finalize。两者之间不 await，controller 副作用之后重验当前意图再 hold/清 target；旧监听与 cancelled 始终自行收尾。未开始 PTT 的冷取消维持 hold-only，正常 warm 不增加 discard。
+
 ### 2.3 等待与终止
 
 等待真实 `isConnected`，并观察 `isConnecting` / `isReconnecting` / `voiceState`。初始 `isConnecting=false` 不判失败：连接调用完成前允许 auth/entitlement 阶段。已观察到 connecting/reconnecting 后两者结束且未准入，或调用完成后始终无连接状态、明确 error/断开，结束等待。沿用 controller watchdog/reconnect，不另加重试或超时。
@@ -94,3 +96,10 @@ summary: "D1385：默认编辑器保留的 Copilot Chat 首按授权绑定 compo
 修后测试重新钉旧948 action同配置基线，5个最小场景全部业务AssertionError，无cleanup/load/timeout混入；仅fresh新action后完整Contrib+Controller182过，含31公共action/原palette1/controller149（含3新增）及注册表清理1。最终七TS原project noEmit0、lint0/0；新波唯一compile-client实际45诊断/27文件、exit1，七改动TS无诊断，前波46/28不覆盖。类静态字段emit风格差异只最小fresh一个action JS回已测正文。详见[运行证据](../progress/default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md)。
 
 本运行检查点仍待C两次补修的独立复审核验，以及实际保留CopilotChat pane/editor工具栏/快捷键传入owner的公开controller spy路由证明（无真实麦克风/后端）；公共命令fake widget上下文不能单独代替这条UI来源证明。不把真实设备/网络或Conversation真语音列为已交付；当前accepted/open。
+
+
+## 8. 取消顺序源码补修（合入时待运行）
+
+后续取消顺序：`69ac16e` 仍先 hold 后 discard，真实 setter 会正常释放而非 abort。Astra 同合同只读裁定允许最小顺序修 bug，不新增 API/锁/连接设计。已写一条真实公共 command→真实 controller→有状态 fake mic/client：cold hold 准入后 owner hide 两次，期待 capturing=false、abort=1、mic pttUp=0、ptt_end=0、idle；旧 hold 在 B 新明确录音后才 resolve，不能改变 B target/capture，B 正常按住 350ms 后仍 finalize 一次。真实 controller 场景由 3 增为 4，31 条 action 保留。唯一 merge 固定 `69ac` 的旧顺序生产、只 fresh 测试，应在 abort/release/end 值红（不能以超时/类型错代替）；只 fresh 新 action 后重跑新场景与两完整套。C 未运行该回归；本段不冒充 red/green。
+
+该补修的实际两 TS 与方案补充已由 D 原生同伴独立只读复审，Critical 0 / Important 0 / Minor 0；核对真实 setter/discard/finish/mic 同步路径与 current 所有权重验。作者核验后提交。两 TS ESLint 0/0、diff / generated status / docs health 门禁通过（46 既有链接 warnings）；运行仍交唯一 merge，不以静态复审代替 red/green。
