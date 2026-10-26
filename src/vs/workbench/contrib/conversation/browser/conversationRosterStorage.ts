@@ -28,6 +28,8 @@ export interface ConversationRosterEngineCache {
 
 export interface ConversationRosterStorageV1 {
 	readonly version: 1;
+	/** Absent in old caches, where completed tool status was omitted. */
+	readonly toolStatusEncoding?: 'explicit';
 	readonly wasEverConnected: boolean;
 	readonly activeSessionId: string;
 	readonly nextTurnId: number;
@@ -98,14 +100,16 @@ export function loadConversationRosterStorage(storageService: IStorageService): 
 		if (parsed.version !== 1 || !Array.isArray(parsed.localSessions) || typeof parsed.activeSessionId !== 'string') {
 			return undefined;
 		}
+		const legacyToolStatus = parsed.toolStatusEncoding !== 'explicit';
 		return {
 			version: 1,
+			toolStatusEncoding: 'explicit',
 			wasEverConnected: parsed.wasEverConnected === true,
 			activeSessionId: parsed.activeSessionId,
 			nextTurnId: typeof parsed.nextTurnId === 'number' && parsed.nextTurnId > 0 ? parsed.nextTurnId : 100,
-			localSessions: sanitizeSessions(parsed.localSessions, 'local'),
-			engineCache: parseEngineCache(parsed.engineCache),
-			engineCaches: parseEngineCaches(parsed.engineCaches),
+			localSessions: sanitizeSessions(parsed.localSessions, 'local', legacyToolStatus),
+			engineCache: parseEngineCache(parsed.engineCache, legacyToolStatus),
+			engineCaches: parseEngineCaches(parsed.engineCaches, legacyToolStatus),
 			lastDisplayedEngineIdentityId: engineIdentityKey(
 				typeof parsed.lastDisplayedEngineIdentityId === 'string' ? parsed.lastDisplayedEngineIdentityId : undefined,
 			),
@@ -118,7 +122,7 @@ export function loadConversationRosterStorage(storageService: IStorageService): 
 export function saveConversationRosterStorage(storageService: IStorageService, state: ConversationRosterStorageV1): void {
 	storageService.store(
 		CONVERSATION_ROSTER_STORAGE_KEY,
-		JSON.stringify(state),
+		JSON.stringify({ ...state, toolStatusEncoding: 'explicit' }),
 		STORAGE_SCOPE,
 		STORAGE_TARGET,
 	);
@@ -154,18 +158,18 @@ function isEngineIdentityKey(key: string): boolean {
 	return key.length > 0 && key !== '__proto__' && key !== 'constructor' && key !== 'prototype';
 }
 
-function parseEngineCache(raw: unknown): ConversationRosterEngineCache | undefined {
+function parseEngineCache(raw: unknown, legacyToolStatus: boolean): ConversationRosterEngineCache | undefined {
 	if (!raw || typeof raw !== 'object') {
 		return undefined;
 	}
 	const cache = raw as Partial<ConversationRosterEngineCache>;
 	return {
 		activeSessionId: typeof cache.activeSessionId === 'string' ? cache.activeSessionId : undefined,
-		sessions: sanitizeSessions(cache.sessions, 'engine-cache'),
+		sessions: sanitizeSessions(cache.sessions, 'engine-cache', legacyToolStatus),
 	};
 }
 
-function parseEngineCaches(raw: unknown): Readonly<Record<string, ConversationRosterEngineCache>> | undefined {
+function parseEngineCaches(raw: unknown, legacyToolStatus: boolean): Readonly<Record<string, ConversationRosterEngineCache>> | undefined {
 	if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
 		return undefined;
 	}
@@ -174,7 +178,7 @@ function parseEngineCaches(raw: unknown): Readonly<Record<string, ConversationRo
 		if (!isEngineIdentityKey(key)) {
 			continue;
 		}
-		const cache = parseEngineCache(value);
+		const cache = parseEngineCache(value, legacyToolStatus);
 		if (!cache) {
 			continue;
 		}
@@ -186,6 +190,7 @@ function parseEngineCaches(raw: unknown): Readonly<Record<string, ConversationRo
 function sanitizeSessions(
 	sessions: readonly Partial<PersistedConversationSession>[] | undefined,
 	defaultSource: ConversationSessionSource,
+	legacyToolStatus: boolean,
 ): PersistedConversationSession[] {
 	if (!Array.isArray(sessions)) {
 		return [];
@@ -201,7 +206,10 @@ function sanitizeSessions(
 		result.push({
 			id: session.id,
 			title: session.title,
-			turns: session.turns.filter(isTurn).map(cloneTurn),
+			// Migrate every bucket before a later save stamps the root encoding marker.
+			turns: session.turns.filter(isTurn).map(turn => legacyToolStatus && turn.kind === 'tool' && turn.toolStatus === undefined
+				? { ...turn, toolStatus: 'completed' as const }
+				: cloneTurn(turn)),
 			source,
 			...(typeof session.workDir === 'string' && session.workDir ? { workDir: session.workDir } : {}),
 			...(turnCount !== undefined ? { turnCount } : {}),

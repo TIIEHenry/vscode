@@ -201,8 +201,20 @@ export interface ItemAttribution {
 	readonly compacted?: ItemCompactedAttribution;
 	/** Set only by the stub fixture source; keeps PRD-003.3 "Stub" chrome without reading titles. */
 	readonly stub?: true;
+	/** Local stub tool with no known status; never emitted by engine/session-core. */
+	readonly localTool?: {
+		readonly toolName: string;
+		readonly argPreview?: string;
+		readonly resultPreview?: string;
+		readonly toolCallId?: string;
+	};
 	/** Tool result metadata (diff card, filediff) passed through from demux. */
 	readonly metadata?: Record<string, unknown>;
+}
+
+/** Both local view projections use this boundary; ordinary tool-role text stays context. */
+export function isLocalToolAttribution(attribution: ItemAttribution | undefined): attribution is ItemAttribution & { readonly localTool: NonNullable<ItemAttribution['localTool']> } {
+	return attribution?.role === 'tool' && attribution.stub === true && attribution.localTool !== undefined;
 }
 
 /**

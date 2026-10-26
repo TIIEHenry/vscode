@@ -200,3 +200,6 @@ C 独占工位以 `dfcb960a147` 为基线；方案 `fec79c4b79a` 经 Astra 规�
 真实生产CSS/Section几何测试已拆出原生focus前提：四主题×只读/可写共八条，pane300→340→720→340→300，含实际左右内衬后的行宽、各兄弟/动作矩形不相交、相邻行占位、来源全文、长状态/来源超过72px可继续增长；四条activeChrome焦点用例检查每颗动作焦点/outline/中心命中及显隐无重排，读/聚焦零写。测试源未运行，旧287+14与旧24px验收记录仅是历史证据，不用作本修复after。
 
 Astra对三份源码/测试草稿静态复核C0/I0，长状态/来源Minor已补。当前仅目标lint：2TS 0errors/2既有selector warnings（HEAD基线复现），CSS stylelint exit0但仍有既有变量/token提示；无编译/转译/类型检查或out写入。最小fresh为Provider源+preferencesStatusStyle测试+生产CSS（2TS/1CSS），唯一merge锁内刷新后跑Provider语义/真实样式，再由Astra做完整主题默认窗口after实拍；详见[局部方案](../../plans/provider-status-row-layout.md)。D1381继续open，不升PRD与整轮视觉状态。
+## D1380 本地工具状态投影补修（验证在途）
+
+真实默认编辑器 source `330b689` 的未知工具在完整 Stub→frame→view 路径仍画完成勾。D 方案 `e127b730d69` 经 J 规则16只读 Critical0/Important0 后实施：缺失状态以 text summary + 严格本地 attribution sidecar投影为工具，已知五态原样；新缓存显式保存completed，历史省略只在三桶load边界兼容。未改session-core协议、Provider或Sources。新增六条受控回归覆盖真实frame同ID往返和真实服务恢复，详见[方案](../../plans/conversation-tool-status-projection.md)。D只做目标lint（0 errors / 5 warnings）与文档/diff门禁；尚未运行新测试、未编译、未写out。唯一merge负责旧生产red、新产物green与语义；另一独立reviewer负责真实窗口after，D1380仍open。

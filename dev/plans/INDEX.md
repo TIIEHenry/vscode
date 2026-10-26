@@ -17,6 +17,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [Policy definition 提交生命周期](policy-definition-submission-lifecycle.md) | `implemented` | D1379；旧生产11行为red与原裸拒绝hook成立，新生产四完整套件41过，五TS语义0/ESLint0，原拒绝与owner/reference保持。 |
 | [Provider 状态行按内容宽度换行](provider-status-row-layout.md) | `accepted` | 方案 fec79c4 / Astra C0/I1 已修入 PRD/UI 例外；布局与真实几何测试源已补、静态 C0/I0；待唯一 merge fresh/运行/after实拍，D1381 open。 |
 | [默认编辑器视觉状态修复与续审](default-editor-visual-state-followup.md) | `accepted` | 原350+14及合成287+14运行保留；真实窗口新增D1380未知Stub投影/D1381 Provider碰撞open，剩余验收待修，不升PRD。 |
+| [本地工具状态投影与缓存兼容](conversation-tool-status-projection.md) | `accepted` | D1380；本地缺失状态sidecar与旧缓存兼容；J只读审查C/I为0，待实现与merge验证。 |
 | [Extension Host 输出通道 PromiseLike 合同](ext-host-output-promise-contract.md) | `implemented` | D1378；Output22+Search4及清理检查27 passing，保留原19项并补3个生命周期屏障；mkdir原拒绝与共享缓存身份保持，命名诊断清零。 |
 | [Sources 编译基线合同修复](sources-compile-contracts.md) | `implemented` | D1375；三类合同修复与 6 条新行为回归已写，目标 ESLint 0 errors；只收 Sources 旧日志 9 条，编译与运行验证留在 merge。 |
 | [会话就绪度单一判定、删除会话确认与会话列表排序](session-availability-and-delete-confirm.md) | `accepted` | 2026-10-24 设计评审：删除会话先确认；会话就绪度由一个只依赖 roster 的判定给出，原因只由门闩写一次，控件按未连接 / 未就绪 / 引擎不支持三分；门闩回到错误态样式；会话列表组内按访问时间排序。已过只读审查。 |

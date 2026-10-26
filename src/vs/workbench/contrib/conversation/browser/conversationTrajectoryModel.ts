@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../../nls.js';
-import { overlayAttributionKey, type ItemAttribution, type ItemCompactedAttribution } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { isLocalToolAttribution, overlayAttributionKey, type ItemAttribution, type ItemCompactedAttribution } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { OverlayBlockView, SessionViewSnapshot, TextChunkView, TimelineCanvasRef, TimelineItemView } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { projectTrajectoryProcessFoldSpans, TrajectoryProcessFoldSpan } from './conversationProcessFoldModel.js';
 import { ConversationStubTurn } from './conversationStubModel.js';
@@ -642,6 +642,16 @@ function timelineItemToTrajectoryRecord(
 	switch (summary.kind) {
 		case 'text': {
 			const role = attr?.role;
+			if (isLocalToolAttribution(attr)) {
+				const localTool = attr.localTool;
+				return withDetailRef({
+					id, kind: 'tool', text: summary.preview ?? summary.title,
+					callId: localTool.toolCallId ?? id, depth: 0,
+					...(localTool.toolName ? { messageSource: { kind: 'tool', label: localTool.toolName } } : {}),
+					...(localTool.argPreview !== undefined ? { inputDetail: localTool.argPreview } : {}),
+					...(localTool.resultPreview !== undefined ? { outputDetail: localTool.resultPreview, result: localTool.resultPreview } : {}),
+				}, item);
+			}
 			if (role === 'system') {
 				return withDetailRef({ id, kind: 'system', text: summary.preview ?? summary.title }, item);
 			}

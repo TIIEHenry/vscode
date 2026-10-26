@@ -5,6 +5,7 @@
 
 import { localize } from '../../../../nls.js';
 import {
+	isLocalToolAttribution,
 	overlayAttributionKey,
 	type AttributionPatch,
 	type DetailPatch,
@@ -238,13 +239,28 @@ export function stubTurnsToSnapshot(sessionId: string, turns: readonly Conversat
 				break;
 			}
 			case 'tool': {
+				if (turn.toolStatus === undefined) {
+					// A local missing status cannot be represented by session-core's five-state
+					// tool summary. Carry it locally without inventing a terminal outcome.
+					timeline.push({ id, orderKey, summary: { kind: 'text', title: turn.text } });
+					attribution.set(turn.id, {
+						...stubTurnAttribution(turn),
+						localTool: {
+							toolName: turn.toolName ?? '',
+							...(turn.summary !== undefined ? { argPreview: turn.summary } : {}),
+							...(turn.payload !== undefined ? { resultPreview: turn.payload } : {}),
+							...(admittedToolCallId(turn.toolCallId) !== undefined ? { toolCallId: admittedToolCallId(turn.toolCallId) } : {}),
+						},
+					});
+					break;
+				}
 				timeline.push({
 					id, orderKey,
 					summary: {
 						kind: 'tool',
 						title: turn.text,
 						toolName: turn.toolName ?? '',
-						status: turn.toolStatus ?? 'completed',
+						status: turn.toolStatus,
 						...(admittedToolCallId(turn.toolCallId) !== undefined ? { toolCallId: admittedToolCallId(turn.toolCallId) } : {}),
 						...(turn.summary !== undefined ? { argPreview: turn.summary } : {}),
 						...(turn.payload !== undefined ? { resultPreview: turn.payload } : {}),
@@ -1216,14 +1232,24 @@ function timelineItemToEntry(
 	const turn = item.turnId !== undefined ? { turnId: item.turnId } : {};
 	switch (summary.kind) {
 		case 'text': {
-			// Role comes only from attribution. tool and a missing attribution are read-only
-			// rows (readOnlyText), never assistant and never a title guess.
+			// Role comes only from attribution. Apart from the explicit local-tool sidecar,
+			// tool and missing attribution are read-only, never assistant or a title guess.
 			const text = summary.preview ?? summary.title;
 			const streaming = summary.streaming ? { streaming: true as const } : {};
 			const carried = carriedThinkingText(summary);
 			const thought = carried !== undefined ? { thinkingText: carried } : {};
 			if (!attr) {
 				return { id, kind: 'system', readOnlyText: 'neutral', text, ...thought, ...streaming, ...turn };
+			}
+			if (isLocalToolAttribution(attr)) {
+				const localTool = attr.localTool;
+				return {
+					id, kind: 'tool', text, toolName: localTool.toolName,
+					...(localTool.argPreview !== undefined ? { summary: localTool.argPreview } : {}),
+					...(localTool.resultPreview !== undefined ? { payload: localTool.resultPreview } : {}),
+					...(admittedToolCallId(localTool.toolCallId) !== undefined ? { toolCallId: admittedToolCallId(localTool.toolCallId) } : {}),
+					...agent, ...turn,
+				};
 			}
 			if (attr.role === 'tool') {
 				return { id, kind: 'system', readOnlyText: 'context', text, ...thought, ...streaming, ...agent, ...turn };
@@ -1411,7 +1437,7 @@ export function entriesToLegacyTurns(entries: readonly ConversationTimelineEntry
 			...(entry.toolName !== undefined ? { toolName: entry.toolName } : {}),
 			...(entry.summary !== undefined ? { summary: entry.summary } : {}),
 			...(entry.payload !== undefined ? { payload: entry.payload } : {}),
-			...(entry.toolStatus !== undefined && entry.toolStatus !== 'completed' ? { toolStatus: entry.toolStatus } : {}),
+			...(entry.toolStatus !== undefined ? { toolStatus: entry.toolStatus } : {}),
 			...(entry.toolCallId !== undefined ? { toolCallId: entry.toolCallId } : {}),
 			...(entry.visualize !== undefined ? { visualize: entry.visualize } : {}),
 			...(entry.turnId !== undefined ? { turnId: entry.turnId } : {}),
