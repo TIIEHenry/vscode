@@ -2225,6 +2225,34 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(ok, false);
 	});
 
+	for (const maxRewinds of [undefined, 0, 5]) {
+		test(`Agents: editing body and model keeps maxRewinds=${maxRewinds} in SaveAgentProfile`, async () => {
+			let profiles: UniverseAgentListAgentProfilesResult['profiles'] = [{ id: 'demo', name: 'Demo Agent', source: 'user', systemPrompt: 'Original', maxRewinds }];
+			const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => ({ profiles }),
+				saveAgentProfile: async request => {
+					saves.push(request);
+					profiles = [{ ...request.profile, source: 'user' }];
+					return { profile: request.profile };
+				},
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('demo');
+			section.setAgentsMarkdownValue('Edited body');
+			assert.strictEqual(await section.saveAgentsMarkdown(), true);
+			assert.strictEqual(saves.at(-1)?.profile.systemPrompt, 'Edited body');
+			assert.strictEqual(saves.at(-1)?.profile.maxRewinds, maxRewinds);
+			assert.strictEqual(await section.saveSelectedProfile({ model: 'other-model' }), true);
+			assert.strictEqual(saves.at(-1)?.profile.model, 'other-model');
+			assert.strictEqual(saves.at(-1)?.profile.maxRewinds, maxRewinds);
+		});
+	}
+
 	test('Agents: connected saveAgentsMarkdown persists body via SaveAgentProfile', async () => {
 		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
 		const connection = createConnectionStub({

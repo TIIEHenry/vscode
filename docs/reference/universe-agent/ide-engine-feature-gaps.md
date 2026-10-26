@@ -72,7 +72,7 @@ summary: "默认编辑器对照引擎源码与运行中钉死引擎：RPC 名称
 
 ## 5. 建议顺序与产品边界
 
-这是分析建议，未形成新方案或排期。
+以下为分析时的建议顺序；协议消费切片已实施，当前进展见 §7。
 
 1. 先闭合主流程：队列权威读回/恢复、生成中后续输入合同、同连接溢出恢复、默认编辑器真实引擎验收。已有 Send/Enqueue 门禁保持到替代路径有证据。
 2. 再接直接可用的能力：同步调试引擎可用版本后接会话工具范围；核对 work_dir、Fork anchor、Provider discovery 等字段；明确 Agent profile 会话绑定。技能保存先补正式协议。
@@ -93,4 +93,15 @@ summary: "默认编辑器对照引擎源码与运行中钉死引擎：RPC 名称
 - [会话工作根方案](../../../dev/plans/session-work-root-and-workbench-scope.md)
 - [调试引擎指南](../../../docs/guides/debug-engine.md)
 
-未改产品状态、未执行实现、未运行编译或单元测试。运行时结论仅覆盖本轮七个服务的只读反射，字段与产品调用结论来自静态代码核对。
+上述分析阶段未改产品状态、未执行实现或测试。运行时结论仅覆盖七个服务的只读反射；后续实现证据见 §7。
+
+
+## 7. 本轮实施进展
+
+已补齐 §4 的字段契约/编解码/mapper，以及 AgentProfile 编辑保存对 optional maxRewinds 的保持。Create.workDir 仅补请求类型和 bytes；选定目录的新建会话路径还需要 owner/lease/IPC 身份设计。
+
+两条遗漏 RPC 已进入 catalog、node、可选 connection 与 IPC，能力探测已补，工具配置枚举拒绝非法值。由此 IDE 名称覆盖增至 208/208；另有 1 条无正式 proto 的 SaveSkillContent 仍待下阶段替换。默认窗口的会话工具范围、触发器注册入口尚未新增，不能把名称覆盖视作产品交付率。
+
+验证：新增回归对旧实现为 8 项业务失败；当前定向 Node 协议/IPC/Profile 8 套件 203 passing，连接/配对 3 套件 498 passing；实际 Profile 编辑器保存正文/模型 3 passing。另抽查 mapper 套件 10 passing / 1 既有 MCP 元数据期望差异；已用方案提交时的生产 mapper 复现，不改其断言取绿。类型检查使用原 src/tsconfig 的 native tsc --noEmit，未改配置。
+
+用户已确认同时修改 UniverseAgent 与 IDE，队列权威读回、技能正文保存进入下一跨仓切片；本轮不重启钉死引擎，也不开放生成中发送。订阅溢出恢复仍归既有独立草案。

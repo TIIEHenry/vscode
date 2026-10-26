@@ -109,6 +109,7 @@ export interface CreateSessionResponseWire {
 }
 
 export interface SessionInfoResponseWire {
+	title?: string;
 	session_id?: string;
 	root_agent?: AgentInfoWire;
 	created_at?: number;
@@ -632,6 +633,7 @@ export function mapSessionInfoResponse(wire: SessionInfoResponseWire): UniverseA
 		provider: wire.provider ?? '',
 		model: wire.model ?? '',
 		...(wire.work_dir ? { workDir: wire.work_dir } : {}),
+		...(wire.title ? { title: wire.title } : {}),
 	};
 }
 

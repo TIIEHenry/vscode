@@ -70,6 +70,7 @@ import type {
 import {
 	allLengthDelimited,
 	encodeInt32Field,
+	encodeOptionalInt32Field,
 	encodeMessageField,
 	encodeStringField,
 	lastBytes,
@@ -347,6 +348,7 @@ export function decodeSessionInfoResponse(bytes: Uint8Array): SessionInfoRespons
 	const fields = readProtoFields(bytes);
 	const root = lastBytes(fields, 2);
 	const workDir = lastString(fields, 7);
+	const title = lastString(fields, 8);
 	return {
 		session_id: lastString(fields, 1) ?? '',
 		root_agent: root ? decodeAgentInfo(root) : undefined,
@@ -355,6 +357,7 @@ export function decodeSessionInfoResponse(bytes: Uint8Array): SessionInfoRespons
 		provider: lastString(fields, 5),
 		model: lastString(fields, 6),
 		...(workDir ? { work_dir: workDir } : {}),
+		...(title ? { title } : {}),
 	};
 }
 
@@ -396,6 +399,7 @@ function decodeAgentInfo(bytes: Uint8Array): AgentInfoWire {
 
 function decodeAgentProfile(bytes: Uint8Array): NonNullable<ListAgentProfilesResponseWire['profiles']>[number] {
 	const fields = readProtoFields(bytes);
+	const maxRewinds = lastVarint(fields, 20);
 	return {
 		id: lastString(fields, 1) ?? '',
 		name: lastString(fields, 2) ?? '',
@@ -414,6 +418,7 @@ function decodeAgentProfile(bytes: Uint8Array): NonNullable<ListAgentProfilesRes
 		model: lastString(fields, 17),
 		model_type: lastString(fields, 18),
 		...omitZeroMaxTurns(numberOrUndefined(lastVarint(fields, 19))),
+		...(maxRewinds !== undefined ? { max_rewinds: Number(BigInt.asIntN(32, maxRewinds)) } : {}),
 	};
 }
 
@@ -455,6 +460,7 @@ export function encodeUpsertProviderCredentialsRequest(request: UniverseAgentUps
 		encodeStringField(2, request.apiKey),
 		encodeStringField(3, request.baseUrl),
 		encodeStringField(4, request.protocol),
+		encodeInt32Field(5, request.refreshModels ? 1 : 0),
 	]);
 }
 
@@ -464,6 +470,8 @@ export function encodeClearProviderCredentialsRequest(request: UniverseAgentClea
 
 export function decodeProviderStatus(bytes: Uint8Array): ProviderStatusWire {
 	const fields = readProtoFields(bytes);
+	const discoveredModels = lastVarint(fields, 8);
+	const modelSyncError = lastString(fields, 9);
 	return {
 		provider_id: lastString(fields, 1) ?? '',
 		brand: lastString(fields, 2) ?? '',
@@ -472,6 +480,8 @@ export function decodeProviderStatus(bytes: Uint8Array): ProviderStatusWire {
 		credential_source: lastString(fields, 5) ?? '',
 		has_base_url: lastVarint(fields, 6) === 1n,
 		enabled: lastVarint(fields, 7) === 1n,
+		...(discoveredModels !== undefined ? { discovered_models: Number(discoveredModels) } : {}),
+		...(modelSyncError ? { model_sync_error: modelSyncError } : {}),
 	};
 }
 
@@ -677,6 +687,7 @@ function encodeAgentProfile(profile: UniverseAgentAgentProfileDetail): Uint8Arra
 		encodeStringField(17, profile.model),
 		encodeStringField(18, profile.modelType),
 		encodeInt32Field(19, profile.maxTurns && profile.maxTurns > 0 ? profile.maxTurns : 0),
+		encodeOptionalInt32Field(20, profile.maxRewinds),
 	]);
 }
 

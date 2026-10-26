@@ -261,6 +261,7 @@ export interface ListAgentProfilesResponseWire {
 		model?: string;
 		model_type?: string;
 		max_turns?: number;
+		max_rewinds?: number;
 	}>;
 }
 
@@ -298,6 +299,7 @@ export function mapAgentProfileDetail(wire: NonNullable<ListAgentProfilesRespons
 		...(wire.model ? { model: wire.model } : {}),
 		...(wire.model_type ? { modelType: wire.model_type } : {}),
 		...(typeof wire.max_turns === 'number' && wire.max_turns > 0 ? { maxTurns: wire.max_turns } : {}),
+		...(wire.max_rewinds !== undefined ? { maxRewinds: wire.max_rewinds } : {}),
 	};
 }
 
@@ -319,6 +321,7 @@ export function mapAgentProfileSummary(wire: NonNullable<ListAgentProfilesRespon
 		...(wire.model ? { model: wire.model } : {}),
 		...(wire.model_type ? { modelType: wire.model_type } : {}),
 		...(typeof wire.max_turns === 'number' && wire.max_turns > 0 ? { maxTurns: wire.max_turns } : {}),
+		...(wire.max_rewinds !== undefined ? { maxRewinds: wire.max_rewinds } : {}),
 	};
 }
 
@@ -362,6 +365,8 @@ export function mapResetAgentProfileResponse(wire: ResetAgentProfileResponseWire
 }
 
 export interface ProviderStatusWire {
+	discovered_models?: number;
+	model_sync_error?: string;
 	provider_id?: string;
 	brand?: string;
 	protocol?: string;
@@ -378,6 +383,8 @@ export interface ListProviderStatusResponseWire {
 export function mapProviderStatus(wire: ProviderStatusWire): UniverseAgentProviderStatus {
 	return {
 		providerId: wire.provider_id ?? '',
+		...(wire.discovered_models !== undefined ? { discoveredModels: wire.discovered_models } : {}),
+		...(wire.model_sync_error ? { modelSyncError: wire.model_sync_error } : {}),
 		brand: wire.brand ?? '',
 		protocol: wire.protocol ?? '',
 		configured: wire.configured === true,

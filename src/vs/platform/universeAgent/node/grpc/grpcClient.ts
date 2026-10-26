@@ -117,6 +117,10 @@ import type {
 	UniverseAgentGetSessionRulesResult,
 	UniverseAgentSessionToolPermissionMode,
 	UniverseAgentSetPermissionModeRequest,
+	UniverseAgentSetClientToolProfileRequest,
+	UniverseAgentSetClientToolProfileResult,
+	UniverseAgentRegisterSessionEngineTriggerRequest,
+	UniverseAgentRegisterSessionEngineTriggerResult,
 	UniverseAgentSetPermissionModeResult,
 	UniverseAgentSetPermissionPolicyRequest,
 	UniverseAgentSetPermissionPolicyResult,
@@ -572,6 +576,7 @@ import {
 	encodeListTriggersRequest,
 	encodeSetTriggerEnabledRequest,
 	encodeUpsertTriggerRequest,
+	encodeRegisterSessionEngineTriggerRequest,
 } from './grpcTriggerUnaryWire.js';
 import {
 	decodeExportSessionResponse,
@@ -978,6 +983,8 @@ import {
 } from './grpcModelPreferencesUnaryWire.js';
 import {
 	decodeSetPermissionPolicyResponse,
+	decodeSetClientToolProfileResponse,
+	encodeSetClientToolProfileRequest,
 	encodeSetPermissionPolicyRequest,
 } from './grpcConfigPermissionUnaryWire.js';
 import {
@@ -1809,6 +1816,26 @@ export class GrpcUniverseAgentClient implements IUniverseAgentGrpcTransport {
 			decodeGetSessionRulesResponse,
 		);
 		return mapGetSessionRulesResponse(await unary(encodeGetSessionRulesRequest(request.sessionId)));
+	}
+
+	async setClientToolProfile(request: UniverseAgentSetClientToolProfileRequest): Promise<UniverseAgentSetClientToolProfileResult> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.Permission.service,
+			UniverseAgentGrpcServices.Permission.SetClientToolProfile,
+			decodeSetClientToolProfileResponse,
+		);
+		return unary(encodeSetClientToolProfileRequest(request));
+	}
+
+	async registerSessionEngineTrigger(request: UniverseAgentRegisterSessionEngineTriggerRequest): Promise<UniverseAgentRegisterSessionEngineTriggerResult> {
+		const unary = makeUnaryBytesClient(
+			this._channel,
+			UniverseAgentGrpcServices.Trigger.service,
+			UniverseAgentGrpcServices.Trigger.RegisterSessionEngineTrigger,
+			decodeUpsertTriggerResponse, // Same formal response shape: trigger=1.
+		);
+		return mapUpsertTriggerResponse(await unary(encodeRegisterSessionEngineTriggerRequest(request)));
 	}
 
 	async setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult> {

@@ -255,9 +255,16 @@ const GIT_WRITE_PROBE_TARGETS: Record<keyof UniverseAgentGitWriteCapability, { s
 	},
 };
 
+interface AdvertisedProbeTarget {
+	readonly service: string;
+	readonly method: string;
+	readonly methodKey: string;
+	readonly acceptsInvalidArgument?: boolean;
+}
+
 async function probeAdvertisedSupport(
 	input: GrpcCapabilityProbeInput,
-	target: { service: string; method: string; methodKey: string },
+	target: AdvertisedProbeTarget,
 ): Promise<UniverseAgentCapabilitySupport> {
 	if (!isAdvertisedMethod(input.methods, target.methodKey)) {
 		return 'UNSUPPORTED';
@@ -266,7 +273,7 @@ async function probeAdvertisedSupport(
 	if (status === GrpcStatusCode.UNIMPLEMENTED) {
 		return 'UNSUPPORTED';
 	}
-	if (status === GrpcStatusCode.OK) {
+	if (status === GrpcStatusCode.OK || (target.acceptsInvalidArgument && status === GrpcStatusCode.INVALID_ARGUMENT)) {
 		return 'SUPPORTED';
 	}
 	return 'UNKNOWN';
@@ -285,7 +292,7 @@ export async function probeGitWriteCapability(input: GrpcCapabilityProbeInput): 
 	return support as UniverseAgentGitWriteCapability;
 }
 
-const CONVERSATION_ENTRY_PROBE_TARGETS: Partial<Record<keyof UniverseAgentConversationEntryCapability, { service: string; method: string; methodKey: string }>> = {
+const CONVERSATION_ENTRY_PROBE_TARGETS: Partial<Record<keyof UniverseAgentConversationEntryCapability, AdvertisedProbeTarget>> = {
 	listClipboard: {
 		service: UniverseAgentGrpcServices.Clipboard.service,
 		method: UniverseAgentGrpcServices.Clipboard.List,
@@ -355,6 +362,18 @@ const CONVERSATION_ENTRY_PROBE_TARGETS: Partial<Record<keyof UniverseAgentConver
 		service: UniverseAgentGrpcServices.Permission.service,
 		method: UniverseAgentGrpcServices.Permission.SetPermissionMode,
 		methodKey: 'PermissionService.SetPermissionMode',
+	},
+	setClientToolProfile: {
+		service: UniverseAgentGrpcServices.Permission.service,
+		method: UniverseAgentGrpcServices.Permission.SetClientToolProfile,
+		methodKey: 'PermissionService.SetClientToolProfile',
+	},
+	registerSessionEngineTrigger: {
+		service: UniverseAgentGrpcServices.Trigger.service,
+		method: UniverseAgentGrpcServices.Trigger.RegisterSessionEngineTrigger,
+		methodKey: 'TriggerService.RegisterSessionEngineTrigger',
+		// Empty session is rejected before registration: a safe, nonmutating probe.
+		acceptsInvalidArgument: true,
 	},
 	switchModel: {
 		service: UniverseAgentGrpcServices.Config.service,

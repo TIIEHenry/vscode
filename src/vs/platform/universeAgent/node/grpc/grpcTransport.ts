@@ -113,6 +113,10 @@ import type {
 	UniverseAgentGetSessionRulesRequest,
 	UniverseAgentGetSessionRulesResult,
 	UniverseAgentSetPermissionModeRequest,
+	UniverseAgentSetClientToolProfileRequest,
+	UniverseAgentSetClientToolProfileResult,
+	UniverseAgentRegisterSessionEngineTriggerRequest,
+	UniverseAgentRegisterSessionEngineTriggerResult,
 	UniverseAgentSetPermissionModeResult,
 	UniverseAgentTaskUpdateRequest,
 	UniverseAgentTaskUpdateResult,
@@ -401,6 +405,7 @@ export interface UniverseAgentDeviceAuthConnectRequest {
 /** gRPC status codes used by capability probe and transport classification. */
 export const GrpcStatusCode = {
 	OK: 0,
+	INVALID_ARGUMENT: 3,
 	DEADLINE_EXCEEDED: 4,
 	ALREADY_EXISTS: 6,
 	UNIMPLEMENTED: 12,
@@ -567,6 +572,8 @@ export interface IUniverseAgentGrpcTransport {
 	/** PermissionService.GetSessionRules unary (snake_case `session_id`). Empty ids sent as-is. */
 	getSessionRules(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult>;
 
+	setClientToolProfile(request: UniverseAgentSetClientToolProfileRequest): Promise<UniverseAgentSetClientToolProfileResult>;
+	registerSessionEngineTrigger(request: UniverseAgentRegisterSessionEngineTriggerRequest): Promise<UniverseAgentRegisterSessionEngineTriggerResult>;
 	/** PermissionService.SetPermissionMode unary (snake_case `session_id`/`mode`). Empty ids sent as-is. */
 	setPermissionMode(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult>;
 	/** TeamService.TaskUpdate unary (snake_case `session_id`/`agent_id`/`task_id`/`new_status`/`message`). Empty ids sent as-is. */
@@ -1046,6 +1053,7 @@ export const UniverseAgentGrpcServices = {
 		PromotePermissionRule: 'PromotePermissionRule',
 		GetSessionRules: 'GetSessionRules',
 		SetPermissionMode: 'SetPermissionMode',
+		SetClientToolProfile: 'SetClientToolProfile',
 	},
 	Agent: {
 		service: 'agentservice.AgentService',
@@ -1244,6 +1252,7 @@ export const UniverseAgentGrpcServices = {
 		service: 'agentservice.TriggerService',
 		ListTriggers: 'ListTriggers',
 		UpsertTrigger: 'UpsertTrigger',
+		RegisterSessionEngineTrigger: 'RegisterSessionEngineTrigger',
 		DeleteTrigger: 'DeleteTrigger',
 		SetTriggerEnabled: 'SetTriggerEnabled',
 		FireTrigger: 'FireTrigger',

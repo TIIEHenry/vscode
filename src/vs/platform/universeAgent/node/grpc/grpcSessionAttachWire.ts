@@ -9,6 +9,7 @@ import type {
 	UniverseAgentCancelToolCallRequest,
 	UniverseAgentChatResponse,
 	UniverseAgentCreateSessionRequest,
+	UniverseAgentClientHostReport,
 	UniverseAgentDeleteMessageRequest,
 	UniverseAgentDeleteMessageResult,
 	UniverseAgentEditMessageRequest,
@@ -85,10 +86,28 @@ export function resolveCreateSessionClientId(request: UniverseAgentCreateSession
 }
 
 export function encodeCreateSessionRequest(request: UniverseAgentCreateSessionRequest): Uint8Array {
-	// proto CreateSessionRequest has no title; field 3 is model; field 4 is client_session_id.
+	// proto CreateSessionRequest has no title; never use a local title as system_prompt.
 	return Buffer.concat([
+		encodeStringField(1, request.systemPrompt),
+		encodeStringField(2, request.provider),
 		encodeStringField(3, request.model),
 		encodeStringField(4, resolveCreateSessionClientId(request)),
+		encodeStringField(5, request.promptLocale),
+		...(request.clientHost ? [encodePresentMessageField(6, encodeClientHostReport(request.clientHost))] : []),
+		encodeStringField(7, request.workDir),
+	]);
+}
+
+function encodeClientHostReport(host: UniverseAgentClientHostReport): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, host.os),
+		encodeStringField(2, host.version),
+		...(host.versionId !== undefined ? [encodePresentMessageField(3, Buffer.from(host.versionId, 'utf8'))] : []),
+		...(host.kernel !== undefined ? [encodePresentMessageField(4, Buffer.from(host.kernel, 'utf8'))] : []),
+		encodeStringField(5, host.arch),
+		encodeStringField(6, host.shell),
+		encodeStringField(7, host.locale),
+		encodeStringField(8, host.executionClient),
 	]);
 }
 
@@ -138,6 +157,7 @@ export function encodeForkAgentRequest(request: UniverseAgentForkAgentRequest): 
 		encodeStringField(4, request.task),
 		encodeStringField(5, request.modelType),
 		encodeStringField(6, request.systemPrompt),
+		encodeStringField(7, request.anchorTurnId),
 	]);
 }
 
@@ -145,9 +165,11 @@ export function encodeForkAgentRequest(request: UniverseAgentForkAgentRequest): 
 export function decodeForkAgentResponse(bytes: Uint8Array): UniverseAgentForkAgentResult {
 	const fields = readProtoFields(bytes);
 	const agentId = lastString(fields, 2)?.trim();
+	const message = lastString(fields, 4);
 	return {
 		ok: lastVarint(fields, 1) === 1n,
 		...(agentId ? { agentId } : {}),
+		...(message ? { message } : {}),
 	};
 }
 

@@ -11,6 +11,7 @@ import type {
 	UniverseAgentTrigger,
 	UniverseAgentTriggerDeliveryTarget,
 	UniverseAgentUpsertTriggerRequest,
+	UniverseAgentRegisterSessionEngineTriggerRequest,
 } from '../../common/universeAgentTypes.js';
 import type {
 	DeliveryTargetDtoWire,
@@ -53,6 +54,18 @@ export function decodeListTriggersResponse(bytes: Uint8Array): ListTriggersRespo
 	return {
 		triggers: allLengthDelimited(readProtoFields(bytes), 1).map(decodeTriggerDto),
 	};
+}
+
+/** RegisterSessionEngineTrigger: session_id=1, name=2, type=3, prompt=4, paths=5, optional dedupe=6. */
+export function encodeRegisterSessionEngineTriggerRequest(request: UniverseAgentRegisterSessionEngineTriggerRequest): Uint8Array {
+	return Buffer.concat([
+		encodeStringField(1, request.sessionId),
+		encodeStringField(2, request.name),
+		encodeStringField(3, request.type),
+		encodeStringField(4, request.promptTemplate),
+		...request.watchPaths.map(value => encodePresentMessageField(5, Buffer.from(value, 'utf8'))),
+		...(request.dedupeKeyField !== undefined ? [encodePresentMessageField(6, Buffer.from(request.dedupeKeyField, 'utf8'))] : []),
+	]);
 }
 
 /**

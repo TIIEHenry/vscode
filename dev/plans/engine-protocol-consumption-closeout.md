@@ -1,7 +1,7 @@
 ---
 title: "引擎协议消费遗漏修复"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-26
 summary: "补齐已正式发布的 Create/Fork/Provider/Profile/Info 字段与两条 RPC 的 IDE 契约、proto bytes、IPC 和能力门闩；保留默认产品范围，队列与技能保存的跨仓协议另行同步。"
@@ -11,7 +11,7 @@ summary: "补齐已正式发布的 Create/Fork/Provider/Profile/Info 字段与�
 
 ## 1. 依据与范围
 
-用户于 2026-10-26 授权将 [功能缺口分析](../../docs/reference/universe-agent/ide-engine-feature-gaps.md) 落仓并修复实现。当前主窗口另有 Composer/时间线视觉 WIP、`subscription-recovery-closeout.md` 草案，均保留，不抢占它们的改动。本稿先完整处理已存在正式引擎合同的消费遗漏；跨仓队列读回/技能保存等待用户确认是否同时修改 UniverseAgent，不以本稿替代后续闭合。
+用户于 2026-10-26 授权将 [功能缺口分析](../../docs/reference/universe-agent/ide-engine-feature-gaps.md) 落仓并修复实现。当前主窗口另有 Composer/时间线视觉 WIP、`subscription-recovery-closeout.md` 草案，均保留，不抢占它们的改动。本稿先完整处理已存在正式引擎合同的消费遗漏；跨仓队列读回/技能保存已获用户授权同时修改 UniverseAgent，进入下一独立方案，不以本稿替代后续闭合。
 
 基线 IDE `09f6da72d305`；引擎 proto `f538eb162cd3`。新字段均 additive，不手改 vendored sessionCore，不凭目录存在宣称产品入口完成。不新建任意 RPC 或 Agent switchAgent。
 
@@ -52,3 +52,21 @@ S1 先修传输与保存保持语义，不把未消费参数写成已经拥有�
 3. 显式列出 Profile summary→detail→保存复制路径，覆盖 0/缺省/正数与实际 wire presence。
 
 Minor：补 optional kernel、六个非 optional 字段的表述、presence helper 和切片完成边界。审查未运行构建或写 out。上述修改后进入实施。
+
+
+## 6. 落地与验证
+
+S1、S2 契约/传输切片已实施。Profile 实际编辑器的正文/模型保存保持 maxRewinds，另有工具复制回归。Create 产品目录传递、两项 RPC 的产品新入口不在本切片交付范围，现行能力见 [协议面增量](../../docs/reference/universe-agent/engine-protocol-surface.md#2026-10-26-协议消费补齐)。
+
+- 业务 red：旧生产 + 新测试，8 passing / 8 failing；失败均是请求/响应/保存数据缺失。
+- 新协议、IPC、Profile 与相邻 codec 8 套件：203 passing。
+- connection、DeviceAuth、Pairing 3 套件：498 passing，含两条新 node 转发的实际调用。
+- 官方 Electron Profile 编辑器正文/模型保存：3 passing（缺省、0、5）。
+- mapper 扩展检查：10 passing / 1 既有失败，MCP summary 的 command/args/env/url 缺省属性差异；使用 3d522e76b99 的生产 mapper 另行复现。
+- 所有 fresh output 使用 build/next/transpile.ts 的 transpileFile，在 /tmp/vscode-compile.lock 内串行仅刷新本主题 TS；无全量 out 清理。
+- 原 src/tsconfig native tsc --noEmit 通过；定向 ESLint 0 errors，7 既有 warnings（动态记录断言、测试字符串、prefer-const 和 in 操作符）。
+- 文档生成/health 已运行：既有未跟踪 subscription-recovery-closeout.md 缺索引造成 1 error，本主题入口齐全；不代改该草案或将其状态升级。
+
+不把自动测试算成真实引擎默认编辑器端到端验收，不升 PRD。跨仓后续已获授权。
+
+独立实施复审：`review_protocol_closeout` 只读确认 Critical 0 / Important 0 / Minor 0；未运行编译或写 out，结论限定协议与传输。

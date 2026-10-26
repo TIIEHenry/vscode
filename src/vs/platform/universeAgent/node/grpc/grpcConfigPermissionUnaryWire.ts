@@ -5,6 +5,8 @@
 
 import type {
 	UniverseAgentPermissionPolicy,
+	UniverseAgentSetClientToolProfileRequest,
+	UniverseAgentSetClientToolProfileResult,
 	UniverseAgentSetPermissionPolicyRequest,
 } from '../../common/universeAgentTypes.js';
 import {
@@ -62,4 +64,23 @@ function permissionPolicyNumber(policy: UniverseAgentPermissionPolicy): number {
 		default:
 			return 0;
 	}
+}
+
+/** PermissionService.SetClientToolProfile — session_id=1, profile=2. */
+export function encodeSetClientToolProfileRequest(request: UniverseAgentSetClientToolProfileRequest): Uint8Array {
+	let profile: number;
+	switch (request.profile) {
+		case 'CLIENT_TOOL_PROFILE_ALL': profile = 1; break;
+		case 'CLIENT_TOOL_PROFILE_READ_ONLY': profile = 2; break;
+		case 'CLIENT_TOOL_PROFILE_NONE': profile = 3; break;
+		default: throw new Error('Invalid client tool profile');
+	}
+	return Buffer.concat([encodeStringField(1, request.sessionId), encodeInt32Field(2, profile)]);
+}
+
+/** SetClientToolProfileResponse — success=1, error=2 (not message). */
+export function decodeSetClientToolProfileResponse(bytes: Uint8Array): UniverseAgentSetClientToolProfileResult {
+	const fields = readProtoFields(bytes);
+	const error = lastString(fields, 2);
+	return { ok: lastVarint(fields, 1) === 1n, ...(error ? { error } : {}) };
 }

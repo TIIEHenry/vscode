@@ -246,6 +246,9 @@ class MockDeviceAuthTransport implements IUniverseAgentGrpcTransport {
 		return { rules: [] };
 	}
 
+	async setClientToolProfile(): Promise<never> { throw new Error('Not implemented in this fixture'); }
+	async registerSessionEngineTrigger(): Promise<never> { throw new Error('Not implemented in this fixture'); }
+
 	async setPermissionMode(): Promise<{ ok: false; message: 'test' }> {
 		return { ok: false, message: 'test' };
 	}
