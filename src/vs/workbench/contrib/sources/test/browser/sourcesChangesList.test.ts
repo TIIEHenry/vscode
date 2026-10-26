@@ -24,7 +24,7 @@ import type {
 	UniverseAgentWriteGitStagePathsRequest,
 	UniverseAgentWriteGitWriteResult,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { TestEditorInput, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
@@ -44,6 +44,7 @@ import { SOURCES_GIT_UNROOTED_SCHEME, sourcesGitDiffOpenFailureMessage, sourcesG
 import { sourcesGitDiffContentStore, sourcesGitDiffModelUri } from '../../browser/sourcesGitDiffContent.js';
 import { sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
+import { sourcesDiffOpenIdentity } from '../../browser/sourcesDiffOpenIdentity.js';
 import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
@@ -99,6 +100,65 @@ suite('Sources - Changes list open', () => {
 
 		assert.strictEqual(openedPreserveFocus, true);
 	});
+
+	for (const slot of ['newTab', 'replace'] as const) {
+		test(`SCM ${slot} accepts a group with no active editor`, async function () {
+			const resource = toResource.call(this, '/project/src/a.ts');
+			const calls: boolean[] = [];
+			const scmResource = { open: async (preserveFocus: boolean) => { calls.push(preserveFocus); } } as ISCMResource;
+			const editorGroupsService = {
+				activeGroup: {
+					activeEditor: null,
+					editors: [],
+					isPinned: () => assert.fail('empty group has no pinned editor'),
+					pinEditor: () => assert.fail('must not pin an empty editor'),
+					closeEditor: () => assert.fail('must not close an empty editor'),
+				},
+			} as unknown as IEditorGroupsService;
+			await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
+				editorService: { openEditor: async () => assert.fail('SCM opens its own editor') } as unknown as IEditorService,
+				editorGroupsService,
+			}), { slot, preserveFocus: true });
+
+			assert.deepStrictEqual(calls, [true]);
+		});
+
+		test(`SCM ${slot} preserves editor order and records the opened identity`, async function () {
+			const resource = toResource.call(this, '/project/src/a.ts');
+			const previous = store.add(new TestEditorInput(URI.file('/project/previous.ts'), 'test.previous'));
+			const opened = store.add(new TestEditorInput(resource, 'test.opened'));
+			let activeEditor: EditorInput | null = previous;
+			const trace: string[] = [];
+			const scmResource = {
+				open: async (preserveFocus: boolean) => {
+					trace.push(`open:${preserveFocus}`);
+					activeEditor = opened;
+				},
+			} as ISCMResource;
+			const editorGroupsService = {
+				activeGroup: {
+					get activeEditor() { return activeEditor; },
+					editors: [previous, opened],
+					isPinned: () => false,
+					pinEditor: (input: EditorInput) => trace.push(input === previous ? 'pin:previous' : 'pin:opened'),
+					closeEditor: async (input: EditorInput) => {
+						assert.strictEqual(input, previous);
+						trace.push('close:previous');
+						return true;
+					},
+				},
+			} as unknown as IEditorGroupsService;
+			await openSourcesChangeEntry(createEntry(resource, scmResource), createDeps({
+				editorService: { openEditor: async () => assert.fail('SCM opens its own editor') } as unknown as IEditorService,
+				editorGroupsService,
+			}), { slot, preserveFocus: true });
+
+			assert.deepStrictEqual({ trace, identity: sourcesDiffOpenIdentity(opened) }, {
+				trace: slot === 'newTab' ? ['pin:previous', 'open:true', 'pin:opened'] : ['open:true', 'close:previous'],
+				identity: { groupId: 'workingTree', scmResource },
+			});
+		});
+	}
 
 	test('openSourcesChangeEntry falls back to file preview without scmResource', async function () {
 		const resource = toResource.call(this, '/project/src/a.ts');

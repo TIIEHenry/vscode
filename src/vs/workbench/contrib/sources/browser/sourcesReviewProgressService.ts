@@ -101,7 +101,7 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 		@IFileService private readonly fileService: IFileService,
 		@ISCMService private readonly scmService: ISCMService,
 		@IUniverseAgentConnection private readonly connection: IUniverseAgentConnection,
-		@IAgentSessionContext private readonly session?: IAgentSessionContext,
+		@IAgentSessionContext private readonly session: IAgentSessionContext,
 	) {
 		super();
 
@@ -289,7 +289,7 @@ export class SourcesReviewProgressService extends Disposable implements ISources
 
 	/** Session work root when the context provides one. Otherwise the connection snapshot. */
 	private progressRoot(sessionId: string): { readonly workDir: string | undefined; readonly gitPathOnly: boolean } {
-		const root = this.session?.getWorkRoot?.(sessionId);
+		const root = this.session.getWorkRoot?.(sessionId);
 		if (!root) {
 			return { workDir: this.connectionWorkDir(), gitPathOnly: false };
 		}

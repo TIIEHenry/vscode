@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-26
-summary: "D1375：按当前源码复核旧 compile-client 的 Sources 9 条诊断，只修正式服务注入、SCM 空编辑器归一与测试夹具生命周期；统一编译与回归留在 merge。"
+summary: "D1375：正式服务注入、SCM 空编辑器归一与测试夹具生命周期已修，新增 6 条行为回归；J 目标 ESLint 0 errors，统一编译与运行回归仍留在 merge。"
 ---
 
 # Sources 编译基线合同修复
@@ -45,6 +45,6 @@ summary: "D1375：按当前源码复核旧 compile-client 的 Sources 9 条诊�
 ## 5. 只读审查与实施
 
 - [x] 规则 16：D / `conversation_status_visual` 于 2026-10-26 完成只读审查（未改 J 文件）：Strengths 为三根因与正式服务合同吻合、行为回归及 merge 验证边界清晰；Critical / Important 无；Minor 两项已改入本文（null 归一边界、实际审查者身份）；Assessment 可进入方案独立提交及实施。
-- [ ] 三类合同修复与行为回归。
-- [ ] 静态与文档检查，更新 status / deferred 并 scoped commit。
+- [x] 三类合同修复与行为回归：生产 4 文件、测试 6 文件及 1 份完整 session 夹具；新增 SCM null/newTab/replace 4 项、TabsHost 会话/销毁 1 项、ReviewProgress 双会话工作根 1 项。代码已写，未运行回归。
+- [x] 静态检查：11 个改动 TS 文件 ESLint exit 0（0 errors / 31 既有 warnings），直接构造与工厂调用点已全仓复核；文档健康、生成状态与 diff-check 通过；行动层随 scoped 实施提交保留 merge 待验。
 - [ ] merge 新编译与新产物定向回归，登记实际结果。

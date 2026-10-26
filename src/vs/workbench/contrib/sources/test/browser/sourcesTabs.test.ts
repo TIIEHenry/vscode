@@ -5,6 +5,7 @@
 
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
+import { Emitter } from '../../../../../base/common/event.js';
 import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { DEFAULT_SOURCES_TAB, nextSourcesTab, SOURCES_TAB_ORDER, SourcesTabId } from '../../common/sourcesTabs.js';
@@ -15,6 +16,9 @@ import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { SourcesFilesExplorerHost } from '../../browser/sourcesFilesExplorer.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
 import { ISourcesReviewHostService } from '../../common/sourcesReviewHostService.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import { createSourcesTestSessionContext } from './sourcesTestSessionContext.js';
 
 suite('Sources - tab model', () => {
 
@@ -71,15 +75,9 @@ suite('Sources - tabs host docking', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('filterSlot docks Files actions only when Files tab is active', () => {
+	function createInstantiationService(session: IAgentSessionContext = createSourcesTestSessionContext()) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
-		let dockedActions: HTMLElement | undefined;
-
-		instantiationService.stubInstance(SourcesFilesExplorerHost, Object.assign(toDisposable(() => { }), {
-			setFilesTabActive() { },
-			setFilterDock() { },
-			setActionsDock(dock: HTMLElement | undefined) { dockedActions = dock; },
-		}));
+		instantiationService.stub(IAgentSessionContext, session);
 		instantiationService.stubInstance(SourcesChangesList, Object.assign(toDisposable(() => { }), {
 			setFilterDock() { },
 		}));
@@ -91,7 +89,65 @@ suite('Sources - tabs host docking', () => {
 			showForPaths() { },
 			getReviewListHost() { return undefined; },
 		});
+		return instantiationService;
+	}
 
+	test('injected session events restore each tab and stop saving after disposal', () => {
+		const sessionChanges = store.add(new Emitter<string>());
+		let activeSessionId = 'sess-a';
+		const instantiationService = createInstantiationService(createSourcesTestSessionContext({
+			getActiveSessionId: () => activeSessionId,
+			onDidChangeActiveSession: sessionChanges.event,
+		}));
+		instantiationService.stubInstance(SourcesFilesExplorerHost, Object.assign(toDisposable(() => { }), {
+			setFilesTabActive() { },
+			setFilterDock() { },
+			setActionsDock() { },
+		}));
+		const storage = instantiationService.invokeFunction(accessor => accessor.get(IStorageService));
+		storage.store(sourcesSelectedTabStorageKey('sess-b'), SourcesTabId.Review, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		const part = store.add(instantiationService.createInstance(SourcesPart));
+		instantiationService.set(ISourcesPartService, part);
+		const parent = mainWindow.document.createElement('div');
+		mainWindow.document.body.appendChild(parent);
+		store.add(toDisposable(() => parent.remove()));
+		part.create(parent);
+		const host = store.add(instantiationService.createInstance(SourcesTabsHost, part.tabHost!, part.contentHost!));
+		const selectedTab = () => part.tabHost!.querySelector('.sources-tab.selected')?.getAttribute('data-tab-id');
+		const switchSession = (sessionId: string) => {
+			activeSessionId = sessionId;
+			sessionChanges.fire(sessionId);
+		};
+
+		host.selectTab(SourcesTabId.Changes, false);
+		switchSession('sess-b');
+		assert.strictEqual(selectedTab(), SourcesTabId.Review);
+		switchSession('sess-a');
+		assert.strictEqual(selectedTab(), SourcesTabId.Changes);
+		assert.deepStrictEqual(['sess-a', 'sess-b'].map(sessionId => storage.get(sourcesSelectedTabStorageKey(sessionId), StorageScope.WORKSPACE)), [
+			SourcesTabId.Changes,
+			SourcesTabId.Review,
+		]);
+
+		host.dispose();
+		storage.store(sourcesSelectedTabStorageKey('sess-a'), SourcesTabId.Files, StorageScope.WORKSPACE, StorageTarget.MACHINE);
+		switchSession('sess-b');
+		assert.deepStrictEqual({
+			hasSessionListener: sessionChanges.hasListeners(),
+			selected: selectedTab(),
+			savedA: storage.get(sourcesSelectedTabStorageKey('sess-a'), StorageScope.WORKSPACE),
+		}, { hasSessionListener: false, selected: SourcesTabId.Changes, savedA: SourcesTabId.Files });
+	});
+
+	test('filterSlot docks Files actions only when Files tab is active', () => {
+		const instantiationService = createInstantiationService();
+		let dockedActions: HTMLElement | undefined;
+
+		instantiationService.stubInstance(SourcesFilesExplorerHost, Object.assign(toDisposable(() => { }), {
+			setFilesTabActive() { },
+			setFilterDock() { },
+			setActionsDock(dock: HTMLElement | undefined) { dockedActions = dock; },
+		}));
 		const part = store.add(instantiationService.createInstance(SourcesPart));
 		instantiationService.set(ISourcesPartService, part);
 
@@ -123,7 +179,7 @@ suite('Sources - tabs host docking', () => {
 	});
 
 	test('docked actions element preserves accessibility and DOM containment', () => {
-		const instantiationService = workbenchInstantiationService(undefined, store);
+		const instantiationService = createInstantiationService();
 		const actionsElement = mainWindow.document.createElement('div');
 		actionsElement.className = 'actions';
 
@@ -156,18 +212,6 @@ suite('Sources - tabs host docking', () => {
 				}
 			},
 		}));
-		instantiationService.stubInstance(SourcesChangesList, Object.assign(toDisposable(() => { }), {
-			setFilterDock() { },
-		}));
-		instantiationService.stubInstance(SourcesReviewList, Object.assign(toDisposable(() => { }), {
-			setFilterDock() { },
-		}));
-		instantiationService.stub(ISourcesReviewHostService, {
-			registerReviewListHost() { },
-			showForPaths() { },
-			getReviewListHost() { return undefined; },
-		});
-
 		const part = store.add(instantiationService.createInstance(SourcesPart));
 		instantiationService.set(ISourcesPartService, part);
 

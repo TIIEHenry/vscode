@@ -9,12 +9,14 @@ import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { ISourcesPartService, SourcesPart } from '../../../../browser/parts/sources/sourcesPart.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { SourcesChangesList } from '../../browser/sourcesChangesList.js';
 import { SourcesFilesExplorerHost } from '../../browser/sourcesFilesExplorer.js';
 import { SourcesReviewList } from '../../browser/sourcesReviewList.js';
 import { SourcesTabsHost } from '../../browser/sourcesTabsHost.js';
 import { ISourcesReviewHostService } from '../../common/sourcesReviewHostService.js';
 import { SourcesTabId } from '../../common/sourcesTabs.js';
+import { createSourcesTestSessionContext } from './sourcesTestSessionContext.js';
 
 suite('Sources - part focus', () => {
 
@@ -42,6 +44,7 @@ suite('Sources - part focus', () => {
 		reviewTab: HTMLElement;
 	} {
 		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IAgentSessionContext, createSourcesTestSessionContext());
 		instantiationService.stubInstance(SourcesFilesExplorerHost, Object.assign(toDisposable(() => { }), {
 			setFilesTabActive() { },
 			setFilterDock() { },

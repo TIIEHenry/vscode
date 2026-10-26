@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-26
-summary: "2026-10-26：D1368–D1372 已集成，Node 202、核心 browser 32 与设置补充 browser 9 项及独立视觉 after 通过；唯一 compile-client exit 1（176 TS / 69 文件），全仓仍未过；D1373 只登记未实施，未 push。"
+summary: "2026-10-26：D1368–D1372 已集成，Node 202、核心 browser 32 与设置补充 browser 9 项及独立视觉 after 通过；唯一 compile-client exit 1（176 TS / 69 文件），全仓仍未过；D1375 Sources 合同修复与6条回归已写，待merge统一运行；未 push。"
 
 ---
 
@@ -12,7 +12,7 @@ summary: "2026-10-26：D1368–D1372 已集成，Node 202、核心 browser 32 �
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **Sources 编译基线合同复核（2026-10-26，D1375，方案）**：当前源码仍对应旧日志 Sources 9 条：三个装饰服务被写成 optional/union，连带 6 条工厂 / singleton 诊断；SCM 组空编辑器 `null` 与打开结果 `undefined` 不一致 2 条；list-mode 测试漏接 disposable `store` 1 条。[短方案](../plans/sources-compile-contracts.md) 已过 D 槽规则 16 只读审查（Critical / Important 无，Minor 两项已吸收），方案独立提交后实施；J 不编译 / 转译 / watch / 写 out，真实消除数及行为回归留 merge 新产物验证，D1375 保持 open。
+- **Sources 编译基线合同修复（2026-10-26，D1375）**：[短方案](../plans/sources-compile-contracts.md) 经 D 槽只读审查（Critical / Important 无，Minor 两项已吸收），独立方案提交 `220db77` 后实施。三个装饰服务恢复正式 `IAgentSessionContext`、TabsHost 直接使用构造注入的 ReviewHost 释放、SCM `activeEditor` 空值归一、list-mode leak-checker `store` 已接好；6 份测试夹具对齐，新增会话 tab 往返/释放、双会话工作根审阅隔离及 SCM null/newTab/replace 共 6 项。11 TS 文件 ESLint 0 errors / 31 既有 warnings，docs-health 0 errors / 73 既有链接 warnings（J 未初始化 loop 子模块）、生成状态与 diff-check 通过。旧日志预计对应 9 条仍只作源码映射，J 未编译 / 转译 / watch / 写 out，运行回归与实际诊断数留 merge 新产物，D1375 保持 open。
 - **设置页详情与 Preview 窄宽修复（2026-10-26，D1371 / D1372）**：Astra 在 merge 新产物实拍复现 Connection 606px pane 中 Host 说明只剩 49px，以及 356px Preview 被 Settings 500px 最小宽撑开。Direct Address 的 Host / Port / Name 现共用网格列宽，详情正文不足 480px 时统一纵排，勾选项和 Hub 原表单保持；UA 专属 TOC / 纯 UA `@id:` 视图的 pane 与内部列共用 300px 最小宽并同步约束事件，普通 / 混合搜索恢复 500px，TOC 仍以 700px 显隐。新增实际 CSS+DOM 容器宽度往返、UA/上游样式往返与查询范围回归，替代旧 CSS 字符串扫描；目标 ESLint 0 errors、stylelint exit 0（既有提示）、docs-health 0 errors / 46 既有链接警告、generated-status --check 与 diff-check 通过。merge 最小刷新后新布局 / UA scope 5 项与 Connection 焦点 4 项全过；新 Event 契约类型诊断已适配，定向语义 0；Astra 独立浅深色 after、479→480 边界、UA/普通/混合/TOC/300px 重开全部通过，D1371/1372 已闭合；[视觉证据](ui-visual-review-2026-10-26-evidence/visual-review.md) 留下覆盖限制。见 [D1371 / D1372](deferred-gaps.md) 与 [Settings SSOT](../../docs/reference/code-oss-b2/settings-ua-access.md)。
 - **统一集成与真实验证（2026-10-26）**：D1369 `2588e2b` 与 D1370 `5337c8e` 已在 merge 三路合成 `f672723` / `df7c5b1`，D1368 `3f16bba` 保留；Node 202 + browser 32 项全过。编译与全部真实日志、7 文件定向语义 0、ESLint 0 errors / 31 warnings、docs-health 0 errors / 46 warnings 及既有 docs-status 29/28 失败见[本轮看板](../parallel/active/ui-visual-review-2026-10-26.md)。不把全仓编译 exit 1 写成通过；D1371/1372 已三路合成 `a514ec3`，只最小刷新 4 TS / 2 CSS，补充 browser 9 passing；独立视觉 after 已通过；D1373 标签低对比只登记 open，未实施。
 - **Permission 评估晚到取消闸（2026-10-26，D1368，权限/Agent Host 状态审计）**：`pending_confirmation` 进入异步路径策略评估后，turn/session 可能已取消或销毁；原逻辑只在 await 前检查取消，晚到结果仍可派发 `ChatToolCallReady` 或留下 SDK 权限等待。现 await 后复核 cancelled tool 与 session state，过期请求立即拒绝并清理跟踪；可控评估屏障回归覆盖取消后的两种评估结果、session 移除及 hook continuation，断言答复次数与 Ready 公告。merge 新输出下 Node `AgentSideEffects` 202 passing，含四个受控评估屏障场景；相关类型诊断与 Ready 断言窄化已修，定向语义检查 0；见 [本轮看板](../parallel/active/ui-visual-review-2026-10-26.md) 与 [D1368](deferred-gaps.md)。

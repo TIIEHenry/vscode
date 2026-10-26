@@ -14,7 +14,7 @@ import { SourcesListFilterBox } from '../../browser/sourcesListFilterBox.js';
 
 suite('Sources - files list mode', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	const contains = (resource: URI, parent: URI) => isEqualOrParent(resource, parent);
 
@@ -49,12 +49,11 @@ suite('Sources - files list mode', () => {
 
 	test('sources filter clear action has its own accessible name', function () {
 		const parent = document.createElement('div');
-		const filter = store.add(new SourcesListFilterBox(parent, 'Filter files', 'Filter files'));
+		store.add(new SourcesListFilterBox(parent, 'Filter files', 'Filter files'));
 		const clear = parent.querySelector('.sources-list-filter-clear') as HTMLButtonElement | null;
 		assert.ok(clear);
 		assert.strictEqual(clear.type, 'button');
 		assert.strictEqual(clear.getAttribute('aria-label'), 'Clear filter');
-		filter.dispose();
 	});
 
 	test('same project key shares list mode and different project keys stay independent', function () {

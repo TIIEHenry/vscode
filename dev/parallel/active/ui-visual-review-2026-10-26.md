@@ -1,10 +1,10 @@
 ---
 title: "2026-10-26 UI 与权限审查集成看板"
 type: progress
-status: completed
+status: active
 phase: M7
 updated: 2026-10-26
-summary: "D1368–D1372 已三路集成；Node 202、核心 browser 32 与设置页补充 browser 9 项通过，新增类型问题已定向修复；独立视觉 after 已通过；D1373 只登记未实施。唯一 compile-client 的真实失败与新输出证据分别记录。"
+summary: "D1368–D1372 已三路集成并有真实运行证据；D1375 Sources 正式注入、空编辑器与夹具合同已修，新增6条回归，待merge统一新编译与运行。唯一 compile-client 的既有真实失败与各轮新输出证据分别记录。"
 ---
 
 # 2026-10-26 UI 与权限审查集成
@@ -21,8 +21,13 @@ summary: "D1368–D1372 已三路集成；Node 202、核心 browser 32 与设置
 | merge / 唯一集成验证 | 保留两边进度和历史归档，修编译诊断与真实测试夹具，统一写出产物和验证 | 核心验证提交 `2fec8eaf636`；其后设置页切片见下节 |
 | Astra / 独立视觉复核 | 用真实运行画面复核现有设置页与 responsive UI | 发现 Direct Address 中窄 Host 竖条、Client Settings 窄 Preview 裁切；已交 D 修复 |
 | D / 设置页视觉修复 | D1371 / D1372 局部响应式修复 | `292ec409fc1`，三路合成 `a514ec3d2a5`；最小刷新和行为复验已过，独立视觉 after 已通过 |
+| J / Sources 编译基线 | D1375 正式服务注入、SCM null 结果与测试生命周期 | 基线 `0ea26634bed`；方案 `220db77` 已过 D 槽只读审查，实施已写；目标 ESLint 0 errors / 31 既有 warnings，merge 新编译与运行待验 |
 
 两次源码合入均只有 `status.md` / `deferred-gaps.md` 文档冲突，按三路内容保留 D1368、D1369、D1370 的独立意图。D1369 迁出的 2026-10-11–12 历史仍在 [原归档](../../archive/status-2026-10-11-12-retained-2026-10-26.md)，没有删除。
+
+### D1375 Sources 合同基线
+
+[方案](../../plans/sources-compile-contracts.md) 收敛旧日志 Sources 的 9 条，而非全仓 176 条：三个装饰参数 optional/union 使 `GetLeadingNonServiceArgs` / singleton 合同失败 6 条；SCM 组空编辑器 `null` 未归一 2 条；list-mode 测试漏接 `store` 1 条。已按当前源码逐点修复；D1368–D1372 的已修日志不重做。J 只做静态分析与目标 ESLint（11 文件，0 errors / 31 既有 warnings），没有编译、转译、watch 或写 `out/`。新增 6 条运行回归仍待 merge 新产物：`sourcesTabs` 1、`sourcesReviewProgress` 1、`sourcesChangesList` 4；同时运行夹具对齐的 `sourcesPartFocus`、`sourcesReviewList`、`sourcesFilesListMode`。D1375 暂不闭，不把预计 9 条写成实际消除数。
 
 ## 唯一编译与修正
 
