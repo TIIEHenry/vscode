@@ -16,7 +16,8 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../../base/
 import { IAccessibilityService } from '../../../../../../platform/accessibility/common/accessibility.js';
 import { TestAccessibilityService } from '../../../../../../platform/accessibility/test/common/testAccessibilityService.js';
 import { IAccessibilitySignalService } from '../../../../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
-import { ICommandService } from '../../../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../../../platform/commands/common/commands.js';
+import { IKeybindingService } from '../../../../../../platform/keybinding/common/keybinding.js';
 import { IConfigurationService } from '../../../../../../platform/configuration/common/configuration.js';
 import { TestConfigurationService } from '../../../../../../platform/configuration/test/common/testConfigurationService.js';
 import { NullLogService } from '../../../../../../platform/log/common/log.js';
@@ -34,7 +35,8 @@ import { IAgentSessionsService } from '../../../browser/agentSessions/agentSessi
 import { IChatWidget, IChatWidgetService } from '../../../browser/chat.js';
 import { IMicCaptureService } from '../../../browser/voiceClient/micCaptureService.js';
 import { ITtsPlaybackService } from '../../../browser/voiceClient/ttsPlaybackService.js';
-import { VoiceSessionController } from '../../../browser/voiceClient/voiceSessionController.js';
+import { IVoiceSessionController, VoiceSessionController } from '../../../browser/voiceClient/voiceSessionController.js';
+import { IChatViewModel } from '../../../common/model/chatViewModel.js';
 import { IVoiceToolDispatchService } from '../../../browser/voiceClient/voiceToolDispatchService.js';
 import { ChatSendResult, ElicitationState, IChatConfirmation, IChatModelReference, IChatSendRequestOptions, IChatService, IChatToolInvocation, ToolConfirmKind } from '../../../common/chatService/chatService.js';
 import { IPromptsService } from '../../../common/promptSyntax/service/promptsService.js';
@@ -46,12 +48,14 @@ import { ChatQuestionCarouselData } from '../../../common/model/chatProgressType
 import { IVoicePlaybackService } from '../../../common/voicePlaybackService.js';
 import { AskQuestionsToolId } from '../../../common/tools/builtinTools/askQuestionsTool.js';
 import { MockChatService } from '../../common/chatService/mockChatService.js';
+import '../../../../agentsVoice/browser/agentsVoice.contribution.js';
 
 class TestVoiceClientService extends mock<IVoiceClientService>() {
 	private narrationCounter = 0;
 	readonly requests: { sessionId: string; kind: VoiceNarrationKind; text: string; narrationId: string; pendingId?: string; checkpoint?: IVoiceCheckpointNarrationMetadata; confirmationType?: VoiceConfirmationType }[] = [];
 	readonly sessionCommands: ('start' | 'resume')[] = [];
 	readonly sessionCommandSent = new DeferredPromise<void>();
+	readonly connectCalled = new DeferredPromise<void>();
 	private readonly audioResponseEmitter = new Emitter<IVoiceAudioResponse>();
 	override readonly onAudioResponse = this.audioResponseEmitter.event;
 	private readonly bargeInEmitter = new Emitter<IVoiceBargeIn>();
@@ -84,7 +88,7 @@ class TestVoiceClientService extends mock<IVoiceClientService>() {
 	override get isResuming(): boolean { return this.resuming; }
 	override get willReconnect(): boolean { return this.reconnecting; }
 	override disconnect(): void { this.connected = false; }
-	override async connect(): Promise<void> { }
+	override async connect(): Promise<void> { this.connectCalled.complete(); }
 	readonly wireEvents: ({ type: 'session_context'; context: IVoiceSessionContext } | { type: 'request_narration'; kind: VoiceNarrationKind; text: string; confirmationType?: VoiceConfirmationType })[] = [];
 	readonly pttStarts: { turnId: string; hasActiveSession: boolean; passive: boolean }[] = [];
 	pttEndCalls = 0;
@@ -5206,6 +5210,86 @@ suite('VoiceSessionController', () => {
 		assert.strictEqual(mic.pttDownCalls.length, 1);
 		assert.strictEqual(mic.pttDownCalls[0].passive, true);
 	});
+
+	test('cold public command ends a short mic turn after a long connection wait', async () => {
+		const voiceClientService = new TestVoiceClientService();
+		let micReleases = 0;
+		const mic = new class extends RecordingMicCaptureService {
+			override pttUp(): void { micReleases++; }
+		}();
+		const owner = new class extends mock<IChatWidget>() {
+			override readonly visible = true;
+			override readonly onDidChangeViewModel = Event.None;
+			override readonly onDidHide = Event.None;
+			override readonly viewModel = new class extends mock<IChatViewModel>() {
+				override readonly sessionResource = URI.parse('chat-session:/cold-command-owner');
+			}();
+		}();
+		const widgets = new class extends TestChatWidgetService {
+			override readonly onDidChangeFocusedWidget = Event.None;
+		}([owner]);
+		widgets.lastFocusedWidget = owner;
+		const configuration = new TestConfigurationService({ 'agents.voice.handsFree': false });
+		const commands = new TestCommandService();
+		const controller = createController(voiceClientService, undefined, commands, undefined, mic, configuration,
+			undefined, undefined, undefined, undefined, undefined, undefined, widgets);
+		const hold = new DeferredPromise<void>();
+		const instantiation = workbenchInstantiationService(undefined, store);
+		instantiation.stub(IVoiceSessionController, controller);
+		instantiation.stub(IChatWidgetService, widgets);
+		instantiation.stub(IConfigurationService, configuration);
+		instantiation.stub(ICommandService, commands);
+		instantiation.stub(IKeybindingService, new class extends mock<IKeybindingService>() {
+			override enableKeybindingHoldMode(): Promise<void> { return hold.p; }
+		});
+		const command = CommandsRegistry.getCommand('agentsVoice.startVoiceInChat');
+		assert.ok(command);
+		const run = instantiation.invokeFunction(accessor => Promise.resolve(command.handler(accessor, { widget: owner })));
+		await voiceClientService.connectCalled.p;
+		await clock.tickAsync(5_000);
+		assert.strictEqual(mic.pttDownCalls.length, 0);
+		voiceClientService.fireConnectionState(true);
+		await voiceClientService.sessionCommandSent.p;
+		voiceClientService.fireSessionInit();
+		await clock.tickAsync(0);
+		// No virtual time passes between admission and release: a normal pttUp
+		// would toggle this sub-300ms turn on, despite the five-second key hold.
+		hold.complete();
+		await run;
+		assert.deepStrictEqual({ turns: mic.pttDownCalls.length, releases: micReleases, state: controller.voiceState.get() },
+			{ turns: 1, releases: 1, state: 'processing' });
+	});
+
+	for (const admission of ['ack', 'fallback'] as const) {
+		test(`cold authorization hold suppresses production ${admission} auto-listen until released`, async () => {
+			// Both I/O boundaries are injected fakes: neither a WebSocket nor a real
+			// microphone/permission service is constructed by this controller.
+			const voiceClientService = new TestVoiceClientService();
+			const mic = new RecordingMicCaptureService();
+			const controller = createController(voiceClientService, undefined, undefined, undefined, mic,
+				new TestConfigurationService({ 'agents.voice.handsFree': true }));
+			controller.setAutoListenHeld(true);
+			await controller.connect(mainWindow);
+			voiceClientService.fireConnectionState(true);
+			await voiceClientService.sessionCommandSent.p;
+			assert.deepStrictEqual([controller.isConnected.get(), mic.pttDownCalls.length], [false, 0]);
+			if (admission === 'ack') {
+				voiceClientService.fireSessionInit();
+			} else {
+				clock.tick(750);
+			}
+			assert.deepStrictEqual([controller.isConnected.get(), mic.pttDownCalls.length], [true, 0]);
+			controller.setAutoListenHeld(false);
+			// A duplicate/late ack cannot turn the release into two microphone turns.
+			voiceClientService.fireSessionInit();
+			assert.deepStrictEqual({
+				micTurns: mic.pttDownCalls.map(turn => turn.passive),
+				prepared: mic.prepareCalls,
+				fakeCapture: mic.startCaptureCalls,
+				commands: voiceClientService.sessionCommands,
+			}, { micTurns: [true], prepared: 1, fakeCapture: 1, commands: ['start'] });
+		});
+	}
 
 	test('connect only arms listening automatically in hands-free mode', () => {
 		const manualVoiceClientService = new TestVoiceClientService();
