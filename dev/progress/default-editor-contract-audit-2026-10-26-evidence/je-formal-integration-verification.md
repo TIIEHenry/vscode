@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "J4d49/Ec2b均正式merge-queued，独立peer C/I闭合原件已接入，P0/P1完成；P2串行合源/完整编译及相关全套待，P5禁push/P6主ff既有拒绝不重试。"
+summary: "J4d49/Ec2b已串行真三路5373/9209接入，262/208路径保留PASS；src fdca956，完整编译/相关全套/after待，禁push/主ff不重试。"
 ---
 
 # J/E 正式集成
@@ -30,3 +30,11 @@ summary: "J4d49/Ec2b均正式merge-queued，独立peer C/I闭合原件已接入�
 [本波原始清单](je-formal-artifact-inventory.json)保留实际原字节；后续编译/测试/失败与源产物身份在本报告续录。
 
 正式queued文档门禁：[health原日志](je-formal-queued-docs-health.log)0 errors / 46既有链接warnings、590 Markdown；生成状态`--check`通过，status186行。
+
+## P2：串行正式源码已接入（2026-10-27）
+
+上述queued为P0/P1记录；现已依序实际真三路合入J候选形成`5373d991af2fbf6abac771d0032a384ce4424b5a`，再合入E候选形成`9209a2ed382`，当前src tree `fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1`。两次都只有预期文档冲突、源码/测试无冲突；未取任何工位文件系统WIP。
+
+[J原始合并日志](je-formal-J-merge.log)、[J保留证明](je-formal-J-merge-identity.json)逐一核实际Git mode/type/blob，262路径全PASS；5双改文档7块冲突分别保留main新增队列/协议/视觉方案、D1385默认产品范围纠正、本线原始验证与作者6条源码/夹具历史。[E原始日志](je-formal-E-merge.log)、[E保留证明](je-formal-E-merge-identity.json)208路径全PASS；3双改文档5块冲突保留当前边界及E两条源码交接/历史冻结分工，且E独立peer原件blob与3e550精确相同。仓内缺少`scripts/check-merge-both-sides.sh`，没有声称执行该脚本。
+
+两次生成状态校验/非log差异检查通过，文档health均0 errors / 46既有链接warnings；status当前195行。此时尚无正式新编译/新green，native输出仍ad80历史身份，随后仅唯一lane在全局活进程检查与共享锁下实际完整`rtk proxy npm run compile-client`，无需在前另跑全量noEmit。统一green和精确source/native身份齐后再通知D冻结；不提前标implemented/closed。

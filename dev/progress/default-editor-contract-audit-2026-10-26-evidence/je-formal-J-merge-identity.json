@@ -1,0 +1,5261 @@
+{
+  "checkedAtUtc": "2026-10-26T16:33:14.923292+00:00",
+  "ours": "07121db5169e41f6dffcef493b487d6f10b1d5fd",
+  "theirs": "4d4906163044929c1b7b7a7ed40693a2cd4a9a91",
+  "mergeBase": "133ef4e5cfa06f9905dd83a4570c8d6b0369a317",
+  "resultTree": "3015e2c6488fb30cf2a2074e76b61947d1c8b169",
+  "resultSrcTree": "a1528b1c404b3e00358bae455eef788d13072452",
+  "method": "actual per-path Git mode/type/blob comparison plus explicit conflict-hunk synthesis; scripts/check-merge-both-sides.sh absent, not run",
+  "rows": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "733035e60dfc1c00d6aac11545fe1185da2a994a"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5e2b815ffc4e3fae968d016cf859c6862da3f9f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "733035e60dfc1c00d6aac11545fe1185da2a994a"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5e2b815ffc4e3fae968d016cf859c6862da3f9f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/parallel/active/control-detail-polish.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6b4beca78e421cd02d7b4006f0dc172766b973d1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6b4beca78e421cd02d7b4006f0dc172766b973d1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "classification": "synthesized-both",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "70675f9f64d3faeae16b58dfbc66710b3ccb112d"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "91a30c632a03d339ff765bde09af4ca6388080e9"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7e5ef3cf72cc7b5c4cb04ef74752f22615f7204e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3fb62e1753fbbe77cc7a0691493d44d353179105"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/parallel/active/engine-protocol-consumption-closeout.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "45df00389715eae21a60eafad449b2a9163c2ef3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "45df00389715eae21a60eafad449b2a9163c2ef3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/parallel/active/engine-queue-and-skill-contracts.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "11db60d6646e23d9a42373b1509b1dd2e3788ab7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "11db60d6646e23d9a42373b1509b1dd2e3788ab7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "classification": "synthesized-both",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e595e2c79197d4e0d4b341046016fa198ac15f37"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2f123f801d554abfa9491ae0cbfa57b5208bded3"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bb7f2887a2652ac31e6174d621da4bee814ea296"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7edabc210adbb18976afdaba2264dbce20c6e933"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/control-detail-polish.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd51f098662667f8fb8b56bb0d431d8d51161da2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd51f098662667f8fb8b56bb0d431d8d51161da2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/copilot-chat-cold-voice-authorization.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "76de6c142c19dd912770d0dda8c4c9d700be7c6a"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8f5aa16cc85382a727dc42610d7d97a62f539063"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "76de6c142c19dd912770d0dda8c4c9d700be7c6a"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8f5aa16cc85382a727dc42610d7d97a62f539063"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/current-typescript-contract-baseline.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e2cd2a01e3589e5b3d883f7fcfbd7d25ab012ec"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e2cd2a01e3589e5b3d883f7fcfbd7d25ab012ec"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/engine-protocol-consumption-closeout.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a89fd940e8f71023174f8a5245e35e87d9cea625"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a89fd940e8f71023174f8a5245e35e87d9cea625"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/engine-queue-and-skill-contracts.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a194a61de5c7a816857dcf80367295950bd043e4"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a194a61de5c7a816857dcf80367295950bd043e4"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/sources-open-dispatch-and-conversation-target.md",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "476bbe3300a07d6357d4a7d2402e60a655410b4c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "476bbe3300a07d6357d4a7d2402e60a655410b4c"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1818aa5da5cbaca24d8c3864afb13c93109d5755"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1818aa5da5cbaca24d8c3864afb13c93109d5755"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "classification": "synthesized-both",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "282fcb6b969245eb318d77e4bf237bf08247c49f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fb598c4144a77496f4224bfa1d368281b878a06f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b507c0b5aaa156021e58c66d8bbb689fa6102b5c"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dca91a9e08a5737942e4ef0230b328a31c278934"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/after-manifest.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d7f0db43b8bdd8774c03b485c8e90ad749dca0ec"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d7f0db43b8bdd8774c03b485c8e90ad749dca0ec"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/disabled.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9f9af2f981502cf6d78f868ed86632cd4e40b3c6"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9f9af2f981502cf6d78f868ed86632cd4e40b3c6"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/matrix.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6051dfa339e0f03f52b06a3b13b37c893dc48a59"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6051dfa339e0f03f52b06a3b13b37c893dc48a59"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/runtime-js.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f78dda033ab7493222c370457c60d8ec2a8be9dc"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f78dda033ab7493222c370457c60d8ec2a8be9dc"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/toolbar.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "563d32dfc5098f04d6e475118b0bccfcd6962e53"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "563d32dfc5098f04d6e475118b0bccfcd6962e53"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/verification.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fed9f31d93c90de9e3e24f0a11ed43f3fc56e054"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fed9f31d93c90de9e3e24f0a11ed43f3fc56e054"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d490c2c9da23c2d7d784b20a0d323bc47deb4b5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d490c2c9da23c2d7d784b20a0d323bc47deb4b5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "25dc2ea8b8262c7bef1cd53af19b7307e7bd11d0"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "25dc2ea8b8262c7bef1cd53af19b7307e7bd11d0"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron-command.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e35783c6e2d2296a58b237a467f416cf552c2e1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e35783c6e2d2296a58b237a467f416cf552c2e1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-electron.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "627e8760066dc9f4ab698367a486a5488aa93452"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "627e8760066dc9f4ab698367a486a5488aa93452"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-eslint.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8fcb2e82f3b6a7f40ea12dacb23babfbcdef1b6f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8fcb2e82f3b6a7f40ea12dacb23babfbcdef1b6f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5aba7abf909e80f4dc6a4e1d6edc398be2721ea2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5aba7abf909e80f4dc6a4e1d6edc398be2721ea2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-existing-red.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3c88cceb8e680dab280ba653063c4ffb35eb2556"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3c88cceb8e680dab280ba653063c4ffb35eb2556"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-final-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4b2b9685cefc34596a98a7252d3acfeef3d562d5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4b2b9685cefc34596a98a7252d3acfeef3d562d5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-green.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fec7e0dbde9549cd11845de17c64ed4dfe14c68d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fec7e0dbde9549cd11845de17c64ed4dfe14c68d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0646873c32af30b3281286fc4c21e81558f280ca"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0646873c32af30b3281286fc4c21e81558f280ca"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "27e50097f7879e1012da776562e47e5747eb2d84"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "27e50097f7879e1012da776562e47e5747eb2d84"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-grpcClientCalls.test.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9a40de8bf1dc8184fc977e5878ee09124b99101d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9a40de8bf1dc8184fc977e5878ee09124b99101d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-manageRemoteAgentHostsCatchScanD1328.test.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "240873f8d5a7799ed8a31c34498d3c65a133eaef"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "240873f8d5a7799ed8a31c34498d3c65a133eaef"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-node-mobileHostFilterFocusScan.test.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0df5428c9f211ff58ac118d525c2fc1497f819c1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0df5428c9f211ff58ac118d525c2fc1497f819c1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-repair-1.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0ae5a0fe3f456f5bb330f3d7cd7e4c48219be6ee"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0ae5a0fe3f456f5bb330f3d7cd7e4c48219be6ee"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ab35bd36bbb428276e0f119348989ca5a055d9cb"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ab35bd36bbb428276e0f119348989ca5a055d9cb"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08423458fde55d0a037d4058b77864f165d673a5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08423458fde55d0a037d4058b77864f165d673a5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b2ccced000bd6d163c314e7a9b9c16cfd7ed3eb"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9011d4bfe9449c6e1e7a0ed2edb7075348c1159f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b2ccced000bd6d163c314e7a9b9c16cfd7ed3eb"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9011d4bfe9449c6e1e7a0ed2edb7075348c1159f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "facc31f55bd39ca210e59affd98d38ca17286985"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "facc31f55bd39ca210e59affd98d38ca17286985"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb6136352726e3f4ec7a4e6b8c8008609666b288"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb6136352726e3f4ec7a4e6b8c8008609666b288"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-scope-erratum-peer.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf9e03a9217cf17ecfa730f5d38d636f5e39b810"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf9e03a9217cf17ecfa730f5d38d636f5e39b810"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-cleanup-verification.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3d06793fba2b7da98c772bbb009f202fc7bbe0c3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3d06793fba2b7da98c772bbb009f202fc7bbe0c3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-final-gates.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b604e30e4ae07b2760e00da60ce1b98ba5a4bf6"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b604e30e4ae07b2760e00da60ce1b98ba5a4bf6"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-open-view-correction.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2aa8f45ff8f4370fce8ec68831f5c3183b1ebe8f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2aa8f45ff8f4370fce8ec68831f5c3183b1ebe8f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-ui-probe.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6dbc55ab7727d174f1df28583409b4d2f8f3979d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6dbc55ab7727d174f1df28583409b4d2f8f3979d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1385-verification.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6f7c0aec85f10e51f6ef05ebed35a6fa10ac42c4"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "904ab0ebfa370a9230bec15ffdb03c6327e74f71"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6f7c0aec85f10e51f6ef05ebed35a6fa10ac42c4"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "904ab0ebfa370a9230bec15ffdb03c6327e74f71"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df3cfbda3506a36dd2d3e54cbded7d4d56d59769"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df3cfbda3506a36dd2d3e54cbded7d4d56d59769"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-complete-electron.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "76e7be2038bab1478362ccdec607d9b604255f76"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "76e7be2038bab1478362ccdec607d9b604255f76"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "61546574a636d33e693587720cd471cd2bb6e0d2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "61546574a636d33e693587720cd471cd2bb6e0d2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-eslint.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "96c63d090d144d5bfa4dfae4f9dbab1ff7a43a8e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "96c63d090d144d5bfa4dfae4f9dbab1ff7a43a8e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-install-immutable.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d8f38f3dd20b879d4420d42c49b9016d249edc35"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d8f38f3dd20b879d4420d42c49b9016d249edc35"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-lint-immutable.mjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "70c7af04d6627a068621494f3e8d866db1910956"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "70c7af04d6627a068621494f3e8d866db1910956"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-4f7-virtual-output-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "60f17d64fc6f9038fce6d45467979f2efa55e5c3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "60f17d64fc6f9038fce6d45467979f2efa55e5c3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron-command.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a4d7395c27c50d999c7c2588dc35ebd3ef09a7b7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a4d7395c27c50d999c7c2588dc35ebd3ef09a7b7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-complete-electron.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ca8c0c31db980e53477aaa744ac25fb6d141f842"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ca8c0c31db980e53477aaa744ac25fb6d141f842"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-gates-command.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b7af8459d744845cae8a878a3cddf21be6a16e58"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b7af8459d744845cae8a878a3cddf21be6a16e58"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0b389debf86a686f1f580379485f851754fd5675"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0b389debf86a686f1f580379485f851754fd5675"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-command.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3a6d5a1563b517c1136f639a11f2d7e8fb116d30"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3a6d5a1563b517c1136f639a11f2d7e8fb116d30"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint-delta.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "546f1ee2c9d0983cfae6f5f99c318e3a5278bc77"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "546f1ee2c9d0983cfae6f5f99c318e3a5278bc77"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "821033d637781a06f56e08f828fec60b37d5858d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "821033d637781a06f56e08f828fec60b37d5858d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-eslint.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "54faefcf482141de5400ef231d910c0c6dd2c790"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "54faefcf482141de5400ef231d910c0c6dd2c790"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-generated-status-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-install-immutable.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "38d774d9cf5c6373e3f17864fc3c5aafe033a521"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "38d774d9cf5c6373e3f17864fc3c5aafe033a521"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-lint-immutable.mjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6fcf8d6202e0da52f3f03e7ee8f19b99a7dccc5a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6fcf8d6202e0da52f3f03e7ee8f19b99a7dccc5a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-preintegration-state.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "760ca167e003746e08263d4ed286c82d36918f95"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "760ca167e003746e08263d4ed286c82d36918f95"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-red-source-continuity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "929c9e46b6e9f5d1b9425cf6e40b2f7fe2c37059"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "929c9e46b6e9f5d1b9425cf6e40b2f7fe2c37059"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.cjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "11fadf7719a46eb35c41b0953c575cb47a87f91d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "11fadf7719a46eb35c41b0953c575cb47a87f91d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "234cdc91ca51a594db98344bb66e963eb6d0ca1a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "234cdc91ca51a594db98344bb66e963eb6d0ca1a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-noemit.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8fc7ceb92563231f18e28dad12ff96a9845df77b"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8fc7ceb92563231f18e28dad12ff96a9845df77b"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-virtual-output-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "54e7e82a64c9e649ed1dbd4565e1ca0e4cc1ed20"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "54e7e82a64c9e649ed1dbd4565e1ca0e4cc1ed20"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-command.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bb4feca13501f20f75bd62df01b7dd8259f10ef"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bb4feca13501f20f75bd62df01b7dd8259f10ef"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring-source-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7bf6f698c30492143f394102dc183db078de4a0b"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7bf6f698c30492143f394102dc183db078de4a0b"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-65d-wiring.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2f08792a77cd8745e2fdce2056ccb2ad29fbf45f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2f08792a77cd8745e2fdce2056ccb2ad29fbf45f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7937c2ad9a8896935f22f4ef5166d6e9a75d9640"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7937c2ad9a8896935f22f4ef5166d6e9a75d9640"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-complete-electron.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9902e2fbb8e426c583f54bdb4f5b7de79161eb89"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9902e2fbb8e426c583f54bdb4f5b7de79161eb89"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c86acc43ae06ea701c773f4fd10feb7b14401820"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c86acc43ae06ea701c773f4fd10feb7b14401820"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-focused-green.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1bae0aa726195fa730ccf1a8c240c5824ad7163d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1bae0aa726195fa730ccf1a8c240c5824ad7163d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c8630472bc4e3c5382e8cf25c71056580ae7961c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c8630472bc4e3c5382e8cf25c71056580ae7961c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-independent-nine-electron.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ed674f7d5f498c6704694b060702edc54c7b78c6"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ed674f7d5f498c6704694b060702edc54c7b78c6"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-install-immutable.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e727bd070d415b86b3acdaae079a409cfdf5fac9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e727bd070d415b86b3acdaae079a409cfdf5fac9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.cjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "62414d485511de450dfbd11fa145ca61d8db76dd"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "62414d485511de450dfbd11fa145ca61d8db76dd"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "538e1bcebead54f04f687d7d754f9ebaf288865e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "538e1bcebead54f04f687d7d754f9ebaf288865e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-noemit.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "129bd776bfdf5197d879764545393da5d9565ff7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "129bd776bfdf5197d879764545393da5d9565ff7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-virtual-output-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a1628fa9386115a916e719ad504a0089a99d4e98"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a1628fa9386115a916e719ad504a0089a99d4e98"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring-source-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "453d2d0a4abe6d4256cf1027871220c84b0e485f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "453d2d0a4abe6d4256cf1027871220c84b0e485f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ce725457179e80d3f23079d2772bdad7936fcf8f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ce725457179e80d3f23079d2772bdad7936fcf8f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-89f-wiring.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "622109114a99f4aa612301f286a249cd399ef2a4"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "622109114a99f4aa612301f286a249cd399ef2a4"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-D-host-reviews-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8bd175f6af1cacab1c3e36ad1670cb0da78d4abf"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8bd175f6af1cacab1c3e36ad1670cb0da78d4abf"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-before.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "34c62331f0cf655416e81a43d56f154183178082"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "26204362f0c451aabc950b9d190ad9efd4d863f7"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "34c62331f0cf655416e81a43d56f154183178082"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "26204362f0c451aabc950b9d190ad9efd4d863f7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f4b7fcb49b158a5b6d8ddeb0a4c225af1d7dcb4b"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f4b7fcb49b158a5b6d8ddeb0a4c225af1d7dcb4b"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-custom-newtab-plan-review.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5dca23556c9fe28506ea3d73dca11ef0b6ba123f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5dca23556c9fe28506ea3d73dca11ef0b6ba123f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-custom-review-integration.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f903c556cc61da441b5809583a5698c457d0e574"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f903c556cc61da441b5809583a5698c457d0e574"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-code-review.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "eb85f59ab70e2c0714c0ea7cea947dbabd449c7d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "eb85f59ab70e2c0714c0ea7cea947dbabd449c7d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6872a8ece98634c7300e7903afe67ff452e0cbdf"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6872a8ece98634c7300e7903afe67ff452e0cbdf"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-implementation-peer-review.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4f84ef97d22c7e0c0339e827675d415d18cf0bee"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4f84ef97d22c7e0c0339e827675d415d18cf0bee"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-committed-docs-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f46b1a910d02243fa851cac2643c2470fc0102e0"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f46b1a910d02243fa851cac2643c2470fc0102e0"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7f4aed679e8bb247369d020fbec28404c07e5556"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7f4aed679e8bb247369d020fbec28404c07e5556"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ea75ff5b79045fc0a917751a857e8b69ea544407"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ea75ff5b79045fc0a917751a857e8b69ea544407"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-old23f-red-runner.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f44e36516df359922736bf28f848ebbca54f283d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f44e36516df359922736bf28f848ebbca54f283d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "732829d73416b92b8260fd958daed37e703bf3eb"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "732829d73416b92b8260fd958daed37e703bf3eb"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6dad1c651d8f487ab81edb06424ca2354a24169c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6dad1c651d8f487ab81edb06424ca2354a24169c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9e93d97de580146d646028c98c6a0c0928b65d48"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9e93d97de580146d646028c98c6a0c0928b65d48"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f3fd83d9200c2673f3f4f37dabe418aac4aa94b8"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f3fd83d9200c2673f3f4f37dabe418aac4aa94b8"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-sync-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7f05549c3a5f9d78ea03c1c06bb446714e48565d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7f05549c3a5f9d78ea03c1c06bb446714e48565d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f1746f3f5fde231c9efe6ae258e85d00534dcbb8"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f1746f3f5fde231c9efe6ae258e85d00534dcbb8"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4e70288e9a6c031decbaffd5f17719ce0a20f77d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4e70288e9a6c031decbaffd5f17719ce0a20f77d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fce319679e1de0ebb8fda415c26df105c8be44f3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fce319679e1de0ebb8fda415c26df105c8be44f3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ff392690dd304b14ea16bb7d6ed6b4ead26d2659"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ff392690dd304b14ea16bb7d6ed6b4ead26d2659"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-prepare-wiring.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d29751406a2d71e078015a8221feb7dd91511db5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d29751406a2d71e078015a8221feb7dd91511db5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c979aa84d0969328299f2389677e03baba524cbb"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c979aa84d0969328299f2389677e03baba524cbb"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1-old23f-red.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78b5d398103fa55af9adf92c850fe6f23bd8b4bd"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78b5d398103fa55af9adf92c850fe6f23bd8b4bd"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "27eb9d7a13b283463cf921dd4c2b68bde0330be5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "27eb9d7a13b283463cf921dd4c2b68bde0330be5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r1r2-old23f-red.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bfb6e4efc2eaf4df21e837ccb37e62c972fcaf88"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bfb6e4efc2eaf4df21e837ccb37e62c972fcaf88"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "789498104704da8c4cd124d6b1eaea95a88e7258"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "789498104704da8c4cd124d6b1eaea95a88e7258"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-r2-old23f-red-4f7.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c23b4c2cbfe016a3e890a47e2a411cc9563b49d1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c23b4c2cbfe016a3e890a47e2a411cc9563b49d1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md",
+      "classification": "theirs-only",
+      "base": null,
+      "ours": null,
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4e75f0186810327ea6e2b884fd1f3a064aabdd29"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4e75f0186810327ea6e2b884fd1f3a064aabdd29"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a799dfb71dd2838eb9b2ef9576aff24d475563d6"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a799dfb71dd2838eb9b2ef9576aff24d475563d6"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-wiring-baseline-existing-red.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf7a0a49dbda4b2a7677234fcc15d4ca034e79d3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf7a0a49dbda4b2a7677234fcc15d4ca034e79d3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-diff-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-gates.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e0a316052c64b4b1807ca741bce81a0405606b25"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e0a316052c64b4b1807ca741bce81a0405606b25"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-generate.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "433297607242f8eadf9dbb30dfa74bb8c975df92"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "433297607242f8eadf9dbb30dfa74bb8c975df92"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-generated-check.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-health-after.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8da38e381b323fa24b8191667479a6c3ef2098c0"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8da38e381b323fa24b8191667479a6c3ef2098c0"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-health-before.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "95b9f65eed0d05c72d36255b9f06d801a0ce9fa2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "95b9f65eed0d05c72d36255b9f06d801a0ce9fa2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-integration.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "440f32c846774816dd566b49bb46d66adbe5e4b1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "440f32c846774816dd566b49bb46d66adbe5e4b1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-snapshot.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e9a65195e73783349a1f9b1c36ce5e040989ce5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e9a65195e73783349a1f9b1c36ce5e040989ce5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "49b45da77e738c27ba9b8460cb93badc861234f9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "49b45da77e738c27ba9b8460cb93badc861234f9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red-runner.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ab8d9899dcdb80d1826c4669c3bf6aafb0fbadcd"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ab8d9899dcdb80d1826c4669c3bf6aafb0fbadcd"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-900f-business-old-ad80-red.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6bbf0f8382d4479d9fabef6de698991718fc7dd"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6bbf0f8382d4479d9fabef6de698991718fc7dd"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9610c5ec54a8a7528d3d8f2d90d49092adcf96fe"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9610c5ec54a8a7528d3d8f2d90d49092adcf96fe"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7066702164bde41dcf8455c56dde6564fb67f2e2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7066702164bde41dcf8455c56dde6564fb67f2e2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "167d4e30c92468bf0166392c27d0d54493b1073a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "167d4e30c92468bf0166392c27d0d54493b1073a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-runner.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1fd6d2eb69a46442a89ff3f6b335399b5611a6b"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1fd6d2eb69a46442a89ff3f6b335399b5611a6b"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b916ad0f17901e1ae0f60df56a7406f97e5e41d1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b916ad0f17901e1ae0f60df56a7406f97e5e41d1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd2d07d35a1a047ccb3277d950fe0e0b68eb208f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd2d07d35a1a047ccb3277d950fe0e0b68eb208f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-old65d-red.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dad4a9e1500084617075985fb6954aecd7a24ad9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dad4a9e1500084617075985fb6954aecd7a24ad9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-overlap-old65d-red-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "af42fc43335e3035ba7383b745e62dfb9e09f74a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "af42fc43335e3035ba7383b745e62dfb9e09f74a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-host-overlap-old65d-red-runner.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "892860117955000062eb3a9981bb0103dfb93d21"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "892860117955000062eb3a9981bb0103dfb93d21"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-1ac-overlap-old65d-red.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c2a8028aa84506de83ae94ed5162505cd12efc0c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c2a8028aa84506de83ae94ed5162505cd12efc0c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-D-peer-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78affa11afb176a2bda9de4ccc2d9d2c8d1a677e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78affa11afb176a2bda9de4ccc2d9d2c8d1a677e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-D-peer-docs-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d032da8691a1a6a16de261a9252de73a74b494f"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d032da8691a1a6a16de261a9252de73a74b494f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-D-peer-docs-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-D-peer-docs-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "40753119219da2f237eee80e3a2b66e4007203e6"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "40753119219da2f237eee80e3a2b66e4007203e6"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-final-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "32a9cac3b19002f6f556f1f61f5798e93d937cae"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "32a9cac3b19002f6f556f1f61f5798e93d937cae"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f25d9892c06eefea09ce0df79eb08299b1155b1a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f25d9892c06eefea09ce0df79eb08299b1155b1a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-runner.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e5918e4036dbcfad4c6542c85fb3bd1016cc2a44"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e5918e4036dbcfad4c6542c85fb3bd1016cc2a44"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f818c9c20ba1a749537b2f57fedc3e938fb67baf"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f818c9c20ba1a749537b2f57fedc3e938fb67baf"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa596981d1201e9977b2fb7afcb89784ed15e93e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa596981d1201e9977b2fb7afcb89784ed15e93e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-red-artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "77b2d58f1a232ad5fabd5cb30fd514b21f7be6d7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "77b2d58f1a232ad5fabd5cb30fd514b21f7be6d7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-P0-P1.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "eee48762a87be6de5be13c86ff25968f1612fa64"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "eee48762a87be6de5be13c86ff25968f1612fa64"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "871a6fe5ad6edb1c742b0b522b0f592b101fb49d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "871a6fe5ad6edb1c742b0b522b0f592b101fb49d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f9ba2967db671a4295b695f6970ea750fe2a842c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f9ba2967db671a4295b695f6970ea750fe2a842c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-peer-report-ff.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "388cf1439880b98a8957b860a871ccff4f757590"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "388cf1439880b98a8957b860a871ccff4f757590"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-peer-report-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7681fd8e7cae1338a2d43fcf815e6675bb3f79e9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7681fd8e7cae1338a2d43fcf815e6675bb3f79e9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-queued-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cd7abd30238203a64728dd7a762d4f8ebde7450"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cd7abd30238203a64728dd7a762d4f8ebde7450"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6bd30b1e7ad358d3fa422d7076912b52a1315f2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6bd30b1e7ad358d3fa422d7076912b52a1315f2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b796afae2b7a651a87674cd48812fcd3fb1d1670"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b796afae2b7a651a87674cd48812fcd3fb1d1670"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "859ea6b616663fbb2c8546064e7386a9e1ebcad5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "859ea6b616663fbb2c8546064e7386a9e1ebcad5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ba9711c960329275fd7923800a2394ff7db10e94"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ba9711c960329275fd7923800a2394ff7db10e94"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0cf0cee23e79b37af971a3a4d9f85100903b1dbd"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0cf0cee23e79b37af971a3a4d9f85100903b1dbd"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e436675fcdae55e15c55ddae0394fea37e22e36"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e436675fcdae55e15c55ddae0394fea37e22e36"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f55908f61721cdeb3bc651d13aab1efa725912e9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f55908f61721cdeb3bc651d13aab1efa725912e9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5b67991210ec892d901d8cf32bf462109202c1ce"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5b67991210ec892d901d8cf32bf462109202c1ce"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fb8461a7386c58c9072a79bca7bf73548bfadc93"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fb8461a7386c58c9072a79bca7bf73548bfadc93"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "16e1548dd0107b5d7206d1eb749657376725b95a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "16e1548dd0107b5d7206d1eb749657376725b95a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile-runner.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ddeef561dfda5216d7b61a90bc88a5cc0eb818d4"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ddeef561dfda5216d7b61a90bc88a5cc0eb818d4"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "96c38c52e4f16480caef12336f9f792a2eb38d14"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "96c38c52e4f16480caef12336f9f792a2eb38d14"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-compile.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b82e871e0882b3dcb183ca994482ab4bf797cf7a"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b82e871e0882b3dcb183ca994482ab4bf797cf7a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-180fc-final-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d2c5f66c7509adf57ec3b731538fb3833ec3c751"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d2c5f66c7509adf57ec3b731538fb3833ec3c751"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6cba50668e805b2624c1e4bf30f44ce4077b7993"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6cba50668e805b2624c1e4bf30f44ce4077b7993"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ffe56c1bb5f69ced09290d58e245ef869bd8a2d1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ffe56c1bb5f69ced09290d58e245ef869bd8a2d1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aee627ace6018b59f36abe597d25ff88b3d9e521"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aee627ace6018b59f36abe597d25ff88b3d9e521"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b18031c1d6a4e11fafdf343be30e3e592330d053"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b18031c1d6a4e11fafdf343be30e3e592330d053"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "23cfd3c8f9f79e8425e2b6c4f2750722f982b3bf"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "23cfd3c8f9f79e8425e2b6c4f2750722f982b3bf"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-final-docs-health.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9b52ca52c17c514294df3d63bd01d0f410734536"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9b52ca52c17c514294df3d63bd01d0f410734536"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/voice-dom-event-verification.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0d7310ce0335c62a46ea717e7cee95134deba16b"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b328df9a8fd17172ae2e8640b327f8f9ce0c816a"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0d7310ce0335c62a46ea717e7cee95134deba16b"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b328df9a8fd17172ae2e8640b327f8f9ce0c816a"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/deferred-gaps.md",
+      "classification": "synthesized-both",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fa4702b1c53e913e66fc8803aa01d09f84899399"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a011a6ceeb8d83ab4bda57c1fefc94efada6db30"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "99fe2b29b51547a5a6e286da7741a3491888dd67"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bde6e4425132ed06746f6498e01be891e14a784d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/health-gates.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e6f6971c147b16b7211d995c81c730b3d12097be"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4c81de80c7beb7ce654d7910e27f0afc93282f05"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e6f6971c147b16b7211d995c81c730b3d12097be"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4c81de80c7beb7ce654d7910e27f0afc93282f05"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "classification": "synthesized-both",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bc442d9a231b51d4f7d447171f2f6c2bd292ebbb"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ba5ba309419d9f06cec43bc60c1b97dfa1141c42"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "11dfe641a135eed726d6919e3ed459a65c0aa8cf"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e38d1c6dc748e6e05bcb6b74b1eb012ef9d09137"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/INDEX.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "27ee7ba2ac6c5a0cf6b3469638f689ab37755c63"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1b8ca72db971e8c1375daf74b78e4863da3b6c9"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "27ee7ba2ac6c5a0cf6b3469638f689ab37755c63"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b1b8ca72db971e8c1375daf74b78e4863da3b6c9"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/product/requirements.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "775140216a387dbe974ac87bedfba2deb7073212"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a24286a39ebe4b80a407f0de07416f004194454a"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "775140216a387dbe974ac87bedfba2deb7073212"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a24286a39ebe4b80a407f0de07416f004194454a"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/reference/universe-agent/INDEX.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5c8ade8fc1166ee820e22bd21d8835091cafac28"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2becb6aaaed7fbb3040e82d3c1e96e663a506248"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5c8ade8fc1166ee820e22bd21d8835091cafac28"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2becb6aaaed7fbb3040e82d3c1e96e663a506248"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/reference/universe-agent/engine-protocol-surface.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d8d45c06047b37a0c5269c3411d71f33d07097c0"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9ac1b9cb15aa282ac7620c83d76bdca6cf31fb36"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d8d45c06047b37a0c5269c3411d71f33d07097c0"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9ac1b9cb15aa282ac7620c83d76bdca6cf31fb36"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/reference/universe-agent/ide-engine-feature-gaps.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "eb4addc3aacfd7aee42005615c22ed9e6359259c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "eb4addc3aacfd7aee42005615c22ed9e6359259c"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/systems/conversation/composer-and-inbox.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ae5ea9b5568a99b092df3971d9520f0594b64732"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "981df533ce80f2401ee11c360fdffd414a77a576"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ae5ea9b5568a99b092df3971d9520f0594b64732"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "981df533ce80f2401ee11c360fdffd414a77a576"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/systems/sources/overview.md",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3d2e68937af267cba478806db615f2a45ec0731c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3d2e68937af267cba478806db615f2a45ec0731c"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4de120530932f7a0692af7dc054bb5900dd83af7"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4de120530932f7a0692af7dc054bb5900dd83af7"
+      },
+      "pass": true
+    },
+    {
+      "path": "docs/systems/workbench/editor-part-tabs.md",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "960a09867f0e9dca51333ef1983bca854f1d6a6e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "960a09867f0e9dca51333ef1983bca854f1d6a6e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "16fe615fbced05aeb561824ff684edda4d7a33e6"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "16fe615fbced05aeb561824ff684edda4d7a33e6"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/browserView/test/electron-main/browserSessionRemote.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3566a12382b8d4ed32439a49d14697222444174e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "77cd8c6d13305da1206e98aec146e2f2d8cc8cb4"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3566a12382b8d4ed32439a49d14697222444174e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "77cd8c6d13305da1206e98aec146e2f2d8cc8cb4"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/keyboardLayout/test/electron-main/keyboardLayoutMainService.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5fb5120797bb71f5f43e7bcab484f0200935e534"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f4b5bba856ee10ef362d749839f31a5509b3b76c"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5fb5120797bb71f5f43e7bcab484f0200935e534"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f4b5bba856ee10ef362d749839f31a5509b3b76c"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentCapabilities.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "546a029f8b92bd55784d0e205318d58fb55b2e3f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90d417d1a595536c7af0d39b7c3bd87a0b108a56"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "546a029f8b92bd55784d0e205318d58fb55b2e3f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90d417d1a595536c7af0d39b7c3bd87a0b108a56"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentConnection.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a657b8a7397e01f5af40155517302ba1fb30b2bd"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bd23d87d9b28d771f201dcbb19e1865f63c230e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a657b8a7397e01f5af40155517302ba1fb30b2bd"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bd23d87d9b28d771f201dcbb19e1865f63c230e"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "895d12d47fd15cac012431024fc9557f0d3fd96a"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4926d0068c3e0b9dcdebb39e6a836eeab6c2a276"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "895d12d47fd15cac012431024fc9557f0d3fd96a"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4926d0068c3e0b9dcdebb39e6a836eeab6c2a276"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/universeAgentTypes.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1bb55b33764b186973f85a84cddc60689b4482f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "77bdb39b03ae5df8ff5f9a0ad6b9ffae0438222b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1bb55b33764b186973f85a84cddc60689b4482f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "77bdb39b03ae5df8ff5f9a0ad6b9ffae0438222b"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcCatalogUnaryWire.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "57b9200c4bb0926567b01361d2b04a906db605f8"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "669fc8e3bcb16155bb05c102b885601a1ed3046d"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "57b9200c4bb0926567b01361d2b04a906db605f8"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "669fc8e3bcb16155bb05c102b885601a1ed3046d"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcClient.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "34b243f96c7bb4c833601393974d50963ec932ca"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5c462eba75b221c8d244b69c4c2a189e433afbc"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "34b243f96c7bb4c833601393974d50963ec932ca"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5c462eba75b221c8d244b69c4c2a189e433afbc"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcClientMappersCatalog.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c53684cfd0890690edf586546aab1e6dc1783e8b"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d5272cd3b08481cc2e3d11301e8c3f0f3e107d97"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c53684cfd0890690edf586546aab1e6dc1783e8b"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d5272cd3b08481cc2e3d11301e8c3f0f3e107d97"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcClientMappersSession.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1dcf3bf29f0649f27995539e9a1b75525efae8fc"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e65c83ea7bbc8a59c27f224655a44ee866968a2"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1dcf3bf29f0649f27995539e9a1b75525efae8fc"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6e65c83ea7bbc8a59c27f224655a44ee866968a2"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcConfigPermissionUnaryWire.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7fd0bd998c23f396e8ec4c3b8ed2e363f4d28a9e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a81818aa65e0a6009716f84b6fa6d5d35d442b93"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7fd0bd998c23f396e8ec4c3b8ed2e363f4d28a9e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a81818aa65e0a6009716f84b6fa6d5d35d442b93"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcProtoCodec.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f87ed92723dc0a123a1ee3299fd7dfe9c4398175"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f9b5e3b15994f9de3c38c5ad3827547ea3a55f73"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f87ed92723dc0a123a1ee3299fd7dfe9c4398175"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f9b5e3b15994f9de3c38c5ad3827547ea3a55f73"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcSessionAttachWire.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a869484f30beff9938eac3ee418bdc638e5f9089"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "429a1d6eb9e4d20176cecd684bae83f7af3a0216"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a869484f30beff9938eac3ee418bdc638e5f9089"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "429a1d6eb9e4d20176cecd684bae83f7af3a0216"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcTransport.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "81797182b442b0862f4c99040525d80a16fd0a53"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c6c9b1bdca9991c73dbf0ce3f95212fd2da68b4f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "81797182b442b0862f4c99040525d80a16fd0a53"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c6c9b1bdca9991c73dbf0ce3f95212fd2da68b4f"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpc/grpcTriggerUnaryWire.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "465aac8f4a97ce8f79ebd11f7e339737cf6c5174"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a0ac7b821fd342882b696808fc12d84a0055b86e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "465aac8f4a97ce8f79ebd11f7e339737cf6c5174"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a0ac7b821fd342882b696808fc12d84a0055b86e"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/grpcCapabilityProbe.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ea09f0413bbcb92b0d5be7a4a8962aaa12684938"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "56a680d64c4c6a87c1f96411d27034d2fe5dcd99"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ea09f0413bbcb92b0d5be7a4a8962aaa12684938"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "56a680d64c4c6a87c1f96411d27034d2fe5dcd99"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/universeAgentConnectionService.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc5c1e6d7d756affb8ec40758572373047cb59c3"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3805ab5f5645917b05a4a1320aaf76163451bcfb"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc5c1e6d7d756affb8ec40758572373047cb59c3"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3805ab5f5645917b05a4a1320aaf76163451bcfb"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/common/respondCleanup.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6df3025e5dd96ab712d2377d9e85823a29a4f60"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bd2d4aaf5822495a692d69e5a01c7c2861cbdb6b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6df3025e5dd96ab712d2377d9e85823a29a4f60"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bd2d4aaf5822495a692d69e5a01c7c2861cbdb6b"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/deviceAuthHandshake.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "078d958124355fffc88a88b6fc331a2ebaa549f3"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ce8377418985de4d87bd73bf97c9e0fccea0d14f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "078d958124355fffc88a88b6fc331a2ebaa549f3"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ce8377418985de4d87bd73bf97c9e0fccea0d14f"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcCapabilityProbe.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6dab8e889d031ddc642afe63a4cfbcc4b216639"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df4f607aac96381c9f22e62720d5598234dd8528"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6dab8e889d031ddc642afe63a4cfbcc4b216639"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df4f607aac96381c9f22e62720d5598234dd8528"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcClientCalls.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ea8cdd4f3d5e521a0ed56cf72c32ebf926aaf302"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6bd02e937e9f40e6b5d78b8ff4286b9020f1fb31"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ea8cdd4f3d5e521a0ed56cf72c32ebf926aaf302"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6bd02e937e9f40e6b5d78b8ff4286b9020f1fb31"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcProtocolConsumption.test.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d78735b651a4cf5cf01b68ec634806e176441ce4"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d78735b651a4cf5cf01b68ec634806e176441ce4"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcSessionWrites.test.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "31753414bbfebbca434a4a73df90f743f048cbc7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "31753414bbfebbca434a4a73df90f743f048cbc7"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/grpcTriggerUnaryWire.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e2935e1a325e9ae3435fe0dbd217693904d951b6"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c4906a04b885349058740d1fcd4b368cc58333a9"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e2935e1a325e9ae3435fe0dbd217693904d951b6"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c4906a04b885349058740d1fcd4b368cc58333a9"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/pairingOrchestrator.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "db6541673c8e473bbf716219909c5b8ece6ff3c7"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08b5ab6c36f6fc8645fd1108a249fbeaaf256f9e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "db6541673c8e473bbf716219909c5b8ece6ff3c7"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08b5ab6c36f6fc8645fd1108a249fbeaaf256f9e"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ac6bd146a1393fc72414276426d30051f3cc8b5f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6314fcff4da9ba8d75ebc9028a0904291feff117"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ac6bd146a1393fc72414276426d30051f3cc8b5f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6314fcff4da9ba8d75ebc9028a0904291feff117"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/universeAgentConnectionIpcChannel.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5316cb431787792098ef279bb2e36466ee113ad"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "806627360e67681b729fda0dbaacff3ca878ce60"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5316cb431787792098ef279bb2e36466ee113ad"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "806627360e67681b729fda0dbaacff3ca878ce60"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/changes/browser/changesActions.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7f75a31cf5b61356d5f94e79cd7f69f8346689e7"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "373a716a07c7d8800c278f586fdfc6533e0a5043"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7f75a31cf5b61356d5f94e79cd7f69f8346689e7"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "373a716a07c7d8800c278f586fdfc6533e0a5043"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/changes/browser/changesetReviewActions.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7a622f9c2cdd24780f05606cc818b9380e2dbe88"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a75a25daf433fb9c499a97e01b7e688c7a14be48"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7a622f9c2cdd24780f05606cc818b9380e2dbe88"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a75a25daf433fb9c499a97e01b7e688c7a14be48"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/changes/test/browser/sessionChangesEditorInput.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6818cdd64e1ed339b39819833d2883db1ac86e5"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7961da1343ab64e02c88d9bc9bb6eff887bcc48a"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6818cdd64e1ed339b39819833d2883db1ac86e5"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7961da1343ab64e02c88d9bc9bb6eff887bcc48a"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/chat/test/browser/newChatInput.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "75a016cb6db835a3e024bde53711822effbac953"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d9cb1bd1ba9c1504f24537dcfb75d7ae48295682"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "75a016cb6db835a3e024bde53711822effbac953"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d9cb1bd1ba9c1504f24537dcfb75d7ae48295682"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/copilotChatSessions/test/browser/branchPicker.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "505355b7c6bf2ae3fef5366b2e05f18b2168b324"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5e3096c8944445f316260a52107e5100654c30ea"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "505355b7c6bf2ae3fef5366b2e05f18b2168b324"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5e3096c8944445f316260a52107e5100654c30ea"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/remoteAgentHost/browser/mobileHostFilterActionViewItem.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c951c05b0d9b6ec5ace0b5186f379f3f5a12d761"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4cfa490846617d9a3d3985ad280a1bd4bae6db52"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c951c05b0d9b6ec5ace0b5186f379f3f5a12d761"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4cfa490846617d9a3d3985ad280a1bd4bae6db52"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/manageRemoteAgentHostsCatchScanD1328.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3df76363a2edde4b04d1600bf47e4c32765138a1"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "099c92397fb8c022d032c6c8f8e49d3ddc11f9d4"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3df76363a2edde4b04d1600bf47e4c32765138a1"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "099c92397fb8c022d032c6c8f8e49d3ddc11f9d4"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/remoteAgentHost/test/node/mobileHostFilterFocusScan.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a49ec799653515a9784b4c768c40fb376c656678"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1299ab9bd45dda0a3a1e4a2a1560068fadf5cc5b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a49ec799653515a9784b4c768c40fb376c656678"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1299ab9bd45dda0a3a1e4a2a1560068fadf5cc5b"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/sessions/test/browser/sessionsSetUpService.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ffd50263d0db9957341978a2c47537e6ad680351"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c6da71247f8b12579df4f177083cee8788156d06"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ffd50263d0db9957341978a2c47537e6ad680351"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c6da71247f8b12579df4f177083cee8788156d06"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/engineToolProfile.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cacfc0d93bd9c9207fc814c1d38c13231f6067fb"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b80dc979d6dcf31c50fe1747c2777d9d3c6827d8"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cacfc0d93bd9c9207fc814c1d38c13231f6067fb"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b80dc979d6dcf31c50fe1747c2777d9d3c6827d8"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/connectionPreferencesPane.css",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08fbfaeaca75a1968db91e151b9bb72a37ccab4a"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b47df73d702020c2020aa8d2fa9f389e00fbc8a8"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08fbfaeaca75a1968db91e151b9bb72a37ccab4a"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b47df73d702020c2020aa8d2fa9f389e00fbc8a8"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/conversationSessionsInlineFilter.css",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1cb2cbdf70bf259989601ab11a4c3cdabb2e076c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0a123e0b9d1a61b8e536aa4cf8c4b59c56f1c386"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1cb2cbdf70bf259989601ab11a4c3cdabb2e076c"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0a123e0b9d1a61b8e536aa4cf8c4b59c56f1c386"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d384c0d5f9f8db5838be4781f3637c60acf4a0a4"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c5f5390418094679147c6aa908974e6074754d1f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d384c0d5f9f8db5838be4781f3637c60acf4a0a4"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c5f5390418094679147c6aa908974e6074754d1f"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationComposerPicker.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1ac4bcb7653b00c58eaf42d6be94a707c9bcf5c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb2c9a86e3265d6118604c45d090f0908847b679"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1ac4bcb7653b00c58eaf42d6be94a707c9bcf5c"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb2c9a86e3265d6118604c45d090f0908847b679"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "33cb65af89ed4c80d4414c53badd38ff4e2f5958"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "33cb65af89ed4c80d4414c53badd38ff4e2f5958"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5f7798a8fe4bdc816cf4da99598db8ff37be2326"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5f7798a8fe4bdc816cf4da99598db8ff37be2326"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c4389d205e7192a2bf9805f89d50a8b166224cab"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "07535717f1bfb3438f5f00d8cb4a679c8dda63f3"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c4389d205e7192a2bf9805f89d50a8b166224cab"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "07535717f1bfb3438f5f00d8cb4a679c8dda63f3"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "545eff17fc2221fc2979b5f9ad5cf04e0bb3b96d"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c7f5121f290d90a7ae16d1d6c05bd86479cf303d"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "545eff17fc2221fc2979b5f9ad5cf04e0bb3b96d"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c7f5121f290d90a7ae16d1d6c05bd86479cf303d"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "12c6c9a3aa3c3de5d957f8944dc9dc5fc225e67d"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c0dce7cf1e5cf177da282979a758a852458cb8fa"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "12c6c9a3aa3c3de5d957f8944dc9dc5fc225e67d"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c0dce7cf1e5cf177da282979a758a852458cb8fa"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/engineToolProfile.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c9919d70c7250d10ea26176314cb89a6888a4f02"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d3bd68558396f16bf0237b3c1ca1baf9062e407b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c9919d70c7250d10ea26176314cb89a6888a4f02"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d3bd68558396f16bf0237b3c1ca1baf9062e407b"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/debug/test/browser/saveBeforeDebugStart.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d20d6d716b1db2b5599e04456113d60f731f2767"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "caacea76caec12cd73e8e17d210028d071422bc5"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d20d6d716b1db2b5599e04456113d60f731f2767"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "caacea76caec12cd73e8e17d210028d071422bc5"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/files/test/browser/fileImportExportCancel.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "870424170088a514cd5835c7d2e0825b5bed0c5a"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6cf44bb7039433071ced7d3ed84eb237779b69a7"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "870424170088a514cd5835c7d2e0825b5bed0c5a"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6cf44bb7039433071ced7d3ed84eb237779b69a7"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/markers/test/browser/markerViewModelQuickFix.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "73b8e5eed13f573951e8da6184643fabe4a4b58f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9f975e76f36287ba96f01bcbeec6c1232b8afdb3"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "73b8e5eed13f573951e8da6184643fabe4a4b58f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9f975e76f36287ba96f01bcbeec6c1232b8afdb3"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/mcp/test/common/mcpSandboxService.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c2a7f24009d352b01f54df7f6f2c75fbe56e982c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5a948de5c8139dfd7b2e5b0e4ce4b332caa884e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c2a7f24009d352b01f54df7f6f2c75fbe56e982c"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5a948de5c8139dfd7b2e5b0e4ce4b332caa884e"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/mcp/test/common/mcpTypes.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bdbc3794c96cf61ec6720741b51bf0a682affa68"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0f787c34970259b4ea7d53c7387551b49131ce4c"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bdbc3794c96cf61ec6720741b51bf0a682affa68"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0f787c34970259b4ea7d53c7387551b49131ce4c"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/output/test/browser/outputServices.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "98dc0001669ec36ed90fdeb642675c0c0db7009e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5c6c5f848045c9323a76d90fe2095986901bb8e1"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "98dc0001669ec36ed90fdeb642675c0c0db7009e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5c6c5f848045c9323a76d90fe2095986901bb8e1"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/media/sourcesTabs.css",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "306d3c1776f461aeac11db38e23264aef7e62ee4"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4bbdbdd630a07f25458178a95feb7cd2e596d1a9"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "306d3c1776f461aeac11db38e23264aef7e62ee4"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4bbdbdd630a07f25458178a95feb7cd2e596d1a9"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b49a2b452042d558497b4103b4f334e4e4199fa1"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b49a2b452042d558497b4103b4f334e4e4199fa1"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "40d00c14117b595812dcd2d5c178d5be187becd3"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "40d00c14117b595812dcd2d5c178d5be187becd3"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1958bc2f5282b581f2f25d6d15062d168887d27e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1958bc2f5282b581f2f25d6d15062d168887d27e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cdf5ef6a63561f7bea468ce24a04d8bf06a2d977"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cdf5ef6a63561f7bea468ce24a04d8bf06a2d977"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1c798a7d0fa84742ad84742c7a77364f83860b82"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1c798a7d0fa84742ad84742c7a77364f83860b82"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b3f6e0eac922b93ac57346030daf144011ac1004"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b3f6e0eac922b93ac57346030daf144011ac1004"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b032a011491630ada7717d4f8658981ca531e7b"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b032a011491630ada7717d4f8658981ca531e7b"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2d950857f207d703e9ccd18196ba118b2865a125"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2d950857f207d703e9ccd18196ba118b2865a125"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6d0a427b27c1fb39879f92ad24b23af17e5eeb59"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6d0a427b27c1fb39879f92ad24b23af17e5eeb59"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb83a05f281143ce7974ab7ca3444958a63b7826"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb83a05f281143ce7974ab7ca3444958a63b7826"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5c2d6d3485895d6607be83a0c6f226574a8bf833"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5c2d6d3485895d6607be83a0c6f226574a8bf833"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cd5787a5d726986134553a83e7c6437a60c6e93e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cd5787a5d726986134553a83e7c6437a60c6e93e"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/common/sourcesReviewHostService.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "adb0f615c0459aa426ab059395da14937b5b6ccb"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "adb0f615c0459aa426ab059395da14937b5b6ccb"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "22a2a17009f41cdc3e6087d24889c128c98d9c0f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "22a2a17009f41cdc3e6087d24889c128c98d9c0f"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7e41263219af5b88b8b0a82d1b2ed3d7cefd1903"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7e41263219af5b88b8b0a82d1b2ed3d7cefd1903"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7c3c8f050a27cf9f7d18d597ec5d4b86f95db75d"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7c3c8f050a27cf9f7d18d597ec5d4b86f95db75d"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "721544fdf4a1e8f42f3956a85ce14cdc622569fe"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "721544fdf4a1e8f42f3956a85ce14cdc622569fe"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2f03ab6ada04325289c5dcb60f0440fe36dd0104"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2f03ab6ada04325289c5dcb60f0440fe36dd0104"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffRefHelpers.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b894146d6c0dbcd7c70cd556d73c967a89690eec"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b894146d6c0dbcd7c70cd556d73c967a89690eec"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "974273411971837d6e37c64e649d821d1d117097"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "974273411971837d6e37c64e649d821d1d117097"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesGitDiffContent.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "77d5c87f1071e37eebbc5023abe4f3bd5b9d70f8"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "77d5c87f1071e37eebbc5023abe4f3bd5b9d70f8"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58e5dadf6e867666d110fc59e6ce1c1af185598f"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58e5dadf6e867666d110fc59e6ce1c1af185598f"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesReviewCommands.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e89dfa19b1f702fbb2c237b139545eb17511f778"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e89dfa19b1f702fbb2c237b139545eb17511f778"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9f2616215265e077b9c8b1dd97ebba9289cb6af9"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9f2616215265e077b9c8b1dd97ebba9289cb6af9"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "04fde42417da9a7a515755f0ae2d2a348e264988"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "04fde42417da9a7a515755f0ae2d2a348e264988"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef03752515a7ec94b72157de7d7bd43457b9a227"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef03752515a7ec94b72157de7d7bd43457b9a227"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesReviewShowForPaths.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2cc6c19b5eeaacc463b9203e95c079b0d00c1bbe"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2cc6c19b5eeaacc463b9203e95c079b0d00c1bbe"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6c24b1c3ec0dd985bd26b76bff07bb311417743"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6c24b1c3ec0dd985bd26b76bff07bb311417743"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/node/sourcesWiringScan.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2f5e76f1a07523ce5e2fa4c18b9fe12b07771511"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2f5e76f1a07523ce5e2fa4c18b9fe12b07771511"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "becef33d20245b1e0b618e6d877816a1fa329f48"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "becef33d20245b1e0b618e6d877816a1fa329f48"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/services/editor/common/editorGroupFinder.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "953b27612995f3043823ec8a2cdc48902e00945e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "953b27612995f3043823ec8a2cdc48902e00945e"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8ac87f38db3b1877105b34b4a1b4660c4080c271"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8ac87f38db3b1877105b34b4a1b4660c4080c271"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/services/extensionManagement/test/browser/extensionsManagerInitialize.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1eecbfd9cf3c563137f54a3a61a8eacbf7befb9"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b9956c48c6dcef202d578900295002098bb263f6"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d1eecbfd9cf3c563137f54a3a61a8eacbf7befb9"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b9956c48c6dcef202d578900295002098bb263f6"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/services/keybinding/test/electron-browser/nativeKeyboardLayoutService.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d6ed53f50a0d1a1cd84f022430e78d0cd56c7c74"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f71addba8fc30c96c786de14a7a820aa895704a6"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d6ed53f50a0d1a1cd84f022430e78d0cd56c7c74"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f71addba8fc30c96c786de14a7a820aa895704a6"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/services/mcp/test/browser/mcpGalleryManifestService.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a0f3b750bb76d7e9c37cdfa9a6269c6eccfbe207"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "276a058d3e886af0eee77e6ec27eab76d86d46e5"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a0f3b750bb76d7e9c37cdfa9a6269c6eccfbe207"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "276a058d3e886af0eee77e6ec27eab76d86d46e5"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/services/textMate/test/browser/threadedBackgroundTokenizerFactory.test.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "366de9b22ea0172d0c819aa77a4977aa5ee4c832"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3a7f6ec138d7edb0288a5a85849c4a1fbe15f279"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "366de9b22ea0172d0c819aa77a4977aa5ee4c832"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3a7f6ec138d7edb0288a5a85849c4a1fbe15f279"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/test/browser/componentFixtures/sessions/changesView.fixture.ts",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6ea43ade18bae27062a80ed1731f17673a68cf62"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f941beecb422ed8779294b283480cd0ec45da4c2"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6ea43ade18bae27062a80ed1731f17673a68cf62"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f941beecb422ed8779294b283480cd0ec45da4c2"
+      },
+      "pass": true
+    }
+  ],
+  "hunkResolutions": [
+    {
+      "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "hunk": 0,
+      "ours": "summary: \"J4d49/Ec2b独立peer C/I闭合、原件已读且正式merge-queued，冻结波无occupied；P0/P1完，P2串行合源/完整编译及全套进行前，P5禁push/P6主ff不重试。\"\n",
+      "theirs": "summary: \"D1386 CSS4红/完整44绿及非作者真实after C0/I0/M0后closed；D1385取消真实controller旧红/完整183绿，实际保留CopilotChat owner路由UI待证/open；后修3TS0，无第二全量。\"\n",
+      "result": "summary: \"J4d49正式真三路接入，Ec2b待串行合源；两peer C/I闭合，完整编译/全套/after待，P5禁push/P6主ff不重试。\"\n",
+      "reason": "保持最新正式集成阶段，D1385范围纠正和D1386历史证据仍在正文；不回退到作者旧调度。"
+    },
+    {
+      "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "hunk": 1,
+      "ours": "| J / review_sources_real_git_audit（作者） | D1387：Sources三owner/slot打开合同，两独立机制 | 已从4fb ff d472；真Git/C1–C6 before与Astra最终落点已到，正式plan accepted、规则16 C0/I0且I1改入；单独方案commit后实施，未改生产/编译/out/测试 |\n| merge / 唯一集成者 | 串行源码/精确旧基线/red-green、类型/lint及after收录 | 当前f75后修只fresh两个测试JS/一个actionJS/一CSS，本次3TS0/lint0；D1386closed；D1385原UI前提已撤回、验收停止，accepted/open。后修不全量，source6f82原45/27真实失败不覆盖，不取J新Sources实现 |\n",
+      "theirs": "| J / sources_executor（原完整实现后补修） | D1387：Sources三owner/slot打开合同，两独立机制 | bf50方案后1ac宿主/重叠生产与29项新回归已写；D独立codepeer C0/I0/M1，8处hasListeners漏调用本次全改实际调用，生产helper不变。语法0、lint0错误/29旧警告逐项无增减。唯一lane旧65d宿主4项纯业务红无需重跑；并发2红混夹具差异须重验，再新29green/原完整相关套/语义及非作者真实after。原357过/虚拟TS0不作新边界证据；accepted/open，J无编译/typecheck/out/业务运行。 |\n| merge / 唯一集成者 | 串行源码/精确旧基线/red-green、类型/lint及after收录 | 当前f75后修只fresh两个测试JS/一个actionJS/一CSS，本次3TS0/lint0；D1386closed、D1385实际入口UI待证。后修不全量，source6f82原45/27真实失败不覆盖，不取J新Sources实现 |\n",
+      "result": "| J / sources_executor（原完整实现后补修） | D1387：Sources三owner/slot打开合同，两独立机制 | bf50方案后1ac宿主/重叠生产与29项新回归已写；D独立codepeer核心C0/I0且M1关闭，8处hasListeners漏调用本次全改实际调用，生产helper不变。语法0、lint0错误/29旧警告逐项无增减。唯一lane旧65d宿主4项纯业务红无需重跑；并发2项已由唯一lane重验为纯业务旧红；正式新29green/原完整相关套/语义及非作者真实after。原357过/虚拟TS0不作新边界证据；accepted/open，J无编译/typecheck/out/业务运行。 |\n| merge / 唯一集成者 | 串行源码/精确旧基线/red-green、类型/lint及after收录 | 当前f75后修只fresh两个测试JS/一个actionJS/一CSS，本次3TS0/lint0；D1386closed；D1385原UI前提已撤回、验收停止，accepted/open。后修不全量，source6f82原45/27真实失败不覆盖，不取J新Sources实现 |\n",
+      "reason": "采用作者宿主/重叠实施与listener补修事实并更新已完成旧红，保留本线D1385撤回范围及唯一车道历史。"
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "hunk": 0,
+      "ours": "| [队列读回与技能正文保存跨仓修复](engine-queue-and-skill-contracts.md) | `draft` | 用户授权两仓；正式快照、来源与原文CAS、能力闸与断线恢复。 |\n| [引擎协议消费遗漏修复](engine-protocol-consumption-closeout.md) | `implemented` | 已有正式字段、两条 RPC、IPC 与能力闸；规则16 C0/I3 已改入，跨仓队列与技能保存已获授权，另续方案。 |\n| [默认编辑器控件细节精修](control-detail-polish.md) | `implemented` | Sources工具栏/页签、Navigator筛选、首选项返回控件；局部CSS精修。 |\n| [当前 TypeScript 编译合同基线](current-typescript-contract-baseline.md) | `implemented` | 全量compile-client45→3→0；27文件合同修复，Electron325过3既有红、Node10过，Astra源码C0/I0；D17不关闭。 |\n| [Sources 打开分派与准确 Conversation 目标](sources-open-dispatch-and-conversation-target.md) | `accepted` | D1387；真Git已证API DTO漏分派与concrete Conversation组路由两独立机制；三owner/slot/void保持，规则16已通过C0/I0，未实施。 |\n",
+      "theirs": "| [Sources 打开分派与准确 Conversation 目标](sources-open-dispatch-and-conversation-target.md) | `accepted` | D1387；真Git已证API DTO漏分派与concrete Conversation组路由两独立机制；三owner/slot/void保持，规则16 C0/I0；源码/回归已写，仅静态，运行/非作者after待。 |\n",
+      "result": "| [队列读回与技能正文保存跨仓修复](engine-queue-and-skill-contracts.md) | `draft` | 用户授权两仓；正式快照、来源与原文CAS、能力闸与断线恢复。 |\n| [引擎协议消费遗漏修复](engine-protocol-consumption-closeout.md) | `implemented` | 已有正式字段、两条 RPC、IPC 与能力闸；规则16 C0/I3 已改入，跨仓队列与技能保存已获授权，另续方案。 |\n| [默认编辑器控件细节精修](control-detail-polish.md) | `implemented` | Sources工具栏/页签、Navigator筛选、首选项返回控件；局部CSS精修。 |\n| [当前 TypeScript 编译合同基线](current-typescript-contract-baseline.md) | `implemented` | 全量compile-client45→3→0；27文件合同修复，Electron325过3既有红、Node10过，Astra源码C0/I0；D17不关闭。 |\n| [Sources 打开分派与准确 Conversation 目标](sources-open-dispatch-and-conversation-target.md) | `accepted` | D1387；真Git已证API DTO漏分派与concrete Conversation组路由两独立机制；三owner/slot/void保持，规则16 C0/I0；源码/回归已写，仅静态，运行/非作者after待。 |\n",
+      "reason": "完整保留main新增四方案行，Sources行采用作者源码/回归已写且运行待证描述；状态列由生成脚本校验。"
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "hunk": 0,
+      "ours": "| [J/E冻结波正式集成](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md) | 两候选merge-queued/peer C/I闭合原件已读，P0/P1完；P2串行合源/实际完整编译与全套待，禁push/主ff不重试 |\n| [E三I精确旧900f五代表业务红](default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md) | c2b新测试对完整旧900f14生产模块，5纯业务红；15输出/34native身份恢复，修订Astra复读待、不可formal queued |\n| [J4d49两项并发纯业务旧红](default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md) / [D宿主实现peer原件](default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-code-review.md) | 八处listener调用精确修补后2纯旧红；D核心C0/I0/M1关闭，192路径仅文档接入；34native身份恢复，E仍occupied |\n| [J/E实现peer补修阶段](default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md) | E900f C0/I3/M0退回occupied、原报告未入库；J4d49已补8调用且2 overlap纯旧红，不formal合源/emit/freeze |\n| [5df已提交协议基线接入](default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md) | 231b真三路119路径保留、src精确7fa3c86=5df；无新emit，out仍ad80身份，J/E正式完整编译待 |\n| [J/E不可变候选旧业务红](default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md) | J宿主4真红/并发2混夹具问题待作者补修；E真实DOM6红（4缺错误、2先缺busy）；34native身份均恢复，未formal合源/新绿/after |\n| [180fc已提交基线接入与全量编译](default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md) | ad80真三路保留78路径，src精确030def=180fc，真实compile-client0；原生emit替换65d旧pack，J/E候选未接，无主ff重试/after |\n| [D1387 宿主源码审查](default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md) / [宿主与重叠保护两轮方案审查](default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md) | 原实现同tuple多宿主Important；新增Sources重叠I1经第二轮方案C0/I0，J bf50方案独立accepted后实施中，未接新生产/after |\n| [D1387 不可变叠加验证](default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md) | 精确23f R1/R2各4业务红；65d虚拟noEmit0、完整Electron357过、wiring23/1既有红、lint0/56；51份原始证据入库，父51/30/Src独立复核通过；J并发I1方案C0/I0/生产待接、E accepted实施中，未formal合源/after |\n| [当前编译合同基线验证](default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md) | 全量compile-client45→3→0；Electron325过3既有红、Node10过、AstraC0/I0，源产物身份绑定提交，不升PRD |\n| [D1387 实现独立peer](default-editor-contract-audit-2026-10-26-evidence/d1387-implementation-peer-review.md) / [接入与安全同步](default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md) | J23f完整实现C0/I2，Astra已裁补修；D不可变报告真三路接入，编译绿基线仅ff主工位，无Sources实现/after通过 |\n| [D1385范围纠正与D1387方案纯文档集成](default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-integration.md) | 两ref真实三路、共享PRD与完整历史保留，源/out/原编译日志不变；D1387为当前产品执行队列，D1385停止原UI验收/open、D1386closed |\n| [D1387 原两机制业务red](default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md) / [custom窄例外方案审查](default-editor-contract-audit-2026-10-26-evidence/d1387-custom-newtab-plan-review.md) | 旧生产+J23f新测试0过14红（12DTO断言、2准确组业务拒绝）；仅两测试out刷新。规则16增量C0/I0，I1/I2源码补修/green/after仍待 |\n| [D1387 Sources 打开 before 与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md) | 两真实Git库、Preview no-op与Conversation具体组路由；C1–C6/实际Debugger五模块、Astra两轮裁定；正式方案规则16已通过C0/I0，未修复after |\n",
+      "theirs": "| [D1387 源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md) | 一次API分派、准确Conversation组、局部错误恢复及回归已写；仅静态，旧红新绿/独立after待 |\n| [D1387 Sources 打开 before 与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md) | 两真实Git库、Preview no-op与Conversation具体组路由；C1–C6/实际Debugger五模块、Astra两轮裁定；规则16 C0/I0；before不代after |\n",
+      "result": "| [D1387 源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md) | 一次API分派、准确Conversation组、局部错误恢复及回归已写；仅静态，旧红新绿/独立after待 |\n| [J/E冻结波正式集成](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md) | 两候选merge-queued/peer C/I闭合原件已读，P0/P1完；P2串行合源/实际完整编译与全套待，禁push/主ff不重试 |\n| [E三I精确旧900f五代表业务红](default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md) | c2b新测试对完整旧900f14生产模块，5纯业务红；15输出/34native身份恢复，修订Astra复读待、不可formal queued |\n| [J4d49两项并发纯业务旧红](default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md) / [D宿主实现peer原件](default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-code-review.md) | 八处listener调用精确修补后2纯旧红；D核心C0/I0/M1关闭，192路径仅文档接入；34native身份恢复，E仍occupied |\n| [J/E实现peer补修阶段](default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md) | E900f C0/I3/M0退回occupied、原报告未入库；J4d49已补8调用且2 overlap纯旧红，不formal合源/emit/freeze |\n| [5df已提交协议基线接入](default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md) | 231b真三路119路径保留、src精确7fa3c86=5df；无新emit，out仍ad80身份，J/E正式完整编译待 |\n| [J/E不可变候选旧业务红](default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md) | J宿主4真红/并发2混夹具问题待作者补修；E真实DOM6红（4缺错误、2先缺busy）；34native身份均恢复，未formal合源/新绿/after |\n| [180fc已提交基线接入与全量编译](default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md) | ad80真三路保留78路径，src精确030def=180fc，真实compile-client0；原生emit替换65d旧pack，J/E候选未接，无主ff重试/after |\n| [D1387 宿主源码审查](default-editor-contract-audit-2026-10-26-evidence/d1387-comparison-gate-code-review.md) / [宿主与重叠保护两轮方案审查](default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md) | 原实现同tuple多宿主Important；新增Sources重叠I1经第二轮方案C0/I0，J bf50方案独立accepted后实施中，未接新生产/after |\n| [D1387 不可变叠加验证](default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md) | 精确23f R1/R2各4业务红；65d虚拟noEmit0、完整Electron357过、wiring23/1既有红、lint0/56；51份原始证据入库，父51/30/Src独立复核通过；J并发I1方案C0/I0/生产待接、E accepted实施中，未formal合源/after |\n| [当前编译合同基线验证](default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md) | 全量compile-client45→3→0；Electron325过3既有红、Node10过、AstraC0/I0，源产物身份绑定提交，不升PRD |\n| [D1387 实现独立peer](default-editor-contract-audit-2026-10-26-evidence/d1387-implementation-peer-review.md) / [接入与安全同步](default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md) | J23f完整实现C0/I2，Astra已裁补修；D不可变报告真三路接入，编译绿基线仅ff主工位，无Sources实现/after通过 |\n| [D1385范围纠正与D1387方案纯文档集成](default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-integration.md) | 两ref真实三路、共享PRD与完整历史保留，源/out/原编译日志不变；D1387为当前产品执行队列，D1385停止原UI验收/open、D1386closed |\n| [D1387 原两机制业务red](default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md) / [custom窄例外方案审查](default-editor-contract-audit-2026-10-26-evidence/d1387-custom-newtab-plan-review.md) | 旧生产+J23f新测试0过14红（12DTO断言、2准确组业务拒绝）；仅两测试out刷新。规则16增量C0/I0，I1/I2源码补修/green/after仍待 |\n| [D1387 Sources 打开 before 与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md) | 两真实Git库、Preview no-op与Conversation具体组路由；C1–C6/实际Debugger五模块、Astra两轮裁定；规则16 C0/I0；before不代after |\n",
+      "reason": "保留所有本线验证入口，增加作者源码检查点，before行采用作者规则16已闭合但不能代after表述。"
+    },
+    {
+      "path": "dev/progress/deferred-gaps.md",
+      "hunk": 0,
+      "ours": "| D1387 | P2 | Sources真实Git默认Preview漏API open/diff DTO，no-op却标Review；Conversation准确具体组在空组/newTab/reveal被finder改投主组拒绝。 | 两库真实before与C1–C6公共正负对照、Debugger组9/10→main0及五模块embedded源一致；无slot/typed replace/Panel通过不是修复after。 | [方案](../plans/sources-open-dispatch-and-conversation-target.md) accepted，规则16 C0/I0；源码实施待做；[before与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md)。三owner/slot/void边界，修复/旧红新绿/非作者after均未执行，不提前关。 | Sources open / editor routing | open |\n| D1385 | P2 | 首次录音授权/冷取消的共享兼容实现修复已验证；原“默认CopilotChat pane/editor可达”前提失效，产品UI验收未满足并停止。 | 原5业务红/182绿；f9取消真实controller旧abort0/release1/ptt_end1红、新完整183绿，目标TS0/lint0与独立源码复审C0/I0/M0保留。默认公开入口按既有M5关闭，不是账号/设备缺失；组件fixture excluded。 | [方案](../plans/copilot-chat-cold-voice-authorization.md#10-默认产品可达性范围纠正2026-10-26) accepted；[最终范围裁定](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md) / [独立入口核验](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md)。移出当前默认产品执行队列，不继续造入口或探测，不计Conversation真语音；未closed/implemented。 | agentsVoice / 共享兼容维护 | open |\n",
+      "theirs": "| D1387 | P2 | Sources真实Git默认Preview漏API open/diff DTO，no-op却标Review；Conversation准确具体组在空组/newTab/reveal被finder改投主组拒绝。 | 两库真实before与C1–C6公共正负对照、Debugger组9/10→main0及五模块embedded源一致；无slot/typed replace/Panel通过不是修复after。 | [方案](../plans/sources-open-dispatch-and-conversation-target.md) accepted，规则16 C0/I0；源码/回归已写、仅静态；[源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)；[before与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md)。三owner/slot/void边界，旧红新绿/非作者after未执行，不提前关。 | Sources open / editor routing | open |\n| D1385 | P2 | Copilot Chat首次录音授权及冷意图取消的原缺陷；实际UI发起owner路径仍待证明。 | 原5业务红/182绿；f9c17真三路后，真实controller owner hide旧abort0/release1/ptt_end1红，新完整183绿；本次两目标TS0/lint0，Astra同合同裁定与D peer C0/I0/M0。未再次全量，不计Conversation真语音。 | [方案](../plans/copilot-chat-cold-voice-authorization.md) accepted；[取消后修](default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md)。D非作者实际保留CopilotChat pane/editor工具栏/快捷键owner路由证明待到，验收前不关；无真实设备/网络。 | agentsVoice / Copilot Chat | open |\n",
+      "result": "| D1387 | P2 | Sources真实Git默认Preview漏API open/diff DTO，no-op却标Review；Conversation准确具体组在空组/newTab/reveal被finder改投主组拒绝。 | 两库真实before与C1–C6公共正负对照、Debugger组9/10→main0及五模块embedded源一致；无slot/typed replace/Panel通过不是修复after。 | [方案](../plans/sources-open-dispatch-and-conversation-target.md) accepted，规则16 C0/I0；源码/回归已写、仅静态；[源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)；[before与设计](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md)。三owner/slot/void边界，旧红新绿/非作者after未执行，不提前关。 | Sources open / editor routing | open |\n| D1385 | P2 | 首次录音授权/冷取消的共享兼容实现修复已验证；原“默认CopilotChat pane/editor可达”前提失效，产品UI验收未满足并停止。 | 原5业务红/182绿；f9取消真实controller旧abort0/release1/ptt_end1红、新完整183绿，目标TS0/lint0与独立源码复审C0/I0/M0保留。默认公开入口按既有M5关闭，不是账号/设备缺失；组件fixture excluded。 | [方案](../plans/copilot-chat-cold-voice-authorization.md#10-默认产品可达性范围纠正2026-10-26) accepted；[最终范围裁定](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md) / [独立入口核验](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md)。移出当前默认产品执行队列，不继续造入口或探测，不计Conversation真语音；未closed/implemented。 | agentsVoice / 共享兼容维护 | open |\n",
+      "reason": "D1387采用作者源码/回归已写且仍open，D1385保持最新默认产品入口前提撤回范围，避免回退旧UI待证状态。"
+    },
+    {
+      "path": "dev/progress/status.md",
+      "hunk": 0,
+      "ours": "summary: \"J4d49/Ec2b peer原件C/I闭合、正式merge-queued，无occupied；main明确5df，P0/P1完，P2串行合源/完整emit待；禁push/主ff不重试。\"\n",
+      "theirs": "summary: \"D1386 CSS真实4红/完整44绿，非作者真实after C0/I0/M0并闭合；D1385取消真实controller旧红/完整183绿、本3TS0/lint0，实际保留CopilotChat owner入口UI仍待证/open；后修未全量。\"\n",
+      "result": "summary: \"J4d49已正式真三路接入，Ec2b待串行合源；peer原件C/I闭合，完整编译/全套/after待；禁push/主ff不重试。\"\n",
+      "reason": "当前正式合源阶段取代作者历史summary；两侧历史细节均在正文保留。"
+    },
+    {
+      "path": "dev/progress/status.md",
+      "hunk": 1,
+      "ours": "- **J/E正式queued与P0/P1（2026-10-27）**：已实读Astra不可变3e550原900f C0/I3与c2b复读C0/I0/M0，2docs仅在merge自身ff接入；J4d49核心peer/M1闭合，两代码成员clean且正式merge-queued，无occupied。P0 main明确5df/src7fa、有99dirty路径只登记不取源码；J/E/merge clean、stash0，P1 already-committed。父授权本wake直接P0–P7，P2真三路/完整emit/全套随后；P5禁push/P6主ff既有拒绝不重试，不先宣称wave释放。[正式记录与边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。\n- **E三I修订的精确旧900f代表红（2026-10-27）**：c2b新roster测配完整不可变900f的14生产模块，独占共享锁/全局空闲后实载5代表=0过5纯业务AssertionError：I1accepted后重复响应true应false，I2disconnect/identity同步三API全true应false，I3question options/toolargs替换后DOM仍busy。I3旧false/accepted与I2缓存后续断言尚未达，不越报。15输出身份全部恢复（State.js原无现仍无）、34native SHA全恢复，HEAD/src/clean不变。c2b独立Astra复读待，E occupied不可formal queued；不formal合源/全量emit/freeze。[原日志/范围/身份](default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md)。\n- **J listener补修与2纯业务旧红（2026-10-27）**：不可变4d49相对1ac精确8处hasListeners()、生产不变；独占共享编译锁/全局进程空后，仅新test02a626配精确旧65d helper f136，2 settles-first均0过2身份AssertionError红，listening=false/calls[1,1]/trace[]均符合；原4host红不重跑。finally两JS原字节恢复、34native全恢复，HEAD/src/clean不变。D0aef原件仅文档真三路95ce892、192路径保留PASS，核心C0/I0且M1关闭；J模块queued，E仍C0/I3 occupied，整波不formal合源/全量emit/freeze。[原件/运行/身份](default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md)。\n- **J/E实现peer补修阶段（2026-10-27）**：父转达Astra对E900f静态peer C0/I3/M0，原报告尚未入库；timeline-only clientTool accepted丢closed身份、disconnect/identity scope通知先于write gate可重入、同generation已有interactive语义改变仍复用attempt。E已退回occupied补修、当前不可formal queued，须不可变修订/复读。当次J正补8处hasListeners()，后续不可变交付/2纯旧红见上条，宿主4不重跑。当前main5df/src7fa3c86未新emit，34native仍ad80身份；不formal合J/E/全量emit/freeze，不取WIP/主ff重试/push。[阶段事实与来源](default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md)。\n- **main已提交5df协议基线接入（2026-10-26）**：只取明确5df（含7cf协议源码/后续方案），从clean02261真三路231b7bb7529，119路径全PASS；status双方原记录逐字保留，result:src精确7fa3c86=5df。无本轮compile/typecheck/transpile/out写入，34native仍ad80身份，旧compile0不延伸到新src。J/E未formal合，最终peer/作者补修后统一实际完整emit；无主ff重试/root WIP/out/push。[源与保留门禁](default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md)。\n- **队列与技能跨仓方案（2026-10-26）**：用户已明确两仓范围；独立只读评估的锁覆盖、fresh原文CAS、bind唤醒与保存中新草稿保持已改入[方案](../plans/engine-queue-and-skill-contracts.md)。先方案commit，再实施；保留生成中Send/Enqueue闸与其他WIP。\n- **引擎协议消费修复（2026-10-26）**：补Create/Info/Fork/Provider/Profile字段、两条正式RPC与IPC/能力闸，maxRewinds显式0在正文/模型/工具保存中保持。原8业务red转绿；Node203+498、Profile编辑器3过，原project native tsc通过，MCP一既有mapper失败单独复现。跨仓队列/技能获授权，另续方案，不升产品状态。见[方案](../plans/engine-protocol-consumption-closeout.md)。\n- **对话行内编辑与会话菜单（2026-10-26）**：用户回合把同一张 Composer 放进该行（Exit、输入、发送留在行内，底栏不跟进去）；加上下文和会话切换用标题加消息数区分同名项，空会话写 No messages，种子标题改为 Visualize；展开输入用 expand-all / collapse-all，文案 Expand input / Shrink input，提示在按钮上方。未开窗口验收。规格见 [composer-and-inbox](../../docs/systems/conversation/composer-and-inbox.md)。\n- **J/E不可变候选旧业务验证（2026-10-26）**：J1ac新Changes测配精确65d旧helper，官方真实宿主4业务身份红；并发2实际错记但混hasListeners方法未调用夹具问题，已转原作者，不计干净门禁。E900f新roster测对nativead80旧链6实际DOM红（permission/question4缺就地错误、clientTool2先缺busy，未走到其结果完成）；AST0/无新helper runtime import，7核心09f6/ad80源相同。每轮临时JS均finally原字节恢复、34native SHA零变，HEAD/src/clean不变。采样时两模块交付queued；后续E实现peer C0/I3已退回occupied，现行阶段见上条；正式合源/新绿/after待。[原日志/身份](default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md)。\n- **180fc已提交UI基线对齐与完整编译（2026-10-26）**：从clean54c53真三路吸收明确main180fc形成ad80c9fe1cf，78路径门禁全PASS，唯一status双改保留双方，result:src精确030def=180fc。编译前全局车道空闲，实际`rtk proxy npm run compile-client` exit0/0TS诊断；HEAD/src/clean前后不变。原生emit替换旧65d30JS+4CSS，旧pack已非live、357仅历史；J/E WIP未取、不formal合字母源码/不freeze、不重试mainff/不写rootout。[本次基线与源产物](default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md)。\n- **主工位单次安全ff拒绝（2026-10-26）**：对纯docs检查点a7123fb10a5仅执行一次`merge --ff-only`，Git exit128“无法快进，终止”；main HEAD、全部采样WIP SHA、index diff SHA、status前后全同，原样保留未重试/未覆盖，main非clean且未同步。merge源树仍932031、30份65d虚拟out不变，不称本波完成。[拒绝原记录](default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json)。\n- **外部纯文档安全接入（2026-10-26）**：只取主工位不可变3d522的9份已提交文档，src树仍932031，真三路da0d263；D7c84两轮宿主规则16报告另接6c75c2。逐路径两边保留门禁65/117全PASS；本方51份原始证据、分工与外部两方案/索引均保留，不取root/J/E WIP、不改30份65d pack。Sources宿主新生产与E代码仍未接，正式波未完成。[门禁](default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json)。\n- **父级核验与两模块当前状态（2026-10-26 15:12:55 UTC记录）**：父独立核3760的51份artifact、30份live out均0 mismatch，src精确932031绿树。E accepted方案独立提交5dd7d97d45b，受审SHA256 262df24…已C0/I0，blocked Minor已写，现于自己槽位14条源码路径实施且occupied；本线未含E方案/代码。Sources并发I1已采纳同service/API完整tuple与custom wildcard重叠sticky歧义门，D两轮规则16报告7c84e0167e3第二轮C0/I0，J已独立accepted方案提交bf50c66b8b9并在自己槽位实施宿主生产/回归，尚无已接入新生产/不freeze。主工位独立主题WIP及外部前进HEAD保留，只允许一次ff-only；新编译前先查全局活进程，不重复起车道。[核验与采样历史](default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md#父级独立核验与最新调度状态)。\n- **D1387 不可变源码叠加验证（2026-10-26，65d采样历史）**：65d虚拟完整Program noEmit0、官方十文件Electron357过/exit0，wiring23过1已精确09f6复现的Acceptpatch既有红，lint0错误/56警告且4f7→65d无新增。R1/R2精确23f各0过4业务红，89f类型6红、setup泄漏与4f7夹具红均保留并由作者补修；51份raw/命令/source-out身份当轮落库。src仍09f6/de22绿树，仅merge out虚拟叠加；同tuple多宿主Important规则16/生产补修待，J+E两coder冻结，采样时E unary方案draft/规则16改稿且occupied，不formal合源/不发after freeze/不计产品完成。[完整证据](default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)。\n- **控件细节精修（2026-10-26）**：四CSS收敛Sources工具栏命中区/页签按压、Navigator筛选焦点/清除对齐、Connection与Engine返回按钮；四主题16组基本控件、8组本地工具栏、4组禁用ActionBar验证通过，独立源码复读C0/I0/M0。局部CSS刷新，无全量编译；本地根/禁用fixture与既有JS边界见[证据](control-detail-polish-evidence/verification.md)。\n- **D1387 原两机制业务红（2026-10-26）**：主/merge已同clean555c，只有merge取不可变J23f两新测试JS；五core源逐字等c968/133ef、生产JS前后SHA不变。官方Electron0过14败：12DTO在resource.open实际1/期望0断言红，准确对象/id两项被旧finder业务拒绝，无加载/类型/timeout。明确test-only混合scope，最终J补修green/完整套/after待；D cbac规则16custom窄例外报告另真三路接入，逐路径保留门禁PASS。[红与身份](default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md)。\n- **编译基线安全同步与D1387 peer接入（2026-10-26）**：父实核54个source/out SHA与src树后，主工位clean agent-ide仅ff de22成功；D不可变c664独立报告真三路合入0dd2，两边保留等价逐路径门禁PASS、src/out未变、无新编译。J原23f实现已独立审C0/I2，newTab预pin与单侧URI身份误配由Astra裁定、J补修中，尚未合生产或宣告after。[接入证据](default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md)。\n- **当前编译合同范围完成（2026-10-26）**：方案33922独立提交后修27文件，Astra源码审查C0/I0；唯一merge全量`compile-client`真实45→3→0、exit0。20文件Electron325过/3既有红，精确c968旧测试已复现同三红并恢复当前测试JS原SHA；Node三份10过，ESLint0errors/20warnings，D17保持open。src子树和27组source/out身份见[证据](default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md)。不改Sources实现，不升产品PRD；J D1387独立补修由父调度。\n- **当前全量编译合同恢复（2026-10-26）**：merge从clean c968实际运行`npm run compile-client`，exit1、45诊断/27文件；新原始日志独立保存，不复用旧计数。已写[最小方案](../plans/current-typescript-contract-baseline.md)，Astra规则16 C0/I0、两Minor改入，accepted；先独立方案提交，继而只在merge修正式API/夹具与三处生产窄类型。其他D Sources与Astra整体审查保持只读，父仅调度；D1387已有J实现待独立核查，未提前合入。\n- **纯文档集成检查点（2026-10-26）**：C4ed462→d17d01、J133ef4→6ecd5c真三路合入，保留PRD005/009与015各自条款及两plan原文。当前产品执行队列仅D1387（accepted/open，待源码与红绿/非作者after），D1385原UI前提失效、停止并退出队列但仍accepted/open；D1386已closed。源码/配置等根树与d472一致，现有产物hash/mtime复核不变；本轮未编译/typecheck/transpile/out或复跑183/44。末次全量仍source6f82的45/27、exit1，后修仅3TS0。[集成证据](default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-integration.md)。\n- **D1387 正式方案编写（2026-10-26，J）**：从clean4fb仅ff已验证基线d472，真实Git审计已证Preview漏API open/diff DTO与Conversation具体组路由两独立机制。PRD005/009事实、Sources/编辑器SSOT与[方案](../plans/sources-open-dispatch-and-conversation-target.md)已写，已过独立规则16 C0/I0，stale/status代次文案I1已改入并复读；[before/五模块加载身份/两轮Astra裁定](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md)入库。未实施/未编译/typecheck/transpile/out/运行测试，方案accepted、缺口open；既有D1385/1386与全量记录不改。\n- **D1385 默认产品范围纠正（2026-10-26，纯文档）**：Astra最终撤回先前默认CopilotChat pane/editor可达判断；M5已implemented且公开动作/service/resolver/restore按窗口门闩关闭或转Conversation。D实际默认窗口初探widgets=[]、openView精确null、服务/serializer早退、Conversation真CtrlShiftSpace voice派发0；组件构造/eligibility均excluded，原UI验收未满足并停止。保留共享兼容安全修复与183绿/源码复审，撤回3d新增PRD015与系统文档入口事实；方案accepted/D1385open，移出当前产品执行队列，不新增语音实现或要求登录。历史运行/代价保留，下列旧阶段“待UI”均由本条范围纠正取代。[方案§10](../plans/copilot-chat-cold-voice-authorization.md#10-默认产品可达性范围纠正2026-10-26) / [最终裁定](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md) / [D入口核验](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md)。\n- **同波后修与D1386闭合（2026-10-26）**：D b774→1247bec，旧正式CSS5c595…只fresh测试四主题computed block/12×12全红；仅正式CSS dee625…复制后4绿/完整IdentityStrip44过，三生产JS字节/mtime不动。C非作者原窗口真实href/CSS.getStyleSheetText精确dee625，叶身份/菜单URI/异步/实际键盘/四主题/1024窄叶after C0/I0/M0、I1解除，原报告/原observations gzip/82本地图片清单已入库；D1386closed、planimplemented、PRD029不升。C f9→f75bf218，精确69ac旧action+新真实controller测试在abort0/release1/ptt_end1业务红；仅newactionfresh后新项1绿/完整183过。本次3TS原project noEmit0、lint0；新旧CSS stylelint同5变量/9建议。未二次fullcompile，source6f82原45/27失败与更早日志不改。该阶段D1385原假设中的默认CopilotChat owner UI仍待证；现已核宿主关闭、原UI验收未满足并停止，accepted/open。[D后修/闭合](default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md) / [C取消后修](default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md)。\n- **D1385 取消顺序源码补修（2026-10-26，C）**：31 条公共场景保留，真实 controller 增为 4 条；同合同补修已写 startedPtt 先 discard 后 hold、owner hide 的 fake mic abort/零 release/零 ptt_end、旧 A 松键不影响 B 与 B 正常释放。该源码交接时待 merge 旧69ac顺序 red / 新 green；后来已获旧红/完整183绿，见上条。本工位未编译/typecheck/transpile/out/单测；方案 accepted、缺口 open，不计 Conversation 真语音。见[方案](../plans/copilot-chat-cold-voice-authorization.md)。\n",
+      "theirs": "- **D1387 宿主/并发源码补修（2026-10-27，J）**：bf50方案后1ac生产/29项新回归已写，D独立codepeer C0/I0/M1。唯一lane旧65d+1ac测试宿主4项纯身份业务红；并发两项真实误写身份但混hasListeners函数对象差异。本次仅8处改实际hasListeners()，保留全部监听释放/metadata断言，helper hash不变；语法0、lint0错误/29旧警告逐项无增减。唯一lane只重验并发2旧red，再新29green/原完整套/语义，非作者after待；accepted/open，不借原357过/TS0升状态，J无编译/out/业务运行。[证据](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#监听清理断言调用补修2026-10-27j)。\n- **D1387 测试类型/合同夹具补修（2026-10-26，J）**：按唯一merge六条虚拟noEmit诊断补精确group id及root/resource断言；error-tone scan对齐带open来源的当前调用，并在真实API拒绝业务用例断言错误色。独立九套248过/1败的workingTree move夹具补paired multiDiff URI，保留后续准确组/resource保证与缺信息负控；Accept patch扫描失败不动。五TS语法0、lint0错误/51旧警告无增减；仅测试/证据，无编译/typecheck/out/业务运行，唯一merge复核待，accepted/open。[证据](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#测试类型与既有合同夹具补修2026-10-26j)。\n- **D1387 测试harness补修（2026-10-26，J）**：唯一merge反馈R1四项旧生产业务红、R2卡住不计red及完整套启动注册leak；本次将R2完整identity比较改为存在性/组id/严格SCM引用布尔值及原trace小投影，并将真实官方setup移到一次性suiteSetup，保留per-test leak门禁与handler/组模型。生产未改，语法0、lint0错误/29旧警告无增减、diff通过；未编译/out/业务运行，重跑交唯一merge。宿主归属新Important另走规则16，accepted/open不升。[证据](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#r2-失败报告小投影补修2026-10-26j)。\n- **D1387 两项Important源码补修（2026-10-26，J）**：先独立澄清`a76d062`、D规则16 C0/I0；现按Astra保留custom预pin窄例外，只取消API预pin，并用DTO完整双侧/单资源类型及custom可信身份作后置gate。新增28个官方handler/真实EditorGroupModel/同modified不同original与后台比较/custom兼容成本回归源码；两TS语法0、lint0错误/29旧警告逐项无新增、diff通过。未编译/typecheck/transpile/out/运行，唯一merge的原23f业务red/新green与D真实after待；方案accepted、D1387open。[源码/精确待运行](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#本轮独立审查后的补修2026-10-26)。\n- **D1387 打开副作用澄清（2026-10-26，J）**：D独立实现审查与Astra裁定两项Important；[方案§3.2](../plans/sources-open-dispatch-and-conversation-target.md#32-slot打开身份与局部副作用)补API不预pin/DTO完整身份，以及custom newTab保留旧preview的预pin窄例外和no-op/reject/另组兼容成本。D只读规则16 C0/I0后accepted、先单独文档提交；源码WIP未暂存，补修/运行/真实after仍待。旧73warnings为历史；本轮fresh health0errors/74warnings，较加报告link前fresh73只新增1条同仓报告待merge（D已提交cbac43），生成列与diff检查通过。PRD005/009无零pin承诺且状态不升。\n- **D1387 源码检查点（2026-10-26，J）**：方案`133ef4e`已独立提交、规则16 C0/I0。Sources官方DTO一次分派/全部真实调用方、finder准确Conversation对象/数字组与局部错误恢复源码及回归已写；[源码/待运行清单](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)。仅静态检查；未编译/typecheck/transpile/out/运行测试，独立实现peer、旧红新绿/非作者真实after待；方案accepted、缺口open，不借其他主题产物背书。\n- **同波后修与D1386闭合（2026-10-26）**：D b774→1247bec，旧正式CSS5c595…只fresh测试四主题computed block/12×12全红；仅正式CSS dee625…复制后4绿/完整IdentityStrip44过，三生产JS字节/mtime不动。C非作者原窗口真实href/CSS.getStyleSheetText精确dee625，叶身份/菜单URI/异步/实际键盘/四主题/1024窄叶after C0/I0/M0、I1解除，原报告/原observations gzip/82本地图片清单已入库；D1386closed、planimplemented、PRD029不升。C f9→f75bf218，精确69ac旧action+新真实controller测试在abort0/release1/ptt_end1业务红；仅newactionfresh后新项1绿/完整183过。本次3TS原project noEmit0、lint0；新旧CSS stylelint同5变量/9建议。未二次fullcompile，source6f82原45/27失败与更早日志不改。D1385实际保留CopilotChat toolbar/快捷键owner路由UI仍待D非作者证明，accepted/open。[D后修/闭合](default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md) / [C取消后修](default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md)。\n- **D1385 取消顺序源码补修（2026-10-26，C）**：31 条公共场景保留，真实 controller 增为 4 条；同合同补修已写 startedPtt 先 discard 后 hold、owner hide 的 fake mic abort/零 release/零 ptt_end、旧 A 松键不影响 B 与 B 正常释放。该补修待 merge 旧69ac顺序 red / 新 green。本工位未编译/typecheck/transpile/out/单测；方案 accepted、缺口 open，不计 Conversation 真语音。见[方案](../plans/copilot-chat-cold-voice-authorization.md)。\n",
+      "result": "- **J/E正式queued与P0/P1（2026-10-27）**：已实读Astra不可变3e550原900f C0/I3与c2b复读C0/I0/M0，2docs仅在merge自身ff接入；J4d49核心peer/M1闭合，两代码成员clean且正式merge-queued，无occupied。P0 main明确5df/src7fa、有99dirty路径只登记不取源码；J/E/merge clean、stash0，P1 already-committed。父授权本wake直接P0–P7，P2真三路/完整emit/全套随后；P5禁push/P6主ff既有拒绝不重试，不先宣称wave释放。[正式记录与边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。\n- **E三I修订的精确旧900f代表红（2026-10-27）**：c2b新roster测配完整不可变900f的14生产模块，独占共享锁/全局空闲后实载5代表=0过5纯业务AssertionError：I1accepted后重复响应true应false，I2disconnect/identity同步三API全true应false，I3question options/toolargs替换后DOM仍busy。I3旧false/accepted与I2缓存后续断言尚未达，不越报。15输出身份全部恢复（State.js原无现仍无）、34native SHA全恢复，HEAD/src/clean不变。c2b独立Astra复读待，E occupied不可formal queued；不formal合源/全量emit/freeze。[原日志/范围/身份](default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md)。\n- **J listener补修与2纯业务旧红（2026-10-27）**：不可变4d49相对1ac精确8处hasListeners()、生产不变；独占共享编译锁/全局进程空后，仅新test02a626配精确旧65d helper f136，2 settles-first均0过2身份AssertionError红，listening=false/calls[1,1]/trace[]均符合；原4host红不重跑。finally两JS原字节恢复、34native全恢复，HEAD/src/clean不变。D0aef原件仅文档真三路95ce892、192路径保留PASS，核心C0/I0且M1关闭；J模块queued，E仍C0/I3 occupied，整波不formal合源/全量emit/freeze。[原件/运行/身份](default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md)。\n- **J/E实现peer补修阶段（2026-10-27）**：父转达Astra对E900f静态peer C0/I3/M0，原报告尚未入库；timeline-only clientTool accepted丢closed身份、disconnect/identity scope通知先于write gate可重入、同generation已有interactive语义改变仍复用attempt。E已退回occupied补修、当前不可formal queued，须不可变修订/复读。当次J正补8处hasListeners()，后续不可变交付/2纯旧红见上条，宿主4不重跑。当前main5df/src7fa3c86未新emit，34native仍ad80身份；不formal合J/E/全量emit/freeze，不取WIP/主ff重试/push。[阶段事实与来源](default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md)。\n- **main已提交5df协议基线接入（2026-10-26）**：只取明确5df（含7cf协议源码/后续方案），从clean02261真三路231b7bb7529，119路径全PASS；status双方原记录逐字保留，result:src精确7fa3c86=5df。无本轮compile/typecheck/transpile/out写入，34native仍ad80身份，旧compile0不延伸到新src。J/E未formal合，最终peer/作者补修后统一实际完整emit；无主ff重试/root WIP/out/push。[源与保留门禁](default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md)。\n- **队列与技能跨仓方案（2026-10-26）**：用户已明确两仓范围；独立只读评估的锁覆盖、fresh原文CAS、bind唤醒与保存中新草稿保持已改入[方案](../plans/engine-queue-and-skill-contracts.md)。先方案commit，再实施；保留生成中Send/Enqueue闸与其他WIP。\n- **引擎协议消费修复（2026-10-26）**：补Create/Info/Fork/Provider/Profile字段、两条正式RPC与IPC/能力闸，maxRewinds显式0在正文/模型/工具保存中保持。原8业务red转绿；Node203+498、Profile编辑器3过，原project native tsc通过，MCP一既有mapper失败单独复现。跨仓队列/技能获授权，另续方案，不升产品状态。见[方案](../plans/engine-protocol-consumption-closeout.md)。\n- **对话行内编辑与会话菜单（2026-10-26）**：用户回合把同一张 Composer 放进该行（Exit、输入、发送留在行内，底栏不跟进去）；加上下文和会话切换用标题加消息数区分同名项，空会话写 No messages，种子标题改为 Visualize；展开输入用 expand-all / collapse-all，文案 Expand input / Shrink input，提示在按钮上方。未开窗口验收。规格见 [composer-and-inbox](../../docs/systems/conversation/composer-and-inbox.md)。\n- **J/E不可变候选旧业务验证（2026-10-26）**：J1ac新Changes测配精确65d旧helper，官方真实宿主4业务身份红；并发2实际错记但混hasListeners方法未调用夹具问题，已转原作者，不计干净门禁。E900f新roster测对nativead80旧链6实际DOM红（permission/question4缺就地错误、clientTool2先缺busy，未走到其结果完成）；AST0/无新helper runtime import，7核心09f6/ad80源相同。每轮临时JS均finally原字节恢复、34native SHA零变，HEAD/src/clean不变。采样时两模块交付queued；后续E实现peer C0/I3已退回occupied，现行阶段见上条；正式合源/新绿/after待。[原日志/身份](default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md)。\n- **180fc已提交UI基线对齐与完整编译（2026-10-26）**：从clean54c53真三路吸收明确main180fc形成ad80c9fe1cf，78路径门禁全PASS，唯一status双改保留双方，result:src精确030def=180fc。编译前全局车道空闲，实际`rtk proxy npm run compile-client` exit0/0TS诊断；HEAD/src/clean前后不变。原生emit替换旧65d30JS+4CSS，旧pack已非live、357仅历史；J/E WIP未取、不formal合字母源码/不freeze、不重试mainff/不写rootout。[本次基线与源产物](default-editor-contract-audit-2026-10-26-evidence/main-180fc-baseline-verification.md)。\n- **主工位单次安全ff拒绝（2026-10-26）**：对纯docs检查点a7123fb10a5仅执行一次`merge --ff-only`，Git exit128“无法快进，终止”；main HEAD、全部采样WIP SHA、index diff SHA、status前后全同，原样保留未重试/未覆盖，main非clean且未同步。merge源树仍932031、30份65d虚拟out不变，不称本波完成。[拒绝原记录](default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json)。\n- **外部纯文档安全接入（2026-10-26）**：只取主工位不可变3d522的9份已提交文档，src树仍932031，真三路da0d263；D7c84两轮宿主规则16报告另接6c75c2。逐路径两边保留门禁65/117全PASS；本方51份原始证据、分工与外部两方案/索引均保留，不取root/J/E WIP、不改30份65d pack。Sources宿主新生产与E代码仍未接，正式波未完成。[门禁](default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json)。\n- **父级核验与两模块当前状态（2026-10-26 15:12:55 UTC记录）**：父独立核3760的51份artifact、30份live out均0 mismatch，src精确932031绿树。E accepted方案独立提交5dd7d97d45b，受审SHA256 262df24…已C0/I0，blocked Minor已写，现于自己槽位14条源码路径实施且occupied；本线未含E方案/代码。Sources并发I1已采纳同service/API完整tuple与custom wildcard重叠sticky歧义门，D两轮规则16报告7c84e0167e3第二轮C0/I0，J已独立accepted方案提交bf50c66b8b9并在自己槽位实施宿主生产/回归，尚无已接入新生产/不freeze。主工位独立主题WIP及外部前进HEAD保留，只允许一次ff-only；新编译前先查全局活进程，不重复起车道。[核验与采样历史](default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md#父级独立核验与最新调度状态)。\n- **D1387 不可变源码叠加验证（2026-10-26，65d采样历史）**：65d虚拟完整Program noEmit0、官方十文件Electron357过/exit0，wiring23过1已精确09f6复现的Acceptpatch既有红，lint0错误/56警告且4f7→65d无新增。R1/R2精确23f各0过4业务红，89f类型6红、setup泄漏与4f7夹具红均保留并由作者补修；51份raw/命令/source-out身份当轮落库。src仍09f6/de22绿树，仅merge out虚拟叠加；同tuple多宿主Important规则16/生产补修待，J+E两coder冻结，采样时E unary方案draft/规则16改稿且occupied，不formal合源/不发after freeze/不计产品完成。[完整证据](default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)。\n- **控件细节精修（2026-10-26）**：四CSS收敛Sources工具栏命中区/页签按压、Navigator筛选焦点/清除对齐、Connection与Engine返回按钮；四主题16组基本控件、8组本地工具栏、4组禁用ActionBar验证通过，独立源码复读C0/I0/M0。局部CSS刷新，无全量编译；本地根/禁用fixture与既有JS边界见[证据](control-detail-polish-evidence/verification.md)。\n- **D1387 原两机制业务红（2026-10-26）**：主/merge已同clean555c，只有merge取不可变J23f两新测试JS；五core源逐字等c968/133ef、生产JS前后SHA不变。官方Electron0过14败：12DTO在resource.open实际1/期望0断言红，准确对象/id两项被旧finder业务拒绝，无加载/类型/timeout。明确test-only混合scope，最终J补修green/完整套/after待；D cbac规则16custom窄例外报告另真三路接入，逐路径保留门禁PASS。[红与身份](default-editor-contract-audit-2026-10-26-evidence/d1387-original-causes-red.md)。\n- **编译基线安全同步与D1387 peer接入（2026-10-26）**：父实核54个source/out SHA与src树后，主工位clean agent-ide仅ff de22成功；D不可变c664独立报告真三路合入0dd2，两边保留等价逐路径门禁PASS、src/out未变、无新编译。J原23f实现已独立审C0/I2，newTab预pin与单侧URI身份误配由Astra裁定、J补修中，尚未合生产或宣告after。[接入证据](default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md)。\n- **当前编译合同范围完成（2026-10-26）**：方案33922独立提交后修27文件，Astra源码审查C0/I0；唯一merge全量`compile-client`真实45→3→0、exit0。20文件Electron325过/3既有红，精确c968旧测试已复现同三红并恢复当前测试JS原SHA；Node三份10过，ESLint0errors/20warnings，D17保持open。src子树和27组source/out身份见[证据](default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md)。不改Sources实现，不升产品PRD；J D1387独立补修由父调度。\n- **当前全量编译合同恢复（2026-10-26）**：merge从clean c968实际运行`npm run compile-client`，exit1、45诊断/27文件；新原始日志独立保存，不复用旧计数。已写[最小方案](../plans/current-typescript-contract-baseline.md)，Astra规则16 C0/I0、两Minor改入，accepted；先独立方案提交，继而只在merge修正式API/夹具与三处生产窄类型。其他D Sources与Astra整体审查保持只读，父仅调度；D1387已有J实现待独立核查，未提前合入。\n- **纯文档集成检查点（2026-10-26）**：C4ed462→d17d01、J133ef4→6ecd5c真三路合入，保留PRD005/009与015各自条款及两plan原文。当前产品执行队列仅D1387（accepted/open，待源码与红绿/非作者after），D1385原UI前提失效、停止并退出队列但仍accepted/open；D1386已closed。源码/配置等根树与d472一致，现有产物hash/mtime复核不变；本轮未编译/typecheck/transpile/out或复跑183/44。末次全量仍source6f82的45/27、exit1，后修仅3TS0。[集成证据](default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-integration.md)。\n- **D1387 正式方案编写（2026-10-26，J）**：从clean4fb仅ff已验证基线d472，真实Git审计已证Preview漏API open/diff DTO与Conversation具体组路由两独立机制。PRD005/009事实、Sources/编辑器SSOT与[方案](../plans/sources-open-dispatch-and-conversation-target.md)已写，已过独立规则16 C0/I0，stale/status代次文案I1已改入并复读；[before/五模块加载身份/两轮Astra裁定](default-editor-contract-audit-2026-10-26-evidence/d1387-before.md)入库。未实施/未编译/typecheck/transpile/out/运行测试，方案accepted、缺口open；既有D1385/1386与全量记录不改。\n- **D1385 默认产品范围纠正（2026-10-26，纯文档）**：Astra最终撤回先前默认CopilotChat pane/editor可达判断；M5已implemented且公开动作/service/resolver/restore按窗口门闩关闭或转Conversation。D实际默认窗口初探widgets=[]、openView精确null、服务/serializer早退、Conversation真CtrlShiftSpace voice派发0；组件构造/eligibility均excluded，原UI验收未满足并停止。保留共享兼容安全修复与183绿/源码复审，撤回3d新增PRD015与系统文档入口事实；方案accepted/D1385open，移出当前产品执行队列，不新增语音实现或要求登录。历史运行/代价保留，下列旧阶段“待UI”均由本条范围纠正取代。[方案§10](../plans/copilot-chat-cold-voice-authorization.md#10-默认产品可达性范围纠正2026-10-26) / [最终裁定](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md) / [D入口核验](default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md)。\n- **同波后修与D1386闭合（2026-10-26）**：D b774→1247bec，旧正式CSS5c595…只fresh测试四主题computed block/12×12全红；仅正式CSS dee625…复制后4绿/完整IdentityStrip44过，三生产JS字节/mtime不动。C非作者原窗口真实href/CSS.getStyleSheetText精确dee625，叶身份/菜单URI/异步/实际键盘/四主题/1024窄叶after C0/I0/M0、I1解除，原报告/原observations gzip/82本地图片清单已入库；D1386closed、planimplemented、PRD029不升。C f9→f75bf218，精确69ac旧action+新真实controller测试在abort0/release1/ptt_end1业务红；仅newactionfresh后新项1绿/完整183过。本次3TS原project noEmit0、lint0；新旧CSS stylelint同5变量/9建议。未二次fullcompile，source6f82原45/27失败与更早日志不改。该阶段D1385原假设中的默认CopilotChat owner UI仍待证；现已核宿主关闭、原UI验收未满足并停止，accepted/open。[D后修/闭合](default-editor-contract-audit-2026-10-26-evidence/d1386-chevron-verification.md) / [C取消后修](default-editor-contract-audit-2026-10-26-evidence/d1385-cancel-verification.md)。\n- **D1385 取消顺序源码补修（2026-10-26，C）**：31 条公共场景保留，真实 controller 增为 4 条；同合同补修已写 startedPtt 先 discard 后 hold、owner hide 的 fake mic abort/零 release/零 ptt_end、旧 A 松键不影响 B 与 B 正常释放。该源码交接时待 merge 旧69ac顺序 red / 新 green；后来已获旧红/完整183绿，见上条。本工位未编译/typecheck/transpile/out/单测；方案 accepted、缺口 open，不计 Conversation 真语音。见[方案](../plans/copilot-chat-cold-voice-authorization.md)。\n- **D1387 宿主/并发源码补修（2026-10-27，J）**：bf50方案后1ac生产/29项新回归已写，D独立codepeer C0/I0/M1。唯一lane旧65d+1ac测试宿主4项纯身份业务红；并发两项真实误写身份但混hasListeners函数对象差异。本次仅8处改实际hasListeners()，保留全部监听释放/metadata断言，helper hash不变；语法0、lint0错误/29旧警告逐项无增减。唯一lane只重验并发2旧red，再新29green/原完整套/语义，非作者after待；accepted/open，不借原357过/TS0升状态，J无编译/out/业务运行。[证据](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#监听清理断言调用补修2026-10-27j)。\n- **D1387 测试类型/合同夹具补修（2026-10-26，J）**：按唯一merge六条虚拟noEmit诊断补精确group id及root/resource断言；error-tone scan对齐带open来源的当前调用，并在真实API拒绝业务用例断言错误色。独立九套248过/1败的workingTree move夹具补paired multiDiff URI，保留后续准确组/resource保证与缺信息负控；Accept patch扫描失败不动。五TS语法0、lint0错误/51旧警告无增减；仅测试/证据，无编译/typecheck/out/业务运行，唯一merge复核待，accepted/open。[证据](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#测试类型与既有合同夹具补修2026-10-26j)。\n- **D1387 测试harness补修（2026-10-26，J）**：唯一merge反馈R1四项旧生产业务红、R2卡住不计red及完整套启动注册leak；本次将R2完整identity比较改为存在性/组id/严格SCM引用布尔值及原trace小投影，并将真实官方setup移到一次性suiteSetup，保留per-test leak门禁与handler/组模型。生产未改，语法0、lint0错误/29旧警告无增减、diff通过；未编译/out/业务运行，重跑交唯一merge。宿主归属新Important另走规则16，accepted/open不升。[证据](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#r2-失败报告小投影补修2026-10-26j)。\n- **D1387 两项Important源码补修（2026-10-26，J）**：先独立澄清`a76d062`、D规则16 C0/I0；现按Astra保留custom预pin窄例外，只取消API预pin，并用DTO完整双侧/单资源类型及custom可信身份作后置gate。新增28个官方handler/真实EditorGroupModel/同modified不同original与后台比较/custom兼容成本回归源码；两TS语法0、lint0错误/29旧警告逐项无新增、diff通过。未编译/typecheck/transpile/out/运行，唯一merge的原23f业务red/新green与D真实after待；方案accepted、D1387open。[源码/精确待运行](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#本轮独立审查后的补修2026-10-26)。\n- **D1387 打开副作用澄清（2026-10-26，J）**：D独立实现审查与Astra裁定两项Important；[方案§3.2](../plans/sources-open-dispatch-and-conversation-target.md#32-slot打开身份与局部副作用)补API不预pin/DTO完整身份，以及custom newTab保留旧preview的预pin窄例外和no-op/reject/另组兼容成本。D只读规则16 C0/I0后accepted、先单独文档提交；源码WIP未暂存，补修/运行/真实after仍待。旧73warnings为历史；本轮fresh health0errors/74warnings，较加报告link前fresh73只新增1条同仓报告待merge（D已提交cbac43），生成列与diff检查通过。PRD005/009无零pin承诺且状态不升。\n- **D1387 源码检查点（2026-10-26，J）**：方案`133ef4e`已独立提交、规则16 C0/I0。Sources官方DTO一次分派/全部真实调用方、finder准确Conversation对象/数字组与局部错误恢复源码及回归已写；[源码/待运行清单](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)。仅静态检查；未编译/typecheck/transpile/out/运行测试，独立实现peer、旧红新绿/非作者真实after待；方案accepted、缺口open，不借其他主题产物背书。\n",
+      "reason": "保留本线全部24行原始历史及作者新增六条源码/夹具/方案实施记录；不重复两侧共有D1385/D1386历史。"
+    }
+  ],
+  "pathsChecked": 262,
+  "allPass": true
+}

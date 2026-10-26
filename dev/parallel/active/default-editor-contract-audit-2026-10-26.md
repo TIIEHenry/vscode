@@ -9,25 +9,25 @@ summary: "J4d49/Ec2b已正式串行真三路接入，peer C/I闭合；完整编�
 
 # 默认编辑器合同与功能缺口续审
 
-> 当前冻结代码波只含J Sources与E unary恢复；不可变J4d49/Ec2b均正式merge-queued，无occupied代码成员。独立peer原件C/I闭合已实读，父授权本wake直接P0–P7；[正式集成记录](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。P0 main明确5df/src7fa、99dirty路径只登记不消费，J/E/merge clean、stash0；P2串行真三路与完整emit/相关全套待，统一green前不freeze。P5禁push/P6主ff既有拒绝不重试，不提前宣称wave释放。
+> 当前冻结代码波只含J Sources与E unary恢复；不可变J4d49/Ec2b已分别真三路5373/9209接入，无occupied代码成员。独立peer原件C/I闭合已实读，父授权本wake直接P0–P7；[正式集成记录](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。P0 main明确5df/src7fa、99dirty路径只登记不消费，J/E/merge clean、stash0；P2串行真三路262/208路径保留PASS，src fdca956；完整emit/相关全套待，统一green前不freeze。P5禁push/P6主ff既有拒绝不重试，不提前宣称wave释放。
 
 
 ## 当前已提交基线：5df对齐，最终编译待
 
-此前ad80/src030def对齐180fc已实际fullcompile-client0，原生emit替换旧65d pack。后续只取明确main5df真三路231b，119路径保留门禁全PASS（status原字节+main三行）；当前src精确7fa3c86=5df，无新emit且34native采样仍ad80身份，不将旧compile0延伸到当前src。J/E最终peer已闭合、现正式queued并按P2串行三路，之后一次完整编译/相关全套/after；不重试主ff、不写rootout、不freeze。[当前源/边界与门禁](../../progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md)。
+此前ad80/src030def对齐180fc已实际fullcompile-client0，原生emit替换旧65d pack。后续只取明确main5df真三路231b，119路径保留门禁全PASS（status原字节+main三行）；5df接入时src精确7fa3c86；现J/E正式真三路后src fdca956，无新emit且34native采样仍ad80身份，不将旧compile0延伸到当前src。J/E最终peer已闭合且正式串行三路接入，随后一次完整编译/相关全套/after；不重试主ff、不写rootout、不freeze。[当前源/边界与门禁](../../progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md)。
 
 ## 当前冻结分工与本次实际验证
 
-最新E已针对原900f C0/I3交c2b修订，原报告/复读已入库、Astra c2b复读C0/I0/M0原件3e550已读，E正式merge-queued；[精确旧900f五代表业务红](../../progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md)已实际留证、15输出/34native身份恢复；[三I与阶段边界](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md)。J宿主4旧业务红保留，4d49补8调用后只复跑2项same-tuple已纯业务红、listening=false；D原件已入，核心C0/I0/M1关闭。[本次2红/身份/peer](../../progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md)；E真实DOM6旧红（4缺失败提示、2先缺busy）。均仅测试组合、34native身份已恢复，不代表正式新green；[两模块旧业务证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md)。
+最新E已针对原900f C0/I3交c2b修订，原报告/复读已入库、Astra c2b复读C0/I0/M0原件3e550已读，E已正式真三路接入；[精确旧900f五代表业务红](../../progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md)已实际留证、15输出/34native身份恢复；[三I与阶段边界](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md)。J宿主4旧业务红保留，4d49补8调用后只复跑2项same-tuple已纯业务红、listening=false；D原件已入，核心C0/I0/M1关闭。[本次2红/身份/peer](../../progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md)；E真实DOM6旧红（4缺失败提示、2先缺busy）。均仅测试组合、34native身份已恢复，不代表正式新green；[两模块旧业务证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md)。
 
 | 工位 | 书面范围 | 当前阶段 |
 | --- | --- | --- |
-| J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。Astra追加并发I1采纳同service/API完整tuple与custom wildcard重叠sticky歧义门；D两轮报告7c84e0167e3已到，第二轮C0/I0；4d49精确补8处hasListeners()，D原件0aef核心C0/I0/M1关闭；唯一lane精确65d旧helper配修后测试2 overlap纯业务红，宿主4红不重跑；J模块queued、新green/非作者after待 |
-| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | accepted方案已独立提交5dd7d97d45b（受审SHA256 262df24…，C0/I0；blocked Minor已写），900f实现Astra静态peer C0/I3/M0（原报告未入库，仅父转达），timeline-only accepted重复unary、scope通知重入、同generation语义变化三I已退回原作者；已交c2b修订4TS/18回归，精确旧900f五代表纯业务红已验证；Astra c2b复读C0/I0/M0原件3e550已读，正式merge-queued，完整新green待；方案/代码均未合入本线，不计完成 |
+| J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。Astra追加并发I1采纳同service/API完整tuple与custom wildcard重叠sticky歧义门；D两轮报告7c84e0167e3已到，第二轮C0/I0；4d49精确补8处hasListeners()，D原件0aef核心C0/I0/M1关闭；唯一lane精确65d旧helper配修后测试2 overlap纯业务红，宿主4红不重跑；J已真三路5373接入、新green/非作者after待 |
+| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | accepted方案已独立提交5dd7d97d45b（受审SHA256 262df24…，C0/I0；blocked Minor已写），900f实现Astra静态peer C0/I3/M0（原报告未入库，仅父转达），timeline-only accepted重复unary、scope通知重入、同generation语义变化三I已退回原作者；已交c2b修订4TS/18回归，精确旧900f五代表纯业务红已验证；Astra c2b复读C0/I0/M0原件3e550已读，正式真三路9209接入，完整新green待；方案/代码已合入但不计验证完成 |
 | D / Sources独立审查与after | 非作者codepeer、正式产物冻结后的默认编辑器真实Git after | 规则16第二轮C0/I0；实现peer原件0aef已读/纯docs接入，核心C0/I0且4d49补修M1关闭；未收到freeze notice，不用混合pack提前窗口after |
-| merge / baseline_executor | 唯一编译、类型、转译、out与串行集成车道 | 当前231b/src7fa3c86对齐明确main5df；无新emit，34native仍ad80已编译身份。J/E正式合源后实际完整编译/测试/after，51份历史原件保留，不复用旧65d身份 |
+| merge / baseline_executor | 唯一编译、类型、转译、out与串行集成车道 | 明确main5df与J/E真三路后当前src fdca956；无新emit，34native仍ad80已编译身份。J/E正式合源后实际完整编译/测试/after，51份历史原件保留，不复用旧65d身份 |
 
-本次Sources完整验证为357过/0败；wiring23过/1既有红（精确09f6已复现），lint0错误/56警告且4f7→65d无新增。89f类型6红、官方setup生命周期红与4f7 move夹具红全部留证，作者在65d补修后复验；原325/3编译基线与D17不被此结果覆盖。[完整证据与51份原始清单](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)。不升级产品状态，不发freeze，不提前formal合J。
+历史65d Sources完整验证为357过/0败；wiring23过/1既有红（精确09f6已复现），lint0错误/56警告且4f7→65d无新增。89f类型6红、官方setup生命周期红与4f7 move夹具红全部留证，作者在65d补修后复验；原325/3编译基线与D17不被此结果覆盖。[完整证据与51份原始清单](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)。此段仅历史证据；不升级产品状态，不发freeze。
 
 本轮已将主工位明确不可变3d522的9份纯docs真三路接入da0d263、D7c84两轮报告接入6c75c2；逐路径两边保留门禁65/117全PASS，src与out不变，不取任何root/J/E WIP。[合并门禁](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-parent-doc-merges.json)。父已独立复核3760：51份仓内artifact SHA与30份live out SHA均0 mismatch，HEAD:src精确等932031绿树；本记录时间为2026-10-26 15:12:55 UTC。[父核验与当前阶段](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md#父级独立核验与最新调度状态)。主工位有独立主题WIP且外部HEAD前进；唯一一次显式a7123fb的ff-only已被Git exit128拒绝，HEAD/WIP/index/status前后全同，未重试/覆盖，main未同步且非clean。[原始执行/保留身份](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-main-ff-attempt.json)。任何新编译/typecheck/transpile前先查全局活进程；若已有运行，记录具体PID/session并轮询，车道空闲后再执行，不杀外部任务、不重复启动。
 ## E 作者交付时的冻结分工（历史，当前集成状态以上为准）
