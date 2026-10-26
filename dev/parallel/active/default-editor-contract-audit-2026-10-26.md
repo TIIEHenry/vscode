@@ -12,6 +12,12 @@ summary: "D1386范围内closed；D1385共享兼容183绿保留，默认产品宿
 > 当前产品执行队列仅D1387（accepted/open，待唯一merge接正式源码）；D1385默认宿主前提失效、原UI验收停止且退出队列，保留accepted/open与183兼容证据；D1386已closed。此检查点纯文档，源/out不变，无新运行。
 
 
+## 当前编译基线恢复（2026-10-26）
+
+本轮父 agent 仅调度。merge / baseline_executor 独占编译、类型检查、转译与 out 写入，并负责记录行动文档；D / Sources 独立只读核查已有 J 提交，Astra 只读整体核查和设计决策，其余工位不写本轮代码。主分支实际为 `agent-ide`，不以 Microsoft origin/main 替换基线、不 push、不丢 WIP。
+
+c968 最新全量已实际 exit1、45诊断/27文件，见[原始本次日志](../../progress/default-editor-contract-audit-2026-10-26-evidence/compile-baseline-initial.log)。先在 merge 按[当前基线方案](../../plans/current-typescript-contract-baseline.md)修复正式类型合同，恢复绿基线后再开展字母槽实施。D1387已有J实现提交由独立审查者核查，不在本次基线中提前合入或重复实现。
+
 ## 当前 D1385 范围纠正
 
 Astra最终与D独立默认窗口核验确认：原“默认保留CopilotChat pane/editor可达”前提自始遗漏M5已实施门闩，现撤回；不是账户或设备问题。公开打开/service/resolver/restore不产生默认Chat宿主，初探widgets=[]、openView精确null、Conversation真实快捷键voice派发0。手工组件/eligibility探索全部excluded，原UI验收未满足并停止。保留共享兼容修复的183绿、独立源码C0/I0/M0与维护代价；D1385仍open/方案accepted，移出当前默认产品执行队列，不继续语音开发或造入口。PRD015与系统规格已纠正，历史检查点以下保留且均受本范围纠正限定。见[方案§10](../../plans/copilot-chat-cold-voice-authorization.md#10-默认产品可达性范围纠正2026-10-26)、[最终裁定](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-scope-decision.md)与[D入口核验](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1385-default-window-ui-boundary.md)。Sources后续工作独立推进，不以此范围纠正阻塞或宣告全局任务完成。
