@@ -3738,6 +3738,27 @@
       "bytes": 483308,
       "sha256": "831a6a555f0adeaaeedf027004d4b5344a884778f57e21e4eb881f8a47c198b7",
       "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-two-tests-peer-pre-merge.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-two-tests-peer-pre-merge.json",
+      "bytes": 226,
+      "sha256": "6ca6cdc36224c584c3295fce4640dd20c4fb7fe671d24a667eaabad02cec3b36",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-two-tests-peer-conflict-resolutions.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-two-tests-peer-conflict-resolutions.json",
+      "bytes": 13597,
+      "sha256": "7e82d5219d7cef66a0d75684746520c9805e87ac1930d6dcd5d79c748cefad15",
+      "bytePreservingCopy": true
+    },
+    {
+      "originalPath": "/tmp/vscode-je-formal-E-final-two-tests-peer-merge-identity.json",
+      "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-final-two-tests-peer-merge-identity.json",
+      "bytes": 354959,
+      "sha256": "095cb10d3835bd34a8912f51287fb7fd47f419422fadf8e5e08695b8aa0782f3",
+      "bytePreservingCopy": true
     }
   ]
 }
