@@ -893,3 +893,70 @@ Critical 0 / Important 0 / Minor 0（仅本次固定补修）。所需字段可�
 E自报三TS无checker/emit parse与lint通过；reviewer只读Git、日志与文本差异，独立`git diff --check`通过，未执行编译/typecheck/transpile、未写out、未运行业务。§9.5与行动层已保留3/7旧红和compile9失败事实，方案仍accepted；本次无需另开plan或改PRD/D状态。
 
 后续须按父授权由唯一lane接入固定补修，重新完整native compile；成功后再运行10项及相关套，发新source/native冻结身份并安排独立J/E after。compile9失败产物、旧J/E stage FAIL、§24生命周期候选、焦点Minor候选、timeline-only BOUNDARY与reasoning旧红继续保留，不能用本次type-only审查代替新运行或洗掉旧失败。
+
+
+## 28. compile10四失败定界、c683测试补修与2fd206真实事件闭环复审（2026-10-27）
+
+**最终固定候选 `2fd206e74d846052ca0083ee27d8046c91b348ac`：Critical 0 / Important 0 / Minor 0，可交唯一lane逐文件产物及实际运行验证。** 中间候选c683的C0/I1/M0原意见保留：去掉源码字符串pin后，真实连接事件尚未覆盖KEEP旧live徽章降为closed；父采纳，作者以两个真实mount/public事件用例补齐。本结论不代表新测试已green、冻结或UI after通过；§§1–27原文不改。
+
+### compile10与四失败的实际证据
+
+reviewer独立读取唯一lane原始JSON/log，并与durable checkpoint `74b9c68c5a7916532553b68d5e4312335870d6f4` 内四组JSON/log逐字核对，8份全部相同。compile10 producer为 `db0981fca4f555176b5735a7055dd40242fbbb9a`，src `58b3f3e8d69e2177eefe0a7dd7c0a74b0a7a1c4c`。实际完整`compile-client` exit0，emit与最终compile-src checker均0错误；这次成功可以解决§27的类型验证待项，但不能回写compile9六TS2352失败。
+
+| 原始日志（`/tmp/`） | 实际结果 | SHA256 |
+| --- | --- | --- |
+| `vscode-e-c3-tenth-native-build.log` | 完整compile10 exit0、0 TS错误 | `ab2305ca7b40c05fb02f2fc22a7d81b0c94c577916ca311e92593c07ef9efdac` |
+| `vscode-e-c3-new10.log` | 新断连响应10 passing / 0 failing | `1684593b63659dfee22881f4e1911d5fd9a240e941e757921c1864a7c38e8f21` |
+| `vscode-e-c3-related-full.log` | 十个完整相关suite合计484 passing / 4 failing | `f3a9293521e28dc46c25227bc0ea742c3cce4d78f4b854c333691dad852a4306` |
+| `vscode-e-c3-old4919-four-failure-classification.log` | 精确旧4919四selector：1 passing / 3 failing | `037187dd1051f6e32933a1612592dd0a62a1052f2e3dc3e6675a1f02264bf564` |
+
+四失败全部在DisposeGate；其余九套（含完整Roster、ReadingColumn）通过。旧版分类运行临时覆盖ReadingColumn、SessionBinding、Composer、SessionAvailability四个native；依据原compile8 snapshot或新emit前保留的extra originals，按精确旧4919源及编译options核完整native/map。另核DisposeGate、Lens、SessionBar、ComposerChrome/Refs、DockStrings、commonReadiness等关键依赖，共11对；source-text测试实际读取的当前Lens TS SHA与旧4919相同。**这是四selector的精确旧源/产物分类，不是历史整个客户端compile8闭包guard。** JSON记录finally全部253 native存在性/mode/bytes/SHA恢复compile10，全部源未变；reviewer随后独立重算当前253对source/native SHA、mode及native bytes，0 mismatch。没有由reviewer再次运行、覆盖或恢复产物。
+
+| 失败 | 精确旧4919结果及归因 | 合理修正合同 |
+| --- | --- | --- |
+| KEEP连接测试源码pin | 同样找不到listener内直接`bindSessionView`文本；旧实现已委托rebind helper | 去实现文本pin，保KEEP行为，并以真实公共事件观察绑定和closed chrome |
+| live SessionBar草稿 | 同样得到undefined；fixture缺composerPolicy/composeDraftSnapshot，进入snapshot支路 | 补compose上下文，保留`leftover draft`原期待 |
+| clientTool断连call-count | 旧版通过一次roster调用；新写门在入站已断连时正确提前拒绝 | 区分入站已断连0调用与入站live、roster内部断连后false的一次调用 |
+| showPostFailure fake DOM | 同样TypeError：classList.toggle不是函数 | 用真实DOM补全能力，保原错误文案和状态断言 |
+
+因此前三项是旧测试/夹具问题；第四项是有意新增早拒绝合同后的时序期待需要更新，不归为新的产品回归，也不能简单删去一次调用的晚断连分支。原484/4与1/3真实结果继续保留。
+
+### c683四项修正与唯一Important
+
+中间候选 `c683f0eb11160b6d985f31150616c5b592f5783b` 的实际parent为c3f9fd，src `ec0b701b4d7dcbb3e8dc2778b34b86ba32442fa1`；四路径仅两既有测试及原方案§9.6/行动记录。reviewer独立核对src除两测试外无差异，全部生产browser tree保持 `fc073478b35e20c1fd63378ec93ecc54bea7a6de`。
+
+- KEEP测试仅移除source-text前半，后半从demoted fixture到dispose逐字保留：真实bind保持原lease/entries、不重取/重画；随后原phase/sync调用使text/title/aria为closed。既有Lens真实mount测试分别触发roster和UA事件，各自核新lease对象、bound A而非active B及正确正文；hidden测试在每次事件后独立核undefined，public bind恢复后再用真实事件核重新绑定。
+- SessionBar fixture明确`composerPolicy: 'compose'`，snapshot设置与`leftover draft`不同的哨兵，原live测试正文及期待不变，不能误走snapshot仍过测。
+- clientTool显式使用正式`IConversationLensResponseHost`、完整connection test stub、真实StubService子类、公开model factory与实际cached lease。early分支断言0 roster；晚断连分支先断言connected，roster方法内同步setEngineConnected(false)并返回false，保持准确一次session/call/content payload。两者分别断言engine_disconnected、model/pending逐字不变、post0/focus0。没有将假服务计数包装成真实引擎连接证据。
+- showPostFailure使用真实div/span，保留failed、disconnected、no-session、empty-title的全部原文案与状态断言。没有以noop toggle绕过真正DOM行为。
+
+**c683当时C0/I1/M0。** I1为替代覆盖缺口：上面的真实事件增强只观察lease/timeline；KEEP closed徽章后半仍直接调用phase/sync。reviewer检查现有Lens全部syncBadge与stale-banner用例，相关测试由post/frame/session-change驱动，没有实际公共连接事件将KEEP旧Session live徽章降closed的断言。父采纳此意见，要求补可观察行为，不恢复helper源码pin，也不要求内部调用顺序。c683没有被先行签收为C0/I0。
+
+### 2fd206增量与I1闭合
+
+最终候选实际parent为c683，src `792ebb57bb1e48fa4b2ee00752c5e81c10a85ff6`；增量仅Lens测试77行、原方案§9.7及status三路径。新增参数化roster/UA两个独立mount实例，使用真实StubService与TestConversationFrameSource构造live snapshot/lease、真实正文和SessionBar徽章，初始text/title/aria均明确为Session live。
+
+fixture闭包静默切pairingPending；typed子类只override公开isEngineConnected/getSessionSync getter，UA phase仍connected/loopback且pairing hold、roster读closed。切换不发frame或session/connection事件，测试在指定事件前再次核两类事件均0且徽章三属性仍live。因此closed状态不能由设置fixture时的旁路刷新提前满足。roster实例通过公开setEngineConnected(false)触发，UA实例只fire其公开connection emitter；事件后计数精确1/0或0/1，证明每种listener独立驱动行为。
+
+两实例随后都核原lease、snapshot、lastAttachedEntries引用和timeline全文保持，原lease sync仍live，而实际badge text/title/aria全部为`Session disconnected: Pairing required`，SessionBar不含Session live。这个安排同时验证KEEP读取与准确closed chrome，能够暴露“只rebind但漏更新徽章”的回归；无手调updateConversationPhase/updateSyncChrome、无私有状态修改或文本pin。它是fixture驱动的真实Lens事件测试，不是实际EditorPane/真实引擎after证据。
+
+reviewer独立从最终Lens全文移除唯一新增block，结果与c683全文逐字相同；DisposeGate全文与c683相同。全部旧测试名称保留，新行没有any/unknown/Partial、宽cast、skip或only；新增`as const`仅保留两事件字面量类型。原Roster新10/旧160及Projection reasoning整文件均未动，原reasoning失败不被删除或改期望。
+
+| 最终文件 | SHA256 |
+| --- | --- |
+| `conversationLens.test.ts` | `f926424e99c73b0dbd06325a2c78017a4c9ceb513145f4593aab79bc5a85e93c` |
+| `conversationLensDisposeGate.test.ts` | `32773da199f4b91200a396a97b1677d5b794de053f2f093399f841961933e82b` |
+| `conversationEngineRosterService.test.ts`（保持c3） | `468b553d859af929633d73ae885160250136641414374578bdaff9ddd66d9647` |
+| `conversationTimelineProjection.test.ts`（保持旧4919） | `5d172565767dd64c154321f0ec4eda254533a9199510ad6ba2b96c16d8a6d49e` |
+
+### Assessment与产物边界
+
+**最终Critical 0 / Important 0 / Minor 0，仅针对本轮测试修订；c683 I1在静态测试设计层闭合，实际运行待。** E自报parse0、无checker/emit，ESLint0 errors/1既有duplicate-import warning；reviewer独立读Git差异、证据和实现依赖，并做diff whitespace检查，不冒称执行过作者工具或业务测试。原方案继续accepted，无新增产品契约，不改PRD或D项状态。
+
+相对compile10源，仅两测试改变，生产保持逐字相同；因此本轮可按父唯一lane的mixed v4逐文件producer校验：保留compile10来源的未改产物，两个测试另做正式新emit并记录各自source/native/options身份。父据baseline实际membership比对预计后续候选闭包为254项＝252个compile10延续项＋2个待新emit测试；最终actual集合仍须集成、定向emit及suite验证后确定，当前没有254项已emit或已冻结的声明。不能将254全部冒称同一次完整compile10，也不要求为测试改动机械重跑完整编译。新测试产物必须先具备实际身份、再运行相应suite；静态membership/计划本身不构成emit或freeze。
+
+reviewer另只读D r3 v4静态准备：`static-preparation-manifest.json` SHA256 `401f730adc147872339a9183dd25b7e6f9e45481f8fde6df63c840153800e17a`，`static-validation.json` SHA256 `b489d6198dd3e66e151912fb02f193e3de2c963d4c9ee86ffb2079b7aee327c8`。manifest为59成员、静态最低full248/common138，schema4；runtimeStarted=false，actualFrozenSourceHead/tree、actualMixedLineage及actualFreezeHashes均null，候选仍标非冻结。静态地板不是预计254的实际产物证明，D准备也不是运行授权或完成证据。
+
+本review只写原报告与证据INDEX，没有编译、typecheck、transpile、写out、启动UI/引擎或运行业务。compile10已通过的新10与原484/4只属于当时身份；最终两测试的新green、逐文件产物资格与非作者默认编辑器after仍由唯一lane完成。§25断连假Allowed原FAIL、§24生命周期Important候选、clientTool焦点Minor候选、timeline-only BOUNDARY、全生命周期trace表述及reasoning旧红继续保留，不据此关闭wave。
+
+本次B文档门禁：592份Markdown，0 errors / 46条既有断链warnings；diff whitespace检查通过。提交范围仅本报告与证据INDEX，旧报告完整字节前缀保留。
