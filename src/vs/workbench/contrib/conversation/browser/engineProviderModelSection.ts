@@ -7,7 +7,7 @@ import * as DOM from '../../../../base/browser/dom.js';
 import { Button, type IButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
@@ -17,6 +17,7 @@ import { IContextViewService } from '../../../../platform/contextview/browser/co
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentExpectedOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { readCapabilityEntry, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { builtinProviderPresets } from '../../../../platform/universeAgent/common/providerPresetCatalog.js';
 import type {
@@ -29,7 +30,6 @@ import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import {
 	canPerformCatalogWriteLive,
-	canShowCatalogRows,
 	type EngineCatalogListPhase,
 	type EngineCatalogPaneMode,
 	resolveEngineCatalogPaneMode,
@@ -42,9 +42,11 @@ const $ = DOM.$;
 const PROVIDER_FEATURE = localize('ua.engineProviderFeatureLabel', "provider configuration");
 const MODEL_FEATURE = localize('ua.engineModelFeatureLabel', "model registry");
 
-interface EngineCatalogWriteLink {
-	readonly engineIdentityId: string;
-	readonly linkId: number;
+type EngineCatalogWriteLink = UniverseAgentExpectedOwner;
+
+interface EngineCatalogRefreshResult {
+	readonly kind: 'applied' | 'failed' | 'discarded';
+	readonly generation: number;
 }
 
 function readWriteLink(connection: IUniverseAgentConnection): EngineCatalogWriteLink | undefined {
@@ -201,6 +203,7 @@ export class EngineProvidersSection extends Disposable {
 
 	private providerMode: EngineCatalogPaneMode = 'disconnected';
 	private providerCount = 0;
+	private providerCatalogOwner: EngineCatalogWriteLink | undefined;
 	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
 	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private providerListPhase: EngineCatalogListPhase = { kind: 'none' };
@@ -349,14 +352,18 @@ export class EngineProvidersSection extends Disposable {
 		this.renderProviderStatus(this.resolveProviderMode(false, support));
 	}
 
-	private async refreshProviders(): Promise<void> {
+	private async refreshProviders(expectedOwner?: EngineCatalogWriteLink): Promise<EngineCatalogRefreshResult> {
+		const link = expectedOwner ?? readWriteLink(this.connection);
+		if (expectedOwner && !sameWriteLink(expectedOwner, readWriteLink(this.connection))) {
+			return { kind: 'discarded', generation: this.providerRefreshGeneration };
+		}
 		const generation = ++this.providerRefreshGeneration;
 		const connected = this.connection.isEngineConnected();
 		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'providerConfig');
 
 		if (isConversationPairingHold(this.connection) || !connected) {
 			this.applyDisconnectedProvidersRefresh(entry.support, this.providerCount > 0);
-			return;
+			return { kind: 'discarded', generation };
 		}
 
 		if (entry.support === 'UNSUPPORTED') {
@@ -364,7 +371,7 @@ export class EngineProvidersSection extends Disposable {
 			this.clearProviderPresentation();
 			this.providerListPhase = { kind: 'none' };
 			this.renderProviderStatus(this.resolveProviderMode(true, entry.support), entry.reason);
-			return;
+			return { kind: 'discarded', generation };
 		}
 
 		if (!this.hasProviderListHook()) {
@@ -372,7 +379,7 @@ export class EngineProvidersSection extends Disposable {
 			this.clearProviderPresentation();
 			this.providerListPhase = { kind: 'none' };
 			this.renderProviderStatus(this.resolveProviderMode(true, entry.support), entry.reason);
-			return;
+			return { kind: 'discarded', generation };
 		}
 
 		if (entry.support === 'UNKNOWN') {
@@ -385,32 +392,38 @@ export class EngineProvidersSection extends Disposable {
 			}
 			this.providerListPhase = { kind: 'none' };
 			this.renderProviderStatus(this.resolveProviderMode(true, entry.support), undefined, 'capability');
-			return;
+			return { kind: 'discarded', generation };
+		}
+
+		if (!link) {
+			this.applyDisconnectedProvidersRefresh(entry.support, this.providerCount > 0);
+			return { kind: 'discarded', generation };
 		}
 
 		this.providerListPhase = { kind: 'inFlight' };
 		this.renderProviderStatus(this.resolveProviderMode(true, entry.support, this.providerListPhase), undefined, 'list');
 
 		try {
-			const result = await this.connection.listProviderStatus!();
-			if (generation !== this.providerRefreshGeneration || this._store.isDisposed) {
-				return;
+			const result = await this.connection.listProviderStatus!(link);
+			if (generation !== this.providerRefreshGeneration || this._store.isDisposed || !sameWriteLink(link, readWriteLink(this.connection))) {
+				return { kind: 'discarded', generation };
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				this.applyDisconnectedProvidersRefresh(entry.support, this.providerCount > 0);
-				return;
+				return { kind: 'discarded', generation };
 			}
-			this.providerListPhase = { kind: 'success', itemCount: result.providers.length };
-			const mode = this.resolveProviderMode(true, entry.support, this.providerListPhase);
+			const listPhase: EngineCatalogListPhase = { kind: 'success', itemCount: result.providers.length };
+			const mode = this.resolveProviderMode(true, entry.support, listPhase);
+			if (!this.renderProviderList(result.providers, link, generation, mode)) {
+				return { kind: 'discarded', generation };
+			}
+			this.providerListPhase = listPhase;
 			this.renderProviderStatus(mode);
-			if (canShowCatalogRows(mode)) {
-				this.renderProviderList(result.providers);
-			} else {
-				this.clearProviderPresentation();
-			}
+			if (!this.ownsProviderResult(link, generation)) { return { kind: 'discarded', generation }; }
+			return { kind: 'applied', generation };
 		} catch (error) {
-			if (generation !== this.providerRefreshGeneration || this._store.isDisposed) {
-				return;
+			if (isCancellationError(error) || generation !== this.providerRefreshGeneration || this._store.isDisposed || !sameWriteLink(link, readWriteLink(this.connection))) {
+				return { kind: 'discarded', generation };
 			}
 			const hadLivePaint = this.providerCount > 0;
 			if (!hadLivePaint) {
@@ -428,6 +441,7 @@ export class EngineProvidersSection extends Disposable {
 				() => void this.refreshProviders().catch(onUnexpectedError).catch(onUnexpectedError),
 			);
 		}
+		return { kind: 'failed', generation };
 	}
 
 	private renderProviderStatus(
@@ -458,11 +472,14 @@ export class EngineProvidersSection extends Disposable {
 		});
 	}
 
-	private renderProviderList(providers: readonly UniverseAgentProviderStatus[]): void {
-		this.setProviderCount(providers.length);
+	private renderProviderList(providers: readonly UniverseAgentProviderStatus[], link: EngineCatalogWriteLink, generation: number, mode: EngineCatalogPaneMode): boolean {
+		this.providerCatalogOwner = undefined;
+		this.providerToolbar.style.display = 'none';
+		this.renderPresetLists();
 		this.clearProviderRowActions();
 		this.providerRowHovers.clear();
 		DOM.clearNode(this.providerList);
+		const rows: { row: HTMLElement; provider: UniverseAgentProviderStatus }[] = [];
 		for (const provider of providers) {
 			const row = DOM.append(this.providerList, $('.engine-catalog-row.engine-provider-status-row'));
 			if (!provider.enabled) {
@@ -509,14 +526,25 @@ export class EngineProvidersSection extends Disposable {
 
 			row.classList.toggle('engine-provider-status-row--disabled', !provider.enabled);
 
+			rows.push({ row, provider });
+		}
+		if (!this.ownsProviderResult(link, generation)) { return false; }
+		this.setProviderCount(providers.length);
+		if (!this.ownsProviderResult(link, generation)) { return false; }
+		// No old row listener or count observer can authorize the replacement owner.
+		this.providerCatalogOwner = link;
+		this.providerMode = mode;
+		for (const { row, provider } of rows) {
 			if (this.canWriteProviders()) {
 				const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
 				const name = provider.brand || provider.providerId;
-				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderEdit', "Edit {0}", name), Codicon.edit, () => void this.promptProvider(provider.providerId, provider.protocol, '', 'edit').catch(onUnexpectedError).catch(onUnexpectedError));
-				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderClearRow', "Clear {0}", name), Codicon.clearAll, anchor => void this.clearProvider(provider.providerId, anchor).catch(onUnexpectedError).catch(onUnexpectedError), true);
+				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderEdit', "Edit {0}", name), Codicon.edit, () => void this.promptProvider(provider.providerId, provider.protocol, '', 'edit', link).catch(onUnexpectedError).catch(onUnexpectedError));
+				appendIconButton(this.providerRowActions, actions, localize('ua.engineProviderClearRow', "Clear {0}", name), Codicon.clearAll, anchor => void this.clearProvider(provider.providerId, anchor, link).catch(onUnexpectedError).catch(onUnexpectedError), true);
 			}
 		}
-		this.providerList.style.display = '';
+		if (!this.ownsProviderResult(link, generation)) { return false; }
+		this.providerList.style.display = providers.length ? '' : 'none';
+		return true;
 	}
 
 	private ensureProviderWriteChrome(): void {
@@ -536,12 +564,19 @@ export class EngineProvidersSection extends Disposable {
 	}
 
 	private canWriteProviders(): boolean {
-		return canPerformCatalogWriteLive(
-			this.providerMode,
-			this.connection.isEngineConnected(),
-			isConversationPairingHold(this.connection),
-		) && typeof this.connection.upsertProviderCredentials === 'function'
+		return !!this.providerCatalogOwner && sameWriteLink(this.providerCatalogOwner, readWriteLink(this.connection))
+			&& canPerformCatalogWriteLive(
+				this.providerMode,
+				this.connection.isEngineConnected(),
+				isConversationPairingHold(this.connection),
+			) && typeof this.connection.upsertProviderCredentials === 'function'
 			&& typeof this.connection.clearProviderCredentials === 'function';
+	}
+
+	private ownsProviderResult(link: EngineCatalogWriteLink, generation: number): boolean {
+		return generation === this.providerRefreshGeneration && !this._store.isDisposed
+			&& this.connection.isEngineConnected() && !isConversationPairingHold(this.connection)
+			&& sameWriteLink(link, readWriteLink(this.connection));
 	}
 
 	private ownsProviderWrite(link: EngineCatalogWriteLink): boolean {
@@ -642,9 +677,9 @@ export class EngineProvidersSection extends Disposable {
 		this.providerActionMessage.classList.remove('engine-catalog-action-message--error');
 	}
 
-	private async promptProvider(providerId: string, protocol: string, baseUrl = '', intent: 'add' | 'edit' = 'add'): Promise<void> {
-		const link = readWriteLink(this.connection);
-		if (!link || !this.canWriteProviders() || !this.connection.upsertProviderCredentials) {
+	private async promptProvider(providerId: string, protocol: string, baseUrl = '', intent: 'add' | 'edit' = 'add', rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		const link = rowOwner ?? this.providerCatalogOwner;
+		if (!link || !sameWriteLink(link, this.providerCatalogOwner) || !this.canWriteProviders() || !this.connection.upsertProviderCredentials) {
 			return;
 		}
 		const idRequired = localize('ua.engineProviderIdRequired', "Provider id is required.");
@@ -663,7 +698,7 @@ export class EngineProvidersSection extends Disposable {
 			],
 			validate: values => (values[0] ?? '').trim() ? undefined : idRequired,
 		}).catch(error => {
-			if (this.ownsProviderWrite(link)) { throw error; }
+			if (!isCancellationError(error) && this.ownsProviderWrite(link)) { throw error; }
 			return undefined;
 		});
 		if (!this.ownsProviderWrite(link) || !result?.confirmed || !result.values) {
@@ -681,23 +716,24 @@ export class EngineProvidersSection extends Disposable {
 				apiKey: apiKeyRaw ?? '',
 				baseUrl: (baseUrlRaw ?? '').trim(),
 				protocol: (protocolRaw ?? '').trim(),
-			});
+			}, link);
 			if (!this.ownsProviderWrite(link)) { return; }
 			if (intent === 'edit' && providerId && nextProviderId !== providerId && this.connection.clearProviderCredentials) {
-				await this.connection.clearProviderCredentials({ providerId });
+				await this.connection.clearProviderCredentials({ providerId }, link);
 				if (!this.ownsProviderWrite(link)) { return; }
 			}
+			const refreshed = await this.refreshProviders(link);
+			if (refreshed.kind !== 'applied' || !this.ownsProviderResult(link, refreshed.generation)) { return; }
 			this.setProviderAction(localize('ua.engineProviderSaved', "Provider saved. The key is not shown again."), 'neutral');
-			this.refresh();
 		} catch (error) {
-			if (!this.ownsProviderWrite(link)) { return; }
+			if (isCancellationError(error) || !this.ownsProviderWrite(link)) { return; }
 			this.setProviderAction(localize('ua.engineProviderSaveFailed', "Unable to save provider: {0}", publicActionError(error, apiKeyRaw)), 'error');
 		}
 	}
 
-	private async clearProvider(providerId: string, anchor: HTMLElement): Promise<void> {
-		const link = readWriteLink(this.connection);
-		if (!link || !this.canWriteProviders() || !this.connection.clearProviderCredentials) {
+	private async clearProvider(providerId: string, anchor: HTMLElement, rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		const link = rowOwner ?? this.providerCatalogOwner;
+		if (!link || !sameWriteLink(link, this.providerCatalogOwner) || !this.canWriteProviders() || !this.connection.clearProviderCredentials) {
 			return;
 		}
 		const confirmed = await showEngineConfirmPopover({
@@ -711,20 +747,21 @@ export class EngineProvidersSection extends Disposable {
 			return;
 		}
 		try {
-			await this.connection.clearProviderCredentials({ providerId });
+			await this.connection.clearProviderCredentials({ providerId }, link);
 			if (!this.ownsProviderWrite(link)) { return; }
+			const refreshed = await this.refreshProviders(link);
+			if (refreshed.kind !== 'applied' || !this.ownsProviderResult(link, refreshed.generation)) { return; }
 			this.setProviderAction(localize('ua.engineProviderCleared', "Credentials cleared."), 'neutral');
-			this.refresh();
 		} catch (error) {
-			if (!this.ownsProviderWrite(link)) { return; }
+			if (isCancellationError(error) || !this.ownsProviderWrite(link)) { return; }
 			this.setProviderAction(localize('ua.engineProviderClearFailed', "Unable to clear credentials: {0}", publicActionError(error)), 'error');
 		}
 	}
 
 	private async importLocalProviders(anchor: HTMLElement): Promise<void> {
-		const link = readWriteLink(this.connection);
-		if (!link) { return; }
-		if (!this.canWriteProviders() || !this.connection.previewHarnessProviderImport || !this.connection.importHarnessProviders) {
+		const link = this.providerCatalogOwner;
+		if (!link || !this.canWriteProviders()) { return; }
+		if (!this.connection.previewHarnessProviderImport || !this.connection.importHarnessProviders) {
 			this.setProviderAction(localize('ua.engineProviderImportDesktop', "Import runs in the desktop app."), 'error');
 			return;
 		}
@@ -732,7 +769,7 @@ export class EngineProvidersSection extends Disposable {
 		try {
 			preview = await this.connection.previewHarnessProviderImport();
 		} catch (error) {
-			if (!this.ownsProviderWrite(link)) { return; }
+			if (isCancellationError(error) || !this.ownsProviderWrite(link)) { return; }
 			this.setProviderAction(localize('ua.engineProviderImportFailed', "Unable to import: {0}", publicActionError(error)), 'error');
 			return;
 		}
@@ -756,8 +793,10 @@ export class EngineProvidersSection extends Disposable {
 		try {
 			const result = await this.connection.importHarnessProviders({
 				providerIds: preview.items.map(item => item.providerId),
-			});
+			}, link);
 			if (!this.ownsProviderWrite(link)) { return; }
+			const refreshed = await this.refreshProviders(link);
+			if (refreshed.kind !== 'applied' || !this.ownsProviderResult(link, refreshed.generation)) { return; }
 			const errorSuffix = result.errors.length > 0 ? ` ${result.errors[0]}` : '';
 			this.setProviderAction(localize(
 				'ua.engineProviderImportResult',
@@ -768,18 +807,21 @@ export class EngineProvidersSection extends Disposable {
 				result.modelWrites,
 				errorSuffix,
 			), result.errors.length > 0 ? 'error' : 'neutral');
-			this.refresh();
 		} catch (error) {
-			if (!this.ownsProviderWrite(link)) { return; }
+			if (isCancellationError(error) || !this.ownsProviderWrite(link)) { return; }
 			this.setProviderAction(localize('ua.engineProviderImportFailed', "Unable to import: {0}", publicActionError(error)), 'error');
 		}
 	}
 
 	private clearProviderPresentation(): void {
-		this.setProviderCount(0);
+		this.providerCatalogOwner = undefined;
+		this.providerToolbar.style.display = 'none';
+		this.clearProviderRowActions();
+		this.presetRowActions.clear();
 		this.providerRowHovers.clear();
 		DOM.clearNode(this.providerList);
 		this.providerList.style.display = 'none';
+		this.setProviderCount(0);
 	}
 }
 
@@ -834,6 +876,7 @@ export class EngineModelsSection extends Disposable {
 
 	private modelMode: EngineCatalogPaneMode = 'disconnected';
 	private modelCount = 0;
+	private modelCatalogOwner: EngineCatalogWriteLink | undefined;
 	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
 	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 	private modelListPhase: EngineCatalogListPhase = { kind: 'none' };
@@ -941,7 +984,11 @@ export class EngineModelsSection extends Disposable {
 		this.renderModelStatus(resolveEngineCatalogPaneMode(false, support));
 	}
 
-	private async refreshModels(): Promise<void> {
+	private async refreshModels(expectedOwner?: EngineCatalogWriteLink): Promise<EngineCatalogRefreshResult> {
+		const link = expectedOwner ?? readWriteLink(this.connection);
+		if (expectedOwner && !sameWriteLink(expectedOwner, readWriteLink(this.connection))) {
+			return { kind: 'discarded', generation: this.refreshGeneration };
+		}
 		const generation = ++this.refreshGeneration;
 		const connected = this.connection.isEngineConnected();
 		const entry = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'models');
@@ -949,14 +996,14 @@ export class EngineModelsSection extends Disposable {
 		// D340 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
 		if (isConversationPairingHold(this.connection) || !connected) {
 			this.applyDisconnectedModelsRefresh(entry.support, this.modelCount > 0);
-			return;
+			return { kind: 'discarded', generation };
 		}
 
 		if (entry.support === 'UNSUPPORTED') {
 			this.clearModelPresentation();
 			this.modelListPhase = { kind: 'none' };
 			this.renderModelStatus(resolveEngineCatalogPaneMode(true, entry.support), entry.reason);
-			return;
+			return { kind: 'discarded', generation };
 		}
 
 		if (entry.support === 'UNKNOWN') {
@@ -971,33 +1018,39 @@ export class EngineModelsSection extends Disposable {
 			}
 			this.modelListPhase = { kind: 'none' };
 			this.renderModelStatus(resolveEngineCatalogPaneMode(true, entry.support), undefined, 'capability');
-			return;
+			return { kind: 'discarded', generation };
+		}
+
+		if (!link) {
+			this.applyDisconnectedModelsRefresh(entry.support, this.modelCount > 0);
+			return { kind: 'discarded', generation };
 		}
 
 		this.modelListPhase = { kind: 'inFlight' };
 		this.renderModelStatus(resolveEngineCatalogPaneMode(true, entry.support, this.modelListPhase), undefined, 'list');
 
 		try {
-			const result = await this.connection.listModels();
-			if (generation !== this.refreshGeneration || this._store.isDisposed) {
-				return;
+			const result = await this.connection.listModels(link);
+			if (generation !== this.refreshGeneration || this._store.isDisposed || !sameWriteLink(link, readWriteLink(this.connection))) {
+				return { kind: 'discarded', generation };
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				this.applyDisconnectedModelsRefresh(entry.support, this.modelCount > 0);
-				return;
+				return { kind: 'discarded', generation };
 			}
-			this.modelListPhase = { kind: 'success', itemCount: result.models.length };
-			const mode = resolveEngineCatalogPaneMode(true, entry.support, this.modelListPhase);
+			const listPhase: EngineCatalogListPhase = { kind: 'success', itemCount: result.models.length };
+			const mode = resolveEngineCatalogPaneMode(true, entry.support, listPhase);
+			if (!this.renderModelList(result.models, link, generation, mode)) {
+				return { kind: 'discarded', generation };
+			}
+			this.modelListPhase = listPhase;
 			this.renderModelStatus(mode);
-			if (canShowCatalogRows(mode)) {
-				this.renderModelList(result.models);
-			} else {
-				this.clearModelPresentation();
-			}
+			if (!this.ownsModelResult(link, generation)) { return { kind: 'discarded', generation }; }
 			this.sessionHint.style.display = (mode === 'ready' || mode === 'empty') ? '' : 'none';
+			return { kind: 'applied', generation };
 		} catch (error) {
-			if (generation !== this.refreshGeneration || this._store.isDisposed) {
-				return;
+			if (isCancellationError(error) || generation !== this.refreshGeneration || this._store.isDisposed || !sameWriteLink(link, readWriteLink(this.connection))) {
+				return { kind: 'discarded', generation };
 			}
 			const hadLivePaint = this.modelCount > 0;
 			if (!hadLivePaint) {
@@ -1015,6 +1068,7 @@ export class EngineModelsSection extends Disposable {
 				() => void this.refreshModels().catch(onUnexpectedError).catch(onUnexpectedError),
 			);
 		}
+		return { kind: 'failed', generation };
 	}
 
 	private renderModelStatus(
@@ -1044,12 +1098,12 @@ export class EngineModelsSection extends Disposable {
 		});
 	}
 
-	private renderModelList(models: readonly UniverseAgentModelEntry[]): void {
-		this.setModelCount(models.length);
+	private renderModelList(models: readonly UniverseAgentModelEntry[], link: EngineCatalogWriteLink, generation: number, mode: EngineCatalogPaneMode): boolean {
+		this.modelCatalogOwner = undefined;
+		this.modelToolbar.style.display = 'none';
 		this.clearModelRowActions();
 		DOM.clearNode(this.modelList);
-		const writable = this.canWriteModels();
-		const testable = writable && typeof this.connection.testModelProfile === 'function';
+		const rows: { row: HTMLElement; model: UniverseAgentModelEntry }[] = [];
 		for (const group of groupModelsByProvider(models)) {
 			const groupEl = DOM.append(this.modelList, $('.engine-models-provider-group'));
 			const title = DOM.append(groupEl, $('.engine-catalog-group-label'));
@@ -1062,37 +1116,54 @@ export class EngineModelsSection extends Disposable {
 				const text = DOM.append(row, $('.engine-catalog-text'));
 				DOM.append(text, $('.engine-catalog-name')).textContent = model.modelId || model.id;
 				DOM.append(text, $('.engine-catalog-description')).textContent = formatModelRowSummary(model);
-				if (writable) {
-					const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
-					const name = model.modelId || model.id;
-					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelEdit', "Edit {0}", name), Codicon.edit, () => void this.promptModel(model).catch(onUnexpectedError).catch(onUnexpectedError));
-					appendIconButton(
-						this.modelRowActions,
-						actions,
-						model.enabled
-							? localize('ua.engineModelDisable', "Disable {0}", name)
-							: localize('ua.engineModelEnable', "Enable {0}", name),
-						model.enabled ? Codicon.circleSlash : Codicon.check,
-						() => void this.setListedModelEnabled(model, !model.enabled).catch(onUnexpectedError).catch(onUnexpectedError),
-					);
-					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelDeleteRow', "Delete {0}", name), Codicon.trash, anchor => void this.deleteListedModel(model, anchor).catch(onUnexpectedError).catch(onUnexpectedError), true);
-					if (testable) {
-						appendIconButton(this.modelRowActions, actions, localize('ua.engineModelTest', "Test {0}", name), Codicon.beaker, () => void this.testListedModel(model).catch(onUnexpectedError).catch(onUnexpectedError));
-					}
+				rows.push({ row, model });
+			}
+		}
+		if (!this.ownsModelResult(link, generation)) { return false; }
+		this.setModelCount(models.length);
+		if (!this.ownsModelResult(link, generation)) { return false; }
+		this.modelCatalogOwner = link;
+		this.modelMode = mode;
+		for (const { row, model } of rows) {
+			if (this.canWriteModels()) {
+				const actions = DOM.append(row, $('.engine-catalog-row-actions.engine-catalog-icon-actions'));
+				const name = model.modelId || model.id;
+				appendIconButton(this.modelRowActions, actions, localize('ua.engineModelEdit', "Edit {0}", name), Codicon.edit, () => void this.promptModel(model, link).catch(onUnexpectedError).catch(onUnexpectedError));
+				appendIconButton(
+					this.modelRowActions,
+					actions,
+					model.enabled
+						? localize('ua.engineModelDisable', "Disable {0}", name)
+						: localize('ua.engineModelEnable', "Enable {0}", name),
+					model.enabled ? Codicon.circleSlash : Codicon.check,
+					() => void this.setListedModelEnabled(model, !model.enabled, link).catch(onUnexpectedError).catch(onUnexpectedError),
+				);
+				appendIconButton(this.modelRowActions, actions, localize('ua.engineModelDeleteRow', "Delete {0}", name), Codicon.trash, anchor => void this.deleteListedModel(model, anchor, link).catch(onUnexpectedError).catch(onUnexpectedError), true);
+				if (typeof this.connection.testModelProfile === 'function') {
+					appendIconButton(this.modelRowActions, actions, localize('ua.engineModelTest', "Test {0}", name), Codicon.beaker, () => void this.testListedModel(model, link).catch(onUnexpectedError).catch(onUnexpectedError));
 				}
 			}
 		}
-		this.modelList.style.display = '';
+		if (!this.ownsModelResult(link, generation)) { return false; }
+		this.modelList.style.display = models.length ? '' : 'none';
+		return true;
 	}
 
 	private canWriteModels(): boolean {
-		return canPerformCatalogWriteLive(
-			this.modelMode,
-			this.connection.isEngineConnected(),
-			isConversationPairingHold(this.connection),
-		) && typeof this.connection.upsertModel === 'function'
+		return !!this.modelCatalogOwner && sameWriteLink(this.modelCatalogOwner, readWriteLink(this.connection))
+			&& canPerformCatalogWriteLive(
+				this.modelMode,
+				this.connection.isEngineConnected(),
+				isConversationPairingHold(this.connection),
+			) && typeof this.connection.upsertModel === 'function'
 			&& typeof this.connection.deleteModel === 'function'
 			&& typeof this.connection.setModelEnabled === 'function';
+	}
+
+	private ownsModelResult(link: EngineCatalogWriteLink, generation: number): boolean {
+		return generation === this.refreshGeneration && !this._store.isDisposed
+			&& this.connection.isEngineConnected() && !isConversationPairingHold(this.connection)
+			&& sameWriteLink(link, readWriteLink(this.connection));
 	}
 
 	private ownsModelWrite(link: EngineCatalogWriteLink): boolean {
@@ -1112,9 +1183,9 @@ export class EngineModelsSection extends Disposable {
 		this.modelActionMessage.classList.toggle('engine-catalog-action-message--error', tone === 'error');
 	}
 
-	private async promptModel(model?: UniverseAgentModelEntry): Promise<void> {
-		const link = readWriteLink(this.connection);
-		if (!link || !this.canWriteModels() || !this.connection.upsertModel) {
+	private async promptModel(model?: UniverseAgentModelEntry, rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		const link = rowOwner ?? this.modelCatalogOwner;
+		if (!link || !sameWriteLink(link, this.modelCatalogOwner) || !this.canWriteModels() || !this.connection.upsertModel) {
 			return;
 		}
 		const required = localize('ua.engineModelRequired', "Provider and model id are required.");
@@ -1137,7 +1208,7 @@ export class EngineModelsSection extends Disposable {
 			],
 			validate: values => validateModelDialog(values, required, levelInvalid),
 		}).catch(error => {
-			if (this.ownsModelWrite(link)) { throw error; }
+			if (!isCancellationError(error) && this.ownsModelWrite(link)) { throw error; }
 			return undefined;
 		});
 		if (!this.ownsModelWrite(link) || !result?.confirmed || !result.values) {
@@ -1166,41 +1237,43 @@ export class EngineModelsSection extends Disposable {
 				speed,
 				provider,
 				modelId,
-			});
+			}, link);
 			if (!this.ownsModelWrite(link)) { return; }
 			if (model?.id && model.id !== id && this.connection.deleteModel) {
-				await this.connection.deleteModel({ id: model.id });
+				await this.connection.deleteModel({ id: model.id }, link);
 				if (!this.ownsModelWrite(link)) { return; }
 			}
+			const refreshed = await this.refreshModels(link);
+			if (refreshed.kind === 'discarded' || !this.ownsModelResult(link, refreshed.generation)) { return; }
 			this.setModelAction(localize('ua.engineModelSaved', "Model saved."), 'neutral');
-			this.refresh();
 		} catch (error) {
-			if (!this.ownsModelWrite(link)) { return; }
+			if (isCancellationError(error) || !this.ownsModelWrite(link)) { return; }
 			this.setModelAction(localize('ua.engineModelSaveFailed', "Unable to save model: {0}", publicActionError(error)), 'error');
 		}
 	}
 
-	private async setListedModelEnabled(model: UniverseAgentModelEntry, enabled: boolean): Promise<void> {
-		const link = readWriteLink(this.connection);
-		if (!link || !this.canWriteModels() || !this.connection.setModelEnabled) {
+	private async setListedModelEnabled(model: UniverseAgentModelEntry, enabled: boolean, rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		const link = rowOwner ?? this.modelCatalogOwner;
+		if (!link || !sameWriteLink(link, this.modelCatalogOwner) || !this.canWriteModels() || !this.connection.setModelEnabled) {
 			return;
 		}
 		try {
-			await this.connection.setModelEnabled({ id: model.id, enabled });
+			await this.connection.setModelEnabled({ id: model.id, enabled }, link);
 			if (!this.ownsModelWrite(link)) { return; }
+			const refreshed = await this.refreshModels(link);
+			if (refreshed.kind === 'discarded' || !this.ownsModelResult(link, refreshed.generation)) { return; }
 			this.setModelAction(enabled
 				? localize('ua.engineModelEnabledDone', "Model enabled.")
 				: localize('ua.engineModelDisabledDone', "Model disabled."), 'neutral');
-			this.refresh();
 		} catch (error) {
-			if (!this.ownsModelWrite(link)) { return; }
+			if (isCancellationError(error) || !this.ownsModelWrite(link)) { return; }
 			this.setModelAction(localize('ua.engineModelEnableFailed', "Unable to update model: {0}", publicActionError(error)), 'error');
 		}
 	}
 
-	private async deleteListedModel(model: UniverseAgentModelEntry, anchor: HTMLElement): Promise<void> {
-		const link = readWriteLink(this.connection);
-		if (!link || !this.canWriteModels() || !this.connection.deleteModel) {
+	private async deleteListedModel(model: UniverseAgentModelEntry, anchor: HTMLElement, rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		const link = rowOwner ?? this.modelCatalogOwner;
+		if (!link || !sameWriteLink(link, this.modelCatalogOwner) || !this.canWriteModels() || !this.connection.deleteModel) {
 			return;
 		}
 		const label = model.modelId || model.id;
@@ -1215,19 +1288,20 @@ export class EngineModelsSection extends Disposable {
 			return;
 		}
 		try {
-			await this.connection.deleteModel({ id: model.id });
+			await this.connection.deleteModel({ id: model.id }, link);
 			if (!this.ownsModelWrite(link)) { return; }
+			const refreshed = await this.refreshModels(link);
+			if (refreshed.kind === 'discarded' || !this.ownsModelResult(link, refreshed.generation)) { return; }
 			this.setModelAction(localize('ua.engineModelDeleted', "Model deleted."), 'neutral');
-			this.refresh();
 		} catch (error) {
-			if (!this.ownsModelWrite(link)) { return; }
+			if (isCancellationError(error) || !this.ownsModelWrite(link)) { return; }
 			this.setModelAction(localize('ua.engineModelDeleteFailed', "Unable to delete model: {0}", publicActionError(error)), 'error');
 		}
 	}
 
-	private async testListedModel(model: UniverseAgentModelEntry): Promise<void> {
-		const link = readWriteLink(this.connection);
-		if (!link || !this.canWriteModels() || !this.connection.testModelProfile) {
+	private async testListedModel(model: UniverseAgentModelEntry, rowOwner?: EngineCatalogWriteLink): Promise<void> {
+		const link = rowOwner ?? this.modelCatalogOwner;
+		if (!link || !sameWriteLink(link, this.modelCatalogOwner) || !this.canWriteModels() || !this.connection.testModelProfile) {
 			return;
 		}
 		try {
@@ -1238,13 +1312,13 @@ export class EngineModelsSection extends Disposable {
 				baseUrl: '',
 				protocol: '',
 				params: {},
-			});
+			}, link);
 			if (!this.ownsModelWrite(link)) { return; }
 			this.setModelAction(result.ok
 				? localize('ua.engineModelTestPassed', "Model test passed.")
 				: localize('ua.engineModelTestFailed', "Model test failed: {0}", (result.message ?? '').slice(0, 240)), result.ok ? 'neutral' : 'error');
 		} catch (error) {
-			if (!this.ownsModelWrite(link)) { return; }
+			if (isCancellationError(error) || !this.ownsModelWrite(link)) { return; }
 			this.setModelAction(localize('ua.engineModelTestFailed', "Model test failed: {0}", publicActionError(error)), 'error');
 		}
 	}
@@ -1257,11 +1331,13 @@ export class EngineModelsSection extends Disposable {
 	}
 
 	private clearModelPresentation(): void {
-		this.setModelCount(0);
+		this.modelCatalogOwner = undefined;
+		this.modelToolbar.style.display = 'none';
 		this.clearModelRowActions();
 		DOM.clearNode(this.modelList);
 		this.modelList.style.display = 'none';
 		this.sessionHint.style.display = 'none';
+		this.setModelCount(0);
 	}
 }
 

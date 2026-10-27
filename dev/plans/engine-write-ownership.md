@@ -13,7 +13,7 @@ summary: "重开 C/F 的主进程归属合同：调用者显式传 expectedOwner
 
 本方案在默认编辑器的 Engine Preferences Providers/Models 修复上，补齐同波 C/F 共用的 IDE 调用归属合同。实施槽仍为 `vscode-WorkTrees/C`，不新占槽。C 是 shared type、connection interface、IPC、node service 与平台测试的唯一 writer；F 仅修改 Skills UI 与 browser 测试，具体草稿恢复行为仍以 [Skills 方案](skills-disconnect-draft-recovery.md) 为准。Memory 后移，不混入本波；不改 Sources、visible lease 或其他在途主题。
 
-原基线为 `d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42`。C `2f35686b611c60355c42d58a11c2e6d8638ba7cb` 与 F `2b604cb9cff686eb1b47e7b54f45007e42e304c0` 及其后续已验证修正保留为阶段里程碑，不能改写为未做，也不能将其解释为已经证明跨 IPC 的“新引擎零旧写”。本方案规则16复审已C0/I0/M0通过，独立方案提交为 `0e3310ee67482b9502503747826f0ef3aa78c863`，frontmatter 为 `accepted`；实施运行状态为 `occupied`，由行动层记录。S1共享合同与平台回归已完成独立源码复核、最终完整602项及原项目noEmit/lint；待固定依赖提交、F真三路接收后才开始C/F UI接线。plan状态闭集为draft/accepted/implemented，当前整个方案尚未完成，维持accepted。
+原基线为 `d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42`。C `2f35686b611c60355c42d58a11c2e6d8638ba7cb` 与 F `2b604cb9cff686eb1b47e7b54f45007e42e304c0` 及其后续已验证修正保留为阶段里程碑，不能改写为未做，也不能将其解释为已经证明跨 IPC 的“新引擎零旧写”。本方案规则16复审已C0/I0/M0通过，独立方案提交为 `0e3310ee67482b9502503747826f0ef3aa78c863`，frontmatter 为 `accepted`；运行与合入状态由行动层记录。S1共享合同与平台回归已完成独立源码复核、最终完整602项及原项目noEmit/lint；固定依赖为 `7821dea60cf64fd35f1c998e5a015ee884ab336a`，F 已以真实三路 merge `a99b2bfc4b94aa157ed62d957844344ce810e82e` 接收，C/F 已分别完成各自 S2 树内验证；产品 merge 仍 hold。plan状态闭集为draft/accepted/implemented，当前整个方案尚未完成，维持accepted。
 
 现行产品约束见 [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性)，系统接线见 [Engine catalog](../../docs/systems/workbench/engine-catalog.md)。本波保持“新引擎零旧写”，不通过缩小该合同结束工作；不增加引擎 RPC、protobuf 字段、设置项或密钥持久化，不升 PRD 总状态。
 
@@ -128,6 +128,32 @@ node 导入沿用已有 node-only 本地 reader 注入，不读真实用户文�
 ## S1共享合同检查点
 
 **S1共享合同检查点（2026-10-28）**：四生产文件与三平台测试已冻结，正式源码审查及pairing夹具、合法请求类型两次补修窄审均C0/I0/M0。最终node测试SHA为`fd7d797aa398522f80eddd366b4ac226bfc0595d6d4dfc1307b743e370d833a2`，其余六路径保持首轮冻结。旧完整node576得到500过/76业务红，原IPC14业务红保留；新相关完整602通过，原项目noEmit0诊断，7TS ESLint0errors/2warnings。首轮fixture失败、首次3个测试类型诊断与分类更正均保留，详见[S1验证记录](../progress/engine-lifecycle-recovery-2026-10-28-evidence/ipc-shared-verification.md)。这是共享依赖阶段，不作为UI接线、真实引擎默认窗口或产品合入通过结论。
+
+## S2 UI 接线检查点
+
+**S2 实施中（2026-10-28）**：C 只修改 `engineProviderModelSection.ts`、`conversationLensComposer.ts`、`engineOverviewSection.ts` 与各自 browser 套件；共享 S1 七路径保持固定，F 的 Skills UI 不在本工位修改。Provider/Model 的添加、编辑、清除/删除确认、改名两步、启停、Test 和实际导入均传动作起点 owner；本地预览与 cloud preset catalog 保持非 engine-bound。普通列表读取独立捕获请求起点 owner，不依赖写控件或 loading 门。
+
+S2 的独立顺序裁定采用私有 `{ kind: applied | failed | discarded, generation }` 读取结果。写成功后等待原 owner 读回，`discarded`（固定取消、owner/generation/dispose 或不可读）不发布本动作成功；Provider 仅在 `applied` 后反馈，Model 的 `applied` 与当前普通 `failed` 均保留已确认写入反馈。Model 最终反馈按不依赖 pane ready 的连接/owner/generation 门复验，普通 list 错误继续保留原 failed/leftover UI，不升级成写入失败。旧 pending 不阻新 generation，旧取消不得清新页结果。
+
+新增 browser 用例覆盖 owner 参数轨迹、本地与 IPC 重建取消、所有写后读回的 pending/取消、普通列表 loading 读、未通知换代的旧结果、普通错误反馈差异和新 generation 进展。新 owner helper 仅为 type import，旧对照使用 raw `2f35686` UI 配冻结新测试。DOM void 入口用局部 browser/process rejection 监听与业务轨迹证明取消被消费；Composer 的返回 Promise 则直接 await 正常 resolve。首冻结曾获源码初审 C0/I0/M0，随后独立追加审查发现 I1 并撤回候选资格，旧结论仅保留为历史；当时未进入新旧运行验证。所有运行与提交仍交唯一 executor。
+
+**S2 I1 补修（2026-10-28）**：首冻结遗漏了目录数据 owner 与最新连接 snapshot 的区别：A 行仍 ready 而 snapshot quiet 换到 B 或同引擎新 link 时，旧行入口可能捕获新 owner。补修在 Provider/Model 分别记录已应用目录 owner；写门要求目录 owner 与当前 published owner 一致，行回调显式保留原目录 owner，toolbar 也从已应用目录捕获。普通 list 请求仍独立捕获 owner，写后读回三态和 Model 普通读取失败的结果反馈门不依赖目录 ready。
+
+目录替换先撤写授权与旧行监听，画只读行后才发布计数；同步计数通知前后复验 generation/owner，再把新目录 owner 与新行操作一同发布，status/chrome 渲染后再次复验。清空目录同样先撤授权和 DOM，计数通知置最后，不在通知后清掉新代内容。I1 新增 16 个 browser 用例：六类旧行动作跨异引擎/同引擎新 link 的 12 项拒绝及新目录恢复，另四项覆盖 Provider/Model 计数观察者 quiet 换代与通知重入，逐一点击旧行/toolbar、核零写入/输入/预览/确认，并验证正式新目录恢复全部操作。此前 67 项新增保留。
+
+I1 补修静态阶段展开 Provider/Model 声明业务 139 项（原 64 业务 + S2 原 59 + I1 16）；历史“完整 65”含 official clean-state meta 1，不重写原日志。Composer Catalog 声明 39 项（业务 38 + live 源码扫描 1），Overview 业务 21；三文件同次运行总声明 199，只共享一项 official meta，预期运行总数 200。这是运行前的文本展开计数；当时待二次冻结与独立窄审，运行结果及后续测试补修分别记在下方，不升方案状态，不新增 wave。
+
+**S2 首次运行与测试类型补修（2026-10-28）**：C `freeze-a1` 旧完整三文件 200 项得到 117 通过 / 83 业务 AssertionError，新完整 200 项通过；随后原 project noEmit 出现六条主题测试诊断并停止，尚未运行该 attempt 的 lint。原日志 `/sdd/tmp/vscode-expected-owner-s2-20261028-C-freeze-a1/stage-quality/noemit.log` SHA256 为 `6252cf6c26113b603fbe7be36bedea26575ae4432780212497bdb563dd56a675`，保留失败，不将 runtime 通过写为全部 quality 通过。
+
+本次仅补 `conversationComposerCatalog.test.ts` 三个 snapshot fixture 必需的 `capabilities` 字段，并让两处零写入断言比较数组内容快照，防止 Node assert 的断言签名把仍会在后续异步动作中增长的原数组永久缩窄成 `never[]`。业务断言的预期值、owner/取消/旧行/反馈条件与 83 项回归保持；实际测试 JavaScript 会多出 fixture 字段及数组浅拷贝，不声称字节不变。该次补修中生产三文件、Overview 测试与 S1 七文件保持冻结，完整声明数仍 199 + 共享 official meta 1；后续 a2/a3 的实际结果记在下方。
+
+**S2 a2 质量结果与 lint 窄补修（2026-10-28）**：唯一 executor 报告 C `freeze-a2` 新完整 200 项通过、原 project noEmit 0 诊断；六 TS 的 ESLint 为 0 errors / 11 warnings，原件 `/sdd/tmp/vscode-expected-owner-s2-20261028-C-freeze-a2/stage-quality/lint.log` 保留。本 agent 仅静态读取 messages 与源码 provenance，不运行 Node、转译、typecheck、lint 或测试。
+
+逐行及五行上下文对照 raw `2f35686` 与固定 HEAD `7821dea6`：生产 Provider/Model 的两处 `querySelectorAll` 分别沿用旧第 533/1254 行，Composer 的两处 `prefer-const` 沿用旧第 873/1080 行，四项既有警告保留。Overview 的重复 `engineSectionChrome` 导入也已存在于旧第 27 行；本轮按明确要求合并导入，如实记为既有修复。另六项本主题新增警告仅涉及 Provider/Overview 的四处 browser cancellation 监听目标及 Provider 动作夹具的两处 `in`。监听改用与本测试 `document` 同属主窗口的 `mainWindow`，保留原 listener、事件名、安装/移除时机与 process 监听；联合动作对象复用 `hasKey` 按原字段存在性缩窄，输入/确认路径与值保持。测试声明、全部业务断言与预期值不变，Composer 字节不变；生产与 S1 继续冻结。本次两测试的最终字节已由 C a3 重验证；a2 不作为这些新字节的验证证据，也不升方案状态。
+
+**S2 a3 最终树内验证（2026-10-28）**：唯一 executor 实际运行旧完整 200 项，得到 117 通过 / 83 业务 AssertionError、0 fixture failure；新完整 200 项通过。旧失败中 53 项停在最早的 owner 参数缺失断言，另外 30 项为其余业务断言，不能据标题把这 53 项计为已触达后续取消、保留或读回状态。Composer live 源码扫描明确绑定当前源码，不能算 raw `2f35686` 运行证据；它与 official meta 均排除在业务计数外。原 project noEmit 0 诊断，六 TS ESLint 0 errors / 4 已核实既有 warnings；a1 六条测试类型诊断及 a2 首次 lint 原件继续保留。
+
+a3 摘要为 `/sdd/tmp/vscode-expected-owner-s2-20261028-C-freeze-a3/C-a3-validation-summary.json`，SHA256 `dc70f29ee4851b74d81741fdeb11a3161f1e6b4472c822a007cb6fc7d6e6a8a7`；20:56:07 UTC owned 进程已全 quiet、双锁释放，父已归还外部通道。验证时 plan SHA256 为 `65e43cc2d7a0b99ac74dd6bb9d5763a7dc80dfd2f534de7cbfe9eba2bc078d71`；该完整旧版已排他保存到 `/sdd/tmp/vscode-expected-owner-s2-20261028-C-plan-closeout/plan-before-runtime-closeout.md`。本次只补运行后的文档记录，不能把新 plan 身份回写为验证时身份，三生产、三测试与 S1 七文件保持验证 pins。C/F 为各自独立树内验证，没有新增 C UI → F merge；产品 merge 仍 hold，整个方案继续 `accepted`，不升 PRD-025，不称产品集成或真实引擎默认窗口验收通过。
 
 ## 原阶段实施与验证里程碑
 

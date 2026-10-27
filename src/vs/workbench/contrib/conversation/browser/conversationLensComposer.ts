@@ -3,14 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import type { UniverseAgentExpectedOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerEnabledModelIds, composerModelIds, composerModelSelectionIndex, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
 import { isConversationSessionNotReady } from './conversationSessionAvailability.js';
@@ -237,6 +238,18 @@ function activeComposerProjectPath(host: IConversationLensComposerHost): string 
 	return projectPath || undefined;
 }
 
+function readComposerModelOwner(connection: IUniverseAgentConnection): UniverseAgentExpectedOwner | undefined {
+	const snapshot = connection.getConnectionSnapshot();
+	const engineIdentityId = readPublishedEngineIdentityId(snapshot);
+	const linkId = readPublishedLinkId(snapshot);
+	return engineIdentityId && linkId ? { engineIdentityId, linkId } : undefined;
+}
+
+function ownsComposerModelRead(host: IConversationLensComposerHost, owner: UniverseAgentExpectedOwner): boolean {
+	const current = readComposerModelOwner(host.uaConnection);
+	return owner.engineIdentityId === current?.engineIdentityId && owner.linkId === current?.linkId;
+}
+
 export async function loadConnectedComposerCatalogs(host: IConversationLensComposerHost, generation: number): Promise<void> {
 
 		const caps = ensureCapabilitySnapshot(host.uaConnection.getCapabilitySnapshot());
@@ -264,10 +277,11 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 				restoreLastGoodComposerCatalogOnSupportedThrow(host, 'agent');
 			}
 		}
-		if (caps.models.support === 'SUPPORTED') {
+		const modelOwner = readComposerModelOwner(host.uaConnection);
+		if (caps.models.support === 'SUPPORTED' && modelOwner) {
 			try {
-				const result = await host.uaConnection.listModels();
-				if (generation !== host.composerCatalogGeneration) {
+				const result = await host.uaConnection.listModels(modelOwner);
+				if (generation !== host.composerCatalogGeneration || !ownsComposerModelRead(host, modelOwner)) {
 					return;
 				}
 				const sessionId = host.getBoundSessionId();
@@ -300,8 +314,8 @@ export async function loadConnectedComposerCatalogs(host: IConversationLensCompo
 					map.set(sessionId, '');
 				}
 				rememberLastGoodComposerCatalog(host, { model: { options, ids, selectedIndex, enabledIds } });
-			} catch {
-				if (generation !== host.composerCatalogGeneration) {
+			} catch (error) {
+				if (isCancellationError(error) || generation !== host.composerCatalogGeneration || !ownsComposerModelRead(host, modelOwner)) {
 					return;
 				}
 				restoreLastGoodComposerCatalogOnSupportedThrow(host, 'model');

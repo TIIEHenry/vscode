@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "C/F IPC补修S1共享合同独立复核及完整602项通过，原项目noEmit0/lint0errors；原阶段634保留，待固定依赖与F真merge后并行UI接线。"
+summary: "S2独立C200/F133全过、原项目noEmit0；五轮证据归档与prepare经独立复核，公共文档已同步，文档门禁0错误，主题提交待Git窗口，产品集成待。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **C/F IPC共享依赖S1通过（2026-10-28）**：13方法独立owner参数、IPC先于业务解析/动态lookup拒绝缺失畸形失配、node固定transport/link并隔离晚回健康与动态能力。最终旧node576为500过/76业务红、原IPC14业务红保留，13真实字节mainB/cacheA均实证旧调用B；新完整602过，原项目noEmit0、7TS ESLint0errors/2warnings。源码及两次测试补修窄审均AstraC0/I0/M0，首轮pairing夹具失败、3个新测试类型诊断及更正原件保留。19:03:47UTC实际quiet/两锁释放后归还通道；待主题提交与F真三路接收，再开C/F UI，整计划仍accepted、PRD-025不升。见[S1证据](engine-lifecycle-recovery-2026-10-28-evidence/ipc-shared-verification.md)。
+- **C/F UI expectedOwner验证完成（2026-10-28，S2）**：C最终完整200过、原项目noEmit0、6TS lint0errors/4原字节既有warnings；F完整133过、原项目noEmit0、2TS lint0e0w。最终旧C200为117过/83业务红、F133为93过/40业务红，首TS/fixture/lint失败及早断言边界保留；各次独立AstraC0/I0。20:56:07UTC最终quiet，父明确提前归还车道；两独立树验证，计划仍accepted/PRD不升，五轮24.86MB归档与完整prepare经Astra C0/I0复核并同路径落C/F，文档门禁0错误，主题提交待Git窗口、产品merge仍hold。见[S2证据](engine-lifecycle-recovery-2026-10-28-evidence/ipc-ui-verification.md)。
+- **C/F IPC共享依赖S1通过（2026-10-28）**：13方法独立owner参数、IPC先于业务解析/动态lookup拒绝缺失畸形失配、node固定transport/link并隔离晚回健康与动态能力。最终旧node576为500过/76业务红、原IPC14业务红保留，13真实字节mainB/cacheA均实证旧调用B；新完整602过，原项目noEmit0、7TS ESLint0errors/2既有warnings。源码及两次测试补修窄审均AstraC0/I0/M0，首失败与更正原件保留。S1主题20路径提交7821dea6；F真三路依赖merge a99b2bfc保三保护与C七平台字节、双方历史，未动产品merge。C/F UI已分别开始S2，整计划仍accepted、PRD-025不升；19:03:47UTC归还通道，无新运行令牌。见[S1证据](engine-lifecycle-recovery-2026-10-28-evidence/ipc-shared-verification.md)。
 - **C/F IPC归属补修重开（2026-10-28）**：Memory深查确认main已B/renderer仍A时，现UIguard与无owner IPC不能保证零旧写；Astra裁当前C/F重开occupied，原2f35686/2b604cb与634仅阶段里程碑。C独占13个方法的shared owner/interface/IPC/node与平台回归，并接Provider/Model及Composer/Overview最小caller；F只接Skills写入和目录/CAS读回，旧取消显式保稿。两方案修订复审后先交shared固定依赖，F用Git三路合并接收再接UI，不占新槽、不动外部merge。详见[看板](../parallel/active/engine-lifecycle-recovery-2026-10-28.md)。
 - **Skills 断连草稿方案签收（2026-10-28）**：Astra 首轮 C0/I1 的保存互斥归属问题已改入具体操作 token 与 CAS 合同，复审 C0/I0/M0；独立方案 accepted。F 无损快进接收 C 的共享需求与合同 `425940ed354`，原未跟踪方案逐字保留；该次方案签收时两域生产尚未修改；后续阶段一已提交验证，当前IPC补修重开。见[方案](../plans/skills-disconnect-draft-recovery.md)。
 - **Engine 生命周期阶段一检查点（2026-10-28）**：C Providers/Models捕获engine/link/transport隔离对话框、改名与导入，F Skills真断连保稿、原来源显式Refresh/CAS恢复与保存token互斥、toggle旧回包隔离。旧browser34、node11、Skills23项业务红；新完整browser65/node480/Skills89通过，F首轮选择恢复递归已修且原26回归保留。独立Astra两域C0/I0，双槽原项目noEmit0诊断、ESLint0errors（C3既有warnings/F0）；集成等待外部merge冻结移交，不覆盖。构建前置已入[指南](../../docs/guides/getting-started.md#隔离-worktree-的-electron-类型前置)，后续Terminal/Memory/docs测试缺口记D1390–1392。见[看板](../parallel/active/engine-lifecycle-recovery-2026-10-28.md)与[证据](engine-lifecycle-recovery-2026-10-28-evidence/verification.md)。

@@ -1,0 +1,115 @@
+{
+  "createdUtc": "2026-10-27T19:20:17.909227+00:00",
+  "mergeCommit": "a99b2bfc4b94aa157ed62d957844344ce810e82e",
+  "parents": [
+    "541e5186bfed8215bb1cfc9851270f0853295f49",
+    "7821dea60cf64fd35f1c998e5a015ee884ab336a"
+  ],
+  "rootTree": "c4bba38f18ae3b5fe4f5809eb90b8f1a6f41407d",
+  "srcTree": "471867fcb9173b45133ae27257c840471f14aa25",
+  "branch": "fix/f-skills-draft-recovery-20261028",
+  "status": "clean",
+  "FProtected3": [
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/engineSkillsSection.ts",
+      "sha256": "9d5f00350454f439c2e767e4aaa51968a9a100941d6bc81be984343bf0bd3b24",
+      "blob": "e2b5bc4daee761281617dac60c9105e3bff523f4"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/engineSkillsSection.test.ts",
+      "sha256": "9c107bb93461bd6eddea91fc731a673fef60ff2daf88340b87367e669393f4a2",
+      "blob": "c61fe03db93206d9c82ca4f3e6af97ab717b022a"
+    },
+    {
+      "source": "dev/plans/skills-disconnect-draft-recovery.md",
+      "sha256": "86e25e04988e1def8e32cd38b2374fa1662e97f792c80a21862a637e871cc2f5",
+      "blob": "5f6ace14a9acd64553d265659a43abfc23eaa7e9"
+    }
+  ],
+  "CPlatform7": [
+    {
+      "source": "src/vs/platform/universeAgent/common/universeAgentExpectedOwner.ts",
+      "sha256": "e0e1b5357d81c0d77fdb3f106594c6c428576e271b5488f2cf0684952edc2616",
+      "blob": "001341e28285fbc8e5d08e5c6e6a455a1c29144b"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/common/universeAgentConnection.ts",
+      "sha256": "b856d8d936edbf455319856fbf2da709b3cc79f4a46f962e5589b0c25b711735",
+      "blob": "1f8d602614c3abd4b51586f3aa3024204a535649"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.ts",
+      "sha256": "98eff55a5525169cc25c7b82aa9b5a5139c2ecb7d031222a9cc5b5825bcba476",
+      "blob": "6dccaf27faa571e0853682fd20bc283a0e4095be"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/node/universeAgentConnectionService.ts",
+      "sha256": "75bbdec55e3298a6462c4a9ed6cbf31acfc2366f28ddeeb7d5415a0c31c53516",
+      "blob": "a6e64c2a708f323ffc323a4ddad3e827352016b6"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/test/common/universeAgentExpectedOwner.test.ts",
+      "sha256": "ebf7d6897970db0929e05a479a7e1ae9ad407868daf1ce7aba3336b713b25dd8",
+      "blob": "6eb38c27f33557c2c802b3238ebb5505f0c939de"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts",
+      "sha256": "fd7d797aa398522f80eddd366b4ac226bfc0595d6d4dfc1307b743e370d833a2",
+      "blob": "2cf6d28e9cce3cab7cc6dee9423422b2d587c8c0"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/test/node/universeAgentConnectionIpcChannel.test.ts",
+      "sha256": "d673a925a9a9c6e392c3849dc9c8dee06135d3d134ff52f7231718feb3d80b94",
+      "blob": "74b4c86cff80e17f0cb68a77bfcbf0740b53bef7"
+    }
+  ],
+  "srcDiffVersusCOnlyFSkills": [
+    "src/vs/workbench/contrib/conversation/browser/engineSkillsSection.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/engineSkillsSection.test.ts"
+  ],
+  "srcDiffVersusFOnlyC9": [
+    "src/vs/platform/universeAgent/common/universeAgentConnection.ts",
+    "src/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.ts",
+    "src/vs/platform/universeAgent/common/universeAgentExpectedOwner.ts",
+    "src/vs/platform/universeAgent/node/universeAgentConnectionService.ts",
+    "src/vs/platform/universeAgent/test/common/universeAgentExpectedOwner.test.ts",
+    "src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts",
+    "src/vs/platform/universeAgent/test/node/universeAgentConnectionIpcChannel.test.ts",
+    "src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts"
+  ],
+  "stage1BothCommitsAreAncestors": true,
+  "archivesUnchanged": {
+    "skills-runtime-artifacts.tar.gz": "ce2af4d01f2dbe428e9a446e1eb205d9c782ceaec2d068bd5326bb6e5debbdfd",
+    "providers-runtime-artifacts.tar.gz": "cc60c122a83e13e75cbe260605903e9c7414094eebe32f9349c1ee4b93565cff",
+    "ipc-shared-runtime-artifacts.tar.gz": "133aca73541c8e42c1609a566fc51bfe4db64f9fa33eac6ef6649030021ce1e2"
+  },
+  "docConflictDecisions": {
+    "resolved": [
+      "dev/progress/engine-lifecycle-recovery-2026-10-28-evidence/INDEX.md",
+      "dev/progress/status.md"
+    ],
+    "indexDecision": "Retain Providers, Skills, S1 and baseline links; summary separates phase1 634, shared S1 602 and unfinished UI/product integration.",
+    "statusDecision": "Retain both parent histories, deduplicate identical reopen line, add dependency-only merge entry.",
+    "statusLines": 183,
+    "boardDecision": "Mark fixed S1 7821 received by real three-way merge; UI S2 awaits parent, no merged-tree runtime claim."
+  },
+  "gates": {
+    "generate": 0,
+    "generateCheck": 0,
+    "docsHealth": {
+      "exit": 0,
+      "errors": 0,
+      "linkWarnings": 73
+    },
+    "diffCheck": 0,
+    "cachedDiffCheck": 0
+  },
+  "planStatus": "accepted",
+  "PRD025": "accepted",
+  "newNodeOrTestsOrReplay": false,
+  "outUpdated": false,
+  "pushed": false,
+  "productIntegration": false,
+  "UIStarted": false
+}
