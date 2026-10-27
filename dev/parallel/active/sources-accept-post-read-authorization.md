@@ -49,3 +49,8 @@ summary: "b2原54与5f4 same-ref窄peer均C0/I0/M0经父采纳、44 I1关；root
 ### E 独立可见叶lease源码候选（2026-10-27）
 
 上文保留ff55 accepted时点；root核该SHA后已另行明确授权E实施。E从干净e7一次普通ff-only到ff55，在独立分支形成仅Pane listener/import＋现Reveal真实EngineRoster矩阵的候选，原默认QuietRoster/26 tests、所有其他src、三Sourcesplan/JSON及54/18保持。L1–L7静态展开13条，L3三种非live的真实QueueReader before/after窗口、主L1资格及业务结果全部待runtime；L4含公开prune removed及未挂载控制。作者仅AST/no-cache lint/保护与docs检查，不Program/compile/emit/业务/UI/out/cache/freeze写。[当前候选与原首条](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-可见叶lease最小源码候选2026-10-27) / [plan §7](../../plans/conversation-visible-lease-recovery.md#7-e-最小源码候选与作者静态边界2026-10-27)；plan仍accepted，固定commit先交root核，再原reviewer源码peer，唯一lane旧red/新green/原reveal及非作者after均另待。当前Sources候选仍由D负责，问题优先，不混接E HEAD。
+
+
+### E 新L4 dispose合同修订候选（2026-10-27）
+
+固定5fd已获root静态身份接收，原Astra正式源码peer C0/I1/M0；I1只针对新L4将disposed Lens字段误要求undefined。root采纳后另授权仅该case与必要docs：公开记录旧Pane lease、prune后活observer接帧/旧owner不接帧，再放最后observer核host release；保留leaf absent/非hidden/非visible、Lens disposed、latebind0和存活owner正控。Pane完整15270B/90c0719d…、其他12新case/原26/defaultQuiet/Sources四TS+三planJSON与历史/out保护，矩阵仍13；实际L4 release/帧隔离及全部运行资格仍false，待root固定核→原Astra窄peer。审查来源与metadata root-inode/LF schema边界见[plan§8](../../plans/conversation-visible-lease-recovery.md#8-5fd-正式源码-peer-与新-l4-合同修订2026-10-27)及[行动记录](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-新l4-dispose合同窄修订2026-10-27)。本轮仅AST/no-cache lint/docs，无执行授权，plan仍accepted。

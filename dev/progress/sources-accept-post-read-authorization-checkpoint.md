@@ -500,3 +500,25 @@ summary: "Conversation可见叶恢复89d经root逐8docs核与原Astra规则16 C0
 `/tmp/vscode-e-visible-lease-static.json`保存两TS bytes/hash、createSourceFile诊断、原26 tests逐字保护、13个预期fullTitle与Source范围/保护检查；`/tmp/vscode-e-visible-lease-eslint.json`为实际no-cache lint原件，`/tmp/vscode-e-visible-lease-preservation.json`保存三目录metadata复核。`generate-docs-status.py --check`实际exit0；`check-docs-health.py --format json`实际exit0，E当前checkout扫描555 Markdown / 0 errors / 73 link warnings，5个theme docs warning0；对这5文件仅以内存read_text替换为ff55原文的只读基线检查结果与当前JSON逐字结构相同，没有新增warning。先前其他checkout的602/46历史数字不代本工位结果。`git diff --check`实际exit0；status200、只第7/12行变，checkpoint/board完整ff55前缀不变。以上均不代runtime资格。
 
 本工位docs输入边界：脚本按现文件系统枚举`docs/**/*.md`与`dev/**/*.md`再加`AGENTS.md`，排除任一`archive/iterations/tmp/.git/node_modules/out`路径段；本轮无文档增删移，因此baseline overlay仅拦截上述5个changed Markdown的`Path.read_text`为ff55原文，不变更rglob/exists/is_file/link目标或其他输入。`git config`未列core.sparseCheckout/core.sparseCheckoutCone/extensions.worktreeConfig，`git sparse-checkout list`仅报告本工位非稀疏模式；未修复checkout或猜测扫描差异原因。可复核overlay脚本`/tmp/vscode-e-visible-lease-docs-overlay.py`、555路径bytes/hash输入清单`/tmp/vscode-e-visible-lease-docs-inputs.json`与current/baseline原始health JSON随固定候选manifest交root。
+
+
+## E 新L4 dispose合同窄修订（2026-10-27）
+
+root已独核固定5fd七path/mode/blob/bytesSHA/parent/src/clean、Sources四TS+三plan+JSON、原prefix/status200、8artifact与docs current==overlay；原Astra正式只读源码peer **C0/I1/M0**。I1仅新L4旧断言把普通Lens dispose误作清空lease字段：registered lifetime释放与Lens字段清空不是同一合同。root已独读对应source并采纳，明确授权本轮从clean5fd只修新L4测试与必要theme docs；完整Strengths/Critical/Important/Minor/Assessment、消息来源和静态边界见[plan§8](../plans/conversation-visible-lease-recovery.md#8-5fd-正式源码-peer-与新-l4-合同修订2026-10-27)。原正式结论保留，不提前宣称I1关闭或窄peer通过。
+
+修订用现有公开接口记录实际Pane旧lease与其snapshot/frame计数；保留独立s2 observer使真实host在prune后仍有消费者，真实frame须到达observer而旧Pane lease不变，释放最后observer后再核公开SessionView.releaseLease记录。保留Lens disposed、leaf absent/not hidden/not visible、late bind0和surviving s1帧正控；不要求disposed Lens字段undefined，不手动dispose旧Pane lease，不改getter/FrameSource/生产API。root只读确认每consumer replica getter638–639、dispose695–702与notifyApplied617–625的源码依据，修法已获父采纳；**实际release与帧隔离仍未运行，L4 runtime=false**。L1/L3及其他矩阵获5fd静态peer未发现源码问题不等于运行资格。
+
+相对5fd，反向以原L4完整call替回即可还原整个Reveal文件；其余12新case/原26/defaultQuiet保持，动态仍13。Pane15270B / SHA-256 `90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3`与所有其他src全字节保护，Sources四TS/三plan/JSON不动；两TS仅createSourceFile parse0，本轮Reveal no-cache ESLint exit0/0error/0warning。新原件独立`/tmp/vscode-e-visible-lease-i1-*`，5fd artifact不覆盖。`generate-docs-status.py --check`实际exit0，docs health实际exit0：555 Markdown/0error/73 link warnings、5theme docs warning0；只对5changed Markdown内容以内存Path.read_text回映5fd的只读baseline overlay结果与current完全相同，脚本/输入规则沿原交付且独立命名，未新增warning。`git diff --check`实际exit0，status仍200且只第7/12行替换、5fd原summary/首条及其NoLF/LF hash下方保留；checkpoint/board原5fd全文保持前缀。
+
+保护schema补明：三目录14865/416/47159为含各目录名前缀的后代entries，**不含root inode**；ff55旧首条NoNewline hash `bc12ff2dc9c25b0dfdf46d2136a428f53d7d31f0bd3a7aaa3d59be7a0ac47651`与含LF hash `9ea9515f78c69966800dfac437b0da8a212be6ba6d9a716480dcb4f5a5d94dc7`各有明确边界。root报告其两次初比不一致均为比较schema（root多一行、LF边界），随后正确schema独扫全匹配，不是作者漂移或实际门禁失败。root补核E全H=22250/skipWorktree0、commit内docs/dev tracked Markdown的FS missing0；不猜555与其他工位扫描差异原因，也不修checkout。
+
+### 5fd status 原summary与首条保留
+
+本轮仍只替summary与Current Session首条，status200；下列原首条NoNewline SHA-256 `52e6cefc90238051a3336369776227f1e3dd3e12973fd2d0a8ae748bc1184e9f`，含末尾LF SHA-256 `17a1ba817cd3c7e2eb27446ff3a3d45ae1dc27d91819065fc1b1a88903145ddd`。ff55更早原首条与其他历史保留在上文，5fd checkpoint/board原全文仍为本轮逐字前缀。
+
+```markdown
+summary: "root核ff55 accepted后另授权E可见叶lease最小源码候选：Pane原visibility listener与真实EngineRoster Reveal矩阵13条；仅AST/lint/保护检查，源码peer及旧red/新green/after待，Sources54/18/三plan/JSON/out保持。"
+- **Conversation 可见叶 lease 恢复源码候选（2026-10-27）**：root核ff55独立accepted后另授权E一次ff-only/独立分支，仅Pane现visibility生命周期加同步session reconcile及现Reveal真实EngineRoster矩阵13条；当前owner/bound/visible/live/ready/自身missing逐门核，原hide/reveal/default QuietRoster与26 tests保。两TS AST0、no-cache lint0error/Pane4旧warning，L1自然missing与L3三QueueReader独立窗口只写断言未获runtime资格；固定commit待root核/原reviewer源码peer，唯一lane旧a4a主red/新green/原reveal与非作者after均待，plan仍accepted。Sources54/18、三plan/JSON、PRD/D1387/宽方案及out保持。[候选与原首条](sources-accept-post-read-authorization-checkpoint.md#e-可见叶lease最小源码候选2026-10-27)。
+```
+
+本轮固定commit先交root核再原Astra窄peer，无执行授权；plan仍accepted，不升PRD/旧波。无Program/checker/compile/transpile/emit/runtime/UI/engine/out/cache/freeze写，不把新静态候选或5fd静态Strengths当运行green。

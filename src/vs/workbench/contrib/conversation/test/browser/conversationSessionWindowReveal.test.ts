@@ -808,6 +808,14 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 			assert.strictEqual(lens.sessionViewBindingSuspended, false);
 			assert.strictEqual(lens.sessionViewLease?.sessionId, 'lease-s2');
 			await assertEngineFramePaints(harness, pane, 'lease-s2', 'L4 public restore');
+			const retiredLease = lens.sessionViewLease;
+			assert.ok(retiredLease);
+			const retainedObserver = store.add(harness.rosterService.acquireSessionView('lease-s2'));
+			assert.notStrictEqual(retainedObserver, retiredLease);
+			const hostLease = harness.sessionView.acquired.find(lease => lease.sessionId === 'lease-s2' && !harness.sessionView.released.has(lease.leaseId));
+			assert.ok(hostLease, 'the restored Pane and observer must share an acquired s2 host lease');
+			let retiredFrames = 0;
+			store.add(retiredLease.onDidApplyFrame(() => { retiredFrames++; }));
 			const removed = harness.deferCatalog();
 			harness.notify('live');
 			await bounded(removed.started.p, 'public removal catalog must start');
@@ -818,7 +826,20 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 			assert.strictEqual(harness.sessionWindowService.isSessionWindowHidden('lease-s2'), false);
 			assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible('lease-s2'), false);
 			assert.strictEqual(lens.isDisposed, true);
-			assert.strictEqual(lens.sessionViewLease, undefined);
+			const retiredSnapshot = retiredLease.snapshot;
+			const framesAfterRemoval = retiredFrames;
+			const observed = Event.toPromise(retainedObserver.onDidApplyFrame);
+			try {
+				harness.sessionView.emitSession('lease-s2', 'L4 retained observer only');
+				await bounded(observed, 'the live retained observer must admit the post-prune host frame');
+				assert.notStrictEqual(retainedObserver.snapshot, retiredSnapshot);
+				assert.strictEqual(retiredLease.snapshot, retiredSnapshot, 'the disposed Pane lease must no longer receive shared host snapshots');
+				assert.strictEqual(retiredFrames, framesAfterRemoval);
+			} finally {
+				observed.cancel();
+				retainedObserver.dispose();
+			}
+			assert.strictEqual(harness.sessionView.released.has(hostLease.leaseId), true, 'the retired Pane and roster must release their ownership before the final observer releases the host');
 			const afterRemoval = binds();
 			const late = harness.deferCatalog();
 			harness.notify('live');
@@ -826,7 +847,9 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 			await late.result.complete(survivingCatalog);
 			await bounded(harness.rosterService.whenEngineCatalogRefreshComplete(), 'post-removal catalog must settle');
 			assert.strictEqual(binds(), afterRemoval, 'later ready notices cannot revive the removed non-hidden leaf');
-			assert.strictEqual(lens.sessionViewLease, undefined);
+			assert.strictEqual(retiredLease.snapshot, retiredSnapshot);
+			assert.strictEqual(retiredFrames, framesAfterRemoval);
+			assert.strictEqual(harness.sessionView.released.has(hostLease.leaseId), true);
 			await assertEngineFramePaints(harness, harness.pane, harness.primaryId, 'L4 surviving owner');
 		});
 

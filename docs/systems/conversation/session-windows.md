@@ -38,6 +38,8 @@ CONVERSATION_PART
 
 [可见叶lease恢复窄方案](../../../dev/plans/conversation-visible-lease-recovery.md)已accepted；当前源码候选在Pane现有visibility生命周期中监听真实roster session通知，仅当捕获input/Lens仍为当前存活owner、明确bound一致、叶实际visible、未suspended、真实引擎live且非pairing、catalog ready并且自身lease缺失时，调用既有公开bind入口。目标取该Pane当前bound，不按通知active id过滤，因此两个pinned visible叶各核自己的owner；已有lease保持，hidden与未挂载/已移除叶不补领。原hide释放与正常reveal（含local stub/断连缓存）路径保持。
 
+普通Pane/Lens dispose撤销listener并释放registered lifetime，测试持有的旧Lens对象不保证将lease字段置空；旧owner退出消费应从实际lease不再接帧与最后消费者释放host的公开边界观察。5fd源码peer C0/I1/M0指出的新L4合同误用已形成独立修订候选，仍待窄peer与运行，见[方案§8](../../../dev/plans/conversation-visible-lease-recovery.md#8-5fd-正式源码-peer-与新-l4-合同修订2026-10-27)。
+
 这仍是待独立源码peer与运行验收的候选合同，未据静态检查提升方案或产品状态。旧源码L1合格业务red、新矩阵/原reveal回归与非作者默认编辑器窗口after见方案验证门；不能以共享observer收到frame推断实际Pane已持lease或已绘制。
 
 ## 2. `ConversationChatInput` 与围栏

@@ -4,13 +4,13 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "ff55独立accepted经root核后已另授权E最小源码候选：Pane原visibility生命周期补session reconcile与真实EngineRoster Reveal矩阵13条；仅作者AST/lint/保护检查，源码peer及lease旧red/新green/after均待，Sources/out保持。"
+summary: "5fd正式源码peer C0/I1/M0，I1仅新L4误把dispose当清lease字段；root另授权仅修L4为旧owner不接帧/最后observer后host release公开观察，候选仅AST/lint待窄peer，13case/Pane/Sources/out保持，lease运行/after未达。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
 
 > **固定输入**：`a4a70322795c509e8e9b8274cf295a1b65db663a`，`src=d78a48e5feee57fcaf5811c8425859d0a2400af0`。只读该对象，不追 main / merge / 他人 WIP。
-> **当前阶段**：精确 draft `89d08368cf4f889e1a815f8670a0e2ffd7ea9911` 的原 Astra Rule16 **C0/I0/M2** 与两 Minor 澄清已在独立 accepted `ff55db8937f08f116ad23e95b21fa071091b245f` 签收。root 核 accepted 后另行明确授权 E 实施；本轮只形成两 TS 源码候选与必要文档，作者只做 AST / no-cache lint / 保护检查，源码独立 peer、lease 主 red / 新 green / 非作者 after 均待。源码合同仍按 §2–§3，不改 Sources 当前候选；本轮记录见 §7，原审查来源见 §6。
+> **当前阶段**：accepted `ff55db8937f08f116ad23e95b21fa071091b245f` 的原 Rule16 **C0/I0/M2** 与两 Minor 澄清保持。root 核 E 七路径 `5fd65f66ef965f75055d3338849f2bcf5cf8e7bc` 后，原 Astra 正式源码 peer **C0/I1/M0**；I1 仅新 L4 把普通 dispose 误作清空旧 Lens lease 字段。root 采纳后另行授权本轮仅修新 L4 与必要文档，生产 Pane 全字节保护；修订见 §8，待 root 固定核与原 reviewer 窄 peer。作者仍只静态检查，lease 主 red / 新 green / 非作者 after 均待，plan 保持 accepted。
 
 ## 1. 来源、已有 SSOT 与实际缺口
 
@@ -132,7 +132,7 @@ L3 的“0”仅约束本次新增 session reconcile；既有 UA connection 回�
 4. 只有 root 释放的唯一 baseline lane 执行 checker / emit / 官方 Electron 测试，先取得 L1 精确旧 a4a 的合格业务 red，再固定新候选跑矩阵与原 reveal 回归。setup 错误与业务失败分记，finally 核原输出恢复；作者不写 out / cache / freeze。
 5. 默认编辑器窗口的非作者 after 仍须实际验证同可见 Pane 在同 session catalog 恢复后不靠 hide / restore 收到正文 / pending，以及 hidden 与双 pinned visible 叶边界；不得用 Sessions 网页或另领 observer 代替。获得实证后才讨论本窄方案 implemented 与知识层回填，不升级 PRD / 旧 D / 宽方案。
 
-**当前审查 / 运行状态**：原 Astra 对精确 89d 的 Rule16 为 C0/I0/M2，root 已采纳并签收独立 accepted ff55，再另行授权 E 最小源码实施；本轮候选记录在 §7。lease 主 red、新 green、非作者 after 均未发生，源码独立 peer 待；其他 Sources 54 / 18、历史 after 或 Sources run 均不是本 lease 方案的运行资格。
+**当前审查 / 运行状态**：原 Astra 对精确 89d 的 Rule16 C0/I0/M2 与 accepted ff55 保持；E 最小源码5fd的正式 peer 为 C0/I1/M0，I1仅新L4测试合同，本轮修订候选见§8、待窄peer。lease 主 red、新 green、非作者 after 均未发生；其他 Sources 54 / 18、历史 after 或 Sources run 均不是本 lease 方案的运行资格。
 
 
 ## 6. 规则16原审查与独立accepted文档
@@ -194,3 +194,30 @@ L3 的公开 observer 注册顺序、QueueReader unsupported→stale、同次 UA
 out / .build / node_modules 逐条 metadata（workspace-relative path、mode、size、mtime_ns、ctime_ns、symlink target；不含 atime）分别 14865 / 416 / 47159 项，与 advance 前后 hash 相同；根 cache / eslintcache 与 node_modules cache 仍无。作者没有 typecheck / compile / transpile / emit / tests / Electron / UI / engine / out / cache / freeze 写入。文档与 diff 检查结果记于[现行动记录](../progress/sources-accept-post-read-authorization-checkpoint.md#e-可见叶lease最小源码候选2026-10-27)。
 
 本 plan 继续 **accepted**；此候选还须 root 核固定 commit、原 reviewer 独立源码 peer，再由 root 单独释放唯一 baseline lane 的旧 a4a L1 合格业务 red / 新候选矩阵及原 reveal 回归，最后非作者默认编辑器窗口 after。未把静态结果写成实现通过；PRD / D1387 / 宽方案、历史 Sources / unary 局部签收均保持。
+
+
+## 8. 5fd 正式源码 peer 与新 L4 合同修订（2026-10-27）
+
+### 8.1 审查来源与父级采纳
+
+精确被审查对象为 `5fd65f66ef965f75055d3338849f2bcf5cf8e7bc`（parent ff55 / src `b97e68c3278c00f53a28977f4a2a5a68cc84d07d`）。root 已独核七路径的 mode / blob / bytes / SHA、sourceTree / clean、四 Sources TS / 三 plan / JSON、原前缀与 status200、8份静态artifact及docs current==overlay。原 reviewer `/root/architecture_audit`（Astra）正式只读源码 peer **C0/I1/M0**；来源为其直接消息与 root 转发采纳，不存在另造的正式 raw 报告文件。
+
+- **Strengths**：reviewer直接消息确认“L1/L3 真实事件链及其余矩阵静态 peer 未发现别的问题”；root转发的细项为L1真实disconnect→reconnect空lease前提、L3 early observer/QueueReader同步stale真实session bracket在Lens连接前的源码链，以及L2持续live KEEP、L4 unmounted、L5 input、L6/L7无新源码缺陷。以上全为静态判断，不提供运行资格。
+- **Critical**：0。
+- **Important I1**：reviewer指向5fd Reveal测试`:821/829`：“非空 s2 restore 后 prune 会 dispose Lens/registered lifetime，但普通 dispose 不把旧 lens.sessionViewLease 置 undefined；Pane 已先清 visibility listener，之后 fireVisible 不会调用 hidden-release。” 要求只修新L4，记录旧owner lease实际释放/不再接帧，保留Lens disposed、leaf absent/nonhidden/nonvisible、late bind0，不改生产Lens清字段。
+- **Minor**：0。
+- **Assessment**：修I1后须原reviewer窄复审；无运行通过结论。root已独读Reveal788–830、Pane129–145、WindowService716–758、Lens778–787并采纳I1，明确授权从干净5fd仅新L4合同修正与必要theme docs，不改生产/服务/API或其余case。
+
+### 8.2 公开观察修正与源码依据
+
+普通dispose的合同是释放registered lifetime与退出帧消费，不承诺清空仍被测试变量持有的Lens字段。新L4在正常公开restore且实际绘制后记录该Pane旧lease；用现有公开`roster.acquireSessionView(s2)`保留独立observer（不替换Pane lease），并记录真实SessionView边界当前未released的s2 host id。公开catalog prune之后仍检查Lens disposed、leaf absent且hidden=false/visible=false；随后一帧经原host边界发给仍live observer，必须被observer真实admit并更新其snapshot，而旧Pane lease snapshot引用与frame事件计数都不变。最后dispose保留observer，公开`releaseLease`记录必须出现该host id；因此检查旧Pane与roster没有残留ownership，而非检查disposed Lens字段是否清空。迟到真实ready通知仍要求旧Pane bind增量0、旧lease不接帧，存活s1 owner继续真实正文/pending正控。
+
+root另行只读核`EngineSessionViewLease` getter638–639为每consumer replica、dispose695–702执行removeConsumer/onRelease、notifyApplied617–625拒绝disposed。该源码依据支持“活observer接帧/旧owner不接帧→最后observer释放host”的修法；不改FrameSource、不私读内部disposed/refCount/lease，不手动bind、dispose旧Pane lease或applyFrame。**这些仅为已写运行断言，实际release、隔离与L4资格仍为runtime false。**
+
+### 8.3 作者静态与保护边界
+
+本轮相对5fd仅新L4 `test(...)`文本变化：把当前L4完整替回5fd原L4即可逐字还原整个Reveal文件；其余12个新增动态case、原26case与默认QuietRoster全保，新增矩阵仍13条。Pane15270B / SHA-256 `90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3`完整保护，`src`仅Reveal一条路径不同；Sources四TS/三plan/JSON与历史证据保护。两TS仅`createSourceFile`诊断0；本轮改动Reveal的`eslint --no-cache`实际exit0、0error/0warning。静态原件采用独立`/tmp/vscode-e-visible-lease-i1-*`命名，不覆盖5fd已交artifact。
+
+metadata守卫的14865/416/47159计数是`out/.build/node_modules`的**后代entries**，tuple路径含目录名前缀，不含各root inode本身，仍不含atime。ff55旧status首条不含LF hash为`bc12ff2dc9c25b0dfdf46d2136a428f53d7d31f0bd3a7aaa3d59be7a0ac47651`；含LF另为`9ea9515f78c69966800dfac437b0da8a212be6ba6d9a716480dcb4f5a5d94dc7`，不可混称。root报告其独核两次初比差异由比较schema解释（多加root inode一行、首条LF边界），不是作者漂移或实际门禁失败；随后root按相同schema独扫三目录全匹配。root另核E index flags全H=22250、skipWorktree=0，commit中docs/dev tracked Markdown在FS missing0；不据此猜测555与其他工位扫描数字差异，不修复checkout。
+
+本轮仍无Program/checker/compile/transpile/emit/runtime/UI/engine/out/cache/freeze写；plan继续accepted，不升PRD/旧波。固定修订commit先由root核，再原reviewer窄peer；旧a4a L1主red、新矩阵/原Reveal回归及非作者after仍须之后另获唯一lane执行授权。
