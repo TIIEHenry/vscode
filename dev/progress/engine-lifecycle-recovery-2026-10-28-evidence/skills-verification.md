@@ -9,7 +9,7 @@ summary: "固定 d91 原生产3过23业务红；首轮新实现选择重入失�
 
 # Skills 断连草稿恢复验证
 
-[实施方案](../../plans/skills-disconnect-draft-recovery.md)的源码验证已完成。固定旧生产配冻结新测试为 3 过 / 23 个业务 AssertionError；首轮新实现 afterEach 选择事件递归失败，补修后 focused 26 过、完整 EngineSkillsSection 89 过（含官方 meta），均 0 失败。原项目 noEmit 0 诊断、主题两文件 ESLint 0 errors / 0 warnings。实际合并后的验证与真实引擎产品验收尚未执行，PRD-025 仍 accepted。
+本页记录[实施方案](../../plans/skills-disconnect-draft-recovery.md)的阶段一源码验证。固定旧生产配冻结新测试为 3 过 / 23 个业务 AssertionError；首轮新实现 afterEach 选择事件递归失败，补修后 focused 26 过、完整 EngineSkillsSection 89 过（含官方 meta），均 0 失败。原项目 noEmit 0 诊断、主题两文件 ESLint 0 errors / 0 warnings。续查确认main换代早于renderer通知的IPC窗口仍未封闭，任务已重开；原件、数字及归档保留为阶段证据，不能证明后续expectedOwner补修通过。实际合并后的验证与真实引擎产品验收尚未执行，PRD-025 仍 accepted。
 
 ## 身份与证据
 
