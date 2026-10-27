@@ -14,6 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [Conversation lease：engine Pane setup 失败诊断](conversation-visible-lease-setup-diagnostics.md) | `draft` | d8e实际setup失败未到647；仅拟补失败报告与后续单次诊断专用Reveal+旧Pane，待规则16/源码peer/真实三路与独立释放，未实施。 |
 | [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | 89d经root核与原Astra规则16 C0/I0/M2；KEEP持续live及QueueReader公开非live事件资格已澄清，仅文档accepted，srcd78a/未实施，lease red/green/after未达。 |
 | [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `accepted` | 精确d0经原Astra规则16 C0/I0/M1、root采纳后独立accepted；§3.4共同预stub合同与Minor已改；root核f5a后授权最小Pane test-only候选，旧helper/default/resolver/cases、生产/Panel保护，待新窄peer/唯一lane。 |
 | [Sources Panel：Diff ViewModel 与文本引用生命周期](sources-panel-diff-view-model-lifetime.md) | `accepted` | 精确a04draft经原Astra规则16 C0/I0/M0、root采纳后accepted；父核e949后授权的44生命周期候选经正式源码peer C0/I1/M0；5f4 same-ref修订窄peer C0/I0/M0经父采纳、I1关闭；共同预stub最小Pane候选已获授权，待新窄peer/唯一lane，18例未运行；仍accepted。 |

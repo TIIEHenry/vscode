@@ -69,3 +69,8 @@ root报告固定7361唯一lane prep2首run checker在新L4报TS2339 never五诊�
 ### E Lease after只读输入落盘（2026-10-27）
 
 固定E d8e/src923acd；root转述其与原Astra输入决策审查C0/I0/M3并全部采纳，仅授权纯docs。已完成只读调查及三条Minor的来源、wire/三个真实transport lifetime/公开own-lease观察边界、R3工具hash与loaded限制统一落入[独立证据索引](../../progress/lease-after-inputs-20261027-evidence/INDEX.md)，现lease plan只追加该证据入口，合同与accepted不变。E历史`.build` aggregate不匹配、前轮末guard exit1/AssertionError且未生成narrowing delivery/preservation、缺旧逐项tuple与前轮起点的边界如实保留，不修旧guard、不归因。原static/docs原件与全部source/out/三Sources plan/JSON保护；本轮fresh起止仅界定本docs区间，不能替代历史缺失证据。只做docs generator/health/diff及只读保护核对，结果见证据页；没有工具准备、执行release或runtime信用，无AST/lint/Program/checker/emit/tests/server/browser/engine/out/cache操作，不ff/同步merge、不升PRD/旧波。
+
+
+### E lease setup诊断草案（2026-10-27）
+
+root报告并提供唯一lane d8e实际exit1原件：checker两target语法语义/lint/dry/emitReveal0，old L1在engine Pane setup失败、map445→455→433→517→628、未到647业务断言；无Paneemit/fullnew，实际只还原Reveal、46fc afterguard及唯一Reveal新ctime、全owned已停。原Astra C0/I1/M1经root采纳；已有错误前置文案不回写，rootcause未知。E固定19663010只新增[setup诊断draft](../../plans/conversation-visible-lease-setup-diagnostics.md)：A仅失败报告，B未来经规则16/源码peer/真实三路后由唯一merge baseline另备一次诊断专用Reveal+旧Pane/L1+official meta，任意结果stop/restore，不升级业务red/green、不自动Paneemit/fullnew/after；当前不实施、不准备/运行，原件与全部src/out保持。待交root与原Astra规则16，现lease plan仍accepted，原看板全文保持前缀。

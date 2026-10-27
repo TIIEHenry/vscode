@@ -580,3 +580,19 @@ E历史旧901B guard的`.build`416项aggregate为`f407a3fe5ef16c79808ea2ab1a74f6
 summary: "固定7361唯一lane prep2首run checker因新L4 TS2339 never五诊断失败、无emit/tests且consumed；root采纳原Astra后仅授权E留f33作公开重读restoredLens窄修订，一次Reveal AST/lint0不代checker过，Pane/其余case保护，plan accepted/业务未达。"
 - **Conversation 新L4 checker收窄修订候选（2026-10-27）**：固定7361唯一lane prep2首实际run在Reveal报TS2339 never五诊断，Pane无诊断；无emit/测试，run已consumed不可重试。root采纳原Astra裁定后授权E留clean f33，仅在原restore后公开重读restoredLens/assert同对象，改sessionId与retiredLease两处读取根，后者仍在原绘制await后；原missing gates/其余L4、12新/26旧/defaultQuiet及Pane完整保护，矩阵仍13。只一次Reveal AST0、no-cache/no-fix lint0/0、禁Node compilecache，不代新checker通过，候选待root核/原Astra窄peer，业务red/新矩阵/原Reveal/after全未达、planaccepted；不导入merge后来Sources第四plan/52B stub，E三plan/JSON/out原件保持。[原失败/授权与原首条](sources-accept-post-read-authorization-checkpoint.md#e-新l4-checker收窄窄修订2026-10-27)。
 ```
+
+
+## E lease setup诊断独立草案（2026-10-27）
+
+固定E parent `19663010fddefe6193165962284e7f599c95d555` / src `923acdffaf236f826bc9d2e69d924159aa217ac0`；after只读输入docs尚未merge，不追merge/main。root提供真实raw目录`/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1`并转述原Astra C0/I1/M1/root采纳：已consumed实际exit1，checker双target syntax/semantic0、lint/dry/emitReveal0；官方2tests/meta1过/L1setup1败/hooks10，map445→455→433→517→628，非647业务red。原件误写的无条件prerequisiteEvidence不回改，具体rootcause未知，不归因为生产/竞态/机器慢。
+
+新增[独立诊断方案](../plans/conversation-visible-lease-setup-diagnostics.md)为draft待规则16：A只补engine setup失败报告已有openErrors的类型/message/stack与公开终态，原3s/事件/finally cancel/成功返回/全部业务断言保持；B须未来源码peer/真实三路后，由唯一merge baseline另备fresh单次诊断专用新Reveal+旧Pane，仅L1+official meta，任意结果stop/restore，绝无Paneemit/fullnew/after自动分支或业务red/green升级信用。恢复须本次46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e实际guard、唯一Reveal ctime1793092686521596622，实际PID/start+parent phase+journal定写入子集，全ownedquiet先还原，未写ctime不修。工具未来仅boundary=true写qualified前置，其余not reached+actual frames。当前仅计划与导航/行动docs，无源码/工具候选或准备/运行授权；现lease合同及accepted保持。
+
+### 19663010 status 原summary与首条（含LF）
+
+原status共200行，SHA-256 `33739790b501db8313fa3605e8da761ae033d426a5f121aabd0a6267ae464f6d`。原首条含LF 1030B / SHA-256 `7d43133be33aa69da2a0f11f66ca67d4055fb49e77c1828cd742f17c57ea1414`，NoLF SHA-256 `a63e80b87e8983400ce52e9085ebfe9fc8ddae8ef942afb5b08acb93b1c51b05`；下方首条尾LF保留在closing fence前。本次status只换summary与首条，board/checkpoint原19663010完整字节保持前缀。
+
+```markdown
+summary: "固定d8e只读lease after输入经root/原Astra决策C0/I0/M3全采纳，仅证据docs落盘；历史.build mismatch/失败guard与原件边界保留，fresh仅本docs区间；无工具准备或运行释放，plan accepted/业务未达。"
+- **Conversation lease after只读输入落盘（2026-10-27）**：固定E d8e/src923acd，root转述其与原Astra输入决策审查C0/I0/M3全部采纳，仅授权纯docs。wire/三transport lifetime/公开own-lease观察、第三轮新正文pending/hidden公开负控/持久release与v1账本、R3工具及loaded边界已入[独立证据索引](lease-after-inputs-20261027-evidence/INDEX.md)；lease plan仅追加入口、合同仍accepted。历史.build aggregate不匹配与前轮末guard exit1/AssertionError、无narrowing delivery/preservation及缺前轮起点如实保留，不归因/修复；fresh起止仅本docs区间，原static/docs及src/out/三Sourcesplan/JSON保护。只做docs门禁/只读保护，无准备/执行release、AST/lint/Program/checker/emit/tests/服务/浏览器/out/cache操作；业务red/新矩阵/原Reveal/after仍全未达，不ff或升状态。[原summary/首条含LF](sources-accept-post-read-authorization-checkpoint.md#e-lease-after只读输入落盘与历史保护边界2026-10-27)。
+```
