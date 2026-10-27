@@ -430,7 +430,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		await sessionWindowService.ensurePrimaryWindow(primaryId);
 		const primaryPart = partFor(parts, primaryId);
 		if (engine) {
-			await waitForEnginePane(primaryPart);
+			await waitForEnginePane(primaryPart, openErrors);
 		} else {
 			await waitForPane(primaryPart, openErrors, parts);
 		}
@@ -446,20 +446,47 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		return result.value;
 	}
 
-	async function waitForEnginePane(part: IConversationEditorPart): Promise<ConversationEditorPane> {
-		await bounded(part.whenReady, 'engine leaf part must become ready');
-		if (!(part.activeGroup.activeEditorPane instanceof ConversationEditorPane)) {
-			const ready = Event.toPromise(Event.filter(part.activeGroup.onDidActiveEditorChange,
-				() => part.activeGroup.activeEditorPane instanceof ConversationEditorPane));
-			try {
-				await bounded(ready, 'real engine ConversationEditorPane must open');
-			} finally {
-				ready.cancel();
+	async function waitForEnginePane(part: IConversationEditorPart, openErrors: readonly unknown[] = []): Promise<ConversationEditorPane> {
+		try {
+			await bounded(part.whenReady, 'engine leaf part must become ready');
+			if (!(part.activeGroup.activeEditorPane instanceof ConversationEditorPane)) {
+				const ready = Event.toPromise(Event.filter(part.activeGroup.onDidActiveEditorChange,
+					() => part.activeGroup.activeEditorPane instanceof ConversationEditorPane));
+				try {
+					await bounded(ready, 'real engine ConversationEditorPane must open');
+				} finally {
+					ready.cancel();
+				}
 			}
+			const pane = part.activeGroup.activeEditorPane;
+			assert.ok(pane instanceof ConversationEditorPane);
+			return pane;
+		} catch (error) {
+			try {
+				if (error instanceof Error) {
+					const originalStack = error.stack;
+					const group = part.activeGroup;
+					const activeEditor = group.activeEditor;
+					const activePane = group.activeEditorPane;
+					const diagnostics = JSON.stringify({
+						part: { windowId: part.windowId, sessionKey: part.sessionKey },
+						groupId: group.id,
+						activeEditorResource: activeEditor?.resource?.toString() ?? null,
+						activePaneId: activePane?.getId() ?? null,
+						activePaneIsConversationEditorPane: activePane instanceof ConversationEditorPane,
+						openErrors: openErrors.map(openError => openError instanceof Error
+							? { type: openError.name, message: openError.message, stack: openError.stack ?? null }
+							: { type: typeof openError, message: String(openError), stack: null })
+					}, null, 2);
+					Object.defineProperty(error, 'stack', {
+						value: `${originalStack ?? `${error.name}: ${error.message}`}\nEngine Pane setup diagnostics: ${diagnostics}`
+					});
+				}
+			} catch {
+				// Keep the original failure if diagnostics cannot be read, formatted, or appended.
+			}
+			throw error;
 		}
-		const pane = part.activeGroup.activeEditorPane;
-		assert.ok(pane instanceof ConversationEditorPane);
-		return pane;
 	}
 
 	async function createEngineRevealHarness(beforePane?: (roster: ConversationEngineRosterService) => void) {
@@ -515,7 +542,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		assert.strictEqual(getConversationSessionReadiness(rosterService), 'ready');
 		beforePane?.(rosterService);
 		const harness = await createRevealHarnessWithRoster(rosterService, connection, true);
-		const pane = await waitForEnginePane(partFor(harness.parts, harness.primaryId));
+		const pane = await waitForEnginePane(partFor(harness.parts, harness.primaryId), harness.openErrors);
 		const lens = pane.activeConversationLens;
 		assert.ok(lens);
 		assert.ok(lens.sessionViewLease, 'initial real visible owner must have a lease');

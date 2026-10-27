@@ -13,6 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
+| [Lease after 只读输入与历史保护边界](lease-after-inputs-20261027-evidence/INDEX.md) | 固定d8e/R3只读输入与root采纳C0/I0/M3落盘；含历史.build mismatch/失败guard，fresh观察仅本docs区间；不准备/运行，lease plan仍accepted。 |
 | [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | 固定6d一次green/root独核后四窄plan implemented，原阶段/首条LF与全部失败历史保持；仅source/真实组件scope。 |
 | [固定6d一次新验证与四窄验收](sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md) | 六stage全0、72逐名/完整3+142/旧stale本体通过；prep1原稿及prep2授权/consumed/raw全保，54fe37旧native恢复，fullCompile=false。 |
 | [Sources已验基线与f33 lease正式合源](sources-lease-f33-formal-integration-20261027-evidence/INDEX.md) | 5336真实双亲/793union/5blocks精确，四Sources implemented+lease accepted；src90d609/metadata54fe旧native。后续首次checker失败见下一行。 |

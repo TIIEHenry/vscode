@@ -1,0 +1,112 @@
+{
+  "kind": "fresh-docs-only-start-observation",
+  "atUtc": "2026-10-27T08:50:25.795045+00:00",
+  "head": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "srcTree": "923acdffaf236f826bc9d2e69d924159aa217ac0",
+  "scope": "Fresh docs interval only; cannot replace prior missing start snapshot or explain historical aggregate mismatch.",
+  "metadataSchema": "Sorted descendant tuples [workspace-relative path, full st_mode, size, mtime_ns, ctime_ns, symlink target or null]; root inode and atime excluded; default ensure_ascii compact JSON.",
+  "metadata": {
+    "out": {
+      "descendantEntries": 14865,
+      "rootInodeIncluded": false,
+      "metadataSha256": "25b31cc67d5b7e445d4dfabbbc17c8908f413140566ff80d2319ff0aafad5add"
+    },
+    ".build": {
+      "descendantEntries": 416,
+      "rootInodeIncluded": false,
+      "metadataSha256": "6a78e773b7487ad3809977dc3cc272fce3d190c85b14ade48ad756d3420fe660"
+    },
+    "node_modules": {
+      "descendantEntries": 47159,
+      "rootInodeIncluded": false,
+      "metadataSha256": "3dfb0c2ec9524556bdc2275069b59b001806808535574d5ffcc08577a82ca61b"
+    }
+  },
+  "priorArtifacts": [
+    {
+      "path": "/tmp/vscode-e-visible-lease-accepted-docs-preservation.json",
+      "bytes": 901,
+      "sha256": "dc4af6eed340f47c935246c7b1889924c41966777575d2d091b4618ac7e0d5d3",
+      "mode": "0o664",
+      "mtimeNs": 1793077577900638925,
+      "ctimeNs": 1793077577900638925
+    },
+    {
+      "path": "/tmp/vscode-e-visible-lease-narrowing-static.json",
+      "bytes": 3010,
+      "sha256": "f840195eeef94d98c906c5adcfbd9e65c7c47c2f59b53fd19f3c2cc1ddcb5457",
+      "mode": "0o664",
+      "mtimeNs": 1793088935400692610,
+      "ctimeNs": 1793088935400692610
+    },
+    {
+      "path": "/tmp/vscode-e-visible-lease-narrowing-eslint.json",
+      "bytes": 1479,
+      "sha256": "815853049c542fe00ce61d4af024005504f5f9d8e7d1ea2db2a169c955c63b84",
+      "mode": "0o664",
+      "mtimeNs": 1793088936420750121,
+      "ctimeNs": 1793088936420750121
+    },
+    {
+      "path": "/tmp/vscode-e-visible-lease-narrowing-docs-health.json",
+      "bytes": 12908,
+      "sha256": "a66300ce26977b0a8341e9473041385b6a54207275d55a5cbead274222d025f4",
+      "mode": "0o664",
+      "mtimeNs": 1793089215411344961,
+      "ctimeNs": 1793089215411344961
+    },
+    {
+      "path": "/tmp/vscode-e-visible-lease-narrowing-docs-health-f33.json",
+      "bytes": 12908,
+      "sha256": "a66300ce26977b0a8341e9473041385b6a54207275d55a5cbead274222d025f4",
+      "mode": "0o664",
+      "mtimeNs": 1793089215486349124,
+      "ctimeNs": 1793089215486349124
+    },
+    {
+      "path": "/tmp/vscode-e-visible-lease-narrowing-docs-overlay.py",
+      "bytes": 1138,
+      "sha256": "609fba8143660b947345d2ad7f25ff897a4419b2e3900988b52430d3febe1862",
+      "mode": "0o664",
+      "mtimeNs": 1793089120041040702,
+      "ctimeNs": 1793089120041040702
+    }
+  ],
+  "cachePaths": [
+    {
+      "path": ".cache",
+      "lexists": false,
+      "symlinkTarget": null
+    },
+    {
+      "path": ".eslintcache",
+      "lexists": false,
+      "symlinkTarget": null
+    },
+    {
+      "path": "eslintcache",
+      "lexists": false,
+      "symlinkTarget": null
+    },
+    {
+      "path": "node_modules/.cache",
+      "lexists": false,
+      "symlinkTarget": null
+    },
+    {
+      "path": "node_modules/.cache/eslint",
+      "lexists": false,
+      "symlinkTarget": null
+    }
+  ],
+  "statusBefore": {
+    "path": "dev/progress/status.md",
+    "bytes": 139946,
+    "sha256": "02346dd18cc8cc1f1984a821c398f39b4ab73725234531a6536c07b415320a06",
+    "lines": 200,
+    "firstEntryWithLF": "- **Conversation 新L4 checker收窄修订候选（2026-10-27）**：固定7361唯一lane prep2首实际run在Reveal报TS2339 never五诊断，Pane无诊断；无emit/测试，run已consumed不可重试。root采纳原Astra裁定后授权E留clean f33，仅在原restore后公开重读restoredLens/assert同对象，改sessionId与retiredLease两处读取根，后者仍在原绘制await后；原missing gates/其余L4、12新/26旧/defaultQuiet及Pane完整保护，矩阵仍13。只一次Reveal AST0、no-cache/no-fix lint0/0、禁Node compilecache，不代新checker通过，候选待root核/原Astra窄peer，业务red/新矩阵/原Reveal/after全未达、planaccepted；不导入merge后来Sources第四plan/52B stub，E三plan/JSON/out原件保持。[原失败/授权与原首条](sources-accept-post-read-authorization-checkpoint.md#e-新l4-checker收窄窄修订2026-10-27)。\n",
+    "firstEntryWithLFBytes": 885,
+    "firstEntryWithLFSha256": "6fae7bca0fe08354d4d11690f6d51432d71c747b1fc5744c10f00a04f9fe4321",
+    "firstEntryWithoutLFSha256": "ea37f62badec7aa7674f432e8475bee74b1d5724a5ab595d183fffe1ecc57bf5"
+  }
+}
