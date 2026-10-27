@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "planId": "sources-accept-qualified-old-red-20261027-run3",
+  "state": "AUTHORIZED_OLD_RED_RUN3",
+  "executionAuthorized": true,
+  "authorizedBy": "/root",
+  "authorizationMessage": "root已独立实读run3完整mechanical patches/release，核4 pinned hashes、ca0 HEAD/actual-run2 baseline0ad833…、两a4a inputs=Git；AST文本抽取核read_process/metadata/processes/has_token/become_subreaper/OwnedStage/run_owned全段逐字等原Astra已审run2，pipeline/finally无变。现明确一次有限run3执行release：validate0bbc1367fc01d569bc13a79ce987b51e54ce53a6227fb2f3ba30905aa1fb2132/emitter1600fee99da0b238f613111d911b2963de6d421b1dc1a2a578abafd0e0de17e6/policy50f86590648f58130fe5bb093bbc7eaf8c7042720ddc2b3b687e59cf51d4fcb1/manifestf289e2f4c38e1dd70f35c7f5d52e053cef783fe1c8379962f2c58e7977d5e071；目录/tmp/vscode-sources-accept-qualified-old-red-20261027-run3。先另存prepared原bytes inventory/release，再只设execution-release AUTHORIZED_OLD_RED_RUN3/executionAuthorized true/authorizedBy /root/message本消息，4pins不变。唯一改调用行为删除pre-entry user-data flag；按exact3独立selectors A4/PanelA3/原defaultfalse，old c7三prod0写，a4a两test dry+emit恰2JS0map。45+5+5外部watchdog、全owned收口后finally两JS原bytes/mode/mtime恢复，其余12552files/2946dirs+254/extra2/freeze4/cache3精确；不改旧guards。无sourcechecker/新生产/wholecompile/窗口/引擎/source merge/其它测试或重跑授权。实际资格或编排失败保留停止不热改。结束给实际reporters/projections/hash/restoration与进程；暂不自动proofcommit，root先实读。本release一次消费，与run2失败原件相互独立。",
+  "expectedHead": "ca0b0603e2b29bd3c5cb403fa17e080488834452",
+  "candidateTests": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "scope": "old-production-two-testJs-three-isolated-groups-only",
+  "pinnedFilesSha256": {
+    "validate.py": "0bbc1367fc01d569bc13a79ce987b51e54ce53a6227fb2f3ba30905aa1fb2132",
+    "emitter.mjs": "1600fee99da0b238f613111d911b2963de6d421b1dc1a2a578abafd0e0de17e6",
+    "policy.json": "50f86590648f58130fe5bb093bbc7eaf8c7042720ddc2b3b687e59cf51d4fcb1",
+    "input-manifest.json": "f289e2f4c38e1dd70f35c7f5d52e053cef783fe1c8379962f2c58e7977d5e071"
+  },
+  "note": "Root authorized run3 preparation only. No driver, checker, emitter, test, guard or out/freeze/cache/profile write is authorized or performed. Future explicit root release requires the reviewed fixed run3 hashes."
+}

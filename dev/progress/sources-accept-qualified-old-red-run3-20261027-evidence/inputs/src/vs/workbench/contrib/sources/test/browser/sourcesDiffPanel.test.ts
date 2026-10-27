@@ -1,0 +1,4311 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import assert from 'assert';
+import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
+import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { URI } from '../../../../../base/common/uri.js';
+import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
+import { localize } from '../../../../../nls.js';
+import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
+import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { type ContextKeyExpression, type ContextKeyValue, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
+import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { emptyProgressRunner, IEditorProgressService } from '../../../../../platform/progress/common/progress.js';
+import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
+import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentReadGitFileDiffRequest, UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitStagePathsRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
+import { ICodeEditor, IDiffEditor } from '../../../../../editor/browser/editorBrowser.js';
+import { ICodeEditorService } from '../../../../../editor/browser/services/codeEditorService.js';
+import { IDocumentDiffProvider } from '../../../../../editor/common/diff/documentDiffProvider.js';
+import { ITextFileService } from '../../../../services/textfile/common/textfiles.js';
+import { IDiffProviderFactoryService } from '../../../../../editor/browser/widget/diffEditor/diffProviderFactoryService.js';
+import { TestDiffProviderFactoryService } from '../../../../../editor/test/browser/diff/testDiffProviderFactoryService.js';
+import { IUserInteractionService, MockUserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionService.js';
+import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
+import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewPaneContainer, IViewsRegistry, ViewContainerLocation } from '../../../../common/views.js';
+import { IViewsService } from '../../../../services/views/common/viewsService.js';
+import { DiffEditorInput } from '../../../../common/editor/diffEditorInput.js';
+import { workbenchInstantiationService, TestEditorGroupView, TestEditorInput, TestViewsService } from '../../../../test/browser/workbenchTestServices.js';
+import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
+import { ConversationDiffReviewEditorId } from '../../../../common/editor/conversationDiffReviewInput.js';
+import { TestConfigurationService } from '../../../../../platform/configuration/test/common/testConfigurationService.js';
+import { IModelService } from '../../../../../editor/common/services/model.js';
+import { IQuickDiffService } from '../../../scm/common/quickDiff.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
+import { ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
+import { ISourcesChangeEntryOpenDeps, openSourcesChangeEntry } from '../../browser/sourcesChangeEntryOpen.js';
+import { createSourcesConversationOpenHarness } from './sourcesConversationOpenHarness.js';
+import { SOURCES_DIFF_MOVE_TO_CONVERSATION_VIEW_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND, SOURCES_DIFF_MOVE_TO_PREVIEW_VIEW_COMMAND } from '../../browser/sourcesDiffActions.js';
+import { moveActiveDiffToConversation, resolveSourcesChangeRefFromEditor } from '../../browser/sourcesDiffRefHelpers.js';
+import { SOURCES_DIFF_PANEL_VIEW_CONTAINER } from '../../browser/sourcesDiffPanel.contribution.js';
+import { SOURCES_DIFF_PANEL_CONTAINER_ID, SOURCES_DIFF_PANEL_VIEW_ID } from '../../browser/sourcesDiffPanelIds.js';
+import { SourcesDiffPanelService } from '../../browser/sourcesDiffPanelService.js';
+import { SourcesDiffPanelView } from '../../browser/sourcesDiffPanelView.js';
+import { DiffEditorWidget } from '../../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
+import { ISourcesChangeRef, sourcesGitApplyHunksPatches } from '../../common/sourcesChangeRef.js';
+import { SOURCES_GIT_APPLY_CACHED_ARGV, sourcesGitHunkPatchAtCursor } from '../../common/sourcesGitHunkPatch.js';
+import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
+import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
+import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
+import { sourcesDiffAcceptUnavailableMessage } from '../../common/sourcesDiffWriteController.js';
+import { canSendSourcesGitApplyHunks, canSendSourcesGitStagePaths, canShowSourcesReviewAccept, isSourcesChangesWriteClosed, resolveSourcesDiffWriteActions, sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
+
+function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
+	if (!when) {
+		return true;
+	}
+	return when.evaluate({ getValue: <T extends ContextKeyValue = ContextKeyValue>(key: string) => values[key] as T });
+}
+
+suite('Sources diff panel', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry);
+	const viewsRegistry = Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry);
+
+	test('Diff panel container and view register on Panel with hideIfEmpty', () => {
+		const container = viewContainersRegistry.get(SOURCES_DIFF_PANEL_CONTAINER_ID);
+		assert.ok(container, 'Sources diff panel container should be registered');
+		assert.strictEqual(container, SOURCES_DIFF_PANEL_VIEW_CONTAINER);
+		assert.strictEqual(container.hideIfEmpty, true);
+		assert.strictEqual(
+			viewContainersRegistry.getViewContainerLocation(container),
+			ViewContainerLocation.Panel,
+			'Sources diff panel must live on PANEL_PART'
+		);
+
+		const viewDescriptor = viewsRegistry.getView(SOURCES_DIFF_PANEL_VIEW_ID);
+		assert.ok(viewDescriptor, 'Sources diff panel view should be registered');
+		assert.strictEqual(viewsRegistry.getViewContainer(SOURCES_DIFF_PANEL_VIEW_ID), container);
+		assert.strictEqual(viewDescriptor.when, SourcesDiffPanelService.ctxHasChange);
+	});
+
+	test('show enables view context and clear disables it for hideIfEmpty', async function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const ref = {
+			modified: resource,
+			original: toResource.call(this, '/project/src/a.ts.git'),
+			groupId: 'workingTree',
+		};
+
+		const openViewCalls: Array<{ id: string; focus: boolean | undefined }> = [];
+		class TrackingViewsService extends TestViewsService {
+			override openView<T>(id: string, focus?: boolean): Promise<T | null> {
+				openViewCalls.push({ id, focus });
+				return Promise.resolve(null);
+			}
+			dispose(): void { }
+		}
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const viewsService = store.add(new TrackingViewsService());
+		instantiationService.stub(IViewsService, viewsService);
+
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		const contextKeyService = instantiationService.get(IContextKeyService);
+		const ctxValues = () => ({
+			[SourcesDiffPanelService.ctxHasChange.key]: contextKeyService.getContextKeyValue<boolean>(SourcesDiffPanelService.ctxHasChange.key) ?? false,
+			view: SOURCES_DIFF_PANEL_VIEW_ID,
+		});
+
+		assert.strictEqual(
+			evalWhen(SourcesDiffPanelService.ctxHasChange, ctxValues()),
+			false,
+			'hideIfEmpty container must start inactive'
+		);
+
+		assert.strictEqual(await panelService.show(ref), false);
+		assert.strictEqual(panelService.getCurrentRef(), ref);
+		assert.strictEqual(
+			evalWhen(SourcesDiffPanelService.ctxHasChange, ctxValues()),
+			true,
+			'show must activate the diff panel view'
+		);
+		assert.deepStrictEqual(openViewCalls, [{ id: SOURCES_DIFF_PANEL_VIEW_ID, focus: true }]);
+
+		panelService.clear();
+		assert.strictEqual(panelService.getCurrentRef(), undefined);
+		assert.strictEqual(
+			evalWhen(SourcesDiffPanelService.ctxHasChange, ctxValues()),
+			false,
+			'clear must deactivate the diff panel view'
+		);
+	});
+
+	test('show replaces the current change ref', async function () {
+		const resourceA = toResource.call(this, '/project/src/a.ts');
+		const resourceB = toResource.call(this, '/project/src/b.ts');
+		const refA = { modified: resourceA, original: undefined, groupId: 'workingTree' };
+		const refB = { modified: resourceB, original: undefined, groupId: 'workingTree' };
+
+		const changes: Array<URI | undefined> = [];
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		store.add(panelService.onDidChangeRef(ref => changes.push(ref?.modified)));
+
+		await panelService.show(refA);
+		await panelService.show(refB);
+
+		assert.strictEqual(panelService.getCurrentRef()?.modified.toString(), resourceB.toString());
+		assert.deepStrictEqual(changes.map(uri => uri?.toString()), [resourceA.toString(), resourceB.toString()]);
+	});
+
+	test('panel ViewTitle exposes move to conversation and preview actions', () => {
+		const viewTitleItems = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem);
+		const moveToConversation = viewTitleItems.find(item => item.command.id === SOURCES_DIFF_MOVE_TO_CONVERSATION_VIEW_COMMAND);
+		const moveToPreview = viewTitleItems.find(item => item.command.id === SOURCES_DIFF_MOVE_TO_PREVIEW_VIEW_COMMAND);
+
+		assert.ok(moveToConversation, 'Panel view title must expose move to conversation');
+		assert.ok(moveToPreview, 'Panel view title must expose move to preview');
+		assert.ok(moveToConversation.when, 'Panel move to conversation must be gated');
+		assert.ok(moveToPreview.when, 'Panel move to preview must be gated');
+		assert.strictEqual(
+			evalWhen(moveToConversation.when, { view: SOURCES_DIFF_PANEL_VIEW_ID, [SourcesDiffPanelService.ctxHasChange.key]: true }),
+			true
+		);
+		assert.strictEqual(
+			evalWhen(moveToPreview.when, { view: SOURCES_DIFF_PANEL_VIEW_ID, [SourcesDiffPanelService.ctxHasChange.key]: false }),
+			false
+		);
+	});
+
+	test('EditorTitle exposes move to preview when Conversation Diff is active', () => {
+		const editorTitleItems = MenuRegistry.getMenuItems(MenuId.EditorTitle).filter(isIMenuItem);
+		const moveToPreview = editorTitleItems.find(item => item.command.id === SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND);
+
+		assert.ok(moveToPreview, 'Conversation Diff editor title must expose move to preview');
+		assert.ok(moveToPreview.when, 'Conversation Diff move to preview must be gated');
+		assert.strictEqual(
+			evalWhen(moveToPreview.when, { activeEditor: ConversationDiffReviewEditorId }),
+			true
+		);
+		assert.strictEqual(
+			evalWhen(moveToPreview.when, { activeEditor: 'workbench.editor.files.textFileEditor' }),
+			false
+		);
+	});
+
+	function createViewDescriptorServiceStub(): IViewDescriptorService {
+		return {
+			getViewLocationById: () => ViewContainerLocation.Panel,
+			onDidChangeLocation: Event.None,
+			getViewDescriptorById: () => null,
+			getViewContainerByViewId: () => ({
+				id: SOURCES_DIFF_PANEL_CONTAINER_ID,
+				title: { value: 'Diff', original: 'Diff' },
+				ctorDescriptor: {} as SyncDescriptor<IViewPaneContainer>,
+			}),
+			getViewContainerModel: () => ({
+				onDidChangeContainerInfo: Event.None,
+			} as IViewContainerModel),
+			getDefaultContainerById: () => null,
+		} as unknown as IViewDescriptorService;
+	}
+
+	function createLiveScmService(resource: URI, liveGroupId: string): ISCMService {
+		const group = {
+			id: liveGroupId,
+			label: liveGroupId === 'index' ? 'Staged Changes' : 'Changes',
+			resources: [] as ISCMResource[],
+		};
+		const scmResource = {
+			sourceUri: resource,
+			resourceGroup: group,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		group.resources.push(scmResource);
+		const repository = {
+			provider: {
+				groups: [group],
+				rootUri: resource,
+				onDidChangeResources: Event.None,
+				onDidChangeResourceGroups: Event.None,
+			},
+		};
+		return {
+			_serviceBrand: undefined,
+			get repositories() { return [repository]; },
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+	}
+
+	function createLeftoverScmService(resource: URI, groupId = 'workingTree'): ISCMService {
+		const group = {
+			id: groupId,
+			label: groupId === 'index' ? 'Staged Changes' : 'Changes',
+			resources: [] as ISCMResource[],
+		};
+		const scmResource = {
+			sourceUri: resource,
+			resourceGroup: group,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		group.resources.push(scmResource);
+		const repository = {
+			provider: {
+				groups: [group],
+				rootUri: resource,
+				onDidChangeResources: Event.None,
+				onDidChangeResourceGroups: Event.None,
+			},
+		};
+		return {
+			_serviceBrand: undefined,
+			get repositories() { return [repository]; },
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+	}
+
+	function emptyDiffScmService(): ISCMService {
+		return {
+			_serviceBrand: undefined,
+			get repositories() { return []; },
+			get repositoryCount() { return 0; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+	}
+
+	function stubSessionAndChangesModel(
+		instantiationService: ReturnType<typeof workbenchInstantiationService>,
+		connection: IUniverseAgentConnection,
+		engineSessionReady: boolean,
+	): void {
+		instantiationService.stub(IAgentSessionContext, {
+			_serviceBrand: undefined,
+			getActiveSessionId: () => 'session-1',
+			isEngineSessionReady: () => engineSessionReady,
+			isPairingHold: () => {
+				const phase = typeof connection.getConnectionPhase === 'function' ? connection.getConnectionPhase() : undefined;
+				const snapshot = typeof connection.getConnectionSnapshot === 'function' ? connection.getConnectionSnapshot() : undefined;
+				return phase?.kind === 'connected' && !!snapshot?.pairingPending;
+			},
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			acquireSessionView: () => { throw new Error('not used'); },
+		} satisfies IAgentSessionContext);
+		instantiationService.stub(ISourcesChangesModel, store.add(instantiationService.createInstance(SourcesChangesModel)));
+	}
+
+	function stubDiffHonestyServices(options: {
+		throwOnLoad?: boolean;
+		executeCommand?: (...args: unknown[]) => Promise<unknown>;
+		resource?: URI;
+		groupId?: string;
+		connection?: IUniverseAgentConnection;
+		engineSessionReady?: boolean;
+	} = {}) {
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IDiffProviderFactoryService, new TestDiffProviderFactoryService());
+		instantiationService.stub(IUserInteractionService, new MockUserInteractionService());
+		instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+		const connection = options.connection ?? {
+			isEngineConnected: () => false,
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		instantiationService.stub(IConversationRosterService, {
+			getActiveSessionId: () => 'session-1',
+			onDidChangeActiveSession: Event.None,
+			onDidChangeSession: Event.None,
+			isEngineSessionReady: () => options.engineSessionReady ?? true,
+		} as unknown as IConversationRosterService);
+		instantiationService.stub(ISCMService, options.resource
+			? createLeftoverScmService(options.resource, options.groupId)
+			: emptyDiffScmService());
+		stubSessionAndChangesModel(instantiationService, connection, options.engineSessionReady ?? true);
+		instantiationService.stub(ICommandService, {
+			onWillExecuteCommand: Event.None,
+			onDidExecuteCommand: Event.None,
+			executeCommand: options.executeCommand ?? (async () => undefined),
+		} as unknown as ICommandService);
+		if (options.throwOnLoad) {
+			instantiationService.stub(ITextModelService, {
+				createModelReference: async () => {
+					throw new Error('boom');
+				},
+			} as unknown as ITextModelService);
+		}
+		return instantiationService;
+	}
+
+	test('Panel Accept is hidden without ApplyHunks payload; SCM local action is Stage', () => {
+		assert.strictEqual(canShowSourcesReviewAccept(true, false), false);
+		const scmOnly = resolveSourcesDiffWriteActions({
+			groupId: 'workingTree',
+			hasScmResource: true,
+			canWriteStage: false,
+			canWriteAccept: true,
+			hasApplyHunksPayload: false,
+			hasGitStageCommand: true,
+			hasGitUnstageCommand: false,
+			hasGitCleanCommand: false,
+		});
+		assert.strictEqual(scmOnly.showStage, true);
+		assert.strictEqual(scmOnly.showAccept, false);
+	});
+
+	test('Diff panel load fail hides title authority and write chrome', async function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const original = toResource.call(this, '/project/src/a.ts.git');
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({ throwOnLoad: true, resource });
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			assert.strictEqual(await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			}), false);
+			await timeout(50);
+
+			assert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent ?? '', '');
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-stage') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-accept') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-revert') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-unstage') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual(
+				view.element.querySelector('.sources-diff-panel-new-file-notice')?.textContent ?? '',
+				localize('sourcesDiffPanel.loadFailed', "Unable to load this comparison."),
+			);
+			assert.ok(view.element.querySelector('.sources-diff-panel-new-file-notice')?.classList.contains('is-error'));
+			assert.ok(!(view.element.querySelector('.sources-diff-panel-new-file-notice')?.textContent ?? '').includes('New file'));
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-header') as HTMLElement | null)?.style.display, 'none');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('superseded async render cannot paint an older file diff', async function () {
+		const resourceA = toResource.call(this, '/project/src/stale-panel-a.ts');
+		const resourceB = toResource.call(this, '/project/src/stale-panel-b.ts');
+		const originalA = toResource.call(this, '/project/src/stale-panel-a.ts.git');
+		const originalB = toResource.call(this, '/project/src/stale-panel-b.ts.git');
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		let textFileService: ITextFileService | undefined;
+		let view: SourcesDiffPanelView | undefined;
+		try {
+			let releaseStale: (() => void) | undefined;
+			const staleGate = new Promise<void>(resolve => {
+				releaseStale = resolve;
+			});
+			const instantiationService = stubDiffHonestyServices({ resource: resourceA });
+			textFileService = instantiationService.get(ITextFileService);
+			const fakeWidget = {
+				setModel: () => { },
+				getModifiedEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),
+				getOriginalEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),
+				layout: () => { },
+				dispose: () => { },
+			};
+			instantiationService.stubInstance(DiffEditorWidget, fakeWidget as unknown as DiffEditorWidget);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			const renderHost = view as unknown as {
+				renderDiff: (original: URI, modified: URI, generation: number) => Promise<boolean>;
+			};
+			const renderDiff = renderHost.renderDiff.bind(view);
+			let renderCalls = 0;
+			renderHost.renderDiff = async (original, modified, generation) => {
+				renderCalls++;
+				if (renderCalls === 1) {
+					await staleGate;
+				}
+				return renderDiff(original, modified, generation);
+			};
+
+			const shownA = panelService.show({
+				modified: resourceA,
+				original: originalA,
+				groupId: 'workingTree',
+			});
+			await timeout(0);
+
+			const shownB = panelService.show({
+				modified: resourceB,
+				original: originalB,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+
+			assert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent, 'stale-panel-b.ts');
+
+			releaseStale!();
+			await timeout(50);
+
+			assert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent, 'stale-panel-b.ts');
+			assert.strictEqual(await shownA, false);
+			assert.strictEqual(await shownB, true);
+		} finally {
+			for (const model of textFileService?.files.models ?? []) {
+				model.dispose();
+			}
+			view?.dispose();
+			await timeout(0);
+			stageCommand.dispose();
+		}
+	});
+
+	test('connection change during renderRef keeps write chrome hidden until comparison loads', async function () {
+		const resource = toResource.call(this, '/project/src/render-pending-write.ts');
+		const original = toResource.call(this, '/project/src/render-pending-write.ts.git');
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			let releaseLoad: (() => void) | undefined;
+			const loadGate = new Promise<void>(resolve => {
+				releaseLoad = resolve;
+			});
+			const onDidChangeConnection = new Emitter<void>();
+			const connection = {
+				isEngineConnected: () => false,
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+				onDidChangeConnection: onDidChangeConnection.event,
+			} as unknown as IUniverseAgentConnection;
+
+			const instantiationService = stubDiffHonestyServices({ resource, connection });
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			const renderHost = view as unknown as {
+				renderDiff: (original: URI, modified: URI, generation: number) => Promise<boolean>;
+			};
+			renderHost.renderDiff = async () => {
+				await loadGate;
+				return true;
+			};
+
+			const shown = panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(0);
+
+			paintPanelWriteChrome(view);
+			onDidChangeConnection.fire();
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-stage') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-accept') as HTMLElement | null)?.style.display, 'none');
+
+			releaseLoad!();
+			await timeout(50);
+
+			assert.strictEqual(await shown, true);
+			assert.strictEqual((view.element.querySelector('.sources-diff-panel-stage') as HTMLElement | null)?.style.display, '');
+			onDidChangeConnection.dispose();
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Conversation Diff load fail hides write chrome and only keeps loadFailed', async function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const original = toResource.call(this, '/project/src/a.ts.git');
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({ throwOnLoad: true, resource });
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+
+			assert.strictEqual((parent.querySelector('.conversation-diff-review-stage') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual((parent.querySelector('.conversation-diff-review-accept') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual((parent.querySelector('.conversation-diff-review-revert') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual((parent.querySelector('.conversation-diff-review-unstage') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual(
+				parent.querySelector('.conversation-diff-review-notice')?.textContent ?? '',
+				localize('conversationDiffReviewPane.loadFailed', "Unable to load this comparison."),
+			);
+			assert.ok(parent.querySelector('.conversation-diff-review-notice')?.classList.contains('is-error'));
+			assert.ok(!(parent.querySelector('.conversation-diff-review-notice')?.textContent ?? '').includes('New file'));
+			assert.strictEqual((parent.querySelector('.conversation-diff-review-toolbar') as HTMLElement | null)?.style.display, 'none');
+			assert.strictEqual((parent.querySelector('.conversation-diff-review-open-preview') as HTMLElement | null)?.style.display, 'none');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Conversation runGitAction success clears notice and failure keeps it', async function () {
+		const resource = toResource.call(this, '/project/src/a.ts');
+		const original = toResource.call(this, '/project/src/a.ts.git');
+		let shouldFail = false;
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			executeCommand: async () => {
+				if (shouldFail) {
+					throw new Error('boom');
+				}
+			},
+		});
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+
+		const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+
+		const runner = pane as unknown as { runGitAction: (commandId: string) => Promise<void> };
+		await runner.runGitAction('git.stage');
+		assert.strictEqual((parent.querySelector('.conversation-diff-review-notice') as HTMLElement | null)?.style.display, 'none');
+
+		shouldFail = true;
+		await runner.runGitAction('git.stage');
+		assert.strictEqual(parent.querySelector('.conversation-diff-review-notice')?.textContent ?? '', 'boom');
+		assert.notStrictEqual((parent.querySelector('.conversation-diff-review-notice') as HTMLElement | null)?.style.display, 'none');
+	});
+
+	function forceClick(button: HTMLElement | null): void {
+		if (!button) {
+			return;
+		}
+		button.style.display = '';
+		button.removeAttribute('disabled');
+		button.setAttribute('aria-disabled', 'false');
+		if ('disabled' in button) {
+			(button as HTMLButtonElement).disabled = false;
+		}
+		button.click();
+	}
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
+	function leftoverLooksLiveApplyConnection(
+		applyCalls: UniverseAgentWriteGitApplyHunksRequest[],
+		stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [],
+		pairingPending = true,
+	): IUniverseAgentConnection {
+		const acceptedWrite: UniverseAgentWriteGitWriteResult = {
+			supported: true,
+			reason: '',
+			success: true,
+			errorMessage: '',
+			exitCode: 0,
+			stdout: '',
+		};
+		return {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending }),
+			onDidChangeConnection: Event.None,
+			writeGitApplyHunks: async (request: UniverseAgentWriteGitApplyHunksRequest) => {
+				applyCalls.push(request);
+				return acceptedWrite;
+			},
+			writeGitStagePaths: async (request: UniverseAgentWriteGitStagePathsRequest) => {
+				stageCalls.push(request);
+				return acceptedWrite;
+			},
+		} as unknown as IUniverseAgentConnection;
+	}
+
+	const carriedUnifiedDiff = '@@ -1 +1 @@\n-old\n+new\n';
+
+	test('leftover-looks-live pairing-hold Accept chrome stays hidden and 0 unary', async function () {
+		const resource = toResource.call(this, '/project/src/leftover.ts');
+		const original = toResource.call(this, '/project/src/leftover.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(canSendSourcesGitApplyHunks(true, true, isConversationPairingHold(connection)), false);
+
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			connection,
+		});
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		await panelService.show({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+		});
+		await timeout(50);
+		paintPanelWriteChrome(view);
+
+		const panelAccept = view.element.querySelector('.sources-diff-panel-accept') as HTMLButtonElement | null;
+		assert.strictEqual(panelAccept?.style.display, 'none');
+		forceClick(panelAccept);
+		await (view as unknown as { runAccept: () => Promise<void> }).runAccept();
+		await timeout(20);
+		assert.deepStrictEqual(applyCalls, []);
+
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		await timeout(20);
+		paintReviewWriteChrome(pane);
+
+		const reviewAccept = parent.querySelector('.conversation-diff-review-accept') as HTMLButtonElement | null;
+		assert.strictEqual(reviewAccept?.style.display, 'none');
+		forceClick(reviewAccept);
+		await (pane as unknown as { runAccept: () => Promise<void> }).runAccept();
+		await timeout(20);
+		assert.deepStrictEqual(applyCalls, []);
+	});
+
+	test('leftover-looks-live pairing-hold Stage chrome stays hidden and 0 unary / 0 git.stage', async function () {
+		const resource = toResource.call(this, '/project/src/leftover-stage.ts');
+		const original = toResource.call(this, '/project/src/leftover-stage.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitStageCommands: unknown[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, stageCalls);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(canSendSourcesGitStagePaths(true, true, 'session-1', isConversationPairingHold(connection)), false);
+
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			connection,
+			executeCommand: async (commandId: unknown) => {
+				if (commandId === 'git.stage') {
+					gitStageCommands.push(commandId);
+				}
+			},
+		});
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		await panelService.show({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+		});
+		await timeout(50);
+
+		const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+		assert.strictEqual(panelStage?.style.display, 'none');
+		forceClick(panelStage);
+		await (view as unknown as { runStage: () => Promise<void> }).runStage();
+		await timeout(20);
+		assert.deepStrictEqual(stageCalls, []);
+		assert.deepStrictEqual(gitStageCommands, []);
+
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		await timeout(20);
+
+		const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement | null;
+		assert.strictEqual(reviewStage?.style.display, 'none');
+		forceClick(reviewStage);
+		await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+		await timeout(20);
+		assert.deepStrictEqual(stageCalls, []);
+		assert.deepStrictEqual(gitStageCommands, []);
+		assert.deepStrictEqual(applyCalls, []);
+	});
+
+	function leftoverConnectedConnection(
+		pairingPending: boolean,
+	): IUniverseAgentConnection {
+		return leftoverLooksLiveApplyConnection([], [], pairingPending);
+	}
+
+	function paintPanelWriteChrome(view: SourcesDiffPanelView): void {
+		const host = view as unknown as { comparisonLoadFailed: boolean; updateWriteActions: () => void };
+		host.comparisonLoadFailed = false;
+		host.updateWriteActions();
+	}
+
+	test('Diff panel keeps stored index when live SCM is only workingTree', async function () {
+		const resource = toResource.call(this, '/project/src/engine-stage-stale-ref-index.ts');
+		const original = toResource.call(this, '/project/src/engine-stage-stale-ref-index.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = workbenchInstantiationService(undefined, store);
+			instantiationService.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+			instantiationService.stub(IUniverseAgentConnection, connection);
+			instantiationService.stub(IConversationRosterService, {
+				getActiveSessionId: () => 'session-1',
+				onDidChangeActiveSession: Event.None,
+				onDidChangeSession: Event.None,
+				isEngineSessionReady: () => true,
+			} as unknown as IConversationRosterService);
+			instantiationService.stub(ISCMService, createLiveScmService(resource, 'workingTree'));
+			stubSessionAndChangesModel(instantiationService, connection, true);
+			instantiationService.stub(ICommandService, {
+				onWillExecuteCommand: Event.None,
+				onDidExecuteCommand: Event.None,
+				executeCommand: async () => undefined,
+			} as unknown as ICommandService);
+			instantiationService.stub(ITextModelService, {
+				createModelReference: async () => {
+					throw new Error('boom');
+				},
+			} as unknown as ITextModelService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const context = (view as unknown as { getWriteContext: () => { groupId: string } | undefined }).getWriteContext();
+			assert.strictEqual(context?.groupId, 'index');
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, 'none');
+
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			assert.strictEqual(panelStage?.style.display, 'none');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Diff panel does not record engine stage hide mask when ref and live SCM are index', async function () {
+		const resource = toResource.call(this, '/project/src/engine-stage-index-only.ts');
+		const original = toResource.call(this, '/project/src/engine-stage-index-only.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'index',
+				connection,
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+			});
+			await timeout(50);
+
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			const host = view as unknown as { writeCollapse: { modified: string; kind: string } | undefined };
+			assert.strictEqual(host.writeCollapse, undefined);
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Diff panel hides Stage after engine WriteGitStagePaths accepted until ref changes', async function () {
+		const resource = toResource.call(this, '/project/src/engine-stage-accepted.ts');
+		const original = toResource.call(this, '/project/src/engine-stage-accepted.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, '');
+
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			assert.strictEqual(panelStage?.style.display, 'none');
+
+			const other = toResource.call(this, '/project/src/engine-stage-other.ts');
+			await panelService.show({
+				modified: other,
+				original: toResource.call(this, '/project/src/engine-stage-other.ts.git'),
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			assert.strictEqual(panelStage?.style.display, '');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Diff panel hides Revert after git.clean succeeds until ref changes', async function () {
+		const resource = toResource.call(this, '/project/src/git-clean-revert-hide.ts');
+		const original = toResource.call(this, '/project/src/git-clean-revert-hide.ts.git');
+		const group = {
+			id: 'workingTree',
+			label: 'Changes',
+			resources: [] as ISCMResource[],
+		};
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: group,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		group.resources.push(cachedScmResource);
+		const scmService = {
+			_serviceBrand: undefined,
+			get repositories() {
+				return [{
+					provider: {
+						groups: [group],
+						rootUri: resource,
+						onDidChangeResources: Event.None,
+						onDidChangeResourceGroups: Event.None,
+					},
+				}];
+			},
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+
+		const cleanCommand = CommandsRegistry.registerCommand('git.clean', () => {
+			group.resources.length = 0;
+		});
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection: disconnectedConnection,
+			});
+			instantiationService.stub(ISCMService, scmService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelRevert = view.element.querySelector('.sources-diff-panel-revert') as HTMLButtonElement | null;
+			assert.strictEqual(panelRevert?.style.display, '');
+
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.clean');
+			await timeout(20);
+			assert.strictEqual(panelRevert?.style.display, 'none');
+
+			const other = toResource.call(this, '/project/src/git-clean-revert-other.ts');
+			const otherOriginal = toResource.call(this, '/project/src/git-clean-revert-other.ts.git');
+			const otherScmResource = {
+				sourceUri: other,
+				resourceGroup: group,
+				decorations: {},
+				open: async () => { },
+			} as unknown as ISCMResource;
+			group.resources.push(otherScmResource);
+			await panelService.show({
+				modified: other,
+				original: otherOriginal,
+				groupId: 'workingTree',
+				scmResource: otherScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			assert.strictEqual(panelRevert?.style.display, '');
+		} finally {
+			cleanCommand.dispose();
+		}
+	});
+
+	test('Conversation hides Revert after git.clean succeeds', async function () {
+		const resource = toResource.call(this, '/project/src/conversation-revert-hide.ts');
+		const original = toResource.call(this, '/project/src/conversation-revert-hide.ts.git');
+		const cleanCommand = CommandsRegistry.registerCommand('git.clean', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+			});
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewRevert = parent.querySelector('.conversation-diff-review-revert') as HTMLButtonElement | null;
+			assert.strictEqual(reviewRevert?.style.display, '');
+			await (pane as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.clean');
+			await timeout(20);
+			assert.strictEqual(reviewRevert?.style.display, 'none');
+		} finally {
+			cleanCommand.dispose();
+		}
+	});
+
+	test('Diff panel hides Unstage after git.unstage succeeds until ref changes', async function () {
+		const resource = toResource.call(this, '/project/src/git-unstage-hide.ts');
+		const original = toResource.call(this, '/project/src/git-unstage-hide.ts.git');
+		const group = {
+			id: 'index',
+			label: 'Staged Changes',
+			resources: [] as ISCMResource[],
+		};
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: group,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		group.resources.push(cachedScmResource);
+		const scmService = {
+			_serviceBrand: undefined,
+			get repositories() {
+				return [{
+					provider: {
+						groups: [group],
+						rootUri: resource,
+						onDidChangeResources: Event.None,
+						onDidChangeResourceGroups: Event.None,
+					},
+				}];
+			},
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'index',
+				connection: disconnectedConnection,
+			});
+			instantiationService.stub(ISCMService, scmService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelUnstage?.style.display, '');
+
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+			await timeout(20);
+			assert.strictEqual(panelUnstage?.style.display, 'none');
+
+			const other = toResource.call(this, '/project/src/git-unstage-other.ts');
+			const otherOriginal = toResource.call(this, '/project/src/git-unstage-other.ts.git');
+			const otherScmResource = {
+				sourceUri: other,
+				resourceGroup: group,
+				decorations: {},
+				open: async () => { },
+			} as unknown as ISCMResource;
+			group.resources.push(otherScmResource);
+			await panelService.show({
+				modified: other,
+				original: otherOriginal,
+				groupId: 'index',
+				scmResource: otherScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			assert.strictEqual(panelUnstage?.style.display, '');
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
+	test('Diff panel keeps cached index group when that URI now lives only in workingTree', async function () {
+		const resource = toResource.call(this, '/project/src/live-scm-after-unstage.ts');
+		const original = toResource.call(this, '/project/src/live-scm-after-unstage.ts.git');
+		const indexGroup = {
+			id: 'index',
+			label: 'Staged Changes',
+			resources: [] as ISCMResource[],
+		};
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: indexGroup,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		const workingTreeGroup = {
+			id: 'workingTree',
+			label: 'Changes',
+			resources: [] as ISCMResource[],
+		};
+		const liveScmResource = {
+			sourceUri: resource,
+			resourceGroup: workingTreeGroup,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		workingTreeGroup.resources.push(liveScmResource);
+		const scmService = {
+			_serviceBrand: undefined,
+			get repositories() {
+				return [{
+					provider: {
+						groups: [indexGroup, workingTreeGroup],
+						rootUri: resource,
+						onDidChangeResources: Event.None,
+						onDidChangeResourceGroups: Event.None,
+					},
+				}];
+			},
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection: disconnectedConnection,
+			});
+			instantiationService.stub(ISCMService, scmService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const context = (view as unknown as { getWriteContext: () => { groupId: string; scmResource?: ISCMResource } | undefined }).getWriteContext();
+			assert.strictEqual(context?.groupId, 'index');
+			assert.strictEqual(context?.scmResource, cachedScmResource);
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, 'none');
+			assert.strictEqual(panelUnstage?.style.display, 'none');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Diff panel write chrome falls back to ref scmResource when URI is absent from SCM', async function () {
+		const resource = toResource.call(this, '/project/src/ref-scm-fallback.ts');
+		const original = toResource.call(this, '/project/src/ref-scm-fallback.ts.git');
+		const indexGroup = {
+			id: 'index',
+			label: 'Staged Changes',
+			resources: [] as ISCMResource[],
+		};
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: indexGroup,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		const scmService = {
+			_serviceBrand: undefined,
+			get repositories() {
+				return [{
+					provider: {
+						groups: [indexGroup],
+						rootUri: resource,
+						onDidChangeResources: Event.None,
+						onDidChangeResourceGroups: Event.None,
+					},
+				}];
+			},
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'index',
+				connection: disconnectedConnection,
+			});
+			instantiationService.stub(ISCMService, scmService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const context = (view as unknown as { getWriteContext: () => { groupId: string } | undefined }).getWriteContext();
+			assert.strictEqual(context?.groupId, 'index');
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, 'none');
+			assert.strictEqual(panelUnstage?.style.display, '');
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
+	test('opened workingTree shows Revert and engine FileDiff without scmResource does not take index', async function () {
+		const resource = toResource.call(this, '/project/src/both-groups.ts');
+		const original = toResource.call(this, '/project/src/both-groups.ts.git');
+		const indexGroup = {
+			id: 'index',
+			label: 'Staged Changes',
+			resources: [] as ISCMResource[],
+		};
+		const workingTreeGroup = {
+			id: 'workingTree',
+			label: 'Changes',
+			resources: [] as ISCMResource[],
+		};
+		const indexResource = {
+			sourceUri: resource,
+			resourceGroup: indexGroup,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		const workingTreeResource = {
+			sourceUri: resource,
+			resourceGroup: workingTreeGroup,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		indexGroup.resources.push(indexResource);
+		workingTreeGroup.resources.push(workingTreeResource);
+		const scmService = {
+			_serviceBrand: undefined,
+			get repositories() {
+				return [{
+					provider: {
+						groups: [indexGroup, workingTreeGroup],
+						rootUri: resource,
+						onDidChangeResources: Event.None,
+						onDidChangeResourceGroups: Event.None,
+					},
+				}];
+			},
+			get repositoryCount() { return 1; },
+			onDidAddRepository: Event.None,
+			onDidRemoveRepository: Event.None,
+			registerSCMProvider: () => { throw new Error('not implemented'); },
+			getRepository: () => undefined,
+		} as unknown as ISCMService;
+		const cleanCommand = CommandsRegistry.registerCommand('git.clean', () => { });
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection: disconnectedConnection,
+			});
+			instantiationService.stub(ISCMService, scmService);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+				scmResource: workingTreeResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelContext = (view as unknown as { getWriteContext: () => { groupId: string; scmResource?: ISCMResource; path: string } | undefined }).getWriteContext();
+			assert.strictEqual(panelContext?.groupId, 'workingTree');
+			assert.strictEqual(panelContext?.scmResource, workingTreeResource);
+			assert.notStrictEqual(panelContext?.scmResource, indexResource);
+			const panelRevert = view.element.querySelector('.sources-diff-panel-revert') as HTMLButtonElement | null;
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelRevert?.style.display, '');
+			assert.strictEqual(panelUnstage?.style.display, 'none');
+
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+			const facts = (pane as unknown as { currentWriteFacts: () => { groupId: string; scmResource?: ISCMResource; path: string } | undefined }).currentWriteFacts();
+			assert.strictEqual(facts?.groupId, 'workingTree');
+			assert.strictEqual(facts?.scmResource, workingTreeResource);
+			const reviewRevert = parent.querySelector('.conversation-diff-review-revert') as HTMLButtonElement | null;
+			const reviewUnstage = parent.querySelector('.conversation-diff-review-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(reviewRevert?.style.display, '');
+			assert.strictEqual(reviewUnstage?.style.display, 'none');
+			const moved = resolveSourcesChangeRefFromEditor(input, scmService);
+			assert.strictEqual(moved?.groupId, 'workingTree');
+			assert.strictEqual(moved?.scmResource, workingTreeResource);
+
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+				origin: 'engine',
+				sessionId: 'session-1',
+				gitPath: 'src/both-groups.ts',
+				indexState: 'WORKTREE',
+				kind: 'MODIFIED',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			const engineContext = (view as unknown as { getWriteContext: () => { groupId: string; scmResource?: ISCMResource; path: string } | undefined }).getWriteContext();
+			assert.strictEqual(engineContext?.groupId, 'workingTree');
+			assert.strictEqual(engineContext?.scmResource, undefined);
+			assert.strictEqual(engineContext?.path, 'src/both-groups.ts');
+			assert.strictEqual(panelRevert?.style.display, 'none');
+			assert.strictEqual(panelUnstage?.style.display, 'none');
+
+			const engineInput = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree', {
+				origin: 'engine',
+				sessionId: 'session-1',
+				gitPath: 'src/both-groups.ts',
+				indexState: 'WORKTREE',
+				kind: 'MODIFIED',
+			}));
+			await pane.setInput(engineInput, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+			const engineFacts = (pane as unknown as { currentWriteFacts: () => { groupId: string; scmResource?: ISCMResource; path: string } | undefined }).currentWriteFacts();
+			assert.strictEqual(engineFacts?.groupId, 'workingTree');
+			assert.strictEqual(engineFacts?.scmResource, undefined);
+			assert.strictEqual(engineFacts?.path, 'src/both-groups.ts');
+			assert.strictEqual(reviewRevert?.style.display, 'none');
+			assert.strictEqual(reviewUnstage?.style.display, 'none');
+			const engineMoved = resolveSourcesChangeRefFromEditor(engineInput, scmService);
+			assert.strictEqual(engineMoved?.groupId, 'workingTree');
+			assert.strictEqual(engineMoved?.scmResource, undefined);
+			assert.strictEqual(engineMoved?.gitPath, 'src/both-groups.ts');
+		} finally {
+			cleanCommand.dispose();
+			unstageCommand.dispose();
+		}
+	});
+
+	test('Diff panel keeps Unstage visible when git.unstage fails', async function () {
+		const resource = toResource.call(this, '/project/src/git-unstage-fail.ts');
+		const original = toResource.call(this, '/project/src/git-unstage-fail.ts.git');
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: { id: 'index', label: 'Staged Changes', resources: [] as ISCMResource[] },
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => {
+			throw new Error('unstage failed');
+		});
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'index',
+				connection: disconnectedConnection,
+				executeCommand: async (commandId: unknown, ...args: unknown[]) => {
+					if (commandId === 'git.unstage') {
+						await CommandsRegistry.getCommand('git.unstage')?.handler!(undefined as unknown as ServicesAccessor, ...args);
+					}
+				},
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelUnstage?.style.display, '');
+
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+			await timeout(20);
+			assert.strictEqual(panelUnstage?.style.display, '');
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
+	test('Diff panel keeps Revert visible when git.clean fails', async function () {
+		const resource = toResource.call(this, '/project/src/git-clean-revert-fail.ts');
+		const original = toResource.call(this, '/project/src/git-clean-revert-fail.ts.git');
+		const group = {
+			id: 'workingTree',
+			label: 'Changes',
+			resources: [] as ISCMResource[],
+		};
+		const cachedScmResource = {
+			sourceUri: resource,
+			resourceGroup: group,
+			decorations: {},
+			open: async () => { },
+		} as unknown as ISCMResource;
+		group.resources.push(cachedScmResource);
+
+		const cleanCommand = CommandsRegistry.registerCommand('git.clean', () => {
+			throw new Error('clean failed');
+		});
+		const disconnectedConnection = {
+			isEngineConnected: () => false,
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection: disconnectedConnection,
+				executeCommand: async (commandId: unknown, ...args: unknown[]) => {
+					if (commandId === 'git.clean') {
+						await CommandsRegistry.getCommand('git.clean')?.handler!(undefined as unknown as ServicesAccessor, ...args);
+					}
+				},
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+				scmResource: cachedScmResource,
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelRevert = view.element.querySelector('.sources-diff-panel-revert') as HTMLButtonElement | null;
+			assert.strictEqual(panelRevert?.style.display, '');
+
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.clean');
+			await timeout(20);
+			assert.strictEqual(panelRevert?.style.display, '');
+		} finally {
+			cleanCommand.dispose();
+		}
+	});
+
+	test('Diff panel keeps Stage visible when WriteGitStagePaths fails', async function () {
+		const resource = toResource.call(this, '/project/src/engine-stage-fail.ts');
+		const original = toResource.call(this, '/project/src/engine-stage-fail.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const failedWrite: UniverseAgentWriteGitWriteResult = {
+			supported: true,
+			reason: '',
+			success: false,
+			errorMessage: 'stage failed',
+			exitCode: 1,
+			stdout: '',
+		};
+		connection.writeGitStagePaths = async (request: UniverseAgentWriteGitStagePathsRequest) => {
+			stageCalls.push(request);
+			return failedWrite;
+		};
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, '');
+
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			assert.strictEqual(panelStage?.style.display, '');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Review pane hides Stage after engine WriteGitStagePaths accepted until modified changes', async function () {
+		const resource = toResource.call(this, '/project/src/review-engine-stage-accepted.ts');
+		const original = toResource.call(this, '/project/src/review-engine-stage-accepted.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+			});
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement | null;
+			const reviewUnstage = parent.querySelector('.conversation-diff-review-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(reviewStage?.style.display, '');
+
+			await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			assert.strictEqual(reviewStage?.style.display, 'none');
+			assert.ok(!reviewUnstage || reviewUnstage.style.display === 'none');
+
+			const otherResource = toResource.call(this, '/project/src/review-engine-stage-other.ts');
+			const otherOriginal = toResource.call(this, '/project/src/review-engine-stage-other.ts.git');
+			const otherInput = store.add(new ConversationDiffReviewInput(otherResource, otherOriginal, 'workingTree'));
+			await pane.setInput(otherInput, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+			assert.strictEqual(reviewStage?.style.display, '');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('Review pane keeps Stage visible when WriteGitStagePaths fails', async function () {
+		const resource = toResource.call(this, '/project/src/review-engine-stage-fail.ts');
+		const original = toResource.call(this, '/project/src/review-engine-stage-fail.ts.git');
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const failedWrite: UniverseAgentWriteGitWriteResult = {
+			supported: true,
+			reason: '',
+			success: false,
+			errorMessage: 'stage failed',
+			exitCode: 1,
+			stdout: '',
+		};
+		connection.writeGitStagePaths = async (request: UniverseAgentWriteGitStagePathsRequest) => {
+			stageCalls.push(request);
+			return failedWrite;
+		};
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+			});
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement | null;
+			assert.strictEqual(reviewStage?.style.display, '');
+
+			await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.strictEqual(stageCalls.length, 1);
+			assert.strictEqual(reviewStage?.style.display, '');
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	function paintReviewWriteChrome(pane: ConversationDiffReviewPane): void {
+		const host = pane as unknown as { comparisonLoadFailed: boolean; updateReviewActions: () => void };
+		host.comparisonLoadFailed = false;
+		host.updateReviewActions();
+	}
+
+	function stubEngineLiveChangesModel(
+		instantiationService: ReturnType<typeof workbenchInstantiationService>,
+		sessionId = 'session-1',
+	): void {
+		instantiationService.stub(ISourcesChangesModel, {
+			onDidChange: Event.None,
+			getSnapshot: () => ({
+				generation: 1,
+				settled: true,
+				state: { kind: 'engine-live', sessionId },
+				entries: [],
+			}),
+			isWriteClosed: () => false,
+			isFileDiffOpenSkipped: () => false,
+			refresh: async () => undefined,
+			scheduleRefresh: () => undefined,
+			flushScheduledRefresh: () => undefined,
+		} as unknown as ISourcesChangesModel);
+	}
+
+	test('leftover-looks-live pairing-hold Stage with local SCM stays hidden and 0 git.stage', async function () {
+		const resource = toResource.call(this, '/project/src/leftover-scm-stage.ts');
+		const original = toResource.call(this, '/project/src/leftover-scm-stage.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitStageCommands: unknown[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, stageCalls);
+		assert.strictEqual(connection.isEngineConnected(), true, 'leftover-looks-live fixture must keep isEngineConnected()===true');
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+				executeCommand: async (commandId: unknown) => {
+					if (commandId === 'git.stage') {
+						gitStageCommands.push(commandId);
+					}
+				},
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, 'none');
+			forceClick(panelStage);
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.deepStrictEqual(stageCalls, []);
+			assert.deepStrictEqual(gitStageCommands, []);
+
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement | null;
+			assert.strictEqual(reviewStage?.style.display, 'none');
+			forceClick(reviewStage);
+			await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+			await timeout(20);
+			assert.deepStrictEqual(stageCalls, []);
+			assert.deepStrictEqual(gitStageCommands, []);
+			assert.deepStrictEqual(applyCalls, []);
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('leftover-looks-live pairing-hold Unstage / Revert chrome stays hidden and 0 git.unstage / git.clean', async function () {
+		const resource = toResource.call(this, '/project/src/leftover-unstage.ts');
+		const original = toResource.call(this, '/project/src/leftover-unstage.ts.git');
+		const gitMutateCommands: string[] = [];
+		const connection = leftoverConnectedConnection(true);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, true);
+		assert.strictEqual(isConversationPairingHold(connection), true);
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		const cleanCommand = CommandsRegistry.registerCommand('git.clean', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+				executeCommand: async (commandId: unknown) => {
+					if (commandId === 'git.unstage' || commandId === 'git.clean') {
+						gitMutateCommands.push(String(commandId));
+					}
+				},
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelRevert = view.element.querySelector('.sources-diff-panel-revert') as HTMLButtonElement | null;
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelRevert?.style.display, 'none');
+			assert.strictEqual(panelUnstage?.style.display, 'none');
+			forceClick(panelRevert);
+			forceClick(panelUnstage);
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.clean');
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+			await timeout(20);
+			assert.strictEqual(gitMutateCommands.length, 0);
+
+			const indexInstantiation = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'index',
+				connection,
+				executeCommand: async (commandId: unknown) => {
+					if (commandId === 'git.unstage' || commandId === 'git.clean') {
+						gitMutateCommands.push(String(commandId));
+					}
+				},
+			});
+			indexInstantiation.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const indexPanelService = store.add(indexInstantiation.createInstance(SourcesDiffPanelService));
+			indexInstantiation.stub(ISourcesDiffPanelService, indexPanelService);
+			const indexView = store.add(indexInstantiation.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			indexView.render();
+			await indexPanelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(indexView);
+			const indexUnstage = indexView.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(indexUnstage?.style.display, 'none');
+			forceClick(indexUnstage);
+			await (indexView as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+			await timeout(20);
+			assert.deepStrictEqual(gitMutateCommands, []);
+
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewRevert = parent.querySelector('.conversation-diff-review-revert') as HTMLButtonElement | null;
+			const reviewUnstage = parent.querySelector('.conversation-diff-review-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(reviewRevert?.style.display, 'none');
+			assert.strictEqual(reviewUnstage?.style.display, 'none');
+			forceClick(reviewRevert);
+			forceClick(reviewUnstage);
+			await (pane as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.clean');
+			await (pane as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+			await timeout(20);
+			assert.deepStrictEqual(gitMutateCommands, []);
+		} finally {
+			unstageCommand.dispose();
+			cleanCommand.dispose();
+		}
+	});
+
+	test('KEEP leftover list-fail hides Diff Stage / Revert / Unstage chrome and stays 0 writes', async function () {
+		const resource = toResource.call(this, '/project/src/leftover-keep.ts');
+		const original = toResource.call(this, '/project/src/leftover-keep.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitMutateCommands: string[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, stageCalls, false);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		const cleanCommand = CommandsRegistry.registerCommand('git.clean', () => { });
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+				engineSessionReady: false,
+				executeCommand: async (commandId: unknown) => {
+					if (commandId === 'git.unstage' || commandId === 'git.clean' || commandId === 'git.stage') {
+						gitMutateCommands.push(String(commandId));
+					}
+				},
+			});
+			instantiationService.invokeFunction(accessor => {
+				assert.strictEqual(accessor.get(IConversationRosterService).isEngineSessionReady(), false);
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			const panelRevert = view.element.querySelector('.sources-diff-panel-revert') as HTMLButtonElement | null;
+			const panelUnstage = view.element.querySelector('.sources-diff-panel-unstage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, 'none');
+			assert.strictEqual(panelRevert?.style.display, 'none');
+			assert.ok(!panelUnstage || panelUnstage.style.display === 'none');
+			forceClick(panelStage);
+			forceClick(panelRevert);
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.clean');
+			await timeout(20);
+			assert.deepStrictEqual(applyCalls, []);
+			assert.deepStrictEqual(stageCalls, []);
+			assert.deepStrictEqual(gitMutateCommands, []);
+
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement | null;
+			const reviewRevert = parent.querySelector('.conversation-diff-review-revert') as HTMLButtonElement | null;
+			assert.strictEqual(reviewStage?.style.display, 'none');
+			assert.strictEqual(reviewRevert?.style.display, 'none');
+			forceClick(reviewStage);
+			forceClick(reviewRevert);
+			await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+			await (pane as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+			await timeout(20);
+			assert.deepStrictEqual(applyCalls, []);
+			assert.deepStrictEqual(stageCalls, []);
+			assert.deepStrictEqual(gitMutateCommands, []);
+		} finally {
+			unstageCommand.dispose();
+			cleanCommand.dispose();
+			stageCommand.dispose();
+		}
+	});
+
+	test('connected leftover without pairing Unstage / Revert still run git.unstage / git.clean', async function () {
+		const resource = toResource.call(this, '/project/src/leftover-live-unstage.ts');
+		const original = toResource.call(this, '/project/src/leftover-live-unstage.ts.git');
+		const gitMutateCommands: string[] = [];
+		const connection = leftoverConnectedConnection(false);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { });
+		const cleanCommand = CommandsRegistry.registerCommand('git.clean', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'workingTree',
+				connection,
+				executeCommand: async (commandId: unknown) => {
+					if (commandId === 'git.unstage' || commandId === 'git.clean') {
+						gitMutateCommands.push(String(commandId));
+					}
+				},
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelRevert = view.element.querySelector('.sources-diff-panel-revert') as HTMLButtonElement | null;
+			assert.strictEqual(panelRevert?.style.display, '');
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.clean');
+			await timeout(20);
+			assert.deepStrictEqual(gitMutateCommands, ['git.clean']);
+
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewRevert = parent.querySelector('.conversation-diff-review-revert') as HTMLButtonElement | null;
+			assert.strictEqual(reviewRevert?.style.display, '');
+			await (pane as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+			await timeout(20);
+			assert.deepStrictEqual(gitMutateCommands, ['git.clean', 'git.unstage']);
+		} finally {
+			unstageCommand.dispose();
+			cleanCommand.dispose();
+		}
+	});
+
+	test('read-failed sends 0 git.unstage from both diff hosts', async function () {
+		const resource = toResource.call(this, '/project/src/read-failed-unstage.ts');
+		const original = toResource.call(this, '/project/src/read-failed-unstage.ts.git');
+		let unstageCalls = 0;
+		const unstageCommand = CommandsRegistry.registerCommand('git.unstage', () => { unstageCalls++; });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				groupId: 'index',
+				executeCommand: async (commandId: unknown) => {
+					if (commandId === 'git.unstage') {
+						unstageCalls++;
+					}
+				},
+			});
+			instantiationService.stub(ISourcesChangesModel, {
+				onDidChange: Event.None,
+				getSnapshot: () => ({
+					generation: 1,
+					settled: true,
+					state: { kind: 'engine-leftover', sessionId: 'session-1', reason: 'read-failed' },
+					entries: [],
+				}),
+				isWriteClosed: () => true,
+				isFileDiffOpenSkipped: () => true,
+				refresh: async () => undefined,
+				scheduleRefresh: () => undefined,
+				flushScheduledRefresh: () => undefined,
+			} as unknown as ISourcesChangesModel);
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'index',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			await (view as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'index'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+			await (pane as unknown as { runGitAction: (commandId: string) => Promise<void> }).runGitAction('git.unstage');
+			await timeout(20);
+			assert.strictEqual(unstageCalls, 0);
+		} finally {
+			unstageCommand.dispose();
+		}
+	});
+
+	function disconnectedHoldSafeConnection(): IUniverseAgentConnection {
+		return {
+			isEngineConnected: () => false,
+			getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+			getConnectionSnapshot: () => ({}),
+			onDidChangeConnection: Event.None,
+		} as unknown as IUniverseAgentConnection;
+	}
+
+	async function mountConversationDiffReviewPane(test: Mocha.Context, options: {
+		executeCommand?: (...args: unknown[]) => Promise<unknown>;
+		connection?: IUniverseAgentConnection;
+		groupId?: string;
+		identity?: {
+			origin?: 'engine' | 'scm';
+			sessionId?: string;
+			gitPath?: string;
+			indexState?: string;
+			kind?: string;
+		};
+	} = {}): Promise<{ pane: ConversationDiffReviewPane; parent: HTMLElement }> {
+		const resource = toResource.call(test, '/project/src/d526-review.ts');
+		const original = toResource.call(test, '/project/src/d526-review.ts.git');
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			groupId: options.groupId,
+			executeCommand: options.executeCommand,
+			connection: options.connection ?? disconnectedHoldSafeConnection(),
+		});
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(resource, original, options.groupId ?? 'workingTree', options.identity));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		return { pane, parent };
+	}
+
+	function stubShowNoticeThrow(pane: ConversationDiffReviewPane, paintBoom: Error): void {
+		(pane as unknown as { showNotice(message: string): void }).showNotice = () => {
+			throw paintBoom;
+		};
+	}
+
+	test('does not leak unhandled rejection when Revert click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				executeCommand: async () => {
+					throw new Error('git boom');
+				},
+			});
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-revert'));
+		});
+	});
+
+	test('does not leak unhandled rejection when Unstage click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				groupId: 'index',
+				executeCommand: async () => {
+					throw new Error('git boom');
+				},
+			});
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-unstage'));
+		});
+	});
+
+	test('does not leak unhandled rejection when Stage click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				executeCommand: async () => {
+					throw new Error('git boom');
+				},
+			});
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-stage'));
+		});
+	});
+
+	test('does not leak unhandled rejection when Accept click catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const connection = leftoverConnectedConnection(false);
+			(connection as { readGitFileDiff?: () => Promise<never> }).readGitFileDiff = async () => {
+				throw new Error('read boom');
+			};
+			const { pane, parent } = await mountConversationDiffReviewPane(this, {
+				connection,
+				identity: {
+					origin: 'engine',
+					sessionId: 'session-1',
+					gitPath: 'src/d526-review.ts',
+					indexState: 'Unstaged',
+					kind: 'Modified',
+				},
+			});
+			(pane as unknown as { acceptCursor: { side: 'new'; line: number } }).acceptCursor = { side: 'new', line: 1 };
+			stubShowNoticeThrow(pane, paintBoom);
+			forceClick(parent.querySelector('.conversation-diff-review-accept'));
+			await timeout(20);
+		});
+	});
+
+	test('does not leak unhandled rejection when Preview failure notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const commandBoom = new Error('preview boom');
+		await assertWarnThenRethrowDoesNotLeak(commandBoom, async () => {
+			const { parent } = await mountConversationDiffReviewPane(this, {
+				executeCommand: async () => {
+					throw commandBoom;
+				},
+			});
+			const notice = parent.querySelector('.conversation-diff-review-move-notice');
+			assert.ok(notice);
+			Object.defineProperty(notice, 'textContent', { configurable: true, set: () => { throw commandBoom; } });
+			try {
+				forceClick(parent.querySelector('.conversation-diff-review-open-preview'));
+				await timeout(0);
+			} finally {
+				Reflect.deleteProperty(notice, 'textContent');
+			}
+		});
+	});
+
+	test('does not leak unhandled rejection when Stage catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		const resource = toResource.call(this, '/project/src/d524-stage.ts');
+		const original = toResource.call(this, '/project/src/d524-stage.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, stageCalls, false);
+		connection.writeGitStagePaths = async (request: UniverseAgentWriteGitStagePathsRequest) => {
+			stageCalls.push(request);
+			throw new Error('stage boom');
+		};
+
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				connection,
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+			(view as unknown as { showActionNotice(message: string): void }).showActionNotice = () => {
+				throw paintBoom;
+			};
+			forceClick(view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null);
+			await timeout(20);
+		});
+		assert.strictEqual(stageCalls.length, 1);
+		assert.deepStrictEqual(applyCalls, []);
+	});
+
+	test('does not leak unhandled rejection when renderRef catch-path notice throws and onUnexpectedError warn-then-rethrows', async function () {
+		const paintBoom = new Error('paint boom');
+		const resource = toResource.call(this, '/project/src/d524-render.ts');
+		const original = toResource.call(this, '/project/src/d524-render.ts.git');
+
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, async () => {
+			const instantiationService = stubDiffHonestyServices({ throwOnLoad: true, resource });
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			(view as unknown as { showLoadNotice(message: string): void }).showLoadNotice = () => {
+				throw paintBoom;
+			};
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+		});
+	});
+
+	test('sourcesGitApplyHunksPatches stays empty after S0 drops the carried payload', () => {
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(undefined), []);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches({}), []);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches({ unifiedDiff: carriedUnifiedDiff } as object), []);
+	});
+
+	test('openSourcesChangeEntry carries fetched unifiedDiff onto the panel change ref', async function () {
+		const resource = toResource.call(this, '/project/src/carry-panel.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'carry-panel.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/carry-panel.ts',
+			indexState: 'WORKTREE',
+		};
+		let shown: ISourcesChangeRef | undefined;
+		const models = new Map<string, string>();
+
+		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
+			editorService: { openEditor: async () => undefined } as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'panel' }),
+			instantiationService: {
+				createInstance: () => { throw new Error('panel open must not create ConversationDiffReviewInput'); },
+			} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'],
+			sourcesDiffPanelService: {
+				show: async (ref: ISourcesChangeRef) => { shown = ref; },
+			} as unknown as ISourcesDiffPanelService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/carry-panel.ts',
+				unifiedDiff: carriedUnifiedDiff,
+			}),
+		}, { preserveFocus: false });
+
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(shown), []);
+	});
+
+	test('openSourcesChangeEntry attaches fetched unifiedDiff for Conversation Accept', async function () {
+		const resource = toResource.call(this, '/project/src/carry-review.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'carry-review.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/carry-review.ts',
+			indexState: 'WORKTREE',
+		};
+		let opened: ConversationDiffReviewInput | undefined;
+		const models = new Map<string, string>();
+		const harness = createSourcesConversationOpenHarness(store, {
+			openEditor: async input => {
+				if (input instanceof ConversationDiffReviewInput) {
+					opened = input;
+				}
+				return undefined;
+			},
+		});
+
+		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
+			editorService: {
+				openEditor: async () => { throw new Error('conversation open must not use editorService.openEditor'); },
+			} as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'conversation' }),
+			instantiationService: {
+				createInstance: (ctor: typeof ConversationDiffReviewInput, modified: URI, original?: URI, groupId?: string) =>
+					store.add(new ctor(modified, original, groupId)),
+			} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'],
+			sourcesDiffPanelService: {
+				show: async () => { throw new Error('conversation open must not show the panel'); },
+			} as unknown as ISourcesDiffPanelService,
+			editorGroupsService: harness.editorGroupsService,
+			session: harness.session,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/carry-review.ts',
+				unifiedDiff: carriedUnifiedDiff,
+			}),
+		}, { preserveFocus: false });
+
+		assert.ok(opened);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(opened), []);
+	});
+
+	test('openSourcesChangeEntry attaches fetched unifiedDiff for Preview then Conversation Accept', async function () {
+		const resource = toResource.call(this, '/project/src/carry-preview.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'carry-preview.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/carry-preview.ts',
+			indexState: 'WORKTREE',
+		};
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const models = new Map<string, string>();
+		const editorState = {
+			activeEditor: undefined as DiffEditorInput | ConversationDiffReviewInput | undefined,
+			closed: [] as object[],
+		};
+		let editorOpens = 0;
+		const harness = createSourcesConversationOpenHarness(store, {
+			openEditor: async input => {
+				if (input instanceof ConversationDiffReviewInput) {
+					store.add(input);
+					editorState.activeEditor = input;
+				}
+				return undefined;
+			},
+		});
+
+		const editorService = {
+			get activeEditor() { return editorState.activeEditor; },
+			activeEditorPane: { group: { id: 1 } },
+			closeEditor: async (ident: { editor: object }) => {
+				editorState.closed.push(ident.editor);
+				if (editorState.activeEditor === ident.editor) {
+					editorState.activeEditor = undefined;
+				}
+			},
+			openEditor: async (input: unknown) => {
+				editorOpens++;
+				const untyped = input as { original?: { resource?: URI }; modified?: { resource?: URI } };
+				if (untyped.original?.resource && untyped.modified?.resource) {
+					const originalInput = store.add(new TestEditorInput(untyped.original.resource, 'test.original'));
+					const modifiedInput = store.add(new TestEditorInput(untyped.modified.resource, 'test.modified'));
+					const diffInput = store.add(instantiationService.createInstance(DiffEditorInput, undefined, undefined, originalInput, modifiedInput, undefined));
+					editorState.activeEditor = diffInput;
+					return { input: diffInput };
+				}
+				return undefined;
+			},
+		} as unknown as IEditorService;
+
+		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
+			editorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'preview' }),
+			instantiationService,
+			sourcesDiffPanelService: {
+				show: async () => { throw new Error('preview open must not show the panel'); },
+			} as unknown as ISourcesDiffPanelService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/carry-preview.ts',
+				unifiedDiff: carriedUnifiedDiff,
+			}),
+		}, { preserveFocus: false });
+
+		const previewHost = editorState.activeEditor;
+		assert.ok(previewHost instanceof DiffEditorInput);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), []);
+
+		const opensBeforeMove = editorOpens;
+		await moveActiveDiffToConversation('editorTitle', {
+			commandService: NullCommandService,
+			editorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService(),
+			instantiationService,
+			sourcesDiffPanelService: {
+				show: async () => { throw new Error('move to conversation must not show the panel'); },
+				getCurrentRef: () => undefined,
+				clear: () => { },
+				onDidChangeRef: Event.None,
+			} as unknown as ISourcesDiffPanelService,
+			editorGroupsService: harness.editorGroupsService,
+			session: harness.session,
+		}, { repositories: [] } as unknown as ISCMService);
+		assert.strictEqual(editorOpens, opensBeforeMove);
+
+		const conversationHost = editorState.activeEditor;
+		assert.ok(conversationHost instanceof ConversationDiffReviewInput);
+		assert.notStrictEqual(conversationHost, previewHost);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(conversationHost), []);
+	});
+
+	test('openSourcesChangeEntry preview first-open leaves whitespace unifiedDiff absent', async function () {
+		const resource = toResource.call(this, '/project/src/preview-whitespace.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'preview-whitespace.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			gitPath: 'src/preview-whitespace.ts',
+			indexState: 'WORKTREE',
+		};
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		const models = new Map<string, string>();
+		let previewHost: DiffEditorInput | undefined;
+
+		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
+			editorService: {
+				get activeEditor() { return previewHost; },
+				openEditor: async (input: { original?: { resource?: URI }; modified?: { resource?: URI } }) => {
+					if (input.original?.resource && input.modified?.resource) {
+						const originalInput = store.add(new TestEditorInput(input.original.resource, 'test.original'));
+						const modifiedInput = store.add(new TestEditorInput(input.modified.resource, 'test.modified'));
+						previewHost = store.add(instantiationService.createInstance(DiffEditorInput, undefined, undefined, originalInput, modifiedInput, undefined));
+						return { input: previewHost };
+					}
+					return undefined;
+				},
+			} as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'preview' }),
+			instantiationService,
+			sourcesDiffPanelService: {
+				show: async () => { throw new Error('preview open must not show the panel'); },
+			} as unknown as ISourcesDiffPanelService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/preview-whitespace.ts',
+				unifiedDiff: '   ',
+			}),
+		}, { preserveFocus: false });
+
+		assert.ok(previewHost);
+		assert.deepStrictEqual(sourcesGitApplyHunksPatches(previewHost), []);
+	});
+
+	test('S0 keeps Accept hidden and sends 0 ApplyHunks even when a diff was fetched', async function () {
+		const resource = toResource.call(this, '/project/src/accept-carry.ts');
+		const original = toResource.call(this, '/project/src/accept-carry.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const gitStageCommands: unknown[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, [], false);
+		assert.strictEqual(connection.isEngineConnected(), true);
+		assert.strictEqual(connection.getConnectionSnapshot().pairingPending, false);
+		assert.strictEqual(isConversationPairingHold(connection), false);
+
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			const instantiationService = stubDiffHonestyServices({
+				throwOnLoad: true,
+				resource,
+				connection,
+				executeCommand: async (commandId: unknown) => {
+					if (commandId === 'git.stage') {
+						gitStageCommands.push(commandId);
+					}
+				},
+			});
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: resource,
+				original,
+				groupId: 'workingTree',
+			});
+			await timeout(50);
+			paintPanelWriteChrome(view);
+
+			const panelAccept = view.element.querySelector('.sources-diff-panel-accept') as HTMLButtonElement | null;
+			assert.strictEqual(panelAccept?.style.display, 'none');
+			await (view as unknown as { runAccept: () => Promise<void> }).runAccept();
+			await timeout(20);
+			assert.deepStrictEqual(applyCalls, []);
+			assert.deepStrictEqual(gitStageCommands, []);
+
+			const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			pane.create(parent);
+			const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree'));
+			await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+			await timeout(20);
+			paintReviewWriteChrome(pane);
+
+			const reviewAccept = parent.querySelector('.conversation-diff-review-accept') as HTMLButtonElement | null;
+			assert.strictEqual(reviewAccept?.style.display, 'none');
+			await (pane as unknown as { runAccept: () => Promise<void> }).runAccept();
+			await timeout(20);
+			assert.deepStrictEqual(applyCalls, []);
+			assert.deepStrictEqual(gitStageCommands, []);
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('empty unifiedDiff keeps Accept hidden and sends 0 ApplyHunks', async function () {
+		const resource = toResource.call(this, '/project/src/accept-empty.ts');
+		const original = toResource.call(this, '/project/src/accept-empty.ts.git');
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, [], false);
+
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			connection,
+		});
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		await panelService.show({
+			modified: resource,
+			original,
+			groupId: 'workingTree',
+		});
+		await timeout(50);
+		paintPanelWriteChrome(view);
+
+		const panelAccept = view.element.querySelector('.sources-diff-panel-accept') as HTMLButtonElement | null;
+		assert.strictEqual(panelAccept?.style.display, 'none');
+		forceClick(panelAccept);
+		await (view as unknown as { runAccept: () => Promise<void> }).runAccept();
+		await timeout(20);
+		assert.deepStrictEqual(applyCalls, []);
+	});
+
+	test('openSourcesChangeEntry copies entry identity onto the sources-git-diff ref', async function () {
+		const resource = toResource.call(this, '/project/src/identity.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'identity.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/identity.ts',
+			indexState: 'WORKTREE',
+			kind: 'MODIFIED',
+		};
+		let shown: ISourcesChangeRef | undefined;
+		const models = new Map<string, string>();
+		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
+			editorService: { openEditor: async () => undefined } as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'panel' }),
+			instantiationService: {
+				createInstance: () => { throw new Error('panel open must not create ConversationDiffReviewInput'); },
+			} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'],
+			sourcesDiffPanelService: {
+				show: async (ref: ISourcesChangeRef) => { shown = ref; },
+			} as unknown as ISourcesDiffPanelService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/identity.ts',
+				unifiedDiff: carriedUnifiedDiff,
+			}),
+		}, { preserveFocus: false });
+		assert.strictEqual(shown?.origin, 'engine');
+		assert.strictEqual(shown?.sessionId, 'session-old');
+		assert.strictEqual(shown?.gitPath, 'src/identity.ts');
+		assert.strictEqual(shown?.indexState, 'WORKTREE');
+		assert.strictEqual(shown?.kind, 'MODIFIED');
+		assert.strictEqual(shown?.modified.scheme, 'sources-git-diff');
+	});
+
+	test('openSourcesChangeEntry copies entry identity onto the conversation input', async function () {
+		const resource = toResource.call(this, '/project/src/identity-input.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'identity-input.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/identity-input.ts',
+			indexState: 'WORKTREE',
+			kind: 'MODIFIED',
+		};
+		let opened: ConversationDiffReviewInput | undefined;
+		const models = new Map<string, string>();
+		const harness = createSourcesConversationOpenHarness(store, {
+			openEditor: async input => {
+				if (input instanceof ConversationDiffReviewInput) {
+					opened = input;
+				}
+				return undefined;
+			},
+		});
+		await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
+			editorService: {
+				openEditor: async () => { throw new Error('conversation open must not use editorService.openEditor'); },
+			} as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'conversation' }),
+			instantiationService: {
+				createInstance: (ctor: typeof ConversationDiffReviewInput, modified: URI, original?: URI, groupId?: string, identity?: ConstructorParameters<typeof ConversationDiffReviewInput>[3]) =>
+					store.add(new ctor(modified, original, groupId, identity)),
+			} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'],
+			sourcesDiffPanelService: {
+				show: async () => { throw new Error('conversation open must not show the panel'); },
+			} as unknown as ISourcesDiffPanelService,
+			editorGroupsService: harness.editorGroupsService,
+			session: harness.session,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/identity-input.ts',
+				unifiedDiff: carriedUnifiedDiff,
+			}),
+		}, { preserveFocus: false });
+		assert.ok(opened);
+		assert.strictEqual(opened.sessionId, 'session-old');
+		assert.strictEqual(opened.gitPath, 'src/identity-input.ts');
+		assert.strictEqual(opened.origin, 'engine');
+		assert.strictEqual(opened.modified.scheme, 'sources-git-diff');
+	});
+
+	test('engine diff stage sends gitPath and the pinned session', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitCommands: string[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			connection,
+			executeCommand: async (commandId: unknown) => {
+				gitCommands.push(String(commandId));
+			},
+		});
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		const modified = URI.from({ scheme: 'sources-git-diff', path: '/modified/a.ts' });
+		await panelService.show({
+			modified,
+			original: URI.from({ scheme: 'sources-git-diff', path: '/original/a.ts' }),
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-1',
+			gitPath: 'src/a.ts',
+			indexState: 'WORKTREE',
+			kind: 'MODIFIED',
+			scmResource: { sourceUri: URI.file('/work/repo/src/a.ts') } as unknown as ISCMResource,
+		});
+		await (view as unknown as { runStage: () => Promise<void> }).runStage();
+		assert.strictEqual(stageCalls.length, 1);
+		assert.strictEqual(stageCalls[0]?.sessionId, 'session-1');
+		assert.deepStrictEqual(stageCalls[0]?.commands?.[0]?.argv, ['src/a.ts']);
+		assert.ok(!JSON.stringify(stageCalls[0]).includes('sources-git-diff'));
+		assert.deepStrictEqual(gitCommands, []);
+	});
+
+	test('engine diff stage and accept refuse a mismatched pinned session', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const gitCommands: string[] = [];
+		const connection = leftoverLooksLiveApplyConnection(applyCalls, stageCalls, false);
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			connection,
+			executeCommand: async (commandId: unknown) => {
+				gitCommands.push(String(commandId));
+			},
+		});
+		stubEngineLiveChangesModel(instantiationService);
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		const modified = URI.from({ scheme: 'sources-git-diff', path: '/modified/mismatch.ts' });
+		await panelService.show({
+			modified,
+			original: URI.from({ scheme: 'sources-git-diff', path: '/original/mismatch.ts' }),
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/mismatch.ts',
+			scmResource: { sourceUri: URI.file('/work/repo/src/mismatch.ts') } as unknown as ISCMResource,
+		});
+		await timeout(20);
+		paintPanelWriteChrome(view);
+		const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+		assert.strictEqual(panelStage?.style.display, 'none');
+		forceClick(panelStage);
+		await (view as unknown as { runStage: () => Promise<void> }).runStage();
+		await (view as unknown as { runAccept: () => Promise<void> }).runAccept();
+		assert.strictEqual(stageCalls.length, 0);
+		assert.strictEqual(applyCalls.length, 0);
+		assert.deepStrictEqual(gitCommands, []);
+		assert.strictEqual(view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesGitSessionChangedMessage());
+
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(modified, URI.from({ scheme: 'sources-git-diff', path: '/original/mismatch.ts' }), 'workingTree', {
+			origin: 'engine',
+			sessionId: 'session-old',
+			gitPath: 'src/mismatch.ts',
+		}));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		paintReviewWriteChrome(pane);
+		const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement | null;
+		assert.strictEqual(reviewStage?.style.display, 'none');
+		forceClick(reviewStage);
+		await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+		await (pane as unknown as { runAccept: () => Promise<void> }).runAccept();
+		assert.strictEqual(stageCalls.length, 0);
+		assert.strictEqual(applyCalls.length, 0);
+		assert.strictEqual(parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesGitSessionChangedMessage());
+	});
+
+	test('scm snapshot engine diff with session mismatch still git.stage locally', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitCommands: string[] = [];
+		const resource = toResource.call(this, '/project/src/scm-mismatch-stage.ts');
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource,
+			connection,
+			executeCommand: async (commandId: unknown) => {
+				gitCommands.push(String(commandId));
+			},
+		});
+		instantiationService.stub(ISourcesChangesModel, {
+			onDidChange: Event.None,
+			getSnapshot: () => ({
+				generation: 1,
+				settled: true,
+				state: { kind: 'scm' },
+				entries: [],
+			}),
+			isWriteClosed: () => false,
+			isFileDiffOpenSkipped: () => false,
+			refresh: async () => undefined,
+			scheduleRefresh: () => undefined,
+			flushScheduledRefresh: () => undefined,
+		} as unknown as ISourcesChangesModel);
+		const scmResource = instantiationService.invokeFunction((accessor: ServicesAccessor) => {
+			const scm = accessor.get(ISCMService);
+			return [...scm.repositories][0]?.provider.groups[0]?.resources[0];
+		});
+		if (!scmResource) {
+			throw new Error('SCM fixture missing');
+		}
+		const stageCommand = CommandsRegistry.registerCommand('git.stage', () => { });
+		try {
+			instantiationService.stub(IViewsService, {
+				openView: async () => null,
+				onDidChangeViewVisibility: Event.None,
+				onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+			instantiationService.stub(ISourcesDiffPanelService, panelService);
+			const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+				id: SOURCES_DIFF_PANEL_VIEW_ID,
+				title: 'Diff',
+			}));
+			view.render();
+			await panelService.show({
+				modified: URI.from({ scheme: 'sources-git-diff', path: '/modified/scm-mismatch.ts' }),
+				original: URI.from({ scheme: 'sources-git-diff', path: '/original/scm-mismatch.ts' }),
+				groupId: 'workingTree',
+				origin: 'engine',
+				sessionId: 'session-old',
+				gitPath: 'src/scm-mismatch-stage.ts',
+				scmResource,
+			});
+			await timeout(20);
+			paintPanelWriteChrome(view);
+			const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement | null;
+			assert.strictEqual(panelStage?.style.display, '');
+			await (view as unknown as { runStage: () => Promise<void> }).runStage();
+			assert.strictEqual(stageCalls.length, 0);
+			assert.deepStrictEqual(gitCommands, ['git.stage']);
+		} finally {
+			stageCommand.dispose();
+		}
+	});
+
+	test('engine diff stage with an empty gitPath does not send', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const instantiationService = stubDiffHonestyServices({ throwOnLoad: true, connection });
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		await panelService.show({
+			modified: URI.from({ scheme: 'sources-git-diff', path: '/modified/empty.ts' }),
+			original: URI.from({ scheme: 'sources-git-diff', path: '/original/empty.ts' }),
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-1',
+			gitPath: '',
+		});
+		await (view as unknown as { runStage: () => Promise<void> }).runStage();
+		assert.strictEqual(stageCalls.length, 0);
+		assert.strictEqual(view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesGitEmptyStagePathMessage());
+	});
+
+	test('FileDiff stage uses copied gitPath and matches still includes groupId', async function () {
+		const resource = toResource.call(this, '/project/src/filediff-stage.ts');
+		const entry: ISourcesChangeEntry = {
+			resource,
+			name: 'filediff-stage.ts',
+			description: 'Unstaged Changes',
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-1',
+			gitPath: 'src/filediff-stage.ts',
+			indexState: 'WORKTREE',
+			kind: 'MODIFIED',
+		};
+		let shown: ISourcesChangeRef | undefined;
+		const models = new Map<string, string>();
+		const opened = await openSourcesChangeEntry(entry, {
+			commandService: NullCommandService,
+			editorService: { openEditor: async () => undefined } as unknown as IEditorService,
+			quickDiffService: { getQuickDiffs: async () => [] } as unknown as IQuickDiffService,
+			configurationService: new TestConfigurationService({ 'sources.diff.defaultOwner': 'panel' }),
+			instantiationService: {
+				createInstance: () => { throw new Error('panel open must not create ConversationDiffReviewInput'); },
+			} as unknown as ISourcesChangeEntryOpenDeps['instantiationService'],
+			sourcesDiffPanelService: {
+				show: async (ref: ISourcesChangeRef) => {
+					shown = ref;
+					return true;
+				},
+			} as unknown as ISourcesDiffPanelService,
+			modelService: {
+				getModel: (uri: URI) => models.has(uri.toString()) ? { uri } : null,
+				updateModel: (model: { uri: URI }, value: string) => { models.set(model.uri.toString(), value); },
+				createModel: (value: string, _language: unknown, uri?: URI) => {
+					if (uri) {
+						models.set(uri.toString(), value);
+					}
+					return { uri };
+				},
+			} as unknown as IModelService,
+			readGitFileDiff: async () => ({
+				supported: true,
+				reason: '',
+				path: 'src/filediff-stage.ts',
+				unifiedDiff: carriedUnifiedDiff,
+			}),
+		}, { preserveFocus: false });
+		assert.strictEqual(opened, true);
+		if (!shown) {
+			throw new Error('FileDiff ref missing');
+		}
+		assert.strictEqual(shown.gitPath, 'src/filediff-stage.ts');
+		assert.strictEqual(shown.origin, 'engine');
+		assert.strictEqual(shown.sessionId, 'session-1');
+		assert.strictEqual(shown.indexState, 'WORKTREE');
+		assert.strictEqual(shown.kind, 'MODIFIED');
+		assert.strictEqual(shown.modified.scheme, 'sources-git-diff');
+		assert.strictEqual(shown.original?.scheme, 'sources-git-diff');
+
+		const identity = {
+			origin: shown.origin,
+			sessionId: shown.sessionId,
+			gitPath: shown.gitPath,
+			indexState: shown.indexState,
+			kind: shown.kind,
+		};
+		const input = store.add(new ConversationDiffReviewInput(shown.modified, shown.original, shown.groupId, identity));
+		const otherGroup = store.add(new ConversationDiffReviewInput(shown.modified, shown.original, 'index', identity));
+		const otherPath = store.add(new ConversationDiffReviewInput(shown.modified, shown.original, shown.groupId, { ...identity, gitPath: 'src/other.ts' }));
+		const same = store.add(new ConversationDiffReviewInput(shown.modified, shown.original, shown.groupId, identity));
+		assert.strictEqual(input.matches(otherGroup), false);
+		assert.strictEqual(input.matches(otherPath), false);
+		assert.strictEqual(input.matches(same), true);
+
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitCommands: string[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			connection,
+			executeCommand: async (commandId: unknown) => {
+				gitCommands.push(String(commandId));
+			},
+		});
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		await panelService.show(shown);
+		await timeout(20);
+		paintPanelWriteChrome(view);
+		const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement;
+		assert.strictEqual(panelStage.style.display, '');
+		assert.strictEqual(panelStage.disabled, false);
+		await (view as unknown as { runStage: () => Promise<void> }).runStage();
+		assert.strictEqual(stageCalls.length, 1);
+		assert.strictEqual(stageCalls[0]?.sessionId, 'session-1');
+		assert.deepStrictEqual(stageCalls[0]?.commands?.[0]?.argv, ['src/filediff-stage.ts']);
+		assert.ok(!JSON.stringify(stageCalls[0]).includes('sources-git-diff'));
+		assert.deepStrictEqual(gitCommands, []);
+
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+		assert.strictEqual(stageCalls.length, 2);
+		assert.strictEqual(stageCalls[1]?.sessionId, 'session-1');
+		assert.deepStrictEqual(stageCalls[1]?.commands?.[0]?.argv, ['src/filediff-stage.ts']);
+		assert.ok(!JSON.stringify(stageCalls[1]).includes('sources-git-diff'));
+		assert.deepStrictEqual(gitCommands, []);
+	});
+
+	test('empty gitPath disables Stage, shows status, and does not send', async function () {
+		const stageCalls: UniverseAgentWriteGitStagePathsRequest[] = [];
+		const gitCommands: string[] = [];
+		const connection = leftoverLooksLiveApplyConnection([], stageCalls, false);
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			connection,
+			executeCommand: async (commandId: unknown) => {
+				gitCommands.push(String(commandId));
+			},
+		});
+		stubEngineLiveChangesModel(instantiationService);
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		const modified = URI.from({ scheme: 'sources-git-diff', path: '/modified/empty-stage.ts' });
+		const original = URI.from({ scheme: 'sources-git-diff', path: '/original/empty-stage.ts' });
+		await panelService.show({
+			modified,
+			original,
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-1',
+			gitPath: '',
+		});
+		await timeout(20);
+		paintPanelWriteChrome(view);
+		const panelStage = view.element.querySelector('.sources-diff-panel-stage') as HTMLButtonElement;
+		assert.strictEqual(panelStage.style.display, 'none');
+		forceClick(panelStage);
+		await (view as unknown as { runStage: () => Promise<void> }).runStage();
+		assert.strictEqual(stageCalls.length, 0);
+		assert.deepStrictEqual(gitCommands, []);
+		assert.strictEqual(view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesGitEmptyStagePathMessage());
+
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(modified, original, 'workingTree', {
+			origin: 'engine',
+			sessionId: 'session-1',
+			gitPath: '',
+		}));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		paintReviewWriteChrome(pane);
+		const reviewStage = parent.querySelector('.conversation-diff-review-stage') as HTMLButtonElement;
+		assert.strictEqual(reviewStage.style.display, 'none');
+		forceClick(reviewStage);
+		await (pane as unknown as { runStage: () => Promise<void> }).runStage();
+		assert.strictEqual(stageCalls.length, 0);
+		assert.deepStrictEqual(gitCommands, []);
+		assert.strictEqual(parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesGitEmptyStagePathMessage());
+	});
+
+	suite('Panel diff model lifetime', () => {
+		function mountLifetimeHost() {
+			const instantiation = workbenchInstantiationService(undefined, store);
+			const editors = instantiation.get(ICodeEditorService);
+			const models = instantiation.get(IModelService);
+			const resolver = instantiation.get(ITextModelService);
+			const observedDiffs = new Set<IDiffEditor>();
+			const observedCodes = new Set<ICodeEditor>();
+			const references: { resource: string; releases: number; detached?: boolean; subscriptions?: number }[] = [];
+			const providers: { resources: string[]; subscriptions: number }[] = [];
+			const gates = new Map<string, { started: DeferredPromise<void>; release: DeferredPromise<void> }>();
+			const baseFactory = new TestDiffProviderFactoryService();
+			instantiation.stub(IDiffProviderFactoryService, {
+				_serviceBrand: undefined,
+				createDiffProvider: () => {
+					const provider = baseFactory.createDiffProvider();
+					const record = { resources: [] as string[], subscriptions: 0 };
+					providers.push(record);
+					const onDidChange: Event<void> = (listener, thisArgs, disposables) => {
+						const subscription = provider.onDidChange(listener, thisArgs);
+						record.subscriptions++;
+						const tracked = toDisposable(() => { subscription.dispose(); record.subscriptions--; });
+						if (Array.isArray(disposables)) { disposables.push(tracked); }
+						else { disposables?.add(tracked); }
+						return tracked;
+					};
+					return {
+						onDidChange,
+						computeDiff: (original, modified, options, token) => {
+							record.resources = [original.uri.toString(), modified.uri.toString()];
+							return provider.computeDiff(original, modified, options, token);
+						},
+					} satisfies IDocumentDiffProvider;
+				},
+			} satisfies IDiffProviderFactoryService);
+			instantiation.stub(ITextModelService, {
+				_serviceBrand: undefined,
+				registerTextModelContentProvider: (scheme, provider) => resolver.registerTextModelContentProvider(scheme, provider),
+				canHandleResource: resource => resolver.canHandleResource(resource),
+				createModelReference: async resource => {
+					const key = resource.toString();
+					const gate = gates.get(key);
+					if (gate) {
+						gates.delete(key);
+						void gate.started.complete();
+						await gate.release.p;
+					}
+					const reference = await resolver.createModelReference(resource);
+					const record: typeof references[number] = { resource: key, releases: 0 };
+					references.push(record);
+					return {
+						object: reference.object,
+						dispose: () => {
+							record.releases++;
+							record.detached = [...observedDiffs].every(editor => {
+								const model = editor.getModel();
+								return !model || (model.original.uri.toString() !== key && model.modified.uri.toString() !== key);
+							}) && [...observedCodes].every(editor => editor.getModel()?.uri.toString() !== key);
+							record.subscriptions = providers.filter(provider => provider.resources.includes(key)).reduce((count, provider) => count + provider.subscriptions, 0);
+							reference.dispose();
+						},
+					};
+				},
+			} satisfies ITextModelService);
+			instantiation.stub(IUserInteractionService, new MockUserInteractionService());
+			instantiation.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+			instantiation.stub(IEditorProgressService, {
+				_serviceBrand: undefined, show: () => emptyProgressRunner, showWhile: async promise => { await promise; },
+			} satisfies IEditorProgressService);
+			instantiation.stub(IUniverseAgentConnection, {
+				isEngineConnected: () => true, getConnectionPhase: () => ({ kind: 'connected' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }), onDidChangeConnection: Event.None,
+			} as unknown as IUniverseAgentConnection);
+			instantiation.stub(IAgentSessionContext, {
+				_serviceBrand: undefined, getActiveSessionId: () => 'session-1', isEngineSessionReady: () => true,
+				getEngineSessionReadiness: () => 'ready', isPairingHold: () => false,
+				onDidChangeActiveSession: Event.None, onDidChangeSession: Event.None, acquireSessionView: () => { throw new Error('not used'); },
+			} satisfies IAgentSessionContext);
+			instantiation.stub(ISourcesChangesModel, {
+				_serviceBrand: undefined, onDidChange: Event.None,
+				getSnapshot: () => ({ generation: 1, settled: true, state: { kind: 'engine-live', sessionId: 'session-1' }, entries: [] }),
+				isWriteClosed: () => false, isFileDiffOpenSkipped: () => false,
+				refresh: async () => { }, scheduleRefresh: () => { }, flushScheduledRefresh: () => { },
+			} satisfies ISourcesChangesModel);
+			instantiation.stub(IViewsService, {
+				openView: async () => null, onDidChangeViewVisibility: Event.None, onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			instantiation.stub(ISCMService, createLeftoverScmService(URI.parse('inmemory://panel-lifetime/unrelated')));
+			const service = store.add(instantiation.createInstance(SourcesDiffPanelService));
+			instantiation.stub(ISourcesDiffPanelService, service);
+			const panel = store.add(instantiation.createInstance(SourcesDiffPanelView, { id: SOURCES_DIFF_PANEL_VIEW_ID, title: 'Diff' }));
+			panel.render();
+			document.body.appendChild(panel.element);
+			store.add({ dispose: () => panel.element.remove() });
+			const capture = () => {
+				const diffs = editors.listDiffEditors().filter(editor => panel.element.contains(editor.getContainerDomNode()));
+				const codes = editors.listCodeEditors().filter(editor => panel.element.contains(editor.getContainerDomNode()));
+				for (const editor of diffs) { observedDiffs.add(editor); }
+				for (const editor of codes) { observedCodes.add(editor); }
+				return { diffs, codes };
+			};
+			return {
+				panel, service, references, providers, capture,
+				keepModels: async (ref: ISourcesChangeRef) => {
+					const original = ref.original ? await resolver.createModelReference(ref.original) : undefined;
+					try {
+						const modified = await resolver.createModelReference(ref.modified);
+						return toDisposable(() => { original?.dispose(); modified.dispose(); });
+					} catch (error) {
+						original?.dispose();
+						throw error;
+					}
+				},
+				ref: (name: string, diff = true): ISourcesChangeRef => {
+					const modified = URI.parse(`inmemory://panel-lifetime/${name}/modified`);
+					const original = diff ? URI.parse(`inmemory://panel-lifetime/${name}/original`) : undefined;
+					if (!models.getModel(modified)) { store.add(models.createModel('line1\nnew', null, modified)); }
+					if (original && !models.getModel(original)) { store.add(models.createModel('line1\nold', null, original)); }
+					return { modified, original, groupId: 'workingTree', origin: 'engine', sessionId: 'session-1', gitPath: 'src/a.ts', indexState: 'Unstaged', kind: diff ? 'Modified' : 'Added' };
+				},
+				defer: (resource: URI) => {
+					const gate = { started: new DeferredPromise<void>(), release: new DeferredPromise<void>() };
+					gates.set(resource.toString(), gate);
+					store.add({ dispose: () => { void gate.release.complete(); } });
+					return gate;
+				},
+				assertReleased: (refs: typeof references) => {
+					assert.deepStrictEqual(refs.map(({ releases, detached, subscriptions }) => ({ releases, detached, subscriptions })), refs.map(() => ({ releases: 1, detached: true, subscriptions: 0 })));
+				},
+			};
+		}
+
+		for (const action of ['replace', 'clear', 'dispose', 'same-ref', 'diff-to-single', 'single-to-diff'] as const) {
+			test(`${action} detaches real widgets and releases each old reference once`, async () => {
+				const h = mountLifetimeHost();
+				const first = h.ref('first', action !== 'single-to-diff');
+				assert.strictEqual(await h.service.show(first), true);
+				const oldWidgets = h.capture();
+				assert.strictEqual(action === 'single-to-diff' ? oldWidgets.codes.length : oldWidgets.diffs.length, 1);
+				if (action !== 'single-to-diff') { assert.ok(h.providers.some(provider => provider.subscriptions > 0)); }
+				const oldReferences = h.references.slice();
+				if (action === 'clear') { h.service.clear(); }
+				else if (action === 'dispose') { h.panel.dispose(); h.panel.dispose(); }
+				else {
+					const next = action === 'same-ref' ? first : h.ref('next', action !== 'diff-to-single');
+					if (action === 'same-ref') {
+						const keeper = await h.keepModels(first);
+						try { assert.strictEqual(await h.service.show(next), true); }
+						finally { keeper.dispose(); }
+					} else { assert.strictEqual(await h.service.show(next), true); }
+					const current = h.capture();
+					assert.strictEqual(next.original ? current.diffs[0]?.getModel()?.modified.getValue() : current.codes[0]?.getModel()?.getValue(), 'line1\nnew');
+					assert.ok(h.references.slice(oldReferences.length).every(reference => reference.releases === 0));
+				}
+				h.assertReleased(oldReferences);
+				assert.ok([...oldWidgets.diffs, ...oldWidgets.codes].every(editor => editor.getModel() === null));
+				h.service.clear();
+				h.panel.dispose();
+				h.assertReleased(h.references);
+				assert.ok(h.providers.every(provider => provider.subscriptions === 0));
+			});
+		}
+
+		for (const kind of ['diff', 'single'] as const) {
+			for (const action of ['replace', 'clear', 'dispose'] as const) {
+				for (const outcome of ['resolved', 'rejected'] as const) {
+					test(`${kind} pending modified reference ${outcome} after ${action} releases only its own references`, async () => {
+						const h = mountLifetimeHost();
+						const first = h.ref('pending', kind === 'diff');
+						const gate = h.defer(first.modified);
+						const operation = h.service.show(first);
+						try {
+							await Promise.race([gate.started.p, operation.then(() => { throw new Error('show returned before the resolver gate'); })]);
+							assert.strictEqual(h.references.length, kind === 'diff' ? 1 : 0);
+							let next: ISourcesChangeRef | undefined;
+							if (action === 'replace') {
+								next = h.ref('successor');
+								assert.strictEqual(await h.service.show(next), true);
+								h.capture();
+							} else if (action === 'clear') { h.service.clear(); }
+							else { h.panel.dispose(); }
+							if (outcome === 'rejected') { await gate.release.error(new Error('late resolver failure')); }
+							else { await gate.release.complete(); }
+							assert.strictEqual(await operation, false);
+							h.assertReleased(h.references.filter(reference => reference.resource.includes('/pending/')));
+							assert.strictEqual(h.references.filter(reference => reference.resource.includes('/pending/')).length, (kind === 'diff' ? 1 : 0) + (outcome === 'resolved' ? 1 : 0));
+							const current = h.capture();
+							if (next) {
+								assert.strictEqual(current.diffs[0]?.getModel()?.modified.uri.toString(), next.modified.toString());
+								assert.ok(h.references.filter(reference => reference.resource.includes('/successor/')).every(reference => reference.releases === 0));
+							} else { assert.deepStrictEqual({ diffs: current.diffs.length, codes: current.codes.length }, { diffs: 0, codes: 0 }); }
+						} finally { await gate.release.complete(); await operation; h.service.clear(); h.panel.dispose(); }
+						h.assertReleased(h.references);
+						assert.ok(h.providers.every(provider => provider.subscriptions === 0));
+					});
+				}
+			}
+		}
+	});
+
+	suite('Accept post-read authorization', () => {
+		type HostKind = 'Pane' | 'Panel';
+		type Invalidation = 'replace' | 'clear' | 'dispose' | 'clear-and-restore' | 'input-dispose';
+		interface MutableAuthorization {
+			activeSessionId: string;
+			connected: boolean;
+			pairingHold: boolean;
+			readiness: 'ready' | 'unavailable';
+			gitReadFailed: boolean;
+			applySupported: boolean;
+			hasApplyHook: boolean;
+		}
+		const validDiff = [
+			'diff --git a/src/a.ts b/src/a.ts',
+			'--- a/src/a.ts',
+			'+++ b/src/a.ts',
+			'@@ -1,2 +1,2 @@',
+			' line1',
+			'-old',
+			'+new',
+		].join('\n');
+		const accepted: UniverseAgentWriteGitWriteResult = {
+			supported: true, reason: '', success: true, errorMessage: '', exitCode: 0, stdout: '',
+		};
+		const expectedRead: UniverseAgentReadGitFileDiffRequest = { sessionId: 'session-1', path: 'src/a.ts', indexState: 'Unstaged' };
+		const expectedApply: UniverseAgentWriteGitApplyHunksRequest = {
+			sessionId: 'session-1', argv: ['git', 'apply', '--cached', '--whitespace=nowarn'], patches: [validDiff + '\n'],
+		};
+
+		async function mountAuthorizationHost(kind: HostKind, deferApply = false) {
+			const state: MutableAuthorization = {
+				activeSessionId: 'session-1', connected: true, pairingHold: false, readiness: 'ready',
+				gitReadFailed: false, applySupported: true, hasApplyHook: true,
+			};
+			const readStarted = new DeferredPromise<void>();
+			const readResult = new DeferredPromise<void>();
+			const applyStarted = new DeferredPromise<void>();
+			const applyResult = new DeferredPromise<UniverseAgentWriteGitWriteResult>();
+			store.add({ dispose: () => { void readResult.complete(); void applyResult.complete(accepted); } });
+			const reads: UniverseAgentReadGitFileDiffRequest[] = [];
+			const applies: UniverseAgentWriteGitApplyHunksRequest[] = [];
+			const commands: string[] = [];
+			let refreshes = 0;
+			const connectionChanged = store.add(new Emitter<void>());
+			const sessionChanged = store.add(new Emitter<string>());
+			const changesChanged = store.add(new Emitter<void>());
+			const apply = async (request: UniverseAgentWriteGitApplyHunksRequest) => {
+				applies.push(request);
+				void applyStarted.complete();
+				return deferApply ? applyResult.p : accepted;
+			};
+			const connection = {
+				isEngineConnected: () => state.connected,
+				getConnectionPhase: () => ({ kind: state.connected ? 'connected' as const : 'disconnected' as const }),
+				getConnectionSnapshot: () => ({
+					pairingPending: state.pairingHold,
+					gitWriteCapability: {
+						writeGitStagePaths: 'SUPPORTED' as const, writeGitCommit: 'SUPPORTED' as const,
+						writeGitApplyHunks: state.applySupported ? 'SUPPORTED' as const : 'UNSUPPORTED' as const,
+					},
+				}),
+				onDidChangeConnection: connectionChanged.event,
+				readGitFileDiff: async (request: UniverseAgentReadGitFileDiffRequest) => {
+					reads.push(request);
+					void readStarted.complete();
+					await readResult.p;
+					return { supported: true, reason: '', path: request.path, unifiedDiff: validDiff };
+				},
+				get writeGitApplyHunks() { return state.hasApplyHook ? apply : undefined; },
+			} as unknown as IUniverseAgentConnection;
+			const session: IAgentSessionContext = {
+				_serviceBrand: undefined,
+				getActiveSessionId: () => state.activeSessionId,
+				isEngineSessionReady: () => state.readiness === 'ready',
+				getEngineSessionReadiness: () => state.readiness,
+				isPairingHold: () => state.pairingHold,
+				onDidChangeActiveSession: sessionChanged.event,
+				onDidChangeSession: sessionChanged.event,
+				acquireSessionView: () => { throw new Error('not used'); },
+			};
+			const snapshot = () => ({
+				generation: 1, settled: true,
+				state: state.gitReadFailed
+					? { kind: 'engine-leftover' as const, sessionId: 'session-1', reason: 'read-failed' as const }
+					: { kind: 'engine-live' as const, sessionId: 'session-1' },
+				entries: [],
+			});
+			const changes: ISourcesChangesModel = {
+				_serviceBrand: undefined, onDidChange: changesChanged.event, getSnapshot: snapshot,
+				isWriteClosed: () => isSourcesChangesWriteClosed(snapshot().state, {
+					phaseConnected: state.connected, pairingPending: state.pairingHold,
+					engineConnected: state.connected, engineSessionReady: state.readiness === 'ready',
+				}),
+				isFileDiffOpenSkipped: () => state.pairingHold || state.gitReadFailed,
+				refresh: async () => { }, scheduleRefresh: () => { refreshes++; }, flushScheduledRefresh: () => { },
+			};
+			const instantiation = workbenchInstantiationService(undefined, store);
+			instantiation.stub(IDiffProviderFactoryService, new TestDiffProviderFactoryService());
+			instantiation.stub(IUserInteractionService, new MockUserInteractionService());
+			instantiation.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+			instantiation.stub(IEditorProgressService, {
+				_serviceBrand: undefined, show: () => emptyProgressRunner,
+				showWhile: async promise => { await promise; },
+			} satisfies IEditorProgressService);
+			instantiation.stub(IUniverseAgentConnection, connection);
+			instantiation.stub(IAgentSessionContext, session);
+			instantiation.stub(ISourcesChangesModel, changes);
+			instantiation.stub(ICommandService, {
+				...NullCommandService, executeCommand: async <T>(id: string): Promise<T | undefined> => { commands.push(id); return undefined; },
+			} satisfies ICommandService);
+			instantiation.stub(IViewsService, {
+				openView: async () => null, onDidChangeViewVisibility: Event.None, onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const ref: ISourcesChangeRef = {
+				modified: URI.parse('inmemory://accept-authorization/modified'), original: URI.parse('inmemory://accept-authorization/original'),
+				groupId: 'workingTree', origin: 'engine', sessionId: 'session-1', gitPath: 'src/a.ts', indexState: 'Unstaged', kind: 'Modified',
+			};
+			instantiation.stub(ISCMService, createLeftoverScmService(ref.modified));
+			const models = instantiation.get(IModelService);
+			const resolver = instantiation.get(ITextModelService);
+			const seed = async (value: ISourcesChangeRef) => {
+				assert.ok(value.original);
+				if (!models.getModel(value.original)) { store.add(models.createModel('line1\nold', null, value.original)); }
+				if (!models.getModel(value.modified)) { store.add(models.createModel('line1\nnew', null, value.modified)); }
+				// Hold real resolver refs across clear/show so the same-ref ABA still renders valid models.
+				store.add(await resolver.createModelReference(value.original));
+				store.add(await resolver.createModelReference(value.modified));
+			};
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			const panelService = store.add(instantiation.createInstance(SourcesDiffPanelService));
+			instantiation.stub(ISourcesDiffPanelService, panelService);
+			let pane: ConversationDiffReviewPane | undefined;
+			let panel: SourcesDiffPanelView | undefined;
+			const input = store.add(new ConversationDiffReviewInput(ref.modified, ref.original, ref.groupId, ref));
+			if (kind === 'Pane') {
+				pane = store.add(instantiation.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+				pane.create(parent);
+				await seed(ref);
+				await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+				assert.strictEqual(pane.didComparisonLoadFail(), false);
+			} else {
+				panel = store.add(instantiation.createInstance(SourcesDiffPanelView, { id: SOURCES_DIFF_PANEL_VIEW_ID, title: 'Diff' }));
+				panel.render();
+				parent.appendChild(panel.element);
+				await seed(ref);
+				assert.strictEqual(await panelService.show(ref), true);
+			}
+			const host = (pane ?? panel)!;
+			pinAcceptCursor(host, 2);
+			const button = parent.querySelector(kind === 'Pane' ? '.conversation-diff-review-accept' : '.sources-diff-panel-accept');
+			assert.ok(button instanceof HTMLButtonElement);
+			assert.strictEqual(button.style.display, '');
+			const notice = parent.querySelector(kind === 'Pane' ? '.conversation-diff-review-notice' : '.sources-diff-panel-action-notice');
+			assert.ok(notice instanceof HTMLElement);
+			const run = () => (host as unknown as { runAccept(): Promise<void> }).runAccept();
+			const waitFor = async (started: DeferredPromise<void>, operation: Promise<void>) => {
+				await Promise.race([started.p, operation.then(() => { throw new Error('Accept returned before the expected RPC started'); })]);
+			};
+			return {
+				state, reads, applies, commands, notice, input,
+				readResult, applyResult, applyStarted, run,
+				waitForRead: (operation: Promise<void>) => waitFor(readStarted, operation),
+				waitForApply: (operation: Promise<void>) => waitFor(applyStarted, operation),
+				notify: () => { sessionChanged.fire(state.activeSessionId); connectionChanged.fire(); changesChanged.fire(); },
+				projection: () => ({ reads, applies, commands, refreshes }),
+				readGates: () => {
+					const current = snapshot().state;
+					return { catalog: session.getEngineSessionReadiness!(), gitState: current.kind, gitReason: current.kind === 'engine-leftover' ? current.reason : undefined };
+				},
+				hasRawApplyHook: () => typeof connection.writeGitApplyHunks === 'function',
+				owner: () => pane
+					? { identity: pane.input, generation: (pane as unknown as { stageAttemptGeneration: number }).stageAttemptGeneration }
+					: { identity: (panel as unknown as { currentRef: ISourcesChangeRef }).currentRef, generation: (panel as unknown as { renderGeneration: number }).renderGeneration },
+				showNotice: (message: string) => {
+					if (pane) { (pane as unknown as { showNotice(message: string): void }).showNotice(message); }
+					else { (panel as unknown as { showActionNotice(message: string): void }).showActionNotice(message); }
+				},
+				invalidate: async (action: Invalidation) => {
+					if (action === 'input-dispose') { assert.ok(pane); input.dispose(); assert.strictEqual(pane.input, input); return; }
+					if (action === 'dispose') { host.dispose(); return; }
+					if (action === 'clear' || action === 'clear-and-restore') {
+						if (pane) { pane.clearInput(); } else { panelService.clear(); }
+						if (action === 'clear') { return; }
+						if (pane) { await pane.setInput(input, undefined, Object.create(null), CancellationToken.None); }
+						else { assert.strictEqual(await panelService.show(ref), true); }
+						return;
+					}
+					const next: ISourcesChangeRef = { ...ref, modified: URI.parse('inmemory://accept-authorization/next'), original: URI.parse('inmemory://accept-authorization/next-original') };
+					await seed(next);
+					if (pane) {
+						const nextInput = store.add(new ConversationDiffReviewInput(next.modified, next.original, next.groupId, next));
+						await pane.setInput(nextInput, undefined, Object.create(null), CancellationToken.None);
+					} else { assert.strictEqual(await panelService.show(next), true); }
+				},
+			};
+		}
+
+		const cases: readonly {
+			name: string; writes: boolean; mutate(state: MutableAuthorization, notify: () => void): void;
+			catalog?: 'unavailable'; gitFailed?: boolean; sessionNotice?: boolean;
+		}[] = [
+			{ name: 'A1 active session changes to s2 before write', writes: false, mutate: state => { state.activeSessionId = 'session-2'; }, sessionNotice: true },
+			{ name: 'A1 active session becomes empty before write', writes: false, mutate: state => { state.activeSessionId = ''; }, sessionNotice: true },
+			{ name: 'A2 same-session valid patch reaches ApplyHunks exactly once', writes: true, mutate: () => { } },
+			{ name: 'A3 s1 to s2 to s1 uses current authorization', writes: true, mutate: (state, notify) => { state.activeSessionId = 'session-2'; notify(); state.activeSessionId = 'session-1'; } },
+			{ name: 'A5 disconnected before write', writes: false, mutate: state => { state.connected = false; } },
+			{ name: 'A5 pairing hold before write', writes: false, mutate: state => { state.pairingHold = true; } },
+			{ name: 'A5 catalog Session List failure leaves readiness unavailable', writes: false, mutate: state => { state.readiness = 'unavailable'; }, catalog: 'unavailable' },
+			{ name: 'A5 Git Changes failure leaves read-failed snapshot', writes: false, mutate: state => { state.gitReadFailed = true; }, gitFailed: true },
+			{ name: 'A5 ApplyHunks capability becomes unsupported', writes: false, mutate: state => { state.applySupported = false; } },
+			{ name: 'A5 ApplyHunks hook becomes unavailable', writes: false, mutate: state => { state.hasApplyHook = false; } },
+			{ name: 'A6 catalog Session List failure recovers independently', writes: true, mutate: (state, notify) => { state.readiness = 'unavailable'; notify(); state.readiness = 'ready'; } },
+			{ name: 'A6 Git Changes read-failed snapshot recovers independently', writes: true, mutate: (state, notify) => { state.gitReadFailed = true; notify(); state.gitReadFailed = false; } },
+			{ name: 'A6 same-id disconnect reconnect uses current authorization', writes: true, mutate: (state, notify) => { state.connected = false; notify(); state.connected = true; } },
+		];
+		for (const kind of ['Pane', 'Panel'] as const) {
+			for (const scenario of cases) {
+				test(`${kind} ${scenario.name}`, async () => {
+					const h = await mountAuthorizationHost(kind);
+					const operation = h.run();
+					try {
+						await h.waitForRead(operation);
+						assert.deepStrictEqual(h.reads, [expectedRead]);
+						scenario.mutate(h.state, h.notify);
+						h.notify();
+						assert.deepStrictEqual(h.readGates(), { catalog: scenario.catalog ?? 'ready', gitState: scenario.gitFailed ? 'engine-leftover' : 'engine-live', gitReason: scenario.gitFailed ? 'read-failed' : undefined });
+						assert.strictEqual(h.hasRawApplyHook(), h.state.hasApplyHook, 'capability refusal retains the installed raw method; hook absence is a separate case');
+						await h.readResult.complete();
+						await operation;
+						assert.deepStrictEqual(h.projection(), { reads: [expectedRead], applies: scenario.writes ? [expectedApply] : [], commands: [], refreshes: scenario.writes ? 1 : 0 });
+						if (scenario.sessionNotice) { assert.strictEqual(h.notice.textContent, sourcesGitSessionChangedMessage()); }
+					} finally { await h.readResult.complete(); await operation; }
+				});
+			}
+			for (const action of ['replace', 'clear', 'dispose', 'clear-and-restore'] as const) {
+				test(`${kind} A4 ${action} invalidates the pending read owner`, async () => {
+					const h = await mountAuthorizationHost(kind);
+					const operation = h.run();
+					try {
+						await h.waitForRead(operation);
+						await h.invalidate(action);
+						const notice = h.notice.textContent;
+						await h.readResult.complete();
+						await operation;
+						assert.deepStrictEqual(h.projection(), { reads: [expectedRead], applies: [], commands: [], refreshes: 0 });
+						assert.strictEqual(h.notice.textContent, notice);
+					} finally { await h.readResult.complete(); await operation; }
+				});
+			}
+			for (const outcome of ['accepted', 'failed'] as const) {
+				test(`${kind} A7 sent write then active session changes preserves ${outcome} response`, async () => {
+					const h = await mountAuthorizationHost(kind, true);
+					const operation = h.run();
+					try {
+						await h.waitForRead(operation);
+						await h.readResult.complete();
+						await h.waitForApply(operation);
+						assert.deepStrictEqual(h.applies, [expectedApply], 'the original s1 write was sent before the active session changed');
+						const owner = h.owner();
+						assert.ok(owner.identity);
+						h.state.activeSessionId = 'session-2';
+						h.notify();
+						assert.strictEqual(h.owner().identity, owner.identity);
+						assert.strictEqual(h.owner().generation, owner.generation);
+						assert.strictEqual(h.input.isDisposed(), false);
+						h.showNotice('pending ApplyHunks response');
+						assert.strictEqual(h.notice.textContent, 'pending ApplyHunks response');
+						await h.applyResult.complete(outcome === 'accepted' ? accepted : { ...accepted, success: false, errorMessage: 'late ApplyHunks failure', exitCode: 1 });
+						await operation;
+						assert.deepStrictEqual(h.projection(), { reads: [expectedRead], applies: [expectedApply], commands: [], refreshes: outcome === 'accepted' ? 1 : 0 });
+						assert.strictEqual(h.owner().identity, owner.identity);
+						assert.strictEqual(h.owner().generation, owner.generation);
+						assert.strictEqual(h.notice.textContent, outcome === 'accepted' ? '' : 'late ApplyHunks failure');
+						assert.strictEqual(h.notice.style.display, outcome === 'accepted' ? 'none' : '');
+						assert.strictEqual(h.notice.classList.contains('is-error'), outcome === 'failed');
+					} finally { await h.readResult.complete(); await h.applyResult.complete(accepted); await operation; }
+				});
+			}
+			const afterWriteActions: readonly Invalidation[] = kind === 'Pane' ? ['replace', 'dispose', 'input-dispose'] : ['replace', 'dispose'];
+			for (const action of afterWriteActions) {
+				for (const outcome of ['accepted', 'failed', 'rejected'] as const) {
+					test(`${kind} A7 sent write then ${action} keeps ${outcome} off the invalid owner`, async () => {
+						const h = await mountAuthorizationHost(kind, true);
+						const operation = h.run();
+						try {
+							await h.waitForRead(operation);
+							await h.readResult.complete();
+							await h.waitForApply(operation);
+							assert.deepStrictEqual(h.applies, [expectedApply], 'the write was sent before invalidation');
+							await h.invalidate(action);
+							const notice = h.notice.textContent;
+							if (outcome === 'rejected') { await h.applyResult.error(new Error('late ApplyHunks failure')); }
+							else { await h.applyResult.complete(outcome === 'accepted' ? accepted : { ...accepted, success: false, errorMessage: 'late ApplyHunks failure', exitCode: 1 }); }
+							await operation;
+							assert.deepStrictEqual(h.projection(), { reads: [expectedRead], applies: [expectedApply], commands: [], refreshes: 0 });
+							assert.strictEqual(h.notice.textContent, notice);
+						} finally { await h.readResult.complete(); await h.applyResult.complete(accepted); await operation; }
+					});
+				}
+			}
+		}
+	});
+
+	const acceptCursorUnifiedDiff = [
+		'diff --git a/src/a.ts b/src/b.ts',
+		'rename from src/a.ts',
+		'rename to src/b.ts',
+		'old mode 100644',
+		'new mode 100755',
+		'--- a/src/a.ts',
+		'+++ b/src/b.ts',
+		'@@ -1,3 +1,4 @@',
+		' line1',
+		'-old',
+		'+new',
+		'+extra',
+		'@@ -10,2 +11,3 @@',
+		' keep',
+		'-gone',
+		'+added',
+		'+more',
+		'\\ No newline at end of file',
+	].join('\n');
+
+	interface IAcceptHunkMount {
+		readonly view: SourcesDiffPanelView;
+		readonly pane: ConversationDiffReviewPane;
+		readonly parent: HTMLElement;
+		readonly applyCalls: UniverseAgentWriteGitApplyHunksRequest[];
+		readonly readCalls: UniverseAgentReadGitFileDiffRequest[];
+		readonly gitCommands: string[];
+		readonly refreshCount: { n: number };
+	}
+
+	function engineAcceptRef(name: string, overrides: Partial<ISourcesChangeRef> = {}): ISourcesChangeRef {
+		return {
+			modified: URI.from({ scheme: 'sources-git-diff', path: `/modified/${name}` }),
+			original: URI.from({ scheme: 'sources-git-diff', path: `/original/${name}` }),
+			groupId: 'workingTree',
+			origin: 'engine',
+			sessionId: 'session-1',
+			gitPath: 'src/a.ts',
+			indexState: 'Unstaged',
+			kind: 'Modified',
+			...overrides,
+		};
+	}
+
+	async function mountAcceptHunkHosts(test: Mocha.Context, options: {
+		ref: ISourcesChangeRef;
+		matchScm?: boolean;
+		scmGroupId?: string;
+		connected?: boolean;
+		engineSessionReady?: boolean;
+		writeClosed?: boolean;
+		countRefresh?: boolean;
+		unifiedDiff?: string;
+		applySuccess?: boolean;
+		applyErrorMessage?: string;
+	}): Promise<IAcceptHunkMount> {
+		const applyCalls: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const readCalls: UniverseAgentReadGitFileDiffRequest[] = [];
+		const gitCommands: string[] = [];
+		const refreshCount = { n: 0 };
+		const unifiedDiff = options.unifiedDiff ?? acceptCursorUnifiedDiff;
+		const connected = options.connected ?? true;
+		const applyResult: UniverseAgentWriteGitWriteResult = {
+			supported: true,
+			reason: '',
+			success: options.applySuccess ?? true,
+			errorMessage: options.applyErrorMessage ?? '',
+			exitCode: options.applySuccess === false ? 1 : 0,
+			stdout: '',
+		};
+		const connection = {
+			isEngineConnected: () => connected,
+			getConnectionPhase: () => ({ kind: connected ? 'connected' as const : 'disconnected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitFileDiff: async (request: UniverseAgentReadGitFileDiffRequest) => {
+				readCalls.push(request);
+				return { supported: true, reason: '', path: request.path, unifiedDiff };
+			},
+			writeGitApplyHunks: async (request: UniverseAgentWriteGitApplyHunksRequest) => {
+				applyCalls.push(request);
+				return applyResult;
+			},
+			writeGitStagePaths: async () => applyResult,
+		} as unknown as IUniverseAgentConnection;
+		const scmUri = options.matchScm ? options.ref.modified : toResource.call(test, '/project/src/scm-unrelated.ts');
+		const instantiationService = stubDiffHonestyServices({
+			throwOnLoad: true,
+			resource: scmUri,
+			groupId: options.scmGroupId ?? 'workingTree',
+			connection,
+			engineSessionReady: options.engineSessionReady ?? true,
+			executeCommand: async (commandId: unknown) => {
+				gitCommands.push(String(commandId));
+			},
+		});
+		if (options.writeClosed || options.countRefresh) {
+			instantiationService.stub(ISourcesChangesModel, {
+				onDidChange: Event.None,
+				getSnapshot: () => ({
+					generation: 1,
+					settled: true,
+					state: options.writeClosed
+						? { kind: 'engine-leftover', sessionId: 'session-1', reason: 'read-failed' }
+						: { kind: 'scm' },
+					entries: [],
+				}),
+				isWriteClosed: () => !!options.writeClosed,
+				isFileDiffOpenSkipped: () => !!options.writeClosed,
+				refresh: async () => undefined,
+				scheduleRefresh: () => { refreshCount.n++; },
+				flushScheduledRefresh: () => undefined,
+			} as unknown as ISourcesChangesModel);
+		}
+		instantiationService.stub(IViewsService, {
+			openView: async () => null,
+			onDidChangeViewVisibility: Event.None,
+			onDidChangeViewContainerVisibility: Event.None,
+		} as unknown as IViewsService);
+		const panelService = store.add(instantiationService.createInstance(SourcesDiffPanelService));
+		instantiationService.stub(ISourcesDiffPanelService, panelService);
+		const view = store.add(instantiationService.createInstance(SourcesDiffPanelView, {
+			id: SOURCES_DIFF_PANEL_VIEW_ID,
+			title: 'Diff',
+		}));
+		view.render();
+		await panelService.show(options.ref);
+		await timeout(50);
+		paintPanelWriteChrome(view);
+
+		const pane = store.add(instantiationService.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const input = store.add(new ConversationDiffReviewInput(options.ref.modified, options.ref.original, options.ref.groupId, {
+			origin: options.ref.origin,
+			sessionId: options.ref.sessionId,
+			gitPath: options.ref.gitPath,
+			indexState: options.ref.indexState,
+			kind: options.ref.kind,
+		}));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		await timeout(20);
+		paintReviewWriteChrome(pane);
+		return { view, pane, parent, applyCalls, readCalls, gitCommands, refreshCount };
+	}
+
+	function pinAcceptCursor(host: object, line: number, side: 'new' | 'old' = 'new'): void {
+		(host as { acceptCursor: { side: 'new' | 'old'; line: number } }).acceptCursor = { side, line };
+	}
+
+	function acceptButtonDisplay(root: { querySelector(selector: string): Element | null }, selector: string): string {
+		return (root.querySelector(selector) as HTMLElement | null)?.style.display ?? 'missing';
+	}
+
+	function writeGroupId(host: object): string {
+		return (host as { currentWriteFacts(): { groupId: string } | undefined }).currentWriteFacts()?.groupId ?? '';
+	}
+
+	async function runBothAccept(harness: IAcceptHunkMount): Promise<void> {
+		await (harness.view as unknown as { runAccept: () => Promise<void> }).runAccept();
+		await (harness.pane as unknown as { runAccept: () => Promise<void> }).runAccept();
+	}
+
+	function assertAcceptHidden(harness: IAcceptHunkMount): void {
+		assert.strictEqual(acceptButtonDisplay(harness.view.element, '.sources-diff-panel-accept'), 'none');
+		assert.strictEqual(acceptButtonDisplay(harness.parent, '.conversation-diff-review-accept'), 'none');
+	}
+
+	function assertAcceptShown(harness: IAcceptHunkMount): void {
+		assert.strictEqual(acceptButtonDisplay(harness.view.element, '.sources-diff-panel-accept'), '');
+		assert.strictEqual(acceptButtonDisplay(harness.parent, '.conversation-diff-review-accept'), '');
+	}
+
+	test('eligible Modified WORKTREE row shows Accept on both diff hosts', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-worktree', { indexState: 'WORKTREE', kind: 'Modified' }),
+		});
+		assertAcceptShown(harness);
+	});
+
+	test('StagedAndUnstaged still shows Accept', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-both', { indexState: 'StagedAndUnstaged', kind: 'Modified' }),
+		});
+		assertAcceptShown(harness);
+	});
+
+	test('conflict labeled workingTree hides Accept', async function () {
+		const resource = toResource.call(this, '/project/src/accept-conflict.ts');
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: {
+				modified: resource,
+				original: toResource.call(this, '/project/src/accept-conflict.ts.git'),
+				groupId: 'workingTree',
+				origin: 'engine',
+				sessionId: 'session-1',
+				gitPath: 'src/a.ts',
+				indexState: 'Unstaged',
+				kind: 'Conflict',
+			},
+			matchScm: true,
+			scmGroupId: 'workingTree',
+		});
+		assert.strictEqual(writeGroupId(harness.view), 'workingTree');
+		assert.strictEqual(writeGroupId(harness.pane), 'workingTree');
+		assertAcceptHidden(harness);
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+	});
+
+	test('untracked row hides Accept', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-untracked', { kind: 'Untracked', indexState: 'Unstaged' }),
+		});
+		assertAcceptHidden(harness);
+	});
+
+	test('fully staged row labeled workingTree hides Accept', async function () {
+		const resource = toResource.call(this, '/project/src/accept-staged.ts');
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: {
+				modified: resource,
+				original: toResource.call(this, '/project/src/accept-staged.ts.git'),
+				groupId: 'workingTree',
+				origin: 'engine',
+				sessionId: 'session-1',
+				gitPath: 'src/a.ts',
+				indexState: 'Staged',
+				kind: 'Modified',
+			},
+			matchScm: true,
+			scmGroupId: 'workingTree',
+		});
+		assert.strictEqual(writeGroupId(harness.view), 'workingTree');
+		assertAcceptHidden(harness);
+	});
+
+	test('groupId index with Modified Unstaged still shows Accept', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-index', { groupId: 'index', kind: 'Modified', indexState: 'Unstaged' }),
+		});
+		assert.strictEqual(writeGroupId(harness.view), 'index');
+		assert.strictEqual(writeGroupId(harness.pane), 'index');
+		assertAcceptShown(harness);
+	});
+
+	test('disconnected engine hides Accept on an eligible row', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-offline'),
+			connected: false,
+		});
+		assertAcceptHidden(harness);
+	});
+
+	test('empty engine path hides Accept and does not read', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-empty-path', { gitPath: '' }),
+		});
+		assertAcceptHidden(harness);
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+	});
+
+	test('empty pinned session hides Accept and does not read', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-empty-session', { sessionId: '' }),
+		});
+		assertAcceptHidden(harness);
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+	});
+
+	test('Accept click reads Unstaged diff and applies only the cursor hunk', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-click', { indexState: 'WORKTREE', kind: 'Modified' }),
+			countRefresh: true,
+		});
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
+		await runBothAccept(harness);
+
+		assert.strictEqual(harness.readCalls.length, 2);
+		for (const request of harness.readCalls) {
+			assert.strictEqual(request.sessionId, 'session-1');
+			assert.strictEqual(request.path, 'src/a.ts');
+			assert.strictEqual(request.indexState, 'Unstaged');
+		}
+		const expected = sourcesGitHunkPatchAtCursor(acceptCursorUnifiedDiff, 5, 'new');
+		assert.ok(expected);
+		assert.strictEqual(harness.applyCalls.length, 2);
+		for (const request of harness.applyCalls) {
+			assert.deepStrictEqual([...request.argv], ['git', 'apply', '--cached', '--whitespace=nowarn']);
+			assert.deepStrictEqual([...request.argv], [...SOURCES_GIT_APPLY_CACHED_ARGV]);
+			assert.strictEqual(request.patches.length, 1);
+			assert.strictEqual(request.patches[0], expected);
+			assert.ok(request.patches[0]?.includes('rename from src/a.ts'));
+			assert.ok(request.patches[0]?.includes('old mode 100644'));
+			assert.ok(request.patches[0]?.includes('new mode 100755'));
+			assert.ok(request.patches[0]?.includes('@@ -10,2 +11,3 @@'));
+			assert.ok(request.patches[0]?.includes('\\ No newline at end of file'));
+			assert.ok(!request.patches[0]?.includes('@@ -1,3 +1,4 @@'));
+		}
+		assert.deepStrictEqual(harness.gitCommands, []);
+		assert.strictEqual(harness.refreshCount.n, 2);
+	});
+
+	test('cursor outside every hunk reads once per host and does not apply', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-miss'),
+			countRefresh: true,
+		});
+		pinAcceptCursor(harness.view, 99);
+		pinAcceptCursor(harness.pane, 99);
+		await runBothAccept(harness);
+		assert.strictEqual(harness.readCalls.length, 2);
+		assert.deepStrictEqual(harness.applyCalls, []);
+		assert.strictEqual(harness.refreshCount.n, 0);
+		assert.strictEqual(harness.view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, sourcesDiffAcceptUnavailableMessage());
+		assert.strictEqual(harness.parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesDiffAcceptUnavailableMessage());
+	});
+
+	test('binary diff does not apply', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-binary'),
+			unifiedDiff: 'diff --git a/a.bin b/a.bin\nBinary files a/a.bin and b/a.bin differ\n',
+		});
+		pinAcceptCursor(harness.view, 1);
+		pinAcceptCursor(harness.pane, 1);
+		await runBothAccept(harness);
+		assert.strictEqual(harness.readCalls.length, 2);
+		assert.deepStrictEqual(harness.applyCalls, []);
+	});
+
+	test('missing cursor does not read or apply', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-no-cursor'),
+			countRefresh: true,
+		});
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+		assert.strictEqual(harness.refreshCount.n, 0);
+	});
+
+	test('write closed Accept sends no ReadGitFileDiff and no Apply', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-closed'),
+			writeClosed: true,
+			countRefresh: true,
+		});
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+		assert.strictEqual(harness.refreshCount.n, 0);
+		assert.deepStrictEqual(harness.gitCommands, []);
+	});
+
+	test('engine session not ready sends no ReadGitFileDiff and no Apply', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-not-ready'),
+			engineSessionReady: false,
+		});
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
+		await runBothAccept(harness);
+		assert.deepStrictEqual(harness.readCalls, []);
+		assert.deepStrictEqual(harness.applyCalls, []);
+		assert.deepStrictEqual(harness.gitCommands, []);
+	});
+
+	test('engine success false shows error_message and does not refresh', async function () {
+		const harness = await mountAcceptHunkHosts(this, {
+			ref: engineAcceptRef('accept-denied', { indexState: 'WORKTREE' }),
+			countRefresh: true,
+			applySuccess: false,
+			applyErrorMessage: 'apply denied',
+		});
+		pinAcceptCursor(harness.view, 5);
+		pinAcceptCursor(harness.pane, 5);
+		await runBothAccept(harness);
+		assert.strictEqual(harness.applyCalls.length, 2);
+		assert.strictEqual(harness.view.element.querySelector('.sources-diff-panel-action-notice')?.textContent, 'apply denied');
+		assert.strictEqual(harness.parent.querySelector('.conversation-diff-review-notice')?.textContent, 'apply denied');
+		assert.strictEqual(harness.refreshCount.n, 0);
+		assert.deepStrictEqual(harness.gitCommands, []);
+	});
+});
+

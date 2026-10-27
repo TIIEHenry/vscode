@@ -1,0 +1,24 @@
+--- run2/emitter.mjs
++++ run3/emitter.mjs
+@@ -8,7 +8,7 @@
+ 
+ const scratch = path.dirname(import.meta.filename);
+ const repo = '/home/clarence/Projects/Agents/vscode-WorkTrees/merge';
+-const plan = 'sources-accept-qualified-old-red-20261027-run2';
++const plan = 'sources-accept-qualified-old-red-20261027-run3';
+ const sourcePaths = [
+  'src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts',
+  'src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts'
+@@ -19,10 +19,10 @@
+ const json = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+ const release = json(path.join(scratch, 'execution-release.json'));
+ // Gate before importing compiler modules, producing artifacts, or reading/writing out.
+-check(release.executionAuthorized === true && release.state === 'AUTHORIZED_OLD_RED_RUN2' && release.authorizedBy === '/root' && typeof release.authorizationMessage === 'string' && release.authorizationMessage.trim(), 'FAIL CLOSED: no explicit root execution release');
++check(release.executionAuthorized === true && release.state === 'AUTHORIZED_OLD_RED_RUN3' && release.authorizedBy === '/root' && typeof release.authorizationMessage === 'string' && release.authorizationMessage.trim(), 'FAIL CLOSED: no explicit root execution release');
+ const manifest = json(path.join(scratch, 'input-manifest.json'));
+ const policy = json(path.join(scratch, 'policy.json'));
+-check(scratch === '/tmp/vscode-sources-accept-qualified-old-red-20261027-run2' && process.cwd() === repo && manifest.repo === repo && policy.repo === repo, 'Wrong scratch/repo');
++check(scratch === '/tmp/vscode-sources-accept-qualified-old-red-20261027-run3' && process.cwd() === repo && manifest.repo === repo && policy.repo === repo, 'Wrong scratch/repo');
+ check(manifest.planId === plan && release.planId === plan && policy.planId === plan, 'Wrong plan');
+ for (const name of ['validate.py', 'emitter.mjs', 'policy.json', 'input-manifest.json']) check(sha(fs.readFileSync(path.join(scratch, name))) === release.pinnedFilesSha256[name], 'Unpinned file ' + name);
+ check(release.scope === 'old-production-two-testJs-three-isolated-groups-only', 'Wrong release scope');

@@ -1,0 +1,31 @@
+{
+  "source": "root task message summary; no fabricated independent raw log",
+  "observedAtUtc": "2026-10-27T04:08:23.668980Z",
+  "officialReportersIndependentlyRead": [
+    {
+      "path": "independent-input-dispose-a4.mocha.json",
+      "bytes": 4141,
+      "sha256": "fb66a9e2d2576542156d60e08bb15216fcfe3378273c5b6adb7ed2fc8bbf370e",
+      "stats": "1 test /0 pass /1 sole body AssertionError",
+      "actualProjection": "read1(s1/src/a.ts/Unstaged), Apply1 old s1, git apply --cached --whitespace=nowarn, patch96B/7LF/SHA20f9d884a273fd3561dd79041a6af2c9b383a5ada4528082e6ff582faf97d0a1, commands[]; expectedApply[]; no refresh projection"
+    },
+    {
+      "path": "panel-a3-positive.mocha.json",
+      "bytes": 16527,
+      "sha256": "fe0b0c59ce99ca4c3c4a6aa6c4b6c34e083748a31c7046402f62d267b31e5787",
+      "stats": "1 body pass +2 hook failures: VM/store/FunctionDisposable three leaks and console meta; not clean suite"
+    },
+    {
+      "path": "original-default-false.mocha.json",
+      "bytes": 850,
+      "sha256": "fe47264b20cf41c756f010dad42a62531669ddea53f3fd9898571dd33dbeb579",
+      "stats": "1 test /1 pass /0 failure; body/header/assert unchanged but common factory fixture corrected"
+    }
+  ],
+  "actualRootSnapshotEqualRun3RestoredBaseline": true,
+  "bothNativeOriginalBytesModeMtimeExact": true,
+  "allFiveStagesStdoutStderrHashesExact": true,
+  "uniqueOwnedPidStartPairs": 38,
+  "allSameIdentitiesAbsentCurrentProcAndStagesQuiescent": true,
+  "scope": "Permission only for run3 evidence publication/scoped proof commit; no source integration or further execution"
+}

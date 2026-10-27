@@ -1,0 +1,13 @@
+# Run3 preparation only
+
+Source proof: `ca0b0603e2b29bd3c5cb403fa17e080488834452`; repository source tree remains `a2c34649ee88df907c03b70c9ec3235cb1b4a9d9`.
+
+Root authorized preparation of this independent scratch, not its execution. `execution-release.json` remains `executionAuthorized: false / PREPARED_NO_EXECUTION_RELEASE`. Both driver and emitter require a later explicit root release before build API imports, guard scans, lock acquisition, logs, child processes or output writes.
+
+The candidate stays exactly a4a70322795c509e8e9b8274cf295a1b65db663a, with the same two root-bound test inputs, three selectors, three qualified old c7 production outputs, two test-JS output whitelist and zero production/map writes. The baseline is the committed actual run2 restored snapshot, SHA256 `0ad83388bd541c9271e79b425dd055f76a9acf28cba45ee350e72107a4f7870e`; no old guard is rewritten.
+
+The only invocation behavior correction deletes `--user-data-dir` before the official `test/unit/electron/index.js` entry. The entry now immediately follows the Electron executable. The official non-dev runner itself puts userData under `tmpdir()`, which already resolves to the per-group isolated TMPDIR. All other flags, environment and directories remain unchanged. Read `loading-attribution.json` for fixed-source excerpts and actual old/run2 commands. The run2 originals remain untouched.
+
+`driver-mechanical-diff.patch` and `emitter-mechanical-diff.patch` contain the full mechanical differences. `driver-derivation.json` records exact text comparisons: all process reading/helpers, the entire OwnedStage class, run_owned function, finally restoration and actual emitter pipeline remain byte-identical. Legacy RUN2 marker-key spelling intentionally remains inside otherwise unchanged ownership code; fresh random token values keep each run/stage unique.
+
+No driver, syntax check, source checker, emitter, test, snapshot guard, process operation, restoration or repository/out/freeze/cache/profile write was performed during this preparation. Only scratch writes, immutable Git input reads, baseline-file hashing and preparation-file text/hash comparisons were performed.

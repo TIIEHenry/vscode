@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "planId": "sources-accept-qualified-old-red-20261027-run3",
+  "scratch": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3",
+  "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "expectedHead": "ca0b0603e2b29bd3c5cb403fa17e080488834452",
+  "sourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "oldProduction": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+  "baselineFile": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/guard-after-restore.json",
+  "baselineFileSha256": "0ad83388bd541c9271e79b425dd055f76a9acf28cba45ee350e72107a4f7870e",
+  "sourcePaths": [
+    "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts"
+  ],
+  "outputPaths": [
+    "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"
+  ],
+  "sourceInputCount": 2,
+  "temporaryTestJsWriteCount": 2,
+  "productionWriteCount": 0,
+  "standaloneMapCount": 0,
+  "outFileCount": 12554,
+  "outDirectoryCount": 2946,
+  "unchangedOtherOutFileCount": 12552,
+  "watchdogSeconds": 45,
+  "termGraceSeconds": 5,
+  "killGraceSeconds": 5,
+  "pollSeconds": 0.04,
+  "groups": [
+    {
+      "label": "independent-input-dispose-a4",
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "selector": "Accept post-read authorization input\\.dispose with live Pane and identical input sends no ApplyHunks$",
+      "expectedMatchedBodyTests": 1
+    },
+    {
+      "label": "panel-a3-positive",
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "selector": "Accept post-read authorization Panel A3 s1 to s2 to s1 uses current authorization$",
+      "expectedMatchedBodyTests": 1
+    },
+    {
+      "label": "original-default-false",
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "selector": "in-flight Accept does not ApplyHunks after clearInput bumps write generation$",
+      "expectedMatchedBodyTests": 1
+    }
+  ],
+  "forbiddenReruns": [
+    "established A1 reds",
+    "earlier Pane A2/Pane A3/Panel A2 positive body passes",
+    "full related suites",
+    "formal candidate green"
+  ],
+  "externalMainObservation": {
+    "source": "root-provided summary, not a fabricated raw tool log",
+    "observedAtUtc": "2026-10-27T03:13:42.701550+00:00",
+    "head": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+    "statusLines": 53,
+    "statusSha256": "4e18cb0056e2d47c0432694b213f59eeb91ed7c268a28e87e2035bdb45c39de7",
+    "trackedDiffSha256": "2cf0b50ba4891d6cc6c1df6ca8e9d84e575f9a8a21a66f87a3e7e565e1e59194",
+    "attribution": "External WIP changes are unattributed, not imported or followed; no whole-wave unchanged claim."
+  }
+}

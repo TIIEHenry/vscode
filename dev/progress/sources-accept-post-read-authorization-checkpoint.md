@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "保留c7 draft/accepted及两版旧status历史；追加a4a旧生产run2加载失败与当前恢复基准，未合源/新绿或升级产品。"
+summary: "保留c7 draft/accepted与旧status；追加a4a run2加载失败及run3 A4业务旧红/正控body资格，未合源/新绿或升级产品。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -87,3 +87,9 @@ A4 的 renderGeneration 范围也经 reviewer 与 root 独立实读：Panel 仅�
 本节追加在原 draft / accepted 历史之后，不回写当时未运行的状态。root 固定 a4a 两test与独立窄peer后授权唯一 baseline lane 一次 run2：真实dry/emit精确2 test JS/0map、c7三生产连续资格与0写均通过，但三独立A4/Panel A3/原default-false均在runner导入 `out/test/unit/electron/index.js` 时失败，无Mocha reporter、业务red0/positive0；driver exit0仅编排恢复。36owned进程全部quiescent，finally两原bytes/mode/mtime、254+2pair、其余12552 files/2946 dirs/freeze4/cache3精确，仅2test ctime授权变化。[完整失败原件、源码归因与当前实际恢复基准](sources-accept-qualified-old-red-run2-20261027-evidence/INDEX.md)。
 
 父级在2026-10-27T03:54:11.030512Z独立snapshot核全并签收原件，此为父通报摘要而非新造raw日志。后续只授权准备独立run3删除pre-entry user-data flag，未授权执行或正式合源；原dispatch JSON、accepted plan、旧run1/probe/R3结论与overall active保持。
+
+## 后续旧生产资格 run3：独立 A4 业务旧红成立
+
+本节追加真实run3资格，不回写旧历史。只删除run2 pre-entry user-data flag，固定a4a两test/三旧c7生产0写，真实dry/emit恰2JS/0map。独立input.dispose在live Pane/同input/read1后仍Apply1旧s1，唯一纯业务AssertionError；此例无refresh投影，不增报。Panel A3 body过后3VM/store/FunctionDisposable泄漏与console meta两hook败；跨run1/run3原4positive body累计到达，非clean4/4。原default-false header/body/assert字节保留，在共同factory已修的a4a fixture下1/1/0，旧c7 setup探针失败不改。完整原件与边界见[run3证据](sources-accept-qualified-old-red-run3-20261027-evidence/INDEX.md)。
+
+root于2026-10-27T04:08:23.668980Z独立snapshot核全run3实际恢复基准、两native原bytes/mode/mtime、5stage logs和38owned quiescent；这里只作父通报，不造raw。finally两JS恢复、12552其它文件/2946目录、254+extra2/freeze4/cache3精确，仅两test授权ctime差；当前out重新冻结。只授权证据入库/scoped proofcommit，正式a4a真三路合源、checker/新生产/完整相关套与新green仍待父级另行明确授权，overall active。

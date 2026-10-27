@@ -1,0 +1,37 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/runtime-original-default-false/crashes'
+[1530171:1027/120631.938006:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1530186) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1530186) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1530186) ExperimentalWarning: WASI is an experimental feature and might change at any time
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
+    "pending": 0,
+    "failures": 0,
+    "start": "2026-10-27T04:06:33.382Z",
+    "end": "2026-10-27T04:06:33.399Z",
+    "duration": 17
+  },
+  "tests": [
+    {
+      "title": "in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "fullTitle": "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "duration": 13,
+      "err": {}
+    }
+  ],
+  "pending": [],
+  "failures": [],
+  "passes": [
+    {
+      "title": "in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "fullTitle": "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "duration": 13,
+      "speed": "fast",
+      "err": {}
+    }
+  ]
+}

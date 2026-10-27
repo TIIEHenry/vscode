@@ -1,0 +1,76 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/runtime-independent-input-dispose-a4/crashes'
+[1529405:1027/120624.566113:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1529430) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1529430) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1529430) ExperimentalWarning: WASI is an experimental feature and might change at any time
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2026-10-27T04:06:27.270Z",
+    "end": "2026-10-27T04:06:27.349Z",
+    "duration": 79
+  },
+  "tests": [
+    {
+      "title": "Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "fullTitle": "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "duration": 64,
+      "err": {}
+    }
+  ],
+  "pending": [],
+  "failures": [
+    {
+      "title": "Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "fullTitle": "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "duration": 64,
+      "err": {
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   applies: [\n+     {\n+       argv: [\n+         'git',\n+         'apply',\n+         '--cached',\n+         '--whitespace=nowarn'\n+       ],\n+       patches: [\n+         'diff --git a/src/a.ts b/src/a.ts\\n' +\n+           '--- a/src/a.ts\\n' +\n+           '+++ b/src/a.ts\\n' +\n+           '@@ -1,2 +1,2 @@\\n' +\n+           ' line1\\n' +\n+           '-old\\n' +\n+           '+new\\n'\n+       ],\n+       sessionId: 'session-1'\n+     }\n+   ],\n-   applies: [],\n    commands: [],\n    reads: [\n      {\n        indexState: 'Unstaged',\n        path: 'src/a.ts',\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   applies: [\n+     {\n+       argv: [\n+         'git',\n+         'apply',\n+         '--cached',\n+         '--whitespace=nowarn'\n+       ],\n+       patches: [\n+         'diff --git a/src/a.ts b/src/a.ts\\n' +\n+           '--- a/src/a.ts\\n' +\n+           '+++ b/src/a.ts\\n' +\n+           '@@ -1,2 +1,2 @@\\n' +\n+           ' line1\\n' +\n+           '-old\\n' +\n+           '+new\\n'\n+       ],\n+       sessionId: 'session-1'\n+     }\n+   ],\n-   applies: [],\n    commands: [],\n    reads: [\n      {\n        indexState: 'Unstaged',\n        path: 'src/a.ts',\n\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js:229:14)",
+        "actual": "{\n  \"applies\": [\n    {\n      \"argv\": [\n        \"git\"\n        \"apply\"\n        \"--cached\"\n        \"--whitespace=nowarn\"\n      ]\n      \"patches\": [\n        \"diff --git a/src/a.ts b/src/a.ts\\n--- a/src/a.ts\\n+++ b/src/a.ts\\n@@ -1,2 +1,2 @@\\n line1\\n-old\\n+new\\n\"\n      ]\n      \"sessionId\": \"session-1\"\n    }\n  ]\n  \"commands\": []\n  \"reads\": [\n    {\n      \"indexState\": \"Unstaged\"\n      \"path\": \"src/a.ts\"\n      \"sessionId\": \"session-1\"\n    }\n  ]\n}",
+        "expected": "{\n  \"applies\": []\n  \"commands\": []\n  \"reads\": [\n    {\n      \"indexState\": \"Unstaged\"\n      \"path\": \"src/a.ts\"\n      \"sessionId\": \"session-1\"\n    }\n  ]\n}",
+        "actualJSON": {
+          "reads": [
+            {
+              "sessionId": "session-1",
+              "path": "src/a.ts",
+              "indexState": "Unstaged"
+            }
+          ],
+          "applies": [
+            {
+              "sessionId": "session-1",
+              "argv": [
+                "git",
+                "apply",
+                "--cached",
+                "--whitespace=nowarn"
+              ],
+              "patches": [
+                "diff --git a/src/a.ts b/src/a.ts\n--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1,2 +1,2 @@\n line1\n-old\n+new\n"
+              ]
+            }
+          ],
+          "commands": []
+        },
+        "expectedJSON": {
+          "reads": [
+            {
+              "sessionId": "session-1",
+              "path": "src/a.ts",
+              "indexState": "Unstaged"
+            }
+          ],
+          "applies": [],
+          "commands": []
+        }
+      }
+    }
+  ],
+  "passes": []
+}

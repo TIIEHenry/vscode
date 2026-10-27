@@ -1,0 +1,67 @@
+{
+  "state": "PREPARED_NOT_RUN",
+  "sourceProofCommit": "ca0b0603e2b29bd3c5cb403fa17e080488834452",
+  "scope": "Run3 scratch preparation only; execution release false",
+  "files": [
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/README.md",
+      "bytes": 2164,
+      "sha256": "eef8bec812038c064bb9b9af22f08d1493dc35cbe4c1edd51615452ba48dba01"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/driver-derivation.json",
+      "bytes": 4073,
+      "sha256": "9485ff4aeac9cb300b6bb58211bfe60ae8707c49395e89d11154334228164b47"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/driver-mechanical-diff.patch",
+      "bytes": 5343,
+      "sha256": "665158549b27525ae6a9fb329960695866729c5ebf10597d8e433e424e7508a1"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/emitter-mechanical-diff.patch",
+      "bytes": 2177,
+      "sha256": "0be1e3f45d678f5fad287c36690da7f9e9539f42ab09c7f0616c9b49229cc719"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/emitter.mjs",
+      "bytes": 12972,
+      "sha256": "1600fee99da0b238f613111d911b2963de6d421b1dc1a2a578abafd0e0de17e6"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/execution-release.json",
+      "bytes": 1022,
+      "sha256": "1c1119b33ffdf6bc14d87540b6fcdb296e44720e1c678a77ea8b48390488c0a6"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/input-manifest.json",
+      "bytes": 2329,
+      "sha256": "f289e2f4c38e1dd70f35c7f5d52e053cef783fe1c8379962f2c58e7977d5e071"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "bytes": 13078,
+      "sha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "bytes": 189054,
+      "sha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/loading-attribution.json",
+      "bytes": 5374,
+      "sha256": "1b6eff74f39071940073eef0c10c80a16a61cc4566bd6a7caff8ad3eb1584378"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/policy.json",
+      "bytes": 2989,
+      "sha256": "50f86590648f58130fe5bb093bbc7eaf8c7042720ddc2b3b687e59cf51d4fcb1"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/validate.py",
+      "bytes": 37501,
+      "sha256": "0bbc1367fc01d569bc13a79ce987b51e54ce53a6227fb2f3ba30905aa1fb2132"
+    }
+  ]
+}

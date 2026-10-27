@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "planId": "sources-accept-qualified-old-red-20261027-run3",
+  "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "expectedHead": "ca0b0603e2b29bd3c5cb403fa17e080488834452",
+  "sourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "oldProduction": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+  "candidateTests": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "candidateSourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "sourceFiles": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+      "sourceSha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+      "sourceBytes": 13078,
+      "inputCopyPath": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "role": "exact-root-bound-a4a-qualified-old-red-test"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+      "sourceSha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+      "sourceBytes": 189054,
+      "inputCopyPath": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "role": "exact-root-bound-a4a-qualified-old-red-test"
+    }
+  ],
+  "peerReview": {
+    "source": "root-provided summary; no separate raw peer log fabricated",
+    "reviewer": "Astra",
+    "scope": "final a4a common-factory pre-stub narrow increment; 5f4 Panel I1 already closed",
+    "Critical": 0,
+    "Important": 0,
+    "Minor": 0
+  },
+  "executionAuthorized": false,
+  "scope": "Only temporary two test JS against qualified old c7 production; three exact independent selectors. Input binding is not execution authorization."
+}

@@ -1,0 +1,58 @@
+--- run2/validate.py
++++ run3/validate.py
+@@ -1,4 +1,4 @@
+-"""Prepared run2 driver. Entry is fail closed until a separate explicit root release.
++"""Prepared run3 driver. Entry is fail closed until a separate explicit root release.
+ No execution, import of build APIs, lock, guard scan, emitter, test, or out write
+ is performed by the preparation operation that created this file.
+ """
+@@ -21,7 +21,7 @@
+ 
+ ROOT = Path(__file__).resolve().parent
+ REPO = Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+-PLAN = 'sources-accept-qualified-old-red-20261027-run2'
++PLAN = 'sources-accept-qualified-old-red-20261027-run3'
+ SOURCE_PATHS = [
+     'src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts',
+     'src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts',
+@@ -73,12 +73,12 @@
+     manifest = load_json(ROOT / 'input-manifest.json')
+     release = load_json(ROOT / 'execution-release.json')
+     require(release.get('executionAuthorized') is True and
+-            release.get('state') == 'AUTHORIZED_OLD_RED_RUN2' and
++            release.get('state') == 'AUTHORIZED_OLD_RED_RUN3' and
+             release.get('authorizedBy') == '/root' and
+             isinstance(release.get('authorizationMessage'), str) and
+             bool(release['authorizationMessage'].strip()),
+             'FAIL CLOSED: no explicit root execution release; preparation/input binding grants no run permission')
+-    require(ROOT == Path('/tmp/vscode-sources-accept-qualified-old-red-20261027-run2'), 'Wrong scratch')
++    require(ROOT == Path('/tmp/vscode-sources-accept-qualified-old-red-20261027-run3'), 'Wrong scratch')
+     require(policy['planId'] == manifest['planId'] == release['planId'] == PLAN, 'Wrong plan')
+     require(policy['repo'] == manifest['repo'] == str(REPO), 'Wrong repo')
+     require(policy['scratch'] == str(ROOT), 'Wrong policy scratch')
+@@ -491,7 +491,7 @@
+             require(sha(Path(path).read_bytes()) == row['sha256'] == old_seals[path]['sha256'] == sha(archived.read_bytes()) == sha(sealed.read_bytes()) == expected_prod[path], 'Old production byte continuity lost')
+             for committed in [old / 'emit-emitter-report.json', archived, sealed]:
+                 require(committed.read_bytes() == git('show', manifest['expectedHead'] + ':' + str(committed.relative_to(REPO))), 'Old qualification artifact differs from Git')
+-            continuity.append({'outputPath': path, 'freshRun1C7Producer': row, 'currentSha256': expected_prod[path], 'committedEmitAndSealSha256': expected_prod[path], 'productionWrittenInRun2': False})
++            continuity.append({'outputPath': path, 'freshRun1C7Producer': row, 'currentSha256': expected_prod[path], 'committedEmitAndSealSha256': expected_prod[path], 'productionWrittenInRun3': False})
+         require(len(continuity) == 3, 'Need exact three production producer continuities')
+         save(ROOT / 'production-continuity.json', {'source': 'actual run1 fresh c7 emitter -> sealed original -> committed emit/seal copies -> current bytes; no producer credit inferred from historical254', 'rows': continuity, 'productionOutWritesAllowed': False})
+         r['productionQualification'] = continuity
+@@ -528,14 +528,14 @@
+         product = load_json(REPO / 'product.json')
+         electron = REPO / '.build/electron' / product['applicationName']
+         require(electron.is_file(), 'Missing existing Electron')
+-        r['officialRunner'] = {'electronPath': str(electron), 'resolvedElectronPath': str(electron.resolve()), 'entryPoint': 'test/unit/electron/index.js', 'reason': 'direct official entry; own crash/Xvfb/TMPDIR/XDG/initial user-data paths; official non-dev runner then sets userData below this TMPDIR; no preLaunch/profile/engine'}
++        r['officialRunner'] = {'electronPath': str(electron), 'resolvedElectronPath': str(electron.resolve()), 'entryPoint': 'test/unit/electron/index.js', 'reason': 'direct official entry first; own crash/Xvfb/TMPDIR/XDG paths; official non-dev runner sets userData below this TMPDIR; no preLaunch/profile/engine'}
+         for label, source, selector in GROUPS:
+             runtime = ROOT / ('runtime-' + label)
+             runtime.mkdir()
+             for subdir in ['tmp', 'config', 'cache', 'data', 'user-data', 'crashes']:
+                 (runtime / subdir).mkdir()
+             env = {'TMPDIR': str(runtime / 'tmp'), 'XDG_CONFIG_HOME': str(runtime / 'config'), 'XDG_CACHE_HOME': str(runtime / 'cache'), 'XDG_DATA_HOME': str(runtime / 'data'), 'ELECTRON_ENABLE_LOGGING': '1', 'VSCODE_SKIP_PRELAUNCH': '1'}
+-            args = ['xvfb-run', '-a', '-e', str(runtime / 'xvfb.stderr.log'), str(electron), '--user-data-dir=' + str(runtime / 'user-data'), 'test/unit/electron/index.js', '--crash-reporter-directory=' + str(runtime / 'crashes'), '--no-sandbox', '--disable-gpu', '--timeout', '15000', '--reporter', 'json', '--run', source, '--grep', selector]
++            args = ['xvfb-run', '-a', '-e', str(runtime / 'xvfb.stderr.log'), str(electron), 'test/unit/electron/index.js', '--crash-reporter-directory=' + str(runtime / 'crashes'), '--no-sandbox', '--disable-gpu', '--timeout', '15000', '--reporter', 'json', '--run', source, '--grep', selector]
+             entry = run_owned(label, args, env)
+             entry['mocha'] = parse_mocha(entry)
+             report()

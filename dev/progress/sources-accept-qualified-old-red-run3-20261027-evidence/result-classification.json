@@ -1,0 +1,413 @@
+{
+  "classificationCreatedAtUtc": "2026-10-27T04:09:12.897030+00:00",
+  "type": "Derived exact reading of preserved run3 official Mocha reporters and immutable input assertions; not replacement raw logs",
+  "scope": "One root-authorized run3 consumed; no rerun/hot driver or fixture edits; no automatic proof commit authorized",
+  "driverInvocationCount": 1,
+  "driverProcessExitCode": 0,
+  "driverExitCodeMeaning": "orchestration and output restoration completion only, not all-test success",
+  "validationReport": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/validation-report.json",
+    "bytes": 355946,
+    "sha256": "17caef214269eef712adfad8fad53614280a0c5516b0b0b1d34515bd11bd99ef"
+  },
+  "repositoryHead": "ca0b0603e2b29bd3c5cb403fa17e080488834452",
+  "repositorySourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "candidateTests": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "groups": [
+    {
+      "stage": "independent-input-dispose-a4",
+      "exitCode": 1,
+      "stats": {
+        "suites": 1,
+        "tests": 1,
+        "passes": 0,
+        "pending": 0,
+        "failures": 1,
+        "start": "2026-10-27T04:06:27.270Z",
+        "end": "2026-10-27T04:06:27.349Z",
+        "duration": 79
+      },
+      "reporter": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/independent-input-dispose-a4.mocha.json",
+        "bytes": 4141,
+        "sha256": "fb66a9e2d2576542156d60e08bb15216fcfe3378273c5b6adb7ed2fc8bbf370e"
+      },
+      "rawStdout": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/independent-input-dispose-a4.stdout.log",
+        "bytes": 4820,
+        "sha256": "b063676e470096ce4291840f9c41da53c4f142ba44f05665476108af24b19f80"
+      },
+      "rawStderr": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/independent-input-dispose-a4.stderr.log",
+        "bytes": 78,
+        "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6"
+      },
+      "externalWatchdogExpired": false,
+      "passes": [],
+      "failures": [
+        {
+          "fullTitle": "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+          "errStack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   applies: [\n+     {\n+       argv: [\n+         'git',\n+         'apply',\n+         '--cached',\n+         '--whitespace=nowarn'\n+       ],\n+       patches: [\n+         'diff --git a/src/a.ts b/src/a.ts\\n' +\n+           '--- a/src/a.ts\\n' +\n+           '+++ b/src/a.ts\\n' +\n+           '@@ -1,2 +1,2 @@\\n' +\n+           ' line1\\n' +\n+           '-old\\n' +\n+           '+new\\n'\n+       ],\n+       sessionId: 'session-1'\n+     }\n+   ],\n-   applies: [],\n    commands: [],\n    reads: [\n      {\n        indexState: 'Unstaged',\n        path: 'src/a.ts',\n\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js:229:14)",
+          "actualJSON": {
+            "reads": [
+              {
+                "sessionId": "session-1",
+                "path": "src/a.ts",
+                "indexState": "Unstaged"
+              }
+            ],
+            "applies": [
+              {
+                "sessionId": "session-1",
+                "argv": [
+                  "git",
+                  "apply",
+                  "--cached",
+                  "--whitespace=nowarn"
+                ],
+                "patches": [
+                  "diff --git a/src/a.ts b/src/a.ts\n--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1,2 +1,2 @@\n line1\n-old\n+new\n"
+                ]
+              }
+            ],
+            "commands": []
+          },
+          "expectedJSON": {
+            "reads": [
+              {
+                "sessionId": "session-1",
+                "path": "src/a.ts",
+                "indexState": "Unstaged"
+              }
+            ],
+            "applies": [],
+            "commands": []
+          }
+        }
+      ]
+    },
+    {
+      "stage": "panel-a3-positive",
+      "exitCode": 1,
+      "stats": {
+        "suites": 2,
+        "tests": 1,
+        "passes": 1,
+        "pending": 0,
+        "failures": 2,
+        "start": "2026-10-27T04:06:30.400Z",
+        "end": "2026-10-27T04:06:30.518Z",
+        "duration": 118
+      },
+      "reporter": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/panel-a3-positive.mocha.json",
+        "bytes": 16527,
+        "sha256": "fe0b0c59ce99ca4c3c4a6aa6c4b6c34e083748a31c7046402f62d267b31e5787"
+      },
+      "rawStdout": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/panel-a3-positive.stdout.log",
+        "bytes": 24406,
+        "sha256": "c579364773a500fd1ec5a3fd98010c5197df91bc0109c4f6536e62dad8d3a6fc"
+      },
+      "rawStderr": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/panel-a3-positive.stderr.log",
+        "bytes": 78,
+        "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6"
+      },
+      "externalWatchdogExpired": false,
+      "passes": [
+        "Sources diff panel Accept post-read authorization Panel A3 s1 to s2 to s1 uses current authorization"
+      ],
+      "failures": [
+        {
+          "fullTitle": "Sources diff panel \"after each\" hook for \"Panel A3 s1 to s2 to s1 uses current authorization\"",
+          "errStack": "Error: There are 3 undisposed disposables!\n\n\n==================== Leaking disposable 1/3: DiffEditorViewModel ====================\n(shared with 1/3 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)\n(shared with 1/3 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)\n(shared with 1/3 leaks) at new Disposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:366:5)\n(shared with 1/3 leaks) at new DiffEditorViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:30:5)\n(shared with 1/3 leaks) at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n(shared with 1/3 leaks) at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\n(shared with 1/3 leaks) at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\n(shared with 1/3 leaks) at DiffEditorWidget.createViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:443:39)\n(shared with 1/3 leaks) at DiffEditorWidget.setModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorWidget.js:449:120)\n(shared with 1/3 leaks) at SourcesDiffPanelView.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js:667:12)\n    - stacktraces of 1 other leaks continue with AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)\n    - stacktraces of 1 other leaks continue with TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n============================================================\n\n\n\n\n==================== Leaking disposable 2/3: _DisposableStore ====================\n(shared with 1/3 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)\n(shared with 1/3 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)\n(shared with 1/3 leaks) at new _DisposableStore (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:276:5)\n(shared with 1/3 leaks) at get store (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:194:21)\n(shared with 1/3 leaks) at AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:221:28)\n(shared with 1/3 leaks) at AutorunObserver._run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:84:16)\n(shared with 1/3 leaks) at new AutorunObserver (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:37:10)\n(shared with 1/3 leaks) at autorun (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorun.js:8:10)\n(shared with 1/3 leaks) at new DiffEditorViewModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:219:20)\n(shared with 1/3 leaks) at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n    - stacktraces of 1 other leaks continue with AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)\n    - stacktraces of 1 other leaks continue with SourcesDiffPanelView.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js:667:12)\n============================================================\n\n\n\n\n==================== Leaking disposable 3/3: FunctionDisposable ====================\n(shared with 1/3 leaks) at _DisposableTracker.trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:48:21)\n(shared with 1/3 leaks) at trackDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:191:22)\n(shared with 1/3 leaks) at new FunctionDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:255:5)\n(shared with 1/3 leaks) at toDisposable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/lifecycle.js:270:10)\n(shared with 1/3 leaks) at SyncDocumentDiffProvider.onDidChange [as event] (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/test/browser/diff/testDiffProviderFactoryService.js:10:30)\n(shared with 1/3 leaks) at FromEventObservableSignal.onFirstObserverAdded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/observableSignalFromEvent.js:26:30)\n(shared with 1/3 leaks) at FromEventObservableSignal.addObserver (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/baseObservable.js:116:12)\n(shared with 1/3 leaks) at AutorunObserver.readObservable (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/reactions/autorunImpl.js:182:16)\n(shared with 1/3 leaks) at FromEventObservableSignal.read (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/common/observableInternal/observables/baseObservable.js:30:21)\n(shared with 1/3 leaks) at AutorunObserver._runFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/editor/browser/widget/diffEditor/diffEditorViewModel.js:227:43)\n    - stacktraces of 1 other leaks continue with TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n    - stacktraces of 1 other leaks continue with SourcesDiffPanelView.renderDiff (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js:667:12)\n============================================================\n\n\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/base/test/common/utils.js:45:15)\n    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js:469:17",
+          "actualJSON": "[undefined]",
+          "expectedJSON": "[undefined]"
+        },
+        {
+          "fullTitle": "\"after each\" hook for \"Panel A3 s1 to s2 to s1 uses current authorization\"",
+          "errStack": "AssertionError [ERR_ASSERTION]: Error: Unexpected console output in test run. Please ensure no console.[log|error|info|warn] usage in tests or runtime errors.\n    at Context.<anonymous> (renderer.js:340:11)",
+          "actualJSON": false,
+          "expectedJSON": true
+        }
+      ]
+    },
+    {
+      "stage": "original-default-false",
+      "exitCode": 0,
+      "stats": {
+        "suites": 1,
+        "tests": 1,
+        "passes": 1,
+        "pending": 0,
+        "failures": 0,
+        "start": "2026-10-27T04:06:33.382Z",
+        "end": "2026-10-27T04:06:33.399Z",
+        "duration": 17
+      },
+      "reporter": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/original-default-false.mocha.json",
+        "bytes": 850,
+        "sha256": "fe47264b20cf41c756f010dad42a62531669ddea53f3fd9898571dd33dbeb579"
+      },
+      "rawStdout": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/original-default-false.stdout.log",
+        "bytes": 1523,
+        "sha256": "f8d66239d8900d6c55fee2cbb34219a8152c97370b7d2e402f460b9852a15dfb"
+      },
+      "rawStderr": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/original-default-false.stderr.log",
+        "bytes": 78,
+        "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6"
+      },
+      "externalWatchdogExpired": false,
+      "passes": [
+        "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation"
+      ],
+      "failures": []
+    }
+  ],
+  "a4Classification": {
+    "businessRedAssertions": 1,
+    "pureBusinessAssertionOnly": true,
+    "setupLoadApiTimeoutOrCleanupFailure": false,
+    "actualProjection": {
+      "reads": [
+        {
+          "sessionId": "session-1",
+          "path": "src/a.ts",
+          "indexState": "Unstaged"
+        }
+      ],
+      "applies": [
+        {
+          "sessionId": "session-1",
+          "argv": [
+            "git",
+            "apply",
+            "--cached",
+            "--whitespace=nowarn"
+          ],
+          "patches": [
+            "diff --git a/src/a.ts b/src/a.ts\n--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1,2 +1,2 @@\n line1\n-old\n+new\n"
+          ]
+        }
+      ],
+      "commands": []
+    },
+    "expectedProjection": {
+      "reads": [
+        {
+          "sessionId": "session-1",
+          "path": "src/a.ts",
+          "indexState": "Unstaged"
+        }
+      ],
+      "applies": [],
+      "commands": []
+    },
+    "boundaryReached": [
+      "FileDiff started",
+      "input.dispose called with Pane still live",
+      "pane.input remains identical input",
+      "input.isDisposed asserted true",
+      "read released and runAccept awaited",
+      "actual read/apply/commands projection failed"
+    ],
+    "patchBytes": 96,
+    "patchLfCount": 7,
+    "patchSha256": "20f9d884a273fd3561dd79041a6af2c9b383a5ada4528082e6ff582faf97d0a1",
+    "refreshProjectionNotTrackedByThisIndependentCase": true,
+    "noticeAssertionsNotPresentInThisCase": true
+  },
+  "panelA3Classification": {
+    "positiveBodyPasses": 1,
+    "wholeSuiteClean": false,
+    "afterEachFailures": 2,
+    "knownOldVmLeakCount": 3,
+    "leakedTypes": [
+      "DiffEditorViewModel",
+      "_DisposableStore",
+      "FunctionDisposable"
+    ],
+    "secondFailure": "console meta afterEach hook",
+    "positiveProjectionEvidence": "Official body pass establishes the immutable exact projection assertion at source line3836; reporter does not separately emit a raw passing actualJSON trace",
+    "projectionAssertedByPassingBody": {
+      "reads": [
+        {
+          "sessionId": "session-1",
+          "path": "src/a.ts",
+          "indexState": "Unstaged"
+        }
+      ],
+      "applies": [
+        {
+          "sessionId": "session-1",
+          "argv": [
+            "git",
+            "apply",
+            "--cached",
+            "--whitespace=nowarn"
+          ],
+          "patches": [
+            "diff --git a/src/a.ts b/src/a.ts\n--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1,2 +1,2 @@\n line1\n-old\n+new\n"
+          ]
+        }
+      ],
+      "commands": [],
+      "refreshes": 1
+    },
+    "gatesAssertedByPassingBody": {
+      "catalog": "ready",
+      "gitState": "engine-live"
+    },
+    "sessionTransition": "s1 -> s2 -> s1 before releasing pending read"
+  },
+  "originalDefaultFalseClassification": {
+    "passes": 1,
+    "failures": 0,
+    "defaultResolveModelsFalseCallRetained": true,
+    "bodyTailExactlyEqualOriginalC7": true,
+    "bodyBoundaryReached": [
+      "original default-false createInstantiationService(resource, connection)",
+      "wait readInFlight true",
+      "pane.clearInput",
+      "release read and await acceptPromise",
+      "assert applyCalls equals []"
+    ],
+    "caseSourceAnchor": "\ttest('in-flight Accept does not ApplyHunks after clearInput bumps write generation', async function () {",
+    "caseBodyTailSha256": "515c4c1834e7a1c2a75b1a3fb40d76702e739bd9526e3501aeffb82c560adc4f",
+    "projectionEvidence": "Clean official original-case pass establishes applyCalls=[] after clearInput; no raw read/refresh projection is separately emitted",
+    "preexistingC7SetupFailureNotErased": "Earlier exact-c7 helper probe TypeError remains historical; this run uses final a4a common-factory pre-stub correction with the original case body unchanged"
+  },
+  "actualEmitter": {
+    "dry": {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/dry-emitter-report.json",
+      "bytes": 2385,
+      "sha256": "1044b7c94e712a2a7daf2307a40b5db670c013cf78bbbbeb56fd73ecd85af4ef"
+    },
+    "emit": {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/emit-emitter-report.json",
+      "bytes": 3227,
+      "sha256": "690b1acb9412ac485d468e9a03958214d4582e28672c4e270ddcb150bd44512f"
+    },
+    "actualInputCount": 2,
+    "actualTestJsWriteCount": 2,
+    "productionWriteCount": 0,
+    "standaloneMapCount": 0,
+    "outputs": [
+      {
+        "outputPath": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+        "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+        "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+        "relativePath": "vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+        "bytes": 39356,
+        "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+        "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+        "sourceBlob": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+        "sourceSha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+        "role": "exact-root-bound-a4a-qualified-old-red-test"
+      },
+      {
+        "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+        "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+        "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+        "relativePath": "vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+        "bytes": 600166,
+        "sha256": "449619b442e1502d5396c70dce05d771dd5367d20569d4402cb23d1df34804ff",
+        "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+        "sourceBlob": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+        "sourceSha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+        "role": "exact-root-bound-a4a-qualified-old-red-test"
+      }
+    ],
+    "allEmittedTestBytesExactlyEqualRun2": true
+  },
+  "processes": {
+    "uniqueObservedPidStartPairs": 38,
+    "stageOwnedCounts": {
+      "dry-enumeration": 3,
+      "temporary-two-test-emit": 5,
+      "independent-input-dispose-a4": 10,
+      "panel-a3-positive": 10,
+      "original-default-false": 10
+    },
+    "allOwnedStoppedAndReapedBeforeRestore": true,
+    "allSameIdentitiesAbsentAtReadOnlyVerification": true,
+    "remainingOwnedPairs": [],
+    "signalsSent": 0,
+    "watchdogsExpired": 0,
+    "allObservedXvfbSocketLockPathsAbsentAfterCleanup": true,
+    "timeoutKillBranchesActuallyTriggered": false
+  },
+  "productionContinuity": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/production-continuity.json",
+    "bytes": 3738,
+    "sha256": "66b2f9cb1335b49fb56c10ea9bd6d424638fbf78a88c26e25040c6fe5ac2f858"
+  },
+  "restoreGuard": {
+    "finishedAtUtc": "2026-10-27T04:06:39.235937+00:00",
+    "restoredPaths": [
+      "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"
+    ],
+    "allTwoOriginalBytesModeMtimeExact": true,
+    "other12552FilesFullMetadataExact": true,
+    "all2946DirectoriesMetadataExact": true,
+    "all254AndExtra2PairsExact": true,
+    "allFourOriginalFreezeFilesExact": true,
+    "allThreeOriginalCacheSymlinksExact": true,
+    "authorizedCtimeDifferences": [
+      {
+        "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+        "changedMetadataKeys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793073162546924732,
+        "afterCtimeNs": 1793073994326817043
+      },
+      {
+        "path": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+        "changedMetadataKeys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793073162547924782,
+        "afterCtimeNs": 1793073994328817105
+      }
+    ],
+    "noOtherOutChanges": true,
+    "headSourceCleanUnchanged": true,
+    "baselineFileNotRewritten": true
+  },
+  "latestCurrentBaseline": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/guard-after-restore.json",
+    "bytes": 4116216,
+    "sha256": "90f8cd36c22c0503061c8c6df9c1fe6654053043fad1b7857e80a62875955aa1"
+  },
+  "priorRun2BaselineUnmodified": "0ad83388bd541c9271e79b425dd055f76a9acf28cba45ee350e72107a4f7870e",
+  "preparedInventory": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/preparation-inventory.json",
+    "bytes": 2870,
+    "sha256": "e72108d23af7477a2f29f4bbd12afb3af739d41d48dcdd4aee9932be8a9948b5"
+  },
+  "preparedReleaseCopy": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/prepared-state/execution-release.json",
+    "bytes": 1022,
+    "sha256": "1c1119b33ffdf6bc14d87540b6fcdb296e44720e1c678a77ea8b48390488c0a6"
+  },
+  "authorizedRelease": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/execution-release.json",
+    "bytes": 2519,
+    "sha256": "7f09faaf850f5fe9db400d8fcf204592f59f2e4152c6dd5b5f75e977c8ebd100"
+  },
+  "executionAuthorizationIdentity": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run3/execution-authorization-identity.json",
+    "bytes": 2962,
+    "sha256": "ade70a3d74eb52556894f2076ed5b1e1fbe55d9b608da5c3fe34b79eb1de6df9"
+  },
+  "formalNewSourceMerged": false,
+  "newProductionGreenOrFullSuitesRun": false,
+  "overallGoalRemainsActive": true,
+  "noFurtherExecutionAuthorized": true
+}
