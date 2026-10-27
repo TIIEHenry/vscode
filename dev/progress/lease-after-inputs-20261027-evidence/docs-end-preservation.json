@@ -1,0 +1,177 @@
+{
+  "kind": "fresh-docs-only-end-preservation",
+  "atUtc": "2026-10-27T08:58:16.533450+00:00",
+  "head": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "srcTree": "923acdffaf236f826bc9d2e69d924159aa217ac0",
+  "scope": "This fresh docs interval only. Does not replace the absent prior start or repair the historical .build aggregate mismatch / failed final guard.",
+  "metadataSchema": "Sorted descendant tuples [workspace-relative path, full st_mode, size, mtime_ns, ctime_ns, symlink target or null]; root inode and atime excluded; default ensure_ascii compact JSON.",
+  "metadata": {
+    "out": {
+      "descendantEntries": 14865,
+      "rootInodeIncluded": false,
+      "metadataSha256": "25b31cc67d5b7e445d4dfabbbc17c8908f413140566ff80d2319ff0aafad5add"
+    },
+    ".build": {
+      "descendantEntries": 416,
+      "rootInodeIncluded": false,
+      "metadataSha256": "6a78e773b7487ad3809977dc3cc272fce3d190c85b14ade48ad756d3420fe660"
+    },
+    "node_modules": {
+      "descendantEntries": 47159,
+      "rootInodeIncluded": false,
+      "metadataSha256": "3dfb0c2ec9524556bdc2275069b59b001806808535574d5ffcc08577a82ca61b"
+    }
+  },
+  "matchesFreshDocsStart": true,
+  "priorArtifacts": [
+    {
+      "path": "/tmp/vscode-e-visible-lease-accepted-docs-preservation.json",
+      "bytes": 901,
+      "sha256": "dc4af6eed340f47c935246c7b1889924c41966777575d2d091b4618ac7e0d5d3",
+      "mode": "0o664",
+      "mtimeNs": 1793077577900638925,
+      "ctimeNs": 1793077577900638925
+    },
+    {
+      "path": "/tmp/vscode-e-visible-lease-narrowing-static.json",
+      "bytes": 3010,
+      "sha256": "f840195eeef94d98c906c5adcfbd9e65c7c47c2f59b53fd19f3c2cc1ddcb5457",
+      "mode": "0o664",
+      "mtimeNs": 1793088935400692610,
+      "ctimeNs": 1793088935400692610
+    },
+    {
+      "path": "/tmp/vscode-e-visible-lease-narrowing-eslint.json",
+      "bytes": 1479,
+      "sha256": "815853049c542fe00ce61d4af024005504f5f9d8e7d1ea2db2a169c955c63b84",
+      "mode": "0o664",
+      "mtimeNs": 1793088936420750121,
+      "ctimeNs": 1793088936420750121
+    },
+    {
+      "path": "/tmp/vscode-e-visible-lease-narrowing-docs-health.json",
+      "bytes": 12908,
+      "sha256": "a66300ce26977b0a8341e9473041385b6a54207275d55a5cbead274222d025f4",
+      "mode": "0o664",
+      "mtimeNs": 1793089215411344961,
+      "ctimeNs": 1793089215411344961
+    },
+    {
+      "path": "/tmp/vscode-e-visible-lease-narrowing-docs-health-f33.json",
+      "bytes": 12908,
+      "sha256": "a66300ce26977b0a8341e9473041385b6a54207275d55a5cbead274222d025f4",
+      "mode": "0o664",
+      "mtimeNs": 1793089215486349124,
+      "ctimeNs": 1793089215486349124
+    },
+    {
+      "path": "/tmp/vscode-e-visible-lease-narrowing-docs-overlay.py",
+      "bytes": 1138,
+      "sha256": "609fba8143660b947345d2ad7f25ff897a4419b2e3900988b52430d3febe1862",
+      "mode": "0o664",
+      "mtimeNs": 1793089120041040702,
+      "ctimeNs": 1793089120041040702
+    }
+  ],
+  "cachePaths": [
+    {
+      "path": ".cache",
+      "lexists": false,
+      "symlinkTarget": null
+    },
+    {
+      "path": ".eslintcache",
+      "lexists": false,
+      "symlinkTarget": null
+    },
+    {
+      "path": "eslintcache",
+      "lexists": false,
+      "symlinkTarget": null
+    },
+    {
+      "path": "node_modules/.cache",
+      "lexists": false,
+      "symlinkTarget": null
+    },
+    {
+      "path": "node_modules/.cache/eslint",
+      "lexists": false,
+      "symlinkTarget": null
+    }
+  ],
+  "sourceProtection": {
+    "trackedSourceFilesVerifiedByActualBlobBytesAndMode": 12165,
+    "sourceManifestSha256": "f845fc18649c93d5e9ba450293ee82579f782e2ede86faca3bd1015752eebab6",
+    "untrackedSourceFiles": 0,
+    "sameAsFixedParent": true
+  },
+  "priorEvidenceTrackedFilesByteVerified": 1053,
+  "protectedSourcesDocs": [
+    {
+      "path": "dev/plans/sources-accept-post-read-authorization.md",
+      "bytes": 17436,
+      "sha256": "5d5c2a72fcb9d555b15d0442d0c7d47ae9238998cea2eb25b4b7917af8362e61"
+    },
+    {
+      "path": "dev/plans/sources-panel-diff-view-model-lifetime.md",
+      "bytes": 20120,
+      "sha256": "7b9104eb93d31062c7ae1a2504a0d8be38ff31ad44b3b4be9a92f5b9e3036536"
+    },
+    {
+      "path": "dev/plans/sources-panel-fixture-preinjection-amendment.md",
+      "bytes": 11980,
+      "sha256": "583c430cfc3febb9dac8e96af1e40f25dc6bc256564cf492ce7d701dfbc65734"
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-dispatch-checkpoint.json",
+      "bytes": 2859,
+      "sha256": "fbf75cdbb5d197a2863dd654afe71a7ce71d78fb62668787514d3c98fa0ce028"
+    }
+  ],
+  "leasePlanOnlyAppendedEvidenceLink": {
+    "appendedBytes": 173,
+    "contractAndAcceptedUnchanged": true
+  },
+  "boardCheckpointParentBytesRemainExactPrefix": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md"
+  ],
+  "status": {
+    "lines": 200,
+    "onlyChangedLineNumbers": [
+      7,
+      12
+    ],
+    "originalEntryWithLFBytes": 885,
+    "originalEntryWithLFSha256": "6fae7bca0fe08354d4d11690f6d51432d71c747b1fc5744c10f00a04f9fe4321",
+    "originalEntryWithLFAndOriginalSummaryPreservedInCheckpoint": true
+  },
+  "oldGuardMirror": {
+    "path": "dev/progress/lease-after-inputs-20261027-evidence/old-accepted-docs-preservation.raw.json",
+    "bytes": 901,
+    "sha256": "dc4af6eed340f47c935246c7b1889924c41966777575d2d091b4618ac7e0d5d3",
+    "mode": "0o664",
+    "sameBytesAndModeAsUntouchedOriginal": true
+  },
+  "trackedChangedPaths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md"
+  ],
+  "newEvidencePaths": [
+    "dev/progress/lease-after-inputs-20261027-evidence/INDEX.md",
+    "dev/progress/lease-after-inputs-20261027-evidence/diff-check.log",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-end-preservation.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-health.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-start-observation.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-validation.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/generated-status-check.log",
+    "dev/progress/lease-after-inputs-20261027-evidence/old-accepted-docs-preservation.raw.json"
+  ],
+  "docsHealthWarningsExactlyMatchPriorOriginal": true,
+  "historicalGuardFailureRepaired": false,
+  "preparationOrRuntimeRelease": false
+}

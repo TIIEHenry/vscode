@@ -1,0 +1,58 @@
+{
+  "scope": "This docs-only interval; no source/runtime validation.",
+  "checks": [
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "env",
+        "PYTHONDONTWRITEBYTECODE=1",
+        "python3",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "startedAtUtc": "2026-10-27T08:57:18.705682+00:00",
+      "finishedAtUtc": "2026-10-27T08:57:18.757450+00:00",
+      "exitCode": 0,
+      "outputFile": "generated-status-check.log"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "env",
+        "PYTHONDONTWRITEBYTECODE=1",
+        "python3",
+        "scripts/check-docs-health.py",
+        "--format",
+        "json"
+      ],
+      "startedAtUtc": "2026-10-27T08:57:18.710333+00:00",
+      "finishedAtUtc": "2026-10-27T08:57:19.122631+00:00",
+      "exitCode": 0,
+      "outputFile": "docs-health.json",
+      "stderr": "",
+      "markdownFilesChecked": 556,
+      "counts": {
+        "errors": 0,
+        "warnings": 73
+      }
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--check"
+      ],
+      "startedAtUtc": "2026-10-27T08:57:43.932832+00:00",
+      "finishedAtUtc": "2026-10-27T08:57:43.953816+00:00",
+      "exitCode": 0,
+      "outputFile": "diff-check.log"
+    }
+  ],
+  "themeDocsWarnings": [],
+  "sourceRuntimeChecksPerformed": false,
+  "historicalGuardFailureRepaired": false
+}

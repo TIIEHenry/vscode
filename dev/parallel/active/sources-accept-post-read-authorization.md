@@ -64,3 +64,8 @@ root已独核固定783（src eefc0c）并正式接收静态候选，采纳原Ast
 ### E 新L4 checker收窄修订（2026-10-27）
 
 root报告固定7361唯一lane prep2首run checker在新L4报TS2339 never五诊断、Pane无诊断、无emit/测试，run已consumed不得重试；原件/hash与原Astra根因/父采纳来源保留[plan§10](../../plans/conversation-visible-lease-recovery.md#10-实际-prep2-checker-阻断与新-l4-读取根窄修订2026-10-27)。E先核clean f33后留该窄parent，仅公开重读restoredLens并断言sameLens、替换两处读取根，retiredLease仍在原绘制await之后；不删missing gates、不改其余L4/12新/26旧/defaultQuiet或生产Pane。一次Reveal AST0、no-cache/no-fix lint0/0，显式禁Node compilecache；无Program/checker/emit/runtime/out/cache写。三Sourcesplan/JSON按E固定baseline保护，不导入merge后来第四plan/52B stub。候选待root固定核/原Astra窄peer，语法/lint不代checker通过，planaccepted/业务全未达，旧失败原件与此前I1签收保持。
+
+
+### E Lease after只读输入落盘（2026-10-27）
+
+固定E d8e/src923acd；root转述其与原Astra输入决策审查C0/I0/M3并全部采纳，仅授权纯docs。已完成只读调查及三条Minor的来源、wire/三个真实transport lifetime/公开own-lease观察边界、R3工具hash与loaded限制统一落入[独立证据索引](../../progress/lease-after-inputs-20261027-evidence/INDEX.md)，现lease plan只追加该证据入口，合同与accepted不变。E历史`.build` aggregate不匹配、前轮末guard exit1/AssertionError且未生成narrowing delivery/preservation、缺旧逐项tuple与前轮起点的边界如实保留，不修旧guard、不归因。原static/docs原件与全部source/out/三Sources plan/JSON保护；本轮fresh起止仅界定本docs区间，不能替代历史缺失证据。只做docs generator/health/diff及只读保护核对，结果见证据页；没有工具准备、执行release或runtime信用，无AST/lint/Program/checker/emit/tests/server/browser/engine/out/cache操作，不ff/同步merge、不升PRD/旧波。

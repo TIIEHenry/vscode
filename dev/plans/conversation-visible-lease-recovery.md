@@ -261,3 +261,5 @@ root报告已真三路接入并独核 `736171b1abc34e36e4991709240625827b566396`
 改后只对Reveal执行**一次**`createSourceFile` AST-only：0 parse diagnostics、无Program/checker；只对Reveal执行`eslint --no-cache --no-fix`实际exit0、0error/0warning，Node均显式`NODE_DISABLE_COMPILE_CACHE=1`。生产Pane未重复AST/lint。独立原件为`/tmp/vscode-e-visible-lease-narrowing-static.json`与`/tmp/vscode-e-visible-lease-narrowing-eslint.json`，不覆盖已交783/f33原件。本次语法/lint结果**不证明TS2339已通过checker**；修订仍待root核固定commit、原Astra窄peer，之后只有root另行释放唯一lane的新资格步骤。作者无Program/checker/typecheck/compile/transpile/emit/tests/UI/engine/out/cache/freeze写，不重试consumed run。
 
 本轮source与必要plan/board/checkpoint/status一并提交；用户可见行为/生命周期合同未改，无需改session-windows。plan继续accepted，不升PRD/旧波；所有lease业务runtimeObserved仍false，不把静态修订或此前peer当green。
+
+[Lease after 只读输入与历史保护边界（2026-10-27；仅证据落盘，不改变 accepted 合同）](../progress/lease-after-inputs-20261027-evidence/INDEX.md)。

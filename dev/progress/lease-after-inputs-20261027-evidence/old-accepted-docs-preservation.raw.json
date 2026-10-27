@@ -1,0 +1,24 @@
+{
+  "commit": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+  "metadata": {
+    "out": {
+      "descendantEntries": 14865,
+      "rootInodeIncluded": false,
+      "metadataSha256": "25b6963a5ea5af29a6e9556a8c959ee65b8ab4a8566e48b031d8959265535601",
+      "unchanged": true
+    },
+    ".build": {
+      "descendantEntries": 416,
+      "rootInodeIncluded": false,
+      "metadataSha256": "f407a3fe5ef16c79808ea2ab1a74f6171c5d554374829d0427896e146cfc3ccb",
+      "unchanged": true
+    },
+    "node_modules": {
+      "descendantEntries": 47159,
+      "rootInodeIncluded": false,
+      "metadataSha256": "fedada5fe2fcdb0b1ede2ee404c7cf27f02d839ad797f8d33eec1d1fe963d124",
+      "unchanged": true
+    }
+  },
+  "schema": "Descendant tuple path includes root-directory prefix; root inode excluded. mode,size,mtime_ns,ctime_ns,symlink target; atime excluded. Sorted tuples, default ensure_ascii compact JSON."
+}

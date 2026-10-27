@@ -562,3 +562,21 @@ status仍200、本轮只替summary与Current Session首条。f33原首条NoLF SH
 summary: "root独核783静态源码候选并采纳原Astra窄peer C0/I0/M0关闭5fd I1；本轮仅4docs签收，src eefc0c不变，13仅静态、全部运行/after待；plan accepted，非formalmerge/green/outputs，Sources/out保持。"
 - **Conversation 783窄peer静态签收（2026-10-27）**：root已独核固定783/src eefc0c六路径与manifest/artifact、保护和status200，采纳原Astra窄peer C0/I0/M0，关闭5fd新L4合同I1；独立observer真实frame/旧owner snapshot与事件隔离、最后observer释放host的源码链获签，L4外test/Pane不变，原I1报告/原件保留。本次仅4docs记录，全部src仍783、原26/new13/defaultQuiet及Sources三plan/JSON/out保护；13仅静态case、旧a4a L1red/新矩阵/原Reveal/非作者after全部runtimeObserved=false，待唯一lane先完成Sources新源验证后另行准备，无执行授权，plan仍accepted；此纯doc不是formalmerge/green/outputs交付。[来源与原首条](sources-accept-post-read-authorization-checkpoint.md#e-783窄peer静态签收2026-10-27纯文档)。
 ```
+
+
+## E Lease after只读输入落盘与历史保护边界（2026-10-27）
+
+本次固定parent `d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3` / src `923acdffaf236f826bc9d2e69d924159aa217ac0`，不ff、不同步merge。root直接消息转述其与原reviewer Astra完成只读输入决策审查C0/I0/M3并全部采纳；此次仅授权纯docs落盘，该转述不伪作完整raw peer。[独立证据索引](lease-after-inputs-20261027-evidence/INDEX.md)记录已完成的wire/公开API/owner与lease/退避隔离/R3身份只读调查，三条Minor为第三轮两session各自新body+pending、公开状态hidden负控、持久releaseFrames及v1/epoch/history账本；不是新plan/tools/config/可执行预期，也没有准备或运行授权。现lease plan仅尾追加证据link，accepted与合同正文保持；全部业务runtimeObserved仍false。
+
+E历史旧901B guard的`.build`416项aggregate为`f407a3fe5ef16c79808ea2ab1a74f6171c5d554374829d0427896e146cfc3ccb`，前轮d8e末扫描仍416项但为`787cf7f760de1904a4765ea9721b7082564a12d4777f9c7cb27d9dc2fc1b0c76`；out/node_modules当时匹配旧guard。末guard实际exit1/AssertionError并提前退出，未生成narrowing delivery/preservation JSON。旧guard后ctime筛选仅报告`.build/log`，但无旧逐项tuple且缺前轮current起点，不能断言完整delta或actor。本轮只镜像原901B字节/mode与保留原static/docs文件，完整边界及来源在证据页，不修.build/旧guard、不归因，不把本轮fresh快照冒充历史修复。
+
+[Fresh docs起点](lease-after-inputs-20261027-evidence/docs-start-observation.json)、[终点保护](lease-after-inputs-20261027-evidence/docs-end-preservation.json)及[docs门禁](lease-after-inputs-20261027-evidence/docs-validation.json)只描述此次文档区间。只允许docs generator/health/diff和只读保护检查；没有AST/lint/Program/checker/emit/tests/services/browser/engine/out/cache动作，不升PRD/旧D/波，不释放唯一lane。board/checkpoint固定d8e完整字节保持前缀；status仍≤200，仅更新summary与Current Session首条，原首条含LF全文如下保存。
+
+### d8e status 原summary与首条（含LF）
+
+原status 139946B / SHA-256 `02346dd18cc8cc1f1984a821c398f39b4ab73725234531a6536c07b415320a06`，200行。原首条含LF为885B / SHA-256 `6fae7bca0fe08354d4d11690f6d51432d71c747b1fc5744c10f00a04f9fe4321`；NoLF SHA-256 `ea37f62badec7aa7674f432e8475bee74b1d5724a5ab595d183fffe1ecc57bf5`。同一含LF文本另存fresh起点JSON；下方首条尾LF保留在closing fence之前。
+
+```markdown
+summary: "固定7361唯一lane prep2首run checker因新L4 TS2339 never五诊断失败、无emit/tests且consumed；root采纳原Astra后仅授权E留f33作公开重读restoredLens窄修订，一次Reveal AST/lint0不代checker过，Pane/其余case保护，plan accepted/业务未达。"
+- **Conversation 新L4 checker收窄修订候选（2026-10-27）**：固定7361唯一lane prep2首实际run在Reveal报TS2339 never五诊断，Pane无诊断；无emit/测试，run已consumed不可重试。root采纳原Astra裁定后授权E留clean f33，仅在原restore后公开重读restoredLens/assert同对象，改sessionId与retiredLease两处读取根，后者仍在原绘制await后；原missing gates/其余L4、12新/26旧/defaultQuiet及Pane完整保护，矩阵仍13。只一次Reveal AST0、no-cache/no-fix lint0/0、禁Node compilecache，不代新checker通过，候选待root核/原Astra窄peer，业务red/新矩阵/原Reveal/after全未达、planaccepted；不导入merge后来Sources第四plan/52B stub，E三plan/JSON/out原件保持。[原失败/授权与原首条](sources-accept-post-read-authorization-checkpoint.md#e-新l4-checker收窄窄修订2026-10-27)。
+```
