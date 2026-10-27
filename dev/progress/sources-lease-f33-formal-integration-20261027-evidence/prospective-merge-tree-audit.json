@@ -1,0 +1,23 @@
+{
+  "ours": "a4eb1dc3e94b9240e6124ccd37e219801fc1aeb9",
+  "incoming": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+  "base": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "prospectiveTree": "443af4269bb5893999eb1bc350dee750b4a60604",
+  "actualSourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "rootSourcePredictionIndependentlyMatchedActual": true,
+  "unionPaths": 793,
+  "uncontestedModeTypeBlobExact": 788,
+  "sharedDocuments": 5,
+  "actualConflictedDocuments": 4,
+  "canonicalConflictBlocks": 5,
+  "automaticBoardMergeExact": true,
+  "unchangedOutsideUnion": 22232,
+  "sourceDeltaFromBase": [
+    "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts"
+  ],
+  "sourceOutsideThreePathsExactBase": true,
+  "statusLineCount": 200,
+  "newRuntimeExecution": false
+}

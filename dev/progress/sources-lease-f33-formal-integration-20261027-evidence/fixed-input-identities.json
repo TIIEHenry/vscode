@@ -1,0 +1,22 @@
+{
+  "ours": "a4eb1dc3e94b9240e6124ccd37e219801fc1aeb9",
+  "incoming": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+  "incomingParents": [
+    "78338484340843a91f2babbf8a690989a1790bdd"
+  ],
+  "base": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "oursTree": "8e7c18e32e0d80e6f0535cb24e15439cf462a105",
+  "incomingTree": "c0923a8a07cbf604de781556ff94b455fcdf3e0c",
+  "oursSourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "incomingSourceTree": "eefc0c95737b4f66c4e9581a3500b2497a15d766",
+  "rootPredictedMergedSourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "sharedPaths": [
+    "dev/parallel/INDEX.md",
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md"
+  ],
+  "premergeClean": true,
+  "noNewValidationRuntimeAuthorized": true
+}

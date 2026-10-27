@@ -15,6 +15,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 | [status.md](status.md) | 当前快照（≤200 行） |
 | [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | 固定6d一次green/root独核后四窄plan implemented，原阶段/首条LF与全部失败历史保持；仅source/真实组件scope。 |
 | [固定6d一次新验证与四窄验收](sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md) | 六stage全0、72逐名/完整3+142/旧stale本体通过；prep1原稿及prep2授权/consumed/raw全保，54fe37旧native恢复，fullCompile=false。 |
+| [Sources已验基线与f33 lease正式合源](sources-lease-f33-formal-integration-20261027-evidence/INDEX.md) | 5336真实双亲/793union/5blocks精确，四Sources implemented+lease accepted；src90d609/metadata54fe旧native，lease全部运行及工具准备待。 |
 | [Accept accepted方案接入证明](sources-accept-post-read-authorization-integration.md) | a2f1430真实双亲接入精确8路径；全树/254+2 pair/12554文件与2946目录冻结守卫；仅文档、无output release。 |
 | [Accept ab43精确旧红资格](sources-accept-post-read-authorization-old-red-evidence/INDEX.md) | A1双宿主纯业务红；正控3 body过/Panel A3未达，Panel cleanup与独立input.dispose夹具失败分别保留；五JS恢复、无新绿或formal合源。 |
 | [Accept 原default-false旧case探针](sources-accept-default-false-probe-20261027-evidence/INDEX.md) | 精确c7原helper/case实测setup TypeError、业务未达；三生产run1字节连续，唯一test JS恢复；为后续窄计划修订提供资格，不合源/新绿。 |

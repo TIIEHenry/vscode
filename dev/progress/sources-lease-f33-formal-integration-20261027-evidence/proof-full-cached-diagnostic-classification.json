@@ -1,0 +1,195 @@
+{
+  "source": "Read exact full cached raw diagnostics; conflict-marker lines have no terminal period, unlike whitespace diagnostics",
+  "diagnosticCount": 35,
+  "pathCount": 8,
+  "perPath": {
+    "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/parallel/INDEX.md.raw": 3,
+    "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw": 3,
+    "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw": 3,
+    "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw": 6,
+    "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/INDEX.md.raw": 4,
+    "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw": 4,
+    "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw": 4,
+    "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw": 8
+  },
+  "perType": {
+    "leftover conflict marker": 35
+  },
+  "rows": [
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/parallel/INDEX.md.raw",
+      "line": 17,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/parallel/INDEX.md.raw",
+      "line": 19,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/parallel/INDEX.md.raw",
+      "line": 21,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "line": 17,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "line": 22,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "line": 27,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 438,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 670,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 778,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 9,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 11,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 16,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 18,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 20,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/INDEX.md.raw",
+      "line": 17,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/INDEX.md.raw",
+      "line": 19,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/INDEX.md.raw",
+      "line": 21,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/INDEX.md.raw",
+      "line": 23,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "line": 17,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "line": 22,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "line": 26,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "line": 31,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 437,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 670,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 671,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 780,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 9,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 11,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 13,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 18,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 20,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 22,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 24,
+      "diagnostic": "leftover conflict marker"
+    }
+  ]
+}

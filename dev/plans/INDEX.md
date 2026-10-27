@@ -14,7 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | 89d经root核与原Astra规则16 C0/I0/M2；KEEP持续live及QueueReader公开非live事件资格已澄清，仅文档accepted，srcd78a/未实施，lease red/green/after未达。 |
+| [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | 固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。[合源原件](../progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)。 |
 | [Sources Panel：旧异步 render stub 合同唯一例外](sources-panel-stale-render-stub-amendment.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
 | [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
 | [Sources Panel：Diff ViewModel 与文本引用生命周期](sources-panel-diff-view-model-lifetime.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |

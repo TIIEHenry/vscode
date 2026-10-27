@@ -1,0 +1,28 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "commit",
+    "-F",
+    "-"
+  ],
+  "commitMessage": "merge: integrate the reviewed visible lease recovery source\n\nMerge fixed f33 into the accepted Sources baseline with both parent histories, four implemented Sources plans, and the still-accepted lease plan. Preserve the restored old-native baseline and keep all lease runtime gates pending.\n",
+  "startedAtUtc": "2026-10-27T07:06:54.610288+00:00",
+  "finishedAtUtc": "2026-10-27T07:06:54.729345+00:00",
+  "actualExitCode": 0,
+  "stdoutBytes": 85,
+  "stdoutSha256": "b61b09b7e6faf3afc6a4661e2f65330584e0008d74cf60fc5ca0787b8450d7f0",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "commit": "5336c7f82565eb15de5aad3a125ab66cabdc1807",
+  "parents": [
+    "a4eb1dc3e94b9240e6124ccd37e219801fc1aeb9",
+    "f33d16fbc5841119f5baa7ff2788060d39b8bb4f"
+  ],
+  "base": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "tree": "443af4269bb5893999eb1bc350dee750b4a60604",
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "clean": true,
+  "newRuntimeValidation": false
+}

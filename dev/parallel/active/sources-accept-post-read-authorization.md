@@ -1,15 +1,15 @@
 ---
 title: "Sources Accept 读后授权：分工与门禁"
 type: progress
-status: completed
+status: active
 phase: M7
 updated: 2026-10-27
-summary: "固定6d一次六stage全0，72逐名与完整3/142及旧stale本体过；root独核后四窄plan implemented，本board按source/真实组件scope收口，旧历史全保。"
+summary: "Sources四窄已implemented/子scope完成；固定f33 lease候选5336正式合源，lease accepted/全部运行待，复用board继续active，旧历史分scope保留。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
 
-> **当前窄scope验收（2026-10-27）**：root已核[固定6d一次新验证](../../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)：六stage exit0，新72逐名通过、完整Pane3/3与Panel142/142、旧stale本体通过，meta/hooks/无pending/缺失/未知及owned/finally全合格。四窄plan implemented，本看板仅按source/真实组件合同completed；以下所有旧覆盖段落、表格与推进顺序为历史原文，不再代表当前待验证。当前metadata基准54fe37、旧native256/freeze4/cache3恢复，fullCompile=false；不声称Git实端/UI after已验，PRD/宽Sources/旧波及overall active保持。
+> **当前窄scope验收（2026-10-27）**：root已核[固定6d一次新验证](../../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)：六stage exit0，新72逐名通过、完整Pane3/3与Panel142/142、旧stale本体通过，meta/hooks/无pending/缺失/未知及owned/finally全合格。四窄plan implemented，本看板的Sources子scope仅按source/真实组件合同completed；以下Sources旧覆盖段落、表格与推进顺序为历史原文，其“下方全部”覆盖措辞只限Sources历史，不覆盖后面的Conversation lease当前待验证范围。当前metadata基准54fe37、旧native256/freeze4/cache3恢复，fullCompile=false；不声称Git实端/UI after已验，PRD/宽Sources/旧波及overall active保持。
 
 > **以下两侧覆盖段原文按历史阶段保留**，其中“待peer/仅候选/须另案”等不作为当前结论。
 
@@ -45,6 +45,8 @@ summary: "固定6d一次六stage全0，72逐名与完整3/142及旧stale本体�
 
 
 ## 独立后续：Conversation可见叶 lease 恢复
+
+> **lease当前阶段（5336正式合源后）**：固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。[固定三路/守卫原件](../../progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)。本board为lease待验证保持active；Sources子scope已完成不等于lease完成。下方89d/ff55/5fd/783/f33作者阶段原文按各时点保留，“仅docs/srcd78a/尚未合源”不再作当前集成状态，全部runtimeObserved=false仍是当前边界。
 
 [独立draft](../../plans/conversation-visible-lease-recovery.md)仅跟踪root在原Astra新鲜源码裁定后授权的§24后续范围，固定a4a/srcd78a；复用本板，不改上文Sources历史或其验证门禁。D只写docs draft与索引/行动记录，不改源码/测试/out、不请求baseline接DHEAD；root核固定commit/path hash后，仍交原Astra规则16，再独立accepted及另行源码授权。当前Sources候选如报源码/fixture问题优先响应。
 

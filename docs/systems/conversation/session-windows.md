@@ -36,6 +36,8 @@ CONVERSATION_PART
 
 ### 1.1 可见 Pane 缺 lease 的对齐候选
 
+> **可见叶lease当前集成阶段（2026-10-27）**：固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。[5336合源/只读守卫](../../../dev/progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)确认Sources四窄implemented保持、当前metadata仍54fe；下段描述已合入的源码合同，不能当运行或after证据。
+
 [可见叶lease恢复窄方案](../../../dev/plans/conversation-visible-lease-recovery.md)已accepted；当前源码候选在Pane现有visibility生命周期中监听真实roster session通知，仅当捕获input/Lens仍为当前存活owner、明确bound一致、叶实际visible、未suspended、真实引擎live且非pairing、catalog ready并且自身lease缺失时，调用既有公开bind入口。目标取该Pane当前bound，不按通知active id过滤，因此两个pinned visible叶各核自己的owner；已有lease保持，hidden与未挂载/已移除叶不补领。原hide释放与正常reveal（含local stub/断连缓存）路径保持。
 
 普通Pane/Lens dispose撤销listener并释放registered lifetime，测试持有的旧Lens对象不保证将lease字段置空；旧owner退出消费应从实际lease不再接帧与最后消费者释放host的公开边界观察。5fd源码peer C0/I1/M0指出的新L4合同误用已形成独立修订候选，仍待窄peer与运行，见[方案§8](../../../dev/plans/conversation-visible-lease-recovery.md#8-5fd-正式源码-peer-与新-l4-合同修订2026-10-27)。

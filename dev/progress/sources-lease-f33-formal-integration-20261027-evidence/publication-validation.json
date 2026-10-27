@@ -1,0 +1,23 @@
+{
+  "actualFormalMergeAcceptedByRoot": "5336c7f82565eb15de5aad3a125ab66cabdc1807",
+  "mergeAllUnscopedGatesExit0": true,
+  "proofGeneratorCheckHealthUnstagedExit0": true,
+  "healthMarkdown": 613,
+  "healthErrors": 0,
+  "healthSameOldWarnings": 46,
+  "proofFullCachedActualExit2": true,
+  "proofFullCached35HistoricalMarkers8Paths": true,
+  "rawFullCachedStdoutSha256": "2a77a67bfd14ca963bff20a97385a5f98eaf6a749a3ad5de6c25570bb71323a6",
+  "onlyRootAuthorizedEightNewRawPathsExcluded": true,
+  "previousSourcesNineExcludedPathsNotInherited": true,
+  "actualScopedCachedExit0AndEmptyStreams": true,
+  "fullCachedPassedClaim": false,
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "currentMetadataBaseline": "54fe37b2f942aa1afc5587d630199809ff4dc8e54bad610f577ffa6db8f60f1e",
+  "newSourceOldNativeGuard": "guard-after-merge-commit.json",
+  "sourceOldNative5Plus251": true,
+  "revealOriginalOutputSeparatelyIdentifiedNotPrepared": true,
+  "fourSourcesImplementedLeaseAcceptedAllRuntimePending": true,
+  "overallGoalActive": true,
+  "noValidationRuntimePreparationOrExecution": true
+}

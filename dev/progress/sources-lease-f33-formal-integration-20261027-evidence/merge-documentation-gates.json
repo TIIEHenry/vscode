@@ -1,0 +1,91 @@
+{
+  "results": [
+    {
+      "stage": "merge-generate-status",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py"
+      ],
+      "startedAtUtc": "2026-10-27T07:06:27.298163+00:00",
+      "finishedAtUtc": "2026-10-27T07:06:27.362699+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 37,
+      "stdoutSha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "merge-check-generated-status",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "startedAtUtc": "2026-10-27T07:06:27.362869+00:00",
+      "finishedAtUtc": "2026-10-27T07:06:27.412006+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 21,
+      "stdoutSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "merge-docs-health",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/check-docs-health.py",
+        "--format",
+        "json"
+      ],
+      "startedAtUtc": "2026-10-27T07:06:27.412062+00:00",
+      "finishedAtUtc": "2026-10-27T07:06:27.753908+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 9167,
+      "stdoutSha256": "1cd7b1217496dfc76d4514ec5b8e26bc334fce83d6de66853b9fc4468fd41850",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "merge-full-cached-diff-check",
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "startedAtUtc": "2026-10-27T07:06:27.753974+00:00",
+      "finishedAtUtc": "2026-10-27T07:06:27.776074+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "merge-unstaged-diff-check",
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--check"
+      ],
+      "startedAtUtc": "2026-10-27T07:06:27.776125+00:00",
+      "finishedAtUtc": "2026-10-27T07:06:27.809713+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "noSourceRuntimeValidation": true
+}

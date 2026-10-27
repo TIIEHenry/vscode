@@ -1,0 +1,54 @@
+{
+  "source": "Explicit /root message after independently reading current full cached raw/result/classification and all8 scratch copies; not raw reviewer output",
+  "authorizedExactPaths": [
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/parallel/INDEX.md.raw",
+      "bytes": 3852,
+      "sha256": "df7e009a9ae4cbd4722698c3e9691551a6af1c9face47f3ba4df44f0c291c818"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "bytes": 77284,
+      "sha256": "0ce7d2132bb91a62dc431451869396f84156afa37a79f7d2d6fabe779cc0b4b1"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 120074,
+      "sha256": "108cdadd535ccf1a542c0754d958c55f25e25380ff6ec67098987d83492b7020"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "bytes": 141123,
+      "sha256": "73a3e5dac47cac4603c67ef96e76a488cd47561011a31f4ee208b5f8adebf2bf"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/INDEX.md.raw",
+      "bytes": 4204,
+      "sha256": "17061b4528890f985289f978c54e28bf73508d292e0a16d8c0350f8d37cfa100"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "bytes": 78360,
+      "sha256": "b0387369ef24a838cc5c4a01d3fa1445e4d80ae135e1b56a3fdcc871bb352752"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 120056,
+      "sha256": "2a54523c70fe09ad4117e795630d07bef2e7aa95d7cc2f4cac0b9f68e121e22e"
+    },
+    {
+      "path": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "bytes": 142019,
+      "sha256": "ae876620e5457d026f3e3935ce7a4b8611b7c326b2741dd298e1c1568f111d27"
+    }
+  ],
+  "authorizedPathCount": 8,
+  "reason": "Only35 historical leftover conflict markers in exact actual/canonical immutable merge inputs; no whitespace diagnostics. Preserve bytes rather than clean history.",
+  "fullUnscopedCachedActualExitCode": 2,
+  "fullUnscopedStdoutBytes": 5339,
+  "fullUnscopedStdoutSha256": "2a77a67bfd14ca963bff20a97385a5f98eaf6a749a3ad5de6c25570bb71323a6",
+  "oldSourcesNinePathExclusionNotInherited": true,
+  "onlyTheseEightNewPathsAuthorized": true,
+  "fullCachedPassClaim": false,
+  "noRuntimePreparationAuthorization": true
+}

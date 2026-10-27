@@ -1,0 +1,20 @@
+{
+  "capturedAtUtc": "2026-10-27T07:17:05.214773+00:00",
+  "method": "Independent inline stdlib identities and read-only Git, no prepared helper execution",
+  "mergeParent": "5336c7f82565eb15de5aad3a125ab66cabdc1807",
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "sourceUnchangedDuringProof": true,
+  "all15500LiveMetadataExact54feAndMergeGuard": true,
+  "all256OldNativeBytesModesExact": true,
+  "currentSourceOldNativePairs": 5,
+  "unchangedPairs": 251,
+  "separateRevealCurrentSourceAndOriginalOldNativeExact": true,
+  "freeze4Cache3Exact": true,
+  "all64RawMirrorsAndScratchExact": true,
+  "fourSourcesPlansWholeBytesExactA4ebImplemented": true,
+  "leasePlanOriginalSection1ThroughEofExactF33Accepted": true,
+  "dispatchJsonAndHistoricalProofsUnchanged": true,
+  "statusLines": 200,
+  "fullCompileOfFinalSourceTree": false,
+  "noRuntimeToolsOrLeasePreparation": true
+}

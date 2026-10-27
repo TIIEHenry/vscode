@@ -1,0 +1,18 @@
+[
+  {
+    "parent": "a4eb1dc3e94b9240e6124ccd37e219801fc1aeb9",
+    "label": "ours",
+    "bytes": 986,
+    "sha256": "17c10ac71aef43363a4d4fd69c6c525fcc852e5bf510033c58b8a87c88ae0f27",
+    "firstEntryIncludingLF": "- **Sources固定6d一次green与四窄方案签收（2026-10-27）**：父01c0/src424397，prep1原M1四行号镜像/false原稿保，prep2机械修订获原Astra C0/I0/M0/root采纳后唯一release单次消费。checker五目标noEmit全0、lint0error/1旧637 warning、dry=actual5JS/0map；新54+18逐名start/pass/end各1，完整Pane3/3、Panel142/142含旧stale本体，meta各1/hooks11/567平衡、pending/missing/unknown/fail0。root独核145实际body与43owned活0；finally旧native256/freeze4/cache3精确、15500metadata新基准54fe37（对8b5f仅5ctime），fullCompile=false。仅四窄plan implemented/窄board完成，原A1/run3A4/defaultfalse/8438旧败不改，PRD/宽Sources/D旧签收/旧波不升、overall active；不声称实端Git/UI after或全srcsemantic。[原件/验收/范围](sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)·[原首条LF/hash](sources-accept-post-read-authorization-checkpoint.md#fixed-6d-new-validation-accepted)。\n",
+    "path": "ours-status-first-entry.txt"
+  },
+  {
+    "parent": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+    "label": "incoming",
+    "bytes": 821,
+    "sha256": "7cdd2c6b3354cb48030295dc4ed69571700b7848e755e2a74dc275fc7fa1875c",
+    "firstEntryIncludingLF": "- **Conversation 783窄peer静态签收（2026-10-27）**：root已独核固定783/src eefc0c六路径与manifest/artifact、保护和status200，采纳原Astra窄peer C0/I0/M0，关闭5fd新L4合同I1；独立observer真实frame/旧owner snapshot与事件隔离、最后observer释放host的源码链获签，L4外test/Pane不变，原I1报告/原件保留。本次仅4docs记录，全部src仍783、原26/new13/defaultQuiet及Sources三plan/JSON/out保护；13仅静态case、旧a4a L1red/新矩阵/原Reveal/非作者after全部runtimeObserved=false，待唯一lane先完成Sources新源验证后另行准备，无执行授权，plan仍accepted；此纯doc不是formalmerge/green/outputs交付。[来源与原首条](sources-accept-post-read-authorization-checkpoint.md#e-783窄peer静态签收2026-10-27纯文档)。\n",
+    "path": "incoming-status-first-entry.txt"
+  }
+]

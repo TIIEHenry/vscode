@@ -1,0 +1,17 @@
+{
+  "source": "Attributed /root independent review message, not fabricated raw reviewer output",
+  "acceptedMerge": "5336c7f82565eb15de5aad3a125ab66cabdc1807",
+  "parentsBaseSrcAllPathsModeTypeBlobAccepted": true,
+  "unionPaths": 793,
+  "uncontestedExact": 788,
+  "outsideExact": 22232,
+  "allFiveCanonicalHashesAnd15InputBytesMatchRootGit": true,
+  "hunkFiveBlockReplayWithOuterFragmentsEqualsCommittedBlobs": true,
+  "checkpointBothFullTailsPreserved": true,
+  "bothParentFirstEntriesIncludingLFBytes": [
+    986,
+    821
+  ],
+  "fourSourcesPlansImplementedAndLeasePlanAccepted": true,
+  "runtimeOrToolPreparationAuthorized": false
+}

@@ -796,3 +796,13 @@ summary: "5fd正式源码peer C0/I1/M0后，root另授权仅新L4 dispose合同�
 ```text
 - **Conversation 783窄peer静态签收（2026-10-27）**：root已独核固定783/src eefc0c六路径与manifest/artifact、保护和status200，采纳原Astra窄peer C0/I0/M0，关闭5fd新L4合同I1；独立observer真实frame/旧owner snapshot与事件隔离、最后observer释放host的源码链获签，L4外test/Pane不变，原I1报告/原件保留。本次仅4docs记录，全部src仍783、原26/new13/defaultQuiet及Sources三plan/JSON/out保护；13仅静态case、旧a4a L1red/新矩阵/原Reveal/非作者after全部runtimeObserved=false，待唯一lane先完成Sources新源验证后另行准备，无执行授权，plan仍accepted；此纯doc不是formalmerge/green/outputs交付。[来源与原首条](sources-accept-post-read-authorization-checkpoint.md#e-783窄peer静态签收2026-10-27纯文档)。
 ```
+
+## f33-merge-proof-current-coverage
+
+root已独立接受真实merge `5336c7f82565eb15de5aad3a125ab66cabdc1807`：parents固定a4eb/f33、basea4a、tree443af426、实际src90d609；793union/788无争议mode-type-blob/外22232全部核实，四冲突文件5canonical块与外fragment逐字重放等正式blob，board自动0块另记。[独立proof](sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)完整保三方/actual/canonical/resolved原bytes。Sources四窄implemented保持；lease完整incoming accepted且sourcepeer C0/I0/M0采纳，不由合源获得运行资格。当前source/native guard将256重绑为Sources4+Pane1共5 mismatches与251未变，Reveal旧JS另列；15500metadata仍精确54fe、旧native256/freeze4/cache3未动/fullCompile=false。只修过时89d/docs-only/d78a当前导航与board Sources历史覆盖范围，原设计/规则16/源码peer/失败历史不改，未准备或运行任何lease工具。
+
+以下是5336收尾前status首条，含末尾LF SHA-256 `277d1f969d91fc37c19470b2dbeaa3097d1cebd032aaca6c33e1c74090315a8b`，原789 bytes另存proof；a4eb/f33双方原首条继续按前节原字节保护。
+
+```text
+- **Sources完成与Conversation lease固定f33真三路接入（2026-10-27）**：固定ours a4eb/incoming f33/共同a4a；Sources新72及完整3/142/旧stale一次green和四窄implemented、52B stub/全部旧新原件保持；lease两源码783静态peer C0/I0/M0/I1关经root采纳，f33文档accepted接入，13只静态、旧red/新green/原Reveal/非作者after全待，尚无新工具准备或执行release。全path/src树按实际merge审计，15500metadata精确54fe、旧native256/freeze4/cache3未动/fullCompile=false。共享docs双方历史、首条LF/hash并存，PRD/宽Sources/旧波不升/overall active；不碰B仅objects、不追main WIP。[双方原首条与集成边界](sources-accept-post-read-authorization-checkpoint.md#sources-lease-f33-formal-integration)。
+```

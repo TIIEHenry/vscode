@@ -1,0 +1,29 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check",
+    "--",
+    ".",
+    ":(exclude)dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/parallel/INDEX.md.raw",
+    ":(exclude)dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+    ":(exclude)dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    ":(exclude)dev/progress/sources-lease-f33-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+    ":(exclude)dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/INDEX.md.raw",
+    ":(exclude)dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+    ":(exclude)dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    ":(exclude)dev/progress/sources-lease-f33-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw"
+  ],
+  "startedAtUtc": "2026-10-27T07:16:21.916966+00:00",
+  "finishedAtUtc": "2026-10-27T07:16:21.973460+00:00",
+  "actualExitCode": 0,
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "authorizedExactExclusions": 8,
+  "fullUnscopedCachedStillActuallyFailed": true
+}

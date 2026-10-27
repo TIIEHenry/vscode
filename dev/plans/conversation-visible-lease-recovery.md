@@ -4,10 +4,12 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "root独核783固定候选并采纳原Astra窄peer C0/I0/M0关闭5fd I1；source仍783/src eefc0c，plan accepted，13仅静态case；本次纯docs签收非formal merge/green/outputs，唯一lane旧L1red/新矩阵/原Reveal/非作者after全待。"
+summary: "固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。原设计/规则16/源码peer和失败历史均保留，fullCompile=false。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
+
+> **当前集成覆盖（2026-10-27）**：固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。[固定merge与旧native守卫](../progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)为本轮身份。以下固定作者输入和原“当前阶段”保持f33签收时点原文，正文§1–§9逐字不改；本节只更新集成导航，不签运行资格、不扩大已审设计。
 
 > **固定输入**：`a4a70322795c509e8e9b8274cf295a1b65db663a`，`src=d78a48e5feee57fcaf5811c8425859d0a2400af0`。只读该对象，不追 main / merge / 他人 WIP。
 > **当前阶段**：root 已独核并正式接收固定源码候选 `78338484340843a91f2babbf8a690989a1790bdd` / `src=eefc0c95737b4f66c4e9581a3500b2497a15d766`，采纳原 Astra 对该对象的窄 peer **C0/I0/M0**，关闭 5fd 新 L4 合同 I1。原 5fd **C0/I1/M0** 报告与修订依据完整保留于 §8；本次只追加文档签收 §9，全部源码仍为783，plan保持accepted。13为静态预期case，唯一lane旧L1 red / 新矩阵 / 原Reveal / 非作者after全待，runtimeObserved=false；此纯doc不是formal merge、green或outputs交付。

@@ -1,0 +1,17 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "actualExitCode": 2,
+  "stdoutBytes": 5339,
+  "stdoutSha256": "2a77a67bfd14ca963bff20a97385a5f98eaf6a749a3ad5de6c25570bb71323a6",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "anyExclusionApplied": false,
+  "previousSourcesNinePathExclusionNotInherited": true
+}
