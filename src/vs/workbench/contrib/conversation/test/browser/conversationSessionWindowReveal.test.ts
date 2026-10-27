@@ -6,10 +6,10 @@
 import assert from 'assert';
 import { Dimension, getActiveElement } from '../../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../../base/browser/window.js';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, raceTimeout, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { Disposable, DisposableStore, toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { ILogService, NullLogService } from '../../../../../platform/log/common/log.js';
@@ -34,11 +34,18 @@ import { ConversationSessionWindowService, IConversationSessionWindowService } f
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
-import { ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';
+import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';
+import { getConversationSessionReadiness } from '../../browser/conversationSessionAvailability.js';
+import { isConversationEngineLive, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
+import { stubTurnsToSnapshot } from '../../browser/conversationSessionView.js';
 import type { ConversationLens } from '../../browser/conversationLens.js';
 import { ConversationEditorPaneId, conversationSessionLeafHiddenClass } from '../../common/conversationSessionWindow.js';
 import { UA_CLIENT_CHAT_INPUT_AUTO_FOCUS } from '../../common/uaClientSettingsKeys.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { IUniverseAgentSessionView, type IUniverseAgentSessionViewFrameEvent } from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
+import type { ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
+import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
+import { ConversationChatInput, getConversationChatResource } from '../../common/conversationChatInput.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
@@ -62,6 +69,77 @@ class QuietRosterService extends ConversationStubService {
 
 	fireDeletedSession(sessionId: string): void {
 		this._onDidDeleteSession.fire(sessionId);
+	}
+}
+
+/** Public SessionView boundary; production FrameSource still owns replicas and fanout. */
+class RevealEngineSessionView extends Disposable implements IUniverseAgentSessionView {
+	declare readonly _serviceBrand: undefined;
+	readonly acquired: { leaseId: string; sessionId: string }[] = [];
+	readonly released = new Set<string>();
+	private readonly emitters = new Map<string, Emitter<IUniverseAgentSessionViewFrameEvent>>();
+	private readonly versions = new Map<string, number>();
+	private readonly listening = new Set<string>();
+	private readonly didListen = this._register(new Emitter<string>());
+	readonly onDidListen = this.didListen.event;
+
+	onDynamicDidApplyFrame(leaseId: string): Event<IUniverseAgentSessionViewFrameEvent> {
+		let emitter = this.emitters.get(leaseId);
+		if (!emitter) {
+			emitter = this._register(new Emitter<IUniverseAgentSessionViewFrameEvent>({
+				onDidAddFirstListener: () => queueMicrotask(() => {
+					this.emitLease(leaseId);
+					this.listening.add(leaseId);
+					this.didListen.fire(leaseId);
+				}),
+			}));
+			this.emitters.set(leaseId, emitter);
+		}
+		return emitter.event;
+	}
+
+	async acquireLease(sessionId: string): Promise<string> {
+		const leaseId = `reveal:${sessionId}:${this.acquired.length + 1}`;
+		this.acquired.push({ leaseId, sessionId });
+		return leaseId;
+	}
+	async whenEngineSessionReady(sessionId: string): Promise<string> { return sessionId; }
+	async releaseLease(leaseId: string): Promise<void> { this.released.add(leaseId); }
+	async post(): Promise<never> { throw new Error('lease recovery must not write'); }
+	async requestResync(): Promise<void> { }
+	async acknowledge(): Promise<void> { }
+	async requestDetail() { return { ok: false as const, reason: 'unavailable' as const }; }
+
+	hasSessionListener(sessionId: string): boolean {
+		return this.acquired.some(lease => lease.sessionId === sessionId && this.listening.has(lease.leaseId) && !this.released.has(lease.leaseId));
+	}
+
+	emitSession(sessionId: string, text: string): void {
+		for (const lease of this.acquired) {
+			if (lease.sessionId === sessionId) {
+				this.emitLease(lease.leaseId, text);
+			}
+		}
+	}
+
+	private emitLease(leaseId: string, text?: string): void {
+		const lease = this.acquired.find(candidate => candidate.leaseId === leaseId);
+		if (!lease || this.released.has(leaseId)) {
+			return;
+		}
+		const projection = stubTurnsToSnapshot(lease.sessionId, text === undefined ? [] : [
+			{ id: `${lease.sessionId}-body`, kind: 'user', text },
+			{ id: `${lease.sessionId}-permission`, kind: 'confirmation', text: `Permission for ${lease.sessionId}`, status: 'pending' },
+		]);
+		const version = (this.versions.get(leaseId) ?? 0) + 1;
+		this.versions.set(leaseId, version);
+		this.emitters.get(leaseId)?.fire({
+			leaseId, sessionId: lease.sessionId, applied: { kind: 'baseline' },
+			frame: {
+				frame: { leaseId: leaseId as ViewLeaseId, generation: 1, frameId: version, version, body: { kind: 'baseline', snapshot: { ...projection.snapshot, sync: { kind: 'live' } } } },
+				attribution: [...projection.attribution].map(([itemId, attribution]) => ({ op: 'upsertAttribution', itemId, attribution })),
+			},
+		});
 	}
 }
 
@@ -297,7 +375,10 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 	}
 
 	async function createRevealHarness() {
-		const rosterService = store.add(new QuietRosterService());
+		return createRevealHarnessWithRoster(store.add(new QuietRosterService()), createConversationConnectionTestStub());
+	}
+
+	async function createRevealHarnessWithRoster<R extends ConversationStubService>(rosterService: R, connection: IUniverseAgentConnection, engine = false) {
 		const openErrors: unknown[] = [];
 		const instantiationService = workbenchInstantiationService({
 			configurationService: () => new TestConfigurationService({
@@ -317,7 +398,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 			onDidChangeLogLevel: Event.None,
 		} as unknown as ILogService);
 		instantiationService.stub(IConversationRosterService, rosterService);
-		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		instantiationService.stub(IUniverseAgentConnection, connection);
 		stubLensRuntimeServices(instantiationService);
 		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
@@ -348,11 +429,191 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		const primaryId = rosterService.getActiveSessionId();
 		await sessionWindowService.ensurePrimaryWindow(primaryId);
 		const primaryPart = partFor(parts, primaryId);
-		await waitForPane(primaryPart, openErrors, parts);
+		if (engine) {
+			await waitForEnginePane(primaryPart);
+		} else {
+			await waitForPane(primaryPart, openErrors, parts);
+		}
 		layoutParts(parts);
 		trackEditors(parts);
 
-		return { instantiationService, parts, conversationPart, rosterService, sessionWindowService, sessionChatService, primaryId, openErrors };
+		return { instantiationService, editorService, parts, conversationPart, rosterService, sessionWindowService, sessionChatService, primaryId, openErrors };
+	}
+
+	async function bounded<T>(promise: Promise<T>, message: string): Promise<T> {
+		const result = await raceTimeout(promise.then(value => ({ value })), 3000);
+		assert.ok(result, message);
+		return result.value;
+	}
+
+	async function waitForEnginePane(part: IConversationEditorPart): Promise<ConversationEditorPane> {
+		await bounded(part.whenReady, 'engine leaf part must become ready');
+		if (!(part.activeGroup.activeEditorPane instanceof ConversationEditorPane)) {
+			const ready = Event.toPromise(Event.filter(part.activeGroup.onDidActiveEditorChange,
+				() => part.activeGroup.activeEditorPane instanceof ConversationEditorPane));
+			try {
+				await bounded(ready, 'real engine ConversationEditorPane must open');
+			} finally {
+				ready.cancel();
+			}
+		}
+		const pane = part.activeGroup.activeEditorPane;
+		assert.ok(pane instanceof ConversationEditorPane);
+		return pane;
+	}
+
+	async function createEngineRevealHarness(beforePane?: (roster: ConversationEngineRosterService) => void) {
+		type Catalog = Awaited<ReturnType<IUniverseAgentConnection['listSessions']>>;
+		const requests: { started: DeferredPromise<void>; result: DeferredPromise<Catalog> }[] = [];
+		const allRequests: typeof requests = [];
+		let phase: ConnectionPhase = { kind: 'disconnected' };
+		let pairingPending = false;
+		const connectionEmitter = store.add(new Emitter<ReturnType<IUniverseAgentConnection['getConnectionSnapshot']>>());
+		const base = createConversationConnectionTestStub();
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => isConversationEngineLive(phase, pairingPending),
+			getConnectionPhase: () => phase,
+			getTransportState: () => 'ok',
+			getConnectionSnapshot: () => ({ ...base.getConnectionSnapshot(), transport: 'ok', channelAlive: phase.kind !== 'disconnected', pairingPending, engineIdentityId: 'reveal-engine', linkId: 1 }),
+			onDidChangeConnection: connectionEmitter.event,
+			listSessions: () => {
+				const request = requests.shift();
+				assert.ok(request, 'every real catalog request must have an explicit Deferred');
+				void request.started.complete();
+				return request.result.p;
+			},
+		});
+		const sessionView = store.add(new RevealEngineSessionView());
+		const rosterService = store.add(new ConversationEngineRosterService(connection, sessionView, { _serviceBrand: undefined, shouldAdvertise: () => true }));
+		// Every pending list settles before service teardown, including failed setup paths.
+		store.add(toDisposable(() => {
+			for (const request of allRequests) {
+				if (!request.result.isSettled) {
+					void request.result.complete({ sessions: [] });
+				}
+			}
+		}));
+		const deferCatalog = () => {
+			const request = { started: new DeferredPromise<void>(), result: new DeferredPromise<Catalog>() };
+			requests.push(request);
+			allRequests.push(request);
+			return request;
+		};
+		const notify = (kind: 'live' | 'disconnected' | 'connected pairing' | 'connecting pairing') => {
+			pairingPending = kind === 'connected pairing' || kind === 'connecting pairing';
+			phase = kind === 'disconnected' ? { kind: 'disconnected' }
+				: kind === 'connecting pairing' ? { kind: 'connecting', reason: 'initial' }
+					: { kind: 'connected', path: 'loopback' };
+			connectionEmitter.fire(connection.getConnectionSnapshot());
+		};
+		const catalog: Catalog = { sessions: [{ sessionId: 'lease-s1', title: 'Lease s1' }, { sessionId: 'lease-s2', title: 'Lease s2' }] };
+		const initial = deferCatalog();
+		notify('live');
+		await bounded(initial.started.p, 'initial real catalog must start');
+		await initial.result.complete(catalog);
+		await bounded(rosterService.whenEngineCatalogRefreshComplete(), 'initial real catalog must finish');
+		assert.strictEqual(getConversationSessionReadiness(rosterService), 'ready');
+		beforePane?.(rosterService);
+		const harness = await createRevealHarnessWithRoster(rosterService, connection, true);
+		const pane = await waitForEnginePane(partFor(harness.parts, harness.primaryId));
+		const lens = pane.activeConversationLens;
+		assert.ok(lens);
+		assert.ok(lens.sessionViewLease, 'initial real visible owner must have a lease');
+		if (lens.sessionViewLease.snapshot.sessionId !== harness.primaryId) {
+			const baseline = Event.toPromise(lens.sessionViewLease.onDidApplyFrame);
+			try {
+				await bounded(baseline, 'initial host baseline must reach the Pane lease');
+			} finally {
+				baseline.cancel();
+			}
+		}
+		assert.strictEqual(lens.sessionViewLease.snapshot.sessionId, harness.primaryId);
+		return { ...harness, pane, lens, connection, sessionView, deferCatalog, notify, catalog };
+	}
+
+	type EngineRevealHarness = Awaited<ReturnType<typeof createEngineRevealHarness>>;
+
+	function assertVisibleMissing(harness: EngineRevealHarness, pane = harness.pane, key = harness.primaryId): ConversationLens {
+		const lens = pane.activeConversationLens;
+		assert.ok(lens);
+		assert.strictEqual(lens.boundSessionId, key);
+		assert.strictEqual(lens.isDisposed, false);
+		assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(key), true);
+		assert.strictEqual(lens.sessionViewBindingSuspended, false);
+		assert.strictEqual(lens.sessionViewLease, undefined, 'real connection/Binding must naturally remove the empty owner lease');
+		return lens;
+	}
+
+	async function startEmptyCatalogRefresh(harness: EngineRevealHarness, reconnect = false) {
+		const request = harness.deferCatalog();
+		if (reconnect) {
+			harness.notify('disconnected');
+		}
+		harness.notify('live');
+		await bounded(request.started.p, 'real replacement listSessions must start');
+		assert.strictEqual(getConversationSessionReadiness(harness.rosterService), 'loading');
+		assert.strictEqual(harness.pane.activeConversationLens, harness.lens);
+		assertVisibleMissing(harness);
+		return request;
+	}
+
+	async function completeCatalog(harness: EngineRevealHarness, request: ReturnType<EngineRevealHarness['deferCatalog']>): Promise<void> {
+		await request.result.complete(harness.catalog);
+		await bounded(harness.rosterService.whenEngineCatalogRefreshComplete(), 'real catalog must settle');
+		assert.strictEqual(getConversationSessionReadiness(harness.rosterService), 'ready');
+	}
+
+	function observePaneBinds(lens: ConversationLens): () => number {
+		let calls = 0;
+		const original = lens.bindSessionView;
+		lens.bindSessionView = sessionId => {
+			calls++;
+			original.call(lens, sessionId);
+		};
+		store.add(toDisposable(() => { lens.bindSessionView = original; }));
+		return () => calls;
+	}
+
+	async function assertEngineFramePaints(harness: EngineRevealHarness, pane: ConversationEditorPane, sessionId: string, text: string): Promise<void> {
+		const lens = pane.activeConversationLens;
+		assert.ok(lens);
+		const lease = lens.sessionViewLease;
+		assert.ok(lease, 'this actual Pane must own the recovered lease');
+		assert.strictEqual(lease.sessionId, sessionId);
+		if (!harness.sessionView.hasSessionListener(sessionId)) {
+			const listening = Event.toPromise(Event.filter(harness.sessionView.onDidListen, () => harness.sessionView.hasSessionListener(sessionId)));
+			try {
+				await bounded(listening, 'actual host lease acquire and frame listener must complete');
+			} finally {
+				listening.cancel();
+			}
+		}
+		const column = pane.getReadingColumn();
+		assert.ok(column);
+		const painted = new DeferredPromise<void>();
+		const check = () => {
+			const body = column.querySelector(`.conversation-lens-turn[data-turn-id="${sessionId}-body"] .conversation-lens-turn-body`);
+			const pending = column.querySelector(`.conversation-lens-confirmation-seat[data-turn-id="${sessionId}-permission"]`);
+			if (body?.textContent === text && pending?.textContent?.includes(`Permission for ${sessionId}`)) {
+				void painted.complete();
+			}
+		};
+		const observer = new MutationObserver(check);
+		observer.observe(column, { childList: true, characterData: true, subtree: true });
+		const admitted = Event.toPromise(lease.onDidApplyFrame);
+		try {
+			harness.sessionView.emitSession(sessionId, text);
+			await bounded(admitted, 'frame must be admitted by the actual Pane lease');
+			pane.layout({ width: 800, height: 600 });
+			check();
+			await bounded(painted.p, 'actual Pane turn and pending seat must paint through TimelineHost');
+			assert.strictEqual(lens.sessionViewLease, lease);
+			assert.strictEqual(lease.snapshot.timeline.length, 2);
+			assert.strictEqual(lease.snapshot.pendingActions.length, 1);
+		} finally {
+			observer.disconnect();
+			admitted.cancel();
+		}
 	}
 
 	async function waitForSessionPane(
@@ -361,6 +622,320 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 	): Promise<ConversationEditorPane> {
 		return waitForPane(partFor(harness.parts, sessionKey), harness.openErrors, harness.parts);
 	}
+
+	suite('visible engine lease recovery', () => {
+		test('L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal', async () => {
+			const harness = await createEngineRevealHarness();
+			const { pane, lens, primaryId, rosterService } = harness;
+			const input = pane.input;
+			assert.ok(input);
+			assert.strictEqual(lens.lastAttachedEntries.length, 0);
+			assert.strictEqual(lens.sessionViewLease?.snapshot.timeline.length, 0);
+			const pending = await startEmptyCatalogRefresh(harness, true);
+			assert.strictEqual(pane.input, input);
+			let activeChanges = 0;
+			const activeListener = store.add(rosterService.onDidChangeActiveSession(() => { activeChanges++; }));
+			await completeCatalog(harness, pending);
+			assert.strictEqual(rosterService.getActiveSessionId(), primaryId);
+			assert.strictEqual(activeChanges, 0, 'same-session recovery must not rely on an active-id event');
+			assert.strictEqual(pane.input, input);
+			assert.strictEqual(pane.activeConversationLens, lens);
+			assert.strictEqual(lens.boundSessionId, primaryId);
+			assert.strictEqual(lens.isDisposed, false);
+			assert.strictEqual(isConversationEngineLive(harness.connection.getConnectionPhase(), harness.connection.getConnectionSnapshot().pairingPending), true);
+			assert.strictEqual(isConversationPairingHold(harness.connection), false);
+			assert.ok(lens.sessionViewLease, 'catalog ready must restore this visible Pane lease without hide/reveal');
+			assert.strictEqual(lens.sessionViewLease.sessionId, primaryId);
+			activeListener.dispose();
+			await assertEngineFramePaints(harness, pane, primaryId, 'L1 recovered Pane body');
+		});
+
+		test('L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready', async () => {
+			const harness = await createEngineRevealHarness();
+			await assertEngineFramePaints(harness, harness.pane, harness.primaryId, 'L2 keep this body');
+			const lease = harness.lens.sessionViewLease;
+			assert.ok(lease);
+			const snapshot = lease.snapshot;
+			const entries = harness.lens.lastAttachedEntries;
+			const input = harness.pane.input;
+			const assertKept = () => {
+				assert.strictEqual(harness.pane.input, input);
+				assert.strictEqual(harness.pane.activeConversationLens, harness.lens);
+				assert.strictEqual(harness.connection.getConnectionSnapshot().engineIdentityId, 'reveal-engine');
+				assert.strictEqual(isConversationEngineLive(harness.connection.getConnectionPhase(), harness.connection.getConnectionSnapshot().pairingPending), true);
+				assert.strictEqual(isConversationPairingHold(harness.connection), false);
+				assert.strictEqual(harness.rosterService.getActiveSessionId(), harness.primaryId);
+				assert.strictEqual(harness.lens.boundSessionId, harness.primaryId);
+				assert.strictEqual(harness.lens.sessionViewLease, lease);
+				assert.strictEqual(lease.snapshot, snapshot);
+				assert.strictEqual(harness.lens.lastAttachedEntries, entries);
+				assert.strictEqual(harness.pane.getReadingColumn()?.querySelector(`.conversation-lens-turn[data-turn-id="${harness.primaryId}-body"] .conversation-lens-turn-body`)?.textContent, 'L2 keep this body');
+			};
+			const failed = harness.deferCatalog();
+			harness.notify('live');
+			await bounded(failed.started.p, 'same-live catalog refresh must start');
+			assert.strictEqual(getConversationSessionReadiness(harness.rosterService), 'loading');
+			assertKept();
+			await failed.result.error(new Error('catalog unavailable'));
+			await bounded(harness.rosterService.whenEngineCatalogRefreshComplete(), 'failed real list must settle');
+			assert.strictEqual(getConversationSessionReadiness(harness.rosterService), 'unavailable');
+			assertKept();
+			const recovered = harness.deferCatalog();
+			harness.notify('live');
+			await bounded(recovered.started.p, 'same-live recovery list must start');
+			assertKept();
+			await completeCatalog(harness, recovered);
+			assertKept();
+		});
+
+		test('L3 loading and real list rejection leave a visible empty owner missing until successful ready', async () => {
+			const harness = await createEngineRevealHarness();
+			const failed = await startEmptyCatalogRefresh(harness);
+			const binds = observePaneBinds(harness.lens);
+			assertVisibleMissing(harness);
+			await failed.result.error(new Error('listSessions rejected'));
+			await bounded(harness.rosterService.whenEngineCatalogRefreshComplete(), 'real rejected list must settle');
+			assert.strictEqual(getConversationSessionReadiness(harness.rosterService), 'unavailable');
+			assertVisibleMissing(harness);
+			assert.strictEqual(binds(), 0);
+			const recovery = await startEmptyCatalogRefresh(harness);
+			const beforeReady = binds();
+			await completeCatalog(harness, recovery);
+			assert.strictEqual(binds() - beforeReady, 1, 'the session-ready listener must call the real Pane bind once');
+			await assertEngineFramePaints(harness, harness.pane, harness.primaryId, 'L3 catalog recovery');
+		});
+
+		for (const state of ['disconnected', 'connected pairing', 'connecting pairing'] as const) {
+			test(`L3 ${state} QueueReader session window keeps a naturally missing visible owner unbound`, async () => {
+				let harness: EngineRevealHarness | undefined;
+				let armed = false;
+				let binds: (() => number) | undefined;
+				const order: string[] = [];
+				const capture = (position: 'before' | 'after') => {
+					assert.ok(harness);
+					assert.ok(binds);
+					const lens = harness.pane.activeConversationLens;
+					assert.ok(lens);
+					return {
+						position, pane: harness.pane, input: harness.pane.input, lens,
+						bound: lens.boundSessionId, visible: harness.sessionWindowService.isSessionWindowVisible(harness.primaryId),
+						suspended: lens.sessionViewBindingSuspended, disposed: lens.isDisposed, lease: lens.sessionViewLease,
+						phase: harness.connection.getConnectionPhase().kind, pairing: harness.connection.getConnectionSnapshot().pairingPending,
+						connected: harness.rosterService.isEngineConnected(), readiness: getConversationSessionReadiness(harness.rosterService),
+						queue: harness.rosterService.getMessageQueueState(harness.primaryId).readState, bindCalls: binds(),
+					};
+				};
+				const samples: ReturnType<typeof capture>[] = [];
+				harness = await createEngineRevealHarness(roster => {
+					store.add(roster.onDidChangeSession(id => {
+						if (armed && id === 'lease-s1' && samples.length === 0 && roster.getMessageQueueState(id).readState === 'stale') {
+							order.push('session before');
+							samples.push(capture('before'));
+						}
+					}));
+				});
+				const current = harness;
+				binds = observePaneBinds(current.lens);
+				store.add(current.rosterService.onDidChangeSession(id => {
+					if (armed && id === current.primaryId && samples.length === 1) {
+						order.push('session after');
+						samples.push(capture('after'));
+					}
+				}));
+				const pending = await startEmptyCatalogRefresh(current);
+				assert.strictEqual(current.rosterService.getMessageQueueState(current.primaryId).readState, 'unsupported');
+				const beforeCalls = binds();
+				const input = current.pane.input;
+				armed = true;
+				order.push('UA start');
+				current.notify(state);
+				order.push('UA return');
+				armed = false;
+				assert.deepStrictEqual(order, ['UA start', 'session before', 'session after', 'UA return'], 'QueueReader must expose the actual independent callback window');
+				assert.strictEqual(samples.length, 2);
+				for (const sample of samples) {
+					assert.strictEqual(sample.pane, current.pane);
+					assert.strictEqual(sample.input, input);
+					assert.strictEqual(sample.lens, current.lens);
+					assert.strictEqual(sample.bound, current.primaryId);
+					assert.strictEqual(sample.visible, true);
+					assert.strictEqual(sample.suspended, false);
+					assert.strictEqual(sample.disposed, false);
+					assert.strictEqual(sample.lease, undefined);
+					assert.strictEqual(sample.phase, state === 'disconnected' ? 'disconnected' : state === 'connecting pairing' ? 'connecting' : 'connected');
+					assert.strictEqual(sample.pairing, state !== 'disconnected');
+					assert.strictEqual(sample.connected, false);
+					assert.strictEqual(sample.readiness, 'ready');
+					assert.strictEqual(sample.queue, 'stale');
+					assert.strictEqual(sample.bindCalls, beforeCalls, 'new reconcile must not bind within the non-live callback window');
+				}
+				// Later existing connection callbacks may legitimately bind a cache; drain that scope separately.
+				await pending.result.complete(current.catalog);
+				await bounded(current.rosterService.whenEngineCatalogRefreshComplete(), 'stale pending catalog must drain');
+				const recovery = await startEmptyCatalogRefresh(current);
+				await completeCatalog(current, recovery);
+				await assertEngineFramePaints(current, current.pane, current.primaryId, `L3 ${state} restored`);
+			});
+		}
+
+		test('L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore', async () => {
+			const harness = await createEngineRevealHarness();
+			await harness.sessionWindowService.openSessionBeside('lease-s2');
+			const pane = await waitForEnginePane(partFor(harness.parts, 'lease-s2'));
+			trackEditors(harness.parts);
+			const lens = pane.activeConversationLens;
+			assert.ok(lens?.sessionViewLease);
+			harness.sessionWindowService.hideSessionWindow('lease-s2');
+			assert.strictEqual(lens.sessionViewBindingSuspended, true);
+			assert.strictEqual(lens.sessionViewLease, undefined);
+			const binds = observePaneBinds(lens);
+			const failed = harness.deferCatalog();
+			harness.notify('live');
+			await bounded(failed.started.p, 'hidden control real list must start');
+			await failed.result.error(new Error('hidden catalog failure'));
+			await bounded(harness.rosterService.whenEngineCatalogRefreshComplete(), 'hidden failure must settle');
+			assert.strictEqual(lens.sessionViewLease, undefined);
+			assert.strictEqual(binds(), 0);
+			const ready = harness.deferCatalog();
+			harness.notify('live');
+			await bounded(ready.started.p, 'hidden recovery list must start');
+			await completeCatalog(harness, ready);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible('lease-s2'), false);
+			assert.strictEqual(lens.sessionViewBindingSuspended, true);
+			assert.strictEqual(lens.sessionViewLease, undefined);
+			assert.strictEqual(binds(), 0);
+			harness.sessionWindowService.restoreSessionWindow('lease-s2');
+			assert.strictEqual(lens.sessionViewBindingSuspended, false);
+			assert.strictEqual(lens.sessionViewLease?.sessionId, 'lease-s2');
+			await assertEngineFramePaints(harness, pane, 'lease-s2', 'L4 public restore');
+			const removed = harness.deferCatalog();
+			harness.notify('live');
+			await bounded(removed.started.p, 'public removal catalog must start');
+			const survivingCatalog = { sessions: harness.catalog.sessions.filter(session => session.sessionId !== 'lease-s2') };
+			await removed.result.complete(survivingCatalog);
+			await bounded(harness.rosterService.whenEngineCatalogRefreshComplete(), 'public prune must settle');
+			assert.strictEqual(harness.sessionWindowService.getLeafSlots('lease-s2'), undefined);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowHidden('lease-s2'), false);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible('lease-s2'), false);
+			assert.strictEqual(lens.isDisposed, true);
+			assert.strictEqual(lens.sessionViewLease, undefined);
+			const afterRemoval = binds();
+			const late = harness.deferCatalog();
+			harness.notify('live');
+			await bounded(late.started.p, 'post-removal catalog must start');
+			await late.result.complete(survivingCatalog);
+			await bounded(harness.rosterService.whenEngineCatalogRefreshComplete(), 'post-removal catalog must settle');
+			assert.strictEqual(binds(), afterRemoval, 'later ready notices cannot revive the removed non-hidden leaf');
+			assert.strictEqual(lens.sessionViewLease, undefined);
+			await assertEngineFramePaints(harness, harness.pane, harness.primaryId, 'L4 surviving owner');
+		});
+
+		test('L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists', async () => {
+			const harness = await createEngineRevealHarness();
+			const pending = await startEmptyCatalogRefresh(harness);
+			const input = store.add(new ConversationChatInput(getConversationChatResource('lease-s2', 'unmounted')));
+			const part = partFor(harness.parts, harness.primaryId);
+			await harness.editorService.openEditor(input, undefined, part.activeGroup);
+			const pane = part.activeGroup.activeEditorPane;
+			assert.ok(pane instanceof ConversationEditorPane);
+			const lens = pane.activeConversationLens;
+			assert.ok(lens);
+			assert.strictEqual(pane.input, input);
+			assert.strictEqual(lens.boundSessionId, 'lease-s2');
+			assert.strictEqual(lens.sessionViewLease, undefined);
+			assert.strictEqual(lens.sessionViewBindingSuspended, false);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowHidden('lease-s2'), false);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible('lease-s2'), false);
+			const binds = observePaneBinds(lens);
+			await completeCatalog(harness, pending);
+			assert.strictEqual(lens.sessionViewLease, undefined);
+			assert.strictEqual(binds(), 0, 'not-hidden is not evidence of a visible leaf');
+			await harness.sessionWindowService.openSessionBeside('lease-s2');
+			const mounted = await waitForEnginePane(partFor(harness.parts, 'lease-s2'));
+			trackEditors(harness.parts);
+			await assertEngineFramePaints(harness, mounted, 'lease-s2', 'L4 mounted successor');
+		});
+
+		for (const action of ['clearInput', 'dispose', 'switch input'] as const) {
+			test(`L5 ${action} during real catalog pending cannot revive the captured owner`, async () => {
+				const harness = await createEngineRevealHarness();
+				const pending = await startEmptyCatalogRefresh(harness);
+				const oldInput = harness.pane.input;
+				const oldLens = harness.lens;
+				const oldBinds = observePaneBinds(oldLens);
+				if (action === 'clearInput') {
+					harness.pane.clearInput();
+				} else if (action === 'dispose') {
+					harness.pane.dispose();
+				} else {
+					const input = store.add(new ConversationChatInput(getConversationChatResource(harness.primaryId, 'successor')));
+					await harness.editorService.openEditor(input, undefined, partFor(harness.parts, harness.primaryId).activeGroup);
+					assert.strictEqual(harness.pane.input, input);
+					assert.notStrictEqual(harness.pane.input, oldInput);
+				}
+				const beforeReady = oldBinds();
+				await completeCatalog(harness, pending);
+				if (action === 'switch input') {
+					assert.strictEqual(harness.pane.activeConversationLens?.boundSessionId, harness.primaryId);
+					assert.strictEqual(oldBinds() - beforeReady, 1, 'only the current input listener may reconcile');
+					assert.strictEqual(harness.pane.activeConversationLens?.sessionViewLease?.sessionId, harness.primaryId);
+				} else {
+					assert.strictEqual(harness.pane.activeConversationLens, undefined);
+					assert.strictEqual(oldLens.isDisposed, true);
+					assert.strictEqual(oldBinds(), beforeReady, 'late catalog/session notices cannot bind the retired owner');
+				}
+			});
+		}
+
+		test('L6 repeated real session notices keep the recovered lease and continue delivering frames', async () => {
+			const harness = await createEngineRevealHarness();
+			const pending = await startEmptyCatalogRefresh(harness);
+			await completeCatalog(harness, pending);
+			await assertEngineFramePaints(harness, harness.pane, harness.primaryId, 'L6 first frame');
+			const lease = harness.lens.sessionViewLease;
+			assert.ok(lease);
+			const count = harness.sessionView.acquired.length;
+			for (let i = 0; i < 2; i++) {
+				const refresh = harness.deferCatalog();
+				harness.notify('live');
+				await bounded(refresh.started.p, 'duplicate real refresh must start');
+				await completeCatalog(harness, refresh);
+				assert.strictEqual(harness.lens.sessionViewLease, lease);
+				assert.strictEqual(harness.sessionView.acquired.length, count, 'observation owners must not imply a new physical acquisition');
+			}
+			await assertEngineFramePaints(harness, harness.pane, harness.primaryId, 'L6 later frame');
+			assert.strictEqual(harness.lens.sessionViewLease, lease);
+		});
+
+		test('L7 two pinned visible owners recover their own bounds from one active-session catalog notice', async () => {
+			const harness = await createEngineRevealHarness();
+			await harness.sessionWindowService.openSessionBeside('lease-s2');
+			const second = await waitForEnginePane(partFor(harness.parts, 'lease-s2'));
+			trackEditors(harness.parts);
+			const lens2 = second.activeConversationLens;
+			assert.ok(lens2?.sessionViewLease);
+			await harness.sessionWindowService.revealSessionWindow(harness.primaryId);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(harness.primaryId), true);
+			assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible('lease-s2'), true);
+			const pending = await startEmptyCatalogRefresh(harness);
+			assertVisibleMissing(harness, second, 'lease-s2');
+			const active = harness.rosterService.getActiveSessionId();
+			const notified: string[] = [];
+			store.add(harness.rosterService.onDidChangeSession(id => { notified.push(id); }));
+			await completeCatalog(harness, pending);
+			assert.ok(notified.includes(active));
+			assert.ok(!notified.includes('lease-s2'), 'the inactive pinned leaf cannot rely on its own event id');
+			assert.strictEqual(harness.pane.activeConversationLens, harness.lens);
+			assert.strictEqual(second.activeConversationLens, lens2);
+			assert.strictEqual(harness.lens.sessionViewLease?.sessionId, harness.primaryId);
+			assert.strictEqual(lens2.sessionViewLease?.sessionId, 'lease-s2');
+			assert.notStrictEqual(harness.lens.sessionViewLease, lens2.sessionViewLease);
+			await assertEngineFramePaints(harness, harness.pane, harness.primaryId, 'L7 first leaf only');
+			await assertEngineFramePaints(harness, second, 'lease-s2', 'L7 second leaf only');
+			assert.ok(!harness.pane.getReadingColumn()?.textContent?.includes('L7 second leaf only'));
+			assert.ok(!second.getReadingColumn()?.textContent?.includes('L7 first leaf only'));
+		});
+	});
 
 	test('8 single-leaf reveal A→B→A keeps one visible primary without hide button', async () => {
 		const harness = await createRevealHarness();

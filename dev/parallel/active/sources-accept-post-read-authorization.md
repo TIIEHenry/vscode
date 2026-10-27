@@ -44,3 +44,8 @@ summary: "b2原54与5f4 same-ref窄peer均C0/I0/M0经父采纳、44 I1关；root
 ### 89d规则16后独立accepted文档
 
 上节保留draft时点原文；当前以本节为准。root已逐8docs/hash/全文/sourceTree/status200独核89d，原Astra正式Rule16 C0/I0/M2经root采纳，两Minor已在[方案L2/§3.3及审查记录](../../plans/conversation-visible-lease-recovery.md#6-规则16原审查与独立accepted文档)澄清：KEEP测试持续live同identity且限定无新frame的引用窗口；三种非live状态采用自然missing→QueueReader真实session通知→同次UA内早于合法Lens重绑的前后采样，静态可行/实际fixture未达则资格未达。这里只签accepted文档，无源码授权，lease主red/新green/after未达，src仍d78a；root核accepted SHA后另议实施，不请求baseline接DHEAD，不借Sources54/18或run3外推。当前Sources问题优先，原三plan/JSON及PRD/D1387/宽方案保持。
+
+
+### E 独立可见叶lease源码候选（2026-10-27）
+
+上文保留ff55 accepted时点；root核该SHA后已另行明确授权E实施。E从干净e7一次普通ff-only到ff55，在独立分支形成仅Pane listener/import＋现Reveal真实EngineRoster矩阵的候选，原默认QuietRoster/26 tests、所有其他src、三Sourcesplan/JSON及54/18保持。L1–L7静态展开13条，L3三种非live的真实QueueReader before/after窗口、主L1资格及业务结果全部待runtime；L4含公开prune removed及未挂载控制。作者仅AST/no-cache lint/保护与docs检查，不Program/compile/emit/业务/UI/out/cache/freeze写。[当前候选与原首条](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-可见叶lease最小源码候选2026-10-27) / [plan §7](../../plans/conversation-visible-lease-recovery.md#7-e-最小源码候选与作者静态边界2026-10-27)；plan仍accepted，固定commit先交root核，再原reviewer源码peer，唯一lane旧red/新green/原reveal及非作者after均另待。当前Sources候选仍由D负责，问题优先，不混接E HEAD。

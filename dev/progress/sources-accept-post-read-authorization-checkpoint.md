@@ -474,3 +474,29 @@ summary: "固定a4a/srcd78a仅写Conversation可见叶catalog-ready后缺lease�
 ### accepted文档作者检查
 
 本次plan仅文档accepted，26461 bytes / SHA-256 `6602a6d3203fa324e97f946d711ab8d175f598efad3c414896960210307f0e68`；共8个主题文档路径，原89d draft SHA/blob/17039B与两段审查消息摘录保留。generated-status生成器只刷新新plan索引列，随后`--check` exit0；docs health实际exit0，602 Markdown / 0 errors / 46既有link warnings，本轮8路径warning0；`git diff --check` exit0。全部src无diff、HEAD:src仍d78a；三Sources方案及JSON逐字等于a4a，54/18测试源码未动。checkpoint/board的89d全文仍是本轮文件逐字前缀；status仍200行，只第7/12行变，89d原summary/首条及更早a4a原首条均原样保留。仅方案门及文档静态结果，不代源码peer、主red、新green或after，也不提供源码实施授权。
+
+
+## E 可见叶lease最小源码候选（2026-10-27）
+
+root 核独立 accepted ff55 后已另行明确授权 E 最小源码实施；上文“无源码授权”均保留其原签收时点，本节为当前候选状态。E 仅从干净 e7c246315db77aa8277775338522bb9a1cb8ff84 一次普通 ff-only 到 ff55db8937f08f116ad23e95b21fa071091b245f，再建未用分支 `fix/e-conversation-visible-lease-recovery-20261027`；不追 main、不复制工位、不动旧 out 或失败 checkout。原 accepted plan 26461B / SHA-256 `6602a6d3203fa324e97f946d711ab8d175f598efad3c414896960210307f0e68` 与 Rule16 原稿 / C0/I0/M2 摘录均由不可变对象保留。
+
+候选只改 Pane 的现 visibility 生命周期 listener / import，以及现 Reveal 文件专用真实引擎夹具 / L1–L7 静态展开13条（先前进展14为计数误差），对应 fullTitle 与公开观察资格见[plan §7](../plans/conversation-visible-lease-recovery.md#7-e-最小源码候选与作者静态边界2026-10-27)。真实 Roster 先于 Pane；通过公开 UA / Deferred list / SessionView host frame 边界，保留 FrameSource 与实际 Pane lease / DOM；没有私填 lease / readiness、手动 bind / applyFrame 或修改事件顺序。L1 有 lease→自然 missing / same active0 / 自己 lease与正文pending，L3三个独立QueueReader回调窗口均只是已写断言，**实际夹具资格和业务结果待唯一lane**。L4另含真实公开prune后的removed非hidden与未挂载控制；L5清空/销毁/换input，L7双pinned各ownbound。
+
+作者两TS `createSourceFile` parseDiagnostics0，不建Program/checker、不transpile/emit。两文件 no-cache ESLint 实际exit0，Pane0error/4个既有selector warnings、Reveal0/0；精确反向还原确认原26个test全文与默认QuietRoster路径保持，原生产syncLease正文/调用不变，全部src仅这两路径差异。三Sourcesplan和dispatch JSON与ff55完全同bytes/hash，故四Sources源码与原54/18 selector保持。out/.build/node_modules分别14865/416/47159项 metadata hash与ff前后相同：`25b6963a5ea5af29a6e9556a8c959ee65b8ab4a8566e48b031d8959265535601` / `f407a3fe5ef16c79808ea2ab1a74f6171c5d554374829d0427896e146cfc3ccb` / `fedada5fe2fcdb0b1ede2ee404c7cf27f02d839ad797f8d33eec1d1fe963d124`；路径按workspace-relative含root名，排atime。没有运行测试、UI、引擎或写out/cache/freeze。
+
+本轮主题一并提交两TS与5份必要文档，plan仍accepted；源码peer、旧a4a主red、新矩阵green/原reveal回归、非作者after全部待，不提升PRD/D1387/宽方案，不借Sources运行或既有响应恢复局部结论外推。固定commit交root逐路径/bytes/hash核后再由原reviewer正式只读peer，不提前请求唯一lane运行。
+
+### ff55 status 原summary与首条逐字保留
+
+status只替换summary与Current Session首条、总行数仍200；ff55其余行逐字保持。原首条不含末尾换行SHA-256 `bc12ff2dc9c25b0dfdf46d2136a428f53d7d31f0bd3a7aaa3d59be7a0ac47651`：
+
+```markdown
+summary: "Conversation可见叶恢复89d经root逐8docs核与原Astra规则16 C0/I0/M2；持续live的KEEP及QueueReader真实公开事件采样两Minor已澄清，仅accepted文档/srcd78a，无源码授权及lease运行资格；Sources/out原门禁保持。"
+- **Conversation 可见叶 lease 恢复方案签收（2026-10-27）**：root已核89d全8docs/hash/全文/srcd78a/原三Sourcesplan+JSON/status200，原Astra规则16 C0/I0/M2经父采纳；[窄方案](../plans/conversation-visible-lease-recovery.md)已澄清L2持续真实live同identity且无新frame的KEEP引用合同，以及自然missing→QueueReader真实session通知→同UA内早于Lens连接重绑的前后采样。仅独立accepted文档，未改源码/测试，lease主red/green/after未达、无源码授权、不请求baseline接DHEAD；54/18、PRD/D1387/宽方案及out保持。[审查来源与原首条](sources-accept-post-read-authorization-checkpoint.md#独立accepted文档与规则16来源)。
+```
+
+### E 作者静态原件与文档检查
+
+`/tmp/vscode-e-visible-lease-static.json`保存两TS bytes/hash、createSourceFile诊断、原26 tests逐字保护、13个预期fullTitle与Source范围/保护检查；`/tmp/vscode-e-visible-lease-eslint.json`为实际no-cache lint原件，`/tmp/vscode-e-visible-lease-preservation.json`保存三目录metadata复核。`generate-docs-status.py --check`实际exit0；`check-docs-health.py --format json`实际exit0，E当前checkout扫描555 Markdown / 0 errors / 73 link warnings，5个theme docs warning0；对这5文件仅以内存read_text替换为ff55原文的只读基线检查结果与当前JSON逐字结构相同，没有新增warning。先前其他checkout的602/46历史数字不代本工位结果。`git diff --check`实际exit0；status200、只第7/12行变，checkpoint/board完整ff55前缀不变。以上均不代runtime资格。
+
+本工位docs输入边界：脚本按现文件系统枚举`docs/**/*.md`与`dev/**/*.md`再加`AGENTS.md`，排除任一`archive/iterations/tmp/.git/node_modules/out`路径段；本轮无文档增删移，因此baseline overlay仅拦截上述5个changed Markdown的`Path.read_text`为ff55原文，不变更rglob/exists/is_file/link目标或其他输入。`git config`未列core.sparseCheckout/core.sparseCheckoutCone/extensions.worktreeConfig，`git sparse-checkout list`仅报告本工位非稀疏模式；未修复checkout或猜测扫描差异原因。可复核overlay脚本`/tmp/vscode-e-visible-lease-docs-overlay.py`、555路径bytes/hash输入清单`/tmp/vscode-e-visible-lease-docs-inputs.json`与current/baseline原始health JSON随固定候选manifest交root。

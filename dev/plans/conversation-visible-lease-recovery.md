@@ -4,13 +4,13 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "89d独立draft经root核与原Astra规则16 C0/I0/M2，两Minor已澄清后仅文档accepted；Pane当前bound可见/live/ready缺lease对齐，真实KEEP与QueueReader公开事件资格合同固定，源码/业务/after未授权或未达。"
+summary: "ff55独立accepted经root核后已另授权E最小源码候选：Pane原visibility生命周期补session reconcile与真实EngineRoster Reveal矩阵13条；仅作者AST/lint/保护检查，源码peer及lease旧red/新green/after均待，Sources/out保持。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
 
 > **固定输入**：`a4a70322795c509e8e9b8274cf295a1b65db663a`，`src=d78a48e5feee57fcaf5811c8425859d0a2400af0`。只读该对象，不追 main / merge / 他人 WIP。
-> **当前阶段**：精确 draft `89d08368cf4f889e1a815f8670a0e2ffd7ea9911` 已由 root 逐8路径 / bytes / 全文 / sourceTree 核验，原 Astra 按 [规则 16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)正式只读审查 **C0/I0/M2**，root 采纳并授权本次独立 accepted 文档改稿；两条 Minor 已在 L2 / §3.3 明确。这里只签方案，源码仍为 a4a / d78a，尚无源码授权、lease 主 red / 新 green / after；不请求 baseline 接入 D HEAD。当前 Sources wave 如报告源码 / fixture 问题，优先处理当前候选。draft 身份与审查来源见 §6。
+> **当前阶段**：精确 draft `89d08368cf4f889e1a815f8670a0e2ffd7ea9911` 的原 Astra Rule16 **C0/I0/M2** 与两 Minor 澄清已在独立 accepted `ff55db8937f08f116ad23e95b21fa071091b245f` 签收。root 核 accepted 后另行明确授权 E 实施；本轮只形成两 TS 源码候选与必要文档，作者只做 AST / no-cache lint / 保护检查，源码独立 peer、lease 主 red / 新 green / 非作者 after 均待。源码合同仍按 §2–§3，不改 Sources 当前候选；本轮记录见 §7，原审查来源见 §6。
 
 ## 1. 来源、已有 SSOT 与实际缺口
 
@@ -122,7 +122,7 @@ L3 的“0”仅约束本次新增 session reconcile；既有 UA connection 回�
 
 不改 Roster 发事件顺序 / active-id 规则、Lens connection 回调、Binding 的 same-session KEEP、断连缓存、readiness、写门、frame source / platform / node、session-window 导航、计时器、epoch 或公共 API。local Git 迟到 notice / collapse 的完成所有权继续后置为独立候选，不混入本稿。
 
-当前 a4a 的全部生产 / 测试源码与原 54 Accept + 18 Panel selectors 保持；[Accept plan](sources-accept-post-read-authorization.md)、[Panel VM plan](sources-panel-diff-view-model-lifetime.md)、[共同 factory 窄修订](sources-panel-fixture-preinjection-amendment.md)及原 dispatch JSON 不改。原旧 red、setup 失败、peer 与封存不覆写；PRD、D1387 closed、两已 implemented 窄方案及宽方案的旧边界保持。本方案不标产品或源码通过，不把已签 R3 外推为本项通过。
+保护合同：除本方案明确授权的 Pane / Reveal 两 TS 候选外，a4a / ff55 的其余生产 / 测试源码与原 54 Accept + 18 Panel selectors 保持；[Accept plan](sources-accept-post-read-authorization.md)、[Panel VM plan](sources-panel-diff-view-model-lifetime.md)、[共同 factory 窄修订](sources-panel-fixture-preinjection-amendment.md)及原 dispatch JSON 不改。原旧 red、setup 失败、peer 与封存不覆写；PRD、D1387 closed、两已 implemented 窄方案及宽方案的旧边界保持。本方案不标产品或源码通过，不把已签 R3 外推为本项通过。
 
 ## 5. 交付与验证顺序
 
@@ -132,7 +132,7 @@ L3 的“0”仅约束本次新增 session reconcile；既有 UA connection 回�
 4. 只有 root 释放的唯一 baseline lane 执行 checker / emit / 官方 Electron 测试，先取得 L1 精确旧 a4a 的合格业务 red，再固定新候选跑矩阵与原 reveal 回归。setup 错误与业务失败分记，finally 核原输出恢复；作者不写 out / cache / freeze。
 5. 默认编辑器窗口的非作者 after 仍须实际验证同可见 Pane 在同 session catalog 恢复后不靠 hide / restore 收到正文 / pending，以及 hidden 与双 pinned visible 叶边界；不得用 Sessions 网页或另领 observer 代替。获得实证后才讨论本窄方案 implemented 与知识层回填，不升级 PRD / 旧 D / 宽方案。
 
-**当前审查 / 运行状态**：原 Astra 对精确 89d 的 Rule16 为 C0/I0/M2，root 已采纳并授权两 Minor 澄清及独立 accepted 文档。lease 主 red、新 green、非作者 after 均未发生，源码尚未授权；其他 Sources 54 / 18、历史 after 或当前 run3 均不是本 lease 方案的运行资格。
+**当前审查 / 运行状态**：原 Astra 对精确 89d 的 Rule16 为 C0/I0/M2，root 已采纳并签收独立 accepted ff55，再另行授权 E 最小源码实施；本轮候选记录在 §7。lease 主 red、新 green、非作者 after 均未发生，源码独立 peer 待；其他 Sources 54 / 18、历史 after 或 Sources run 均不是本 lease 方案的运行资格。
 
 
 ## 6. 规则16原审查与独立accepted文档
@@ -157,3 +157,40 @@ Critical：0。Important：0。Minor：2，均属非阻断的验证明确性，r
 > Assessment：可由root核验采纳后独立accepted；建议当轮澄清M1/M2，二者不阻塞设计门，不代表测试已可执行/源码已正确/运行green。未改文件/编译/emit/测试/out，未干预solelane。
 
 本次 accepted 只关闭方案审查与两 Minor 的文档澄清，不宣称测试夹具已可执行或产品已恢复。原 a4a 生产 / 测试、当前 Sources 54 / 18、三个 Sources 方案与 JSON 保持；lease 主 red / 新 green / 非作者 after 尚无证据。root 核本 accepted SHA 后仍须另行授予源码实施权，作者不自行推进该切片。
+
+
+## 7. E 最小源码候选与作者静态边界（2026-10-27）
+
+本节是 ff55 签收之后的实施事实，不改 §2–§3 合同或 §6 原审查结论。E 原为干净 `e7c246315db77aa8277775338522bb9a1cb8ff84`；root 明确授权后只做一次普通 `git merge --ff-only ff55db8937f08f116ad23e95b21fa071091b245f`，随后在 `fix/e-conversation-visible-lease-recovery-20261027` 形成候选。不追 main、未 reset / restore / stash / clean，既有 out 不是候选产物。
+
+生产仅在 `ConversationEditorPane.bindHiddenLeafLease` 原 `visibilityDisposables` 中增加同步 roster session listener 与既有 helper import；原 `syncLease` hide / reveal 正文与调用逐字保持。回归在原 Reveal 文件中增加真实 EngineRoster（先于 Pane 创建）、公开 UA emitter / Deferred catalog、公开 SessionView host frame fixture，保留真实 FrameSource / Pane lease / TimelineHost；原 26 个 `test(...)` 的完整 AST 文本逐字相同，反向去掉新增夹具与列明的通用 harness 抽取后，默认 QuietRoster 文件完整还原 ff55。新增打开 input 走真实 `IEditorService`，不私改 lease / readiness，不改生产事件顺序或 API。
+
+### 7.1 静态展开选择器与待运行资格
+
+下面为 **13 个预期 case**，不是运行结果。每个 fullTitle 是固定前缀 `Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery ` 加下表后缀；完整展开原件在作者静态 JSON 的 `tests`。早先进展口头计数 14 是计数误差，以本表及 AST 展开 13 为准。
+
+| 合同 | fullTitle 后缀 | 公开观察与资格 |
+| --- | --- | --- |
+| L1 | `L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal` | 自然 empty→missing、同 active 事件增量 0、自身 lease + DOM 正文 / pending；待运行。 |
+| L2 | `L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready` | 持续 live / 同 identity / 无新 frame 窗口，lease / snapshot / entries 引用与正文；待运行。 |
+| L3 | `L3 loading and real list rejection leave a visible empty owner missing until successful ready` | 真实 list / QueueReader；三个非 live case 的同 UA before / after 窗口及 bind 增量 0 均待运行资格。 |
+| L3 | `L3 disconnected QueueReader session window keeps a naturally missing visible owner unbound` | 真实 list / QueueReader；三个非 live case 的同 UA before / after 窗口及 bind 增量 0 均待运行资格。 |
+| L3 | `L3 connected pairing QueueReader session window keeps a naturally missing visible owner unbound` | 真实 list / QueueReader；三个非 live case 的同 UA before / after 窗口及 bind 增量 0 均待运行资格。 |
+| L3 | `L3 connecting pairing QueueReader session window keeps a naturally missing visible owner unbound` | 真实 list / QueueReader；三个非 live case 的同 UA before / after 窗口及 bind 增量 0 均待运行资格。 |
+| L4 | `L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore` | 真实 hidden / restore / public prune，或未挂载非 hidden；待运行。 |
+| L4 | `L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists` | 真实 hidden / restore / public prune，或未挂载非 hidden；待运行。 |
+| L5 | `L5 clearInput during real catalog pending cannot revive the captured owner` | 真实 pending 后公开 owner 操作，迟到通知与继任 owner；待运行。 |
+| L5 | `L5 dispose during real catalog pending cannot revive the captured owner` | 真实 pending 后公开 owner 操作，迟到通知与继任 owner；待运行。 |
+| L5 | `L5 switch input during real catalog pending cannot revive the captured owner` | 真实 pending 后公开 owner 操作，迟到通知与继任 owner；待运行。 |
+| L6 | `L6 repeated real session notices keep the recovered lease and continue delivering frames` | 真实重复 catalog 通知、lease 身份与后续 frame；待运行。 |
+| L7 | `L7 two pinned visible owners recover their own bounds from one active-session catalog notice` | 公开 open beside，单 active catalog 通知、两 own lease 与独立正文 / pending；待运行。 |
+
+L3 的公开 observer 注册顺序、QueueReader unsupported→stale、同次 UA 内 `start→before→after→return`、两侧 visible / unsuspended / missing 及 bind 增量 0 都已写成运行断言，**静态通过不证明任一窗口实际成立**。必须由唯一 lane 独立取得该资格；后续 Lens connection 合法缓存重绑不计入这段窗口。L4 的已移除控制由真实 catalog prune 卸掉 s2 叶后，再送真实 ready 通知检查不复活；未挂载控制另核 visible=false 且 hidden=false。
+
+### 7.2 作者允许的检查与交付门
+
+两 TS 仅 `createSourceFile` AST parse（不建 Program / checker / emit）均 0 syntax diagnostics；两文件 `eslint --no-cache` 实际 exit0：Pane 0 errors / 4 个既有 selector warnings，Reveal 0 errors / 0 warnings。精确还原与保护检查确认生产只有获准 listener / import、默认 QuietRoster 与原 26 tests 保持、`src` 只两路径不同，其他 Sources 源码与旧 54 / 18 selectors 不动；三 Sources plan 与 dispatch JSON bytes / SHA-256 全等 ff55。静态原件为 `/tmp/vscode-e-visible-lease-static.json`、`/tmp/vscode-e-visible-lease-eslint.json`。
+
+out / .build / node_modules 逐条 metadata（workspace-relative path、mode、size、mtime_ns、ctime_ns、symlink target；不含 atime）分别 14865 / 416 / 47159 项，与 advance 前后 hash 相同；根 cache / eslintcache 与 node_modules cache 仍无。作者没有 typecheck / compile / transpile / emit / tests / Electron / UI / engine / out / cache / freeze 写入。文档与 diff 检查结果记于[现行动记录](../progress/sources-accept-post-read-authorization-checkpoint.md#e-可见叶lease最小源码候选2026-10-27)。
+
+本 plan 继续 **accepted**；此候选还须 root 核固定 commit、原 reviewer 独立源码 peer，再由 root 单独释放唯一 baseline lane 的旧 a4a L1 合格业务 red / 新候选矩阵及原 reveal 回归，最后非作者默认编辑器窗口 after。未把静态结果写成实现通过；PRD / D1387 / 宽方案、历史 Sources / unary 局部签收均保持。
