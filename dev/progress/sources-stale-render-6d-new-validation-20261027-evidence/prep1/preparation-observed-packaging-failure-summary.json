@@ -1,0 +1,13 @@
+{
+  "source": "Observed prior tool-result traceback retained in continuation summary; this file is attribution, not recreated raw stderr",
+  "actualExitCode": 1,
+  "failure": "Final stdlib packaging helper AssertionError at line28: assert not list(b.glob('runtime-*'))",
+  "scope": "Scratch static packaging after writing matrix/diffs/pins; no prepared code import, evaluation or execution",
+  "confirmedMatchingPath": "runtime-path-matrix.json",
+  "matchingPathIsFile": true,
+  "runtimeDirectoriesFound": [],
+  "correction": "Final static assertion checks only matching directories; the matrix file is expected",
+  "noRawTracebackFabricated": true,
+  "notValidationRuntimeFailure": true,
+  "noJavaScriptSyntaxCheckRepeated": true
+}

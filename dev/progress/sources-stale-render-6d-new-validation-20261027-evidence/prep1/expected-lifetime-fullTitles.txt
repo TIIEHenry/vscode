@@ -1,0 +1,18 @@
+Sources diff panel Panel diff model lifetime replace detaches real widgets and releases each old reference once
+Sources diff panel Panel diff model lifetime clear detaches real widgets and releases each old reference once
+Sources diff panel Panel diff model lifetime dispose detaches real widgets and releases each old reference once
+Sources diff panel Panel diff model lifetime same-ref detaches real widgets and releases each old reference once
+Sources diff panel Panel diff model lifetime diff-to-single detaches real widgets and releases each old reference once
+Sources diff panel Panel diff model lifetime single-to-diff detaches real widgets and releases each old reference once
+Sources diff panel Panel diff model lifetime diff pending modified reference resolved after replace releases only its own references
+Sources diff panel Panel diff model lifetime diff pending modified reference rejected after replace releases only its own references
+Sources diff panel Panel diff model lifetime diff pending modified reference resolved after clear releases only its own references
+Sources diff panel Panel diff model lifetime diff pending modified reference rejected after clear releases only its own references
+Sources diff panel Panel diff model lifetime diff pending modified reference resolved after dispose releases only its own references
+Sources diff panel Panel diff model lifetime diff pending modified reference rejected after dispose releases only its own references
+Sources diff panel Panel diff model lifetime single pending modified reference resolved after replace releases only its own references
+Sources diff panel Panel diff model lifetime single pending modified reference rejected after replace releases only its own references
+Sources diff panel Panel diff model lifetime single pending modified reference resolved after clear releases only its own references
+Sources diff panel Panel diff model lifetime single pending modified reference rejected after clear releases only its own references
+Sources diff panel Panel diff model lifetime single pending modified reference resolved after dispose releases only its own references
+Sources diff panel Panel diff model lifetime single pending modified reference rejected after dispose releases only its own references

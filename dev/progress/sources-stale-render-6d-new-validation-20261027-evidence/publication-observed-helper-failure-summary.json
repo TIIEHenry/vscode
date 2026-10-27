@@ -1,0 +1,8 @@
+{
+  "source": "Observed actual tool-result traceback, not reconstructed raw stderr",
+  "actualExitCode": 1,
+  "failure": "ValueError: substring not found at inline helper line45 while comparing old/new documentation-health output using Warnings: substring",
+  "scope": "Read-only publication identity/proc audit and documentation edit provenance; all earlier source/native/freeze/cache/proc assertions had passed; no validation runtime executed",
+  "correction": "Inspect actual old health output schema and compare its warning data with corresponding new health representation",
+  "notValidationRuntimeFailure": true
+}

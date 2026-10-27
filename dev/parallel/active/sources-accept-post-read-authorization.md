@@ -1,15 +1,15 @@
 ---
 title: "Sources Accept 读后授权：分工与门禁"
 type: progress
-status: active
+status: completed
 phase: M7
 updated: 2026-10-27
-summary: "8438新72实过/完整Panel旧1败原件全保；固定6d唯一52B stub经peer C0/I0/M0正式接入待新复验，旧native/8b5f基准不变。"
+summary: "固定6d一次六stage全0，72逐名与完整3/142及旧stale本体过；root独核后四窄plan implemented，本board按source/真实组件scope收口，旧历史全保。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
 
-> **合源当前阶段（2026-10-27）**：root已独立接收8438全部一次实测/恢复原件：新54+18实际逐名通过，完整Conversation3/3、Panel142/141过1旧stale首断言败，后续三断言未达。另案b0 accepted与固定6d唯一52B stub行经原Astra窄source peer C0/I0/M0、root采纳，现正式三路接入；这份新source尚未checker/emit/完整两模块复验，不称旧case已绿。256 native仍旧产物、15500 metadata精确8b5f45实际恢复基准、freeze4/cache3不变，fullCompile=false。原[一次实测/失败/恢复证据](../../progress/sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)不改，四窄plan仍accepted、PRD/旧波不升；只获merge/proof/docs与只读guard，无新验证准备/执行release。
+> **当前窄scope验收（2026-10-27）**：root已核[固定6d一次新验证](../../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)：六stage exit0，新72逐名通过、完整Pane3/3与Panel142/142、旧stale本体通过，meta/hooks/无pending/缺失/未知及owned/finally全合格。四窄plan implemented，本看板仅按source/真实组件合同completed；以下所有旧覆盖段落、表格与推进顺序为历史原文，不再代表当前待验证。当前metadata基准54fe37、旧native256/freeze4/cache3恢复，fullCompile=false；不声称Git实端/UI after已验，PRD/宽Sources/旧波及overall active保持。
 
 > **以下两侧覆盖段原文按历史阶段保留**，其中“待peer/仅候选/须另案”等不作为当前结论。
 

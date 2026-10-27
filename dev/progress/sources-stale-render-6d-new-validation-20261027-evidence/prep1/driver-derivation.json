@@ -1,0 +1,82 @@
+{
+  "preparedAtUtc": "2026-10-27T06:07:51.758359+00:00",
+  "preparationOnly": true,
+  "expectedHead": "01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba",
+  "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "previousActualToolScratch": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2",
+  "previousActualProofCommit": "8438ef3f197367a493ab48232012c5a37c64f797",
+  "rootAcceptedSourceMergeProof": "01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba",
+  "oldPreparedInventorySha256": "7cdd73bc4f0604f3ff349c576f8c3e2325b8edad63cf5a5345d52ada2006bda4",
+  "exactInheritedOwnershipRanges": [
+    {
+      "start": "def read_process(",
+      "end": "def parse_mocha(",
+      "bytes": 10969,
+      "sha256": "a44830373ca8ce5c0639a6988c44cd12cf94fcfa891d9b46805e427e0367db61",
+      "byteIdenticalToActualPrep2AndOriginalRun3": true
+    },
+    {
+      "start": "    def run_owned(",
+      "end": "    lock, before, seals",
+      "bytes": 2479,
+      "sha256": "faf10203b16a869025c5391ecc227999355c1c08a3111bfb7406a8e4a36e2cf9",
+      "byteIdenticalToActualPrep2AndOriginalRun3": true
+    }
+  ],
+  "actualCreateCompilePipelineStatement": {
+    "bytes": 268,
+    "sha256": "38a641caeca6fc1bc4c20affdc9f135993a826be34c0d0e8ef11e297d6c058f0",
+    "exactOldPrep2AndRun3": true
+  },
+  "unchangedToolFiles": [
+    "emitter.mjs",
+    "source-checker.mjs",
+    "linter.mjs",
+    "reporter.cjs"
+  ],
+  "changedRuntimeLogic": [
+    "Fixed scratch/HEAD/sourceRef/src plus fresh false release and all inputs/hashes",
+    "Current metadata baseline8b5f and separately bound current6d source/native256 schema; eliminate old pairs254 source assumptions from guard/fixedguard",
+    "Whole-module qualification now requires exact3/142 official counts/titles/pass lists, one independently observed official meta, exactbalanced11/567 hook events and no pending/missing/unknown",
+    "Oldstale result explicitly couples original four assertion byte/path identity with actual whole-case body pass; no individual assert runtime hooks or fabricated per-assert observations"
+  ],
+  "all20RuntimeSurfaceFilesMechanicalDiff": "runtime-path-matrix.json",
+  "all127ToolConfigBytesShaExactActualPrep2": true,
+  "noConsumedReleaseOrExecutionMarkerCopied": true,
+  "newReleaseExecutionAuthorized": false,
+  "newToolPeerPending": true,
+  "nodeSyntaxCheckAuthority": "Root explicit exactly one node --check per five named new files, all NODE_* cleared first and NODE_DISABLE_COMPILE_CACHE=1; no module imports/evaluation",
+  "syntaxRawReport": "syntax-checks/validation.json",
+  "pythonAstParsedOnly": [
+    {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/validate.py",
+      "bytes": 43350,
+      "sha256": "700d52594e8cada45c1b94c1d589141bbec0742b09ffaed7d8d09d00281190d0",
+      "parse": "stdlib ast.parse only; not imported/evaluated/executed"
+    },
+    {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/guard.py",
+      "bytes": 4177,
+      "sha256": "b2c81d2503db1cda1fc05a30c8223f054c38fbe99c4a2d8f4608d0edcc43b1bd",
+      "parse": "stdlib ast.parse only; not imported/evaluated/executed"
+    }
+  ],
+  "earlyIdentityCallLine": 396,
+  "firstRunpyHelperLoadLine": 398,
+  "identityAndAll14PinsToolConfigSourceChecksBeforeHelperLoads": true,
+  "lintWarningSourceContinuity": {
+    "ruleId": "local/code-no-in-operator",
+    "message": "The \"in\" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility.",
+    "severity": 1,
+    "oldLine": 636,
+    "currentCorrespondingSourceLine": 637,
+    "sameOriginalSourceLineIncludingLF": "\t\tif ('disabled' in button) {\n",
+    "sameOriginalSourceLineSha256": "a8dfced641ae8284fa08ced4e3706d9b51cdc028a210f870061e93f679d4c106",
+    "newLintActuallyRun": false,
+    "ruleMessageAndSourceContinuityOnlyNotNewDiagnosticClaim": true
+  },
+  "initialIdentitySummaryIsHistoricalBeforeFiveSyntaxChecks": true,
+  "noOutCacheFreezeProfileWriteOrBusinessValidation": true,
+  "noNewReleaseExecution": true
+}

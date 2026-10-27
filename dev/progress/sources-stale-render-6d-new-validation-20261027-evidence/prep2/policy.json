@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "planId": "vscode-sources-stale-render-6d-validation-20261027-prep2",
+  "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "scratch": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2",
+  "expectedHead": "01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba",
+  "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "baselineFile": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-after-restore.json",
+  "baselineFileSha256": "8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04",
+  "sourcePaths": [
+    "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+    "src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+    "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts"
+  ],
+  "outputPaths": [
+    "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+    "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+    "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+    "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"
+  ],
+  "sourceInputCount": 5,
+  "temporaryJsWriteCount": 5,
+  "productionWriteCount": 3,
+  "testJsWriteCount": 2,
+  "standaloneMapCount": 0,
+  "outFileCount": 12554,
+  "outDirectoryCount": 2946,
+  "unchangedOtherOutFileCount": 12549,
+  "watchdogSeconds": 45,
+  "termGraceSeconds": 5,
+  "killGraceSeconds": 5,
+  "pollSeconds": 0.04,
+  "groups": [
+    {
+      "label": "full-conversation-pane",
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "selector": null,
+      "grepAllowed": false,
+      "runWholeModule": true
+    },
+    {
+      "label": "full-sources-panel",
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "selector": null,
+      "grepAllowed": false,
+      "runWholeModule": true
+    }
+  ],
+  "diagnosticPolicy": {
+    "configGlobalAndTargetFiveGate": true,
+    "nonTargetSyntacticReportedButNotGating": true,
+    "nonTargetSemantic": "Not requested; dependencies loaded into full actual project, no full-project semantic clean claim",
+    "noEmit": true,
+    "incremental": false,
+    "composite": false,
+    "tsBuildInfoFile": null,
+    "emitNeverCalled": true,
+    "writeFileThrows": true
+  },
+  "eslint": {
+    "cache": false,
+    "fix": false,
+    "targets": 5,
+    "gate": "zero errors/fatal; preserve warnings verbatim"
+  },
+  "moduleFailurePolicy": "Safe-cleaned module failure/watchdog does not suppress second full module; no retries/extra groups; unsafe cleanup or integrity drift forbids further spawn",
+  "restorationPolicy": "All owned quiescent first; five exact original bytes/mode/mtime, only five ctime may differ; other12549files/2946dirs/freeze/cache/256native exact",
+  "fullCompileOfFinalSourceTree": false,
+  "sourceIdentityBaselineFile": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/guard-after-source-merge-commit.json",
+  "sourceIdentityBaselineFileSha256": "0a99707f0153413b352f91d2ae7d6d0295f709db3bf1d2faf27998dd3c4a5006",
+  "guardSchemaVersion": 2,
+  "expectedFullOfficialTests": {
+    "full-conversation-pane": 3,
+    "full-sources-panel": 142
+  },
+  "expectedOfficialMetaTestsPerModule": 1,
+  "expectedObservedHookCounts": {
+    "full-conversation-pane": 11,
+    "full-sources-panel": 567
+  },
+  "legacyStaleCaseFullTitle": "Sources diff panel superseded async render cannot paint an older file diff",
+  "originalStaleAssertionsRequired": 4
+}

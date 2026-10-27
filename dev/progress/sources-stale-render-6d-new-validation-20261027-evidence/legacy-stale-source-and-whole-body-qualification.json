@@ -1,0 +1,67 @@
+{
+  "source": "Exact fixed6d source identity and actual whole-case reporter outcome; no individual assertion runtime observations",
+  "sourceIdentity": {
+    "fullTitle": "Sources diff panel superseded async render cannot paint an older file diff",
+    "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+    "sourceBlob": "1eb53d2f64343c465b02bebb99724b9a76a35561",
+    "sourceSha256": "414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6",
+    "headerIncludingLF": "\ttest('superseded async render cannot paint an older file diff', async function () {\n",
+    "oldCaseBytes": 3188,
+    "oldCaseSha256": "afb95826f5f3ddd1352beef94ac2170c3d2bfcd68d3fa024aa3ddfdecd3cefa4",
+    "currentCaseBytes": 3240,
+    "currentCaseSha256": "47d0815ba725fe821c9a24de14f9a41614ce211242e2dcabd795bc365d44d2cb",
+    "soleStubLineIncludingLF": "\t\t\t\tcreateViewModel: () => toDisposable(() => { }),\n",
+    "soleStubBytes": 52,
+    "removeSoleStubExactlyRestoresPreviousFailedCase": true,
+    "orderedOriginalAssertions": [
+      {
+        "index": 1,
+        "bytes": 113,
+        "sha256": "8be336294e0fbe12aa36bb9cf02b613f88cfc575411367ac6813a9529b855752",
+        "textIncludingLF": "\t\t\tassert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent, 'stale-panel-b.ts');\n",
+        "currentSourceLine": 486
+      },
+      {
+        "index": 2,
+        "bytes": 113,
+        "sha256": "8be336294e0fbe12aa36bb9cf02b613f88cfc575411367ac6813a9529b855752",
+        "textIncludingLF": "\t\t\tassert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent, 'stale-panel-b.ts');\n",
+        "currentSourceLine": 491
+      },
+      {
+        "index": 3,
+        "bytes": 44,
+        "sha256": "b96a2f560b1c3de9fff2c2db6ec80508086b37ac9bdf5bc27c5ec46d7be73f3e",
+        "textIncludingLF": "\t\t\tassert.strictEqual(await shownA, false);\n",
+        "currentSourceLine": 492
+      },
+      {
+        "index": 4,
+        "bytes": 43,
+        "sha256": "37b942e2cd7d19fc3d15aee9e236482fba12c6ea72a69acf7bf4a2e904d1279e",
+        "textIncludingLF": "\t\t\tassert.strictEqual(await shownB, true);\n",
+        "currentSourceLine": 493
+      }
+    ],
+    "runtimeRule": "Only actual body pass with exact start/end/pass1 and no fail/pending proves completion of these four unmodified sequential assertions; static bytes alone prove no runtime completion",
+    "previousActualFailure": "prep2 first title assertion actual empty/expected stale-panel-b.ts; later three not reached; old raw remains immutable",
+    "individualAssertionRuntimeInstrumentation": false,
+    "runtimeEvidenceIsWholeCaseBodyOutcomeOnly": true
+  },
+  "actualWholeCase": {
+    "fullTitle": "Sources diff panel superseded async render cannot paint an older file diff",
+    "expectedGroup": "legacy-module-test",
+    "testStartCount": 1,
+    "testEndCount": 1,
+    "bodyPassCount": 1,
+    "bodyFailureCount": 0,
+    "pendingCount": 0,
+    "classification": "body-pass",
+    "arrivedFromActualReporter": true,
+    "completedFromActualReporter": true,
+    "bodyPassDoesNotProveHookOrSuiteClean": true
+  },
+  "qualification": "qualified-from-fixed-source-and-actual-whole-case-body-pass",
+  "individualAssertionRuntimeHooksUsed": false
+}

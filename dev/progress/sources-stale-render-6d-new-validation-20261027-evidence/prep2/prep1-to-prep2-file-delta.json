@@ -1,0 +1,684 @@
+{
+  "atUtc": "2026-10-27T06:21:55.429889+00:00",
+  "comparison": "All63 prep1 inventory members to same-relative-path prep2 counterparts, including generated summaries/diffs; four authorized line metadata corrections and necessary scratch/path/hash/provenance regeneration only",
+  "previousInventory": {
+    "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/preparation-inventory.json",
+    "bytes": 11508,
+    "sha256": "23a055b84af30c5ec4c4420947bcafea2d8f5b9c00d35b50823bec23ce0c3969"
+  },
+  "previousInventoryMembersCompared": 63,
+  "byteIdenticalPreviousMembers": 38,
+  "changedPreviousMembers": 25,
+  "rows": [
+    {
+      "path": "binding.mjs",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/binding.mjs",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/binding.mjs",
+      "previousBytes": 4565,
+      "newBytes": 4565,
+      "previousSha256": "b2b1fed0c07fef9ae0497e05d1c7a810eb77f55965b3fadfadf028ed311e01e4",
+      "newSha256": "006ccace60d99b62c51518e7ba8a6b4b844116032e9af7d5a7d975127a3fc81e",
+      "byteIdentical": false
+    },
+    {
+      "path": "driver-derivation.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/driver-derivation.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/driver-derivation.json",
+      "previousBytes": 4073,
+      "newBytes": 5412,
+      "previousSha256": "444247583ea626291632d6211712e85bcedb1e060b34ef95fc799bbfbaa511ff",
+      "newSha256": "27c12aa4e315fa8b41ee0146aff5b99036b053f2ed8c350f520640e793ad8c7d",
+      "byteIdentical": false
+    },
+    {
+      "path": "emitter.mjs",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/emitter.mjs",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/emitter.mjs",
+      "previousBytes": 9373,
+      "newBytes": 9373,
+      "previousSha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+      "newSha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+      "byteIdentical": true
+    },
+    {
+      "path": "execution-release.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/execution-release.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/execution-release.json",
+      "previousBytes": 1959,
+      "newBytes": 1959,
+      "previousSha256": "988100fd11df5b9e91a131069268880ab7b8d67b8029113d5d1be9e53089ff97",
+      "newSha256": "e9a23867011b3fb0359535c7c4276f2c81c52bd1d6eb5b4834f0c2ea9a63e5f2",
+      "byteIdentical": false
+    },
+    {
+      "path": "expected-accept-fullTitles.txt",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/expected-accept-fullTitles.txt",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/expected-accept-fullTitles.txt",
+      "previousBytes": 5942,
+      "newBytes": 5942,
+      "previousSha256": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+      "newSha256": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+      "byteIdentical": true
+    },
+    {
+      "path": "expected-fullTitles.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/expected-fullTitles.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/expected-fullTitles.json",
+      "previousBytes": 41614,
+      "newBytes": 41614,
+      "previousSha256": "0f430caad1822879390022c8d6d162c6a102e6c2f8e285da6184e0183b3d9ddc",
+      "newSha256": "596e290bb530b3c4d5f7b86b682d6ff24842f9c5093454a51f32d533aa374eb7",
+      "byteIdentical": false
+    },
+    {
+      "path": "expected-lifetime-fullTitles.txt",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/expected-lifetime-fullTitles.txt",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/expected-lifetime-fullTitles.txt",
+      "previousBytes": 2285,
+      "newBytes": 2285,
+      "previousSha256": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+      "newSha256": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+      "byteIdentical": true
+    },
+    {
+      "path": "expected-new72-fullTitles.txt",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/expected-new72-fullTitles.txt",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/expected-new72-fullTitles.txt",
+      "previousBytes": 8227,
+      "newBytes": 8227,
+      "previousSha256": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+      "newSha256": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+      "byteIdentical": true
+    },
+    {
+      "path": "guard.py",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/guard.py",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/guard.py",
+      "previousBytes": 4177,
+      "newBytes": 4177,
+      "previousSha256": "b2c81d2503db1cda1fc05a30c8223f054c38fbe99c4a2d8f4608d0edcc43b1bd",
+      "newSha256": "b2c81d2503db1cda1fc05a30c8223f054c38fbe99c4a2d8f4608d0edcc43b1bd",
+      "byteIdentical": true
+    },
+    {
+      "path": "input-manifest.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/input-manifest.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/input-manifest.json",
+      "previousBytes": 256377,
+      "newBytes": 256377,
+      "previousSha256": "041fddc7d9be4051bb14707828ab87c32df33138d26cb96f3d3eea43a28aa231",
+      "newSha256": "6b980942797f2e6989fd7b928656fc161b6d286915a93df839282c23505a0f6a",
+      "byteIdentical": false
+    },
+    {
+      "path": "inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "previousBytes": 34365,
+      "newBytes": 34365,
+      "previousSha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+      "newSha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+      "byteIdentical": true
+    },
+    {
+      "path": "inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "previousBytes": 34142,
+      "newBytes": 34142,
+      "previousSha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+      "newSha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+      "byteIdentical": true
+    },
+    {
+      "path": "inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "previousBytes": 10800,
+      "newBytes": 10800,
+      "previousSha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+      "newSha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+      "byteIdentical": true
+    },
+    {
+      "path": "inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "previousBytes": 13078,
+      "newBytes": 13078,
+      "previousSha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+      "newSha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+      "byteIdentical": true
+    },
+    {
+      "path": "inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "previousBytes": 189106,
+      "newBytes": 189106,
+      "previousSha256": "414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6",
+      "newSha256": "414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6",
+      "byteIdentical": true
+    },
+    {
+      "path": "legacy-stale-assertion-identity.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/legacy-stale-assertion-identity.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/legacy-stale-assertion-identity.json",
+      "previousBytes": 2509,
+      "newBytes": 2509,
+      "previousSha256": "c1f013b43710261eea4a0a55d064a618d16fbad9b765db87a7268f67b094f9cd",
+      "newSha256": "0156b3a64b92c914b62b9d06e9ad4af35c3979c656dc7d65dca7b2053945c0e6",
+      "byteIdentical": false
+    },
+    {
+      "path": "linter.mjs",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/linter.mjs",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/linter.mjs",
+      "previousBytes": 1854,
+      "newBytes": 1854,
+      "previousSha256": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff",
+      "newSha256": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/binding.mjs.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/binding.mjs.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/binding.mjs.patch",
+      "previousBytes": 5341,
+      "newBytes": 2120,
+      "previousSha256": "eed9af77e9582b16f9d5a4b036a36533bc3cb1cf2e8679aef30e25eaed3b0b91",
+      "newSha256": "49b3821acf1475e835b8e271c72ef710b685c20aad105061ddf0177f7b701333",
+      "byteIdentical": false
+    },
+    {
+      "path": "mechanical-diffs/emitter.mjs.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/emitter.mjs.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/emitter.mjs.patch",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/execution-release.json.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/execution-release.json.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/execution-release.json.patch",
+      "previousBytes": 3122,
+      "newBytes": 2619,
+      "previousSha256": "0a7a2f40275d4f5aca5bd148def8ea7341aee1548adddc99b2d677a4dcb0148a",
+      "newSha256": "7f525f073e7a75cedadbbb702bdda37713c4e9906fd52264230238ae53a14401",
+      "byteIdentical": false
+    },
+    {
+      "path": "mechanical-diffs/expected-accept-fullTitles.txt.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/expected-accept-fullTitles.txt.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/expected-accept-fullTitles.txt.patch",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/expected-fullTitles.json.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/expected-fullTitles.json.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/expected-fullTitles.json.patch",
+      "previousBytes": 8061,
+      "newBytes": 876,
+      "previousSha256": "b3efd3ecb6bd2699a7b605da1799a86299aacbf68ea5d8fd0c3936cfe002c709",
+      "newSha256": "bf00f5acfedc79e51b248255fa249c75666d6ae71880dd255e3b3c9cfd723f0d",
+      "byteIdentical": false
+    },
+    {
+      "path": "mechanical-diffs/expected-lifetime-fullTitles.txt.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/expected-lifetime-fullTitles.txt.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/expected-lifetime-fullTitles.txt.patch",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/expected-new72-fullTitles.txt.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/expected-new72-fullTitles.txt.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/expected-new72-fullTitles.txt.patch",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/full-runtime-surface.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/full-runtime-surface.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/full-runtime-surface.patch",
+      "previousBytes": 265227,
+      "newBytes": 14657,
+      "previousSha256": "1148431330263491a8e9dcfe21669369702f46982eb683155e9fb0025a3ab5c4",
+      "newSha256": "285594973d00975c8b509531a8de6fba483931edb5b5754b8f699ee76b0af4b8",
+      "byteIdentical": false
+    },
+    {
+      "path": "mechanical-diffs/guard.py.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/guard.py.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/guard.py.patch",
+      "previousBytes": 7083,
+      "newBytes": 0,
+      "previousSha256": "5df710f039be2384ca1668637fa38a2fb930fde9f1487afc6aa9942f8f50b214",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": false
+    },
+    {
+      "path": "mechanical-diffs/input-manifest.json.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/input-manifest.json.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/input-manifest.json.patch",
+      "previousBytes": 220796,
+      "newBytes": 3865,
+      "previousSha256": "60acd6817728e4c4c778e8336a1224932d6d56d1034e0a2719d8d1f8df04a431",
+      "newSha256": "04e0bb93c31acbb677646876de8d728510dd915d5a1a60131228f20687cd0d07",
+      "byteIdentical": false
+    },
+    {
+      "path": "mechanical-diffs/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts.patch",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts.patch",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts.patch",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts.patch",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch",
+      "previousBytes": 805,
+      "newBytes": 0,
+      "previousSha256": "4f6b708c3f2001e155a1cb6d8c3ad3f6e61821de0f75571e4a3f6cbc94a6ca45",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": false
+    },
+    {
+      "path": "mechanical-diffs/linter.mjs.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/linter.mjs.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/linter.mjs.patch",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/policy.json.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/policy.json.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/policy.json.patch",
+      "previousBytes": 2761,
+      "newBytes": 642,
+      "previousSha256": "954f7132f9034bfba8937dcdfae277f221b21d238b2f669dcf435b7e55483874",
+      "newSha256": "6ee447d30a5e6e40b4748ccf3f71ff00ffcb18a1e934b213c0fc2862df3f145b",
+      "byteIdentical": false
+    },
+    {
+      "path": "mechanical-diffs/reporter.cjs.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/reporter.cjs.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/reporter.cjs.patch",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/source-checker.mjs.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/source-checker.mjs.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/source-checker.mjs.patch",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "mechanical-diffs/source-inputs.json.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/source-inputs.json.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/source-inputs.json.patch",
+      "previousBytes": 4742,
+      "newBytes": 2737,
+      "previousSha256": "3cfa6cb0827cf5ead5dfd4afd788ed7550edc89e7d0140cbc1883d445e08558c",
+      "newSha256": "22d724f832a7815e0275f890ebe283eeecbd43245f9e9f3f688b29c92f8dd1fd",
+      "byteIdentical": false
+    },
+    {
+      "path": "mechanical-diffs/validate.py.patch",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/mechanical-diffs/validate.py.patch",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/mechanical-diffs/validate.py.patch",
+      "previousBytes": 12516,
+      "newBytes": 1798,
+      "previousSha256": "7eccdf40828ffbd9e7852841c60b24b995a0e1c690222a3834bfe1a8c08a421c",
+      "newSha256": "fc19ae4fd3e0615c91598c38013e519c6f2fcec9af82d4770f071589891845e3",
+      "byteIdentical": false
+    },
+    {
+      "path": "new-guard-schema.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/new-guard-schema.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/new-guard-schema.json",
+      "previousBytes": 2274,
+      "newBytes": 2274,
+      "previousSha256": "595047ad65020f052c1ef52e42a9472f1d41ae87f13d69dc4a2f0abb00e36bdf",
+      "newSha256": "595047ad65020f052c1ef52e42a9472f1d41ae87f13d69dc4a2f0abb00e36bdf",
+      "byteIdentical": true
+    },
+    {
+      "path": "pinned-files.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/pinned-files.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/pinned-files.json",
+      "previousBytes": 2189,
+      "newBytes": 2189,
+      "previousSha256": "5c0325145af4a1b3fb437a39f7188bbce5b9ebbe11dc01d6d1fe3f8d71be70b0",
+      "newSha256": "6641e1971c409b2b639437779200185d09063283ab848769338643896f5e2685",
+      "byteIdentical": false
+    },
+    {
+      "path": "policy.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/policy.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/policy.json",
+      "previousBytes": 3994,
+      "newBytes": 3994,
+      "previousSha256": "8d7bc721ade9c0cd7c2a6368e9e8e98f81618c0d7cef021d76232583d9940104",
+      "newSha256": "2b4a33c3139789b279afecd61a0da4298653b8c2ee391a11da96df605f35b010",
+      "byteIdentical": false
+    },
+    {
+      "path": "preparation-final-seal-summary.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/preparation-final-seal-summary.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/preparation-final-seal-summary.json",
+      "previousBytes": 1628,
+      "newBytes": 2710,
+      "previousSha256": "f4ff34fd322bab0a383bb4658c7b184c5d588232119435735b1d7764a64a3c6e",
+      "newSha256": "f04cca278118edfc498af3b4df724e8360d74be0d72e1d08955b4f4d62cf08cd",
+      "byteIdentical": false
+    },
+    {
+      "path": "preparation-identity-summary.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/preparation-identity-summary.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/preparation-identity-summary.json",
+      "previousBytes": 1078,
+      "newBytes": 1078,
+      "previousSha256": "c721c2b7db9d448a093850cdc52ad5d35fe86c780f59bb28838711817583017d",
+      "newSha256": "c721c2b7db9d448a093850cdc52ad5d35fe86c780f59bb28838711817583017d",
+      "byteIdentical": true
+    },
+    {
+      "path": "preparation-notes.txt",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/preparation-notes.txt",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/preparation-notes.txt",
+      "previousBytes": 1682,
+      "newBytes": 1692,
+      "previousSha256": "92be983a0f626ba1699c2989882bd957a609d68c58d95b1ee1f2725a5cd367f3",
+      "newSha256": "22894b595dd0017e7789911d4168782808d75b62ce54ed2b684301199d2ae42d",
+      "byteIdentical": false
+    },
+    {
+      "path": "preparation-observed-packaging-failure-summary.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/preparation-observed-packaging-failure-summary.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/preparation-observed-packaging-failure-summary.json",
+      "previousBytes": 733,
+      "newBytes": 733,
+      "previousSha256": "aff033cda4941af0b80332e6893fad1cbeab5c8df2eb01f543ce05b70fbc4109",
+      "newSha256": "aff033cda4941af0b80332e6893fad1cbeab5c8df2eb01f543ce05b70fbc4109",
+      "byteIdentical": true
+    },
+    {
+      "path": "preparation-observed-reader-failure-summary.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/preparation-observed-reader-failure-summary.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/preparation-observed-reader-failure-summary.json",
+      "previousBytes": 516,
+      "newBytes": 516,
+      "previousSha256": "17aef5f4e16ae68b96cc9a20a4f9be26b1269b00ec771f5d84644672a2068ad1",
+      "newSha256": "17aef5f4e16ae68b96cc9a20a4f9be26b1269b00ec771f5d84644672a2068ad1",
+      "byteIdentical": true
+    },
+    {
+      "path": "preparation-static-qualification.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/preparation-static-qualification.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/preparation-static-qualification.json",
+      "previousBytes": 2347,
+      "newBytes": 2587,
+      "previousSha256": "78d7c22615f3c823b50366cb3384dc416de8d34fce0c0a2697a2ff5ff34a9a32",
+      "newSha256": "cd4b5a8e98038bef64aa27842bebdae25a085cef55d28413d5b1c2b307f9052d",
+      "byteIdentical": false
+    },
+    {
+      "path": "reporter.cjs",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/reporter.cjs",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/reporter.cjs",
+      "previousBytes": 2311,
+      "newBytes": 2311,
+      "previousSha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "newSha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "byteIdentical": true
+    },
+    {
+      "path": "runtime-path-matrix.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/runtime-path-matrix.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-path-matrix.json",
+      "previousBytes": 18001,
+      "newBytes": 17342,
+      "previousSha256": "432ffe3a0f30c7a58dcc7a6dbd434ad352d181f43e4717ba0bb454239c738435",
+      "newSha256": "626682d16901e2b86ff1287b7aa573d1883119bd8a8dd9654fce62528a658681",
+      "byteIdentical": false
+    },
+    {
+      "path": "source-checker.mjs",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/source-checker.mjs",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/source-checker.mjs",
+      "previousBytes": 4538,
+      "newBytes": 4538,
+      "previousSha256": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806",
+      "newSha256": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806",
+      "byteIdentical": true
+    },
+    {
+      "path": "source-inputs.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/source-inputs.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/source-inputs.json",
+      "previousBytes": 3275,
+      "newBytes": 3275,
+      "previousSha256": "421e6fbc0716037f140569617e798fed8c0700fed7fefbbbf3d182e7f2b0d728",
+      "newSha256": "857653daa55c75f231452a9568f5dffbaa3a8be58acc27d94885e216abe830e0",
+      "byteIdentical": false
+    },
+    {
+      "path": "syntax-checks/binding.mjs.stderr.log",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/binding.mjs.stderr.log",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/binding.mjs.stderr.log",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "syntax-checks/binding.mjs.stdout.log",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/binding.mjs.stdout.log",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/binding.mjs.stdout.log",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "syntax-checks/emitter.mjs.stderr.log",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/emitter.mjs.stderr.log",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/emitter.mjs.stderr.log",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "syntax-checks/emitter.mjs.stdout.log",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/emitter.mjs.stdout.log",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/emitter.mjs.stdout.log",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "syntax-checks/linter.mjs.stderr.log",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/linter.mjs.stderr.log",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/linter.mjs.stderr.log",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "syntax-checks/linter.mjs.stdout.log",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/linter.mjs.stdout.log",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/linter.mjs.stdout.log",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "syntax-checks/reporter.cjs.stderr.log",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/reporter.cjs.stderr.log",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/reporter.cjs.stderr.log",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "syntax-checks/reporter.cjs.stdout.log",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/reporter.cjs.stdout.log",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/reporter.cjs.stdout.log",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "syntax-checks/source-checker.mjs.stderr.log",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/source-checker.mjs.stderr.log",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/source-checker.mjs.stderr.log",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "syntax-checks/source-checker.mjs.stdout.log",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/source-checker.mjs.stdout.log",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/source-checker.mjs.stdout.log",
+      "previousBytes": 0,
+      "newBytes": 0,
+      "previousSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "newSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byteIdentical": true
+    },
+    {
+      "path": "syntax-checks/validation.json",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/validation.json",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/validation.json",
+      "previousBytes": 6766,
+      "newBytes": 8895,
+      "previousSha256": "fd30a71fc516e19a0a49b0d0e149b27787a89cc3de0c7292a3facbbaf3f69850",
+      "newSha256": "6a78383f31a8e54556e7b2fcab3dfad6b18a12e59481acd257215e4b5a9f940c",
+      "byteIdentical": false
+    },
+    {
+      "path": "validate.py",
+      "previousPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/validate.py",
+      "newPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/validate.py",
+      "previousBytes": 43350,
+      "newBytes": 43350,
+      "previousSha256": "700d52594e8cada45c1b94c1d589141bbec0742b09ffaed7d8d09d00281190d0",
+      "newSha256": "ba959f96944928b1dd55b7af2f1a9474581b803814bbdca0157124ea714e2c11",
+      "byteIdentical": false
+    }
+  ],
+  "newProofFilesOtherThanThisDeltaAndFinalInventory": [
+    {
+      "path": "legacy-line-metadata-corrections.json",
+      "bytes": 2277,
+      "sha256": "1a67fd842607c76c40a581b406aec6d3c54b47320be2c8a97d684231deefa4b4"
+    },
+    {
+      "path": "mechanical-diffs/four-line-metadata-only.patch",
+      "bytes": 1830,
+      "sha256": "69ce64af42649d7b41045716288f969368538201f16c0e75f936ed568f303a6d"
+    },
+    {
+      "path": "mechanical-diffs/legacy-stale-assertion-identity.json.patch",
+      "bytes": 463,
+      "sha256": "70b6b20538d203ff1928a8df4f559b68596c0c2933cd5642d211057fee1a5292"
+    },
+    {
+      "path": "prep1-preservation-proof.json",
+      "bytes": 13109,
+      "sha256": "b97cfb76dde2478b63b2851c4c9b99d6d122e325645212fab5ac516661f4ca77"
+    },
+    {
+      "path": "preparation-rebind-stage.json",
+      "bytes": 14401,
+      "sha256": "800d7bc67669812ffb73d081c3caac5ed32c2fb75cb84697c68971b730123b1a"
+    },
+    {
+      "path": "syntax-checks/prep1-validation.original.json",
+      "bytes": 6766,
+      "sha256": "fd30a71fc516e19a0a49b0d0e149b27787a89cc3de0c7292a3facbbaf3f69850"
+    },
+    {
+      "path": "syntax-checks/prep2-binding-once.json",
+      "bytes": 1227,
+      "sha256": "6c7bbef2d8d50e2c5b877016cb05f254eb6db277e3863d84350af83babfd6ad4"
+    }
+  ],
+  "finalInventoryExcludedFromDeltaToAvoidCircularHash": true,
+  "deltaFileIncludedByFinalInventory": true,
+  "oldOriginalInventoryProtectedByPreservationProof": true
+}

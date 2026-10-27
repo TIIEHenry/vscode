@@ -1,15 +1,15 @@
 ---
 title: "Sources Panel 方案 §3.4：共同 factory 预注入连接的窄修订"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-27
-summary: "d0共同预stub窄修订规则16 C0/I0/M1/root采纳、f5a accepted已精确核验；root另授权最小Pane test-only候选，仅if预stub收为无条件一次，旧合同保持，待新窄peer/唯一lane。"
+summary: "共同factory预注入连接，旧default-false与独立input.dispose按各自实际证据通过；root核新6d一次green后窄scope签收，原设计/review/失败历史保留，fullCompile=false。"
 ---
 
 # Sources Panel 方案 §3.4：共同 factory 预注入连接的窄修订
 
-> **当前阶段**：root已精确核accepted `f5a74df01faf7a024ac4f69f4448a0da65f3e186` 后另行授权共同pre-stub最小test-only源码；当前仅Pane factory旧helper前将同一connection预stub由if(resolveModels)收为一次无条件，默认false/resolver/helper/cases/断言及生产/Panel.test保护。5f4窄peer C0/I0/M0经父采纳/I1关；本次新候选待父核/原Astra窄peer及唯一lane，不预称旧case已进业务。
+> **当前实现验收（2026-10-27）**：共同factory预注入连接，旧default-false与独立input.dispose按各自实际证据通过，root已独立核原始stream/owned/finally并签收本方案为implemented。固定HEAD01c0/source6d/src424397的一次[新验证证据](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)是当前结论；下方原设计、授权、评审与失败叙述保留其历史时点。仅source/真实组件合同，不声称实端Git索引、UI after或fullcompile已验。
 
 以下固定输入/原授权与 §1–§4 保留 **d0 draft 时点历史原文**；仅链接锚点随已采纳标题改名。之后的规则16、采纳与proof身份另见§5，不回写为draft当时已知。
 
@@ -76,3 +76,13 @@ root 后续已通报独立 default-false 正式 proof `942d0652065d7aafe085d2e54
 本节是 §5 独立accepted文档之后的事件，不回写其当时的源码未授权边界。root 已独立核 `f5a74df01faf7a024ac4f69f4448a0da65f3e186` 全9docs hash、parent/src/status200/原status首条，以及§1–§5反向还原唯一段落/标题后逐字相同的保护资格；采纳该accepted后另明确授权最小test-only实施。当前候选仅将 `conversationDiffReviewPane.test.ts` factory旧helper之前的条件预stub收为一次无条件的同一connection stub，不动任何生产、Panel.test、默认false/resolver分支、helper正文/内部次序、旧case/header/断言或patch builder。
 
 5f4同ref修订已获原Astra窄peer C0/I0/M0及父级采纳，44 I1关闭；它不代替共同pre-stub新候选peer或运行资格。本候选作者只做AST/lint/docs静态，固定SHA后root实核、原Astra窄peer，最后才由唯一lane按父级另行释放旧生产两case资格run2。原default-false与true setup失败/业务未达、54/18未新运行及out冻结保持，不将准备性源码修正称为green/implemented。新授权与保护检查见[当前作者检查点](../progress/sources-accept-post-read-authorization-checkpoint.md#共同-factory-预stub-最小源码候选)。
+
+## 7. 固定6d一次实际验收（2026-10-27）
+
+共同factory预注入连接，旧default-false与独立input.dispose按各自实际证据通过。原Astra固定工具peer C0/I0/M1的四处行号镜像由root授权机械改为491，prep2窄peer C0/I0/M0，root核后单次释放并独立验收；[prepared原稿、active四字段映射、consumed与全部raw](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)分列，不复用旧授权。
+
+5目标项目noEmit checker全0（未请求non-target semantic），lint0error/0fatal/1旧637 warning，dry=actual5JS/0map；新54 Accept+18生命周期逐名start/pass/end各1，完整Pane3/3与Panel142/142、meta各1、hooks11/567平衡，pending/missing/unknown/failures0。旧stale四条原断言保固定source字节/顺序，实际whole-case body pass；没有逐assert运行插桩。
+
+[旧双A1纯业务red](../progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md)、[run3 A4纯业务red与原default-false实际通过](../progress/sources-accept-qualified-old-red-run3-20261027-evidence/INDEX.md)、[原default-false setup探针失败](../progress/sources-accept-default-false-probe-20261027-evidence/INDEX.md)及[8438旧stale首断言败/后三未达](../progress/sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)全部保持原件，不把旧run改绿。
+
+本方案仅在source/真实组件范围implemented；原设计/旧review/失败历史及生命周期633B唯一例外保持。当前out已恢复旧native256，metadata采用新guard54fe37（相对8b5f仅获准五ctime），freeze4/cache3精确，fullCompileOfFinalSourceTree=false。按root采纳的原Astra最小充分边界，不另要求Sources UI after或未改controller suite；不声称实端Git索引、UI after或全src semantic/fullcompile已验。PRD、宽Sources、D/D1387旧签收与旧J/E波不升，overall goal仍active；consumed release不再授权运行。

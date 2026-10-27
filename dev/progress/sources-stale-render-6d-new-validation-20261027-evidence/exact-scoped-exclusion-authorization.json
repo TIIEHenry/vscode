@@ -1,0 +1,72 @@
+{
+  "source": "Attributed explicit /root messages after independently reading both actual full cached failures; not fabricated raw reviewer output",
+  "authorizedExactPaths": [
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "bytes": 21614,
+      "sha256": "f7a05b99b1b6eade6ef64573858f7f982b0b8f818be8777621955cc6884066a9"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "bytes": 189106,
+      "sha256": "414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch",
+      "bytes": 265227,
+      "sha256": "1148431330263491a8e9dcfe21669369702f46982eb683155e9fb0025a3ab5c4"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch",
+      "bytes": 805,
+      "sha256": "4f6b708c3f2001e155a1cb6d8c3ad3f6e61821de0f75571e4a3f6cbc94a6ca45"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "bytes": 12516,
+      "sha256": "7eccdf40828ffbd9e7852841c60b24b995a0e1c690222a3834bfe1a8c08a421c"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "bytes": 189106,
+      "sha256": "414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/mechanical-diffs/full-runtime-surface.patch",
+      "bytes": 14657,
+      "sha256": "285594973d00975c8b509531a8de6fba483931edb5b5754b8f699ee76b0af4b8"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "bytes": 1798,
+      "sha256": "fc19ae4fd3e0615c91598c38013e519c6f2fcec9af82d4770f071589891845e3"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "bytes": 6653,
+      "sha256": "394238423e8ae25c075d59990a88da91f462c1a32c1b66e1ba4202cfeacaa628"
+    }
+  ],
+  "authorizedPathCount": 9,
+  "firstActualFullFailure": {
+    "diagnostics": 37,
+    "paths": 8,
+    "exitCode": 2,
+    "stdoutBytes": 6653,
+    "stdoutSha256": "394238423e8ae25c075d59990a88da91f462c1a32c1b66e1ba4202cfeacaa628"
+  },
+  "secondActualFullFailure": {
+    "diagnostics": 60,
+    "paths": 9,
+    "exitCode": 2,
+    "stdoutBytes": 9708,
+    "stdoutSha256": "584f9b6440164ba83a78c10e15eed96ef109a3f186953d1844aa638e93c01cbf",
+    "additionalRawStdoutTrailingWhitespaceDiagnostics": 23
+  },
+  "reason": "Exact immutable source EOF and faithful unified-diff context whitespace; first raw stdout faithfully includes23 offending +space lines. Preserve original bytes rather than clean raw evidence. No generic directory exclusion.",
+  "oldSevenEightPathExclusionsNotInherited": true,
+  "onlyTheseNineAuthorized": true,
+  "rootReaderSchemaCorrection": "Root first tried previous top-level stdoutBase64Exact, then read actual nested stdout.data and independently verified decoded bytes/SHA; reader correction only, not runner/data failure",
+  "allOtherFinalIncludedRequireActualScopedCachedExit0": true,
+  "noRuntimeOrLeaseAuthorization": true
+}

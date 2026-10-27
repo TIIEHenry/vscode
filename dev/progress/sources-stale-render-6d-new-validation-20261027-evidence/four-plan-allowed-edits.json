@@ -1,0 +1,85 @@
+{
+  "parent": "01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba",
+  "onlyFourNarrowPlans": true,
+  "statusTransition": "accepted -> implemented",
+  "allOriginalDesignReviewFailureSectionsExact": true,
+  "lifecycle633ByteSoleExceptionUnchanged": true,
+  "plans": [
+    {
+      "path": "dev/plans/sources-accept-post-read-authorization.md",
+      "beforeBytes": 17436,
+      "beforeSha256": "5d5c2a72fcb9d555b15d0442d0c7d47ae9238998cea2eb25b4b7917af8362e61",
+      "afterBytes": 19622,
+      "afterSha256": "e02b4f8b39bae90c63a4a27fae7bfa28186603c3c3f1aa5f75420ba53ca22963",
+      "allowedChanges": [
+        "frontmatter.status",
+        "frontmatter.summary",
+        "single-current-cover-line",
+        "appended-actual-acceptance-section"
+      ],
+      "oldCurrentLineIncludingLF": "> **当前阶段**：独立 accepted 方案；原 draft 为 `4b0d3d62e65e54e71d3b1748f100fac7ca5f6ce3`，Astra 对该精确提交规则 16 只读审查为 C0/I0/M2，父级已核验采纳、两 Minor 已实改（§7）。本次仅提交方案，源码实施仍须父级下一次明确授权。\n",
+      "newCurrentLineIncludingLF": "> **当前实现验收（2026-10-27）**：两宿主Accept读后当前授权，54新例及完整两宿主模块实际通过，root已独立核原始stream/owned/finally并签收本方案为implemented。固定HEAD01c0/source6d/src424397的一次[新验证证据](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)是当前结论；下方原设计、授权、评审与失败叙述保留其历史时点。仅source/真实组件合同，不声称实端Git索引、UI after或fullcompile已验。\n",
+      "appendedSectionIncludingLF": "\n## 8. 固定6d一次实际验收（2026-10-27）\n\n两宿主Accept读后当前授权，54新例及完整两宿主模块实际通过。原Astra固定工具peer C0/I0/M1的四处行号镜像由root授权机械改为491，prep2窄peer C0/I0/M0，root核后单次释放并独立验收；[prepared原稿、active四字段映射、consumed与全部raw](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)分列，不复用旧授权。\n\n5目标项目noEmit checker全0（未请求non-target semantic），lint0error/0fatal/1旧637 warning，dry=actual5JS/0map；新54 Accept+18生命周期逐名start/pass/end各1，完整Pane3/3与Panel142/142、meta各1、hooks11/567平衡，pending/missing/unknown/failures0。旧stale四条原断言保固定source字节/顺序，实际whole-case body pass；没有逐assert运行插桩。\n\n[旧双A1纯业务red](../progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md)、[run3 A4纯业务red与原default-false实际通过](../progress/sources-accept-qualified-old-red-run3-20261027-evidence/INDEX.md)、[原default-false setup探针失败](../progress/sources-accept-default-false-probe-20261027-evidence/INDEX.md)及[8438旧stale首断言败/后三未达](../progress/sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)全部保持原件，不把旧run改绿。\n\n本方案仅在source/真实组件范围implemented；原设计/旧review/失败历史及生命周期633B唯一例外保持。当前out已恢复旧native256，metadata采用新guard54fe37（相对8b5f仅获准五ctime），freeze4/cache3精确，fullCompileOfFinalSourceTree=false。按root采纳的原Astra最小充分边界，不另要求Sources UI after或未改controller suite；不声称实端Git索引、UI after或全src semantic/fullcompile已验。PRD、宽Sources、D/D1387旧签收与旧J/E波不升，overall goal仍active；consumed release不再授权运行。\n",
+      "reverseAllowedEditsEqualsParentExactly": true,
+      "oldDesignReviewFailureBodyBytesUnchanged": true,
+      "oldDesignReviewFailureBodySha256": "ba2a7d0ace52a46208dce7ec1749620d23158a367bad8cd0a3b335a7b7928e4d"
+    },
+    {
+      "path": "dev/plans/sources-panel-diff-view-model-lifetime.md",
+      "beforeBytes": 20753,
+      "beforeSha256": "377a81f43b71609f0dba6823d03298e6aab75ef27d1353a1fdb57fd59030225b",
+      "afterBytes": 22670,
+      "afterSha256": "84a68a86f3f1be3dc1c565b4f8dca330865e51b82504fb00cec910d1f5312bb6",
+      "allowedChanges": [
+        "frontmatter.status",
+        "frontmatter.summary",
+        "single-current-cover-line",
+        "appended-actual-acceptance-section"
+      ],
+      "oldCurrentLineIncludingLF": "> **当前阶段与授权（f5a核验后）**：root已独立核accepted `f5a74df01faf7a024ac4f69f4448a0da65f3e186` 全9docs、parent/src/status200/保护合同，另明确授权共同pre-stub最小test-only源码：仅Pane factory旧helper前将同一connection预stub由if(resolveModels)收为一次无条件。5f4 same-ref窄peer C0/I0/M0经父采纳、44 I1关闭；本次不改任何生产/Panel.test/默认false/resolver分支/helper/cases/断言或§1–§5合同，新候选仍待父核/新窄peer/唯一lane，18/54未新运行。\n",
+      "newCurrentLineIncludingLF": "> **当前实现验收（2026-10-27）**：Panel VM/refs唯一所有权与释放次序，18真实资源回归及完整Panel实际通过，root已独立核原始stream/owned/finally并签收本方案为implemented。固定HEAD01c0/source6d/src424397的一次[新验证证据](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)是当前结论；下方原设计、授权、评审与失败叙述保留其历史时点。仅source/真实组件合同，不声称实端Git索引、UI after或fullcompile已验。\n",
+      "appendedSectionIncludingLF": "\n## 7. 固定6d一次实际验收（2026-10-27）\n\nPanel VM/refs唯一所有权与释放次序，18真实资源回归及完整Panel实际通过。原Astra固定工具peer C0/I0/M1的四处行号镜像由root授权机械改为491，prep2窄peer C0/I0/M0，root核后单次释放并独立验收；[prepared原稿、active四字段映射、consumed与全部raw](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)分列，不复用旧授权。\n\n5目标项目noEmit checker全0（未请求non-target semantic），lint0error/0fatal/1旧637 warning，dry=actual5JS/0map；新54 Accept+18生命周期逐名start/pass/end各1，完整Pane3/3与Panel142/142、meta各1、hooks11/567平衡，pending/missing/unknown/failures0。旧stale四条原断言保固定source字节/顺序，实际whole-case body pass；没有逐assert运行插桩。\n\n[旧双A1纯业务red](../progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md)、[run3 A4纯业务red与原default-false实际通过](../progress/sources-accept-qualified-old-red-run3-20261027-evidence/INDEX.md)、[原default-false setup探针失败](../progress/sources-accept-default-false-probe-20261027-evidence/INDEX.md)及[8438旧stale首断言败/后三未达](../progress/sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)全部保持原件，不把旧run改绿。\n\n本方案仅在source/真实组件范围implemented；原设计/旧review/失败历史及生命周期633B唯一例外保持。当前out已恢复旧native256，metadata采用新guard54fe37（相对8b5f仅获准五ctime），freeze4/cache3精确，fullCompileOfFinalSourceTree=false。按root采纳的原Astra最小充分边界，不另要求Sources UI after或未改controller suite；不声称实端Git索引、UI after或全src semantic/fullcompile已验。PRD、宽Sources、D/D1387旧签收与旧J/E波不升，overall goal仍active；consumed release不再授权运行。\n",
+      "reverseAllowedEditsEqualsParentExactly": true,
+      "oldDesignReviewFailureBodyBytesUnchanged": true,
+      "oldDesignReviewFailureBodySha256": "00a8bfcf40f7611c7a71451b1c4d50a266f0d2a6d17ea8b1656ca27ecde3a616"
+    },
+    {
+      "path": "dev/plans/sources-panel-fixture-preinjection-amendment.md",
+      "beforeBytes": 11980,
+      "beforeSha256": "583c430cfc3febb9dac8e96af1e40f25dc6bc256564cf492ce7d701dfbc65734",
+      "afterBytes": 14018,
+      "afterSha256": "90a53f3f314403f050386fc57bfd2a58c2a00ed9bb34cb6c37e7a0015e0c88be",
+      "allowedChanges": [
+        "frontmatter.status",
+        "frontmatter.summary",
+        "single-current-cover-line",
+        "appended-actual-acceptance-section"
+      ],
+      "oldCurrentLineIncludingLF": "> **当前阶段**：root已精确核accepted `f5a74df01faf7a024ac4f69f4448a0da65f3e186` 后另行授权共同pre-stub最小test-only源码；当前仅Pane factory旧helper前将同一connection预stub由if(resolveModels)收为一次无条件，默认false/resolver/helper/cases/断言及生产/Panel.test保护。5f4窄peer C0/I0/M0经父采纳/I1关；本次新候选待父核/原Astra窄peer及唯一lane，不预称旧case已进业务。\n",
+      "newCurrentLineIncludingLF": "> **当前实现验收（2026-10-27）**：共同factory预注入连接，旧default-false与独立input.dispose按各自实际证据通过，root已独立核原始stream/owned/finally并签收本方案为implemented。固定HEAD01c0/source6d/src424397的一次[新验证证据](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)是当前结论；下方原设计、授权、评审与失败叙述保留其历史时点。仅source/真实组件合同，不声称实端Git索引、UI after或fullcompile已验。\n",
+      "appendedSectionIncludingLF": "\n## 7. 固定6d一次实际验收（2026-10-27）\n\n共同factory预注入连接，旧default-false与独立input.dispose按各自实际证据通过。原Astra固定工具peer C0/I0/M1的四处行号镜像由root授权机械改为491，prep2窄peer C0/I0/M0，root核后单次释放并独立验收；[prepared原稿、active四字段映射、consumed与全部raw](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)分列，不复用旧授权。\n\n5目标项目noEmit checker全0（未请求non-target semantic），lint0error/0fatal/1旧637 warning，dry=actual5JS/0map；新54 Accept+18生命周期逐名start/pass/end各1，完整Pane3/3与Panel142/142、meta各1、hooks11/567平衡，pending/missing/unknown/failures0。旧stale四条原断言保固定source字节/顺序，实际whole-case body pass；没有逐assert运行插桩。\n\n[旧双A1纯业务red](../progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md)、[run3 A4纯业务red与原default-false实际通过](../progress/sources-accept-qualified-old-red-run3-20261027-evidence/INDEX.md)、[原default-false setup探针失败](../progress/sources-accept-default-false-probe-20261027-evidence/INDEX.md)及[8438旧stale首断言败/后三未达](../progress/sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)全部保持原件，不把旧run改绿。\n\n本方案仅在source/真实组件范围implemented；原设计/旧review/失败历史及生命周期633B唯一例外保持。当前out已恢复旧native256，metadata采用新guard54fe37（相对8b5f仅获准五ctime），freeze4/cache3精确，fullCompileOfFinalSourceTree=false。按root采纳的原Astra最小充分边界，不另要求Sources UI after或未改controller suite；不声称实端Git索引、UI after或全src semantic/fullcompile已验。PRD、宽Sources、D/D1387旧签收与旧J/E波不升，overall goal仍active；consumed release不再授权运行。\n",
+      "reverseAllowedEditsEqualsParentExactly": true,
+      "oldDesignReviewFailureBodyBytesUnchanged": true,
+      "oldDesignReviewFailureBodySha256": "55420d96f5ce5a4ae34a876494fd6198ad1ddcb3a60255ef90fdc065c0e296a1"
+    },
+    {
+      "path": "dev/plans/sources-panel-stale-render-stub-amendment.md",
+      "beforeBytes": 11784,
+      "beforeSha256": "f024175eb59768c451acaf62a6e7d2c6ac5f0a5dafb145aa8fa06467807d6c51",
+      "afterBytes": 13865,
+      "afterSha256": "7d7fe543c122936b8e9ee88949161cc392a56d6c861272cde1afd502a9090ae0",
+      "allowedChanges": [
+        "frontmatter.status",
+        "frontmatter.summary",
+        "single-current-cover-line",
+        "appended-actual-acceptance-section"
+      ],
+      "oldCurrentLineIncludingLF": "> **当前阶段（b0核验后）**：root已另行明确授权 §7 的唯一 test-only 行；当前候选已写，尚待父核与原Astra窄 source peer，未运行。下方固定作者输入及 §1–§6 保留 draft / accepted 文档时点叙述与已签设计，不把“仅文档/源码未授权”当作当前候选阶段；现行生命周期方案不再修改。\n",
+      "newCurrentLineIncludingLF": "> **当前实现验收（2026-10-27）**：唯一52B旧fakeWidget成员例外，旧stale原case本体及完整两模块实际通过，root已独立核原始stream/owned/finally并签收本方案为implemented。固定HEAD01c0/source6d/src424397的一次[新验证证据](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)是当前结论；下方原设计、授权、评审与失败叙述保留其历史时点。仅source/真实组件合同，不声称实端Git索引、UI after或fullcompile已验。\n",
+      "appendedSectionIncludingLF": "\n## 8. 固定6d一次实际验收（2026-10-27）\n\n唯一52B旧fakeWidget成员例外，旧stale原case本体及完整两模块实际通过。原Astra固定工具peer C0/I0/M1的四处行号镜像由root授权机械改为491，prep2窄peer C0/I0/M0，root核后单次释放并独立验收；[prepared原稿、active四字段映射、consumed与全部raw](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)分列，不复用旧授权。\n\n5目标项目noEmit checker全0（未请求non-target semantic），lint0error/0fatal/1旧637 warning，dry=actual5JS/0map；新54 Accept+18生命周期逐名start/pass/end各1，完整Pane3/3与Panel142/142、meta各1、hooks11/567平衡，pending/missing/unknown/failures0。旧stale四条原断言保固定source字节/顺序，实际whole-case body pass；没有逐assert运行插桩。\n\n[旧双A1纯业务red](../progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md)、[run3 A4纯业务red与原default-false实际通过](../progress/sources-accept-qualified-old-red-run3-20261027-evidence/INDEX.md)、[原default-false setup探针失败](../progress/sources-accept-default-false-probe-20261027-evidence/INDEX.md)及[8438旧stale首断言败/后三未达](../progress/sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)全部保持原件，不把旧run改绿。\n\n本方案仅在source/真实组件范围implemented；原设计/旧review/失败历史及生命周期633B唯一例外保持。当前out已恢复旧native256，metadata采用新guard54fe37（相对8b5f仅获准五ctime），freeze4/cache3精确，fullCompileOfFinalSourceTree=false。按root采纳的原Astra最小充分边界，不另要求Sources UI after或未改controller suite；不声称实端Git索引、UI after或全src semantic/fullcompile已验。PRD、宽Sources、D/D1387旧签收与旧J/E波不升，overall goal仍active；consumed release不再授权运行。\n",
+      "reverseAllowedEditsEqualsParentExactly": true,
+      "oldDesignReviewFailureBodyBytesUnchanged": true,
+      "oldDesignReviewFailureBodySha256": "4dc6411a4669e8699d52f4450958aa6a82a459b23b73737af23c3db41bb132c1"
+    }
+  ]
+}

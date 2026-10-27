@@ -1,0 +1,39 @@
+{
+  "source": "Attributed parent /root message after independent raw/metadata/proc review; not a fabricated reviewer file or raw command log",
+  "accepted": true,
+  "rawStreamsIndependentlyParsed": {
+    "officialTests": 145,
+    "eachTestStartPassTestEndObserved": 1,
+    "failures": 0,
+    "pending": 0,
+    "new72Unique": 72,
+    "oldStaleWholeBodyPass": 1,
+    "missing": 0,
+    "unknown": 0,
+    "hooksByModule": [
+      11,
+      567
+    ],
+    "metaEachModule": 1
+  },
+  "allSixActualStageExitCodes": 0,
+  "uniqueOwnedPidStartPairs": 43,
+  "matchingLiveProcessesAtRootReview": 0,
+  "currentMetadataBaselineSha256": "54fe37b2f942aa1afc5587d630199809ff4dc8e54bad610f577ffa6db8f60f1e",
+  "onlyFiveCtimeDifferentFrom8b5f": true,
+  "native256SourceBindingsFreeze4Cache3Exact": true,
+  "originalAstraConditionalAcceptanceNowSatisfied": true,
+  "onlyFourNarrowPlansMayBecomeImplemented": [
+    "sources-accept-post-read-authorization",
+    "sources-panel-diff-view-model-lifetime",
+    "sources-panel-fixture-preinjection-amendment",
+    "sources-panel-stale-render-stub-amendment"
+  ],
+  "sourceAndRealComponentScopeOnly": true,
+  "additionalSourcesUiAfterOrUnchangedControllerSuiteRequired": false,
+  "liveGitIndexOrUiAfterProven": false,
+  "fullSourceSemanticProven": false,
+  "fullCompileOfFinalSourceTree": false,
+  "overallGoalStillActive": true,
+  "noNewValidationExecutionAuthorized": true
+}

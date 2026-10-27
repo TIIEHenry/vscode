@@ -1,0 +1,342 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "startedAtUtc": "2026-10-27T06:48:56.853430+00:00",
+  "finishedAtUtc": "2026-10-27T06:48:57.072619+00:00",
+  "actualExitCode": 2,
+  "scopedExclusionApplied": false,
+  "rootAuthorizedEightExclusionsNotAppliedToThisFullCheck": true,
+  "firstRawStdoutStagedByteExact": true,
+  "stdout": {
+    "encoding": "base64",
+    "data": "ZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2ZvdXItcGxhbi1hbGxvd2VkLWVkaXRzLnBhdGNoOjE0OiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvZm91ci1wbGFuLWFsbG93ZWQtZWRpdHMucGF0Y2g6MTY6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9mb3VyLXBsYW4tYWxsb3dlZC1lZGl0cy5wYXRjaDoyMTogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2ZvdXItcGxhbi1hbGxvd2VkLWVkaXRzLnBhdGNoOjI1OiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvZm91ci1wbGFuLWFsbG93ZWQtZWRpdHMucGF0Y2g6NTA6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9mb3VyLXBsYW4tYWxsb3dlZC1lZGl0cy5wYXRjaDo1OTogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2ZvdXItcGxhbi1hbGxvd2VkLWVkaXRzLnBhdGNoOjYzOiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvZm91ci1wbGFuLWFsbG93ZWQtZWRpdHMucGF0Y2g6ODg6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9mb3VyLXBsYW4tYWxsb3dlZC1lZGl0cy5wYXRjaDo5MDogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2ZvdXItcGxhbi1hbGxvd2VkLWVkaXRzLnBhdGNoOjkzOiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvZm91ci1wbGFuLWFsbG93ZWQtZWRpdHMucGF0Y2g6OTU6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9mb3VyLXBsYW4tYWxsb3dlZC1lZGl0cy5wYXRjaDo5ODogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2ZvdXItcGxhbi1hbGxvd2VkLWVkaXRzLnBhdGNoOjEyMzogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2ZvdXItcGxhbi1hbGxvd2VkLWVkaXRzLnBhdGNoOjEyNTogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2ZvdXItcGxhbi1hbGxvd2VkLWVkaXRzLnBhdGNoOjEyODogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2ZvdXItcGxhbi1hbGxvd2VkLWVkaXRzLnBhdGNoOjEzMDogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2ZvdXItcGxhbi1hbGxvd2VkLWVkaXRzLnBhdGNoOjEzMzogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2Z1bGwtY2FjaGVkLWRpZmYtY2hlY2suc3Rkb3V0LmxvZzoyOiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2Z1bGwtY2FjaGVkLWRpZmYtY2hlY2suc3Rkb3V0LmxvZzo0OiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2Z1bGwtY2FjaGVkLWRpZmYtY2hlY2suc3Rkb3V0LmxvZzo2OiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2Z1bGwtY2FjaGVkLWRpZmYtY2hlY2suc3Rkb3V0LmxvZzo4OiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2Z1bGwtY2FjaGVkLWRpZmYtY2hlY2suc3Rkb3V0LmxvZzoxMDogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKysgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9mdWxsLWNhY2hlZC1kaWZmLWNoZWNrLnN0ZG91dC5sb2c6MTI6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisrIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvZnVsbC1jYWNoZWQtZGlmZi1jaGVjay5zdGRvdXQubG9nOjE0OiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2Z1bGwtY2FjaGVkLWRpZmYtY2hlY2suc3Rkb3V0LmxvZzoxNjogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKysgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9mdWxsLWNhY2hlZC1kaWZmLWNoZWNrLnN0ZG91dC5sb2c6MTg6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisrIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvZnVsbC1jYWNoZWQtZGlmZi1jaGVjay5zdGRvdXQubG9nOjIwOiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2Z1bGwtY2FjaGVkLWRpZmYtY2hlY2suc3Rkb3V0LmxvZzoyMjogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKysgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9mdWxsLWNhY2hlZC1kaWZmLWNoZWNrLnN0ZG91dC5sb2c6MjQ6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisrIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvZnVsbC1jYWNoZWQtZGlmZi1jaGVjay5zdGRvdXQubG9nOjI2OiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2Z1bGwtY2FjaGVkLWRpZmYtY2hlY2suc3Rkb3V0LmxvZzoyODogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKysgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9mdWxsLWNhY2hlZC1kaWZmLWNoZWNrLnN0ZG91dC5sb2c6MzA6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisrIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvZnVsbC1jYWNoZWQtZGlmZi1jaGVjay5zdGRvdXQubG9nOjMyOiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2Z1bGwtY2FjaGVkLWRpZmYtY2hlY2suc3Rkb3V0LmxvZzozNDogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKysgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9mdWxsLWNhY2hlZC1kaWZmLWNoZWNrLnN0ZG91dC5sb2c6Mzc6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisrIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvZnVsbC1jYWNoZWQtZGlmZi1jaGVjay5zdGRvdXQubG9nOjM5OiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2Z1bGwtY2FjaGVkLWRpZmYtY2hlY2suc3Rkb3V0LmxvZzo2NTogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKysgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9mdWxsLWNhY2hlZC1kaWZmLWNoZWNrLnN0ZG91dC5sb2c6Njc6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisrIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvZnVsbC1jYWNoZWQtZGlmZi1jaGVjay5zdGRvdXQubG9nOjcwOiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL2Z1bGwtY2FjaGVkLWRpZmYtY2hlY2suc3Rkb3V0LmxvZzo3MjogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKysgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9wcmVwMS9pbnB1dHMvc3JjL3ZzL3dvcmtiZW5jaC9jb250cmliL3NvdXJjZXMvdGVzdC9icm93c2VyL3NvdXJjZXNEaWZmUGFuZWwudGVzdC50czo0MzEyOiBuZXcgYmxhbmsgbGluZSBhdCBFT0YuCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9wcmVwMS9tZWNoYW5pY2FsLWRpZmZzL2Z1bGwtcnVudGltZS1zdXJmYWNlLnBhdGNoOjQ6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisgCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9wcmVwMS9tZWNoYW5pY2FsLWRpZmZzL2Z1bGwtcnVudGltZS1zdXJmYWNlLnBhdGNoOjU1OiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvcHJlcDEvbWVjaGFuaWNhbC1kaWZmcy9mdWxsLXJ1bnRpbWUtc3VyZmFjZS5wYXRjaDo0MjQ3OiBzcGFjZSBiZWZvcmUgdGFiIGluIGluZGVudC4KKyAJCQljb25zdCBpbnN0YW50aWF0aW9uU2VydmljZSA9IHN0dWJEaWZmSG9uZXN0eVNlcnZpY2VzKHsgcmVzb3VyY2U6IHJlc291cmNlQSB9KTsKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL3ByZXAxL21lY2hhbmljYWwtZGlmZnMvZnVsbC1ydW50aW1lLXN1cmZhY2UucGF0Y2g6NDI0ODogc3BhY2UgYmVmb3JlIHRhYiBpbiBpbmRlbnQuCisgCQkJdGV4dEZpbGVTZXJ2aWNlID0gaW5zdGFudGlhdGlvblNlcnZpY2UuZ2V0KElUZXh0RmlsZVNlcnZpY2UpOwpkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvcHJlcDEvbWVjaGFuaWNhbC1kaWZmcy9mdWxsLXJ1bnRpbWUtc3VyZmFjZS5wYXRjaDo0MjQ5OiBzcGFjZSBiZWZvcmUgdGFiIGluIGluZGVudC4KKyAJCQljb25zdCBmYWtlV2lkZ2V0ID0gewpkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvcHJlcDEvbWVjaGFuaWNhbC1kaWZmcy9mdWxsLXJ1bnRpbWUtc3VyZmFjZS5wYXRjaDo0MjUxOiBzcGFjZSBiZWZvcmUgdGFiIGluIGluZGVudC4KKyAJCQkJc2V0TW9kZWw6ICgpID0+IHsgfSwKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL3ByZXAxL21lY2hhbmljYWwtZGlmZnMvZnVsbC1ydW50aW1lLXN1cmZhY2UucGF0Y2g6NDI1Mjogc3BhY2UgYmVmb3JlIHRhYiBpbiBpbmRlbnQuCisgCQkJCWdldE1vZGlmaWVkRWRpdG9yOiAoKSA9PiAoeyBvbkRpZENoYW5nZUN1cnNvclBvc2l0aW9uOiBFdmVudC5Ob25lLCBvbkRpZEZvY3VzRWRpdG9yVGV4dDogRXZlbnQuTm9uZSwgaGFzVGV4dEZvY3VzOiAoKSA9PiBmYWxzZSwgZ2V0UG9zaXRpb246ICgpID0+IHVuZGVmaW5lZCB9KSwKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL3ByZXAxL21lY2hhbmljYWwtZGlmZnMvZnVsbC1ydW50aW1lLXN1cmZhY2UucGF0Y2g6NDI1Mzogc3BhY2UgYmVmb3JlIHRhYiBpbiBpbmRlbnQuCisgCQkJCWdldE9yaWdpbmFsRWRpdG9yOiAoKSA9PiAoeyBvbkRpZENoYW5nZUN1cnNvclBvc2l0aW9uOiBFdmVudC5Ob25lLCBvbkRpZEZvY3VzRWRpdG9yVGV4dDogRXZlbnQuTm9uZSwgaGFzVGV4dEZvY3VzOiAoKSA9PiBmYWxzZSwgZ2V0UG9zaXRpb246ICgpID0+IHVuZGVmaW5lZCB9KSwKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL3ByZXAxL21lY2hhbmljYWwtZGlmZnMvaW5wdXRzL3NyYy92cy93b3JrYmVuY2gvY29udHJpYi9zb3VyY2VzL3Rlc3QvYnJvd3Nlci9zb3VyY2VzRGlmZlBhbmVsLnRlc3QudHMucGF0Y2g6NDogc3BhY2UgYmVmb3JlIHRhYiBpbiBpbmRlbnQuCisgCQkJY29uc3QgaW5zdGFudGlhdGlvblNlcnZpY2UgPSBzdHViRGlmZkhvbmVzdHlTZXJ2aWNlcyh7IHJlc291cmNlOiByZXNvdXJjZUEgfSk7CmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9wcmVwMS9tZWNoYW5pY2FsLWRpZmZzL2lucHV0cy9zcmMvdnMvd29ya2JlbmNoL2NvbnRyaWIvc291cmNlcy90ZXN0L2Jyb3dzZXIvc291cmNlc0RpZmZQYW5lbC50ZXN0LnRzLnBhdGNoOjU6IHNwYWNlIGJlZm9yZSB0YWIgaW4gaW5kZW50LgorIAkJCXRleHRGaWxlU2VydmljZSA9IGluc3RhbnRpYXRpb25TZXJ2aWNlLmdldChJVGV4dEZpbGVTZXJ2aWNlKTsKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL3ByZXAxL21lY2hhbmljYWwtZGlmZnMvaW5wdXRzL3NyYy92cy93b3JrYmVuY2gvY29udHJpYi9zb3VyY2VzL3Rlc3QvYnJvd3Nlci9zb3VyY2VzRGlmZlBhbmVsLnRlc3QudHMucGF0Y2g6Njogc3BhY2UgYmVmb3JlIHRhYiBpbiBpbmRlbnQuCisgCQkJY29uc3QgZmFrZVdpZGdldCA9IHsKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL3ByZXAxL21lY2hhbmljYWwtZGlmZnMvaW5wdXRzL3NyYy92cy93b3JrYmVuY2gvY29udHJpYi9zb3VyY2VzL3Rlc3QvYnJvd3Nlci9zb3VyY2VzRGlmZlBhbmVsLnRlc3QudHMucGF0Y2g6ODogc3BhY2UgYmVmb3JlIHRhYiBpbiBpbmRlbnQuCisgCQkJCXNldE1vZGVsOiAoKSA9PiB7IH0sCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9wcmVwMS9tZWNoYW5pY2FsLWRpZmZzL2lucHV0cy9zcmMvdnMvd29ya2JlbmNoL2NvbnRyaWIvc291cmNlcy90ZXN0L2Jyb3dzZXIvc291cmNlc0RpZmZQYW5lbC50ZXN0LnRzLnBhdGNoOjk6IHNwYWNlIGJlZm9yZSB0YWIgaW4gaW5kZW50LgorIAkJCQlnZXRNb2RpZmllZEVkaXRvcjogKCkgPT4gKHsgb25EaWRDaGFuZ2VDdXJzb3JQb3NpdGlvbjogRXZlbnQuTm9uZSwgb25EaWRGb2N1c0VkaXRvclRleHQ6IEV2ZW50Lk5vbmUsIGhhc1RleHRGb2N1czogKCkgPT4gZmFsc2UsIGdldFBvc2l0aW9uOiAoKSA9PiB1bmRlZmluZWQgfSksCmRldi9wcm9ncmVzcy9zb3VyY2VzLXN0YWxlLXJlbmRlci02ZC1uZXctdmFsaWRhdGlvbi0yMDI2MTAyNy1ldmlkZW5jZS9wcmVwMS9tZWNoYW5pY2FsLWRpZmZzL2lucHV0cy9zcmMvdnMvd29ya2JlbmNoL2NvbnRyaWIvc291cmNlcy90ZXN0L2Jyb3dzZXIvc291cmNlc0RpZmZQYW5lbC50ZXN0LnRzLnBhdGNoOjEwOiBzcGFjZSBiZWZvcmUgdGFiIGluIGluZGVudC4KKyAJCQkJZ2V0T3JpZ2luYWxFZGl0b3I6ICgpID0+ICh7IG9uRGlkQ2hhbmdlQ3Vyc29yUG9zaXRpb246IEV2ZW50Lk5vbmUsIG9uRGlkRm9jdXNFZGl0b3JUZXh0OiBFdmVudC5Ob25lLCBoYXNUZXh0Rm9jdXM6ICgpID0+IGZhbHNlLCBnZXRQb3NpdGlvbjogKCkgPT4gdW5kZWZpbmVkIH0pLApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvcHJlcDEvbWVjaGFuaWNhbC1kaWZmcy92YWxpZGF0ZS5weS5wYXRjaDo0OiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorIApkZXYvcHJvZ3Jlc3Mvc291cmNlcy1zdGFsZS1yZW5kZXItNmQtbmV3LXZhbGlkYXRpb24tMjAyNjEwMjctZXZpZGVuY2UvcHJlcDEvbWVjaGFuaWNhbC1kaWZmcy92YWxpZGF0ZS5weS5wYXRjaDo1NTogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL3ByZXAyL2lucHV0cy9zcmMvdnMvd29ya2JlbmNoL2NvbnRyaWIvc291cmNlcy90ZXN0L2Jyb3dzZXIvc291cmNlc0RpZmZQYW5lbC50ZXN0LnRzOjQzMTI6IG5ldyBibGFuayBsaW5lIGF0IEVPRi4KZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL3ByZXAyL21lY2hhbmljYWwtZGlmZnMvZnVsbC1ydW50aW1lLXN1cmZhY2UucGF0Y2g6NDogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL3NvdXJjZXMtc3RhbGUtcmVuZGVyLTZkLW5ldy12YWxpZGF0aW9uLTIwMjYxMDI3LWV2aWRlbmNlL3ByZXAyL21lY2hhbmljYWwtZGlmZnMvdmFsaWRhdGUucHkucGF0Y2g6NDogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAK",
+    "bytes": 9708,
+    "sha256": "584f9b6440164ba83a78c10e15eed96ef109a3f186953d1844aa638e93c01cbf"
+  },
+  "stderr": {
+    "encoding": "base64",
+    "data": "",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "diagnostics": [
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 14,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 16,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 21,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 25,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 50,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 59,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 63,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 88,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 90,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 93,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 95,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 98,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 123,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 125,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 128,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 130,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+      "line": 133,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 2,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 4,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 6,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 8,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 10,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 12,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 14,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 16,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 18,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 20,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 22,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 24,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 26,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 28,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 30,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 32,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 34,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 37,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 39,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 65,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 67,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 70,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log",
+      "line": 72,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "line": 4312,
+      "diagnostic": "new blank line at EOF"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch",
+      "line": 4,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch",
+      "line": 55,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch",
+      "line": 4247,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch",
+      "line": 4248,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch",
+      "line": 4249,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch",
+      "line": 4251,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch",
+      "line": 4252,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch",
+      "line": 4253,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch",
+      "line": 4,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch",
+      "line": 5,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch",
+      "line": 6,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch",
+      "line": 8,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch",
+      "line": 9,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch",
+      "line": 10,
+      "diagnostic": "space before tab in indent"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 4,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 55,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "line": 4312,
+      "diagnostic": "new blank line at EOF"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/mechanical-diffs/full-runtime-surface.patch",
+      "line": 4,
+      "diagnostic": "trailing whitespace"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "line": 4,
+      "diagnostic": "trailing whitespace"
+    }
+  ],
+  "perPathDiagnosticCounts": {
+    "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch": 17,
+    "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log": 23,
+    "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts": 1,
+    "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch": 8,
+    "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch": 6,
+    "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/validate.py.patch": 2,
+    "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts": 1,
+    "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/mechanical-diffs/full-runtime-surface.patch": 1,
+    "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/mechanical-diffs/validate.py.patch": 1
+  },
+  "purpose": "Root-requested second full cached check after preserving first actual raw stdout; base64 captures output losslessly without recursively introducing another raw whitespace log"
+}

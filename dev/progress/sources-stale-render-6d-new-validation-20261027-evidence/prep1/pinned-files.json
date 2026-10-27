@@ -1,0 +1,67 @@
+{
+  "pins": {
+    "validate.py": {
+      "bytes": 43350,
+      "sha256": "700d52594e8cada45c1b94c1d589141bbec0742b09ffaed7d8d09d00281190d0"
+    },
+    "emitter.mjs": {
+      "bytes": 9373,
+      "sha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa"
+    },
+    "source-checker.mjs": {
+      "bytes": 4538,
+      "sha256": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806"
+    },
+    "linter.mjs": {
+      "bytes": 1854,
+      "sha256": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff"
+    },
+    "binding.mjs": {
+      "bytes": 4565,
+      "sha256": "b2b1fed0c07fef9ae0497e05d1c7a810eb77f55965b3fadfadf028ed311e01e4"
+    },
+    "reporter.cjs": {
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14"
+    },
+    "guard.py": {
+      "bytes": 4177,
+      "sha256": "b2c81d2503db1cda1fc05a30c8223f054c38fbe99c4a2d8f4608d0edcc43b1bd"
+    },
+    "policy.json": {
+      "bytes": 3994,
+      "sha256": "8d7bc721ade9c0cd7c2a6368e9e8e98f81618c0d7cef021d76232583d9940104"
+    },
+    "input-manifest.json": {
+      "bytes": 256377,
+      "sha256": "041fddc7d9be4051bb14707828ab87c32df33138d26cb96f3d3eea43a28aa231"
+    },
+    "expected-fullTitles.json": {
+      "bytes": 41614,
+      "sha256": "0f430caad1822879390022c8d6d162c6a102e6c2f8e285da6184e0183b3d9ddc"
+    },
+    "expected-accept-fullTitles.txt": {
+      "bytes": 5942,
+      "sha256": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8"
+    },
+    "expected-lifetime-fullTitles.txt": {
+      "bytes": 2285,
+      "sha256": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e"
+    },
+    "expected-new72-fullTitles.txt": {
+      "bytes": 8227,
+      "sha256": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf"
+    },
+    "source-inputs.json": {
+      "bytes": 3275,
+      "sha256": "421e6fbc0716037f140569617e798fed8c0700fed7fefbbbf3d182e7f2b0d728"
+    }
+  },
+  "pinCount": 14,
+  "freshRelease": {
+    "bytes": 1959,
+    "sha256": "988100fd11df5b9e91a131069268880ab7b8d67b8029113d5d1be9e53089ff97",
+    "executionAuthorized": false
+  },
+  "releaseNotSelfPinnedToAvoidCircularHash": true
+}

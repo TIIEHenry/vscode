@@ -1,0 +1,146 @@
+--- actual-prep2-prepared/expected-fullTitles.json
++++ fixed6d-prep1/expected-fullTitles.json
+@@ -1,7 +1,7 @@
+ {
+   "source": "Static exact-Git text expansion only, not runtime registration/reach/completion/pass counts",
+-  "fixedSourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+-  "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
++  "fixedSourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
++  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+   "acceptFullTitles": [
+     "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+     "Sources diff panel Accept post-read authorization Pane A1 active session changes to s2 before write",
+@@ -89,7 +89,12 @@
+       "newAcceptFullTitles": [
+         "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks"
+       ],
+-      "newLifetimeFullTitles": []
++      "newLifetimeFullTitles": [],
++      "officialMetaFullTitles": [
++        "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"
++      ],
++      "expectedOfficialTestCount": 3,
++      "expectedObservedHookStartEndCount": 11
+     },
+     {
+       "label": "full-sources-panel",
+@@ -311,7 +316,61 @@
+         "Sources diff panel Panel diff model lifetime single pending modified reference rejected after clear releases only its own references",
+         "Sources diff panel Panel diff model lifetime single pending modified reference resolved after dispose releases only its own references",
+         "Sources diff panel Panel diff model lifetime single pending modified reference rejected after dispose releases only its own references"
+-      ]
++      ],
++      "officialMetaFullTitles": [
++        "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"
++      ],
++      "expectedOfficialTestCount": 142,
++      "expectedObservedHookStartEndCount": 567,
++      "legacyStaleCase": {
++        "fullTitle": "Sources diff panel superseded async render cannot paint an older file diff",
++        "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
++        "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
++        "sourceBlob": "1eb53d2f64343c465b02bebb99724b9a76a35561",
++        "sourceSha256": "414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6",
++        "headerIncludingLF": "\ttest('superseded async render cannot paint an older file diff', async function () {\n",
++        "oldCaseBytes": 3188,
++        "oldCaseSha256": "afb95826f5f3ddd1352beef94ac2170c3d2bfcd68d3fa024aa3ddfdecd3cefa4",
++        "currentCaseBytes": 3240,
++        "currentCaseSha256": "47d0815ba725fe821c9a24de14f9a41614ce211242e2dcabd795bc365d44d2cb",
++        "soleStubLineIncludingLF": "\t\t\t\tcreateViewModel: () => toDisposable(() => { }),\n",
++        "soleStubBytes": 52,
++        "removeSoleStubExactlyRestoresPreviousFailedCase": true,
++        "orderedOriginalAssertions": [
++          {
++            "index": 1,
++            "bytes": 113,
++            "sha256": "8be336294e0fbe12aa36bb9cf02b613f88cfc575411367ac6813a9529b855752",
++            "textIncludingLF": "\t\t\tassert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent, 'stale-panel-b.ts');\n",
++            "currentSourceLine": 486
++          },
++          {
++            "index": 2,
++            "bytes": 113,
++            "sha256": "8be336294e0fbe12aa36bb9cf02b613f88cfc575411367ac6813a9529b855752",
++            "textIncludingLF": "\t\t\tassert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent, 'stale-panel-b.ts');\n",
++            "currentSourceLine": 486
++          },
++          {
++            "index": 3,
++            "bytes": 44,
++            "sha256": "b96a2f560b1c3de9fff2c2db6ec80508086b37ac9bdf5bc27c5ec46d7be73f3e",
++            "textIncludingLF": "\t\t\tassert.strictEqual(await shownA, false);\n",
++            "currentSourceLine": 492
++          },
++          {
++            "index": 4,
++            "bytes": 43,
++            "sha256": "37b942e2cd7d19fc3d15aee9e236482fba12c6ea72a69acf7bf4a2e904d1279e",
++            "textIncludingLF": "\t\t\tassert.strictEqual(await shownB, true);\n",
++            "currentSourceLine": 493
++          }
++        ],
++        "runtimeRule": "Only actual body pass with exact start/end/pass1 and no fail/pending proves completion of these four unmodified sequential assertions; static bytes alone prove no runtime completion",
++        "previousActualFailure": "prep2 first title assertion actual empty/expected stale-panel-b.ts; later three not reached; old raw remains immutable",
++        "individualAssertionRuntimeInstrumentation": false,
++        "runtimeEvidenceIsWholeCaseBodyOutcomeOnly": true
++      }
+     }
+   ],
+   "sourceRegistrationGuards": {
+@@ -334,5 +393,55 @@
+     ],
+     "rule": "Do not edit legacy while(!readInFlight) await Promise.resolve(); starvation must remain watchdog/partial-report evidence"
+   },
+-  "officialRunnerMetaTestsExcludedFromStaticModuleCounts": true
++  "officialRunnerMetaTestsExcludedFromStaticModuleCounts": true,
++  "legacyStaleCase": {
++    "fullTitle": "Sources diff panel superseded async render cannot paint an older file diff",
++    "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
++    "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
++    "sourceBlob": "1eb53d2f64343c465b02bebb99724b9a76a35561",
++    "sourceSha256": "414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6",
++    "headerIncludingLF": "\ttest('superseded async render cannot paint an older file diff', async function () {\n",
++    "oldCaseBytes": 3188,
++    "oldCaseSha256": "afb95826f5f3ddd1352beef94ac2170c3d2bfcd68d3fa024aa3ddfdecd3cefa4",
++    "currentCaseBytes": 3240,
++    "currentCaseSha256": "47d0815ba725fe821c9a24de14f9a41614ce211242e2dcabd795bc365d44d2cb",
++    "soleStubLineIncludingLF": "\t\t\t\tcreateViewModel: () => toDisposable(() => { }),\n",
++    "soleStubBytes": 52,
++    "removeSoleStubExactlyRestoresPreviousFailedCase": true,
++    "orderedOriginalAssertions": [
++      {
++        "index": 1,
++        "bytes": 113,
++        "sha256": "8be336294e0fbe12aa36bb9cf02b613f88cfc575411367ac6813a9529b855752",
++        "textIncludingLF": "\t\t\tassert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent, 'stale-panel-b.ts');\n",
++        "currentSourceLine": 486
++      },
++      {
++        "index": 2,
++        "bytes": 113,
++        "sha256": "8be336294e0fbe12aa36bb9cf02b613f88cfc575411367ac6813a9529b855752",
++        "textIncludingLF": "\t\t\tassert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent, 'stale-panel-b.ts');\n",
++        "currentSourceLine": 486
++      },
++      {
++        "index": 3,
++        "bytes": 44,
++        "sha256": "b96a2f560b1c3de9fff2c2db6ec80508086b37ac9bdf5bc27c5ec46d7be73f3e",
++        "textIncludingLF": "\t\t\tassert.strictEqual(await shownA, false);\n",
++        "currentSourceLine": 492
++      },
++      {
++        "index": 4,
++        "bytes": 43,
++        "sha256": "37b942e2cd7d19fc3d15aee9e236482fba12c6ea72a69acf7bf4a2e904d1279e",
++        "textIncludingLF": "\t\t\tassert.strictEqual(await shownB, true);\n",
++        "currentSourceLine": 493
++      }
++    ],
++    "runtimeRule": "Only actual body pass with exact start/end/pass1 and no fail/pending proves completion of these four unmodified sequential assertions; static bytes alone prove no runtime completion",
++    "previousActualFailure": "prep2 first title assertion actual empty/expected stale-panel-b.ts; later three not reached; old raw remains immutable",
++    "individualAssertionRuntimeInstrumentation": false,
++    "runtimeEvidenceIsWholeCaseBodyOutcomeOnly": true
++  },
++  "wholeModuleCountsAndMetaAreStaticRequirementsNotActualResults": true
+ }

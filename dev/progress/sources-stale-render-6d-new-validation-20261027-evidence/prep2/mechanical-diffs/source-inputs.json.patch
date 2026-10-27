@@ -1,0 +1,47 @@
+--- prep1/source-inputs.json
++++ prep2/source-inputs.json
+@@ -7,7 +7,7 @@
+     "sourceBytes": 34365,
+     "sourceSha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
++    "inputCopyPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+     "role": "new-merged-production"
+   },
+   {
+@@ -18,7 +18,7 @@
+     "sourceBytes": 34142,
+     "sourceSha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
++    "inputCopyPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+     "role": "new-merged-production"
+   },
+   {
+@@ -29,7 +29,7 @@
+     "sourceBytes": 10800,
+     "sourceSha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
++    "inputCopyPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+     "role": "unchanged-controller-reemitted"
+   },
+   {
+@@ -40,7 +40,7 @@
+     "sourceBytes": 13078,
+     "sourceSha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
++    "inputCopyPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+     "role": "new-merged-test"
+   },
+   {
+@@ -51,7 +51,7 @@
+     "sourceBytes": 189106,
+     "sourceSha256": "414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
++    "inputCopyPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+     "role": "new-merged-test"
+   }
+ ]

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "planId": "vscode-sources-stale-render-6d-validation-20261027-prep1",
+  "state": "PREPARED_NOT_AUTHORIZED",
+  "executionAuthorized": false,
+  "authorizedBy": null,
+  "authorizationMessage": null,
+  "expectedHead": "01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba",
+  "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+  "scope": "fixed-five-file-check-lint-dry-emit-two-full-official-modules",
+  "pinnedFilesSha256": {
+    "validate.py": "700d52594e8cada45c1b94c1d589141bbec0742b09ffaed7d8d09d00281190d0",
+    "emitter.mjs": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+    "source-checker.mjs": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806",
+    "linter.mjs": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff",
+    "binding.mjs": "b2b1fed0c07fef9ae0497e05d1c7a810eb77f55965b3fadfadf028ed311e01e4",
+    "reporter.cjs": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+    "guard.py": "b2c81d2503db1cda1fc05a30c8223f054c38fbe99c4a2d8f4608d0edcc43b1bd",
+    "policy.json": "8d7bc721ade9c0cd7c2a6368e9e8e98f81618c0d7cef021d76232583d9940104",
+    "input-manifest.json": "041fddc7d9be4051bb14707828ab87c32df33138d26cb96f3d3eea43a28aa231",
+    "expected-fullTitles.json": "0f430caad1822879390022c8d6d162c6a102e6c2f8e285da6184e0183b3d9ddc",
+    "expected-accept-fullTitles.txt": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+    "expected-lifetime-fullTitles.txt": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+    "expected-new72-fullTitles.txt": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+    "source-inputs.json": "421e6fbc0716037f140569617e798fed8c0700fed7fefbbbf3d182e7f2b0d728"
+  },
+  "note": "New unconsumed preparation; fixed tool peer and a later explicit separate root release are required. Prior prep2 active release/consumed marker were not copied and confer no new authority."
+}

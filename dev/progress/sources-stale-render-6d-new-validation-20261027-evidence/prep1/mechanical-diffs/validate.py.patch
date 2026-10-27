@@ -1,0 +1,97 @@
+--- actual-prep2-prepared/validate.py
++++ fixed6d-prep1/validate.py
+@@ -21,10 +21,10 @@
+ 
+ ROOT = Path(__file__).resolve().parent
+ REPO = Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+-PLAN = 'vscode-sources-accept-a4a-new-validation-20261027-prep2'
+-EXPECTED_HEAD = 'eefce63e1541625baa39a4abd1608fc3cdbb8c5b'
+-EXPECTED_SRC = 'd78a48e5feee57fcaf5811c8425859d0a2400af0'
+-SOURCE_REF = 'a4a70322795c509e8e9b8274cf295a1b65db663a'
++PLAN = 'vscode-sources-stale-render-6d-validation-20261027-prep1'
++EXPECTED_HEAD = '01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba'
++EXPECTED_SRC = '4243970658ddd668d1f89e0a97d7f41ba94d3300'
++SOURCE_REF = '6d848eacc578dea0c5c6f39721b00047f9c12469'
+ TOKEN_KEY = 'VSCODE_SOURCES_OLD_RED_RUN2_STAGE_TOKEN'
+ DRIVER_NONCE_KEY = 'VSCODE_SOURCES_OLD_RED_RUN2_DRIVER_NONCE'
+ PIN_NAMES = ['validate.py', 'emitter.mjs', 'source-checker.mjs', 'linter.mjs', 'binding.mjs', 'reporter.cjs', 'guard.py', 'policy.json', 'input-manifest.json', 'expected-fullTitles.json', 'expected-accept-fullTitles.txt', 'expected-lifetime-fullTitles.txt', 'expected-new72-fullTitles.txt', 'source-inputs.json']
+@@ -62,7 +62,7 @@
+ def load_binding():
+     policy, manifest, release = [load_json(ROOT / p) for p in ['policy.json', 'input-manifest.json', 'execution-release.json']]
+     require(release.get('executionAuthorized') is True and release.get('state') == 'AUTHORIZED_NEW_VALIDATION_ONCE' and release.get('authorizedBy') == '/root' and isinstance(release.get('authorizationMessage'), str) and release['authorizationMessage'].strip(), 'FAIL CLOSED: separate explicit root execution release required; preparation grants no execution')
+-    require(ROOT == Path('/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2'), 'Wrong scratch')
++    require(ROOT == Path('/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1'), 'Wrong scratch')
+     require(policy['planId'] == manifest['planId'] == release['planId'] == PLAN and policy['repo'] == manifest['repo'] == str(REPO), 'Wrong plan/repo')
+     require(policy['expectedHead'] == manifest['expectedHead'] == release['expectedHead'] == EXPECTED_HEAD and policy['sourceTree'] == manifest['sourceTree'] == EXPECTED_SRC and policy['sourceRef'] == manifest['sourceRef'] == release['sourceRef'] == SOURCE_REF, 'Fixed identity mismatch')
+     require(release['scope'] == 'fixed-five-file-check-lint-dry-emit-two-full-official-modules', 'Expanded release scope')
+@@ -351,8 +351,27 @@
+     stats = data['stats'] if data is not None else end_stats[-1] if end_stats else None
+     end_observed = bool(end_stats) and any(r['event'] == 'observerEnd' for r in events)
+     rows_clean = all(r['testStartCount'] == r['testEndCount'] == r['bodyPassCount'] == 1 and r['bodyFailureCount'] == r['pendingCount'] == 0 for r in qualifications)
+-    clean = bool(data is not None and end_observed and stats and stats.get('failures') == 0 and stats.get('pending') == 0 and entry.get('exitCode') == 0 and not entry.get('externalWatchdogExpired') and rows_clean and not failures)
++    required_titles = expected['declaredFullTitles'] + expected['officialMetaFullTitles']
++    actual_test_titles = [item.get('fullTitle') for item in data.get('tests', [])] if data else []
++    actual_pass_titles = [item.get('fullTitle') for item in data.get('passes', [])] if data else []
++    required_count = expected['expectedOfficialTestCount']
++    official_exact = bool(data is not None and len(required_titles) == required_count and sorted(actual_test_titles) == sorted(required_titles) and sorted(actual_pass_titles) == sorted(required_titles) and stats and stats.get('tests') == stats.get('passes') == required_count and stats.get('pending') == stats.get('failures') == 0 and not data.get('pending') and not data.get('failures'))
++    meta_rows = [{'fullTitle': title, **{key: len(observed(kind, title)) for key, kind in [('testStartCount', 'testStart'), ('testEndCount', 'testEndObserved'), ('bodyPassCount', 'pass'), ('bodyFailureCount', 'fail'), ('pendingCount', 'pendingObserved')]}} for title in expected['officialMetaFullTitles']]
++    meta_clean = all(row['testStartCount'] == row['testEndCount'] == row['bodyPassCount'] == 1 and row['bodyFailureCount'] == row['pendingCount'] == 0 for row in meta_rows)
++    hook_titles = sorted({row['data'].get('fullTitle', '') for row in events if row['event'] in ['hookStartObserved', 'hookEndObserved']})
++    hook_rows = [{'fullTitle': title, 'startCount': len(observed('hookStartObserved', title)), 'endCount': len(observed('hookEndObserved', title))} for title in hook_titles]
++    hook_start_count = sum(row['startCount'] for row in hook_rows)
++    hook_end_count = sum(row['endCount'] for row in hook_rows)
++    hooks_clean = hook_start_count == hook_end_count == expected['expectedObservedHookStartEndCount'] and all(row['startCount'] == row['endCount'] for row in hook_rows)
++    raw_test_start_titles = {row['data'].get('fullTitle') for row in events if row['event'] == 'testStart'}
++    missing_titles = sorted(set(required_titles) - raw_test_start_titles)
++    unknown_titles = sorted(raw_test_start_titles - set(required_titles))
++    legacy_identity = expected.get('legacyStaleCase')
++    legacy_row = next((row for row in qualifications if legacy_identity and row['fullTitle'] == legacy_identity['fullTitle']), None)
++    legacy_clean = legacy_identity is None or bool(legacy_row and legacy_row['testStartCount'] == legacy_row['testEndCount'] == legacy_row['bodyPassCount'] == 1 and legacy_row['bodyFailureCount'] == legacy_row['pendingCount'] == 0)
++    clean = bool(data is not None and end_observed and stats and stats.get('failures') == 0 and stats.get('pending') == 0 and entry.get('exitCode') == 0 and not entry.get('externalWatchdogExpired') and rows_clean and not failures and official_exact and meta_clean and hooks_clean and legacy_clean and not missing_titles and not unknown_titles)
+     result = {'officialJSONParsed': data is not None, 'officialStreamEventCount': len(events), 'actualRuntimeStats': stats, 'officialRunEndObserved': end_observed, 'officialRuntimeTests': data.get('tests', []) if data else None, 'officialRuntimePasses': data.get('passes', []) if data else None, 'officialRuntimeFailures': data.get('failures', []) if data else None, 'officialRuntimePending': data.get('pending', []) if data else None, 'partialReporterOnly': not (data is not None and end_observed), 'perExpectedFullTitle': qualifications, 'separateObservedFailuresIncludingHooks': failures, 'observedHookStartCount': sum(r['event'] == 'hookStartObserved' for r in events), 'observedHookEndCount': sum(r['event'] == 'hookEndObserved' for r in events), 'cleanCompleteModule': clean, 'countsSource': 'Only actual official reporter events/JSON. Static expected lists never serve as runtime counts; missing is not-reported, not fabricated failure/pass.', 'extraObservedFullTitles': sorted({r['data']['fullTitle'] for r in events if r['data'].get('fullTitle') and r['data']['fullTitle'] not in expected['declaredFullTitles']})}
++    result.update({'requiredOfficialTestCount': required_count, 'requiredOfficialFullTitles': required_titles, 'officialCountsAndTitlesExact': official_exact, 'officialMetaQualification': meta_rows, 'officialMetaClean': meta_clean, 'hookStartEndPerTitle': hook_rows, 'expectedHookStartEndCount': expected['expectedObservedHookStartEndCount'], 'hooksBalancedAndExact': hooks_clean, 'missingRequiredTestStarts': missing_titles, 'unknownTestStarts': unknown_titles, 'legacyStaleCaseIdentity': legacy_identity, 'legacyStaleCaseActualQualification': legacy_row, 'legacyOriginalFourAssertionSourcePlusWholeBodyQualification': 'qualified-from-fixed-source-and-actual-whole-case-body-pass' if legacy_identity and legacy_clean else 'not-established' if legacy_identity else 'not-applicable', 'individualAssertionRuntimeHooksUsed': False, 'legacyAssertionEvidenceKind': 'Fixed source byte/control-flow identity plus actual whole-case body outcome; no individual assertion observations'})
+     save(ROOT / (entry['stage'] + '.qualification.json'), result)
+     return result
+ 
+@@ -363,7 +382,8 @@
+     def unchanged_preparation():
+         for name, digest in pins.items():
+             require(sha((ROOT / name).read_bytes()) == digest, 'Pinned file changed: ' + name)
+-        require(sha(Path(policy['baselineFile']).read_bytes()) == policy['baselineFileSha256'], 'Original run3 baseline changed')
++        require(sha(Path(policy['baselineFile']).read_bytes()) == policy['baselineFileSha256'], 'Actual restored metadata baseline changed')
++        require(sha(Path(manifest['sourceIdentityBaselineFile']).read_bytes()) == manifest['sourceIdentityBaselineFileSha256'], 'Current source/native identity baseline changed')
+         for row in manifest['boundToolAndConfigFiles']:
+             b = Path(row['path']).read_bytes()
+             require(len(b) == row['bytes'] and sha(b) == row['sha256'], 'Tool/config changed: ' + row['path'])
+@@ -391,10 +411,9 @@
+         for path, row in baseline['cacheSymlinks'].items():
+             p = Path(path)
+             require(p.is_symlink() and os.readlink(p) == row['target'] and str(p.resolve()) == row['resolved'] and api['meta'](p) == row['metadata'], 'Cache changed: ' + path)
+-        bound = {x['sourcePath']: x for x in manifest['sourceFiles']}
+-        for row in baseline['pairs254'] + baseline['extra2PairsWithoutProducerCredit']:
+-            p = Path(row['sourcePath']); current = bound.get(str(p), row)
+-            require(sha(p.read_bytes()) == current['sourceSha256'] and stat.S_IMODE(p.stat().st_mode) == row['sourceMode'], 'Source changed: ' + str(p))
++        for row in manifest['boundSourceNativePairs']:
++            p = Path(row['sourcePath'])
++            require(sha(p.read_bytes()) == row['sourceSha256'] and stat.S_IMODE(p.stat().st_mode) == row['sourceMode'], 'Source changed: ' + str(p))
+     def guard(label, before, expected_out):
+         fixedguard(before)
+         actual = api['outmeta']()
+@@ -473,7 +492,7 @@
+         r['sharedLockHeld'] = True
+         global_idle('under-lock')
+         before = guard_api['verify']()
+-        require(before['outMetadata'] == baseline['outMetadata'], 'Initial frozen metadata must exactly equal actual run3 baseline')
++        require(before['outMetadata'] == baseline['outMetadata'], 'Initial frozen metadata must exactly equal actual restored8b5f baseline')
+         require(sum(not stat.S_ISDIR(v['type']) for v in before['outMetadata'].values()) == 12554 and sum(stat.S_ISDIR(v['type']) for v in before['outMetadata'].values()) == 2946, 'Wrong native counts')
+         save(ROOT / 'execution-consumed.json', {'atUtc': now(), 'releaseSha256': pins['execution-release.json'], 'expectedHead': EXPECTED_HEAD, 'oneShot': True})
+         save(ROOT / 'guard-before.json', before)
+@@ -566,7 +585,7 @@
+                 save(ROOT / 'guard-after-restore.json', after)
+                 require({k: v for k, v in after.items() if k not in ['outMetadata', 'capturedAtUtc', 'authorizedCtimeDifferences']} == {k: v for k, v in before.items() if k not in ['outMetadata', 'capturedAtUtc', 'authorizedCtimeDifferences']}, 'Source/native/freeze/cache restoration differs')
+                 r['restorationComplete'] = True
+-                r['restoreGuard'] = {'finishedAtUtc': now(), 'restoredPaths': restored, 'allFiveOriginalBytesModeMtimeExact': True, 'other12549FilesFullMetadataExact': True, 'all2946DirectoriesMetadataExact': True, 'all256NativeBytesAndModesExactOldRun3': True, 'fourA4aSourceOldNativePairs': True, 'allFourFreezeFilesExact': True, 'allThreeCacheSymlinksExact': True, 'authorizedCtimeDifferences': after['authorizedCtimeDifferences'], 'originalRun3BaselineNotRewritten': True, 'fullCompileOfFinalSourceTree': False}
++                r['restoreGuard'] = {'finishedAtUtc': now(), 'restoredPaths': restored, 'allFiveOriginalBytesModeMtimeExact': True, 'other12549FilesFullMetadataExact': True, 'all2946DirectoriesMetadataExact': True, 'all256NativeBytesAndModesExactOldRun3': True, 'fourNewSourceOldNativePairs': True, 'allFourFreezeFilesExact': True, 'allThreeCacheSymlinksExact': True, 'authorizedCtimeDifferences': after['authorizedCtimeDifferences'], 'originalRun3BaselineNotRewritten': True, 'actualRestoredBaselineNotRewritten': True, 'fullCompileOfFinalSourceTree': False}
+         except BaseException as error:
+             r['restoreFailure'], r['restoreTraceback'], r['exitCode'] = repr(error), traceback.format_exc(), 1
+             print(r['restoreTraceback'], flush=True)

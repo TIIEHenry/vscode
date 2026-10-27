@@ -1,0 +1,118 @@
+{
+  "mode": "emit",
+  "atUtc": "2026-10-27T06:34:45.397Z",
+  "actualInputCount": 5,
+  "repositoryCreateCompilePipeline": true,
+  "actualESBuildTranspiler": true,
+  "repositoryStreamToPromise": true,
+  "standaloneMapCount": 0,
+  "generatedArtifactPaths": [
+    "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/emit-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+    "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/emit-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+    "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/emit-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+    "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/emit-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"
+  ],
+  "outputs": [
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "bytes": 106034,
+      "sha256": "13e77495b563723ab39c667b9d7b0dc591e7301de225df0631d31027c3726847",
+      "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+      "sourceBlob": "c55809409e8b6ecffe132f536489c7b594603132",
+      "sourceSha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+      "role": "new-merged-production"
+    },
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "bytes": 105921,
+      "sha256": "a5446e8ec66827c82c75e31a3b759f035a7adf61e93bc62041c7d135d79af30b",
+      "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+      "sourceBlob": "f200b341ac85ce74796088f1ef205d0d1dacea34",
+      "sourceSha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+      "role": "new-merged-production"
+    },
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "bytes": 27186,
+      "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+      "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+      "sourceBlob": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2",
+      "sourceSha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+      "role": "unchanged-controller-reemitted"
+    },
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 39356,
+      "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+      "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+      "sourceBlob": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+      "sourceSha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+      "role": "new-merged-test"
+    },
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "bytes": 600370,
+      "sha256": "efd24e617a47ddfba08c607cdfd67ce6b27e94376201077fd5e9538edf85330a",
+      "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+      "sourceBlob": "1eb53d2f64343c465b02bebb99724b9a76a35561",
+      "sourceSha256": "414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6",
+      "role": "new-merged-test"
+    }
+  ],
+  "outWriteFileCalls": [
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "bytes": 106034,
+      "sha256": "13e77495b563723ab39c667b9d7b0dc591e7301de225df0631d31027c3726847",
+      "completedAtUtc": "2026-10-27T06:34:45.400Z"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "bytes": 105921,
+      "sha256": "a5446e8ec66827c82c75e31a3b759f035a7adf61e93bc62041c7d135d79af30b",
+      "completedAtUtc": "2026-10-27T06:34:45.403Z"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "bytes": 27186,
+      "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+      "completedAtUtc": "2026-10-27T06:34:45.405Z"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 39356,
+      "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+      "completedAtUtc": "2026-10-27T06:34:45.407Z"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "bytes": 600370,
+      "sha256": "efd24e617a47ddfba08c607cdfd67ce6b27e94376201077fd5e9538edf85330a",
+      "completedAtUtc": "2026-10-27T06:34:45.410Z"
+    }
+  ],
+  "noRepositorySourceWritten": true,
+  "productionOutWriteFileCalls": 3,
+  "fullCompileOfFinalSourceTree": false
+}

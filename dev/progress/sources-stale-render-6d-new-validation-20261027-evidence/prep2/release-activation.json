@@ -1,0 +1,133 @@
+{
+  "activatedAtUtc": "2026-10-27T06:25:26.399829+00:00",
+  "activationOnlyDriverNotStarted": true,
+  "scratch": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2",
+  "rootAuthorization": "Fresh fixed prep2 one-time new-validation authorization; activation-only now, separate next root instruction required before driver start",
+  "expectedHead": "01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba",
+  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+  "baseAndNarrowOriginalAstraPeerAcceptedByRoot": "C0/I0/M0",
+  "preparedRelease": {
+    "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/prepared-state/execution-release.json",
+    "bytes": 1959,
+    "sha256": "e9a23867011b3fb0359535c7c4276f2c81c52bd1d6eb5b4834f0c2ea9a63e5f2"
+  },
+  "activeRelease": {
+    "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/execution-release.json",
+    "bytes": 3106,
+    "sha256": "ea40bc98b2e53423a4a7430b910597bf88a56537e226ce419217be1231d4b017"
+  },
+  "originalInventory": {
+    "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/preparation-inventory.json",
+    "bytes": 12975,
+    "sha256": "f9d2162d9fe052411a35c7b0ce4caeba9e0eb14ddd574978f6330f600a7eca8d",
+    "unchanged": true
+  },
+  "sealedOriginalInventory": {
+    "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/prepared-state/preparation-inventory.json",
+    "bytes": 12975,
+    "sha256": "f9d2162d9fe052411a35c7b0ce4caeba9e0eb14ddd574978f6330f600a7eca8d"
+  },
+  "inventoryReleaseRowMapping": {
+    "inventoryRow": "execution-release.json",
+    "resolveTo": "prepared-state/execution-release.json",
+    "reason": "Inventory stays byte-exact and describes the sealed prepared original; active release is exactly four separately authorized field changes"
+  },
+  "changedFields": {
+    "state": {
+      "before": "PREPARED_NOT_AUTHORIZED",
+      "after": "AUTHORIZED_NEW_VALIDATION_ONCE"
+    },
+    "executionAuthorized": {
+      "before": false,
+      "after": true
+    },
+    "authorizedBy": {
+      "before": null,
+      "after": "/root"
+    },
+    "authorizationMessage": {
+      "before": null,
+      "after": "2026-10-27 /root explicitly authorized fixed /tmp/vscode-sources-stale-render-6d-validation-20261027-prep2 as a fresh one-time new validation after accepting original Astra narrow peer C0/I0/M0. Fixed HEAD=01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba, src=4243970658ddd668d1f89e0a97d7f41ba94d3300, sourceRef=6d848eacc578dea0c5c6f39721b00047f9c12469. Authorized eventual scope is one noEmit checker for the fixed five targets, no-cache/no-fix lint for those five, dry five JS, emit five JS, and the two complete official modules only, with the fixed owned PID/start supervision, 45+5+5 watchdog, all owned processes quiescent before finally, restoration of original five JS bytes/mode/mtime, and only those five newly permitted ctimes relative to exact8b5f; all other out metadata, old native256, freeze4 and cache3 stay exact. This instruction authorizes release activation and reporting only: do not start driver or any stage until the next separate explicit /root instruction after root independently verifies the active release. No prior prep1 or a4a consumed authorization is reused. Four narrow plans remain accepted with no state upgrade."
+    }
+  },
+  "changedFieldCount": 4,
+  "allOtherReleaseFieldsUnchanged": true,
+  "pins14UnchangedAndVerified": {
+    "validate.py": {
+      "bytes": 43350,
+      "sha256": "ba959f96944928b1dd55b7af2f1a9474581b803814bbdca0157124ea714e2c11"
+    },
+    "emitter.mjs": {
+      "bytes": 9373,
+      "sha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa"
+    },
+    "source-checker.mjs": {
+      "bytes": 4538,
+      "sha256": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806"
+    },
+    "linter.mjs": {
+      "bytes": 1854,
+      "sha256": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff"
+    },
+    "binding.mjs": {
+      "bytes": 4565,
+      "sha256": "006ccace60d99b62c51518e7ba8a6b4b844116032e9af7d5a7d975127a3fc81e"
+    },
+    "reporter.cjs": {
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14"
+    },
+    "guard.py": {
+      "bytes": 4177,
+      "sha256": "b2c81d2503db1cda1fc05a30c8223f054c38fbe99c4a2d8f4608d0edcc43b1bd"
+    },
+    "policy.json": {
+      "bytes": 3994,
+      "sha256": "2b4a33c3139789b279afecd61a0da4298653b8c2ee391a11da96df605f35b010"
+    },
+    "input-manifest.json": {
+      "bytes": 256377,
+      "sha256": "6b980942797f2e6989fd7b928656fc161b6d286915a93df839282c23505a0f6a"
+    },
+    "expected-fullTitles.json": {
+      "bytes": 41614,
+      "sha256": "596e290bb530b3c4d5f7b86b682d6ff24842f9c5093454a51f32d533aa374eb7"
+    },
+    "expected-accept-fullTitles.txt": {
+      "bytes": 5942,
+      "sha256": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8"
+    },
+    "expected-lifetime-fullTitles.txt": {
+      "bytes": 2285,
+      "sha256": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e"
+    },
+    "expected-new72-fullTitles.txt": {
+      "bytes": 8227,
+      "sha256": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf"
+    },
+    "source-inputs.json": {
+      "bytes": 3275,
+      "sha256": "857653daa55c75f231452a9568f5dffbaa3a8be58acc27d94885e216abe830e0"
+    }
+  },
+  "preparedInventory71RowsAllExactWithSealedReleaseMapping": true,
+  "readOnlyIdentityGate": {
+    "repositoryClean": true,
+    "sourceCopies": 5,
+    "sourceCopyBytes": 281491,
+    "toolConfigs": 127,
+    "outMetadataExact8b5fEntries": 15500,
+    "sourceNativeBytesAndModesExactBindings": 256,
+    "freezeExact": 4,
+    "cacheSymlinksExact": 3,
+    "newCtimeDifferencesFrom8b5f": 0
+  },
+  "executionConsumedMarkerAbsent": true,
+  "driverOrAnyValidationStageStarted": false,
+  "preparedCodeImportedOrEvaluated": false,
+  "nodeSyntaxCheckRepeated": false,
+  "outCacheFreezeWritten": false,
+  "planStateChanged": false,
+  "nextActionRequiresSeparateRootInstruction": true
+}

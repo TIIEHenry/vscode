@@ -1,0 +1,37 @@
+--- prep1/execution-release.json
++++ prep2/execution-release.json
+@@ -1,6 +1,6 @@
+ {
+   "schemaVersion": 1,
+-  "planId": "vscode-sources-stale-render-6d-validation-20261027-prep1",
++  "planId": "vscode-sources-stale-render-6d-validation-20261027-prep2",
+   "state": "PREPARED_NOT_AUTHORIZED",
+   "executionAuthorized": false,
+   "authorizedBy": null,
+@@ -9,20 +9,20 @@
+   "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+   "scope": "fixed-five-file-check-lint-dry-emit-two-full-official-modules",
+   "pinnedFilesSha256": {
+-    "validate.py": "700d52594e8cada45c1b94c1d589141bbec0742b09ffaed7d8d09d00281190d0",
++    "validate.py": "ba959f96944928b1dd55b7af2f1a9474581b803814bbdca0157124ea714e2c11",
+     "emitter.mjs": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+     "source-checker.mjs": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806",
+     "linter.mjs": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff",
+-    "binding.mjs": "b2b1fed0c07fef9ae0497e05d1c7a810eb77f55965b3fadfadf028ed311e01e4",
++    "binding.mjs": "006ccace60d99b62c51518e7ba8a6b4b844116032e9af7d5a7d975127a3fc81e",
+     "reporter.cjs": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+     "guard.py": "b2c81d2503db1cda1fc05a30c8223f054c38fbe99c4a2d8f4608d0edcc43b1bd",
+-    "policy.json": "8d7bc721ade9c0cd7c2a6368e9e8e98f81618c0d7cef021d76232583d9940104",
+-    "input-manifest.json": "041fddc7d9be4051bb14707828ab87c32df33138d26cb96f3d3eea43a28aa231",
+-    "expected-fullTitles.json": "0f430caad1822879390022c8d6d162c6a102e6c2f8e285da6184e0183b3d9ddc",
++    "policy.json": "2b4a33c3139789b279afecd61a0da4298653b8c2ee391a11da96df605f35b010",
++    "input-manifest.json": "6b980942797f2e6989fd7b928656fc161b6d286915a93df839282c23505a0f6a",
++    "expected-fullTitles.json": "596e290bb530b3c4d5f7b86b682d6ff24842f9c5093454a51f32d533aa374eb7",
+     "expected-accept-fullTitles.txt": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+     "expected-lifetime-fullTitles.txt": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+     "expected-new72-fullTitles.txt": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+-    "source-inputs.json": "421e6fbc0716037f140569617e798fed8c0700fed7fefbbbf3d182e7f2b0d728"
++    "source-inputs.json": "857653daa55c75f231452a9568f5dffbaa3a8be58acc27d94885e216abe830e0"
+   },
+   "note": "New unconsumed preparation; fixed tool peer and a later explicit separate root release are required. Prior prep2 active release/consumed marker were not copied and confer no new authority."
+ }

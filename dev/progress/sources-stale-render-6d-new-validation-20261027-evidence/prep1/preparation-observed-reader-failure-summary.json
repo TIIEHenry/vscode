@@ -1,0 +1,8 @@
+{
+  "source": "Observed read-only tool-result summary, not fabricated raw stderr",
+  "actualExitCode": 1,
+  "failure": "Optional repositoryPath key was accessed directly on a mixed bound-tool/config row while displaying summaries; KeyError: repositoryPath",
+  "scope": "Read existing JSON only; no prepared tool imported or executed, no new scratch core created at failure time",
+  "correction": "Use optional repositoryPath/path fields by schema when inspecting mixed rows",
+  "notValidationRuntimeFailure": true
+}

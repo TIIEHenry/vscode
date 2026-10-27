@@ -656,3 +656,13 @@ proof前`3029d800e3941130dd62a3a8e85deb33c3fff848:dev/progress/status.md`首条�
 ```markdown
 - **Sources 旧stale stub精确三路接入（2026-10-27）**：8438一次实测/失败proof保全：新54+18逐名过、完整Pane3/3、Panel142/141过1旧stale首断言败，后三条未达。固定6d仅旧fakeWidget新增52B createViewModel→toDisposable行，另案b0 accepted与原Astra source peer C0/I0/M0经root采纳；正式三路保双亲/共同eefce，src424397。当前未做新checker/emit/完整套复验，不称旧case已绿；15500metadata精确8b5f45、256旧native/freeze4/cache3不变，fullCompile=false。双方首条LF/hash与追加历史保[检查点](sources-accept-post-read-authorization-checkpoint.md#stale-render-6d-formal-integration)，[8438原件](sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)不改；四窄plan仍accepted，PRD/宽Sources/旧波不升，无新release准备或执行授权。
 ```
+
+## fixed-6d-new-validation-accepted
+
+root独立验收固定HEAD01c0/source6d/src424397的一次[新验证](sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)：六stage全0，新72逐名与完整Pane3/3、Panel142/142及旧stale本体通过；meta/hooks/owned/finally全部符合已审合同。原Astra prep1工具peer C0/I0/M1、四镜像行号机械修订及prep2窄peer C0/I0/M0、root激活/下一条另释单次执行分列原件；release已消费。当前metadata基准为新guard54fe37，旧native256/freeze4/cache3恢复、fullCompile=false。只签四窄plan/source真实组件为implemented，窄board完成；其他PRD/宽Sources/D/旧波与overall active保持，不声称实端Git索引/UI after/全srcsemantic或fullcompile已验。
+
+本次收尾仍未再运行任何Program/AST/lint/checker/compile/transpile/emit/test/UI/engine，不准备lease。旧A1/run3A4/default-false及8438失败原件均保留。以下为父01c0当前status原首条，保留943B含末尾LF，SHA-256 `5c2d9469209c190af6c1c085035a4f69031663ab806c0d51a0f6216888b486fe`；[原字节](sources-stale-render-6d-new-validation-20261027-evidence/parent-status-first-entry.txt)独立保存：
+
+```text
+- **Sources 旧stale stub精确三路接入（2026-10-27）**：8438一次实测/失败proof保全：新54+18逐名过、完整Pane3/3、Panel142/141过1旧stale首断言败，后三条未达。固定6d仅旧fakeWidget新增52B createViewModel→toDisposable行，另案b0 accepted与原Astra source peer C0/I0/M0经root采纳；正式三路保双亲/共同eefce，src424397。当前未做新checker/emit/完整套复验，不称旧case已绿；15500metadata精确8b5f45、256旧native/freeze4/cache3不变，fullCompile=false。双方首条LF/hash与追加历史保[检查点](sources-accept-post-read-authorization-checkpoint.md#stale-render-6d-formal-integration)，[8438原件](sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)不改；四窄plan仍accepted，PRD/宽Sources/旧波不升，无新release准备或执行授权。 [3029正式合源证明](sources-stale-render-6d-formal-integration-20261027-evidence/INDEX.md)。
+```

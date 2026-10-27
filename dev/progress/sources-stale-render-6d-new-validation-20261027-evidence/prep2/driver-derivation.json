@@ -1,0 +1,125 @@
+{
+  "preparedAtUtc": "2026-10-27T06:21:55.429889+00:00",
+  "preparationOnly": true,
+  "expectedHead": "01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba",
+  "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "previousPreparation": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1",
+  "previousInventory": {
+    "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/preparation-inventory.json",
+    "bytes": 11508,
+    "sha256": "23a055b84af30c5ec4c4420947bcafea2d8f5b9c00d35b50823bec23ce0c3969"
+  },
+  "baseStaticPeer": "Original Astra C0/I0/M1 accepted by root; only duplicated assertion line metadata Minor authorized for correction",
+  "narrowRebind": "Four mirrored second-title currentSourceLine486to491; required new scratch/plan/input-copy literals and derived hashes/release=false only",
+  "mechanicalLiteralRebindings": [
+    {
+      "path": "validate.py",
+      "literalReplacement": {
+        "from": "vscode-sources-stale-render-6d-validation-20261027-prep1",
+        "to": "vscode-sources-stale-render-6d-validation-20261027-prep2"
+      },
+      "occurrences": 2
+    },
+    {
+      "path": "binding.mjs",
+      "literalReplacement": {
+        "from": "vscode-sources-stale-render-6d-validation-20261027-prep1",
+        "to": "vscode-sources-stale-render-6d-validation-20261027-prep2"
+      },
+      "occurrences": 2
+    },
+    {
+      "path": "policy.json",
+      "literalReplacement": {
+        "from": "vscode-sources-stale-render-6d-validation-20261027-prep1",
+        "to": "vscode-sources-stale-render-6d-validation-20261027-prep2"
+      },
+      "occurrences": 2
+    },
+    {
+      "path": "input-manifest.json",
+      "literalReplacement": {
+        "from": "vscode-sources-stale-render-6d-validation-20261027-prep1",
+        "to": "vscode-sources-stale-render-6d-validation-20261027-prep2"
+      },
+      "occurrences": 7
+    },
+    {
+      "path": "source-inputs.json",
+      "literalReplacement": {
+        "from": "vscode-sources-stale-render-6d-validation-20261027-prep1",
+        "to": "vscode-sources-stale-render-6d-validation-20261027-prep2"
+      },
+      "occurrences": 5
+    }
+  ],
+  "metadataCorrectionsFile": "legacy-line-metadata-corrections.json",
+  "driverAndBindingReverseLiteralReplacementEqualsPrep1": true,
+  "guardAndFourCoreJsByteIdenticalToPrep1": true,
+  "exactInheritedOwnershipRanges": [
+    {
+      "start": "def read_process(",
+      "end": "def parse_mocha(",
+      "bytes": 10969,
+      "sha256": "a44830373ca8ce5c0639a6988c44cd12cf94fcfa891d9b46805e427e0367db61",
+      "byteIdenticalToActualPrep2AndOriginalRun3": true
+    },
+    {
+      "start": "    def run_owned(",
+      "end": "    lock, before, seals",
+      "bytes": 2479,
+      "sha256": "faf10203b16a869025c5391ecc227999355c1c08a3111bfb7406a8e4a36e2cf9",
+      "byteIdenticalToActualPrep2AndOriginalRun3": true
+    }
+  ],
+  "actualCreateCompilePipelineStatement": {
+    "bytes": 268,
+    "sha256": "38a641caeca6fc1bc4c20affdc9f135993a826be34c0d0e8ef11e297d6c058f0",
+    "exactOldPrep2AndRun3": true
+  },
+  "guardProjectorOwnerCreateCompileLogicUnchanged": true,
+  "all20RuntimeSurfaceFilesMechanicalDiff": "runtime-path-matrix.json",
+  "all127ToolConfigBytesShaExactPreviousPrep1": true,
+  "pythonAstParsedOnly": [
+    {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/validate.py",
+      "bytes": 43350,
+      "sha256": "ba959f96944928b1dd55b7af2f1a9474581b803814bbdca0157124ea714e2c11",
+      "parse": "stdlib ast.parse only; not imported/evaluated/executed"
+    },
+    {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/guard.py",
+      "bytes": 4177,
+      "sha256": "b2c81d2503db1cda1fc05a30c8223f054c38fbe99c4a2d8f4608d0edcc43b1bd",
+      "parse": "stdlib ast.parse only; not imported/evaluated/executed"
+    }
+  ],
+  "earlyIdentityCallLine": 396,
+  "firstRunpyHelperLoadLine": 398,
+  "syntaxAttribution": {
+    "newPrep2BindingPureSyntaxInvocations": 1,
+    "inheritedFourExactHashPrep1CoreJsResults": 4,
+    "fourCoreJsNotRerun": true,
+    "report": "syntax-checks/validation.json",
+    "originalPrep1Report": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/validation.json"
+  },
+  "historicalInheritedIdentitySummary": "preparation-identity-summary.json copied byte-exact from prep1; its before-syntax timing flag is historical, not a prep2 current-check claim",
+  "historicalInheritedRebindStage": "preparation-rebind-stage.json is the timestamped stage before the single new binding syntax check",
+  "lintWarningSourceContinuity": {
+    "ruleId": "local/code-no-in-operator",
+    "message": "The \"in\" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility.",
+    "severity": 1,
+    "oldLine": 636,
+    "currentCorrespondingSourceLine": 637,
+    "sameOriginalSourceLineIncludingLF": "\t\tif ('disabled' in button) {\n",
+    "sameOriginalSourceLineSha256": "a8dfced641ae8284fa08ced4e3706d9b51cdc028a210f870061e93f679d4c106",
+    "newLintActuallyRun": false,
+    "ruleMessageAndSourceContinuityOnlyNotNewDiagnosticClaim": true
+  },
+  "noConsumedReleaseOrExecutionMarkerCopied": true,
+  "newReleaseExecutionAuthorized": false,
+  "newNarrowPeerPending": true,
+  "noPreparedToolOrProgramInvoked": true,
+  "noOutCacheFreezeProfileWriteOrBusinessValidation": true
+}

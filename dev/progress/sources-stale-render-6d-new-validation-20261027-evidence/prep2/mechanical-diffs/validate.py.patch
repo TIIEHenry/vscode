@@ -1,0 +1,20 @@
+--- prep1/validate.py
++++ prep2/validate.py
+@@ -21,7 +21,7 @@
+ 
+ ROOT = Path(__file__).resolve().parent
+ REPO = Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+-PLAN = 'vscode-sources-stale-render-6d-validation-20261027-prep1'
++PLAN = 'vscode-sources-stale-render-6d-validation-20261027-prep2'
+ EXPECTED_HEAD = '01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba'
+ EXPECTED_SRC = '4243970658ddd668d1f89e0a97d7f41ba94d3300'
+ SOURCE_REF = '6d848eacc578dea0c5c6f39721b00047f9c12469'
+@@ -62,7 +62,7 @@
+ def load_binding():
+     policy, manifest, release = [load_json(ROOT / p) for p in ['policy.json', 'input-manifest.json', 'execution-release.json']]
+     require(release.get('executionAuthorized') is True and release.get('state') == 'AUTHORIZED_NEW_VALIDATION_ONCE' and release.get('authorizedBy') == '/root' and isinstance(release.get('authorizationMessage'), str) and release['authorizationMessage'].strip(), 'FAIL CLOSED: separate explicit root execution release required; preparation grants no execution')
+-    require(ROOT == Path('/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1'), 'Wrong scratch')
++    require(ROOT == Path('/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2'), 'Wrong scratch')
+     require(policy['planId'] == manifest['planId'] == release['planId'] == PLAN and policy['repo'] == manifest['repo'] == str(REPO), 'Wrong plan/repo')
+     require(policy['expectedHead'] == manifest['expectedHead'] == release['expectedHead'] == EXPECTED_HEAD and policy['sourceTree'] == manifest['sourceTree'] == EXPECTED_SRC and policy['sourceRef'] == manifest['sourceRef'] == release['sourceRef'] == SOURCE_REF, 'Fixed identity mismatch')
+     require(release['scope'] == 'fixed-five-file-check-lint-dry-emit-two-full-official-modules', 'Expanded release scope')

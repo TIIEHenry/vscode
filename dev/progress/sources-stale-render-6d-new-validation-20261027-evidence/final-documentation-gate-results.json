@@ -1,0 +1,77 @@
+{
+  "source": "Actual final documentation gates after prose-summary sync; no runtime stage rerun",
+  "results": [
+    {
+      "stage": "final-check-generated-status",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "startedAtUtc": "2026-10-27T06:46:17.761876+00:00",
+      "finishedAtUtc": "2026-10-27T06:46:17.817618+00:00",
+      "exitCode": 0,
+      "stdout": {
+        "path": "final-check-generated-status.stdout.log",
+        "bytes": 21,
+        "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d"
+      },
+      "stderr": {
+        "path": "final-check-generated-status.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "stage": "final-docs-health",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/check-docs-health.py",
+        "--format",
+        "json"
+      ],
+      "startedAtUtc": "2026-10-27T06:46:17.817750+00:00",
+      "finishedAtUtc": "2026-10-27T06:46:18.275533+00:00",
+      "exitCode": 0,
+      "stdout": {
+        "path": "final-docs-health.stdout.log",
+        "bytes": 9167,
+        "sha256": "e2af4f8e4397227534033d80b8ede9fc12cd66bc49206e2099c905bb65528766"
+      },
+      "stderr": {
+        "path": "final-docs-health.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "stage": "unstaged-diff-check",
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--check"
+      ],
+      "startedAtUtc": "2026-10-27T06:46:18.275666+00:00",
+      "finishedAtUtc": "2026-10-27T06:46:18.314300+00:00",
+      "exitCode": 0,
+      "stdout": {
+        "path": "unstaged-diff-check.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "unstaged-diff-check.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "healthWarningsExactlyEqualPriorProof46": true,
+  "healthMarkdownFiles": 611
+}

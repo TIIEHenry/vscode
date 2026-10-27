@@ -1,0 +1,12 @@
+Preparation only for fixed01c0/6d/src424. No new execution release.
+
+All oldprep1/prep2/run1/probe/run2/run3/8438/3029/01c0 originals stay unchanged.
+The prior active release and consumed marker confer no authority and were not copied.
+Five specified JavaScript files each received exactly one pure syntax node --check, all exit0/empty outputs, with every inherited NODE_* removed and only NODE_DISABLE_COMPILE_CACHE=1. No prepared module was imported/evaluated/executed. Python core was only ast.parse.
+
+Current metadata baseline is actual restored8b5f; current source/native identities derive from root-accepted3029 guard0a9970 and fixed6d Git, with256 modes and hashes bound in manifest. Old90f8 source/ctime snapshot assertions are not used.
+OwnedStage10969B and run_owned2479B are byte-identical to reviewed actualprep2/run3. Four JS tool bodies and actual createCompile/ESBuildTranspiler/streamToPromise pipeline are unchanged.
+Qualification changes require exact whole-module counts3/142 plus declared titles/meta/hook balance and preserve all raw failures/partial evidence. Four legacy assertions are bound by exact source bytes/control flow and the future actual whole-case body pass, never by invented individual assert observations.
+The existing lint warning code moves naturally636to637; compare rule/message/original code, not a fabricated unchanged line number. No new lint was run.
+
+Review complete20-file mechanical diffs, new-guard-schema.json,14pins and fresh executionAuthorized=false release before any later root execution release. Do not run driver/guard/checker/linter/dry/emit/tests from this preparation. No oldred rerun, whole compile, UI or engine scope.

@@ -1,0 +1,72 @@
+{
+  "source": "Actual documentation-only gate commands, no source/runtime checks rerun",
+  "results": [
+    {
+      "stage": "generate-status",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py"
+      ],
+      "startedAtUtc": "2026-10-27T06:43:30.938064+00:00",
+      "finishedAtUtc": "2026-10-27T06:43:31.024222+00:00",
+      "exitCode": 0,
+      "stdout": {
+        "path": "generate-status.stdout.log",
+        "bytes": 42,
+        "sha256": "b2e6715347e9af32cb4bd480381c27794555410b872908f55d1f66946c4524a5"
+      },
+      "stderr": {
+        "path": "generate-status.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "stage": "check-generated-status",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "startedAtUtc": "2026-10-27T06:43:31.024334+00:00",
+      "finishedAtUtc": "2026-10-27T06:43:31.078617+00:00",
+      "exitCode": 0,
+      "stdout": {
+        "path": "check-generated-status.stdout.log",
+        "bytes": 21,
+        "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d"
+      },
+      "stderr": {
+        "path": "check-generated-status.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "stage": "docs-health",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/check-docs-health.py"
+      ],
+      "startedAtUtc": "2026-10-27T06:43:31.078663+00:00",
+      "finishedAtUtc": "2026-10-27T06:43:31.416645+00:00",
+      "exitCode": 0,
+      "stdout": {
+        "path": "docs-health.stdout.log",
+        "bytes": 4384,
+        "sha256": "8c03d2d93b7fefc379cb283d940628e6956f403577869c46c20bc956d824583a"
+      },
+      "stderr": {
+        "path": "docs-health.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ]
+}

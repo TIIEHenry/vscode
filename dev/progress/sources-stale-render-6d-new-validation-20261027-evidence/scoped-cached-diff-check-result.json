@@ -1,0 +1,31 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check",
+    "--",
+    ".",
+    ":(exclude)dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch",
+    ":(exclude)dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    ":(exclude)dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch",
+    ":(exclude)dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch",
+    ":(exclude)dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+    ":(exclude)dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    ":(exclude)dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/mechanical-diffs/full-runtime-surface.patch",
+    ":(exclude)dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+    ":(exclude)dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/full-cached-diff-check.stdout.log"
+  ],
+  "startedAtUtc": "2026-10-27T06:50:58.424378+00:00",
+  "finishedAtUtc": "2026-10-27T06:50:58.538208+00:00",
+  "actualExitCode": 0,
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "authorizedExactExclusions": 9,
+  "allOtherStagedPathsChecked": true,
+  "completeUnscopedCachedStillFailedHistorically": true
+}

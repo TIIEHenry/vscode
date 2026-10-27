@@ -28,7 +28,7 @@ summary: "End 列下格：SOURCES_PART + contrib/sources 的 Files | Changes | R
 
 ## 相关文档
 
-- [旧异步 render stub 合同唯一例外（accepted）](../../../dev/plans/sources-panel-stale-render-stub-amendment.md)：固定6d单行stub经原Astra source peer C0/I0/M0/root采纳、3029正式合入；设计保持、待另释唯一lane新复验，原Panel142/141/1失败原件不改。
+- [Accept与Panel四窄方案一次验收（implemented）](../../../dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)：固定6d一次新72/完整3+142及旧stale本体实际全过、root独核，原设计/失败历史保持；54fe37旧native恢复，fullCompile=false，仅source/真实组件scope。
 - [Parts/Grid](../workbench/parts-and-grid.md) · [companion-contribs](../workbench/companion-contribs.md)（SCM / files 配套面）
 - [ADR-005 Diff 归属](../../../dev/decisions/005-changes-diff-owner.md) · [sources-changes-diff plan](../../../dev/plans/sources-changes-diff.md) · [sources-review-open-identity](../../../dev/plans/sources-review-open-identity.md)（打开身份，`accepted` @2026-09-19） · [diff-footprint](../../reference/code-oss-b2/diff-footprint.md)
 - [Sources 打开分派与准确 Conversation 目标](../../../dev/plans/sources-open-dispatch-and-conversation-target.md)：D1387当前Sources关闭、窄方案implemented；三owner/slot与M01准确来源经[R3独立真实Git after](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md)签收，宽方案和PRD保持。

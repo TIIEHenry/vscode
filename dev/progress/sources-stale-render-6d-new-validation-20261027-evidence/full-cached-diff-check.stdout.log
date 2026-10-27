@@ -1,0 +1,72 @@
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:14: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:16: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:21: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:25: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:50: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:59: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:63: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:88: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:90: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:93: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:95: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:98: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:123: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:125: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:128: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:130: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/four-plan-allowed-edits.patch:133: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts:4312: new blank line at EOF.
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch:4: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch:55: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch:4247: space before tab in indent.
++ 			const instantiationService = stubDiffHonestyServices({ resource: resourceA });
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch:4248: space before tab in indent.
++ 			textFileService = instantiationService.get(ITextFileService);
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch:4249: space before tab in indent.
++ 			const fakeWidget = {
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch:4251: space before tab in indent.
++ 				setModel: () => { },
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch:4252: space before tab in indent.
++ 				getModifiedEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/full-runtime-surface.patch:4253: space before tab in indent.
++ 				getOriginalEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch:4: space before tab in indent.
++ 			const instantiationService = stubDiffHonestyServices({ resource: resourceA });
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch:5: space before tab in indent.
++ 			textFileService = instantiationService.get(ITextFileService);
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch:6: space before tab in indent.
++ 			const fakeWidget = {
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch:8: space before tab in indent.
++ 				setModel: () => { },
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch:9: space before tab in indent.
++ 				getModifiedEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts.patch:10: space before tab in indent.
++ 				getOriginalEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/validate.py.patch:4: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep1/mechanical-diffs/validate.py.patch:55: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts:4312: new blank line at EOF.
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/mechanical-diffs/full-runtime-surface.patch:4: trailing whitespace.
++ 
+dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/mechanical-diffs/validate.py.patch:4: trailing whitespace.
++ 

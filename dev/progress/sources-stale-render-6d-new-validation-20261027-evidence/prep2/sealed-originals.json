@@ -1,0 +1,62 @@
+[
+  {
+    "path": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+    "sha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+    "bytes": 104038,
+    "mode": 436,
+    "mtimeNs": 1793053795629884953,
+    "atimeNs": 1793077703638679928,
+    "ctimeNs": 1793077701073611467,
+    "mtimeNsString": "1793053795629884953",
+    "ctimeNsString": "1793077701073611467",
+    "sealedBytesPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js"
+  },
+  {
+    "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+    "sha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+    "bytes": 98207,
+    "mode": 436,
+    "mtimeNs": 1793053795630885024,
+    "atimeNs": 1793077703699681559,
+    "ctimeNs": 1793077701073611467,
+    "mtimeNsString": "1793053795630885024",
+    "ctimeNsString": "1793077701073611467",
+    "sealedBytesPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js"
+  },
+  {
+    "path": "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+    "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+    "bytes": 27186,
+    "mode": 436,
+    "mtimeNs": 1793053795632885167,
+    "atimeNs": 1793077703941688028,
+    "ctimeNs": 1793077701073611467,
+    "mtimeNsString": "1793053795632885167",
+    "ctimeNsString": "1793077701073611467",
+    "sealedBytesPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js"
+  },
+  {
+    "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "sha256": "43744061622832077f62be39ff4cfb5a6e78681aad264e74f6bf0fd4ae9fe577",
+    "bytes": 24579,
+    "mode": 436,
+    "mtimeNs": 1793053795946907607,
+    "atimeNs": 1793077703950688268,
+    "ctimeNs": 1793077701074611494,
+    "mtimeNsString": "1793053795946907607",
+    "ctimeNsString": "1793077701074611494",
+    "sealedBytesPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js"
+  },
+  {
+    "path": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+    "sha256": "a1daf2f12181a2e5c77295867340995323bb5e48606ec141682081fd0b8dafc9",
+    "bytes": 500052,
+    "mode": 436,
+    "mtimeNs": 1793053795948907750,
+    "atimeNs": 1793077703801684285,
+    "ctimeNs": 1793077701075611521,
+    "mtimeNsString": "1793053795948907750",
+    "ctimeNsString": "1793077701075611521",
+    "sealedBytesPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"
+  }
+]

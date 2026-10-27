@@ -1,0 +1,331 @@
+{
+  "capturedAtUtc": "2026-10-27T06:46:57.526934+00:00",
+  "method": "Independent inline stdlib hashes/lstat/proc and read-only Git; no prepared/historical helper imported or executed",
+  "parentHead": "01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba",
+  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "sourceTreeUnchanged": true,
+  "currentApplicableMetadataGuard": {
+    "path": "prep2/guard-after-restore.json",
+    "bytes": 4185498,
+    "sha256": "54fe37b2f942aa1afc5587d630199809ff4dc8e54bad610f577ffa6db8f60f1e"
+  },
+  "all15500CurrentMetadataExact54fe": true,
+  "all256CurrentSourceAndOldNativeBytesModesExact": true,
+  "freeze4Cache3Exact": true,
+  "onlyAuthorizedFiveCtimeDifferFrom8b5f": [
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "keys": [
+        "ctimeNs"
+      ],
+      "beforeCtimeNs": 1793077701073611467,
+      "afterCtimeNs": 1793082901622038687
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "keys": [
+        "ctimeNs"
+      ],
+      "beforeCtimeNs": 1793077701073611467,
+      "afterCtimeNs": 1793082901622038687
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "keys": [
+        "ctimeNs"
+      ],
+      "beforeCtimeNs": 1793077701073611467,
+      "afterCtimeNs": 1793082901622038687
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "keys": [
+        "ctimeNs"
+      ],
+      "beforeCtimeNs": 1793077701074611494,
+      "afterCtimeNs": 1793082901623038731
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "keys": [
+        "ctimeNs"
+      ],
+      "beforeCtimeNs": 1793077701075611521,
+      "afterCtimeNs": 1793082901624038775
+    }
+  ],
+  "fullCompileOfFinalSourceTree": false,
+  "dispatchJson": {
+    "path": "dev/progress/sources-accept-post-read-authorization-dispatch-checkpoint.json",
+    "bytes": 2859,
+    "sha256": "fbf75cdbb5d197a2863dd654afe71a7ce71d78fb62668787514d3c98fa0ce028",
+    "unchangedFromParent": true
+  },
+  "allOtherTrackedPathsOutsideTwelveDocsUnchanged": true,
+  "historical8438AndEarlierFilesUnchanged": true,
+  "all186ScratchMirrorsAndOriginalsBytesExact": true,
+  "oldPrep1All64FilesPreserved": true,
+  "ownedPidStartPairs": [
+    {
+      "pid": 2103505,
+      "ownedStartTime": "153727738",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2103506,
+      "ownedStartTime": "153727738",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2103519,
+      "ownedStartTime": "153727746",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2103523,
+      "ownedStartTime": "153727753",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2103524,
+      "ownedStartTime": "153727753",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2103580,
+      "ownedStartTime": "153727786",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2103590,
+      "ownedStartTime": "153727801",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2103598,
+      "ownedStartTime": "153727818",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2103606,
+      "ownedStartTime": "153727826",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2103611,
+      "ownedStartTime": "153727834",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2103615,
+      "ownedStartTime": "153727843",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2103626,
+      "ownedStartTime": "153727853",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2105569,
+      "ownedStartTime": "153730290",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2105570,
+      "ownedStartTime": "153730290",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2105587,
+      "ownedStartTime": "153730296",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2105588,
+      "ownedStartTime": "153730297",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2105960,
+      "ownedStartTime": "153730719",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2105961,
+      "ownedStartTime": "153730720",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2105982,
+      "ownedStartTime": "153730725",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2106095,
+      "ownedStartTime": "153730887",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2106339,
+      "ownedStartTime": "153731112",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2106340,
+      "ownedStartTime": "153731112",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2106574,
+      "ownedStartTime": "153731240",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2106933,
+      "ownedStartTime": "153731509",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2106934,
+      "ownedStartTime": "153731509",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2106946,
+      "ownedStartTime": "153731510",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2106949,
+      "ownedStartTime": "153731516",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2106951,
+      "ownedStartTime": "153731518",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2106953,
+      "ownedStartTime": "153731518",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2106967,
+      "ownedStartTime": "153731526",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107066,
+      "ownedStartTime": "153731598",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107070,
+      "ownedStartTime": "153731598",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107087,
+      "ownedStartTime": "153731600",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107475,
+      "ownedStartTime": "153731984",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107476,
+      "ownedStartTime": "153731985",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107488,
+      "ownedStartTime": "153731985",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107491,
+      "ownedStartTime": "153731988",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107494,
+      "ownedStartTime": "153731991",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107495,
+      "ownedStartTime": "153731991",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107508,
+      "ownedStartTime": "153731997",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107531,
+      "ownedStartTime": "153732033",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107533,
+      "ownedStartTime": "153732034",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    },
+    {
+      "pid": 2107544,
+      "ownedStartTime": "153732036",
+      "currentStartTime": null,
+      "samePidStartLive": false
+    }
+  ],
+  "matchingOwnedLiveCount": 0,
+  "healthWarnings46ExactlySameAsPriorProof": true,
+  "noRuntimeOrLeaseWorkDuringPublication": true
+}

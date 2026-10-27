@@ -1,0 +1,20 @@
+--- prep1/binding.mjs
++++ prep2/binding.mjs
+@@ -5,7 +5,7 @@
+ import { execFileSync } from 'node:child_process';
+ export const scratch = path.dirname(import.meta.filename);
+ export const repo = '/home/clarence/Projects/Agents/vscode-WorkTrees/merge';
+-export const plan = 'vscode-sources-stale-render-6d-validation-20261027-prep1';
++export const plan = 'vscode-sources-stale-render-6d-validation-20261027-prep2';
+ export const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+ export const check = (ok, message) => { if (!ok) throw Error(message); };
+ export const json = p => JSON.parse(fs.readFileSync(p, 'utf8'));
+@@ -13,7 +13,7 @@
+ export function authorize(stage) {
+  const release = json(path.join(scratch, 'execution-release.json'));
+  check(release.executionAuthorized === true && release.state === 'AUTHORIZED_NEW_VALIDATION_ONCE' && release.authorizedBy === '/root' && typeof release.authorizationMessage === 'string' && release.authorizationMessage.trim(), 'FAIL CLOSED: separate explicit root execution release required');
+- check(scratch === '/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1' && process.cwd() === repo && release.planId === plan && release.scope === 'fixed-five-file-check-lint-dry-emit-two-full-official-modules', 'Wrong scratch/plan/scope');
++ check(scratch === '/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2' && process.cwd() === repo && release.planId === plan && release.scope === 'fixed-five-file-check-lint-dry-emit-two-full-official-modules', 'Wrong scratch/plan/scope');
+  check(process.env.VSCODE_SOURCES_NEW_VALIDATION_STAGE === stage && /^[0-9a-f]{64}$/.test(process.env.VSCODE_SOURCES_OLD_RED_RUN2_DRIVER_NONCE ?? '') && (process.env.VSCODE_SOURCES_OLD_RED_RUN2_STAGE_TOKEN ?? '').includes(':'), 'Requires owned driver stage invocation');
+  for (const [name, digest] of Object.entries(release.pinnedFilesSha256)) check(sha(fs.readFileSync(path.join(scratch, name))) === digest, 'Unpinned preparation file ' + name);
+  const manifest = json(path.join(scratch, 'input-manifest.json')), policy = json(path.join(scratch, 'policy.json'));

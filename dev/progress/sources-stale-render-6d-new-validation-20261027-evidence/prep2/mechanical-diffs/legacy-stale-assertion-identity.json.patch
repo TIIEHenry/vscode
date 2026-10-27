@@ -1,0 +1,11 @@
+--- prep1/legacy-stale-assertion-identity.json
++++ prep2/legacy-stale-assertion-identity.json
+@@ -25,7 +25,7 @@
+       "bytes": 113,
+       "sha256": "8be336294e0fbe12aa36bb9cf02b613f88cfc575411367ac6813a9529b855752",
+       "textIncludingLF": "\t\t\tassert.strictEqual(view.element.querySelector('.sources-diff-panel-title')?.textContent, 'stale-panel-b.ts');\n",
+-      "currentSourceLine": 486
++      "currentSourceLine": 491
+     },
+     {
+       "index": 3,

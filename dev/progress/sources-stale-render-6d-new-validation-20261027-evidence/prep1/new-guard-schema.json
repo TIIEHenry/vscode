@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 2,
+  "metadataBaseline": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-after-restore.json",
+    "sha256": "8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04",
+    "schemaKey": "outMetadata, freezeFiles, cacheSymlinks",
+    "entries": 15500,
+    "initialComparison": "Exact to8b5f actual restored metadata, including its five already-authorized ctimes; not old90f8 run3 ctimes"
+  },
+  "currentSourceIdentityBaseline": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/guard-after-source-merge-commit.json",
+    "sha256": "0a99707f0153413b352f91d2ae7d6d0295f709db3bf1d2faf27998dd3c4a5006",
+    "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+    "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+    "schemaKey": "boundSourceNativePairs in pinned manifest;256 current source bytes/blob/mode plus old native bytes/mode",
+    "sourceBindings": 256,
+    "newSourceOldNativePairs": 4,
+    "unchangedSourceNativePairs": 252
+  },
+  "initialGuardFutureCall": "Only after explicit release; uses stdlib metadata/out walk and exact current-source bindings; no runpy or old pairs254 snapshot assertions in guard.py",
+  "temporaryStages": "Driver fixedguard checks source256/freeze4/cache3 and expected full outMetadata; initial and restored verify hash native256; only exact5 JS emit permitted",
+  "finally": "All owned PID/start pairs quiescent first, restore original5 bytes/mode/mtime; only those5 ctime may newly differ from8b5f; other12549files/2946dirs full metadata exact",
+  "guardReturnTypes": {
+    "outMetadata": "dict[path, metadata]",
+    "sourceNativePairs": "list[256]",
+    "authorizedNewSourceOldNativePairs": "integer4",
+    "unchangedSourceNativePairs": "integer252",
+    "cacheSymlinks": "dict[path, separate target/resolved/metadata fields]",
+    "priorAuthorizedCtimeDifferencesFromRun3": "unchanged historical list copied from8b5f",
+    "authorizedCtimeDifferences": "new actual list relative8b5f; initially empty, afterfuture restore only authorized5 paths"
+  },
+  "guardImportedOrExecutedDuringPreparation": false
+}

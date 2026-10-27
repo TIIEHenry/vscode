@@ -1,0 +1,87 @@
+{
+  "atUtc": "2026-10-27T06:21:55.429889+00:00",
+  "preparationOnly": true,
+  "scratch": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2",
+  "previousScratch": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1",
+  "expectedHead": "01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba",
+  "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "repositoryClean": true,
+  "basePeer": "Original Astra C0/I0/M1 accepted by root",
+  "narrowPeerPending": true,
+  "metadataCorrections": 4,
+  "affectedJsonFiles": 3,
+  "recursiveAssertionLineObjectOccurrences": [
+    {
+      "path": "expected-fullTitles.json",
+      "jsonPath": "$.modules[1].legacyStaleCase.orderedOriginalAssertions",
+      "lines": [
+        486,
+        491,
+        492,
+        493
+      ]
+    },
+    {
+      "path": "expected-fullTitles.json",
+      "jsonPath": "$.legacyStaleCase.orderedOriginalAssertions",
+      "lines": [
+        486,
+        491,
+        492,
+        493
+      ]
+    },
+    {
+      "path": "input-manifest.json",
+      "jsonPath": "$.legacyStaleCaseIdentity.orderedOriginalAssertions",
+      "lines": [
+        486,
+        491,
+        492,
+        493
+      ]
+    },
+    {
+      "path": "legacy-stale-assertion-identity.json",
+      "jsonPath": "$.orderedOriginalAssertions",
+      "lines": [
+        486,
+        491,
+        492,
+        493
+      ]
+    }
+  ],
+  "runtimeLogicUnchanged": true,
+  "pinsVerified": 14,
+  "freshReleaseExecutionAuthorized": false,
+  "freshReleaseState": "PREPARED_NOT_AUTHORIZED",
+  "syntaxAttribution": {
+    "newBindingPureSyntaxInvocations": 1,
+    "newBindingExitCode": 0,
+    "newBindingStdoutStderrEmpty": true,
+    "fourExactHashPrep1CoreJsResultsInheritedNotRerun": 4
+  },
+  "runtimeSurfaceFiles": 20,
+  "byteIdenticalRuntimeSurfaces": 13,
+  "changedRuntimeSurfaces": 7,
+  "sourceCopiesExactCurrentGitAndDisk": 5,
+  "sourceInputBytes": 281491,
+  "boundToolConfigsExactDiskAndOldPrep1": 127,
+  "independentInlineStdlibReadOnlyIdentity": {
+    "preparedGuardImportedOrExecuted": false,
+    "outMetadataExact8b5fEntries": 15500,
+    "currentSourceAndOldNativeBytesModesExactBindings": 256,
+    "freezeExact": 4,
+    "cacheSymlinksExact": 3,
+    "newCtimeDifferencesFrom8b5f": 0
+  },
+  "oldPrep1FilesIncludingInventoryProtected": 64,
+  "pythonCoreAstParseOnly": true,
+  "prohibitedRuntimeArtifactsAbsent": true,
+  "driverGuardCheckerLinterEmitterTestProgramUiEngineExecuted": false,
+  "noOutCacheFreezeWrites": true,
+  "noNewExecutionAuthorization": true,
+  "remainingRequirement": "Original Astra narrow mechanical recheck, then separate explicit root execution release; no new runtime result exists"
+}

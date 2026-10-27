@@ -1,0 +1,25 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "startedAtUtc": "2026-10-27T06:46:57.720510+00:00",
+  "finishedAtUtc": "2026-10-27T06:46:57.810698+00:00",
+  "actualExitCode": 2,
+  "stdout": {
+    "path": "full-cached-diff-check.stdout.log",
+    "bytes": 6653,
+    "sha256": "394238423e8ae25c075d59990a88da91f462c1a32c1b66e1ba4202cfeacaa628"
+  },
+  "stderr": {
+    "path": "full-cached-diff-check.stderr.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "scopedExclusionApplied": false,
+  "oldExclusionsNotInherited": true
+}

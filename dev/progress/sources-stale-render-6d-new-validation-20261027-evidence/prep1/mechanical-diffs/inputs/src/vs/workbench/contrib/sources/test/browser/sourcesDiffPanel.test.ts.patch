@@ -1,0 +1,10 @@
+--- actual-prep2-prepared/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts
++++ fixed6d-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts
+@@ -435,6 +435,7 @@
+ 			const instantiationService = stubDiffHonestyServices({ resource: resourceA });
+ 			textFileService = instantiationService.get(ITextFileService);
+ 			const fakeWidget = {
++				createViewModel: () => toDisposable(() => { }),
+ 				setModel: () => { },
+ 				getModifiedEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),
+ 				getOriginalEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),

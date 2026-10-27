@@ -1,0 +1,39 @@
+{
+  "atUtc": "2026-10-27T06:11:26.869507+00:00",
+  "preparationOnly": true,
+  "expectedHead": "01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba",
+  "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "repositoryClean": true,
+  "pinsVerified": 14,
+  "freshReleaseExecutionAuthorized": false,
+  "freshReleaseState": "PREPARED_NOT_AUTHORIZED",
+  "syntaxChecksPreviouslyRunExactlyOnce": 5,
+  "syntaxCheckFilesUnchanged": true,
+  "syntaxChecksNotRepeatedDuringSeal": true,
+  "runtimeSurfaceFiles": 20,
+  "byteIdenticalRuntimeSurfaces": 11,
+  "changedRuntimeSurfaces": 9,
+  "oldReleaseComparedOnlyToSealedUnconsumedPreparedOriginal": true,
+  "sourceCopiesExactCurrentGitAndDisk": 5,
+  "sourceInputBytes": 281491,
+  "boundToolConfigsExactDiskAndOldPrep2": 127,
+  "independentInlineStdlibReadOnlyIdentity": {
+    "preparedGuardImportedOrExecuted": false,
+    "outMetadataExact8b5fEntries": 15500,
+    "currentSourceAndOldNativeBytesModesExactBindings": 256,
+    "freezeExact": 4,
+    "cacheSymlinksExact": 3,
+    "newCtimeDifferencesFrom8b5f": 0
+  },
+  "pythonCoreAstParseOnly": true,
+  "prohibitedRuntimeArtifactsAbsent": true,
+  "runtimeDirectoriesAbsent": true,
+  "observedStaticHelperFailures": [
+    "preparation-observed-reader-failure-summary.json",
+    "preparation-observed-packaging-failure-summary.json"
+  ],
+  "driverGuardCheckerLinterEmitterTestProgramUiEngineExecuted": false,
+  "noNewExecutionAuthorization": true,
+  "remainingRequirement": "Original Astra fixed-tool static peer, then a separate explicit root execution release; no new runtime result exists"
+}

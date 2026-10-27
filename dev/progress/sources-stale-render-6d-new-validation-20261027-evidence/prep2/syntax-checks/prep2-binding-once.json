@@ -1,0 +1,28 @@
+{
+  "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/binding.mjs",
+  "fileBytes": 4565,
+  "fileSha256": "006ccace60d99b62c51518e7ba8a6b4b844116032e9af7d5a7d975127a3fc81e",
+  "atUtc": "2026-10-27T06:19:59.900950+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "/home/clarence/.hermes/node/bin/node",
+    "--check",
+    "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/binding.mjs"
+  ],
+  "exitCode": 0,
+  "stdoutPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/binding.mjs.stdout.log",
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/syntax-checks/binding.mjs.stderr.log",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "allInheritedNodeVariablesRemoved": true,
+  "removedInheritedNodeVariableNames": [],
+  "effectiveNodeEnvironment": {
+    "NODE_DISABLE_COMPILE_CACHE": "1"
+  },
+  "moduleImportedEvaluatedOrExecuted": false,
+  "oneInvocationOnly": true,
+  "provenance": "New prep2 binding only; root explicitly authorized exactly one pure node --check"
+}

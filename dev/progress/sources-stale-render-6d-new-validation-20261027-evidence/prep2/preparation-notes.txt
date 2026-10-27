@@ -1,0 +1,11 @@
+Prep2 is a root-authorized mechanical rebind of prep1, with no new execution release.
+
+Prep1 all63 inventory members plus its inventory remain at their original paths and bytes, including the originally reviewed four duplicated wrong486 line metadata entries. Its accepted static peer was C0/I0/M1.
+
+Only four mirrored currentSourceLine values in three JSON files changed486to491; arrays are now486,491,492,493. Assertion text/order/case hashes and all execution logic are unchanged. Driver and binding differ solely by prep1to prep2 plan/scratch literals; guard and four coreJS are byte-identical. Required policy/manifest/input-copy paths,14pins and fresh executionAuthorized=false release were rebound mechanically.
+
+Only the new binding received one explicitly authorized pure node --check, exit0/empty stdout/stderr. Four coreJS syntax results are inherited by exact hash from prep1, with original path/log/time attribution and no rerun. Python was ast.parse only. No prepared tool, Program, checker, lint, dry, emit, test, UI or engine was executed; out/cache/freeze were not written.
+
+preparation-identity-summary.json and the two observed-helper-failure summaries are copied historical prep1 artifacts, not new prep2 observations. preparation-rebind-stage.json is timestamped before the new binding syntax check. Full current static identity and provenance are in preparation-final-seal-summary.json,driver-derivation.json,syntax-checks/validation.json.
+
+Review prep1-to-prep2-file-delta.json,20-file matrix,3JSON/four-line metadata-only patch,14pins and false release in a narrow original-Astra peer before a separate explicit root execution release. No new6d runtime result exists.

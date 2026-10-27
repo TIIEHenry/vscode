@@ -1,0 +1,34 @@
+// Prepared only: no type checker is invoked until authorize succeeds.
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+import { authorize, repo, scratch, check, sha } from './binding.mjs';
+const { manifest } = authorize('checker');
+const require = createRequire(path.join(repo, 'package.json'));
+const ts = require('typescript');
+const project = path.join(repo, 'src/tsconfig.json');
+const read = ts.readConfigFile(project, ts.sys.readFile);
+const parsed = ts.parseJsonConfigFileContent(read.config ?? {}, ts.sys, path.dirname(project), undefined, project);
+const configErrors = [...(read.error ? [read.error] : []), ...parsed.errors];
+const options = { ...parsed.options, noEmit: true, incremental: false, composite: false, tsBuildInfoFile: undefined };
+const host = ts.createCompilerHost(options, true);
+let forbiddenWriteAttempts = 0;
+host.writeFile = () => { forbiddenWriteAttempts++; throw Error('FORBIDDEN: noEmit checker attempted an artifact/cache/tsbuildinfo write'); };
+const program = ts.createProgram({ rootNames: parsed.fileNames, options, host, configFileParsingDiagnostics: configErrors });
+const targetPaths = new Set(manifest.sourceFiles.map(r => path.resolve(repo, r.sourcePath)));
+const format = d => ({ code: d.code, category: ts.DiagnosticCategory[d.category], message: ts.flattenDiagnosticMessageText(d.messageText, '\n'), file: d.file?.fileName ?? null, start: d.start ?? null, length: d.length ?? null, position: d.file && d.start !== undefined ? d.file.getLineAndCharacterOfPosition(d.start) : null, relatedInformation: d.relatedInformation?.map(v => ({ code: v.code, file: v.file?.fileName ?? null, start: v.start ?? null, message: ts.flattenDiagnosticMessageText(v.messageText, '\n') })) ?? [] });
+const config = program.getConfigFileParsingDiagnostics(), global = program.getGlobalDiagnostics(), optionDiagnostics = program.getOptionsDiagnostics();
+const allSyntactic = program.getSyntacticDiagnostics();
+const targetSyntactic = allSyntactic.filter(d => d.file && targetPaths.has(path.resolve(d.file.fileName)));
+const nonTargetSyntactic = allSyntactic.filter(d => !d.file || !targetPaths.has(path.resolve(d.file.fileName)));
+const targets = manifest.sourceFiles.map(row => {
+ const file = program.getSourceFile(path.resolve(repo, row.sourcePath));
+ check(file && sha(Buffer.from(file.text)) === row.sourceSha256, 'Target missing/changed in complete project: ' + row.sourcePath);
+ const semantic = program.getSemanticDiagnostics(file);
+ return { sourcePath: row.sourcePath, sourceBlob: row.sourceBlob, syntactic: targetSyntactic.filter(d => d.file === file).map(format), semantic: semantic.map(format) };
+});
+const report = { capturedAtUtc: new Date().toISOString(), project, sourceRef: manifest.sourceRef, sourceTree: manifest.sourceTree, expectedHead: manifest.expectedHead, typescriptVersion: ts.version, originalCompilerOptions: parsed.options, effectiveCompilerOptions: options, rootCount: parsed.fileNames.length, rootNames: parsed.fileNames, programSourceFileCount: program.getSourceFiles().length, targets, configDiagnostics: config.map(format), globalDiagnostics: global.map(format), optionDiagnostics: optionDiagnostics.map(format), nonTargetSyntacticDiagnostics: nonTargetSyntactic.map(format), nonTargetSemanticDiagnosticsRequested: false, filteringPolicy: 'Full actual src project and ambient context; all config/options/global and five target syntactic/semantic diagnostics gate. All-project non-target syntactic diagnostics preserved separately, not gating. Non-target semantic diagnostics are not requested; no full-project semantic-clean claim.', noEmit: true, emitInvoked: false, incremental: false, composite: false, tsBuildInfoFile: null, forbiddenWriteAttempts, fullCompileOfFinalSourceTree: false };
+report.passed = config.length === 0 && global.length === 0 && optionDiagnostics.length === 0 && targets.every(r => r.syntactic.length === 0 && r.semantic.length === 0) && forbiddenWriteAttempts === 0;
+fs.writeFileSync(path.join(scratch, 'source-checker-report.json'), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ stage: 'checker', passed: report.passed, rootCount: report.rootCount, targets: targets.map(r => ({ path: r.sourcePath, syntactic: r.syntactic.length, semantic: r.semantic.length })), config: config.length, global: global.length, options: optionDiagnostics.length, nonTargetSyntactic: nonTargetSyntactic.length, forbiddenWriteAttempts }));
+process.exitCode = report.passed ? 0 : 1;

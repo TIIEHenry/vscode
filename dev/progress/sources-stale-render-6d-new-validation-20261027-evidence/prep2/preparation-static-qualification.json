@@ -1,0 +1,76 @@
+{
+  "atUtc": "2026-10-27T06:21:55.429889+00:00",
+  "preparationOnly": true,
+  "pythonAstParse": [
+    {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/validate.py",
+      "bytes": 43350,
+      "sha256": "ba959f96944928b1dd55b7af2f1a9474581b803814bbdca0157124ea714e2c11",
+      "parse": "stdlib ast.parse only; not imported/evaluated/executed"
+    },
+    {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/guard.py",
+      "bytes": 4177,
+      "sha256": "b2c81d2503db1cda1fc05a30c8223f054c38fbe99c4a2d8f4608d0edcc43b1bd",
+      "parse": "stdlib ast.parse only; not imported/evaluated/executed"
+    }
+  ],
+  "allFivePureNodeChecksExit0": true,
+  "allFiveRawStdoutStderrEmpty": true,
+  "allFiveFilesUnchangedSinceTheirSingleSyntaxChecks": true,
+  "exactInheritedOwnershipRanges": [
+    {
+      "start": "def read_process(",
+      "end": "def parse_mocha(",
+      "bytes": 10969,
+      "sha256": "a44830373ca8ce5c0639a6988c44cd12cf94fcfa891d9b46805e427e0367db61",
+      "byteIdenticalToActualPrep2AndOriginalRun3": true
+    },
+    {
+      "start": "    def run_owned(",
+      "end": "    lock, before, seals",
+      "bytes": 2479,
+      "sha256": "faf10203b16a869025c5391ecc227999355c1c08a3111bfb7406a8e4a36e2cf9",
+      "byteIdenticalToActualPrep2AndOriginalRun3": true
+    }
+  ],
+  "identityBeforeFirstHelperLoad": {
+    "identityLine": 396,
+    "firstHelperLine": 398
+  },
+  "runtimeSurfaceFiles": 20,
+  "byteIdenticalFiles": 13,
+  "changedFiles": 7,
+  "sourceCopies": 5,
+  "sourceCopyTotalBytes": 281491,
+  "toolConfigs": 127,
+  "protectedSourceNativeBindings": 256,
+  "staticNewAcceptTitles": 54,
+  "staticLifecycleTitles": 18,
+  "staticDeclaredModuleCounts": {
+    "conversation": 2,
+    "panel": 141
+  },
+  "expectedFutureOfficialModuleCountsIncludingMeta": {
+    "conversation": 3,
+    "panel": 142
+  },
+  "expectedFutureHookCounts": {
+    "conversation": 11,
+    "panel": 567
+  },
+  "allTheseCountsAreStaticRequirementsNotNewRuntimeResults": true,
+  "oldStaleFullTitleAndFourOriginalAssertionsBound": true,
+  "individualAssertRuntimeHooksAdded": false,
+  "noGuardCheckerLinterEmitterDriverOrBusinessTestInvoked": true,
+  "noGateTrialRun": true,
+  "executionAuthorized": false,
+  "newPeerAndExplicitSeparateRootExecutionReleaseRequired": true,
+  "repoSourcePlanStateUntouched": true,
+  "syntaxAttribution": {
+    "newBindingInvocations": 1,
+    "fourExactHashPrep1CoreJsResultsInheritedNotRerun": 4
+  },
+  "fourMirroredLineMetadataCorrectedAndSourceVerified": true,
+  "guardProjectorOwnerCreateCompileLogicUnchanged": true
+}

@@ -1,0 +1,13 @@
+--- prep1/policy.json
++++ prep2/policy.json
+@@ -1,8 +1,8 @@
+ {
+   "schemaVersion": 1,
+-  "planId": "vscode-sources-stale-render-6d-validation-20261027-prep1",
++  "planId": "vscode-sources-stale-render-6d-validation-20261027-prep2",
+   "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+-  "scratch": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1",
++  "scratch": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2",
+   "expectedHead": "01c0addecff0b3ddd98afc1259c00a9f0ceaa3ba",
+   "sourceRef": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+   "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",

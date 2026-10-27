@@ -1,0 +1,148 @@
+{
+  "source": "Exactly five explicitly authorized pure syntax node --check calls; no prepared module imported/evaluated/executed",
+  "preparedScratch": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1",
+  "nodeExecutable": "/home/clarence/.hermes/node/bin/node",
+  "nodeExecutableBytes": 147870928,
+  "nodeExecutableSha256": "ad19784f7e90ba789a099eccba77ede8dc90a778c424f1c10a70fed3ff903fdc",
+  "checks": [
+    {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/binding.mjs",
+      "fileBytes": 4565,
+      "fileSha256": "b2b1fed0c07fef9ae0497e05d1c7a810eb77f55965b3fadfadf028ed311e01e4",
+      "atUtc": "2026-10-27T06:03:26.660776+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/binding.mjs"
+      ],
+      "exitCode": 0,
+      "stdoutPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/binding.mjs.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/binding.mjs.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "allInheritedNodeVariablesRemoved": true,
+      "removedInheritedNodeVariableNames": [],
+      "effectiveNodeEnvironment": {
+        "NODE_DISABLE_COMPILE_CACHE": "1"
+      },
+      "moduleImportedEvaluatedOrExecuted": false,
+      "oneInvocationOnly": true
+    },
+    {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/emitter.mjs",
+      "fileBytes": 9373,
+      "fileSha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+      "atUtc": "2026-10-27T06:03:26.689230+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/emitter.mjs"
+      ],
+      "exitCode": 0,
+      "stdoutPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/emitter.mjs.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/emitter.mjs.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "allInheritedNodeVariablesRemoved": true,
+      "removedInheritedNodeVariableNames": [],
+      "effectiveNodeEnvironment": {
+        "NODE_DISABLE_COMPILE_CACHE": "1"
+      },
+      "moduleImportedEvaluatedOrExecuted": false,
+      "oneInvocationOnly": true
+    },
+    {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/linter.mjs",
+      "fileBytes": 1854,
+      "fileSha256": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff",
+      "atUtc": "2026-10-27T06:03:26.718190+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/linter.mjs"
+      ],
+      "exitCode": 0,
+      "stdoutPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/linter.mjs.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/linter.mjs.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "allInheritedNodeVariablesRemoved": true,
+      "removedInheritedNodeVariableNames": [],
+      "effectiveNodeEnvironment": {
+        "NODE_DISABLE_COMPILE_CACHE": "1"
+      },
+      "moduleImportedEvaluatedOrExecuted": false,
+      "oneInvocationOnly": true
+    },
+    {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/reporter.cjs",
+      "fileBytes": 2311,
+      "fileSha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "atUtc": "2026-10-27T06:03:26.742442+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/reporter.cjs"
+      ],
+      "exitCode": 0,
+      "stdoutPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/reporter.cjs.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/reporter.cjs.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "allInheritedNodeVariablesRemoved": true,
+      "removedInheritedNodeVariableNames": [],
+      "effectiveNodeEnvironment": {
+        "NODE_DISABLE_COMPILE_CACHE": "1"
+      },
+      "moduleImportedEvaluatedOrExecuted": false,
+      "oneInvocationOnly": true
+    },
+    {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/source-checker.mjs",
+      "fileBytes": 4538,
+      "fileSha256": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806",
+      "atUtc": "2026-10-27T06:03:26.766583+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/source-checker.mjs"
+      ],
+      "exitCode": 0,
+      "stdoutPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/source-checker.mjs.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/source-checker.mjs.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "allInheritedNodeVariablesRemoved": true,
+      "removedInheritedNodeVariableNames": [],
+      "effectiveNodeEnvironment": {
+        "NODE_DISABLE_COMPILE_CACHE": "1"
+      },
+      "moduleImportedEvaluatedOrExecuted": false,
+      "oneInvocationOnly": true
+    }
+  ],
+  "allFiveExit0": true,
+  "allRawStdoutStderrEmpty": true,
+  "noDriverGateTrialRun": true,
+  "noOutCacheFreezeProfileWrites": true
+}

@@ -1,0 +1,93 @@
+{
+  "scope": "Root-authorized four mirrored currentSourceLine values only, plus separately documented mechanical scratch/plan/input path and hash bindings",
+  "basePeer": "Original Astra accepted by root: C0/I0/M1; line-number metadata only",
+  "originalUncorrectedPreparation": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1",
+  "newPreparation": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2",
+  "correctionCount": 4,
+  "affectedJsonFiles": 3,
+  "corrections": [
+    {
+      "path": "expected-fullTitles.json",
+      "jsonPath": "$.modules[1].legacyStaleCase.orderedOriginalAssertions[1].currentSourceLine",
+      "assertionIndex": 2,
+      "before": 486,
+      "after": 491,
+      "allFourBefore": [
+        486,
+        486,
+        492,
+        493
+      ],
+      "allFourAfter": [
+        486,
+        491,
+        492,
+        493
+      ]
+    },
+    {
+      "path": "expected-fullTitles.json",
+      "jsonPath": "$.legacyStaleCase.orderedOriginalAssertions[1].currentSourceLine",
+      "assertionIndex": 2,
+      "before": 486,
+      "after": 491,
+      "allFourBefore": [
+        486,
+        486,
+        492,
+        493
+      ],
+      "allFourAfter": [
+        486,
+        491,
+        492,
+        493
+      ]
+    },
+    {
+      "path": "input-manifest.json",
+      "jsonPath": "$.legacyStaleCaseIdentity.orderedOriginalAssertions[1].currentSourceLine",
+      "assertionIndex": 2,
+      "before": 486,
+      "after": 491,
+      "allFourBefore": [
+        486,
+        486,
+        492,
+        493
+      ],
+      "allFourAfter": [
+        486,
+        491,
+        492,
+        493
+      ]
+    },
+    {
+      "path": "legacy-stale-assertion-identity.json",
+      "jsonPath": "$.orderedOriginalAssertions[1].currentSourceLine",
+      "assertionIndex": 2,
+      "before": 486,
+      "after": 491,
+      "allFourBefore": [
+        486,
+        486,
+        492,
+        493
+      ],
+      "allFourAfter": [
+        486,
+        491,
+        492,
+        493
+      ]
+    }
+  ],
+  "firstTitleLineUnchanged": 486,
+  "shownALineUnchanged": 492,
+  "shownBLineUnchanged": 493,
+  "assertionTextOrderAndCaseBytesUnchanged": true,
+  "runtimeQualificationLogicUnchanged": true,
+  "sourceOrOutputEdited": false,
+  "newNarrowPeerPending": true
+}

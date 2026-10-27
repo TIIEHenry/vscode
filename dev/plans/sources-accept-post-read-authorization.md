@@ -1,16 +1,16 @@
 ---
 title: "Sources Accept：读取返回后复核写入授权"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-27
-summary: "两宿主Accept读后写前当前授权方案；规则16 C0/I0/M2由父核验采纳，两Minor已实改，独立accepted；未实施/运行，out保持冻结。"
+summary: "两宿主Accept读后当前授权，54新例及完整两宿主模块实际通过；root核新6d一次green后窄scope签收，原设计/review/失败历史保留，fullCompile=false。"
 ---
 
 # Sources Accept：读取返回后复核写入授权
 
 > **固定源码基线**：`c7fefd780bd9720f3889e310d4706210189a3fc7`，`src` tree `a2c34649ee88df907c03b70c9ec3235cb1b4a9d9`。不追 main。
-> **当前阶段**：独立 accepted 方案；原 draft 为 `4b0d3d62e65e54e71d3b1748f100fac7ca5f6ce3`，Astra 对该精确提交规则 16 只读审查为 C0/I0/M2，父级已核验采纳、两 Minor 已实改（§7）。本次仅提交方案，源码实施仍须父级下一次明确授权。
+> **当前实现验收（2026-10-27）**：两宿主Accept读后当前授权，54新例及完整两宿主模块实际通过，root已独立核原始stream/owned/finally并签收本方案为implemented。固定HEAD01c0/source6d/src424397的一次[新验证证据](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)是当前结论；下方原设计、授权、评审与失败叙述保留其历史时点。仅source/真实组件合同，不声称实端Git索引、UI after或fullcompile已验。
 > **既有合同**：[PRD-009 验收 3](../../docs/product/requirements.md#prd-009-changes-与-diff)、[Sources SSOT §4](../../docs/systems/sources/overview.md#4-边界)、[Accept 暂存 hunk](sources-accept-stage-hunk.md)、[ADR-008](../decisions/008-write-git-apply-hunks-empty.md)。本稿恢复已有写门，不新增产品能力或协议。
 
 ## 1. 已核问题与证据等级
@@ -125,3 +125,13 @@ summary: "两宿主Accept读后写前当前授权方案；规则16 C0/I0/M2由�
 - [文档规则 13 / 16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)
 
 **规则 16 状态：已通过方案门。** 原 draft 精确提交 `4b0d3d62e65e54e71d3b1748f100fac7ca5f6ce3` 经父级逐路径/原文保留核验后，原 Astra 只读审查为 **Critical 0 / Important 0 / Minor 2，Assessment：可由 root 核验后按既定流程 accepted；两 Minor 建议当轮明确**。两 Minor 本轮均由父级核验采纳：M1 明确 input 独立销毁负例及读后/写响应共享存活谓词，落 §4.1 / §4.3 / A4 / A7；M2 分开 Session/List 目录 readiness 与 Git Changes read-failed 的构造/恢复，落 §3 / A5 / A6。Strengths、原审查身份与采纳理由保存于上方检查点，不另建或覆盖旧 R3 review。未采纳项：无。该结论只签方案，本 accepted commit 不含实施或运行证据；父级核验后再另发源码实施授权。
+
+## 8. 固定6d一次实际验收（2026-10-27）
+
+两宿主Accept读后当前授权，54新例及完整两宿主模块实际通过。原Astra固定工具peer C0/I0/M1的四处行号镜像由root授权机械改为491，prep2窄peer C0/I0/M0，root核后单次释放并独立验收；[prepared原稿、active四字段映射、consumed与全部raw](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)分列，不复用旧授权。
+
+5目标项目noEmit checker全0（未请求non-target semantic），lint0error/0fatal/1旧637 warning，dry=actual5JS/0map；新54 Accept+18生命周期逐名start/pass/end各1，完整Pane3/3与Panel142/142、meta各1、hooks11/567平衡，pending/missing/unknown/failures0。旧stale四条原断言保固定source字节/顺序，实际whole-case body pass；没有逐assert运行插桩。
+
+[旧双A1纯业务red](../progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md)、[run3 A4纯业务red与原default-false实际通过](../progress/sources-accept-qualified-old-red-run3-20261027-evidence/INDEX.md)、[原default-false setup探针失败](../progress/sources-accept-default-false-probe-20261027-evidence/INDEX.md)及[8438旧stale首断言败/后三未达](../progress/sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)全部保持原件，不把旧run改绿。
+
+本方案仅在source/真实组件范围implemented；原设计/旧review/失败历史及生命周期633B唯一例外保持。当前out已恢复旧native256，metadata采用新guard54fe37（相对8b5f仅获准五ctime），freeze4/cache3精确，fullCompileOfFinalSourceTree=false。按root采纳的原Astra最小充分边界，不另要求Sources UI after或未改controller suite；不声称实端Git索引、UI after或全src semantic/fullcompile已验。PRD、宽Sources、D/D1387旧签收与旧J/E波不升，overall goal仍active；consumed release不再授权运行。

@@ -1,0 +1,5258 @@
+{
+  "source": "Exact metadata rows already captured by actual driver, not runtime/cache file contents",
+  "contentsMirrored": false,
+  "rows": [
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888064440178,
+        "ctimeNs": 1793082888064440178
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082890508548022,
+        "ctimeNs": 1793082890508548022
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888056439825,
+        "ctimeNs": 1793082888056439825
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/user-data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082887672422883,
+        "ctimeNs": 1793082887672422883
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888236447767,
+        "ctimeNs": 1793082888236447767
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/config",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082887672422883,
+        "ctimeNs": 1793082887672422883
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888939478785,
+        "ctimeNs": 1793082888939478785
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/xvfb.stderr.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082888064440178,
+        "ctimeNs": 1793082888064440178
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082890508548022,
+        "ctimeNs": 1793082890508548022
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082890484546963,
+        "ctimeNs": 1793082890484546963
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082890484546963,
+        "ctimeNs": 1793082890484546963
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Shared Dictionary",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888985480815,
+        "ctimeNs": 1793082888985480815
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/GPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888968480065,
+        "ctimeNs": 1793082888968480065
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888947479138,
+        "ctimeNs": 1793082888947479138
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/blob_storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888983480727,
+        "ctimeNs": 1793082888983480727
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Local Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888947479138,
+        "ctimeNs": 1793082888947479138
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Dictionaries",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082889328495950,
+        "ctimeNs": 1793082889328495950
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnGraphiteCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888969480109,
+        "ctimeNs": 1793082888969480109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Session Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082890481546830,
+        "ctimeNs": 1793082890481546830
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnWebGPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888969480109,
+        "ctimeNs": 1793082888969480109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Network Persistent State",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 591,
+        "mtimeNs": 1793082890481546830,
+        "ctimeNs": 1793082890484546963
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Trust Tokens",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36864,
+        "mtimeNs": 1793082888994481212,
+        "ctimeNs": 1793082888994481212
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Preferences",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 57,
+        "mtimeNs": 1793082890481546830,
+        "ctimeNs": 1793082890483546919
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Local State",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 57,
+        "mtimeNs": 1793082890481546830,
+        "ctimeNs": 1793082890483546919
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Trust Tokens-journal",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082888996481300,
+        "ctimeNs": 1793082888996481300
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DIPS",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36864,
+        "mtimeNs": 1793082890483546919,
+        "ctimeNs": 1793082890483546919
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Shared Dictionary",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888985480815,
+        "ctimeNs": 1793082888985480815
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Shared Dictionary/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888986480859,
+        "ctimeNs": 1793082888986480859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Shared Dictionary/db",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 45056,
+        "mtimeNs": 1793082888996481300,
+        "ctimeNs": 1793082888996481300
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Shared Dictionary/db-journal",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082888998481389,
+        "ctimeNs": 1793082888998481389
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Shared Dictionary/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888986480859,
+        "ctimeNs": 1793082888986480859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Shared Dictionary/cache/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888986480859,
+        "ctimeNs": 1793082888986480859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Shared Dictionary/cache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793082888985480815,
+        "ctimeNs": 1793082888985480815
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Shared Dictionary/cache/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888986480859,
+        "ctimeNs": 1793082888986480859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Shared Dictionary/cache/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793082888986480859,
+        "ctimeNs": 1793082888986480859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/GPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888968480065,
+        "ctimeNs": 1793082888968480065
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/GPUCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082888968480065,
+        "ctimeNs": 1793082888968480065
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/GPUCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082888968480065,
+        "ctimeNs": 1793082888968480065
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/GPUCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082888968480065,
+        "ctimeNs": 1793082888968480065
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/GPUCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793082890478546698,
+        "ctimeNs": 1793082890478546698
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/GPUCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793082890478546698,
+        "ctimeNs": 1793082890478546698
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888947479138,
+        "ctimeNs": 1793082888947479138
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/No_Vary_Search",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888986480859,
+        "ctimeNs": 1793082888986480859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/Cache_Data",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082889099485845,
+        "ctimeNs": 1793082889099485845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/No_Vary_Search",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888986480859,
+        "ctimeNs": 1793082888986480859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/No_Vary_Search/journal.baj",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4,
+        "mtimeNs": 1793082888986480859,
+        "ctimeNs": 1793082888986480859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/No_Vary_Search/snapshot.baf",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 20,
+        "mtimeNs": 1793082888986480859,
+        "ctimeNs": 1793082888986480859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/Cache_Data",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082889099485845,
+        "ctimeNs": 1793082889099485845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/Cache_Data/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082890481546830,
+        "ctimeNs": 1793082890481546830
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/Cache_Data/5283edf90cf4ab50_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3582,
+        "mtimeNs": 1793082889099485845,
+        "ctimeNs": 1793082889099485845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/Cache_Data/fcf8117c03d732de_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 455980,
+        "mtimeNs": 1793082889327495906,
+        "ctimeNs": 1793082889327495906
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/Cache_Data/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793082888986480859,
+        "ctimeNs": 1793082888986480859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/Cache_Data/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082890481546830,
+        "ctimeNs": 1793082890481546830
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Cache/Cache_Data/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 96,
+        "mtimeNs": 1793082890481546830,
+        "ctimeNs": 1793082890481546830
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/blob_storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888983480727,
+        "ctimeNs": 1793082888983480727
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/blob_storage/c7f729de-6d19-4837-920d-ef7ee7695f78",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888983480727,
+        "ctimeNs": 1793082888983480727
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/blob_storage/c7f729de-6d19-4837-920d-ef7ee7695f78",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888983480727,
+        "ctimeNs": 1793082888983480727
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/js",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/wasm",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/js",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/js/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/js/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/js/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/js/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/wasm",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/wasm/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/wasm/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/wasm/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Code Cache/wasm/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793082888948479182,
+        "ctimeNs": 1793082888948479182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Local Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888947479138,
+        "ctimeNs": 1793082888947479138
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Local Storage/leveldb",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888956479536,
+        "ctimeNs": 1793082888956479536
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Local Storage/leveldb",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888956479536,
+        "ctimeNs": 1793082888956479536
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Local Storage/leveldb/LOG",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 437,
+        "mtimeNs": 1793082888956479536,
+        "ctimeNs": 1793082888956479536
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Local Storage/leveldb/CURRENT",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 16,
+        "mtimeNs": 1793082888955479491,
+        "ctimeNs": 1793082888956479536
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Local Storage/leveldb/MANIFEST-000001",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 41,
+        "mtimeNs": 1793082888953479403,
+        "ctimeNs": 1793082888953479403
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Local Storage/leveldb/000003.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 30,
+        "mtimeNs": 1793082888956479536,
+        "ctimeNs": 1793082888956479536
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Local Storage/leveldb/LOCK",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082888947479138,
+        "ctimeNs": 1793082888947479138
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Dictionaries",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082889328495950,
+        "ctimeNs": 1793082889328495950
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Dictionaries/en-US-10-1.bdic",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 451968,
+        "mtimeNs": 1793082889328495950,
+        "ctimeNs": 1793082889328495950
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnGraphiteCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888969480109,
+        "ctimeNs": 1793082888969480109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnGraphiteCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082888969480109,
+        "ctimeNs": 1793082888969480109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnGraphiteCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082888969480109,
+        "ctimeNs": 1793082888969480109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnGraphiteCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082888969480109,
+        "ctimeNs": 1793082888969480109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnGraphiteCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793082890478546698,
+        "ctimeNs": 1793082890478546698
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnGraphiteCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793082890478546698,
+        "ctimeNs": 1793082890478546698
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Session Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082890481546830,
+        "ctimeNs": 1793082890481546830
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Session Storage/LOG",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 425,
+        "mtimeNs": 1793082890481546830,
+        "ctimeNs": 1793082890481546830
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Session Storage/CURRENT",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 16,
+        "mtimeNs": 1793082890480546786,
+        "ctimeNs": 1793082890481546830
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Session Storage/MANIFEST-000001",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 41,
+        "mtimeNs": 1793082890478546698,
+        "ctimeNs": 1793082890478546698
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Session Storage/000003.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 49,
+        "mtimeNs": 1793082890482546874,
+        "ctimeNs": 1793082890482546874
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/Session Storage/LOCK",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082890478546698,
+        "ctimeNs": 1793082890478546698
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnWebGPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888969480109,
+        "ctimeNs": 1793082888969480109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnWebGPUCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082888969480109,
+        "ctimeNs": 1793082888969480109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnWebGPUCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082888969480109,
+        "ctimeNs": 1793082888969480109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnWebGPUCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082888969480109,
+        "ctimeNs": 1793082888969480109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnWebGPUCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793082890478546698,
+        "ctimeNs": 1793082890478546698
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/tmp/vscode-tests-1793082888230-2106949/DawnWebGPUCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793082890478546698,
+        "ctimeNs": 1793082890478546698
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888056439825,
+        "ctimeNs": 1793082888056439825
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/data/rtk",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082890523548684,
+        "ctimeNs": 1793082890523548684
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/data/rtk",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082890523548684,
+        "ctimeNs": 1793082890523548684
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/data/rtk/history.db",
+      "metadata": {
+        "type": 32768,
+        "mode": 420,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24576,
+        "mtimeNs": 1793082890522548640,
+        "ctimeNs": 1793082890522548640
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/data/rtk/.hook_warn_last",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082888056439825,
+        "ctimeNs": 1793082888056439825
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/user-data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082887672422883,
+        "ctimeNs": 1793082887672422883
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888236447767,
+        "ctimeNs": 1793082888236447767
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig",
+      "metadata": {
+        "type": 16384,
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 12288,
+        "mtimeNs": 1793082888872475829,
+        "ctimeNs": 1793082888872475829
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig",
+      "metadata": {
+        "type": 16384,
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 12288,
+        "mtimeNs": 1793082888872475829,
+        "ctimeNs": 1793082888872475829
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/589f83ef4c36d296ce6e1c846f468f08-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2224,
+        "mtimeNs": 1793082888763471020,
+        "ctimeNs": 1793082888763471020
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/3830d5c3ddfd5cd38a049b759396e72e-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 360,
+        "mtimeNs": 1793082888236447767,
+        "ctimeNs": 1793082888236447767
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/c277e94e32b20404286a1ddafa5a80f0-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2032,
+        "mtimeNs": 1793082888309450988,
+        "ctimeNs": 1793082888309450988
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/d52a8644073d54c13679302ca1180695-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 80184,
+        "mtimeNs": 1793082888738469917,
+        "ctimeNs": 1793082888738469917
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/0bd3dc0958fa2205aaaa8ebb13e2872b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 9904,
+        "mtimeNs": 1793082888780471770,
+        "ctimeNs": 1793082888780471770
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/aec30016f93e1b46d1a973dce0d74068-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793082888762470976,
+        "ctimeNs": 1793082888762470976
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/cabbd14511b9e8a55e92af97fb3a0461-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082888273449400,
+        "ctimeNs": 1793082888273449400
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/a4e60e8d1e10d2fdff3fe3037a1845fb-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082888868475653,
+        "ctimeNs": 1793082888868475653
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/2151c34eae6ab8b65f2db52eba5f75d1-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 35440,
+        "mtimeNs": 1793082888798472564,
+        "ctimeNs": 1793082888798472564
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/5df9eba3d3f2d3afe4369d5c874815ce-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2896,
+        "mtimeNs": 1793082888247448252,
+        "ctimeNs": 1793082888247448252
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/573ec803664ed168555e0e8b6d0f0c7f-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 400,
+        "mtimeNs": 1793082888237447811,
+        "ctimeNs": 1793082888237447811
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/d3e5c4ee2ceb1fc347f91d4cefc53bc0-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082888304450767,
+        "ctimeNs": 1793082888304450767
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/945677eb7aeaf62f1d50efc3fb3ec7d8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082888855475079,
+        "ctimeNs": 1793082888855475079
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/e52a45a1c8c8fe895fc0fc8c4e6999b8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082888304450767,
+        "ctimeNs": 1793082888304450767
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/f6e6e0a5c3d2f6ae0c0c2e0ecd42a997-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1952,
+        "mtimeNs": 1793082888655466255,
+        "ctimeNs": 1793082888655466255
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/99e8ed0e538f840c565b6ed5dad60d56-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 11000,
+        "mtimeNs": 1793082888854475035,
+        "ctimeNs": 1793082888854475035
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/0d8c3b2ac0904cb8a57a757ad11a4a08-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4024,
+        "mtimeNs": 1793082888813473226,
+        "ctimeNs": 1793082888813473226
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/2300eef321c393bfd76478a5c0e95b23-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 26440,
+        "mtimeNs": 1793082888816473358,
+        "ctimeNs": 1793082888816473358
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/d82eb4fd963d448e2fcb7d7b793b5df3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 200,
+        "mtimeNs": 1793082888246448208,
+        "ctimeNs": 1793082888246448208
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/85e0a52ce643a7ba2ae53e5d6949cead-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1944,
+        "mtimeNs": 1793082888658466387,
+        "ctimeNs": 1793082888658466387
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/57e423e26b20ab21d0f2f29c145174c3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 344,
+        "mtimeNs": 1793082888237447811,
+        "ctimeNs": 1793082888237447811
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/c5c45a61289222e0d30b1a26ef4effbe-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2056,
+        "mtimeNs": 1793082888762470976,
+        "ctimeNs": 1793082888762470976
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/767a8244fc0220cfb567a839d0392e0b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 7560,
+        "mtimeNs": 1793082888782471858,
+        "ctimeNs": 1793082888782471858
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/6cc790b63b123a6a96ee260fcdad32a9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 63800,
+        "mtimeNs": 1793082888654466210,
+        "ctimeNs": 1793082888654466210
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/3047814df9a2f067bd2d96a2b9c36e5a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 28832,
+        "mtimeNs": 1793082888756470711,
+        "ctimeNs": 1793082888756470711
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/CACHEDIR.TAG",
+      "metadata": {
+        "type": 32768,
+        "mode": 420,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 200,
+        "mtimeNs": 1793082888236447767,
+        "ctimeNs": 1793082888236447767
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/2171a34dccabdb6bcbbc728186263178-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2040,
+        "mtimeNs": 1793082888762470976,
+        "ctimeNs": 1793082888762470976
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/3f589640d34b7dc9042c8d453f7c8b9c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2136,
+        "mtimeNs": 1793082888761470932,
+        "ctimeNs": 1793082888761470932
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/d589a48862398ed80a3d6066f4f56f4c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 52800,
+        "mtimeNs": 1793082888709468637,
+        "ctimeNs": 1793082888709468637
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/188ac73a183f12857f63bb60a4a6d603-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082888309450988,
+        "ctimeNs": 1793082888309450988
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/a48eab177a16e4f3713381162db2f3e9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793082888760470887,
+        "ctimeNs": 1793082888760470887
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/22368d551a680bfe5a62c02760edf4ea-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1984,
+        "mtimeNs": 1793082888662466563,
+        "ctimeNs": 1793082888662466563
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/32b6488e5b8292a2e95c79d947e009e8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 112,
+        "mtimeNs": 1793082888237447811,
+        "ctimeNs": 1793082888237447811
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/bab58bb527bb656aaa9f116d68a48d89-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793082888763471020,
+        "ctimeNs": 1793082888763471020
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/660208299946a285a940457d1287da33-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793082888783471902,
+        "ctimeNs": 1793082888783471902
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/370e5b74bf5dafc30834de68e24a87a4-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3728,
+        "mtimeNs": 1793082888727469431,
+        "ctimeNs": 1793082888727469431
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/14a5e22175779b556eaa434240950366-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 5544,
+        "mtimeNs": 1793082888784471946,
+        "ctimeNs": 1793082888784471946
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/c855463f699352c367813e37f3f70ea7-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 312,
+        "mtimeNs": 1793082888236447767,
+        "ctimeNs": 1793082888236447767
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/95530828ff6c81d309f8258d8d02a23e-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082888293450282,
+        "ctimeNs": 1793082888293450282
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/9d2451b1fd30e5bffe8383fd27c35478-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 23664,
+        "mtimeNs": 1793082888760470887,
+        "ctimeNs": 1793082888760470887
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/d5178ab6d91b49bf20a416737dcea9e8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2080,
+        "mtimeNs": 1793082888726469387,
+        "ctimeNs": 1793082888726469387
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/674d1711f2d1d2a09646eb0bdcadee49-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 11552,
+        "mtimeNs": 1793082888719469078,
+        "ctimeNs": 1793082888719469078
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/def309198bfa603429122923fa2bb2d4-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 19272,
+        "mtimeNs": 1793082888769471285,
+        "ctimeNs": 1793082888769471285
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/0c9eb80ebd1c36541ebe2852d3bb0c49-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2648,
+        "mtimeNs": 1793082888663466608,
+        "ctimeNs": 1793082888663466608
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/7ef2298fde41cc6eeb7af42e48b7d293-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 15288,
+        "mtimeNs": 1793082888245448164,
+        "ctimeNs": 1793082888245448164
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/4c599c202bc5c08e2d34565a40eac3b2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 112,
+        "mtimeNs": 1793082888236447767,
+        "ctimeNs": 1793082888236447767
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/c57959a16110560c8d0fcea73374aeeb-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 19880,
+        "mtimeNs": 1793082888765471108,
+        "ctimeNs": 1793082888765471108
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/f6d4eedfaab2589bde49f7a3ff831d22-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2160,
+        "mtimeNs": 1793082888763471020,
+        "ctimeNs": 1793082888763471020
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/3f7329c5293ffd510edef78f73874cfd-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3624,
+        "mtimeNs": 1793082888716468946,
+        "ctimeNs": 1793082888716468946
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/4d6aee6d44eccb37054d3216e945f618-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 14624,
+        "mtimeNs": 1793082888318451385,
+        "ctimeNs": 1793082888318451385
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/bf3b770c553c462765856025a94f1ce6-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 33984,
+        "mtimeNs": 1793082888752470534,
+        "ctimeNs": 1793082888752470534
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/b9d506c9ac06c20b433354fa67a72993-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3792,
+        "mtimeNs": 1793082888741470049,
+        "ctimeNs": 1793082888741470049
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/dc05db6664285cc2f12bf69c139ae4c3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1944,
+        "mtimeNs": 1793082888784471946,
+        "ctimeNs": 1793082888784471946
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/b47c4e1ecd0709278f4910c18777a504-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 26008,
+        "mtimeNs": 1793082888740470005,
+        "ctimeNs": 1793082888740470005
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/111149350c6eff283e78acef98e70f62-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082888250448385,
+        "ctimeNs": 1793082888250448385
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/7ab2eb8330e5664a2b0e875ad8d37ad9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 27792,
+        "mtimeNs": 1793082888731469608,
+        "ctimeNs": 1793082888731469608
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/6b2c5944714ca7831b25bed9e85cb5c8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2224,
+        "mtimeNs": 1793082888726469387,
+        "ctimeNs": 1793082888726469387
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/f1f2465696798768e9653f19e17ccdc8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082888284449885,
+        "ctimeNs": 1793082888284449885
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/da43223dd54fb3bb4243ae19d4b583b2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2712,
+        "mtimeNs": 1793082888760470887,
+        "ctimeNs": 1793082888760470887
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/49f0de54bdd920fe4f0dfd4cbac43e6b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2376,
+        "mtimeNs": 1793082888657466343,
+        "ctimeNs": 1793082888657466343
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/0fafd173547752dce4dee1a69e0b3c95-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 20688,
+        "mtimeNs": 1793082888837474285,
+        "ctimeNs": 1793082888837474285
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/16c2fda60d1b4b719f4b3d06fd951d25-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2384,
+        "mtimeNs": 1793082888761470932,
+        "ctimeNs": 1793082888761470932
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/9b89f8e3dae116d678bbf48e5f21f69b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 167648,
+        "mtimeNs": 1793082888645465813,
+        "ctimeNs": 1793082888645465813
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/707971e003b4ae6c8121c3a920e507f5-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 168,
+        "mtimeNs": 1793082888252448473,
+        "ctimeNs": 1793082888252448473
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/6333f38776742d18e214673cd2c24e34-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082888872475829,
+        "ctimeNs": 1793082888872475829
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/4b2eda6bb976bda485cb2176619421d5-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793082888655466255,
+        "ctimeNs": 1793082888655466255
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/b872e6e592da6075ffa4ab0a1fcc0c75-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2120,
+        "mtimeNs": 1793082888764471064,
+        "ctimeNs": 1793082888764471064
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/e13b20fdb08344e0e664864cc2ede53d-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082888250448385,
+        "ctimeNs": 1793082888250448385
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/8a687c406b77f27d99abfeeba937fcce-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793082888717468990,
+        "ctimeNs": 1793082888717468990
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/04aabc0a78ac019cf9454389977116d2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 102016,
+        "mtimeNs": 1793082888812473182,
+        "ctimeNs": 1793082888812473182
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/da82082e1ef13c4097208324d67c180c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 7232,
+        "mtimeNs": 1793082888646465857,
+        "ctimeNs": 1793082888646465857
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/551ecf3b0e8b0bca0f25c0944f561853-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793082888725469343,
+        "ctimeNs": 1793082888725469343
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/550f3886151c940c12a5ed35f6a00586-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 6112,
+        "mtimeNs": 1793082888723469255,
+        "ctimeNs": 1793082888723469255
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/4f3e3037c9980c83b53a9351efadef62-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4416,
+        "mtimeNs": 1793082888783471902,
+        "ctimeNs": 1793082888783471902
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/fe547fea3a41b43a38975d292a2b19c7-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082888275449488,
+        "ctimeNs": 1793082888275449488
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/4d9c95eba1cb85bbcf2878543262124a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2400,
+        "mtimeNs": 1793082888661466519,
+        "ctimeNs": 1793082888661466519
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/f259c2cffa685e28062317905db73c4a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 10496,
+        "mtimeNs": 1793082888725469343,
+        "ctimeNs": 1793082888725469343
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/1ac9eb803944fde146138c791f5cc56a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3456,
+        "mtimeNs": 1793082888802472741,
+        "ctimeNs": 1793082888802472741
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/564b2e68ac9bc4e36a6f7f6d6125ec1c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2056,
+        "mtimeNs": 1793082888760470887,
+        "ctimeNs": 1793082888760470887
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/089dead882dea3570ffc31a9898cfb69-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 51008,
+        "mtimeNs": 1793082888697468108,
+        "ctimeNs": 1793082888697468108
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/6afa1bb216ce958c1589e297e8008489-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 13248,
+        "mtimeNs": 1793082888320451474,
+        "ctimeNs": 1793082888320451474
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/cache/fontconfig/56cf4f4769d0f4abc89a4895d7bd3ae1-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3328,
+        "mtimeNs": 1793082888741470049,
+        "ctimeNs": 1793082888741470049
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/config",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082887672422883,
+        "ctimeNs": 1793082887672422883
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888939478785,
+        "ctimeNs": 1793082888939478785
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes/pending",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888228447414,
+        "ctimeNs": 1793082888228447414
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes/completed",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888228447414,
+        "ctimeNs": 1793082888228447414
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes/new",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888227447370,
+        "ctimeNs": 1793082888227447370
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes/attachments",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888228447414,
+        "ctimeNs": 1793082888228447414
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes/client_id",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36,
+        "mtimeNs": 1793082888939478785,
+        "ctimeNs": 1793082888939478785
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes/settings.dat",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 40,
+        "mtimeNs": 1793082888228447414,
+        "ctimeNs": 1793082888228447414
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes/pending",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888228447414,
+        "ctimeNs": 1793082888228447414
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes/completed",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888228447414,
+        "ctimeNs": 1793082888228447414
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes/new",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888227447370,
+        "ctimeNs": 1793082888227447370
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-conversation-pane/crashes/attachments",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082888228447414,
+        "ctimeNs": 1793082888228447414
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892816649886,
+        "ctimeNs": 1793082892816649886
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082899710954277,
+        "ctimeNs": 1793082899710954277
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892811649665,
+        "ctimeNs": 1793082892811649665
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/user-data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892430632848,
+        "ctimeNs": 1793082892430632848
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892947655668,
+        "ctimeNs": 1793082892947655668
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/config",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892430632848,
+        "ctimeNs": 1793082892430632848
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893298671161,
+        "ctimeNs": 1793082893298671161
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/xvfb.stderr.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082892816649886,
+        "ctimeNs": 1793082892816649886
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082899710954277,
+        "ctimeNs": 1793082899710954277
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082899690953394,
+        "ctimeNs": 1793082899690953394
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082899690953394,
+        "ctimeNs": 1793082899690953394
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Shared Dictionary",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/GPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893320672133,
+        "ctimeNs": 1793082893320672133
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893303671382,
+        "ctimeNs": 1793082893303671382
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/blob_storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893336672839,
+        "ctimeNs": 1793082893336672839
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Local Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893303671382,
+        "ctimeNs": 1793082893303671382
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Dictionaries",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893654686876,
+        "ctimeNs": 1793082893654686876
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnGraphiteCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893321672177,
+        "ctimeNs": 1793082893321672177
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Session Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082899691953438,
+        "ctimeNs": 1793082899691953438
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnWebGPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893321672177,
+        "ctimeNs": 1793082893321672177
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Network Persistent State",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 591,
+        "mtimeNs": 1793082899687953262,
+        "ctimeNs": 1793082899689953350
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Trust Tokens",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36864,
+        "mtimeNs": 1793082893350673457,
+        "ctimeNs": 1793082893350673457
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Preferences",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 57,
+        "mtimeNs": 1793082899687953262,
+        "ctimeNs": 1793082899689953350
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Local State",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 57,
+        "mtimeNs": 1793082899687953262,
+        "ctimeNs": 1793082899688953306
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Trust Tokens-journal",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082893352673545,
+        "ctimeNs": 1793082893352673545
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DIPS",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36864,
+        "mtimeNs": 1793082899688953306,
+        "ctimeNs": 1793082899688953306
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Shared Dictionary",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Shared Dictionary/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Shared Dictionary/db",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 45056,
+        "mtimeNs": 1793082893350673457,
+        "ctimeNs": 1793082893350673457
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Shared Dictionary/db-journal",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082893351673501,
+        "ctimeNs": 1793082893351673501
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Shared Dictionary/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Shared Dictionary/cache/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Shared Dictionary/cache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793082893337672883,
+        "ctimeNs": 1793082893337672883
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Shared Dictionary/cache/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Shared Dictionary/cache/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/GPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893320672133,
+        "ctimeNs": 1793082893320672133
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/GPUCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082893320672133,
+        "ctimeNs": 1793082893320672133
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/GPUCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082893320672133,
+        "ctimeNs": 1793082893320672133
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/GPUCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082893320672133,
+        "ctimeNs": 1793082893320672133
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/GPUCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793082899683953085,
+        "ctimeNs": 1793082899683953085
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/GPUCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793082899683953085,
+        "ctimeNs": 1793082899683953085
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893303671382,
+        "ctimeNs": 1793082893303671382
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/No_Vary_Search",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/Cache_Data",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893435677209,
+        "ctimeNs": 1793082893435677209
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/No_Vary_Search",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/No_Vary_Search/journal.baj",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/No_Vary_Search/snapshot.baf",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 20,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/Cache_Data",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893435677209,
+        "ctimeNs": 1793082893435677209
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/Cache_Data/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082899687953262,
+        "ctimeNs": 1793082899687953262
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/Cache_Data/5283edf90cf4ab50_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3582,
+        "mtimeNs": 1793082893434677165,
+        "ctimeNs": 1793082893434677165
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/Cache_Data/6c39f07fc43ed75a_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 455980,
+        "mtimeNs": 1793082893653686832,
+        "ctimeNs": 1793082893653686832
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/Cache_Data/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793082893338672927,
+        "ctimeNs": 1793082893338672927
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/Cache_Data/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082899687953262,
+        "ctimeNs": 1793082899687953262
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Cache/Cache_Data/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 96,
+        "mtimeNs": 1793082899687953262,
+        "ctimeNs": 1793082899687953262
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/blob_storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893336672839,
+        "ctimeNs": 1793082893336672839
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/blob_storage/94572474-3137-46cd-b61e-6c52f1ce9d14",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893336672839,
+        "ctimeNs": 1793082893336672839
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/blob_storage/94572474-3137-46cd-b61e-6c52f1ce9d14",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893336672839,
+        "ctimeNs": 1793082893336672839
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/js",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/wasm",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/js",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/js/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/js/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/js/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/js/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/wasm",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/wasm/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/wasm/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/wasm/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Code Cache/wasm/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793082893304671426,
+        "ctimeNs": 1793082893304671426
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Local Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893303671382,
+        "ctimeNs": 1793082893303671382
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Local Storage/leveldb",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893312671779,
+        "ctimeNs": 1793082893312671779
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Local Storage/leveldb",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893312671779,
+        "ctimeNs": 1793082893312671779
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Local Storage/leveldb/LOG",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 429,
+        "mtimeNs": 1793082893312671779,
+        "ctimeNs": 1793082893312671779
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Local Storage/leveldb/CURRENT",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 16,
+        "mtimeNs": 1793082893311671735,
+        "ctimeNs": 1793082893312671779
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Local Storage/leveldb/MANIFEST-000001",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 41,
+        "mtimeNs": 1793082893306671515,
+        "ctimeNs": 1793082893306671515
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Local Storage/leveldb/000003.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 30,
+        "mtimeNs": 1793082893312671779,
+        "ctimeNs": 1793082893312671779
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Local Storage/leveldb/LOCK",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082893303671382,
+        "ctimeNs": 1793082893303671382
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Dictionaries",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893654686876,
+        "ctimeNs": 1793082893654686876
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Dictionaries/en-US-10-1.bdic",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 451968,
+        "mtimeNs": 1793082893654686876,
+        "ctimeNs": 1793082893654686876
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnGraphiteCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893321672177,
+        "ctimeNs": 1793082893321672177
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnGraphiteCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082893321672177,
+        "ctimeNs": 1793082893321672177
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnGraphiteCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082893321672177,
+        "ctimeNs": 1793082893321672177
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnGraphiteCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082893321672177,
+        "ctimeNs": 1793082893321672177
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnGraphiteCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793082899683953085,
+        "ctimeNs": 1793082899683953085
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnGraphiteCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793082899683953085,
+        "ctimeNs": 1793082899683953085
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Session Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082899691953438,
+        "ctimeNs": 1793082899691953438
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Session Storage/LOG",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 417,
+        "mtimeNs": 1793082899691953438,
+        "ctimeNs": 1793082899691953438
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Session Storage/CURRENT",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 16,
+        "mtimeNs": 1793082899688953306,
+        "ctimeNs": 1793082899690953394
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Session Storage/MANIFEST-000001",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 41,
+        "mtimeNs": 1793082899684953129,
+        "ctimeNs": 1793082899684953129
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Session Storage/000003.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 49,
+        "mtimeNs": 1793082899691953438,
+        "ctimeNs": 1793082899691953438
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/Session Storage/LOCK",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082899683953085,
+        "ctimeNs": 1793082899683953085
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnWebGPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893321672177,
+        "ctimeNs": 1793082893321672177
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnWebGPUCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082893321672177,
+        "ctimeNs": 1793082893321672177
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnWebGPUCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082893321672177,
+        "ctimeNs": 1793082893321672177
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnWebGPUCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793082893321672177,
+        "ctimeNs": 1793082893321672177
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnWebGPUCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793082899683953085,
+        "ctimeNs": 1793082899683953085
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/tmp/vscode-tests-1793082892943-2107491/DawnWebGPUCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793082899683953085,
+        "ctimeNs": 1793082899683953085
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892811649665,
+        "ctimeNs": 1793082892811649665
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/data/rtk",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082899732955249,
+        "ctimeNs": 1793082899732955249
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/data/rtk",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082899732955249,
+        "ctimeNs": 1793082899732955249
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/data/rtk/history.db",
+      "metadata": {
+        "type": 32768,
+        "mode": 420,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24576,
+        "mtimeNs": 1793082899731955205,
+        "ctimeNs": 1793082899731955205
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/data/rtk/.hook_warn_last",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793082892811649665,
+        "ctimeNs": 1793082892811649665
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/user-data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892430632848,
+        "ctimeNs": 1793082892430632848
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892947655668,
+        "ctimeNs": 1793082892947655668
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig",
+      "metadata": {
+        "type": 16384,
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 12288,
+        "mtimeNs": 1793082893234668336,
+        "ctimeNs": 1793082893234668336
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig",
+      "metadata": {
+        "type": 16384,
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 12288,
+        "mtimeNs": 1793082893234668336,
+        "ctimeNs": 1793082893234668336
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/589f83ef4c36d296ce6e1c846f468f08-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2224,
+        "mtimeNs": 1793082893191666438,
+        "ctimeNs": 1793082893191666438
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/3830d5c3ddfd5cd38a049b759396e72e-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 360,
+        "mtimeNs": 1793082892948655712,
+        "ctimeNs": 1793082892948655712
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/c277e94e32b20404286a1ddafa5a80f0-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2032,
+        "mtimeNs": 1793082892959656197,
+        "ctimeNs": 1793082892959656197
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/d52a8644073d54c13679302ca1180695-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 80184,
+        "mtimeNs": 1793082893181665997,
+        "ctimeNs": 1793082893181665997
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/0bd3dc0958fa2205aaaa8ebb13e2872b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 9904,
+        "mtimeNs": 1793082893197666703,
+        "ctimeNs": 1793082893197666703
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/aec30016f93e1b46d1a973dce0d74068-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793082893190666394,
+        "ctimeNs": 1793082893190666394
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/cabbd14511b9e8a55e92af97fb3a0461-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082892955656021,
+        "ctimeNs": 1793082892955656021
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/a4e60e8d1e10d2fdff3fe3037a1845fb-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082893233668292,
+        "ctimeNs": 1793082893233668292
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/2151c34eae6ab8b65f2db52eba5f75d1-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 35440,
+        "mtimeNs": 1793082893203666968,
+        "ctimeNs": 1793082893203666968
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/5df9eba3d3f2d3afe4369d5c874815ce-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2896,
+        "mtimeNs": 1793082892951655844,
+        "ctimeNs": 1793082892951655844
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/573ec803664ed168555e0e8b6d0f0c7f-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 400,
+        "mtimeNs": 1793082892948655712,
+        "ctimeNs": 1793082892948655712
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/d3e5c4ee2ceb1fc347f91d4cefc53bc0-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082892958656153,
+        "ctimeNs": 1793082892958656153
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/945677eb7aeaf62f1d50efc3fb3ec7d8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082893232668248,
+        "ctimeNs": 1793082893232668248
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/e52a45a1c8c8fe895fc0fc8c4e6999b8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082892958656153,
+        "ctimeNs": 1793082892958656153
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/f6e6e0a5c3d2f6ae0c0c2e0ecd42a997-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1952,
+        "mtimeNs": 1793082893144664363,
+        "ctimeNs": 1793082893144664363
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/99e8ed0e538f840c565b6ed5dad60d56-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 11000,
+        "mtimeNs": 1793082893231668204,
+        "ctimeNs": 1793082893231668204
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/0d8c3b2ac0904cb8a57a757ad11a4a08-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4024,
+        "mtimeNs": 1793082893210667277,
+        "ctimeNs": 1793082893210667277
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/2300eef321c393bfd76478a5c0e95b23-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 26440,
+        "mtimeNs": 1793082893212667365,
+        "ctimeNs": 1793082893212667365
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/d82eb4fd963d448e2fcb7d7b793b5df3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 200,
+        "mtimeNs": 1793082892951655844,
+        "ctimeNs": 1793082892951655844
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/85e0a52ce643a7ba2ae53e5d6949cead-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1944,
+        "mtimeNs": 1793082893144664363,
+        "ctimeNs": 1793082893144664363
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/57e423e26b20ab21d0f2f29c145174c3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 344,
+        "mtimeNs": 1793082892948655712,
+        "ctimeNs": 1793082892948655712
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/c5c45a61289222e0d30b1a26ef4effbe-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2056,
+        "mtimeNs": 1793082893190666394,
+        "ctimeNs": 1793082893190666394
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/767a8244fc0220cfb567a839d0392e0b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 7560,
+        "mtimeNs": 1793082893197666703,
+        "ctimeNs": 1793082893197666703
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/6cc790b63b123a6a96ee260fcdad32a9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 63800,
+        "mtimeNs": 1793082893143664319,
+        "ctimeNs": 1793082893143664319
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/3047814df9a2f067bd2d96a2b9c36e5a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 28832,
+        "mtimeNs": 1793082893188666306,
+        "ctimeNs": 1793082893188666306
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/CACHEDIR.TAG",
+      "metadata": {
+        "type": 32768,
+        "mode": 420,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 200,
+        "mtimeNs": 1793082892947655668,
+        "ctimeNs": 1793082892947655668
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/2171a34dccabdb6bcbbc728186263178-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2040,
+        "mtimeNs": 1793082893190666394,
+        "ctimeNs": 1793082893190666394
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/3f589640d34b7dc9042c8d453f7c8b9c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2136,
+        "mtimeNs": 1793082893190666394,
+        "ctimeNs": 1793082893190666394
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/d589a48862398ed80a3d6066f4f56f4c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 52800,
+        "mtimeNs": 1793082893168665423,
+        "ctimeNs": 1793082893168665423
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/188ac73a183f12857f63bb60a4a6d603-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082892958656153,
+        "ctimeNs": 1793082892958656153
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/a48eab177a16e4f3713381162db2f3e9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793082893190666394,
+        "ctimeNs": 1793082893190666394
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/22368d551a680bfe5a62c02760edf4ea-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1984,
+        "mtimeNs": 1793082893144664363,
+        "ctimeNs": 1793082893144664363
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/32b6488e5b8292a2e95c79d947e009e8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 112,
+        "mtimeNs": 1793082892948655712,
+        "ctimeNs": 1793082892948655712
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/bab58bb527bb656aaa9f116d68a48d89-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793082893191666438,
+        "ctimeNs": 1793082893191666438
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/660208299946a285a940457d1287da33-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793082893198666747,
+        "ctimeNs": 1793082893198666747
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/370e5b74bf5dafc30834de68e24a87a4-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3728,
+        "mtimeNs": 1793082893175665732,
+        "ctimeNs": 1793082893175665732
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/14a5e22175779b556eaa434240950366-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 5544,
+        "mtimeNs": 1793082893198666747,
+        "ctimeNs": 1793082893198666747
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/c855463f699352c367813e37f3f70ea7-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 312,
+        "mtimeNs": 1793082892948655712,
+        "ctimeNs": 1793082892948655712
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/95530828ff6c81d309f8258d8d02a23e-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082892957656109,
+        "ctimeNs": 1793082892957656109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/9d2451b1fd30e5bffe8383fd27c35478-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 23664,
+        "mtimeNs": 1793082893189666350,
+        "ctimeNs": 1793082893189666350
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/d5178ab6d91b49bf20a416737dcea9e8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2080,
+        "mtimeNs": 1793082893175665732,
+        "ctimeNs": 1793082893175665732
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/674d1711f2d1d2a09646eb0bdcadee49-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 11552,
+        "mtimeNs": 1793082893172665600,
+        "ctimeNs": 1793082893172665600
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/def309198bfa603429122923fa2bb2d4-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 19272,
+        "mtimeNs": 1793082893193666527,
+        "ctimeNs": 1793082893193666527
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/0c9eb80ebd1c36541ebe2852d3bb0c49-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2648,
+        "mtimeNs": 1793082893145664408,
+        "ctimeNs": 1793082893145664408
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/7ef2298fde41cc6eeb7af42e48b7d293-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 15288,
+        "mtimeNs": 1793082892951655844,
+        "ctimeNs": 1793082892951655844
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/4c599c202bc5c08e2d34565a40eac3b2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 112,
+        "mtimeNs": 1793082892947655668,
+        "ctimeNs": 1793082892947655668
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/c57959a16110560c8d0fcea73374aeeb-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 19880,
+        "mtimeNs": 1793082893191666438,
+        "ctimeNs": 1793082893191666438
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/f6d4eedfaab2589bde49f7a3ff831d22-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2160,
+        "mtimeNs": 1793082893191666438,
+        "ctimeNs": 1793082893191666438
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/3f7329c5293ffd510edef78f73874cfd-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3624,
+        "mtimeNs": 1793082893171665555,
+        "ctimeNs": 1793082893171665555
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/4d6aee6d44eccb37054d3216e945f618-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 14624,
+        "mtimeNs": 1793082892965656462,
+        "ctimeNs": 1793082892965656462
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/bf3b770c553c462765856025a94f1ce6-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 33984,
+        "mtimeNs": 1793082893186666218,
+        "ctimeNs": 1793082893186666218
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/b9d506c9ac06c20b433354fa67a72993-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3792,
+        "mtimeNs": 1793082893182666041,
+        "ctimeNs": 1793082893182666041
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/dc05db6664285cc2f12bf69c139ae4c3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1944,
+        "mtimeNs": 1793082893198666747,
+        "ctimeNs": 1793082893198666747
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/b47c4e1ecd0709278f4910c18777a504-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 26008,
+        "mtimeNs": 1793082893182666041,
+        "ctimeNs": 1793082893182666041
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/111149350c6eff283e78acef98e70f62-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082892952655888,
+        "ctimeNs": 1793082892952655888
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/7ab2eb8330e5664a2b0e875ad8d37ad9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 27792,
+        "mtimeNs": 1793082893177665820,
+        "ctimeNs": 1793082893177665820
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/6b2c5944714ca7831b25bed9e85cb5c8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2224,
+        "mtimeNs": 1793082893175665732,
+        "ctimeNs": 1793082893175665732
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/f1f2465696798768e9653f19e17ccdc8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082892956656065,
+        "ctimeNs": 1793082892956656065
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/da43223dd54fb3bb4243ae19d4b583b2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2712,
+        "mtimeNs": 1793082893190666394,
+        "ctimeNs": 1793082893190666394
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/49f0de54bdd920fe4f0dfd4cbac43e6b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2376,
+        "mtimeNs": 1793082893144664363,
+        "ctimeNs": 1793082893144664363
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/0fafd173547752dce4dee1a69e0b3c95-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 20688,
+        "mtimeNs": 1793082893224667895,
+        "ctimeNs": 1793082893224667895
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/16c2fda60d1b4b719f4b3d06fd951d25-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2384,
+        "mtimeNs": 1793082893190666394,
+        "ctimeNs": 1793082893190666394
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/9b89f8e3dae116d678bbf48e5f21f69b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 167648,
+        "mtimeNs": 1793082893140664187,
+        "ctimeNs": 1793082893140664187
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/707971e003b4ae6c8121c3a920e507f5-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 168,
+        "mtimeNs": 1793082892952655888,
+        "ctimeNs": 1793082892952655888
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/6333f38776742d18e214673cd2c24e34-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793082893234668336,
+        "ctimeNs": 1793082893234668336
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/4b2eda6bb976bda485cb2176619421d5-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793082893144664363,
+        "ctimeNs": 1793082893144664363
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/b872e6e592da6075ffa4ab0a1fcc0c75-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2120,
+        "mtimeNs": 1793082893191666438,
+        "ctimeNs": 1793082893191666438
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/e13b20fdb08344e0e664864cc2ede53d-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082892951655844,
+        "ctimeNs": 1793082892951655844
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/8a687c406b77f27d99abfeeba937fcce-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793082893171665555,
+        "ctimeNs": 1793082893171665555
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/04aabc0a78ac019cf9454389977116d2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 102016,
+        "mtimeNs": 1793082893209667233,
+        "ctimeNs": 1793082893209667233
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/da82082e1ef13c4097208324d67c180c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 7232,
+        "mtimeNs": 1793082893142664275,
+        "ctimeNs": 1793082893142664275
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/551ecf3b0e8b0bca0f25c0944f561853-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793082893175665732,
+        "ctimeNs": 1793082893175665732
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/550f3886151c940c12a5ed35f6a00586-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 6112,
+        "mtimeNs": 1793082893174665688,
+        "ctimeNs": 1793082893174665688
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/4f3e3037c9980c83b53a9351efadef62-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4416,
+        "mtimeNs": 1793082893197666703,
+        "ctimeNs": 1793082893197666703
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/fe547fea3a41b43a38975d292a2b19c7-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793082892955656021,
+        "ctimeNs": 1793082892955656021
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/4d9c95eba1cb85bbcf2878543262124a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2400,
+        "mtimeNs": 1793082893144664363,
+        "ctimeNs": 1793082893144664363
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/f259c2cffa685e28062317905db73c4a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 10496,
+        "mtimeNs": 1793082893174665688,
+        "ctimeNs": 1793082893174665688
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/1ac9eb803944fde146138c791f5cc56a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3456,
+        "mtimeNs": 1793082893205667056,
+        "ctimeNs": 1793082893205667056
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/564b2e68ac9bc4e36a6f7f6d6125ec1c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2056,
+        "mtimeNs": 1793082893190666394,
+        "ctimeNs": 1793082893190666394
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/089dead882dea3570ffc31a9898cfb69-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 51008,
+        "mtimeNs": 1793082893164665246,
+        "ctimeNs": 1793082893164665246
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/6afa1bb216ce958c1589e297e8008489-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 13248,
+        "mtimeNs": 1793082892966656506,
+        "ctimeNs": 1793082892966656506
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/cache/fontconfig/56cf4f4769d0f4abc89a4895d7bd3ae1-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3328,
+        "mtimeNs": 1793082893182666041,
+        "ctimeNs": 1793082893182666041
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/config",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892430632848,
+        "ctimeNs": 1793082892430632848
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082893298671161,
+        "ctimeNs": 1793082893298671161
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes/pending",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892939655315,
+        "ctimeNs": 1793082892939655315
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes/completed",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892939655315,
+        "ctimeNs": 1793082892939655315
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes/new",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892939655315,
+        "ctimeNs": 1793082892939655315
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes/attachments",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892939655315,
+        "ctimeNs": 1793082892939655315
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes/client_id",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36,
+        "mtimeNs": 1793082893298671161,
+        "ctimeNs": 1793082893298671161
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes/settings.dat",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 40,
+        "mtimeNs": 1793082892942655447,
+        "ctimeNs": 1793082892942655447
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes/pending",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892939655315,
+        "ctimeNs": 1793082892939655315
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes/completed",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892939655315,
+        "ctimeNs": 1793082892939655315
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes/new",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892939655315,
+        "ctimeNs": 1793082892939655315
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/runtime-full-sources-panel/crashes/attachments",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793082892939655315,
+        "ctimeNs": 1793082892939655315
+      },
+      "symlinkTarget": null
+    }
+  ]
+}
