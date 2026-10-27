@@ -14,6 +14,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
+| [sources-accept-post-read-authorization](active/sources-accept-post-read-authorization.md) | **方案阶段**：两宿主Accept读后写前当前授权；draft待父核/规则16，未实施/运行，baseline唯一lane。 |
 | [control-detail-polish](active/control-detail-polish.md) | **已完成**：四CSS精修，四主题16+8+4组验证 |
 | [default-editor-contract-audit-2026-10-26](active/default-editor-contract-audit-2026-10-26.md) | **进行中**：C 会话导航、D Tunnel 重试、J 配置初始化；从已同步干净基线重新审查，唯一 merge 编译 |
 | [default-editor-visual-state-followup](active/default-editor-visual-state-followup.md) | **已完成**：五项视觉状态修复及同根因续审；Electron 350 passing，十四项真实焦点 Chrome 补验全过 |
