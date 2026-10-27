@@ -1,0 +1,67 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "state": "OBSERVED_COMPLETE_FAKE_LIFETIMES",
+  "episodes": [
+    {
+      "directory": ".",
+      "traceSha256": "e862608846689a96b97f8b7367e9fb78fa2e556edbbd996ce4b4950cfae5ec85",
+      "ioSha256": "8d77f0f23d33f4aa3581c8965b73129db8e13a3c373fd3cd7a8642fd14782ebe",
+      "receivedMethods": {
+        "/agentservice.SystemService/HealthCheck": 1,
+        "/agentservice.SystemService/Connect": 1,
+        "/agentservice.SessionService/List": 3,
+        "/agentservice.AgentService/Tree": 4,
+        "/agentservice.SessionService/Resume": 1,
+        "/agentservice.SessionService/SessionEventStream": 1,
+        "/agentservice.AgentService/Chat": 1,
+        "/agentservice.PermissionService/Respond": 7,
+        "/agentservice.AgentService/RespondQuestion": 5,
+        "/agentservice.AgentService/SendClientToolResponse": 5
+      },
+      "completeLifetime": true,
+      "knownUnaryAndHandshakeCrosscheck": true,
+      "residentChatStreamOpens": 1,
+      "chatWritePayloads": 0
+    },
+    {
+      "directory": "transport-episode-2",
+      "traceSha256": "f72a0bf0995b64ff1daec792fdc2f1ee087ad9d4f05269e515684f4f27fe7875",
+      "ioSha256": "39ddf8f8edec8a7a65087a7cf16db745ae7cc054cf40e411e962456e80940287",
+      "receivedMethods": {
+        "/agentservice.SystemService/HealthCheck": 1,
+        "/agentservice.SystemService/Connect": 1,
+        "/agentservice.SessionService/List": 3,
+        "/agentservice.AgentService/Tree": 4,
+        "/agentservice.SessionService/Resume": 1,
+        "/agentservice.SessionService/SessionEventStream": 1,
+        "/agentservice.AgentService/Chat": 1,
+        "/agentservice.PermissionService/Respond": 1,
+        "/agentservice.AgentService/SendClientToolResponse": 1
+      },
+      "completeLifetime": true,
+      "knownUnaryAndHandshakeCrosscheck": true,
+      "residentChatStreamOpens": 1,
+      "chatWritePayloads": 0
+    }
+  ],
+  "receivedMethodCounts": {
+    "/agentservice.SystemService/HealthCheck": 2,
+    "/agentservice.SystemService/Connect": 2,
+    "/agentservice.SessionService/List": 6,
+    "/agentservice.AgentService/Tree": 8,
+    "/agentservice.SessionService/Resume": 2,
+    "/agentservice.SessionService/SessionEventStream": 2,
+    "/agentservice.AgentService/Chat": 2,
+    "/agentservice.PermissionService/Respond": 8,
+    "/agentservice.AgentService/RespondQuestion": 5,
+    "/agentservice.AgentService/SendClientToolResponse": 6
+  },
+  "receivedCalls": 43,
+  "responseUnary": 19,
+  "residentChatStreamOpens": 2,
+  "chatWritePayloads": 0,
+  "getQueueReceived": 0,
+  "saveSkillContentReceived": 0,
+  "unknownMethodCount": 0,
+  "doesNotImplyUiWriteGatePass": true
+}

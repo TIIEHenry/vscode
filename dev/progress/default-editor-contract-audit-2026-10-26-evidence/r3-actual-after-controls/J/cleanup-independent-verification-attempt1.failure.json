@@ -1,0 +1,61 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "phase": "J",
+  "at": "2026-10-26T23:39:10.942019+00:00",
+  "state": "OBSERVER_CHECK_TOO_BROAD_PERMISSION_FAILURE",
+  "method": "post-cleanup original-owned check and broad same-UID environment scan",
+  "actualFailure": "AssertionError: ([], [1382, 7415, 2949235, 3335691]); own original lifetime live and runDir/home command matches were empty, but four unrelated protected process environ reads were denied",
+  "noRuntimeActionsAfterFailure": true,
+  "diagnosis": [
+    {
+      "pid": 1382,
+      "comm": "(sd-pam)",
+      "state": "S",
+      "startTicks": "3478",
+      "predatesJMain": true,
+      "inOriginalOwnedLifetimeSet": false,
+      "runDirInCmdline": false,
+      "engineHomeInCmdline": false,
+      "environmentReadDenied": true
+    },
+    {
+      "pid": 7415,
+      "comm": "gpg-agent",
+      "state": "S",
+      "startTicks": "5841",
+      "predatesJMain": true,
+      "inOriginalOwnedLifetimeSet": false,
+      "runDirInCmdline": false,
+      "engineHomeInCmdline": false,
+      "environmentReadDenied": true
+    },
+    {
+      "pid": 2949235,
+      "comm": "sd_espeak-ng-mb",
+      "state": "Z",
+      "startTicks": "135222309",
+      "predatesJMain": true,
+      "inOriginalOwnedLifetimeSet": false,
+      "runDirInCmdline": false,
+      "engineHomeInCmdline": false,
+      "environmentReadDenied": true
+    },
+    {
+      "pid": 3335691,
+      "comm": "ssh-agent",
+      "state": "S",
+      "startTicks": "19055698",
+      "predatesJMain": true,
+      "inOriginalOwnedLifetimeSet": false,
+      "runDirInCmdline": false,
+      "engineHomeInCmdline": false,
+      "environmentReadDenied": true
+    }
+  ],
+  "productAssertionsUntouched": {
+    "runtimeSnapshots": 67,
+    "assertions": 510,
+    "failed": 0
+  },
+  "retryBoundary": "No app restart or business action; only read-only metadata diagnosis and any explicit-scope cleanup verification may follow"
+}

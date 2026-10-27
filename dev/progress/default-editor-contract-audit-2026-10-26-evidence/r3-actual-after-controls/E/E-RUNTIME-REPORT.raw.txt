@@ -1,0 +1,42 @@
+# E actual UI observations — R3
+
+State: actual observations recorded, awaiting root independent sealed-archive review. No E phase-complete or wave/plan completion is issued. Two original observer-script failures remain in this evidence set; not every script invocation succeeded.
+
+## Frozen identity and scope
+
+The default editor ran source `7ffe4d9869a0caea76bab537d8d49f08e0776ecd` / src tree `a2c34649ee88df907c03b70c9ec3235cb1b4a9d9` from the merge runtime checkout. E authorization consumed the actual J completion SHA `3bdd49ea1623a535544c4c79d59e22a1068dd98b3a71f7567a04cf9689ab3186`. J remains sealed and unchanged.
+
+The v4 contract is common138/full254:252 native files continuous from compile10 producer/source `db0981fca4f555176b5735a7055dd40242fbbb9a` (src58b3, exit0/0TS), plus two freshly emitted Lens test files from emitter `test-refresh-e7c246315db7`, candidate `e7c246315db77aa8277775338522bb9a1cb8ff84`, actual emit/test source `8ad5164da61fbfea94023d42c7be5c72071ec299` (the final a2c source tree). `fullCompileOfFinalSourceTree=false`; no final whole-tree compile is claimed. The shared J/E output digest is `cf5b11a06613d2bf6b3df5dc5516212d535b158ddc5b7aeacd2a8a56ffc08900`, mixed lineage digest `c274e054889f59f9940a5156949b0641c8ec863b352a1a143aa2b76382a4be34`.
+
+The independently supplied new10 lane actually executed Roster.test only with its exact response-recovery grep,10/0. ReadingColumn.test is a separate3/0 run and is not claimed loaded by new10. Refreshed complete Lens suites are317/0. Historical J continuity covers28 exact declared source/native inputs, not whole old E11 or loaded-module observations. None of these business tests were rerun during this E UI execution. Actual original lane records/copies are retained in common/provenance-originals.
+
+## Actual UI results
+
+There are75 actual JSON+PNG snapshots:74 planned labels00–73 and the distinct read-only61a supplement. All are the default editor,1440×900 Dark Modern, with the frozen source/notice identity and uiErrors[]. The latter does not clear captured global notification text. Actual Pane groups8/9 are distinct editor groups holding the same target session.
+
+- Six permission/question/clientTool × false/reject cases passed. Both Pane seats became busy, a normal second-Pane duplicate was blocked, exactly one unary was held, both showed an inline failure and reenabled retry, and original/retry payload bytes matched. False retries used normal focus+Enter; reject retries used a mouse click. Local success occurred before authority publish.
+- Question false/reject retained Alpha and custom text in the originating Pane. Local success produced two static Answered cards without controls, blocked projection and no pending aliases.
+- Concurrent permission A failure/retry/success did not clear question B busy, failure or pending state; B changed only on its own success.
+- A complete fake1 stop, socket absence and new fake2 process/bind proved distinct transport lifetimes. The numeric socket inode was reused and is not used as a uniqueness assertion. The same main/profile automatically moved link1→2 and response scope4→6 with zero public recovery actions. The same request IDs were fresh/enabled and succeeded on their first actual new-link actions62–65.
+- Final public disconnect69 closed the channel. Its actual cache contained all3 target turns and each of2 distinct Pane snapshots retained all3 target timeline rows. Permission remained genuinely pending with disabled Allow/Skip; normal click70 was blocked. Question71 and clientTool72 controls were absent, explicit UI absence boundaries. All target cached/public/pending/timeline/projection values stayed equal through73, with no false Allowed/Skipped. Response unary delta0 and Chat-write delta0. Strict post69 target() and validation AST remained unchanged.
+
+The template has8 executable rows observed as passing and1 canonical timeline-only clientTool BOUNDARY. The frozen canonical tool_call_block grants no respondable action: no pending-seat substitution or UI credit is claimed. Captured stale callbacks/leases are new10 core proof only; no private UI injection occurred.
+
+## Preserved observer failures and continuations
+
+1. Original61 was genuinely disconnected at fake2 ready+11.704s. The original transport script exited1; raw failure SHA `4ce5d5d963d7fd38ec54719298f84aa98e390a3324bde81f1cb3c6539685a71e` and original61 SHA `7b513f68973b230a9d51a7cb7d425b769b3bed6775b818447bbf9e662ebb71ae` remain unchanged. Automatic HealthCheck arrived923ms later, at ready+12.627s, within the independently reviewed36s maximum single retry timer. Distinct read-only61a proved link2/Engine leases/scope6, with no public recovery. Root authorized a separately named continuation for the first actual62–65 actions; all9 old assert expressions were retained exactly and5 identity/timing asserts added.
+2. Original66's live precondition used the post-disconnect cache/timeline validator too early. The public model actually had3 new pending targets, both actual Pane snapshots had the3 pending actions, and6 response seats were enabled; cached model/timeline were not the live pending-only authority. The original final script exited1 before67 or disconnect; failure SHA `904024f3773ab9666d2bdbef73c14b49d78b7d3fd429651603214c8805620b63` and66 SHA `19aa16740dc56e48ae853e154cc9191bcaa201413ab40925d0db348a7f23a212` remain unchanged. After independent source review, root authorized a distinct continuation bound to these bytes, strictly checking that live shape and executing67–73 only once. target() source bytes/AST and all69–73 validation logic are identical to the original.
+
+There were13 scenario-orchestrator invocations:11 succeeded and2 retained observer failures. Native assert/check calls were not centrally instrumented, so no invented numeric per-assert total is reported. assertions.json records exact case and script outcomes. Parent read-only optional-field/argv/environment/Git-mode interpretation corrections are also preserved in the root notes; no product or original evidence changed.
+
+## Loaded assets, complete I/O and cleanup
+
+Both initial and separately named final read-only collection observed124 renderer JS+1 CSS, with13 manifest-only assets kept distinct. No required renderer evidence or CSS collection errors are missing. Raw CDP CSS bytes differ in encoding; complete windows1252 inverse restores all175386 native bytes to SHA `828212ceaf9d6457edc2de7896c8c801829c6e900c99766ea7106256ba5ce956`. All683 actual CSSOM rules equal the native detached reference, including the checkmark rule. No opened-menu glyph-rendering credit is claimed.
+
+Complete fake lifetimes produced43 Received calls:Respond8, RespondQuestion5, SendClientToolResponse6, HealthCheck2, Connect2, List6, Tree8, Resume2, SessionEventStream2, Chat2. All registered unary/handshake events crosscheck the entire pre-lookup Received trace. There were19 response unary calls,2 resident Chat opens,0 Chat-write payloads,0 GetQueue,0 SaveSkillContent and0 unknown methods. No real engine was used.
+
+The final native/source/blob/mode guard passed for all138/254 assets; fixtures equal the fresh baseline before and after cleanup. The13 main/Xvfb/descendant lifetimes and2 fake lifetimes are stopped, with0 original owned live processes or matching runDir/home processes. The profile and E home were removed; J home/profile stay absent. J's sealed archive/inventory/stage seal/completion, the old11 seals and original59 static files are byte-unchanged.
+
+## Boundaries retained
+
+clientTool step38 focused its enabled Respond button before Enter but post-action focus landed on BODY; the existing Minor candidate remains. The captured body contains the global sendClientToolResponse CANCELLED notification from60 through73, separately from local response failures and empty uiErrors[]. Canonical-only clientTool, prior §24/other historical red findings and broader wave status are not closed by this report. The sealed stage still requires root independent archive acceptance before an E completion record may be created.

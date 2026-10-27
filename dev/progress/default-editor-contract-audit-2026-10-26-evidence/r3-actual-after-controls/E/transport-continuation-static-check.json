@@ -1,0 +1,21 @@
+{
+  "source": ".build/sources-e-gate-after-20261027-r3/E/run-transport-new-link.py",
+  "sourceSha256": "4a787b1e57b6e6d1f49c3432365fde65535bee7321c9d3d8a4c4c1dccb2ae03f",
+  "continuation": ".build/sources-e-gate-after-20261027-r3/E/run-transport-new-link-continuation-after-delayed-readonly.py",
+  "continuationSha256": "640f63a166cba48e719cf40247a803014127b3cd267214b68b4802d9483bdad9",
+  "astParsePassed": true,
+  "originalAssertionLinesPreserved": [
+    23,
+    24,
+    25,
+    28,
+    29,
+    32,
+    35,
+    36,
+    37
+  ],
+  "oldScriptNotChanged": true,
+  "newLabels62To65NotPreviouslyExecuted": true,
+  "noExecutionDuringStaticCheck": true
+}

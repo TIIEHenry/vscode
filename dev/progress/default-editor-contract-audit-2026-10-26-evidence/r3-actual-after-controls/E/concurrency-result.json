@@ -1,0 +1,23 @@
+{
+  "state": "PASS",
+  "steps": [
+    "46-R3-concurrent-both-pending",
+    "47-R3-concurrent-question-select-Alpha",
+    "48-R3-concurrent-question-custom-text",
+    "49-R3-concurrent-permission-A-held",
+    "50-R3-concurrent-question-B-held-both-busy",
+    "51-R3-concurrent-only-A-failed-B-still-busy",
+    "52-R3-concurrent-A-unchanged-keyboard-retry-B-held",
+    "53-R3-concurrent-A-cleaned-B-still-busy-before-publish",
+    "54-R3-concurrent-B-local-answered-before-publish"
+  ],
+  "differentRequestIds": [
+    "D-E-R3-concurrent-permission-A",
+    "D-E-R3-concurrent-question-B"
+  ],
+  "permissionAttempts": 2,
+  "permissionRetryPayloadEqual": true,
+  "questionAttempts": 1,
+  "isolation": "A false/retry/success did not clear B busy, failure or pending state",
+  "nextNumber": 55
+}

@@ -1,0 +1,154 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "phase": "E",
+  "actions": [
+    {
+      "pid": 2528384,
+      "startTicks": "151344757",
+      "signal": "SIGTERM",
+      "at": 1793060853.3125358
+    },
+    {
+      "pid": 2528323,
+      "startTicks": "151344737",
+      "signal": "SIGTERM",
+      "at": 1793060855.3146737
+    }
+  ],
+  "remainingOwnedLiveProcesses": 0,
+  "profileRemoved": true,
+  "homeRemoved": true,
+  "profileLogs": [
+    {
+      "path": "code.after-stop.log",
+      "bytes": 39099,
+      "sha256": "a56ee0261e033897d62d650e423e69be6c624502e8a5579c6b2915e0730b8d26"
+    },
+    {
+      "path": "code.before-stop.log",
+      "bytes": 38024,
+      "sha256": "b2c50997b7d039af17abc0535c2a7e66533d015193ec6307cbeacfe65581f4a0"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/agenthost.log",
+      "bytes": 3897,
+      "sha256": "17947417516160d297dc02075fc2af0850e412db2ac4f78708549070bf171cfe"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/ahp/ahp-2026-10-26T23-57-02-675Z-f6a85c9e-53de-4791-8c75-8fc6ba71e7de.jsonl",
+      "bytes": 202830,
+      "sha256": "6de21ca33303d7bed9257334c4ce196649d16e8e09cbacf46286c74a5e080978"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/editSessions.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/main.log",
+      "bytes": 3001,
+      "sha256": "85c5d32d540f30c2e0e3952108ba406fa2b4870e217b30e0d00bb16601e38d10"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/mcpGateway.log",
+      "bytes": 168,
+      "sha256": "2aae83464577b7f16a55d878402fda128dfc24dfb6c1e00610ff0c70ab9919ad"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/network-shared.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/remoteTunnelService.log",
+      "bytes": 145,
+      "sha256": "282821b8594c12e7e16f1ac847d7bd8a8feefd1baa29b7b60437333b801b0bd7"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/sharedprocess.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/telemetry.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/terminal.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/tunnelHostService.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/userDataSync.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/exthost/extHostTelemetry.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/exthost/exthost.log",
+      "bytes": 2894,
+      "sha256": "afa65b5024a8bb05a769c25f06933ba09f8796898f47118cb0103cef7bf37675"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/exthost/vscode.git/Git.log",
+      "bytes": 5278,
+      "sha256": "cecfccd61b23d6afcd98a870f8cb1c93d5ac953612362e85cf2e8aae056af07b"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/exthost/vscode.github/GitHub.log",
+      "bytes": 47,
+      "sha256": "14bafcb4a64c1dffcd790899d0dbb9c0fccf15efd8562f646f726d909e6aa63b"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/exthost/vscode.github-authentication/GitHub Authentication.log",
+      "bytes": 15629,
+      "sha256": "5ce3c8d7e185713261299be18a82d7a76b986fc07451f36893905502c318ee2e"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/exthost/vscode.json-language-features/JSON Language Server.log",
+      "bytes": 209,
+      "sha256": "ee9178213aee96bd9e09a16a91fc1b9c9dcce8b42016c06551b708462e86b175"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/network.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/notebook.rendering.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/output_20261027T075703/agentSessionsOutput.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/output_20261027T075703/tasks.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/renderer.log",
+      "bytes": 16971,
+      "sha256": "8d9ccce4bcc519a340dac6c1caa0c0ee2ad7864adb0a86cf9cbc5322160e56b9"
+    },
+    {
+      "path": "user-data-logs/20261027T075700/window1/views.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "noOldStageArtifactsOrFixturesTouched": true
+}

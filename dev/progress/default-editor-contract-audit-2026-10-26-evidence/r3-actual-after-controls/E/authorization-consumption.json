@@ -1,0 +1,23 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "phase": "E",
+  "state": "ACTUAL_ROOT_E_AUTHORITY_CONSUMED_BEFORE_RUNTIME",
+  "authorizationSha256": "8bad30cd8098b53c1b9f83df73ae8e43f4cd2f4ca28124cc2c3acf92d3f69a04",
+  "JPhaseCompleteRawSha256": "3bdd49ea1623a535544c4c79d59e22a1068dd98b3a71f7567a04cf9689ab3186",
+  "JHomeAndProfileRemainAbsent": true,
+  "EHomeBeforeLaunch": {
+    "path": "/tmp/vscode-r3-e-home-iihdyydy",
+    "inode": 1765701,
+    "mode": "0o700",
+    "empty": true,
+    "socketAbsent": true,
+    "lockAbsent": true
+  },
+  "freezeBytes": {
+    "common/freeze-E.json": "729780e2a9bef0968f9f5cb001624cbc0d25e4a2bd23e6abd2096265ff70ac6a",
+    "common/full-freeze.json": "425cbea3d505fecd61574e207e5374b7a5552ccf6cc9c208c505feb19afb17d0",
+    "common/lane-provenance.json": "0593fd9e6a665757be755d9a9d8c71ed5e8a3cde7104b5c89951f9a76dd730f1"
+  },
+  "runtimeStartedAtAuthorization": false,
+  "ECompleteOrWaveComplete": false
+}

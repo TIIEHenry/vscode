@@ -1,0 +1,1365 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "state": "PASS_DISCONNECTED_UI_WRITE_GATE",
+  "allAssertionsPassed": true,
+  "failures": [],
+  "enabledBeforeDisconnectTargetShape": {
+    "publicProjectedTurns": [
+      {
+        "id": "D-E-R3-disconnect-permission",
+        "kind": "confirmation",
+        "text": "D E controlled permission",
+        "status": "pending",
+        "agentId": "root"
+      },
+      {
+        "id": "D-E-R3-disconnect-question",
+        "kind": "question",
+        "text": "D E controlled question",
+        "status": "pending",
+        "payload": "Alpha \u00b7 Beta",
+        "agentId": "root",
+        "questionItems": [
+          {
+            "id": "choose",
+            "title": "Choose a label and preserve custom text",
+            "options": [
+              "Alpha",
+              "Beta"
+            ],
+            "multiSelect": true,
+            "allowCustom": true
+          }
+        ],
+        "answerKeysValid": true,
+        "questionRequestId": "D-E-R3-disconnect-question"
+      },
+      {
+        "id": "D-E-R3-disconnect-clientTool",
+        "kind": "tool",
+        "text": "D_E_fixture_no_execution",
+        "toolName": "D_E_fixture_no_execution",
+        "summary": "{\"fixture\":true,\"execute\":false}",
+        "toolStatus": "pending",
+        "respondable": true,
+        "agentId": "root"
+      }
+    ],
+    "actualPaneFrames": [
+      {
+        "groupId": 8,
+        "paneId": "workbench.editor.conversationChat",
+        "input": {
+          "ctor": "_ConversationChatInput",
+          "typeId": "workbench.editors.conversationChatInput",
+          "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+          "name": "Conversation"
+        },
+        "leaseSessionId": "D-E-r3-controlled-session",
+        "targetPending": [
+          {
+            "requestId": "D-E-R3-disconnect-permission",
+            "summary": {
+              "kind": "permission",
+              "title": "D E controlled permission",
+              "permissionKind": "D_E_fixture_no_execution"
+            },
+            "agentId": "root"
+          },
+          {
+            "requestId": "D-E-R3-disconnect-question",
+            "summary": {
+              "kind": "question",
+              "title": "D E controlled question",
+              "optionsPreview": [
+                "Alpha",
+                "Beta"
+              ],
+              "multiSelect": true,
+              "allowCustom": true,
+              "items": [
+                {
+                  "id": "choose",
+                  "title": "Choose a label and preserve custom text",
+                  "optionsPreview": [
+                    "Alpha",
+                    "Beta"
+                  ],
+                  "multiSelect": true,
+                  "allowCustom": true
+                }
+              ],
+              "answerKeysValid": true
+            },
+            "agentId": "root"
+          },
+          {
+            "requestId": "D-E-R3-disconnect-clientTool",
+            "summary": {
+              "kind": "tool",
+              "title": "D_E_fixture_no_execution",
+              "toolName": "D_E_fixture_no_execution",
+              "status": "pending",
+              "respondable": true,
+              "argPreview": "{\"fixture\":true,\"execute\":false}"
+            },
+            "agentId": "root"
+          }
+        ]
+      },
+      {
+        "groupId": 9,
+        "paneId": "workbench.editor.conversationChat",
+        "input": {
+          "ctor": "_ConversationChatInput",
+          "typeId": "workbench.editors.conversationChatInput",
+          "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+          "name": "Conversation"
+        },
+        "leaseSessionId": "D-E-r3-controlled-session",
+        "targetPending": [
+          {
+            "requestId": "D-E-R3-disconnect-permission",
+            "summary": {
+              "kind": "permission",
+              "title": "D E controlled permission",
+              "permissionKind": "D_E_fixture_no_execution"
+            },
+            "agentId": "root"
+          },
+          {
+            "requestId": "D-E-R3-disconnect-question",
+            "summary": {
+              "kind": "question",
+              "title": "D E controlled question",
+              "optionsPreview": [
+                "Alpha",
+                "Beta"
+              ],
+              "multiSelect": true,
+              "allowCustom": true,
+              "items": [
+                {
+                  "id": "choose",
+                  "title": "Choose a label and preserve custom text",
+                  "optionsPreview": [
+                    "Alpha",
+                    "Beta"
+                  ],
+                  "multiSelect": true,
+                  "allowCustom": true
+                }
+              ],
+              "answerKeysValid": true
+            },
+            "agentId": "root"
+          },
+          {
+            "requestId": "D-E-R3-disconnect-clientTool",
+            "summary": {
+              "kind": "tool",
+              "title": "D_E_fixture_no_execution",
+              "toolName": "D_E_fixture_no_execution",
+              "status": "pending",
+              "respondable": true,
+              "argPreview": "{\"fixture\":true,\"execute\":false}"
+            },
+            "agentId": "root"
+          }
+        ]
+      }
+    ],
+    "sixActualEnabledResponseSeats": true,
+    "livePendingOnly": true,
+    "preDisconnectCacheAndTimelineNotAssertedAsLiveAuthority": true
+  },
+  "baselinePostDisconnectTarget": {
+    "cachedModelTurns": [
+      {
+        "id": "D-E-R3-disconnect-permission",
+        "kind": "confirmation",
+        "text": "D E controlled permission",
+        "status": "pending",
+        "agentId": "root"
+      },
+      {
+        "id": "D-E-R3-disconnect-question",
+        "kind": "question",
+        "text": "D E controlled question",
+        "status": "pending",
+        "payload": "Alpha \u00b7 Beta",
+        "agentId": "root",
+        "questionItems": [
+          {
+            "id": "choose",
+            "title": "Choose a label and preserve custom text",
+            "options": [
+              "Alpha",
+              "Beta"
+            ],
+            "multiSelect": true,
+            "allowCustom": true
+          }
+        ],
+        "answerKeysValid": true,
+        "questionRequestId": "D-E-R3-disconnect-question"
+      },
+      {
+        "id": "D-E-R3-disconnect-clientTool",
+        "kind": "tool",
+        "text": "D_E_fixture_no_execution",
+        "toolName": "D_E_fixture_no_execution",
+        "summary": "{\"fixture\":true,\"execute\":false}",
+        "toolStatus": "pending",
+        "respondable": true,
+        "agentId": "root"
+      }
+    ],
+    "publicProjectedTurns": [
+      {
+        "id": "D-E-R3-disconnect-permission",
+        "kind": "confirmation",
+        "text": "D E controlled permission",
+        "status": "pending",
+        "agentId": "root"
+      },
+      {
+        "id": "D-E-R3-disconnect-question",
+        "kind": "question",
+        "text": "D E controlled question",
+        "status": "undecided",
+        "payload": "Alpha \u00b7 Beta",
+        "agentId": "root",
+        "questionItems": [
+          {
+            "id": "choose",
+            "title": "Choose a label and preserve custom text",
+            "options": [
+              "Alpha",
+              "Beta"
+            ],
+            "multiSelect": true,
+            "allowCustom": true
+          }
+        ],
+        "answerKeysValid": true
+      },
+      {
+        "id": "D-E-R3-disconnect-clientTool",
+        "kind": "tool",
+        "text": "D_E_fixture_no_execution",
+        "toolName": "D_E_fixture_no_execution",
+        "summary": "{\"fixture\":true,\"execute\":false}",
+        "toolStatus": "pending",
+        "agentId": "root"
+      }
+    ],
+    "actualPaneFrames": [
+      {
+        "groupId": 8,
+        "paneId": "workbench.editor.conversationChat",
+        "input": {
+          "ctor": "_ConversationChatInput",
+          "typeId": "workbench.editors.conversationChatInput",
+          "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+          "name": "Conversation"
+        },
+        "leaseSessionId": "D-E-r3-controlled-session",
+        "leaseId": "stub-lease-17",
+        "targetPending": [
+          {
+            "requestId": "D-E-R3-disconnect-permission",
+            "summary": {
+              "kind": "permission",
+              "title": "D E controlled permission",
+              "permissionKind": "stub"
+            }
+          }
+        ],
+        "targetTimeline": [
+          {
+            "id": "D-E-R3-disconnect-permission",
+            "orderKey": "0000000000000003",
+            "summary": {
+              "kind": "permission",
+              "title": "D E controlled permission",
+              "permissionKind": "stub"
+            }
+          },
+          {
+            "id": "D-E-R3-disconnect-question",
+            "orderKey": "0000000000000004",
+            "summary": {
+              "kind": "question",
+              "title": "D E controlled question",
+              "items": [
+                {
+                  "id": "choose",
+                  "title": "Choose a label and preserve custom text",
+                  "optionsPreview": [
+                    "Alpha",
+                    "Beta"
+                  ],
+                  "multiSelect": true,
+                  "allowCustom": true
+                }
+              ],
+              "answerKeysValid": true
+            }
+          },
+          {
+            "id": "D-E-R3-disconnect-clientTool",
+            "orderKey": "0000000000000005",
+            "summary": {
+              "kind": "tool",
+              "title": "D_E_fixture_no_execution",
+              "toolName": "D_E_fixture_no_execution",
+              "status": "pending",
+              "argPreview": "{\"fixture\":true,\"execute\":false}"
+            }
+          }
+        ],
+        "targetResponseProjection": null
+      },
+      {
+        "groupId": 9,
+        "paneId": "workbench.editor.conversationChat",
+        "input": {
+          "ctor": "_ConversationChatInput",
+          "typeId": "workbench.editors.conversationChatInput",
+          "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+          "name": "Conversation"
+        },
+        "leaseSessionId": "D-E-r3-controlled-session",
+        "leaseId": "stub-lease-18",
+        "targetPending": [
+          {
+            "requestId": "D-E-R3-disconnect-permission",
+            "summary": {
+              "kind": "permission",
+              "title": "D E controlled permission",
+              "permissionKind": "stub"
+            }
+          }
+        ],
+        "targetTimeline": [
+          {
+            "id": "D-E-R3-disconnect-permission",
+            "orderKey": "0000000000000003",
+            "summary": {
+              "kind": "permission",
+              "title": "D E controlled permission",
+              "permissionKind": "stub"
+            }
+          },
+          {
+            "id": "D-E-R3-disconnect-question",
+            "orderKey": "0000000000000004",
+            "summary": {
+              "kind": "question",
+              "title": "D E controlled question",
+              "items": [
+                {
+                  "id": "choose",
+                  "title": "Choose a label and preserve custom text",
+                  "optionsPreview": [
+                    "Alpha",
+                    "Beta"
+                  ],
+                  "multiSelect": true,
+                  "allowCustom": true
+                }
+              ],
+              "answerKeysValid": true
+            }
+          },
+          {
+            "id": "D-E-R3-disconnect-clientTool",
+            "orderKey": "0000000000000005",
+            "summary": {
+              "kind": "tool",
+              "title": "D_E_fixture_no_execution",
+              "toolName": "D_E_fixture_no_execution",
+              "status": "pending",
+              "argPreview": "{\"fixture\":true,\"execute\":false}"
+            }
+          }
+        ],
+        "targetResponseProjection": null
+      }
+    ]
+  },
+  "beforeCounts": {
+    "receivedMethods": {
+      "/agentservice.SystemService/HealthCheck": 2,
+      "/agentservice.SystemService/Connect": 2,
+      "/agentservice.SessionService/List": 6,
+      "/agentservice.AgentService/Tree": 8,
+      "/agentservice.SessionService/Resume": 2,
+      "/agentservice.SessionService/SessionEventStream": 2,
+      "/agentservice.AgentService/Chat": 2,
+      "/agentservice.PermissionService/Respond": 8,
+      "/agentservice.AgentService/RespondQuestion": 5,
+      "/agentservice.AgentService/SendClientToolResponse": 6
+    },
+    "responseUnary": 19,
+    "chatWrite": 0,
+    "residentChatStreamOpens": 2
+  },
+  "afterCounts": {
+    "receivedMethods": {
+      "/agentservice.SystemService/HealthCheck": 2,
+      "/agentservice.SystemService/Connect": 2,
+      "/agentservice.SessionService/List": 6,
+      "/agentservice.AgentService/Tree": 8,
+      "/agentservice.SessionService/Resume": 2,
+      "/agentservice.SessionService/SessionEventStream": 2,
+      "/agentservice.AgentService/Chat": 2,
+      "/agentservice.PermissionService/Respond": 8,
+      "/agentservice.AgentService/RespondQuestion": 5,
+      "/agentservice.AgentService/SendClientToolResponse": 6
+    },
+    "responseUnary": 19,
+    "chatWrite": 0,
+    "residentChatStreamOpens": 2
+  },
+  "responseUnaryDelta": 0,
+  "chatWriteDelta": 0,
+  "residentChatStreamOpenDelta": 0,
+  "uiAttempts": {
+    "permission": {
+      "result": {
+        "method": "normal UI click",
+        "controlCount": 4,
+        "visible": true,
+        "ariaDisabled": "true",
+        "attempted": true,
+        "clicked": false,
+        "blocked": true,
+        "error": "TimeoutError: locator.click: Timeout 600ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-session-key=\"D-E-r3-controlled-session\"] [data-turn-id=\"D-E-R3-disconnect-permission\"] [role=\"button\"]').first()\u001b[22m\n\u001b[2m    - locator resolved to <a tabindex=\"0\" role=\"button\" custom-hover=\"true\" aria-disabled=\"true\" class=\"monaco-button monaco-text-button disabled\" aria-label=\"Allow. This session cannot be edited right now.\">Allow</a>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 \u00d7 waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m    - element is not enabled\u001b[22m\n\u001b[2m  - retrying click action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n"
+      },
+      "absenceBoundary": false,
+      "disabledControlActuallyAttempted": true,
+      "beforeSeats": [
+        {
+          "turnId": "D-E-R3-disconnect-permission",
+          "groupId": 8,
+          "sessionKey": "D-E-r3-controlled-session",
+          "className": "conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission",
+          "text": "1 confirmation pending\nInput needed\n\nD E controlled permission\n\nAllow\nSkip",
+          "html": "<div class=\"conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission\" tabindex=\"0\" role=\"group\" aria-label=\"Permission, pending, Input needed, D E controlled permission\" data-turn-id=\"D-E-R3-disconnect-permission\" data-kind=\"confirmation\" data-honest-kind=\"permission\"><div class=\"conversation-lens-confirmation-summary\"><span class=\"conversation-lens-confirmation-pending\">1 confirmation pending</span><span class=\"conversation-lens-input-needed\">Input needed</span></div><p class=\"conversation-lens-confirmation-message\">D E controlled permission</p><div class=\"conversation-lens-confirmation-actions\" role=\"toolbar\" aria-label=\"Permission decision\"><a class=\"monaco-button monaco-text-button disabled\" tabindex=\"0\" role=\"button\" aria-label=\"Allow. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-foreground); background-color: var(--vscode-button-background); border: 1px solid var(--vscode-button-border);\">Allow</a><a class=\"monaco-button secondary monaco-text-button disabled\" tabindex=\"-1\" role=\"button\" aria-label=\"Skip. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-secondaryForeground); background-color: var(--vscode-button-secondaryBackground); border: 1px solid var(--vscode-button-secondaryBorder);\">Skip</a></div></div>",
+          "busy": null,
+          "rect": {
+            "x": 60,
+            "y": 318.828125,
+            "width": 662,
+            "height": 116.84375
+          },
+          "controls": [
+            {
+              "tag": "A",
+              "role": "button",
+              "responseControl": true,
+              "text": "Allow",
+              "label": "Allow. This session cannot be edited right now.",
+              "disabled": null,
+              "ariaDisabled": "true",
+              "checked": null,
+              "value": null
+            },
+            {
+              "tag": "A",
+              "role": "button",
+              "responseControl": true,
+              "text": "Skip",
+              "label": "Skip. This session cannot be edited right now.",
+              "disabled": null,
+              "ariaDisabled": "true",
+              "checked": null,
+              "value": null
+            }
+          ]
+        },
+        {
+          "turnId": "D-E-R3-disconnect-permission",
+          "groupId": 9,
+          "sessionKey": "D-E-r3-controlled-session",
+          "className": "conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission",
+          "text": "1 confirmation pending\nInput needed\n\nD E controlled permission\n\nAllow\nSkip",
+          "html": "<div class=\"conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission\" tabindex=\"0\" role=\"group\" aria-label=\"Permission, pending, Input needed, D E controlled permission\" data-turn-id=\"D-E-R3-disconnect-permission\" data-kind=\"confirmation\" data-honest-kind=\"permission\"><div class=\"conversation-lens-confirmation-summary\"><span class=\"conversation-lens-confirmation-pending\">1 confirmation pending</span><span class=\"conversation-lens-input-needed\">Input needed</span></div><p class=\"conversation-lens-confirmation-message\">D E controlled permission</p><div class=\"conversation-lens-confirmation-actions\" role=\"toolbar\" aria-label=\"Permission decision\"><a class=\"monaco-button monaco-text-button disabled\" tabindex=\"0\" role=\"button\" aria-label=\"Allow. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-foreground); background-color: var(--vscode-button-background); border: 1px solid var(--vscode-button-border);\">Allow</a><a class=\"monaco-button secondary monaco-text-button disabled\" tabindex=\"-1\" role=\"button\" aria-label=\"Skip. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-secondaryForeground); background-color: var(--vscode-button-secondaryBackground); border: 1px solid var(--vscode-button-secondaryBorder);\">Skip</a></div></div>",
+          "busy": null,
+          "rect": {
+            "x": 756,
+            "y": 318.828125,
+            "width": 662,
+            "height": 116.84375
+          },
+          "controls": [
+            {
+              "tag": "A",
+              "role": "button",
+              "responseControl": true,
+              "text": "Allow",
+              "label": "Allow. This session cannot be edited right now.",
+              "disabled": null,
+              "ariaDisabled": "true",
+              "checked": null,
+              "value": null
+            },
+            {
+              "tag": "A",
+              "role": "button",
+              "responseControl": true,
+              "text": "Skip",
+              "label": "Skip. This session cannot be edited right now.",
+              "disabled": null,
+              "ariaDisabled": "true",
+              "checked": null,
+              "value": null
+            }
+          ]
+        }
+      ],
+      "afterSeats": [
+        {
+          "turnId": "D-E-R3-disconnect-permission",
+          "groupId": 8,
+          "sessionKey": "D-E-r3-controlled-session",
+          "className": "conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission",
+          "text": "1 confirmation pending\nInput needed\n\nD E controlled permission\n\nAllow\nSkip",
+          "html": "<div class=\"conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission\" tabindex=\"0\" role=\"group\" aria-label=\"Permission, pending, Input needed, D E controlled permission\" data-turn-id=\"D-E-R3-disconnect-permission\" data-kind=\"confirmation\" data-honest-kind=\"permission\"><div class=\"conversation-lens-confirmation-summary\"><span class=\"conversation-lens-confirmation-pending\">1 confirmation pending</span><span class=\"conversation-lens-input-needed\">Input needed</span></div><p class=\"conversation-lens-confirmation-message\">D E controlled permission</p><div class=\"conversation-lens-confirmation-actions\" role=\"toolbar\" aria-label=\"Permission decision\"><a class=\"monaco-button monaco-text-button disabled\" tabindex=\"0\" role=\"button\" aria-label=\"Allow. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-foreground); background-color: var(--vscode-button-background); border: 1px solid var(--vscode-button-border);\">Allow</a><a class=\"monaco-button secondary monaco-text-button disabled\" tabindex=\"-1\" role=\"button\" aria-label=\"Skip. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-secondaryForeground); background-color: var(--vscode-button-secondaryBackground); border: 1px solid var(--vscode-button-secondaryBorder);\">Skip</a></div></div>",
+          "busy": null,
+          "rect": {
+            "x": 60,
+            "y": 318.828125,
+            "width": 662,
+            "height": 116.84375
+          },
+          "controls": [
+            {
+              "tag": "A",
+              "role": "button",
+              "responseControl": true,
+              "text": "Allow",
+              "label": "Allow. This session cannot be edited right now.",
+              "disabled": null,
+              "ariaDisabled": "true",
+              "checked": null,
+              "value": null
+            },
+            {
+              "tag": "A",
+              "role": "button",
+              "responseControl": true,
+              "text": "Skip",
+              "label": "Skip. This session cannot be edited right now.",
+              "disabled": null,
+              "ariaDisabled": "true",
+              "checked": null,
+              "value": null
+            }
+          ]
+        },
+        {
+          "turnId": "D-E-R3-disconnect-permission",
+          "groupId": 9,
+          "sessionKey": "D-E-r3-controlled-session",
+          "className": "conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission",
+          "text": "1 confirmation pending\nInput needed\n\nD E controlled permission\n\nAllow\nSkip",
+          "html": "<div class=\"conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission\" tabindex=\"0\" role=\"group\" aria-label=\"Permission, pending, Input needed, D E controlled permission\" data-turn-id=\"D-E-R3-disconnect-permission\" data-kind=\"confirmation\" data-honest-kind=\"permission\"><div class=\"conversation-lens-confirmation-summary\"><span class=\"conversation-lens-confirmation-pending\">1 confirmation pending</span><span class=\"conversation-lens-input-needed\">Input needed</span></div><p class=\"conversation-lens-confirmation-message\">D E controlled permission</p><div class=\"conversation-lens-confirmation-actions\" role=\"toolbar\" aria-label=\"Permission decision\"><a class=\"monaco-button monaco-text-button disabled\" tabindex=\"0\" role=\"button\" aria-label=\"Allow. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-foreground); background-color: var(--vscode-button-background); border: 1px solid var(--vscode-button-border);\">Allow</a><a class=\"monaco-button secondary monaco-text-button disabled\" tabindex=\"-1\" role=\"button\" aria-label=\"Skip. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-secondaryForeground); background-color: var(--vscode-button-secondaryBackground); border: 1px solid var(--vscode-button-secondaryBorder);\">Skip</a></div></div>",
+          "busy": null,
+          "rect": {
+            "x": 756,
+            "y": 318.828125,
+            "width": 662,
+            "height": 116.84375
+          },
+          "controls": [
+            {
+              "tag": "A",
+              "role": "button",
+              "responseControl": true,
+              "text": "Allow",
+              "label": "Allow. This session cannot be edited right now.",
+              "disabled": null,
+              "ariaDisabled": "true",
+              "checked": null,
+              "value": null
+            },
+            {
+              "tag": "A",
+              "role": "button",
+              "responseControl": true,
+              "text": "Skip",
+              "label": "Skip. This session cannot be edited right now.",
+              "disabled": null,
+              "ariaDisabled": "true",
+              "checked": null,
+              "value": null
+            }
+          ]
+        }
+      ],
+      "targetStateAfter": {
+        "cachedModelTurns": [
+          {
+            "id": "D-E-R3-disconnect-permission",
+            "kind": "confirmation",
+            "text": "D E controlled permission",
+            "status": "pending",
+            "agentId": "root"
+          },
+          {
+            "id": "D-E-R3-disconnect-question",
+            "kind": "question",
+            "text": "D E controlled question",
+            "status": "pending",
+            "payload": "Alpha \u00b7 Beta",
+            "agentId": "root",
+            "questionItems": [
+              {
+                "id": "choose",
+                "title": "Choose a label and preserve custom text",
+                "options": [
+                  "Alpha",
+                  "Beta"
+                ],
+                "multiSelect": true,
+                "allowCustom": true
+              }
+            ],
+            "answerKeysValid": true,
+            "questionRequestId": "D-E-R3-disconnect-question"
+          },
+          {
+            "id": "D-E-R3-disconnect-clientTool",
+            "kind": "tool",
+            "text": "D_E_fixture_no_execution",
+            "toolName": "D_E_fixture_no_execution",
+            "summary": "{\"fixture\":true,\"execute\":false}",
+            "toolStatus": "pending",
+            "respondable": true,
+            "agentId": "root"
+          }
+        ],
+        "publicProjectedTurns": [
+          {
+            "id": "D-E-R3-disconnect-permission",
+            "kind": "confirmation",
+            "text": "D E controlled permission",
+            "status": "pending",
+            "agentId": "root"
+          },
+          {
+            "id": "D-E-R3-disconnect-question",
+            "kind": "question",
+            "text": "D E controlled question",
+            "status": "undecided",
+            "payload": "Alpha \u00b7 Beta",
+            "agentId": "root",
+            "questionItems": [
+              {
+                "id": "choose",
+                "title": "Choose a label and preserve custom text",
+                "options": [
+                  "Alpha",
+                  "Beta"
+                ],
+                "multiSelect": true,
+                "allowCustom": true
+              }
+            ],
+            "answerKeysValid": true
+          },
+          {
+            "id": "D-E-R3-disconnect-clientTool",
+            "kind": "tool",
+            "text": "D_E_fixture_no_execution",
+            "toolName": "D_E_fixture_no_execution",
+            "summary": "{\"fixture\":true,\"execute\":false}",
+            "toolStatus": "pending",
+            "agentId": "root"
+          }
+        ],
+        "actualPaneFrames": [
+          {
+            "groupId": 8,
+            "paneId": "workbench.editor.conversationChat",
+            "input": {
+              "ctor": "_ConversationChatInput",
+              "typeId": "workbench.editors.conversationChatInput",
+              "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+              "name": "Conversation"
+            },
+            "leaseSessionId": "D-E-r3-controlled-session",
+            "leaseId": "stub-lease-17",
+            "targetPending": [
+              {
+                "requestId": "D-E-R3-disconnect-permission",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              }
+            ],
+            "targetTimeline": [
+              {
+                "id": "D-E-R3-disconnect-permission",
+                "orderKey": "0000000000000003",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-question",
+                "orderKey": "0000000000000004",
+                "summary": {
+                  "kind": "question",
+                  "title": "D E controlled question",
+                  "items": [
+                    {
+                      "id": "choose",
+                      "title": "Choose a label and preserve custom text",
+                      "optionsPreview": [
+                        "Alpha",
+                        "Beta"
+                      ],
+                      "multiSelect": true,
+                      "allowCustom": true
+                    }
+                  ],
+                  "answerKeysValid": true
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-clientTool",
+                "orderKey": "0000000000000005",
+                "summary": {
+                  "kind": "tool",
+                  "title": "D_E_fixture_no_execution",
+                  "toolName": "D_E_fixture_no_execution",
+                  "status": "pending",
+                  "argPreview": "{\"fixture\":true,\"execute\":false}"
+                }
+              }
+            ],
+            "targetResponseProjection": null
+          },
+          {
+            "groupId": 9,
+            "paneId": "workbench.editor.conversationChat",
+            "input": {
+              "ctor": "_ConversationChatInput",
+              "typeId": "workbench.editors.conversationChatInput",
+              "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+              "name": "Conversation"
+            },
+            "leaseSessionId": "D-E-r3-controlled-session",
+            "leaseId": "stub-lease-18",
+            "targetPending": [
+              {
+                "requestId": "D-E-R3-disconnect-permission",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              }
+            ],
+            "targetTimeline": [
+              {
+                "id": "D-E-R3-disconnect-permission",
+                "orderKey": "0000000000000003",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-question",
+                "orderKey": "0000000000000004",
+                "summary": {
+                  "kind": "question",
+                  "title": "D E controlled question",
+                  "items": [
+                    {
+                      "id": "choose",
+                      "title": "Choose a label and preserve custom text",
+                      "optionsPreview": [
+                        "Alpha",
+                        "Beta"
+                      ],
+                      "multiSelect": true,
+                      "allowCustom": true
+                    }
+                  ],
+                  "answerKeysValid": true
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-clientTool",
+                "orderKey": "0000000000000005",
+                "summary": {
+                  "kind": "tool",
+                  "title": "D_E_fixture_no_execution",
+                  "toolName": "D_E_fixture_no_execution",
+                  "status": "pending",
+                  "argPreview": "{\"fixture\":true,\"execute\":false}"
+                }
+              }
+            ],
+            "targetResponseProjection": null
+          }
+        ]
+      }
+    },
+    "question": {
+      "result": {
+        "method": "normal UI click if present",
+        "controlCount": 0,
+        "attempted": false,
+        "boundary": "target response control absent after disconnect"
+      },
+      "absenceBoundary": true,
+      "disabledControlActuallyAttempted": false,
+      "beforeSeats": [
+        {
+          "turnId": "D-E-R3-disconnect-question",
+          "groupId": 8,
+          "sessionKey": "D-E-r3-controlled-session",
+          "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+          "text": "Question\nroot\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+          "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, D E controlled question\" data-turn-id=\"D-E-R3-disconnect-question\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-agent-identity\">root</span><span class=\"conversation-lens-turn-honest-status\"></span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+          "busy": null,
+          "rect": {
+            "x": 60,
+            "y": 479.671875,
+            "width": 662,
+            "height": 137.609375
+          },
+          "controls": []
+        },
+        {
+          "turnId": "D-E-R3-disconnect-question",
+          "groupId": 9,
+          "sessionKey": "D-E-r3-controlled-session",
+          "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+          "text": "Question\nroot\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+          "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, D E controlled question\" data-turn-id=\"D-E-R3-disconnect-question\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-agent-identity\">root</span><span class=\"conversation-lens-turn-honest-status\"></span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+          "busy": null,
+          "rect": {
+            "x": 756,
+            "y": 479.671875,
+            "width": 662,
+            "height": 137.609375
+          },
+          "controls": []
+        }
+      ],
+      "afterSeats": [
+        {
+          "turnId": "D-E-R3-disconnect-question",
+          "groupId": 8,
+          "sessionKey": "D-E-r3-controlled-session",
+          "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+          "text": "Question\nroot\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+          "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, D E controlled question\" data-turn-id=\"D-E-R3-disconnect-question\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-agent-identity\">root</span><span class=\"conversation-lens-turn-honest-status\"></span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+          "busy": null,
+          "rect": {
+            "x": 60,
+            "y": 479.671875,
+            "width": 662,
+            "height": 137.609375
+          },
+          "controls": []
+        },
+        {
+          "turnId": "D-E-R3-disconnect-question",
+          "groupId": 9,
+          "sessionKey": "D-E-r3-controlled-session",
+          "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+          "text": "Question\nroot\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+          "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, D E controlled question\" data-turn-id=\"D-E-R3-disconnect-question\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-agent-identity\">root</span><span class=\"conversation-lens-turn-honest-status\"></span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+          "busy": null,
+          "rect": {
+            "x": 756,
+            "y": 479.671875,
+            "width": 662,
+            "height": 137.609375
+          },
+          "controls": []
+        }
+      ],
+      "targetStateAfter": {
+        "cachedModelTurns": [
+          {
+            "id": "D-E-R3-disconnect-permission",
+            "kind": "confirmation",
+            "text": "D E controlled permission",
+            "status": "pending",
+            "agentId": "root"
+          },
+          {
+            "id": "D-E-R3-disconnect-question",
+            "kind": "question",
+            "text": "D E controlled question",
+            "status": "pending",
+            "payload": "Alpha \u00b7 Beta",
+            "agentId": "root",
+            "questionItems": [
+              {
+                "id": "choose",
+                "title": "Choose a label and preserve custom text",
+                "options": [
+                  "Alpha",
+                  "Beta"
+                ],
+                "multiSelect": true,
+                "allowCustom": true
+              }
+            ],
+            "answerKeysValid": true,
+            "questionRequestId": "D-E-R3-disconnect-question"
+          },
+          {
+            "id": "D-E-R3-disconnect-clientTool",
+            "kind": "tool",
+            "text": "D_E_fixture_no_execution",
+            "toolName": "D_E_fixture_no_execution",
+            "summary": "{\"fixture\":true,\"execute\":false}",
+            "toolStatus": "pending",
+            "respondable": true,
+            "agentId": "root"
+          }
+        ],
+        "publicProjectedTurns": [
+          {
+            "id": "D-E-R3-disconnect-permission",
+            "kind": "confirmation",
+            "text": "D E controlled permission",
+            "status": "pending",
+            "agentId": "root"
+          },
+          {
+            "id": "D-E-R3-disconnect-question",
+            "kind": "question",
+            "text": "D E controlled question",
+            "status": "undecided",
+            "payload": "Alpha \u00b7 Beta",
+            "agentId": "root",
+            "questionItems": [
+              {
+                "id": "choose",
+                "title": "Choose a label and preserve custom text",
+                "options": [
+                  "Alpha",
+                  "Beta"
+                ],
+                "multiSelect": true,
+                "allowCustom": true
+              }
+            ],
+            "answerKeysValid": true
+          },
+          {
+            "id": "D-E-R3-disconnect-clientTool",
+            "kind": "tool",
+            "text": "D_E_fixture_no_execution",
+            "toolName": "D_E_fixture_no_execution",
+            "summary": "{\"fixture\":true,\"execute\":false}",
+            "toolStatus": "pending",
+            "agentId": "root"
+          }
+        ],
+        "actualPaneFrames": [
+          {
+            "groupId": 8,
+            "paneId": "workbench.editor.conversationChat",
+            "input": {
+              "ctor": "_ConversationChatInput",
+              "typeId": "workbench.editors.conversationChatInput",
+              "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+              "name": "Conversation"
+            },
+            "leaseSessionId": "D-E-r3-controlled-session",
+            "leaseId": "stub-lease-17",
+            "targetPending": [
+              {
+                "requestId": "D-E-R3-disconnect-permission",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              }
+            ],
+            "targetTimeline": [
+              {
+                "id": "D-E-R3-disconnect-permission",
+                "orderKey": "0000000000000003",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-question",
+                "orderKey": "0000000000000004",
+                "summary": {
+                  "kind": "question",
+                  "title": "D E controlled question",
+                  "items": [
+                    {
+                      "id": "choose",
+                      "title": "Choose a label and preserve custom text",
+                      "optionsPreview": [
+                        "Alpha",
+                        "Beta"
+                      ],
+                      "multiSelect": true,
+                      "allowCustom": true
+                    }
+                  ],
+                  "answerKeysValid": true
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-clientTool",
+                "orderKey": "0000000000000005",
+                "summary": {
+                  "kind": "tool",
+                  "title": "D_E_fixture_no_execution",
+                  "toolName": "D_E_fixture_no_execution",
+                  "status": "pending",
+                  "argPreview": "{\"fixture\":true,\"execute\":false}"
+                }
+              }
+            ],
+            "targetResponseProjection": null
+          },
+          {
+            "groupId": 9,
+            "paneId": "workbench.editor.conversationChat",
+            "input": {
+              "ctor": "_ConversationChatInput",
+              "typeId": "workbench.editors.conversationChatInput",
+              "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+              "name": "Conversation"
+            },
+            "leaseSessionId": "D-E-r3-controlled-session",
+            "leaseId": "stub-lease-18",
+            "targetPending": [
+              {
+                "requestId": "D-E-R3-disconnect-permission",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              }
+            ],
+            "targetTimeline": [
+              {
+                "id": "D-E-R3-disconnect-permission",
+                "orderKey": "0000000000000003",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-question",
+                "orderKey": "0000000000000004",
+                "summary": {
+                  "kind": "question",
+                  "title": "D E controlled question",
+                  "items": [
+                    {
+                      "id": "choose",
+                      "title": "Choose a label and preserve custom text",
+                      "optionsPreview": [
+                        "Alpha",
+                        "Beta"
+                      ],
+                      "multiSelect": true,
+                      "allowCustom": true
+                    }
+                  ],
+                  "answerKeysValid": true
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-clientTool",
+                "orderKey": "0000000000000005",
+                "summary": {
+                  "kind": "tool",
+                  "title": "D_E_fixture_no_execution",
+                  "toolName": "D_E_fixture_no_execution",
+                  "status": "pending",
+                  "argPreview": "{\"fixture\":true,\"execute\":false}"
+                }
+              }
+            ],
+            "targetResponseProjection": null
+          }
+        ]
+      }
+    },
+    "clientTool": {
+      "result": {
+        "method": "normal UI click if present",
+        "controlCount": 0,
+        "attempted": false,
+        "boundary": "target response control absent after disconnect"
+      },
+      "absenceBoundary": true,
+      "disabledControlActuallyAttempted": false,
+      "beforeSeats": [],
+      "afterSeats": [],
+      "targetStateAfter": {
+        "cachedModelTurns": [
+          {
+            "id": "D-E-R3-disconnect-permission",
+            "kind": "confirmation",
+            "text": "D E controlled permission",
+            "status": "pending",
+            "agentId": "root"
+          },
+          {
+            "id": "D-E-R3-disconnect-question",
+            "kind": "question",
+            "text": "D E controlled question",
+            "status": "pending",
+            "payload": "Alpha \u00b7 Beta",
+            "agentId": "root",
+            "questionItems": [
+              {
+                "id": "choose",
+                "title": "Choose a label and preserve custom text",
+                "options": [
+                  "Alpha",
+                  "Beta"
+                ],
+                "multiSelect": true,
+                "allowCustom": true
+              }
+            ],
+            "answerKeysValid": true,
+            "questionRequestId": "D-E-R3-disconnect-question"
+          },
+          {
+            "id": "D-E-R3-disconnect-clientTool",
+            "kind": "tool",
+            "text": "D_E_fixture_no_execution",
+            "toolName": "D_E_fixture_no_execution",
+            "summary": "{\"fixture\":true,\"execute\":false}",
+            "toolStatus": "pending",
+            "respondable": true,
+            "agentId": "root"
+          }
+        ],
+        "publicProjectedTurns": [
+          {
+            "id": "D-E-R3-disconnect-permission",
+            "kind": "confirmation",
+            "text": "D E controlled permission",
+            "status": "pending",
+            "agentId": "root"
+          },
+          {
+            "id": "D-E-R3-disconnect-question",
+            "kind": "question",
+            "text": "D E controlled question",
+            "status": "undecided",
+            "payload": "Alpha \u00b7 Beta",
+            "agentId": "root",
+            "questionItems": [
+              {
+                "id": "choose",
+                "title": "Choose a label and preserve custom text",
+                "options": [
+                  "Alpha",
+                  "Beta"
+                ],
+                "multiSelect": true,
+                "allowCustom": true
+              }
+            ],
+            "answerKeysValid": true
+          },
+          {
+            "id": "D-E-R3-disconnect-clientTool",
+            "kind": "tool",
+            "text": "D_E_fixture_no_execution",
+            "toolName": "D_E_fixture_no_execution",
+            "summary": "{\"fixture\":true,\"execute\":false}",
+            "toolStatus": "pending",
+            "agentId": "root"
+          }
+        ],
+        "actualPaneFrames": [
+          {
+            "groupId": 8,
+            "paneId": "workbench.editor.conversationChat",
+            "input": {
+              "ctor": "_ConversationChatInput",
+              "typeId": "workbench.editors.conversationChatInput",
+              "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+              "name": "Conversation"
+            },
+            "leaseSessionId": "D-E-r3-controlled-session",
+            "leaseId": "stub-lease-17",
+            "targetPending": [
+              {
+                "requestId": "D-E-R3-disconnect-permission",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              }
+            ],
+            "targetTimeline": [
+              {
+                "id": "D-E-R3-disconnect-permission",
+                "orderKey": "0000000000000003",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-question",
+                "orderKey": "0000000000000004",
+                "summary": {
+                  "kind": "question",
+                  "title": "D E controlled question",
+                  "items": [
+                    {
+                      "id": "choose",
+                      "title": "Choose a label and preserve custom text",
+                      "optionsPreview": [
+                        "Alpha",
+                        "Beta"
+                      ],
+                      "multiSelect": true,
+                      "allowCustom": true
+                    }
+                  ],
+                  "answerKeysValid": true
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-clientTool",
+                "orderKey": "0000000000000005",
+                "summary": {
+                  "kind": "tool",
+                  "title": "D_E_fixture_no_execution",
+                  "toolName": "D_E_fixture_no_execution",
+                  "status": "pending",
+                  "argPreview": "{\"fixture\":true,\"execute\":false}"
+                }
+              }
+            ],
+            "targetResponseProjection": null
+          },
+          {
+            "groupId": 9,
+            "paneId": "workbench.editor.conversationChat",
+            "input": {
+              "ctor": "_ConversationChatInput",
+              "typeId": "workbench.editors.conversationChatInput",
+              "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+              "name": "Conversation"
+            },
+            "leaseSessionId": "D-E-r3-controlled-session",
+            "leaseId": "stub-lease-18",
+            "targetPending": [
+              {
+                "requestId": "D-E-R3-disconnect-permission",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              }
+            ],
+            "targetTimeline": [
+              {
+                "id": "D-E-R3-disconnect-permission",
+                "orderKey": "0000000000000003",
+                "summary": {
+                  "kind": "permission",
+                  "title": "D E controlled permission",
+                  "permissionKind": "stub"
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-question",
+                "orderKey": "0000000000000004",
+                "summary": {
+                  "kind": "question",
+                  "title": "D E controlled question",
+                  "items": [
+                    {
+                      "id": "choose",
+                      "title": "Choose a label and preserve custom text",
+                      "optionsPreview": [
+                        "Alpha",
+                        "Beta"
+                      ],
+                      "multiSelect": true,
+                      "allowCustom": true
+                    }
+                  ],
+                  "answerKeysValid": true
+                }
+              },
+              {
+                "id": "D-E-R3-disconnect-clientTool",
+                "orderKey": "0000000000000005",
+                "summary": {
+                  "kind": "tool",
+                  "title": "D_E_fixture_no_execution",
+                  "toolName": "D_E_fixture_no_execution",
+                  "status": "pending",
+                  "argPreview": "{\"fixture\":true,\"execute\":false}"
+                }
+              }
+            ],
+            "targetResponseProjection": null
+          }
+        ]
+      }
+    }
+  },
+  "steps": [
+    "66-R3-disconnect-three-real-pending-before",
+    "67-R3-disconnect-question-Alpha-before",
+    "68-R3-disconnect-question-draft-before",
+    "69-R3-disconnect-public-disconnect-observed",
+    "70-R3-disconnect-permission-normal-ui-attempt",
+    "71-R3-disconnect-question-normal-ui-attempt",
+    "72-R3-disconnect-clientTool-normal-ui-attempt",
+    "73-R3-disconnect-final-readonly-target-unchanged"
+  ],
+  "boundary": "missing controls explicitly remain absence boundaries; UI never invokes captured stale callbacks or explicit lease posts. Those are actual unique-lane new10 core evidence.",
+  "globalVsLocalErrors": "global notification body and local response failure remain separately captured; uiErrors[] does not mean every visible global notification disappeared",
+  "originalObserverLivePreconditionFailureRetained": true,
+  "original66": {
+    "path": "E/steps/66-R3-disconnect-three-real-pending-before.json",
+    "sha256": "19aa16740dc56e48ae853e154cc9191bcaa201413ab40925d0db348a7f23a212"
+  },
+  "originalFailure": {
+    "path": "E/disconnect-negative-driver-failure.json",
+    "sha256": "904024f3773ab9666d2bdbef73c14b49d78b7d3fd429651603214c8805620b63"
+  },
+  "continuationReason": "Root authorized first actual 67-73 actions after independent source review of live pending-only authority; strict target() and every post-disconnect check retained unchanged; no reemit/no business rerun"
+}

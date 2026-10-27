@@ -1,0 +1,16 @@
+{
+  "createdBy": "/root/sources_audit",
+  "phase": "J",
+  "runId": "sources-e-gate-after-20261027-r3",
+  "xvfbPid": 2272286,
+  "xvfbStartTimeTicks": "151147809",
+  "startedAt": 1793057051.0561593,
+  "released": true,
+  "engineHome": "/tmp/vscode-r3-j-home-rie18dk8",
+  "sourceHead": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+  "display": ":0",
+  "runDir": "/tmp/code-oss-dev-20261027-072411-2272302-rY0M0Y",
+  "electronPid": 2272360,
+  "electronStartTimeTicks": "151147828",
+  "releasedAt": 1793057846.2675202
+}

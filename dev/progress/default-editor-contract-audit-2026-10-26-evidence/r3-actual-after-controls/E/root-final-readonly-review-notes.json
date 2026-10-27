@@ -1,0 +1,53 @@
+{
+  "at": "2026-10-27T00:34:30.072567+00:00",
+  "source": "/root collaboration messages, independently performed reads reported by parent; preserved here as reports, not child reexecution",
+  "all75Snapshots": {
+    "actualSourceAndNoticeConsistent": true,
+    "defaultEditorNotSessions": true,
+    "uiErrorsAllEmpty": true,
+    "pngSignaturesAnd1440x900": true,
+    "actionCounts": {
+      "inspect": 34,
+      "revealSession": 1,
+      "command": 1,
+      "layoutHide": 1,
+      "evenGroups": 1,
+      "click": 18,
+      "attemptDisabledClick": 6,
+      "keyboardClick": 5,
+      "fill": 4,
+      "publicDisconnect": 1,
+      "normalNegativeClick": 3
+    }
+  },
+  "all254FrozenAssets": {
+    "nativeAndSourceSha": true,
+    "manualGitBlobAndHeadTreeSourceBlob": true,
+    "filesystemModeAndNormalizedGitExecutableBit": true,
+    "compile10Continuous": 252,
+    "freshTests": 2,
+    "fullCompileOfFinalSourceTree": false
+  },
+  "finalRuntimeLoadedAssets": {
+    "copiedJsBytesLengthShaMatchFrozenNative": 124,
+    "manifestOnlyNotPromoted": 13,
+    "cssRawHashChecked": true,
+    "parentIndependentCompleteCp1252InverseMatchesNativeBytes": 175386,
+    "cssomRulesComparedExactly": 683,
+    "missingRequiredRendererEvidence": [],
+    "cssErrors": []
+  },
+  "cleanupOriginalOwnedLifetimesNoLive": 15,
+  "completeRawFakeTrace": {
+    "allReceivedPathsCrosscheckedWithUnaryAndHandshake": true,
+    "receivedCalls": 43,
+    "responseUnary": 19,
+    "chatOpens": 2,
+    "chatWrite": 0,
+    "getQueue": 0,
+    "saveSkillContent": 0
+  },
+  "final69To73NonvacuousTargetValuesIndependentlyCompared": true,
+  "parentReaderErrorsAndCorrectionsPreserved": "E/root-posthoc-readonly-review-notes.json",
+  "stageAcceptanceStillAwaitsIndependentSealedArchiveReview": true
+}

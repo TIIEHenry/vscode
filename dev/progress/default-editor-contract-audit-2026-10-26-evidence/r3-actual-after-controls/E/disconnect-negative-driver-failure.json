@@ -1,0 +1,7 @@
+{
+  "error": "cached model must contain each of the three real target turns exactly once",
+  "steps": [
+    "66-R3-disconnect-three-real-pending-before"
+  ],
+  "assertionFailures": []
+}

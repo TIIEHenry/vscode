@@ -1,0 +1,359 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "phase": "J",
+  "state": "ACTUAL_OBSERVATIONS_AWAITING_ROOT_INDEPENDENT_ARCHIVE_REVIEW",
+  "sourceHead": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+  "sourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "lineageSha256": "c274e054889f59f9940a5156949b0641c8ec863b352a1a143aa2b76382a4be34",
+  "actualUiCases": 15,
+  "historicalExactInputCases": 2,
+  "isolationCases": 1,
+  "runtimeSnapshots": 67,
+  "assertionCount": 510,
+  "observedFailedAssertions": 0,
+  "cases": [
+    {
+      "id": "P01",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 3,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/02-P01-beta-seed.json",
+        "steps/03-P01-alpha-review-mouse.json"
+      ]
+    },
+    {
+      "id": "P02",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 3,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/04-preview-newTab-config.json",
+        "steps/05-P02-beta-review-enter.json"
+      ]
+    },
+    {
+      "id": "P03",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 2,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/05-P02-beta-review-enter.json",
+        "steps/06-P03-alpha-other-context.json",
+        "steps/07-P03-alternate-replace.json",
+        "steps/08-P03-open-selected.json"
+      ]
+    },
+    {
+      "id": "P04",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 3,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/11-P04-beta-seed.json",
+        "steps/12-P04-alpha-mouse.json"
+      ]
+    },
+    {
+      "id": "P05",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 3,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/15-P05-beta-seed.json",
+        "steps/16-P05-alpha-enter.json"
+      ]
+    },
+    {
+      "id": "C01",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 1,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/18-conversation-replace.json",
+        "steps/19-C01-alpha-first-side.json"
+      ]
+    },
+    {
+      "id": "C02",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 1,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/21-C02-newTab-config.json",
+        "steps/22-C02-beta-first-side-enter.json"
+      ]
+    },
+    {
+      "id": "C03",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 1,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/22-C02-beta-first-side-enter.json",
+        "steps/23-C03-beta-open-selected.json"
+      ]
+    },
+    {
+      "id": "C04",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 1,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/23-C03-beta-open-selected.json",
+        "steps/25-C04-beta-other-replace.json"
+      ]
+    },
+    {
+      "id": "C05",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 1,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/27-C05-beta-shared-newTab.json",
+        "steps/28-C05-beta-shared-reveal-newTab.json",
+        "steps/30-C05-beta-shared-reveal-replace.json"
+      ]
+    },
+    {
+      "id": "C06",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 1,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/31-C06-focus-alpha-comparison.json",
+        "steps/32-C06-select-beta-session.json",
+        "steps/33-C06-beta-exact-target.json"
+      ]
+    },
+    {
+      "id": "B01",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 1,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/33-C06-beta-exact-target.json",
+        "steps/35-B01-panel-alpha-mouse.json",
+        "steps/36-B01-panel-alpha-other-enter.json"
+      ]
+    },
+    {
+      "id": "M01",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 8,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "loaded-manifest.json",
+        "steps/36-B01-panel-alpha-other-enter.json",
+        "steps/37-M01-panel-to-conversation.json",
+        "steps/40-M01-before-actual-button.json",
+        "steps/41-M01-actual-conversation-preview-button.json",
+        "steps/42-M01-focus-preview-alpha-source.json",
+        "steps/43-M01-preview-to-conversation.json",
+        "steps/45-M01-focus-preview-for-panel.json",
+        "steps/46-M01-preview-to-panel.json",
+        "steps/47-M01-panel-to-preview.json"
+      ]
+    },
+    {
+      "id": "E01",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 2,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/50-E01-alpha-other-unreview.json",
+        "steps/51-E01-controlled-public-reject.json",
+        "steps/52-E01-real-open-rejected.json",
+        "steps/53-E01-restore-official-handler.json",
+        "steps/54-E01-real-reopen-success.json"
+      ]
+    },
+    {
+      "id": "E02",
+      "executionKind": "actual-ui",
+      "observedAssertionCount": 2,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "steps/57-E02-old-beta-pending-reject.json",
+        "steps/59-E02-new-alpha-real-success.json",
+        "steps/60-E02-old-beta-late-reject.json",
+        "steps/62-E02-old-beta-pending-void.json",
+        "steps/64-E02-new-alpha-other-real-success.json",
+        "steps/65-E02-old-beta-late-void.json"
+      ]
+    },
+    {
+      "id": "E03",
+      "executionKind": "historical-exact-declared-input-provenance",
+      "observedAssertionCount": 1,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "../common/lane-provenance.json",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-eighth-J-complete-11.log"
+      ]
+    },
+    {
+      "id": "F01",
+      "executionKind": "historical-exact-declared-input-provenance",
+      "observedAssertionCount": 1,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "../common/lane-provenance.json",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-eighth-J-complete-11.log"
+      ]
+    },
+    {
+      "id": "X01",
+      "executionKind": "isolation",
+      "observedAssertionCount": 343,
+      "observedFailedAssertions": 0,
+      "status": "OBSERVED_ASSERTIONS_PASS_AWAITING_ROOT_SEAL_REVIEW",
+      "evidence": [
+        "css-glyph-cssom-observation.json",
+        "css-typed-identity.json",
+        "cssom-native-reference-comparison.json",
+        "fixture-after.json",
+        "full-asset-guard-after.json",
+        "main-runtime.json",
+        "runtime-assets-J.json",
+        "steps/01-preview-replace-config.json",
+        "steps/02-P01-beta-seed.json",
+        "steps/03-P01-alpha-review-mouse.json",
+        "steps/04-preview-newTab-config.json",
+        "steps/05-P02-beta-review-enter.json",
+        "steps/06-P03-alpha-other-context.json",
+        "steps/07-P03-alternate-replace.json",
+        "steps/08-P03-open-selected.json",
+        "steps/09-clear-preview-before-P04.json",
+        "steps/10-preview-replace-P04.json",
+        "steps/11-P04-beta-seed.json",
+        "steps/12-P04-alpha-mouse.json",
+        "steps/13-clear-preview-before-P05.json",
+        "steps/14-preview-newTab-P05.json",
+        "steps/15-P05-beta-seed.json",
+        "steps/16-P05-alpha-enter.json",
+        "steps/17-clear-preview-before-C01.json",
+        "steps/18-conversation-replace.json",
+        "steps/19-C01-alpha-first-side.json",
+        "steps/20-C02-beta-session-beside.json",
+        "steps/21-C02-newTab-config.json",
+        "steps/22-C02-beta-first-side-enter.json",
+        "steps/23-C03-beta-open-selected.json",
+        "steps/24-C04-replace-config.json",
+        "steps/25-C04-beta-other-replace.json",
+        "steps/26-C05-newTab-config.json",
+        "steps/27-C05-beta-shared-newTab.json",
+        "steps/28-C05-beta-shared-reveal-newTab.json",
+        "steps/29-C05-replace-config.json",
+        "steps/30-C05-beta-shared-reveal-replace.json",
+        "steps/31-C06-focus-alpha-comparison.json",
+        "steps/32-C06-select-beta-session.json",
+        "steps/33-C06-beta-exact-target.json",
+        "steps/34-panel-owner.json",
+        "steps/35-B01-panel-alpha-mouse.json",
+        "steps/36-B01-panel-alpha-other-enter.json",
+        "steps/37-M01-panel-to-conversation.json",
+        "steps/38-M01-unrelated-preview-config.json",
+        "steps/39-M01-unrelated-beta-preview.json",
+        "steps/40-M01-before-actual-button.json",
+        "steps/41-M01-actual-conversation-preview-button.json",
+        "steps/42-M01-focus-preview-alpha-source.json",
+        "steps/43-M01-preview-to-conversation.json",
+        "steps/44-M01-normal-alpha-preview.json",
+        "steps/45-M01-focus-preview-for-panel.json",
+        "steps/46-M01-preview-to-panel.json",
+        "steps/47-M01-panel-to-preview.json",
+        "steps/48-E01-clear-preview.json",
+        "steps/49-E01-preview-replace.json",
+        "steps/50-E01-alpha-other-unreview.json",
+        "steps/51-E01-controlled-public-reject.json",
+        "steps/52-E01-real-open-rejected.json",
+        "steps/53-E01-restore-official-handler.json",
+        "steps/54-E01-real-reopen-success.json",
+        "steps/55-E02-beta-other-unreview.json",
+        "steps/56-E02-late-reject-handler.json",
+        "steps/57-E02-old-beta-pending-reject.json",
+        "steps/58-E02-restore-before-new-open.json",
+        "steps/59-E02-new-alpha-real-success.json",
+        "steps/60-E02-old-beta-late-reject.json",
+        "steps/61-E02-late-void-handler.json",
+        "steps/62-E02-old-beta-pending-void.json",
+        "steps/63-E02-restore-before-new-open.json",
+        "steps/64-E02-new-alpha-other-real-success.json",
+        "steps/65-E02-old-beta-late-void.json",
+        "steps/66-J-final-runtime.json",
+        "steps/67-J-post-collectors-final.json"
+      ]
+    }
+  ],
+  "M01ObservedEntries": [
+    {
+      "step": 37,
+      "action": {
+        "type": "command",
+        "id": "sources.diff.moveToConversationFromView",
+        "label": "37-M01-panel-to-conversation"
+      },
+      "entry": "public Move command"
+    },
+    {
+      "step": 41,
+      "action": {
+        "type": "conversationPreviewButton",
+        "repo": "alpha",
+        "file": "other.txt",
+        "label": "41-M01-actual-conversation-preview-button"
+      },
+      "entry": "actual normal Pane button"
+    },
+    {
+      "step": 43,
+      "action": {
+        "type": "command",
+        "id": "sources.diff.moveToConversation",
+        "label": "43-M01-preview-to-conversation"
+      },
+      "entry": "public Move command"
+    },
+    {
+      "step": 46,
+      "action": {
+        "type": "command",
+        "id": "sources.diff.moveToPanel",
+        "label": "46-M01-preview-to-panel"
+      },
+      "entry": "public Move command"
+    },
+    {
+      "step": 47,
+      "action": {
+        "type": "command",
+        "id": "sources.diff.moveToPreviewFromView",
+        "label": "47-M01-panel-to-preview"
+      },
+      "entry": "public Move command"
+    }
+  ],
+  "M01Scope": "one actual Conversation\u2192Preview Pane button + four public Move commands = five reachable owner movement paths; no sixth path",
+  "ownedCleanupVerified": true,
+  "observerFailurePreserved": "cleanup-independent-verification-attempt1.failure.json: overbroad same-UID environment read, corrected by separately recorded owned-lifetime scope; no UI rerun",
+  "phaseCompleteCreated": false,
+  "EAuthorized": false
+}

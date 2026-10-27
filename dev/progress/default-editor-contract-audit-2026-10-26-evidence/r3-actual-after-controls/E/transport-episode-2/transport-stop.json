@@ -1,0 +1,27 @@
+{
+  "at": 1793060817.0506845,
+  "server": {
+    "runId": "sources-e-gate-after-20261027-r3",
+    "freezeNoticeSha256": "729780e2a9bef0968f9f5cb001624cbc0d25e4a2bd23e6abd2096265ff70ac6a",
+    "frozenOutputsSha256": "cf5b11a06613d2bf6b3df5dc5516212d535b158ddc5b7aeacd2a8a56ffc08900",
+    "createdBy": "/root/sources_audit",
+    "pid": 2749012,
+    "socket": "/tmp/vscode-r3-e-home-iihdyydy/server.sock",
+    "socketInode": 1765760,
+    "sessionId": "D-E-r3-controlled-session",
+    "processStartTimeTicks": "151430321",
+    "sourceHead": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+    "transport": "FAKE UDS unary/stream I/O",
+    "startedAt": "2026-10-27T00:11:22.929Z"
+  },
+  "actualProcess": {
+    "pid": 2749012,
+    "state": "S",
+    "startTicks": "151430321",
+    "cmdline": "/home/clarence/.local/bin/node /home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-episode-2/fake-uds-engine.cjs "
+  },
+  "signal": "SIGTERM",
+  "socketMatched": true,
+  "socketAbsentAfter": true,
+  "processStopped": true
+}

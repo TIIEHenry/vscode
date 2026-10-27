@@ -1,0 +1,266 @@
+D 2026-10-27T00:01:26.857Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.SystemService/HealthCheck at address null
+D 2026-10-27T00:01:26.858Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/HealthCheck received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["795m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:26.858Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/HealthCheck start called
+D 2026-10-27T00:01:26.858Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/HealthCheck startRead called
+D 2026-10-27T00:01:26.859Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/HealthCheck received data frame of size 5
+D 2026-10-27T00:01:26.859Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/HealthCheck startRead called
+D 2026-10-27T00:01:26.860Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/HealthCheck sent data frame of size 5
+D 2026-10-27T00:01:26.860Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SystemService/HealthCheck ended with status code: OK details: OK
+D 2026-10-27T00:01:26.861Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SystemService/HealthCheck stream closed with rstCode 0
+D 2026-10-27T00:01:26.864Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.SystemService/Connect at address null
+D 2026-10-27T00:01:26.864Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/Connect received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["29999m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:26.864Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/Connect start called
+D 2026-10-27T00:01:26.864Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/Connect startRead called
+D 2026-10-27T00:01:26.864Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/Connect received data frame of size 11
+D 2026-10-27T00:01:26.864Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/Connect startRead called
+D 2026-10-27T00:01:26.864Z | v1.14.5 2548740 | server_call | Request to /agentservice.SystemService/Connect sent data frame of size 317
+D 2026-10-27T00:01:26.864Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SystemService/Connect ended with status code: OK details: OK
+D 2026-10-27T00:01:26.864Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SystemService/Connect stream closed with rstCode 0
+D 2026-10-27T00:01:26.865Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.SessionService/List at address null
+D 2026-10-27T00:01:26.865Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:26.865Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List start called
+D 2026-10-27T00:01:26.865Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List startRead called
+D 2026-10-27T00:01:26.865Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List received data frame of size 5
+D 2026-10-27T00:01:26.865Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List startRead called
+D 2026-10-27T00:01:26.865Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List sent data frame of size 70
+D 2026-10-27T00:01:26.865Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SessionService/List ended with status code: OK details: OK
+D 2026-10-27T00:01:26.865Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SessionService/List stream closed with rstCode 0
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/Tree at address null
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree start called
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree startRead called
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree received data frame of size 5
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree startRead called
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree sent data frame of size 33
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/Tree ended with status code: OK details: OK
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/Tree stream closed with rstCode 0
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.SessionService/List at address null
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List start called
+D 2026-10-27T00:01:26.866Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List startRead called
+D 2026-10-27T00:01:26.867Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List received data frame of size 5
+D 2026-10-27T00:01:26.867Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List startRead called
+D 2026-10-27T00:01:26.867Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List sent data frame of size 70
+D 2026-10-27T00:01:26.867Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SessionService/List ended with status code: OK details: OK
+D 2026-10-27T00:01:26.867Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SessionService/List stream closed with rstCode 0
+D 2026-10-27T00:01:26.894Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.SessionService/List at address null
+D 2026-10-27T00:01:26.894Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:26.894Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List start called
+D 2026-10-27T00:01:26.894Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List startRead called
+D 2026-10-27T00:01:26.894Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List received data frame of size 7
+D 2026-10-27T00:01:26.895Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List startRead called
+D 2026-10-27T00:01:26.895Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/List sent data frame of size 70
+D 2026-10-27T00:01:26.895Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SessionService/List ended with status code: OK details: OK
+D 2026-10-27T00:01:26.895Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SessionService/List stream closed with rstCode 0
+D 2026-10-27T00:01:26.913Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.SessionService/Resume at address null
+D 2026-10-27T00:01:26.913Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/Resume received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:26.913Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/Resume start called
+D 2026-10-27T00:01:26.913Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/Resume startRead called
+D 2026-10-27T00:01:26.913Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/Resume received data frame of size 32
+D 2026-10-27T00:01:26.913Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/Resume startRead called
+D 2026-10-27T00:01:26.913Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/Resume sent data frame of size 35
+D 2026-10-27T00:01:26.913Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SessionService/Resume ended with status code: OK details: OK
+D 2026-10-27T00:01:26.914Z | v1.14.5 2548740 | server_call | Request to method /agentservice.SessionService/Resume stream closed with rstCode 0
+D 2026-10-27T00:01:26.917Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.SessionService/SessionEventStream at address null
+D 2026-10-27T00:01:26.917Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:26.917Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream start called
+D 2026-10-27T00:01:26.917Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream startRead called
+D 2026-10-27T00:01:26.917Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/Chat at address null
+D 2026-10-27T00:01:26.917Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Chat received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:26.917Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Chat start called
+D 2026-10-27T00:01:26.917Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Chat startRead called
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/Tree at address null
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["29999m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree start called
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree startRead called
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream received data frame of size 34
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 42
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream startRead called
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree received data frame of size 32
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree startRead called
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree sent data frame of size 33
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 37
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/Tree ended with status code: OK details: OK
+D 2026-10-27T00:01:26.918Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/Tree stream closed with rstCode 0
+D 2026-10-27T00:01:26.921Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/Tree at address null
+D 2026-10-27T00:01:26.921Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:26.922Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree start called
+D 2026-10-27T00:01:26.922Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree startRead called
+D 2026-10-27T00:01:26.922Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree received data frame of size 32
+D 2026-10-27T00:01:26.922Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree startRead called
+D 2026-10-27T00:01:26.922Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree sent data frame of size 33
+D 2026-10-27T00:01:26.922Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/Tree ended with status code: OK details: OK
+D 2026-10-27T00:01:26.922Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/Tree stream closed with rstCode 0
+D 2026-10-27T00:01:27.168Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/Tree at address null
+D 2026-10-27T00:01:27.168Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:01:27.168Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree start called
+D 2026-10-27T00:01:27.168Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree startRead called
+D 2026-10-27T00:01:27.168Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree received data frame of size 32
+D 2026-10-27T00:01:27.168Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree startRead called
+D 2026-10-27T00:01:27.168Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/Tree sent data frame of size 33
+D 2026-10-27T00:01:27.168Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/Tree ended with status code: OK details: OK
+D 2026-10-27T00:01:27.168Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/Tree stream closed with rstCode 0
+D 2026-10-27T00:03:42.776Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 125
+D 2026-10-27T00:03:57.070Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.PermissionService/Respond at address null
+D 2026-10-27T00:03:57.070Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:03:57.070Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond start called
+D 2026-10-27T00:03:57.070Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:03:57.070Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received data frame of size 59
+D 2026-10-27T00:03:57.070Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:04:03.103Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond sent data frame of size 36
+D 2026-10-27T00:04:03.103Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond ended with status code: OK details: OK
+D 2026-10-27T00:04:03.103Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond stream closed with rstCode 0
+D 2026-10-27T00:04:13.727Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.PermissionService/Respond at address null
+D 2026-10-27T00:04:13.727Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:04:13.727Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond start called
+D 2026-10-27T00:04:13.727Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:04:13.727Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received data frame of size 59
+D 2026-10-27T00:04:13.727Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:04:14.219Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond sent data frame of size 7
+D 2026-10-27T00:04:14.219Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond ended with status code: OK details: OK
+D 2026-10-27T00:04:14.219Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond stream closed with rstCode 0
+D 2026-10-27T00:04:23.029Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 37
+D 2026-10-27T00:04:35.152Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 126
+D 2026-10-27T00:04:45.179Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.PermissionService/Respond at address null
+D 2026-10-27T00:04:45.179Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:04:45.179Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond start called
+D 2026-10-27T00:04:45.179Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:04:45.179Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received data frame of size 60
+D 2026-10-27T00:04:45.180Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:04:51.172Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond ended with status code: INVALID_ARGUMENT details: D E controlled rejected unary
+D 2026-10-27T00:04:51.172Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond stream closed with rstCode 0
+D 2026-10-27T00:05:04.459Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.PermissionService/Respond at address null
+D 2026-10-27T00:05:04.459Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:05:04.459Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond start called
+D 2026-10-27T00:05:04.459Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:05:04.459Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received data frame of size 60
+D 2026-10-27T00:05:04.459Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:05:04.992Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond sent data frame of size 7
+D 2026-10-27T00:05:04.992Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond ended with status code: OK details: OK
+D 2026-10-27T00:05:04.992Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond stream closed with rstCode 0
+D 2026-10-27T00:05:10.099Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 37
+D 2026-10-27T00:05:20.218Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 217
+D 2026-10-27T00:05:44.157Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/RespondQuestion at address null
+D 2026-10-27T00:05:44.158Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:05:44.158Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion start called
+D 2026-10-27T00:05:44.158Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion startRead called
+D 2026-10-27T00:05:44.158Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion received data frame of size 102
+D 2026-10-27T00:05:44.158Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion startRead called
+D 2026-10-27T00:05:50.565Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion sent data frame of size 36
+D 2026-10-27T00:05:50.565Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/RespondQuestion ended with status code: OK details: OK
+D 2026-10-27T00:05:50.565Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/RespondQuestion stream closed with rstCode 0
+D 2026-10-27T00:06:01.004Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/RespondQuestion at address null
+D 2026-10-27T00:06:01.004Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:06:01.004Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion start called
+D 2026-10-27T00:06:01.004Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion startRead called
+D 2026-10-27T00:06:01.004Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion received data frame of size 102
+D 2026-10-27T00:06:01.004Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion startRead called
+D 2026-10-27T00:06:01.481Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion sent data frame of size 7
+D 2026-10-27T00:06:01.481Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/RespondQuestion ended with status code: OK details: OK
+D 2026-10-27T00:06:01.481Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/RespondQuestion stream closed with rstCode 0
+D 2026-10-27T00:06:06.890Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 37
+D 2026-10-27T00:06:17.102Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 218
+D 2026-10-27T00:06:49.105Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/RespondQuestion at address null
+D 2026-10-27T00:06:49.105Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:06:49.105Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion start called
+D 2026-10-27T00:06:49.105Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion startRead called
+D 2026-10-27T00:06:49.105Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion received data frame of size 103
+D 2026-10-27T00:06:49.105Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion startRead called
+D 2026-10-27T00:06:55.725Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/RespondQuestion ended with status code: INVALID_ARGUMENT details: D E controlled rejected unary
+D 2026-10-27T00:06:55.725Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/RespondQuestion stream closed with rstCode 0
+D 2026-10-27T00:07:10.206Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/RespondQuestion at address null
+D 2026-10-27T00:07:10.206Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:07:10.206Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion start called
+D 2026-10-27T00:07:10.206Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion startRead called
+D 2026-10-27T00:07:10.206Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion received data frame of size 103
+D 2026-10-27T00:07:10.206Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion startRead called
+D 2026-10-27T00:07:10.750Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion sent data frame of size 7
+D 2026-10-27T00:07:10.750Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/RespondQuestion ended with status code: OK details: OK
+D 2026-10-27T00:07:10.750Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/RespondQuestion stream closed with rstCode 0
+D 2026-10-27T00:07:15.854Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 37
+D 2026-10-27T00:07:25.369Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 159
+D 2026-10-27T00:07:39.339Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/SendClientToolResponse at address null
+D 2026-10-27T00:07:39.339Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["29999m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:07:39.339Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse start called
+D 2026-10-27T00:07:39.339Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse startRead called
+D 2026-10-27T00:07:39.339Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse received data frame of size 59
+D 2026-10-27T00:07:39.339Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse startRead called
+D 2026-10-27T00:07:45.397Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse sent data frame of size 36
+D 2026-10-27T00:07:45.397Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/SendClientToolResponse ended with status code: OK details: OK
+D 2026-10-27T00:07:45.398Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/SendClientToolResponse stream closed with rstCode 0
+D 2026-10-27T00:07:55.483Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/SendClientToolResponse at address null
+D 2026-10-27T00:07:55.483Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:07:55.483Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse start called
+D 2026-10-27T00:07:55.483Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse startRead called
+D 2026-10-27T00:07:55.483Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse received data frame of size 59
+D 2026-10-27T00:07:55.483Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse startRead called
+D 2026-10-27T00:07:56.010Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse sent data frame of size 7
+D 2026-10-27T00:07:56.010Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/SendClientToolResponse ended with status code: OK details: OK
+D 2026-10-27T00:07:56.010Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/SendClientToolResponse stream closed with rstCode 0
+D 2026-10-27T00:08:00.917Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 37
+D 2026-10-27T00:08:11.629Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 160
+D 2026-10-27T00:08:25.017Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/SendClientToolResponse at address null
+D 2026-10-27T00:08:25.017Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:08:25.017Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse start called
+D 2026-10-27T00:08:25.017Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse startRead called
+D 2026-10-27T00:08:25.017Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse received data frame of size 60
+D 2026-10-27T00:08:25.017Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse startRead called
+D 2026-10-27T00:08:31.150Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/SendClientToolResponse ended with status code: INVALID_ARGUMENT details: D E controlled rejected unary
+D 2026-10-27T00:08:31.151Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/SendClientToolResponse stream closed with rstCode 0
+D 2026-10-27T00:08:40.717Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/SendClientToolResponse at address null
+D 2026-10-27T00:08:40.717Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:08:40.717Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse start called
+D 2026-10-27T00:08:40.717Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse startRead called
+D 2026-10-27T00:08:40.717Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse received data frame of size 60
+D 2026-10-27T00:08:40.717Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse startRead called
+D 2026-10-27T00:08:41.264Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse sent data frame of size 7
+D 2026-10-27T00:08:41.264Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/SendClientToolResponse ended with status code: OK details: OK
+D 2026-10-27T00:08:41.264Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/SendClientToolResponse stream closed with rstCode 0
+D 2026-10-27T00:08:46.671Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 37
+D 2026-10-27T00:08:59.487Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 132
+D 2026-10-27T00:08:59.688Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 319
+D 2026-10-27T00:09:19.184Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.PermissionService/Respond at address null
+D 2026-10-27T00:09:19.184Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:09:19.184Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond start called
+D 2026-10-27T00:09:19.184Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:09:19.184Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received data frame of size 66
+D 2026-10-27T00:09:19.184Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:09:27.549Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/RespondQuestion at address null
+D 2026-10-27T00:09:27.549Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:09:27.549Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion start called
+D 2026-10-27T00:09:27.549Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion startRead called
+D 2026-10-27T00:09:27.549Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion received data frame of size 113
+D 2026-10-27T00:09:27.549Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion startRead called
+D 2026-10-27T00:09:28.031Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond sent data frame of size 36
+D 2026-10-27T00:09:28.031Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond ended with status code: OK details: OK
+D 2026-10-27T00:09:28.031Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond stream closed with rstCode 0
+D 2026-10-27T00:09:37.648Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.PermissionService/Respond at address null
+D 2026-10-27T00:09:37.649Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:09:37.649Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond start called
+D 2026-10-27T00:09:37.649Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:09:37.649Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received data frame of size 66
+D 2026-10-27T00:09:37.649Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:09:38.146Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond sent data frame of size 7
+D 2026-10-27T00:09:38.146Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond ended with status code: OK details: OK
+D 2026-10-27T00:09:38.146Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond stream closed with rstCode 0
+D 2026-10-27T00:09:43.354Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/RespondQuestion sent data frame of size 7
+D 2026-10-27T00:09:43.354Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/RespondQuestion ended with status code: OK details: OK
+D 2026-10-27T00:09:43.354Z | v1.14.5 2548740 | server_call | Request to method /agentservice.AgentService/RespondQuestion stream closed with rstCode 0
+D 2026-10-27T00:09:48.458Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 37
+D 2026-10-27T00:09:58.871Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 130
+D 2026-10-27T00:10:08.465Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.PermissionService/Respond at address null
+D 2026-10-27T00:10:08.465Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["30000m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:10:08.465Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond start called
+D 2026-10-27T00:10:08.465Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:10:08.465Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond received data frame of size 64
+D 2026-10-27T00:10:08.465Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond startRead called
+D 2026-10-27T00:10:08.985Z | v1.14.5 2548740 | server_call | Request to /agentservice.PermissionService/Respond sent data frame of size 36
+D 2026-10-27T00:10:08.985Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond ended with status code: OK details: OK
+D 2026-10-27T00:10:08.985Z | v1.14.5 2548740 | server_call | Request to method /agentservice.PermissionService/Respond stream closed with rstCode 0
+D 2026-10-27T00:10:14.192Z | v1.14.5 2548740 | server_call | Request to /agentservice.SessionService/SessionEventStream sent data frame of size 255
+D 2026-10-27T00:10:23.647Z | v1.14.5 2548740 | server_call | Received call to method /agentservice.AgentService/SendClientToolResponse at address null
+D 2026-10-27T00:10:23.647Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse received headers {"grpc-accept-encoding":["identity,deflate,gzip"],"accept-encoding":["identity"],"grpc-timeout":["29999m"],"user-agent":["grpc-node-js/1.14.5"],"content-type":["application/grpc"],"te":["trailers"]}
+D 2026-10-27T00:10:23.647Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse start called
+D 2026-10-27T00:10:23.647Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse startRead called
+D 2026-10-27T00:10:23.647Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse received data frame of size 61
+D 2026-10-27T00:10:23.647Z | v1.14.5 2548740 | server_call | Request to /agentservice.AgentService/SendClientToolResponse startRead called
