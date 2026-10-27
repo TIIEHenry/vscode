@@ -1,0 +1,82 @@
+{
+  "activatedAtUtc": "2026-10-27T08:06:10.762140+00:00",
+  "source": "Explicit /root activation-only instruction after original Astra C0/I0/M0 and root package acceptance; not an execution instruction",
+  "scratch": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+  "head": "736171b1abc34e36e4991709240625827b566396",
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "sealedPreparedState": [
+    {
+      "originalPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/execution-release.json",
+      "sealedPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/execution-release.json",
+      "bytes": 2987,
+      "sha256": "8383297b003af3d75281b43d4a874049f0286c4bddbb946ee6c77b4a2d00f3f3",
+      "mode": 436
+    },
+    {
+      "originalPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-inventory.json",
+      "sealedPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/preparation-inventory.json",
+      "bytes": 21163,
+      "sha256": "33982286504ce9e4d14feb4570eb3e4997fe074e53ca91cede3d20b004d86aaf",
+      "mode": 436
+    },
+    {
+      "originalPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/pinned-files.json",
+      "sealedPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/pinned-files.json",
+      "bytes": 3217,
+      "sha256": "df7318e52b2be587cb5d9f17cd08d22a88d5e65fb15ec8f8061079426d19246f",
+      "mode": 436
+    }
+  ],
+  "changedTopLevelFields": [
+    "authorizationMessage",
+    "authorizedBy",
+    "executionAuthorized",
+    "state"
+  ],
+  "fieldDiff": {
+    "authorizationMessage": {
+      "before": null,
+      "after": "2026-10-27 /root explicitly authorized activation of this exact /tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2 after accepting original Astra frozen-runtime and final-package static peer C0/I0/M0 and independently verifying the package. Fixed HEAD=736171b1abc34e36e4991709240625827b566396, src=90d6092dbbca80114db7f55a75e137bb1d7bef76, sourceRef=f33d16fbc5841119f5baa7ff2788060d39b8bb4f. This fresh one-shot release covers only the reviewed seven stages: two-target complete-project noEmit checker, two-target no-cache/no-fix lint, dry two JS/zero maps/zero out writes, only fresh Reveal emit, qualified exact old L1 plus official meta, only fresh Pane emit after qualified old red and complete old-process quiescence, then fresh-process full Reveal without grep. An unqualified old result stops and restores without new Pane emission or new run. No retry, diagnostic rerun, dependency emit, after, UI/engine or other scope is authorized. The reviewed PID/start ownership and evidence-qualified restoration subset remain mandatory. This instruction authorizes release activation and identity reporting only: do not start the prepared driver or any stage until a separate explicit /root instruction to run the driver once after root verifies the active identity."
+    },
+    "authorizedBy": {
+      "before": null,
+      "after": "/root"
+    },
+    "executionAuthorized": {
+      "before": false,
+      "after": true
+    },
+    "state": {
+      "before": "PREPARED_NOT_AUTHORIZED",
+      "after": "AUTHORIZED_NEW_VALIDATION_ONCE"
+    }
+  },
+  "allOtherReleaseFieldsAnd21PinsExact": true,
+  "originalPreparedInventoryNeverRewritten": true,
+  "originalPinnedFilesNeverRewritten": true,
+  "originalInventoryReleaseRowMapping": {
+    "originalInventoryPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-inventory.json",
+    "originalInventorySha256": "33982286504ce9e4d14feb4570eb3e4997fe074e53ca91cede3d20b004d86aaf",
+    "historicalReleaseRow": {
+      "path": "execution-release.json",
+      "bytes": 2987,
+      "sha256": "8383297b003af3d75281b43d4a874049f0286c4bddbb946ee6c77b4a2d00f3f3",
+      "mode": 436
+    },
+    "mapsToSealedFalseRelease": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/execution-release.json",
+    "allOtherOriginalRowsMapToOriginalPaths": true
+  },
+  "activeRelease": {
+    "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/execution-release.json",
+    "bytes": 4277,
+    "sha256": "8ba2f7628715f00670d817788b5f8b756cd39ab71b2c5c78cdcd4096f6f64faa",
+    "mode": 436
+  },
+  "repoClean": true,
+  "consumedAbsent": true,
+  "validationReportAbsent": true,
+  "preparedToolsOrStagesExecuted": false,
+  "syntaxChecksRepeated": false,
+  "headOutCacheFreezeNotWritten": true,
+  "awaitsSeparateExplicitRootRunDriverOnce": true
+}

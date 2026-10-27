@@ -1,0 +1,17 @@
+--- mechanically-rebound-prep1/policy.json
++++ prep2/policy.json
+@@ -36,5 +36,13 @@
+   "killGraceSeconds": 5,
+   "oldFailedBodyLeakCheckClaim": false,
+   "oldLeakBoundary": "utils.ts:65 skips computeLeakingDisposables on failed body; teardown/hooks/owned cleanup recorded only",
+-  "fullCompileOfFinalSourceTree": false
++  "fullCompileOfFinalSourceTree": false,
++  "restorationPolicy": {
++    "evidence": "Parent eligible single output immediately before actual PID/start-qualified spawn plus same-phase fresh journal intent/completed",
++    "completedSeparateFromPartialOrUncertain": true,
++    "untouchedOriginalBytesModeMtimeCtimeExact": true,
++    "onlyEvidenceQualifiedSubsetGetsRestoreAndCtimePermission": true,
++    "malformedMissingOrUnscopedEvidenceFailsClosed": true,
++    "noDriftBasedAuthority": true
++  }
+ }

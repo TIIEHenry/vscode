@@ -1,0 +1,16 @@
+{
+  "source": "Actual inline stdlib/Git final-seal reader tool call exit1; combined tool output preserved verbatim, not prepared-tool output",
+  "actualExitCode": 1,
+  "output": "preparation-observed-reader-failure.tool-output.txt",
+  "outputSha256": "69995f30635a5ac51b08edd7493d9b93c7ec15805c13710f239561edee7dfe3d",
+  "failure": "Unfiltered runtime-* glob incorrectly counted the static runtime-surface-delta.json file as a runtime directory",
+  "independentFollowupFoundOnlyMatch": {
+    "name": "runtime-surface-delta.json",
+    "isFile": true,
+    "isDirectory": false
+  },
+  "correction": "Filter runtime-* matches to directories; all prepared tools and runtime pins unchanged",
+  "preparedCodeExecuted": false,
+  "nodeChecksRepeated": false,
+  "productOrGuardDrift": false
+}

@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "Sources四窄已implemented/子scope完成；固定f33 lease候选5336正式合源，lease accepted/全部运行待，复用board继续active，旧历史分scope保留。"
+summary: "Sources四窄implemented/子scope完成；f33 lease首次checker exit1/Reveal 5条TS2339，其余六阶段/after未运行，lease accepted/overall active；历史与54fe旧native保持。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -46,7 +46,7 @@ summary: "Sources四窄已implemented/子scope完成；固定f33 lease候选5336
 
 ## 独立后续：Conversation可见叶 lease 恢复
 
-> **lease当前阶段（5336正式合源后）**：固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。[固定三路/守卫原件](../../progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)。本board为lease待验证保持active；Sources子scope已完成不等于lease完成。下方89d/ff55/5fd/783/f33作者阶段原文按各时点保留，“仅docs/srcd78a/尚未合源”不再作当前集成状态，全部runtimeObserved=false仍是当前边界。
+> **lease当前阶段（首次checker失败后）**：固定f33已由5336真三路合入，父736171b1/src90d609；prep1工具peer C0/I1/M0修订后，prep2静态peer C0/I0/M0获root采纳并单次release。实际driver/checker均exit1：Pane语法/语义0，Reveal语义5条TS2339；lint/dry/两次emit/旧L1+meta/完整Reveal均未到达，业务red、新矩阵green、meta/hooks与非作者after未运行。两JS无写入/恢复范围空，15500 metadata仍54fe；lease accepted、overall active，fullCompile=false。[失败/准备/激活/守卫原件](../../progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)为当前覆盖。本board为lease未验范围保持active，Sources子scope完成独立保持。下方89d/ff55/5fd/783/f33时点原文保留，其“无工具准备/无release/全部runtimeObserved=false”等不再覆盖本次checker已执行事实；业务与after仍未运行。
 
 [独立draft](../../plans/conversation-visible-lease-recovery.md)仅跟踪root在原Astra新鲜源码裁定后授权的§24后续范围，固定a4a/srcd78a；复用本板，不改上文Sources历史或其验证门禁。D只写docs draft与索引/行动记录，不改源码/测试/out、不请求baseline接DHEAD；root核固定commit/path hash后，仍交原Astra规则16，再独立accepted及另行源码授权。当前Sources候选如报源码/fixture问题优先响应。
 

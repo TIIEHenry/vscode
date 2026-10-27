@@ -1,0 +1,180 @@
+--- 736171b1/docs/INDEX.md
++++ publication/docs/INDEX.md
+@@ -21,7 +21,7 @@
+ | 找某一层入口 | [分层列表](#分层模块) |
+ | 看架构决策 | [ADR](../dev/decisions/INDEX.md) |
+ | 看当前进度 | [status](../dev/progress/status.md) |
+-| 查看可见对话叶的 lease 恢复方案 | [窄方案](../dev/plans/conversation-visible-lease-recovery.md)（固定f33候选已由5336真三路合入，原Astra源码peer通过；accepted/全部运行待） |
++| 查看可见对话叶的 lease 恢复方案 | [窄方案](../dev/plans/conversation-visible-lease-recovery.md)（accepted；首次checker exit1/Reveal 5条TS2339，其余六阶段和after未运行，[原件](../dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)） |
+ | B2 改壳 / Agent UI 分析 | [code-oss-b2](reference/code-oss-b2/INDEX.md) |
+ | 写文档怎么落盘 | [维护规则](DOCUMENTATION.md) |
+ 
+--- 736171b1/docs/systems/conversation/INDEX.md
++++ publication/docs/systems/conversation/INDEX.md
+@@ -39,7 +39,7 @@
+ ## 相关文档
+ 
+ - 分析与 donor 对照：[conversation-lens-assembly](../../reference/code-oss-b2/conversation-lens-assembly.md) · [session-roster-reuse](../../reference/code-oss-b2/session-roster-reuse.md) · [agent-ui](../chat/agent-ui.md) · [外部对话界面密度](../../reference/external-chat-ui-density.md)
+-- 独立窄方案：[可见叶catalog恢复后补回缺失lease](../../../dev/plans/conversation-visible-lease-recovery.md)：固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。[正式合源证据](../../../dev/progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)区分新source与旧native，不改变现有系统验收结论。
++- 独立窄方案：[可见叶catalog恢复后补回缺失lease](../../../dev/plans/conversation-visible-lease-recovery.md)：固定f33已由5336真三路合入，父736171b1/src90d609；prep1工具peer C0/I1/M0修订后，prep2静态peer C0/I0/M0获root采纳并单次release。实际driver/checker均exit1：Pane语法/语义0，Reveal语义5条TS2339；lint/dry/两次emit/旧L1+meta/完整Reveal均未到达，业务red、新矩阵green、meta/hooks与非作者after未运行。两JS无写入/恢复范围空，15500 metadata仍54fe；lease accepted、overall active，fullCompile=false。[首次失败原件](../../../dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)；[合源证明](../../../dev/progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)继续区分新source与旧native，不提升系统验收结论。
+ - 方案：[m2-product-shell](../../../dev/plans/m2-product-shell.md) · [conversation-session-windows](../../../dev/plans/conversation-session-windows.md) · [conversation-timeline-session-pills](../../../dev/plans/conversation-timeline-session-pills.md)（时间线正文会话/子代理 pill，`accepted` @2026-09-14） · [conversation-bound-session](../../../dev/plans/conversation-bound-session.md)（绑定叶身份，`accepted` @2026-09-19） · [live-stream-bytes-decode](../../../dev/plans/live-stream-bytes-decode.md)（活流 bytes，`accepted` @2026-09-19） · [connection-dial-generation](../../../dev/plans/connection-dial-generation.md)（拨号 generation，`accepted` @2026-09-19） · [conversation-stream-timeline](../../../dev/plans/conversation-stream-timeline.md) · [conversation-trajectory-lens](../../../dev/plans/conversation-trajectory-lens.md) · [conversation-process-fold](../../../dev/plans/conversation-process-fold.md) · [thinkrail-visualize-port](../../../dev/plans/thinkrail-visualize-port.md) · [conversation-empty-hero](../../../dev/plans/conversation-empty-hero.md)
+ - 决策：[ADR-002](../../../dev/decisions/002-conversation-session-windows.md) session 窗口 · [ADR-003](../../../dev/decisions/003-engine-adapter-boundary.md) 引擎 adapter（accepted @2026-09-02） · [ADR-005](../../../dev/decisions/005-changes-diff-owner.md) Diff 归属（ADR-004 superseded） · [ADR-006](../../../dev/decisions/006-shell-invariants.md) 壳不变量
+ - 邻接系统：[Workbench](../workbench/INDEX.md) · [Sources](../sources/INDEX.md) · [Chat](../chat/INDEX.md) · [Agent Host](../agent-host/INDEX.md)
+--- 736171b1/docs/systems/conversation/session-windows.md
++++ publication/docs/systems/conversation/session-windows.md
+@@ -36,13 +36,13 @@
+ 
+ ### 1.1 可见 Pane 缺 lease 的对齐候选
+ 
+-> **可见叶lease当前集成阶段（2026-10-27）**：固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。[5336合源/只读守卫](../../../dev/progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)确认Sources四窄implemented保持、当前metadata仍54fe；下段描述已合入的源码合同，不能当运行或after证据。
++> **可见叶lease当前检查点（2026-10-27）**：固定f33已由5336真三路合入，父736171b1/src90d609；prep1工具peer C0/I1/M0修订后，prep2静态peer C0/I0/M0获root采纳并单次release。实际driver/checker均exit1：Pane语法/语义0，Reveal语义5条TS2339；lint/dry/两次emit/旧L1+meta/完整Reveal均未到达，业务red、新矩阵green、meta/hooks与非作者after未运行。两JS无写入/恢复范围空，15500 metadata仍54fe；lease accepted、overall active，fullCompile=false。[失败/静态准备/守卫原件](../../../dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)为当前覆盖；以下描述合入源码合同，不作运行通过证据。
+ 
+ [可见叶lease恢复窄方案](../../../dev/plans/conversation-visible-lease-recovery.md)已accepted；当前源码候选在Pane现有visibility生命周期中监听真实roster session通知，仅当捕获input/Lens仍为当前存活owner、明确bound一致、叶实际visible、未suspended、真实引擎live且非pairing、catalog ready并且自身lease缺失时，调用既有公开bind入口。目标取该Pane当前bound，不按通知active id过滤，因此两个pinned visible叶各核自己的owner；已有lease保持，hidden与未挂载/已移除叶不补领。原hide释放与正常reveal（含local stub/断连缓存）路径保持。
+ 
+-普通Pane/Lens dispose撤销listener并释放registered lifetime，测试持有的旧Lens对象不保证将lease字段置空；旧owner退出消费应从实际lease不再接帧与最后消费者释放host的公开边界观察。5fd源码peer C0/I1/M0指出的新L4合同误用已形成独立修订候选，仍待窄peer与运行，见[方案§8](../../../dev/plans/conversation-visible-lease-recovery.md#8-5fd-正式源码-peer-与新-l4-合同修订2026-10-27)。
++普通Pane/Lens dispose撤销listener并释放registered lifetime，测试持有的旧Lens对象不保证将lease字段置空；旧owner退出消费应从实际lease不再接帧与最后消费者释放host的公开边界观察。历史5fd源码peer C0/I1/M0及新L4修订保留于[方案§8](../../../dev/plans/conversation-visible-lease-recovery.md#8-5fd-正式源码-peer-与新-l4-合同修订2026-10-27)，783/f33源码窄peer C0/I0/M0已获root采纳；本次checker在新L4报5条TS2339，实际隔离/release合同仍未运行。
+ 
+-这仍是待独立源码peer与运行验收的候选合同，未据静态检查提升方案或产品状态。旧源码L1合格业务red、新矩阵/原reveal回归与非作者默认编辑器窗口after见方案验证门；不能以共享observer收到frame推断实际Pane已持lease或已绘制。
++源码窄peer已签收；运行验收仍未达。首次checker失败后未进入旧源码L1业务red、新矩阵/原Reveal回归或非作者默认编辑器窗口after；不能以共享observer收到frame推断实际Pane已持lease或已绘制，方案与产品状态未提升。
+ 
+ ## 2. `ConversationChatInput` 与围栏
+ 
+@@ -104,4 +104,4 @@
+ 
+ `contrib/conversation/test/browser/`：`conversationSessionChat.test.ts`、`conversationSessionSplit.test.ts`、`conversationSessionWindowSideBySide.test.ts`、`conversationEditorFence.test.ts`、`conversationEditorAggregation.test.ts`、`conversationNavigation.test.ts`。D4 目视：V5 / V7（[shell-smoke-verification](../../guides/shell-smoke-verification.md)）。
+ 
+-`conversationSessionWindowReveal.test.ts`保留默认QuietRoster原26条，并增加`visible engine lease recovery`真实EngineRoster / UA / Deferred catalog / SessionView host frame矩阵，静态展开13条；L1–L7覆盖与L3三种非live观察资格见[窄方案§7.1](../../../dev/plans/conversation-visible-lease-recovery.md#71-静态展开选择器与待运行资格)。本轮仅作者AST/lint，实际资格与运行结果待唯一baseline lane。
++`conversationSessionWindowReveal.test.ts`保留默认QuietRoster原26条，并增加`visible engine lease recovery`真实EngineRoster / UA / Deferred catalog / SessionView host frame矩阵，静态展开13条；L1–L7与L3三种非live观察资格见[窄方案§7.1](../../../dev/plans/conversation-visible-lease-recovery.md#71-静态展开选择器与待运行资格)。唯一lane首次实际src项目上下文checker exit1，新L4有5条TS2339；其后lint/dry/emit/旧L1+meta/完整Reveal未运行，13条结果未观察，见[失败原件](../../../dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)。
+--- 736171b1/dev/parallel/INDEX.md
++++ publication/dev/parallel/INDEX.md
+@@ -15,7 +15,7 @@
+ | 看板 | 状态 |
+ |------|------|
+ | [sources-accept-post-read-authorization](active/sources-accept-post-read-authorization.md) | **四窄source/真实组件scope完成**：固定6d一次新72及完整3/142/旧stale实际全过、root独核，四plan implemented；54fe37旧native恢复，原8438失败保持，PRD/宽Sources/overall active不升。 |
+-| [conversation-visible-lease-recovery](../plans/conversation-visible-lease-recovery.md) | **5336正式合源，lease运行待**：固定f33/783 source peer C0/I0/M0/root采纳，实际src90d609；plan accepted、13仅静态，旧red/新矩阵/原Reveal/after全待，未准备工具/无执行release；Sources四窄完成独立保持。 |
++| [conversation-visible-lease-recovery](../plans/conversation-visible-lease-recovery.md) | **首次checker失败，lease accepted**：父736171b1/src90d609，driver/checker exit1，Reveal 5条TS2339；其余六阶段及after未运行，两JS无写入/metadata54fe保持。[原件](../progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)；Sources四窄完成独立保持。 |
+ | [control-detail-polish](active/control-detail-polish.md) | **已完成**：四CSS精修，四主题16+8+4组验证 |
+ | [default-editor-contract-audit-2026-10-26](active/default-editor-contract-audit-2026-10-26.md) | **进行中**：C 会话导航、D Tunnel 重试、J 配置初始化；从已同步干净基线重新审查，唯一 merge 编译 |
+ | [default-editor-visual-state-followup](active/default-editor-visual-state-followup.md) | **已完成**：五项视觉状态修复及同根因续审；Electron 350 passing，十四项真实焦点 Chrome 补验全过 |
+--- 736171b1/dev/plans/INDEX.md
++++ publication/dev/plans/INDEX.md
+@@ -14,7 +14,7 @@
+ <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
+ | 方案 | 状态 | 摘要 |
+ | --- | --- | --- |
+-| [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | 固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。[合源原件](../progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)。 |
++| [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | 固定f33/src90d609首次driver/checker exit1，Reveal新L4语义5条TS2339；其余六阶段/业务red/新green/after未运行，两JS未写、metadata54fe保持。[准备/激活/失败原件](../progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)；Sources四窄implemented不变。 |
+ | [Sources Panel：旧异步 render stub 合同唯一例外](sources-panel-stale-render-stub-amendment.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+ | [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+ | [Sources Panel：Diff ViewModel 与文本引用生命周期](sources-panel-diff-view-model-lifetime.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+--- 736171b1/dev/plans/conversation-visible-lease-recovery.md
++++ publication/dev/plans/conversation-visible-lease-recovery.md
+@@ -4,12 +4,12 @@
+ status: accepted
+ phase: M7
+ updated: 2026-10-27
+-summary: "固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。原设计/规则16/源码peer和失败历史均保留，fullCompile=false。"
++summary: "f33/src90d609首次driver/checker exit1，Reveal新L4语义5条TS2339；其余六阶段/after未运行，两JS未写/metadata54fe保持。原设计/规则16/源码peer历史保留，lease accepted，fullCompile=false。"
+ ---
+ 
+ # Conversation 可见叶：catalog 恢复后补回缺失 lease
+ 
+-> **当前集成覆盖（2026-10-27）**：固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。[固定merge与旧native守卫](../progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)为本轮身份。以下固定作者输入和原“当前阶段”保持f33签收时点原文，正文§1–§9逐字不改；本节只更新集成导航，不签运行资格、不扩大已审设计。
++> **当前集成覆盖（2026-10-27）**：固定f33已由5336真三路合入，父736171b1/src90d609；prep1工具peer C0/I1/M0修订后，prep2静态peer C0/I0/M0获root采纳并单次release。实际driver/checker均exit1：Pane语法/语义0，Reveal语义5条TS2339；lint/dry/两次emit/旧L1+meta/完整Reveal均未到达，业务red、新矩阵green、meta/hooks与非作者after未运行。两JS无写入/恢复范围空，15500 metadata仍54fe；lease accepted、overall active，fullCompile=false。[首次失败与准备历史](../progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)覆盖当前事实；[合源证明](../progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)保持。以下固定输入与原“当前阶段”保留各时点原文；原§1–§9逐字保护，新增无编号证据附记只记证据与未达门禁，不改设计。
+ 
+ > **固定输入**：`a4a70322795c509e8e9b8274cf295a1b65db663a`，`src=d78a48e5feee57fcaf5811c8425859d0a2400af0`。只读该对象，不追 main / merge / 他人 WIP。
+ > **当前阶段**：root 已独核并正式接收固定源码候选 `78338484340843a91f2babbf8a690989a1790bdd` / `src=eefc0c95737b4f66c4e9581a3500b2497a15d766`，采纳原 Astra 对该对象的窄 peer **C0/I0/M0**，关闭 5fd 新 L4 合同 I1。原 5fd **C0/I1/M0** 报告与修订依据完整保留于 §8；本次只追加文档签收 §9，全部源码仍为783，plan保持accepted。13为静态预期case，唯一lane旧L1 red / 新矩阵 / 原Reveal / 非作者after全待，runtimeObserved=false；此纯doc不是formal merge、green或outputs交付。
+@@ -242,3 +242,12 @@
+ 本次只改plan实施记录、board、checkpoint与status摘要四文档；全部`src`继续与783逐字相同，Pane15270B/SHA-256 `90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3`、Reveal80119B/`ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c`、原26/new13/defaultQuiet与Sources四TS/三plan/JSON/历史证据保护。静态manifest入口仍用§8已有`/tmp/vscode-e-visible-lease-i1-*`，本轮不覆盖或复制原件；后续唯一lane证据入库时再统一持久化必要manifest，不新增证据目录或复制out。
+ 
+ 下一门仍是root另行释放的唯一lane：先按其既有Sources新源验证顺序推进，再准备本lease精确旧a4a L1合格业务red、新783源码13矩阵及原Reveal回归、非作者默认编辑器窗口after。上述每项均 **runtimeObserved=false**，没有本轮执行授权；C0/I0/M0与此纯文档commit不是formal merge、green、产品完成或outputs交付。plan仍accepted，PRD/旧波不升；本轮仅docs/generator/diff及保护检查，不再AST/lint，不Program/checker/compile/emit/runtime/UI/engine/out/cache写。
++
++
++## 首次 checker 失败证据出版（2026-10-27）
++
++固定f33已由5336真三路合入，父736171b1/src90d609；prep1工具peer C0/I1/M0修订后，prep2静态peer C0/I0/M0获root采纳并单次release。实际driver/checker均exit1：Pane语法/语义0，Reveal语义5条TS2339；lint/dry/两次emit/旧L1+meta/完整Reveal均未到达，业务red、新矩阵green、meta/hooks与非作者after未运行。两JS无写入/恢复范围空，15500 metadata仍54fe；lease accepted、overall active，fullCompile=false。正式source peer与工具peer是不同审查，均不充当运行通过。准备、I1/reader错误、false/active release和单次消费见[原件](../progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)。
++
++TS6.0.3在实际src项目10316 roots/11250 program files中仅请求两目标语义：Pane 0/0，Reveal语法0、语义5；config/global/options/非目标语法0，非目标语义未请求。Reveal一基位置809:46（sessionId）、818:27（onDidApplyFrame）、829:41/836:37/850:36（snapshot），均为never上的TS2339；原JSON零基位置不改。noEmit=true、emitInvoked=false、forbiddenWriteAttempts=0。
++
++原Astra/root归因于新L4公开restore前的undefined属性路径窄化保留，建议仅test引入新的公开restoredLens并核同一identity，再替换两处读取根。此为署名意见及下一作者窄修边界；本提交没有新源码候选、修补或复跑授权，不改方案合同。cleanup先于恢复守卫，actual completed/uncertain/journal/restore/ctime差异均空，所有owned已停；未写路径不得repair或给ctime例外。业务旧red、新green、完整Reveal、title/meta/hooks和非作者after未运行，不能记为0 passing。
+--- 736171b1/dev/parallel/active/sources-accept-post-read-authorization.md
++++ publication/dev/parallel/active/sources-accept-post-read-authorization.md
+@@ -4,7 +4,7 @@
+ status: active
+ phase: M7
+ updated: 2026-10-27
+-summary: "Sources四窄已implemented/子scope完成；固定f33 lease候选5336正式合源，lease accepted/全部运行待，复用board继续active，旧历史分scope保留。"
++summary: "Sources四窄implemented/子scope完成；f33 lease首次checker exit1/Reveal 5条TS2339，其余六阶段/after未运行，lease accepted/overall active；历史与54fe旧native保持。"
+ ---
+ 
+ # Sources Accept 读后授权：分工与门禁
+@@ -46,7 +46,7 @@
+ 
+ ## 独立后续：Conversation可见叶 lease 恢复
+ 
+-> **lease当前阶段（5336正式合源后）**：固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。[固定三路/守卫原件](../../progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)。本board为lease待验证保持active；Sources子scope已完成不等于lease完成。下方89d/ff55/5fd/783/f33作者阶段原文按各时点保留，“仅docs/srcd78a/尚未合源”不再作当前集成状态，全部runtimeObserved=false仍是当前边界。
++> **lease当前阶段（首次checker失败后）**：固定f33已由5336真三路合入，父736171b1/src90d609；prep1工具peer C0/I1/M0修订后，prep2静态peer C0/I0/M0获root采纳并单次release。实际driver/checker均exit1：Pane语法/语义0，Reveal语义5条TS2339；lint/dry/两次emit/旧L1+meta/完整Reveal均未到达，业务red、新矩阵green、meta/hooks与非作者after未运行。两JS无写入/恢复范围空，15500 metadata仍54fe；lease accepted、overall active，fullCompile=false。[失败/准备/激活/守卫原件](../../progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)为当前覆盖。本board为lease未验范围保持active，Sources子scope完成独立保持。下方89d/ff55/5fd/783/f33时点原文保留，其“无工具准备/无release/全部runtimeObserved=false”等不再覆盖本次checker已执行事实；业务与after仍未运行。
+ 
+ [独立draft](../../plans/conversation-visible-lease-recovery.md)仅跟踪root在原Astra新鲜源码裁定后授权的§24后续范围，固定a4a/srcd78a；复用本板，不改上文Sources历史或其验证门禁。D只写docs draft与索引/行动记录，不改源码/测试/out、不请求baseline接DHEAD；root核固定commit/path hash后，仍交原Astra规则16，再独立accepted及另行源码授权。当前Sources候选如报源码/fixture问题优先响应。
+ 
+--- 736171b1/dev/progress/INDEX.md
++++ publication/dev/progress/INDEX.md
+@@ -15,7 +15,8 @@
+ | [status.md](status.md) | 当前快照（≤200 行） |
+ | [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | 固定6d一次green/root独核后四窄plan implemented，原阶段/首条LF与全部失败历史保持；仅source/真实组件scope。 |
+ | [固定6d一次新验证与四窄验收](sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md) | 六stage全0、72逐名/完整3+142/旧stale本体通过；prep1原稿及prep2授权/consumed/raw全保，54fe37旧native恢复，fullCompile=false。 |
+-| [Sources已验基线与f33 lease正式合源](sources-lease-f33-formal-integration-20261027-evidence/INDEX.md) | 5336真实双亲/793union/5blocks精确，四Sources implemented+lease accepted；src90d609/metadata54fe旧native，lease全部运行及工具准备待。 |
++| [Sources已验基线与f33 lease正式合源](sources-lease-f33-formal-integration-20261027-evidence/INDEX.md) | 5336真实双亲/793union/5blocks精确，四Sources implemented+lease accepted；src90d609/metadata54fe旧native。后续首次checker失败见下一行。 |
++| [Conversation lease首次checker失败](conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md) | 父736171b1/src90d609，prep1 I1/prep2静态peer/false→active与单次消费全保；driver/checker exit1，Reveal 5条TS2339，其余六阶段/after未运行，两JS无写入/metadata54fe保持。 |
+ | [Accept accepted方案接入证明](sources-accept-post-read-authorization-integration.md) | a2f1430真实双亲接入精确8路径；全树/254+2 pair/12554文件与2946目录冻结守卫；仅文档、无output release。 |
+ | [Accept ab43精确旧红资格](sources-accept-post-read-authorization-old-red-evidence/INDEX.md) | A1双宿主纯业务红；正控3 body过/Panel A3未达，Panel cleanup与独立input.dispose夹具失败分别保留；五JS恢复、无新绿或formal合源。 |
+ | [Accept 原default-false旧case探针](sources-accept-default-false-probe-20261027-evidence/INDEX.md) | 精确c7原helper/case实测setup TypeError、业务未达；三生产run1字节连续，唯一test JS恢复；为后续窄计划修订提供资格，不合源/新绿。 |
+--- 736171b1/dev/progress/sources-accept-post-read-authorization-checkpoint.md
++++ publication/dev/progress/sources-accept-post-read-authorization-checkpoint.md
+@@ -4,7 +4,7 @@
+ status: active
+ phase: M7
+ updated: 2026-10-27
+-summary: "8438一次实测72过/完整Panel旧1败与双方历史保全；固定6d唯一stub行经peer后正式合入，source新/旧native分记，待另释新验证。"
++summary: "Sources四窄implemented保持；f33 lease首次checker exit1/Reveal 5条TS2339，其余六阶段/after未运行；prep1/prep2/激活/失败全保，lease accepted/overall active。"
+ ---
+ 
+ # Sources Accept 读后授权：方案作者检查点
+@@ -806,3 +806,20 @@
+ ```text
+ - **Sources完成与Conversation lease固定f33真三路接入（2026-10-27）**：固定ours a4eb/incoming f33/共同a4a；Sources新72及完整3/142/旧stale一次green和四窄implemented、52B stub/全部旧新原件保持；lease两源码783静态peer C0/I0/M0/I1关经root采纳，f33文档accepted接入，13只静态、旧red/新green/原Reveal/非作者after全待，尚无新工具准备或执行release。全path/src树按实际merge审计，15500metadata精确54fe、旧native256/freeze4/cache3未动/fullCompile=false。共享docs双方历史、首条LF/hash并存，PRD/宽Sources/旧波不升/overall active；不碰B仅objects、不追main WIP。[双方原首条与集成边界](sources-accept-post-read-authorization-checkpoint.md#sources-lease-f33-formal-integration)。
+ ```
++
++
++## lease-first-checker-failure-current-coverage
++
++固定f33已由5336真三路合入，父736171b1/src90d609；prep1工具peer C0/I1/M0修订后，prep2静态peer C0/I0/M0获root采纳并单次release。实际driver/checker均exit1：Pane语法/语义0，Reveal语义5条TS2339；lint/dry/两次emit/旧L1+meta/完整Reveal均未到达，业务red、新矩阵green、meta/hooks与非作者after未运行。两JS无写入/恢复范围空，15500 metadata仍54fe；lease accepted、overall active，fullCompile=false。完整原件与归因见[首次失败证据](conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)。本节覆盖上方历史未准备/未release叙述；上方所有历史（含f33-merge-proof-current-coverage）原字节保留。
++
++prep1 52文件、原工具peer C0/I1/M0/root采纳；prep2原109文件包（108 inventory rows/self除外）经I1窄修及原Astra frozen-runtime/final-package静态peer C0/I0/M0/root采纳。原sealing reader runtime-* glob AssertionError和静态metadata迁移原bytes/mode保留，不作产品失败。另行授权只改release四字段，原false release/inventory/pins封在prepared-state，active后另获“运行driver一次”，一次消费后checker失败停止、不重试。prep1 52+prep2当前122共174镜像逐字/模式/SHA/Git blob入库，原inventory不改写为active。
++
++5条TS2339一基位置809:46、818:27、829:41、836:37、850:36；Pane语法/语义0、Reveal语法0/语义5，实际src项目10316roots/11250files，非目标语义未请求，noEmit/无emit调用/禁止写尝试0/fullCompile=false。其余lint、dry、emitReveal、old-L1+meta、emitPane、fullReveal未到；无业务red/green/title/meta/hooks/after结果。completed/uncertain/journal/restore/ctime差异全空，两原JS bytes/mode/mtime/ctime精确，native256/额外Reveal/freeze4/cache3及15500 metadata54fe精确，8个实际采样owned PID/start已停。原Astra/root指出新L4 undefined窄化，下一作者test-only restoredLens意见仅署名记录，本lane未修补/接新候选。
++
++### 父736171b1的status原首条（含末尾LF）
++
++原件[parent-status-first-entry.txt](conversation-visible-lease-first-checker-failure-20261027-evidence/parent-status-first-entry.txt)，884 bytes，SHA-256 `7e80f37f9f68fea5ebc18939fe0c0ed3c1a198e6f627e44005ff76808b8bede0`，来源`736171b1abc34e36e4991709240625827b566396`。以下围栏不替代raw末尾LF：
++
++```text
++- **Sources已验基线与Conversation lease正式合源（2026-10-27）**：5336真实双亲a4eb/f33/共同a4a，实际src90d609；793union中788无争议mode/type/blob与外22232精确，四文档5块逐块重建，board自动merge另记，checkpoint双方尾/原首条LF/hash并存，status200。Sources四窄implemented/52B stub/旧新证据保持，lease783 sourcepeer C0/I0/M0/I1关经root采纳、候选两源码精确incoming/plan accepted，13仅静态/所有red-green-Reveal-after待。15500metadata仍54fe、旧native256/freeze4/cache3不变；256内5新source/旧native+251未变、Reveal原JS单列无producer credit，fullCompile=false。只集成/proof/docs，无新工具准备或执行release、不碰B对象工位/主WIP；PRD/宽Sources/旧波不升/overall active。[三路原件与当前覆盖](sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)。
++```
+--- 736171b1/dev/progress/status.md
++++ publication/dev/progress/status.md
+@@ -4,12 +4,12 @@
+ status: active
+ phase: M7
+ updated: 2026-10-27
+-summary: "Sources四窄implemented与54fe旧native基准保；固定f33 lease source peer已签收并真三路接入，lease accepted/全部运行待，overall active。"
++summary: "Sources四窄implemented与54fe旧native保持；f33 lease首次checker exit1/Reveal 5条TS2339，其余六阶段/after未运行，lease accepted/overall active。"
+ ---
+ # Development Progress
+ > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
+ ## Current Session
+-- **Sources已验基线与Conversation lease正式合源（2026-10-27）**：5336真实双亲a4eb/f33/共同a4a，实际src90d609；793union中788无争议mode/type/blob与外22232精确，四文档5块逐块重建，board自动merge另记，checkpoint双方尾/原首条LF/hash并存，status200。Sources四窄implemented/52B stub/旧新证据保持，lease783 sourcepeer C0/I0/M0/I1关经root采纳、候选两源码精确incoming/plan accepted，13仅静态/所有red-green-Reveal-after待。15500metadata仍54fe、旧native256/freeze4/cache3不变；256内5新source/旧native+251未变、Reveal原JS单列无producer credit，fullCompile=false。只集成/proof/docs，无新工具准备或执行release、不碰B对象工位/主WIP；PRD/宽Sources/旧波不升/overall active。[三路原件与当前覆盖](sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)。
++- **Conversation lease首次checker失败（2026-10-27）**：父736171b1/src90d609、固定f33；prep1工具peer I1/原52文件保，prep2原109文件经C0/I0/M0/root采纳，false原稿封存、四字段激活后一次消费。driver/checker实际exit1，Pane语法/语义0、Reveal新L4语义5条TS2339；实际项目10316roots/11250files但非目标语义未请求，noEmit/无emit/禁止写0。lint/dry/emitReveal/旧L1+meta/emitPane/完整Reveal均未到，业务red/新green/title/meta/hooks/非作者after未运行。两JS未写/completed与uncertain及restore均空，8owned已停；15500metadata54fe/native256/额外Reveal/freeze4/cache3精确，fullCompile=false。Sources四窄implemented/旧新证据不变，lease accepted/overall active；未接新修补/未复跑。[原件/归因/父首条LF](conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)。
+ - **E最终两test定向复验314–3（2026-10-27）**：2fd/c683及原Astra§28/fcc单句纠正按124/642/645路径真三路接入，生产与compile10不变/src792ebb。完整src项目10316roots只两test semantic/syntactic/config0/noEmit exit0，lint0error1旧warning；首emitter因lane legacy-stream收尾exit1、仅Lens partial原件封存且未跑业务，换仓库streamToPromise后仅两test emit实际exit0。完整Dispose168/1、Lens145/2、meta1总314/3：KEEP非Node夹具与新两事件整容器chrome文本断言先败，后续badge断言未达，原作者/Astra定界补修中。254=252compile10连续+2fresh及12554全out前后守卫，582原件/旧531全保，未fullcompile/freeze/UI/升plan或波。[结果/未达边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#两测试定向刷新与完整-lens-套-3143-实际失败检查点)。
+ - **E compile10成功/相关套484–4原件检查点（2026-10-27）**：db0981/src58b3唯一完整compile10实际exit0/0TS，253身份全核；新10实际10/0，完整Roster199/Reading3等九套全过，LensDispose164/4，整组含meta1共484/4。四败最小精确old4919四生产+11pair资格实跑1/3：源码文本/undefined草稿/classList.toggle三旧败复现，旧clientTool调roster断言过而新门先拒绝，须原E/Astra合同对齐；未改任何断言。finally253 native/source/mode全恢复compile10，六TS lint0/0；旧160/163pair、J28pair及历史Node/E11边界分记，不借旧after或reasoning/Accept红翻绿。compile9六TS失败完整保留，531原件/status200/cache3稳定；待test-only SHA/peer，不再编译、不freeze/UI/升plan或波。[原始结果与恢复资格](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第十次完整构建00ts新10通过与完整相关套4844原始检查点)。
+ - **第五完整compile实际4TS失败（2026-10-27）**：精确34a4/src8e6、全局空/共享锁实跑compile-client exit1：action缺返回/helper object.kind/命令桩泛型return及void结果4TS，原log已交J修订。156native均emit/6变，现out属失败compile5，不借旧第四0；新green/新freeze未跑。最初309MiB预检无emit与后续真实TS分开；仅自有ignored三cache核全后/tmp镜像+原路径symlink临时保留，source/out/evidence不迁，待修订编译窗口结束核全恢复。本次6TS lint0error/21warning，238原件保留、D新r2仅静态53模板，E未授权。[原件/边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第五次实际完整编译失败4条typescript诊断)。

@@ -1,0 +1,30 @@
+{
+  "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+  "sourceBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+  "sourceSha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+  "assertionLine": 647,
+  "assertionIncludingLF": "\t\t\tassert.ok(lens.sessionViewLease, 'catalog ready must restore this visible Pane lease without hide/reveal');\n",
+  "prerequisites": [
+    {
+      "label": "real EngineRoster connection/harness and natural empty-to-missing",
+      "startLine": 509,
+      "endLine": 546,
+      "textIncludingLF": "\t\tconst catalog: Catalog = { sessions: [{ sessionId: 'lease-s1', title: 'Lease s1' }, { sessionId: 'lease-s2', title: 'Lease s2' }] };\n\t\tconst initial = deferCatalog();\n\t\tnotify('live');\n\t\tawait bounded(initial.started.p, 'initial real catalog must start');\n\t\tawait initial.result.complete(catalog);\n\t\tawait bounded(rosterService.whenEngineCatalogRefreshComplete(), 'initial real catalog must finish');\n\t\tassert.strictEqual(getConversationSessionReadiness(rosterService), 'ready');\n\t\tbeforePane?.(rosterService);\n\t\tconst harness = await createRevealHarnessWithRoster(rosterService, connection, true);\n\t\tconst pane = await waitForEnginePane(partFor(harness.parts, harness.primaryId));\n\t\tconst lens = pane.activeConversationLens;\n\t\tassert.ok(lens);\n\t\tassert.ok(lens.sessionViewLease, 'initial real visible owner must have a lease');\n\t\tif (lens.sessionViewLease.snapshot.sessionId !== harness.primaryId) {\n\t\t\tconst baseline = Event.toPromise(lens.sessionViewLease.onDidApplyFrame);\n\t\t\ttry {\n\t\t\t\tawait bounded(baseline, 'initial host baseline must reach the Pane lease');\n\t\t\t} finally {\n\t\t\t\tbaseline.cancel();\n\t\t\t}\n\t\t}\n\t\tassert.strictEqual(lens.sessionViewLease.snapshot.sessionId, harness.primaryId);\n\t\treturn { ...harness, pane, lens, connection, sessionView, deferCatalog, notify, catalog };\n\t}\n\n\ttype EngineRevealHarness = Awaited<ReturnType<typeof createEngineRevealHarness>>;\n\n\tfunction assertVisibleMissing(harness: EngineRevealHarness, pane = harness.pane, key = harness.primaryId): ConversationLens {\n\t\tconst lens = pane.activeConversationLens;\n\t\tassert.ok(lens);\n\t\tassert.strictEqual(lens.boundSessionId, key);\n\t\tassert.strictEqual(lens.isDisposed, false);\n\t\tassert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(key), true);\n\t\tassert.strictEqual(lens.sessionViewBindingSuspended, false);\n\t\tassert.strictEqual(lens.sessionViewLease, undefined, 'real connection/Binding must naturally remove the empty owner lease');\n\t\treturn lens;\n\t}\n\n"
+    },
+    {
+      "label": "visible-missing and successful catalog-ready helpers",
+      "startLine": 548,
+      "endLine": 568,
+      "textIncludingLF": "\t\tconst request = harness.deferCatalog();\n\t\tif (reconnect) {\n\t\t\tharness.notify('disconnected');\n\t\t}\n\t\tharness.notify('live');\n\t\tawait bounded(request.started.p, 'real replacement listSessions must start');\n\t\tassert.strictEqual(getConversationSessionReadiness(harness.rosterService), 'loading');\n\t\tassert.strictEqual(harness.pane.activeConversationLens, harness.lens);\n\t\tassertVisibleMissing(harness);\n\t\treturn request;\n\t}\n\n\tasync function completeCatalog(harness: EngineRevealHarness, request: ReturnType<EngineRevealHarness['deferCatalog']>): Promise<void> {\n\t\tawait request.result.complete(harness.catalog);\n\t\tawait bounded(harness.rosterService.whenEngineCatalogRefreshComplete(), 'real catalog must settle');\n\t\tassert.strictEqual(getConversationSessionReadiness(harness.rosterService), 'ready');\n\t}\n\n\tfunction observePaneBinds(lens: ConversationLens): () => number {\n\t\tlet calls = 0;\n\t\tconst original = lens.bindSessionView;\n"
+    },
+    {
+      "label": "L1 fixed path through same input/lens/bound/alive/live/nonpairing/activeChanges0 to line647",
+      "startLine": 627,
+      "endLine": 647,
+      "textIncludingLF": "\t\ttest('L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal', async () => {\n\t\t\tconst harness = await createEngineRevealHarness();\n\t\t\tconst { pane, lens, primaryId, rosterService } = harness;\n\t\t\tconst input = pane.input;\n\t\t\tassert.ok(input);\n\t\t\tassert.strictEqual(lens.lastAttachedEntries.length, 0);\n\t\t\tassert.strictEqual(lens.sessionViewLease?.snapshot.timeline.length, 0);\n\t\t\tconst pending = await startEmptyCatalogRefresh(harness, true);\n\t\t\tassert.strictEqual(pane.input, input);\n\t\t\tlet activeChanges = 0;\n\t\t\tconst activeListener = store.add(rosterService.onDidChangeActiveSession(() => { activeChanges++; }));\n\t\t\tawait completeCatalog(harness, pending);\n\t\t\tassert.strictEqual(rosterService.getActiveSessionId(), primaryId);\n\t\t\tassert.strictEqual(activeChanges, 0, 'same-session recovery must not rely on an active-id event');\n\t\t\tassert.strictEqual(pane.input, input);\n\t\t\tassert.strictEqual(pane.activeConversationLens, lens);\n\t\t\tassert.strictEqual(lens.boundSessionId, primaryId);\n\t\t\tassert.strictEqual(lens.isDisposed, false);\n\t\t\tassert.strictEqual(isConversationEngineLive(harness.connection.getConnectionPhase(), harness.connection.getConnectionSnapshot().pairingPending), true);\n\t\t\tassert.strictEqual(isConversationPairingHold(harness.connection), false);\n\t\t\tassert.ok(lens.sessionViewLease, 'catalog ready must restore this visible Pane lease without hide/reveal');\n"
+    }
+  ],
+  "qualification": "Actual exact AssertionError at source647 plus source-map binding establishes preceding control-flow reachability; no individual-assert runtime observations fabricated",
+  "oldFailedBodyLeakCheckClaim": false,
+  "utils65FailureSkipsComputeLeakingDisposables": true
+}

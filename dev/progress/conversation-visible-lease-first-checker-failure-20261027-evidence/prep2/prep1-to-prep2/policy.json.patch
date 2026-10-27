@@ -1,0 +1,24 @@
+--- prep1/policy.json
++++ prep2/policy.json
+@@ -1,5 +1,5 @@
+ {
+-  "planId": "vscode-conversation-visible-lease-f33-validation-20261027-prep1",
++  "planId": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+   "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+   "expectedHead": "736171b1abc34e36e4991709240625827b566396",
+   "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+@@ -36,5 +36,13 @@
+   "killGraceSeconds": 5,
+   "oldFailedBodyLeakCheckClaim": false,
+   "oldLeakBoundary": "utils.ts:65 skips computeLeakingDisposables on failed body; teardown/hooks/owned cleanup recorded only",
+-  "fullCompileOfFinalSourceTree": false
++  "fullCompileOfFinalSourceTree": false,
++  "restorationPolicy": {
++    "evidence": "Parent eligible single output immediately before actual PID/start-qualified spawn plus same-phase fresh journal intent/completed",
++    "completedSeparateFromPartialOrUncertain": true,
++    "untouchedOriginalBytesModeMtimeCtimeExact": true,
++    "onlyEvidenceQualifiedSubsetGetsRestoreAndCtimePermission": true,
++    "malformedMissingOrUnscopedEvidenceFailsClosed": true,
++    "noDriftBasedAuthority": true
++  }
+ }

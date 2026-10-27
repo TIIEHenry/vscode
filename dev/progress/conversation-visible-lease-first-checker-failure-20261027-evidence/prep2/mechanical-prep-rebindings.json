@@ -1,0 +1,47 @@
+{
+  "changes": [
+    {
+      "path": "validate.py",
+      "oldLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+      "newLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+      "occurrences": 1
+    },
+    {
+      "path": "binding.mjs",
+      "oldLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+      "newLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+      "occurrences": 2
+    },
+    {
+      "path": "policy.json",
+      "oldLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+      "newLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+      "occurrences": 1
+    },
+    {
+      "path": "input-manifest.json",
+      "oldLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+      "newLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+      "occurrences": 4
+    },
+    {
+      "path": "source-inputs.json",
+      "oldLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+      "newLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+      "occurrences": 2
+    },
+    {
+      "path": "sealed-originals.json",
+      "oldLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+      "newLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+      "occurrences": 2
+    },
+    {
+      "path": "producer-pins.json",
+      "oldLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+      "newLiteral": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+      "occurrences": 3
+    }
+  ],
+  "scope": "Scratch/plan/input-copy/seal paths only; source/ref/tree/54fe/5795 identities and all protocol stages unchanged"
+}

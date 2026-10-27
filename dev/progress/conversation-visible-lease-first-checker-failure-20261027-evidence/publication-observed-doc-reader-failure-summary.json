@@ -1,0 +1,6 @@
+{
+  "actualExitCode": 1,
+  "cause": "Publication helper searched all summary: lines; checkpoint contains preserved historical YAML blocks.",
+  "effect": "First eight current docs were edited, plan section10 appended once; checkpoint/status untouched. No scratch/source/out changes.",
+  "correction": "Scope frontmatter summary to its own first YAML block; derive complete docs before/after from fixed parent Git objects, preserving all historical summaries."
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+    "sourceBlob": "98ba56dacc166c24d263112940c7aee0a0363357",
+    "sourceBytes": 15270,
+    "sourceSha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+    "sourceMode": 436,
+    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "role": "new-integrated-production"
+  },
+  {
+    "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+    "sourceBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+    "sourceBytes": 80119,
+    "sourceSha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+    "sourceMode": 436,
+    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "role": "new-integrated-test"
+  }
+]

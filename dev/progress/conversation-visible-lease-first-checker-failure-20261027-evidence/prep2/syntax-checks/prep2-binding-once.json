@@ -1,0 +1,27 @@
+{
+  "file": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/binding.mjs",
+  "bytes": 4588,
+  "sha256": "8b98c4a843546f971684fe8ad67cd18360364e93cd3bb42d3ac17b91f8d55ef7",
+  "command": [
+    "rtk",
+    "proxy",
+    "/home/clarence/.hermes/node/bin/node",
+    "--check",
+    "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/binding.mjs"
+  ],
+  "startedAtUtc": "2026-10-27T07:56:14.248144+00:00",
+  "finishedAtUtc": "2026-10-27T07:56:14.272080+00:00",
+  "actualExitCode": 0,
+  "stdoutPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.stdout.log",
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.stderr.log",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "oneInvocationOnly": true,
+  "removedInheritedNodeVariableNames": [],
+  "effectiveNodeEnvironment": {
+    "NODE_DISABLE_COMPILE_CACHE": "1"
+  },
+  "moduleImportedEvaluatedOrExecuted": false
+}

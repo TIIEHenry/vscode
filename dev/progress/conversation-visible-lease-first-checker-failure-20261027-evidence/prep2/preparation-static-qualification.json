@@ -1,0 +1,85 @@
+{
+  "head": "736171b1abc34e36e4991709240625827b566396",
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "checker": {
+    "actualCompleteProject": "src/tsconfig.json",
+    "exactTargets": [
+      {
+        "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+        "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+        "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+        "sourceBlob": "98ba56dacc166c24d263112940c7aee0a0363357",
+        "sourceBytes": 15270,
+        "sourceSha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+        "sourceMode": 436,
+        "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+        "role": "new-integrated-production"
+      },
+      {
+        "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+        "sourceBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+        "sourceBytes": 80119,
+        "sourceSha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+        "sourceMode": 436,
+        "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "role": "new-integrated-test"
+      }
+    ],
+    "noEmit": true,
+    "allConfigGlobalOptionsAndTwoTargetsGate": true,
+    "nonTargetSyntacticReportedNotGating": true,
+    "nonTargetSemanticNotRequested": true
+  },
+  "lint": {
+    "targets": 2,
+    "cache": false,
+    "fix": false,
+    "notExecuted": true
+  },
+  "dry": {
+    "expectedInputs": 2,
+    "expectedJsOutputs": 2,
+    "standaloneMaps": 0,
+    "outWrites": 0,
+    "notExecuted": true
+  },
+  "old": {
+    "expectedTests": 2,
+    "expectedPasses": 1,
+    "expectedFailures": 1,
+    "expectedPending": 0,
+    "expectedHookPairs": 10,
+    "exactFullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+    "escapedAnchoredUnion": "^(?:Conversation session window reveal \\+ leaf SessionBar \\(C\\) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal|Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running)$",
+    "qualification": "Exact new Reveal source647 AssertionError with exact message, full stack/source map plus actual counts/titles/hooks/owned cleanup/native loaded provenance; all other failures stop before Pane emit/new run",
+    "failedBodyLeakCheckClaim": false
+  },
+  "new": {
+    "expectedTests": 40,
+    "new13": 13,
+    "original26": 26,
+    "meta": 1,
+    "expectedHookPairs": 238,
+    "grep": null,
+    "requireEveryTitleStartPassEnd1": true,
+    "reuseSameFreshRevealBytes": true
+  },
+  "sequentialRecovery": "Each owned stage quiescent before next; old qualified before Pane emission; all owned processes quiescent/reaped before finally restoration; no retries",
+  "executionAuthorized": false,
+  "sourceRuntimeObserved": false,
+  "originalAstraToolPeer": "pending",
+  "rootIndependentAcceptance": "pending",
+  "afterToolsPrepared": false,
+  "preparationId": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+  "priorToolPeer": {
+    "Critical": 0,
+    "Important": 1,
+    "Minor": 0,
+    "rootAdopted": true
+  },
+  "currentNarrowToolPeer": "pending",
+  "restorationI1": "Evidence-qualified subset only, parent actual PID/start spawn plus fresh trusted intent/completed prefix; missing/corrupt/unscoped evidence nonzero; untouched paths original bytes/mode/mtime/ctime exact, never repaired",
+  "restorationBoundaryMatrix": "restoration-static-boundaries.json"
+}

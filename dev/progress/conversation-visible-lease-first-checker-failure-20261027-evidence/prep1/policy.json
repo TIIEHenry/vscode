@@ -1,0 +1,40 @@
+{
+  "planId": "vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+  "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "expectedHead": "736171b1abc34e36e4991709240625827b566396",
+  "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "sourcePaths": [
+    "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "outputPaths": [
+    "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "stageOrder": [
+    "checker",
+    "lint",
+    "dry",
+    "emit-reveal",
+    "old-L1",
+    "emit-pane",
+    "new-full-Reveal"
+  ],
+  "sourceInputCount": 2,
+  "totalAllowedOutPaths": 2,
+  "temporaryProductionJs": 1,
+  "temporaryTestJs": 1,
+  "standaloneMapCount": 0,
+  "dryInputs": 2,
+  "dryOutputs": 2,
+  "dryOutWrites": 0,
+  "oldRedQualifiedRequiredBeforePaneEmit": true,
+  "noRetry": true,
+  "watchdogSeconds": 45,
+  "termGraceSeconds": 5,
+  "killGraceSeconds": 5,
+  "oldFailedBodyLeakCheckClaim": false,
+  "oldLeakBoundary": "utils.ts:65 skips computeLeakingDisposables on failed body; teardown/hooks/owned cleanup recorded only",
+  "fullCompileOfFinalSourceTree": false
+}

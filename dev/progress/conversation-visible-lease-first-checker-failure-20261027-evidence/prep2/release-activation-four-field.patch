@@ -1,0 +1,17 @@
+--- prepared-state/execution-release.json
++++ execution-release.json
+@@ -1,10 +1,10 @@
+ {
+   "schemaVersion": 1,
+   "planId": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+-  "state": "PREPARED_NOT_AUTHORIZED",
+-  "executionAuthorized": false,
+-  "authorizedBy": null,
+-  "authorizationMessage": null,
++  "state": "AUTHORIZED_NEW_VALIDATION_ONCE",
++  "executionAuthorized": true,
++  "authorizedBy": "/root",
++  "authorizationMessage": "2026-10-27 /root explicitly authorized activation of this exact /tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2 after accepting original Astra frozen-runtime and final-package static peer C0/I0/M0 and independently verifying the package. Fixed HEAD=736171b1abc34e36e4991709240625827b566396, src=90d6092dbbca80114db7f55a75e137bb1d7bef76, sourceRef=f33d16fbc5841119f5baa7ff2788060d39b8bb4f. This fresh one-shot release covers only the reviewed seven stages: two-target complete-project noEmit checker, two-target no-cache/no-fix lint, dry two JS/zero maps/zero out writes, only fresh Reveal emit, qualified exact old L1 plus official meta, only fresh Pane emit after qualified old red and complete old-process quiescence, then fresh-process full Reveal without grep. An unqualified old result stops and restores without new Pane emission or new run. No retry, diagnostic rerun, dependency emit, after, UI/engine or other scope is authorized. The reviewed PID/start ownership and evidence-qualified restoration subset remain mandatory. This instruction authorizes release activation and identity reporting only: do not start the prepared driver or any stage until a separate explicit /root instruction to run the driver once after root verifies the active identity.",
+   "expectedHead": "736171b1abc34e36e4991709240625827b566396",
+   "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+   "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",

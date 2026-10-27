@@ -1,0 +1,8 @@
+{
+  "phase": "First publication-only inline inventory reader, before any docs edits.",
+  "actualProcessExit": 1,
+  "cause": "Incorrectly assumed prep1 inventory rows contained mode. Original prep1 schema contains bytes/SHA only.",
+  "effect": "Only prep1 52 mirrors had been created; no scratch, source, out, or current docs edits.",
+  "correction": "Validate only fields actually in each original inventory; record live source mode and mirror mode separately. No original inventory rewrite.",
+  "rawToolOutput": "publication-observed-reader-failure.tool-output.txt"
+}

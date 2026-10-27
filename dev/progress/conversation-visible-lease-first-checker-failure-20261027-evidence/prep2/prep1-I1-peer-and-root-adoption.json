@@ -1,0 +1,13 @@
+{
+  "source": "Direct original Astra /root/architecture_audit message and explicit /root adoption; attributed summary, not fabricated raw reviewer file",
+  "reviewedScratch": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+  "reviewedInventorySha256": "0019ccd0bdaa893f09e63c39ec133aa6b420b80bf9b5c1ac7ba5c0c0de75979a",
+  "Critical": 0,
+  "Important": 1,
+  "Minor": 0,
+  "finding": "prep1 finally may restore a path never written by this run, then allow its ctime drift merely because both potential outputs are sealed",
+  "rootAdopted": true,
+  "authorizedRevision": "prep2 narrow restoration evidence subset, metadata and mechanical scratch rebind only",
+  "newToolPeer": "pending",
+  "executionAuthorized": false
+}

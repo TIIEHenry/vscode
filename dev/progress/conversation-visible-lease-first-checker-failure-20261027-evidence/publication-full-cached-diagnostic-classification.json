@@ -1,0 +1,206 @@
+{
+  "actualExitCode": 2,
+  "diagnosticCount": 35,
+  "pathCount": 5,
+  "paths": [
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "diagnosticCount": 21
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "diagnosticCount": 5
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "diagnosticCount": 5
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "diagnosticCount": 2
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.patch",
+      "diagnosticCount": 2
+    }
+  ],
+  "diagnostics": [
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 11,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 16,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 26,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 28,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 31,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 33,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 36,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 39,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 41,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 43,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 45,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 79,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 81,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 84,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 89,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 109,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 112,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 114,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 117,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 119,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 141,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 112,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 117,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 118,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 285,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 286,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "line": 112,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "line": 117,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "line": 118,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "line": 285,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "line": 286,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "line": 63,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "line": 64,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.patch",
+      "line": 72,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.patch",
+      "line": 73,
+      "diagnostic": "trailing whitespace."
+    }
+  ],
+  "priorExclusionAuthorizationInherited": false,
+  "rawBytesNotCleaned": true
+}

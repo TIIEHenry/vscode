@@ -1,0 +1,18 @@
+{
+  "sharedLockPath": "/tmp/vscode-compile.lock",
+  "sharedLockSpan": "before first stage through all-owned-quiescent and final exact restoration",
+  "ownership": "Exact inherited token plus PID/start and parent/session/adopted chain; verified pidfd only; no names/global kill",
+  "watchdogSeconds": 45,
+  "termGraceSeconds": 5,
+  "killGraceSeconds": 5,
+  "globalIdleEveryStage": true,
+  "independentFreshOfficialElectronProcesses": 2,
+  "restoreOnlyAfterAllOwnedQuiescent": true,
+  "allowedRestoredCtimePaths": [
+    "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "allOther15500MetadataExact54fe": true,
+  "revealOutside256IndividuallySealed": true,
+  "noUiEngineOrAfterScope": true
+}

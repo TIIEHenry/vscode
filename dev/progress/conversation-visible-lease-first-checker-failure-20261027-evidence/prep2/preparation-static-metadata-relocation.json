@@ -1,0 +1,14 @@
+{
+  "source": "Explicit root follow-up after the inline final-seal reader glob failure",
+  "fromPath": "runtime-surface-delta.json",
+  "toPath": "preparation-evidence/runtime-surface-delta.json",
+  "bytes": 11609,
+  "sha256": "40bee5f8a15ccaf095f25f90c6bae60a833c247191c8258c9773554e3d1e3a51",
+  "mode": 436,
+  "originalBytesAndModePreserved": true,
+  "reason": "Keep new static preparation metadata outside original driver runtime-* filesystem artifact enumeration; no prepared driver logic change",
+  "originalReaderFailurePreserved": "preparation-observed-reader-failure-summary.json",
+  "runtimePinHashesUnchanged": true,
+  "newJsSyntaxInvocationsAdded": 0,
+  "preparedCodeExecuted": false
+}

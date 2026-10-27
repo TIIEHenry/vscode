@@ -1,0 +1,19 @@
+--- prep1/sealed-originals.json
++++ prep2/sealed-originals.json
+@@ -9,7 +9,7 @@
+     "ctimeNs": 1793053795560880022,
+     "mtimeNsString": "1793053795560880022",
+     "ctimeNsString": "1793053795560880022",
+-    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js"
++    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js"
+   },
+   {
+     "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+@@ -21,6 +21,6 @@
+     "ctimeNs": 1793053795897904105,
+     "mtimeNsString": "1793053795897904105",
+     "ctimeNsString": "1793053795897904105",
+-    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
++    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+   }
+ ]
