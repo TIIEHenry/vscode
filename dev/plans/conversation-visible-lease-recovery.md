@@ -4,13 +4,13 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "5fd正式源码peer C0/I1/M0，I1仅新L4误把dispose当清lease字段；root另授权仅修L4为旧owner不接帧/最后observer后host release公开观察，候选仅AST/lint待窄peer，13case/Pane/Sources/out保持，lease运行/after未达。"
+summary: "root独核783固定候选并采纳原Astra窄peer C0/I0/M0关闭5fd I1；source仍783/src eefc0c，plan accepted，13仅静态case；本次纯docs签收非formal merge/green/outputs，唯一lane旧L1red/新矩阵/原Reveal/非作者after全待。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
 
 > **固定输入**：`a4a70322795c509e8e9b8274cf295a1b65db663a`，`src=d78a48e5feee57fcaf5811c8425859d0a2400af0`。只读该对象，不追 main / merge / 他人 WIP。
-> **当前阶段**：accepted `ff55db8937f08f116ad23e95b21fa071091b245f` 的原 Rule16 **C0/I0/M2** 与两 Minor 澄清保持。root 核 E 七路径 `5fd65f66ef965f75055d3338849f2bcf5cf8e7bc` 后，原 Astra 正式源码 peer **C0/I1/M0**；I1 仅新 L4 把普通 dispose 误作清空旧 Lens lease 字段。root 采纳后另行授权本轮仅修新 L4 与必要文档，生产 Pane 全字节保护；修订见 §8，待 root 固定核与原 reviewer 窄 peer。作者仍只静态检查，lease 主 red / 新 green / 非作者 after 均待，plan 保持 accepted。
+> **当前阶段**：root 已独核并正式接收固定源码候选 `78338484340843a91f2babbf8a690989a1790bdd` / `src=eefc0c95737b4f66c4e9581a3500b2497a15d766`，采纳原 Astra 对该对象的窄 peer **C0/I0/M0**，关闭 5fd 新 L4 合同 I1。原 5fd **C0/I1/M0** 报告与修订依据完整保留于 §8；本次只追加文档签收 §9，全部源码仍为783，plan保持accepted。13为静态预期case，唯一lane旧L1 red / 新矩阵 / 原Reveal / 非作者after全待，runtimeObserved=false；此纯doc不是formal merge、green或outputs交付。
 
 ## 1. 来源、已有 SSOT 与实际缺口
 
@@ -132,7 +132,7 @@ L3 的“0”仅约束本次新增 session reconcile；既有 UA connection 回�
 4. 只有 root 释放的唯一 baseline lane 执行 checker / emit / 官方 Electron 测试，先取得 L1 精确旧 a4a 的合格业务 red，再固定新候选跑矩阵与原 reveal 回归。setup 错误与业务失败分记，finally 核原输出恢复；作者不写 out / cache / freeze。
 5. 默认编辑器窗口的非作者 after 仍须实际验证同可见 Pane 在同 session catalog 恢复后不靠 hide / restore 收到正文 / pending，以及 hidden 与双 pinned visible 叶边界；不得用 Sessions 网页或另领 observer 代替。获得实证后才讨论本窄方案 implemented 与知识层回填，不升级 PRD / 旧 D / 宽方案。
 
-**当前审查 / 运行状态**：原 Astra 对精确 89d 的 Rule16 C0/I0/M2 与 accepted ff55 保持；E 最小源码5fd的正式 peer 为 C0/I1/M0，I1仅新L4测试合同，本轮修订候选见§8、待窄peer。lease 主 red、新 green、非作者 after 均未发生；其他 Sources 54 / 18、历史 after 或 Sources run 均不是本 lease 方案的运行资格。
+**当前审查 / 运行状态**：原 Astra 对精确 89d 的 Rule16 C0/I0/M2 与 accepted ff55 保持；5fd正式peer C0/I1/M0中的新L4合同I1已由783窄peer C0/I0/M0关闭，root已核并采纳，原报告与修订保持§8、当前签收见§9。lease 主red、新13矩阵/原Reveal、非作者after均未发生；其他Sources 54/18、历史after或Sources run均不是本lease方案运行资格。
 
 
 ## 6. 规则16原审查与独立accepted文档
@@ -221,3 +221,22 @@ root另行只读核`EngineSessionViewLease` getter638–639为每consumer replic
 metadata守卫的14865/416/47159计数是`out/.build/node_modules`的**后代entries**，tuple路径含目录名前缀，不含各root inode本身，仍不含atime。ff55旧status首条不含LF hash为`bc12ff2dc9c25b0dfdf46d2136a428f53d7d31f0bd3a7aaa3d59be7a0ac47651`；含LF另为`9ea9515f78c69966800dfac437b0da8a212be6ba6d9a716480dcb4f5a5d94dc7`，不可混称。root报告其独核两次初比差异由比较schema解释（多加root inode一行、首条LF边界），不是作者漂移或实际门禁失败；随后root按相同schema独扫三目录全匹配。root另核E index flags全H=22250、skipWorktree=0，commit中docs/dev tracked Markdown在FS missing0；不据此猜测555与其他工位扫描数字差异，不修复checkout。
 
 本轮仍无Program/checker/compile/transpile/emit/runtime/UI/engine/out/cache/freeze写；plan继续accepted，不升PRD/旧波。固定修订commit先由root核，再原reviewer窄peer；旧a4a L1主red、新矩阵/原Reveal回归及非作者after仍须之后另获唯一lane执行授权。
+
+
+## 9. 783 窄 peer 签收与下一门（2026-10-27，纯文档）
+
+### 9.1 固定对象、审查来源与父级采纳
+
+root已逐6path/source仅新L4块、mode/blob/bytes/SHA、parent/sourceTree、clean、manifest/artifact hash、status200/仅7、12行、旧raw含LF、board/checkpoint原前缀及三目录后代metadata，独核固定 `78338484340843a91f2babbf8a690989a1790bdd`（parent `5fd65f66ef965f75055d3338849f2bcf5cf8e7bc`，src `eefc0c95737b4f66c4e9581a3500b2497a15d766`）后正式接收静态候选，采纳原reviewer `/root/architecture_audit`（Astra）窄peer **C0/I0/M0**，关闭5fd新L4合同I1。§8原I1报告、父采纳与修订内容及5fd/783外部静态原件均保留，不覆盖、不另造正式raw报告文件。
+
+- **Strengths**：原reviewer直接消息确认public acquire共享binding但得到独立lease；retired Pane lease snapshot/frame停止、保留observer真实frame正控成立；最后observer.dispose→refcount0→releaseHost→fixture released.add同步链有源码依据。root采纳的原结论同样明确：observer真实frame/snapshot变化时旧owner snapshot/事件不变，最后observer释放host；L4外完整test字节与生产Pane保持。
+- **Critical / Important / Minor**：均0。
+- **Assessment**：只关闭5fd测试合同I1并接收783静态源码候选，13仍是静态预期case，不提供任何运行资格或业务green。审查来源为原reviewer直接消息与root采纳消息，不用文档签收替代运行证据。
+
+root核783时一度沿用旧字段`entries`读取已澄清的`descendantEntries`而KeyError；按新schema更正后精确通过。这是root读取器错误，不是artifact变化或metadata守卫失败。计数仍为不含root inode的14865/416/47159后代entries，LF/NoLF边界继续按§8保留。
+
+### 9.2 当前固定源码与未达门禁
+
+本次只改plan实施记录、board、checkpoint与status摘要四文档；全部`src`继续与783逐字相同，Pane15270B/SHA-256 `90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3`、Reveal80119B/`ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c`、原26/new13/defaultQuiet与Sources四TS/三plan/JSON/历史证据保护。静态manifest入口仍用§8已有`/tmp/vscode-e-visible-lease-i1-*`，本轮不覆盖或复制原件；后续唯一lane证据入库时再统一持久化必要manifest，不新增证据目录或复制out。
+
+下一门仍是root另行释放的唯一lane：先按其既有Sources新源验证顺序推进，再准备本lease精确旧a4a L1合格业务red、新783源码13矩阵及原Reveal回归、非作者默认编辑器窗口after。上述每项均 **runtimeObserved=false**，没有本轮执行授权；C0/I0/M0与此纯文档commit不是formal merge、green、产品完成或outputs交付。plan仍accepted，PRD/旧波不升；本轮仅docs/generator/diff及保护检查，不再AST/lint，不Program/checker/compile/emit/runtime/UI/engine/out/cache写。

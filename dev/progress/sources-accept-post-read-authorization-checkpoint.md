@@ -522,3 +522,23 @@ summary: "root核ff55 accepted后另授权E可见叶lease最小源码候选：Pa
 ```
 
 本轮固定commit先交root核再原Astra窄peer，无执行授权；plan仍accepted，不升PRD/旧波。无Program/checker/compile/transpile/emit/runtime/UI/engine/out/cache/freeze写，不把新静态候选或5fd静态Strengths当运行green。
+
+
+## E 783窄peer静态签收（2026-10-27，纯文档）
+
+root已独核78338484340843a91f2babbf8a690989a1790bdd六path、源码仅新L4块、mode/blob/bytes/hash、parent/src/clean、manifest及8artifact、status200/仅7、12行/旧raw含LF17a1…、board/checkpoint原prefix与后代metadata，正式接收固定静态候选；采纳原Astra对精确783窄peer **C0/I0/M0**，关闭5fd新L4测试合同I1。原5fd C0/I1/M0报告、修订及所有外部静态原件原样保留。原Strengths、C/I/M均0与Assessment来源见[plan§9](../plans/conversation-visible-lease-recovery.md#9-783-窄-peer-签收与下一门2026-10-27纯文档)：保留独立observer真实frame/snapshot正控时旧Pane lease snapshot/事件不变，最后observer释放host的同步源码链成立；L4外完整test字节/Pane不变，仍仅静态，不提供13case运行资格。
+
+root报告其此次初扫曾以旧`entries`字段读新`descendantEntries`导致KeyError，改读新schema后精确通过；仅root读取器错误，不是作者产物漂移或守卫失败。后代计数不含root inode、路径含目录名前缀、排atime与LF/NoLF定义保持。同行既有历史不丢，当前来源独立不合merge。
+
+本轮从clean783只更新4文档，源码仍783/src `eefc0c95737b4f66c4e9581a3500b2497a15d766`，Pane90c0719d…/Revealee287ba1…、原26/new13/defaultQuiet、全部其他src及Sources三plan/JSON不动。plan仍accepted，未升PRD/旧波；此纯文档不是formalmerge/green或outputs交付。唯一lane先完成既有Sources新源验证，之后才另行准备本lease旧a4a L1合格red/新13矩阵/原Reveal/非作者after，**全部runtimeObserved=false**。无本轮执行授权；不再AST/lint，不Program/checker/compile/transpile/emit/runtime/UI/engine/out/cache写。原tmp静态原件不覆盖，不建新证据目录、不复制out；后续lane证据入库再统一持久化必要manifest。
+
+### 783 status 原summary与首条保留
+
+本轮status仍200且仅替summary/Current Session首条。下列783原首条不含LF SHA-256 `c75b8eccd90e1027cd18c80eea5fa97e32692f32ba96b8b7e3bacf7e47338ecd`，含末尾LF SHA-256 `93f26c8fe6addfb1976a716ebfd8df7847d560975a782bc44ec2405f79855ec1`，原文（含换行）完整保留；更早原首条与hash继续留在上文。checkpoint/board的783原全文为本轮逐字前缀。
+
+```markdown
+summary: "5fd正式源码peer C0/I1/M0后，root另授权仅新L4 dispose合同修订：公开活observer帧/旧owner隔离与最后host release，不清生产字段；仅AST/lint待窄peer，Pane/其余12+原26/Sources/out保持，运行未达。"
+- **Conversation 新L4 dispose合同修订候选（2026-10-27）**：root已核5fd七路径/原件与保护，原Astra正式源码peer C0/I1/M0；I1只因新L4误要求disposed Lens清lease字段，root采纳并另授权仅该case+必要docs。修订以实际旧Pane lease、prune后活observer接帧/旧owner不更新、最后observer释放host公开观察替代两错误断言，保leaf absent/非hidden/非visible、Lens disposed、latebind0与存活owner正控。两TS AST0、本轮Reveal no-cache lint0/0，其他12新case/原26/defaultQuiet及Pane完整保护、矩阵仍13；实际release/隔离runtime false，待root固定核/原Astra窄peer，无执行授权，plan仍accepted；Sources54/18/三planJSON、历史/out保持。[审查来源与原首条](sources-accept-post-read-authorization-checkpoint.md#e-新l4-dispose合同窄修订2026-10-27)。
+```
+
+本轮仅文档门禁：`generate-docs-status.py --check`实际exit0；docs health实际exit0，555 Markdown/0error/73既有link warnings，4theme docs warning0；只对这4文档read_text回映783原文的只读overlay结果与current完全相同。`git diff --check`实际exit0；原783设计正文与§8 I1报告不改，全部src/三个Sourcesplan/JSON无diff，status200且仅7/12行变、旧raw含LF完整保留，board/checkpoint原783全文前缀保持。未再AST/lint、未运行或写out/cache；固定纯doc SHA交root，不导入移动HEAD。

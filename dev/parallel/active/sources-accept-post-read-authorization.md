@@ -54,3 +54,8 @@ summary: "b2原54与5f4 same-ref窄peer均C0/I0/M0经父采纳、44 I1关；root
 ### E 新L4 dispose合同修订候选（2026-10-27）
 
 固定5fd已获root静态身份接收，原Astra正式源码peer C0/I1/M0；I1只针对新L4将disposed Lens字段误要求undefined。root采纳后另授权仅该case与必要docs：公开记录旧Pane lease、prune后活observer接帧/旧owner不接帧，再放最后observer核host release；保留leaf absent/非hidden/非visible、Lens disposed、latebind0和存活owner正控。Pane完整15270B/90c0719d…、其他12新case/原26/defaultQuiet/Sources四TS+三planJSON与历史/out保护，矩阵仍13；实际L4 release/帧隔离及全部运行资格仍false，待root固定核→原Astra窄peer。审查来源与metadata root-inode/LF schema边界见[plan§8](../../plans/conversation-visible-lease-recovery.md#8-5fd-正式源码-peer-与新-l4-合同修订2026-10-27)及[行动记录](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-新l4-dispose合同窄修订2026-10-27)。本轮仅AST/no-cache lint/docs，无执行授权，plan仍accepted。
+
+
+### E 783窄peer签收（2026-10-27，纯文档）
+
+root已独核固定783（src eefc0c）并正式接收静态候选，采纳原Astra窄peer C0/I0/M0关闭5fd I1；原I1报告/静态原件保持。独立observer真实帧与旧owner隔离、最后observer释放host的源码链获签，L4外test/Pane不变；仅静态13case，所有runtimeObserved=false。详见[plan§9](../../plans/conversation-visible-lease-recovery.md#9-783-窄-peer-签收与下一门2026-10-27纯文档)与[checkpoint](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-783窄peer静态签收2026-10-27纯文档)。本次仅4docs签收，源码仍783，plan accepted；不是formalmerge/green/outputs交付，不升PRD/旧波。唯一lane先完成Sources新源验证，之后另准备旧L1red/新13矩阵/原Reveal/非作者after；无执行授权，不再AST/lint或任何runtime/out/cache写。
