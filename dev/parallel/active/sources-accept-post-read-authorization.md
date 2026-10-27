@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "Sources状态保持；主lease/§12 accepted，安全ff后共用语义工具source-only v1冻结与10次唯一语法通过；源码peer/各包whole peer/release与业务/after待。"
+summary: "Sources与主lease/§12状态保持；固定dfe427语义工具原Astra完整source peer C0/I0/M0/root采纳；独立receipt仅文档，old准备/各包whole peer/release与业务/after待。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -188,3 +188,10 @@ plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执�
 root独立签收accepted文档后另授merge安全ff671→b078，实际0/前后715全保护；8份ff原件随[本次完整源码证据](../../progress/conversation-visible-lease-business-semantic-source-20261028-evidence/INDEX.md)提交。继而另授actual consumed v3的共用语义后继：10改变工具与inert静态profile/schema已freeze，4AST/5MJS/1CJS各一次syntax-only全0，未改observer逐字且不check；两输入overlay/lintText、逐path parent permit/WAL、仅completed供后续guard、双fresh观察与独立qualified union恢复、old2/new13/26/meta和676:11判定全部入完整diff/逆证。10/238 hook计数为静态推导，不是本轮实跑。
 
 本轮只关闭source准备/一次语法门；root独核后交原Astra完整semantic source peer，未组装任何runtime包或授权seals/pins/release/运行。Program、ESLint、compiler/transpile/emit/test/UI/engine及锁/端口均未运行；shared out/.build/node_modules/cache/freeze与原消费工具保持。主lease/§12 accepted、全部业务/非作者默认编辑器after与各包whole peer/root独立release仍待；历史8033 whole.build FAILED/noBusiness及Sources/产品旧D波不改，不同步J/D/main。
+
+
+### 当前：固定dfe427语义source peer正式签收（2026-10-28）
+
+原Astra已读固定dfe427全部11工具＋2JSON及官方reporter/hook/leak依赖，完整semantic peer C0/I0/M0 PASSED；root结合139 Included、13冻结source、11 consumed来源、10完整正逆/gzip与4/5/1唯一syntax raw独核并亲读binding/checker/linter后采纳，无C/I/M须改，§12合同与顺序保持。[独立receipt/归因](../../progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/INDEX.md)只存root转交direct FINAL的摘要，不伪作terminal/message raw；dfe的133 source证据及历史manifest全字节保持。
+
+本轮仅pure-docs签收，source peer门完成，主lease仍accepted/runtime pending。未再syntax或执行工具，未组old/new包或捕seal/pins/release；scratch/pins/输入闭包/native实际起点/whole peer/execution须另授，不借源码通过计业务、故障注入或真实默认编辑器after。root核本独立receipt后才决定old准备；old/new/after当前全pending，不同步J/D/E/main，历史whole.build FAILED/noBusiness与Sources/产品旧D波不改。

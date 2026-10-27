@@ -1,0 +1,9 @@
+{
+  "fixedSourceCommit": "dfe427a2c08372a0df07aab20a9a849de339632f",
+  "all133ExistingSourceEvidenceBytesAndPathsetExact": true,
+  "all13HomeCandidateSourcesExactlyFrozenAnd0444": true,
+  "sourceFreezeBytes": 8235,
+  "sourceFreezeSha256": "c57b711e15a51edb669da07a5ddd2ec50256841100c8d1dd4f5cfab07a9c45d4",
+  "currentSyntaxProgramLintCompileEmitTestUiEngineInvocations": 0,
+  "newRuntimePackageCount": 0
+}

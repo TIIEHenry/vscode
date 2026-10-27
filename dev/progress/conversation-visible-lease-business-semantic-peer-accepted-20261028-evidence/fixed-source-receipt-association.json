@@ -1,0 +1,17 @@
+{
+  "reviewedSourceCommit": "dfe427a2c08372a0df07aab20a9a849de339632f",
+  "reviewedSourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "reviewedIncludedCount": 139,
+  "reviewedSourceEvidenceCount": 133,
+  "sourceContentIndexBytes": 65280,
+  "sourceContentIndexSha256": "339c7767faf9baed87d33b584fcdcb164efa4f201361fde9fe12e524649b5ce2",
+  "sourceFreezeBytes": 8235,
+  "sourceFreezeSha256": "c57b711e15a51edb669da07a5ddd2ec50256841100c8d1dd4f5cfab07a9c45d4",
+  "peerResult": "Original Astra formal C0/I0/M0 PASSED, root adopted",
+  "acceptedReceiptBinding": "This separate pure-docs commit, with fixed parent dfe427; it does not rewrite the source publication manifest",
+  "mainPlanStatus": "accepted",
+  "sourcePeerComplete": true,
+  "runtimePackagePreparationAuthorized": false,
+  "runtimeCredit": false,
+  "afterCredit": false
+}

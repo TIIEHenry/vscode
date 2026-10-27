@@ -1,0 +1,41 @@
+{
+  "fixedParent": "dfe427a2c08372a0df07aab20a9a849de339632f",
+  "documents": [
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "bytes": 66579,
+      "sha256": "29b2b8b86a356ff3f189aba882c8e2fe7c8d0aa16886a9eb5852248e38347a14",
+      "snapshot": "history/dev/plans/conversation-visible-lease-recovery.md.raw"
+    },
+    {
+      "path": "dev/progress/status.md",
+      "bytes": 140029,
+      "sha256": "c622250980062d572e0ce284e17d22dcf7275c51cd5744fa1f3ab4c9c499c01f",
+      "snapshot": "history/dev/progress/status.md.raw"
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "bytes": 16745,
+      "sha256": "6bb149277d0a34d3d289fa98035192ef154357b2bb072fb3a81d8085f15fd6bb",
+      "snapshot": "history/dev/progress/INDEX.md.raw"
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 38951,
+      "sha256": "74b0845af713ceb16e277479d854c0067942ce2fe23f2da5f0a0f2ae66cf6af1",
+      "snapshot": "history/dev/parallel/active/sources-accept-post-read-authorization.md.raw"
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "bytes": 76901,
+      "sha256": "52706c237f89112ded7f919b0c866b882370992a76bb785b4df02961eb6db91b",
+      "snapshot": "history/dev/plans/INDEX.md.raw"
+    },
+    {
+      "path": "docs/architecture/cross-cutting/testing.md",
+      "bytes": 8710,
+      "sha256": "a930a7e3c24f39e82684d2d826b9777ef860dfaea49d32f47232d63074454f07",
+      "snapshot": "history/docs/architecture/cross-cutting/testing.md.raw"
+    }
+  ]
+}

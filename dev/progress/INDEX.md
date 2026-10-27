@@ -13,6 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
+| [Conversation lease语义source peer独立签收](conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/INDEX.md) | 固定dfe427完整原AstraC0/I0/M0/root独核采纳，无C/I/M须改；133 source原件/manifest不动，只关source门，old准备/各包whole peer/release/业务/after待。 |
 | [Conversation lease共用语义工具source-only v1](conversation-visible-lease-business-semantic-source-20261028-evidence/INDEX.md) | 安全ff原件与actual consumed v3完整后继：10工具/2静态contract冻结、4AST/5MJS/1CJS各一次语法0；未运行候选/组包，root独核与原Astra源码peer/各包whole peer/release及业务/after待。 |
 | [Conversation lease双业务包amendment accepted](conversation-visible-lease-business-amendment-accepted-20261027-evidence/INDEX.md) | 固定a761原Astra规则16 C0/I0/M0/root采纳，主plan§12独立accepted、规范保持；仅文档，工具/各新包/业务/after仍待，draft manifest固定a761不追改。 |
 | [Conversation lease双业务包amendment draft](conversation-visible-lease-business-amendment-draft-20261027-evidence/INDEX.md) | 固定a761的原draft与当时规则16待审状态、门禁/原件/manifest全保；后续独立accepted见上行，不拿新live文档重核旧manifest。 |

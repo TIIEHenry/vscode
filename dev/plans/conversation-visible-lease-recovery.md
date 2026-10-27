@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-28
-summary: "主lease/§12仍accepted；共用old/new语义工具source-only v1已冻结、4AST/5MJS/1CJS各一次语法通过；完整语义源码peer及各新包/业务/after待。"
+summary: "主lease/§12仍accepted；固定dfe427共用old/new语义工具经原Astra完整source peer C0/I0/M0/root独核采纳；old准备/每包whole peer/release及业务/after仍待。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
@@ -360,7 +360,7 @@ new只运行一次完整Reveal，实际按固定fullTitles分别结算新增13�
 - [x] 原draft阶段root独立授权纯docs与输入身份固定；原件保持于a761及其证据。
 - [x] 固定a761 → 原Astra正式规则16 C0/I0/M0 → root独核采纳；本节独立accepted，无C/I/M须改，规范设计保持。
 - [x] root另授共用old/new语义工具source-only v1准备；双输入overlay、lintText、双permit/WAL与qualified union恢复源码已固定，仅一次语法检查。
-- [ ] 固定语义工具源码经root独核 → 原Astra完整语义source peer；不借旧v3窄审，不表示runtime正确。
+- [x] 固定dfe427语义工具源码经root独核与原Astra完整source peer C0/I0/M0，root采纳；仅source门完成，不表示包/runtime正确。
 - [ ] old新整包whole-package peer → root独立单次execution release → 合格business red及全恢复由root接收。
 - [ ] 另授new准备并捕新基线 → 独立whole-package peer → 独立execution release → 完整39业务＋meta结算及恢复。
 - [ ] 非作者真实默认编辑器after独立完成，再评估主lease实施状态。
@@ -388,3 +388,14 @@ root随后单独授权actual consumed v3的共用old/new工具source-only后继�
 源码实现六阶段/两发射、canonical双overlay、同copy lintText与type-aware无Program证明即block、逐phase parent permit/WAL、仅合格completed输出供后续guard、两fresh实际loaded及独立qualified恢复union。old2与new13/26/meta完整titles和重复hook多重集10/238来自固定源码/已有10-hook原件的静态推导；238尚无实际观察。driver完整记账与business资格分列，old要求主断言676:11及真实setup控制流、新完整40；各阶段/恢复的guard和poststage计数按六阶段推导，owned身份数来自实际ledger，不沿旧25硬编码。
 
 这只完成source准备与语法门；语义正确性待root独核后交原Astra完整源码peer。未组装old或new runtime包，未生成新seals/pins/release、未运行Program/ESLint/compiler/transpile/emit/官方测试/UI/engine、未probe锁/端口，也未写shared out/.build/node_modules/cache/freeze。三份.ts.raw是inert proof，不是包input copies。fresh715保护只证当前区间，originalWholeBuildProtectionPassed=false的8033历史、failed-body与采样边界保持。每包whole peer、独立root release、old合格全恢复/root接收后另授new准备，以及非作者真实默认编辑器after仍全部pending；主lease不升implemented。
+
+
+### 12.8 固定dfe427语义源码正式peer签收（2026-10-28）
+
+原Astra对dfe427a2c08372a0df07aab20a9a849de339632f完整semantic source peer正式C0/I0/M0 PASSED；root结合139 Included全Git/live/hash、13冻结source、11真实v3来源、10份完整正逆与gzip replay、4AST/5MJS/1CJS唯一语法raw结果独核，并亲读binding/checker/linter后采纳。报告覆盖全部11工具＋2静态JSON及官方reporter/hook/failed-body leak依赖；无C/I/M要改，§12合同与执行顺序不变。
+
+[独立peer accepted证据与归因](../progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/INDEX.md)明确来源是原reviewer direct FINAL经root转交摘要，不是terminal raw或原消息字节。此次receipt关联固定dfe source snapshot；其133份既有source证据（含INDEX/raw/code/freeze/manifest/diff/proofs）全部保持原字节，不为新签收修改历史manifest。上节“peer待”是dfe发布时的停止点，本节只关闭source peer门。
+
+审查认可双immutable身份、canonical双host overlay与实际Program目标文本、lintText/type-aware证明阻断、dual dry/逐path再生同bytes、独立parent grant先于有效intent WAL及单调deadline/私有一次能力、仅独立审计qualified completed供后phase且partial不进official、全部quiet后独立union恢复与单项异常不跳过其余、old2/new13＋26＋meta逐名与10/238hook、真实setup676:11及双actual loaded fresh、最终恢复full guard后才结算业务；ACK不创造恢复权，driver0不替代业务。schema仅inert清单，运行门由逐项绑定断言承担。
+
+source通过不涵盖尚未组装的scratch、pins、输入闭包、seals、native实际起点或release，也不提供fixture/协议故障注入、每syscall、业务或非作者默认编辑器after信用。本轮root只另授pure-docs签收与只读715保护/文档gates/范围commit；source字节不变，不再做syntax/Program/lint/compiler/emit/tests/UI/engine或shared out/cache写入。主plan仍accepted/runtime pending；old包准备及whole peer/execution、old全恢复接收后另授new与after均pending，须root核本独立receipt后另授，当前不组包或捕seal/pins/release，不接J/D/E/main。
