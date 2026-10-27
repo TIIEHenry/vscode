@@ -1,0 +1,26 @@
+{
+  "observedAfter": "3dc45f",
+  "files": [
+    {
+      "path": "committed-complete-tree-audit.json",
+      "bytes": 4676611,
+      "sha256": "1b793c971b1da7298cb41d8b8253ca7f5954a277a1385dff5c197b42718cfc18"
+    },
+    {
+      "path": "execution-boundary-and-read-errors.json",
+      "bytes": 1679,
+      "sha256": "26b98da5ca8bf6bb5158e8f54a06128d5ec4cb8a3f992a91d5116d0afde782b2"
+    },
+    {
+      "path": "tail-boundary/dev/parallel/active/sources-accept-post-read-authorization.md.actual-tail-after-whole-ours.raw",
+      "bytes": 3211,
+      "sha256": "e6ca0b82418d56945df786b531f31d27429fb2f88397440f30347cc76d49693c"
+    },
+    {
+      "path": "tail-boundary/dev/parallel/active/sources-accept-post-read-authorization.md.incoming-independent-tail.raw",
+      "bytes": 3212,
+      "sha256": "5e30294c72075472bf47ee9a6f0b3249d766aab983b6781a234a6be6fba25b1f"
+    }
+  ],
+  "sourceGitOutRuntimeUnchanged": true
+}

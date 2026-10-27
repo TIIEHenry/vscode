@@ -1,0 +1,29 @@
+<<<<<<< HEAD
+### 8033 A静态peer与真实三路接入（2026-10-27）
+
+原Astra对8033默认参数窄验C0/I0/M0经root独核采纳，fb708原C0/I1/M0保留且唯一静态arity I1已关闭；来源为reviewer/root会话消息，不补造raw。实际merge `e92f60426b1b7f731b46f793aab0301ff55a4d67` 双亲acf1aa/8033、src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731`，只Reveal取incoming、其余src全ours，四Sources implemented保持。上方候选待peer等为作者当时记录，现仅A静态peer与真三路已完成；实际B诊断仍待另授。双方历史尾完整保留，旧f33五TS2339/d8e setup失败/E.build guard失败不改；15500当前46fc、旧native256+额外Reveal/freeze4/cache3/257scratch/125mirrors/174f33/28ownedquiet均精确。详见[独立合源证明](../../progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。本次仅Git/docs/保护与proof准备，无新Program/checker/AST/lint/compile/transpile/emit/tests/UI/engine/after或B工具准备/执行。
+
+
+### 8033 诊断唯一运行与新增保护失败（2026-10-27）
+
+[实际结果与全部原件](../../progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)覆盖上方当前待B叙述的最新时点；原授权队列、准备/失败/审查历史不改。固定3497/srcfa6，prep1原C0/I1/M0未获运行接受；prep2窄修经原Astra源码及整包C0/I0/M0/root采纳后，四字段激活与实际一次invocation分别获授。driver exit0、protocol accounted-official-outcome、official runner exit1、15500项out恢复complete分列；2tests中meta过、L1在Pane-open前置失败，674 lease断言未达，不是业务old-red。
+
+root采纳原Astra根因与新增保护两份正式C0/I1/M0，合C0/I2/M0：本地fixture缺IConversationWorkRootMount注入；外层全.build保护失败，6777项仅.build/log的mtime/ctime变化且内容[]。createCompile→reporter.writeBuildLog→.build/log静态链与emit时序支持高置信度解释，但没有syscall/PID或逐阶段快照，不声称唯一writer、确切次数或dry实写。out恢复只含可信journal的Reveal，未写Pane不得修；不把log纳入恢复例外，不回写时间。Sources四窄implemented、lease accepted/overall active、fullCompile=false保持，无业务red/green/coverage/after信用。
+
+- [ ] 另行审查仅Reveal fixture补真实无额外构造依赖的ConversationWorkRootMountModel，保真实EngineRoster/connection/sessionView/Pane/Lens及原时限/断言；不是本轮源码准备授权。
+- [ ] 独立方案审查emitter在dry前隔离reporter输出并将全.build守护纳入停止条件；审查通过、root另授之前不准备新emitter或释放下一次运行。
+=======
+### E lease fixture / emitter隔离方案待规则16（2026-10-27）
+
+root仅释放E固定8033纯docs；[新两片方案](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md)status draft，规则16只读审查待/root裁定。A仅Reveal导入WorkRootMount token/真实无依赖model并在原fixture store本地stub；B只由未来唯一baseline核静态可行性、在编译依赖导入前精确隔离reporter固定log及顶层mkdir，完整src/.build/node_modules逐阶段硬门禁，保单Reveal写/旧Pane双观测/实际outcome/可信journal/全部ownedquiet后仅实际out子集恢复，不扩大白名单或伪修ctime。3497/srcfa6 prep2实际driver0/official1，setup先败未达674；out15500保护及Reveal恢复成立，完整.build保护失败，静态链不称逐次writer。结果目录发布中、E未接入，实际tmp哈希见plan；本轮不源码/编译/lint/AST/module/tests/runtime/toolprep，不动B工位/主WIP，不重跑/after，业务old-red/new-full/真实默认编辑器after仍未来门禁。原看板全文保持前缀。
+
+
+### E lease emitter父许可/恢复资格规则16窄改（2026-10-27）
+
+原Astra对固定b349f6正式C0/I1/M1，root ce09a4只读独核旧工具后采纳；来源为原Astra署名/root直接转发、非terminal raw，[checkpoint](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-lease-emitter父许可与恢复资格规则16窄修订2026-10-27)保完整原plan/正式消息。仅纯docs补[方案§3.3/§4](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md#33-完整保护必须成为阶段停止条件)：启动资格不等于写入permit；parent实际grant绑唯一请求/身份/phase/path/fresh bytes/guard/期限，intent/completed绑permit ID/hash，恢复审计独核已授且intent时有效、grant先于intent、无跨phase/重放/重复消费。缺错未授/事前失效保违例、不由旧spawn推恢复；有效intent的partial/uncertain原资格不因事后阶段结束抹掉。M1在原alive loop用既有单调deadline，parent失败/退出/guard不成则child不无限等/不写，不加第二超时。仍draft，I1/M1关闭待原Astra窄验/root裁定；A/B原范围与旧C0/I2/M0/失败保持，无源码/工具/运行动作，不进入B或动主WIP，不重跑/after。
+
+
+### E lease fixture / emitter窄方案独立accepted（2026-10-27）
+
+原Astra对固定db02c9正式窄验C0/I0/M0，root020951 actual0只读独核采纳、I1/M1仅方案层全关；root仅另授[本窄plan](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md#7-原astra窄验全关与root独立accepted2026-10-27)文档accepted/规则16勾选及必要行动层commit。A源码/B工具准备/运行仍待各自独立授权，交付后停、不进A片。完整db02/b349原plan与原C0/I1/M1/新C0/I0/M0署名/direct-message来源在checkpoint保留；14240B/f2a0仅单篇plan diff，完整5文件57962B/ba5ed63c。root报proof3a14d6已验但E未接入，不称合入。知识层相关叙述已扫，旧lease/产品/PRD/旧D/波及业务old-red/new-full/非作者真实默认编辑器after门禁不升；原件/历史/fresh保护，不源码/工具/运行动作、不重跑/after。
+>>>>>>> ea92e8da62ab9c12da0681867114acbe187c1004

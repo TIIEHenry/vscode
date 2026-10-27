@@ -1,0 +1,21 @@
+{
+  "parent": "80dc02d8a98e1190dd9039c810431c3105786588",
+  "currentSrc": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "includedScope": "six current docs plus only this new proof directory",
+  "incomingPlanWholeBytes": 24338,
+  "incomingPlanSha256": "734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c",
+  "sourceCandidate": "4f2648d936508e300475c9cd52e5855a58c7ed93",
+  "sourceCandidatePeerAdoptedByRoot": true,
+  "sourceCandidateIntegrated": false,
+  "emitterPreparationAuthorized": false,
+  "newRuntimeAuthorized": false,
+  "standaloneProofCommitAuthorized": false,
+  "proofFinalAcceptedByRoot": false,
+  "originalDriverExit": 0,
+  "originalProtocolState": "accounted-official-outcome",
+  "originalOfficialExit": 1,
+  "originalOutRestoration": "complete",
+  "originalWholeBuildProtectionPassed": false,
+  "sourceAndOldNativeUnchanged": true,
+  "onlyExact37CheckExclusionsAuthorized": true
+}

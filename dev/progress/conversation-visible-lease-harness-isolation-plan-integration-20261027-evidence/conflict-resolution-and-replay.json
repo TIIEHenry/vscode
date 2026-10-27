@@ -1,0 +1,565 @@
+{
+  "capturedAtUtc": "2026-10-27T12:11:24.276108+00:00",
+  "files": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "style": "default",
+      "canonical": {
+        "path": "conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+        "bytes": 28891,
+        "sha256": "cc214ba011232004a82591ae480d3254b4d8cfac441a59c2f2851950954652dd"
+      },
+      "outside": [
+        {
+          "path": "conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/outside-00.raw",
+          "bytes": 22871,
+          "sha256": "fc7df5ed295e90056176f710beac44b8269c94a04de49005d0807301c1062a17"
+        },
+        {
+          "path": "conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/outside-01.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "blocks": [
+        {
+          "block": 1,
+          "canonicalStartLine": 114,
+          "canonicalEndLine": 142,
+          "choice": "preserve complete ours block, one LF, complete independent incoming tail",
+          "raw": {
+            "full": {
+              "path": "conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+              "bytes": 6020,
+              "sha256": "e9e4c4a51d504c0069fd748c2afc87b38a593d2e4ed04ad97c030e8ee254ef09"
+            },
+            "ours": {
+              "path": "conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-ours.raw",
+              "bytes": 2740,
+              "sha256": "88f546a7e192f8b9ea117b98340fc16681205124dc8711c780b24ab844be5cca"
+            },
+            "incoming": {
+              "path": "conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-incoming.raw",
+              "bytes": 3210,
+              "sha256": "bcfc054e4a2292534f3d19b0b17c6e5c3a6636bc5ca516ff1c6bce810a7c7003"
+            },
+            "resolution": {
+              "path": "conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-resolution.raw",
+              "bytes": 5951,
+              "sha256": "513bad9c8a1d0fb4466f7a5db1cba3ded0897f9a987727b66ad7974fbd2fcadd"
+            }
+          }
+        }
+      ],
+      "replay": {
+        "path": "conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/replayed.raw",
+        "bytes": 28822,
+        "sha256": "28319ec8e41ce7b0305c594e278e6eee17d262c021dbd371a74bfdb15fa208ca"
+      },
+      "replayEqualsWholeResolvedDocument": true
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "style": "diff3",
+      "canonical": {
+        "path": "conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+        "bytes": 28942,
+        "sha256": "b865a51434764c66e203b98b101c0d69d55836026aecbdd9b42a360cb19c9c1a"
+      },
+      "outside": [
+        {
+          "path": "conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/outside-00.raw",
+          "bytes": 22869,
+          "sha256": "84bef948e19829d95ab18d84fb8605a88d61bd0a33fc88786328b4dc5f67bbd9"
+        },
+        {
+          "path": "conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/outside-01.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "blocks": [
+        {
+          "block": 1,
+          "canonicalStartLine": 112,
+          "canonicalEndLine": 145,
+          "choice": "resolution derived using independently parsed diff3 outside anchors; whole-document replay exact",
+          "raw": {
+            "full": {
+              "path": "conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+              "bytes": 6073,
+              "sha256": "d5a484600c2749ca1e810cfac3076eb7c3879403a5dd2d5c4c05e32e21e1b168"
+            },
+            "ours": {
+              "path": "conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-ours.raw",
+              "bytes": 2742,
+              "sha256": "c92d98a9a7570a1044c69a7f9ad6d8bb93b0353298a3e9b30291ee6253962af9"
+            },
+            "base": {
+              "path": "conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-base.raw",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "incoming": {
+              "path": "conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-incoming.raw",
+              "bytes": 3212,
+              "sha256": "5e30294c72075472bf47ee9a6f0b3249d766aab983b6781a234a6be6fba25b1f"
+            },
+            "resolution": {
+              "path": "conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-resolution.raw",
+              "bytes": 5953,
+              "sha256": "294511fd19dbf511cda91790e49841757b76dcae86ecf5095d8f061f5eac7003"
+            }
+          }
+        }
+      ],
+      "replay": {
+        "path": "conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/replayed.raw",
+        "bytes": 28822,
+        "sha256": "28319ec8e41ce7b0305c594e278e6eee17d262c021dbd371a74bfdb15fa208ca"
+      },
+      "replayEqualsWholeResolvedDocument": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "style": "default",
+      "canonical": {
+        "path": "conflict-replays/default/dev/plans/INDEX.md/canonical.raw",
+        "bytes": 78646,
+        "sha256": "f8fea620c7175d5f1296e35ccf54f23e035a1f537da10db846addbe5b82a6a4c"
+      },
+      "outside": [
+        {
+          "path": "conflict-replays/default/dev/plans/INDEX.md/outside-00.raw",
+          "bytes": 2070,
+          "sha256": "fda2cd3b17030daa6284aac9318fa9ed7c0592059d6ae6a3eb1fab288633827f"
+        },
+        {
+          "path": "conflict-replays/default/dev/plans/INDEX.md/outside-01.raw",
+          "bytes": 72067,
+          "sha256": "65fb6e36788d3053de964aaab2d68ad49412cf075e2291e593c18b366a67b850"
+        }
+      ],
+      "blocks": [
+        {
+          "block": 1,
+          "canonicalStartLine": 17,
+          "canonicalEndLine": 31,
+          "choice": "incoming unique accepted plan row plus complete ours six rows; preserve four Sources implemented and current descriptions",
+          "raw": {
+            "full": {
+              "path": "conflict-replays/default/dev/plans/INDEX.md/block-01-full.raw",
+              "bytes": 4509,
+              "sha256": "44d7de2ad7c9efdf2e587f36bc9b0ddc504e0ed8605e0b26da5f4527dc02add9"
+            },
+            "ours": {
+              "path": "conflict-replays/default/dev/plans/INDEX.md/block-01-ours.raw",
+              "bytes": 2400,
+              "sha256": "8581922e34351348651f01e595149514bb77d71c21461c8941a363c30493cee0"
+            },
+            "incoming": {
+              "path": "conflict-replays/default/dev/plans/INDEX.md/block-01-incoming.raw",
+              "bytes": 2039,
+              "sha256": "f3cf59a9332051dc3b30a3428bf163d6fe13acc755b65d99f1af4e49bb95c79f"
+            },
+            "resolution": {
+              "path": "conflict-replays/default/dev/plans/INDEX.md/block-01-resolution.raw",
+              "bytes": 2740,
+              "sha256": "4e2975a05bd828bcec7f9d0e6f0247a1cfda4d19b1f7ced72d34d1a1485588af"
+            }
+          }
+        }
+      ],
+      "replay": {
+        "path": "conflict-replays/default/dev/plans/INDEX.md/replayed.raw",
+        "bytes": 76877,
+        "sha256": "0389b8d85e81533f83322f277c4bd07bfb2594b0a6b283aa5966117e2c0d6c2f"
+      },
+      "replayEqualsWholeResolvedDocument": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "style": "diff3",
+      "canonical": {
+        "path": "conflict-replays/diff3/dev/plans/INDEX.md/canonical.raw",
+        "bytes": 80394,
+        "sha256": "279cac0a65547dd3ec7fbffef95ab34a40e88d31b7fd3dd934b709bb3fae3f80"
+      },
+      "outside": [
+        {
+          "path": "conflict-replays/diff3/dev/plans/INDEX.md/outside-00.raw",
+          "bytes": 2070,
+          "sha256": "fda2cd3b17030daa6284aac9318fa9ed7c0592059d6ae6a3eb1fab288633827f"
+        },
+        {
+          "path": "conflict-replays/diff3/dev/plans/INDEX.md/outside-01.raw",
+          "bytes": 72067,
+          "sha256": "65fb6e36788d3053de964aaab2d68ad49412cf075e2291e593c18b366a67b850"
+        }
+      ],
+      "blocks": [
+        {
+          "block": 1,
+          "canonicalStartLine": 17,
+          "canonicalEndLine": 37,
+          "choice": "resolution derived using independently parsed diff3 outside anchors; whole-document replay exact",
+          "raw": {
+            "full": {
+              "path": "conflict-replays/diff3/dev/plans/INDEX.md/block-01-full.raw",
+              "bytes": 6257,
+              "sha256": "ec08e10953661a05a0f0c8336b4773be18b9e9b802b20adb59cbb7d1476398b8"
+            },
+            "ours": {
+              "path": "conflict-replays/diff3/dev/plans/INDEX.md/block-01-ours.raw",
+              "bytes": 2400,
+              "sha256": "8581922e34351348651f01e595149514bb77d71c21461c8941a363c30493cee0"
+            },
+            "base": {
+              "path": "conflict-replays/diff3/dev/plans/INDEX.md/block-01-base.raw",
+              "bytes": 1699,
+              "sha256": "e09705664c34864f27b23ccb85ed6ee3e2a7b6e12161f79bfdab470a5b85daff"
+            },
+            "incoming": {
+              "path": "conflict-replays/diff3/dev/plans/INDEX.md/block-01-incoming.raw",
+              "bytes": 2039,
+              "sha256": "f3cf59a9332051dc3b30a3428bf163d6fe13acc755b65d99f1af4e49bb95c79f"
+            },
+            "resolution": {
+              "path": "conflict-replays/diff3/dev/plans/INDEX.md/block-01-resolution.raw",
+              "bytes": 2740,
+              "sha256": "4e2975a05bd828bcec7f9d0e6f0247a1cfda4d19b1f7ced72d34d1a1485588af"
+            }
+          }
+        }
+      ],
+      "replay": {
+        "path": "conflict-replays/diff3/dev/plans/INDEX.md/replayed.raw",
+        "bytes": 76877,
+        "sha256": "0389b8d85e81533f83322f277c4bd07bfb2594b0a6b283aa5966117e2c0d6c2f"
+      },
+      "replayEqualsWholeResolvedDocument": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "style": "default",
+      "canonical": {
+        "path": "conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+        "bytes": 271172,
+        "sha256": "052048f84656bcbb92d016eb6f0efb9d1f3508d5b15270d061dcb87634f73622"
+      },
+      "outside": [
+        {
+          "path": "conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-00.raw",
+          "bytes": 165773,
+          "sha256": "4e56299268d9fe950a866568473e3ac4dfc34afc5599957f263ea99d8a2506d6"
+        },
+        {
+          "path": "conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-01.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "blocks": [
+        {
+          "block": 1,
+          "canonicalStartLine": 1036,
+          "canonicalEndLine": 1789,
+          "choice": "preserve complete ours block, one LF, complete independent incoming tail",
+          "raw": {
+            "full": {
+              "path": "conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+              "bytes": 105399,
+              "sha256": "99c593ecd6bc222388b84eeb1e426a7fe5db5a601eba308029a6e103b3b7dc48"
+            },
+            "ours": {
+              "path": "conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-ours.raw",
+              "bytes": 9951,
+              "sha256": "f3decf6cfb6ce568ca34110af02981599d3f8c601b5fde4f1d1a7e9f766b9810"
+            },
+            "incoming": {
+              "path": "conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-incoming.raw",
+              "bytes": 95378,
+              "sha256": "2f02d1a1c55068fc049f6d0afc654a23467079402dbecf49aba7ef44ce338dfc"
+            },
+            "resolution": {
+              "path": "conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-resolution.raw",
+              "bytes": 105330,
+              "sha256": "dc44e5565027d96598b7bc75f73f01267ee96305450ffd3e968d8a96c00f6cec"
+            }
+          }
+        }
+      ],
+      "replay": {
+        "path": "conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/replayed.raw",
+        "bytes": 271103,
+        "sha256": "3be8df59e8de7bdc9fa770e1e0d9fa433c9ea0aa35c770db3b109cc86cd6a574"
+      },
+      "replayEqualsWholeResolvedDocument": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "style": "diff3",
+      "canonical": {
+        "path": "conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+        "bytes": 271223,
+        "sha256": "1d43efaad4161b2b1b787a76b9e98f558c867d03d94969a8c1cb223c9c44b35d"
+      },
+      "outside": [
+        {
+          "path": "conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-00.raw",
+          "bytes": 165771,
+          "sha256": "2f0a6b8e5353cad8096b5bf53dfd7bb5f605158b60724dfaf96c48bcddc4134d"
+        },
+        {
+          "path": "conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-01.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "blocks": [
+        {
+          "block": 1,
+          "canonicalStartLine": 1034,
+          "canonicalEndLine": 1792,
+          "choice": "resolution derived using independently parsed diff3 outside anchors; whole-document replay exact",
+          "raw": {
+            "full": {
+              "path": "conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+              "bytes": 105452,
+              "sha256": "153210e5d81d96ceafe90d1de0ded77322eb7343d63ee0f37aac7504d3791d02"
+            },
+            "ours": {
+              "path": "conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-ours.raw",
+              "bytes": 9953,
+              "sha256": "a7340903de5f5541c395b2a2fd04aa60c92d67d046749cc691662a82813429d5"
+            },
+            "base": {
+              "path": "conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-base.raw",
+              "bytes": 0,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "incoming": {
+              "path": "conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-incoming.raw",
+              "bytes": 95380,
+              "sha256": "6e1f499232575e0063a786c9991564c0566b5356239c1e48c6f8b132fdcd6df5"
+            },
+            "resolution": {
+              "path": "conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-resolution.raw",
+              "bytes": 105332,
+              "sha256": "cfb647760af35bc7e86aee15a127d84c9060c93985c4a6fe60b61c62c92b143d"
+            }
+          }
+        }
+      ],
+      "replay": {
+        "path": "conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/replayed.raw",
+        "bytes": 271103,
+        "sha256": "3be8df59e8de7bdc9fa770e1e0d9fa433c9ea0aa35c770db3b109cc86cd6a574"
+      },
+      "replayEqualsWholeResolvedDocument": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "style": "default",
+      "canonical": {
+        "path": "conflict-replays/default/dev/progress/status.md/canonical.raw",
+        "bytes": 141575,
+        "sha256": "d7706b86b02f369127cc128bb9167448c4675a2177410f03a8b18caf7f49ce1b"
+      },
+      "outside": [
+        {
+          "path": "conflict-replays/default/dev/progress/status.md/outside-00.raw",
+          "bytes": 94,
+          "sha256": "62d12480af4e2aa308f080ba0023c225caa5a0b1b0ca7abd979ed768b47608fc"
+        },
+        {
+          "path": "conflict-replays/default/dev/progress/status.md/outside-01.raw",
+          "bytes": 434,
+          "sha256": "dd019ee2a14b18d5f12be6c2d99435ee7a9e6742ff436966ce4917353ae90fca"
+        },
+        {
+          "path": "conflict-replays/default/dev/progress/status.md/outside-02.raw",
+          "bytes": 138245,
+          "sha256": "745b878b59a0a9474e4d41b28a2b376cf044fce1d2564976d151f44a82d1ee4f"
+        }
+      ],
+      "blocks": [
+        {
+          "block": 1,
+          "canonicalStartLine": 7,
+          "canonicalEndLine": 11,
+          "choice": "current combined summary preserves consumed diagnostic failure and accepted plan-only integration",
+          "raw": {
+            "full": {
+              "path": "conflict-replays/default/dev/progress/status.md/block-01-full.raw",
+              "bytes": 529,
+              "sha256": "1acca3841309378ac674ac5526323f18d8695631699e0d222494e65ef59475fd"
+            },
+            "ours": {
+              "path": "conflict-replays/default/dev/progress/status.md/block-01-ours.raw",
+              "bytes": 243,
+              "sha256": "a674c0427ed844d1d8ef98610035ba19ab2b2f87ada556757d5dd4324bc763d8"
+            },
+            "incoming": {
+              "path": "conflict-replays/default/dev/progress/status.md/block-01-incoming.raw",
+              "bytes": 216,
+              "sha256": "5c3e68c183b32f59589e282b8f367861f05b6923e3c885233ccee9edbba58f48"
+            },
+            "resolution": {
+              "path": "conflict-replays/default/dev/progress/status.md/block-01-resolution.raw",
+              "bytes": 286,
+              "sha256": "e019b9a3efe895a463f874416d0c93917099a136d8dabc461745e89bfe423963"
+            }
+          }
+        },
+        {
+          "block": 2,
+          "canonicalStartLine": 16,
+          "canonicalEndLine": 20,
+          "choice": "current first entry combines ours actual failure with fixed ea92 accepted-only plan; both full parent first entries preserved independently with LF",
+          "raw": {
+            "full": {
+              "path": "conflict-replays/default/dev/progress/status.md/block-02-full.raw",
+              "bytes": 2273,
+              "sha256": "7f327b23d6b3ab3ab5cd759f8c268791419d69a8a2b5c37aeba9209173eef6ef"
+            },
+            "ours": {
+              "path": "conflict-replays/default/dev/progress/status.md/block-02-ours.raw",
+              "bytes": 1114,
+              "sha256": "894cd08c10f663b8ebafee9b11c1eb05b6017cfc5f3346a3770d34deb5ed6806"
+            },
+            "incoming": {
+              "path": "conflict-replays/default/dev/progress/status.md/block-02-incoming.raw",
+              "bytes": 1089,
+              "sha256": "16526c9b11d49855659f4f3e9d71e630eeadfa0c30ce036189a7da240590c9fc"
+            },
+            "resolution": {
+              "path": "conflict-replays/default/dev/progress/status.md/block-02-resolution.raw",
+              "bytes": 1599,
+              "sha256": "aea5396f432b7e3dd3c0bb5abbca2adde074eb018ba36305304b01d34e496c13"
+            }
+          }
+        }
+      ],
+      "replay": {
+        "path": "conflict-replays/default/dev/progress/status.md/replayed.raw",
+        "bytes": 140658,
+        "sha256": "7070728d6db1d6974f757d448c0424e6def820a9ae1feb6a3efac56326c36f98"
+      },
+      "replayEqualsWholeResolvedDocument": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "style": "diff3",
+      "canonical": {
+        "path": "conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+        "bytes": 143096,
+        "sha256": "eb1b9b036ae2b7d9bb5d729a9ce41f145b5e5cf6e38f5cc70fc693be5717fca9"
+      },
+      "outside": [
+        {
+          "path": "conflict-replays/diff3/dev/progress/status.md/outside-00.raw",
+          "bytes": 94,
+          "sha256": "62d12480af4e2aa308f080ba0023c225caa5a0b1b0ca7abd979ed768b47608fc"
+        },
+        {
+          "path": "conflict-replays/diff3/dev/progress/status.md/outside-01.raw",
+          "bytes": 434,
+          "sha256": "dd019ee2a14b18d5f12be6c2d99435ee7a9e6742ff436966ce4917353ae90fca"
+        },
+        {
+          "path": "conflict-replays/diff3/dev/progress/status.md/outside-02.raw",
+          "bytes": 138245,
+          "sha256": "745b878b59a0a9474e4d41b28a2b376cf044fce1d2564976d151f44a82d1ee4f"
+        }
+      ],
+      "blocks": [
+        {
+          "block": 1,
+          "canonicalStartLine": 7,
+          "canonicalEndLine": 13,
+          "choice": "resolution derived using independently parsed diff3 outside anchors; whole-document replay exact",
+          "raw": {
+            "full": {
+              "path": "conflict-replays/diff3/dev/progress/status.md/block-01-full.raw",
+              "bytes": 804,
+              "sha256": "d8f0d206c4e4a8206a8aa7c222b4c0ea4183670c2b5292eee059d6e87580b077"
+            },
+            "ours": {
+              "path": "conflict-replays/diff3/dev/progress/status.md/block-01-ours.raw",
+              "bytes": 243,
+              "sha256": "a674c0427ed844d1d8ef98610035ba19ab2b2f87ada556757d5dd4324bc763d8"
+            },
+            "base": {
+              "path": "conflict-replays/diff3/dev/progress/status.md/block-01-base.raw",
+              "bytes": 226,
+              "sha256": "37e55bda6a3c86eddd422958605187817d862629a36965a9a2642fd010d55c89"
+            },
+            "incoming": {
+              "path": "conflict-replays/diff3/dev/progress/status.md/block-01-incoming.raw",
+              "bytes": 216,
+              "sha256": "5c3e68c183b32f59589e282b8f367861f05b6923e3c885233ccee9edbba58f48"
+            },
+            "resolution": {
+              "path": "conflict-replays/diff3/dev/progress/status.md/block-01-resolution.raw",
+              "bytes": 286,
+              "sha256": "e019b9a3efe895a463f874416d0c93917099a136d8dabc461745e89bfe423963"
+            }
+          }
+        },
+        {
+          "block": 2,
+          "canonicalStartLine": 18,
+          "canonicalEndLine": 24,
+          "choice": "resolution derived using independently parsed diff3 outside anchors; whole-document replay exact",
+          "raw": {
+            "full": {
+              "path": "conflict-replays/diff3/dev/progress/status.md/block-02-full.raw",
+              "bytes": 3519,
+              "sha256": "3bfa7dd3745e7474bd71a5ec898692a9010f83b825b3f243efd9822a624e39dd"
+            },
+            "ours": {
+              "path": "conflict-replays/diff3/dev/progress/status.md/block-02-ours.raw",
+              "bytes": 1114,
+              "sha256": "894cd08c10f663b8ebafee9b11c1eb05b6017cfc5f3346a3770d34deb5ed6806"
+            },
+            "base": {
+              "path": "conflict-replays/diff3/dev/progress/status.md/block-02-base.raw",
+              "bytes": 1197,
+              "sha256": "2a1b8f8f06dd8232a28a85a01a6ec1e0846140a27a0567103e75b061fef69e43"
+            },
+            "incoming": {
+              "path": "conflict-replays/diff3/dev/progress/status.md/block-02-incoming.raw",
+              "bytes": 1089,
+              "sha256": "16526c9b11d49855659f4f3e9d71e630eeadfa0c30ce036189a7da240590c9fc"
+            },
+            "resolution": {
+              "path": "conflict-replays/diff3/dev/progress/status.md/block-02-resolution.raw",
+              "bytes": 1599,
+              "sha256": "aea5396f432b7e3dd3c0bb5abbca2adde074eb018ba36305304b01d34e496c13"
+            }
+          }
+        }
+      ],
+      "replay": {
+        "path": "conflict-replays/diff3/dev/progress/status.md/replayed.raw",
+        "bytes": 140658,
+        "sha256": "7070728d6db1d6974f757d448c0424e6def820a9ae1feb6a3efac56326c36f98"
+      },
+      "replayEqualsWholeResolvedDocument": true
+    }
+  ],
+  "defaultBlockCount": 5,
+  "diff3BlockCount": 5,
+  "resolvedFiles": 4,
+  "incomingPlanWholeByteExact": true,
+  "planBytes": 24338,
+  "planSha256": "734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c",
+  "statusLines": 200,
+  "statusOnlyOursLinesChanged": [
+    7,
+    12
+  ],
+  "runtimeExecuted": false,
+  "sourceOrEmitterPreparation": false
+}

@@ -1,0 +1,47 @@
+{
+  "files": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "incomingIndependentTailBytes": 3212,
+      "actualTailAfterWholeOursBytes": 3211,
+      "incomingLeadingLFs": 2,
+      "actualLeadingLFs": 1,
+      "wholeOursPrefixExact": true,
+      "allNonLeadingLFTailBytesExact": true,
+      "rootObservationSource": "root direct message c514b4/092b0c actual0; original terminal transcript not supplied",
+      "incoming-independent-tail": {
+        "path": "tail-boundary/dev/parallel/active/sources-accept-post-read-authorization.md.incoming-independent-tail.raw",
+        "bytes": 3212,
+        "sha256": "5e30294c72075472bf47ee9a6f0b3249d766aab983b6781a234a6be6fba25b1f"
+      },
+      "actual-tail-after-whole-ours": {
+        "path": "tail-boundary/dev/parallel/active/sources-accept-post-read-authorization.md.actual-tail-after-whole-ours.raw",
+        "bytes": 3211,
+        "sha256": "e6ca0b82418d56945df786b531f31d27429fb2f88397440f30347cc76d49693c"
+      }
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "incomingIndependentTailBytes": 95380,
+      "actualTailAfterWholeOursBytes": 95379,
+      "incomingLeadingLFs": 2,
+      "actualLeadingLFs": 1,
+      "wholeOursPrefixExact": true,
+      "allNonLeadingLFTailBytesExact": true,
+      "rootObservationSource": "root direct message c514b4/092b0c actual0; original terminal transcript not supplied",
+      "incoming-independent-tail": {
+        "path": "tail-boundary/dev/progress/sources-accept-post-read-authorization-checkpoint.md.incoming-independent-tail.raw",
+        "bytes": 95380,
+        "sha256": "6e1f499232575e0063a786c9991564c0566b5356239c1e48c6f8b132fdcd6df5"
+      },
+      "actual-tail-after-whole-ours": {
+        "path": "tail-boundary/dev/progress/sources-accept-post-read-authorization-checkpoint.md.actual-tail-after-whole-ours.raw",
+        "bytes": 95379,
+        "sha256": "d52a6fc6e836bb7f2f98758f50af96ab90efdb8e9c8faba245f4025d45c6c31d"
+      }
+    }
+  ],
+  "defaultBlockOursPlusLFPlusIncomingExact": true,
+  "defaultAndDiff3WholeReplaysExact": true,
+  "noAmendRequired": true
+}

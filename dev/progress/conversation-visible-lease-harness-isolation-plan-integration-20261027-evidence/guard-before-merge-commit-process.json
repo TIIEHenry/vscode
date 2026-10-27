@@ -1,0 +1,14 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "-c",
+    "<inline stdlib/Git read-only guard saved raw>"
+  ],
+  "actualExitCode": 0,
+  "stdoutBytes": 3486,
+  "stdoutSha256": "f9a0e3a12c7ccd4e0e8ce3313920774eb616d61df97330cb7349fed029f65bd5",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

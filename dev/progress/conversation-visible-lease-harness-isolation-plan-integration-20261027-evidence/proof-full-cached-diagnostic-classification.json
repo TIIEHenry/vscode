@@ -1,0 +1,19 @@
+{
+  "types": {
+    "leftover conflict marker": 120,
+    "new blank line at EOF.": 4,
+    "trailing whitespace.": 8
+  },
+  "allDiagnosticsConfinedToCurrentProof": true,
+  "noCurrentSixDocDiagnostics": true,
+  "originalFirstFullActualExit": 2,
+  "originalFirstFullStdoutBytes": 24630,
+  "originalFirstFullStdoutSha256": "863bf3bd4f7618afd560289fc263bf9abc744cad89d8b35e7ef4e0c2ceb41af8",
+  "secondFullActualExit": 2,
+  "secondFullStdoutBytes": 25262,
+  "secondFullStdoutSha256": "c87a17e738a3f16672c9b5948fcb05811e1cbbbc97f127fcaefe55b2c74b89a1",
+  "secondFullDiagnosticCount": 132,
+  "secondFullDiagnosticPathCount": 37,
+  "rootExactScopeAuthorizationPending": false,
+  "exactAuthorization": "exact-scoped-exclusion-authorization.json"
+}

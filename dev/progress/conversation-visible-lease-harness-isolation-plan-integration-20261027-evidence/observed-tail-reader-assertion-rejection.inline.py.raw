@@ -1,0 +1,82 @@
+from pathlib import Path
+import subprocess,json,hashlib,datetime
+R=Path.cwd();P=R/"dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence"
+def js(n,d):(P/n).write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n")
+head="80dc02d8a98e1190dd9039c810431c3105786588";audit=json.loads((P/"prospective-complete-tree-audit.json").read_bytes())
+actual={}
+for raw in subprocess.check_output(["git","ls-tree","-r","-z",head]).split(b"\0"):
+ if raw:
+  h,p=raw.split(b"\t",1);mode,kind,blob=h.decode().split();actual[p.decode()]=dict(mode=mode,type=kind,blob=blob)
+assert actual=={r["path"]:r["actual"] for r in audit["files"] if r["actual"] is not None}
+js("committed-complete-tree-audit.json",dict(commit=head,parents=["3a14d6ed28c03f54668ae06ea47f45bc23b8f171","ea92e8da62ab9c12da0681867114acbe187c1004"],tree=audit["prospectiveTree"],src=audit["allSrcOurs"],allPaths=actual,allModeTypeBlobExactlyProspective=True,union=1931,uncontested=1927,outsideUnion=22242,changedFromFirstParentExactlyFiveDocs=True,proofNotInMerge=True))
+error="Script error:\nSyntaxError: Invalid or unexpected token\n"
+(P/"observed-orchestrator-js-parse-rejection.raw.txt").write_text(error)
+js("execution-boundary-and-read-errors.json",dict(noSourceAIntegration=True,noMovingEBranchHeadRead=True,noEmitterPreparation=True,noProgramLintCompileTestsRuntimeAfter=True,noPushMainSyncResetRestoreStashCleanAmendNoVerify=True,newShellReaderOrGuardFailures=[],newOrchestratorParseRejections=[dict(tool="functions.exec",errorRaw="observed-orchestrator-js-parse-rejection.raw.txt",reason="Markdown backticks inside JavaScript template literal",nestedShellToolLaunched=False,filesystemWrittenByRejectedCall=False,correctedBy="remove backticks from proof INDEX text; rerun only proof-writing orchestration")],actualMergeExit1ExpectedFourDocsFiveBlocks=True,canonicalDefaultExitCounts=[1,1,1,2],canonicalDiff3ExitCounts=[1,1,1,2],actualMergeAndCanonicalConflictsNotProductOrDriverFailures=True,originalOfficialExitCode=1,originalDriverExitCode=0,originalProtocolState="accounted-official-outcome",originalOutRestoration="complete",originalRunWholeBuildProtectionPassed=False))
+tailrows=[]
+for name,expected_before,expected_after in [("dev/parallel/active/sources-accept-post-read-authorization.md",3212,3211),("dev/progress/sources-accept-post-read-authorization-checkpoint.md",95380,95379)]:
+ base=(P/"three-way-inputs/base"/(name+".raw")).read_bytes();ours=(P/"three-way-inputs/ours"/(name+".raw")).read_bytes();incoming=(P/"three-way-inputs/incoming"/(name+".raw")).read_bytes();resolved=(P/"resolved-documents"/(name+".raw")).read_bytes()
+ # Incoming only changes frontmatter summary outside this appended independent tail.
+ # Determine tail by the first independent E section and include its leading blank LF.
+ marker=b"### E lease fixture / emitter"
+ pos=incoming.index(marker);tail=incoming[pos:]
+ # Independent tail starts immediately after unchanged base body's last non-LF.
+ last=base.rstrip(b"\n");body_start=incoming.find(last[-500:]);assert body_start>=0
+ endbase=body_start+len(last[-500:]);independent=incoming[endbase:]
+ # Canonical prefix preserves complete ours, which already contributes a terminal LF.
+ actualtail=resolved[len(ours):]
+ assert resolved.startswith(ours)
+ assert len(independent)==expected_before and len(actualtail)==expected_after,(name,len(independent),len(actualtail))
+ assert independent.startswith(b"\n\n") and not independent.startswith(b"\n\n\n")
+ assert actualtail.startswith(b"\n") and not actualtail.startswith(b"\n\n")
+ assert independent.lstrip(b"\n")==actualtail.lstrip(b"\n")
+ row=dict(path=name,incomingIndependentTailBytes=len(independent),actualTailAfterWholeOursBytes=len(actualtail),incomingLeadingLFs=2,actualLeadingLFs=1,wholeOursPrefixExact=True,allNonLeadingLFTailBytesExact=True,rootObservationSource="root direct message c514b4/092b0c actual0; original terminal transcript not supplied")
+ for label,b in [("incoming-independent-tail",independent),("actual-tail-after-whole-ours",actualtail)]:
+  p=P/"tail-boundary"/(name+"."+label+".raw");p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b);row[label]=dict(path=p.relative_to(P).as_posix(),bytes=len(b),sha256=hashlib.sha256(b).hexdigest())
+ tailrows.append(row)
+js("independent-tail-leading-lf-boundary.json",dict(files=tailrows,defaultBlockOursPlusLFPlusIncomingExact=True,defaultAndDiff3WholeReplaysExact=True,noAmendRequired=True))
+js("root-fixed-conflict-review-attribution.json",dict(source="/root direct messages; no original reviewer terminal raw supplied",fixedConflictReview=dict(rootObservation="c514b4 actual0",accepted=True,coverage="80dc parents/tree/src; 13 complete Git raws; 8 default/diff3 reruns; 10 blocks sides/base/outside/resolution; 8 whole document replays; index incoming new row plus whole ours; status7/12; whole incoming plan"),leadingLFBoundary=dict(rootObservation="092b0c actual0",accepted=True,boardTail=[3212,3211],checkpointTail=[95380,95379],leadingLF=[2,1],allNonLeadingLFContentWholeExact=True),notFinalPublicationAcceptance=True,standaloneProofCommitAuthorized=False))
+text="""---
+title: "Conversation fixture / emitter窄方案：真实三路接入证明"
+type: reference
+status: active
+phase: M7
+updated: 2026-10-27
+summary: "80dc02严格双亲3a14/ea92、base8033/srcfa6；1931矩阵/1927无争议/外22242、四docs五块双canonical全文重放精确；只方案接入，原诊断/全.build FAILED不改，A片候选未接入、B准备/运行待授。"
+---
+
+# Conversation fixture / emitter窄方案：真实三路接入证明
+
+实际merge为80dc02d8a98e1190dd9039c810431c3105786588，严格双亲3a14d6ed28c03f54668ae06ea47f45bc23b8f171与固定ea92e8da62ab9c12da0681867114acbe187c1004，真实base为8033a3c23ba2b0550e817c9cc4fdebf4d12a4478，tree为87926c712ca2ea60686a20a70ab933133c5df5f4。全部src保持ours fa6f7fe9f339963dd9f4190f44aa17e45f6ad731；incoming的src f49b只是其base来源，本次未替换。第一亲实际只五docs，proof未进merge。本目录及六份当前文档另行准备并暂存，等待root检查和单独proof commit授权，未提交proof、未push或同步main。
+
+[新accepted方案](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md)整篇24338B / SHA-256 734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c与固定incoming逐字相同；从第1节至第5节前亦整字节等于reviewed db02。原Astra b349 C0/I1/M1 → db02窄验C0/I0/M0 → root020951采纳 → ea92仅accepted与规则16签收，不由方案状态取得工具或运行许可。原reviewer署名/全文来自incoming文本与root直接消息，未取得原终端transcript，不伪造。
+
+[当前授权边界](current-authorization-boundary.json)：固定4f264源码候选已另获A片授权、原Astra C0/I0/M0经root02ff独核采纳，但未接入本次srcfa6。merge状态首条沿用先前“源码待授”时态，已在原merge/canonical原样保留；本独立docs澄清当前候选已peer未接入，B准备和运行待另授。incoming plan当时的历史授权叙述整篇不改。无新运行成绩，旧lease accepted、Sources四窄implemented、产品/PRD/overall active不升。
+
+## 固定输入、实际合源与完整重放
+
+- [固定ref/tree](fixed-input-identities.json)、[fresh union全矩阵](premerge-path-matrix.json)、[范围外逐项矩阵](outside-union-paths.json)：oursChanged1930、incomingChanged5、shared4、union1931、无争议1927、外22242。[prospective完整树](prospective-complete-tree-audit.json)和[committed完整树](committed-complete-tree-audit.json)逐项mode/type/blob精确；incoming未改的所有路径及全部src均ours，无额外追踪路径。
+- [三方raw inventory](three-way-inputs-inventory.json)、[reviewed db02整篇](reviewed-db02-plan.raw)、[canonical实际调用与退出](canonical-merge-results.json)、[真实merge调用](merge-invocation.json)、[stdout](merge.stdout.log)、[stderr](merge.stderr.log)、[原unmerged index](actual-unmerged-index.txt)：真实merge --no-ff --no-commit固定ea92 exit1，四docs/五blocks；四份实际冲突全文等于default canonical。default/diff3各自exit1/1/1/2是冲突计数。
+- [逐块resolution与完整重放](conflict-resolution-and-replay.json)列两种canonical每块full/ours/incoming、diff3 base、所有outside片段、resolution raw及完整replayed。default和diff3独立解析，不假定两种分块边界相同；diff3用自己的outside锚定完整目标，十块各有完整resolution，八份全文重放均等于实际resolved文档。
+- board/checkpoint保完整ours前缀；[独立尾LF边界](independent-tail-leading-lf-boundary.json)明确incoming相对base独立tail分别3212→3211B、95380→95379B，前导2LF→1LF，是canonical共同LF边界归并，所有非前导LF内容whole exact。不能声称原tail所有前导LF亦原封；default每块resolution确实为完整block ours+LF+完整block incoming，两种全文重放仍精确。原长篇计划/审查/生成失败史均保留。
+- plans INDEX新增incoming独有accepted行并保ours六行/四Sources implemented，未用incoming旧accepted行降级。status当时只变ours第7/12行，仍200行。[ours父首条含LF](ours-status-first-entry.txt)、[incoming父首条含LF](incoming-status-first-entry.txt)、[merge首条含LF](merge-status-first-entry.txt)、[当前proof首条含LF](proof-status-first-entry.txt)独立保存。
+- [完整cached merge diff](merge-staged-complete.diff.raw)、[身份](merge-staged-diff-identity.json)、[提交进程](merge-commit-process.json)、[commit object](merge-commit-object.raw)、[双亲/范围核验](merge-commit-verification.json)保普通commit actual0。未amend、未whole-ours消冲突、未source-copy同步。[root冲突审查归因](root-fixed-conflict-review-attribution.json)记c514b4/092b0c actual0直接消息，未冒充原终端raw或最终publication接受。
+
+## 原失败、原件与本区间保护
+
+[原8033结果及原件](../conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)不改：固定3497/srcfa6，driver0 / protocol accounted-official-outcome / official1 / out恢复complete分列。实际Pane-open setup先败，缺IConversationWorkRootMount，674业务断言未达，expected old-red boundary not established；原Astra两份C0/I1/M0经root采纳合C0/I2/M0。外层全.build保护FAILED，不能以driver0/out恢复覆盖。createCompile→reporter.writeBuildLog→.build/log静态链与时序仅支持高置信解释，没有syscall/PID或逐阶段writer快照，不称唯一writer、确切次数或dry实写。
+
+[原件before](preservation-before.json)核五历史目录797文件/223012410B与215非普通entry。合并前后[前guard](guard-before-merge-commit.stdout.json)、[后guard](guard-after-merge-commit.stdout.json)及对应process均actual0，保inline stdlib/Git只读原文与stderr：所有原件bytes/SHA/mode/mtime/ctime、路径集合和旧结果proof280文件精确；out15500、native256、freeze4/cache3、旧新28owned PID/start quiet、X117无socket/lock。src15715/node_modules48772全metadata精确；.build6777仍只已知.build/log漂移：内容[]/2B/mode33204，mtime/ctime 1793092674886086457 → 1793100181156749660。本出版区间未再漂移，原运行whole保护仍false，不回写log或扩恢复例外。Reveal唯一已授权ctime历史为1793092686521596622 → 1793100193532575159，旧Pane未写、未伪恢复。
+
+[执行边界与错误](execution-boundary-and-read-errors.json)另存一次functions.exec封装SyntaxError原文字：Markdown反引号位于JS模板导致调用拒绝，未启动nested shell或落盘，修正封装后继续；不是产品、Git、driver或guard失败。本轮无新增shell reader/guard失败。真实merge/canonical冲突退出与实际官方失败分列，旧generator/reader错误原件保持。无新Program/checker/AST/lint/compile/transpile/emit/tests/UI/engine/after，没有B工具准备/activation/release、fresh native或fullCompile信用。
+
+## 独立proof / docs交付边界
+
+[六文档整篇重放](publication-documentation-edits.json)及[实际patch](publication-documentation-edits.patch)只补真实merge身份、证据导航和当前授权时点；incoming方案整篇、父结果proof/packages不改。双方历史首条、完整方案和审查原稿均保留。
+
+merge三门禁actual0：full cached diff --check无排除、generate-docs-status --check、docs-health（0 errors/47 link warnings，含当时未出版的本INDEX）。原始stdout/stderr与process见merge-gate-*。proof阶段先保完整cached实际输出；任何仅针对lossless evidence原文的检查排除须root就本次精确路径另授，绝不继承旧排除或把完整失败洗成通过。独立proof commit仍待另授。
+
+出版闭包由[Included](included-paths.json)、[inventory](publication-inventory.json)和[staged audit](publication-staged-audit.json)列全scope；inventory只排自身和staged audit避免循环，staged audit只自排，两者仍在Included并另报身份。最终门禁、完整cached原输出、root精确path裁定和freeze前保护以本目录实际文件为准，不提前声称root已接受。
+"""
+(P/"INDEX.md").write_text(text)
+print(json.dumps(dict(indexBytes=len(text.encode()),committedTreeWholeExact=True,srcOurs=True,tailBoundaryExact=True,proofCommitAuthorized=False)))
+

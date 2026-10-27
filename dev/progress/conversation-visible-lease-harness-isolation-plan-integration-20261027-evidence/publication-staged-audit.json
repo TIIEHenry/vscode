@@ -1,0 +1,3751 @@
+{
+  "parent": "80dc02d8a98e1190dd9039c810431c3105786588",
+  "includedPathCount": 250,
+  "auditedPathCount": 249,
+  "auditedBytesExcludingSelf": 37022533,
+  "selfReferenceException": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-staged-audit.json",
+  "selfIncludedAndSeparatelyReportedToRoot": true,
+  "files": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "bytes": 4185,
+      "sha256": "7cf4ed83a6a8804aa768bd12db585702e8df597ae382f66a5d5c556a6eefdc09",
+      "gitBlob": "cc0ddeb221b1d800ca4cb0f6cc502bdb79cd577e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329831085753,
+      "ctimeNs": 1793103329831085753,
+      "staged": {
+        "mode": "100644",
+        "blob": "cc0ddeb221b1d800ca4cb0f6cc502bdb79cd577e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 30956,
+      "sha256": "2eeab8da8d0faf3f703b74ba28eeb4b67770783679c5c907a27bd78a4570177f",
+      "gitBlob": "4e49c6d767b3e2fe83f87403c826affc7f8ed131",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329831085753,
+      "ctimeNs": 1793103329831085753,
+      "staged": {
+        "mode": "100644",
+        "blob": "4e49c6d767b3e2fe83f87403c826affc7f8ed131",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "bytes": 76997,
+      "sha256": "f2c24d7971f9e6e25dce6724198a9df2d2365070edb8415b5597eba916fd4f2f",
+      "gitBlob": "2f3ad347b54100eb81fc4d9fa7d3ddbafaa77101",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329831085753,
+      "ctimeNs": 1793103329831085753,
+      "staged": {
+        "mode": "100644",
+        "blob": "2f3ad347b54100eb81fc4d9fa7d3ddbafaa77101",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "bytes": 14822,
+      "sha256": "bd81fad78d323471780dafbfce15c52aa8489f4daf1e88f8788681f5c65753b9",
+      "gitBlob": "4a75cf36873900e13ee104283059001a61e37480",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329831085753,
+      "ctimeNs": 1793103329831085753,
+      "staged": {
+        "mode": "100644",
+        "blob": "4a75cf36873900e13ee104283059001a61e37480",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md",
+      "bytes": 10116,
+      "sha256": "2da29b7291b8c93e6f86072e1fae2408de5afe88397f6ccd9404a04e7e27a391",
+      "gitBlob": "979763bc21cfe4f87f43ec937f704f954d2d4717",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103892364711203,
+      "ctimeNs": 1793103892364711203,
+      "staged": {
+        "mode": "100644",
+        "blob": "979763bc21cfe4f87f43ec937f704f954d2d4717",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 28891,
+      "sha256": "cc214ba011232004a82591ae480d3254b4d8cfac441a59c2f2851950954652dd",
+      "gitBlob": "34d58311e989783ce949f2a53cd9ad9843c56499",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102769296285200,
+      "ctimeNs": 1793102769296285200,
+      "staged": {
+        "mode": "100644",
+        "blob": "34d58311e989783ce949f2a53cd9ad9843c56499",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "bytes": 78646,
+      "sha256": "f8fea620c7175d5f1296e35ccf54f23e035a1f537da10db846addbe5b82a6a4c",
+      "gitBlob": "2fd8b845eda0d2fe52c7864eed44c8bd64d7bcbd",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102769296285200,
+      "ctimeNs": 1793102769296285200,
+      "staged": {
+        "mode": "100644",
+        "blob": "2fd8b845eda0d2fe52c7864eed44c8bd64d7bcbd",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 271172,
+      "sha256": "052048f84656bcbb92d016eb6f0efb9d1f3508d5b15270d061dcb87634f73622",
+      "gitBlob": "b988a0f99cf567dfa20fc618f121fc69076c05e7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102769296285200,
+      "ctimeNs": 1793102769296285200,
+      "staged": {
+        "mode": "100644",
+        "blob": "b988a0f99cf567dfa20fc618f121fc69076c05e7",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "bytes": 141575,
+      "sha256": "d7706b86b02f369127cc128bb9167448c4675a2177410f03a8b18caf7f49ce1b",
+      "gitBlob": "6a04af53a466b22371ab8b4d9186da76c3d76080",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102769297285232,
+      "ctimeNs": 1793102769297285232,
+      "staged": {
+        "mode": "100644",
+        "blob": "6a04af53a466b22371ab8b4d9186da76c3d76080",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-unmerged-index.txt",
+      "bytes": 1110,
+      "sha256": "93ce45a69c89c42421c092e383986d236e50a5e7abfa6095a08359265793155b",
+      "gitBlob": "9ebdc9c153f57e8565cb3021dc270ea1d63ec790",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102769295285167,
+      "ctimeNs": 1793102769295285167,
+      "staged": {
+        "mode": "100644",
+        "blob": "9ebdc9c153f57e8565cb3021dc270ea1d63ec790",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 28891,
+      "sha256": "cc214ba011232004a82591ae480d3254b4d8cfac441a59c2f2851950954652dd",
+      "gitBlob": "34d58311e989783ce949f2a53cd9ad9843c56499",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734704180015,
+      "ctimeNs": 1793102734704180015,
+      "staged": {
+        "mode": "100644",
+        "blob": "34d58311e989783ce949f2a53cd9ad9843c56499",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/parallel/active/sources-accept-post-read-authorization.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734704180015,
+      "ctimeNs": 1793102734704180015,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/plans/INDEX.md.raw",
+      "bytes": 78646,
+      "sha256": "f8fea620c7175d5f1296e35ccf54f23e035a1f537da10db846addbe5b82a6a4c",
+      "gitBlob": "2fd8b845eda0d2fe52c7864eed44c8bd64d7bcbd",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734735180992,
+      "ctimeNs": 1793102734735180992,
+      "staged": {
+        "mode": "100644",
+        "blob": "2fd8b845eda0d2fe52c7864eed44c8bd64d7bcbd",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/plans/INDEX.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734736181024,
+      "ctimeNs": 1793102734736181024,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 271172,
+      "sha256": "052048f84656bcbb92d016eb6f0efb9d1f3508d5b15270d061dcb87634f73622",
+      "gitBlob": "b988a0f99cf567dfa20fc618f121fc69076c05e7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734770182095,
+      "ctimeNs": 1793102734770182095,
+      "staged": {
+        "mode": "100644",
+        "blob": "b988a0f99cf567dfa20fc618f121fc69076c05e7",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734770182095,
+      "ctimeNs": 1793102734770182095,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/status.md.raw",
+      "bytes": 141575,
+      "sha256": "d7706b86b02f369127cc128bb9167448c4675a2177410f03a8b18caf7f49ce1b",
+      "gitBlob": "6a04af53a466b22371ab8b4d9186da76c3d76080",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734804183167,
+      "ctimeNs": 1793102734804183167,
+      "staged": {
+        "mode": "100644",
+        "blob": "6a04af53a466b22371ab8b4d9186da76c3d76080",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/status.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734804183167,
+      "ctimeNs": 1793102734804183167,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 28942,
+      "sha256": "b865a51434764c66e203b98b101c0d69d55836026aecbdd9b42a360cb19c9c1a",
+      "gitBlob": "77cf858b4f048e078b6cef1701e694b80b9a5e5e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734715180362,
+      "ctimeNs": 1793102734715180362,
+      "staged": {
+        "mode": "100644",
+        "blob": "77cf858b4f048e078b6cef1701e694b80b9a5e5e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734715180362,
+      "ctimeNs": 1793102734715180362,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+      "bytes": 80394,
+      "sha256": "279cac0a65547dd3ec7fbffef95ab34a40e88d31b7fd3dd934b709bb3fae3f80",
+      "gitBlob": "e91e3eac58d9ae5665985006d94897778cc78871",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734746181339,
+      "ctimeNs": 1793102734746181339,
+      "staged": {
+        "mode": "100644",
+        "blob": "e91e3eac58d9ae5665985006d94897778cc78871",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734746181339,
+      "ctimeNs": 1793102734746181339,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 271223,
+      "sha256": "1d43efaad4161b2b1b787a76b9e98f558c867d03d94969a8c1cb223c9c44b35d",
+      "gitBlob": "98c05579058a3499c857eac7fda987266757ec10",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734783182505,
+      "ctimeNs": 1793102734783182505,
+      "staged": {
+        "mode": "100644",
+        "blob": "98c05579058a3499c857eac7fda987266757ec10",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734783182505,
+      "ctimeNs": 1793102734783182505,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "bytes": 143096,
+      "sha256": "eb1b9b036ae2b7d9bb5d729a9ce41f145b5e5cf6e38f5cc70fc693be5717fca9",
+      "gitBlob": "b202bb359b9bb3780728d0d54f8bb836703d6547",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734815183514,
+      "ctimeNs": 1793102734815183514,
+      "staged": {
+        "mode": "100644",
+        "blob": "b202bb359b9bb3780728d0d54f8bb836703d6547",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734816183545,
+      "ctimeNs": 1793102734816183545,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-merge-results.json",
+      "bytes": 11378,
+      "sha256": "4bd2a7524b5501f1abfa6b9c3b2ea54da4a4cbb81601b1fb900c15da8a3342c4",
+      "gitBlob": "c55d48aef11da47b8bf598a0ed378fd8f0d5231e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734824183797,
+      "ctimeNs": 1793102734824183797,
+      "staged": {
+        "mode": "100644",
+        "blob": "c55d48aef11da47b8bf598a0ed378fd8f0d5231e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/committed-complete-tree-audit.json",
+      "bytes": 4676611,
+      "sha256": "1b793c971b1da7298cb41d8b8253ca7f5954a277a1385dff5c197b42718cfc18",
+      "gitBlob": "0e7a62a457f12ea875c4654afe179e41e8fdcd11",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564891772639,
+      "ctimeNs": 1793103564891772639,
+      "staged": {
+        "mode": "100644",
+        "blob": "0e7a62a457f12ea875c4654afe179e41e8fdcd11",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+      "bytes": 6020,
+      "sha256": "e9e4c4a51d504c0069fd748c2afc87b38a593d2e4ed04ad97c030e8ee254ef09",
+      "gitBlob": "2f4ca7aa5a95ab4ccbddea3a487bba47908b55c5",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "2f4ca7aa5a95ab4ccbddea3a487bba47908b55c5",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-incoming.raw",
+      "bytes": 3210,
+      "sha256": "bcfc054e4a2292534f3d19b0b17c6e5c3a6636bc5ca516ff1c6bce810a7c7003",
+      "gitBlob": "802bf9cb84e4b7ea731ce3cf2ebdae53c64f2916",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "802bf9cb84e4b7ea731ce3cf2ebdae53c64f2916",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-ours.raw",
+      "bytes": 2740,
+      "sha256": "88f546a7e192f8b9ea117b98340fc16681205124dc8711c780b24ab844be5cca",
+      "gitBlob": "141d35cd6df2fd04d39efad756919ed46e78e076",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "141d35cd6df2fd04d39efad756919ed46e78e076",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-resolution.raw",
+      "bytes": 5951,
+      "sha256": "513bad9c8a1d0fb4466f7a5db1cba3ded0897f9a987727b66ad7974fbd2fcadd",
+      "gitBlob": "221071f9e9d247d217d722b270ba0e2ba8894e30",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "221071f9e9d247d217d722b270ba0e2ba8894e30",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+      "bytes": 28891,
+      "sha256": "cc214ba011232004a82591ae480d3254b4d8cfac441a59c2f2851950954652dd",
+      "gitBlob": "34d58311e989783ce949f2a53cd9ad9843c56499",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084263443645,
+      "ctimeNs": 1793103084263443645,
+      "staged": {
+        "mode": "100644",
+        "blob": "34d58311e989783ce949f2a53cd9ad9843c56499",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/outside-00.raw",
+      "bytes": 22871,
+      "sha256": "fc7df5ed295e90056176f710beac44b8269c94a04de49005d0807301c1062a17",
+      "gitBlob": "9ba68949fc10bc7f180b55e2e62f66a48b4a4ed2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "9ba68949fc10bc7f180b55e2e62f66a48b4a4ed2",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/outside-01.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/replayed.raw",
+      "bytes": 28822,
+      "sha256": "28319ec8e41ce7b0305c594e278e6eee17d262c021dbd371a74bfdb15fa208ca",
+      "gitBlob": "dfa7a07e8d94fd7e7a912c28866c2363bf758094",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084263443645,
+      "ctimeNs": 1793103084263443645,
+      "staged": {
+        "mode": "100644",
+        "blob": "dfa7a07e8d94fd7e7a912c28866c2363bf758094",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-full.raw",
+      "bytes": 4509,
+      "sha256": "44d7de2ad7c9efdf2e587f36bc9b0ddc504e0ed8605e0b26da5f4527dc02add9",
+      "gitBlob": "9f6ddb86031fb5c88901edc72ec4ca725b521d4c",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "9f6ddb86031fb5c88901edc72ec4ca725b521d4c",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-incoming.raw",
+      "bytes": 2039,
+      "sha256": "f3cf59a9332051dc3b30a3428bf163d6fe13acc755b65d99f1af4e49bb95c79f",
+      "gitBlob": "c38af30e5ee83587d7bc8eafcf8674ae1a5959d1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "c38af30e5ee83587d7bc8eafcf8674ae1a5959d1",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-ours.raw",
+      "bytes": 2400,
+      "sha256": "8581922e34351348651f01e595149514bb77d71c21461c8941a363c30493cee0",
+      "gitBlob": "b9a091f5c1c0bd6e2e1c72aa3931aa403c80fc23",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "b9a091f5c1c0bd6e2e1c72aa3931aa403c80fc23",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-resolution.raw",
+      "bytes": 2740,
+      "sha256": "4e2975a05bd828bcec7f9d0e6f0247a1cfda4d19b1f7ced72d34d1a1485588af",
+      "gitBlob": "a8dee30683ea9a62d90a545482426aaab8a30b3e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "a8dee30683ea9a62d90a545482426aaab8a30b3e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/canonical.raw",
+      "bytes": 78646,
+      "sha256": "f8fea620c7175d5f1296e35ccf54f23e035a1f537da10db846addbe5b82a6a4c",
+      "gitBlob": "2fd8b845eda0d2fe52c7864eed44c8bd64d7bcbd",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "2fd8b845eda0d2fe52c7864eed44c8bd64d7bcbd",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/outside-00.raw",
+      "bytes": 2070,
+      "sha256": "fda2cd3b17030daa6284aac9318fa9ed7c0592059d6ae6a3eb1fab288633827f",
+      "gitBlob": "571aca55b438ff9d4b34caecf813ff6c1356f8e2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "571aca55b438ff9d4b34caecf813ff6c1356f8e2",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/outside-01.raw",
+      "bytes": 72067,
+      "sha256": "65fb6e36788d3053de964aaab2d68ad49412cf075e2291e593c18b366a67b850",
+      "gitBlob": "4965361d89eb7da27ac0f38fb230a17f8d907f6d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "4965361d89eb7da27ac0f38fb230a17f8d907f6d",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/replayed.raw",
+      "bytes": 76877,
+      "sha256": "0389b8d85e81533f83322f277c4bd07bfb2594b0a6b283aa5966117e2c0d6c2f",
+      "gitBlob": "1c396bc4f934b30eb0c4e55bd469f46f98945e0b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "1c396bc4f934b30eb0c4e55bd469f46f98945e0b",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+      "bytes": 105399,
+      "sha256": "99c593ecd6bc222388b84eeb1e426a7fe5db5a601eba308029a6e103b3b7dc48",
+      "gitBlob": "48a4db5183a6b341b90bdac1705ef603cdaba071",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084267443797,
+      "ctimeNs": 1793103084267443797,
+      "staged": {
+        "mode": "100644",
+        "blob": "48a4db5183a6b341b90bdac1705ef603cdaba071",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-incoming.raw",
+      "bytes": 95378,
+      "sha256": "2f02d1a1c55068fc049f6d0afc654a23467079402dbecf49aba7ef44ce338dfc",
+      "gitBlob": "ab68c9054ca4c8d91a32723136abedb7e91d091d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084267443797,
+      "ctimeNs": 1793103084267443797,
+      "staged": {
+        "mode": "100644",
+        "blob": "ab68c9054ca4c8d91a32723136abedb7e91d091d",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-ours.raw",
+      "bytes": 9951,
+      "sha256": "f3decf6cfb6ce568ca34110af02981599d3f8c601b5fde4f1d1a7e9f766b9810",
+      "gitBlob": "36501a24582f5737fadf9de50ffc96dc62e545c8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084267443797,
+      "ctimeNs": 1793103084267443797,
+      "staged": {
+        "mode": "100644",
+        "blob": "36501a24582f5737fadf9de50ffc96dc62e545c8",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-resolution.raw",
+      "bytes": 105330,
+      "sha256": "dc44e5565027d96598b7bc75f73f01267ee96305450ffd3e968d8a96c00f6cec",
+      "gitBlob": "ef8ed76485b903ba0d73daa2f325e49c367ecb7c",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084267443797,
+      "ctimeNs": 1793103084267443797,
+      "staged": {
+        "mode": "100644",
+        "blob": "ef8ed76485b903ba0d73daa2f325e49c367ecb7c",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+      "bytes": 271172,
+      "sha256": "052048f84656bcbb92d016eb6f0efb9d1f3508d5b15270d061dcb87634f73622",
+      "gitBlob": "b988a0f99cf567dfa20fc618f121fc69076c05e7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084267443797,
+      "ctimeNs": 1793103084267443797,
+      "staged": {
+        "mode": "100644",
+        "blob": "b988a0f99cf567dfa20fc618f121fc69076c05e7",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-00.raw",
+      "bytes": 165773,
+      "sha256": "4e56299268d9fe950a866568473e3ac4dfc34afc5599957f263ea99d8a2506d6",
+      "gitBlob": "2fa2beaa47013a5e406f51cbabff343c31484783",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084267443797,
+      "ctimeNs": 1793103084267443797,
+      "staged": {
+        "mode": "100644",
+        "blob": "2fa2beaa47013a5e406f51cbabff343c31484783",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-01.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084267443797,
+      "ctimeNs": 1793103084267443797,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/replayed.raw",
+      "bytes": 271103,
+      "sha256": "3be8df59e8de7bdc9fa770e1e0d9fa433c9ea0aa35c770db3b109cc86cd6a574",
+      "gitBlob": "960b23249fcf8325b4893a1df31948ccdab6e8e8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084267443797,
+      "ctimeNs": 1793103084267443797,
+      "staged": {
+        "mode": "100644",
+        "blob": "960b23249fcf8325b4893a1df31948ccdab6e8e8",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-full.raw",
+      "bytes": 529,
+      "sha256": "1acca3841309378ac674ac5526323f18d8695631699e0d222494e65ef59475fd",
+      "gitBlob": "680960a01d217cc07c29d3bf2606aac400362f9e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "680960a01d217cc07c29d3bf2606aac400362f9e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-incoming.raw",
+      "bytes": 216,
+      "sha256": "5c3e68c183b32f59589e282b8f367861f05b6923e3c885233ccee9edbba58f48",
+      "gitBlob": "52e1e1217446cda570ffb5a6561860eccf396910",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "52e1e1217446cda570ffb5a6561860eccf396910",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-ours.raw",
+      "bytes": 243,
+      "sha256": "a674c0427ed844d1d8ef98610035ba19ab2b2f87ada556757d5dd4324bc763d8",
+      "gitBlob": "022c85fcbd4d23036fc288f91e8cdec15b05f946",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "022c85fcbd4d23036fc288f91e8cdec15b05f946",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-resolution.raw",
+      "bytes": 286,
+      "sha256": "e019b9a3efe895a463f874416d0c93917099a136d8dabc461745e89bfe423963",
+      "gitBlob": "087cba327b7dc37c069937075d5b5b60ecf400b1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "087cba327b7dc37c069937075d5b5b60ecf400b1",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-full.raw",
+      "bytes": 2273,
+      "sha256": "7f327b23d6b3ab3ab5cd759f8c268791419d69a8a2b5c37aeba9209173eef6ef",
+      "gitBlob": "32dd51169e6dda521bbf7d09498e9946174db3ec",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "32dd51169e6dda521bbf7d09498e9946174db3ec",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-incoming.raw",
+      "bytes": 1089,
+      "sha256": "16526c9b11d49855659f4f3e9d71e630eeadfa0c30ce036189a7da240590c9fc",
+      "gitBlob": "d4f1e1e675cbebb7fea41cdb07ebe57f4c4f0aa2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "d4f1e1e675cbebb7fea41cdb07ebe57f4c4f0aa2",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-ours.raw",
+      "bytes": 1114,
+      "sha256": "894cd08c10f663b8ebafee9b11c1eb05b6017cfc5f3346a3770d34deb5ed6806",
+      "gitBlob": "9604f7d0ceee56df5c6a5146c188257290d02141",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "9604f7d0ceee56df5c6a5146c188257290d02141",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-resolution.raw",
+      "bytes": 1599,
+      "sha256": "aea5396f432b7e3dd3c0bb5abbca2adde074eb018ba36305304b01d34e496c13",
+      "gitBlob": "37561fba87e54b7fa2119cb515cb8aeae10e07b4",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "37561fba87e54b7fa2119cb515cb8aeae10e07b4",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/canonical.raw",
+      "bytes": 141575,
+      "sha256": "d7706b86b02f369127cc128bb9167448c4675a2177410f03a8b18caf7f49ce1b",
+      "gitBlob": "6a04af53a466b22371ab8b4d9186da76c3d76080",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "6a04af53a466b22371ab8b4d9186da76c3d76080",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/outside-00.raw",
+      "bytes": 94,
+      "sha256": "62d12480af4e2aa308f080ba0023c225caa5a0b1b0ca7abd979ed768b47608fc",
+      "gitBlob": "638acfc314582ea9cff54591ebd67cf2fea94a46",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "638acfc314582ea9cff54591ebd67cf2fea94a46",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/outside-01.raw",
+      "bytes": 434,
+      "sha256": "dd019ee2a14b18d5f12be6c2d99435ee7a9e6742ff436966ce4917353ae90fca",
+      "gitBlob": "e2e71df760b810fe9769510a4a46aab477846411",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "e2e71df760b810fe9769510a4a46aab477846411",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/outside-02.raw",
+      "bytes": 138245,
+      "sha256": "745b878b59a0a9474e4d41b28a2b376cf044fce1d2564976d151f44a82d1ee4f",
+      "gitBlob": "8f38a257372cf5a41179b5ae0909c8835583768b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "8f38a257372cf5a41179b5ae0909c8835583768b",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/replayed.raw",
+      "bytes": 140658,
+      "sha256": "7070728d6db1d6974f757d448c0424e6def820a9ae1feb6a3efac56326c36f98",
+      "gitBlob": "a95607725e6b83d543013a12fcbbb42bbecc7f4f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "a95607725e6b83d543013a12fcbbb42bbecc7f4f",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-base.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+      "bytes": 6073,
+      "sha256": "d5a484600c2749ca1e810cfac3076eb7c3879403a5dd2d5c4c05e32e21e1b168",
+      "gitBlob": "4b3fb349136b7fb3ff0388c5fec9a16f6375e8bf",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "4b3fb349136b7fb3ff0388c5fec9a16f6375e8bf",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-incoming.raw",
+      "bytes": 3212,
+      "sha256": "5e30294c72075472bf47ee9a6f0b3249d766aab983b6781a234a6be6fba25b1f",
+      "gitBlob": "3b4882dd978180ed07c5c62d7d9e276347dacd52",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "3b4882dd978180ed07c5c62d7d9e276347dacd52",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-ours.raw",
+      "bytes": 2742,
+      "sha256": "c92d98a9a7570a1044c69a7f9ad6d8bb93b0353298a3e9b30291ee6253962af9",
+      "gitBlob": "e9bbf73ab04b8b5210d5ae155b6385974311852f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "e9bbf73ab04b8b5210d5ae155b6385974311852f",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-resolution.raw",
+      "bytes": 5953,
+      "sha256": "294511fd19dbf511cda91790e49841757b76dcae86ecf5095d8f061f5eac7003",
+      "gitBlob": "e4267f037c7cd793d56de6b589df3deb8b5c41c6",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "e4267f037c7cd793d56de6b589df3deb8b5c41c6",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+      "bytes": 28942,
+      "sha256": "b865a51434764c66e203b98b101c0d69d55836026aecbdd9b42a360cb19c9c1a",
+      "gitBlob": "77cf858b4f048e078b6cef1701e694b80b9a5e5e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "77cf858b4f048e078b6cef1701e694b80b9a5e5e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/outside-00.raw",
+      "bytes": 22869,
+      "sha256": "84bef948e19829d95ab18d84fb8605a88d61bd0a33fc88786328b4dc5f67bbd9",
+      "gitBlob": "8f3fdb6298174e491e9a174d881c783e2ba71736",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "8f3fdb6298174e491e9a174d881c783e2ba71736",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/outside-01.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/replayed.raw",
+      "bytes": 28822,
+      "sha256": "28319ec8e41ce7b0305c594e278e6eee17d262c021dbd371a74bfdb15fa208ca",
+      "gitBlob": "dfa7a07e8d94fd7e7a912c28866c2363bf758094",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "dfa7a07e8d94fd7e7a912c28866c2363bf758094",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-base.raw",
+      "bytes": 1699,
+      "sha256": "e09705664c34864f27b23ccb85ed6ee3e2a7b6e12161f79bfdab470a5b85daff",
+      "gitBlob": "33ab081d09426524216ef2a9c15c8d8fc3be86c1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "33ab081d09426524216ef2a9c15c8d8fc3be86c1",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-full.raw",
+      "bytes": 6257,
+      "sha256": "ec08e10953661a05a0f0c8336b4773be18b9e9b802b20adb59cbb7d1476398b8",
+      "gitBlob": "a8aa55cfd7e7377fac3146a25bc4f89e3b5e936d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "a8aa55cfd7e7377fac3146a25bc4f89e3b5e936d",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-incoming.raw",
+      "bytes": 2039,
+      "sha256": "f3cf59a9332051dc3b30a3428bf163d6fe13acc755b65d99f1af4e49bb95c79f",
+      "gitBlob": "c38af30e5ee83587d7bc8eafcf8674ae1a5959d1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "c38af30e5ee83587d7bc8eafcf8674ae1a5959d1",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-ours.raw",
+      "bytes": 2400,
+      "sha256": "8581922e34351348651f01e595149514bb77d71c21461c8941a363c30493cee0",
+      "gitBlob": "b9a091f5c1c0bd6e2e1c72aa3931aa403c80fc23",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "b9a091f5c1c0bd6e2e1c72aa3931aa403c80fc23",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-resolution.raw",
+      "bytes": 2740,
+      "sha256": "4e2975a05bd828bcec7f9d0e6f0247a1cfda4d19b1f7ced72d34d1a1485588af",
+      "gitBlob": "a8dee30683ea9a62d90a545482426aaab8a30b3e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "a8dee30683ea9a62d90a545482426aaab8a30b3e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/canonical.raw",
+      "bytes": 80394,
+      "sha256": "279cac0a65547dd3ec7fbffef95ab34a40e88d31b7fd3dd934b709bb3fae3f80",
+      "gitBlob": "e91e3eac58d9ae5665985006d94897778cc78871",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "e91e3eac58d9ae5665985006d94897778cc78871",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/outside-00.raw",
+      "bytes": 2070,
+      "sha256": "fda2cd3b17030daa6284aac9318fa9ed7c0592059d6ae6a3eb1fab288633827f",
+      "gitBlob": "571aca55b438ff9d4b34caecf813ff6c1356f8e2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "571aca55b438ff9d4b34caecf813ff6c1356f8e2",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/outside-01.raw",
+      "bytes": 72067,
+      "sha256": "65fb6e36788d3053de964aaab2d68ad49412cf075e2291e593c18b366a67b850",
+      "gitBlob": "4965361d89eb7da27ac0f38fb230a17f8d907f6d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "4965361d89eb7da27ac0f38fb230a17f8d907f6d",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/replayed.raw",
+      "bytes": 76877,
+      "sha256": "0389b8d85e81533f83322f277c4bd07bfb2594b0a6b283aa5966117e2c0d6c2f",
+      "gitBlob": "1c396bc4f934b30eb0c4e55bd469f46f98945e0b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084265443721,
+      "ctimeNs": 1793103084265443721,
+      "staged": {
+        "mode": "100644",
+        "blob": "1c396bc4f934b30eb0c4e55bd469f46f98945e0b",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-base.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084269443873,
+      "ctimeNs": 1793103084269443873,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+      "bytes": 105452,
+      "sha256": "153210e5d81d96ceafe90d1de0ded77322eb7343d63ee0f37aac7504d3791d02",
+      "gitBlob": "1e156d89995ae194b9fc7a5548d87a06efecdcb5",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084269443873,
+      "ctimeNs": 1793103084269443873,
+      "staged": {
+        "mode": "100644",
+        "blob": "1e156d89995ae194b9fc7a5548d87a06efecdcb5",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-incoming.raw",
+      "bytes": 95380,
+      "sha256": "6e1f499232575e0063a786c9991564c0566b5356239c1e48c6f8b132fdcd6df5",
+      "gitBlob": "fa1b1485cc92734cce71c2a636a6cc97922620d4",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084269443873,
+      "ctimeNs": 1793103084269443873,
+      "staged": {
+        "mode": "100644",
+        "blob": "fa1b1485cc92734cce71c2a636a6cc97922620d4",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-ours.raw",
+      "bytes": 9953,
+      "sha256": "a7340903de5f5541c395b2a2fd04aa60c92d67d046749cc691662a82813429d5",
+      "gitBlob": "fff20316a0fb884c2bd10304d2b9bfb31c58aff3",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084269443873,
+      "ctimeNs": 1793103084269443873,
+      "staged": {
+        "mode": "100644",
+        "blob": "fff20316a0fb884c2bd10304d2b9bfb31c58aff3",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-resolution.raw",
+      "bytes": 105332,
+      "sha256": "cfb647760af35bc7e86aee15a127d84c9060c93985c4a6fe60b61c62c92b143d",
+      "gitBlob": "d6164a4f7316a96b10f350c0cd82ba9a61fbd642",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084269443873,
+      "ctimeNs": 1793103084269443873,
+      "staged": {
+        "mode": "100644",
+        "blob": "d6164a4f7316a96b10f350c0cd82ba9a61fbd642",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+      "bytes": 271223,
+      "sha256": "1d43efaad4161b2b1b787a76b9e98f558c867d03d94969a8c1cb223c9c44b35d",
+      "gitBlob": "98c05579058a3499c857eac7fda987266757ec10",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084268443835,
+      "ctimeNs": 1793103084268443835,
+      "staged": {
+        "mode": "100644",
+        "blob": "98c05579058a3499c857eac7fda987266757ec10",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-00.raw",
+      "bytes": 165771,
+      "sha256": "2f0a6b8e5353cad8096b5bf53dfd7bb5f605158b60724dfaf96c48bcddc4134d",
+      "gitBlob": "26b63129fbb3d6dc04905654639afc4cbe643a2f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084268443835,
+      "ctimeNs": 1793103084268443835,
+      "staged": {
+        "mode": "100644",
+        "blob": "26b63129fbb3d6dc04905654639afc4cbe643a2f",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-01.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084269443873,
+      "ctimeNs": 1793103084269443873,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/replayed.raw",
+      "bytes": 271103,
+      "sha256": "3be8df59e8de7bdc9fa770e1e0d9fa433c9ea0aa35c770db3b109cc86cd6a574",
+      "gitBlob": "960b23249fcf8325b4893a1df31948ccdab6e8e8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084268443835,
+      "ctimeNs": 1793103084268443835,
+      "staged": {
+        "mode": "100644",
+        "blob": "960b23249fcf8325b4893a1df31948ccdab6e8e8",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-base.raw",
+      "bytes": 226,
+      "sha256": "37e55bda6a3c86eddd422958605187817d862629a36965a9a2642fd010d55c89",
+      "gitBlob": "dc84ba79ab1c1f69bbceaafbe9d7a5031e777a58",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "dc84ba79ab1c1f69bbceaafbe9d7a5031e777a58",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-full.raw",
+      "bytes": 804,
+      "sha256": "d8f0d206c4e4a8206a8aa7c222b4c0ea4183670c2b5292eee059d6e87580b077",
+      "gitBlob": "f19df43e37ff5315052b50b7034666cc867b7575",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "f19df43e37ff5315052b50b7034666cc867b7575",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-incoming.raw",
+      "bytes": 216,
+      "sha256": "5c3e68c183b32f59589e282b8f367861f05b6923e3c885233ccee9edbba58f48",
+      "gitBlob": "52e1e1217446cda570ffb5a6561860eccf396910",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "52e1e1217446cda570ffb5a6561860eccf396910",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-ours.raw",
+      "bytes": 243,
+      "sha256": "a674c0427ed844d1d8ef98610035ba19ab2b2f87ada556757d5dd4324bc763d8",
+      "gitBlob": "022c85fcbd4d23036fc288f91e8cdec15b05f946",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "022c85fcbd4d23036fc288f91e8cdec15b05f946",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-resolution.raw",
+      "bytes": 286,
+      "sha256": "e019b9a3efe895a463f874416d0c93917099a136d8dabc461745e89bfe423963",
+      "gitBlob": "087cba327b7dc37c069937075d5b5b60ecf400b1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "087cba327b7dc37c069937075d5b5b60ecf400b1",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-base.raw",
+      "bytes": 1197,
+      "sha256": "2a1b8f8f06dd8232a28a85a01a6ec1e0846140a27a0567103e75b061fef69e43",
+      "gitBlob": "b2590f0ff0835b38b2e22d6cb368edde26dbb7bc",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "b2590f0ff0835b38b2e22d6cb368edde26dbb7bc",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-full.raw",
+      "bytes": 3519,
+      "sha256": "3bfa7dd3745e7474bd71a5ec898692a9010f83b825b3f243efd9822a624e39dd",
+      "gitBlob": "65e4c94efccec25b31fcf038687f33c5168a7ad0",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "65e4c94efccec25b31fcf038687f33c5168a7ad0",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-incoming.raw",
+      "bytes": 1089,
+      "sha256": "16526c9b11d49855659f4f3e9d71e630eeadfa0c30ce036189a7da240590c9fc",
+      "gitBlob": "d4f1e1e675cbebb7fea41cdb07ebe57f4c4f0aa2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "d4f1e1e675cbebb7fea41cdb07ebe57f4c4f0aa2",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-ours.raw",
+      "bytes": 1114,
+      "sha256": "894cd08c10f663b8ebafee9b11c1eb05b6017cfc5f3346a3770d34deb5ed6806",
+      "gitBlob": "9604f7d0ceee56df5c6a5146c188257290d02141",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "9604f7d0ceee56df5c6a5146c188257290d02141",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-resolution.raw",
+      "bytes": 1599,
+      "sha256": "aea5396f432b7e3dd3c0bb5abbca2adde074eb018ba36305304b01d34e496c13",
+      "gitBlob": "37561fba87e54b7fa2119cb515cb8aeae10e07b4",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "37561fba87e54b7fa2119cb515cb8aeae10e07b4",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+      "bytes": 143096,
+      "sha256": "eb1b9b036ae2b7d9bb5d729a9ce41f145b5e5cf6e38f5cc70fc693be5717fca9",
+      "gitBlob": "b202bb359b9bb3780728d0d54f8bb836703d6547",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084270443911,
+      "ctimeNs": 1793103084270443911,
+      "staged": {
+        "mode": "100644",
+        "blob": "b202bb359b9bb3780728d0d54f8bb836703d6547",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/outside-00.raw",
+      "bytes": 94,
+      "sha256": "62d12480af4e2aa308f080ba0023c225caa5a0b1b0ca7abd979ed768b47608fc",
+      "gitBlob": "638acfc314582ea9cff54591ebd67cf2fea94a46",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "638acfc314582ea9cff54591ebd67cf2fea94a46",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/outside-01.raw",
+      "bytes": 434,
+      "sha256": "dd019ee2a14b18d5f12be6c2d99435ee7a9e6742ff436966ce4917353ae90fca",
+      "gitBlob": "e2e71df760b810fe9769510a4a46aab477846411",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "e2e71df760b810fe9769510a4a46aab477846411",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/outside-02.raw",
+      "bytes": 138245,
+      "sha256": "745b878b59a0a9474e4d41b28a2b376cf044fce1d2564976d151f44a82d1ee4f",
+      "gitBlob": "8f38a257372cf5a41179b5ae0909c8835583768b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "8f38a257372cf5a41179b5ae0909c8835583768b",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/replayed.raw",
+      "bytes": 140658,
+      "sha256": "7070728d6db1d6974f757d448c0424e6def820a9ae1feb6a3efac56326c36f98",
+      "gitBlob": "a95607725e6b83d543013a12fcbbb42bbecc7f4f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084271443949,
+      "ctimeNs": 1793103084271443949,
+      "staged": {
+        "mode": "100644",
+        "blob": "a95607725e6b83d543013a12fcbbb42bbecc7f4f",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-resolution-and-replay.json",
+      "bytes": 24683,
+      "sha256": "1ee9e5da7c074f2f12c49b25201274dbe19fa3eb106a0431f00cdba0d84f6461",
+      "gitBlob": "58c068880b115eb63a39ce87e342bc7fa187d490",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084275444100,
+      "ctimeNs": 1793103084275444100,
+      "staged": {
+        "mode": "100644",
+        "blob": "58c068880b115eb63a39ce87e342bc7fa187d490",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/current-authorization-boundary.json",
+      "bytes": 686,
+      "sha256": "ef43f2aae209bd2d3bfd2c8b72b80291c5d124037e2f57aa011e19b8ef343098",
+      "gitBlob": "a8452562c3eabd4a1cba83c389ad5473bea053d1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329866087167,
+      "ctimeNs": 1793103329866087167,
+      "staged": {
+        "mode": "100644",
+        "blob": "a8452562c3eabd4a1cba83c389ad5473bea053d1",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/current-full-cached-diagnostic-paths.json",
+      "bytes": 6537,
+      "sha256": "872a2e81c2a3754216d146e3249c5cbce31298fdd988be82e4673abf6c942012",
+      "gitBlob": "1b3b18567615d9840ce7561ee2eb2bdd0b9127bc",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103652243450415,
+      "ctimeNs": 1793103652243450415,
+      "staged": {
+        "mode": "100644",
+        "blob": "1b3b18567615d9840ce7561ee2eb2bdd0b9127bc",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/exact-scoped-exclusion-authorization.json",
+      "bytes": 7250,
+      "sha256": "c6c90260541475c0eb55a539a1a49387b6ea72cba778871b5fe92f0e8375567c",
+      "gitBlob": "d457b71e964ddbe253d465cdfbfdfab677adeaa2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803166877598,
+      "ctimeNs": 1793103803166877598,
+      "staged": {
+        "mode": "100644",
+        "blob": "d457b71e964ddbe253d465cdfbfdfab677adeaa2",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/execution-boundary-and-read-errors.json",
+      "bytes": 2202,
+      "sha256": "9373085c5dcaf8bfd2a6b98d7cde80e28b24f4720002ef7f7c6756563cd5e7f7",
+      "gitBlob": "f2256dd3571fb6cad32cecf9d72585d2ec34dacc",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564894772765,
+      "ctimeNs": 1793103564894772765,
+      "staged": {
+        "mode": "100644",
+        "blob": "f2256dd3571fb6cad32cecf9d72585d2ec34dacc",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/fixed-input-identities.json",
+      "bytes": 1418,
+      "sha256": "aa5be88e78bbb388c2b54d56299bf4ab74603e00e39e5c2cb8ea49216da83dc0",
+      "gitBlob": "bcff9f0d358681aabdbacba418c66cb1f09c63d8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734687179479,
+      "ctimeNs": 1793102734687179479,
+      "staged": {
+        "mode": "100644",
+        "blob": "bcff9f0d358681aabdbacba418c66cb1f09c63d8",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/freeze-complete-cached-check-result.json",
+      "bytes": 34313,
+      "sha256": "25a759eb1aa041817dc21cfdef20b5ef085e7441d732b02b892f10c7fba08f2d",
+      "gitBlob": "c4761dae54c6bcd7f15eca74938f1edf68811af7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103954846685101,
+      "ctimeNs": 1793103954846685101,
+      "staged": {
+        "mode": "100644",
+        "blob": "c4761dae54c6bcd7f15eca74938f1edf68811af7",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/freeze-scoped-cached-check-result.json",
+      "bytes": 13732,
+      "sha256": "19d2fb705b6193a545ea791c483288c9d2e415570bec97a99d49e5f48b393e12",
+      "gitBlob": "65d86639c84f4d3f2a34f58b36320a4fc83af889",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103955022699733,
+      "ctimeNs": 1793103955022699733,
+      "staged": {
+        "mode": "100644",
+        "blob": "65d86639c84f4d3f2a34f58b36320a4fc83af889",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-after-merge-commit-process.json",
+      "bytes": 362,
+      "sha256": "9af3fcc02e636a9596ca11930ebe1af0635168a022f4d3d395023355d4c78643",
+      "gitBlob": "ec47525e57a60a5b1016c0c2e745947da8d0950d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103241009529538,
+      "ctimeNs": 1793103241009529538,
+      "staged": {
+        "mode": "100644",
+        "blob": "ec47525e57a60a5b1016c0c2e745947da8d0950d",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-after-merge-commit.inline.py.raw",
+      "bytes": 11088,
+      "sha256": "a281212a591041b66f2bd04e0e1637751ab36f445e323e202bd03fc2a7e994fc",
+      "gitBlob": "4e34d35d8ca0b3e30d3c24df5d401909337b950d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103239196457677,
+      "ctimeNs": 1793103239196457677,
+      "staged": {
+        "mode": "100644",
+        "blob": "4e34d35d8ca0b3e30d3c24df5d401909337b950d",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-after-merge-commit.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103241009529538,
+      "ctimeNs": 1793103241009529538,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-after-merge-commit.stdout.json",
+      "bytes": 3492,
+      "sha256": "6fd27420e7b3938768ee42eacb7b4a45d17dffafd6c79816718a64b0f3cd2680",
+      "gitBlob": "f28cf4a37ce4050b9bc8fd635ed8a0daeeb2ccd5",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103241009529538,
+      "ctimeNs": 1793103241009529538,
+      "staged": {
+        "mode": "100644",
+        "blob": "f28cf4a37ce4050b9bc8fd635ed8a0daeeb2ccd5",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-before-merge-commit-process.json",
+      "bytes": 362,
+      "sha256": "028a3afeac7821554e1314f36996fbacdd8c99315a0fdcd775c3b8092cde2013",
+      "gitBlob": "25456484d402c9f6db7f5cfcbb04a1d8bc30bbfc",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103185174331207,
+      "ctimeNs": 1793103185174331207,
+      "staged": {
+        "mode": "100644",
+        "blob": "25456484d402c9f6db7f5cfcbb04a1d8bc30bbfc",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-before-merge-commit.inline.py.raw",
+      "bytes": 11001,
+      "sha256": "1505092ea5c5ab3819a2d0472526ec3815d2c40f641c6ebe09ece2968b148c06",
+      "gitBlob": "54c4356f4cc8316b02d9c26326c8b853867415b6",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103183228255155,
+      "ctimeNs": 1793103183228255155,
+      "staged": {
+        "mode": "100644",
+        "blob": "54c4356f4cc8316b02d9c26326c8b853867415b6",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-before-merge-commit.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103185174331207,
+      "ctimeNs": 1793103185174331207,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-before-merge-commit.stdout.json",
+      "bytes": 3486,
+      "sha256": "f9a0e3a12c7ccd4e0e8ce3313920774eb616d61df97330cb7349fed029f65bd5",
+      "gitBlob": "35dfb1f9daae3ca4a103486f047da7bccf35a7eb",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103185174331207,
+      "ctimeNs": 1793103185174331207,
+      "staged": {
+        "mode": "100644",
+        "blob": "35dfb1f9daae3ca4a103486f047da7bccf35a7eb",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-before-merge-process.json",
+      "bytes": 53,
+      "sha256": "68e08130b4acc566e48c4b1067caf60e46a5d0c73327a6e91a041c8a63f631f0",
+      "gitBlob": "ba2a56114e44debaaa0fcef11806e1adb238f77b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734231165107,
+      "ctimeNs": 1793102734231165107,
+      "staged": {
+        "mode": "100644",
+        "blob": "ba2a56114e44debaaa0fcef11806e1adb238f77b",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-before-merge.inline.py.raw",
+      "bytes": 9129,
+      "sha256": "1ecdb7c17d0330a5fa8b6a6f5c6eb6f44d25a9af0822b7f2f4e7646fa1c81f3e",
+      "gitBlob": "00b5e7a939633065ed93a5276c1166a35e718e26",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734230165076,
+      "ctimeNs": 1793102734230165076,
+      "staged": {
+        "mode": "100644",
+        "blob": "00b5e7a939633065ed93a5276c1166a35e718e26",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-before-merge.stdout.json",
+      "bytes": 2804,
+      "sha256": "567de541a3fa3b9a3ef40be6ac5daaccee56e1d8aabda0512dec7b4c9d980025",
+      "gitBlob": "d9c46cbe09e2507461824a8aa128711e1657c7be",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734230165076,
+      "ctimeNs": 1793102734230165076,
+      "staged": {
+        "mode": "100644",
+        "blob": "d9c46cbe09e2507461824a8aa128711e1657c7be",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-before-proof-freeze-process.json",
+      "bytes": 362,
+      "sha256": "ce02113ce479b9913bdd5f590ae12c3731ac5cf22449389da04919851bd997fa",
+      "gitBlob": "f47898f6d18f5a3e6ddad05c902837fe0e4f85e2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103746737464944,
+      "ctimeNs": 1793103746737464944,
+      "staged": {
+        "mode": "100644",
+        "blob": "f47898f6d18f5a3e6ddad05c902837fe0e4f85e2",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-before-proof-freeze.inline.py.raw",
+      "bytes": 13290,
+      "sha256": "97708fb3123c77dadd46c3c2fc105126a0783f436bec093f3d1cae08f03e7824",
+      "gitBlob": "423acf2d0be1bb7c5d24c3f840bd6e049582321f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103744965389352,
+      "ctimeNs": 1793103744965389352,
+      "staged": {
+        "mode": "100644",
+        "blob": "423acf2d0be1bb7c5d24c3f840bd6e049582321f",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-before-proof-freeze.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103746737464944,
+      "ctimeNs": 1793103746737464944,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-before-proof-freeze.stdout.json",
+      "bytes": 3806,
+      "sha256": "64d5d2248e3733c28d48171da0354ec8bf11c4fbb6850cf43eec262107ac4436",
+      "gitBlob": "0b4a711beeeb2ead01a14a666204ede57933426a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103746737464944,
+      "ctimeNs": 1793103746737464944,
+      "staged": {
+        "mode": "100644",
+        "blob": "0b4a711beeeb2ead01a14a666204ede57933426a",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-final-publication-process.json",
+      "bytes": 362,
+      "sha256": "475f101e2fce772b0ce2dcb7439ed78efee6a42bf474e2ab11b841076e0dbe78",
+      "gitBlob": "dc6c6599e99f3f264df3df7e8870d1be16d1f65d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103894257792805,
+      "ctimeNs": 1793103894257792805,
+      "staged": {
+        "mode": "100644",
+        "blob": "dc6c6599e99f3f264df3df7e8870d1be16d1f65d",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-final-publication.inline.py.raw",
+      "bytes": 13290,
+      "sha256": "97708fb3123c77dadd46c3c2fc105126a0783f436bec093f3d1cae08f03e7824",
+      "gitBlob": "423acf2d0be1bb7c5d24c3f840bd6e049582321f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103892364711203,
+      "ctimeNs": 1793103892364711203,
+      "staged": {
+        "mode": "100644",
+        "blob": "423acf2d0be1bb7c5d24c3f840bd6e049582321f",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-final-publication.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103894257792805,
+      "ctimeNs": 1793103894257792805,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/guard-final-publication.stdout.json",
+      "bytes": 3806,
+      "sha256": "842b39f982608ac3ef43187cd29a8baa12708a88323322ed2620f2e68637933f",
+      "gitBlob": "603f2e909cf983d59963ed5dc1f09e93b766c148",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103894257792805,
+      "ctimeNs": 1793103894257792805,
+      "staged": {
+        "mode": "100644",
+        "blob": "603f2e909cf983d59963ed5dc1f09e93b766c148",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/included-paths.json",
+      "bytes": 39376,
+      "sha256": "6e102855aee92fac4b5bc1694890982a0cdbf5741993d1445caa988c39ee4a34",
+      "gitBlob": "20b1f4fa2332429ab83fdec2d43c131968b4552e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104518314303762,
+      "ctimeNs": 1793104518314303762,
+      "staged": {
+        "mode": "100644",
+        "blob": "20b1f4fa2332429ab83fdec2d43c131968b4552e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/incoming-status-first-entry.json",
+      "bytes": 422,
+      "sha256": "4e497902e001e1f864d81f5d1bd0f9289156d178a3b4f79f4d3623b9d91bc933",
+      "gitBlob": "69479a09406cc948cbd798fa31c8e3a222722f49",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734820183671,
+      "ctimeNs": 1793102734820183671,
+      "staged": {
+        "mode": "100644",
+        "blob": "69479a09406cc948cbd798fa31c8e3a222722f49",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/incoming-status-first-entry.txt",
+      "bytes": 1089,
+      "sha256": "16526c9b11d49855659f4f3e9d71e630eeadfa0c30ce036189a7da240590c9fc",
+      "gitBlob": "d4f1e1e675cbebb7fea41cdb07ebe57f4c4f0aa2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734820183671,
+      "ctimeNs": 1793102734820183671,
+      "staged": {
+        "mode": "100644",
+        "blob": "d4f1e1e675cbebb7fea41cdb07ebe57f4c4f0aa2",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/independent-tail-leading-lf-boundary.json",
+      "bytes": 2166,
+      "sha256": "30e4d943a711bfa316d4a8cb644a5323e9172e841eb57addc81c01572421e6bd",
+      "gitBlob": "026e45ce4c60954c1e55c6b293e4cbeff94e3722",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564895772807,
+      "ctimeNs": 1793103564895772807,
+      "staged": {
+        "mode": "100644",
+        "blob": "026e45ce4c60954c1e55c6b293e4cbeff94e3722",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-commit-object.raw",
+      "bytes": 302,
+      "sha256": "b22822d71af3ea3dd71941fba3f6fd412c7499ebdf6f7b62af1a1102049f23b7",
+      "gitBlob": "40518099ebdc966e7b02ecc0e418147557899e1b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103217278591441,
+      "ctimeNs": 1793103217278591441,
+      "staged": {
+        "mode": "100644",
+        "blob": "40518099ebdc966e7b02ecc0e418147557899e1b",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-commit-process.json",
+      "bytes": 485,
+      "sha256": "8ece99d5bd2565b001ad08bbd185e32abe63dd4fe2f938df64ccab123dc70261",
+      "gitBlob": "c794a30b6675bd586eb77fce30a7cef68382c06b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103217230589549,
+      "ctimeNs": 1793103217230589549,
+      "staged": {
+        "mode": "100644",
+        "blob": "c794a30b6675bd586eb77fce30a7cef68382c06b",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-commit-verification.json",
+      "bytes": 814,
+      "sha256": "410f418ee34f3ed949a9a74bded2be8bd3dc0fc491df229024161939168ce566",
+      "gitBlob": "498e17fcb0ff3097ce5b7972f7aeaf7cd213117c",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103217278591441,
+      "ctimeNs": 1793103217278591441,
+      "staged": {
+        "mode": "100644",
+        "blob": "498e17fcb0ff3097ce5b7972f7aeaf7cd213117c",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-commit.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103217230589549,
+      "ctimeNs": 1793103217230589549,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-commit.stdout.log",
+      "bytes": 77,
+      "sha256": "3716ab44c85e15b491c725b3d2cf83c338118a0633d768a5eed11965fd8b897d",
+      "gitBlob": "a53bc06092a8642f9586e6e66efab29963f6b530",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103217230589549,
+      "ctimeNs": 1793103217230589549,
+      "staged": {
+        "mode": "100644",
+        "blob": "a53bc06092a8642f9586e6e66efab29963f6b530",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-gate-docs-health-process.json",
+      "bytes": 444,
+      "sha256": "ece70642f236d1f6c70b0b2106cfb81bf15b00d0c08b58acc43ca49c6339db12",
+      "gitBlob": "df93fc6d0feb808577ab58c572ea0e724d4a2265",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103149024925144,
+      "ctimeNs": 1793103149024925144,
+      "staged": {
+        "mode": "100644",
+        "blob": "df93fc6d0feb808577ab58c572ea0e724d4a2265",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-gate-docs-health.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103149024925144,
+      "ctimeNs": 1793103149024925144,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-gate-docs-health.stdout.log",
+      "bytes": 4384,
+      "sha256": "1bb730e994faef8b4931b8addd9bfc873744e44a81d340736b96c91ab6bc2808",
+      "gitBlob": "dae833dad2ba2161307d8dd7daf4aa786b03e535",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103149024925144,
+      "ctimeNs": 1793103149024925144,
+      "staged": {
+        "mode": "100644",
+        "blob": "dae833dad2ba2161307d8dd7daf4aa786b03e535",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-gate-full-cached-diff-check-process.json",
+      "bytes": 444,
+      "sha256": "1ad73ec8f5b0a7e2256d5081f3d45aa8e31507521240e7af74f115f7289970ff",
+      "gitBlob": "2034fbbe47d004646a7ff7c044d56d8fdd5a48e8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103148616909357,
+      "ctimeNs": 1793103148616909357,
+      "staged": {
+        "mode": "100644",
+        "blob": "2034fbbe47d004646a7ff7c044d56d8fdd5a48e8",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-gate-full-cached-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103148616909357,
+      "ctimeNs": 1793103148616909357,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-gate-full-cached-diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103148616909357,
+      "ctimeNs": 1793103148616909357,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-gate-generated-status-process.json",
+      "bytes": 460,
+      "sha256": "3720347bf4dd8fd086ee7ebcf91eb51499c62e41f29de9a8ecbb4cfca8cc1bf8",
+      "gitBlob": "c2acae6833893323b5d5240a455613006cf49a36",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103148670911446,
+      "ctimeNs": 1793103148670911446,
+      "staged": {
+        "mode": "100644",
+        "blob": "c2acae6833893323b5d5240a455613006cf49a36",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-gate-generated-status.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103148670911446,
+      "ctimeNs": 1793103148670911446,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-gate-generated-status.stdout.log",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103148670911446,
+      "ctimeNs": 1793103148670911446,
+      "staged": {
+        "mode": "100644",
+        "blob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-invocation.json",
+      "bytes": 1928,
+      "sha256": "4b09a7bf831dde8200c45a7e5c0c4d9f2e3842b95fefa848643dc131c4e3c1d7",
+      "gitBlob": "a4308f17a6f73422634e45c196d25491e57c8aed",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102769300285329,
+      "ctimeNs": 1793102769300285329,
+      "staged": {
+        "mode": "100644",
+        "blob": "a4308f17a6f73422634e45c196d25491e57c8aed",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-stage-process.json",
+      "bytes": 416,
+      "sha256": "be20fd7d41c0f1e51a12ed4b39a89cd198d63bcacd0e5333dd40c70a255e4ea5",
+      "gitBlob": "5e54b26a57cf46141913da2db1246ddace4ad75a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103129144158061,
+      "ctimeNs": 1793103129144158061,
+      "staged": {
+        "mode": "100644",
+        "blob": "5e54b26a57cf46141913da2db1246ddace4ad75a",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-stage.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103129144158061,
+      "ctimeNs": 1793103129144158061,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-stage.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103129144158061,
+      "ctimeNs": 1793103129144158061,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-staged-complete.diff.raw",
+      "bytes": 135202,
+      "sha256": "4a4c01b29ca8e16eb301740b5cefd7faad7a2af6a360cd87f4a2926cef6969cd",
+      "gitBlob": "317c29783615e2ed7b4a4c9712390df58b601b7d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103129516172374,
+      "ctimeNs": 1793103129516172374,
+      "staged": {
+        "mode": "100644",
+        "blob": "317c29783615e2ed7b4a4c9712390df58b601b7d",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-staged-diff-identity.json",
+      "bytes": 420,
+      "sha256": "452c00e37806e70d3098cb7801a9f3eda296a673cb7acf20a4fcb70597c7c27d",
+      "gitBlob": "3f727fbf583a596a66b150c54d216cf9af9e7bf9",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103129517172412,
+      "ctimeNs": 1793103129517172412,
+      "staged": {
+        "mode": "100644",
+        "blob": "3f727fbf583a596a66b150c54d216cf9af9e7bf9",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-status-first-entry.txt",
+      "bytes": 1599,
+      "sha256": "aea5396f432b7e3dd3c0bb5abbca2adde074eb018ba36305304b01d34e496c13",
+      "gitBlob": "37561fba87e54b7fa2119cb515cb8aeae10e07b4",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329830085712,
+      "ctimeNs": 1793103329830085712,
+      "staged": {
+        "mode": "100644",
+        "blob": "37561fba87e54b7fa2119cb515cb8aeae10e07b4",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102769290285006,
+      "ctimeNs": 1793102769290285006,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge.stdout.log",
+      "bytes": 604,
+      "sha256": "a2b98a6532f8230d0dddcbb143cd73a6fabd003bee1da545c3e9acb1943936c3",
+      "gitBlob": "a55ab662b0e4b0da4265e91c1d9fb59402ec2713",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102769290285006,
+      "ctimeNs": 1793102769290285006,
+      "staged": {
+        "mode": "100644",
+        "blob": "a55ab662b0e4b0da4265e91c1d9fb59402ec2713",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-orchestrator-js-parse-rejection.raw.txt",
+      "bytes": 55,
+      "sha256": "e197a461208f1bd3c214e836ba1b6fbb8596b8b8bdf016f8f2476c40986d8301",
+      "gitBlob": "624c0f7c6e771b966958710f12fc4172dc3b5fa1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564894772765,
+      "ctimeNs": 1793103564894772765,
+      "staged": {
+        "mode": "100644",
+        "blob": "624c0f7c6e771b966958710f12fc4172dc3b5fa1",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-reader-partial-written-artifacts.json",
+      "bytes": 918,
+      "sha256": "305a386708dfbad78cb2a87b8c2fa45944f553cd5c2ae1f310a6b98b77d6b68d",
+      "gitBlob": "340d85809787fc1c7c7f4b80cd9b85be010384a2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564715765265,
+      "ctimeNs": 1793103564715765265,
+      "staged": {
+        "mode": "100644",
+        "blob": "340d85809787fc1c7c7f4b80cd9b85be010384a2",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-tail-reader-assertion-rejection.inline.py.raw",
+      "bytes": 13421,
+      "sha256": "f3e705848a5f00b613fe939edf03a1a2b65221b0f5ef86bf359775023ca784de",
+      "gitBlob": "f88e2c029fdd56fa00f4909d4525fd065e4b4514",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624002257587,
+      "ctimeNs": 1793103624002257587,
+      "staged": {
+        "mode": "100644",
+        "blob": "f88e2c029fdd56fa00f4909d4525fd065e4b4514",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-tail-reader-assertion-rejection.stderr.log",
+      "bytes": 168,
+      "sha256": "f8e11bd9813a5eab135bb97fdbb70ee4bce26a6d119a8e4d8867b7aa66087f4d",
+      "gitBlob": "bb7581440072eea7d4a0c909fa228093d8078fa0",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103516546753132,
+      "ctimeNs": 1793103516546753132,
+      "staged": {
+        "mode": "100644",
+        "blob": "bb7581440072eea7d4a0c909fa228093d8078fa0",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-tail-reader-assertion-rejection.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564710765056,
+      "ctimeNs": 1793103564710765056,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-tail-reader-unused-marker-rejection.inline.py.raw",
+      "bytes": 28128,
+      "sha256": "d6e5b1c19f7cda3795eb81d07f4ff62e0ea9b9974d02fbc221a49188573e8b79",
+      "gitBlob": "d93d6fbac8e5374191af1423b4be35895749c8f7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624003257630,
+      "ctimeNs": 1793103624003257630,
+      "staged": {
+        "mode": "100644",
+        "blob": "d93d6fbac8e5374191af1423b4be35895749c8f7",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-tail-reader-unused-marker-rejection.stderr.log",
+      "bytes": 107,
+      "sha256": "85d1e57e1199a1ae6397619293670dc61d799d0e96194735b542a5975ab8f0c8",
+      "gitBlob": "592a4d1cd0a13f97509eb63aab4d70b0131dfcd7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564710765056,
+      "ctimeNs": 1793103564710765056,
+      "staged": {
+        "mode": "100644",
+        "blob": "592a4d1cd0a13f97509eb63aab4d70b0131dfcd7",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-tail-reader-unused-marker-rejection.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564710765056,
+      "ctimeNs": 1793103564710765056,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/ours-status-first-entry.json",
+      "bytes": 449,
+      "sha256": "530c1bbd82e1d012046b702678db93e008a3b64a71c95bb1a11ae378aec667c4",
+      "gitBlob": "7fdbe1701482297cb2780b74395f0c7187ebc3f4",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734818183608,
+      "ctimeNs": 1793102734818183608,
+      "staged": {
+        "mode": "100644",
+        "blob": "7fdbe1701482297cb2780b74395f0c7187ebc3f4",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/ours-status-first-entry.txt",
+      "bytes": 1114,
+      "sha256": "894cd08c10f663b8ebafee9b11c1eb05b6017cfc5f3346a3770d34deb5ed6806",
+      "gitBlob": "9604f7d0ceee56df5c6a5146c188257290d02141",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734818183608,
+      "ctimeNs": 1793102734818183608,
+      "staged": {
+        "mode": "100644",
+        "blob": "9604f7d0ceee56df5c6a5146c188257290d02141",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/outside-union-paths.json",
+      "bytes": 11233781,
+      "sha256": "334f536ad1058fc636fefdfa6ea080c576032c4455926b4ec7f39ebbc9623c7d",
+      "gitBlob": "593e6df7f417860a887cab174abc137129c5d66f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734656178502,
+      "ctimeNs": 1793102734656178502,
+      "staged": {
+        "mode": "100644",
+        "blob": "593e6df7f417860a887cab174abc137129c5d66f",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/peer-root-authorization-attribution.json",
+      "bytes": 570,
+      "sha256": "90f87c139a3d7958fa8af438b8a7b1398eaaadf8c76171f836039422316f2aee",
+      "gitBlob": "b54c7a561d602fed29a65645b8628571ed6d8adf",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734687179479,
+      "ctimeNs": 1793102734687179479,
+      "staged": {
+        "mode": "100644",
+        "blob": "b54c7a561d602fed29a65645b8628571ed6d8adf",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/premerge-path-matrix.json",
+      "bytes": 830373,
+      "sha256": "5dd07fc52cc8451036fa3f727f7bb167f387fbd2e91390d9fe53b9020765d2df",
+      "gitBlob": "d12b787d85999d2fa23004581304e50752130e07",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734440171695,
+      "ctimeNs": 1793102734440171695,
+      "staged": {
+        "mode": "100644",
+        "blob": "d12b787d85999d2fa23004581304e50752130e07",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/preservation-before.json",
+      "bytes": 579766,
+      "sha256": "d72b1d65dfc35d043ddb72b6950d82c89a821e7ed95ca55526c2b6d143837a40",
+      "gitBlob": "0f333a496440c66cbab1b79ececacb317affbf9b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734236165265,
+      "ctimeNs": 1793102734236165265,
+      "staged": {
+        "mode": "100644",
+        "blob": "0f333a496440c66cbab1b79ececacb317affbf9b",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-final-documentation-gates.json",
+      "bytes": 8777,
+      "sha256": "12ee56e995eef5d1bca7ed6f4da908a7598b5f72c18a1a2bd4c28e2244c96bb9",
+      "gitBlob": "4aa3df9624fc480f19f20fcce1b2e6557d8e5b41",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103892364711203,
+      "ctimeNs": 1793103892364711203,
+      "staged": {
+        "mode": "100644",
+        "blob": "4aa3df9624fc480f19f20fcce1b2e6557d8e5b41",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-final-full-cached-check-result.json",
+      "bytes": 74701,
+      "sha256": "6e3bc1e69f01b8fe266a508e78312ed711413e46aab3a7eefe06cdd0556bac1c",
+      "gitBlob": "9289ac7ec4d8048aecf131bc05836c3b5a9d25b3",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103652243450415,
+      "ctimeNs": 1793103652243450415,
+      "staged": {
+        "mode": "100644",
+        "blob": "9289ac7ec4d8048aecf131bc05836c3b5a9d25b3",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-final-gate-docs-health-process.json",
+      "bytes": 444,
+      "sha256": "ad97241016a1879d5582f4c4ce0d6c213b7d4a373043785665ef86908bf5a1a1",
+      "gitBlob": "e0a61e9cf24d0b4d937e792c9ec7b705ba898a9f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803558894395,
+      "ctimeNs": 1793103803558894395,
+      "staged": {
+        "mode": "100644",
+        "blob": "e0a61e9cf24d0b4d937e792c9ec7b705ba898a9f",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-final-gate-docs-health.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803557894352,
+      "ctimeNs": 1793103803557894352,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-final-gate-docs-health.stdout.log",
+      "bytes": 4384,
+      "sha256": "ff8c7cd7fbe3d7bdfa5d197e2a6f0d681cfbceaa0b6057db114bae19bb246b4d",
+      "gitBlob": "d3ddc7a338e383cbded235abb8951894eaca918e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803557894352,
+      "ctimeNs": 1793103803557894352,
+      "staged": {
+        "mode": "100644",
+        "blob": "d3ddc7a338e383cbded235abb8951894eaca918e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-final-gate-generated-status-process.json",
+      "bytes": 460,
+      "sha256": "bad6d96c9778a27cc2d7801e4078bcf8a0672f8d4be8465ee9e2da24b965c146",
+      "gitBlob": "b0477f65ab4b90e46991398daf385a78f395693a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803218879826,
+      "ctimeNs": 1793103803218879826,
+      "staged": {
+        "mode": "100644",
+        "blob": "b0477f65ab4b90e46991398daf385a78f395693a",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-final-gate-generated-status.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803218879826,
+      "ctimeNs": 1793103803218879826,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-final-gate-generated-status.stdout.log",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803218879826,
+      "ctimeNs": 1793103803218879826,
+      "staged": {
+        "mode": "100644",
+        "blob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-full-cached-check-process.json",
+      "bytes": 448,
+      "sha256": "39426330279ba689de03641a9c9abdb789a76a291d9dbc5f81ce05bb653887f5",
+      "gitBlob": "edf4b4c4984511ad5dbf2e0e0855001672342d1f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624782290488,
+      "ctimeNs": 1793103624782290488,
+      "staged": {
+        "mode": "100644",
+        "blob": "edf4b4c4984511ad5dbf2e0e0855001672342d1f",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-full-cached-check-result.json",
+      "bytes": 39955,
+      "sha256": "5c3ebf77c7b7efdc125d4467a37ae413d81fdc5646825c72dd4669ebfd0708a2",
+      "gitBlob": "7e88ce396a0eff806f59a063a09d2aca1f47a5e1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624783290530,
+      "ctimeNs": 1793103624783290530,
+      "staged": {
+        "mode": "100644",
+        "blob": "7e88ce396a0eff806f59a063a09d2aca1f47a5e1",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-full-cached-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624782290488,
+      "ctimeNs": 1793103624782290488,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-full-cached-check.stdout.log",
+      "bytes": 24630,
+      "sha256": "863bf3bd4f7618afd560289fc263bf9abc744cad89d8b35e7ef4e0c2ceb41af8",
+      "gitBlob": "3ba0bd6b00a83e93dfdac5ef80c9f1f30d47c9e7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624782290488,
+      "ctimeNs": 1793103624782290488,
+      "staged": {
+        "mode": "100644",
+        "blob": "3ba0bd6b00a83e93dfdac5ef80c9f1f30d47c9e7",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-full-cached-diagnostic-classification.json",
+      "bytes": 737,
+      "sha256": "9058250c0c86a2786ce43dec6cbfcafca002ca972fdd525e2ff3b8d418cb28d9",
+      "gitBlob": "15ad545c81766a29a50abf80a68080b20ace22b3",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803166877598,
+      "ctimeNs": 1793103803166877598,
+      "staged": {
+        "mode": "100644",
+        "blob": "15ad545c81766a29a50abf80a68080b20ace22b3",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-gate-docs-health-process.json",
+      "bytes": 444,
+      "sha256": "cbbeb3f37be11c29a42fcb3c1fb687291540fc41852650231dc423cb26c4e612",
+      "gitBlob": "7b4dae82f1249f8211d1a209cb6ef1503c7562ef",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624405274586,
+      "ctimeNs": 1793103624405274586,
+      "staged": {
+        "mode": "100644",
+        "blob": "7b4dae82f1249f8211d1a209cb6ef1503c7562ef",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-gate-docs-health.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624405274586,
+      "ctimeNs": 1793103624405274586,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-gate-docs-health.stdout.log",
+      "bytes": 4384,
+      "sha256": "ff8c7cd7fbe3d7bdfa5d197e2a6f0d681cfbceaa0b6057db114bae19bb246b4d",
+      "gitBlob": "d3ddc7a338e383cbded235abb8951894eaca918e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624405274586,
+      "ctimeNs": 1793103624405274586,
+      "staged": {
+        "mode": "100644",
+        "blob": "d3ddc7a338e383cbded235abb8951894eaca918e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-gate-generated-status-process.json",
+      "bytes": 460,
+      "sha256": "d870124d5e3245e77e2f525abaa0636adaf6f21dcb92be997d889fdd5322582d",
+      "gitBlob": "d664de59fdb7c716ffd3b09a220495ee584e14ad",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624054259781,
+      "ctimeNs": 1793103624054259781,
+      "staged": {
+        "mode": "100644",
+        "blob": "d664de59fdb7c716ffd3b09a220495ee584e14ad",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-gate-generated-status.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624054259781,
+      "ctimeNs": 1793103624054259781,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-gate-generated-status.stdout.log",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624054259781,
+      "ctimeNs": 1793103624054259781,
+      "staged": {
+        "mode": "100644",
+        "blob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-gate-unstaged-diff-check-process.json",
+      "bytes": 428,
+      "sha256": "0197838f31f1d80c40c5f96380c14fcfc2eb429b1ad525bc737e8c099d2bc204",
+      "gitBlob": "81bd351b16b0f65b82448456b316e59f2cf01d79",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624434275809,
+      "ctimeNs": 1793103624434275809,
+      "staged": {
+        "mode": "100644",
+        "blob": "81bd351b16b0f65b82448456b316e59f2cf01d79",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-gate-unstaged-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624434275809,
+      "ctimeNs": 1793103624434275809,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-gate-unstaged-diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624434275809,
+      "ctimeNs": 1793103624434275809,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-initial-stage-process.json",
+      "bytes": 778,
+      "sha256": "2c5c6937f914f67b0601204a960b96edaf9d4c8036817eaba8cee09a2bad56ab",
+      "gitBlob": "54331a2676de376949f23e67b90dcad9ada333cb",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624636284330,
+      "ctimeNs": 1793103624636284330,
+      "staged": {
+        "mode": "100644",
+        "blob": "54331a2676de376949f23e67b90dcad9ada333cb",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-initial-stage.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624635284287,
+      "ctimeNs": 1793103624635284287,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-initial-stage.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624635284287,
+      "ctimeNs": 1793103624635284287,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-scoped-cached-check-process.json",
+      "bytes": 7191,
+      "sha256": "0e46279d3427153819ca13c15dd6576607e4344bd9a873f7ef3373e20942cbec",
+      "gitBlob": "d7c7803e0cb82206e4e1dfb576c973fb11e88853",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803716901166,
+      "ctimeNs": 1793103803716901166,
+      "staged": {
+        "mode": "100644",
+        "blob": "d7c7803e0cb82206e4e1dfb576c973fb11e88853",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-scoped-cached-check-result.json",
+      "bytes": 13754,
+      "sha256": "36d81e69d0e468522babbd00607e6755f7bf06fe5291d22aa58fbcf08dad5008",
+      "gitBlob": "591ba9267ecc796d885129767e84f4760209879e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803717901208,
+      "ctimeNs": 1793103803717901208,
+      "staged": {
+        "mode": "100644",
+        "blob": "591ba9267ecc796d885129767e84f4760209879e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-scoped-cached-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803716901166,
+      "ctimeNs": 1793103803716901166,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-scoped-cached-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803716901166,
+      "ctimeNs": 1793103803716901166,
+      "staged": {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/proof-status-first-entry.txt",
+      "bytes": 1654,
+      "sha256": "a5736f1bf7f0f5ae38c1e1c47965cff5c5636c05e86605f4719f36fdaaa31d26",
+      "gitBlob": "f054c126fdea2128372ba493221b9a4d49da5710",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329830085712,
+      "ctimeNs": 1793103329830085712,
+      "staged": {
+        "mode": "100644",
+        "blob": "f054c126fdea2128372ba493221b9a4d49da5710",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/prospective-complete-tree-audit.json",
+      "bytes": 10615728,
+      "sha256": "a83f51c8483454b2c1d2d776b855f354cc2da2d644f4efa51d2b162e7765d6a6",
+      "gitBlob": "a3618ed5c5011b2c6b1908bfa0e0331dc6b0a485",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103129502171835,
+      "ctimeNs": 1793103129502171835,
+      "staged": {
+        "mode": "100644",
+        "blob": "a3618ed5c5011b2c6b1908bfa0e0331dc6b0a485",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-boundary.json",
+      "bytes": 909,
+      "sha256": "004e726c052d9c611f7457c7476310889f23f6acf01c0408d95cff5893f2b9d2",
+      "gitBlob": "59661cf58da52ff35b5035a5b1434915d18a9725",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103892364711203,
+      "ctimeNs": 1793103892364711203,
+      "staged": {
+        "mode": "100644",
+        "blob": "59661cf58da52ff35b5035a5b1434915d18a9725",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-documentation-builder.inline.py.raw",
+      "bytes": 8274,
+      "sha256": "e70caa52cbc523ff7e8b967248b64469c9597b18fc7ed6f85508787265f8ac90",
+      "gitBlob": "6a36f3d46be89e1d6b54cfe06dc82ba489bb241c",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624002257587,
+      "ctimeNs": 1793103624002257587,
+      "staged": {
+        "mode": "100644",
+        "blob": "6a36f3d46be89e1d6b54cfe06dc82ba489bb241c",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-documentation-edits.json",
+      "bytes": 14040,
+      "sha256": "eeda0b741682e960c23f719e5e626899eebedd90668ab918b6bf4ddb682c3758",
+      "gitBlob": "3d86269fef76f1efdf78e44e77faa083b2c80367",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329866087167,
+      "ctimeNs": 1793103329866087167,
+      "staged": {
+        "mode": "100644",
+        "blob": "3d86269fef76f1efdf78e44e77faa083b2c80367",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-documentation-edits.patch",
+      "bytes": 18388,
+      "sha256": "873414daab74c2766c4d2883de0c5fb096df9a540b00922311ae42b909428515",
+      "gitBlob": "bb9f385a0d58d0e52d92fd47ee5a2d1447a03592",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329866087167,
+      "ctimeNs": 1793103329866087167,
+      "staged": {
+        "mode": "100644",
+        "blob": "bb9f385a0d58d0e52d92fd47ee5a2d1447a03592",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-index-builder-corrected.inline.py.raw",
+      "bytes": 14160,
+      "sha256": "f809771f5c6bf5d35ca1dd2458d1ae40e043840e034dcdea3be58d98bcee9111",
+      "gitBlob": "d2b797a05a3a01cfa182d567ff194ce327dd5bdf",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624002257587,
+      "ctimeNs": 1793103624002257587,
+      "staged": {
+        "mode": "100644",
+        "blob": "d2b797a05a3a01cfa182d567ff194ce327dd5bdf",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-inventory.json",
+      "bytes": 118529,
+      "sha256": "fe2eedb88af594214d3cb602f10dc4848297151ada636fbee9c8666ca5c60226",
+      "gitBlob": "7996c783838700f86d7f036a6a3e9989ce743466",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104518365306894,
+      "ctimeNs": 1793104518365306894,
+      "staged": {
+        "mode": "100644",
+        "blob": "7996c783838700f86d7f036a6a3e9989ce743466",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-parent-documents/dev/parallel/INDEX.md.raw",
+      "bytes": 3709,
+      "sha256": "27bf5ae9f0038e03d15ee950115ec1ec1f9a73382f58464d8949a6d5eb9e8ba4",
+      "gitBlob": "ccba5d1931ae88579709bbd819544925a7f11ec1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329818085228,
+      "ctimeNs": 1793103329818085228,
+      "staged": {
+        "mode": "100644",
+        "blob": "ccba5d1931ae88579709bbd819544925a7f11ec1",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-parent-documents/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 28822,
+      "sha256": "28319ec8e41ce7b0305c594e278e6eee17d262c021dbd371a74bfdb15fa208ca",
+      "gitBlob": "dfa7a07e8d94fd7e7a912c28866c2363bf758094",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329820085308,
+      "ctimeNs": 1793103329820085308,
+      "staged": {
+        "mode": "100644",
+        "blob": "dfa7a07e8d94fd7e7a912c28866c2363bf758094",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-parent-documents/dev/plans/INDEX.md.raw",
+      "bytes": 76877,
+      "sha256": "0389b8d85e81533f83322f277c4bd07bfb2594b0a6b283aa5966117e2c0d6c2f",
+      "gitBlob": "1c396bc4f934b30eb0c4e55bd469f46f98945e0b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329822085389,
+      "ctimeNs": 1793103329822085389,
+      "staged": {
+        "mode": "100644",
+        "blob": "1c396bc4f934b30eb0c4e55bd469f46f98945e0b",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-parent-documents/dev/progress/INDEX.md.raw",
+      "bytes": 14497,
+      "sha256": "dc69814c7971bc53dbd4a78c5ffca1aadf9e91e0d57debe30e467fbdf31f98a0",
+      "gitBlob": "689be5016ada68494e83c8a289df3f97a248bd67",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329824085470,
+      "ctimeNs": 1793103329824085470,
+      "staged": {
+        "mode": "100644",
+        "blob": "689be5016ada68494e83c8a289df3f97a248bd67",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-parent-documents/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 271103,
+      "sha256": "3be8df59e8de7bdc9fa770e1e0d9fa433c9ea0aa35c770db3b109cc86cd6a574",
+      "gitBlob": "960b23249fcf8325b4893a1df31948ccdab6e8e8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329828085632,
+      "ctimeNs": 1793103329828085632,
+      "staged": {
+        "mode": "100644",
+        "blob": "960b23249fcf8325b4893a1df31948ccdab6e8e8",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-parent-documents/dev/progress/status.md.raw",
+      "bytes": 140658,
+      "sha256": "7070728d6db1d6974f757d448c0424e6def820a9ae1feb6a3efac56326c36f98",
+      "gitBlob": "a95607725e6b83d543013a12fcbbb42bbecc7f4f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329830085712,
+      "ctimeNs": 1793103329830085712,
+      "staged": {
+        "mode": "100644",
+        "blob": "a95607725e6b83d543013a12fcbbb42bbecc7f4f",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/resolution-builder.inline.py.raw",
+      "bytes": 6638,
+      "sha256": "278b78379f48df967f82f8ed12acbbe955ad066a1a4e70cee73d4f6b27d2d178",
+      "gitBlob": "d1df83ec347bac21d1a5f46311b3b0e59e2078fd",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103624002257587,
+      "ctimeNs": 1793103624002257587,
+      "staged": {
+        "mode": "100644",
+        "blob": "d1df83ec347bac21d1a5f46311b3b0e59e2078fd",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/resolved-documents/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 28822,
+      "sha256": "28319ec8e41ce7b0305c594e278e6eee17d262c021dbd371a74bfdb15fa208ca",
+      "gitBlob": "dfa7a07e8d94fd7e7a912c28866c2363bf758094",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084263443645,
+      "ctimeNs": 1793103084263443645,
+      "staged": {
+        "mode": "100644",
+        "blob": "dfa7a07e8d94fd7e7a912c28866c2363bf758094",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/resolved-documents/dev/plans/INDEX.md.raw",
+      "bytes": 76877,
+      "sha256": "0389b8d85e81533f83322f277c4bd07bfb2594b0a6b283aa5966117e2c0d6c2f",
+      "gitBlob": "1c396bc4f934b30eb0c4e55bd469f46f98945e0b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084264443683,
+      "ctimeNs": 1793103084264443683,
+      "staged": {
+        "mode": "100644",
+        "blob": "1c396bc4f934b30eb0c4e55bd469f46f98945e0b",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/resolved-documents/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 271103,
+      "sha256": "3be8df59e8de7bdc9fa770e1e0d9fa433c9ea0aa35c770db3b109cc86cd6a574",
+      "gitBlob": "960b23249fcf8325b4893a1df31948ccdab6e8e8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084266443759,
+      "ctimeNs": 1793103084266443759,
+      "staged": {
+        "mode": "100644",
+        "blob": "960b23249fcf8325b4893a1df31948ccdab6e8e8",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/resolved-documents/dev/progress/status.md.raw",
+      "bytes": 140658,
+      "sha256": "7070728d6db1d6974f757d448c0424e6def820a9ae1feb6a3efac56326c36f98",
+      "gitBlob": "a95607725e6b83d543013a12fcbbb42bbecc7f4f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103084269443873,
+      "ctimeNs": 1793103084269443873,
+      "staged": {
+        "mode": "100644",
+        "blob": "a95607725e6b83d543013a12fcbbb42bbecc7f4f",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/reviewed-db02-plan.raw",
+      "bytes": 22659,
+      "sha256": "e90e77d5398f3fa31f90d6ea8e351696b971e2c6f68897ccf3c194480bf7fcf9",
+      "gitBlob": "546ce0be0f6344ef9d11db9ec38f6cbb2661228a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734824183797,
+      "ctimeNs": 1793102734824183797,
+      "staged": {
+        "mode": "100644",
+        "blob": "546ce0be0f6344ef9d11db9ec38f6cbb2661228a",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/root-exact-scoped-check-authorization.direct-message.txt",
+      "bytes": 834,
+      "sha256": "509b1c7ff726c32850dbc44b10cac7ae65b93bb1363be8ae448ec776c0d1e2e5",
+      "gitBlob": "7ff9778fe14ccfad52c840f4382c693d8fa943be",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103803166877598,
+      "ctimeNs": 1793103803166877598,
+      "staged": {
+        "mode": "100644",
+        "blob": "7ff9778fe14ccfad52c840f4382c693d8fa943be",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/root-fixed-conflict-review-attribution.json",
+      "bytes": 776,
+      "sha256": "6d318dd5da82c4679e9b31d4752971e90fd0ad7cd67c1d4023fa17cad9841c8c",
+      "gitBlob": "e25a423ac407435af96d68dce9cf9e5231fda89c",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564895772807,
+      "ctimeNs": 1793103564895772807,
+      "staged": {
+        "mode": "100644",
+        "blob": "e25a423ac407435af96d68dce9cf9e5231fda89c",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/root-reader-followup/executor-parse-rejection.json",
+      "bytes": 24886,
+      "sha256": "101c44e956d57d7713749de340c495c20b9f7dca4f10ce6a36c6fdff72b76e79",
+      "gitBlob": "42df4fc029952ba1ecb68ba39535d68967ed6f09",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104467972184281,
+      "ctimeNs": 1793104467972184281,
+      "staged": {
+        "mode": "100644",
+        "blob": "42df4fc029952ba1ecb68ba39535d68967ed6f09",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/root-reader-followup/root-reader-attribution.json",
+      "bytes": 1672,
+      "sha256": "d899330dcb68e940fbddf3da3c18b7585c79fd1328a798b963eb3256a33c7d88",
+      "gitBlob": "e9586a621a96541864e0b52ade1f31679d07b70b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104515549133854,
+      "ctimeNs": 1793104515549133854,
+      "staged": {
+        "mode": "100644",
+        "blob": "e9586a621a96541864e0b52ade1f31679d07b70b",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/root-reader-followup/verification-before-refreeze.json",
+      "bytes": 54221,
+      "sha256": "a78995371c256863e630b826c330d9ac8df5c68df860a4cf87e24f8be8179b18",
+      "gitBlob": "112c1bfdae623f38b5fdfe68f6ad6eb8f17073fa",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104518313303700,
+      "ctimeNs": 1793104518313303700,
+      "staged": {
+        "mode": "100644",
+        "blob": "112c1bfdae623f38b5fdfe68f6ad6eb8f17073fa",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/tail-boundary/dev/parallel/active/sources-accept-post-read-authorization.md.actual-tail-after-whole-ours.raw",
+      "bytes": 3211,
+      "sha256": "e6ca0b82418d56945df786b531f31d27429fb2f88397440f30347cc76d49693c",
+      "gitBlob": "fd2e2588a2e0135358022f597d85e07849dd2a3e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564894772765,
+      "ctimeNs": 1793103564894772765,
+      "staged": {
+        "mode": "100644",
+        "blob": "fd2e2588a2e0135358022f597d85e07849dd2a3e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/tail-boundary/dev/parallel/active/sources-accept-post-read-authorization.md.incoming-independent-tail.raw",
+      "bytes": 3212,
+      "sha256": "5e30294c72075472bf47ee9a6f0b3249d766aab983b6781a234a6be6fba25b1f",
+      "gitBlob": "3b4882dd978180ed07c5c62d7d9e276347dacd52",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564894772765,
+      "ctimeNs": 1793103564894772765,
+      "staged": {
+        "mode": "100644",
+        "blob": "3b4882dd978180ed07c5c62d7d9e276347dacd52",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/tail-boundary/dev/progress/sources-accept-post-read-authorization-checkpoint.md.actual-tail-after-whole-ours.raw",
+      "bytes": 95379,
+      "sha256": "d52a6fc6e836bb7f2f98758f50af96ab90efdb8e9c8faba245f4025d45c6c31d",
+      "gitBlob": "ea1d058716558e94e466a5a75052d38de76aaa48",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564895772807,
+      "ctimeNs": 1793103564895772807,
+      "staged": {
+        "mode": "100644",
+        "blob": "ea1d058716558e94e466a5a75052d38de76aaa48",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/tail-boundary/dev/progress/sources-accept-post-read-authorization-checkpoint.md.incoming-independent-tail.raw",
+      "bytes": 95380,
+      "sha256": "6e1f499232575e0063a786c9991564c0566b5356239c1e48c6f8b132fdcd6df5",
+      "gitBlob": "fa1b1485cc92734cce71c2a636a6cc97922620d4",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103564895772807,
+      "ctimeNs": 1793103564895772807,
+      "staged": {
+        "mode": "100644",
+        "blob": "fa1b1485cc92734cce71c2a636a6cc97922620d4",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs-inventory.json",
+      "bytes": 5511,
+      "sha256": "303c43ce846a6e1a090d9f4fe8b7503dbe9acf1f9d1856f95835b39e988e6b42",
+      "gitBlob": "ee86221b1a36fba4391f17bbd825b0c2e9c08050",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734824183797,
+      "ctimeNs": 1793102734824183797,
+      "staged": {
+        "mode": "100644",
+        "blob": "ee86221b1a36fba4391f17bbd825b0c2e9c08050",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/base/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 17998,
+      "sha256": "5787df381def2e08eb7f53cba2511cc885e775f08fe7c7225fc17010d92a742b",
+      "gitBlob": "3cd7846d049453133d629ec7ba039ce331d3db87",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734689179542,
+      "ctimeNs": 1793102734689179542,
+      "staged": {
+        "mode": "100644",
+        "blob": "3cd7846d049453133d629ec7ba039ce331d3db87",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/base/dev/plans/INDEX.md.raw",
+      "bytes": 75836,
+      "sha256": "70214d6c8cd8de63bb61d16781f82651f7c788d389b1f5747a71e6b0672501a9",
+      "gitBlob": "9b0195372d8b1211251ca3866cba987302916759",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734719180488,
+      "ctimeNs": 1793102734719180488,
+      "staged": {
+        "mode": "100644",
+        "blob": "9b0195372d8b1211251ca3866cba987302916759",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 113145,
+      "sha256": "cdc07bdc3e5c591d7d92092c157428ed041f73856f2d4a764a7088a13d1594e5",
+      "gitBlob": "52faa0a8e07e53b0c27a8890ffef7be7079bd797",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734753181560,
+      "ctimeNs": 1793102734753181560,
+      "staged": {
+        "mode": "100644",
+        "blob": "52faa0a8e07e53b0c27a8890ffef7be7079bd797",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/base/dev/progress/status.md.raw",
+      "bytes": 140196,
+      "sha256": "62def717706aab7666dd5811f59fc7f1b61756c574a2569a9d6353e94b7b8f54",
+      "gitBlob": "b02df7e762817549288a257fc31c9c20a3fd46f5",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734787182631,
+      "ctimeNs": 1793102734787182631,
+      "staged": {
+        "mode": "100644",
+        "blob": "b02df7e762817549288a257fc31c9c20a3fd46f5",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/incoming/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 21210,
+      "sha256": "130f7b0c1011d646008ad40dabf1011e0504827abd15fceae9177789819011d5",
+      "gitBlob": "e8427d71846974e2bc578b08dfcc33d6801a2c46",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734694179700,
+      "ctimeNs": 1793102734694179700,
+      "staged": {
+        "mode": "100644",
+        "blob": "e8427d71846974e2bc578b08dfcc33d6801a2c46",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/incoming/dev/plans/INDEX.md.raw",
+      "bytes": 76176,
+      "sha256": "d8cffdf49cb05762e65a9fa5b4e861066347953f273bdc4424f3e941da6a1804",
+      "gitBlob": "3d3004a72b748f7329bf51e221e04c0c254a6609",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734725180677,
+      "ctimeNs": 1793102734725180677,
+      "staged": {
+        "mode": "100644",
+        "blob": "3d3004a72b748f7329bf51e221e04c0c254a6609",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/incoming/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md.raw",
+      "bytes": 24338,
+      "sha256": "734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c",
+      "gitBlob": "8d19f7b79560c55ab7bfe3aa53f8a372556654ed",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734750181465,
+      "ctimeNs": 1793102734750181465,
+      "staged": {
+        "mode": "100644",
+        "blob": "8d19f7b79560c55ab7bfe3aa53f8a372556654ed",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 208525,
+      "sha256": "146b03f9cea56c72e5279c8cc64b222a7a7a0daec0e2b099430fd1b9df2cefdb",
+      "gitBlob": "715535de9459bb7c4346b5b24211bdc4e851d16e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734759181749,
+      "ctimeNs": 1793102734759181749,
+      "staged": {
+        "mode": "100644",
+        "blob": "715535de9459bb7c4346b5b24211bdc4e851d16e",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/status.md.raw",
+      "bytes": 140078,
+      "sha256": "59a770b43959119784128e4ba63d7e839dad9be6ea781e57a783cfa0f52837ba",
+      "gitBlob": "db2b39d6e6856597d9663b3025a3428f4f4a0234",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734794182852,
+      "ctimeNs": 1793102734794182852,
+      "staged": {
+        "mode": "100644",
+        "blob": "db2b39d6e6856597d9663b3025a3428f4f4a0234",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/ours/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 25611,
+      "sha256": "a8426b81b20b92cdbac1e1042736e2c6808b187bfb9da72f4f84b081587ef8d2",
+      "gitBlob": "02b708f686feea840e593434a559aa5ece2b9ab1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734691179606,
+      "ctimeNs": 1793102734691179606,
+      "staged": {
+        "mode": "100644",
+        "blob": "02b708f686feea840e593434a559aa5ece2b9ab1",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/ours/dev/plans/INDEX.md.raw",
+      "bytes": 76537,
+      "sha256": "73af9feac2138a0e415cd708a0c2f1a6ce979a3c308aa175bde65c9b914bc845",
+      "gitBlob": "520af4b48e07217452a49dba69b4e9b33e1d2405",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734722180583,
+      "ctimeNs": 1793102734722180583,
+      "staged": {
+        "mode": "100644",
+        "blob": "520af4b48e07217452a49dba69b4e9b33e1d2405",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 175724,
+      "sha256": "1744fcf9cdcdd2613bf278be51ff1b8d1dd561b8e0e8d21109a0548991b57167",
+      "gitBlob": "b3d452db5bde68497a196c0f2dfd08481c0c4a09",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734756181654,
+      "ctimeNs": 1793102734756181654,
+      "staged": {
+        "mode": "100644",
+        "blob": "b3d452db5bde68497a196c0f2dfd08481c0c4a09",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/three-way-inputs/ours/dev/progress/status.md.raw",
+      "bytes": 140130,
+      "sha256": "12dc5d1b557a3ec522979656545395b11034c8a7208400712a56b25b699e6731",
+      "gitBlob": "bded5ce1be1c22c99d7aa3669eb60b0dbc8a0173",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793102734791182757,
+      "ctimeNs": 1793102734791182757,
+      "staged": {
+        "mode": "100644",
+        "blob": "bded5ce1be1c22c99d7aa3669eb60b0dbc8a0173",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "bytes": 273222,
+      "sha256": "1a0cc499aceccb3a390b8cf0190d85c3e36e9555b724dac5f42017812faee1c7",
+      "gitBlob": "f86b686888d75f47a3c7fef7219729d28296994d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329831085753,
+      "ctimeNs": 1793103329831085753,
+      "staged": {
+        "mode": "100644",
+        "blob": "f86b686888d75f47a3c7fef7219729d28296994d",
+        "stage": 0
+      }
+    },
+    {
+      "path": "dev/progress/status.md",
+      "bytes": 140684,
+      "sha256": "bb04116e77afcfaabe6d2922887a4a7d940664107907cd7b8d0ac233e0fd17fa",
+      "gitBlob": "ae3ab913e68fc09aac611d95396723f307440beb",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793103329830085712,
+      "ctimeNs": 1793103329830085712,
+      "staged": {
+        "mode": "100644",
+        "blob": "ae3ab913e68fc09aac611d95396723f307440beb",
+        "stage": 0
+      }
+    }
+  ],
+  "allStagedModeBlobStageExact": true,
+  "allFilesystemBytesShaModeMtimeCtimeFrozen": true,
+  "sourceSrc": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "sourceCandidate4f264NotIntegrated": true,
+  "originalWholeBuildProtectionPassed": false,
+  "standaloneProofCommitAuthorized": false
+}

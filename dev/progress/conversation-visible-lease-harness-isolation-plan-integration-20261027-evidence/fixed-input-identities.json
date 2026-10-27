@@ -1,0 +1,38 @@
+{
+  "ours": "3a14d6ed28c03f54668ae06ea47f45bc23b8f171",
+  "incoming": "ea92e8da62ab9c12da0681867114acbe187c1004",
+  "base": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+  "src": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "plan": "dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+  "proof": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence",
+  "mergeCommitAuthorized": true,
+  "standaloneProofCommitAuthorized": false,
+  "noRuntimeOrEmitterPreparation": true,
+  "refs": {
+    "base": {
+      "ref": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+      "tree": "4c6049b4e0428ce69c8da09b49070c8eb977c51c",
+      "src": "f49b512f27c83efc128e67028fb173aa1e1fa0ac",
+      "parents": [
+        "fb708c01ab1d2267b304680fb8a65fe22673c6b5"
+      ]
+    },
+    "ours": {
+      "ref": "3a14d6ed28c03f54668ae06ea47f45bc23b8f171",
+      "tree": "f085717d80915813b6dba29f43588153b6c2c7ee",
+      "src": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+      "parents": [
+        "3497bdc01caa188e5ff37e8877168d50b0a398d0"
+      ]
+    },
+    "incoming": {
+      "ref": "ea92e8da62ab9c12da0681867114acbe187c1004",
+      "tree": "aea2ec26e20f3f56fd1c4695f9d33788ecb317cf",
+      "src": "f49b512f27c83efc128e67028fb173aa1e1fa0ac",
+      "parents": [
+        "db02c9c815f1bb7517910ba3bf9583a562709e57"
+      ]
+    }
+  },
+  "allSrcAndIncomingUnchangedPathsMustKeepOurs": true
+}

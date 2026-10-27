@@ -1,0 +1,52 @@
+from pathlib import Path
+import subprocess,json,hashlib,difflib,datetime
+R=Path.cwd();P=R/"dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence"
+head="80dc02d8a98e1190dd9039c810431c3105786588";src="fa6f7fe9f339963dd9f4190f44aa17e45f6ad731"
+assert subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()==head
+paths=["dev/parallel/INDEX.md","dev/parallel/active/sources-accept-post-read-authorization.md","dev/plans/INDEX.md","dev/progress/INDEX.md","dev/progress/sources-accept-post-read-authorization-checkpoint.md","dev/progress/status.md"]
+before={}
+for name in paths:
+ b=subprocess.check_output(["git","show",head+":"+name]);assert b==(R/name).read_bytes();before[name]=b
+ p=P/"publication-parent-documents"/(name+".raw");p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b)
+status=before["dev/progress/status.md"].decode().splitlines(keepends=True)
+first=next(x for x in status if x.startswith("- **"));(P/"merge-status-first-entry.txt").write_text(first)
+status[6]='summary: "80dc02真双亲接入固定ea92 accepted窄方案，src仍fa6；3a14实际driver0/official1、全.build保护失败与C0/I2/M0保持。4f264静态源码候选已peer/root采纳但未接入；B准备/运行待另授，业务/lease/产品不升。"\n'
+assert status[11].startswith("- **")
+status[11]=status[11].replace("固定ea92的[fixture/emitter窄方案]","80dc02真双亲接入固定ea92的[fixture/emitter窄方案]").replace("A源码、B工具准备和运行分别待另授。本次src仍fa6，未接入后续源码候选；","原Astra对4f264静态源码候选C0/I0/M0已由root02ff独核采纳，但未接入本次srcfa6；B工具准备和运行待另授。")
+assert "A源码、B" not in status[11] and len(status)==200
+(R/"dev/progress/status.md").write_text("".join(status));(P/"proof-status-first-entry.txt").write_text(status[11])
+section="""
+
+### 固定ea92窄方案真实双亲接入（2026-10-27）
+
+真实merge 80dc02d8a98e1190dd9039c810431c3105786588，严格双亲3a14d6ed28c03f54668ae06ea47f45bc23b8f171与ea92e8da62ab9c12da0681867114acbe187c1004，真实base8033a3c23ba2b0550e817c9cc4fdebf4d12a4478；src完整保持ours fa6f7fe9f339963dd9f4190f44aa17e45f6ad731。只接入accepted两片plan及四docs真实冲突解法：四文档/五块分别保存default与diff3完整canonical、每块三方/outside/resolution及全文重放；union1931、无争议1927、外22242逐mode/type/blob精确。新plan24338B/SHA734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c整篇incoming字节不改，原§1–4亦等于reviewed db02。Sources四窄implemented、lease accepted/overall active及旧原件/失败/consumed保持。
+
+当前全局授权另作澄清：root已另授A片且原Astra对固定4f2648d936508e300475c9cd52e5855a58c7ed93源码候选C0/I0/M0，经root02ff独核采纳；它尚未接入本次plan-only/srcfa6。merge当前摘要沿用旧“源码待授”时态，原文字节仍在merge与重放raw；本次独立proof/docs仅将当前摘要/首条澄清为“候选已peer、未接入，B工具准备/运行待另授”，不改incoming plan当时历史叙述。没有新运行成绩或业务/coverage/after信用。3a14诊断driver0/protocol accounted-official-outcome/official1/out恢复complete、fixture缺WorkRootMount及全.build保护FAILED/合C0/I2/M0明确保留；.build/log仍为[]且旧mtime/ctime漂移不恢复、不加例外。
+
+证据与双方首条含LF原件见[接入证明](PROOF_LINK)；原审查署名来自root直接消息及incoming保留文本，不伪造原reviewer终端raw。797文件/223012410B及215非普通entry、旧结果proof280、out15500/native256/freeze4/cache3与ownedquiet本区间精确保留；src15715/node_modules48772全metadata同，.build6777仅已知log漂移。独立proof/docs待root检查和单独commit授权，不准备工具、不Program/lint/compile/tests/runtime/after，不push或同步main。
+"""
+for path,link in [("dev/parallel/active/sources-accept-post-read-authorization.md","../../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md"),("dev/progress/sources-accept-post-read-authorization-checkpoint.md","conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md")]:
+ (R/path).write_bytes(before[path]+section.replace("PROOF_LINK",link).encode())
+path="dev/plans/INDEX.md";text=before[path].decode()
+old="root采纳原Astra固定db02c9窄验C0/I0/M0，I1/M1仅方案层全关，本窄plan独立accepted；原稿/正式消息/差异口径保留，A源码/B工具准备/运行仍分别待授权。"
+new="80dc02真双亲接入固定ea92 accepted方案，24338B原文精确、srcfa6；db02 C0/I0/M0/root采纳、I1/M1仅方案层关闭；4f264静态候选已peer但未接入，B准备/运行待另授。[证明](../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。"
+assert text.count(old)==1;(R/path).write_text(text.replace(old,new))
+path="dev/progress/INDEX.md";text=before[path].decode();key="| [Conversation 8033单次诊断与保护失败]"
+at=text.index(key);text=text[:at]+"| [Conversation fixture/emitter accepted方案三路接入](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md) | 80dc02严格双亲3a14/ea92、srcfa6；四docs五块双canonical全文重放、1931矩阵；3a14实际失败/全.build FAILED不改，4f264候选未接入，B待另授。 |\n"+text[at:];(R/path).write_text(text)
+path="dev/parallel/INDEX.md";text=before[path].decode();at=text.index("| [conversation-visible-lease-recovery]")
+text=text[:at]+"| [conversation-visible-lease-harness-and-emitter-isolation](../plans/conversation-visible-lease-harness-and-emitter-isolation.md) | **窄方案accepted已三路接入**：80dc02严格双亲3a14/ea92、srcfa6、24338B原文精确；4f264静态候选已peer但未接入，B准备/运行待另授。3a14实际official1/全.build FAILED与旧业务门禁保持。[证明](../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。 |\n"+text[at:];(R/path).write_text(text)
+edits=[];patch=[]
+for name in paths:
+ b=before[name];after=(R/name).read_bytes();old=b.decode().splitlines(keepends=True);new=after.decode().splitlines(keepends=True);op=[]
+ for tag,a,z,c,d in difflib.SequenceMatcher(a=old,b=new,autojunk=False).get_opcodes():
+  if tag!="equal":op.append(dict(tag=tag,beforeStart=a,beforeEnd=z,afterStart=c,afterEnd=d,beforeLines=old[a:z],afterLines=new[c:d]))
+ replay=old[:]
+ for item in reversed(op):replay[item["beforeStart"]:item["beforeEnd"]]=item["afterLines"]
+ assert "".join(replay).encode()==after
+ edits.append(dict(path=name,beforeBytes=len(b),beforeSha256=hashlib.sha256(b).hexdigest(),afterBytes=len(after),afterSha256=hashlib.sha256(after).hexdigest(),lineEdits=op,wholeReplayExact=True))
+ patch.extend(difflib.unified_diff(old,new,fromfile="a/"+name,tofile="b/"+name))
+(P/"publication-documentation-edits.json").write_text(json.dumps(dict(parent=head,files=edits,planWholeIncomingUnmodified=True,currentSourceCandidateAuthorizationClarifiedOnly=True),ensure_ascii=False,indent=2)+"\n")
+(P/"publication-documentation-edits.patch").write_text("".join(patch))
+plan=(R/"dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md").read_bytes();assert hashlib.sha256(plan).hexdigest()=="734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c"
+(P/"current-authorization-boundary.json").write_text(json.dumps(dict(source="/root direct messages, no original reviewer terminal raw supplied",planIncoming="ea92e8da62ab9c12da0681867114acbe187c1004",planOnlyMerge=head,currentSrc=src,sourceCandidate="4f2648d936508e300475c9cd52e5855a58c7ed93",sourceCandidatePeer="original Astra C0/I0/M0; root02ff12 independent adoption",sourceCandidateInCurrentSrc=False,emitterPreparationAuthorized=False,newRunAuthorized=False,standaloneProofCommitAuthorized=False,originalRunWholeBuildProtectionPassed=False,mergeHistoricalCurrentSummaryRetainedInCanonicalRaw=True),ensure_ascii=False,indent=2)+"\n")
+print(json.dumps(dict(docPaths=paths,statusLines=200,wholeDocReplaysExact=True,planWholeIncomingExact=True,sourceCandidateNotIntegrated=True),ensure_ascii=False))

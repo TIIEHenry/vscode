@@ -1,0 +1,701 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "actualExitCode": 2,
+  "startedAtUtc": "2026-10-27T12:20:24.637319+00:00",
+  "finishedAtUtc": "2026-10-27T12:20:24.783916+00:00",
+  "stdoutBytes": 24630,
+  "stdoutSha256": "863bf3bd4f7618afd560289fc263bf9abc744cad89d8b35e7ef4e0c2ceb41af8",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "diagnosticCount": 128,
+  "diagnosticPaths": [
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/plans/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/status.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/outside-00.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-full.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/canonical.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-00.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-full.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-full.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/canonical.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-full.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/canonical.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-full.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-full.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-staged-complete.diff.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-tail-reader-assertion-rejection.inline.py.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-tail-reader-unused-marker-rejection.inline.py.raw",
+    "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-documentation-edits.patch"
+  ],
+  "diagnostics": [
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 114,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 128,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 142,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "line": 17,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "line": 24,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "line": 31,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1036,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1088,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1789,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 9,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 11,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 16,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 18,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 20,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 114,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 128,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 142,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/plans/INDEX.md.raw",
+      "line": 17,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/plans/INDEX.md.raw",
+      "line": 24,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/plans/INDEX.md.raw",
+      "line": 31,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1036,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1088,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1789,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/status.md.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/status.md.raw",
+      "line": 9,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/status.md.raw",
+      "line": 11,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/status.md.raw",
+      "line": 16,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/status.md.raw",
+      "line": 18,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-default/dev/progress/status.md.raw",
+      "line": 20,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 112,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 128,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 129,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 145,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+      "line": 17,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+      "line": 24,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+      "line": 30,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+      "line": 37,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1034,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1088,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1089,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1792,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 9,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 11,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 13,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 18,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 20,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 22,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 24,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+      "line": 1,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+      "line": 15,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+      "line": 29,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+      "line": 114,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+      "line": 128,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+      "line": 142,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/outside-00.raw",
+      "line": 112,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-full.raw",
+      "line": 1,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-full.raw",
+      "line": 8,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-full.raw",
+      "line": 15,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/canonical.raw",
+      "line": 17,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/canonical.raw",
+      "line": 24,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/canonical.raw",
+      "line": 31,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+      "line": 1,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+      "line": 53,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+      "line": 754,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+      "line": 1036,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+      "line": 1088,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+      "line": 1789,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-00.raw",
+      "line": 1034,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-full.raw",
+      "line": 1,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-full.raw",
+      "line": 3,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-full.raw",
+      "line": 5,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-full.raw",
+      "line": 1,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-full.raw",
+      "line": 3,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-full.raw",
+      "line": 5,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/canonical.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/canonical.raw",
+      "line": 9,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/canonical.raw",
+      "line": 11,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/canonical.raw",
+      "line": 16,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/canonical.raw",
+      "line": 18,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/canonical.raw",
+      "line": 20,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+      "line": 1,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+      "line": 17,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+      "line": 18,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+      "line": 34,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+      "line": 112,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+      "line": 128,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+      "line": 129,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+      "line": 145,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-full.raw",
+      "line": 1,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-full.raw",
+      "line": 8,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-full.raw",
+      "line": 14,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-full.raw",
+      "line": 21,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/canonical.raw",
+      "line": 17,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/canonical.raw",
+      "line": 24,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/canonical.raw",
+      "line": 30,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/canonical.raw",
+      "line": 37,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+      "line": 1,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+      "line": 55,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+      "line": 56,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+      "line": 759,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+      "line": 1034,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+      "line": 1088,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+      "line": 1089,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+      "line": 1792,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-full.raw",
+      "line": 1,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-full.raw",
+      "line": 3,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-full.raw",
+      "line": 5,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-full.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-full.raw",
+      "line": 1,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-full.raw",
+      "line": 3,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-full.raw",
+      "line": 5,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-full.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+      "line": 9,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+      "line": 11,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+      "line": 13,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+      "line": 18,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+      "line": 20,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+      "line": 22,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+      "line": 24,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-staged-complete.diff.raw",
+      "line": 6,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/merge-staged-complete.diff.raw",
+      "line": 196,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-tail-reader-assertion-rejection.inline.py.raw",
+      "line": 82,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/observed-tail-reader-unused-marker-rejection.inline.py.raw",
+      "line": 87,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-documentation-edits.patch",
+      "line": 15,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/publication-documentation-edits.patch",
+      "line": 51,
+      "diagnostic": "trailing whitespace."
+    }
+  ],
+  "fullCheckHasNoExclusions": true,
+  "rawStdout": "proof-full-cached-check.stdout.log",
+  "rawStderr": "proof-full-cached-check.stderr.log"
+}

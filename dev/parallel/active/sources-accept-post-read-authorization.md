@@ -138,3 +138,12 @@ root仅释放E固定8033纯docs；[新两片方案](../../plans/conversation-vis
 ### E lease fixture / emitter窄方案独立accepted（2026-10-27）
 
 原Astra对固定db02c9正式窄验C0/I0/M0，root020951 actual0只读独核采纳、I1/M1仅方案层全关；root仅另授[本窄plan](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md#7-原astra窄验全关与root独立accepted2026-10-27)文档accepted/规则16勾选及必要行动层commit。A源码/B工具准备/运行仍待各自独立授权，交付后停、不进A片。完整db02/b349原plan与原C0/I1/M1/新C0/I0/M0署名/direct-message来源在checkpoint保留；14240B/f2a0仅单篇plan diff，完整5文件57962B/ba5ed63c。root报proof3a14d6已验但E未接入，不称合入。知识层相关叙述已扫，旧lease/产品/PRD/旧D/波及业务old-red/new-full/非作者真实默认编辑器after门禁不升；原件/历史/fresh保护，不源码/工具/运行动作、不重跑/after。
+
+
+### 固定ea92窄方案真实双亲接入（2026-10-27）
+
+真实merge 80dc02d8a98e1190dd9039c810431c3105786588，严格双亲3a14d6ed28c03f54668ae06ea47f45bc23b8f171与ea92e8da62ab9c12da0681867114acbe187c1004，真实base8033a3c23ba2b0550e817c9cc4fdebf4d12a4478；src完整保持ours fa6f7fe9f339963dd9f4190f44aa17e45f6ad731。只接入accepted两片plan及四docs真实冲突解法：四文档/五块分别保存default与diff3完整canonical、每块三方/outside/resolution及全文重放；union1931、无争议1927、外22242逐mode/type/blob精确。新plan24338B/SHA734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c整篇incoming字节不改，原§1–4亦等于reviewed db02。Sources四窄implemented、lease accepted/overall active及旧原件/失败/consumed保持。
+
+当前全局授权另作澄清：root已另授A片且原Astra对固定4f2648d936508e300475c9cd52e5855a58c7ed93源码候选C0/I0/M0，经root02ff独核采纳；它尚未接入本次plan-only/srcfa6。merge当前摘要沿用旧“源码待授”时态，原文字节仍在merge与重放raw；本次独立proof/docs仅将当前摘要/首条澄清为“候选已peer、未接入，B工具准备/运行待另授”，不改incoming plan当时历史叙述。没有新运行成绩或业务/coverage/after信用。3a14诊断driver0/protocol accounted-official-outcome/official1/out恢复complete、fixture缺WorkRootMount及全.build保护FAILED/合C0/I2/M0明确保留；.build/log仍为[]且旧mtime/ctime漂移不恢复、不加例外。
+
+证据与双方首条含LF原件见[接入证明](../../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)；原审查署名来自root直接消息及incoming保留文本，不伪造原reviewer终端raw。797文件/223012410B及215非普通entry、旧结果proof280、out15500/native256/freeze4/cache3与ownedquiet本区间精确保留；src15715/node_modules48772全metadata同，.build6777仅已知log漂移。独立proof/docs待root检查和单独commit授权，不准备工具、不Program/lint/compile/tests/runtime/after，不push或同步main。
