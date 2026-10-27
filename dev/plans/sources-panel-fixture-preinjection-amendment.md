@@ -1,15 +1,19 @@
 ---
 title: "Sources Panel 方案 §3.4：共同 factory 预注入连接的窄修订"
 type: plan
-status: draft
+status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "仅提议放宽Panel已签§3.4的true限定，基于exact c7旧default-false真实setup失败；共同factory在旧helper前预stub同一UA，旧helper/case/header/default resolver不动，待规则16。"
+summary: "精确d0 proposal经原Astra规则16 C0/I0/M1/root全文与源链采纳后accepted；应用共同factory预stub单段及Minor标题/唯一锚点，旧合同保护，源码仍须独立授权。"
 ---
 
 # Sources Panel 方案 §3.4：共同 factory 预注入连接的窄修订
 
-> **固定输入**：Panel 生命周期候选 `44edbd2b5ba562ce6503237069cba0cd763830a4`（parent e949，`src=c478d07f29331d164bf4b80259abee83937cc7c9`），只读其中的 [Panel accepted 方案](sources-panel-diff-view-model-lifetime.md#34-验证先决仅新真实模型夹具预装连接)；原 plan 18145B / SHA-256 `c41d14021ebc4eb04eae28835d455debb3258019ef3ffdcd1f0c07d4de9b6b4b` 本次不改。
+> **当前阶段**：精确 d0 proposal 已经原 Astra 规则16 **C0/I0/M1**，root 全文与源链核验后采纳；本次是独立 accepted **文档**修订，已应用原 Panel §3.4 首段替换及唯一 Minor 的标题/链接导航改名。源码固定 `5f4f2d132f972af871fb4451c82ef2ab6ee30e61`，共同预stub源码仍须root核本accepted SHA后另授权，不把方案签收当业务通过。
+
+以下固定输入/原授权与 §1–§4 保留 **d0 draft 时点历史原文**；仅链接锚点随已采纳标题改名。之后的规则16、采纳与proof身份另见§5，不回写为draft当时已知。
+
+> **固定输入**：Panel 生命周期候选 `44edbd2b5ba562ce6503237069cba0cd763830a4`（parent e949，`src=c478d07f29331d164bf4b80259abee83937cc7c9`），只读其中的 [Panel accepted 方案](sources-panel-diff-view-model-lifetime.md#34-验证先决共同夹具预装连接)；原 plan 18145B / SHA-256 `c41d14021ebc4eb04eae28835d455debb3258019ef3ffdcd1f0c07d4de9b6b4b` 本次不改。
 > **本次授权**：root 要求生命周期候选先固定，随后独立交本 docs-only 修订 proposal；本稿仍 draft，原 Astra 规则16、root采纳及独立accepted修订之前不得改共同预注入代码。源码、test、out 均不改，不请求 baseline 接 D HEAD，不追 merge。
 
 ## 1. 新事实与证据资格
@@ -49,3 +53,20 @@ baseline 已在 merge 实际创建正式入口 `dev/progress/sources-accept-defa
 复用[现看板](../parallel/active/sources-accept-post-read-authorization.md)与[作者检查点](../progress/sources-accept-post-read-authorization-checkpoint.md#共同-factory-预注入连接窄修订-proposal)，不新建平行记录。固定本 draft commit 后由 root 核验，再交原 Astra 规则16只读审查，Critical/Important 当轮改稿，独立accepted后才可另发源码授权。
 
 **规则16尚未发生，proposal为draft。** 先前 Panel a04 的 C0/I0/M0 仅针对旧 true 限定，不能自动覆盖本次明确放宽；44 生命周期源码 peer 也不代替此方案审查。本文不称 setup 已修或旧 case 已过。
+
+## 5. d0 规则16与父级采纳
+
+正式受审 proposal 为 `d0c5f685331b4950b4b9c262a6a0c19bb8be7476`（parent `44edbd2b5ba562ce6503237069cba0cd763830a4`、src `c478d07f29331d164bf4b80259abee83937cc7c9`），本文件原稿 7509 bytes / SHA-256 `8d34097cea4dc5a487d4b151bd8924260a91fb4705566bde624423ca45fa0401` / Git blob `a066c461e7dfb92d3d59e04d686e572edc60659f`。受修订的原 accepted Panel plan 为 18145 bytes / SHA-256 `c41d14021ebc4eb04eae28835d455debb3258019ef3ffdcd1f0c07d4de9b6b4b` / Git blob `75f4e71ca02cc4bd03355c38a933e69c678f8d73`；不可变 d0 对象保留该完整旧稿，本文原段落引文也保持。
+
+原 **Astra / architecture_audit** 正式规则16结论 **Critical 0 / Important 0 / Minor 1**；root 已全文/源链独立核验并采纳。唯一 Minor：原 §3.4 标题“仅新真实模型夹具预装连接”与共同 false 预stub 新正文范围不符，改为“共同夹具预装连接”，同步本稿固定输入中的唯一旧锚点。此为导航措辞，不扩大代码合同；本次连同原提议的 §3.4 第一段替换一起应用，其他原 §1–§5 字节保护，无未采纳意见。
+
+以下为作者收到的原 Astra 审查结论消息中的 Strengths / Assessment 摘录，原结论身份与root采纳分别记录，不把源码peer当方案审查：
+
+```text
+Strengths：actual旧case setup1/0/1与true独立/业务red0；同一factory前同一UA预stub且helper/false resolver/case/header/assertions保留；docs接受与源码授权/真实业务资格分离。
+Assessment：root核后可独立accepted，Minor非阻断。
+```
+
+root 已明确授权本独立 accepted docs commit：应用 d0 提议单段、采纳上述 Minor 标题/相关锚点，其他原 §1–§5 合同逐字保护；只签文档，共同pre-stub源码待root核accepted SHA后另行授权。本次所有src/test仍等于独立I1修订 `5f4f2d132f972af871fb4451c82ef2ab6ee30e61` / src `7d43a2a5f2a74f0ef2a28976fe0067748a028cc1`；44正式代码peer C0/I1/M0中的same-ref夹具修订仍待窄peer，不将其标通过。原Accept plan、原JSON、18选择器及原54/旧调用保持，不编译/emit/业务运行或写out。
+
+root 后续已通报独立 default-false 正式 proof `942d0652065d7aafe085d2e54a95c17bcd4f4c1c`；入口仍为 `dev/progress/sources-accept-default-false-probe-20261027-evidence/INDEX.md`。这是对 §1 原“proof commit待baseline通报”的历史身份追加，原setup 1/0/1、业务red0、未计54/18及恢复资格均保持；不倒写为本draft已知，D不复制原件/追merge。

@@ -4,13 +4,15 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "独立窄方案已accepted：精确a04draft经原Astra规则16 C0/I0/M0、root采纳；Panel VM/refs释放与新夹具先决合同保持，仅文档签方案，源码/out未授权。"
+summary: "a04生命周期方案accepted保持；d0共同factory预stub窄修订经原Astra规则16 C0/I0/M1/root采纳，§3.4首段与Minor标题/锚点已独立签收；源码5f4仅静态待窄peer，后续代码另授权。"
 ---
 
 # Sources Panel：Diff ViewModel 与文本引用生命周期
 
 > **固定作者输入**：`b2e31763207201841c5a7fb47b6859eab90fe134`，`src=3ce82089efd4230dc020c5401b2f4e9bc0b1475a`；不追 main / merge。该提交的 Accept 4 例增量已由 root 核验，原 Astra 窄 peer C0/I0/M0，原 A7 Minor 关闭；不是本方案的规则 16 审查。
+> **原 e949 签收阶段（历史原文）**：以下一段保留原独立accepted时点授权，不代表当前未有源码候选。
 > **当前阶段与授权**：原 draft `a04aed40c8c7ba4697ca42be2b80fae3e7e1d6c2`（plan 17490 bytes / SHA-256 `e8cf41f71cd3a5664f6738ce09f79ce1294e903c4df41321740555fce8097b97`）经 root 逐路径、源码保护与全文核验，再由原 Astra 规则 16 正式只读审查 C0/I0/M0，root 已采纳；本次只授权独立 accepted 方案 commit，不改生产、测试、已签 Accept 方案或 out。方案阶段只读精确 Git 对象，不请求 baseline 接入 D HEAD；其祖先含 ab43 / b2 源码，正式代码 gate 另行决定，后续统一 Panel 实施候选仍须另获源码授权、独立 peer 与绑定验证。
+> **当前阶段与授权（d0窄修订后）**：原a04生命周期accepted保持；[共同factory预注入窄修订](sources-panel-fixture-preinjection-amendment.md#5-d0-规则16与父级采纳)经原Astra规则16 C0/I0/M1、root全文与源链核验采纳，本次只应用§3.4首段替换及标题/唯一锚点导航改名，其他§1–§5逐字保护。44源码peer C0/I1/M0的same-ref夹具I1已独立修订为5f4，尚待窄peer；共同预stub源码待root核本docs SHA后另授权，当前18/54未新运行、out仍冻。
 > **既有边界**：默认编辑器窗口；[Sources SSOT](../../docs/systems/sources/overview.md)、[Accept 当前授权方案](sources-accept-post-read-authorization.md)与既有 Pane 实现为参照。本稿只修 Panel 模型资源所有权，不增加产品能力或更改 Accept 的授权/响应合同。
 
 ## 1. 已核问题与证据等级
@@ -81,9 +83,9 @@ host dispose 入口先使 renderGeneration 失效，再进入统一 teardown，�
 
 构造 widget / 显式 VM 或接入发生异常时，已经交给 owner 的对象走统一 teardown，未交出的 refs 走局部释放，不能留下 VM、丢失 ref 或清掉后来一代资源。具体最小 try/catch 收口以实现 peer 核对为准，不预授权修改通用 editor。
 
-### 3.4 验证先决：仅新真实模型夹具预装连接
+### 3.4 验证先决：共同夹具预装连接
 
-在 `conversationDiffReviewPane.test.ts` 的 `createInstantiationService` 内，仅 `resolveModels === true` 分支于调用 `stubSessionAndChangesModel` **之前** stub 当前传入的 `IUniverseAgentConnection`，使真实 ChangesModel 构造时取得完整连接。默认值 false、旧 helper 正文与安装次序、旧 case / 标题 / header / 断言保持原字节。不得把此新路径修正写成原 setup 已经过业务，也不得把准备性修正算作 Panel VM 生产修复。
+在 `conversationDiffReviewPane.test.ts` 的共同 `createInstantiationService` factory 内，于调用 `stubSessionAndChangesModel` **之前**预先 stub 当前传入的同一个 `IUniverseAgentConnection`，使真实 ChangesModel 构造时取得完整连接；不再只限 resolveModels=true。`resolveModels=false` 默认值及其原 resolver 行为、旧 helper 正文与其内部安装次序、全部旧 case / 标题 / header / 断言保持原字节。只放宽共同 factory 的预注入范围，不移动/改写旧 helper，不改变任何业务期望、patch builder 或生产代码。原 true / false setup 失败分别保留，修正后须另取实际业务结果，不预称业务 green 或 Panel VM 修复。
 
 本项与 Panel 生命周期一起接受方案审查，accepted 后再作为必要 test-only 修正实施；本 draft 不改测试。后续先证明独立 case 确已进入 FileDiff，再记录其业务 red / green。
 
@@ -120,4 +122,12 @@ host dispose 入口先使 renderGeneration 失效，再进入统一 teardown，�
 - [Accept 候选历史与 b2 四例窄 peer](../progress/sources-accept-post-read-authorization-checkpoint.md)
 - [文档规则 13 / 16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)
 
+### 原 e949 规则16签收记录（历史原文）
+
 **规则 16 已通过方案门，当前为独立 accepted 方案。** 审查对象是精确 draft `a04aed40c8c7ba4697ca42be2b80fae3e7e1d6c2` 与上述 17490B plan blob；原 **Astra / architecture_audit** 正式结论为 **Critical 0 / Important 0 / Minor 0**。root 已独立核验并采纳；无必改项、无未采纳意见，§2–§5 的所有权、生命周期、夹具先决与验证合同保持。Strengths / Assessment 原文与 draft 后收到的 root 原件/恢复核验单独保存在[作者检查点](../progress/sources-accept-post-read-authorization-checkpoint.md#panel-生命周期方案规则16与父级采纳)，不倒写为 draft 当时已验证或源码已实施。此次只签方案，源码、测试、构建、业务与 out 仍未释放。
+
+### d0 窄修订签收与当前代码边界
+
+共同 factory 预注入合同现以 §3.4 新首段为准；本次只是规则16后的独立accepted文档修订，唯一 Minor 已以“共同夹具预装连接”标题及唯一链接锚点修正。完整 d0 proposal SHA/blob、原18145B plan身份、C0/I0/M1 Strengths / Assessment、root采纳与后续proof身份保存在[窄修订签收记录](sources-panel-fixture-preinjection-amendment.md#5-d0-规则16与父级采纳)。原§1–§5除该首段与标题外逐字保护，上述e949记录保留历史时点，不把旧true限定继续写成当前合同。
+
+源码固定 `5f4f2d132f972af871fb4451c82ef2ab6ee30e61` / src `7d43a2a5f2a74f0ef2a28976fe0067748a028cc1`，包括原44 Panel生产与Pane true-only预stub、仅新same-ref短期underlying resolver keepers；正式44代码peer C0/I1/M0中的I1修订仍待窄peer。共同factory源码尚未授权；修后真实旧default-false/独立true case、54矩阵与18生命周期结果须唯一lane另取，不预称green/implemented。

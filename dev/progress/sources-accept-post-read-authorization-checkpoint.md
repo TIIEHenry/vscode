@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "44源码peer C0/I1/M0后root采纳新same-ref夹具修正；仅真实underlying resolver短期keeper，生产/Pane/18及原54保护，作者静态待窄peer；共同预stub仍独立d0 draft门。"
+summary: "same-ref独立修订5f4待窄peer；d0共同预stub窄修订经原Astra规则16 C0/I0/M1/root采纳后独立accepted，仅§3.4首段/标题/锚点变；源码5f4及其他原合同/历史保护，代码另授权。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -294,3 +294,73 @@ root 此后通报旧 default-false 独立 probe 的正式 proof 为 `942d0652065
 ### root 后续实际 restored 守卫通报
 
 root 通报其于 `2026-10-27T03:23:57.161510Z` 在 merge 固定 `942d0652065d7aafe085d2e54a95c17bcd4f4c1c` 实际执行最新 probe 证据的 `verify-restored.py`，exit0；254 + extra2 输出资格、12554 files / 2946 dirs、freeze4 / cache3 均与 actual post-probe restored baseline 精确，src仍a2c。此为root实际只读守卫，无compile/emit/tests；D不冒充新执行、不覆盖03:04:01Z或此前原guard文件。
+
+## 共同 factory 窄修订规则16与独立签收
+
+root 已全文/源链独立核验并采纳原 Astra 对精确 `d0c5f685331b4950b4b9c262a6a0c19bb8be7476` 的规则16结论 **Critical 0 / Important 0 / Minor 1**。proposal原稿7509B / SHA-256 `8d34097cea4dc5a487d4b151bd8924260a91fb4705566bde624423ca45fa0401` / Git blob `a066c461e7dfb92d3d59e04d686e572edc60659f`，原Panel accepted plan18145B / SHA-256 `c41d14021ebc4eb04eae28835d455debb3258019ef3ffdcd1f0c07d4de9b6b4b` / blob `75f4e71ca02cc4bd03355c38a933e69c678f8d73`，均可在不可变d0取得；不把draft正文历史洗成已签收。
+
+本次按父级授权单独accepted docs：原Panel§3.4第一段应用d0共同factory在旧helper前预stub同一UA的提议；唯一Minor把标题“仅新真实模型夹具预装连接”改为“共同夹具预装连接”，并只更新全仓实际唯一旧导航anchor（proposal固定输入）。其余原§1–§5合同逐字保护，原quoted旧段落与draft历史保留；未采纳意见0。Strengths / Assessment原Astra消息摘录、父级采纳与proof942后续身份见[窄修订§5](../plans/sources-panel-fixture-preinjection-amendment.md#5-d0-规则16与父级采纳)。原a04生命周期与本d0窄修订是分别发生的方案门，44代码peer/5f4修订又是独立源码门。
+
+源码固定 `5f4f2d132f972af871fb4451c82ef2ab6ee30e61` / src `7d43a2a5f2a74f0ef2a28976fe0067748a028cc1`。5f4仅新same-ref真实underlying resolver短期keeper修订尚待窄peer，18及原54未新运行；当前Pane源码仍true-only，与已签共同factory合同的实施阶段明确分开。root核本accepted docs SHA后才另授权共同预stub源码；本次原Accept plan/JSON及所有src/test原字节、不做checker/emit/业务/窗口或写out/cache/freeze。default-false proof942、setup1/0/1/业务red0和03:23:57 root restored实际通报均以上节后续身份为准，不覆盖旧证据或追merge。
+
+### 5f4 status 首条逐字保留
+
+此次仅替换status summary与首条，其余行与固定5f4完全相同，总行数仍200。旧首条含末尾换行SHA-256 `834a0a9a3948a298f9f44dfaa26fcf02a238d19a47fd6a84b3ceb356f6f792d7`；所有更早status原文块/hash和checkpoint历史前缀保留。
+
+```markdown
+- **Sources Panel same-ref夹具窄修订（2026-10-27）**：44源码正式peer C0/I1/M0，生产静态符合签收边界；root采纳I1：新same-ref需真实resolver短期keeper，现仅该新夹具经未包装resolver保两模型，第二show完成/异常finally即释放，Panel引用计数/旧widget detach/provider0/最终owner断言不减。18选择器/原54与旧71/44生产及Pane true-only预stub全保，仅AST/lint静态、待窄peer；共同factory修订仍d0 draft另门、out冻结。[当前修订与原首条](sources-accept-post-read-authorization-checkpoint.md#same-ref-新夹具-i1-独立修订)。
+```
+
+### 本次被替换的概览与行动条目原文
+
+以下在当前叙述同步前逐字留存；每块SHA按显示原文追加一个末尾换行计算，历史时点的draft/true限定/未实施不代表当前合同。
+
+`dev/plans/INDEX.md`，SHA-256 `f6c6b0b75ddcd0517345ccba4245b9c0a84b6641eb6121883c7f14bcd7bdae08`：
+
+```markdown
+| [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `draft` | 独立draft，exact c7旧default-false实际setup失败后提唯一预stub放宽；原plan/source/test不动，待规则16。 |
+```
+
+`dev/plans/INDEX.md`，SHA-256 `67d33936554c06f951713f673e55e6fb33a633040bb461f68deacc4d1f7de323`：
+
+```markdown
+仅新same-ref临时resolver keeper修订待窄peer，18真实资源例未运行；仍accepted。
+```
+
+`dev/parallel/INDEX.md`，SHA-256 `b2edde874a7696a0e09b829ad719813e948b43ceb2006b6bc3560de7da5e7e9c`：
+
+```markdown
+44源码peer C0/I1/M0后仅新same-ref短期keeper修订待窄peer，18未运行；共同预stub仍d0独立draft门，out冻结。
+```
+
+`dev/progress/INDEX.md`，SHA-256 `7e3a8284db3035b1cdfb6d20c90c7585e6fca1d1ce4538f66725fe535aadd621`：
+
+```markdown
+44源码peer C0/I1/M0后仅新same-ref短期resolver keeper修订待窄peer、18未运行；共同预stub仍d0独立draft门，生产/Pane/旧plan/历史全保。
+```
+
+`dev/parallel/active/sources-accept-post-read-authorization.md`，SHA-256 `c2cf30a9a561fc64f68bb06cb9469e5045f91de47dc8dadc78606a68506887e6`：
+
+```markdown
+| 角色 | 范围 | 当前门禁 |
+| --- | --- | --- |
+| D / sources_audit | 仅两宿主 Accept 读后写前当前授权的方案，规则16后才实施 | b2不可变、原54/旧71调用/旧patch保留；四例窄peer C0/I0/M0已交，不写out/运行业务。父核e949后已获生命周期实施授权，44正式源码peer C0/I1/M0、生产静态符合边界；仅新same-ref短期真实resolver keeper修订待窄peer，18新例未运行，Pane仍仅true预stub。 |
+| root | scope 与合同选择、draft路径/原文保留核验、安排独立评审 | 已核draft/规则16/accepted及ab43，采纳源码peer唯一A7 Minor并授权补4；已核b2并确认Astra窄peer关闭M1；亲核旧run1边界，生命周期独立a04规则16 C0/I0/M0已采纳、仅签方案，业务仅baseline lane，不借旧波验收。 |
+| Astra / architecture_audit | 当前授权取舍、规则16只读方案审查，实施后独立源码 peer | 精确draft规则16 C0/I0/M2后，ab43正式源码peer C0/I0/M1已交；唯一A7覆盖Minor经父核采纳、b2补4窄peer C0/I0/M0关闭；生产VM泄漏独立a04方案规则16 C0/I0/M0，root已采纳，仅签方案。 |
+| baseline_executor | 唯一源码 checker / emit / 官方 Electron 业务验证 lane | run1精确c7生产3+ab43测试2：A1双业务红；阳性只3 body过、Panel A2 afterEach leak/console、Panel A3未达；独立input setup未达。正式原件proof d51ce65已由baseline提交，后续green需另获释放。 |
+推进顺序：draft/父核/规则16/两Minor实改/独立accepted → 父核5c并授权源码 → ab43两宿主与50新例候选 → 父核及Astra源码peer C0/I0/M1 → 父采纳A7 Minor、D补4成54 → 父核b2/Astra窄peer C0/I0/M0关闭M1 → 唯一lane旧red已得、阳性/夹具阻塞独立生命周期方案已accepted、未实施 → 后续新green与父级验收。不得把作者静态检查代替源码peer或业务门禁。
+| 独立范围 | 当前阶段与入口 |
+| --- | --- |
+| Panel VM lifetime | root 采纳原 Astra 生产 Important 与 DI setup 定界；[独立方案](../../plans/sources-panel-diff-view-model-lifetime.md)原 a04draft 经 root 核验与原 Astra 规则16 C0/I0/M0、root采纳后为 accepted；显式 VM / refs 唯一 owner、detach→VM→refs、body / dispose / 迟到 resolver 全路径与仅新真实模型路径预stub合同保持。root核e949后已另行授权：44正式源码peer C0/I1/M0、生产静态符合签收边界，root采纳新same-ref夹具I1；现仅通过underlying resolver临时keeper保活到第二show后finally释放，Panel计数/detach/provider0/最终owner断言不减。18例仍未运行、仅AST/lint待窄peer/唯一lane；两runAccept/Pane生产及true-only预stub/原54/旧71/旧patch不变，两个plan仍accepted。 |
+| §3.4 共同factory预stub | [独立窄proposal](../../plans/sources-panel-fixture-preinjection-amendment.md)为draft；exact c7旧default-false原case实际setup失败、不计业务red/54。仅提共同factory在旧helper前预stub同一UA，原18145B plan/44源码/test不动，待父核/原Astra规则16/独立accepted后另授权源码；旧helper/case/header/assert/defaultresolver保持。 |
+```
+
+`docs/systems/sources/overview.md`，SHA-256 `bd53f29771215e0f32c28ac06bd86222aede20a58a1c46c76caf08acf4088ab2`：
+
+```markdown
+- **Accept 读后写前授权**：Pane / Panel 在 FileDiff 返回后复核原 input/ref 与局部生命周期代次，input 自身销毁也算失效；以 fresh facts 重跑既有 Accept planner，只有当前 write session 与捕获的 read session 相同、当前能力/连接/hold/readiness/Changes 写门全开才发原 session 的单 hunk，不重定向或 fallback 本地 Git。采用写前当前授权，s1→s2→s1、同 id 重连或故障恢复后若当前门满足可继续；Session/List 失败的 catalog readiness 与 Git Changes 的 read-failed leftover 分别判断。已发写不假取消/补偿，迟到结果只向仍存活的原宿主写 UI。实现候选已写、[独立方案](../../../dev/plans/sources-accept-post-read-authorization.md)仍 accepted，54 新回归已有源码；ab43 的 A7 Minor 经 b2 补 4 例及原 Astra 窄 peer C0/I0/M0 关闭。旧 run1 已得双宿主授权业务红，阳性仅 3 个业务通过、Panel A3 与独立 input.dispose 业务未达，Panel VM owner 泄漏另立[生命周期方案](../../../dev/plans/sources-panel-diff-view-model-lifetime.md)，精确 a04draft 经规则16 C0/I0/M0 后 accepted 保持，父核 e949 后授权的 Panel 显式 VM/refs owner 与 detach→VM→refs 候选及 18 真实资源回归已写、仅静态未运行，待源码 peer / 唯一 lane；仅新真实模型路径预stub连接，原 Accept 合同与旧调用不变；[作者静态边界](../../../dev/progress/sources-accept-post-read-authorization-checkpoint.md#源码-peer-后补齐-a7)不代 peer / red / green，跨 engine 同 session 字符串归属不在本 scope。
+```
+
+### 共同预stub accepted docs作者检查
+
+实际 `generate-docs-status.py` exit0，仅将新窄修订索引生成状态改为accepted；随后 `--check` exit0。`check-docs-health.py --format json` 实际exit0：601 Markdown / 0 errors / 46既有link warnings，现post-read/proposal主题warning0；`git diff --check` exit0。原Panel§1–§5反向还原获准的§3.4首段/标题后与旧稿完全同字节（原合同区SHA-256 `0bde86ee5003d48a740c73fe47286df61dbbb1346bfce90b806f9daee4169e81`）；proposal固定输入及原§1–§4只改变唯一导航anchor，旧段落引文原字节保留。status实测200行，只summary/首条变化且原行含newline已核hash；旧checkpoint前缀/更早raw均保留。全部src/test对5f4无diff、原Accept plan17436B/5d5c2a72…及原JSON2859B/fbf75cdb…原字节。本轮无源码改动或新的业务资格，不编译/checker/emit/业务/窗口/out/cache/freeze或push；当前方案保持accepted，不标implemented。
