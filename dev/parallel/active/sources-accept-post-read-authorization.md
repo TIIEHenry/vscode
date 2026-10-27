@@ -125,3 +125,12 @@ root 已独核固定 `ae7d0873feedbed1457f38748a6a5e8be0114ee0` / src `2597bca4a
 root独核接受28f90为固定localGit候选，暂不合回以保持lease冻结验证；又采纳D只读Git/既存原件分析为未来输入事实，仅授权[独立validation-inputs记录](../../progress/sources-local-git-completion-source-20261027-evidence/validation-inputs/INDEX.md)及必要导航/行动层。原五target源码等736，old-red输入为736三production＋28f90同组两newtests；54fe不是混合producer。12代表title（可选R1 clear合16）、业务红前置资格/后置assertCalls未达边界、Pane62＋meta1=63/hook251、Panel195＋meta1=196/hook783均仅静态分析，不是注册/运行结果。运行闭包未证、不暗增第六target；新恢复基准须在lease结束后另由root接受。
 
 原plan §3–4合同和全文不改、accepted/runtime pending，原14证据及所有src完整保持；没有新raw/release/期望manifest/可执行工具或运行准备。lease最高优先及mandatory独立after不变，未AST/lint/Program/checker/emit/tests/UI/out/cache/freeze写，未push或合回。父status首条LF/hash和原board/checkpoint前缀见[检查点](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-validation-inputs-read-only)。
+
+
+<a id="local-git-static-closure-inputs"></a>
+
+### c5 / 46fc候选静态图与964纠正（2026-10-27，纯docs）
+
+root授权D从固定clean c5/src2597仅持久化[validation-inputs §6](../../progress/sources-local-git-completion-source-20261027-evidence/validation-inputs/INDEX.md#static-closure-c5-46fc)及非可执行[静态图JSON](../../progress/sources-local-git-completion-source-20261027-evidence/validation-inputs/static-closure.json)。D署名纠正先前口头964：原scanner/边集未保留、不可重放、不授完整性信用，root此前未独核。当前规则与完整边集得到native union982、五根c5 TS/type-only overlay union984；无到lease Pane/contribution的该类静态路径，构造/harness/官方run选择及跨source/native/lexical/computed/registry/bootstrap限制分记，仍只是候选static，root待独核。
+
+原63/196及hooks251/783、114new=60/54仅静态预期保持；五target/无第六target仍待未来实际loaded补采。d8e actual old-L1 Pane/contribution observed来自Reveal直接导入，五Sources/harness仅manifest，不转为Sources运行或构造/lease调用覆盖。46fc及另三/tmp原件明确bytes/SHA且未Git接入；仅记root已核恢复与D984份窄metadata匹配，未来runtime须重新固定当前恢复身份，不默认46fc/54fe。plan全文accepted/runtime pending、src2597/旧证据、lease最高优先/mandatory独立after全保，无新准备/merge/runtime。父首条LF/hash及board/checkpoint完整前缀见[检查点](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-static-closure-inputs)。

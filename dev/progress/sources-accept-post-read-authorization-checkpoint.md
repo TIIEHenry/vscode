@@ -938,3 +938,26 @@ plan全文及§3–4不改、accepted/runtime pending；原14证据/全部src/na
 ```
 
 本轮纯docs门禁：generator already up to date / --check exit0，health617 Markdown / 0errors / 46既有链接warnings，diff-check0。新增仅124行独立只读分析Markdown，另4份原导航/行动层同主题；plan全文与两索引、旧14证据bytes/SHA/mode、四scope TS及全部src零diff均实际核验保持。status200仅7/12行变，父871B首条含LF/hash、父checkpoint143965B/board22166B完整prefix均保留。out/.build/node_modules含根不跟symlink/排除atime的递归lstat及72.node元数据与本轮编辑前精确一致；这只是保护核验，不提供新运行资格。无AST/lint/Program/checker/产物/运行准备或执行动作。
+
+
+<a id="local-git-static-closure-inputs"></a>
+
+## 固定c5 / 46fc候选静态依赖图落盘与964纠正（2026-10-27，纯docs）
+
+root只将D / sources_audit的只读闭包方向采为candidate static input，另授权从clean `c5a2986a32b44c7f327429ea43f457c00702b425` / src `2597bca4abae7eef9ba5fbc561a3b571bf97d968` 持久化[validation-inputs §6](sources-local-git-completion-source-20261027-evidence/validation-inputs/INDEX.md#static-closure-c5-46fc)和非可执行[静态图JSON](sources-local-git-completion-source-20261027-evidence/validation-inputs/static-closure.json)。没有新源码/运行准备/验证包/工具或合入当前lease；plan全文及accepted/runtime pending保持，lease最高优先及独立非作者after仍必需。
+
+**D署名纠正**：初次口头overlay union964及其各根计数没有保留scanner代码/边集，当前不能重放，不授完整性信用；root此前未独核964。现明确字面import/export正则、相对`.js`解析、五根c5 TS含type-only替换及native邻接规则、literal deferred扫描和限制，保存完整984节点身份/6407匹配边/parent witnesses。native五根643/584/36/971/981、union982；overlay644/584/37/974/983、union984，无missing relative JS及到lease Pane/contribution的该类路径。此为文本图，root待独核；不升为runtime或完整当前TS闭包。
+
+原静态Pane62business+meta1=63/hook251、Panel195business+meta1=196/hook783、114new=60/54及原旧red输入不改。固定源码构造/三harness回调仅捕获ConversationDiffReviewInput并return undefined、官方run入口选择均独立列明。d8e actual old-L1观察到lease Pane/contribution，五Sources及harness仅manifest；Reveal直接导入二者，加载不等函数/构造到达，也不能转给Sources。
+
+46fc guard及另三原件只引用明确`/tmp`路径、bytes和完整SHA，不伪称已Git出版；root直接独核live15500、native256+Reveal/freeze4/cache3及仅Reveal emit/restore/ctime例外，旧Pane metadata/bytes全保。D仅补984份native与46fc的metadata匹配。五target/无第六target仍是假设，actual loaded待授权时在既定完整两模块采集；未来runtime恢复身份须重新由root固定接受，不自动沿用46fc或54fe。本轮未新准备/merge/运行，src及旧14原件保持。
+
+### 父c5完整前缀与displaced status首条（含末尾LF）
+
+父checkpoint 147620B/SHA-256 `36e218950267bcd152ab0b90031cc631d0d7010fc563134457da5bba645fb144`；父board 23505B/SHA-256 `a7864a38db2fd8a02267b9342f3312cd68c98237caf6a89442cbb403fa05517b`。两者完整字节前缀仅追加；status仍200行，仅summary/首条变化。来源 `c5a2986a32b44c7f327429ea43f457c00702b425:dev/progress/status.md` 的父首条968B含末尾LF，SHA-256 `236441f93a416576dfcaea859af0d5eb0bfc09bca406795504e4b89a61050ba3`，以下逐字保留：
+
+```text
+- **Sources localGit验证输入只读事实落盘（2026-10-27，纯docs）**：root独核接收28f90/src2597候选并采纳D只读Git/原6d五target分析为未来输入，未释新协议或运行。a4eb五source等736；old-red须736三production＋28f90同组两newtests，54fe非混合producer。12代表title/可选clear合16、业务红前置资格及后置assertCalls/零unary未达、完整Pane62+meta1=63/hook251和Panel195+meta1=196/hook783仅静态；依赖闭包未证/不暗增第六target，新恢复基准须lease结束后另定。原plan全文accepted/§3–4合同、旧14证据/全部src保持，无工具/期望manifest/raw/release/新检查或运行准备；四Sources完成与lease优先/mandatory独立after不变，未合回/push。[只读分析](sources-local-git-completion-source-20261027-evidence/validation-inputs/INDEX.md)·[父首条LF/hash](sources-accept-post-read-authorization-checkpoint.md#local-git-validation-inputs-read-only)。
+```
+
+本轮纯docs门禁实际：generator already up to date / --check exit0；health617 Markdown / 0errors / 46既有链接warnings；diff-check0。D自校JSON身份并只从保存边集重建native982/overlay984、各根计数及parent witnesses，无missing与lease两路径；此为作者数据自校，root独核仍待。五TS和全部src、plan全文/索引零diff，旧14证据逐份Git blob/bytes/可执行mode保持；status200行仅7/12行变，父首条含LF/hash、checkpoint147620B/board23505B完整前缀保持。D工位out14999/.build2751/node_modules46209 entries（含根、不跟symlink、排除atime）的递归lstat摘要及72份.node metadata前后精确相同；这只作保护核验，不授新producer/runtime信用。新增仅非可执行静态JSON及原5份主题导航/行动层，未AST/lint/Program/checker/compile/transpile/emit/tests/运行准备/合回/push。

@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "固定28f90与736/已验6d五target的source/blob/producer对应、12或16代表title与63/196及hook251/783静态推导；仅只读事实，依赖闭包/新恢复基准待定，无工具准备或执行释放。"
+summary: "固定c5候选与46fc恢复native的984节点文本图、旧964不可重放纠正及实际d8e加载事实分记；保原混合输入/63与196静态预期，五target/无第六仅待验假设，无新准备或运行释放。"
 ---
 
 # Local Git 完成归属：后续组件验证输入只读分析
@@ -122,3 +122,91 @@ P2既保反序completion原语义，也保每host两条真实Stage交错：clean
 对象规模参考是五个唯一JS输出路径、0 standalone map；原仓库createCompile＋ESBuildTranspiler＋streamToPromise与inline map路径可作为既存协议输入，**不是本页批准的emit范围、编译额度或调用次数**。原六阶段约60秒：checker23.6秒、lint2.4秒、dry2.1秒、emit1.7秒、旧完整Pane2.8秒/Panel7.2秒；watchdog45＋5＋5仅历史预算参考，不能保证新增114耗时或自动延长期限。
 
 原恢复集合是五JS原bytes/mode/mtime、其余12549files/2946dirs全metadata、256旧native、freeze4/cache3；owned PID/start全部quiescent/reap后才finally恢复，仅明确授权路径ctime可变。**新恢复基准必须在lease验证结束后由root另定并接受**，不能预设仍直接等54fe，不能用D工位输出metadata冒充唯一lane producer。若后续closure需额外文件，须另审清楚，不暗增第六target。全srcsemantic/fullcompile、真实Git索引/全UI不在当前窄合同；lease独立非作者after仍必需，四Sources implemented、PRD/D/宽Sources/旧波不变。
+
+
+<a id="static-closure-c5-46fc"></a>
+
+## 6. 固定 c5 / 46fc 的候选静态图与计数纠正（2026-10-27）
+
+本节是 D / `sources_audit` 的只读文本分析；root 只采纳为未来 **candidate static input** 并另授权本节及必要行动层持久化，尚未独核下述节点计数。固定 D clean HEAD 为 `c5a2986a32b44c7f327429ea43f457c00702b425`，src 仍 `2597bca4abae7eef9ba5fbc561a3b571bf97d968`，五份 TS 与28f90相同。native 只读根为 `/home/clarence/Projects/Agents/vscode-WorkTrees/merge`，不是 D 工位的 out；以下 native 身份与原6d的五份 fresh outputs 分开，不给新 candidate producer credit。
+
+### 6.1 精确起点、边集与口头 964 纠正
+
+[static-closure.json](static-closure.json) 是非可执行的静态数据：五入口的 c5 sourceRef/blob/bytes/SHA-256、当时 native bytes/SHA-256、source overlay import 列表、984份 native 的逐文件身份及完整 lexical import 边集（6407条匹配，含不追踪的非相对 JS import）、按入口到关键模块的 BFS parent witnesses、scratch输入身份及单独的 old-L1 observed/manifest-only事实。它不含源码、测试期望 manifest、运行工具或新 runtime 原件。JSON 为 632159B，SHA-256 `e4d09cee81c8d1b2a605884e25551a017adc6c90a25c7d47ab4955f2aeff520c`；独立重放应先核文件身份，再按其规则和每节点 import 元组重建边及计数。
+
+**署名纠正（D / sources_audit）**：初次直接口头报告 native 每根 `621/558/36/948/961`、overlay `622/558/37/954/963`、overlay union **964**；该次 scanner 原代码和边集未保留，当前不能重放，不赋完整性信用。root此前仅采纳静态方向为候选，没有独核或接受964为完整闭包。以下改用已落盘的明确扫描规则及边集，实际文本计数为：
+
+| 起点（相对 `out/vs/workbench/contrib/sources/`） | 全 native 图（含起点） | 五根 c5 TS overlay 图（含起点） |
+| --- | ---: | ---: |
+| `browser/conversationDiffReviewPane.js` | 643 | 644 |
+| `browser/sourcesDiffPanelView.js` | 584 | 584 |
+| `common/sourcesDiffWriteController.js` | 36 | 37 |
+| `test/browser/conversationDiffReviewPane.test.js` | 971 | 974 |
+| `test/browser/sourcesDiffPanel.test.js` | 981 | 983 |
+| 去重 union | 982 | **984** |
+
+两图均没有 missing relative `.js` target，也没有 `out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js` 或 `out/vs/workbench/contrib/conversation/browser/conversationEditor.contribution.js`。当时读取的984份 native 的 lstat 字段（type/mode/uid/gid/size/mtimeNs/ctimeNs）逐份与下述46fc guard精确相同；这只绑定该次文本读取，不把984当实际加载数，不证明完整当前 TS、bootstrap 或运行闭包。
+
+五份 source 路径均精确相对 `src/vs/workbench/contrib/sources/`；对应 native 为同路径去 `src/`、加 `out/`、末尾 `.ts` 换 `.js`（其余字符不改）：
+
+| 五个精确 source 起点 | source bytes / c5 Git blob | source SHA-256 | native bytes / SHA-256 |
+| --- | --- | --- | --- |
+| `browser/conversationDiffReviewPane.ts` | 34747 / `d4a0f497691ce903fc169138cdbec6c111035f12` | `c0444b934541d3d698ab4ae0843004982239007cbc59493a86f58afdc76609a4` | 104038 / `79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528` |
+| `browser/sourcesDiffPanelView.ts` | 34444 / `ec52d61d903784e422679b53e2f9414a25b37a01` | `cd8fd7aca2732b4f0186d41f2c76e15decef20658f07084cbd2fed746555a4b8` | 98207 / `437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0` |
+| `common/sourcesDiffWriteController.ts` | 10800 / `10c6d88446b2a2ce72f81e92e6233d5975d6eff2` | `e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902` | 27186 / `98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8` |
+| `test/browser/conversationDiffReviewPane.test.ts` | 36410 / `7e95bb3c162a02511b4fff084b86ff3af2336ad5` | `2202ac65c0e8189d8ac404c696ebe5c59558ef443b1072fb4c154236b0287e07` | 24579 / `43744061622832077f62be39ff4cfb5a6e78681aad264e74f6bf0fd4ae9fe577` |
+| `test/browser/sourcesDiffPanel.test.ts` | 211429 / `c6c90e81e2eb4f3175718c29692600c59fe107bb` | `e8c86c58a452ad9c4dd6efbaa02208357bc72c91844e666c16b266e7c1f8ed7e` | 500052 / `a1daf2f12181a2e5c77295867340995323bb5e48606ec141682081fd0b8dafc9` |
+
+JSON 的 `nativeEmbeddedSingleSource` 另记录原 inline-map 内嵌源身份：四份 host/test 都不等于 c5 source，只有 controller 相等。该比较不授予 fresh emit 或 producer 资格，也不把旧native内嵌源换称当前源码。
+
+### 6.2 可独立重放的文本规则与限制
+
+以下为 JSON 中 `scanner.staticRegex` 的原样 Python 正则；只读 UTF-8 文本，不调用 AST、Program、checker、编译器或 JavaScript：
+
+```text
+(?:^|\n)\s*(?P<kind>import|export)\s+(?:(?P<bindings>[\w$*{},\s]+?)\s+from\s*)?(?P<quote>['"])(?P<specifier>[^'"]+)(?P=quote)
+```
+
+- 逐原文匹配 `import` / `export` 的字面 specifier，并记录 `kind`、specifier及关键字所在1-based行号；**不剥离注释/字符串**，不宣称具备语法解析器精度。native 节点 import 元组列固定为 `[line, kind, specifier]`；完整模式及列定义也在 JSON。
+- 仅当 specifier 以 `.` 开始且以 `.js` 精确结束，取 `posixpath.normpath(posixpath.join(posixpath.dirname(nativePath), specifier))` 为相邻 native 路径；相对路径以每个 `out/...js` 文件为基准。没有扩展名补猜、`.ts`/`.d.ts`转换、目录 `index` 回退、query/fragment剥离、alias/package/条件导出解析或symlink canonicalization。裸包、`.css`及其他非相对JS匹配仍保在边数据中，不入追踪图。
+- 对五入口分别 BFS，包含起点、按规范化路径去重；每份实际 native 的静态列表形成全 native 图。另做一次 overlay：**只替换全部五根**的 import 列表为固定 c5 TS 文本列表，余下邻接关系仍取当时 native JS；不是全仓当前 TS 图，也不是生产 emit 图。
+- TS overlay 不做类型擦除，所有匹配均保留，含 `import type` 和 `{ type ... }`。JSON标注 `declarationTypeOnly` / `containsInlineTypeBinding`，例如 Pane host 的 `sourcesDiffRefHelpers.js` declaration-type edge、两test的 `universeAgentTypes.js` type edge。它们是模块级静态边，不能据此声称运行时会加载这些模块。替换根列表也不证明未来编译器生成边与现有native根列表完全相同；两张图及各根身份必须分开核。
+- 对984份 native 及五份 c5 TS 原文再扫以下 **literal-first-argument** deferred `import` / `require` 模式，结果均0条；只记录、不递归追踪。此结果不覆盖 computed/template/variable import、任意封装loader或unsupported语法，也不扫描未进上述图的其他文件：
+
+```text
+\b(?P<kind>import|require)\s*\(\s*(?P<quote>['"])(?P<specifier>[^'"]+)(?P=quote)
+```
+
+模块注册表、DI构造、Editor registry、命令副作用、runner/bootstrap及其加载边、外部包、运行时条件和函数调用不由上述图判定。当前 source roots 与旧native依赖混合，不能推导依赖对未来 old/new 混合产物的完整兼容性。**无到 lease Pane 的该类静态路径，仅支持保持五target为候选假设；实际 loaded 及构造/调用仍待单独观测。**
+
+### 6.3 固定源码的构造/夹具/入口选择边界
+
+以下行号均固定 c5 Git 对象；可读源码链接只作导航，其固定身份以 JSON 的 roots / `sourceEvidenceIdentities` 为准：
+
+- [Sources Pane host](../../../../src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts):97 是 `ConversationDiffReviewPane extends EditorPane`，constructor131–155；[Pane test](../../../../src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts):521 构造该 Sources Pane，522 create、524 setInput、527–532核真实 DiffEditorWidget及模型。它没有继承 lease `ConversationEditorPane`。
+- [Panel host](../../../../src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts):119 是 `SourcesDiffPanelView extends ViewPane`，constructor153起；[Panel test](../../../../src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts):4541构造 `SourcesDiffPanelService`、4543构造 Panel、4544 render、4547 public `service.show`。controller是独立 source facts/planner，不构造UI Pane。这些均为源码调用路径，尚非本scope运行到达证据。
+- [sourcesConversationOpenHarness](../../../../src/vs/workbench/contrib/sources/test/browser/sourcesConversationOpenHarness.ts):25 创建的是 `ConversationChatInput`；30–32的mock chat root `openEditor`会抛错，37–40的sideGroup只调用传入回调。Panel test三处2576–2582、2640–2647、2961–2967回调仅捕获/持有 `ConversationDiffReviewInput` 并返回 `undefined`；2659–2669的普通editor分支至多构造 `DiffEditorInput`。此夹具不构造 lease Pane。JSON另保从Panel test到该harness、`conversation/common/conversationChatInput.js`等模块的parent witnesses；模块可达不等于构造到达。
+- [官方 renderer](../../../../test/unit/electron/renderer.js):187–196逐 `loadFn(file)` 载入选择的模块；201–209在 `opts.run` 有值时，仅把指定文件列表去 `src/` 前缀和 `.js/.ts` 后缀后交 `loadModules`。这是测试入口选择边界，不能推出renderer/bootstrap只加载这些脚本或没有注册表带来的额外模块。
+
+### 6.4 d8e actual loaded 与恢复证据单列
+
+以下原件仍在 `/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/`，本轮逐份只读核 bytes/SHA；**没有把原件复制入Git或宣称已经出版接入**。来源为root明确给出的accepted scratch证据及root直接恢复核验消息；本页只是身份/事实引用。scratch当轮HEAD `b7dd43f1a523673bf5bdf65ae7950fe0c622adf3`，src `62996b35d6e417c0b46a1f7e79b632414008b5be`，sourceRef `d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3`，与D候选c5/src2597分开。
+
+| `/tmp` 原件 | bytes | SHA-256 |
+| --- | ---: | --- |
+| `guard-after-restore.json` | 4212816 | `46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e` |
+| `validation-report.json` | 140258 | `55922b17101c035ac376b02ff6e29e647e2348af553cef3cb4134273bd2cbddd` |
+| `old-L1.loaded-assets.json` | 28688722 | `328127b6b141671024b066ad809c979c99a3ce93936f73cbb2f9094dc21cc3e7` |
+| `old-L1.native-provenance.json` | 30310933 | `8284fff2b3bc78b0d26528cd0b29628aea763f6ba37d213b91b71d1c396603e2` |
+
+`old-L1.native-provenance.json` 的 qualification=true、1130 observed assets、observerErrors/problems均0；lease Pane与contribution确为observed。Pane当时42101B/SHA-256 `74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629`，runtime source与disk bytes相同，current source blob `98ba56dacc166c24d263112940c7aee0a0363357`、embedded/producer旧blob `8678204094b429fd4280dd528a70e83b9fcf5289`，`currentSourceEmittedToNative=false`。compile10只保历史归属，不把当前lease源码称为该旧native的producer。
+
+同一份actual old-L1证据里，**五个Sources起点及sourcesConversationOpenHarness均只有manifest，未observed**。固定 c5 和 d8e [Reveal test](../../../../src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts):26–27直接导入 `conversationEditor.contribution.js` 和 `ConversationEditorPane`，解释这是不同测试入口；不能把其Pane加载事实转成Sources actual loaded。scriptParsed/observed不证明constructor/createEditor/setInput或lease业务路径到达；该old-L1未达qualified business red，不能证明真实Pane打开成功。
+
+root直接独核恢复事实为：live15500 metadata与 `guard-after-restore.json` 精确相同、native256＋额外Reveal/freeze4/cache3保持；仅Reveal实际emit/restore、仅其ctime例外，旧Pane bytes/mode/mtime/ctime不变，**没有emit Pane或运行新完整套**。本轮984份静态native metadata匹配46fc是较窄的补核，不替代上述root的全量恢复核验，也不把/tmp原件变成Git已接入证据。
+
+### 6.5 后续资格仍未释放
+
+原静态Pane62business＋meta1=63/hook251、Panel195business＋meta1=196/hook783、114新增（60/54）预期保持，均不是实际注册/通过数。**五target与无第六target仍是假设**：未来仅在另行获准的既定完整Sources运行内，按两个官方模块分别保实际script URL/hash、runtime-source与sealed disk对应，并明确五起点及lease Pane/contribution是否observed；若出现后两者，须分清只解析与实际构造/打开/lease调用，不凭加载即推源码覆盖，也不暗增第六target。若实际路径触及scope外行为，先另审依赖及资格，不在本轮准备新工具或产物。
+
+未来runtime授权时还须由root**重新固定并接受当时恢复身份**；46fc只记录本次已恢复检查点，54fe也不自动成为未来基准。plan保持accepted/runtime pending，源码/混合producer/完整组件资格/独立非作者after合同均不变；未释新准备、merge、compile/emit/tests/UI或运行。
