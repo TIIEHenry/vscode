@@ -4,10 +4,12 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "b2原54与5f4 same-ref窄peer均C0/I0/M0经父采纳、44 I1关；root核f5a后授权共同预stub最小Pane test-only候选，旧helper/default/resolver/cases及生产/Panel保持，仅静态待新窄peer/唯一lane/out冻结。"
+summary: "33b9真实合源与057c证明已由root接收；最终a4a peer C0/I0/M0、run3默认false过而旧probe败；下文旧阶段原文保留，新54/18未完整运行，仅准备验证无执行release。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
+
+> **当前覆盖说明（2026-10-27）**：root已独立接收精确a4a的`33b9`真实双亲源码合并及`057c`[集成证明](../../progress/sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md)；最终a4a原Astra窄peer C0/I0/M0既有结论已固定。run3共同factory修正下原default-false实际1/1/0，旧精确c7探针setup失败不改；A4纯业务旧红、Panel A3 body过/hooks败、跨run四positive仅累计到达均按原件分列。**下方全部既有段落/表格/推进顺序是合源前作者阶段历史**，其中“待peer/未合/业务未达”不得再当当前状态。当前唯一lane仅获准备五文件验证工具与两完整官方宿主协议，executionAuthorized=false；新54/18完整suite未运行、native仍run3旧冻结，plan/PRD/旧波不升级。
 
 本看板仅跟踪[独立方案](../../plans/sources-accept-post-read-authorization.md)的推进，不重复 Sources 长期 SSOT。固定基线 `c7fefd780bd9720f3889e310d4706210189a3fc7` / `src=a2c34649ee88df907c03b70c9ec3235cb1b4a9d9`，不追 main；原 draft 为 `4b0d3d62e65e54e71d3b1748f100fac7ca5f6ce3`，经父核验与 Astra 规则16 C0/I0/M2、两Minor实改后为 accepted 方案阶段；父级独立核验 accepted `5c0916b71070c5f75742fcbd831cd8c31be0bd34` 后已明确授权实施；两生产宿主+两测试候选 ab43 已经父核与 Astra 正式源码 peer C0/I0/M1；父级采纳 A7 覆盖 Minor，本轮只补测试与必要文档，静态计数共 54。b2 四例增量已由 root 核验、原 Astra 窄 peer C0/I0/M0，原 M1 关闭；作者不运行任何业务测试。旧 run1 暴露的 Panel 生产 VM 泄漏与独立 Pane DI setup 另立[生命周期方案](../../plans/sources-panel-diff-view-model-lifetime.md)，不混入既有 Accept plan。
 

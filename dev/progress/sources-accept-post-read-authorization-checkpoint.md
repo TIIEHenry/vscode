@@ -478,3 +478,15 @@ root 接受 run3 proof `0165822eff368314d8fd0017e1137b56113e5bb5` 并于 `2026-1
 ## a4a 正式合源独立证明接入
 
 真实双亲merge为`33b9b820701d7cfe20fe36fde56ba1ecfebbada4`（0165822、精确a4a7032），tree=`87e2ee5450e50e5edf34772bcfccafe62ce25109`、src=`d78a48e5feee57fcaf5811c8425859d0a2400af0`。[完整证明与只读重建/native守卫](sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md)单独提交；原merge的冲突块外文字保持原样，此处proof追加、status摘要与证据链接是后续明确记录的文档更新。merge时继承的旧候选frontmatter摘要在proof中改为当前合源/待验证状态，原bytes与首条完整保留在proof-documentation-edits.json。root独核前后均不自动释放源码checker/compile/emit/test；native仍为run3冻结旧产物，未新green，overall active。
+
+<a id="current-narrative-before-new-validation-preparation"></a>
+
+## 当前叙述覆盖与下一轮仅准备（2026-10-27）
+
+root已独立接收33b9/057c；本轮仅在overview、现看板和plan INDEX摘要增加当前覆盖说明并把旧作者阶段明标历史，原文仍在；三个Sources plan正文/JSON/source/旧证据不变，所有方案与产品状态不升。最终a4a原Astra窄peer C0/I0/M0已固定，run3共同factory下原default-false实测1/1/0与旧精确c7探针setup失败分列，新54/18完整suite未运行。下一轮只获准备五文件checker/ESLint/dry→emit与两官方完整Electron模块，executionAuthorized=false；不执行这些工具、不写out/cache/freeze。root本次读inventory误取run3字段mirroredArtifacts导致None，按本目录mirrors schema纠正后独立核验通过；这是父读取器schema错误的归属摘要，不是证据变化或伪造raw日志。
+
+替换前`057c13494ce7ee28419d8908677c0cb65ef2f249:dev/progress/status.md`首条原文含末尾LF，SHA-256 `560e84aba57ba83d604b9750c131e63e9e7e2e153a48d2956dd083e66774cc17`：
+
+```text
+- **Sources Accept a4a正式真三路合源（2026-10-27）**：固定0165822/a4a7032/共同祖先5c0916，4源码mode/type/blob逐项等a4a，src=d78a48e5；Accept原plan/dispatch与Panel/fixture合同、双方证据入口/原status首条全部保留。当前尚未source checker/新compile/emit/新green/完整两宿主suite；native仍旧产物、out/freeze4/cache3逐项等run3实际恢复基准90f8cd，未称新源已编译。旧A1双红/run3 A4红与4正控body累计到达/Panel hooks红各保原边界。[集成检查点与双方原文](sources-accept-post-read-authorization-checkpoint.md#a4a-formal-source-integration)；待root独核后另释验证，plan/PRD/旧波不升，overall active。 [完整集成证据](sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md)。
+```
