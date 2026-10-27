@@ -147,3 +147,7 @@ root仅释放E固定8033纯docs；[新两片方案](../../plans/conversation-vis
 当前全局授权另作澄清：root已另授A片且原Astra对固定4f2648d936508e300475c9cd52e5855a58c7ed93源码候选C0/I0/M0，经root02ff独核采纳；它尚未接入本次plan-only/srcfa6。merge当前摘要沿用旧“源码待授”时态，原文字节仍在merge与重放raw；本次独立proof/docs仅将当前摘要/首条澄清为“候选已peer、未接入，B工具准备/运行待另授”，不改incoming plan当时历史叙述。没有新运行成绩或业务/coverage/after信用。3a14诊断driver0/protocol accounted-official-outcome/official1/out恢复complete、fixture缺WorkRootMount及全.build保护FAILED/合C0/I2/M0明确保留；.build/log仍为[]且旧mtime/ctime漂移不恢复、不加例外。
 
 证据与双方首条含LF原件见[接入证明](../../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)；原审查署名来自root直接消息及incoming保留文本，不伪造原reviewer终端raw。797文件/223012410B及215非普通entry、旧结果proof280、out15500/native256/freeze4/cache3与ownedquiet本区间精确保留；src15715/node_modules48772全metadata同，.build6777仅已知log漂移。独立proof/docs待root检查和单独commit授权，不准备工具、不Program/lint/compile/tests/runtime/after，不push或同步main。
+
+### E lease A本地WorkRootMount最小源码候选（2026-10-27）
+
+root d251c9 actual0接受ea92方案后独立只授权A片；固定ea92仅Reveal新增一条既有token/model import与本地stubLensRuntimeServices一条store归属真实model stub，81721B/feb55eee/8a9c3245；仅逆两行即整份8033 c771/81494B/404034f9。生产/其他helper/services/tests/assertions/时限/诊断/error/cleanup保持。[plan§8](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md#8-a片独立授权与本地最小候选2026-10-27)仍accepted、B pending；候选static未peer/未运行，交root身份核/原Astra源码peer，不先称真实setup已修。精确diff/逆证/原status见checkpoint；只docs gates/只读bytes与metadata，无AST/lint/Program/compile/transpile/emit/tests/runtime/toolprep/after/out/cache，不同步baseline/main/B槽或碰原包，源码与主题docs同commit后停。
