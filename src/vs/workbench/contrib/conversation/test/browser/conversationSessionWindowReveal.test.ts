@@ -806,9 +806,12 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 			assert.strictEqual(binds(), 0);
 			harness.sessionWindowService.restoreSessionWindow('lease-s2');
 			assert.strictEqual(lens.sessionViewBindingSuspended, false);
-			assert.strictEqual(lens.sessionViewLease?.sessionId, 'lease-s2');
+			const restoredLens = pane.activeConversationLens;
+			assert.ok(restoredLens);
+			assert.strictEqual(restoredLens, lens);
+			assert.strictEqual(restoredLens.sessionViewLease?.sessionId, 'lease-s2');
 			await assertEngineFramePaints(harness, pane, 'lease-s2', 'L4 public restore');
-			const retiredLease = lens.sessionViewLease;
+			const retiredLease = restoredLens.sessionViewLease;
 			assert.ok(retiredLease);
 			const retainedObserver = store.add(harness.rosterService.acquireSessionView('lease-s2'));
 			assert.notStrictEqual(retainedObserver, retiredLease);

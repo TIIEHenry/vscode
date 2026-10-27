@@ -59,3 +59,8 @@ summary: "b2原54与5f4 same-ref窄peer均C0/I0/M0经父采纳、44 I1关；root
 ### E 783窄peer签收（2026-10-27，纯文档）
 
 root已独核固定783（src eefc0c）并正式接收静态候选，采纳原Astra窄peer C0/I0/M0关闭5fd I1；原I1报告/静态原件保持。独立observer真实帧与旧owner隔离、最后observer释放host的源码链获签，L4外test/Pane不变；仅静态13case，所有runtimeObserved=false。详见[plan§9](../../plans/conversation-visible-lease-recovery.md#9-783-窄-peer-签收与下一门2026-10-27纯文档)与[checkpoint](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-783窄peer静态签收2026-10-27纯文档)。本次仅4docs签收，源码仍783，plan accepted；不是formalmerge/green/outputs交付，不升PRD/旧波。唯一lane先完成Sources新源验证，之后另准备旧L1red/新13矩阵/原Reveal/非作者after；无执行授权，不再AST/lint或任何runtime/out/cache写。
+
+
+### E 新L4 checker收窄修订（2026-10-27）
+
+root报告固定7361唯一lane prep2首run checker在新L4报TS2339 never五诊断、Pane无诊断、无emit/测试，run已consumed不得重试；原件/hash与原Astra根因/父采纳来源保留[plan§10](../../plans/conversation-visible-lease-recovery.md#10-实际-prep2-checker-阻断与新-l4-读取根窄修订2026-10-27)。E先核clean f33后留该窄parent，仅公开重读restoredLens并断言sameLens、替换两处读取根，retiredLease仍在原绘制await之后；不删missing gates、不改其余L4/12新/26旧/defaultQuiet或生产Pane。一次Reveal AST0、no-cache/no-fix lint0/0，显式禁Node compilecache；无Program/checker/emit/runtime/out/cache写。三Sourcesplan/JSON按E固定baseline保护，不导入merge后来第四plan/52B stub。候选待root固定核/原Astra窄peer，语法/lint不代checker通过，planaccepted/业务全未达，旧失败原件与此前I1签收保持。
