@@ -1,0 +1,308 @@
+{
+  "checkedAtUtc": "2026-10-27T01:51:41.399761+00:00",
+  "phase": "documentation-validation-complete",
+  "docsOnly": true,
+  "generator": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/generate-docs-status.py"
+    ],
+    "exitCode": 0,
+    "stdout": "generated status: already up to date\n",
+    "stderr": ""
+  },
+  "generatorChangedTrackedContent": false,
+  "generatedStatusCheck": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/generate-docs-status.py",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdout": "generated status: OK\n",
+    "stderr": ""
+  },
+  "docsHealth": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/check-docs-health.py",
+      "--format",
+      "json"
+    ],
+    "exitCode": 0,
+    "stdout": "{\n  \"counts\": {\n    \"errors\": 0,\n    \"warnings\": 46\n  },\n  \"errors\": {\n    \"generated_status\": [],\n    \"module_indexes\": [],\n    \"required_entries\": [],\n    \"system_indexes\": []\n  },\n  \"markdown_files_checked\": 600,\n  \"result\": \"passed_with_warnings\",\n  \"warnings\": {\n    \"frontmatter\": [],\n    \"links\": [\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md\",\n        \"path\": \"dev/decisions/004-diff-owner.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/051-workbench-preview-and-sources.md\",\n        \"path\": \"dev/decisions/004-diff-owner.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\",\n        \"path\": \"dev/plans/conversation-process-fold.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\",\n        \"path\": \"dev/plans/conversation-process-fold.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md\",\n        \"path\": \"dev/plans/conversation-stream-timeline.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md\",\n        \"path\": \"dev/plans/conversation-stream-timeline.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md\",\n        \"path\": \"dev/plans/conversation-stream-timeline.md\"\n      },\n      {\n        \"message\": \"broken local link: ca38f5b8-c713-49a4-8dbf-dfe9728dec22\",\n        \"path\": \"dev/plans/conversation-timeline-session-pills.md\"\n      },\n      {\n        \"message\": \"broken local link: f52a7649-f824-4d57-9601-dc745d71870c\",\n        \"path\": \"dev/plans/conversation-timeline-session-pills.md\"\n      },\n      {\n        \"message\": \"broken local link: 77c10215-cd67-4db7-b240-cd9f7e6fcfe4\",\n        \"path\": \"dev/plans/conversation-timeline-session-pills.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md\",\n        \"path\": \"dev/plans/conversation-trajectory-lens.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md\",\n        \"path\": \"dev/plans/conversation-trajectory-lens.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\",\n        \"path\": \"dev/plans/conversation-trajectory-lens.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"dev/plans/navigator-engine-segments.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"dev/plans/page-access-schemes.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"dev/plans/page-access-schemes.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md\",\n        \"path\": \"dev/plans/page-access-schemes.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md\",\n        \"path\": \"dev/plans/page-access-schemes.md\"\n      },\n      {\n        \"message\": \"broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77\",\n        \"path\": \"dev/plans/sources-accept-empty-success.md\"\n      },\n      {\n        \"message\": \"broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77\",\n        \"path\": \"dev/plans/sources-accept-empty-success.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/043-agent-change-disposition-and-review-progress.md\",\n        \"path\": \"dev/plans/sources-review-progress.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"dev/plans/sources-review-progress.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../vscode-debug-engine/README.md\",\n        \"path\": \"docs/guides/debug-engine.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\",\n        \"path\": \"docs/product/requirements.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"docs/reference/code-oss-b2/conversation-lens-assembly.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"docs/reference/code-oss-b2/navigator-tabs-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"docs/reference/code-oss-b2/navigator-tabs-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/dev/plans/navigator-activity-segments.md\",\n        \"path\": \"docs/reference/code-oss-b2/navigator-tabs-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"docs/reference/code-oss-b2/session-roster-reuse.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/reference/upstream/singularity/systems/navigation/screen-routing.md\",\n        \"path\": \"docs/reference/code-oss-b2/session-roster-reuse.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md\",\n        \"path\": \"docs/reference/code-oss-b2/session-roster-reuse.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"docs/reference/code-oss-b2/settings-ua-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"docs/reference/code-oss-b2/settings-ua-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/reference/upstream/singularity/systems/state/settings-ui-components-design.md\",\n        \"path\": \"docs/reference/code-oss-b2/settings-ua-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md\",\n        \"path\": \"docs/reference/code-oss-b2/settings-ua-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/experience-principles.md\",\n        \"path\": \"docs/systems/workbench/companion-contribs.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"docs/systems/workbench/companion-contribs.md\"\n      }\n    ]\n  }\n}\n",
+    "stderr": ""
+  },
+  "parsedDocsHealth": {
+    "counts": {
+      "errors": 0,
+      "warnings": 46
+    },
+    "errors": {
+      "generated_status": [],
+      "module_indexes": [],
+      "required_entries": [],
+      "system_indexes": []
+    },
+    "markdown_files_checked": 600,
+    "result": "passed_with_warnings",
+    "warnings": {
+      "frontmatter": [],
+      "links": [
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md",
+          "path": "dev/decisions/004-diff-owner.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/051-workbench-preview-and-sources.md",
+          "path": "dev/decisions/004-diff-owner.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md",
+          "path": "dev/plans/conversation-process-fold.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md",
+          "path": "dev/plans/conversation-process-fold.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md",
+          "path": "dev/plans/conversation-stream-timeline.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md",
+          "path": "dev/plans/conversation-stream-timeline.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md",
+          "path": "dev/plans/conversation-stream-timeline.md"
+        },
+        {
+          "message": "broken local link: ca38f5b8-c713-49a4-8dbf-dfe9728dec22",
+          "path": "dev/plans/conversation-timeline-session-pills.md"
+        },
+        {
+          "message": "broken local link: f52a7649-f824-4d57-9601-dc745d71870c",
+          "path": "dev/plans/conversation-timeline-session-pills.md"
+        },
+        {
+          "message": "broken local link: 77c10215-cd67-4db7-b240-cd9f7e6fcfe4",
+          "path": "dev/plans/conversation-timeline-session-pills.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md",
+          "path": "dev/plans/conversation-trajectory-lens.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md",
+          "path": "dev/plans/conversation-trajectory-lens.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md",
+          "path": "dev/plans/conversation-trajectory-lens.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "dev/plans/navigator-engine-segments.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77",
+          "path": "dev/plans/sources-accept-empty-success.md"
+        },
+        {
+          "message": "broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77",
+          "path": "dev/plans/sources-accept-empty-success.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/043-agent-change-disposition-and-review-progress.md",
+          "path": "dev/plans/sources-review-progress.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "dev/plans/sources-review-progress.md"
+        },
+        {
+          "message": "broken local link: ../../../vscode-debug-engine/README.md",
+          "path": "docs/guides/debug-engine.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "docs/product/requirements.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "docs/reference/code-oss-b2/conversation-lens-assembly.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/reference/code-oss-b2/navigator-tabs-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "docs/reference/code-oss-b2/navigator-tabs-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/dev/plans/navigator-activity-segments.md",
+          "path": "docs/reference/code-oss-b2/navigator-tabs-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/reference/code-oss-b2/session-roster-reuse.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/reference/upstream/singularity/systems/navigation/screen-routing.md",
+          "path": "docs/reference/code-oss-b2/session-roster-reuse.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md",
+          "path": "docs/reference/code-oss-b2/session-roster-reuse.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/reference/upstream/singularity/systems/state/settings-ui-components-design.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/experience-principles.md",
+          "path": "docs/systems/workbench/companion-contribs.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/systems/workbench/companion-contribs.md"
+        }
+      ]
+    }
+  },
+  "priorDocsHealthKeys": [
+    "counts",
+    "errors",
+    "markdown_files_checked",
+    "result",
+    "warnings"
+  ],
+  "diffCheck": {
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "preCommitOutputFreezeGuard": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "dev/progress/sources-accept-post-read-authorization-integration-audit.py",
+      "guard",
+      "dev/progress/sources-accept-post-read-authorization-integration-proof.json"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"atUtc\": \"2026-10-27T01:51:41.372777+00:00\", \"head\": \"a2f1430e446b82181e0f456942fb84d9d310e6ac\", \"sourceTree\": \"a2c34649ee88df907c03b70c9ec3235cb1b4a9d9\", \"all254AndExtra2PairsExact\": true, \"allOutFileAndDirectoryMetadataExact\": true, \"allFourFreezeFilesExact\": true, \"allThreeCacheSymlinksExact\": true}\n",
+    "stderr": ""
+  },
+  "statusLines": 200,
+  "noCompilerOrBusinessTests": true,
+  "outputReleased": false,
+  "overallGoalRemainsActive": true,
+  "warningDetailsExactlyEqualPriorR3": true,
+  "priorR3DocsHealthPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-final-docs-health.json",
+  "acceptedStatusFirstLinePreservedExact": true,
+  "allOtherStatusContentExact": true,
+  "sixOtherIncomingPathsExact": true,
+  "proofCommitIncludedPaths": [
+    "dev/progress/sources-accept-post-read-authorization-integration.md",
+    "dev/progress/sources-accept-post-read-authorization-integration-proof.json",
+    "dev/progress/sources-accept-post-read-authorization-integration-audit.py",
+    "dev/progress/sources-accept-post-read-authorization-integration-docs-validation.json",
+    "dev/progress/INDEX.md",
+    "dev/progress/status.md"
+  ],
+  "cachedDiffCheck": {
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "cachedExactIncludedPathCount": 6
+}
