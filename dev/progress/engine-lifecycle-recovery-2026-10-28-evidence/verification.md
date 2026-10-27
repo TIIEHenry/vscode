@@ -42,3 +42,9 @@ NODE_DISABLE_COMPILE_CACHE=1 npm run typecheck-client -- --incremental false
 - `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest scripts/tests/test_docs_status.py`：实际 6 过 / 1 失败，`test_head_requirements_fixture_parses_all_prds` 将 PRD 数硬编码为 28，而当前为 29。
 - 固定 `git show d91a7a8d361:docs/product/requirements.md` 由未改的 parser 解析同样得到 29 项 / 0 findings，含 `PRD-029`；该 SHA 的原测试同样断言 28。此为既有测试陈旧问题，已报告父调度，不在本次纯文档方案提交中修改测试。
 - `git diff --check`：exit 0。两方案只完成文档签收，产品与运行验收状态不因此升档。
+
+## Skills 独立方案接收与文档门禁
+
+F 在只含一份未跟踪方案时，执行 `git merge --ff-only 425940ed354` 成功接收 C 共享文档；原 Skills 方案 SHA256 前后均为 `b2957fa426a5719e8a63b720a1bbe18927f16c85472e9ee5d952d9c7576f6617`。方案已由 Astra 复审签收 C0/I0/M0。F 仅补本方案索引、生成状态与进度记录，`src` tree 仍为 `cc646e22c00cff331f59c430aaddbe8a39a90256`。
+
+F 的 `generate-docs-status.py`、`generate-docs-status.py --check`、`check-docs-health.py`、`git diff --check` 均 exit 0；健康检查为 0 errors / 73 links warnings，其中包含该槽尚未填充 `dev/loop` 子模块的本地断链，不以 C 的 46 warnings 代报 F。未重新跑已经证明陈旧的 PRD 数量单测、未初始化或改动子模块、未编译、未改共享产物。两槽纯文档依赖通过 ff-only 同步，不表示已经进入外部唯一 merge 或产品集成分支。
