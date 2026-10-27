@@ -3505,6 +3505,16 @@ suite('Sources diff panel', () => {
 			};
 			return {
 				panel, service, references, providers, capture,
+				keepModels: async (ref: ISourcesChangeRef) => {
+					const original = ref.original ? await resolver.createModelReference(ref.original) : undefined;
+					try {
+						const modified = await resolver.createModelReference(ref.modified);
+						return toDisposable(() => { original?.dispose(); modified.dispose(); });
+					} catch (error) {
+						original?.dispose();
+						throw error;
+					}
+				},
 				ref: (name: string, diff = true): ISourcesChangeRef => {
 					const modified = URI.parse(`inmemory://panel-lifetime/${name}/modified`);
 					const original = diff ? URI.parse(`inmemory://panel-lifetime/${name}/original`) : undefined;
@@ -3537,7 +3547,11 @@ suite('Sources diff panel', () => {
 				else if (action === 'dispose') { h.panel.dispose(); h.panel.dispose(); }
 				else {
 					const next = action === 'same-ref' ? first : h.ref('next', action !== 'diff-to-single');
-					assert.strictEqual(await h.service.show(next), true);
+					if (action === 'same-ref') {
+						const keeper = await h.keepModels(first);
+						try { assert.strictEqual(await h.service.show(next), true); }
+						finally { keeper.dispose(); }
+					} else { assert.strictEqual(await h.service.show(next), true); }
 					const current = h.capture();
 					assert.strictEqual(next.original ? current.diffs[0]?.getModel()?.modified.getValue() : current.codes[0]?.getModel()?.getValue(), 'line1\nnew');
 					assert.ok(h.references.slice(oldReferences.length).every(reference => reference.releases === 0));

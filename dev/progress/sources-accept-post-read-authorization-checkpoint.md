@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "44生命周期候选已固定仅静态；旧default-false独立setup实测失败后，仅docs提共同factory预stub窄draft，待规则16/accepted；原两plan/源码/54+18与旧调用保护不变。"
+summary: "44源码peer C0/I1/M0后root采纳新same-ref夹具修正；仅真实underlying resolver短期keeper，生产/Pane/18及原54保护，作者静态待窄peer；共同预stub仍独立d0 draft门。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -266,3 +266,31 @@ proposal规则16尚待固定SHA后父核/原Astra；独立accepted文档commit�
 ### 外部工位边界追加（父级通报）
 
 root于`2026-10-27T03:13:42.701550Z`观察main仍为`d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42`，status53行/SHA-256 `4e18cb0056e2d47c0432694b213f59eeb91ed7c268a28e87e2035bdb45c39de7`，tracked diff SHA-256 `2cf0b50ba4891d6cc6c1df6ca8e9d84e575f9a8a21a66f87a3e7e565e1e59194`。这是外部WIP变动的父通报，不由D复写日志或归因；D不追随/导入/清理该工位，当前proposal仍固定44源码身份。
+
+## same-ref 新夹具 I1 独立修订
+
+固定 `44edbd2b5ba562ce6503237069cba0cd763830a4` 的原 Astra 正式源码 peer 为 **Critical 0 / Important 1 / Minor 0**；生产静态符合已签 owner / teardown / await 边界，唯一 I1 是新 same-ref case 的夹具。root 独立核验并采纳：`store.add(models.createModel(...))` 只登记 raw model，不是 resolver refcount keeper；旧 Panel refs 释放后真实 `TextModelResolverService` 异步销毁排队，第二次 show 顺序 await 两侧 ref 时，modified 可先被销毁，inmemory 无内容 provider 重建。因此是新夹具静态资格缺陷，18 个新例尚未运行，不写成实际业务失败。
+
+root 只授权独立 test-only 修订：在新 `mountLifetimeHost` 增加通过**未包装 underlying resolver**取得的临时 keepers；仅新 same-ref 在第二次 show 前取得两侧 keepers，show 完成即由 finally 释放，异常也兜底。keepers 不进入 Panel `references` 记录、不登记到 suite store、不跨 case 保活；取得 modified 失败时局部释放 original。旧 Panel refs 的 release=1、旧 widget detach、旧 provider subscriptions=0、继任 refs 未释放及最终全部 owner 释放的原断言逐字保留，且全部在临时 keepers 释放之后检查。
+
+本次不改生产顺序/释放时机、不改 generic widget、不捞或私自清 VM、不豁免 tracker、不加延时、不改原54/旧case、不改 Pane true-only 预stub，也不实施共同factory修订。`d0c5f685331b4950b4b9c262a6a0c19bb8be7476` 的 proposal 本轮仍保持 7509B / SHA-256 `8d34097cea4dc5a487d4b151bd8924260a91fb4705566bde624423ca45fa0401` 原字节；共同预stub合同及源码分别继续走独立授权门，不把本次 I1 代替其规则16。
+
+### 后续收到的 default-false proof 身份
+
+root 此后通报旧 default-false 独立 probe 的正式 proof 为 `942d0652065d7aafe085d2e54a95c17bcd4f4c1c`，入口仍为 `dev/progress/sources-accept-default-false-probe-20261027-evidence/INDEX.md`。这是对上节“proof commit待baseline通报”的后续身份追加，不回写当时文字；原 1/0/1 setup TypeError、业务 red=0、未计54/18及03:04:01Z恢复资格保持。D 未接入/复制 proof、跟随 merge 或新运行。
+
+### d0 proposal status 首条逐字保留
+
+此次 status 只替换 summary 与首条，其余行与固定 d0 完全相同，总行数仍 200。原首条连末尾换行 SHA-256 `07ee7d18930c441815d00b63ccca5332f9df17ab261d6270e55c294116f1b184`；此前所有原文块与 hash 保持。
+
+```markdown
+- **Sources 共同fixture预注入窄修订 proposal（2026-10-27）**：生命周期44edbd2候选已固定，18新例仅静态、待源码peer；root独立确认exact c7旧default-false原case实际1/0/1 setup TypeError，未达业务、不计54。现仅另写[§3.4独立draft](../plans/sources-panel-fixture-preinjection-amendment.md)，提议共同factory在旧helper前预stub同一UA，保旧helper/case/header/assert/defaultresolver；原18145B/17436B两accepted方案与44全部source/test不动，待父核/原Astra规则16/独立accepted后才另授权代码。[当前边界与原首条](sources-accept-post-read-authorization-checkpoint.md#共同-factory-预注入连接窄修订-proposal)，out仍冻，不预称旧case业务green。
+```
+
+### I1 作者静态检查
+
+改变的 Panel test `createSourceFile` parseDiagnostics=0，仅 parse、不建 Program / semantic checker / transpile / emit；`eslint --no-cache` 实际 exit0，0 errors / 1 既有 `in` operator warning（:636）。对44所有 test 调用逐个核字节，只有既有新增同步生命周期模板中 same-ref 条件支改变；pending模板、18个case选择器、原54/旧71调用与旧patch声明全保留。Panel生产和Pane生产/测试、两accepted plan与原JSON保持固定原字节。`generate-docs-status.py --check` 实际 exit0；`check-docs-health.py --format json` 实际 exit0，601 Markdown / 0 errors / 46既有 link warnings，现post-read/proposal主题warning0；`git diff --check` exit0。没有运行任何业务、checker、emit、窗口或写out/cache/freeze。当前只是作者静态修订，窄peer及唯一lane业务仍待父级安排。
+
+### root 后续实际 restored 守卫通报
+
+root 通报其于 `2026-10-27T03:23:57.161510Z` 在 merge 固定 `942d0652065d7aafe085d2e54a95c17bcd4f4c1c` 实际执行最新 probe 证据的 `verify-restored.py`，exit0；254 + extra2 输出资格、12554 files / 2946 dirs、freeze4 / cache3 均与 actual post-probe restored baseline 精确，src仍a2c。此为root实际只读守卫，无compile/emit/tests；D不冒充新执行、不覆盖03:04:01Z或此前原guard文件。
