@@ -3,13 +3,13 @@ title: "Conversation 可见叶：catalog 恢复后补回缺失 lease"
 type: plan
 status: accepted
 phase: M7
-updated: 2026-10-27
-summary: "主lease accepted；固定3fc隔离诊断仅A前置/B限定恢复、业务与after未达；§12双独立业务包amendment为draft/规则16待，本轮仅文档，不授工具准备或执行。"
+updated: 2026-10-28
+summary: "主lease仍accepted；§12双独立业务包窄amendment经固定a761原Astra规则16 C0/I0/M0/root采纳，独立accepted；仅文档签收，工具/每包执行及业务/after仍待另授。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
 
-> **最新入口（2026-10-27）**：§11记录已验收的单次隔离诊断，仍无正式业务或after信用；§12是另授权的双业务包窄amendment draft，待原Astra规则16与独立accepted。下方既有“当前”段落按历史时点原样保留，主plan状态不变。
+> **最新入口（2026-10-28）**：§12已获原Astra固定a761正式规则16 C0/I0/M0及root独核采纳，现独立accepted；§12.6记录归因与固定域。这里只签收文档，未授语义工具或业务包准备/执行，主lease仍accepted，业务/非作者after未达。下方既有“当前”段落按历史时点原样保留。
 
 > **当前集成覆盖（2026-10-27）**：固定d8e新L4公开重读/sameLens窄修经原Astra C0/I0/M0/root采纳，以0ef352真双亲接入14e，当前src62996b35；仅Reveal80259B/110f7f…变更，Pane及其他src/Sources四窄implemented保持。7361首次checker五条TS2339失败与consumed原件不改；新checker、业务red/新13矩阵/完整Reveal/非作者after均待，尚无新prep或执行release。15500 metadata仍54fe、native256及额外Reveal旧JS/freeze4/cache3精确，lease accepted/overall active、fullCompile=false。[d8e真实合源/守卫/作者原件](../progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)为当前覆盖。以下固定输入、原“当前阶段”、首失败出版及E§10均按各时点保留，§1–§9与双方尾原字节不改；不由源码窄修获得运行资格，不重试旧consumed run。
 
@@ -304,11 +304,13 @@ root报告已真三路接入并独核 `736171b1abc34e36e4991709240625827b566396`
 本方案合同与accepted状态不变。后续只走[fixture/emitter窄plan§11](conversation-visible-lease-harness-and-emitter-isolation.md#11-固定3fc单次隔离诊断及当前验收2026-10-27)的新业务包门：绑定715f604实际恢复起点，精确a4a旧生产L1业务red → 固定新13与完整Reveal → 非作者真实默认编辑器after。新Pane发射、old/new切换及phase/selection/restore/判定扩展需新的源码peer和整包peer；本次consumed诊断永久不重跑。
 
 
-## 12. 业务 old-red / new-full 双包窄 amendment（draft，规则16待）
+<a id="12-业务-old-red--new-full-双包窄-amendmentdraft规则16待"></a>
+
+## 12. 业务 old-red / new-full 双包窄 amendment（accepted，规则16 C0/I0/M0）
 
 ### 12.1 状态、输入与独立边界
 
-本节仅为后续业务执行的窄修订草案，固定文档父671d9c2b6aa8612086912cdcff9afa85ebdca027 / src3dc1205763451e60e70c1a8a84465613990aa526；本节draft、原Astra规则16待，主plan仍accepted，不能把既有accepted状态解释为本节已签收或已授实施。root本轮只授权文档草案、文档门禁与范围提交。§1–§11及全部历史逐字保留；[单Reveal隔离诊断](conversation-visible-lease-harness-and-emitter-isolation.md#11-固定3fc单次隔离诊断及当前验收2026-10-27)的no-Pane限制、唯一consumed与原8033 whole .build FAILED/noBusiness信用均不改。本节不追授该诊断为精确旧生产业务red。
+本节规范设计以固定draft a7613db66f7987c8a91bf9764be831b98c9ae65c经原Astra正式规则16 C0/I0/M0、root独核采纳，现独立accepted；无C/I/M须改，规范设计保持。原draft文档父671d9c2b6aa8612086912cdcff9afa85ebdca027 / src3dc1205763451e60e70c1a8a84465613990aa526为其固定历史输入，本次accepted收口固定父a761。主plan仍accepted；root本轮只授权accepted文档、文档门禁与范围提交，不授工具或source/包准备及运行。§1–§11及全部历史逐字保留；[单Reveal隔离诊断](conversation-visible-lease-harness-and-emitter-isolation.md#11-固定3fc单次隔离诊断及当前验收2026-10-27)的no-Pane限制、唯一consumed与原8033 whole .build FAILED/noBusiness信用均不改。本节不追授该诊断为精确旧生产业务red。
 
 后续须准备两个完全独立的包，每包有自己的workspace HEAD、输入ref/blob/bytes/SHA、不可变副本、selection、seal、pins、whole-package peer与root单次execution release；workspace HEAD与input ref分开绑定，不能以当前工作区Pane代替旧输入。当前冻结输入如下：
 
@@ -353,13 +355,24 @@ new只运行一次完整Reveal，实际按固定fullTitles分别结算新增13�
 
 通过两业务包仍不替代非作者真实默认编辑器窗口after；after须独立授权、执行与审查。主lease是否implemented继续由完整业务与after证据决定，Sources、产品/PRD/旧D/旧波不因本节或静态peer升级。
 
-### 12.5 待审门与当前停止点
+### 12.5 已签文档与当前停止点
 
-- [x] root独立授权本节纯docs draft；本节与输入身份仅固定为待规则16审查材料。
-- [ ] 固定draft → 原Astra规则16只读 → root核验并改入Critical/Important；本节独立accepted。
+- [x] 原draft阶段root独立授权纯docs与输入身份固定；原件保持于a761及其证据。
+- [x] 固定a761 → 原Astra正式规则16 C0/I0/M0 → root独核采纳；本节独立accepted，无C/I/M须改，规范设计保持。
 - [ ] 另授语义工具准备 → 新源码peer；双输入overlay、lintText、双permit/WAL及union恢复语义全部纳入，不借旧v3窄审。
 - [ ] old新整包whole-package peer → root独立单次execution release → 合格business red及全恢复由root接收。
 - [ ] 另授new准备并捕新基线 → 独立whole-package peer → 独立execution release → 完整39业务＋meta结算及恢复。
 - [ ] 非作者真实默认编辑器after独立完成，再评估主lease实施状态。
 
-当前只有文档draft与文档gates/scoped commit授权；无工具或source准备、AST、lint、Program、compile、emit、tests、UI、engine、out/cache写入或新包准备。作者交固定draft/hash、Included与只读保护后停止，由root转交原Astra规则16，不自行进入任何下一门。
+当前只有accepted文档收口与文档gates/scoped commit授权；无工具或source准备、AST、lint、Program、compile、emit、tests、UI、engine、out/cache写入或新包准备。作者交固定accepted commit/hash、Included与只读保护后停止；root核后另授merge安全ff及下一语义工具source工作，作者不先ff merge、不接J/D/main，不自行进入任何下一门。
+
+
+### 12.6 原Astra正式规则16与独立accepted文档（2026-10-28）
+
+原Astra对固定a761主lease§12正式规则16给出C0/I0/M0 PASSED，root已亲读并结合固定文档/原件独核采纳；无Critical、Important或Minor需要改入，故§12.1输入表及§12.2–§12.4的checker/lint/permit/selection/restore规范逐字保持。review认可old/new独立恢复交接、Program目标文本与lintText/type-aware门、逐path permit/WAL及qualified恢复union、精确old断言/new39＋meta逐title结算、root调度门与ENOSPC/noBusiness边界；两包仍不替代非作者真实默认编辑器after。
+
+被审整plan为61595B / SHA-256 c2be104baefd97a34aea1333929ce7910d54319263458773630ac5a98ff42a19。§12从header开始的域为10122B / SHA-256 1a975848777dd70dc0bc0e48f73bc0e6082176c6fb51efbe9807ac7bcdc8870e；作者含两leading LF域为10124B / SHA-256 13bce7fa2e306e5c8f65b2b721a020c7c6a31621c8ddc4b5c45719d3df8664f5，两域不混用。§1–§11旧49128B / SHA-256 b79ee3ec216136e1e6c9adf5abec155d4c247a28f60ec9f0025e3e2e3987fe92逐字保留；域读取纠正属于root reader，不是candidate变化。
+
+[正式归因与本次固定文档证据](../progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/INDEX.md)保存root转交摘要：来源是原reviewer本会话direct FINAL，由root概述转交；不是terminal raw，也不是原消息字节快照。[a761原draft证据](../progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/INDEX.md)及其manifest/gates/raw/history保持，manifest绑定固定a761；本次accepted manifest只绑定本次文档commit，不能拿新live文档核旧manifest。
+
+本次只关闭方案文档门，主lease仍accepted，全部业务runtime与after仍pending，不升implemented/产品。下一语义工具source peer、每新包whole-package peer及root各次独立release都未由本节文档签收代授。

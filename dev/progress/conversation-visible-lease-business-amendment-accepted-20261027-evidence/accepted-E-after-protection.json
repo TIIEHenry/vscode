@@ -1,0 +1,25 @@
+{
+  "phase": "E after accepted pure-docs closeout and docs gates, before staging",
+  "capturedAtUtc": "2026-10-27T16:05:11.145286+00:00",
+  "head": "a7613db66f7987c8a91bf9764be831b98c9ae65c",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "ErootCounts": {
+    "out": 14866,
+    ".build": 417,
+    "node_modules": 47160
+  },
+  "EoutBuildNodePathsetsMetadataHashesExact": true,
+  "Esource15037MetadataHashesExact": true,
+  "frozenDiagnostic197AndDraft19BytesMetadataHashesExact": true,
+  "sections1Through11Exact": true,
+  "section12Normative8257BytesExact": true,
+  "changedOnlySixDocsAndNewAcceptedEvidence": true,
+  "sourceToolsAstLintProgramCompileEmitTestsUiEngineOutCacheOrPackagePreparationCount": 0,
+  "EoldNativeIdentitySeparateFromMerge715": true,
+  "docsHealth": {
+    "markdownFiles": 580,
+    "errors": 0,
+    "warnings": 73,
+    "currentScopeWarnings": 0
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "scope": "Only actual accepted-docs gate/protection originals; review/root records are explicitly attributed summaries, not fabricated raw messages. Large inherited baselines remain external with exact references.",
+  "files": [
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-accepted-20261027-docs/accepted-E-before-protection.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-before-protection.json",
+      "bytes": 77157,
+      "sha256": "d367c2c29756ef91dcbed935a33b9a96d8211c8ee75ecf8b2a2b09b65711535b",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-accepted-20261027-docs/accepted-E-after-protection.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-after-protection.json",
+      "bytes": 888,
+      "sha256": "cf30c1a050b29a63c38d8c6c203442aa79e63ef0e38dc8a948fdae53f2052e47",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-accepted-20261027-docs/accepted-merge715-after-protection.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-merge715-after-protection.json",
+      "bytes": 1114,
+      "sha256": "499a65a17f4437067cd834aa6bdc49920fc75a2df046e8dd25aa17aeee563c0e",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-accepted-20261027-docs/accepted-generator.stdout.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stdout.raw",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-accepted-20261027-docs/accepted-generator.stderr.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-accepted-20261027-docs/accepted-generator-check.stdout.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-accepted-20261027-docs/accepted-generator-check.stderr.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-accepted-20261027-docs/accepted-docs-health.stdout.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stdout.raw",
+      "bytes": 12908,
+      "sha256": "c0e3473b610c0c8f5a50e54ef3531d493a9f5c0c5a813c80371fc72900d53f2c",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-accepted-20261027-docs/accepted-docs-health.stderr.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-accepted-20261027-docs/accepted-docs-gates.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-gates.json",
+      "bytes": 1805,
+      "sha256": "963389ef1edc0ec774381b9c469c84bd23c19e58f95b7c637b8b1b4df198f5df",
+      "exactCopy": true
+    }
+  ]
+}

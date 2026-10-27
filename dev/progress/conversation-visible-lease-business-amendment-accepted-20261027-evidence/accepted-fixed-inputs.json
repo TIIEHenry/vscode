@@ -1,0 +1,32 @@
+{
+  "parent": "a7613db66f7987c8a91bf9764be831b98c9ae65c",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "includedExistingDocs": [
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/status.md",
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/progress/INDEX.md",
+    "dev/plans/INDEX.md",
+    "docs/architecture/cross-cutting/testing.md"
+  ],
+  "historicalSections1Through11Bytes": 49128,
+  "historicalSections1Through11Sha256": "b79ee3ec216136e1e6c9adf5abec155d4c247a28f60ec9f0025e3e2e3987fe92",
+  "normativeSpanBoundary": {
+    "start": "后续须准备两个完全独立的包",
+    "endBefore": "### 12.5 "
+  },
+  "normativeSpanBytes": 8257,
+  "normativeSpanSha256": "ab5974a92e78b12d57a927fd178fbb1f960bbcd9ba04a807ccd3db63cba1ac88",
+  "draftPlanBytes": 61595,
+  "draftPlanSha256": "c2be104baefd97a34aea1333929ce7910d54319263458773630ac5a98ff42a19",
+  "draftSectionHeaderOnlyBytes": 10122,
+  "draftSectionHeaderOnlySha256": "1a975848777dd70dc0bc0e48f73bc0e6082176c6fb51efbe9807ac7bcdc8870e",
+  "draftSectionWithLeadingLfBytes": 10124,
+  "draftSectionWithLeadingLfSha256": "13bce7fa2e306e5c8f65b2b721a020c7c6a31621c8ddc4b5c45719d3df8664f5",
+  "replacedCurrentStatusFirstBulletBytes": 928,
+  "replacedCurrentStatusFirstBulletSha256": "e9b8c2430242570739d62bea13c0364e4e9ef2f36d781745f1b0f2abfaa51a69",
+  "frozenPreviousEvidenceFiles": 216,
+  "mainPlanStatus": "accepted unchanged",
+  "amendmentStatus": "accepted formal Rule16 C0/I0/M0/root adopted",
+  "noRuntimeCreditOrToolAuthorization": true
+}

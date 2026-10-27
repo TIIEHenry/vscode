@@ -3,8 +3,8 @@ title: "Sources Accept 读后授权：分工与门禁"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-27
-summary: "Sources四窄保持；3fc隔离诊断已验收且业务/after未达；主lease§12双业务包窄amendment draft/规则16待，本轮只docs，不准备工具或执行包。"
+updated: 2026-10-28
+summary: "Sources四窄保持；主lease§12固定a761原Astra规则16 C0/I0/M0/root采纳，独立accepted仅文档；业务/after和语义工具/新包仍待，旧诊断与draft原件不改。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -176,3 +176,8 @@ plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执�
 ### 当前：业务执行双包窄amendment draft（2026-10-27）
 
 [主lease§12草案](../../plans/conversation-visible-lease-recovery.md#12-业务-old-red--new-full-双包窄-amendmentdraft规则16待)仅将精确a4a Pane＋当前Reveal的L1/meta old包，与其全恢复/root接收后另捕基线的current Pane＋同Reveal完整39业务/meta new包分开；双输入checker/lintText、双emit各permit/WAL及qualified union恢复须新源码/整包peer。E仅从clean4f一次ff到671写本草案与[固定文档证据](../../progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/INDEX.md)，规则16/本节独立accepted待；无工具、source、包准备或运行授权。上节单Reveal诊断、8033 whole.build FAILED/noBusiness、Sources与lease/产品旧D波状态保持。
+
+
+### 当前：业务执行双包窄amendment独立accepted（2026-10-28）
+
+原Astra固定a761主lease§12正式规则16 C0/I0/M0经root亲读及独核采纳，现[本节独立accepted](../../plans/conversation-visible-lease-recovery.md#126-原astra正式规则16与独立accepted文档2026-10-28)，无C/I/M须改，规范设计保持；前节draft是其历史时点。[正式归因/固定文档/保护](../../progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/INDEX.md)不伪作原消息raw，a761及其manifest/gates/history原件不追改。本轮仅accepted文档收口；主lease仍accepted，old/new业务和after全pending，语义工具source、各新包whole peer及各次root release仍另授，作者不先ff merge、不接J/D/main。Sources/产品旧D波与单Reveal诊断/旧8033 whole.build FAILED/noBusiness保持。

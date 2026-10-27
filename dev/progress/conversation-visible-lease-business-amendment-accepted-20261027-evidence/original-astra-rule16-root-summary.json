@@ -1,0 +1,27 @@
+{
+  "provenance": "Original reviewer direct FINAL_ANSWER in root conversation, forwarded as root paraphrased summary adopted by root. Not terminal raw and not original message byte snapshot.",
+  "capturedAtUtc": "2026-10-27T16:03:29.033094+00:00",
+  "fixedReviewedCommit": "a7613db66f7987c8a91bf9764be831b98c9ae65c",
+  "fixedPlan": {
+    "path": "dev/plans/conversation-visible-lease-recovery.md",
+    "bytes": 61595,
+    "sha256": "c2be104baefd97a34aea1333929ce7910d54319263458773630ac5a98ff42a19"
+  },
+  "reviewedSectionHeaderOnly": {
+    "bytes": 10122,
+    "sha256": "1a975848777dd70dc0bc0e48f73bc0e6082176c6fb51efbe9807ac7bcdc8870e"
+  },
+  "reviewedSectionWithTwoLeadingLf": {
+    "bytes": 10124,
+    "sha256": "13bce7fa2e306e5c8f65b2b721a020c7c6a31621c8ddc4b5c45719d3df8664f5"
+  },
+  "reviewedSections1Through11": {
+    "bytes": 49128,
+    "sha256": "b79ee3ec216136e1e6c9adf5abec155d4c247a28f60ec9f0025e3e2e3987fe92"
+  },
+  "result": "C0/I0/M0 PASSED formal Rule16",
+  "rootAdopted": true,
+  "summary": "Reviewer accepts separate old/new packages and restore handoff, canonical checker readFile/getSourceFile overlays and Program target texts, immutable-input lintText and type-aware gate, per-path permit/WAL and qualified recovery union, exact old assertion and new39+meta title accounting, root scheduling and ENOSPC/historical noBusiness boundaries. Non-author actual default-editor after still independently required. No C/I/M changes requested.",
+  "rootIndependentVerificationAsForwarded": "25 paths/hashes, old sections1-11, 11 external copies, six historical documents and927B prior historical first-bullet LF checked. Root corrected header-only versus leading-LF reader domain; not candidate change.",
+  "scope": "Documentation acceptance only; main plan stays accepted, all business runtime/after pending, no semantic tools or package/runtime release."
+}

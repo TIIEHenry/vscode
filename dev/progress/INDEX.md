@@ -3,7 +3,7 @@ title: "进度索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-27
+updated: 2026-10-28
 summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；ELR S1–S4 与 bug-hunt 01 S2 已落，Sources 架构 P7 已落且方案仍 accepted；2026-10-16 视觉审查发现稿"
 ---
 
@@ -13,7 +13,8 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
-| [Conversation lease双业务包amendment draft](conversation-visible-lease-business-amendment-draft-20261027-evidence/INDEX.md) | 主plan§12窄草案/规则16待；old精确a4a L1/meta全恢复后另新完整39＋meta，双输入/双permit/union恢复仅拟议，未授工具或包准备。 |
+| [Conversation lease双业务包amendment accepted](conversation-visible-lease-business-amendment-accepted-20261027-evidence/INDEX.md) | 固定a761原Astra规则16 C0/I0/M0/root采纳，主plan§12独立accepted、规范保持；仅文档，工具/各新包/业务/after仍待，draft manifest固定a761不追改。 |
+| [Conversation lease双业务包amendment draft](conversation-visible-lease-business-amendment-draft-20261027-evidence/INDEX.md) | 固定a761的原draft与当时规则16待审状态、门禁/原件/manifest全保；后续独立accepted见上行，不拿新live文档重核旧manifest。 |
 | [Conversation 固定3fc隔离单次诊断](conversation-visible-lease-isolated-diagnostic-20261027-evidence/INDEX.md) | driver0/official1、meta过/L1达676；A真实前置/B本次隔离与仅Reveal恢复经原Astra C0/I0/M0/root采纳，完整选中原件与259项未出版manifest分列，永久consumed，无业务/after信用。 |
 | [Conversation emitter隔离固定源码审查](conversation-emitter-isolation-source-review-20261027-evidence/INDEX.md) | v1 C0/I4/M1、v2 C0/I1/M0保留；v3残余I2窄源码peer C0/I0/M0/root采纳，24快照/差异/语法原件；该源码收口时整包/运行未授，后续独立单诊见上行。 |
 | [Conversation WorkRootMount fixture A源码三路接入](conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md) | ed565双亲5e315/4f264、src3dc120；仅Reveal两新增，2176矩阵/五块双canonical；A静态完成，native旧/whole.build FAILED不改，B待另授。 |
