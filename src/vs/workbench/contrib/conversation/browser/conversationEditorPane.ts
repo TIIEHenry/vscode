@@ -22,6 +22,7 @@ import { IEditorGroup } from '../../../services/editor/common/editorGroupsServic
 import { ConversationAgentBreadcrumbBox } from './conversationAgentBreadcrumb.js';
 import { ConversationLens } from './conversationLens.js';
 import { getConversationSessionReadiness } from './conversationSessionAvailability.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationChatInput, parseConversationChatResource } from '../common/conversationChatInput.js';
 import { ConversationEditorPaneId } from '../common/conversationSessionWindow.js';
@@ -247,6 +248,24 @@ export class ConversationEditorPane extends EditorPane implements IConversationL
 			}
 		};
 		this.visibilityDisposables.add(this.sessionWindowService.onDidChangeVisibleWindows(syncLease));
+		const input = this.activeInput;
+		const lens = this.lens;
+		this.visibilityDisposables.add(this.roster.onDidChangeSession(() => {
+			if (!input || this.activeInput !== input || this.lens !== lens || input.isDisposed() || lens.isDisposed
+				|| this.visibilityDisposables.isDisposed || this.lensDisposables.isDisposed
+				|| parseConversationChatResource(input.resource)?.sessionKey !== sessionKey || lens.boundSessionId !== sessionKey
+				|| !this.sessionWindowService.isSessionWindowVisible(sessionKey) || lens.sessionViewBindingSuspended
+				|| lens.sessionViewLease !== undefined) {
+				return;
+			}
+			const snapshot = lens.uaConnection.getConnectionSnapshot();
+			if (!isConversationEngineLive(lens.uaConnection.getConnectionPhase(), snapshot.pairingPending)
+				|| isConversationPairingHold(lens.uaConnection) || !this.roster.isEngineConnected()
+				|| getConversationSessionReadiness(this.roster) !== 'ready') {
+				return;
+			}
+			lens.bindSessionView(sessionKey);
+		}));
 		syncLease();
 	}
 

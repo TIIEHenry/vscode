@@ -3,7 +3,7 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "PRD-016 / ADR-002 的系统规格（2026-10-24 删除会话先确认）：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；窄宽 More 的新建和删除与写闸一致；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；已有延伸标签的子代理聚焦原列、不复制到活动列；面包屑祖先已是延伸标签时同样聚焦原列、不复制；子代理 overlay 只收 lensTablist、居中卡片；面包屑、导航栈、split；live tree 改名会更新已打开的延伸标签和对话框标题；栏上新建 / 删除 / 改名禁用时写出原因"
 ---
 
@@ -33,6 +33,14 @@ CONVERSATION_PART
 - 两叶**共用**右侧 Preview / Sources / Panel；这不是 ADR-001 的双 session 孪生。
 - 每叶阅读列身份条的文件夹、分支及动作目标属于该叶绑定 session，重绑同步更新；全局引擎芯片和窗口加入目录的操作保持原范围。非活动叶不借活动叶焦点修正身份，详见 [composer-and-inbox](composer-and-inbox.md) 与 [D1386 方案](../../../dev/plans/2026-10-26-leaf-session-root-identity.md)。
 - 窄宽度（`.is-narrow` / `.is-compact`）把 History、Snapshots、新建、删除和会话选择收进 More。More 里的新建和删除与栏上写钮同一道闸：pairing-hold，或已连接但会话未就绪（KEEP leftover）时，这两项禁用。点它们不会创建、不会删除，也不弹出失败。History、Snapshots 和切会话仍可点。栏上的新建、删除与标题改名用同一道写闸：不可写时禁用，并把原因写进 `title` 与 `aria-label`（pairing-hold 写 `Engine not connected`，已连但会话未就绪按就绪度写 `Loading session…` 或 `Session unavailable — The engine is connected, but the active session is not ready.`）。删除先经 `IDialogService.confirm`（2026-10-24，PRD-002 验收 6）：标题 `Delete session "{title}"?`，说明 `This permanently deletes the session and its messages. This cannot be undone.`，主按钮 `Delete`。栏上的删除、More 里的删除和 Navigator Sessions 标题上的删除共用这一个确认函数（`conversationDeleteSessionConfirm.ts`）。顺序：先过写闸（配对保持、会话未就绪照旧拒绝），断连但有连接历史时也在确认前拒绝；再取会话 id 与标题并确认；取消时不删除、不写草稿、不提示失败；确认后重新过写闸并确认该 id 仍在名册，再用这个 id 删除。
+
+### 1.1 可见 Pane 缺 lease 的对齐候选
+
+[可见叶lease恢复窄方案](../../../dev/plans/conversation-visible-lease-recovery.md)已accepted；当前源码候选在Pane现有visibility生命周期中监听真实roster session通知，仅当捕获input/Lens仍为当前存活owner、明确bound一致、叶实际visible、未suspended、真实引擎live且非pairing、catalog ready并且自身lease缺失时，调用既有公开bind入口。目标取该Pane当前bound，不按通知active id过滤，因此两个pinned visible叶各核自己的owner；已有lease保持，hidden与未挂载/已移除叶不补领。原hide释放与正常reveal（含local stub/断连缓存）路径保持。
+
+普通Pane/Lens dispose撤销listener并释放registered lifetime，测试持有的旧Lens对象不保证将lease字段置空；旧owner退出消费应从实际lease不再接帧与最后消费者释放host的公开边界观察。5fd源码peer C0/I1/M0指出的新L4合同误用已形成独立修订候选，仍待窄peer与运行，见[方案§8](../../../dev/plans/conversation-visible-lease-recovery.md#8-5fd-正式源码-peer-与新-l4-合同修订2026-10-27)。
+
+这仍是待独立源码peer与运行验收的候选合同，未据静态检查提升方案或产品状态。旧源码L1合格业务red、新矩阵/原reveal回归与非作者默认编辑器窗口after见方案验证门；不能以共享observer收到frame推断实际Pane已持lease或已绘制。
 
 ## 2. `ConversationChatInput` 与围栏
 
@@ -93,3 +101,5 @@ CONVERSATION_PART
 ## 7. 测试
 
 `contrib/conversation/test/browser/`：`conversationSessionChat.test.ts`、`conversationSessionSplit.test.ts`、`conversationSessionWindowSideBySide.test.ts`、`conversationEditorFence.test.ts`、`conversationEditorAggregation.test.ts`、`conversationNavigation.test.ts`。D4 目视：V5 / V7（[shell-smoke-verification](../../guides/shell-smoke-verification.md)）。
+
+`conversationSessionWindowReveal.test.ts`保留默认QuietRoster原26条，并增加`visible engine lease recovery`真实EngineRoster / UA / Deferred catalog / SessionView host frame矩阵，静态展开13条；L1–L7覆盖与L3三种非live观察资格见[窄方案§7.1](../../../dev/plans/conversation-visible-lease-recovery.md#71-静态展开选择器与待运行资格)。本轮仅作者AST/lint，实际资格与运行结果待唯一baseline lane。

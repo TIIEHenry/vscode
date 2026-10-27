@@ -15,6 +15,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 | 看板 | 状态 |
 |------|------|
 | [sources-accept-post-read-authorization](active/sources-accept-post-read-authorization.md) | **四窄source/真实组件scope完成**：固定6d一次新72及完整3/142/旧stale实际全过、root独核，四plan implemented；54fe37旧native恢复，原8438失败保持，PRD/宽Sources/overall active不升。 |
+| [conversation-visible-lease-recovery](../plans/conversation-visible-lease-recovery.md) | **固定f33源码静态签收，待唯一lane**：783窄peer C0/I0/M0/root采纳关闭L4 I1，plan accepted；13仅静态，旧red/新矩阵/原Reveal/非作者after全部未达，无新验证或工具准备授权。 |
 | [control-detail-polish](active/control-detail-polish.md) | **已完成**：四CSS精修，四主题16+8+4组验证 |
 | [default-editor-contract-audit-2026-10-26](active/default-editor-contract-audit-2026-10-26.md) | **进行中**：C 会话导航、D Tunnel 重试、J 配置初始化；从已同步干净基线重新审查，唯一 merge 编译 |
 | [default-editor-visual-state-followup](active/default-editor-visual-state-followup.md) | **已完成**：五项视觉状态修复及同根因续审；Electron 350 passing，十四项真实焦点 Chrome 补验全过 |

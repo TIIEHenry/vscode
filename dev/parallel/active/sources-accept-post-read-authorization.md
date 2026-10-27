@@ -42,3 +42,30 @@ summary: "固定6d一次六stage全0，72逐名与完整3/142及旧stale本体�
 | §3.4 共同factory预stub | [独立窄修订](../../plans/sources-panel-fixture-preinjection-amendment.md)经原Astra对精确d0规则16 C0/I0/M1、root全文/源链核验采纳后独立accepted；已应用原Panel§3.4首段及唯一标题Minor/锚点，其他§1–§5逐字保护。exact c7旧default-false原case仍为setup1/0/1、业务red0；root已精确核f5a并明确授权最小源码：当前仅Pane factory旧helper前预stub从if(resolveModels)收为一次无条件；旧helper/default=false/resolver/case/header/assert保持，生产/Panel.test不动；待新候选父核/原Astra窄peer后才唯一lane另取资格。 |
 
 该 scope 复用本看板与现作者检查点，不新建长期日志。方案阶段只读精确 Git，不请求 baseline 接入含 ab43 / b2 源码的 D HEAD；当前完整 Panel 实施候选统一 peer / 绑定验证，作者不编译/业务运行；旧默认false DI资格与d0窄合同签收已分别记录，共同预stub最小源码已另获父级授权，尚待新窄peer/唯一lane。旧 run1 正式入口 `dev/progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md` 属 baseline proof `d51ce65f86605b47f31c8d99bfbd98fd9f43564d`，D 未同步/复制；原结果与恢复资格保持。
+
+
+## 独立后续：Conversation可见叶 lease 恢复
+
+[独立draft](../../plans/conversation-visible-lease-recovery.md)仅跟踪root在原Astra新鲜源码裁定后授权的§24后续范围，固定a4a/srcd78a；复用本板，不改上文Sources历史或其验证门禁。D只写docs draft与索引/行动记录，不改源码/测试/out、不请求baseline接DHEAD；root核固定commit/path hash后，仍交原Astra规则16，再独立accepted及另行源码授权。当前Sources候选如报源码/fixture问题优先响应。
+
+仅Pane现visibility生命周期中的session reconcile；当前input/lens存活、明确bound一致、实际visible、未suspended、真实引擎live/非pairing、catalog ready且自身缺lease才沿原bind补领。回归须真实EditorParts→EditorService→Pane/Lens＋真实EngineRoster/UA emitter/Deferred listSessions/session-view frames，主red不能先hide/reveal/resetInput/manualbind；双pinned叶、KEEP与门关闭/owner撤销合同见plan。local Git迟到notice继续后置；Source两plan/原54+18/JSON及PRD/D1387/宽方案保持。
+
+
+### 89d规则16后独立accepted文档
+
+上节保留draft时点原文；当前以本节为准。root已逐8docs/hash/全文/sourceTree/status200独核89d，原Astra正式Rule16 C0/I0/M2经root采纳，两Minor已在[方案L2/§3.3及审查记录](../../plans/conversation-visible-lease-recovery.md#6-规则16原审查与独立accepted文档)澄清：KEEP测试持续live同identity且限定无新frame的引用窗口；三种非live状态采用自然missing→QueueReader真实session通知→同次UA内早于合法Lens重绑的前后采样，静态可行/实际fixture未达则资格未达。这里只签accepted文档，无源码授权，lease主red/新green/after未达，src仍d78a；root核accepted SHA后另议实施，不请求baseline接DHEAD，不借Sources54/18或run3外推。当前Sources问题优先，原三plan/JSON及PRD/D1387/宽方案保持。
+
+
+### E 独立可见叶lease源码候选（2026-10-27）
+
+上文保留ff55 accepted时点；root核该SHA后已另行明确授权E实施。E从干净e7一次普通ff-only到ff55，在独立分支形成仅Pane listener/import＋现Reveal真实EngineRoster矩阵的候选，原默认QuietRoster/26 tests、所有其他src、三Sourcesplan/JSON及54/18保持。L1–L7静态展开13条，L3三种非live的真实QueueReader before/after窗口、主L1资格及业务结果全部待runtime；L4含公开prune removed及未挂载控制。作者仅AST/no-cache lint/保护与docs检查，不Program/compile/emit/业务/UI/out/cache/freeze写。[当前候选与原首条](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-可见叶lease最小源码候选2026-10-27) / [plan §7](../../plans/conversation-visible-lease-recovery.md#7-e-最小源码候选与作者静态边界2026-10-27)；plan仍accepted，固定commit先交root核，再原reviewer源码peer，唯一lane旧red/新green/原reveal及非作者after均另待。当前Sources候选仍由D负责，问题优先，不混接E HEAD。
+
+
+### E 新L4 dispose合同修订候选（2026-10-27）
+
+固定5fd已获root静态身份接收，原Astra正式源码peer C0/I1/M0；I1只针对新L4将disposed Lens字段误要求undefined。root采纳后另授权仅该case与必要docs：公开记录旧Pane lease、prune后活observer接帧/旧owner不接帧，再放最后observer核host release；保留leaf absent/非hidden/非visible、Lens disposed、latebind0和存活owner正控。Pane完整15270B/90c0719d…、其他12新case/原26/defaultQuiet/Sources四TS+三planJSON与历史/out保护，矩阵仍13；实际L4 release/帧隔离及全部运行资格仍false，待root固定核→原Astra窄peer。审查来源与metadata root-inode/LF schema边界见[plan§8](../../plans/conversation-visible-lease-recovery.md#8-5fd-正式源码-peer-与新-l4-合同修订2026-10-27)及[行动记录](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-新l4-dispose合同窄修订2026-10-27)。本轮仅AST/no-cache lint/docs，无执行授权，plan仍accepted。
+
+
+### E 783窄peer签收（2026-10-27，纯文档）
+
+root已独核固定783（src eefc0c）并正式接收静态候选，采纳原Astra窄peer C0/I0/M0关闭5fd I1；原I1报告/静态原件保持。独立observer真实帧与旧owner隔离、最后observer释放host的源码链获签，L4外test/Pane不变；仅静态13case，所有runtimeObserved=false。详见[plan§9](../../plans/conversation-visible-lease-recovery.md#9-783-窄-peer-签收与下一门2026-10-27纯文档)与[checkpoint](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-783窄peer静态签收2026-10-27纯文档)。本次仅4docs签收，源码仍783，plan accepted；不是formalmerge/green/outputs交付，不升PRD/旧波。唯一lane先完成Sources新源验证，之后另准备旧L1red/新13矩阵/原Reveal/非作者after；无执行授权，不再AST/lint或任何runtime/out/cache写。
