@@ -18,6 +18,8 @@ summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run co
 
 ## J 本轮占用快照（2026-10-27）
 
+> **J 当前 peer 已采纳（2026-10-27）**：原 Astra 固定 ae902 正式窄 peer C0/I0/M0 PASSED/root 采纳，v1 唯一 I1 源码关闭；`occupied / 固定候选等lease业务门`。accepted/runtime pending，先等 lease 固定671…/src3dc…当前业务门，root后定Sources真实三路接入/最终源码runtime。[来源摘要](sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/source-peer-root-transferred-summary.md)；本次只补docs，源码与历史原件不动，下方保留旧时点。
+
 > **J 当前 v2（2026-10-27）**：原 Astra 固定 5cbc 源码 peer C0/I1/M0/root 采纳；仅 cleanup 提前拒绝 I1，另授最窄 Promises import/settled 修订。单 test 一次 parse/lint0，生产/10 矩阵与 v1 证据不变；`occupied / v2窄peer待`，accepted/runtime pending，唯一 lane 另授。[v2 证据](sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md)。下方 v1 与 docs 阶段段落均为各当时时点。
 
 > **J 当前（2026-10-27）**：root 已独核 D→J 固定 df44 并另授首 await 窄源码；四行 guard 与 10 项真实 resolver 回归源码已写，两 TS 各一次 parse/双文件一次无缓存 lint 通过。固定候选待 root/原 Astra 源码 peer，状态 `occupied / source候选待peer`；accepted/runtime pending，唯一运行 lane 和所有产物/工具准备另授。见[源码证据](sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md)。下段为 docs 阶段历史，不代表当前授权。

@@ -15,7 +15,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
 | [Sources：本地Git完成反馈的宿主归属](sources-local-git-completion-ownership.md) | `accepted` | ae7d原Astra窄源码peer C0/I0/M0/root独核采纳，关闭a227 C0/I1/M0唯一I1；两test await/undefined静态合同签收，无实际checker结果，114仅静态/组件与运行准备全待，plan accepted/runtime pending；lease优先/独立after及四Sources边界保持。 |
-| [Sources Pane：取消后停止后续模型解析](sources-pane-cancelled-model-resolution.md) | `accepted` | 原Astra固定5cbc源码peer C0/I1/M0/root采纳；v2仅Promises/settled修cleanup全收束，单test一次parse/lint通过；生产/10矩阵不变，v1原件保留，窄peer/运行待。 |
+| [Sources Pane：取消后停止后续模型解析](sources-pane-cancelled-model-resolution.md) | `accepted` | 原Astra固定ae902窄源码peer C0/I0/M0 PASSED/root采纳，v1唯一I1关闭，无未闭源码项；accepted/runtime pending，J保候选，lease当前业务门后另定真实接入与最终源码运行。 |
 | [Conversation lease：补齐本地 fixture 与隔离 emitter 附写](conversation-visible-lease-harness-and-emitter-isolation.md) | `accepted` | ed565真双亲接入固定4f264两新增源码，经原Astra C0/I0/M0/root02ff采纳并三路接入，src3dc120；此前80dc02/5e315方案proof保持，plan accepted；只A静态，B准备/运行待另授。[证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |
 | [Conversation lease：engine Pane setup 失败诊断](conversation-visible-lease-setup-diagnostics.md) | `accepted` | 8033默认参数窄验C0/I0/M0/root采纳关静态I1，e92f604真三路接入；仅A静态完成，实际B诊断待另授，原9a9a/fb708 I1/§7与§8保留。 |
 | [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | d8e公开重读/sameLens窄修peer C0/I0/M0经root采纳，0ef352真双亲接入/src62996b35；7361首失败/consumed不改，新checker/业务/after待，无新prep/release，旧native54fe保持。[合源证明](../progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)。 |

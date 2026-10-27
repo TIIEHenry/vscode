@@ -4,10 +4,12 @@ type: progress
 status: draft
 phase: M7
 updated: 2026-10-27
-summary: "原Astra固定5cbc C0/I1/M0/root采纳；v2仅Promises import/settled全收束再抛首错，单test一次parse/lint0；v1全原件与生产/10矩阵保留，窄peer/runtime pending。"
+summary: "原Astra固定ae902正式窄peer C0/I0/M0 PASSED/root采纳，v1唯一cleanup I1源码关闭；v1/v2门禁原件及ae902历史manifest不改，J等lease业务门，accepted/runtime pending。"
 ---
 
 # Sources Pane cleanup v2 窄源码修订
+
+> **当前正式源码 peer（2026-10-27）**：原 Astra 固定 `ae902af2497357602cf55b055ef9a98ae2964d43` 的窄 peer **C0/I0/M0 PASSED** 已获 root 亲读采纳，关闭 v1 唯一 cleanup I1；结合 v1 其余审查无未闭源码项，生产/gates/10矩阵保持。这里只签源码，不等 fixture/red/green/实际释放。[root 转发摘要](source-peer-root-transferred-summary.md)非 terminal raw。J 保候选，lease671…/src3dc…当前业务门后由 root 另定真实接入/最终源码 runtime；plan accepted/runtime pending。下方保留 ae902 候选交付时原文，原 [manifest](included-inventory.json)仍只绑定 **ae902 历史 candidate**，不覆盖本次 docs-only 追加，不追改 hash；原门禁/patch/metadata 原件不改。[本次纯文档保护与门禁](source-peer-docs-closure.json)。
 
 固定 parent/v1 `5cbc26d02ec1e301ca9e4209031c36da748b2ca1` / src `051fda78adf7086fb651892a13f8475c454d5bf5`；J 起步重核 clean。root 亲读并采纳原 Astra 的 v1 正式源码 peer **C0 / I1 / M0** 后另授本最窄修订，无新设计或方案 amendment。[方案](../../plans/sources-pane-cancelled-model-resolution.md)仍 accepted/runtime pending；本页所在固定 candidate 先交 root 独核，再交原 Astra 窄源码 peer。
 

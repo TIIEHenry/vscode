@@ -1,0 +1,284 @@
+{
+  "parent_source_candidate": "ae902af2497357602cf55b055ef9a98ae2964d43",
+  "source_tree_unchanged": "1d33f3bfd598fa1c6be2c7800f7444dc5c1571b9",
+  "review_source": "Root-transferred original Astra message summaries, not terminal raw or original-message bytes",
+  "formal_source_review": {
+    "v1": "5cbc26d02ec1e301ca9e4209031c36da748b2ca1 C0/I1/M0",
+    "v2": "ae902af2497357602cf55b055ef9a98ae2964d43 C0/I0/M0 PASSED",
+    "root_adopted": true,
+    "v1_only_I1_closed_in_source": true,
+    "no_unclosed_source_findings": true,
+    "runtime_credit": false
+  },
+  "source_worktree_git_diff_empty": true,
+  "source_files": [
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "bytes": 34927,
+      "sha256": "f47c6edfb62dc6a5563c8cc7282c1f7f763ab835c0a3851d74336074c2d97985",
+      "blob": "bfea55a920e5bbc723e60ad53237854cef814207",
+      "unchanged": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "bytes": 49403,
+      "sha256": "534e0a2a03999937bd705350b6394884697e607aff5ac95866844693514050a3",
+      "blob": "c9da6c23f16c6610f70b564a502e1a530f08065e",
+      "unchanged": true
+    }
+  ],
+  "protected_historical_artifacts": [
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "94cd0ebb9d4991b0ce99e7becc39d1bdcc5a7025",
+      "bytes": 5479,
+      "sha256": "cf59e4b5eb0c69feb65145d6bb5bd22f68363fb9692eeda0a34dbb999bee1ca1",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/documentation-gates.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "91884c31fa5d48eb95a1079ab1dfe3f83fa24647",
+      "bytes": 4285,
+      "sha256": "4913986f91787bf8287f58eb4be749c3f142c70d5d717b1665202e7e4fce3fe6",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/included-inventory.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "3de948d44b7f4cd8a42356436ee61e8bf7db4150",
+      "bytes": 5037,
+      "sha256": "7cbdcd8093421173241fc3a055cfe1be7fff003f9f2ce28a956772773aea642d",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/minimal-production-inverse.patch",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "6ef20cd5c534df2bdaa18eaf0e523f999593016d",
+      "bytes": 903,
+      "sha256": "2636d7a57e181680eed6719b6ae792f13a31d802c06682221ae057dc1a61d3a2",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/protected-metadata-after.json.gz",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "39a121dcf66c7747cf1c7358a9c152972d3a00cb",
+      "bytes": 248453,
+      "sha256": "63ce000cfbb1fe94130299a6c38e8214a7013de9dd8286946be7cbd2c6504ccb",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/protected-metadata-before.json.gz",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "39a121dcf66c7747cf1c7358a9c152972d3a00cb",
+      "bytes": 248453,
+      "sha256": "63ce000cfbb1fe94130299a6c38e8214a7013de9dd8286946be7cbd2c6504ccb",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/protected-metadata-comparison.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8e502a98e99f90c51fc976e2410009d4493fcd5d",
+      "bytes": 611,
+      "sha256": "5d5f53f547c5801decb0f8300477221028a0ed92ce91baff5de9603f872bf541",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/source-preservation.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a70e52d5c79c48d30af3b7236e9e74eca2f7d578",
+      "bytes": 4815,
+      "sha256": "e06cb3005437e7cdc09239c7551d115eb58af917d356c42400b75cfe0c956e0f",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/validation-results.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "6a6cfaf401a65c03320fa3fdca6d1e61cd08cdfa",
+      "bytes": 2696,
+      "sha256": "5721364c3f148610cae828157cfe0c6a45a0717faee259258cb33002ccd7bc24",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/documentation-gates.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "61df2dbeee96471716f6363dfdc2826dfbd51579",
+      "bytes": 4274,
+      "sha256": "683699f892a5cdba286192420453f51eb42eae4412b8a228a3d285ed2da4dd8c",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/included-inventory.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "e161cb1e74473a9c9820869b3407136e2d35d727",
+      "bytes": 4754,
+      "sha256": "ef177ebda23122f92fc7795b97d672b362d56bea4fc817e64b41b868401e6610",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/protected-metadata-after.json.gz",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9abf299465b0df4d45906a5c5e0f7aa3ba33e845",
+      "bytes": 248435,
+      "sha256": "c768940984cb65d7321cd151576ddbb92340fd299f62a9d9de2772bdaf1fe632",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/protected-metadata-before.json.gz",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9abf299465b0df4d45906a5c5e0f7aa3ba33e845",
+      "bytes": 248435,
+      "sha256": "c768940984cb65d7321cd151576ddbb92340fd299f62a9d9de2772bdaf1fe632",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/protected-metadata-comparison.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "b75c7978d59e12bead88e61f0c64a9ed9b8ca2cb",
+      "bytes": 519,
+      "sha256": "f5429e578e6f1b844b4e93dc2fb975cfa7635051950440e91cf25b84ba299676",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/source-preservation.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "84ad9f535d94c097a1d6d3fc5f3b13596fbbcda2",
+      "bytes": 7016,
+      "sha256": "949cb8089eb068998733f928a7900a38d9ce8357a67cef8f4640d6cf9b34cc5c",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/v2-to-v1-inverse.patch",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "1074cbdd31a7341f4554893ae4f6a3ea2b66d9e8",
+      "bytes": 1257,
+      "sha256": "69593bcb03601276e1bc88669d3e99d529cb54deb2aaf1417b7e912f65df2499",
+      "unchanged": true
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/validation-results.json",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "1afd5dde821659c2d836462f7d5e25490f93922e",
+      "bytes": 2106,
+      "sha256": "e06ea0c61c1732e986a3c2a98d7f70ded42d0ef5ae9d5f0014f1b5b9dc96f5ed",
+      "unchanged": true
+    }
+  ],
+  "protected_plan_design_sections_1_through_4": {
+    "bytes": 10665,
+    "sha256": "a6db032762368957042ccdf3d015adac0723ef24b552410ef82eea591862bb89",
+    "byte_exact": true
+  },
+  "board_entire_parent_prefix": {
+    "bytes": 50205,
+    "sha256": "68898279710800c4dfc28d85e83f777f65abb8721e6565f906cb8bffdbf46b88",
+    "preserved": true
+  },
+  "status_lines": 200,
+  "plan_status": "accepted/runtime pending",
+  "queue": "J holds fixed candidate; lease fixed 671…/src3dc… current business gate first; root separately decides true Sources three-way integration and matching final-source runtime",
+  "included_total": 9,
+  "included_files_except_this_record": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "mode": "100644",
+      "bytes": 51573,
+      "sha256": "a9670ccc7a35c63389192b7f6969a14dd75ee89e88a12a41a124e5a91fbdf410",
+      "blob": "eeb79b00113b245e4eac454d78db06a342847d69"
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "mode": "100644",
+      "bytes": 77721,
+      "sha256": "5f40b098962c4fc49aff1ad75829db014ceff6aa616d38c1a97f43b44b6687fe",
+      "blob": "10a3c022c4feb5c8077523b6d3536ad7726ee4a9"
+    },
+    {
+      "path": "dev/plans/sources-pane-cancelled-model-resolution.md",
+      "mode": "100644",
+      "bytes": 21401,
+      "sha256": "19646eb496e97852dd6c508ad78f745b620d71bad939adf7e0804f4f67e7cc31",
+      "blob": "58b25afdd1926eb9fce5605890fa648f6aedeb84"
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "mode": "100644",
+      "bytes": 16324,
+      "sha256": "38c4731a77ff6f85c8c91bb84bf94d73e112533034b7a4a4679679671337c349",
+      "blob": "41b80082c27eebc618caea1d4a618f639a83a039"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md",
+      "mode": "100644",
+      "bytes": 5365,
+      "sha256": "79203d0cd2b57524bd5fff5eee7c3014d68661a61b1bbb459eb2f64f4e85cedc",
+      "blob": "9cfd4dfe8571f5b6325ce51fe46829bed39bb918"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/source-peer-root-transferred-summary.md",
+      "mode": "100644",
+      "bytes": 3878,
+      "sha256": "3c6106a9994a3d5788c545aae3bd03f0c967e44e2bb1825641d41b4be3785236",
+      "blob": "9e9e8d306ab907032f833659288122cbea27d49e"
+    },
+    {
+      "path": "dev/progress/status.md",
+      "mode": "100644",
+      "bytes": 143683,
+      "sha256": "3a6355734103239e6658470291d8d26830c0ba9cd0118c493ff18512fc9cbffe",
+      "blob": "edbaca898cc478f2510c359e32c5c4ac2f361593"
+    },
+    {
+      "path": "dev/progress/worktree-pool.md",
+      "mode": "100644",
+      "bytes": 6118,
+      "sha256": "96fb931604715dc66b02897c86a5014c60ae3bf26e25b84d4dba33849227d266",
+      "blob": "0e57188d3e2378de7bfdcb136e9ab7d19771e040"
+    }
+  ],
+  "self_identity": "Supplied with final docs-only commit; excluded here to avoid self-reference. Historical v2 manifest remains bound to ae902.",
+  "documentation_gates": [
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/check-docs-health.py"
+      ],
+      "exit": 0,
+      "stdout": "Docs health check\n- markdown files checked: 586\n\nErrors: 0\n  required_entries: 0\n  module_indexes: 0\n  system_indexes: 0\n  generated_status: 0\nWarnings: 73\n  frontmatter: 0\n  links: 73\n    - AGENTS.md: broken local link: dev/loop/INDEX.md\n    - AGENTS.md: broken local link: dev/loop/worktrees.md\n    - dev/decisions/004-diff-owner.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md\n    - dev/decisions/004-diff-owner.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/051-workbench-preview-and-sources.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-process-fold.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\n    - dev/plans/conversation-process-fold.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md\n    - dev/plans/conversation-timeline-refactor.md: broken local link: ../loop/worktrees.md\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: ca38f5b8-c713-49a4-8dbf-dfe9728dec22\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: f52a7649-f824-4d57-9601-dc745d71870c\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: 77c10215-cd67-4db7-b240-cd9f7e6fcfe4\n    ... 43 more\n\nResult: passed with warnings\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "scope": "Pure-docs closure only; no source AST/lint/static/runtime, tool preparation, outputs/cache operations or temporary copies. No originals deleted."
+}

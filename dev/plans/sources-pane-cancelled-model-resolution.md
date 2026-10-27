@@ -4,12 +4,14 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "accepted/runtime pending；原Astra固定5cbc源码peer C0/I1/M0/root采纳，仅cleanup提前拒绝I1；v2只加Promises并用settled收束全部再抛错，单test一次parse/lint0，窄peer及运行待。"
+summary: "accepted/runtime pending；原Astra固定ae902窄源码peer C0/I0/M0 PASSED/root采纳，5cbc唯一cleanup I1关闭、无未闭源码项；J保持候选，等lease671当前业务门后由root另定接入与运行。"
 ---
 
 # Sources Pane：取消后停止后续模型解析
 
-> **当前 v2 源码修订（2026-10-27）**：原 Astra 对固定 `5cbc26d02ec1e301ca9e4209031c36da748b2ca1` 的正式源码 peer 为 **C0 / I1 / M0**，root 已亲读并采纳：唯一 I1 是新 helper cleanup 的 Promise.all 在 successor setup 拒绝时可能提前退出，未等旧操作结束。root 另授最窄修订：仅测试 async import 加 Promises、cleanup 改 await Promises.settled(operations)，保 finally 顺序与错误传播；生产 guard/真实 resolver/显式 race/10 项矩阵均获原审查认可且不改。单 test 各一次 createSourceFile-only parse 0 与无缓存/无 fix lint exit0；固定 v2 待 root 独核与原 Astra 窄 peer，方案仍 **accepted / runtime pending**。v1 审查来源是 root 转发的原 reviewer 消息摘要，非 terminal raw；[v2 证据](../progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md)保 v1 全原件与两级逆向证明。
+> **当前源码 peer 收口（2026-10-27，纯文档）**：原 Astra 对固定 `ae902af2497357602cf55b055ef9a98ae2964d43` 的正式窄源码 peer 为 **C0 / I0 / M0 PASSED**，root 已亲读并采纳，关闭 v1 `5cbc26d…` 的唯一 cleanup I1；结合 v1 其余已认可项，无未闭源码审查项。仅源码层签收，不等于 fixture 资格、旧 red/新 green 或实际释放通过，方案继续 **accepted / runtime pending**。J 保持固定候选，先等 root 当前 lease 固定 baseline（671… / src 3dc…）业务门完成，再由 root 另定 Sources 真实三路接入与匹配最终源码的 runtime。[root 转发摘要与来源边界](../progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/source-peer-root-transferred-summary.md)不是 terminal raw。下方 v1/v2 候选段落保留各当时时点；本次不改任何源码或原门禁/manifest/patch/metadata。
+
+> **v2 源码修订（2026-10-27，历史）**：原 Astra 对固定 `5cbc26d02ec1e301ca9e4209031c36da748b2ca1` 的正式源码 peer 为 **C0 / I1 / M0**，root 已亲读并采纳：唯一 I1 是新 helper cleanup 的 Promise.all 在 successor setup 拒绝时可能提前退出，未等旧操作结束。root 另授最窄修订：仅测试 async import 加 Promises、cleanup 改 await Promises.settled(operations)，保 finally 顺序与错误传播；生产 guard/真实 resolver/显式 race/10 项矩阵均获原审查认可且不改。单 test 各一次 createSourceFile-only parse 0 与无缓存/无 fix lint exit0；固定 v2 待 root 独核与原 Astra 窄 peer，方案仍 **accepted / runtime pending**。v1 审查来源是 root 转发的原 reviewer 消息摘要，非 terminal raw；[v2 证据](../progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md)保 v1 全原件与两级逆向证明。
 
 > **v1 源码候选（2026-10-27，历史）**：root 已独核采纳本地 D→J 集成固定 `df44ca0fb53f96898d5b3052ea68ecfa272da681`（src `7ab5d7221e63e8acda88bab4c36e28d063f06b7e`），另授本窄源码切片。从 clean 固定 HEAD 仅补首 await guard 与 10 项回归源码；两 TS 各一次 createSourceFile-only parse 0 诊断、一次双文件无缓存/无 fix ESLint exit0。原方案 §1–§4 设计与历史四窄完成不变；本方案仍 **accepted / runtime pending**，固定候选待 root 独核和原 Astra 源码 peer，运行/匹配产物与唯一 lane 另授。下方 docs 阶段的“未授/待集成”均保留为当时时点。详见[源码证据](../progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md)。
 
@@ -115,5 +117,11 @@ root 已亲读 base/common/async.ts 的 Promises.settled：等待每项成功/�
 - [x] 仅 async import 增加 Promises，唯一新 cleanup 改 await Promises.settled(operations)；不吞 setup 错误，现 finally 顺序、gates/cases/其他 helper 和全部生产不变。
 - [x] 修后 test 恰好一次 createSourceFile-only parse 0 诊断、一次 --no-cache --no-fix ESLint exit0；禁用 Node compile cache，未重复生产 AST/lint，源码检查后冻结。
 - [x] 两处逆向恢复完整 v1；再删除新增 suite/全部新增 import 后恢复完整 df44/D test。v1 9 份证据/门禁/manifest/metadata 原件及 §1–§4 字节不变，另建 v2 证据与主题 scoped commit。
-- [ ] root 对固定 v2 独核与原 Astra 窄源码 peer；不能仅以本轮修订自称 I1 正式关闭。
+- [x] 原 Astra 固定 ae902 正式窄源码 peer C0/I0/M0 PASSED，root 亲读采纳，v1 唯一 I1 在源码层关闭；结合 v1 其余审查无未闭源码项，不转为 fixture/red/green/实际释放信用。
 - [ ] 唯一 lane 的匹配产物准备、旧 red/新 green 与必要完整 Pane 运行仍待另授；lease 优先/独立 after、四窄完成保持。
+
+## 9. 源码 peer 已采纳与运行队列
+
+原 Astra 固定 ae902 的窄 peer 核到 test 49403B / SHA `534e0a2a03999937bd705350b6394884697e607aff5ac95866844693514050a3`，差异仅 Promises import 与 await Promises.settled。async.ts:1913–1928 逐个接住拒绝、等待全部完成后抛记录错误；现 finally 在全 settle 后清 Pane/provider/listener/DOM。原 v1 cleanup I1 由此关闭，生产/gates/10 矩阵不变；v1 C0/I1/M0 与修订历史完整保留。此段与链接文件均是 root 转发原审查消息摘要，不伪造原 message 字节或 terminal raw。
+
+root 已采纳 C0/I0/M0 PASSED；原 Astra 赞同 J 保持固定候选，lease 固定 baseline（671… / src 3dc…）先完成当前业务门，之后 root 再定 Sources 的真实三路接入与匹配最终源码 runtime。本次仅 docs-only peer 收口，不新做源码/static/runtime/工具准备或输出/cache 操作，原 v1 九份原件、v2 原门禁/manifest/patch/metadata 不改；v2 manifest 继续绑定 ae902 历史 candidate，不追改 hash。plan accepted/runtime pending，PRD/四窄完成/lease 运行与独立 after 合同保持；本轮交固定 docs SHA 后停止等队列。

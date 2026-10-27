@@ -261,3 +261,10 @@ root 已独核本地 D→J 固定 `df44ca0fb53f96898d5b3052ea68ecfa272da681` 并
 原 Astra 固定 `5cbc26d02ec1e301ca9e4209031c36da748b2ca1` 正式源码 peer **C0/I1/M0**，root 已亲读并采纳唯一 I1：cleanup 的 Promise.all 在 replacement successor setup 拒绝时可能先退出，旧 operation 未 settle。生产 guard/真实 resolver/显式 race/10 矩阵均获认可；这是 root 转发原 reviewer 消息摘要，非 terminal raw，未得运行信用。
 
 root 另授现 accepted 合同内最窄修订；J 从 fresh clean 5cbc 只给原 async import 加 Promises，并把新 cleanup 改为 await Promises.settled(operations)，保留 finally 顺序及首错传播。单 test 各一次 createSourceFile-only parse0、--no-cache --no-fix lint exit0，Node compile cache 禁用，源码随后冻结；未重复生产门禁或准备/执行运行。完整 v1 九份原件与旧设计/矩阵不变，[v2 证据](../../progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md)独立保存两级逆向与 metadata；方案 accepted/runtime pending，固定 v2 待 root 独核/原 Astra 窄 peer，唯一 lane 运行另授，lease 优先/独立 after 与四窄完成保持。上方整文前缀保留，不改写 v1 C0/I1 结论。
+
+
+## Sources Pane 正式源码 peer 收口（2026-10-27，J，纯 docs）
+
+root 已亲读并采纳原 Astra 对固定 `ae902af2497357602cf55b055ef9a98ae2964d43` 的正式窄 peer **C0/I0/M0 PASSED**：test49403B/534e0a2a，差异仅 Promises import 与 await Promises.settled；async:1913–1928 逐项接拒绝、等全完成再抛记录错误，finally 于全 settle 后清 Pane/provider/listener/DOM。v1 固定5cbc的唯一cleanup I1在源码层关闭；结合v1其余认可项，无未闭源码项。生产/gates/10矩阵与所有源码不变；不等fixture资格/旧red/新green/实际释放。
+
+[正式来源与队列摘要](../../progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/source-peer-root-transferred-summary.md)为root转发原Astra消息摘要，非terminal raw，不伪造原message字节；v1 C0/I1/M0及原件保留，v2原门禁/manifest/patch/metadata不改且manifest仍绑定ae902历史candidate。原Astra赞同J保持固定候选，先等lease固定baseline（671…/src3dc…）完成当前业务门，root再定Sources真实三路接入与匹配最终源码runtime。plan accepted/runtime pending，lease优先/独立after与四窄完成保持；本次只补docs，不做源码/static/runtime/工具准备或输出/cache触碰，交固定docs SHA后停止等lease gate。上方全文为各时点完整前缀。
