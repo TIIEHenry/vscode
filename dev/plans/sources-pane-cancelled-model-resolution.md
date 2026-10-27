@@ -1,13 +1,15 @@
 ---
 title: "Sources Pane：取消后停止后续模型解析"
 type: plan
-status: draft
+status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "固定3fc83b3源码裁定C0/I1/M0后独立窄draft：首original await后复核owner/input/token/generation，失效释放且不申请modified；规则16与实施授权待。"
+summary: "固定ff224/12249B方案经原Astra规则16 C0/I0/M0 PASSED、root独核采纳，独立accepted；首await设计/真实resolver矩阵不变，D集成基线及源码/运行授权仍待。"
 ---
 
 # Sources Pane：取消后停止后续模型解析
+
+> **当前签收（2026-10-27，纯文档 accepted）**：原 Astra 对固定 `ff224c279e6ffbfd4fa5110e6df9db0431a6afad` / plan 12249B、SHA-256 `519fadc477088793ec8a2c88b89796080a720a82ac64dc7fdcf3f171983b31f0` 的正式规则 16 为 **C0 / I0 / M0 PASSED**，root 已核全文、五路径字节、parent/src 与差异并采纳。无必改项，原设计和矩阵逐字保留；下方 draft 阶段入口说明保留审查时点，当前状态以本段与 §5–§6 为准。签收不授源码、工具准备或运行，D 集成顺序及实施基线仍待。
 
 > **纯文档 draft，规则 16 待。** 范围仅默认编辑器的 Sources `ConversationDiffReviewPane`，不含 Agents Window。原 Astra 源码裁定经 root 采纳，不等于本稿已审或可实施；本轮未改源码/测试/工具，未做 AST、lint、compiler/Program、emit、测试或 out/cache 写入。先按 [DOCUMENTATION 规则 16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)交原 reviewer，独立 accepted 与源码授权均待。
 
@@ -76,7 +78,15 @@ D 未合候选 tip `22d39579e8e3efc2dd62c4f6c98ba8070f493979` 含 `a22776d0f63d1
 ## 5. 文档交接状态
 
 - [x] 固定源码/原审查来源与真实事件、resolver 夹具可行性已核；J 安全 ff 与独立 docs 分支已建立。
-- [ ] 本稿规则 16 Strengths / Critical / Important / Minor / Assessment 待；源码裁定不代替方案审查。
-- [ ] root 采纳、独立 accepted、D 集成次序及实施基线待；源码/验证未授或未执行。
+- [x] 原 Astra 对固定 ff224 的正式规则 16 C0/I0/M0 PASSED，root 已独核采纳；源码裁定与方案审查分别记录。
+- [x] root 已采纳并授权独立 accepted 纯文档提交；D 集成次序及实施基线仍待，源码/验证未授或未执行。
 
-Included 为本方案、[方案索引](INDEX.md)、[当前看板](../parallel/active/sources-accept-post-read-authorization.md)、[工位池](../progress/worktree-pool.md)和 [status](../progress/status.md)。仅行动层 draft，无需改知识层设计；提交门禁只查文档生成状态/结构健康与字节路径，不充当源码验证。
+Included 为本方案、[方案索引](INDEX.md)、[当前看板](../parallel/active/sources-accept-post-read-authorization.md)、[工位池](../progress/worktree-pool.md)和 [status](../progress/status.md)。仅行动层 accepted 文档，无需改知识层设计；提交门禁只查文档生成状态/结构健康与字节路径，不充当源码验证。
+
+## 6. 正式规则 16 与 root 采纳
+
+来源为原 reviewer `architecture_audit` 对上述固定 draft 发出的直接 `FINAL_ANSWER`，由 root 在本会话转发并独立核验采纳；这是正式协作审查消息，**不是 terminal raw**。下列为 root 转发的审查要点摘要，不伪作逐字原件，也不与 §1 的 actual-code C0/I1/M0 混同。
+
+**Strengths：**影响边界准确，首 await 完整 guard 与释放顺序保持最小；真实 provider gate 加“旧操作完成 / modified-started”竞争可形成确定性业务 red。四种失效各 success/reject、同 input 的 token-only、successor 保护及正常/modified reject 正控覆盖完整，历史结论与 D 待集成队列边界正确。
+
+**Critical / Important / Minor：均 0。Assessment：PASSED，可独立 accepted。** root 已核全文、五路径 Git/live 字节、parent/source 不变及实际差异后采纳，无 C/I/M 需改。本次仅翻转文档状态，不增加实现或运行信用；原设计/矩阵不变，D 优先集成次序、届时固定实施 HEAD、源码授权与唯一 lane 执行仍另定。root 当前准备包固定 3fc83b3，本 accepted docs 暂不接入该包，待其当前执行结束再统一安全接入。

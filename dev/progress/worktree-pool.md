@@ -5,7 +5,7 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-10-27
-summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run compile，未 push。槽 A 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。 J于2026-10-27独立占用，Sources Pane取消解析仅docs draft，规则16待。"
+summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run compile，未 push。槽 A 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。 J于2026-10-27独立占用，Sources Pane方案已过规则16 C0/I0/M0/root采纳，独立accepted docs；源码/运行待。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -18,7 +18,7 @@ summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run co
 
 ## J 本轮占用快照（2026-10-27）
 
-J仅负责[Sources Pane取消解析窄方案](../plans/sources-pane-cancelled-model-resolution.md)纯docs draft。重新核clean `468d805ef929298de9113f72665a3de0bdf4742a`为`3fc83b388a0977b36ecc8add7863d1f9a2a46eac`祖先后，一次普通ff-only成功；当前独立分支`fix/j-sources-pane-cancelled-model-resolution-20261027`，状态`occupied / draft待规则16`。未改源码/测试/工具或运行，未动D/E/merge/main。D未合候选与lease优先队列保持，未来实施基线另由root固定。下方2026-10-26表保留历史，不代表其他工位当前状态。
+J仅负责[Sources Pane取消解析窄方案](../plans/sources-pane-cancelled-model-resolution.md)纯docs accepted。原Astra固定ff224规则16 C0/I0/M0 PASSED经root独核采纳，无必改项；本次仅签文档，源码/工具/运行未授。重新核clean `468d805ef929298de9113f72665a3de0bdf4742a`为`3fc83b388a0977b36ecc8add7863d1f9a2a46eac`祖先后，一次普通ff-only成功；当前独立分支`fix/j-sources-pane-cancelled-model-resolution-20261027`，状态`occupied / accepted待源码授权`。未改源码/测试/工具或运行，未动D/E/merge/main。D未合候选与lease优先队列保持，未来实施基线另由root固定。下方2026-10-26表保留历史，不代表其他工位当前状态。
 
 ## 路径与基线
 

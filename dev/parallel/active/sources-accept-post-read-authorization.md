@@ -4,12 +4,12 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "Sources四窄已签保持；Conversation B工具v1/v2失败原文保留、v3残余I2源码窄审C0/I0/M0/root采纳，整体lease accepted/active；整包/pins/promote与运行未授。 J新增Sources Pane首await取消解析独立draft，规则16/源码/运行待，D未合候选先排顺序。"
+summary: "Sources四窄已签保持；Conversation B工具v1/v2失败原文保留、v3残余I2源码窄审C0/I0/M0/root采纳，整体lease accepted/active；整包/pins/promote与运行未授。 J的Sources Pane首await方案经原Astra固定ff224规则16 C0/I0/M0/root采纳，独立accepted；D集成基线与源码/运行待。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
 
-> **独立后续：Sources Pane 取消解析（2026-10-27，J，纯docs draft）**：[窄方案](../../plans/sources-pane-cancelled-model-resolution.md)以固定3fc83b3/src3dc120为审计输入。原Astra actual-code C0/I1/M0/root采纳只确认首original await后额外modified模型解析与ref延迟释放，未审本稿；规则16待、无源码/工具/运行授权。J从clean468d805证明祖先后一次ff到3fc83b3并开独立分支。D tip22d未合local Git候选保持，生产runGitAction与本scope方法分离但后续须真三路保全部测试、由root先排集成次序并固定实施基线；不动D/E，不抢lease唯一lane，不改下方Sources四窄已完成或Conversation历史。
+> **独立后续：Sources Pane 取消解析（2026-10-27，J，纯docs accepted）**：[窄方案](../../plans/sources-pane-cancelled-model-resolution.md)原固定ff224/12249B/SHA519fad经原Astra正式规则16 C0/I0/M0 PASSED，root核全文/五路径/parent/source与差异后采纳，无C/I/M需改，独立accepted文档；源问题裁定与方案审查来源分别保留，设计/真实resolver矩阵不变，无源码/工具/运行授权。J从clean468d805一次ff到3fc83b3的原事实保持；D tip22d未合候选先排集成次序，届时固定实施HEAD并真三路保全部测试。不动D/E、不抢lease lane，不改既有Sources四窄完成/Conversation历史；当前root固定3fc准备包不接本docs，执行后再统一安全接入。
 
 > **当前窄scope验收（2026-10-27）**：root已核[固定6d一次新验证](../../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)：六stage exit0，新72逐名通过、完整Pane3/3与Panel142/142、旧stale本体通过，meta/hooks/无pending/缺失/未知及owned/finally全合格。四窄plan implemented，本看板的Sources子scope仅按source/真实组件合同completed；以下Sources旧覆盖段落、表格与推进顺序为历史原文，其“下方全部”覆盖措辞只限Sources历史，不覆盖后面的Conversation lease当前待验证范围。当前metadata基准54fe37、旧native256/freeze4/cache3恢复，fullCompile=false；不声称Git实端/UI after已验，PRD/宽Sources/旧波及overall active保持。
 
