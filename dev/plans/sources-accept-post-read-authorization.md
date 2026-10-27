@@ -1,16 +1,16 @@
 ---
 title: "Sources Accept：读取返回后复核写入授权"
 type: plan
-status: draft
+status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "仅修复默认编辑器 Pane/Panel Accept 的读后写前授权；当前会话与原读目标一致且当前写门开放才发 ApplyHunks。draft待规则16，不含实施或运行证据。"
+summary: "两宿主Accept读后写前当前授权方案；规则16 C0/I0/M2由父核验采纳，两Minor已实改，独立accepted；未实施/运行，out保持冻结。"
 ---
 
 # Sources Accept：读取返回后复核写入授权
 
 > **固定源码基线**：`c7fefd780bd9720f3889e310d4706210189a3fc7`，`src` tree `a2c34649ee88df907c03b70c9ec3235cb1b4a9d9`。不追 main。
-> **当前阶段**：独立方案 draft；先提交本稿与行动记录，再由父级核验、Astra 只读审查。规则 16 的 Critical / Important 实改并形成独立 accepted 方案 commit 后，才可实施。
+> **当前阶段**：独立 accepted 方案；原 draft 为 `4b0d3d62e65e54e71d3b1748f100fac7ca5f6ce3`，Astra 对该精确提交规则 16 只读审查为 C0/I0/M2，父级已核验采纳、两 Minor 已实改（§7）。本次仅提交方案，源码实施仍须父级下一次明确授权。
 > **既有合同**：[PRD-009 验收 3](../../docs/product/requirements.md#prd-009-changes-与-diff)、[Sources SSOT §4](../../docs/systems/sources/overview.md#4-边界)、[Accept 暂存 hunk](sources-accept-stage-hunk.md)、[ADR-008](../decisions/008-write-git-apply-hunks-empty.md)。本稿恢复已有写门，不新增产品能力或协议。
 
 ## 1. 已核问题与证据等级
@@ -52,8 +52,10 @@ summary: "仅修复默认编辑器 Pane/Panel Accept 的读后写前授权；当
 | active 从 `s1` 变为 `s2` 或空 | 零 Apply，不重定向旧 patch；使用既有 session-changed 提示或当前闭态。 |
 | active 曾 `s1 → s2 → s1`，写前已回到 `s1` | 若原宿主/代次仍有效且当前门全开，允许写；不新增 session 事件失效 generation。 |
 | 当前 disconnected / pairing-hold / catalog 未 ready / read-failed leftover / capability 或 hook 不可用 | 零 Apply，保持当前 actions / 闭态；不拿 await 前的布尔值授权。 |
-| 读期间 List 失败，写前仍失败 | 零 Apply。 |
-| 读期间 List 失败后已恢复 ready 且当前非 read-failed | 若其余门全满足，允许；不因失败历史永久作废。 |
+| 读期间 Session catalog 的 Session/List 失败，写前 readiness 仍 unavailable | 零 Apply；这是会话目录就绪门，不等同于 Git Changes 读失败。 |
+| Session/List 从失败恢复为 ready | 若其余门全满足，允许；Git Changes read-failed 门仍须另行通过。 |
+| 读期间 Git Changes 读取失败，snapshot 为 `engine-leftover(reason='read-failed')`，写前仍失败 | 零 Apply；这是 Changes 快照写门，不用 catalog readiness 的布尔值代替。 |
+| Git Changes 读取恢复、snapshot 已非 read-failed | 若其余门全满足，允许；catalog readiness 仍须为 ready，不因失败历史永久作废。 |
 | 同 sessionId 的断连后重连 | 事件本身不取消；写前仍断连则拒绝，当前已恢复且其余门全满足则允许。 |
 | 切换 input/ref、clear 或销毁原宿主/原有效代次 | 零 Apply，旧操作不在新宿主写提示或刷新。 |
 
@@ -65,9 +67,9 @@ summary: "仅修复默认编辑器 Pane/Panel Accept 的读后写前授权；当
 
 保留点击起步的 planner、payload/cursor 门与现拉 FileDiff 行为。捕获实际读请求的 sessionId，不在 await 后从 active session 重新选择目标。
 
-- Pane：保存原 `ConversationDiffReviewInput` 对象与 `stageAttemptGeneration`，保留 setInput / clearInput / dispose 对该局部生命周期代次的失效；读返回时核对仍是原 input、原代次且宿主未销毁。原 input 已 dispose 也不得写。
+- Pane：保存原 `ConversationDiffReviewInput` 对象与 `stageAttemptGeneration`，保留 setInput / clearInput / dispose 对该局部生命周期代次的失效；读返回时核对仍是原 input、原代次且宿主未销毁。**原 input 自身已 `dispose()`，即使 Pane 仍存活且 `this.input` 仍为原对象，也必须零 Apply**；这一独立负例不能用 Pane.dispose() 代替。
 - Panel：保存原 `ISourcesChangeRef` 对象及既有 `renderGeneration`，核对仍为原 ref、原渲染代次且宿主未销毁。clear 后再显示同一个 ref 对象不能通过对象相等绕过原操作失效。
-- 这里的 generation 只约束宿主 input/ref 生命周期；不因 active-session 或连接事件而额外递增。
+- 这里的 generation 只约束宿主 input/ref 生命周期；不因 active-session 或连接事件而额外递增。父级已实读 Panel `:170–197,230–280,359–364`：renderGeneration 仅随实际 ref/show/clear 的模型生命周期变化，普通 session / connection / Changes / layout 刷新不产生新渲染代次，不应制造无关 churn。
 
 ### 4.2 读后写前重验
 
@@ -83,11 +85,11 @@ summary: "仅修复默认编辑器 Pane/Panel Accept 的读后写前授权；当
 
 原宿主仍当前且 session 不匹配时，复用已有 `sourcesGitSessionChangedMessage()`。当前 facts 已是 closed / read-failed / not-ready 时刷新当前动作与闭态，不再增加一条泛化错误造成重复。宿主失效时不向新 input/ref 写提示；本稿不扩到 local Git completion 的 notice 修复。
 
-写请求一旦实际发出，本方案不撤回、取消或回滚引擎操作。保留当前 supported / success / failure 的响应判定和成功刷新路径；后续宿主失效只约束原宿主的 UI 写回，不得宣称已发送的写被取消。不得因该请求返回前又切了会话而发补偿写、重放或第二条 Apply。
+写请求一旦实际发出，本方案不撤回、取消或回滚引擎操作。保留当前 supported / success / failure 的响应判定和成功刷新路径；响应与 catch 的 UI 写回复用 §4.1 的**同一个宿主存活谓词**，包括 input 自身已 dispose 但 Pane 未销毁的情况，不只比较 input 引用。后续宿主失效只约束原宿主的 UI 写回，不得宣称已发送的写被取消。不得因该请求返回前又切了会话而发补偿写、重放或第二条 Apply。
 
 ## 5. 最小可执行 red 与回归矩阵
 
-实施后由唯一 baseline lane 运行；本 draft 不运行、不改测试或 out。测试必须实例化两种真实宿主并走其实际 `runAccept` / 已有按钮委托 → deferred `readGitFileDiff` → write hook，不能只调用 planner/helper 冒充宿主验证。
+实施后由唯一 baseline lane 运行；本 accepted 方案提交仍不运行、不改测试或 out。测试必须实例化两种真实宿主并走其实际 `runAccept` / 已有按钮委托 → deferred `readGitFileDiff` → write hook，不能只调用 planner/helper 冒充宿主验证。
 
 复用 `conversationDiffReviewPane.test.ts` 的 deferred read 模式与 `sourcesDiffPanel.test.ts` 的双宿主 DI/mount、cursor 与请求收集；只扩展本 scope 需要的 mutable session、connection/read state 与释放门。不得替换生产 `runAccept`。以显式 read-start Deferred/Promise 确认一条 FileDiff 已进入等待、目标确为 `s1`，再改变事实、释放合法 diff；不用无限 microtask `while (!readInFlight)`，避免起步被 blocked 时饿死 timeout。fixture/模型/事件错误、未抵达读门或无有效 patch 均不算业务 red。
 
@@ -98,10 +100,10 @@ summary: "仅修复默认编辑器 Pane/Panel Accept 的读后写前授权；当
 | A1 主 red | `s1` read pending → active=`s2`、ready、input/ref 不变 → release；Apply=0、local Git=0，原宿主给 session-changed 提示。 | 静态预期仍向旧 `s1` 发 1 次 Apply；必须实际取得两宿主各自业务 red。 |
 | A2 正控 | 同样的合法 patch/deferred 门，全程 `s1`；每宿主恰好 1 read、1 Apply、0 local Git，成功刷新符合现行行为。 | 应通过；防止 fake 0-write。 |
 | A3 回到同 session | `s1 → s2 → s1` 后 release，原宿主/代次未变、当前门全开；每宿主 1 Apply 到 `s1`。 | 应通过；禁止引入连续授权取消。 |
-| A4 宿主失效 | Pane setInput/clearInput/dispose；Panel ref switch/clear/dispose；包含 clear 后同 input/ref 的生命周期代次变化；release 后零 Apply，不覆盖后来宿主反馈。 | 既有守卫负控与必要局部代次补齐；旧过/旧红分开记。 |
-| A5 当前门闭合 | pending 时分别转为 disconnected、pairing-hold、catalog not-ready、List read-failed、capability/hook unavailable；返回后零 Apply、0 local Git，当前闭态保留。 | 多项应已被底层门拒绝；不得把旧通过冒充新增 red。 |
-| A6 当前恢复 | List failed→ready/非 failed 后 release；同 id disconnect→reconnect 且全部门恢复后 release；每宿主允许 1 Apply 到原 `s1`。 | 当前授权正控，不新增 engine 身份保证。 |
-| A7 已发写后变化 | 确认 Apply hook 已被调用再切 active/input/ref，随后回 accepted 或 failed；只有原 1 次请求、0补偿/0 fallback，不把已发写称取消。 | 保持现有响应/宿主写回语义；不另造 local completion scope。 |
+| A4 宿主失效 | Pane setInput/clearInput/Pane.dispose；另立 input.dispose 负例，保持 Pane 存活且 `this.input` 仍严格等于原 input；Panel ref switch/clear/dispose。包含 clear 后同 input/ref 的生命周期代次变化；release 后均零 Apply，不覆盖后来宿主反馈。 | 既有守卫负控与必要局部代次补齐；input 自身销毁不能只由 Pane.dispose 测试替代，旧过/旧红分开记。 |
+| A5 当前门闭合 | pending 时分别转为 disconnected、pairing-hold、capability/hook unavailable；**单独**构造 Session/List 失败→catalog readiness unavailable、以及 Git Changes 读取失败→snapshot `engine-leftover(reason='read-failed')`。各自保持另一门开放，核 fresh facts 后返回零 Apply、0 local Git，当前闭态保留。 | 多项应已被底层门拒绝；两类读取失败不用同一布尔值冒称双覆盖，不把旧通过冒充新增 red。 |
+| A6 当前恢复 | 分别构造 Session/List 失败→catalog ready（Changes 门始终开放）、Git Changes read-failed→非 read-failed snapshot（catalog 始终 ready）；另测同 id disconnect→reconnect。各 case 原宿主有效且当前门全开，release 后允许 1 Apply 到原 `s1`。 | 当前授权正控；分别核两类 fresh facts 的恢复，不新增 engine 身份保证。 |
+| A7 已发写后变化 | 确认 Apply hook 已调用再切 active/input/ref、销毁 Pane/ref 宿主，或只 input.dispose 而 Pane 与原引用保留，再返回 accepted 或 failed。只有原 1 次请求、0补偿/0 fallback；复用 A4 同一存活谓词限制 notice/刷新等 UI 写回，不把已发写称取消。 | 保持写结果的 supported/success/failure 判定；补齐同一宿主存活保护，不另造 local Git completion scope。 |
 
 请求计数、sessionId、patch/argv、宿主 notice 的小投影是判据，避免打印整个服务/SCM getter 图。不同宿主独立记录结果；不能只将两个 hook 计数相加而遗漏一个入口。
 
@@ -118,8 +120,8 @@ summary: "仅修复默认编辑器 Pane/Panel Accept 的读后写前授权；当
 
 ## 7. 行动与评审入口
 
-- [作者检查点：只读审计、单次 ff 与本 draft 边界](../progress/sources-accept-post-read-authorization-checkpoint.md)
+- [作者检查点：draft 身份、规则16结论与两Minor采纳](../progress/sources-accept-post-read-authorization-checkpoint.md#规则-16-只读审查与父级采纳)
 - [本 scope 分工看板](../parallel/active/sources-accept-post-read-authorization.md)
 - [文档规则 13 / 16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)
 
-**规则 16 状态：待审。** 本稿未自评通过、未标 accepted、未启动实施；父级核对不可变 draft commit 后交 Astra。Critical / Important 必须本轮改入，再独立提交 accepted 方案；审查原件与未采纳理由随行动证据保存。
+**规则 16 状态：已通过方案门。** 原 draft 精确提交 `4b0d3d62e65e54e71d3b1748f100fac7ca5f6ce3` 经父级逐路径/原文保留核验后，原 Astra 只读审查为 **Critical 0 / Important 0 / Minor 2，Assessment：可由 root 核验后按既定流程 accepted；两 Minor 建议当轮明确**。两 Minor 本轮均由父级核验采纳：M1 明确 input 独立销毁负例及读后/写响应共享存活谓词，落 §4.1 / §4.3 / A4 / A7；M2 分开 Session/List 目录 readiness 与 Git Changes read-failed 的构造/恢复，落 §3 / A5 / A6。Strengths、原审查身份与采纳理由保存于上方检查点，不另建或覆盖旧 R3 review。未采纳项：无。该结论只签方案，本 accepted commit 不含实施或运行证据；父级核验后再另发源码实施授权。
